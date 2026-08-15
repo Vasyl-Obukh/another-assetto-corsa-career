@@ -18,6 +18,9 @@ runs a preparation pass (CSP configs, weather controllers, track properties,
 car-specific controls, starter selection) before the game starts. Bypassing it
 breaks all of that.
 
+Planned work lives in [ROADMAP.md](ROADMAP.md), which doubles as the TODO list —
+check it before starting anything, and tick items off as they land.
+
 ## Stack
 
 - **Node.js 24+** for all integration logic — the entire surface is file I/O and
