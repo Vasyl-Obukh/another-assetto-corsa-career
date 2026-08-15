@@ -13,6 +13,10 @@ build/
 release/
 *.asar
 
+# Tooling caches
+.eslintcache
+*.tsbuildinfo
+
 # Logs and local env
 *.log
 npm-debug.log*

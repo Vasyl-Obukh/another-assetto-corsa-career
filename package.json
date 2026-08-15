@@ -5,12 +5,25 @@
   "type": "module",
   "description": "Career mode for Assetto Corsa, driving races through Content Manager",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
-    "scan": "node spike.js scan",
-    "dry": "node spike.js dry",
-    "race": "node spike.js run",
-    "watch": "node spike.js watch"
+    "scan": "node spike.ts scan",
+    "dry": "node spike.ts dry",
+    "race": "node spike.ts run",
+    "watch": "node spike.ts watch",
+    "weather": "node spike.ts weather",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run typecheck && npm run lint"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-airbnb-extended": "^3.2.0",
+    "eslint-plugin-import": "^2.32.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0"
   }
 }
