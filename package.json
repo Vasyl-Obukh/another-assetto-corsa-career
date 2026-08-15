@@ -1,0 +1,16 @@
+{
+  "name": "ac-career-mode",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Career mode for Assetto Corsa, driving races through Content Manager",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "scan": "node spike.js scan",
+    "dry": "node spike.js dry",
+    "race": "node spike.js run",
+    "watch": "node spike.js watch"
+  }
+}
