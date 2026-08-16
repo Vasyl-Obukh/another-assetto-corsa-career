@@ -13,6 +13,9 @@ build/
 release/
 *.asar
 
+# Test coverage reports
+coverage/
+
 # Tooling caches
 .eslintcache
 *.tsbuildinfo

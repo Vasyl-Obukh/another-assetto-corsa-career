@@ -1,0 +1,18 @@
+{
+  // ts-jest compiles each test file on its own and emits CommonJS, so several of
+  // the flags that make native type stripping work have to be relaxed here.
+  // Typechecking still happens for real through `npm run typecheck`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": false,
+    "erasableSyntaxOnly": false,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["es2023", "DOM", "DOM.Iterable"]
+  }
+}

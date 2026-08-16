@@ -3,7 +3,9 @@ import { configs, plugins } from 'eslint-config-airbnb-extended';
 
 export default defineConfig([
   {
-    ignores: ['node_modules/**', 'out/**', 'data/**', 'dist/**', 'build/**', 'release/**'],
+    ignores: [
+      'node_modules/**', 'out/**', 'data/**', 'dist/**', 'build/**', 'release/**', 'coverage/**',
+    ],
   },
 
   // The config objects only carry rules; their plugins register separately.
@@ -23,7 +25,7 @@ export default defineConfig([
       parserOptions: {
         // This config file is not part of tsconfig's include, so it needs the
         // default project to be type-aware-linted alongside the source.
-        projectService: { allowDefaultProject: ['eslint.config.js'] },
+        projectService: { allowDefaultProject: ['eslint.config.js', 'jest.config.js'] },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -49,6 +51,8 @@ export default defineConfig([
         devDependencies: [
           'eslint.config.js',
           'electron.vite.config.ts',
+          'jest.config.js',
+          '**/__tests__/**',
           'src/main/**',
           'src/preload/**',
           'src/renderer/**',
