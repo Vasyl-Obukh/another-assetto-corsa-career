@@ -9,6 +9,8 @@
     // Node 24 runs TypeScript by stripping types, so nothing is emitted and
     // imports keep their .ts extensions. erasableSyntaxOnly rejects syntax
     // that stripping cannot handle (enums, namespaces, parameter properties).
+    // electron-vite bundles main and preload, but they share these rules so
+    // that src/core stays runnable by both Node and the bundler.
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
@@ -20,5 +22,15 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "spike.ts", "eslint.config.ts"]
+  // The renderer is a separate project (DOM lib, JSX) at src/renderer/tsconfig.json.
+  "include": [
+    "spike.ts",
+    "eslint.config.js",
+    "electron.vite.config.ts",
+    "src/cli/**/*.ts",
+    "src/core/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/main/**/*.ts",
+    "src/preload/**/*.ts"
+  ]
 }

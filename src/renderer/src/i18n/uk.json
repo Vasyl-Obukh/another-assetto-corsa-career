@@ -1,0 +1,70 @@
+{
+  "app": {
+    "title": "Кар'єра в Assetto Corsa",
+    "subtitle": "Чемпіонати, які ви проїжджаєте самі"
+  },
+  "paths": {
+    "title": "Знайдена інсталяція",
+    "description": "Де застосунок знайшов Content Manager і Assetto Corsa. Виправте те, що визначено помилково.",
+    "contentManager": "Content Manager",
+    "acRoot": "Assetto Corsa",
+    "documents": "Документи",
+    "change": "Змінити",
+    "clear": "Очистити",
+    "found": "Знайдено",
+    "missing": "Не знайдено",
+    "undetected": "Не визначено",
+    "recheck": "Перевірити ще раз",
+    "triedLabel": "Шукали в",
+    "origin": {
+      "override": "задано вами",
+      "env": "змінна середовища",
+      "registry": "реєстр",
+      "steam": "бібліотека Steam",
+      "default": "типове розташування"
+    }
+  },
+  "content": {
+    "title": "Встановлений контент",
+    "description": "Назви тек є ідентифікаторами, тому моди рахуються так само, як офіційний контент.",
+    "scan": "Сканувати контент",
+    "rescan": "Пересканувати",
+    "scanning": "Сканування…",
+    "blocked": "Спочатку вкажіть теку з Assetto Corsa, щоб сканувати контент.",
+    "never": "Ще не скановано",
+    "scannedAt": "Скановано {{when}} за {{duration}}",
+    "cars_one": "{{count}} автомобіль",
+    "cars_few": "{{count}} автомобілі",
+    "cars_many": "{{count}} автомобілів",
+    "cars_other": "{{count}} автомобіля",
+    "tracks_one": "{{count}} конфігурація траси",
+    "tracks_few": "{{count}} конфігурації траси",
+    "tracks_many": "{{count}} конфігурацій траси",
+    "tracks_other": "{{count}} конфігурації траси",
+    "weathers_one": "{{count}} погода",
+    "weathers_few": "{{count}} погоди",
+    "weathers_many": "{{count}} погод",
+    "weathers_other": "{{count}} погоди",
+    "controllers_one": "{{count}} контролер погоди",
+    "controllers_few": "{{count}} контролери погоди",
+    "controllers_many": "{{count}} контролерів погоди",
+    "controllers_other": "{{count}} контролера погоди"
+  },
+  "settings": {
+    "theme": "Тема",
+    "language": "Мова"
+  },
+  "theme": {
+    "system": "Системна",
+    "light": "Світла",
+    "dark": "Темна"
+  },
+  "language": {
+    "en": "English",
+    "uk": "Українська"
+  },
+  "error": {
+    "title": "Щось пішло не так",
+    "dismiss": "Закрити"
+  }
+}

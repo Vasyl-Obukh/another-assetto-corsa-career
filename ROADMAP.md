@@ -1,10 +1,11 @@
 # Roadmap
 
-Living TODO. Phases are ordered by dependency — each should leave the app in a
+Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phase 0 complete.** The integration spike proves the full round trip.
+Status: **Phase 0 complete; Phase 1 foundation slice complete.** The integration
+spike proves the full round trip, and the Electron shell now sits on top of it.
 
 ## Decisions taken
 
@@ -22,8 +23,8 @@ Status: **Phase 0 complete.** The integration spike proves the full round trip.
 | Running out of money            | **Forced down the ladder.** Recoverable, never a hard fail.                                                                                                                                                                               |
 | Rating                          | **Global + per-discipline**, with cross-discipline entry one tier below your best.                                                                                                                                                        |
 | AI economy                      | **None.** Teams have budget tiers that shape their offers; AI drivers have no wallet.                                                                                                                                                     |
-| Currency                        | **Real currency, $ by default.** € and £ selectable later as display only — no conversion.                                                                                                                                                |
-| Progression speed               | **0.5x–2x multiplier on money and rating**, separate from AI difficulty. Changeable any time; the career records that it changed.                                                                                                         |
+| Currency                        | **Real currency, $ by default.** € and £ selectable later as display only - no conversion.                                                                                                                                                |
+| Progression speed               | **0.5x-2x multiplier on money and rating**, separate from AI difficulty. Changeable any time; the career records that it changed.                                                                                                         |
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
 | Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later).                                                                                      |
@@ -49,7 +50,7 @@ pair. The player holds a level per discipline, and:
 
 ### Weekends and sessions
 
-A weekend is an **ordered list of sessions**, authored per series — three
+A weekend is an **ordered list of sessions**, authored per series - three
 practices and two qualifyings if that is the format, or practice, sprint
 qualifying, sprint, grand prix qualifying, grand prix.
 
@@ -66,7 +67,7 @@ ordering. Quitting mid-weekend is detected and the remainder resumes later.
 ### The calendar
 
 Rounds occupy dates. The clock advances when you start a session dated after the
-current day, and otherwise only through an explicit **advance to date** action —
+current day, and otherwise only through an explicit **advance to date** action -
 time never passes on its own, but a career between races can still move forward
 so offers expire, deadlines arrive and the market turns.
 
@@ -84,14 +85,14 @@ budget tier and reputation. Series entry lists are lists of seats.
 
 A contract binds you to a seat and sets who pays:
 
-- **Pay driver** — you pay the team.
-- **Free** — nobody pays anyone.
-- **Salary** — flat, per season or per event.
-- **Prize share** — a cut of event prize money.
-- **Standings bonus** — paid on final driver or team championship position.
+- **Pay driver** - you pay the team.
+- **Free** - nobody pays anyone.
+- **Salary** - flat, per season or per event.
+- **Prize share** - a cut of event prize money.
+- **Standings bonus** - paid on final driver or team championship position.
 
 Independently it states **entry fee coverage** (full, partial, none), a **car
-source** (team-supplied, your own, rented), and **exclusivity** — whether you may
+source** (team-supplied, your own, rented), and **exclusivity** - whether you may
 race elsewhere, need permission, or are locked in.
 
 ### Cars: owned, rented, supplied
@@ -106,7 +107,7 @@ Rating moves on results, weighted by the **tier of the series** and by the
 **strength of who you beat and who beat you**. We set `AI_LEVEL` per entry, so
 the field has a known strength spread and every finish carries an
 expected-versus-actual signal; an Elo-style update fits naturally. Adaptive
-difficulty must feed in honestly — gains reflect the level actually raced
+difficulty must feed in honestly - gains reflect the level actually raced
 against, not the nominal one.
 
 ### Sponsors
@@ -116,7 +117,7 @@ than flat bonuses, they do things a real sponsor does: cover the entry fee for a
 series you can't yet afford or access, pay out per event or on results, and drop
 you or penalise you for poor performance.
 
-Design is deliberately open — see Open questions. One tension to resolve before
+Design is deliberately open - see Open questions. One tension to resolve before
 building: a sponsor covering entry to a series above your level is a **bypass of
 the discipline ladder**, so the two systems need to agree on how far that goes.
 
@@ -129,7 +130,7 @@ recording that it happened so a finished run is honest about it.
 ### Presentation
 
 Light and dark themes, and localisation with English as default and Ukrainian
-alongside it. Both belong in Phase 1 — retrofitting either across a finished UI
+alongside it. Both belong in Phase 1 - retrofitting either across a finished UI
 is far more expensive than starting with them.
 
 ---
@@ -144,12 +145,12 @@ Real AC limitations, not scope cuts:
 - **No damage data**, so repair costs cannot be a money sink until the CSP
   recorder lands.
 - **No safety car, full-course yellow, formation or rolling starts.**
-- **No structured penalty system** — a `cuts` count per lap and nothing else.
+- **No structured penalty system** - a `cuts` count per lap and nothing else.
 - **No car class taxonomy.** AMS2 knows what a GT3 is; AC has an optional `class`
   field and free-text tags filled in inconsistently by mod authors.
 - **Regulations cannot be enforced yet.** Damage, tyre wear and fuel multipliers
   live in assists, and `race/config` wants CM's serialized preset format rather
-  than an `assists.ini`. Unresolved — Phase 3.
+  than an `assists.ini`. Unresolved - Phase 3.
 - **No mandatory pit windows or tyre compound rules.**
 - **No mid-race save, no driver swaps.**
 
@@ -162,13 +163,13 @@ Real AC limitations, not scope cuts:
   (`AI_LEVEL`, `AI_AGGRESSION` per car).
 - **We own the grid.** `[SESSION_n] STARTING_POSITION` plus `[CAR_n]` ordering is
   what makes split weekends and custom formats possible at all.
-- **Persistent liveries** — a driver looks like the same driver all season.
+- **Persistent liveries** - a driver looks like the same driver all season.
 - **Deterministic CSP weather per round**, rain included.
 - **Shareable series files.**
 
 ---
 
-## Phase 0 — Integration spike ✅
+## Phase 0 - Integration spike ✅
 
 - [x] Discover CM, AC root and Documents paths
 - [x] Scan cars, tracks, weathers, weather controllers
@@ -177,47 +178,65 @@ Real AC limitations, not scope cuts:
 - [x] Career weather presets with deterministic rain
 - [x] TypeScript + ESLint (Airbnb)
 
-## Phase 1 — Electron shell
+## Phase 1 - Electron shell
 
-- [ ] Decide the renderer stack (see Open questions) and scaffold it
-- [ ] `electron-vite` layout: `main/`, `preload/`, `renderer/`
-- [ ] Move `src/` to `src/core/` — pure, no Electron imports, still CLI-usable
-- [ ] Typed IPC over the core (`contextIsolation: true`, no `nodeIntegration`)
-- [ ] **Theming from the start**: light and dark, tokens not hardcoded colours
-- [ ] **i18n from the start**: English and Ukrainian, no bare strings in components
-- [ ] App settings store (paths, theme, language, overrides)
-- [ ] First-run flow: detect AC/CM, show findings, let the user correct them
-- [ ] Window state persistence; single-instance lock
-- [ ] Throttle or hide the renderer while a race is live
-- [ ] `npm run dev` / `npm run build`; keep `npm run check` green
+Foundation slice landed. The app opens on a diagnostics screen showing the
+detected install and content counts, with live theme and language switching.
 
-## Phase 2 — Content library and classification
+- [x] Decide the renderer stack and scaffold it - **React 19 + electron-vite**,
+      with **shadcn/ui** (vendored) on Radix and Tailwind v4
+- [x] `electron-vite` layout: `main/`, `preload/`, `renderer/`
+- [x] Move `src/` to `src/core/` - pure, no Electron imports, still CLI-usable
+- [x] Typed IPC over the core (`contextIsolation: true`, no `nodeIntegration`,
+      `sandbox: true`), with an error envelope so failures cross the boundary intact
+- [x] **Theming from the start**: light and dark, tokens not hardcoded colours;
+      main owns the resolved theme so native chrome follows
+- [x] **i18n from the start**: English and Ukrainian, enforced by
+      `react/jsx-no-literals`; dates, numbers and money through `Intl`
+- [x] App settings store (paths, theme, language, overrides) in `%APPDATA%`,
+      atomic writes, tolerant of a corrupted file
+- [x] Window state persistence, clamped to an attached display; single-instance lock
+- [x] `npm run dev` / `npm run build`; `npm run check` green across both projects
+- [ ] First-run flow: detect AC/CM, show findings, let the user correct them -
+      the diagnostics screen is the read/correct half; the first-run *flow*
+      (detecting that this is a first run, walking the user through it) is not built
+- [ ] Throttle or hide the renderer while a race is live - needs the launch path
+      wired into the UI first, so it lands with Phase 3
+- [ ] Localise errors raised in `src/core/`, which currently reach the UI in English
+- [ ] Wire up `node:test` and start with `migrateSettings`, which is pure and
+      tolerant by design
+
+## Phase 2 - Content library and classification
 
 - [ ] Persist scan results with a cache keyed on folder mtimes
 - [ ] Background rescan; detect content added while the app is open
 - [ ] Extract car specs (bhp, weight, top speed, power-to-weight) from
-      `ui_car.json` — the basis for pricing and class inference
+      `ui_car.json` - the basis for pricing and class inference
 - [ ] Car and track browsers with previews, filters and search
 - [ ] **Car classes**, user-defined, with inference from tags and specs
-- [ ] **Disciplines and tiers** — the ladder structure
+- [ ] **Disciplines and tiers** - the ladder structure
 - [ ] Map classes to disciplines and tiers
 - [ ] Skin browser, for pinning liveries to drivers
 - [ ] Report broken content rather than hiding it
 
-## Phase 3 — Race weekends and sessions
+## Phase 3 - Race weekends and sessions
 
-Spikes first — they decide what weekend formats are expressible.
+Spikes first - they decide what weekend formats are expressible.
 
-- [ ] **Spike `[SESSION_n] STARTING_POSITION`** — confirm indexing and that AI
+- [ ] **Spike `[SESSION_n] STARTING_POSITION`** - confirm indexing and that AI
       grid order follows `[CAR_n]` order
-- [ ] **Spike repeated session types** — will AC accept two `TYPE=3` races, or
+- [ ] **Spike repeated session types** - will AC accept two `TYPE=3` races, or
       qualifying between two races, in one launch? Decides whether sprint plus
       feature can share a launch
-- [ ] **Spike early exit** — is `race_out.json` written when quitting a weekend
+- [ ] **Spike early exit** - is `race_out.json` written when quitting a weekend
       partway, and does it accumulate one entry per session?
+- [ ] **Spike `raceResult`** - archived `race_out.json` files carry a `raceResult`
+      array of car indices that looks like AC's actual finishing order, currently
+      neither modelled in `types.ts` nor read by `summarise()`. If it holds up,
+      positions and DNFs stop waiting on the Phase 12 recorder
 - [ ] Weekend model: ordered sessions with day offsets and per-series formats
 - [ ] Launch bundler: group consecutive sessions into the fewest launches AC allows
-- [ ] Weekend state machine — resumable, each bundle independently launchable
+- [ ] Weekend state machine - resumable, each bundle independently launchable
 - [ ] **Grid reconstruction** across launch seams from qualifying results
 - [ ] Player last when qualifying is skipped; AI by rating with randomness
 - [ ] Track grip continuity across separate launches
@@ -229,7 +248,7 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] Offer to write CM's `Arguments.txt` (`--skip-all-results`,
       `--hide-race-cancel-button`)
 
-## Phase 4 — Series, teams and the editor
+## Phase 4 - Series, teams and the editor
 
 - [ ] Series schema: discipline, tier, rounds, weekend format, regulations,
       points, BoP
@@ -246,7 +265,7 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] Content manifest per series with `acmanager://install` for missing content
 - [ ] Ship reference series across several disciplines and tiers
 
-## Phase 5 — Championship engine and calendar
+## Phase 5 - Championship engine and calendar
 
 - [ ] Configurable points systems (custom tables, fastest lap, pole, drops)
 - [ ] Driver and team standings
@@ -257,12 +276,12 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] **Clash detection** between events on the same day
 - [ ] Season state machine: next round, results, standings, season end
 - [ ] DNS handling: fee lost, no points, rating untouched
-- [ ] Persistent AI field — stable names, nationalities, liveries, ratings
+- [ ] Persistent AI field - stable names, nationalities, liveries, ratings
 - [ ] One-off and historic events, preferring weekdays
 - [ ] Adaptive difficulty, recording the level actually raced against
 - [ ] Season summary and history
 
-## Phase 6 — Career saves
+## Phase 6 - Career saves
 
 - [ ] Career = a folder; saves = named snapshots of full career state
 - [ ] Create, name, overwrite and delete saves
@@ -273,7 +292,7 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] Backup and restore
 - [ ] Archived results linked to career, season and round
 
-## Phase 7 — Economy
+## Phase 7 - Economy
 
 - [ ] Money and a transaction ledger, so every change is explainable
 - [ ] Currency display: `$` default, `€` and `£` as alternatives, no conversion
@@ -288,7 +307,7 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] Forced down the ladder when you can't afford to race
 - [ ] Sell owned cars to recover
 
-## Phase 8 — Rating and the ladder
+## Phase 8 - Rating and the ladder
 
 - [ ] Global rating plus per-discipline ratings
 - [ ] Elo-style update weighted by series tier and per-entry `AI_LEVEL` spread
@@ -298,7 +317,7 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] **Cross-discipline entry at best level minus one**
 - [ ] Rating history with a readable explanation of every change
 
-## Phase 9 — Contracts, teams and the market
+## Phase 9 - Contracts, teams and the market
 
 - [ ] Contract model: pay driver, free, salary, prize share, standings bonus
 - [ ] Entry fee coverage: full, partial, none
@@ -310,9 +329,9 @@ Spikes first — they decide what weekend formats are expressible.
 - [ ] Buying a seat as a pay driver
 - [ ] Team budgets and reputation shaping offers
 
-## Phase 10 — Sponsors
+## Phase 10 - Sponsors
 
-Design to be settled before building — see Open questions.
+Design to be settled before building - see Open questions.
 
 - [ ] Sponsor cards and slots that grow with level
 - [ ] Effects: cover entry fees (including series above your level), pay per
@@ -321,7 +340,7 @@ Design to be settled before building — see Open questions.
 - [ ] Reconcile fee coverage with the discipline ladder
 - [ ] Sponsor offers arriving through the inbox
 
-## Phase 11 — Inbox
+## Phase 11 - Inbox
 
 - [ ] Message model with read/unread, categories and expiry
 - [ ] Seat and sponsor offers with accept/decline and deadlines
@@ -330,7 +349,7 @@ Design to be settled before building — see Open questions.
 - [ ] Contract and market news
 - [ ] Earlier phases emit events into this bus as they land
 
-## Phase 12 — Real results (CSP Lua recorder)
+## Phase 12 - Real results (CSP Lua recorder)
 
 - [ ] CSP Lua app in `assettocorsa/apps/lua` recording live session state
 - [ ] Authoritative results to a handoff JSON the desktop app reads
@@ -339,7 +358,7 @@ Design to be settled before building — see Open questions.
 - [ ] Keep inference working for users without the plugin
 - [ ] Unlocks repair costs as an economic sink
 
-## Phase 13 — Customization and settings
+## Phase 13 - Customization and settings
 
 - [ ] Settings UI: paths, CM flags, units (`USE_MPH`), theme, language, currency
 - [ ] Progression speed, with the career flagged when it changes
@@ -350,10 +369,10 @@ Design to be settled before building — see Open questions.
 - [ ] Warn that `__CM_WEATHER_CONTROLLER` overrides the user's `weather_fx.ini`
 - [ ] Uninstall/cleanup: remove career weathers, restore CM arguments
 
-## Phase 14 — Distribution
+## Phase 14 - Distribution
 
 - [ ] `electron-builder` packaging, Windows installer
-- [ ] **Code signing certificate** — an unsigned Electron app that reads game
+- [ ] **Code signing certificate** - an unsigned Electron app that reads game
       folders and spawns processes gets flagged constantly
 - [ ] Auto-update, crash reporting
 - [ ] Docs: getting started, series authoring guide
@@ -368,11 +387,18 @@ Design to be settled before building — see Open questions.
 - **In-game career panel** as a CSP Lua app, solving alt-tab and VR.
 - **Series generator**: "build me a championship from these cars".
 - **Community series repository.**
-- Endurance features: driver swaps, mid-race saves — both blocked by AC.
+- Endurance features: driver swaps, mid-race saves - both blocked by AC.
 
 ## Open questions
 
-- **Renderer stack.** React + Vite is the default recommendation; decide in Phase 1.
+- ~~**Renderer stack.**~~ Settled: React 19 + electron-vite, shadcn/ui on Radix,
+  Tailwind v4. Vendored components, so the project keeps owning its UI code.
+- ~~**Where do career saves live?**~~ Settled: `app.getPath('userData')`
+  (`%APPDATA%`), same as settings. Phase 6 adds an "open save folder" action and
+  backup/export to cover the shareability the visible-folder option would have given.
+- ~~**Localisation depth.**~~ Settled: strings *and* dates, numbers and currency,
+  via `Intl` from the start. Remaining question is only whether `src/core/` error
+  strings should be localised too.
 - **Sponsors, in detail.** How many slots per level; whether sponsor-funded entry
   bypasses the ladder or only softens the cost; what "poor performance" means
   numerically; whether sponsors are per-season or per-championship.
@@ -382,9 +408,5 @@ Design to be settled before building — see Open questions.
   weekdays, or does the series author fix their dates and accept clashes?
 - **Car condition and maintenance.** Needs damage data from Phase 12, and risks
   feeling like admin.
-- **Reputation as a separate axis from rating** — covering reliability and
+- **Reputation as a separate axis from rating** - covering reliability and
   behaviour rather than pace?
-- **Localisation depth.** Ukrainian UI strings only, or also localised dates and
-  number formatting?
-- **Where do career saves live?** `%APPDATA%` is conventional; a visible folder
-  is easier to back up and share.

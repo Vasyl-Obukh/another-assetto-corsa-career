@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * shadcn defaults its dark variant to a .dark class. Main owns the resolved
+ * theme and stamps it as data-theme on <html>, so the variant is redefined once
+ * here and every vendored component's dark: utility follows without editing.
+ */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+/*
+ * The only place colours exist. Components reference tokens, never literals -
+ * a hardcoded hex anywhere else is a bug, not a shortcut.
+ */
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.01 260);
+  --primary: oklch(0.55 0.19 26);
+  --primary-foreground: oklch(0.985 0.005 60);
+  --secondary: oklch(0.96 0.004 250);
+  --secondary-foreground: oklch(0.22 0.01 260);
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.95 0.008 250);
+  --accent-foreground: oklch(0.22 0.01 260);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.005 60);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --border: oklch(0.9 0.005 255);
+  --input: oklch(0.9 0.005 255);
+  --ring: oklch(0.55 0.19 26);
+}
+
+[data-theme="dark"] {
+  --background: oklch(0.17 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.21 0.014 265);
+  --card-foreground: oklch(0.94 0.005 260);
+  --popover: oklch(0.23 0.014 265);
+  --popover-foreground: oklch(0.94 0.005 260);
+  --primary: oklch(0.64 0.2 26);
+  --primary-foreground: oklch(0.16 0.02 30);
+  --secondary: oklch(0.27 0.014 265);
+  --secondary-foreground: oklch(0.94 0.005 260);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --accent-foreground: oklch(0.94 0.005 260);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.64 0.2 26);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Windows-only app: the native stack is both free and correct. No CDN font
+     could load anyway - an Electron window has to render offline. */
+  --font-sans: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Chrome for a desktop app, not a document: no rubber-banding, no text
+       selection except where it is actually useful. */
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [data-selectable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}

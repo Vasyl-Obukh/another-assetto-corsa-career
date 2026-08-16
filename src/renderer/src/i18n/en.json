@@ -1,0 +1,62 @@
+{
+  "app": {
+    "title": "Assetto Corsa Career",
+    "subtitle": "Championships you actually drive"
+  },
+  "paths": {
+    "title": "Detected installation",
+    "description": "Where the app found Content Manager and Assetto Corsa. Correct anything it got wrong.",
+    "contentManager": "Content Manager",
+    "acRoot": "Assetto Corsa",
+    "documents": "Documents",
+    "change": "Change",
+    "clear": "Clear",
+    "found": "Found",
+    "missing": "Not found",
+    "undetected": "Not detected",
+    "recheck": "Re-check",
+    "triedLabel": "Looked in",
+    "origin": {
+      "override": "set by you",
+      "env": "environment variable",
+      "registry": "registry",
+      "steam": "Steam library",
+      "default": "default location"
+    }
+  },
+  "content": {
+    "title": "Installed content",
+    "description": "Folder names are IDs, so mods count exactly like official content.",
+    "scan": "Scan content",
+    "rescan": "Rescan",
+    "scanning": "Scanning…",
+    "blocked": "Locate the Assetto Corsa install before scanning content.",
+    "never": "Not scanned yet",
+    "scannedAt": "Scanned {{when}} in {{duration}}",
+    "cars_one": "{{count}} car",
+    "cars_other": "{{count}} cars",
+    "tracks_one": "{{count}} track layout",
+    "tracks_other": "{{count}} track layouts",
+    "weathers_one": "{{count}} weather",
+    "weathers_other": "{{count}} weathers",
+    "controllers_one": "{{count}} weather controller",
+    "controllers_other": "{{count}} weather controllers"
+  },
+  "settings": {
+    "theme": "Theme",
+    "language": "Language"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "en": "English",
+    "uk": "Українська"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "dismiss": "Dismiss"
+  }
+}

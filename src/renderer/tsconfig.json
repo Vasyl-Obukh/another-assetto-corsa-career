@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "paths": { "@/*": ["./src/*"] }
+  },
+  // src/shared is the bottom layer: pure types, constants and helpers with no
+  // node: and no DOM. Nothing from src/core belongs here.
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../shared/**/*.ts"]
+}
