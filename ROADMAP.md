@@ -28,6 +28,8 @@ spike proves the full round trip, and the Electron shell now sits on top of it.
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
 | Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later).                                                                                      |
+| Where career state lives        | **Main owns it, in memory.** One live career object, written through to `career.json` continuously so a crash costs nothing; saves are snapshots copied from it. The renderer holds a read-only projection - no client-side store.        |
+| Changing career state           | **Validated commands, never patches.** The renderer sends intent (`career:buyCar`); main checks the rules, applies, persists and pushes the result back.                                                                                  |
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
 
 ---
@@ -126,6 +128,56 @@ the discipline ladder**, so the two systems need to agree on how far that goes.
 A multiplier on money and rating earned, independent of AI difficulty. 0.5x for a
 hard, slow career; 2x for a fast one. Changeable mid-career, with the career
 recording that it happened so a finished run is honest about it.
+
+### Career state, and where it lives
+
+The career is **one live object in the main process**, loaded when a career is
+opened. Main is the only place it can be: it is persisted to disk, and `src/core/`
+reads it to build `race.ini`. The renderer holds a read-only projection and
+re-renders when main pushes a change, the same arrangement settings already use.
+That is why there is no Redux or equivalent in the renderer - the process
+boundary already provides the single source of truth.
+
+**Durability and save slots are different things**, and conflating them gives the
+bad version of both:
+
+- **The working state** (`career.json`) is written through continuously, debounced.
+  Accepting a contract or buying a car must survive a crash; none of that is worth
+  replaying.
+- **Saves** are snapshots copied from the working state at deliberate moments -
+  rolling autosaves at session boundaries, plus named saves. These are restore
+  points, not durability.
+
+```
+%APPDATA%/ac-career-mode/careers/<career-id>/
+  career.json          live working state, written debounced after every change
+  saves/
+    autosave-1.json    snapshots taken at session boundaries, rolling
+    my-f2-run.json     named saves
+  results/             archived race_out.json per round
+```
+
+**State changes are commands, not patches.** The renderer sends intent -
+`career:buyCar { carId }`, `career:acceptOffer { offerId }` - and main validates
+against the rules (can you afford it, is the seat still open, does exclusivity
+allow it) before applying. The rules live next to the data, the sandboxed
+renderer is never trusted with authoritative writes, and Phase 7's transaction
+ledger falls out of it: each command is what writes the ledger entry.
+
+`createSettingsStore` in `src/main/settings-store/` is the shape to follow -
+`get` / `patch` / `flush` / `onChange`, atomic temp-file-and-rename, debounced,
+tolerant of a corrupt file. A career store is that plus command handlers and
+snapshot/restore.
+
+Two questions this leaves open, to settle in Phase 6:
+
+- **Save-scumming.** Continuous writes do not prevent reloading an autosave after
+  a bad race; only the save-slot policy does. Given that skipping a race is a DNS
+  and rounds are never simulated, one-way autosaves or a recorded rollback would
+  be more consistent - the way a progression-speed change is recorded.
+- **What loading an autosave costs.** It discards contracts and purchases made
+  since that session boundary. Correct, but it belongs in the confirmation dialog
+  rather than being discovered.
 
 ### Presentation
 
@@ -284,9 +336,16 @@ Spikes first - they decide what weekend formats are expressible.
 ## Phase 6 - Career saves
 
 - [ ] Career = a folder; saves = named snapshots of full career state
+- [ ] **Career store in main**, following `createSettingsStore`: one live object,
+      `career.json` written through debounced, `career:changed` pushed to the renderer
+- [ ] **Command handlers** rather than patches, each validating before it applies
 - [ ] Create, name, overwrite and delete saves
 - [ ] Load any older save
-- [ ] Rolling autosaves after every session, 3 deep by default
+- [ ] Rolling autosaves after every session, 3 deep by default - snapshots copied
+      from the working state, not a second durability mechanism
+- [ ] Warn on load that anything done since that session boundary is discarded
+- [ ] Decide the save-scumming policy: one-way autosaves, a recorded rollback, or
+      neither
 - [ ] Save format with a version field and migrations
 - [ ] Multiple concurrent careers
 - [ ] Backup and restore
