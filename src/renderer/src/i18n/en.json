@@ -58,5 +58,12 @@
   "error": {
     "title": "Something went wrong",
     "dismiss": "Dismiss"
+  },
+  "setup": {
+    "title": "Welcome to Assetto Corsa Career",
+    "subtitle": "Before your first race, confirm where Assetto Corsa lives on this machine.",
+    "continue": "Continue",
+    "ready": "Everything is where it should be.",
+    "blocked": "Locate all three before continuing."
   }
 }

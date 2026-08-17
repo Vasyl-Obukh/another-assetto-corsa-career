@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import type { BrowserWindow } from 'electron';
 
+import { isAppError } from '../../shared/errors/index.ts';
 import type {
   IpcChannel,
   IpcError,
@@ -17,11 +18,15 @@ import type {
  * @returns A message, and the stack when there was one
  */
 export const toIpcError = (error: unknown): IpcError => {
-  if (error instanceof Error) {
-    return { message: error.message, ...(error.stack ? { detail: error.stack } : {}) };
-  }
+  if (!(error instanceof Error)) return { message: String(error) };
 
-  return { message: String(error) };
+  return {
+    message: error.message,
+    // Only errors we raised ourselves carry a code; an errno from fs or a spawn
+    // failure has no translation and travels as its raw message.
+    ...(isAppError(error) ? { code: error.code, params: error.params } : {}),
+    ...(error.stack ? { detail: error.stack } : {}),
+  };
 };
 
 /**

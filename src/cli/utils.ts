@@ -3,8 +3,10 @@ import path from 'node:path';
 
 import { DEFAULT_RACE, RACES_DIR } from './constants.ts';
 import type { LoadedRace } from './types.ts';
-import { validateRace } from '../core/raceIni/index.ts';
+import { validateRace } from '../core/race-ini/index.ts';
 import { formatLapTime } from '../core/results/index.ts';
+import { SCAN_HINT } from '../shared/errors/index.ts';
+import type { AppErrorInfo } from '../shared/errors/index.ts';
 import type { Content, RaceDefinition, RaceSummary } from '../shared/types/index.ts';
 
 /**
@@ -20,13 +22,28 @@ export const loadRace = async (args: string[]): Promise<LoadedRace> => {
 };
 
 /**
+ * Renders validation problems for the terminal.
+ *
+ * The CLI has no catalogue, so it prints the English message each problem
+ * carries, plus the scan hint that is deliberately kept out of the shared
+ * template because it means nothing inside the desktop app.
+ * @param problems The problems validateRace found
+ * @returns One line per problem
+ */
+export const describeProblems = (problems: AppErrorInfo[]): string[] => problems.map(
+  (problem) => (problem.code === 'race.track.notInstalled'
+    ? `${problem.message}. ${SCAN_HINT}`
+    : problem.message),
+);
+
+/**
  * Throws unless the race can actually be run against the installed content.
  * @param race The race to check
  * @param content Installed content to check against
  * @throws When anything the race refers to is missing
  */
 export const assertRunnable = (race: RaceDefinition, content: Content): void => {
-  const problems = validateRace(race, content);
+  const problems = describeProblems(validateRace(race, content));
   if (problems.length) {
     throw new Error(`Race is not runnable:\n    - ${problems.join('\n    - ')}`);
   }

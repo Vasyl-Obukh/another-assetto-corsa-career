@@ -5,6 +5,7 @@
 import type { ContentSummary } from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
+import type { ErrorCode, ErrorParams } from '../errors/types.ts';
 
 /**
  * Every request/response channel, keyed by channel name.
@@ -79,9 +80,17 @@ export type IpcEventName = keyof IpcEvents;
  */
 export interface IpcError {
   /**
-   * What went wrong, suitable for showing to the user.
+   * What went wrong, in English. Shown as-is when there is no code to translate.
    */
   message: string;
+  /**
+   * Which error this is, absent when it came from the OS rather than from us.
+   */
+  code?: ErrorCode;
+  /**
+   * Values to interpolate into the translated template.
+   */
+  params?: ErrorParams;
   /**
    * The original stack, for the console.
    */

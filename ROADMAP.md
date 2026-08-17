@@ -4,8 +4,9 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phase 0 complete; Phase 1 foundation slice complete.** The integration
-spike proves the full round trip, and the Electron shell now sits on top of it.
+Status: **Phases 0 and 1 complete.** The integration spike proves the full round
+trip, and the Electron shell sits on top of it: setup, diagnostics, theming,
+i18n, settings and a tested core. Next up is Phase 2, the content library.
 
 ## Decisions taken
 
@@ -230,10 +231,11 @@ Real AC limitations, not scope cuts:
 - [x] Career weather presets with deterministic rain
 - [x] TypeScript + ESLint (Airbnb)
 
-## Phase 1 - Electron shell
+## Phase 1 - Electron shell ✅
 
-Foundation slice landed. The app opens on a diagnostics screen showing the
-detected install and content counts, with live theme and language switching.
+Complete. A first run opens on a setup screen that must locate Assetto Corsa
+before it lets you past; after that the app opens on diagnostics, with live theme
+and language switching and errors translated all the way down from `src/core/`.
 
 - [x] Decide the renderer stack and scaffold it - **React 19 + electron-vite**,
       with **shadcn/ui** (vendored) on Radix and Tailwind v4
@@ -249,14 +251,14 @@ detected install and content counts, with live theme and language switching.
       atomic writes, tolerant of a corrupted file
 - [x] Window state persistence, clamped to an attached display; single-instance lock
 - [x] `npm run dev` / `npm run build`; `npm run check` green across both projects
-- [ ] First-run flow: detect AC/CM, show findings, let the user correct them -
-      the diagnostics screen is the read/correct half; the first-run *flow*
-      (detecting that this is a first run, walking the user through it) is not built
-- [ ] Throttle or hide the renderer while a race is live - needs the launch path
-      wired into the UI first, so it lands with Phase 3
-- [ ] Localise errors raised in `src/core/`, which currently reach the UI in English
-- [ ] Wire up `node:test` and start with `migrateSettings`, which is pure and
-      tolerant by design
+- [x] First-run flow: a gated setup screen shown until `setupCompletedAt` is
+      stamped, reusing the same cards as diagnostics; Continue stays disabled
+      until all three paths resolve
+- [x] Localise errors raised in `src/core/` - every error the app raises itself
+      now carries a stable code and params, translated in the renderer and still
+      rendered in English for the CLI
+- [x] Unit tests - Jest rather than `node:test`, 299 tests across `src/shared`,
+      `src/core`, the settings store and the renderer's pure helpers
 
 ## Phase 2 - Content library and classification
 
@@ -294,6 +296,11 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Track grip continuity across separate launches
 - [ ] Race setup screen: weather, start time, AI difficulty, session lengths
 - [ ] Results screen per session
+- [ ] **Throttle or hide the renderer while a race is live** - the app sits
+      alongside a running game, so it should not burn frames in the background.
+      Lands here because this is where the launch path first exists to trigger it:
+      main hides or backgrounds the window on launch and restores it when
+      `race_out.json` arrives
 - [ ] Resolve the assists question so regulations can be enforced
 - [ ] Verify `[SESSION_n] LAPS` vs `[RACE] RACE_LAPS`
 - [ ] Replace the road-temperature approximation with Kunos' curve
@@ -456,8 +463,8 @@ Design to be settled before building - see Open questions.
   (`%APPDATA%`), same as settings. Phase 6 adds an "open save folder" action and
   backup/export to cover the shareability the visible-folder option would have given.
 - ~~**Localisation depth.**~~ Settled: strings *and* dates, numbers and currency,
-  via `Intl` from the start. Remaining question is only whether `src/core/` error
-  strings should be localised too.
+  via `Intl` from the start, and errors raised in `src/core/` too - they carry a
+  code the renderer translates, while the CLI keeps printing English.
 - **Sponsors, in detail.** How many slots per level; whether sponsor-funded entry
   bypasses the ladder or only softens the cost; what "poor performance" means
   numerically; whether sponsors are per-season or per-championship.

@@ -4,6 +4,8 @@ import { execFile } from 'node:child_process';
 import { access, constants } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
+import { AppError } from '../../shared/errors/index.ts';
+import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { PathCandidate, PathProbe } from '../../shared/types/index.ts';
 
 const exec = promisify(execFile);
@@ -42,6 +44,21 @@ export const regQuery = async (key: string, value?: string): Promise<string | nu
 };
 
 /**
+ * Turns a failed probe back into something throwable, keeping its code.
+ *
+ * `pick` always sets an error when a probe fails, but the type does not say so,
+ * and a probe with neither a value nor a reason should still throw a sentence
+ * rather than an empty message.
+ * @param probe The probe that failed
+ * @returns The error to throw
+ */
+export const probeError = (probe: PathProbe): AppError => (
+  probe.error
+    ? new AppError(probe.error.code, probe.error.params)
+    : new AppError('paths.unresolved')
+);
+
+/**
  * Joins candidate paths into a readable list for an error message.
  * @param tried The candidates to list
  * @returns The paths, comma separated
@@ -59,14 +76,14 @@ export const listCandidates = (tried: PathCandidate[]): string => (
  * @param tried Candidates in descending precedence
  * @param check Decides whether a candidate is valid
  * @param emptyError Used when there were no candidates at all
- * @param failedError Builds the message when candidates existed but all failed
+ * @param failedError Builds the error when candidates existed but all failed
  * @returns The probe result, which never throws
  */
 export const pick = async (
   tried: PathCandidate[],
   check: (value: string) => Promise<boolean>,
-  emptyError: string,
-  failedError: (tried: PathCandidate[]) => string,
+  emptyError: AppErrorInfo,
+  failedError: (tried: PathCandidate[]) => AppErrorInfo,
 ): Promise<PathProbe> => {
   for (const candidate of tried) {
     if (await check(candidate.value)) {

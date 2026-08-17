@@ -81,7 +81,7 @@ data/results/*.json  <-  summarise()  <-  out/race_out.json  <--------+
 
 1. `src/core/content/` scans installed cars, tracks, weathers and CSP weather
    controllers. IDs are folder names, so mods are first-class.
-2. `src/core/raceIni/` turns a race definition into AC's `race.ini`.
+2. `src/core/race-ini/` turns a race definition into AC's `race.ini`.
 3. `src/core/launch/` base64-encodes it and spawns CM with an `acmanager://` URI.
 4. `src/core/results/` watches `Documents\Assetto Corsa\out\race_out.json`, which
    is overwritten every session, and archives it before the next race.
@@ -117,10 +117,11 @@ per project.
 | `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file |
 | `src/shared/types/` | Every domain type: content, paths, race, results, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults |
+| `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content; lenient about malformed mod JSON |
-| `src/core/raceIni/` | Race definition -> `race.ini` |
+| `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM |
 | `src/core/results/` | Watching, stable-reading and summarising results |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
@@ -169,24 +170,45 @@ diagnostic - it is what CM actually handed AC, rather than what we intended.
 **Style.** Airbnb via ESLint; run `npm run check` before committing. The only
 deliberate departures are in `eslint.config.js`, each with a reason next to it.
 
+**Names are kebab-case,** files and folders alike - `race-ini/race-ini.ts`,
+`use-installation/use-installation.ts`. React components are the one exception
+and stay PascalCase, inside a kebab-case folder: `paths-card/PathsCard.tsx`.
+Identifiers stay camelCase as usual; only the names on disk change.
+
 **One kind of thing per file.** Types, constants and functions live in
 `types.ts`, `constants.ts` and `utils.ts` rather than piling into one module. A
-module that needs more than one of them becomes a folder:
+module that needs more than one of them becomes a folder, and **the module's own
+file is named after the folder**:
 
 ```
 src/core/results/
-  index.ts       the public API - waitForResults, summarise, archiveResults
+  results.ts     the module - waitForResults, summarise, archiveResults
   types.ts       WaitOptions
   constants.ts   POLL_INTERVAL, SETTLE_READS, DEFAULT_TIMEOUT
   utils.ts       mtimeOf, sleepUntilEvent
+  index.ts       export * from './results.ts';
 ```
+
+**`index.ts` may only re-export. No implementation, ever.** That is what keeps a
+list of changed files readable: a one-line barrel never changes, so `index.ts`
+stops appearing in diffs and every entry names the thing it actually is. It also
+means callers still reach for the folder, so moving a file inside a module
+touches nobody.
+
+`utils.ts` is for genuinely internal helpers supporting the module. Where a
+folder exists only to hold a set of functions, they go in the folder-named file
+and there is no `utils.ts` at all - `src/shared/utils/settings/settings.ts` is
+the whole module, coercion helpers included.
 
 A genuinely small, self-contained file may stay whole - `src/renderer/src/lib/utils.ts`
 is one function and stays that way. A React component may keep its props
 interface beside it.
 
-**Every folder has an `index.ts`,** and it is the only thing anyone imports.
-Reach for the folder, never `../results/utils.ts`.
+**Tests are named after the file they test,** so `race-ini/__tests__/race-ini.test.ts`
+tests `race-ini.ts`. Never `index.test.ts`, for the same reason as above.
+
+**Import the folder, not the file inside it.** Reach for `../results/index.ts`,
+never `../results/utils.ts`.
 
 **Whether you write `/index.ts` depends on who runs the code**, and this is not
 a style choice:
@@ -272,10 +294,10 @@ strings and these docs alike.
 Jest, with the tests for a module in a `__tests__/` folder inside it:
 
 ```
-src/core/raceIni/
-  index.ts  types.ts  constants.ts  utils.ts
+src/core/race-ini/
+  race-ini.ts  types.ts  constants.ts  utils.ts  index.ts
   __tests__/
-    index.test.ts        tests index.ts
+    race-ini.test.ts     tests race-ini.ts
     utils.test.ts        tests utils.ts
     fixtures.ts          shared fixtures; not a suite, so not named *.test.ts
 ```
@@ -293,7 +315,7 @@ The root is named for the module path, the nested ones for the function exactly
 as exported.
 
 ```ts
-describe('core/raceIni/utils', () => {
+describe('core/race-ini/utils', () => {
   describe('parseClock', () => {
     it('reads HH:MM into decimal hours', () => { … });
     it('throws on anything that is not HH:MM', () => { … });
@@ -340,6 +362,28 @@ no error anywhere - so validate against installed content before launching.
 Skip the entry, never throw. The same applies to the settings file: a corrupted
 or hand-edited `settings.json` is quarantined and replaced with defaults rather
 than blocking startup.
+
+**Errors we raise carry a code.** Anything the app decides is wrong throws
+`AppError` from `src/shared/errors/`, with a stable `ErrorCode` and typed params:
+
+```ts
+throw new AppError('race.track.notInstalled', { track: 'spa/gp' });
+```
+
+`AppError.message` is the English rendering from `ERROR_MESSAGES`, so the CLI and
+logs read exactly as they did before codes existed. The IPC envelope forwards the
+code and params, and the renderer resolves `errors.<code>` through `useAppError()`,
+falling back to that English message. English error copy lives in
+`src/shared/errors/constants.ts` and is merged into the i18next resources at init
+rather than duplicated in `en.json`; `uk.json` carries its own `errors` subtree.
+
+Errors that come from outside - an errno from `fs`, a spawn failure from Content
+Manager - have no code and travel as their raw message. Do not invent codes for
+them until there is a user-facing reason to.
+
+A message that only makes sense in one surface does not belong in the shared
+template. `Run \`npm run scan\`` means nothing in the desktop app, so the CLI
+appends it (`describeProblems` in `src/cli/utils.ts`) rather than baking it in.
 
 **No bare strings in the UI.** Every user-visible string goes through `t()`, and
 `react/jsx-no-literals` enforces it. Dates, numbers and money go through

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { scanContent } from '../../core/content/index.ts';
 import { buildRaceUri, launchUri } from '../../core/launch/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
-import { buildRaceIni } from '../../core/raceIni/index.ts';
+import { buildRaceIni } from '../../core/race-ini/index.ts';
 import { archiveResults, summarise, waitForResults } from '../../core/results/index.ts';
 import { OUT_DIR, PROJECT_ROOT, RESULTS_DIR, TICKS_PER_DOT } from '../constants.ts';
 import { assertRunnable, loadRace, printResults } from '../utils.ts';

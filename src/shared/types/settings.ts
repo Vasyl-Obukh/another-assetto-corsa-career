@@ -67,4 +67,10 @@ export interface Settings {
    * Window geometry to restore on next launch.
    */
   window: WindowState;
+  /**
+   * ISO timestamp of when the user finished first-run setup. Absent means they
+   * have not, which is the only reliable signal - an auto-detected install
+   * writes no overrides, so empty `paths` says nothing either way.
+   */
+  setupCompletedAt?: string;
 }

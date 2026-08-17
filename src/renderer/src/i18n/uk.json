@@ -66,5 +66,33 @@
   "error": {
     "title": "Щось пішло не так",
     "dismiss": "Закрити"
+  },
+  "setup": {
+    "title": "Ласкаво просимо до кар'єри в Assetto Corsa",
+    "subtitle": "Перед першою гонкою підтвердьте, де на цьому комп’ютері встановлено Assetto Corsa.",
+    "continue": "Продовжити",
+    "ready": "Усе на своїх місцях.",
+    "blocked": "Знайдіть усі три, щоб продовжити."
+  },
+  "errors": {
+    "paths.contentManager.unregistered": "acmanager:// не зареєстровано. Відкрийте Content Manager один раз (Settings > Content Manager > Integration), щоб він зареєстрував протокол, або вкажіть шлях тут.",
+    "paths.contentManager.notFound": "Content Manager не знайдено за шляхами: {{tried}}",
+    "paths.acRoot.undetected": "Не вдалося знайти теку встановлення Assetto Corsa. Вкажіть теку, яка містить {{marker}}.",
+    "paths.acRoot.notFound": "Теки {{marker}} немає в жодному з: {{tried}}",
+    "paths.documents.undetected": "Не вдалося знайти теку документів Assetto Corsa.",
+    "paths.documents.notFound": "Не знайдено за жодним із шляхів: {{tried}}",
+    "paths.unresolved": "Не вдалося визначити шляхи до Assetto Corsa.",
+    "race.timeOfDay.invalid": "Некоректний час доби: {{time}} (очікується \"ГГ:ХХ\")",
+    "race.track.required": "race.track.id є обов’язковим",
+    "race.track.notInstalled": "Трасу не встановлено: {{track}}",
+    "race.weather.notInstalled": "Погоду не встановлено: {{weather}}",
+    "race.weatherController.notInstalled": "Контролер погоди не встановлено: {{controller}}. Доступні: {{available}}",
+    "race.playerCar.required": "race.playerCar.model є обов’язковим",
+    "race.car.notInstalled": "Автомобіль не встановлено: {{car}}",
+    "race.car.noSkins": "Автомобіль {{car}} не має жодного скіна",
+    "race.grid.exceedsPitboxes": "Стартове поле з {{cars}} авто перевищує {{pitboxes}} піт-боксів на трасі {{track}}",
+    "race.session.unknownType": "Невідомий тип сесії: {{type}}",
+    "ipc.noWindow": "Немає вікна, до якого можна прикріпити вибір теки.",
+    "ipc.pathsNotLocated": "Неможливо сканувати контент, доки не знайдено Assetto Corsa."
   }
 }

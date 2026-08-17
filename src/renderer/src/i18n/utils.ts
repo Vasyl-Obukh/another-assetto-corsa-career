@@ -2,10 +2,32 @@
 // directly - a career is full of dates, money and durations, and getting the
 // Ukrainian forms right later costs far more than routing them through here now.
 
+import type { TFunction } from 'i18next';
+
 import { DEFAULT_CURRENCY, FALLBACK_LANGUAGE, LOCALES } from './constants.ts';
 import type { Formatters } from './types.ts';
 import { MS_PER_SECOND } from '../../../shared/constants';
+import type { AppErrorInfo } from '../../../shared/errors';
 import type { Language } from '../../../shared/types';
+
+/**
+ * Renders an error in the active language.
+ *
+ * Falls back to the English message the error carries, so a failure from the OS
+ * with no code, or a code the catalogue has not caught up with, still says
+ * something useful rather than showing a bare identifier.
+ * @param t The translator from useTranslation
+ * @param error The error to render, in its flattened form
+ * @returns The message to show the user
+ */
+export const formatAppError = (
+  t: TFunction,
+  error: Partial<AppErrorInfo> & { message: string },
+): string => {
+  if (!error.code) return error.message;
+
+  return t(`errors.${error.code}`, { ...error.params, defaultValue: error.message });
+};
 
 /**
  * Intl formatters are expensive to build and are reused constantly.

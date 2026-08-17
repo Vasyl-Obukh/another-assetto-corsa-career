@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { appErrorInfo } from '../../../shared/errors/index.ts';
 import type { PathCandidate } from '../../../shared/types/index.ts';
 import { listCandidates, pick } from '../utils.ts';
 
@@ -10,7 +11,16 @@ import { listCandidates, pick } from '../utils.ts';
  */
 const accepts = (...passing: string[]) => async (value: string) => passing.includes(value);
 
-const failed = (tried: PathCandidate[]) => `not found: ${listCandidates(tried)}`;
+/**
+ * The error pick reports when every candidate failed.
+ * @param tried The candidates that were considered
+ * @returns A flattened error naming them
+ */
+const failed = (tried: PathCandidate[]) => appErrorInfo('paths.documents.notFound', {
+  tried: listCandidates(tried),
+});
+
+const empty = appErrorInfo('paths.documents.undetected');
 
 describe('core/paths/utils', () => {
   describe('listCandidates', () => {
@@ -33,7 +43,7 @@ describe('core/paths/utils', () => {
         { value: 'b', origin: 'registry' },
       ];
 
-      await expect(pick(tried, accepts('b'), 'empty', failed)).resolves.toMatchObject({
+      await expect(pick(tried, accepts('b'), empty, failed)).resolves.toMatchObject({
         value: 'b', origin: 'registry', exists: true,
       });
     });
@@ -44,15 +54,15 @@ describe('core/paths/utils', () => {
         { value: 'b', origin: 'registry' },
       ];
 
-      const probe = await pick(tried, accepts('b'), 'empty', failed);
+      const probe = await pick(tried, accepts('b'), empty, failed);
       expect(probe.tried).toEqual(tried);
     });
 
     it('reports the empty error when there were no candidates', async () => {
-      const probe = await pick([], accepts(), 'nothing registered', failed);
+      const probe = await pick([], accepts(), empty, failed);
 
       expect(probe).toMatchObject({ value: null, origin: null, exists: false });
-      expect(probe.error).toBe('nothing registered');
+      expect(probe.error?.code).toBe('paths.documents.undetected');
     });
 
     it('reports the first candidate when every one fails', async () => {
@@ -61,9 +71,10 @@ describe('core/paths/utils', () => {
         { value: 'b', origin: 'steam' },
       ];
 
-      const probe = await pick(tried, accepts(), 'empty', failed);
+      const probe = await pick(tried, accepts(), empty, failed);
       expect(probe).toMatchObject({ value: 'a', origin: 'env', exists: false });
-      expect(probe.error).toBe('not found: a, b');
+      expect(probe.error?.code).toBe('paths.documents.notFound');
+      expect(probe.error?.params).toEqual({ tried: 'a, b' });
     });
 
     // The bug this guards: falling through to auto-detection after a bad
@@ -74,16 +85,17 @@ describe('core/paths/utils', () => {
         { value: 'D:\\real', origin: 'registry' },
       ];
 
-      const probe = await pick(tried, accepts('D:\\real'), 'empty', failed);
+      const probe = await pick(tried, accepts('D:\\real'), empty, failed);
 
       expect(probe).toMatchObject({ value: 'D:\\wrong', origin: 'override', exists: false });
-      expect(probe.error).toBe('not found: D:\\wrong');
+      // Only the override is named, not the auto-detected path it did not use.
+      expect(probe.error?.params).toEqual({ tried: 'D:\\wrong' });
     });
 
     it('accepts an override that passes', async () => {
       const tried: PathCandidate[] = [{ value: 'D:\\ac', origin: 'override' }];
 
-      await expect(pick(tried, accepts('D:\\ac'), 'empty', failed)).resolves.toMatchObject({
+      await expect(pick(tried, accepts('D:\\ac'), empty, failed)).resolves.toMatchObject({
         value: 'D:\\ac', origin: 'override', exists: true,
       });
     });

@@ -12,7 +12,7 @@ export default defineConfig({
       outDir: 'dist/main',
       // package.json says type: module, so the emitted index.js is already ESM.
       lib: {
-        entry: resolve(import.meta.dirname, 'src/main/index.ts'),
+        entry: resolve(import.meta.dirname, 'src/main/main.ts'),
         formats: ['es'],
       },
     },
@@ -25,9 +25,8 @@ export default defineConfig({
       // A sandboxed preload cannot be an ES module, and package.json says
       // type: module, so the output has to be an explicitly .cjs file.
       lib: {
-        entry: resolve(import.meta.dirname, 'src/preload/index.ts'),
+        entry: resolve(import.meta.dirname, 'src/preload/preload.ts'),
         formats: ['cjs'],
-        fileName: () => 'index.cjs',
       },
     },
   },

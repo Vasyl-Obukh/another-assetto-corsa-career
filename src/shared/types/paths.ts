@@ -2,6 +2,8 @@
 // each answer. The probe types exist so the UI can show a half-configured
 // install rather than only "it worked" or an exception.
 
+import type { AppErrorInfo } from '../errors/types.ts';
+
 /**
  * Every path the app needs, once all three have been located.
  */
@@ -76,9 +78,10 @@ export interface PathProbe {
    */
   tried: PathCandidate[];
   /**
-   * Why the probe failed, absent when it succeeded.
+   * Why the probe failed, absent when it succeeded. Carries a code so the UI can
+   * translate it rather than printing the English rendering.
    */
-  error?: string;
+  error?: AppErrorInfo;
 }
 
 /**

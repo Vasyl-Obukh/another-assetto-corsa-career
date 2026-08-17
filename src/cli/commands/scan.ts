@@ -2,9 +2,9 @@ import path from 'node:path';
 
 import { scanContent } from '../../core/content/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
-import { validateRace } from '../../core/raceIni/index.ts';
+import { validateRace } from '../../core/race-ini/index.ts';
 import { PROJECT_ROOT } from '../constants.ts';
-import { loadRace } from '../utils.ts';
+import { describeProblems, loadRace } from '../utils.ts';
 
 /**
  * Lists installed content and reports whether the demo race is runnable.
@@ -24,7 +24,7 @@ export const cmdScan = async (): Promise<void> => {
   console.log(`  ${typed.length} weathers carry a CSP weather type; ${content.weather.length - typed.length} rely on CM inferring it`);
 
   const { race, file } = await loadRace([]);
-  const problems = validateRace(race, content);
+  const problems = describeProblems(validateRace(race, content));
   console.log(`\nRace: ${race.name}  (${path.relative(PROJECT_ROOT, file)})`);
 
   if (problems.length) {
