@@ -1,5 +1,26 @@
 import path from 'node:path';
 
+import type { ContentIssueReason } from '../shared/types/index.ts';
+
+/**
+ * English for each way a piece of installed content can be broken.
+ *
+ * The desktop app translates these codes through its own catalogue; the CLI has
+ * none, so it keeps its own wording here.
+ */
+export const ISSUE_REASONS: Record<ContentIssueReason, string> = {
+  uiMissing: 'no readable metadata',
+  uiUnparsable: 'metadata could not be parsed',
+  uiSalvaged: 'metadata is broken; only the name was recovered',
+  noLayouts: 'no readable layout',
+  noSkins: 'no liveries installed, so it cannot be put on a grid',
+};
+
+/**
+ * How many issues the scan command lists before it just gives the count.
+ */
+export const MAX_LISTED_ISSUES = 20;
+
 /**
  * Repository root, two levels up from this file.
  */

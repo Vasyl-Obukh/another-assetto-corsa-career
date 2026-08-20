@@ -2,13 +2,13 @@
 // first-run setup screen and the diagnostics screen, which do the same work for
 // different reasons - one gates the app, the other explains it.
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { Installation } from './types.ts';
 import type { ContentSummary, PathOverrides, PathsReport } from '../../../../shared/types';
 import { useSettings } from '@/app';
 import type { PathKind } from '@/components';
-import { invoke, toDisplayableError } from '@/lib/ipc';
+import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 import type { DisplayableError } from '@/lib/ipc';
 
 export type { Installation } from './types.ts';
@@ -56,6 +56,29 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
     }
   }, [fail]);
 
+  const contentDir = report.derived?.content ?? null;
+
+  // The scan is cached across runs, so the counts can be there on first paint
+  // rather than waiting for the user to ask for them. Without force, this is a
+  // fingerprint pass over folders that have almost certainly not changed.
+  //
+  // Keyed on the content directory rather than on readiness, so pointing at a
+  // different install re-fetches instead of leaving the card empty.
+  useEffect(() => {
+    if (contentDir === null) return;
+
+    let live = true;
+    invoke('content:scan', {}).then(
+      (next) => { if (live) setSummary(next); },
+      () => { /* the diagnostics card already says the paths are unresolved */ },
+    );
+
+    return () => { live = false; };
+  }, [contentDir]);
+
+  // Content installed while the app is open shows up without a click.
+  useEffect(() => subscribe('content:changed', (change) => setSummary(change.summary)), []);
+
   const pick = useCallback(async (kind: PathKind) => {
     try {
       const picked = await invoke('paths:pick', { kind });
@@ -86,7 +109,7 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
   return {
     report,
     summary,
-    ready: report.derived != null,
+    ready: contentDir !== null,
     busy,
     scanning,
     error,

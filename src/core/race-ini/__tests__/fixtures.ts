@@ -2,7 +2,35 @@
 // with different skin counts, a single-layout and a multi-layout track, and one
 // weather with a non-zero temperature coefficient.
 
-import type { Content, RaceDefinition } from '../../../shared/types/index.ts';
+import type { Car, Content, RaceDefinition } from '../../../shared/types/index.ts';
+
+/**
+ * Builds a car, defaulting everything raceIni does not look at.
+ *
+ * raceIni reads only the id, name and skins, so the metadata a content scan also
+ * collects is filled in once here rather than at every call site.
+ * @param car The fields this fixture's car actually needs
+ * @returns A complete Car
+ */
+export const makeCar = (car: Pick<Car, 'id' | 'name' | 'skins'> & Partial<Car>): Car => ({
+  brand: null,
+  tags: [],
+  carClass: null,
+  year: null,
+  country: null,
+  specs: {
+    bhp: null,
+    torqueNm: null,
+    weightKg: null,
+    topSpeedKph: null,
+    accelerationSeconds: null,
+    powerToWeight: null,
+    raw: {
+      bhp: null, torque: null, weight: null, topspeed: null, acceleration: null, pwratio: null,
+    },
+  },
+  ...car,
+});
 
 /**
  * Installed content the raceIni tests resolve against.
@@ -10,15 +38,11 @@ import type { Content, RaceDefinition } from '../../../shared/types/index.ts';
  */
 export const makeContent = (): Content => ({
   cars: [
-    {
-      id: 'test_car', name: 'Test Car', brand: 'Testing', tags: [], skins: ['red', 'blue', 'green'],
-    },
-    {
-      id: 'other_car', name: 'Other Car', brand: null, tags: [], skins: ['white'],
-    },
-    {
-      id: 'skinless_car', name: 'Skinless', brand: null, tags: [], skins: [],
-    },
+    makeCar({
+      id: 'test_car', name: 'Test Car', brand: 'Testing', skins: ['red', 'blue', 'green'],
+    }),
+    makeCar({ id: 'other_car', name: 'Other Car', skins: ['white'] }),
+    makeCar({ id: 'skinless_car', name: 'Skinless', skins: [] }),
   ],
   tracks: [
     {
@@ -56,6 +80,7 @@ export const makeContent = (): Content => ({
       id: 'testCtrl static', name: 'Test Static', author: null, description: null,
     },
   ],
+  issues: [],
 });
 
 /**

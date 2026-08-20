@@ -48,7 +48,11 @@
     "controllers_one": "{{count}} контролер погоди",
     "controllers_few": "{{count}} контролери погоди",
     "controllers_many": "{{count}} контролерів погоди",
-    "controllers_other": "{{count}} контролера погоди"
+    "controllers_other": "{{count}} контролера погоди",
+    "issues_one": "{{count}} пошкоджений",
+    "issues_few": "{{count}} пошкоджені",
+    "issues_many": "{{count}} пошкоджених",
+    "issues_other": "{{count}} пошкодженого"
   },
   "settings": {
     "theme": "Тема",

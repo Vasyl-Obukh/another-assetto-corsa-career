@@ -1,6 +1,9 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 
+import { registerContentScheme, serveContent } from './content-protocol/index.ts';
+import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
+import { createContentStore } from './content-store/index.ts';
 import { registerHandlers, send } from './ipc/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
@@ -11,6 +14,10 @@ import { createWindow } from './window/index.ts';
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
+  // Has to happen before whenReady resolves, and is ignored without a word if it
+  // does not. See registerContentScheme.
+  registerContentScheme();
+
   let mainWindow: BrowserWindow | null = null;
 
   app.on('second-instance', () => {
@@ -21,12 +28,20 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(async () => {
     const settings = await createSettingsStore(app.getPath('userData'));
+    const content = await createContentStore(app.getPath('userData'));
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings);
+    registerHandlers(settings, content);
+    serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
     const rendererUrl = process.env.ELECTRON_RENDERER_URL ?? null;
     mainWindow = createWindow(settings, preload, rendererUrl);
+
+    // Coming back from Content Manager is the likeliest moment for content to
+    // have changed, and the cheapest one to notice it in.
+    mainWindow.on('focus', () => {
+      void content.revalidate({ throttleMs: MIN_REVALIDATE_MS });
+    });
 
     onThemeChange((theme) => {
       if (mainWindow) send(mainWindow, 'theme:changed', theme);
@@ -37,13 +52,21 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow) send(mainWindow, 'settings:changed', next);
     });
 
+    content.onChange((change) => {
+      if (mainWindow) send(mainWindow, 'content:changed', change);
+    });
+
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         mainWindow = createWindow(settings, preload, rendererUrl);
       }
     });
 
-    app.on('before-quit', () => { void settings.flush(); });
+    app.on('before-quit', () => {
+      void settings.flush();
+      void content.flush();
+      content.dispose();
+    });
   }, (error: unknown) => {
     console.error('Failed to start.', error);
     app.quit();

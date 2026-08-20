@@ -3,13 +3,32 @@
 
 export type {
   Car,
+  CarSpecs,
+  CarSpecsRaw,
   Content,
+  ContentChange,
+  ContentCounts,
+  ContentIssue,
+  ContentIssueReason,
+  ContentKind,
   ContentSummary,
   Geotags,
   Track,
   Weather,
   WeatherController,
 } from './content.ts';
+
+export type {
+  CarFacets,
+  CarQuery,
+  CarSortKey,
+  Facet,
+  Page,
+  SortDirection,
+  TrackFacets,
+  TrackQuery,
+  TrackSortKey,
+} from './content-query.ts';
 
 export type {
   AcPaths,

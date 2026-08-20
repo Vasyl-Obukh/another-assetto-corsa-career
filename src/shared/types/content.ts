@@ -2,6 +2,80 @@
 // names throughout, which is what makes mods first-class here.
 
 /**
+ * What the mod author wrote in ui_car.json's specs block, verbatim.
+ *
+ * Kept alongside the parsed numbers because these are free text - "300+ km/h",
+ * "N/A", "1,200 kg" - and showing the author's own words beats showing nothing
+ * when no number could be read out of them.
+ */
+export interface CarSpecsRaw {
+  /**
+   * The stated power, as written.
+   */
+  bhp: string | null;
+  /**
+   * The stated torque, as written.
+   */
+  torque: string | null;
+  /**
+   * The stated weight, as written.
+   */
+  weight: string | null;
+  /**
+   * The stated top speed, as written.
+   */
+  topspeed: string | null;
+  /**
+   * The stated 0-100 time, as written.
+   */
+  acceleration: string | null;
+  /**
+   * The stated power-to-weight ratio, as written.
+   */
+  pwratio: string | null;
+}
+
+/**
+ * A car's performance figures, parsed out of the free text mod authors write.
+ *
+ * Every number is null unless it parsed into something plausible: a figure we
+ * are not sure of is worse than no figure at all, because pricing and class
+ * inference are both derived from these.
+ */
+export interface CarSpecs {
+  /**
+   * Peak power in bhp, converted from kW where the author used it.
+   */
+  bhp: number | null;
+  /**
+   * Peak torque in Nm, converted from lb-ft where the author used it.
+   */
+  torqueNm: number | null;
+  /**
+   * Kerb weight in kilograms, converted from pounds where the author used them.
+   */
+  weightKg: number | null;
+  /**
+   * Top speed in km/h, converted from mph where the author used it.
+   */
+  topSpeedKph: number | null;
+  /**
+   * Nought to 100 km/h in seconds.
+   */
+  accelerationSeconds: number | null;
+  /**
+   * Ours, derived as bhp per tonne from the parsed power and weight. Null unless
+   * both parsed. Deliberately not taken from the author's own pwratio, which
+   * mods leave stale after retuning a car and disagree about the direction of.
+   */
+  powerToWeight: number | null;
+  /**
+   * The author's original strings, for display when a number could not be read.
+   */
+  raw: CarSpecsRaw;
+}
+
+/**
  * A car installed in content/cars.
  */
 export interface Car {
@@ -25,6 +99,24 @@ export interface Car {
    * Folder names under skins/, in scan order.
    */
   skins: string[];
+  /**
+   * The `class` field from ui_car.json - usually "street" or "race", but mod
+   * authors write anything. Named carClass because `class` is a reserved word.
+   * Null when absent.
+   */
+  carClass: string | null;
+  /**
+   * Model year, or null when absent or unreadable.
+   */
+  year: number | null;
+  /**
+   * Country of origin from ui_car.json, or null when the mod omits it.
+   */
+  country: string | null;
+  /**
+   * Performance figures, every one of which may be null.
+   */
+  specs: CarSpecs;
 }
 
 /**
@@ -124,6 +216,50 @@ export interface WeatherController {
 }
 
 /**
+ * Which collection a content issue is about.
+ */
+export type ContentKind = 'car' | 'track' | 'weather' | 'weatherController';
+
+/**
+ * Why an entry is broken.
+ *
+ * A code rather than a sentence, so the UI can translate it and the CLI can
+ * print its own English.
+ */
+export type ContentIssueReason =
+  | 'uiMissing'
+  | 'uiUnparsable'
+  | 'uiSalvaged'
+  | 'noLayouts'
+  | 'noSkins';
+
+/**
+ * One piece of installed content that is broken, incomplete or degraded.
+ *
+ * Scanning stays lenient - a bad entry is skipped or falls back to its folder
+ * name rather than throwing - but every such decision is recorded here, so a
+ * broken mod is visible instead of silently missing.
+ */
+export interface ContentIssue {
+  /**
+   * Which collection the entry belongs to.
+   */
+  kind: ContentKind;
+  /**
+   * Folder name, or `id/layout` when the issue is about one track layout.
+   */
+  id: string;
+  /**
+   * What is wrong with it.
+   */
+  reason: ContentIssueReason;
+  /**
+   * The underlying error message when there was one, for the console.
+   */
+  detail: string | null;
+}
+
+/**
  * Everything a content scan found.
  */
 export interface Content {
@@ -143,13 +279,17 @@ export interface Content {
    * Installed CSP weather controllers.
    */
   controllers: WeatherController[];
+  /**
+   * Every entry that could not be read properly, so broken mods are visible
+   * rather than silently missing.
+   */
+  issues: ContentIssue[];
 }
 
 /**
- * Counts from a content scan, without the content itself. Sent over IPC in place
- * of the full Content, which is megabytes of skin arrays on a large mod library.
+ * How many of each thing a scan found.
  */
-export interface ContentSummary {
+export interface ContentCounts {
   /**
    * Number of installed cars.
    */
@@ -166,6 +306,17 @@ export interface ContentSummary {
    * Number of installed CSP weather controllers.
    */
   controllers: number;
+}
+
+/**
+ * Counts from a content scan, without the content itself. Sent over IPC in place
+ * of the full Content, which is megabytes of skin arrays on a large mod library.
+ */
+export interface ContentSummary extends ContentCounts {
+  /**
+   * How many entries were broken, incomplete or degraded.
+   */
+  issues: number;
   /**
    * ISO timestamp of when the scan finished.
    */
@@ -174,4 +325,26 @@ export interface ContentSummary {
    * How long the scan took, in milliseconds.
    */
   durationMs: number;
+  /**
+   * True when nothing had to be re-read, which is why the duration is tiny.
+   */
+  cached: boolean;
+}
+
+/**
+ * What changed when content appeared or disappeared while the app was open.
+ */
+export interface ContentChange {
+  /**
+   * The counts as they stand now.
+   */
+  summary: ContentSummary;
+  /**
+   * How many entries appeared, per collection.
+   */
+  added: ContentCounts;
+  /**
+   * How many entries went away, per collection.
+   */
+  removed: ContentCounts;
 }

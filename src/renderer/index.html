@@ -5,11 +5,15 @@
     <!--
       style-src has to allow inline styles: Radix writes inline styles to
       position popovers and selects, and a stricter policy breaks every dropdown
-      silently. Everything else is locked to the bundle.
+      silently.
+
+      img-src also allows accontent:, the scheme main serves preview images from
+      inside the Assetto Corsa install over - the renderer is sandboxed and
+      cannot open those files itself. Everything else is locked to the bundle.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: accontent:; font-src 'self' data:; connect-src 'self'"
     />
     <title>Assetto Corsa Career</title>
   </head>

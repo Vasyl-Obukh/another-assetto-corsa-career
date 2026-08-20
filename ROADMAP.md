@@ -4,9 +4,11 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phases 0 and 1 complete.** The integration spike proves the full round
-trip, and the Electron shell sits on top of it: setup, diagnostics, theming,
-i18n, settings and a tested core. Next up is Phase 2, the content library.
+Status: **Phases 0 and 1 complete; Phase 2's data layer landed.** The integration
+spike proves the full round trip, the Electron shell sits on top of it - setup,
+diagnostics, theming, i18n, settings and a tested core - and the content library
+is now cached, incremental, spec-aware and honest about broken mods. Next up in
+Phase 2 are the browsers themselves, then classes, disciplines and tiers.
 
 ## Decisions taken
 
@@ -262,16 +264,38 @@ and language switching and errors translated all the way down from `src/core/`.
 
 ## Phase 2 - Content library and classification
 
-- [ ] Persist scan results with a cache keyed on folder mtimes
-- [ ] Background rescan; detect content added while the app is open
-- [ ] Extract car specs (bhp, weight, top speed, power-to-weight) from
-      `ui_car.json` - the basis for pricing and class inference
+The data layer landed first, deliberately: classes need specs to infer from, and
+the browsers need paged channels and a way to show images out of the AC install.
+Building the screens first would have meant building them against a shape nothing
+had exercised.
+
+- [x] Persist scan results with a cache keyed on folder mtimes - `content-cache.json`
+      in `%APPDATA%`, with a fingerprint per car and per track layout. The rule is
+      **stat every file the scan would have read and every directory it would have
+      listed**: a folder's mtime does not move when a nested `ui_car.json` is saved
+      over, which is the commonest update of all
+- [x] Background rescan; detect content added while the app is open - non-recursive
+      `fs.watch` on the four collection folders, plus a fingerprint pass on window
+      focus for the in-place edits those watchers cannot see
+- [x] Extract car specs (bhp, weight, top speed, power-to-weight) from
+      `ui_car.json` - the basis for pricing and class inference. `src/core/car-specs/`,
+      tolerant of the free text mod authors write; the author's own strings are kept
+      alongside the numbers
+- [x] Paged, filtered and searched IPC channels for cars and tracks, with
+      drill-down facet counts - the surface the browsers land on
+- [x] An `accontent://` protocol for preview images, path-validated so it cannot
+      reach outside the content folder and limited to four fixed image names
+- [x] Report broken content rather than hiding it - every skipped or degraded
+      entry is now a `ContentIssue`, counted on the content card and listed by
+      `npm run scan`
 - [ ] Car and track browsers with previews, filters and search
 - [ ] **Car classes**, user-defined, with inference from tags and specs
 - [ ] **Disciplines and tiers** - the ladder structure
 - [ ] Map classes to disciplines and tiers
-- [ ] Skin browser, for pinning liveries to drivers
-- [ ] Report broken content rather than hiding it
+- [ ] Skin browser, for pinning liveries to drivers - needs `ui_skin.json`, which
+      the scanner still ignores in favour of bare folder names
+- [ ] Translate `ContentIssueReason` in the renderer; only the count is shown so
+      far, and the CLI keeps its own English
 
 ## Phase 3 - Race weekends and sessions
 

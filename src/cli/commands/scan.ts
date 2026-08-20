@@ -3,8 +3,8 @@ import path from 'node:path';
 import { scanContent } from '../../core/content/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
 import { validateRace } from '../../core/race-ini/index.ts';
-import { PROJECT_ROOT } from '../constants.ts';
-import { describeProblems, loadRace } from '../utils.ts';
+import { MAX_LISTED_ISSUES, PROJECT_ROOT } from '../constants.ts';
+import { describeIssues, describeProblems, loadRace } from '../utils.ts';
 
 /**
  * Lists installed content and reports whether the demo race is runnable.
@@ -22,6 +22,15 @@ export const cmdScan = async (): Promise<void> => {
   console.log('\nInstalled content');
   console.log(`  ${content.cars.length} cars, ${content.tracks.length} track layouts, ${content.weather.length} weathers`);
   console.log(`  ${typed.length} weathers carry a CSP weather type; ${content.weather.length - typed.length} rely on CM inferring it`);
+
+  if (content.issues.length) {
+    console.log(`\nBroken content (${content.issues.length})`);
+    const lines = describeIssues(content.issues);
+    lines.slice(0, MAX_LISTED_ISSUES).forEach((line) => console.log(`  ${line}`));
+    if (lines.length > MAX_LISTED_ISSUES) {
+      console.log(`  ... and ${lines.length - MAX_LISTED_ISSUES} more`);
+    }
+  }
 
   const { race, file } = await loadRace([]);
   const problems = describeProblems(validateRace(race, content));

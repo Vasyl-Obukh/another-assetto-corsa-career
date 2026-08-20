@@ -54,6 +54,11 @@ export const ContentCard = ({
                 <Badge variant="secondary">
                   {t('content.controllers', { count: summary.controllers })}
                 </Badge>
+                {summary.issues > 0 ? (
+                  <Badge variant="destructive">
+                    {t('content.issues', { count: summary.issues })}
+                  </Badge>
+                ) : null}
               </div>
             ) : null}
 

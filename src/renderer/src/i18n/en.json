@@ -40,7 +40,9 @@
     "weathers_one": "{{count}} weather",
     "weathers_other": "{{count}} weathers",
     "controllers_one": "{{count}} weather controller",
-    "controllers_other": "{{count}} weather controllers"
+    "controllers_other": "{{count}} weather controllers",
+    "issues_one": "{{count}} broken",
+    "issues_other": "{{count}} broken"
   },
   "settings": {
     "theme": "Theme",

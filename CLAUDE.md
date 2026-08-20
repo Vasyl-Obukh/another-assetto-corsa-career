@@ -116,17 +116,22 @@ per project.
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
 | `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file |
 | `src/shared/types/` | Every domain type: content, paths, race, results, settings, IPC |
-| `src/shared/constants/` | Time units, settings defaults |
+| `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
+| `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
-| `src/core/content/` | Scans installed content; lenient about malformed mod JSON |
+| `src/core/content/` | Scans installed content; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
+| `src/core/car-specs/` | `ui_car.json` specs -> numbers, tolerant of free text |
+| `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan |
 | `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM |
 | `src/core/results/` | Watching, stable-reading and summarising results |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
-| `src/main/` | App lifecycle, window, settings store, theme, IPC handlers |
+| `src/main/` | App lifecycle, window, settings store, content store, theme, IPC handlers |
+| `src/main/content-store/` | The scan, cached to `%APPDATA%`, watched and revalidated |
+| `src/main/content-protocol/` | Serves preview images out of the AC install |
 | `src/preload/` | The single `contextBridge` surface (`window.api`) |
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
 | `races/*.json` | Race definitions in our own format |
@@ -412,5 +417,12 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   and stay until `node spike.ts weather remove`.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
-- `content:scan` returns counts only and re-scans from scratch each time; the
-  cache and the paged/filtered channels the browsers need are Phase 2.
+- Skins are still bare folder names. `ui_skin.json` carries the livery's display
+  name, driver, number and country, and nothing reads it - the skin browser and
+  pinning liveries to drivers both need it.
+- `ContentIssueReason` reaches the UI as a count only. The reasons themselves are
+  codes waiting for `content.issues.<reason>` keys; the CLI keeps its own English
+  in `src/cli/constants.ts`.
+- The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
+  bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
+  `CarSpecs` or the fingerprint encoding changes.

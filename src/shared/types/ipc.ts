@@ -2,7 +2,12 @@
 // types from IpcContract, so a channel cannot drift out of sync on one side
 // without failing to compile on the others.
 
-import type { ContentSummary } from './content.ts';
+import type {
+  CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
+} from './content-query.ts';
+import type {
+  Car, ContentChange, ContentIssue, ContentSummary, Track,
+} from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
@@ -25,8 +30,33 @@ export interface IpcContract {
   'paths:pick': { req: { kind: keyof PathOverrides }; res: string | null };
   /**
    * Scan installed content, returning counts only.
+   *
+   * Cache-backed: without `force` it re-checks fingerprints and re-reads only
+   * what moved, so this is cheap enough to call on mount. With `force` it reads
+   * every folder again, which is what the Rescan button means.
    */
   'content:scan': { req: { force?: boolean }; res: ContentSummary };
+  /**
+   * One page of cars, searched, filtered and sorted.
+   */
+  'content:cars': { req: CarQuery; res: Page<Car> };
+  /**
+   * One page of track layouts, searched, filtered and sorted.
+   */
+  'content:tracks': { req: TrackQuery; res: Page<Track> };
+  /**
+   * Counts behind the car browser's filter lists, for the filters now applied.
+   */
+  'content:carFacets': { req: { query?: CarQuery }; res: CarFacets };
+  /**
+   * Counts behind the track browser's filter lists, for the filters now applied.
+   */
+  'content:trackFacets': { req: { query?: TrackQuery }; res: TrackFacets };
+  /**
+   * Everything the last scan found broken, so it can be reported rather than
+   * silently missing.
+   */
+  'content:issues': { req: void; res: ContentIssue[] };
   /**
    * Read the current settings.
    */
@@ -68,6 +98,10 @@ export interface IpcEvents {
    * Settings changed somewhere other than the caller.
    */
   'settings:changed': Settings;
+  /**
+   * Content was installed or removed while the app was open.
+   */
+  'content:changed': ContentChange;
 }
 
 /**

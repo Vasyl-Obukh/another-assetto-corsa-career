@@ -1,0 +1,113 @@
+// Shared fixtures for the contentStore tests.
+
+import type { ContentScan } from '../../../core/content/index.ts';
+import type {
+  Car, Content, Track, Weather, WeatherController,
+} from '../../../shared/types/index.ts';
+import { CONTENT_CACHE_VERSION } from '../constants.ts';
+import type { ContentCache } from '../types.ts';
+
+/**
+ * Builds a car with only the fields these tests look at filled in.
+ * @param id Car folder name, used as its name too
+ * @returns A complete Car
+ */
+export const makeCar = (id: string): Car => ({
+  id,
+  name: id,
+  brand: null,
+  tags: [],
+  skins: ['default'],
+  carClass: null,
+  year: null,
+  country: null,
+  specs: {
+    bhp: null,
+    torqueNm: null,
+    weightKg: null,
+    topSpeedKph: null,
+    accelerationSeconds: null,
+    powerToWeight: null,
+    raw: {
+      bhp: null, torque: null, weight: null, topspeed: null, acceleration: null, pwratio: null,
+    },
+  },
+});
+
+/**
+ * Builds a track layout with only the fields these tests look at filled in.
+ * @param id Track folder name, used as its name too
+ * @returns A complete Track
+ */
+export const makeTrack = (id: string): Track => ({
+  id,
+  layout: '',
+  key: id,
+  name: id,
+  country: null,
+  pitboxes: 24,
+  geotags: { lat: null, lon: null },
+});
+
+/**
+ * Builds a weather preset.
+ * @param id Weather folder name
+ * @returns A complete Weather
+ */
+export const makeWeather = (id: string): Weather => ({
+  id, name: id, type: null, temperatureCoeff: 0, author: null,
+});
+
+/**
+ * Builds a CSP weather controller.
+ * @param id Controller folder name
+ * @returns A complete WeatherController
+ */
+export const makeController = (id: string): WeatherController => ({
+  id, name: id, author: null, description: null,
+});
+
+/**
+ * Builds scanned content out of plain ID lists.
+ * @param cars Car IDs
+ * @param tracks Track IDs
+ * @returns A Content carrying those entries and nothing broken
+ */
+export const makeContent = (cars: string[] = [], tracks: string[] = []): Content => ({
+  cars: cars.map(makeCar),
+  tracks: tracks.map(makeTrack),
+  weather: [],
+  controllers: [],
+  issues: [],
+});
+
+/**
+ * Builds a scan, defaulting the fingerprints to one stamp per entry.
+ * @param content What the scan found
+ * @param stamp The fingerprint every entry gets
+ * @returns A complete ContentScan
+ */
+export const makeScan = (content: Content, stamp = 'a'): ContentScan => ({
+  content,
+  fingerprints: {
+    cars: Object.fromEntries(content.cars.map((car) => [car.id, stamp])),
+    tracks: Object.fromEntries(content.tracks.map((track) => [track.id, stamp])),
+  },
+  scannedAt: '2026-01-01T00:00:00.000Z',
+  durationMs: 12,
+});
+
+/**
+ * Builds a cache file's contents.
+ * @param contentDir The install it claims to describe
+ * @param content What it claims was found
+ * @returns A complete ContentCache
+ */
+export const makeCache = (contentDir: string, content = makeContent(['car_a'])): ContentCache => ({
+  version: CONTENT_CACHE_VERSION,
+  contentDir,
+  scannedAt: '2026-01-01T00:00:00.000Z',
+  durationMs: 12,
+  fingerprints: makeScan(content).fingerprints,
+  content,
+});
