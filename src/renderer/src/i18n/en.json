@@ -3,6 +3,11 @@
     "title": "Assetto Corsa Career",
     "subtitle": "Championships you actually drive"
   },
+  "nav": {
+    "cars": "Cars",
+    "tracks": "Tracks",
+    "diagnostics": "Diagnostics"
+  },
   "paths": {
     "title": "Detected installation",
     "description": "Where the app found Content Manager and Assetto Corsa. Correct anything it got wrong.",
@@ -44,6 +49,30 @@
     "issues_one": "{{count}} broken",
     "issues_other": "{{count}} broken"
   },
+  "browse": {
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "clearAll": "Clear filters",
+    "clear": "Clear",
+    "sort": "Sort by",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "unknown": "Unknown",
+    "none": "Nothing installed yet.",
+    "noneFiltered": "Nothing matches these filters.",
+    "loading": "Loading...",
+    "end": "That is everything.",
+    "stale": "Content changed - reload",
+    "showing": "{{shown}} of {{total}}",
+    "facetSearch": "Filter this list",
+    "facetEmpty": "Nothing to pick.",
+    "rangeSet": "Set",
+    "rangeFrom": "From",
+    "rangeTo": "To",
+    "rangeExcludesUnknown": "Entries with no figure are left out while this is set.",
+    "locateFirst": "Locate Assetto Corsa before browsing installed content.",
+    "goToDiagnostics": "Open diagnostics"
+  },
   "settings": {
     "theme": "Theme",
     "language": "Language"
@@ -67,5 +96,52 @@
     "continue": "Continue",
     "ready": "Everything is where it should be.",
     "blocked": "Locate all three before continuing."
+  },
+  "cars": {
+    "title": "Cars",
+    "searchPlaceholder": "Search cars by name, brand, folder or tag",
+    "bhp": "{{value}} bhp",
+    "weightKg": "{{value}} kg",
+    "powerToWeight": "{{value}} bhp/t",
+    "noSkins": "No liveries",
+    "skins_one": "{{count}} livery",
+    "skins_other": "{{count}} liveries",
+    "moreTags_one": "+{{count}} tag",
+    "moreTags_other": "+{{count}} tags",
+    "sort": {
+      "name": "Name",
+      "brand": "Brand",
+      "year": "Year",
+      "bhp": "Power",
+      "weight": "Weight",
+      "powerToWeight": "Power to weight"
+    },
+    "filter": {
+      "brands": "Brand",
+      "tags": "Tags",
+      "classes": "Class",
+      "countries": "Country",
+      "years": "Year",
+      "power": "Power",
+      "hasSkins": "Has liveries"
+    }
+  },
+  "tracks": {
+    "title": "Tracks",
+    "searchPlaceholder": "Search tracks by name, folder or country",
+    "located": "Located",
+    "pitboxes_one": "{{count}} pit box",
+    "pitboxes_other": "{{count}} pit boxes",
+    "unknownPitboxes": "Grid size unknown",
+    "sort": {
+      "name": "Name",
+      "country": "Country",
+      "pitboxes": "Pit boxes"
+    },
+    "filter": {
+      "countries": "Country",
+      "pitboxes": "Pit boxes",
+      "hasGeotags": "Has coordinates"
+    }
   }
 }

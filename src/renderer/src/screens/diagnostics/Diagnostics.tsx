@@ -15,26 +15,28 @@ export const Diagnostics = ({ initialReport }: DiagnosticsProps) => {
   const install = useInstallation(initialReport);
 
   return (
-    <div className="flex flex-col gap-6">
-      {install.error ? (
-        <ErrorCard error={install.error} onDismiss={install.dismissError} />
-      ) : null}
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto flex max-w-4xl flex-col gap-6 px-8 py-8">
+        {install.error ? (
+          <ErrorCard error={install.error} onDismiss={install.dismissError} />
+        ) : null}
 
-      <PathsCard
-        report={install.report}
-        overrides={settings.paths}
-        busy={install.busy}
-        onPick={install.pick}
-        onClear={install.clear}
-        onRefresh={install.refresh}
-      />
+        <PathsCard
+          report={install.report}
+          overrides={settings.paths}
+          busy={install.busy}
+          onPick={install.pick}
+          onClear={install.clear}
+          onRefresh={install.refresh}
+        />
 
-      <ContentCard
-        ready={install.ready}
-        summary={install.summary}
-        scanning={install.scanning}
-        onScan={install.scan}
-      />
+        <ContentCard
+          ready={install.ready}
+          summary={install.summary}
+          scanning={install.scanning}
+          onScan={install.scan}
+        />
+      </div>
     </div>
   );
 };

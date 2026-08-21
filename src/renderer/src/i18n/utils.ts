@@ -76,6 +76,11 @@ export const formattersFor = (language: Language): Formatters => {
       () => new Intl.NumberFormat(locale),
     ).format(value),
 
+    formatYear: (value) => cached(
+      `y:${locale}`,
+      () => new Intl.NumberFormat(locale, { useGrouping: false }),
+    ).format(value),
+
     formatMoney: (value, currency = DEFAULT_CURRENCY) => cached(
       `m:${locale}:${currency}`,
       () => new Intl.NumberFormat(locale, {

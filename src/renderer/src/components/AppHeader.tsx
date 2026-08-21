@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { AppNav } from './app-nav/index.ts';
 import { LanguageSelect } from './LanguageSelect.tsx';
 import { ThemeSelect } from './ThemeSelect.tsx';
 
@@ -7,10 +8,10 @@ export const AppHeader = () => {
   const { t } = useTranslation();
 
   return (
-    <header className="flex items-start justify-between gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('app.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('app.subtitle')}</p>
+    <header className="flex shrink-0 items-center justify-between gap-6 border-b px-8 py-4">
+      <div className="flex min-w-0 items-center gap-6">
+        <h1 className="shrink-0 text-lg font-semibold tracking-tight">{t('app.title')}</h1>
+        <AppNav />
       </div>
 
       <div className="flex shrink-0 items-center gap-3">

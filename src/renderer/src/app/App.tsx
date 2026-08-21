@@ -1,8 +1,13 @@
+import { Navigate, Route, Routes } from 'react-router';
+
+import { ROUTES } from './constants.ts';
 import { useSettings } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
-import { AppHeader } from '../components';
+import { AppHeader } from '@/components';
+import { CarBrowser } from '@/screens/car-browser';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Setup } from '@/screens/setup';
+import { TrackBrowser } from '@/screens/track-browser';
 
 interface AppProps {
   /**
@@ -14,17 +19,21 @@ interface AppProps {
 export const App = ({ initialReport }: AppProps) => {
   const { settings } = useSettings();
 
-  // Not a router: there are two screens and the second only exists until setup
-  // is done. Completing it patches settings, which re-renders this branch.
-  if (!settings.setupCompletedAt) return <Setup initialReport={initialReport} />;
-
-  return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col gap-8 overflow-y-auto px-8 py-8">
+  return settings.setupCompletedAt ? (
+    <div className="flex h-full flex-col overflow-hidden">
       <AppHeader />
 
-      <main className="pb-8">
-        <Diagnostics initialReport={initialReport} />
+      <main className="min-h-0 flex-1">
+        <Routes>
+          <Route path={ROUTES.cars} element={<CarBrowser />} />
+          <Route path={ROUTES.tracks} element={<TrackBrowser />} />
+          <Route
+            path={ROUTES.diagnostics}
+            element={<Diagnostics initialReport={initialReport} />}
+          />
+          <Route path="*" element={<Navigate to={ROUTES.cars} replace />} />
+        </Routes>
       </main>
     </div>
-  );
+  ) : <Setup initialReport={initialReport} />;
 };

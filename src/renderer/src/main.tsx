@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { HashRouter } from 'react-router';
 
 import './globals.css';
 import { App, SettingsProvider } from '@/app';
@@ -28,7 +29,9 @@ const start = async (): Promise<void> => {
   createRoot(container).render(
     <StrictMode>
       <SettingsProvider initialSettings={settings} initialTheme={theme}>
-        <App initialReport={report} />
+        <HashRouter>
+          <App initialReport={report} />
+        </HashRouter>
       </SettingsProvider>
     </StrictMode>,
   );

@@ -4,11 +4,12 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phases 0 and 1 complete; Phase 2's data layer landed.** The integration
-spike proves the full round trip, the Electron shell sits on top of it - setup,
-diagnostics, theming, i18n, settings and a tested core - and the content library
-is now cached, incremental, spec-aware and honest about broken mods. Next up in
-Phase 2 are the browsers themselves, then classes, disciplines and tiers.
+Status: **Phases 0 and 1 complete; Phase 2's data layer and browsers landed.**
+The integration spike proves the full round trip, the Electron shell sits on top
+of it - setup, diagnostics, theming, i18n, settings and a tested core - the
+content library is cached, incremental, spec-aware and honest about broken mods,
+and the car and track browsers now consume it behind real navigation. Next up in
+Phase 2 are classes, disciplines and tiers.
 
 ## Decisions taken
 
@@ -288,7 +289,8 @@ had exercised.
 - [x] Report broken content rather than hiding it - every skipped or degraded
       entry is now a `ContentIssue`, counted on the content card and listed by
       `npm run scan`
-- [ ] Car and track browsers with previews, filters and search
+- [x] Car and track browsers with previews, filters and search - hash routing,
+      card grids with infinite scroll, drill-down facet filters and debounced search
 - [ ] **Car classes**, user-defined, with inference from tags and specs
 - [ ] **Disciplines and tiers** - the ladder structure
 - [ ] Map classes to disciplines and tiers
@@ -296,6 +298,25 @@ had exercised.
       the scanner still ignores in favour of bare folder names
 - [ ] Translate `ContentIssueReason` in the renderer; only the count is shown so
       far, and the CLI keeps its own English
+
+**Where the browsers end up.** They are the substrate, not the destination. The
+two route-level pages are about a hundred lines of wiring; everything beneath
+them is collection-agnostic - paging, infinite scroll, the toolbar, drill-down
+facet filters, `ContentImage`, the cards - and it is what Phase 7's store page
+and Phase 4's series content pickers are built from. Car classes, next in this
+phase, want the car browser with a selection and an assign action rather than a
+new screen.
+
+Expect them to **demote out of primary nav** once career destinations exist, into
+a content area beside diagnostics and the issue list, where the job is "what have
+I got installed, and is any of it broken". A career app's top-level destinations
+are the calendar, the championship, the garage and the store, not the library.
+
+Turning them into pickers needs two things they do not have: selection semantics,
+and a **single-entity lookup**. `content:cars` with `search: <id>` matches name,
+brand, folder ID and tags alike, so it cannot resolve one car; a picker restoring
+a saved selection needs `content:car { id }` and `content:track { key }` added to
+the contract, the handler and the content store. None of that touches `src/core/`.
 
 ## Phase 3 - Race weekends and sessions
 
@@ -341,7 +362,9 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Prize money tables (per finishing position, per final standing)
 - [ ] Entry fees per round
 - [ ] Validation against installed content, with actionable errors
-- [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money
+- [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
+      content pickers are Phase 2's browser shell with selection added, not new
+      screens; see *Where the browsers end up*
 - [ ] Per-round conditions: weather, time, track state, sessions
 - [ ] Clone a series; extend an existing one with extra rounds
 - [ ] Export / import series files
@@ -388,7 +411,9 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Currency display: `$` default, `€` and `£` as alternatives, no conversion
 - [ ] **Curated price list for Kunos base and DLC cars**
 - [ ] **Derived price suggestions for mod cars**, overridable
-- [ ] **Store page**: every car, its price, and the championships it can enter
+- [ ] **Store page**: every car, its price, and the championships it can enter -
+      the car browser with a price on the card and a buy action; see *Where the
+      browsers end up*
 - [ ] Buy, sell and own cars
 - [ ] **Rent a car for an event**, from the event screen
 - [ ] Entry fees charged per round, with contract coverage applied

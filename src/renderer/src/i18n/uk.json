@@ -3,6 +3,11 @@
     "title": "Кар'єра в Assetto Corsa",
     "subtitle": "Чемпіонати, які ви проїжджаєте самі"
   },
+  "nav": {
+    "cars": "Автомобілі",
+    "tracks": "Траси",
+    "diagnostics": "Діагностика"
+  },
   "paths": {
     "title": "Знайдена інсталяція",
     "description": "Де застосунок знайшов Content Manager і Assetto Corsa. Виправте те, що визначено помилково.",
@@ -54,6 +59,30 @@
     "issues_many": "{{count}} пошкоджених",
     "issues_other": "{{count}} пошкодженого"
   },
+  "browse": {
+    "search": "Пошук",
+    "clearSearch": "Очистити пошук",
+    "clearAll": "Очистити фільтри",
+    "clear": "Очистити",
+    "sort": "Сортувати за",
+    "ascending": "За зростанням",
+    "descending": "За спаданням",
+    "unknown": "Невідомо",
+    "none": "Ще нічого не встановлено.",
+    "noneFiltered": "Нічого не відповідає цим фільтрам.",
+    "loading": "Завантаження...",
+    "end": "Це все.",
+    "stale": "Контент змінився - перезавантажити",
+    "showing": "{{shown}} з {{total}}",
+    "facetSearch": "Відфільтрувати список",
+    "facetEmpty": "Немає що вибрати.",
+    "rangeSet": "Задано",
+    "rangeFrom": "Від",
+    "rangeTo": "До",
+    "rangeExcludesUnknown": "Записи без цього показника не показуються, доки задано межу.",
+    "locateFirst": "Спочатку вкажіть теку з Assetto Corsa, щоб переглядати контент.",
+    "goToDiagnostics": "Відкрити діагностику"
+  },
   "settings": {
     "theme": "Тема",
     "language": "Мова"
@@ -98,5 +127,58 @@
     "race.session.unknownType": "Невідомий тип сесії: {{type}}",
     "ipc.noWindow": "Немає вікна, до якого можна прикріпити вибір теки.",
     "ipc.pathsNotLocated": "Неможливо сканувати контент, доки не знайдено Assetto Corsa."
+  },
+  "cars": {
+    "title": "Автомобілі",
+    "searchPlaceholder": "Пошук за назвою, маркою, текою або тегом",
+    "bhp": "{{value}} к.с.",
+    "weightKg": "{{value}} кг",
+    "powerToWeight": "{{value}} к.с./т",
+    "noSkins": "Немає ліврей",
+    "skins_one": "{{count}} ліврея",
+    "skins_few": "{{count}} лівреї",
+    "skins_many": "{{count}} ліврей",
+    "skins_other": "{{count}} лівреї",
+    "moreTags_one": "+{{count}} тег",
+    "moreTags_few": "+{{count}} теги",
+    "moreTags_many": "+{{count}} тегів",
+    "moreTags_other": "+{{count}} тега",
+    "sort": {
+      "name": "Назва",
+      "brand": "Марка",
+      "year": "Рік",
+      "bhp": "Потужність",
+      "weight": "Вага",
+      "powerToWeight": "Потужність до ваги"
+    },
+    "filter": {
+      "brands": "Марка",
+      "tags": "Теги",
+      "classes": "Клас",
+      "countries": "Країна",
+      "years": "Рік",
+      "power": "Потужність",
+      "hasSkins": "Має лівреї"
+    }
+  },
+  "tracks": {
+    "title": "Траси",
+    "searchPlaceholder": "Пошук за назвою, текою або країною",
+    "located": "Має координати",
+    "pitboxes_one": "{{count}} піт-бокс",
+    "pitboxes_few": "{{count}} піт-бокси",
+    "pitboxes_many": "{{count}} піт-боксів",
+    "pitboxes_other": "{{count}} піт-бокса",
+    "unknownPitboxes": "Розмір стартового поля невідомий",
+    "sort": {
+      "name": "Назва",
+      "country": "Країна",
+      "pitboxes": "Піт-бокси"
+    },
+    "filter": {
+      "countries": "Країна",
+      "pitboxes": "Піт-бокси",
+      "hasGeotags": "Має координати"
+    }
   }
 }

@@ -44,6 +44,21 @@ describe('renderer/i18n/utils', () => {
       expect(formattersFor('uk').formatNumber(1234567)).not.toContain(',');
     });
 
+    // A year is an identifier, not a quantity: 2,019 in English and 2 019 in
+    // Ukrainian both read as something other than the year 2019.
+    it('formats a year without the grouping a plain number gets', () => {
+      expect(formattersFor('en').formatYear(2019)).toBe('2019');
+      expect(formattersFor('uk').formatYear(2019)).toBe('2019');
+    });
+
+    it('groups the same value when it is a count rather than a year', () => {
+      expect(formattersFor('en').formatNumber(2019)).toBe('2,019');
+    });
+
+    it('leaves a year outside the grouping range alone', () => {
+      expect(formattersFor('en').formatYear(987)).toBe('987');
+    });
+
     it('formats money without a fractional part', () => {
       const money = formattersFor('en').formatMoney(1500);
 

@@ -25,6 +25,16 @@ export interface Formatters {
    */
   formatNumber(value: number): string;
   /**
+   * Formats a year, without the thousands grouping a plain number would get.
+   *
+   * A year is an identifier rather than a quantity, and 2,019 reads as a
+   * different thing entirely. Still goes through Intl rather than String(), so a
+   * locale with its own numbering system gets its own digits.
+   * @param value The year
+   * @returns The year, ungrouped, in the active locale's digits
+   */
+  formatYear(value: number): string;
+  /**
    * Formats an amount of money. Display only - there is no conversion anywhere
    * in this app.
    * @param value The amount
