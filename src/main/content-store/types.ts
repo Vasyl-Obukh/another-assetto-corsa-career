@@ -8,8 +8,8 @@ import type {
   ContentIssue,
   ContentSummary,
   Page,
-  Track,
   TrackFacets,
+  TrackGroup,
   TrackQuery,
 } from '../../shared/types/index.ts';
 
@@ -21,6 +21,14 @@ export interface ContentCache {
    * The shape this file was written in; anything else is discarded.
    */
   version: number;
+  /**
+   * The provenance catalogue the entries were resolved against.
+   *
+   * Separate from version because they change for different reasons: the shape
+   * changes when we edit a type, the catalogue when we learn that a folder ID is
+   * DLC rather than base. Either one leaves cached entries wrong.
+   */
+  catalogueVersion: number;
   /**
    * The install it was built from. A moved AC root invalidates it.
    */
@@ -91,12 +99,12 @@ export interface ContentStore {
    */
   cars(query: CarQuery): Promise<Page<Car>>;
   /**
-   * One page of track layouts.
+   * One page of tracks, each holding the layouts that matched.
    * @param query What to search, filter, sort and page by
    * @returns The matching page
    * @throws AppError when no install has been located
    */
-  tracks(query: TrackQuery): Promise<Page<Track>>;
+  tracks(query: TrackQuery): Promise<Page<TrackGroup>>;
   /**
    * Counts behind the car browser's filter lists.
    * @param query The filters currently applied

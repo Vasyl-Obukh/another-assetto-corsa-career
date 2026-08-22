@@ -1,4 +1,4 @@
-import type { Track, TrackFacets, TrackQuery } from '../../../../shared/types';
+import type { TrackFacets, TrackGroup, TrackQuery } from '../../../../shared/types';
 import type { PagedList } from '../use-paged-content/index.ts';
 
 /**
@@ -24,9 +24,10 @@ export interface TrackBrowser {
    */
   facets: TrackFacets | null;
   /**
-   * The track layouts themselves, loaded a page at a time.
+   * The tracks themselves, loaded a page at a time, each holding the layouts
+   * that matched the filters.
    */
-  list: PagedList<Track>;
+  list: PagedList<TrackGroup>;
   /**
    * Whether content changed under a list the user has already scrolled.
    */

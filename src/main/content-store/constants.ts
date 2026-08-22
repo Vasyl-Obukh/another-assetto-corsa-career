@@ -7,11 +7,13 @@ export const CACHE_FILE = 'content-cache.json';
  * The shape of the cached scan.
  *
  * Bump this whenever Car, Track, Weather, WeatherController or the fingerprint
- * encoding changes. That is the whole migration story: an older file is thrown
- * away and the library is scanned again, which is cheap and can never feed a
- * stale shape into anything downstream.
+ * encoding changes - and whenever a scan starts finding content it used to miss,
+ * since an unchanged folder keeps its fingerprint and would otherwise be served
+ * from the cache exactly as it was read before. That is the whole migration
+ * story: an older file is thrown away and the library is scanned again, which is
+ * cheap and can never feed a stale shape into anything downstream.
  */
-export const CONTENT_CACHE_VERSION = 1;
+export const CONTENT_CACHE_VERSION = 4;
 
 /**
  * How long to wait before writing the cache out, as the settings store does.

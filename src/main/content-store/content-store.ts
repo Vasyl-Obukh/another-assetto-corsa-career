@@ -20,6 +20,7 @@ import {
 } from './utils.ts';
 import { contentWatchDirs, rescanContent } from '../../core/content/index.ts';
 import type { ContentScan } from '../../core/content/index.ts';
+import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
 import {
   carFacets, queryCars, queryTracks, trackFacets,
 } from '../../core/content-query/index.ts';
@@ -67,6 +68,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
 
     const cache: ContentCache = {
       version: CONTENT_CACHE_VERSION,
+      catalogueVersion: CONTENT_CATALOGUE_VERSION,
       contentDir: dir,
       scannedAt: scan.scannedAt,
       durationMs: scan.durationMs,

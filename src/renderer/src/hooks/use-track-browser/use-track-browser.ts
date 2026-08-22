@@ -31,7 +31,7 @@ export const useTrackBrowser = (): TrackBrowser => {
     [query],
   );
 
-  const list = usePagedContent(load, key, (track) => track.key);
+  const list = usePagedContent(load, key, (group) => group.id);
 
   // content:trackFacets takes a wrapper object, unlike content:tracks.
   useEffect(() => {

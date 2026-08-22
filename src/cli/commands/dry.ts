@@ -35,5 +35,5 @@ export const cmdDry = async (args: string[]): Promise<void> => {
   console.log(`  URI is ${uri.length} chars`);
   console.log(`  Sun angle for ${race.conditions?.timeOfDay}: ${sunAngleFromTime(race.conditions?.timeOfDay ?? DEFAULT_TIME_OF_DAY).toFixed(2)}`);
   console.log(`\n--- race.ini ---\n\n${raceIni.replace(/\r/g, '')}`);
-  console.log('Compare against CM\'s own output: node spike.ts testmode\n');
+  console.log('Compare against CM\'s own output: npm run testmode\n');
 };

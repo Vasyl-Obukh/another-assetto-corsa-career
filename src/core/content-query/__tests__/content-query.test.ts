@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { makeCars, makeTracks } from './fixtures.ts';
+import { makeCars, makeTrackEntry, makeTracks } from './fixtures.ts';
 import {
   carFacets, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
@@ -97,7 +97,7 @@ describe('core/content-query', () => {
   });
 
   describe('queryTracks', () => {
-    it('returns every layout, by name, when asked for nothing', () => {
+    it('returns every track, by name, when asked for nothing', () => {
       expect(ids(queryTracks(makeTracks()))).toEqual(['imola', 'mod_track', 'monza', 'spa']);
     });
 
@@ -112,7 +112,7 @@ describe('core/content-query', () => {
       expect(ids(queryTracks(makeTracks(), { pitboxesTo: 24 }))).toEqual(['imola', 'spa']);
     });
 
-    it('keeps only layouts whose real-world position is known when asked', () => {
+    it('keeps only tracks whose real-world position is known when asked', () => {
       expect(ids(queryTracks(makeTracks(), { hasGeotags: true }))).toEqual(['imola', 'spa']);
     });
 
@@ -120,6 +120,64 @@ describe('core/content-query', () => {
       expect(ids(queryTracks(makeTracks(), { sort: 'pitboxes', direction: 'desc' })))
         .toEqual(['monza', 'spa', 'imola', 'mod_track']);
     });
+
+    // Everything above uses single-layout fixtures, where a track and a layout
+    // are the same thing. These are the cases where they are not.
+    describe('over a track with several layouts', () => {
+      const nordschleife = [
+        makeTrackEntry({
+          id: 'ks_nordschleife',
+          layout: 'endurance',
+          name: 'Nordschleife - Endurance',
+          country: 'Germany',
+          pitboxes: 24,
+        }),
+        makeTrackEntry({
+          id: 'ks_nordschleife',
+          layout: 'endurance_108_lfm',
+          name: 'Nordschleife - Endurance 108 LFM',
+          country: 'Germany',
+          pitboxes: 108,
+        }),
+        makeTrackEntry({
+          id: 'ks_nordschleife',
+          layout: 'touristenfahrten',
+          name: 'Nordschleife - Tourist',
+          country: 'Germany',
+          pitboxes: 32,
+        }),
+      ];
+
+      const library = [...makeTracks(), ...nordschleife];
+
+      it('counts a track once, however many layouts it ships', () => {
+        const page = queryTracks(library);
+
+        expect(page.total).toBe(5);
+        expect(ids(page)).toEqual(['imola', 'mod_track', 'monza', 'ks_nordschleife', 'spa']);
+      });
+
+      it('keeps a track whose layouts only partly match, narrowed to those', () => {
+        const page = queryTracks(library, { pitboxesFrom: 100 });
+        const [group] = page.items;
+
+        expect(ids(page)).toEqual(['ks_nordschleife']);
+        expect(group.layouts.map((track) => track.layout)).toEqual(['endurance_108_lfm']);
+      });
+
+      it('sorts on the largest grid any of a track\'s layouts allows', () => {
+        expect(ids(queryTracks(library, { sort: 'pitboxes', direction: 'desc' })))
+          .toEqual(['ks_nordschleife', 'monza', 'spa', 'imola', 'mod_track']);
+      });
+
+      it('searches a layout name and answers with the track', () => {
+        const page = queryTracks(library, { search: 'tourist' });
+
+        expect(ids(page)).toEqual(['ks_nordschleife']);
+        expect(page.items[0].name).toBe('Nordschleife');
+      });
+    });
+
   });
 
   describe('carFacets', () => {
@@ -184,5 +242,22 @@ describe('core/content-query', () => {
       expect(trackFacets(makeTracks(), { search: 'monza' }).countries)
         .toEqual([{ value: 'Italy', count: 1 }]);
     });
+
+    // The numbers have to match the cards: a Nordschleife with three layouts is
+    // one German track, not three.
+    it('counts a track once, however many layouts it ships', () => {
+      const nordschleife = ['endurance', 'endurance_108_lfm', 'touristenfahrten'].map(
+        (layout) => makeTrackEntry({
+          id: 'ks_nordschleife', layout, name: `Nordschleife - ${layout}`, country: 'Germany',
+        }),
+      );
+
+      expect(trackFacets([...makeTracks(), ...nordschleife]).countries).toEqual([
+        { value: 'Italy', count: 2 },
+        { value: 'Belgium', count: 1 },
+        { value: 'Germany', count: 1 },
+      ]);
+    });
+
   });
 });

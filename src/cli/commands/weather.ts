@@ -23,7 +23,7 @@ export const cmdWeather = async (args: string[]): Promise<void> => {
     return;
   }
   if (action !== 'install') {
-    throw new Error('Usage: node spike.ts weather [install|remove]');
+    throw new Error('Usage: npm run weather -- [install|remove]');
   }
 
   const installed = await installCareerWeathers(paths.content);
@@ -37,5 +37,5 @@ export const cmdWeather = async (args: string[]): Promise<void> => {
   });
 
   console.log('\nEach carries a [RAINFX] section, which PURE reads directly instead of');
-  console.log('resolving the weather type. Undo with: node spike.ts weather remove\n');
+  console.log('resolving the weather type. Undo with: npm run weather -- remove\n');
 };

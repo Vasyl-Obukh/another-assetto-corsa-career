@@ -3,6 +3,7 @@
 // weather with a non-zero temperature coefficient.
 
 import type { Car, Content, RaceDefinition } from '../../../shared/types/index.ts';
+import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
 
 /**
  * Builds a car, defaulting everything raceIni does not look at.
@@ -14,6 +15,7 @@ import type { Car, Content, RaceDefinition } from '../../../shared/types/index.t
  */
 export const makeCar = (car: Pick<Car, 'id' | 'name' | 'skins'> & Partial<Car>): Car => ({
   brand: null,
+  provenance: carProvenance(car.id),
   tags: [],
   carClass: null,
   year: null,
@@ -53,6 +55,7 @@ export const makeContent = (): Content => ({
       country: 'Testland',
       pitboxes: 24,
       geotags: { lat: 52.5, lon: -1.25 },
+      provenance: trackProvenance('test_track', ''),
     },
     {
       id: 'multi_track',
@@ -62,6 +65,7 @@ export const makeContent = (): Content => ({
       country: null,
       pitboxes: 4,
       geotags: { lat: null, lon: null },
+      provenance: trackProvenance('multi_track', 'gp'),
     },
   ],
   weather: [

@@ -3,6 +3,7 @@
 // counting apart from one another.
 
 import type { Car, CarSpecs, Track } from '../../../shared/types/index.ts';
+import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
 
 /**
  * What a fixture car may override. Specs are partial, since no test cares about
@@ -19,6 +20,7 @@ type CarOverrides = Pick<Car, 'id' | 'name'>
  */
 export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
   brand: null,
+  provenance: carProvenance(car.id),
   tags: [],
   skins: ['default'],
   carClass: null,
@@ -48,10 +50,11 @@ export const makeTrackEntry = (
   track: Pick<Track, 'id' | 'name'> & Partial<Track>,
 ): Track => ({
   layout: '',
-  key: track.id,
+  key: track.layout ? `${track.id}/${track.layout}` : track.id,
   country: null,
   pitboxes: null,
   geotags: { lat: null, lon: null },
+  provenance: trackProvenance(track.id, track.layout ?? ''),
   ...track,
 });
 

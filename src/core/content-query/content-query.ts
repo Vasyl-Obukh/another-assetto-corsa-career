@@ -4,7 +4,8 @@
 
 import { COLLATOR } from './constants.ts';
 import {
-  countValues, inBounds, isOneOf, matchesTerms, paginate, searchTerms, sortBy,
+  countValues, groupPitboxes, groupTracks, inBounds, isOneOf, matchesTerms, paginate,
+  searchTerms, sortBy,
 } from './utils.ts';
 import type { SortValue } from './utils.ts';
 import type {
@@ -15,6 +16,7 @@ import type {
   Page,
   Track,
   TrackFacets,
+  TrackGroup,
   TrackQuery,
   TrackSortKey,
 } from '../../shared/types/index.ts';
@@ -37,12 +39,15 @@ const CAR_SORTS: Record<CarSortKey, (car: Car) => SortValue> = {
 };
 
 /**
- * What each track sort key reads off a track layout.
+ * What each track sort key reads off a track.
+ *
+ * Pit boxes take the largest of the track's layouts: sorting by grid size is
+ * asking what will fit here, and one layout being able to hold it is the answer.
  */
-const TRACK_SORTS: Record<TrackSortKey, (track: Track) => SortValue> = {
-  name: (track) => track.name,
-  country: (track) => track.country,
-  pitboxes: (track) => track.pitboxes,
+const TRACK_SORTS: Record<TrackSortKey, (group: TrackGroup) => SortValue> = {
+  name: (group) => group.name,
+  country: (group) => group.country,
+  pitboxes: groupPitboxes,
 };
 
 /**
@@ -62,6 +67,10 @@ const carFilters = (query: CarQuery): Filters<Car> => {
     // means both, since a tag list describes one car rather than partitioning
     // the library the way a brand does.
     tags: (car) => (query.tags ?? []).every((tag) => car.tags.includes(tag)),
+    sources: (car) => isOneOf(car.provenance.source, query.sources),
+    packs: (car) => isOneOf(car.provenance.pack, query.packs),
+    makers: (car) => isOneOf(car.provenance.maker, query.makers),
+    distributors: (car) => isOneOf(car.provenance.distributor, query.distributors),
     year: (car) => inBounds(car.year, query.yearFrom, query.yearTo),
     bhp: (car) => inBounds(car.specs.bhp, query.bhpFrom, query.bhpTo),
     hasSkins: (car) => query.hasSkins !== true || car.skins.length > 0,
@@ -79,6 +88,10 @@ const trackFilters = (query: TrackQuery): Filters<Track> => {
   return {
     search: (track) => matchesTerms(terms, [track.name, track.id, track.country]),
     countries: (track) => isOneOf(track.country, query.countries),
+    sources: (track) => isOneOf(track.provenance.source, query.sources),
+    packs: (track) => isOneOf(track.provenance.pack, query.packs),
+    makers: (track) => isOneOf(track.provenance.maker, query.makers),
+    distributors: (track) => isOneOf(track.provenance.distributor, query.distributors),
     pitboxes: (track) => inBounds(track.pitboxes, query.pitboxesFrom, query.pitboxesTo),
     hasGeotags: (track) => query.hasGeotags !== true
       || (track.geotags.lat !== null && track.geotags.lon !== null),
@@ -116,18 +129,24 @@ export const queryCars = (cars: readonly Car[], query: CarQuery = {}): Page<Car>
 };
 
 /**
- * Filters, sorts and pages a track layout list.
+ * Filters, groups, sorts and pages installed tracks.
+ *
+ * The filters run per layout and the grouping follows, so a track is a match
+ * when any of its layouts is - and the group that comes back holds only the
+ * layouts that matched. Paging after the grouping is what makes the total a
+ * count of tracks rather than of layouts.
  * @param tracks Every installed track layout
  * @param query What to search, filter, sort and page by
- * @returns One page, with the full match count beside it
+ * @returns One page of tracks, with the full match count beside it
  */
 export const queryTracks = (
   tracks: readonly Track[],
   query: TrackQuery = {},
-): Page<Track> => {
+): Page<TrackGroup> => {
   const matched = applyFilters(tracks, trackFilters(query));
+  const groups = groupTracks(matched, tracks);
   const key = TRACK_SORTS[query.sort ?? 'name'];
-  const sorted = sortBy(matched, key, (track) => track.name, query.direction);
+  const sorted = sortBy(groups, key, (group) => group.name, query.direction);
 
   return paginate(sorted, query.offset, query.limit);
 };
@@ -140,7 +159,7 @@ export const queryTracks = (
  * pickable instead of collapsing it to the single choice already made.
  * @param cars Every installed car
  * @param query The filters currently applied
- * @returns Counts per brand, tag, country, class and year
+ * @returns Counts per brand, tag, country, class, provenance and year
  */
 export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets => {
   const filters = carFilters(query);
@@ -151,6 +170,11 @@ export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets
     tags: countValues(without('tags'), (car) => car.tags),
     countries: countValues(without('countries'), (car) => [car.country]),
     classes: countValues(without('classes'), (car) => [car.carClass]),
+    sources: countValues(without('sources'), (car) => [car.provenance.source]),
+    packs: countValues(without('packs'), (car) => [car.provenance.pack]),
+    makers: countValues(without('makers'), (car) => [car.provenance.maker]),
+    distributors: countValues(without('distributors'), (car) => [car.provenance.distributor]),
+
     // Years read best newest first rather than commonest first, since a year
     // list is something you scan for a decade rather than for a popular value.
     years: countValues(without('year'), (car) => [car.year === null ? null : String(car.year)])
@@ -160,16 +184,27 @@ export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets
 
 /**
  * Counts the values behind a track browser's filter lists.
+ *
+ * Counted over tracks rather than layouts, so the numbers match the cards: a
+ * Nordschleife with eight layouts is one German track, not eight.
  * @param tracks Every installed track layout
  * @param query The filters currently applied
- * @returns Counts per country
+ * @returns Counts per country and provenance
  */
 export const trackFacets = (
   tracks: readonly Track[],
   query: TrackQuery = {},
-): TrackFacets => ({
-  countries: countValues(
-    applyFilters(tracks, trackFilters(query), 'countries'),
-    (track) => [track.country],
-  ),
-});
+): TrackFacets => {
+  const filters = trackFilters(query);
+  const without = (except: string): TrackGroup[] => (
+    groupTracks(applyFilters(tracks, filters, except), tracks)
+  );
+
+  return {
+    countries: countValues(without('countries'), (group) => [group.country]),
+    sources: countValues(without('sources'), (group) => [group.provenance.source]),
+    packs: countValues(without('packs'), (group) => [group.provenance.pack]),
+    makers: countValues(without('makers'), (group) => [group.provenance.maker]),
+    distributors: countValues(without('distributors'), (group) => [group.provenance.distributor]),
+  };
+};

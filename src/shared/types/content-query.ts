@@ -2,6 +2,10 @@
 // boundary, so a browser screen asks main for one page rather than holding a
 // copy of a mod library that runs to thousands of entries.
 
+import type {
+  ContentSource, DLCPack, ModDistributor, ModMaker,
+} from './content.ts';
+
 /**
  * A page of results, plus how many matched before paging.
  */
@@ -95,6 +99,22 @@ export interface CarQuery {
    */
   bhpTo?: number;
   /**
+   * Keep only cars from these sources - base game, DLC or mod.
+   */
+  sources?: ContentSource[];
+  /**
+   * Keep only cars from these DLC packs.
+   */
+  packs?: DLCPack[];
+  /**
+   * Keep only cars from these mod makers.
+   */
+  makers?: ModMaker[];
+  /**
+   * Keep only cars redistributed by one of these.
+   */
+  distributors?: ModDistributor[];
+  /**
    * Keep only cars that have at least one livery installed.
    */
   hasSkins?: boolean;
@@ -122,7 +142,10 @@ export interface CarQuery {
 export type TrackSortKey = 'name' | 'country' | 'pitboxes';
 
 /**
- * A filtered, searched, sorted and paged request for track layouts.
+ * A filtered, searched, sorted and paged request for tracks.
+ *
+ * Every filter is tested against a layout, and a track matches when any of its
+ * layouts does - so this reads as a layout query and answers with tracks.
  */
 export interface TrackQuery {
   /**
@@ -144,6 +167,22 @@ export interface TrackQuery {
    * when set.
    */
   pitboxesTo?: number;
+  /**
+   * Keep only tracks from these sources - base game, DLC or mod.
+   */
+  sources?: ContentSource[];
+  /**
+   * Keep only tracks from these DLC packs.
+   */
+  packs?: DLCPack[];
+  /**
+   * Keep only tracks from these mod makers.
+   */
+  makers?: ModMaker[];
+  /**
+   * Keep only tracks redistributed by one of these.
+   */
+  distributors?: ModDistributor[];
   /**
    * Keep only tracks whose real-world position is known.
    */
@@ -192,6 +231,23 @@ export interface CarFacets {
    */
   classes: Facet[];
   /**
+   * Where the car came from, by descending count then name.
+   */
+  sources: Facet[];
+  /**
+   * DLC packs, by descending count then name. Empty when nothing is DLC.
+   */
+  packs: Facet[];
+  /**
+   * Mod makers, by descending count then name. Anonymous mods are absent
+   * rather than collected into a bucket, the same as any other null value.
+   */
+  makers: Facet[];
+  /**
+   * Redistributors, by descending count then name.
+   */
+  distributors: Facet[];
+  /**
    * Model years, most recent first.
    */
   years: Facet[];
@@ -205,4 +261,21 @@ export interface TrackFacets {
    * Countries, by descending count then name.
    */
   countries: Facet[];
+  /**
+   * Where the track came from, by descending count then name.
+   */
+  sources: Facet[];
+  /**
+   * DLC packs, by descending count then name. Empty when nothing is DLC.
+   */
+  packs: Facet[];
+  /**
+   * Mod makers, by descending count then name. Anonymous mods are absent
+   * rather than collected into a bucket, the same as any other null value.
+   */
+  makers: Facet[];
+  /**
+   * Redistributors, by descending count then name.
+   */
+  distributors: Facet[];
 }

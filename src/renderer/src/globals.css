@@ -36,6 +36,17 @@
   --border: oklch(0.9 0.005 255);
   --input: oklch(0.9 0.005 255);
   --ring: oklch(0.55 0.19 26);
+
+  /* Where content came from. One hue per source, plus a fourth for whoever
+     redistributed it, so an app-derived tag never reads as a mod author's. */
+  --provenance-base: oklch(0.93 0.05 155);
+  --provenance-base-foreground: oklch(0.34 0.09 155);
+  --provenance-dlc: oklch(0.93 0.06 75);
+  --provenance-dlc-foreground: oklch(0.38 0.1 62);
+  --provenance-mod: oklch(0.93 0.05 295);
+  --provenance-mod-foreground: oklch(0.38 0.13 295);
+  --provenance-distribution: oklch(0.93 0.05 235);
+  --provenance-distribution-foreground: oklch(0.38 0.12 250);
 }
 
 [data-theme="dark"] {
@@ -60,6 +71,15 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.64 0.2 26);
+
+  --provenance-base: oklch(0.32 0.06 155);
+  --provenance-base-foreground: oklch(0.86 0.11 155);
+  --provenance-dlc: oklch(0.33 0.06 70);
+  --provenance-dlc-foreground: oklch(0.87 0.11 80);
+  --provenance-mod: oklch(0.33 0.07 295);
+  --provenance-mod-foreground: oklch(0.86 0.1 295);
+  --provenance-distribution: oklch(0.33 0.07 245);
+  --provenance-distribution-foreground: oklch(0.86 0.09 240);
 }
 
 @theme inline {
@@ -81,6 +101,14 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-provenance-base: var(--provenance-base);
+  --color-provenance-base-foreground: var(--provenance-base-foreground);
+  --color-provenance-dlc: var(--provenance-dlc);
+  --color-provenance-dlc-foreground: var(--provenance-dlc-foreground);
+  --color-provenance-mod: var(--provenance-mod);
+  --color-provenance-mod-foreground: var(--provenance-mod-foreground);
+  --color-provenance-distribution: var(--provenance-distribution);
+  --color-provenance-distribution-foreground: var(--provenance-distribution-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

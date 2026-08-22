@@ -8,7 +8,8 @@ import {
   makeCache, makeContent, makeScan,
 } from './fixtures.ts';
 import { contentWatchDirs, rescanContent } from '../../../core/content/index.ts';
-import { WATCH_DEBOUNCE_MS } from '../constants.ts';
+import { CONTENT_CATALOGUE_VERSION } from '../../../core/content-catalogue/index.ts';
+import { CONTENT_CACHE_VERSION, WATCH_DEBOUNCE_MS } from '../constants.ts';
 import { createContentStore } from '../content-store.ts';
 
 jest.mock('node:fs');
@@ -290,7 +291,7 @@ describe('main/content-store', () => {
       await expect(store.carFacets()).resolves.toMatchObject({
         brands: [{ value: 'Marque', count: 1 }],
       });
-      await expect(store.trackFacets()).resolves.toEqual({ countries: [] });
+      await expect(store.trackFacets()).resolves.toMatchObject({ countries: [] });
       await expect(store.issues()).resolves.toEqual(content.issues);
     });
   });
@@ -441,7 +442,8 @@ describe('main/content-store', () => {
 
       const written = JSON.parse(String(writeFileMock.mock.calls[0]?.[1]));
       expect(written).toMatchObject({
-        version: 1,
+        version: CONTENT_CACHE_VERSION,
+        catalogueVersion: CONTENT_CATALOGUE_VERSION,
         contentDir: DIR,
         content: { cars: [{ id: 'car_a' }] },
         fingerprints: { cars: { car_a: 'a' } },

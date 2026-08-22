@@ -4,6 +4,7 @@
 import { CONTENT_CACHE_VERSION } from './constants.ts';
 import type { ContentCache } from './types.ts';
 import type { ContentScan } from '../../core/content/index.ts';
+import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
 import type { Content, ContentCounts, ContentSummary } from '../../shared/types/index.ts';
 
 /**
@@ -31,12 +32,16 @@ const isEntryArray = (value: unknown): boolean => (
  * file is derived data we can always rebuild, so the only sensible response to
  * anything unexpected is to throw it away and scan again - which is also why
  * there is no quarantine here as there is in the settings store.
+ *
+ * The two version gates carry that alone: the field checks below only look for a
+ * string ID, so a cached entry missing a field added since would sail past them.
  * @param raw The parsed contents of the cache file
  * @returns The cache, or null when it cannot be trusted
  */
 export const readContentCache = (raw: unknown): ContentCache | null => {
   if (!isRecord(raw)) return null;
   if (raw.version !== CONTENT_CACHE_VERSION) return null;
+  if (raw.catalogueVersion !== CONTENT_CATALOGUE_VERSION) return null;
   if (typeof raw.contentDir !== 'string' || typeof raw.scannedAt !== 'string') return null;
 
   const { content, fingerprints } = raw;

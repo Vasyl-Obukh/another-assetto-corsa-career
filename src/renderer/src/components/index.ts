@@ -14,4 +14,5 @@ export { ErrorCard } from './ErrorCard.tsx';
 export { LanguageSelect } from './LanguageSelect.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';
 export type { PathKind } from './paths-card/index.ts';
+export { ProvenanceBadges } from './provenance-badges/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';

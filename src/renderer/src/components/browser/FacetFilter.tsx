@@ -24,6 +24,15 @@ interface FacetFilterProps {
    */
   selected: string[];
   /**
+   * Turns a raw value into something readable, where the two differ.
+   *
+   * Facet values are whatever main counted - a mod author's brand string, or a
+   * catalogue ID like dream-pack-1. Defaults to showing the value itself.
+   * @param value The value as main sent it
+   * @returns What to show
+   */
+  format?: (value: string) => string;
+  /**
    * Replaces the picked values.
    * @param next The values now picked
    */
@@ -34,6 +43,7 @@ export const FacetFilter = ({
   label,
   facets,
   selected,
+  format = (value) => value,
   onChange,
 }: FacetFilterProps) => {
   const { t } = useTranslation();
@@ -42,7 +52,8 @@ export const FacetFilter = ({
   const needle = filter.trim().toLowerCase();
   const shown = needle === ''
     ? facets
-    : facets.filter((facet) => facet.value.toLowerCase().includes(needle));
+    : facets.filter((facet) => facet.value.toLowerCase().includes(needle)
+      || format(facet.value).toLowerCase().includes(needle));
 
   const toggle = (value: string): void => {
     onChange(selected.includes(value)
@@ -82,6 +93,7 @@ export const FacetFilter = ({
             <FacetOption
               key={facet.value}
               value={facet.value}
+              label={format(facet.value)}
               count={facet.count}
               selected={selected.includes(facet.value)}
               onToggle={toggle}

@@ -1,6 +1,7 @@
 // Shared fixtures for the car card tests. Only the fields the card actually
 // reads are interesting; everything else defaults out of the way.
 
+import { ContentSource } from '../../../../../shared/types';
 import type { Car, CarSpecs } from '../../../../../shared/types';
 
 /**
@@ -16,6 +17,9 @@ type CarOverrides = Pick<Car, 'id'> & Partial<Omit<Car, 'specs'>> & { specs?: Pa
 export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
   name: car.id,
   brand: null,
+  provenance: {
+    source: ContentSource.MOD, pack: null, maker: null, distributor: null,
+  },
   tags: [],
   skins: [],
   carClass: null,

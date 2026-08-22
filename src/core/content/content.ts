@@ -38,6 +38,7 @@ import type {
 } from '../../shared/types/index.ts';
 import type { ContentUrlTarget } from '../../shared/utils/content-url/index.ts';
 import { parseCarSpecs, parseYear } from '../car-specs/index.ts';
+import { carProvenance } from '../content-catalogue/index.ts';
 import { parseIni } from '../ini/index.ts';
 import type { IniData } from '../ini/index.ts';
 
@@ -122,6 +123,7 @@ export const scanCars = async (
         year: parseYear(ui.value?.year),
         country: typeof ui.value?.country === 'string' ? ui.value.country : null,
         specs: parseCarSpecs(ui.value?.specs),
+        provenance: carProvenance(id),
       }],
       issues,
       fingerprint,
@@ -148,16 +150,19 @@ const readTrack = async (
   const uiDir = path.join(contentDir, TRACKS_DIR, id, UI_DIR);
   const issues: ContentIssue[] = [];
 
-  // Single-layout tracks put ui_track.json directly in ui/.
+  // Single-layout tracks put ui_track.json directly in ui/. A root file does not
+  // rule out layouts beside it: a layout pack dropped into a Kunos track keeps the
+  // original selectable, so spa ships vanilla Spa plus 2022 and the two LFM starts.
   const root = await readJsonFile<UiTrack>(path.join(uiDir, UI_TRACK_FILE));
+  const rootTrack: Track[] = [];
   if (root.value !== null) {
     if (root.salvaged) issues.push({ kind: 'track', id, reason: 'uiSalvaged', detail: null });
-    return { tracks: [makeTrack(id, '', root.value)], issues };
+    rootTrack.push(makeTrack(id, '', root.value));
+  } else if (root.error === null) {
+    // The file was there but nothing survived the parse, which is a different
+    // thing from a track that legitimately has no root ui_track.json.
+    issues.push({ kind: 'track', id, reason: 'uiUnparsable', detail: null });
   }
-
-  // The file was there but nothing survived the parse, which is a different
-  // thing from a multi-layout track that legitimately has no root ui_track.json.
-  if (root.error === null) issues.push({ kind: 'track', id, reason: 'uiUnparsable', detail: null });
 
   const layouts = await listDirs(uiDir);
   const resolved = await Promise.all(layouts.map(async (layout) => {
@@ -178,7 +183,7 @@ const readTrack = async (
     return makeTrack(id, layout, ui.value);
   }));
 
-  const tracks = resolved.filter((track): track is Track => track !== null);
+  const tracks = [...rootTrack, ...resolved.filter((track): track is Track => track !== null)];
 
   if (tracks.length === 0 && layouts.length > 0) {
     issues.push({ kind: 'track', id, reason: 'noLayouts', detail: null });

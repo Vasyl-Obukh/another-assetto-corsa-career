@@ -57,7 +57,49 @@
     "issues_one": "{{count}} пошкоджений",
     "issues_few": "{{count}} пошкоджені",
     "issues_many": "{{count}} пошкоджених",
-    "issues_other": "{{count}} пошкодженого"
+    "issues_other": "{{count}} пошкодженого",
+    "source": {
+      "base": "Базова гра",
+      "dlc": "DLC",
+      "mod": "Мод"
+    },
+    "pack": {
+      "dream-pack-1": "Dream Pack 1",
+      "dream-pack-2": "Dream Pack 2",
+      "dream-pack-3": "Dream Pack 3",
+      "red-pack": "Red Pack",
+      "tripl3-pack": "Tripl3 Pack",
+      "porsche-pack-1": "Porsche Pack 1",
+      "porsche-pack-2": "Porsche Pack 2",
+      "porsche-pack-3": "Porsche Pack 3",
+      "japanese-pack": "Japanese Pack",
+      "ready-to-race": "Ready To Race",
+      "ferrari-70th": "Ferrari 70th Anniversary"
+    },
+    "maker": {
+      "guerilla": "GUERILLA Mods",
+      "rss": "Race Sim Studio",
+      "urd": "United Racing Design",
+      "vrc": "Virtual Racing Cars"
+    },
+    "sourceTag": {
+      "base": "База",
+      "dlc": "DLC",
+      "mod": "Мод"
+    },
+    "packTag": "DLC - {{pack}}",
+    "makerTag": {
+      "guerilla": "GUERILLA",
+      "rss": "RSS",
+      "urd": "URD",
+      "vrc": "VRC"
+    },
+    "distributor": {
+      "lfm": "Low Fuel Motorsport"
+    },
+    "distributorTag": {
+      "lfm": "LFM"
+    }
   },
   "browse": {
     "search": "Пошук",
@@ -158,17 +200,26 @@
       "countries": "Країна",
       "years": "Рік",
       "power": "Потужність",
-      "hasSkins": "Має лівреї"
+      "hasSkins": "Має лівреї",
+      "sources": "Джерело",
+      "packs": "Набір DLC",
+      "makers": "Автор мода",
+      "distributors": "Розповсюджує"
     }
   },
   "tracks": {
     "title": "Траси",
     "searchPlaceholder": "Пошук за назвою, текою або країною",
     "located": "Має координати",
+    "layouts_one": "{{count}} конфігурація",
+    "layouts_few": "{{count}} конфігурації",
+    "layouts_many": "{{count}} конфігурацій",
+    "layouts_other": "{{count}} конфігурації",
     "pitboxes_one": "{{count}} піт-бокс",
     "pitboxes_few": "{{count}} піт-бокси",
     "pitboxes_many": "{{count}} піт-боксів",
     "pitboxes_other": "{{count}} піт-бокса",
+    "pitboxesRange": "{{from}}-{{to}} піт-боксів",
     "unknownPitboxes": "Розмір стартового поля невідомий",
     "sort": {
       "name": "Назва",
@@ -178,7 +229,11 @@
     "filter": {
       "countries": "Країна",
       "pitboxes": "Піт-бокси",
-      "hasGeotags": "Має координати"
+      "hasGeotags": "Має координати",
+      "sources": "Джерело",
+      "packs": "Набір DLC",
+      "makers": "Автор мода",
+      "distributors": "Розповсюджує"
     }
   }
 }

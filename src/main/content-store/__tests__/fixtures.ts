@@ -1,6 +1,8 @@
 // Shared fixtures for the contentStore tests.
 
 import type { ContentScan } from '../../../core/content/index.ts';
+import { carProvenance, trackProvenance } from '../../../core/content-catalogue/index.ts';
+import { CONTENT_CATALOGUE_VERSION } from '../../../core/content-catalogue/index.ts';
 import type {
   Car, Content, Track, Weather, WeatherController,
 } from '../../../shared/types/index.ts';
@@ -15,6 +17,7 @@ import type { ContentCache } from '../types.ts';
 export const makeCar = (id: string): Car => ({
   id,
   name: id,
+  provenance: carProvenance(id),
   brand: null,
   tags: [],
   skins: ['default'],
@@ -42,6 +45,7 @@ export const makeCar = (id: string): Car => ({
 export const makeTrack = (id: string): Track => ({
   id,
   layout: '',
+  provenance: trackProvenance(id, ''),
   key: id,
   name: id,
   country: null,
@@ -105,6 +109,7 @@ export const makeScan = (content: Content, stamp = 'a'): ContentScan => ({
  */
 export const makeCache = (contentDir: string, content = makeContent(['car_a'])): ContentCache => ({
   version: CONTENT_CACHE_VERSION,
+  catalogueVersion: CONTENT_CATALOGUE_VERSION,
   contentDir,
   scannedAt: '2026-01-01T00:00:00.000Z',
   durationMs: 12,

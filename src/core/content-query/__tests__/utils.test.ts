@@ -1,7 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { makeTrackEntry } from './fixtures.ts';
+import { ContentSource, ModDistributor } from '../../../shared/types/index.ts';
+import type { Track, TrackGroup } from '../../../shared/types/index.ts';
 import {
   countValues,
+  groupPitboxes,
+  groupTracks,
   inBounds,
   isOneOf,
   matchesTerms,
@@ -218,4 +223,171 @@ describe('core/content-query/utils', () => {
       expect(counted.map((facet) => facet.value)).toEqual(['2018', '1987']);
     });
   });
+
+  describe('groupTracks', () => {
+    /**
+     * Builds the layouts of one track.
+     * @param id Track folder name
+     * @param named Layout folder name to display name
+     * @returns One entry per layout
+     */
+    const layoutsOf = (id: string, named: Record<string, string>): Track[] => (
+      Object.entries(named).map(([layout, name]) => makeTrackEntry({ id, layout, name }))
+    );
+
+    const redBullRing = layoutsOf('ks_red_bull_ring', {
+      layout_gp: 'Red Bull Ring - GP',
+      layout_gp_lfm: 'Red Bull Ring - GP - LFM',
+      layout_national: 'Red Bull Ring - National',
+    });
+
+    it('gathers a track\'s layouts into one entry', () => {
+      const [group, ...rest] = groupTracks(redBullRing, redBullRing);
+
+      expect(rest).toEqual([]);
+      expect(group.id).toBe('ks_red_bull_ring');
+      expect(group.layouts).toHaveLength(3);
+    });
+
+    // AC has no track-level name once a track has layouts, so the name is the
+    // part they share - which is what Content Manager shows too.
+    it('names the track from the prefix its layouts share', () => {
+      expect(groupTracks(redBullRing, redBullRing)[0].name).toBe('Red Bull Ring');
+    });
+
+    it('cuts the shared prefix back to a word boundary', () => {
+      const most = layoutsOf('rt_autodrom_most', {
+        chicane: 'Autodrom Most 2024 (chicane)',
+        no_chicane: 'Autodrom Most 2024 (no chicane)',
+      });
+
+      expect(groupTracks(most, most)[0].name).toBe('Autodrom Most 2024');
+    });
+
+    it('sorts the layouts by name', () => {
+      const shuffled = [redBullRing[2], redBullRing[0], redBullRing[1]];
+
+      expect(groupTracks(shuffled, shuffled)[0].layouts.map((track) => track.layout))
+        .toEqual(['layout_gp', 'layout_gp_lfm', 'layout_national']);
+    });
+
+    it('keeps only the layouts that matched', () => {
+      const [, lfm] = redBullRing;
+      const group = groupTracks([lfm], redBullRing)[0];
+
+      expect(group.layouts).toEqual([lfm]);
+    });
+
+    // The card must not rename itself when a filter narrows it, so identity
+    // comes from every installed layout rather than from the matching ones.
+    it('names the track from every installed layout, not just the matching ones', () => {
+      const [, lfm] = redBullRing;
+
+      expect(groupTracks([lfm], redBullRing)[0].name).toBe('Red Bull Ring');
+      expect(groupTracks([lfm], [lfm])[0].name).toBe('Red Bull Ring - GP - LFM');
+    });
+
+    it('takes the country from the first layout that names one', () => {
+      const layouts = [
+        makeTrackEntry({ id: 'spa', layout: 'gp', name: 'Spa - GP' }),
+        makeTrackEntry({
+          id: 'spa', layout: 'endurance', name: 'Spa - Endurance', country: 'Belgium',
+        }),
+      ];
+
+      expect(groupTracks(layouts, layouts)[0].country).toBe('Belgium');
+    });
+
+    // LFM adds layouts to circuits it did not ship, so one redistributed layout
+    // makes the whole card say so.
+    it('reports a redistributor that any one layout carries', () => {
+      const plain = { source: ContentSource.DLC, pack: null, maker: null, distributor: null };
+      const layouts = [
+        makeTrackEntry({ id: 'x', layout: 'gp', name: 'X - GP', provenance: plain }),
+        makeTrackEntry({
+          id: 'x',
+          layout: 'gp_lfm',
+          name: 'X - GP LFM',
+          provenance: { ...plain, distributor: ModDistributor.LFM },
+        }),
+      ];
+
+      expect(groupTracks(layouts, layouts)[0].provenance).toMatchObject({
+        source: ContentSource.DLC, distributor: ModDistributor.LFM,
+      });
+    });
+
+    it('falls back to the root layout when the names share nothing', () => {
+      const layouts = [
+        makeTrackEntry({ id: 'acu_unitedstates', layout: '', name: 'United States GP' }),
+        makeTrackEntry({ id: 'acu_unitedstates', layout: 'a', name: 'Circuit of The Americas' }),
+      ];
+
+      expect(groupTracks(layouts, layouts)[0].name).toBe('United States GP');
+    });
+
+    it('falls back to the shortest name when there is no root layout', () => {
+      const layouts = layoutsOf('sx_lemans_lfm', {
+        acf_chicane_24h: 'ACF Le Mans 24h',
+        chicane: 'Le Mans',
+      });
+
+      expect(groupTracks(layouts, layouts)[0].name).toBe('Le Mans');
+    });
+
+    // A mod that leaves the name blank should not name the circuit after it.
+    it('falls back to the folder name when no layout is named', () => {
+      const layouts = layoutsOf('someones_circuit', { gp: '', club: '' });
+
+      expect(groupTracks(layouts, layouts)[0].name).toBe('someones_circuit');
+    });
+
+    it('keeps a single-layout track as a group of one', () => {
+      const spa = [makeTrackEntry({ id: 'spa', name: 'Spa-Francorchamps' })];
+      const [group] = groupTracks(spa, spa);
+
+      expect(group.name).toBe('Spa-Francorchamps');
+      expect(group.layouts).toHaveLength(1);
+    });
+
+    it('keeps separate tracks apart, even when they share a name', () => {
+      const bahrain = [
+        makeTrackEntry({ id: 'fn_bahrain', layout: 'gp', name: 'Bahrain International Circuit' }),
+        makeTrackEntry({ id: 'bahrain_international_circuit', name: 'Bahrain International Circuit' }),
+      ];
+
+      expect(groupTracks(bahrain, bahrain).map((group) => group.id))
+        .toEqual(['fn_bahrain', 'bahrain_international_circuit']);
+    });
+  });
+
+  describe('groupPitboxes', () => {
+    /**
+     * Builds a group whose layouts state the given grid sizes.
+     * @param pitboxes One capacity per layout, null where unstated
+     * @returns The group
+     */
+    const withPitboxes = (pitboxes: (number | null)[]): TrackGroup => {
+      const layouts = pitboxes.map((count, index) => makeTrackEntry({
+        id: 'x', layout: `l${index}`, name: `X ${index}`, pitboxes: count,
+      }));
+
+      return groupTracks(layouts, layouts)[0];
+    };
+
+    // Sorting by grid size asks what will fit here, and one layout being able to
+    // hold it is the answer.
+    it('takes the largest grid any layout allows', () => {
+      expect(groupPitboxes(withPitboxes([24, 48, 24]))).toBe(48);
+    });
+
+    it('ignores the layouts that state nothing', () => {
+      expect(groupPitboxes(withPitboxes([null, 30, null]))).toBe(30);
+    });
+
+    it('is null when no layout states a grid size', () => {
+      expect(groupPitboxes(withPitboxes([null, null]))).toBeNull();
+    });
+  });
+
 });

@@ -17,6 +17,7 @@ import {
 } from './constants.ts';
 import type { JsonRead, LooseJson, UiTrack } from './types.ts';
 import type { Track } from '../../shared/types/index.ts';
+import { trackProvenance } from '../content-catalogue/index.ts';
 
 /**
  * Escapes raw newlines and tabs that sit inside a JSON string literal.
@@ -279,5 +280,6 @@ export const makeTrack = (id: string, layout: string, ui: UiTrack): Track => {
     country: ui.country ?? null,
     pitboxes: Number.isFinite(pitboxes) ? pitboxes : null,
     geotags: { lat: parseGeotag(lat), lon: parseGeotag(lon) },
+    provenance: trackProvenance(id, layout),
   };
 };

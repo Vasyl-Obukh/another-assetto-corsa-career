@@ -9,7 +9,9 @@ The integration spike proves the full round trip, the Electron shell sits on top
 of it - setup, diagnostics, theming, i18n, settings and a tested core - the
 content library is cached, incremental, spec-aware and honest about broken mods,
 and the car and track browsers now consume it behind real navigation. Next up in
-Phase 2 are classes, disciplines and tiers.
+Phase 2 is content provenance - which car or track is base game, DLC or a mod -
+because the shipped championship library depends on knowing; classes, disciplines
+and tiers follow it.
 
 ## Decisions taken
 
@@ -35,6 +37,11 @@ Phase 2 are classes, disciplines and tiers.
 | Where career state lives        | **Main owns it, in memory.** One live career object, written through to `career.json` continuously so a crash costs nothing; saves are snapshots copied from it. The renderer holds a read-only projection - no client-side store.        |
 | Changing career state           | **Validated commands, never patches.** The renderer sends intent (`career:buyCar`); main checks the rules, applies, persists and pushes the result back.                                                                                  |
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
+| Content provenance              | **A shipped catalogue, not inference.** Every car and track layout carries a source (base, DLC or mod), the DLC pack where there is one, the mod maker where we recognise one, and any redistributor.                                     |
+| Base-only career                | **Guaranteed.** A complete ladder is always playable on vanilla content alone. DLC and mods extend the ladder; they never fill holes in it.                                                                                               |
+| Editing a shipped championship  | **Forking copies.** The fork diverges from that moment, and a later update to the original does not flow into it.                                                                                                                         |
+| Missing content                 | **Report, block, offer to fix.** A championship missing anything is listed with what it needs, named down to the pack or the mod, and cannot be entered until it is forked or the content installed.                                      |
+| Content source toggles          | **They govern which championships are offered, nothing else.** The library always shows everything installed.                                                                                                                             |
 
 ---
 
@@ -42,6 +49,96 @@ Phase 2 are classes, disciplines and tiers.
 
 The economy and calendar need several things the earlier plan had no model for.
 These are the load-bearing ones.
+
+### Content provenance
+
+Users own three tiers of content: the **base game** everyone has, **DLC packs**
+some own, and **mods** a few own - RSS, VRC, URD and Guerilla among the popular
+makers, plus whatever else is installed. Every car and every track layout carries
+where it came from:
+
+| Field | Meaning |
+| --- | --- |
+| `source` | `base`, `dlc` or `mod` |
+| `pack` | which DLC, when the source is `dlc` |
+| `maker` | which mod team, when the catalogue names one |
+| `distributor` | who redistributed it - currently LFM |
+
+`maker` and `distributor` are separate because they answer different questions.
+LFM redistributes other teams' work rather than authoring its own, and it ships
+*layouts into a Kunos track* - `ks_nordschleife/nordschleife-lfm`. One field could
+not say "DLC track, LFM layout", and folding LFM into `maker` would misattribute
+an RSS car to it. It is why `DISTRIBUTOR_TRACKS` is the one track record keyed by
+layout rather than by track.
+
+**Every folder ID is listed explicitly, and nothing is inferred.** There is a
+record per question - `BASE_CARS`, `DLC_CARS`, `MOD_CARS`, `DISTRIBUTOR_CARS` and
+the same four for tracks - and an ID in none of them is a mod whose author we do
+not know, which is the honest answer.
+
+Inference was tried and dropped. Folder prefixes read plausibly and are wrong in
+both directions: a mod that predates its team's naming convention reads as
+anonymous, LFM content without `lfm` in the name is missed, and mods take
+Kunos-looking names outright - `ks_ferrari_296_gt3` is by First Studio Race, and
+Kunos never made a 296 GT3. Prefixes also cannot split base from DLC in the first
+place, since vanilla cars are a mix of `ks_*` and unprefixed names like
+`bmw_m3_e30`.
+
+AC's own `ui/dlc_ui_car.json` marker has the same problem from the other end. It
+carries a Steam app ID, which is exactly what we want, except mods copy the file
+verbatim: `fsr_ford_mustang_gt3` ships Audi's and calls itself an Audi R8 LMS.
+Tracks barely carry the marker at all. It was worth reading once, while the
+records were being written, and never at runtime.
+
+The records are now complete for the library they were authored against, and the
+tooling that built them has been deleted: it drafted DLC rows from those markers
+and listed what had no row yet, and both questions are answered. Content installed
+later simply reads as a mod with no maker until someone adds a row, which is the
+honest answer and needs no tool to arrive at.
+
+**Bonus packs are base.** Steam has no bonus depot - that content arrives in the
+base depot alongside the game - so it can never be missing, which is what keeps
+the base-only ladder honest.
+
+**`--verify` is what finds the rows worth correcting.** It reports what an
+install disagrees with rather than deciding anything itself:
+
+- Rows claiming base or DLC content whose `ui_car.json` names an author. Kunos
+  write none, so this is a mod wearing an official-looking folder name.
+- Base rows with no folder, since everyone owns the base game. This is what caught
+  `ks_mclaren_p1_HC1200`, a tuner's name Kunos would never use.
+- Installed content in no record at all - the list still to be classified, and the
+  only one that runs long.
+- Drift between `DISTRIBUTOR_CARS` and the tag LFM's own pack writes, which is a
+  hint about new LFM content rather than an authority over it.
+
+### Shipped championships
+
+The app ships a championship library, not an empty editor. Provenance is what
+makes that possible: we can say what a championship needs and whether you have it.
+
+**A complete ladder is always playable on base content alone.** Someone who owns
+nothing but the game gets a full career across disciplines and tiers. DLC and mod
+championships extend the ladder sideways and upwards; they never fill a hole in
+it. That constrains authoring rather than describing it - a base-only tier that
+only works if you own Dream Pack 1 is a bug.
+
+**Missing content is reported, not worked around.** A championship you cannot run
+is listed as unavailable with exactly what it needs, named down to the DLC pack or
+the mod, with an `acmanager://install` link where the mod offers one. It cannot be
+entered as-is. Silently dropping rounds you have no track for would mean two
+users' "same" championship quietly differ, and their results stop comparing.
+
+**Forking is the way out.** Copy a shipped championship, disable the original, and
+substitute or drop what you do not own. The copy is a full series file from that
+moment and **diverges** - a later update to the original does not flow into it, and
+the user is told so rather than discovering it.
+
+**Content source toggles** say which championships you want offered: base, DLC,
+and one per mod maker. They govern that list and nothing else. The car and track
+browsers always show everything installed, because "what have I got" and "what do
+I want to race" are different questions, and a library that hides your own mods
+reads as a bug.
 
 ### Disciplines and tiers
 
@@ -291,6 +388,12 @@ had exercised.
       `npm run scan`
 - [x] Car and track browsers with previews, filters and search - hash routing,
       card grids with infinite scroll, drill-down facet filters and debounced search
+- [x] One card per **track**, not per layout - filters still run per layout, so a
+      track matches when any of its layouts does and the card narrows to those.
+      Picking a layout belongs to race setup, where it is the question being asked
+- [x] **Content provenance** - base, DLC pack, mod maker and redistributor, per car
+      and per track layout, from a shipped catalogue, every ID listed explicitly
+- [ ] Source, pack and maker filters and facets in both browsers, badged on the card
 - [ ] **Car classes**, user-defined, with inference from tags and specs
 - [ ] **Disciplines and tiers** - the ladder structure
 - [ ] Map classes to disciplines and tiers
@@ -361,7 +464,9 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Eligibility: which classes may enter which series
 - [ ] Prize money tables (per finishing position, per final standing)
 - [ ] Entry fees per round
-- [ ] Validation against installed content, with actionable errors
+- [ ] **Availability against installed content** - what a championship is missing,
+      named down to the DLC pack or the mod, with `acmanager://install` where the
+      mod offers one. Missing anything blocks entry rather than adapting silently
 - [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
       content pickers are Phase 2's browser shell with selection added, not new
       screens; see *Where the browsers end up*
@@ -369,7 +474,14 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Clone a series; extend an existing one with extra rounds
 - [ ] Export / import series files
 - [ ] Content manifest per series with `acmanager://install` for missing content
-- [ ] Ship reference series across several disciplines and tiers
+- [ ] **Championship configuration page**: every shipped championship, available or
+      not, and what content it needs
+- [ ] **Fork a shipped championship** - copy, disable the original, substitute or
+      drop content. The copy diverges; a later update to the original never reaches it
+- [ ] **Content source toggles** governing which championships are offered - base,
+      DLC, and one per mod maker
+- [ ] Ship the championship library, with a **complete base-only ladder** across
+      several disciplines and tiers
 
 ## Phase 5 - Championship engine and calendar
 
@@ -514,6 +626,10 @@ Design to be settled before building - see Open questions.
 - ~~**Localisation depth.**~~ Settled: strings *and* dates, numbers and currency,
   via `Intl` from the start, and errors raised in `src/core/` too - they carry a
   code the renderer translates, while the CLI keeps printing English.
+- **Keeping the catalogue current.** Kunos still ships content and the mod teams
+  ship constantly, so a catalogue authored once goes stale. Does it update with the
+  app, or does something fetch it? LFM's pack in particular turns over every
+  season, which may make its list unmaintainable at our end.
 - **Sponsors, in detail.** How many slots per level; whether sponsor-funded entry
   bypasses the ladder or only softens the cost; what "poor performance" means
   numerically; whether sponsors are per-season or per-championship.

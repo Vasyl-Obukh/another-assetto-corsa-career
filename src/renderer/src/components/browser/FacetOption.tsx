@@ -9,6 +9,10 @@ interface FacetOptionProps {
    */
   value: string;
   /**
+   * What to show for it, which is the value itself unless the list formats one.
+   */
+  label: string;
+  /**
    * How many entries carry it, given every other filter.
    */
   count: number;
@@ -25,6 +29,7 @@ interface FacetOptionProps {
 
 export const FacetOption = ({
   value,
+  label,
   count,
   selected,
   onToggle,
@@ -43,7 +48,7 @@ export const FacetOption = ({
       onClick={() => onToggle(value)}
     >
       <CheckIcon className={cn('size-4 shrink-0', selected ? 'opacity-100' : 'opacity-0')} />
-      <span className="min-w-0 flex-1 truncate" title={value}>{value}</span>
+      <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
       <span className="shrink-0 text-xs text-muted-foreground">{formatNumber(count)}</span>
     </button>
   );

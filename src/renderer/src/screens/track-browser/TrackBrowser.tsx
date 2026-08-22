@@ -50,7 +50,7 @@ export const TrackBrowser = () => {
           sentinelRef={sentinelRef}
           onClear={browser.clear}
         >
-          {list.items.map((track) => <TrackCard key={track.key} track={track} />)}
+          {list.items.map((group) => <TrackCard key={group.id} group={group} />)}
         </BrowserGrid>
       </div>
     </div>

@@ -6,14 +6,14 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
 
-    // Node 24 runs TypeScript by stripping types, so nothing is emitted and
-    // imports keep their .ts extensions. erasableSyntaxOnly rejects syntax
-    // that stripping cannot handle (enums, namespaces, parameter properties).
-    // electron-vite bundles main and preload, but they share these rules so
-    // that src/core stays runnable by both Node and the bundler.
+    // Node 24 runs TypeScript directly, so nothing is emitted and imports keep
+    // their .ts extensions. Its default strip-only mode cannot express enums, so
+    // the CLI scripts pass --experimental-transform-types and run the full
+    // transform instead - which is why bare `node spike.ts` no longer works and
+    // every command has an npm script. electron-vite bundles main and preload,
+    // but they share these rules so src/core stays runnable by Node too.
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
 
     "strict": true,

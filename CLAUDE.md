@@ -25,11 +25,13 @@ check it before starting anything, and tick items off as they land.
 
 - **Node.js 24+** for all integration logic - the entire surface is file I/O and
   process launches.
-- **TypeScript**, run directly by Node's native type stripping. Nothing is
-  compiled: `node spike.ts` just works, and `tsc` is typecheck-only
-  (`noEmit`). Relative imports therefore keep their `.ts` extension, and
-  `erasableSyntaxOnly` blocks syntax stripping cannot handle (enums, namespaces,
-  parameter properties) - use unions and plain objects instead.
+- **TypeScript**, run directly by Node. Nothing is compiled, and `tsc` is
+  typecheck-only (`noEmit`), so relative imports keep their `.ts` extension.
+  Node's default strip-only mode cannot express enums, so the CLI scripts pass
+  `--experimental-transform-types` and run the full transform instead. **Use the
+  npm scripts, not `node spike.ts` directly** - bare invocation fails on the
+  first enum it meets. `main`, `preload` and `renderer` are bundled by
+  electron-vite and never see this.
 - **Electron** for the desktop UI, built by **electron-vite**. Windows-only,
   since AC and CM are.
 - **React 19** in the renderer, with **shadcn/ui** on Radix primitives and
@@ -58,6 +60,7 @@ npm run build     # -> dist/{main,preload,renderer}
 npm run start     # run the built app
 
 npm run scan   npm run dry   npm run race   npm run watch
+npm run weather   npm run testmode
 npm run check     # typecheck (both projects) + lint
 npm run lint:fix
 
@@ -114,7 +117,7 @@ per project.
 | Path | Purpose |
 | --- | --- |
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
-| `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file |
+| `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file. All reached through npm scripts, which carry the transform flag |
 | `src/shared/types/` | Every domain type: content, paths, race, results, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
@@ -123,7 +126,8 @@ per project.
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
 | `src/core/car-specs/` | `ui_car.json` specs -> numbers, tolerant of free text |
-| `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan |
+| `src/core/content-catalogue/` | Which folder ID is base game, which DLC pack, whose mod, who redistributes it; every ID listed, nothing inferred |
+| `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan; tracks filter per layout and come back grouped one per folder |
 | `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM |
 | `src/core/results/` | Watching, stable-reading and summarising results |
@@ -165,7 +169,7 @@ authoritative reference:
 3. Diff `out\race.ini` against `Documents\Assetto Corsa\cfg\race.ini`.
 4. Remove the flag afterwards or CM will never launch a race again.
 
-`node spike.ts testmode` prints this with the paths filled in.
+`npm run testmode` prints this with the paths filled in.
 
 When a launch misbehaves, `cfg\race.ini` immediately afterwards is the fastest
 diagnostic - it is what CM actually handed AC, rather than what we intended.
@@ -179,6 +183,19 @@ deliberate departures are in `eslint.config.js`, each with a reason next to it.
 `use-installation/use-installation.ts`. React components are the one exception
 and stay PascalCase, inside a kebab-case folder: `paths-card/PathsCard.tsx`.
 Identifiers stay camelCase as usual; only the names on disk change.
+
+**Enum members are SCREAMING_SNAKE_CASE**, like the constants they are, and an
+initialism in a type name keeps its case - `DLCPack`, not `DlcPack`:
+
+```ts
+export enum DLCPack {
+  DREAM_PACK_1 = 'dream-pack-1',
+  READY_TO_RACE = 'ready-to-race',
+}
+```
+
+The values stay kebab-case: they are what reaches disk, the content cache and the
+i18n keys, so renaming a member never changes what has already been written.
 
 **One kind of thing per file.** Types, constants and functions live in
 `types.ts`, `constants.ts` and `utils.ts` rather than piling into one module. A
@@ -414,7 +431,7 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   race and does not restore it. Correct for a career, but should be surfaced in
   the UI rather than done silently.
 - Career weather presets are written into the AC install (`content/weather/`)
-  and stay until `node spike.ts weather remove`.
+  and stay until `npm run weather -- remove`.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
 - Skins are still bare folder names. `ui_skin.json` carries the livery's display
@@ -425,4 +442,9 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   in `src/cli/constants.ts`.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
   bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
-  `CarSpecs` or the fingerprint encoding changes.
+  `CarSpecs` or the fingerprint encoding changes. Amending the provenance
+  catalogue is the same problem with its own switch: bump
+  `CONTENT_CATALOGUE_VERSION` in `src/core/content-catalogue/`, which the cache
+  gate checks alongside its own version, so a core-only data edit does not need
+  main to know. Forgetting it serves stale provenance from the cache and looks
+  exactly like the code not working.

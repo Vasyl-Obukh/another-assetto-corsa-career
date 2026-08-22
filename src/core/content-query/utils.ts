@@ -1,8 +1,12 @@
 // The pieces every query is built from: text matching, ordering and counting.
 // Pure throughout - no fs, no Electron, nothing that needs a running app.
 
-import { COLLATOR, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants.ts';
-import type { Facet, Page, SortDirection } from '../../shared/types/index.ts';
+import {
+  COLLATOR, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_SHARED_NAME, NAME_SEPARATORS,
+} from './constants.ts';
+import type {
+  Facet, Page, SortDirection, Track, TrackGroup,
+} from '../../shared/types/index.ts';
 
 /**
  * A value a list can be ordered by.
@@ -177,4 +181,109 @@ export const countValues = <T>(
   return [...counts]
     .map(([value, count]) => ({ value, count }))
     .sort((a, b) => b.count - a.count || order(a.value, b.value));
+};
+
+/**
+ * The longest run of characters every name begins with, cut back to a boundary.
+ * @param names The names to compare
+ * @returns The shared prefix, without whatever separator it stopped inside
+ */
+const sharedPrefix = (names: readonly string[]): string => {
+  let shared = names[0] ?? '';
+
+  for (const name of names.slice(1)) {
+    let index = 0;
+    while (index < shared.length && index < name.length && shared[index] === name[index]) {
+      index += 1;
+    }
+    shared = shared.slice(0, index);
+  }
+
+  return shared.replace(NAME_SEPARATORS, '').trim();
+};
+
+/**
+ * Names a track from the layouts installed under it.
+ *
+ * AC has no track-level name once a track has layouts - ks_red_bull_ring is only
+ * "Red Bull Ring GP", "Red Bull Ring GP - LFM" and "Red Bull Ring National" - so
+ * the name is the part they share, which is what Content Manager shows too. When
+ * they share nothing, the root ui_track.json names the circuit if there is one,
+ * and the shortest layout name is the closest thing to it if there is not.
+ * @param id Track folder name, the last resort
+ * @param layouts Every layout installed under it, matching or not
+ * @returns The display name for the circuit
+ */
+const trackName = (id: string, layouts: readonly Track[]): string => {
+  // Empty names are dropped rather than shared: a mod that leaves ui_track.json's
+  // name blank should not name the circuit after it.
+  const names = layouts.map((layout) => layout.name).filter((name) => name !== '');
+  const shared = sharedPrefix(names);
+  if (shared.length >= MIN_SHARED_NAME) return shared;
+
+  const root = layouts.find((layout) => layout.layout === '');
+  if (root !== undefined && root.name !== '') return root.name;
+
+  return [...names].sort((a, b) => a.length - b.length)[0] ?? id;
+};
+
+/**
+ * Gathers layouts into the tracks they belong to.
+ *
+ * The group's identity - name, country, provenance - is read from every layout
+ * installed under the track, not from the matching ones, so a card does not
+ * rename itself when a filter narrows it. Only `layouts` narrows.
+ * @param matched The layouts that survived the filters
+ * @param installed Every installed layout, for identity
+ * @returns One group per track present in matched, layouts name-sorted
+ */
+export const groupTracks = (
+  matched: readonly Track[],
+  installed: readonly Track[],
+): TrackGroup[] => {
+  const all = new Map<string, Track[]>();
+  for (const track of installed) {
+    all.set(track.id, [...(all.get(track.id) ?? []), track]);
+  }
+
+  const groups = new Map<string, TrackGroup>();
+  for (const track of matched) {
+    const group = groups.get(track.id);
+    if (group !== undefined) {
+      group.layouts.push(track);
+      continue;
+    }
+
+    const siblings = all.get(track.id) ?? [track];
+    groups.set(track.id, {
+      id: track.id,
+      name: trackName(track.id, siblings),
+      country: siblings.find((layout) => layout.country !== null)?.country ?? null,
+      provenance: {
+        ...track.provenance,
+        distributor: siblings.find((layout) => layout.provenance.distributor !== null)
+          ?.provenance.distributor ?? null,
+      },
+      layouts: [track],
+    });
+  }
+
+  for (const group of groups.values()) {
+    group.layouts.sort((a, b) => COLLATOR.compare(a.name, b.name));
+  }
+
+  return [...groups.values()];
+};
+
+/**
+ * The largest grid any of a track's layouts can hold.
+ * @param group The track to measure
+ * @returns The highest pit box count, or null when no layout states one
+ */
+export const groupPitboxes = (group: TrackGroup): number | null => {
+  const known = group.layouts
+    .map((layout) => layout.pitboxes)
+    .filter((pitboxes): pitboxes is number => pitboxes !== null);
+
+  return known.length === 0 ? null : Math.max(...known);
 };

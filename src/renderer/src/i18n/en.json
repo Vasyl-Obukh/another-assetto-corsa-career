@@ -47,7 +47,49 @@
     "controllers_one": "{{count}} weather controller",
     "controllers_other": "{{count}} weather controllers",
     "issues_one": "{{count}} broken",
-    "issues_other": "{{count}} broken"
+    "issues_other": "{{count}} broken",
+    "source": {
+      "base": "Base game",
+      "dlc": "DLC",
+      "mod": "Mod"
+    },
+    "pack": {
+      "dream-pack-1": "Dream Pack 1",
+      "dream-pack-2": "Dream Pack 2",
+      "dream-pack-3": "Dream Pack 3",
+      "red-pack": "Red Pack",
+      "tripl3-pack": "Tripl3 Pack",
+      "porsche-pack-1": "Porsche Pack 1",
+      "porsche-pack-2": "Porsche Pack 2",
+      "porsche-pack-3": "Porsche Pack 3",
+      "japanese-pack": "Japanese Pack",
+      "ready-to-race": "Ready To Race",
+      "ferrari-70th": "Ferrari 70th Anniversary"
+    },
+    "maker": {
+      "guerilla": "GUERILLA Mods",
+      "rss": "Race Sim Studio",
+      "urd": "United Racing Design",
+      "vrc": "Virtual Racing Cars"
+    },
+    "sourceTag": {
+      "base": "Base",
+      "dlc": "DLC",
+      "mod": "Mod"
+    },
+    "packTag": "DLC - {{pack}}",
+    "makerTag": {
+      "guerilla": "GUERILLA",
+      "rss": "RSS",
+      "urd": "URD",
+      "vrc": "VRC"
+    },
+    "distributor": {
+      "lfm": "Low Fuel Motorsport"
+    },
+    "distributorTag": {
+      "lfm": "LFM"
+    }
   },
   "browse": {
     "search": "Search",
@@ -123,15 +165,22 @@
       "countries": "Country",
       "years": "Year",
       "power": "Power",
-      "hasSkins": "Has liveries"
+      "hasSkins": "Has liveries",
+      "sources": "Source",
+      "packs": "DLC pack",
+      "makers": "Mod maker",
+      "distributors": "Distributed by"
     }
   },
   "tracks": {
     "title": "Tracks",
     "searchPlaceholder": "Search tracks by name, folder or country",
     "located": "Located",
+    "layouts_one": "{{count}} layout",
+    "layouts_other": "{{count}} layouts",
     "pitboxes_one": "{{count}} pit box",
     "pitboxes_other": "{{count}} pit boxes",
+    "pitboxesRange": "{{from}}-{{to}} pit boxes",
     "unknownPitboxes": "Grid size unknown",
     "sort": {
       "name": "Name",
@@ -141,7 +190,11 @@
     "filter": {
       "countries": "Country",
       "pitboxes": "Pit boxes",
-      "hasGeotags": "Has coordinates"
+      "hasGeotags": "Has coordinates",
+      "sources": "Source",
+      "packs": "DLC pack",
+      "makers": "Mod maker",
+      "distributors": "Distributed by"
     }
   }
 }

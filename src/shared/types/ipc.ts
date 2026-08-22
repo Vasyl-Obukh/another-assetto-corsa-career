@@ -6,7 +6,7 @@ import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
 } from './content-query.ts';
 import type {
-  Car, ContentChange, ContentIssue, ContentSummary, Track,
+  Car, ContentChange, ContentIssue, ContentSummary, TrackGroup,
 } from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
@@ -41,9 +41,10 @@ export interface IpcContract {
    */
   'content:cars': { req: CarQuery; res: Page<Car> };
   /**
-   * One page of track layouts, searched, filtered and sorted.
+   * One page of tracks, searched, filtered and sorted, each with the layouts
+   * that matched gathered under it.
    */
-  'content:tracks': { req: TrackQuery; res: Page<Track> };
+  'content:tracks': { req: TrackQuery; res: Page<TrackGroup> };
   /**
    * Counts behind the car browser's filter lists, for the filters now applied.
    */

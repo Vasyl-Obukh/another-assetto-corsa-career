@@ -76,6 +76,92 @@ export interface CarSpecs {
 }
 
 /**
+ * Where a piece of content came from.
+ *
+ * Base covers the game everyone owns, free updates and bonus packs included -
+ * Steam ships those in the base depot, so they are never something a user can be
+ * missing. DLC is the eleven paid packs. Anything else is a mod, whether or not
+ * we know who made it.
+ */
+export enum ContentSource {
+  BASE = 'base',
+  DLC = 'dlc',
+  MOD = 'mod',
+}
+
+/**
+ * A paid Kunos DLC pack - something a user either owns or can be told to buy.
+ *
+ * Eleven members, one per Steam DLC. Bonus packs are deliberately absent: they
+ * are free, so they are base content rather than something to own.
+ */
+export enum DLCPack {
+  DREAM_PACK_1 = 'dream-pack-1',
+  DREAM_PACK_2 = 'dream-pack-2',
+  DREAM_PACK_3 = 'dream-pack-3',
+  JAPANESE_PACK = 'japanese-pack',
+  TRIPL3_PACK = 'tripl3-pack',
+  RED_PACK = 'red-pack',
+  PORSCHE_PACK_1 = 'porsche-pack-1',
+  PORSCHE_PACK_2 = 'porsche-pack-2',
+  PORSCHE_PACK_3 = 'porsche-pack-3',
+  READY_TO_RACE = 'ready-to-race',
+  FERRARI_70TH = 'ferrari-70th',
+}
+
+/**
+ * A mod team whose content the catalogue names.
+ *
+ * Anything not attributed to one is still a mod, just an anonymous one. Guessing
+ * an author from a folder name would be worse than admitting we do not know.
+ */
+export enum ModMaker {
+  RSS = 'rss',
+  VRC = 'vrc',
+  URD = 'urd',
+  GUERILLA = 'guerilla',
+}
+
+/**
+ * Someone who redistributes content rather than authoring it.
+ *
+ * Separate from ModMaker because the two answer different questions: LFM ships
+ * other teams' cars, and ships layouts into a Kunos track, so a car can be
+ * RSS-made and LFM-distributed at once.
+ */
+export enum ModDistributor {
+  LFM = 'lfm',
+}
+
+/**
+ * Where one car or track layout came from.
+ *
+ * Every field is a lookup in the shipped catalogue in
+ * src/core/content-catalogue/, which lists each folder ID explicitly. Nothing
+ * here is inferred from the content: folder prefixes miss as often as they hit,
+ * and AC's own dlc_ui_car.json marker gets copied verbatim by mods.
+ */
+export interface ContentProvenance {
+  /**
+   * Base game, DLC or mod.
+   */
+  source: ContentSource;
+  /**
+   * Which DLC pack, when the source is dlc. Null otherwise.
+   */
+  pack: DLCPack | null;
+  /**
+   * Which mod team, when the catalogue names one. Null otherwise.
+   */
+  maker: ModMaker | null;
+  /**
+   * Who redistributed this, when anyone did. Independent of source, since a
+   * redistributor can ship into base or DLC content as readily as into a mod.
+   */
+  distributor: ModDistributor | null;
+}
+
+/**
  * A car installed in content/cars.
  */
 export interface Car {
@@ -117,6 +203,10 @@ export interface Car {
    * Performance figures, every one of which may be null.
    */
   specs: CarSpecs;
+  /**
+   * Base game, DLC or mod, and who made or redistributed it.
+   */
+  provenance: ContentProvenance;
 }
 
 /**
@@ -165,6 +255,44 @@ export interface Track {
    * Real-world position, for CSP.
    */
   geotags: Geotags;
+  /**
+   * Base game, DLC or mod, and who made or redistributed it. Per layout, since
+   * a redistributor can add layouts to a track it did not ship.
+   */
+  provenance: ContentProvenance;
+}
+
+/**
+ * One installed track, with its layouts gathered under it.
+ *
+ * What the browser shows: a circuit is one thing to pick, not eight. The scan
+ * stays per layout, because that is what race.ini works at - this is a view over
+ * it, built at query time.
+ */
+export interface TrackGroup {
+  /**
+   * Folder name under content/tracks, shared by every layout in the group.
+   */
+  id: string;
+  /**
+   * Display name for the circuit, derived from the layouts' own names.
+   */
+  name: string;
+  /**
+   * Country, from the first layout that names one.
+   */
+  country: string | null;
+  /**
+   * Where the circuit came from. Source, pack and maker are keyed by track, so
+   * every layout agrees on them; the distributor is whoever redistributes any
+   * layout here, since LFM adds layouts to circuits it did not ship.
+   */
+  provenance: ContentProvenance;
+  /**
+   * The layouts, sorted by name. Under a filter this holds only the layouts that
+   * matched, so a group narrows rather than disappearing.
+   */
+  layouts: Track[];
 }
 
 /**

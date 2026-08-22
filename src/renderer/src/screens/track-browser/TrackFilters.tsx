@@ -1,7 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
-import type { TrackFacets } from '../../../../shared/types';
+import type {
+  ContentSource, DLCPack, ModDistributor, ModMaker, TrackFacets,
+} from '../../../../shared/types';
 import { FacetFilter, RangeFilter, ToggleFilter } from '@/components';
+import {
+  distributorKey, makerKey, packKey, sourceKey,
+} from '@/components/provenance-badges';
+import type { ProvenanceLabelKey } from '@/components/provenance-badges';
 import type { TrackCriteria } from '@/hooks';
 
 interface TrackFiltersProps {
@@ -23,6 +29,12 @@ interface TrackFiltersProps {
 export const TrackFilters = ({ criteria, facets, onChange }: TrackFiltersProps) => {
   const { t } = useTranslation();
 
+  // Facet values are raw catalogue IDs; a key we do not have yet falls back to
+  // the ID rather than rendering as a missing translation.
+  const translate = (key: ProvenanceLabelKey | null, fallback: string): string => (
+    key === null ? fallback : t(key)
+  );
+
   return (
     <>
       <FacetFilter
@@ -30,6 +42,41 @@ export const TrackFilters = ({ criteria, facets, onChange }: TrackFiltersProps) 
         facets={facets?.countries ?? []}
         selected={criteria.countries ?? []}
         onChange={(countries) => onChange({ ...criteria, countries })}
+      />
+
+
+      <FacetFilter
+        label={t('tracks.filter.sources')}
+        facets={facets?.sources ?? []}
+        selected={criteria.sources ?? []}
+        format={(value) => translate(sourceKey(value), value)}
+        onChange={(sources) => onChange({ ...criteria, sources: sources as ContentSource[] })}
+      />
+
+      <FacetFilter
+        label={t('tracks.filter.packs')}
+        facets={facets?.packs ?? []}
+        selected={criteria.packs ?? []}
+        format={(value) => translate(packKey(value), value)}
+        onChange={(packs) => onChange({ ...criteria, packs: packs as DLCPack[] })}
+      />
+
+      <FacetFilter
+        label={t('tracks.filter.makers')}
+        facets={facets?.makers ?? []}
+        selected={criteria.makers ?? []}
+        format={(value) => translate(makerKey(value), value)}
+        onChange={(makers) => onChange({ ...criteria, makers: makers as ModMaker[] })}
+      />
+
+      <FacetFilter
+        label={t('tracks.filter.distributors')}
+        facets={facets?.distributors ?? []}
+        selected={criteria.distributors ?? []}
+        format={(value) => translate(distributorKey(value), value)}
+        onChange={(distributors) => onChange({
+          ...criteria, distributors: distributors as ModDistributor[],
+        })}
       />
 
       <RangeFilter

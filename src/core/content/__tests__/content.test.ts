@@ -202,6 +202,26 @@ describe('core/content', () => {
       expect(entries.map((track) => track.key).sort()).toEqual(['multi/club', 'multi/gp']);
     });
 
+    // A layout pack dropped into a Kunos track keeps the original selectable, so
+    // spa ships vanilla Spa plus 2022 and the two LFM starts. Returning as soon
+    // as the root file was found hid 32 installed layouts across 18 tracks.
+    it('reads the layouts beside a root ui_track.json as well as the root', async () => {
+      listDirsMock.mockImplementation(async (dir) => {
+        if (dir.endsWith('tracks')) return ['spa'];
+        return ['2022', '2022_lfm_standing'];
+      });
+      readJsonFileMock.mockImplementation(jsonFor((file) => {
+        if (/ui[\\/]ui_track\.json$/.test(file)) return parsed({ name: 'Spa' });
+        return parsed({ name: file.includes('standing') ? 'Spa - LFM' : 'Spa 2022' });
+      }));
+
+      const { entries } = await scanTracks('content');
+
+      expect(entries.map((track) => track.key).sort())
+        .toEqual(['spa', 'spa/2022', 'spa/2022_lfm_standing']);
+    });
+
+
     it('skips a layout whose ui_track.json cannot be read, and says so', async () => {
       listDirsMock.mockImplementation(async (dir) => (dir.endsWith('tracks') ? ['multi'] : ['broken']));
 

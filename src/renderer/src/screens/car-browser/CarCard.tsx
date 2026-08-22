@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { carImageSources, roundRatio, visibleTags } from './utils.ts';
 import type { Car } from '../../../../shared/types';
-import { ContentImage } from '@/components';
+import { ContentImage, ProvenanceBadges } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
@@ -58,6 +58,7 @@ export const CarCard = ({ car }: CarCardProps) => {
         </div>
 
         <div className="flex flex-wrap gap-1">
+          <ProvenanceBadges provenance={car.provenance} />
           {car.year !== null ? (
             <Badge variant="outline">{formatYear(car.year)}</Badge>
           ) : null}
