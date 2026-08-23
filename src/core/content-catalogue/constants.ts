@@ -7,8 +7,7 @@
 // ui/dlc_ui_car.json marker gets copied verbatim by mods for the same reason.
 //
 // An ID in none of these records is a mod with no maker, which is the honest
-// answer. `npm run catalogue -- --verify` lists what is still unclassified, and
-// `npm run catalogue` drafts DLC rows from AC's markers for review.
+// answer.
 
 import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
 
@@ -19,7 +18,7 @@ import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
  * amending the catalogue has to invalidate it the same way a shape change does.
  * Keeping the switch here means a data edit never needs main to know.
  */
-export const CONTENT_CATALOGUE_VERSION = 5;
+export const CONTENT_CATALOGUE_VERSION = 6;
 
 /**
  * Cars everyone who owns Assetto Corsa has.
@@ -239,11 +238,24 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   gt4_saleen_s1: ModMaker.GUERILLA,
   gt4_sin_r1: ModMaker.GUERILLA,
   gt4_toyota_supra: ModMaker.GUERILLA,
+  gue_935_gt2: ModMaker.GUERILLA,
   gue_amg_gt2: ModMaker.GUERILLA,
+  gue_audi_r8_lms_gt2: ModMaker.GUERILLA,
+  gue_bmw_m2_cs: ModMaker.GUERILLA,
+  gue_bmw_m2_gt2: ModMaker.GUERILLA,
+  gue_bmw_m3_e46_gtr: ModMaker.GUERILLA,
+  gue_brabham_bt63_gt2: ModMaker.GUERILLA,
   gue_ferrari_488_challange_gt2: ModMaker.GUERILLA,
+  gue_gt2_rs_clubsport: ModMaker.GUERILLA,
+  gue_ktm_xbow_gt2: ModMaker.GUERILLA,
   gue_lamborghini_huracan_st_evo2: ModMaker.GUERILLA,
+  gue_liana_gt2: ModMaker.GUERILLA,
+  gue_liana_gt_v6_cup: ModMaker.GUERILLA,
   gue_maserati_mc20_gt2: ModMaker.GUERILLA,
+  gue_nissan_skyline_r34_24h: ModMaker.GUERILLA,
   gue_porsche_911_gt3_cup_992: ModMaker.GUERILLA,
+  gue_porsche_cayman_rsr: ModMaker.GUERILLA,
+  'gue_toyota_s-fr_cup': ModMaker.GUERILLA,
   rss_formula_1986: ModMaker.RSS,
   rss_formula_1990: ModMaker.RSS,
   rss_formula_1990_v10: ModMaker.RSS,
@@ -351,8 +363,14 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   vrc_formula_alpha_2025_csp: ModMaker.VRC,
   vrc_formula_beta_2024: ModMaker.VRC,
   vrc_formula_beta_2024_csp: ModMaker.VRC,
+  vrc_2019_formula_lithium: ModMaker.VRC,
   vrc_formula_lithium_2023: ModMaker.VRC,
   vrc_formula_lithium_2023_csp: ModMaker.VRC,
+  vrc_formula_na_2012_oval: ModMaker.VRC,
+  vrc_formula_na_2012_road: ModMaker.VRC,
+  vrc_formula_na_2018_oval: ModMaker.VRC,
+  vrc_formula_na_2018_road: ModMaker.VRC,
+  vrc_formula_na_2018_short: ModMaker.VRC,
   vrc_pt_2023_pageau_98: ModMaker.VRC,
   vrc_pt_2023_pageau_98_csp: ModMaker.VRC,
   vrc_pt_2024_arden: ModMaker.VRC,
@@ -363,6 +381,26 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   vrc_pt_2024_ferrenzo_csp: ModMaker.VRC,
   vrc_pt_2024_isola: ModMaker.VRC,
   vrc_pt_2024_isola_csp: ModMaker.VRC,
+  Yzd_Aston_Martin_V8_Vantage_GTE: ModMaker.YEZHROD,
+  yzd_audi_r18_etron_2012: ModMaker.YEZHROD,
+  yzd_cadillac_v_lmdh: ModMaker.YEZHROD,
+  yzd_ferrari_488_gte: ModMaker.YEZHROD,
+  yzd_ferrari_488_gte_evo: ModMaker.YEZHROD,
+  yzd_ferrari_488_gte_evo_lm: ModMaker.YEZHROD,
+  yzd_ferrari_488_gte_lm: ModMaker.YEZHROD,
+  yzd_ligier_jsp2: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1_2009: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1_2009_Endu: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1_2011: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1_2011_Endu: ModMaker.YEZHROD,
+  Yzd_Nissan_GTR_R35_GT1_Endu: ModMaker.YEZHROD,
+  yzd_oreca_07_2017: ModMaker.YEZHROD,
+  yzd_oreca_07_2021: ModMaker.YEZHROD,
+  yzd_oreca_07_2022: ModMaker.YEZHROD,
+  yzd_oreca_07_imsa: ModMaker.YEZHROD,
+  yzd_porsche_911_rsr_gte_2018: ModMaker.YEZHROD,
+  yzd_vanwall_vandervell_680: ModMaker.YEZHROD,
 };
 
 /**

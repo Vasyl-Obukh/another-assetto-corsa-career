@@ -80,7 +80,8 @@
       "guerilla": "GUERILLA Mods",
       "rss": "Race Sim Studio",
       "urd": "United Racing Design",
-      "vrc": "Virtual Racing Cars"
+      "vrc": "Virtual Racing Cars",
+      "yezhrod": "Yezhrod"
     },
     "sourceTag": {
       "base": "База",
@@ -92,7 +93,8 @@
       "guerilla": "GUERILLA",
       "rss": "RSS",
       "urd": "URD",
-      "vrc": "VRC"
+      "vrc": "VRC",
+      "yezhrod": "YEZHROD"
     },
     "distributor": {
       "lfm": "Low Fuel Motorsport"
@@ -181,10 +183,6 @@
     "skins_few": "{{count}} лівреї",
     "skins_many": "{{count}} ліврей",
     "skins_other": "{{count}} лівреї",
-    "moreTags_one": "+{{count}} тег",
-    "moreTags_few": "+{{count}} теги",
-    "moreTags_many": "+{{count}} тегів",
-    "moreTags_other": "+{{count}} тега",
     "sort": {
       "name": "Назва",
       "brand": "Марка",
@@ -195,8 +193,8 @@
     },
     "filter": {
       "brands": "Марка",
-      "tags": "Теги",
       "classes": "Клас",
+      "specs": "Специфікація",
       "countries": "Країна",
       "years": "Рік",
       "power": "Потужність",

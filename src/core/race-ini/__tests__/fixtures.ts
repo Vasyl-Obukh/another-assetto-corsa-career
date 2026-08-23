@@ -20,7 +20,7 @@ export const makeCar = (car: Pick<Car, 'id' | 'name' | 'skins'> & Partial<Car>):
   carClass: null,
   year: null,
   country: null,
-  specs: {
+  performance: {
     bhp: null,
     torqueNm: null,
     weightKg: null,

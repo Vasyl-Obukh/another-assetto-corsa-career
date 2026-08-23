@@ -1,9 +1,9 @@
 import { CarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { carImageSources, roundRatio, visibleTags } from './utils.ts';
+import { carImageSources, roundRatio } from './utils.ts';
 import type { Car } from '../../../../shared/types';
-import { ContentImage, ProvenanceBadges } from '@/components';
+import { ContentImage, ProvenanceBadges, SpecBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
@@ -19,18 +19,17 @@ export const CarCard = ({ car }: CarCardProps) => {
   const { t } = useTranslation();
   const { formatNumber, formatYear } = useFormat();
 
-  const { shown, extra } = visibleTags(car.tags);
-  const { specs } = car;
+  const { performance } = car;
 
   // A parsed number where there is one, the author's own words where there is
   // not, and nothing at all otherwise - the row wraps, so a gap is invisible.
   const figures = [
-    specs.bhp !== null ? t('cars.bhp', { value: formatNumber(specs.bhp) }) : specs.raw.bhp,
-    specs.weightKg !== null
-      ? t('cars.weightKg', { value: formatNumber(specs.weightKg) })
-      : specs.raw.weight,
-    specs.powerToWeight !== null
-      ? t('cars.powerToWeight', { value: formatNumber(roundRatio(specs.powerToWeight)) })
+    performance.bhp !== null ? t('cars.bhp', { value: formatNumber(performance.bhp) }) : performance.raw.bhp,
+    performance.weightKg !== null
+      ? t('cars.weightKg', { value: formatNumber(performance.weightKg) })
+      : performance.raw.weight,
+    performance.powerToWeight !== null
+      ? t('cars.powerToWeight', { value: formatNumber(roundRatio(performance.powerToWeight)) })
       : null,
   ].filter((figure): figure is string => typeof figure === 'string' && figure.trim() !== '');
 
@@ -62,13 +61,7 @@ export const CarCard = ({ car }: CarCardProps) => {
           {car.year !== null ? (
             <Badge variant="outline">{formatYear(car.year)}</Badge>
           ) : null}
-          {car.carClass !== null ? (
-            <Badge variant="secondary">{car.carClass}</Badge>
-          ) : null}
-          {shown.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
-          {extra > 0 ? (
-            <Badge variant="outline">{t('cars.moreTags', { count: extra })}</Badge>
-          ) : null}
+          <SpecBadge carId={car.id} />
         </div>
 
         {figures.length > 0 ? (

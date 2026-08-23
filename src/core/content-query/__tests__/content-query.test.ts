@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { makeCars, makeTrackEntry, makeTracks } from './fixtures.ts';
+import { CarClass } from '../../../shared/types/index.ts';
 import {
   carFacets, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
@@ -23,14 +24,14 @@ describe('core/content-query', () => {
       ]);
     });
 
-    it('searches the name, brand, folder id and tags', () => {
+    it('searches the name, brand and folder id', () => {
       expect(ids(queryCars(makeCars(), { search: 'ferrari' }))).toEqual(['ferrari_488_gt3', 'ferrari_f40']);
-      expect(ids(queryCars(makeCars(), { search: 'gt3' }))).toEqual(['ferrari_488_gt3', 'porsche_911_gt3']);
+      expect(ids(queryCars(makeCars(), { search: 'gt3' }))).toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016']);
       expect(ids(queryCars(makeCars(), { search: 'nameless_mod' }))).toEqual(['nameless_mod']);
     });
 
     it('requires every search term', () => {
-      expect(ids(queryCars(makeCars(), { search: 'porsche gt3' }))).toEqual(['porsche_911_gt3']);
+      expect(ids(queryCars(makeCars(), { search: 'porsche gt3' }))).toEqual(['ks_porsche_911_gt3_r_2016']);
       expect(ids(queryCars(makeCars(), { search: 'porsche ferrari' }))).toEqual([]);
     });
 
@@ -44,23 +45,18 @@ describe('core/content-query', () => {
     });
 
     it('ands across separate filters', () => {
-      const page = queryCars(makeCars(), { brands: ['Ferrari', 'Porsche'], classes: ['street'] });
-      expect(ids(page)).toEqual(['ferrari_f40']);
-    });
-
-    // A tag list describes one car rather than partitioning the library, so
-    // picking two tags means both of them.
-    it('ands within the tag filter, unlike every other one', () => {
-      expect(ids(queryCars(makeCars(), { tags: ['gt3', 'street'] }))).toEqual(['porsche_911_gt3']);
-      expect(queryCars(makeCars(), { tags: ['gt3'] }).total).toBe(2);
+      const page = queryCars(makeCars(), {
+        brands: ['Ferrari', 'Porsche'], classes: [CarClass.GT3],
+      });
+      expect(ids(page)).toEqual(['ks_porsche_911_gt3_r_2016']);
     });
 
     it('filters by year and by power range', () => {
       expect(ids(queryCars(makeCars(), { yearFrom: 2000 })))
-        .toEqual(['ferrari_488_gt3', 'porsche_911_gt3']);
+        .toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016']);
       expect(ids(queryCars(makeCars(), { yearTo: 1990 }))).toEqual(['ferrari_f40']);
       expect(ids(queryCars(makeCars(), { bhpFrom: 500 })))
-        .toEqual(['ferrari_488_gt3', 'porsche_911_gt3']);
+        .toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016']);
     });
 
     it('keeps only cars that have a livery when asked', () => {
@@ -70,7 +66,7 @@ describe('core/content-query', () => {
 
     it('sorts by any of its keys, in either direction', () => {
       expect(ids(queryCars(makeCars(), { sort: 'bhp', direction: 'desc' })).slice(0, 3))
-        .toEqual(['ferrari_488_gt3', 'porsche_911_gt3', 'ferrari_f40']);
+        .toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016', 'ferrari_f40']);
       expect(ids(queryCars(makeCars(), { sort: 'powerToWeight', direction: 'desc' })).slice(0, 2))
         .toEqual(['ferrari_488_gt3', 'ferrari_f40']);
       expect(ids(queryCars(makeCars(), { sort: 'year' })).slice(0, 1)).toEqual(['ferrari_f40']);
@@ -189,10 +185,9 @@ describe('core/content-query', () => {
         { value: 'Citroën', count: 1 },
         { value: 'Porsche', count: 1 },
       ]);
-      expect(facets.classes).toEqual([
-        { value: 'race', count: 2 },
-        { value: 'street', count: 1 },
-      ]);
+      // Only the Porsche is named by the class catalogue; the rest are cars it
+      // does not list, and those are absent rather than bucketed as unknown.
+      expect(facets.classes).toEqual([{ value: 'gt3', count: 1 }]);
       expect(facets.countries).toHaveLength(3);
     });
 
@@ -216,7 +211,6 @@ describe('core/content-query', () => {
       const picked = carFacets(makeCars(), { brands: ['Ferrari'] });
 
       expect(picked.countries).toEqual([{ value: 'Italy', count: 2 }]);
-      expect(picked.tags.map((facet) => facet.value).sort()).toEqual(['gt3', 'race', 'street']);
     });
 
     it('narrows on a search as well as on a filter', () => {

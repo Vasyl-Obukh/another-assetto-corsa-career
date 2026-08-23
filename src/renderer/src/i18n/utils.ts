@@ -32,7 +32,7 @@ export const formatAppError = (
 /**
  * Intl formatters are expensive to build and are reused constantly.
  */
-const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat>();
+const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator>();
 
 /**
  * Reads a formatter from the cache, building it on first use.
@@ -40,7 +40,10 @@ const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat>();
  * @param build Builds the formatter when it is not already cached
  * @returns The cached formatter
  */
-const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat>(key: string, build: () => T): T => {
+const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator>(
+  key: string,
+  build: () => T,
+): T => {
   const hit = cache.get(key);
   if (hit) return hit as T;
 
@@ -53,7 +56,7 @@ const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat>(key: string, 
 /**
  * Builds the formatters for one language.
  * @param language The language to bind to
- * @returns Formatters for dates, numbers, money and durations
+ * @returns Formatters for dates, numbers, money, durations and sorting
  */
 export const formattersFor = (language: Language): Formatters => {
   const locale = LOCALES[language] ?? LOCALES[FALLBACK_LANGUAGE];
@@ -105,5 +108,10 @@ export const formattersFor = (language: Language): Formatters => {
         }),
       ).format(ms / MS_PER_SECOND);
     },
+
+    compare: (a, b) => cached(
+      `c:${locale}`,
+      () => new Intl.Collator(locale, { sensitivity: 'base', numeric: true }),
+    ).compare(a, b),
   };
 };

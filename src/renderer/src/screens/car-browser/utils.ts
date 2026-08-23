@@ -2,11 +2,6 @@ import type { Car } from '../../../../shared/types';
 import { carBadgeUrl, carSkinUrl, isSafeSegment } from '../../../../shared/utils/content-url';
 
 /**
- * How many tags a card shows before the rest become a count.
- */
-const TAG_LIMIT = 3;
-
-/**
  * Preview URLs for a car, best first.
  *
  * The URL grammar rejects folder names containing spaces and the other
@@ -24,16 +19,6 @@ export const carImageSources = (car: Car): string[] => {
     ? [carBadgeUrl(car.id)]
     : [carSkinUrl(car.id, skin), carBadgeUrl(car.id)];
 };
-
-/**
- * The tags a card shows, and how many it left out.
- * @param tags Every tag the mod author wrote
- * @returns The first few tags, and the number beyond them
- */
-export const visibleTags = (tags: string[]): { shown: string[]; extra: number } => ({
-  shown: tags.slice(0, TAG_LIMIT),
-  extra: Math.max(0, tags.length - TAG_LIMIT),
-});
 
 /**
  * Rounds a power-to-weight ratio to something readable.

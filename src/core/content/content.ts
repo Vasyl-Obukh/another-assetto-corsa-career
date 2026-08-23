@@ -37,7 +37,7 @@ import type {
   Car, Content, ContentIssue, Track, Weather, WeatherController,
 } from '../../shared/types/index.ts';
 import type { ContentUrlTarget } from '../../shared/utils/content-url/index.ts';
-import { parseCarSpecs, parseYear } from '../car-specs/index.ts';
+import { parseCarPerformance, parseYear } from '../car-performance/index.ts';
 import { carProvenance } from '../content-catalogue/index.ts';
 import { parseIni } from '../ini/index.ts';
 import type { IniData } from '../ini/index.ts';
@@ -122,7 +122,7 @@ export const scanCars = async (
         carClass: typeof ui.value?.class === 'string' ? ui.value.class : null,
         year: parseYear(ui.value?.year),
         country: typeof ui.value?.country === 'string' ? ui.value.country : null,
-        specs: parseCarSpecs(ui.value?.specs),
+        performance: parseCarPerformance(ui.value?.specs),
         provenance: carProvenance(id),
       }],
       issues,

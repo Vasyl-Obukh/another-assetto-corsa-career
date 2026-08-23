@@ -2,6 +2,7 @@
 // boundary, so a browser screen asks main for one page rather than holding a
 // copy of a mod library that runs to thousands of entries.
 
+import type { CarClass, CarSpec } from './car-classes.ts';
 import type {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
@@ -60,8 +61,9 @@ export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerTo
  */
 export interface CarQuery {
   /**
-   * Free text. Every whitespace-separated term must match the name, brand,
-   * folder ID or one of the tags.
+   * Free text. Every whitespace-separated term must match the name, brand or
+   * folder ID. Deliberately not the mod author's own tags: they are free text
+   * nothing else reads, so matching them surfaced cars for words never shown.
    */
   search?: string;
   /**
@@ -69,17 +71,17 @@ export interface CarQuery {
    */
   brands?: string[];
   /**
-   * Keep only cars carrying all of these tags.
-   */
-  tags?: string[];
-  /**
    * Keep only cars from these countries of origin.
    */
   countries?: string[];
   /**
-   * Keep only these ui_car.json class values.
+   * Keep only cars in these classes - the coarse family, across every era of it.
    */
-  classes?: string[];
+  classes?: CarClass[];
+  /**
+   * Keep only cars racing in these specs.
+   */
+  specs?: CarSpec[];
   /**
    * Earliest model year, inclusive. Cars with no year are excluded when set.
    */
@@ -219,17 +221,18 @@ export interface CarFacets {
    */
   brands: Facet[];
   /**
-   * Free-text tags, by descending count then name.
-   */
-  tags: Facet[];
-  /**
    * Countries of origin, by descending count then name.
    */
   countries: Facet[];
   /**
-   * ui_car.json class values, by descending count then name.
+   * Classes, by descending count then name. Cars the catalogue does not name
+   * are absent rather than collected into a bucket, the same as any null value.
    */
   classes: Facet[];
+  /**
+   * Specs, by descending count then name.
+   */
+  specs: Facet[];
   /**
    * Where the car came from, by descending count then name.
    */

@@ -1,17 +1,20 @@
 // Entry point for every shared domain type. Import from here, not from the
 // individual files.
 
-// The provenance vocabulary is exported as values, not types: these are enums,
-// so ContentSource.BASE is the whole point of them. Object.values() enumerates
-// each one, which is why there is no separate list of them anywhere.
+// The provenance and classification vocabularies are exported as values, not
+// types: these are enums, so ContentSource.BASE is the whole point of them.
+// Object.values() enumerates each one, which is why there is no separate list of
+// them anywhere.
+export { CarClass, CarSpec } from './car-classes.ts';
+
 export {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
 
 export type {
   Car,
-  CarSpecs,
-  CarSpecsRaw,
+  CarPerformance,
+  CarPerformanceRaw,
   Content,
   ContentChange,
   ContentCounts,

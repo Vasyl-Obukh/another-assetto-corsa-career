@@ -90,6 +90,26 @@ export const isOneOf = (value: string | null, accepted: string[] | undefined): b
 };
 
 /**
+ * Tests a value that may be several things at once against a filter.
+ *
+ * The array sibling of isOneOf, for the dimensions where one car carries more
+ * than one value - the specs it races in, and so the classes it belongs to. An
+ * entry matches when any of its values was picked, which is the same OR the
+ * single-valued filters use.
+ * @param values Everything the entry is
+ * @param accepted What the caller picked, or undefined for no filter
+ * @returns Whether the entry passes
+ */
+export const hasAnyOf = (
+  values: readonly string[],
+  accepted: string[] | undefined,
+): boolean => {
+  if (accepted === undefined || accepted.length === 0) return true;
+
+  return values.some((value) => accepted.includes(value));
+};
+
+/**
  * Compares two sort values, with anything unknown ordered last.
  * @param a The first value
  * @param b The second value

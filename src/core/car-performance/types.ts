@@ -3,7 +3,7 @@
  *
  * Every field is optional and typed loosely: mod authors ship these as numbers
  * as often as strings, and ship the whole block as a string or an array often
- * enough that parseCarSpecs takes unknown rather than this.
+ * enough that parseCarPerformance takes unknown rather than this.
  */
 export interface UiCarSpecs {
   /**

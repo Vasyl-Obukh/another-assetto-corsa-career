@@ -70,7 +70,8 @@
       "guerilla": "GUERILLA Mods",
       "rss": "Race Sim Studio",
       "urd": "United Racing Design",
-      "vrc": "Virtual Racing Cars"
+      "vrc": "Virtual Racing Cars",
+      "yezhrod": "Yezhrod"
     },
     "sourceTag": {
       "base": "Base",
@@ -82,7 +83,8 @@
       "guerilla": "GUERILLA",
       "rss": "RSS",
       "urd": "URD",
-      "vrc": "VRC"
+      "vrc": "VRC",
+      "yezhrod": "YEZHROD"
     },
     "distributor": {
       "lfm": "Low Fuel Motorsport"
@@ -148,8 +150,6 @@
     "noSkins": "No liveries",
     "skins_one": "{{count}} livery",
     "skins_other": "{{count}} liveries",
-    "moreTags_one": "+{{count}} tag",
-    "moreTags_other": "+{{count}} tags",
     "sort": {
       "name": "Name",
       "brand": "Brand",
@@ -160,8 +160,8 @@
     },
     "filter": {
       "brands": "Brand",
-      "tags": "Tags",
       "classes": "Class",
+      "specs": "Spec",
       "countries": "Country",
       "years": "Year",
       "power": "Power",

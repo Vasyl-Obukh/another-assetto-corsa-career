@@ -123,9 +123,10 @@ per project.
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
+| `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
-| `src/core/car-specs/` | `ui_car.json` specs -> numbers, tolerant of free text |
+| `src/core/car-performance/` | `ui_car.json` specs -> numbers, tolerant of free text |
 | `src/core/content-catalogue/` | Which folder ID is base game, which DLC pack, whose mod, who redistributes it; every ID listed, nothing inferred |
 | `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan; tracks filter per layout and come back grouped one per folder |
 | `src/core/race-ini/` | Race definition -> `race.ini` |
@@ -442,9 +443,16 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   in `src/cli/constants.ts`.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
   bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
-  `CarSpecs` or the fingerprint encoding changes. Amending the provenance
+  `CarPerformance` or the fingerprint encoding changes. Amending the provenance
   catalogue is the same problem with its own switch: bump
   `CONTENT_CATALOGUE_VERSION` in `src/core/content-catalogue/`, which the cache
   gate checks alongside its own version, so a core-only data edit does not need
   main to know. Forgetting it serves stale provenance from the cache and looks
   exactly like the code not working.
+- The **class catalogue is the exception to that**, on purpose. Nothing in
+  `src/shared/utils/car-classes/` is baked into a scanned `Car`; class and spec
+  are looked up at runtime by both `src/core/content-query/` and the renderer. So
+  correcting a row takes effect on next launch with no version to bump - which
+  matters, because that data is meant to be iterated on. It also survives the
+  user-override layer a later phase adds, which could never live in a cache
+  shared by every career.

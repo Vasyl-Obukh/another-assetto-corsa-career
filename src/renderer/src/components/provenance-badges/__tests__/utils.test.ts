@@ -52,6 +52,7 @@ describe('renderer/components/provenance-badges/utils', () => {
         'content.maker.vrc',
         'content.maker.urd',
         'content.maker.guerilla',
+        'content.maker.yezhrod',
       ]);
     });
 
@@ -89,6 +90,7 @@ describe('renderer/components/provenance-badges/utils', () => {
         'content.makerTag.vrc',
         'content.makerTag.urd',
         'content.makerTag.guerilla',
+        'content.makerTag.yezhrod',
       ]);
     });
 

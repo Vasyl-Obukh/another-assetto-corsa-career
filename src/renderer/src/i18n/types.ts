@@ -48,4 +48,15 @@ export interface Formatters {
    * @returns The duration with a localised unit
    */
   formatDuration(ms: number): string;
+  /**
+   * Compares two display strings for sorting, in the active locale.
+   *
+   * Case- and accent-insensitive, and numeric, so Citroen sorts beside Citroen
+   * and Formula 2 comes before Formula 10. Intended for lists the user reads
+   * down, which is why it sorts rendered labels rather than raw IDs.
+   * @param a The first string
+   * @param b The second string
+   * @returns Negative, zero or positive, as Array.prototype.sort expects
+   */
+  compare(a: string, b: string): number;
 }

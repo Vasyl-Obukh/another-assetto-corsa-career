@@ -15,4 +15,5 @@ export { LanguageSelect } from './LanguageSelect.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';
 export type { PathKind } from './paths-card/index.ts';
 export { ProvenanceBadges } from './provenance-badges/index.ts';
+export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';

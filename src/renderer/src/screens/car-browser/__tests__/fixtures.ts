@@ -2,19 +2,19 @@
 // reads are interesting; everything else defaults out of the way.
 
 import { ContentSource } from '../../../../../shared/types';
-import type { Car, CarSpecs } from '../../../../../shared/types';
+import type { Car, CarPerformance } from '../../../../../shared/types';
 
 /**
  * What a fixture car may override.
  */
-type CarOverrides = Pick<Car, 'id'> & Partial<Omit<Car, 'specs'>> & { specs?: Partial<CarSpecs> };
+type CarOverrides = Pick<Car, 'id'> & Partial<Omit<Car, 'performance'>> & { performance?: Partial<CarPerformance> };
 
 /**
  * Builds a car, defaulting everything the test in hand does not care about.
  * @param car The fields this car actually needs
  * @returns A complete Car
  */
-export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
+export const makeCar = ({ performance, ...car }: CarOverrides): Car => ({
   name: car.id,
   brand: null,
   provenance: {
@@ -26,14 +26,14 @@ export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
   year: null,
   country: null,
   ...car,
-  specs: {
+  performance: {
     bhp: null,
     torqueNm: null,
     weightKg: null,
     topSpeedKph: null,
     accelerationSeconds: null,
     powerToWeight: null,
-    ...specs,
+    ...performance,
     raw: {
       bhp: null, torque: null, weight: null, topspeed: null, acceleration: null, pwratio: null,
     },

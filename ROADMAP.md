@@ -4,14 +4,15 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phases 0 and 1 complete; Phase 2's data layer and browsers landed.**
-The integration spike proves the full round trip, the Electron shell sits on top
-of it - setup, diagnostics, theming, i18n, settings and a tested core - the
-content library is cached, incremental, spec-aware and honest about broken mods,
-and the car and track browsers now consume it behind real navigation. Next up in
-Phase 2 is content provenance - which car or track is base game, DLC or a mod -
-because the shipped championship library depends on knowing; classes, disciplines
-and tiers follow it.
+Status: **Phases 0 and 1 complete; Phase 2 is down to its last classification
+items.** The integration spike proves the full round trip, the Electron shell
+sits on top of it - setup, diagnostics, theming, i18n, settings and a tested
+core - the content library is cached, incremental, spec-aware and honest about
+broken mods, and the car and track browsers consume it behind real navigation.
+Provenance says which car or track is base game, DLC or a mod, and the class
+catalogue says which grid each named car races in. Next up is disciplines and
+tiers - the ladder those classes hang off - after which Phase 3 can start on
+race weekends.
 
 ## Decisions taken
 
@@ -38,6 +39,12 @@ and tiers follow it.
 | Changing career state           | **Validated commands, never patches.** The renderer sends intent (`career:buyCar`); main checks the rules, applies, persists and pushes the result back.                                                                                  |
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
 | Content provenance              | **A shipped catalogue, not inference.** Every car and track layout carries a source (base, DLC or mod), the DLC pack where there is one, the mod maker where we recognise one, and any redistributor.                                     |
+| Car classes                     | **Class and spec, both shipped, and both plural per car.** A *spec* is a grid - the cars that can sensibly race each other - and a *class* is the family that spec belongs to across eras. Cars are assigned to specs; classes are derived. |
+| Series eligibility              | **A spec or a car list on the championship, overridable per round.** Most series declare it once. A round overrides where the car changes with the track - IndyCar swaps road, short-oval and superspeedway kits mid-season. Never a class. |
+| A car in several grids          | **Normal, and modelled as a list of specs.** A Lotus 2-Eleven runs in Lotus Cup and as a track special. What a car may never hold is two specs of one class - that would claim it is two eras of a category at once.                      |
+| One-make series                 | **Configured by naming its cars, not by a class.** A class names a category a car belongs to; it never exists to name one championship's entrants. A car that exists only for one-make racing carries no class or spec at all.            |
+| What earns a class              | **A real series behind it, and a spec its cars could actually share.** Judged on the install's own figures and on era, with fantasy mods checked against their real counterparts. Groupings that are merely tidy - road cars by pace, track-day cars - do not qualify.                                    |
+| Cars with no class              | **About a third of the library, on purpose.** They are not second-class content: a championship reaches them by naming cars. Only a car that belongs on a shared grid needs a spec.                                                                                                                       |
 | Base-only career                | **Guaranteed.** A complete ladder is always playable on vanilla content alone. DLC and mods extend the ladder; they never fill holes in it.                                                                                               |
 | Editing a shipped championship  | **Forking copies.** The fork diverges from that moment, and a later update to the original does not flow into it.                                                                                                                         |
 | Missing content                 | **Report, block, offer to fix.** A championship missing anything is listed with what it needs, named down to the pack or the mod, and cannot be entered until it is forked or the content installed.                                      |
@@ -53,9 +60,9 @@ These are the load-bearing ones.
 ### Content provenance
 
 Users own three tiers of content: the **base game** everyone has, **DLC packs**
-some own, and **mods** a few own - RSS, VRC, URD and Guerilla among the popular
-makers, plus whatever else is installed. Every car and every track layout carries
-where it came from:
+some own, and **mods** a few own - RSS, VRC, URD, Guerilla and Yezhrod among the
+popular makers, plus whatever else is installed. Every car and every track
+layout carries where it came from:
 
 | Field | Meaning |
 | --- | --- |
@@ -111,6 +118,87 @@ install disagrees with rather than deciding anything itself:
   only one that runs long.
 - Drift between `DISTRIBUTOR_CARS` and the tag LFM's own pack writes, which is a
   hint about new LFM content rather than an authority over it.
+
+### Car classes and specs
+
+Two levels, and the split is load-bearing.
+
+A **spec** is a grid: the cars that can sensibly race each other. A **class** is
+the family that spec belongs to across eras - GT3, Formula 1, LMP2.
+
+| | Example | What it answers |
+| --- | --- | --- |
+| Class | `gt3` | Is this a GT3 car? |
+| Spec | `gt3-2020s` | Which grid does it belong on? |
+
+One level cannot carry both questions. A 2007 GT3 car and a 2023 GT3 car follow
+the same ruleset and are nothing alike on track, so they cannot be one spec; a
+2019 and a 2021 F1 car share a regulation generation and are seconds apart, so
+neither *generation* nor *year* is the axis. But splitting into era-specific
+classes alone (`gt3-00s`, `gt3-20s`) throws the family away, leaving "is this a
+GT3 car" answerable only by parsing an ID - which provenance already rejected.
+
+**Cars are assigned to specs, and classes are derived**, so there is one table to
+review rather than two, and the two can never disagree.
+
+**Both are lists.** A car races on as many grids as it has, and belongs to a
+class for each. A Lotus 2-Eleven runs in Lotus Cup and again as a track special -
+two specs, two classes. The one thing a car may never hold is two specs of a
+single class, which would claim it is 2010s-spec and 2020s-spec GT3 at once.
+
+**Most of the library has no class, and that is the intended state.** A class has
+to name a real series, and a spec has to be a grid its cars could share - judged on
+the install's own power-to-weight figures and on era, not on what groups tidily.
+Road cars by pace band, track-day specials and drift cars all failed that test and
+were removed: the first catalogue grouped them because they *could* be grouped,
+which is not the same thing. Around a third of catalogued cars now carry nothing,
+and a championship reaches them by naming cars.
+
+**Fantasy mods are checked against their real counterparts, not their folder
+names.** RSS ships invented marques, and two whole packs were filed wrongly by a
+generation or more before anyone looked them up: the `rss_gt_*` cars are FIA GT1
+of the early 2000s - Ferrari 550 Maranello, Viper GTS-R, Lister Storm - and had
+been sitting beside the 1960s Ford GT40, while `rss_gtn_*` is the N-GT class of
+the same era and had been beside a 1974 Porsche.
+
+**A one-make championship names its cars instead.** A championship is configured
+either by a spec or by an explicit list of cars, so the Ginetta G55 Supercup is an
+entry list rather than a class - and the Ginetta itself is simply a GT4 car. This
+was learned the hard way: a fifth of the first catalogue turned out to be classes
+that existed only to name one model, and every mod with a real-world one-make
+series would have earned another.
+
+A class survives where it names a **category** with a real grid behind it rather
+than one model's entrants. Porsche Carrera Cup stays on those grounds, the same
+ones that keep Formula 2 and IndyCar - single-chassis series, but rungs of a
+ladder. A handful of cars that exist purely for one-make racing - the MX-5 Cup,
+the TT Cup, the Abarth 500 Assetto Corse, the Huracan Super Trofeo - carry no class
+or spec at all, and a championship reaches them by name.
+
+**A championship may change spec between rounds.** IndyCar runs road, short-oval
+and superspeedway kits - separate car folders, separate physics, separate specs -
+across one season with one entry list and one standings table. So eligibility is
+declared on the championship and overridden per round, rather than fixed for the
+season. The 962C longtail at Le Mans and Monza is the same shape, and so are URD's
+sprint and endurance EGT cars. What never varies is the seat: the driver, team and
+livery are season-long, and only the car resolves per round.
+
+**Spec sizes run from about thirty down to one, and that is correct.** A one-car
+spec is what a season of a single-chassis series *is* - one year of an F1 mod, or
+one generation of Porsche Cup car.
+Specs split on pace rather than on the calendar, so two mods of the same season
+stay apart where their figures say they cannot share a grid: RSS and VRC both
+ship a 2024 F1 car, and they are 41% apart on power-to-weight.
+
+**Road cars carry no class or spec.** They were classified once, into hot
+hatches, sports road cars, road GTs, supercars and hypercars, and the audit
+removed every one of those: they cluster tidily by power-to-weight and name no
+series at all. A base-only career that wants them reaches them by car list, the
+same way a one-make does.
+
+Only cars the provenance catalogue already names get a spec. Anything else is a
+mod we cannot identify, and leaving it unclassified is the honest answer -
+the same stance provenance takes on an anonymous mod.
 
 ### Shipped championships
 
@@ -376,7 +464,7 @@ had exercised.
       `fs.watch` on the four collection folders, plus a fingerprint pass on window
       focus for the in-place edits those watchers cannot see
 - [x] Extract car specs (bhp, weight, top speed, power-to-weight) from
-      `ui_car.json` - the basis for pricing and class inference. `src/core/car-specs/`,
+      `ui_car.json` - the basis for pricing and class inference. `src/core/car-performance/`,
       tolerant of the free text mod authors write; the author's own strings are kept
       alongside the numbers
 - [x] Paged, filtered and searched IPC channels for cars and tracks, with
@@ -393,8 +481,11 @@ had exercised.
       Picking a layout belongs to race setup, where it is the question being asked
 - [x] **Content provenance** - base, DLC pack, mod maker and redistributor, per car
       and per track layout, from a shipped catalogue, every ID listed explicitly
-- [ ] Source, pack and maker filters and facets in both browsers, badged on the card
-- [ ] **Car classes**, user-defined, with inference from tags and specs
+- [x] Source, pack and maker filters and facets in both browsers, badged on the card
+- [x] **Car classes** - a shipped catalogue of classes and specs, every catalogued
+      car placed in exactly one grid, with Class and Spec filters and a spec badge
+      in the car browser. Authored against the install's own `ui_car.json` figures,
+      not folder names. Assignment UI is deliberately deferred to Phase 4
 - [ ] **Disciplines and tiers** - the ladder structure
 - [ ] Map classes to disciplines and tiers
 - [ ] Skin browser, for pinning liveries to drivers - needs `ui_skin.json`, which
@@ -406,9 +497,11 @@ had exercised.
 two route-level pages are about a hundred lines of wiring; everything beneath
 them is collection-agnostic - paging, infinite scroll, the toolbar, drill-down
 facet filters, `ContentImage`, the cards - and it is what Phase 7's store page
-and Phase 4's series content pickers are built from. Car classes, next in this
-phase, want the car browser with a selection and an assign action rather than a
-new screen.
+and Phase 4's series content pickers are built from. Car classes needed nothing
+new from them: Class and Spec are two more drill-down facets, and the drill-down
+counting already narrows the spec list to the class you ticked. Phase 4's
+assignment UI is what wants the car browser with a selection and an assign
+action rather than a new screen.
 
 Expect them to **demote out of primary nav** once career destinations exist, into
 a content area beside diagnostics and the issue list, where the job is "what have
@@ -461,7 +554,25 @@ Spikes first - they decide what weekend formats are expressible.
       points, BoP
 - [ ] **Weekend formats** with day offsets and day-of-week rules
 - [ ] **Teams and seats**; entry lists as seats
-- [ ] Eligibility: which classes may enter which series
+- [ ] Eligibility: a **spec**, or an **explicit list of cars** - never a class, so
+      an era cannot leak onto a grid it does not belong on. The car list is what
+      makes one-make championships work without a class per model, and it is needed
+      for one-offs and invitationals anyway
+- [ ] **Per-round eligibility override.** The championship declares eligibility
+      once; a round may override it, because some fields change car with the track.
+      IndyCar is the case that forces it - road, short-oval and superspeedway kits
+      are separate car folders and separate specs, yet one championship with one
+      entry list and one standings table. Group C's 962C longtail at Le Mans and
+      Monza, and URD's sprint versus endurance EGT cars, are the same shape. The
+      entry list and standings stay at series level; only the car resolves per round
+- [ ] **Class and spec management UI**: create classes and specs, classify mods the
+      shipped catalogue does not name, and override what we ship. The shipped
+      catalogue is the base layer; the user layer is resolved over it at runtime
+- [ ] **Adding or editing a car picks classes first, then specs.** A car holds a
+      list of specs, so the spec options are **filtered by the classes chosen for
+      that car** - you cannot reach a GT3 spec from a car you have put in GT4 and
+      Track Special. Within one class only a single spec may be picked, since two
+      would claim the car is two eras of that category at once
 - [ ] Prize money tables (per finishing position, per final standing)
 - [ ] Entry fees per round
 - [ ] **Availability against installed content** - what a championship is missing,
@@ -482,6 +593,20 @@ Spikes first - they decide what weekend formats are expressible.
       DLC, and one per mod maker
 - [ ] Ship the championship library, with a **complete base-only ladder** across
       several disciplines and tiers
+- [ ] **Formula UK** - the championship the Lotus Exos 125 exists for. Both it
+      and the S1 upgrade carry no spec, so the series names the two cars
+      directly. They had a spec each until the customer-F1 pair was dropped:
+      a customer chassis sold as an experience is not a category, and two specs
+      of one car were never a grid
+- [ ] **Formula Abarth** - the championship the Tatuus FA01 exists for. A real
+      junior ladder rung, but a single-chassis one with a single car installed,
+      so its class, its spec and its car were the same thing three times over.
+      The class and spec are gone; the series names the car
+- [ ] **American Le Mans Series (ALMS)** - the championship the BMW M3 E46 GTR
+      exists for. Built for ALMS GT in 2001, it won the class and was legislated
+      out a year later, so it has no grid to sit on: it carries no spec and the
+      series names it directly. ALMS itself was multi-class, so this is an entry
+      list that can grow if more 2001-era GT cars turn up, not a one-car rule
 
 ## Phase 5 - Championship engine and calendar
 
@@ -620,6 +745,20 @@ Design to be settled before building - see Open questions.
 
 - ~~**Renderer stack.**~~ Settled: React 19 + electron-vite, shadcn/ui on Radix,
   Tailwind v4. Vendored components, so the project keeps owning its UI code.
+- ~~**Rally and rallycross.**~~ Deferred, and the class removed. The library holds
+  two rally cars (`ks_audi_sport_quattro_rally`, `ks_toyota_celica_st185`) and one
+  special stage, so there is no ladder in it. **Both are blocked on format rather
+  than content**: stage rally is timed solo runs with times accumulated across
+  stages, and rallycross is heats into semi-finals into a final with transfer
+  positions, plus a mandatory joker lap that cannot be enforced or even detected
+  from `race_out.json`. Everything here assumes a grid race scored on finishing
+  order. Stage-rally *content* is plentiful - Kronos Simracing, N&F, RallyWorld and
+  Verdes Garage for cars, hundreds of stages catalogued by AC Rally Central - so if
+  this returns it returns on the weekend model, not on the car list. Rallycross is
+  the better fit for the race model but its content is thin and close to
+  single-source. Note that **a mod cannot be catalogued before it is installed**:
+  the folder ID is the key, so any future class has to be authored against real
+  folders.
 - ~~**Where do career saves live?**~~ Settled: `app.getPath('userData')`
   (`%APPDATA%`), same as settings. Phase 6 adds an "open save folder" action and
   backup/export to cover the shareability the visible-folder option would have given.

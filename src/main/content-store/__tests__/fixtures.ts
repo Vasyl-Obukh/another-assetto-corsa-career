@@ -24,7 +24,7 @@ export const makeCar = (id: string): Car => ({
   carClass: null,
   year: null,
   country: null,
-  specs: {
+  performance: {
     bhp: null,
     torqueNm: null,
     weightKg: null,

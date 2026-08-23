@@ -2,7 +2,7 @@
 // enough brands, tags and missing figures to tell filtering, ordering and facet
 // counting apart from one another.
 
-import type { Car, CarSpecs, Track } from '../../../shared/types/index.ts';
+import type { Car, CarPerformance, Track } from '../../../shared/types/index.ts';
 import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
 
 /**
@@ -10,15 +10,15 @@ import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts
  * all six figures at once.
  */
 type CarOverrides = Pick<Car, 'id' | 'name'>
-  & Partial<Omit<Car, 'specs'>>
-  & { specs?: Partial<CarSpecs> };
+  & Partial<Omit<Car, 'performance'>>
+  & { performance?: Partial<CarPerformance> };
 
 /**
  * Builds a car, defaulting everything the test in hand does not care about.
  * @param car The fields this car actually needs
  * @returns A complete Car
  */
-export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
+export const makeCar = ({ performance, ...car }: CarOverrides): Car => ({
   brand: null,
   provenance: carProvenance(car.id),
   tags: [],
@@ -27,14 +27,14 @@ export const makeCar = ({ specs, ...car }: CarOverrides): Car => ({
   year: null,
   country: null,
   ...car,
-  specs: {
+  performance: {
     bhp: null,
     torqueNm: null,
     weightKg: null,
     topSpeedKph: null,
     accelerationSeconds: null,
     powerToWeight: null,
-    ...specs,
+    ...performance,
     raw: {
       bhp: null, torque: null, weight: null, topspeed: null, acceleration: null, pwratio: null,
     },
@@ -67,37 +67,30 @@ export const makeCars = (): Car[] => [
     id: 'ferrari_488_gt3',
     name: 'Ferrari 488 GT3',
     brand: 'Ferrari',
-    tags: ['gt3', 'race'],
-    carClass: 'race',
     year: 2018,
     country: 'Italy',
-    specs: { bhp: 600, weightKg: 1200, powerToWeight: 500 },
+    performance: { bhp: 600, weightKg: 1200, powerToWeight: 500 },
   }),
   makeCar({
     id: 'ferrari_f40',
     name: 'Ferrari F40',
     brand: 'Ferrari',
-    tags: ['street'],
-    carClass: 'street',
     year: 1987,
     country: 'Italy',
-    specs: { bhp: 471, weightKg: 1100, powerToWeight: 428 },
+    performance: { bhp: 471, weightKg: 1100, powerToWeight: 428 },
   }),
   makeCar({
-    id: 'porsche_911_gt3',
+    id: 'ks_porsche_911_gt3_r_2016',
     name: 'Porsche 911 GT3',
     brand: 'Porsche',
-    tags: ['gt3', 'street'],
-    carClass: 'race',
     year: 2018,
     country: 'Germany',
-    specs: { bhp: 500, weightKg: 1400, powerToWeight: 357 },
+    performance: { bhp: 500, weightKg: 1400, powerToWeight: 357 },
   }),
   makeCar({
     id: 'citroen_ds3',
     name: 'Citroën DS3',
     brand: 'Citroën',
-    tags: ['street'],
     country: 'France',
   }),
   makeCar({ id: 'nameless_mod', name: 'Nameless Mod', skins: [] }),

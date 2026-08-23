@@ -16,15 +16,15 @@ import {
   parseWeight,
   specString,
 } from './utils.ts';
-import type { CarSpecs } from '../../shared/types/index.ts';
+import type { CarPerformance } from '../../shared/types/index.ts';
 
 export type { UiCarSpecs } from './types.ts';
 
 /**
- * The specs of a car whose ui_car.json told us nothing.
- * @returns A CarSpecs with every figure null
+ * The figures for a car whose ui_car.json told us nothing.
+ * @returns A CarPerformance with every figure null
  */
-const emptySpecs = (): CarSpecs => ({
+const emptyPerformance = (): CarPerformance => ({
   bhp: null,
   torqueNm: null,
   weightKg: null,
@@ -41,8 +41,8 @@ const emptySpecs = (): CarSpecs => ({
  * @param raw The specs value straight off the parsed JSON, whatever it turned out to be
  * @returns The parsed figures, every one of which may be null
  */
-export const parseCarSpecs = (raw: unknown): CarSpecs => {
-  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return emptySpecs();
+export const parseCarPerformance = (raw: unknown): CarPerformance => {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return emptyPerformance();
 
   const specs = raw as UiCarSpecs;
   const bhp = parsePower(specs.bhp);

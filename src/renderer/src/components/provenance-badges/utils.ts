@@ -52,6 +52,7 @@ const MAKER_KEYS = {
   [ModMaker.RSS]: 'content.maker.rss',
   [ModMaker.URD]: 'content.maker.urd',
   [ModMaker.VRC]: 'content.maker.vrc',
+  [ModMaker.YEZHROD]: 'content.maker.yezhrod',
 } as const satisfies Record<ModMaker, string>;
 
 /**
@@ -62,6 +63,7 @@ const MAKER_TAG_KEYS = {
   [ModMaker.RSS]: 'content.makerTag.rss',
   [ModMaker.URD]: 'content.makerTag.urd',
   [ModMaker.VRC]: 'content.makerTag.vrc',
+  [ModMaker.YEZHROD]: 'content.makerTag.yezhrod',
 } as const satisfies Record<ModMaker, string>;
 
 /**

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { makeCar } from './fixtures.ts';
-import { carImageSources, roundRatio, visibleTags } from '../utils.ts';
+import { carImageSources, roundRatio } from '../utils.ts';
 
 describe('renderer/screens/car-browser/utils', () => {
   describe('carImageSources', () => {
@@ -55,23 +55,6 @@ describe('renderer/screens/car-browser/utils', () => {
     });
   });
 
-  describe('visibleTags', () => {
-    it('shows every tag when there are few enough', () => {
-      expect(visibleTags(['gt3', 'race'])).toEqual({ shown: ['gt3', 'race'], extra: 0 });
-    });
-
-    it('shows the first three and counts the rest', () => {
-      expect(visibleTags(['a', 'b', 'c', 'd', 'e'])).toEqual({ shown: ['a', 'b', 'c'], extra: 2 });
-    });
-
-    it('reports nothing extra at exactly the limit', () => {
-      expect(visibleTags(['a', 'b', 'c'])).toEqual({ shown: ['a', 'b', 'c'], extra: 0 });
-    });
-
-    it('copes with a car that has no tags', () => {
-      expect(visibleTags([])).toEqual({ shown: [], extra: 0 });
-    });
-  });
 
   describe('roundRatio', () => {
     // The underlying figures are parsed out of free text, so 312.4571 bhp/t is

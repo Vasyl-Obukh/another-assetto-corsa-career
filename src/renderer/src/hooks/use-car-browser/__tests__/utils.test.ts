@@ -18,8 +18,8 @@ describe('renderer/hooks/use-car-browser/utils', () => {
     });
 
     it('keeps the criteria alongside the search', () => {
-      expect(toCarQuery({ tags: ['gt3'], sort: 'bhp' }, 'ferrari')).toEqual({
-        tags: ['gt3'], sort: 'bhp', search: 'ferrari',
+      expect(toCarQuery({ countries: ['Italy'], sort: 'bhp' }, 'ferrari')).toEqual({
+        countries: ['Italy'], sort: 'bhp', search: 'ferrari',
       });
     });
 

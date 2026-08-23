@@ -89,7 +89,7 @@ describe('core/content', () => {
 
       const [car] = (await scanCars('content')).entries;
       expect(car).toMatchObject({ carClass: 'race', year: 1998, country: 'Italy' });
-      expect(car.specs).toMatchObject({
+      expect(car.performance).toMatchObject({
         bhp: 560,
         weightKg: 1200,
         topSpeedKph: 300,

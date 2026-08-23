@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
 import type {
-  CarFacets, ContentSource, DLCPack, ModDistributor, ModMaker,
+  CarClass, CarFacets, CarSpec, ContentSource, DLCPack, ModDistributor, ModMaker,
 } from '../../../../shared/types';
+import { carClassName, carSpecName, classOfSpec } from '../../../../shared/utils/car-classes';
 import { FacetFilter, RangeFilter, ToggleFilter } from '@/components';
 import {
   distributorKey, makerKey, packKey, sourceKey,
@@ -35,6 +36,30 @@ export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
     key === null ? fallback : t(key)
   );
 
+  // Class and spec narrow each other, so a pick on one side has to drop anything
+  // still ticked on the other that it no longer covers. Left behind, that would
+  // filter the grid on a value visible in neither list - which reads as results
+  // going missing for no reason.
+  const pickClasses = (classes: string[]): void => onChange({
+    ...criteria,
+    classes: classes as CarClass[],
+    specs: classes.length === 0
+      ? criteria.specs
+      : criteria.specs?.filter((spec) => classes.includes(classOfSpec(spec))),
+  });
+
+  const pickSpecs = (specs: string[]): void => {
+    const covered = new Set(specs.map((spec) => classOfSpec(spec as CarSpec)));
+
+    onChange({
+      ...criteria,
+      specs: specs as CarSpec[],
+      classes: specs.length === 0
+        ? criteria.classes
+        : criteria.classes?.filter((carClass) => covered.has(carClass)),
+    });
+  };
+
   return (
     <>
       <FacetFilter
@@ -44,20 +69,22 @@ export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
         onChange={(brands) => onChange({ ...criteria, brands })}
       />
 
-      {/* Tags and it alone narrow by intersection: picking gt3 and dlc means
-          both, since a tag list describes one car rather than partitioning. */}
-      <FacetFilter
-        label={t('cars.filter.tags')}
-        facets={facets?.tags ?? []}
-        selected={criteria.tags ?? []}
-        onChange={(tags) => onChange({ ...criteria, tags })}
-      />
-
+      {/* Class is the family, spec is the grid, and the two read as a hierarchy:
+          picking either narrows the other's list to what it covers. */}
       <FacetFilter
         label={t('cars.filter.classes')}
         facets={facets?.classes ?? []}
         selected={criteria.classes ?? []}
-        onChange={(classes) => onChange({ ...criteria, classes })}
+        format={(value) => carClassName(value as CarClass)}
+        onChange={pickClasses}
+      />
+
+      <FacetFilter
+        label={t('cars.filter.specs')}
+        facets={facets?.specs ?? []}
+        selected={criteria.specs ?? []}
+        format={(value) => carSpecName(value as CarSpec)}
+        onChange={pickSpecs}
       />
 
       <FacetFilter

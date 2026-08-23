@@ -8,7 +8,7 @@
  * "N/A", "1,200 kg" - and showing the author's own words beats showing nothing
  * when no number could be read out of them.
  */
-export interface CarSpecsRaw {
+export interface CarPerformanceRaw {
   /**
    * The stated power, as written.
    */
@@ -42,7 +42,7 @@ export interface CarSpecsRaw {
  * are not sure of is worse than no figure at all, because pricing and class
  * inference are both derived from these.
  */
-export interface CarSpecs {
+export interface CarPerformance {
   /**
    * Peak power in bhp, converted from kW where the author used it.
    */
@@ -72,7 +72,7 @@ export interface CarSpecs {
   /**
    * The author's original strings, for display when a number could not be read.
    */
-  raw: CarSpecsRaw;
+  raw: CarPerformanceRaw;
 }
 
 /**
@@ -120,6 +120,7 @@ export enum ModMaker {
   VRC = 'vrc',
   URD = 'urd',
   GUERILLA = 'guerilla',
+  YEZHROD = 'yezhrod',
 }
 
 /**
@@ -202,7 +203,7 @@ export interface Car {
   /**
    * Performance figures, every one of which may be null.
    */
-  specs: CarSpecs;
+  performance: CarPerformance;
   /**
    * Base game, DLC or mod, and who made or redistributed it.
    */

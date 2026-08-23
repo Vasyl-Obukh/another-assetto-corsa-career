@@ -10,7 +10,7 @@ import {
   specString,
 } from '../utils.ts';
 
-describe('core/car-specs/utils', () => {
+describe('core/car-performance/utils', () => {
   describe('specString', () => {
     it('trims what the author wrote', () => {
       expect(specString('  560 bhp  ')).toBe('560 bhp');

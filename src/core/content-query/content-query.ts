@@ -4,15 +4,17 @@
 
 import { COLLATOR } from './constants.ts';
 import {
-  countValues, groupPitboxes, groupTracks, inBounds, isOneOf, matchesTerms, paginate,
-  searchTerms, sortBy,
+  countValues, groupPitboxes, groupTracks, hasAnyOf, inBounds, isOneOf, matchesTerms,
+  paginate, searchTerms, sortBy,
 } from './utils.ts';
 import type { SortValue } from './utils.ts';
 import type {
   Car,
+  CarClass,
   CarFacets,
   CarQuery,
   CarSortKey,
+  CarSpec,
   Page,
   Track,
   TrackFacets,
@@ -20,6 +22,7 @@ import type {
   TrackQuery,
   TrackSortKey,
 } from '../../shared/types/index.ts';
+import { carClassesOf, carSpecsOf, classOfSpec } from '../../shared/utils/car-classes/index.ts';
 
 /**
  * A named test an entry has to pass, so a facet can leave its own one out.
@@ -33,9 +36,9 @@ const CAR_SORTS: Record<CarSortKey, (car: Car) => SortValue> = {
   name: (car) => car.name,
   brand: (car) => car.brand,
   year: (car) => car.year,
-  bhp: (car) => car.specs.bhp,
-  weight: (car) => car.specs.weightKg,
-  powerToWeight: (car) => car.specs.powerToWeight,
+  bhp: (car) => car.performance.bhp,
+  weight: (car) => car.performance.weightKg,
+  powerToWeight: (car) => car.performance.powerToWeight,
 };
 
 /**
@@ -59,20 +62,19 @@ const carFilters = (query: CarQuery): Filters<Car> => {
   const terms = searchTerms(query.search);
 
   return {
-    search: (car) => matchesTerms(terms, [car.name, car.brand, car.id, ...car.tags]),
+    search: (car) => matchesTerms(terms, [car.name, car.brand, car.id]),
     brands: (car) => isOneOf(car.brand, query.brands),
     countries: (car) => isOneOf(car.country, query.countries),
-    classes: (car) => isOneOf(car.carClass, query.classes),
-    // Tags are the one filter that ands within itself: picking "gt3" and "dlc"
-    // means both, since a tag list describes one car rather than partitioning
-    // the library the way a brand does.
-    tags: (car) => (query.tags ?? []).every((tag) => car.tags.includes(tag)),
+    // A car races on as many grids as the catalogue gives it, so these two ask
+    // whether any of its values was picked rather than whether its one value was.
+    classes: (car) => hasAnyOf(carClassesOf(car.id), query.classes),
+    specs: (car) => hasAnyOf(carSpecsOf(car.id), query.specs),
     sources: (car) => isOneOf(car.provenance.source, query.sources),
     packs: (car) => isOneOf(car.provenance.pack, query.packs),
     makers: (car) => isOneOf(car.provenance.maker, query.makers),
     distributors: (car) => isOneOf(car.provenance.distributor, query.distributors),
     year: (car) => inBounds(car.year, query.yearFrom, query.yearTo),
-    bhp: (car) => inBounds(car.specs.bhp, query.bhpFrom, query.bhpTo),
+    bhp: (car) => inBounds(car.performance.bhp, query.bhpFrom, query.bhpTo),
     hasSkins: (car) => query.hasSkins !== true || car.skins.length > 0,
   };
 };
@@ -157,19 +159,38 @@ export const queryTracks = (
  * Each dimension is counted against the search and every other filter but not
  * its own, so ticking one brand leaves the rest of the brand list visible and
  * pickable instead of collapsing it to the single choice already made.
+ *
+ * Class and spec are the exception, because they are a hierarchy rather than two
+ * independent dimensions - see below.
  * @param cars Every installed car
  * @param query The filters currently applied
- * @returns Counts per brand, tag, country, class, provenance and year
+ * @returns Counts per brand, country, class, spec, provenance and year
  */
 export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets => {
   const filters = carFilters(query);
   const without = (except: string): Car[] => applyFilters(cars, filters, except);
 
+  // Every other facet counts whatever the surviving entries carry, but a car
+  // races on several grids at once: the cars in GT4 also run their own one-make
+  // cups. Counting those would list Alpine A110 Cup under a GT4 selection and
+  // GT4 under an Alpine A110 Cup one, both reading as though the two belonged
+  // together. So the pair narrows each other - pick a class and the spec list is
+  // that class's grids, pick a spec and the class list is the class it sits in.
+  const pickedClasses = query.classes ?? [];
+  const pickedSpecClasses = new Set((query.specs ?? []).map(classOfSpec));
+
+  const inPickedClass = (spec: CarSpec): boolean => (
+    pickedClasses.length === 0 || pickedClasses.includes(classOfSpec(spec))
+  );
+  const inPickedSpecClass = (carClass: CarClass): boolean => (
+    pickedSpecClasses.size === 0 || pickedSpecClasses.has(carClass)
+  );
+
   return {
     brands: countValues(without('brands'), (car) => [car.brand]),
-    tags: countValues(without('tags'), (car) => car.tags),
     countries: countValues(without('countries'), (car) => [car.country]),
-    classes: countValues(without('classes'), (car) => [car.carClass]),
+    classes: countValues(without('classes'), (car) => carClassesOf(car.id).filter(inPickedSpecClass)),
+    specs: countValues(without('specs'), (car) => carSpecsOf(car.id).filter(inPickedClass)),
     sources: countValues(without('sources'), (car) => [car.provenance.source]),
     packs: countValues(without('packs'), (car) => [car.provenance.pack]),
     makers: countValues(without('makers'), (car) => [car.provenance.maker]),

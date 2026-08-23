@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { parseCarSpecs, parseYear } from '../car-specs.ts';
+import { parseCarPerformance, parseYear } from '../car-performance.ts';
 
-describe('core/car-specs', () => {
-  describe('parseCarSpecs', () => {
+describe('core/car-performance', () => {
+  describe('parseCarPerformance', () => {
     it('reads a complete specs block', () => {
-      const specs = parseCarSpecs({
+      const specs = parseCarPerformance({
         bhp: '751 bhp',
         torque: '682 Nm',
         weight: '1450 kg',
@@ -24,27 +24,27 @@ describe('core/car-specs', () => {
     });
 
     it('derives power to weight in bhp per tonne', () => {
-      const specs = parseCarSpecs({ bhp: '560', weight: '1400 kg' });
+      const specs = parseCarPerformance({ bhp: '560', weight: '1400 kg' });
       expect(specs.powerToWeight).toBeCloseTo(400);
     });
 
     // Mod authors retune a car and leave pwratio behind, so it is kept for
     // display but never used as the number.
     it('derives power to weight rather than trusting the author"s pwratio', () => {
-      const specs = parseCarSpecs({ bhp: '560', weight: '1400 kg', pwratio: '99 kg/hp' });
+      const specs = parseCarPerformance({ bhp: '560', weight: '1400 kg', pwratio: '99 kg/hp' });
 
       expect(specs.powerToWeight).toBeCloseTo(400);
       expect(specs.raw.pwratio).toBe('99 kg/hp');
     });
 
     it('leaves power to weight null unless both figures parsed', () => {
-      expect(parseCarSpecs({ bhp: '560' }).powerToWeight).toBeNull();
-      expect(parseCarSpecs({ weight: '1400 kg' }).powerToWeight).toBeNull();
-      expect(parseCarSpecs({ bhp: 'N/A', weight: '1400 kg' }).powerToWeight).toBeNull();
+      expect(parseCarPerformance({ bhp: '560' }).powerToWeight).toBeNull();
+      expect(parseCarPerformance({ weight: '1400 kg' }).powerToWeight).toBeNull();
+      expect(parseCarPerformance({ bhp: 'N/A', weight: '1400 kg' }).powerToWeight).toBeNull();
     });
 
     it('keeps the author"s own words for anything it could not read', () => {
-      const specs = parseCarSpecs({ topspeed: '300+ km/h', weight: '--- kg' });
+      const specs = parseCarPerformance({ topspeed: '300+ km/h', weight: '--- kg' });
 
       // No number came out of "--- kg", but showing the user what the mod
       // actually says beats showing them a blank.
@@ -54,7 +54,7 @@ describe('core/car-specs', () => {
     });
 
     it('keeps nothing at all when the author wrote a placeholder', () => {
-      const specs = parseCarSpecs({ weight: 'N/A', topspeed: '-' });
+      const specs = parseCarPerformance({ weight: 'N/A', topspeed: '-' });
 
       expect(specs.raw.weight).toBeNull();
       expect(specs.raw.topspeed).toBeNull();
@@ -73,14 +73,14 @@ describe('core/car-specs', () => {
         },
       };
 
-      expect(parseCarSpecs(undefined)).toEqual(empty);
-      expect(parseCarSpecs(null)).toEqual(empty);
-      expect(parseCarSpecs('560bhp')).toEqual(empty);
-      expect(parseCarSpecs(['560bhp'])).toEqual(empty);
+      expect(parseCarPerformance(undefined)).toEqual(empty);
+      expect(parseCarPerformance(null)).toEqual(empty);
+      expect(parseCarPerformance('560bhp')).toEqual(empty);
+      expect(parseCarPerformance(['560bhp'])).toEqual(empty);
     });
 
     it('reads a partial block without inventing the rest', () => {
-      const specs = parseCarSpecs({ bhp: '400bhp' });
+      const specs = parseCarPerformance({ bhp: '400bhp' });
 
       expect(specs.bhp).toBe(400);
       expect(specs.torqueNm).toBeNull();

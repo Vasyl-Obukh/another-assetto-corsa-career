@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
+import { useFormat } from '@/i18n';
 
 interface FacetFilterProps {
   /**
@@ -47,13 +48,16 @@ export const FacetFilter = ({
   onChange,
 }: FacetFilterProps) => {
   const { t } = useTranslation();
+  const { compare } = useFormat();
   const [filter, setFilter] = useState('');
 
   const needle = filter.trim().toLowerCase();
-  const shown = needle === ''
+  const matching = needle === ''
     ? facets
     : facets.filter((facet) => facet.value.toLowerCase().includes(needle)
       || format(facet.value).toLowerCase().includes(needle));
+
+  const shown = [...matching].sort((a, b) => compare(format(a.value), format(b.value)));
 
   const toggle = (value: string): void => {
     onChange(selected.includes(value)
@@ -82,8 +86,6 @@ export const FacetFilter = ({
           onChange={(event) => setFilter(event.target.value)}
         />
 
-        {/* Order comes from main, which counts against every other filter but
-            this one - re-sorting here would undo that drill-down. */}
         <div role="listbox" aria-multiselectable className={`overflow-y-auto ${FACET_LIST_HEIGHT}`}>
           {shown.length === 0 ? (
             <p className="px-2 py-4 text-center text-sm text-muted-foreground">
