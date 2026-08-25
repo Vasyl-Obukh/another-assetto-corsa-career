@@ -48,6 +48,14 @@
     "controllers_other": "{{count}} weather controllers",
     "issues_one": "{{count}} broken",
     "issues_other": "{{count}} broken",
+    "brokenTitle": "Broken content",
+    "brokenDetail": "Details: {{detail}}",
+    "kind": {
+      "car": "Car",
+      "track": "Track",
+      "weather": "Weather",
+      "weatherController": "Weather controller"
+    },
     "source": {
       "base": "Base game",
       "dlc": "DLC",

@@ -6,9 +6,9 @@ import type { TFunction } from 'i18next';
 
 import { DEFAULT_CURRENCY, FALLBACK_LANGUAGE, LOCALES } from './constants.ts';
 import type { Formatters } from './types.ts';
-import { MS_PER_SECOND } from '../../../shared/constants';
+import { CONTENT_ISSUE_REASONS, MS_PER_SECOND } from '../../../shared/constants';
 import type { AppErrorInfo } from '../../../shared/errors';
-import type { Language } from '../../../shared/types';
+import type { ContentIssueReason, Language } from '../../../shared/types';
 
 /**
  * Renders an error in the active language.
@@ -28,6 +28,20 @@ export const formatAppError = (
 
   return t(`errors.${error.code}`, { ...error.params, defaultValue: error.message });
 };
+
+/**
+ * Renders why a piece of installed content is broken, in the active language.
+ *
+ * Falls back to the English table the CLI prints, so a reason added to the type
+ * before it reaches the catalogues still reads as a sentence rather than a code.
+ * @param t The translator from useTranslation
+ * @param reason The reason code carried by the issue
+ * @returns The wording to show the user
+ */
+export const formatContentIssueReason = (t: TFunction, reason: ContentIssueReason): string => t(
+  `issueReasons.${reason}`,
+  { defaultValue: CONTENT_ISSUE_REASONS[reason] },
+);
 
 /**
  * Intl formatters are expensive to build and are reused constantly.

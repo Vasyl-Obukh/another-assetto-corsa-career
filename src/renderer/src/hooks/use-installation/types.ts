@@ -1,4 +1,4 @@
-import type { ContentSummary, PathsReport } from '../../../../shared/types';
+import type { ContentIssue, ContentSummary, PathsReport } from '../../../../shared/types';
 import type { PathKind } from '@/components';
 import type { DisplayableError } from '@/lib/ipc';
 
@@ -15,6 +15,10 @@ export interface Installation {
    * Counts from the last scan, or null when nothing has been scanned yet.
    */
   summary: ContentSummary | null;
+  /**
+   * Everything the last scan found broken, or null until it has been asked for.
+   */
+  issues: ContentIssue[] | null;
   /**
    * Whether all three paths resolved, so content can be scanned and races run.
    */
@@ -49,6 +53,10 @@ export interface Installation {
    * Runs a fresh content scan.
    */
   scan(): void;
+  /**
+   * Fetches the list of broken content behind the count on the content card.
+   */
+  loadIssues(): void;
   /**
    * Clears the last failure.
    */

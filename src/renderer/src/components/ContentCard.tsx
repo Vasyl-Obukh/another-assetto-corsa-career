@@ -1,7 +1,8 @@
 import { RefreshCwIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { ContentSummary } from '../../../shared/types';
+import { ContentIssues } from './content-issues/index.ts';
+import type { ContentIssue, ContentSummary } from '../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -19,6 +20,10 @@ interface ContentCardProps {
    */
   summary: ContentSummary | null;
   /**
+   * What the last scan found broken, or null until it has been asked for.
+   */
+  issues: ContentIssue[] | null;
+  /**
    * Whether a scan is in flight.
    */
   scanning: boolean;
@@ -26,13 +31,19 @@ interface ContentCardProps {
    * Runs a fresh scan.
    */
   onScan(): void;
+  /**
+   * Fetches the broken content behind the count.
+   */
+  onOpenIssues(): void;
 }
 
 export const ContentCard = ({
   ready,
   summary,
+  issues,
   scanning,
   onScan,
+  onOpenIssues,
 }: ContentCardProps) => {
   const { t } = useTranslation();
   const { formatDateTime, formatDuration } = useFormat();
@@ -55,9 +66,11 @@ export const ContentCard = ({
                   {t('content.controllers', { count: summary.controllers })}
                 </Badge>
                 {summary.issues > 0 ? (
-                  <Badge variant="destructive">
-                    {t('content.issues', { count: summary.issues })}
-                  </Badge>
+                  <ContentIssues
+                    count={summary.issues}
+                    issues={issues}
+                    onOpen={onOpenIssues}
+                  />
                 ) : null}
               </div>
             ) : null}

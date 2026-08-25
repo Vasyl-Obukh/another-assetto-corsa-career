@@ -119,7 +119,7 @@ per project.
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
 | `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file. All reached through npm scripts, which carry the transform flag |
 | `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, settings, IPC |
-| `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme |
+| `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme, the English wording for every content issue reason |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
@@ -438,9 +438,6 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
 - Skins are still bare folder names. `ui_skin.json` carries the livery's display
   name, driver, number and country, and nothing reads it - the skin browser and
   pinning liveries to drivers both need it.
-- `ContentIssueReason` reaches the UI as a count only. The reasons themselves are
-  codes waiting for `content.issues.<reason>` keys; the CLI keeps its own English
-  in `src/cli/constants.ts`.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
   bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
   `CarPerformance` or the fingerprint encoding changes. Amending the provenance

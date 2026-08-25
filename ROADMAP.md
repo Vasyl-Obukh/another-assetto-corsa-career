@@ -524,8 +524,12 @@ had exercised.
       design. See *Disciplines and tiers*
 - [ ] Skin browser, for pinning liveries to drivers - needs `ui_skin.json`, which
       the scanner still ignores in favour of bare folder names
-- [ ] Translate `ContentIssueReason` in the renderer; only the count is shown so
-      far, and the CLI keeps its own English
+- [x] **Translate `ContentIssueReason` in the renderer** - the broken-content
+      count on the content card is now a popover listing every broken entry
+      grouped by reason, off the `content:issues` channel that had been wired end
+      to end and never called. The English wording moved to
+      `src/shared/constants/`, so the CLI and the app read one table rather than
+      two
 
 **Where the browsers end up.** They are the substrate, not the destination. The
 two route-level pages are about a hundred lines of wiring; everything beneath

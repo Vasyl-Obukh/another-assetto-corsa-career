@@ -1,10 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { DEFAULT_RACE, ISSUE_REASONS, RACES_DIR } from './constants.ts';
+import { DEFAULT_RACE, RACES_DIR } from './constants.ts';
 import type { LoadedRace } from './types.ts';
 import { validateRace } from '../core/race-ini/index.ts';
 import { formatLapTime } from '../core/results/index.ts';
+import { CONTENT_ISSUE_REASONS } from '../shared/constants/index.ts';
 import { SCAN_HINT } from '../shared/errors/index.ts';
 import type { AppErrorInfo } from '../shared/errors/index.ts';
 import type {
@@ -44,7 +45,7 @@ export const describeProblems = (problems: AppErrorInfo[]): string[] => problems
  * @returns One line per issue
  */
 export const describeIssues = (issues: readonly ContentIssue[]): string[] => issues.map(
-  (issue) => `${issue.kind} ${issue.id}: ${ISSUE_REASONS[issue.reason]}`,
+  (issue) => `${issue.kind} ${issue.id}: ${CONTENT_ISSUE_REASONS[issue.reason]}`,
 );
 
 /**

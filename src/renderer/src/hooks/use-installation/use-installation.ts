@@ -5,7 +5,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { Installation } from './types.ts';
-import type { ContentSummary, PathOverrides, PathsReport } from '../../../../shared/types';
+import type {
+  ContentIssue, ContentSummary, PathOverrides, PathsReport,
+} from '../../../../shared/types';
 import { useSettings } from '@/app';
 import type { PathKind } from '@/components';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
@@ -23,6 +25,7 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
 
   const [report, setReport] = useState<PathsReport>(initialReport);
   const [summary, setSummary] = useState<ContentSummary | null>(null);
+  const [issues, setIssues] = useState<ContentIssue[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
@@ -79,6 +82,16 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
   // Content installed while the app is open shows up without a click.
   useEffect(() => subscribe('content:changed', (change) => setSummary(change.summary)), []);
 
+  // Fetched on demand rather than alongside the summary: the list is only ever
+  // opened when something is broken, and re-reading it on every open is what
+  // saves invalidating it after a rescan or a change under the app.
+  const loadIssues = useCallback(() => {
+    invoke('content:issues', undefined).then(
+      (next) => setIssues(next),
+      () => { /* the card already says when the paths are unresolved */ },
+    );
+  }, []);
+
   const pick = useCallback(async (kind: PathKind) => {
     try {
       const picked = await invoke('paths:pick', { kind });
@@ -109,6 +122,7 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
   return {
     report,
     summary,
+    issues,
     ready: contentDir !== null,
     busy,
     scanning,
@@ -117,6 +131,7 @@ export const useInstallation = (initialReport: PathsReport): Installation => {
     pick: (kind) => { void pick(kind); },
     clear,
     scan: () => { void scan(); },
+    loadIssues,
     dismissError: () => setError(null),
   };
 };

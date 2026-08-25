@@ -10,6 +10,7 @@ export type { RangeValue, SortItem } from './browser/index.ts';
 export { ContentImage } from './content-image/index.ts';
 export type { ContentImageProps } from './content-image/index.ts';
 export { ContentCard } from './ContentCard.tsx';
+export { ContentIssues } from './content-issues/index.ts';
 export { ErrorCard } from './ErrorCard.tsx';
 export { LanguageSelect } from './LanguageSelect.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';

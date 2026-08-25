@@ -33,8 +33,10 @@ export const Diagnostics = ({ initialReport }: DiagnosticsProps) => {
         <ContentCard
           ready={install.ready}
           summary={install.summary}
+          issues={install.issues}
           scanning={install.scanning}
           onScan={install.scan}
+          onOpenIssues={install.loadIssues}
         />
       </div>
     </div>

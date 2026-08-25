@@ -15,6 +15,8 @@ export {
   TRACK_PREVIEW_FILE,
 } from './content.ts';
 
+export { CONTENT_ISSUE_REASONS } from './content-issues.ts';
+
 export {
   HOURS_PER_DAY,
   MINUTES_PER_HOUR,

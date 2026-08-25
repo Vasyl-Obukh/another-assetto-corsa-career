@@ -52,8 +52,10 @@ export const Setup = ({ initialReport }: SetupProps) => {
         <ContentCard
           ready={install.ready}
           summary={install.summary}
+          issues={install.issues}
           scanning={install.scanning}
           onScan={install.scan}
+          onOpenIssues={install.loadIssues}
         />
 
         <div className="flex items-center justify-end gap-3">

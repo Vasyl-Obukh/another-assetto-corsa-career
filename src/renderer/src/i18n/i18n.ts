@@ -6,22 +6,28 @@ import en from './en.json';
 import type { Formatters } from './types.ts';
 import uk from './uk.json';
 import { formattersFor } from './utils.ts';
+import { CONTENT_ISSUE_REASONS } from '../../../shared/constants';
 import { ERROR_MESSAGES } from '../../../shared/errors';
 import type { Language } from '../../../shared/types';
 
 export type { Formatters } from './types.ts';
-export { formatAppError, formattersFor } from './utils.ts';
+export { formatAppError, formatContentIssueReason, formattersFor } from './utils.ts';
 export { useAppError } from './use-app-error.ts';
+export { useContentIssueReason } from './use-content-issue-reason.ts';
 
 /**
  * Every catalogue, keyed by language.
  *
  * English error copy is merged in from ERROR_MESSAGES rather than duplicated in
  * en.json - core and the CLI already need that table, and one English string per
- * error is enough. uk.json carries its own `errors` subtree.
+ * error is enough. Content issue reasons are merged the same way and for the
+ * same reason, the CLI being the other reader. uk.json carries its own `errors`
+ * and `issueReasons` subtrees.
  */
 export const resources = {
-  en: { translation: { ...en, errors: ERROR_MESSAGES } },
+  en: {
+    translation: { ...en, errors: ERROR_MESSAGES, issueReasons: CONTENT_ISSUE_REASONS },
+  },
   uk: { translation: uk },
 } as const;
 
