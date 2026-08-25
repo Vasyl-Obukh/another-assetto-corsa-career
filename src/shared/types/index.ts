@@ -11,6 +11,8 @@ export {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
 
+export { Discipline } from './ladder.ts';
+
 export type {
   Car,
   CarPerformance,
@@ -41,6 +43,10 @@ export type {
   TrackQuery,
   TrackSortKey,
 } from './content-query.ts';
+
+export type {
+  LadderPosition,
+} from './ladder.ts';
 
 export type {
   AcPaths,

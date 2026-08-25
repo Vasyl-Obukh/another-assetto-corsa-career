@@ -4,15 +4,15 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phases 0 and 1 complete; Phase 2 is down to its last classification
-items.** The integration spike proves the full round trip, the Electron shell
-sits on top of it - setup, diagnostics, theming, i18n, settings and a tested
-core - the content library is cached, incremental, spec-aware and honest about
-broken mods, and the car and track browsers consume it behind real navigation.
-Provenance says which car or track is base game, DLC or a mod, and the class
-catalogue says which grid each named car races in. Next up is disciplines and
-tiers - the ladder those classes hang off - after which Phase 3 can start on
-race weekends.
+Status: **Phases 0 and 1 complete; Phase 2 is down to a skin browser and one
+translation.** The integration spike proves the full round trip, the Electron
+shell sits on top of it - setup, diagnostics, theming, i18n, settings and a
+tested core - the content library is cached, incremental, spec-aware and honest
+about broken mods, and the car and track browsers consume it behind real
+navigation. Provenance says which car or track is base game, DLC or a mod, the
+class catalogue says which grid each named car races in, and the ladder names the
+disciplines a championship can sit on. Neither remaining item blocks Phase 3, so
+race weekends can start.
 
 ## Decisions taken
 
@@ -40,6 +40,8 @@ race weekends.
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
 | Content provenance              | **A shipped catalogue, not inference.** Every car and track layout carries a source (base, DLC or mod), the DLC pack where there is one, the mod maker where we recognise one, and any redistributor.                                     |
 | Car classes                     | **Class and spec, both shipped, and both plural per car.** A *spec* is a grid - the cars that can sensibly race each other - and a *class* is the family that spec belongs to across eras. Cars are assigned to specs; classes are derived. |
+| Disciplines                     | **Single-seater, sportscar, touring and road.** Not historic - that is an era, and it cuts across all four. A championship names its own, so a road-car or one-make series has somewhere to sit.                          |
+| Where a tier lives              | **On the championship, and per class entry.** Never on a car: one-make cars carry no spec to hang one off, and the same GT3 car races a world championship and a club series. WEC's LMGT3 entry sits a tier under its Hypercar one. |
 | Series eligibility              | **A spec or a car list on the championship, overridable per round.** Most series declare it once. A round overrides where the car changes with the track - IndyCar swaps road, short-oval and superspeedway kits mid-season. Never a class. |
 | A car in several grids          | **Normal, and modelled as a list of specs.** A Lotus 2-Eleven runs in Lotus Cup and as a track special. What a car may never hold is two specs of one class - that would claim it is two eras of a category at once.                      |
 | One-make series                 | **Configured by naming its cars, not by a class.** A class names a category a car belongs to; it never exists to name one championship's entrants. A car that exists only for one-make racing carries no class or spec at all.            |
@@ -230,10 +232,38 @@ reads as a bug.
 
 ### Disciplines and tiers
 
-Content is grouped into **disciplines** (single-seater, sportscar/GT, touring,
-historic, and whatever else users define). Each is a **ladder of numbered
-tiers**, tier 1 being the top. Every series belongs to a `(discipline, tier)`
-pair. The player holds a level per discipline, and:
+A **discipline** is a kind of racing - single-seater, sportscar, touring, road,
+and whatever else users define. Each is a ladder of numbered **tiers**, tier 1
+being the top. A championship names its own discipline, and a tier for each way
+into it; content carries neither.
+
+That last part is load-bearing, and it was got wrong once. **A tier cannot live
+on a car.** A championship is configured by a spec or by an explicit list of
+cars, and the car list is what one-make series use - so those cars carry no spec
+to hang a tier off at all. Even for a car the catalogue does name, one number
+could not hold the answer: a GT3 car races in a world championship and in a
+national club series, and a Porsche Cup 992 runs in Supercup and in a regional
+Carrera Cup. Those are different rungs.
+
+**Tier is held per class entry rather than per championship**, because a
+multi-class series is entered at a different level depending on the class you
+enter it in. A *class entry* is one way into a championship - not to be confused
+with the entry list, which is the grid. WEC is one series with one calendar,
+entered as Hypercar, LMP2 or LMGT3, and the GT3 entry sits a tier below the
+prototype ones: it occupies two rungs of the sportscar ladder at once, with its
+own standings table per class.
+
+**Road is a discipline like any other**, and it is why there is no map from
+classes to disciplines. Road cars carry no class on purpose, so a class-keyed map
+could never reach them - and "a catalogued car with no class is a road car" is
+inference, and wrong: the MX-5 Cup, the TT Cup and the Abarth 500 Assetto Corse
+are race cars with no class. A road championship names its cars, exactly as a
+one-make one does. Cars carry specs and classes; nothing else.
+
+**Historic is not a discipline.** It is an era, and it cuts across every one of
+them - a 1967 Lotus 49 is a single-seater. Era is what a spec already carries.
+
+The player holds a level per discipline, and:
 
 - You may enter any series at or below your level in that discipline.
 - **Entering a new discipline, you start one tier below your best level
@@ -294,7 +324,7 @@ with the seat.
 
 ### Rating
 
-Rating moves on results, weighted by the **tier of the series** and by the
+Rating moves on results, weighted by the **tier being raced** and by the
 **strength of who you beat and who beat you**. We set `AI_LEVEL` per entry, so
 the field has a known strength spread and every finish carries an
 expected-versus-actual signal; an Elo-style update fits naturally. Adaptive
@@ -486,8 +516,12 @@ had exercised.
       car placed in exactly one grid, with Class and Spec filters and a spec badge
       in the car browser. Authored against the install's own `ui_car.json` figures,
       not folder names. Assignment UI is deliberately deferred to Phase 4
-- [ ] **Disciplines and tiers** - the ladder structure
-- [ ] Map classes to disciplines and tiers
+- [x] **Disciplines and tiers** - the ladder structure. Four disciplines, and a
+      tier that belongs to a championship's class entry rather than to a car.
+      Mapping classes to disciplines was planned alongside it and dropped: with
+      tier gone it was a second table saying what the class already says, and it
+      could never reach road cars or one-make cars, which carry no class by
+      design. See *Disciplines and tiers*
 - [ ] Skin browser, for pinning liveries to drivers - needs `ui_skin.json`, which
       the scanner still ignores in favour of bare folder names
 - [ ] Translate `ContentIssueReason` in the renderer; only the count is shown so
@@ -550,8 +584,8 @@ Spikes first - they decide what weekend formats are expressible.
 
 ## Phase 4 - Series, teams and the editor
 
-- [ ] Series schema: discipline, tier, rounds, weekend format, regulations,
-      points, BoP
+- [ ] Series schema: discipline, rounds, weekend format, regulations, points,
+      BoP - the tier sits on the class entry below, not here
 - [ ] **Weekend formats** with day offsets and day-of-week rules
 - [ ] **Teams and seats**; entry lists as seats
 - [ ] Eligibility: a **spec**, or an **explicit list of cars** - never a class, so
@@ -565,6 +599,12 @@ Spikes first - they decide what weekend formats are expressible.
       entry list and one standings table. Group C's 962C longtail at Le Mans and
       Monza, and URD's sprint versus endurance EGT cars, are the same shape. The
       entry list and standings stay at series level; only the car resolves per round
+- [ ] **Multi-class entries** - one championship, one calendar, and one *class
+      entry* per class it runs, each carrying its own tier, its own eligibility
+      and its own standings table. WEC is the case: Hypercar, LMP2 and LMGT3
+      entered separately, the GT3 entry a tier below the prototypes. A different
+      axis from the per-round override above - that varies the car across the
+      calendar, this varies it across the grid
 - [ ] **Class and spec management UI**: create classes and specs, classify mods the
       shipped catalogue does not name, and override what we ship. The shipped
       catalogue is the base layer; the user layer is resolved over it at runtime

@@ -118,7 +118,7 @@ per project.
 | --- | --- |
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
 | `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file. All reached through npm scripts, which carry the transform flag |
-| `src/shared/types/` | Every domain type: content, paths, race, results, settings, IPC |
+| `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
