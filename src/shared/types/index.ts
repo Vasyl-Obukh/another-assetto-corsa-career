@@ -26,6 +26,7 @@ export type {
   ContentProvenance,
   ContentSummary,
   Geotags,
+  Skin,
   Track,
   TrackGroup,
   Weather,

@@ -55,6 +55,7 @@ export const registerHandlers = (settings: SettingsStore, content: ContentStore)
 
   handle('content:scan', async ({ force }) => content.summary(force));
   handle('content:cars', async (query) => content.cars(query));
+  handle('content:car', async ({ id }) => content.car(id));
   handle('content:tracks', async (query) => content.tracks(query));
   handle('content:carFacets', async ({ query }) => content.carFacets(query));
   handle('content:trackFacets', async ({ query }) => content.trackFacets(query));

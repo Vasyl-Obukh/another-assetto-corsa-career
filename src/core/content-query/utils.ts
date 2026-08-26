@@ -8,53 +8,15 @@ import type {
   Facet, Page, SortDirection, Track, TrackGroup,
 } from '../../shared/types/index.ts';
 
+// Text matching lives in shared/, because the renderer filters a car's liveries
+// with the same rules and may not reach into core. Re-exported so every caller
+// keeps reaching for this module rather than following the move.
+export { matchesTerms, normalise, searchTerms } from '../../shared/utils/search/index.ts';
+
 /**
  * A value a list can be ordered by.
  */
 export type SortValue = string | number | null;
-
-/**
- * Folds a string down to what a search should match on.
- *
- * Diacritics are stripped, so someone typing "citroen" finds "Citroën" - which
- * is what they meant, and the only spelling most keyboards make easy.
- * @param text The string to fold
- * @returns The folded string
- */
-export const normalise = (text: string): string => (
-  text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
-);
-
-/**
- * Splits a search box's contents into the terms that must all match.
- * @param search What the user typed, if anything
- * @returns The folded terms, empty when there is nothing to match
- */
-export const searchTerms = (search: string | undefined): string[] => (
-  normalise(search ?? '').split(/\s+/).filter((term) => term !== '')
-);
-
-/**
- * Checks that every term appears somewhere in an entry.
- *
- * All terms rather than any, because "ferrari gt3" means both words - matching
- * either would bury the answer under every Ferrari ever made.
- * @param terms The folded terms to look for
- * @param haystacks The entry's searchable strings, nulls allowed
- * @returns True when every term is found
- */
-export const matchesTerms = (
-  terms: readonly string[],
-  haystacks: readonly (string | null)[],
-): boolean => {
-  if (terms.length === 0) return true;
-
-  const folded = haystacks
-    .filter((value): value is string => value !== null)
-    .map(normalise);
-
-  return terms.every((term) => folded.some((value) => value.includes(term)));
-};
 
 /**
  * Checks a number against an optional inclusive range.

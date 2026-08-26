@@ -22,7 +22,9 @@ export const makeCar = ({ performance, ...car }: CarOverrides): Car => ({
   brand: null,
   provenance: carProvenance(car.id),
   tags: [],
-  skins: ['default'],
+  skins: [{
+    id: 'default', name: 'Default', driver: null, team: null, number: null, country: null,
+  }],
   carClass: null,
   year: null,
   country: null,

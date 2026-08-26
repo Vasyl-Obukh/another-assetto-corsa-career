@@ -13,6 +13,7 @@ import {
   TRACKS_DIR,
   UI_CAR_FILE,
   UI_DIR,
+  UI_SKIN_FILE,
   UI_TRACK_FILE,
 } from './constants.ts';
 import type { JsonRead, LooseJson, UiTrack } from './types.ts';
@@ -183,22 +184,40 @@ const dirStamp = async (dir: string): Promise<string> => {
 };
 
 /**
- * Fingerprints one car, so an unchanged one need not be read again.
+ * Fingerprints one car and every livery it ships, so an unchanged one need not
+ * be read again.
  *
  * The ui file is stamped rather than its folder, because a folder's mtime moves
  * only when its entries are added or removed - not when a mod author saves over
- * ui_car.json, which is the commonest update there is.
+ * ui_car.json, which is the commonest update there is. Every livery's own
+ * ui_skin.json needs the same treatment for the same reason: the skins folder's
+ * stamp covers liveries appearing and disappearing and sees nothing at all when
+ * one of them is edited in place.
+ *
+ * Skins are sorted before stamping, for the reason fingerprintTrack records
+ * below - the two orders a skin list can arrive in must encode identically.
  * @param carsDir The content/cars directory
  * @param id Car folder name
+ * @param skins The livery folder names this car is known to have
  * @returns A fingerprint to compare against the one the last scan recorded
  */
-export const fingerprintCar = async (carsDir: string, id: string): Promise<string> => {
-  const [ui, skins] = await Promise.all([
+export const fingerprintCar = async (
+  carsDir: string,
+  id: string,
+  skins: readonly string[],
+): Promise<string> => {
+  const skinsDir = path.join(carsDir, id, SKINS_DIR);
+  const ordered = [...skins].sort();
+
+  const [ui, dir, ...nested] = await Promise.all([
     fileStamp(path.join(carsDir, id, UI_DIR, UI_CAR_FILE)),
-    dirStamp(path.join(carsDir, id, SKINS_DIR)),
+    dirStamp(skinsDir),
+    ...ordered.map((skin) => fileStamp(path.join(skinsDir, skin, UI_SKIN_FILE))),
   ]);
 
-  return `${ui}|${skins}`;
+  const parts = ordered.map((skin, index) => `${skin}=${nested[index]}`);
+
+  return [ui, dir, ...parts].join('|');
 };
 
 /**
@@ -234,6 +253,38 @@ export const fingerprintTrack = async (
   const parts = ordered.map((layout, index) => `${layout}=${nested[index]}`);
 
   return [dir, root, ...parts].join('|');
+};
+
+/**
+ * Reads a ui_* string field, treating blank as absent.
+ *
+ * A quarter of liveries ship an empty skinname and most of the rest of the
+ * fields blank, so "" and "missing" have to mean the same thing.
+ * @param value The raw field, which may be anything at all
+ * @returns The trimmed string, or null when there is nothing in it
+ */
+export const trimmed = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+
+  return text === '' ? null : text;
+};
+
+/**
+ * Reads a livery's racing number.
+ *
+ * Kept as a string, since a leading zero is meaningful on a car - AC ships
+ * `"number": 06` and it means 06, not 6. "0" is the value AC's own template
+ * writes for a livery that carries no number at all, so it reads as absent
+ * rather than as car zero.
+ * @param value The raw number field, written as a string or a number
+ * @returns The number as written, or null when the livery carries none
+ */
+export const skinNumber = (value: unknown): string | null => {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const text = String(value).trim();
+
+  return text === '' || text === '0' ? null : text;
 };
 
 /**

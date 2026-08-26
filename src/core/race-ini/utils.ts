@@ -104,7 +104,7 @@ export const findWeather = (content: Content, id: string | undefined): Weather |
  * @returns The skin folder name, or an empty string when there is none
  */
 export const firstSkin = (content: Content, model: string): string => (
-  content.cars.find((car) => car.id === model)?.skins[0] ?? ''
+  content.cars.find((car) => car.id === model)?.skins[0]?.id ?? ''
 );
 
 /**
@@ -118,7 +118,7 @@ export const nextSkin = (content: Content, model: string, used: Set<string>): st
   const car = content.cars.find((entry) => entry.id === model);
   if (!car) return null;
 
-  return car.skins.find((skin) => !used.has(skin)) ?? car.skins[0] ?? null;
+  return car.skins.find((skin) => !used.has(skin.id))?.id ?? car.skins[0]?.id ?? null;
 };
 
 /**

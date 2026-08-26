@@ -4,15 +4,15 @@ Living TODO. Phases are ordered by dependency - each should leave the app in a
 usable state. Tick items as they land; add notes inline when reality differs
 from the plan.
 
-Status: **Phases 0 and 1 complete; Phase 2 is down to a skin browser and one
-translation.** The integration spike proves the full round trip, the Electron
-shell sits on top of it - setup, diagnostics, theming, i18n, settings and a
-tested core - the content library is cached, incremental, spec-aware and honest
-about broken mods, and the car and track browsers consume it behind real
-navigation. Provenance says which car or track is base game, DLC or a mod, the
-class catalogue says which grid each named car races in, and the ladder names the
-disciplines a championship can sit on. Neither remaining item blocks Phase 3, so
-race weekends can start.
+Status: **Phases 0, 1 and 2 complete.** The integration spike proves the full
+round trip, the Electron shell sits on top of it - setup, diagnostics, theming,
+i18n, settings and a tested core - the content library is cached, incremental,
+spec-aware and honest about broken mods, and the car and track browsers consume
+it behind real navigation. Provenance says which car or track is base game, DLC
+or a mod, the class catalogue says which grid each named car races in, and the
+ladder names the disciplines a championship can sit on. Liveries carry their
+name, driver, team, number and country, and a car opens onto a page of them.
+Race weekends are next.
 
 ## Decisions taken
 
@@ -522,8 +522,15 @@ had exercised.
       tier gone it was a second table saying what the class already says, and it
       could never reach road cars or one-make cars, which carry no class by
       design. See *Disciplines and tiers*
-- [ ] Skin browser, for pinning liveries to drivers - needs `ui_skin.json`, which
-      the scanner still ignores in favour of bare folder names
+- [x] **Skin browser** - `ui_skin.json` is read, so a livery carries its display
+      name, driver, team, number and country rather than a bare folder name, and
+      a car card opens onto a page listing them with previews and a search. The
+      fingerprint had to grow a stamp per livery to go with it: the skins
+      folder's own mtime moves when a livery is added or removed and sees
+      nothing at all when one is edited in place. **Pinning liveries to drivers
+      is deliberately not here** - there is no driver, team or seat until Phase
+      4, so a pin would have nowhere to persist. Reading the data was the
+      blocker, and that is what has gone
 - [x] **Translate `ContentIssueReason` in the renderer** - the broken-content
       count on the content card is now a popover listing every broken entry
       grouped by reason, off the `content:issues` channel that had been wired end
@@ -548,9 +555,10 @@ are the calendar, the championship, the garage and the store, not the library.
 
 Turning them into pickers needs two things they do not have: selection semantics,
 and a **single-entity lookup**. `content:cars` with `search: <id>` matches name,
-brand, folder ID and tags alike, so it cannot resolve one car; a picker restoring
-a saved selection needs `content:car { id }` and `content:track { key }` added to
-the contract, the handler and the content store. None of that touches `src/core/`.
+brand, folder ID and tags alike, so it cannot resolve one car. Half of that has
+landed: the car detail page wanted the same thing, so `content:car { id }` is on
+the contract, the handler and the content store already. `content:track { key }`
+is still to come, and is the same three lines. Neither touches `src/core/`.
 
 ## Phase 3 - Race weekends and sessions
 

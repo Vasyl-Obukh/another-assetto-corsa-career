@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { makeCar } from './fixtures.ts';
+import { makeCar, makeSkin } from './fixtures.ts';
 import { carImageSources, roundRatio } from '../utils.ts';
 
 describe('renderer/screens/car-browser/utils', () => {
   describe('carImageSources', () => {
     it('prefers a livery photo, with the badge behind it', () => {
-      const car = makeCar({ id: 'ks_ferrari_488', skins: ['rosso'] });
+      const car = makeCar({ id: 'ks_ferrari_488', skins: [makeSkin('rosso')] });
 
       expect(carImageSources(car)).toEqual([
         'accontent://car/ks_ferrari_488/skin/rosso',
@@ -22,7 +22,7 @@ describe('renderer/screens/car-browser/utils', () => {
     // Mod liveries are routinely named "2012 #1 Audi Sport Team Joest LM24".
     // Spaces are legal in a segment and must not cost the car its photo.
     it('serves a livery whose folder name contains spaces', () => {
-      const car = makeCar({ id: 'yzd_oreca_07', skins: ['1 Oreca Showcar'] });
+      const car = makeCar({ id: 'yzd_oreca_07', skins: [makeSkin('1 Oreca Showcar')] });
 
       expect(carImageSources(car)).toEqual([
         'accontent://car/yzd_oreca_07/skin/1%20Oreca%20Showcar',
@@ -31,7 +31,7 @@ describe('renderer/screens/car-browser/utils', () => {
     });
 
     it('skips a livery that cannot be served and takes the next one', () => {
-      const car = makeCar({ id: 'yzd_oreca_07', skins: ['bad/name', 'plain'] });
+      const car = makeCar({ id: 'yzd_oreca_07', skins: ['bad/name', 'plain'].map(makeSkin) });
 
       expect(carImageSources(car)).toEqual([
         'accontent://car/yzd_oreca_07/skin/plain',
@@ -40,13 +40,13 @@ describe('renderer/screens/car-browser/utils', () => {
     });
 
     it('falls back to the badge when no livery folder can be served', () => {
-      const car = makeCar({ id: 'yzd_oreca_07', skins: ['bad/name', '..'] });
+      const car = makeCar({ id: 'yzd_oreca_07', skins: ['bad/name', '..'].map(makeSkin) });
 
       expect(carImageSources(car)).toEqual(['accontent://car/yzd_oreca_07/badge']);
     });
 
     it('offers nothing at all when the car folder itself cannot be served', () => {
-      expect(carImageSources(makeCar({ id: 'a/b', skins: ['plain'] }))).toEqual([]);
+      expect(carImageSources(makeCar({ id: 'a/b', skins: [makeSkin('plain')] }))).toEqual([]);
     });
 
     it('percent-encodes an id rather than letting it break the URL', () => {

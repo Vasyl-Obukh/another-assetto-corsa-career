@@ -158,6 +158,13 @@
     "noSkins": "No liveries",
     "skins_one": "{{count}} livery",
     "skins_other": "{{count}} liveries",
+    "detail": {
+      "back": "All cars",
+      "searchPlaceholder": "Search liveries by name, driver, team or number",
+      "number": "#{{value}}",
+      "noMatch": "No livery matches that search.",
+      "notFound": "No car is installed under \"{{id}}\"."
+    },
     "sort": {
       "name": "Name",
       "brand": "Brand",

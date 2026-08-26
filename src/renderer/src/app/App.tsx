@@ -1,10 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router';
 
-import { ROUTES } from './constants.ts';
 import { useSettings } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
+import { path, ROUTE } from '@/lib/routes';
 import { CarBrowser } from '@/screens/car-browser';
+import { CarDetail } from '@/screens/car-detail';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Setup } from '@/screens/setup';
 import { TrackBrowser } from '@/screens/track-browser';
@@ -25,13 +26,14 @@ export const App = ({ initialReport }: AppProps) => {
 
       <main className="min-h-0 flex-1">
         <Routes>
-          <Route path={ROUTES.cars} element={<CarBrowser />} />
-          <Route path={ROUTES.tracks} element={<TrackBrowser />} />
+          <Route path={ROUTE.cars} element={<CarBrowser />} />
+          <Route path={ROUTE.car} element={<CarDetail />} />
+          <Route path={ROUTE.tracks} element={<TrackBrowser />} />
           <Route
-            path={ROUTES.diagnostics}
+            path={ROUTE.diagnostics}
             element={<Diagnostics initialReport={initialReport} />}
           />
-          <Route path="*" element={<Navigate to={ROUTES.cars} replace />} />
+          <Route path="*" element={<Navigate to={path.cars()} replace />} />
         </Routes>
       </main>
     </div>

@@ -73,7 +73,14 @@ describe('core/content', () => {
 
       const { entries } = await scanCars('content');
       expect(entries).toEqual([expect.objectContaining({
-        id: 'car_a', name: 'Car A', brand: 'Marque', tags: ['gt3'], skins: ['red', 'blue'],
+        id: 'car_a',
+        name: 'Car A',
+        brand: 'Marque',
+        tags: ['gt3'],
+        skins: [
+          expect.objectContaining({ id: 'red' }),
+          expect.objectContaining({ id: 'blue' }),
+        ],
       })]);
     });
 
@@ -130,6 +137,70 @@ describe('core/content', () => {
       expect(issues).toEqual([{
         kind: 'car', id: 'car_a', reason: 'uiSalvaged', detail: null,
       }]);
+    });
+
+    // ui_skin.json is the livery's own metadata, and the scan reads it per
+    // livery folder rather than trusting the folder name alone.
+    it('reads the name, driver, team, number and country of a livery', async () => {
+      listDirsMock.mockImplementation(async (dir) => (dir.endsWith('cars') ? ['car_a'] : ['wec_27']));
+      readJsonFileMock.mockImplementation(jsonFor((file) => (file.endsWith('ui_skin.json')
+        ? parsed({
+          skinname: '2024 27 WEC HoR',
+          drivername: 'James, Mancinelli, Riberas',
+          team: 'HoR',
+          number: '27',
+          country: 'USA',
+        })
+        : parsed({ name: 'Car A' }))));
+
+      const [car] = (await scanCars('content')).entries;
+      expect(car.skins).toEqual([{
+        id: 'wec_27',
+        name: '2024 27 WEC HoR',
+        driver: 'James, Mancinelli, Riberas',
+        team: 'HoR',
+        number: '27',
+        country: 'USA',
+      }]);
+    });
+
+    it('falls back to the folder name when the livery names itself nothing', async () => {
+      listDirsMock.mockImplementation(async (dir) => (dir.endsWith('cars') ? ['car_a'] : ['0_jet_black']));
+      readJsonFileMock.mockImplementation(jsonFor((file) => (file.endsWith('ui_skin.json')
+        ? parsed({ skinname: '', number: '0' })
+        : parsed({ name: 'Car A' }))));
+
+      const [car] = (await scanCars('content')).entries;
+      expect(car.skins[0]).toMatchObject({ id: '0_jet_black', name: '0_jet_black', number: null });
+    });
+
+    // A livery with no readable metadata still races perfectly, so it wears its
+    // folder name and is deliberately not reported as broken content.
+    it('keeps a livery whose ui_skin.json cannot be read, and raises no issue', async () => {
+      listDirsMock.mockImplementation(async (dir) => (dir.endsWith('cars') ? ['car_a'] : ['red']));
+      readJsonFileMock.mockImplementation(jsonFor((file) => (file.endsWith('ui_skin.json')
+        ? MISSING
+        : parsed({ name: 'Car A' }))));
+
+      const { entries, issues } = await scanCars('content');
+      expect(entries[0].skins).toEqual([{
+        id: 'red', name: 'red', driver: null, team: null, number: null, country: null,
+      }]);
+      expect(issues).toEqual([]);
+    });
+
+    // race.ini picks the player's livery by position, so the scan must not
+    // reorder them - not by name, and not by ui_skin.json's priority field.
+    it('keeps liveries in folder order', async () => {
+      listDirsMock.mockImplementation(async (dir) => (
+        dir.endsWith('cars') ? ['car_a'] : ['zulu', 'alpha', 'mike']
+      ));
+      readJsonFileMock.mockImplementation(jsonFor((file) => (file.endsWith('ui_skin.json')
+        ? parsed({ skinname: 'Livery', priority: 1 })
+        : parsed({ name: 'Car A' }))));
+
+      const [car] = (await scanCars('content')).entries;
+      expect(car.skins.map((skin) => skin.id)).toEqual(['zulu', 'alpha', 'mike']);
     });
 
     it('sorts by display name, not folder name', async () => {
@@ -407,8 +478,8 @@ describe('core/content', () => {
 
       const second = await rescanContent('D:\\ac\\content', first);
 
-      expect(readJsonFileMock).toHaveBeenCalledTimes(1);
       expect(readJsonFileMock).toHaveBeenCalledWith(expect.stringContaining('car_b'));
+      expect(readJsonFileMock).not.toHaveBeenCalledWith(expect.stringContaining('car_a'));
       expect(second.content.cars.map((car) => car.name).sort()).toEqual(['Car', 'Renamed']);
     });
 
@@ -426,7 +497,8 @@ describe('core/content', () => {
       const second = await rescanContent('D:\\ac\\content', first);
 
       expect(second.content.cars.map((car) => car.id)).toEqual(['car_a', 'car_b']);
-      expect(readJsonFileMock).toHaveBeenCalledTimes(1);
+      expect(readJsonFileMock).toHaveBeenCalledWith(expect.stringContaining('car_b'));
+      expect(readJsonFileMock).not.toHaveBeenCalledWith(expect.stringContaining('car_a'));
     });
 
     it('drops a car that has gone', async () => {

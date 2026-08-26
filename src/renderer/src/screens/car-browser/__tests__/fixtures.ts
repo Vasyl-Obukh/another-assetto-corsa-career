@@ -2,7 +2,17 @@
 // reads are interesting; everything else defaults out of the way.
 
 import { ContentSource } from '../../../../../shared/types';
-import type { Car, CarPerformance } from '../../../../../shared/types';
+import type { Car, CarPerformance, Skin } from '../../../../../shared/types';
+
+/**
+ * Builds a livery carrying nothing but its folder name, which is all the card
+ * reads off one.
+ * @param id The livery folder name
+ * @returns A complete Skin
+ */
+export const makeSkin = (id: string): Skin => ({
+  id, name: id, driver: null, team: null, number: null, country: null,
+});
 
 /**
  * What a fixture car may override.

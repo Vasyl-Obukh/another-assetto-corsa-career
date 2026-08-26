@@ -2,7 +2,7 @@
 // with different skin counts, a single-layout and a multi-layout track, and one
 // weather with a non-zero temperature coefficient.
 
-import type { Car, Content, RaceDefinition } from '../../../shared/types/index.ts';
+import type { Car, Content, RaceDefinition, Skin } from '../../../shared/types/index.ts';
 import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
 
 /**
@@ -35,15 +35,29 @@ export const makeCar = (car: Pick<Car, 'id' | 'name' | 'skins'> & Partial<Car>):
 });
 
 /**
+ * Builds a livery carrying nothing but its folder name.
+ *
+ * race.ini only ever reads the ID, so the metadata fields stay empty here.
+ * @param id The livery folder name
+ * @returns A complete Skin
+ */
+const makeSkin = (id: string): Skin => ({
+  id, name: id, driver: null, team: null, number: null, country: null,
+});
+
+/**
  * Installed content the raceIni tests resolve against.
  * @returns A fresh Content, so a test mutating it cannot affect another
  */
 export const makeContent = (): Content => ({
   cars: [
     makeCar({
-      id: 'test_car', name: 'Test Car', brand: 'Testing', skins: ['red', 'blue', 'green'],
+      id: 'test_car',
+      name: 'Test Car',
+      brand: 'Testing',
+      skins: ['red', 'blue', 'green'].map(makeSkin),
     }),
-    makeCar({ id: 'other_car', name: 'Other Car', skins: ['white'] }),
+    makeCar({ id: 'other_car', name: 'Other Car', skins: [makeSkin('white')] }),
     makeCar({ id: 'skinless_car', name: 'Skinless', skins: [] }),
   ],
   tracks: [

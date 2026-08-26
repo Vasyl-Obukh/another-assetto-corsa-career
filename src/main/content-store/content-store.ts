@@ -223,6 +223,12 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       return queryCars((await current()).content.cars, query);
     },
 
+    async car(id) {
+      // A lookup by primary key, so it stays here rather than going through
+      // content-query: there is nothing to filter, sort or page.
+      return (await current()).content.cars.find((entry) => entry.id === id) ?? null;
+    },
+
     async tracks(query) {
       return queryTracks((await current()).content.tracks, query);
     },

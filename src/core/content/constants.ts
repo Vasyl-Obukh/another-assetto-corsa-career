@@ -51,6 +51,11 @@ export const SKINS_DIR = 'skins';
 export const UI_CAR_FILE = 'ui_car.json';
 
 /**
+ * A livery's metadata file, inside its own folder under skins/.
+ */
+export const UI_SKIN_FILE = 'ui_skin.json';
+
+/**
  * A track or layout's metadata file, inside its ui folder.
  */
 export const UI_TRACK_FILE = 'ui_track.json';
@@ -84,3 +89,13 @@ export const MANIFEST_INI = 'manifest.ini';
  * throughput at all.
  */
 export const SCAN_CONCURRENCY = 32;
+
+/**
+ * How many liveries of one car may be read at once.
+ *
+ * Deliberately far below SCAN_CONCURRENCY, because this limit nests inside it:
+ * cars are already read 32 at a time, and mod cars routinely ship over a hundred
+ * liveries each. An unbounded fan-out here would be thousands of reads in
+ * flight, which is exactly the spike the outer limit exists to prevent.
+ */
+export const SKIN_CONCURRENCY = 8;

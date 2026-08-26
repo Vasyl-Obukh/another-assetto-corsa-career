@@ -99,6 +99,13 @@ export interface ContentStore {
    */
   cars(query: CarQuery): Promise<Page<Car>>;
   /**
+   * One car by folder ID.
+   * @param id The car's folder name
+   * @returns The car, or null when nothing is installed under that ID
+   * @throws AppError when no install has been located
+   */
+  car(id: string): Promise<Car | null>;
+  /**
    * One page of tracks, each holding the layouts that matched.
    * @param query What to search, filter, sort and page by
    * @returns The matching page

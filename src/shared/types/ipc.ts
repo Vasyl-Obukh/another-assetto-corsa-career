@@ -46,6 +46,14 @@ export interface IpcContract {
    */
   'content:tracks': { req: TrackQuery; res: Page<TrackGroup> };
   /**
+   * One car by folder ID, or null when nothing is installed under it.
+   *
+   * Null rather than an error: content:cars searches name, brand, folder ID and
+   * tags alike, so it cannot resolve a single car, and a car uninstalled while
+   * its page is open is an ordinary outcome rather than a failure.
+   */
+  'content:car': { req: { id: string }; res: Car | null };
+  /**
    * Counts behind the car browser's filter lists, for the filters now applied.
    */
   'content:carFacets': { req: { query?: CarQuery }; res: CarFacets };

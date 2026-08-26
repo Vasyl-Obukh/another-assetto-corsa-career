@@ -39,6 +39,32 @@ export interface UiCar {
 }
 
 /**
+ * The parts of ui_skin.json we read.
+ */
+export interface UiSkin {
+  /**
+   * The livery's display name, blank in about a quarter of them.
+   */
+  skinname?: string;
+  /**
+   * The driver the livery belongs to, often several names for an endurance crew.
+   */
+  drivername?: string;
+  /**
+   * The team the livery belongs to.
+   */
+  team?: string;
+  /**
+   * Racing number, written as either a string or a number.
+   */
+  number?: string | number;
+  /**
+   * The driver's or team's country, in whatever wording the author chose.
+   */
+  country?: string;
+}
+
+/**
  * The parts of ui_track.json we read.
  */
 export interface UiTrack {

@@ -294,6 +294,28 @@ describe('main/content-store', () => {
       await expect(store.trackFacets()).resolves.toMatchObject({ countries: [] });
       await expect(store.issues()).resolves.toEqual(content.issues);
     });
+
+    // content:cars searches name, brand, folder ID and tags alike, so it cannot
+    // resolve a single car - which is what this lookup exists for.
+    it('finds one car by its folder ID', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['car_a', 'car_b'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.car('car_b')).resolves.toMatchObject({ id: 'car_b' });
+    });
+
+    // A car uninstalled while its page is open is an ordinary outcome, not a
+    // failure, so the page can say so rather than showing an error.
+    it('answers null for a car that is not installed', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['car_a'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.car('never_installed')).resolves.toBeNull();
+    });
   });
 
   describe('revalidate', () => {

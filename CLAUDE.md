@@ -123,9 +123,10 @@ per project.
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
+| `src/shared/utils/search/` | Folding and term matching for every search box, shared because the browsers query in main and the livery list filters in the renderer |
 | `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
-| `src/core/content/` | Scans installed content; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
+| `src/core/content/` | Scans installed content, liveries and their `ui_skin.json` included; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
 | `src/core/car-performance/` | `ui_car.json` specs -> numbers, tolerant of free text |
 | `src/core/content-catalogue/` | Which folder ID is base game, which DLC pack, whose mod, who redistributes it; every ID listed, nothing inferred |
 | `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan; tracks filter per layout and come back grouped one per folder |
@@ -139,6 +140,7 @@ per project.
 | `src/main/content-protocol/` | Serves preview images out of the AC install |
 | `src/preload/` | The single `contextBridge` surface (`window.api`) |
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
+| `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
 | `races/*.json` | Race definitions in our own format |
 
 ### Paths, probing and overrides
@@ -358,6 +360,12 @@ describe('core/race-ini/utils', () => {
   CommonJS (see `jest.config.js` for why), so plain `jest.mock` hoisting works.
 - Where a bug has been fixed, say so in a comment above the test that guards it,
   so nobody deletes it as redundant.
+- **Nothing testable may import `react-router`.** It ships ESM only, Jest runs
+  CommonJS, and its module graph reaches an `import.meta.hot` that cannot be
+  expressed in CommonJS at all - so transforming the package rather than
+  excluding it does not help either, and both have been tried. This is why
+  `src/renderer/src/lib/routes/` builds paths itself instead of calling
+  react-router's own `generatePath`, and imports `PathParam` as a type only.
 
 **What is covered, and what is deliberately not.** `src/shared`, `src/core`, the
 renderer's pure helpers, the settings store, and the handful of main-process
@@ -435,13 +443,17 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   and stay until `npm run weather -- remove`.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
-- Skins are still bare folder names. `ui_skin.json` carries the livery's display
-  name, driver, number and country, and nothing reads it - the skin browser and
-  pinning liveries to drivers both need it.
+- Liveries are read from `ui_skin.json` and browsable per car, but nothing pins
+  one to a driver yet - that needs the driver, team and seat entities Phase 4
+  introduces. About a twelfth of liveries ship no `ui_skin.json` at all and a
+  handful ship it broken; those wear their folder name and raise no issue, since
+  a livery with no metadata still races perfectly.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
   bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
-  `CarPerformance` or the fingerprint encoding changes. Amending the provenance
-  catalogue is the same problem with its own switch: bump
+  `Skin`, `CarPerformance` or the fingerprint encoding changes, and whenever a
+  scan starts finding content it used to miss - an unchanged folder keeps its
+  fingerprint and would otherwise be served exactly as it was read before.
+  Amending the provenance catalogue is the same problem with its own switch: bump
   `CONTENT_CATALOGUE_VERSION` in `src/core/content-catalogue/`, which the cache
   gate checks alongside its own version, so a core-only data edit does not need
   main to know. Forgetting it serves stale provenance from the cache and looks

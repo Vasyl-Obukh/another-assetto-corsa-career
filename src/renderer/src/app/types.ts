@@ -1,10 +1,4 @@
-import type { ROUTES } from './constants.ts';
 import type { Settings } from '../../../shared/types';
-
-/**
- * A destination the app can navigate to.
- */
-export type Route = (typeof ROUTES)[keyof typeof ROUTES];
 
 /**
  * The settings, and the one way to change them.

@@ -1,6 +1,22 @@
 import { describe, expect, it } from '@jest/globals';
+import type { TFunction } from 'i18next';
 
-import { formattersFor } from '../utils.ts';
+import { CONTENT_ISSUE_REASONS } from '../../../../shared/constants';
+import type { ContentIssueReason } from '../../../../shared/types';
+import { formatContentIssueReason, formattersFor } from '../utils.ts';
+
+/**
+ * A translator standing in for i18next.
+ *
+ * Real catalogue lookups are i18next's job, not this module's; what matters
+ * here is which key is asked for and what happens when nothing answers it.
+ * @param catalogue The keys this language actually has
+ * @returns Something shaped enough like TFunction to call
+ */
+const translator = (catalogue: Record<string, string>) => ((
+  key: string,
+  options?: { defaultValue?: string },
+) => catalogue[key] ?? options?.defaultValue ?? key) as unknown as TFunction;
 
 describe('renderer/i18n/utils', () => {
   describe('formattersFor', () => {
@@ -84,6 +100,29 @@ describe('renderer/i18n/utils', () => {
 
     it('rounds fractional milliseconds', () => {
       expect(formattersFor('en').formatDuration(213.7)).toContain('214');
+    });
+  });
+  describe('formatContentIssueReason', () => {
+    it('renders the reason from the active catalogue', () => {
+      const t = translator({ 'issueReasons.noSkins': 'zhodnykh livrei' });
+
+      expect(formatContentIssueReason(t, 'noSkins')).toBe('zhodnykh livrei');
+    });
+
+    it('asks for the key the catalogues are keyed by', () => {
+      const t = translator({ 'issueReasons.uiMissing': 'found it' });
+
+      expect(formatContentIssueReason(t, 'uiMissing')).toBe('found it');
+    });
+
+    // The reason type is what the scan produces. A member added to it before a
+    // catalogue catches up must still read as a sentence, not as a bare code.
+    it('falls back to the English table the CLI prints', () => {
+      const t = translator({});
+
+      for (const reason of Object.keys(CONTENT_ISSUE_REASONS) as ContentIssueReason[]) {
+        expect(formatContentIssueReason(t, reason)).toBe(CONTENT_ISSUE_REASONS[reason]);
+      }
     });
   });
 });

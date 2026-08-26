@@ -20,7 +20,9 @@ export const makeCar = (id: string): Car => ({
   provenance: carProvenance(id),
   brand: null,
   tags: [],
-  skins: ['default'],
+  skins: [{
+    id: 'default', name: 'Default', driver: null, team: null, number: null, country: null,
+  }],
   carClass: null,
   year: null,
   country: null,

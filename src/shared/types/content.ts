@@ -163,6 +163,44 @@ export interface ContentProvenance {
 }
 
 /**
+ * One livery installed under a car's skins folder.
+ *
+ * Everything but the ID comes from ui_skin.json, which around a twelfth of
+ * liveries do not ship and a handful ship broken. A livery with no readable
+ * metadata is still perfectly raceable, so it is never an issue - it just wears
+ * its folder name and carries nothing else.
+ */
+export interface Skin {
+  /**
+   * Folder name under skins/, and the ID race.ini's SKIN refers to.
+   */
+  id: string;
+  /**
+   * Display name from ui_skin.json, falling back to the folder name.
+   */
+  name: string;
+  /**
+   * Who drives this livery, or null when nobody is named. Often a whole
+   * endurance crew in one string, exactly as the author wrote it.
+   */
+  driver: string | null;
+  /**
+   * The team the livery belongs to, or null when none is named.
+   */
+  team: string | null;
+  /**
+   * Racing number, or null when the livery carries none. Kept as a string
+   * because leading zeros are meaningful on a car.
+   */
+  number: string | null;
+  /**
+   * The driver's or team's country, in the author's own wording. Free text and
+   * inconsistent across the library, so it is never matched against anything.
+   */
+  country: string | null;
+}
+
+/**
  * A car installed in content/cars.
  */
 export interface Car {
@@ -183,9 +221,10 @@ export interface Car {
    */
   tags: string[];
   /**
-   * Folder names under skins/, in scan order.
+   * Liveries under skins/, in scan order. That order is load-bearing: race.ini
+   * picks the player's livery by position.
    */
-  skins: string[];
+  skins: Skin[];
   /**
    * The `class` field from ui_car.json - usually "street" or "race", but mod
    * authors write anything. Named carClass because `class` is a reserved word.

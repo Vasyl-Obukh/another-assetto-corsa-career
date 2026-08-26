@@ -21,8 +21,8 @@
   --card-foreground: oklch(0.16 0.01 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.01 260);
-  --primary: oklch(0.55 0.19 26);
-  --primary-foreground: oklch(0.985 0.005 60);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
   --secondary: oklch(0.96 0.004 250);
   --secondary-foreground: oklch(0.22 0.01 260);
   --muted: oklch(0.96 0.004 250);
@@ -35,7 +35,7 @@
   --success-foreground: oklch(0.985 0.005 155);
   --border: oklch(0.9 0.005 255);
   --input: oklch(0.9 0.005 255);
-  --ring: oklch(0.55 0.19 26);
+  --ring: oklch(0.48 0.2 262);
 
   /* Where content came from. One hue per source, plus a fourth for whoever
      redistributed it, so an app-derived tag never reads as a mod author's. */
@@ -56,8 +56,8 @@
   --card-foreground: oklch(0.94 0.005 260);
   --popover: oklch(0.23 0.014 265);
   --popover-foreground: oklch(0.94 0.005 260);
-  --primary: oklch(0.64 0.2 26);
-  --primary-foreground: oklch(0.16 0.02 30);
+  --primary: oklch(0.58 0.19 258);
+  --primary-foreground: oklch(0.985 0.005 260);
   --secondary: oklch(0.27 0.014 265);
   --secondary-foreground: oklch(0.94 0.005 260);
   --muted: oklch(0.27 0.014 265);
@@ -70,7 +70,9 @@
   --success-foreground: oklch(0.17 0.03 158);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.64 0.2 26);
+  /* Lighter and less saturated than its light-theme counterpart, which glares
+     against a background this dark. See the note there. */
+  --ring: oklch(0.72 0.16 258);
 
   --provenance-base: oklch(0.32 0.06 155);
   --provenance-base-foreground: oklch(0.86 0.11 155);

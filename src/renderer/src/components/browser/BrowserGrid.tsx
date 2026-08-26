@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { SKELETON_COUNT } from './constants.ts';
-import { ROUTES } from '@/app';
 import { ErrorCard } from '@/components/ErrorCard.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import type { PagedList } from '@/hooks';
+import { path } from '@/lib/routes';
 
 interface BrowserGridProps<T> {
   /**
@@ -54,7 +54,7 @@ export const BrowserGrid = <T, >({
       <div className="flex flex-col items-center gap-3 py-24 text-center">
         <p className="text-sm text-muted-foreground">{t('browse.locateFirst')}</p>
         <Button asChild size="sm">
-          <Link to={ROUTES.diagnostics}>{t('browse.goToDiagnostics')}</Link>
+          <Link to={path.diagnostics()}>{t('browse.goToDiagnostics')}</Link>
         </Button>
       </div>
     );

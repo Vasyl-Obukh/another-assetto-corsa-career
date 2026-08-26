@@ -13,11 +13,11 @@ import { carBadgeUrl, carSkinUrl, isSafeSegment } from '../../../../shared/utils
 export const carImageSources = (car: Car): string[] => {
   if (!isSafeSegment(car.id)) return [];
 
-  const skin = car.skins.find((candidate) => isSafeSegment(candidate));
+  const skin = car.skins.find((candidate) => isSafeSegment(candidate.id));
 
   return skin === undefined
     ? [carBadgeUrl(car.id)]
-    : [carSkinUrl(car.id, skin), carBadgeUrl(car.id)];
+    : [carSkinUrl(car.id, skin.id), carBadgeUrl(car.id)];
 };
 
 /**

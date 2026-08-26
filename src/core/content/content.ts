@@ -15,26 +15,35 @@ import {
   HIDDEN_FOLDER_PREFIX,
   MANIFEST_INI,
   SCAN_CONCURRENCY,
+  SKIN_CONCURRENCY,
   SKINS_DIR,
   TRACKS_DIR,
   UI_CAR_FILE,
   UI_DIR,
+  UI_SKIN_FILE,
   UI_TRACK_FILE,
   WEATHER_CONTROLLERS_DIR,
   WEATHER_DIR,
   WEATHER_INI,
 } from './constants.ts';
 import type {
-  ContentScan, PreviousScan, ScanPart, UiCar, UiTrack,
+  ContentScan, PreviousScan, ScanPart, UiCar, UiSkin, UiTrack,
 } from './types.ts';
 import {
-  fingerprintCar, fingerprintTrack, listDirs, makeTrack, mapLimit, readJsonFile,
+  fingerprintCar,
+  fingerprintTrack,
+  listDirs,
+  makeTrack,
+  mapLimit,
+  readJsonFile,
+  skinNumber,
+  trimmed,
 } from './utils.ts';
 import {
   CAR_BADGE_FILE, SKIN_PREVIEW_FILE, TRACK_OUTLINE_FILE, TRACK_PREVIEW_FILE,
 } from '../../shared/constants/index.ts';
 import type {
-  Car, Content, ContentIssue, Track, Weather, WeatherController,
+  Car, Content, ContentIssue, Skin, Track, Weather, WeatherController,
 } from '../../shared/types/index.ts';
 import type { ContentUrlTarget } from '../../shared/utils/content-url/index.ts';
 import { parseCarPerformance, parseYear } from '../car-performance/index.ts';
@@ -44,7 +53,15 @@ import type { IniData } from '../ini/index.ts';
 
 export { looseJson, parseGeotag } from './utils.ts';
 export type {
-  ContentFingerprints, ContentScan, JsonRead, LooseJson, PreviousScan, ScanPart, UiCar, UiTrack,
+  ContentFingerprints,
+  ContentScan,
+  JsonRead,
+  LooseJson,
+  PreviousScan,
+  ScanPart,
+  UiCar,
+  UiSkin,
+  UiTrack,
 } from './types.ts';
 
 /**
@@ -76,6 +93,85 @@ const issuesByFolder = (issues: readonly ContentIssue[]): Map<string, ContentIss
 };
 
 /**
+ * Reads one livery folder's metadata.
+ *
+ * Nothing here can fail loudly: a livery with no ui_skin.json, or one whose
+ * ui_skin.json is broken, still races perfectly - only its metadata is lost. So
+ * it wears its folder name and carries nothing else, and no issue is raised.
+ * @param skinsDir The car's skins directory
+ * @param id Livery folder name
+ * @returns The livery, with every field the author omitted left null
+ */
+const readSkin = async (skinsDir: string, id: string): Promise<Skin> => {
+  const ui = await readJsonFile<UiSkin>(path.join(skinsDir, id, UI_SKIN_FILE));
+
+  return {
+    id,
+    name: trimmed(ui.value?.skinname) ?? id,
+    driver: trimmed(ui.value?.drivername),
+    team: trimmed(ui.value?.team),
+    number: skinNumber(ui.value?.number),
+    country: trimmed(ui.value?.country),
+  };
+};
+
+/**
+ * Reads every livery a car ships, in folder order.
+ *
+ * That order is preserved rather than sorted by ui_skin.json's `priority`,
+ * because race.ini picks the player's livery by position: re-ordering here would
+ * silently change which car the player is handed.
+ * @param carsDir The content/cars directory
+ * @param id Car folder name
+ * @returns The car's liveries, empty when it has none
+ */
+const readSkins = async (carsDir: string, id: string): Promise<Skin[]> => {
+  const skinsDir = path.join(carsDir, id, SKINS_DIR);
+  const ids = await listDirs(skinsDir);
+
+  return mapLimit(ids, SKIN_CONCURRENCY, (skin) => readSkin(skinsDir, skin));
+};
+
+/**
+ * Reads one car folder.
+ * @param carsDir The content/cars directory
+ * @param id Car folder name
+ * @returns The car, which is always produced, and anything wrong with it
+ */
+const readCar = async (
+  carsDir: string,
+  id: string,
+): Promise<{ car: Car; issues: ContentIssue[] }> => {
+  const ui = await readJsonFile<UiCar>(path.join(carsDir, id, UI_DIR, UI_CAR_FILE));
+  const skins = await readSkins(carsDir, id);
+
+  const issues: ContentIssue[] = [];
+  if (ui.error !== null) issues.push({ kind: 'car', id, reason: 'uiMissing', detail: ui.error });
+  else if (ui.value === null) issues.push({ kind: 'car', id, reason: 'uiUnparsable', detail: null });
+  else if (ui.salvaged) issues.push({ kind: 'car', id, reason: 'uiSalvaged', detail: null });
+
+  // A car with no liveries cannot be put on a grid, which race.ini validation
+  // only discovers at launch time. Say so now.
+  if (skins.length === 0) issues.push({ kind: 'car', id, reason: 'noSkins', detail: null });
+
+  return {
+    car: {
+      id,
+      name: ui.value?.name ?? id,
+      brand: ui.value?.brand ?? null,
+      tags: Array.isArray(ui.value?.tags) ? ui.value.tags : [],
+      skins,
+      carClass: typeof ui.value?.class === 'string' ? ui.value.class : null,
+      year: parseYear(ui.value?.year),
+      country: typeof ui.value?.country === 'string' ? ui.value.country : null,
+      performance: parseCarPerformance(ui.value?.specs),
+      provenance: carProvenance(id),
+    },
+    issues,
+  };
+};
+
+/**
  * Scans all installed cars.
  * @param contentDir The AC content directory
  * @param previous The last scan's cars, or null to read every one of them again
@@ -93,40 +189,24 @@ export const scanCars = async (
   const kept = issuesByFolder(previous?.issues ?? []);
 
   const scanned = await mapLimit(ids, SCAN_CONCURRENCY, async (id) => {
-    const fingerprint = await fingerprintCar(carsDir, id);
-
+    // The fingerprint covers each livery's own ui_skin.json, so revalidating one
+    // needs the list of liveries the last scan found - which the cached car
+    // carries, exactly as a cached track carries its layouts.
     const car = cached.get(id);
-    if (car && stamps.get(id) === fingerprint) {
-      return { cars: [car], issues: kept.get(id) ?? [], fingerprint };
+    if (car) {
+      const known = car.skins.map((skin) => skin.id);
+      const fingerprint = await fingerprintCar(carsDir, id, known);
+      if (stamps.get(id) === fingerprint) {
+        return { cars: [car], issues: kept.get(id) ?? [], fingerprint };
+      }
     }
 
-    const ui = await readJsonFile<UiCar>(path.join(carsDir, id, UI_DIR, UI_CAR_FILE));
-    const skins = await listDirs(path.join(carsDir, id, SKINS_DIR));
-
-    const issues: ContentIssue[] = [];
-    if (ui.error !== null) issues.push({ kind: 'car', id, reason: 'uiMissing', detail: ui.error });
-    else if (ui.value === null) issues.push({ kind: 'car', id, reason: 'uiUnparsable', detail: null });
-    else if (ui.salvaged) issues.push({ kind: 'car', id, reason: 'uiSalvaged', detail: null });
-
-    // A car with no liveries cannot be put on a grid, which race.ini validation
-    // only discovers at launch time. Say so now.
-    if (skins.length === 0) issues.push({ kind: 'car', id, reason: 'noSkins', detail: null });
+    const read = await readCar(carsDir, id);
 
     return {
-      cars: [{
-        id,
-        name: ui.value?.name ?? id,
-        brand: ui.value?.brand ?? null,
-        tags: Array.isArray(ui.value?.tags) ? ui.value.tags : [],
-        skins,
-        carClass: typeof ui.value?.class === 'string' ? ui.value.class : null,
-        year: parseYear(ui.value?.year),
-        country: typeof ui.value?.country === 'string' ? ui.value.country : null,
-        performance: parseCarPerformance(ui.value?.specs),
-        provenance: carProvenance(id),
-      }],
-      issues,
-      fingerprint,
+      cars: [read.car],
+      issues: read.issues,
+      fingerprint: await fingerprintCar(carsDir, id, read.car.skins.map((skin) => skin.id)),
     };
   });
 
