@@ -42,6 +42,15 @@ export interface SessionDefinition {
    * Which spawn points AC should use, for example "START" or "PIT".
    */
   spawnSet?: string;
+  /**
+   * The player's grid slot on a race session, counting from one, so 4 is
+   * fourth on the grid. The AI keep their `[CAR_n]` order and the player is
+   * inserted at this slot rather than swapped with whoever held it.
+   *
+   * Honoured only in a launch with no qualifying session ahead of the race:
+   * qualifying sets the entire grid and this is disregarded, silently.
+   */
+  startingPosition?: number;
 }
 
 /**

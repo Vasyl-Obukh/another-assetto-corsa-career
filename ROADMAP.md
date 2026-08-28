@@ -564,22 +564,114 @@ is still to come, and is the same three lines. Neither touches `src/core/`.
 
 Spikes first - they decide what weekend formats are expressible.
 
-- [ ] **Spike `[SESSION_n] STARTING_POSITION`** - confirm indexing and that AI
-      grid order follows `[CAR_n]` order
-- [ ] **Spike repeated session types** - will AC accept two `TYPE=3` races, or
-      qualifying between two races, in one launch? Decides whether sprint plus
-      feature can share a launch
-- [ ] **Spike early exit** - is `race_out.json` written when quitting a weekend
-      partway, and does it accumulate one entry per session?
-- [ ] **Spike `raceResult`** - archived `race_out.json` files carry a `raceResult`
-      array of car indices that looks like AC's actual finishing order, currently
-      neither modelled in `types.ts` nor read by `summarise()`. If it holds up,
-      positions and DNFs stop waiting on the Phase 12 recorder
+- [x] **Spike `[SESSION_n] STARTING_POSITION`** - **it works, and it counts from
+      one.** `STARTING_POSITION=4` in an eight-car field put the player fourth.
+      AI grid order follows `[CAR_n]` order exactly, and the player is
+      *inserted* at their slot rather than swapped with whoever held it: Car 1,
+      Car 2 and Car 3 lined up ahead, Car 4 through Car 7 shuffled back behind.
+      So the grid is ours to write - any player slot, any AI order - which is
+      what split weekends and grid reconstruction were waiting on
+- [x] **Spike repeated session types** - **no: a launch ends at its first race.**
+      AC accepts two `TYPE=3` sessions in the INI and lists all four in the
+      in-game weekend structure, so it looks like it will work - but when the
+      sprint finished the only options were restart, replay and close. There is
+      no advancing to the feature, and `race_out.json` came back with three
+      session entries and no fourth. **So the bundler's rule is: at most one
+      race per launch, and it must be the last session in it.** Practice and
+      qualifying ahead of it are fine - all three ran in one launch, which is
+      the multi-session weekend proven working
+- [x] **Verify `[SESSION_n] LAPS` vs `[RACE] RACE_LAPS`** - **dissolved rather
+      than answered.** The sprint ran its 2 laps, but `RACE_LAPS` also carried 2,
+      so the run could not tell which key AC read, and the feature that would
+      have discriminated never started. It no longer matters: with one race per
+      launch, `RACE_LAPS` is always taken from the only race session present, so
+      the two keys cannot disagree. The bundler's split makes it correct by
+      construction
+- [x] **Spike early exit** - **the file is always written, and quitting a race
+      does not abort it.** Two runs, and the second corrected the first.
+      A four-session weekend stopped after the third wrote one entry per session
+      that ran and nothing for the one that never started, while
+      `number_of_sessions` kept saying 4 - it is the *configured* count, not the
+      run count. **But that only catches sessions that never started.** Quitting
+      out of a race mid-way still reported 3 of 3: AC carried on and ran the race
+      to completion with the AI at normal pace, wrote a full result, and recorded
+      the departed player on the single lap they had done. So a launch is never
+      lost partway and there is no remainder to resume inside one - the state
+      machine only has to track which *launches* of a weekend have been run.
+      The cost is that **a mid-race quit is indistinguishable from being lapped**,
+      both being nothing but a lower lap count, which is the retirement problem
+      again. For a career that is a workable DNF proxy: you are classified on the
+      laps you completed. Practice and qualifying carry no `raceResult`.
+      Untested, and deliberately: killing the process outright, which presumably
+      writes nothing and simply costs that launch
+- [ ] **`event` is not a session index** - AC writes `event: 0` on every session,
+      including all three of a weekend, so sessions are told apart by array
+      position or by type and name. Typed and commented; nothing depends on it
+      yet, but it would have been a silent wrong assumption
+- [ ] **Adopt `raceResult` for race sessions, keeping inference as the fallback**
+      - not for new information, since it has never disagreed with our inferred
+      order, but because it is AC's own classification and therefore immune to
+      bugs in ours. One such bug is already known and parked: `summarise()` sums
+      only valid laps into `totalTime` while counting invalidated ones in `laps`,
+      so a driver with a cut lap gets an artificially low total and can sort
+      ahead unfairly. `raceResult` cannot get that wrong. Practice and qualifying
+      carry none, so inference stays and that bug still needs fixing for them
+- [ ] **A race ends at the leader's distance** - the lapped car was classified on
+      four laps rather than being sent out to complete a fifth, so the session
+      ends when the leader takes the flag and everyone else is classified where
+      they are. The weekend state machine can assume a race session terminates
+      on its own rather than waiting for the field
+- [x] **Spike `raceResult`** - **it holds up, and it is a finishing order**:
+      `raceResult[n]` is the car index that finished `n`-th, counting positions
+      from zero. Confirmed against a driven three-lap race at Magione, checked
+      against elapsed times summed from the raw lap data rather than against
+      `summarise()`, so the two are genuinely independent: `[3,2,0,1,5,6,7,4]`
+      matched the elapsed-time order exactly. The rival reading - position per
+      car - is ruled out, since it would have put car 2 first on a 292.7s race
+      to car 3's 289.2s. It is written on race sessions and absent from
+      practice, so it is now modelled as optional.
+      **Lapped cars settled too, and the answer is that it tells us nothing
+      new.** A car crippled with 500kg of ballast and a 60% restrictor was
+      lapped over five laps; it appears in `raceResult` normally, the array
+      stays the full length of the entry list so it can be indexed safely, and
+      it is placed **last** - exactly where laps-then-time inference already
+      puts it. Across four independent races `raceResult` and our inferred
+      order have agreed every single time.
+      **Retirement proper cannot be produced at all**, so it is not a probe
+      that was skipped: AC has no retirement flag, and a car that stops is
+      indistinguishable from one never classified. Being lapped is the only
+      under-distance case that can be created on purpose.
+      So `raceResult` is corroboration rather than new information, and real
+      positions still wait on Phase 12. It is worth adopting anyway - see below
 - [ ] Weekend model: ordered sessions with day offsets and per-series formats
 - [ ] Launch bundler: group consecutive sessions into the fewest launches AC allows
 - [ ] Weekend state machine - resumable, each bundle independently launchable
-- [ ] **Grid reconstruction** across launch seams from qualifying results
-- [ ] Player last when qualifying is skipped; AI by rating with randomness
+- [ ] **Grid reconstruction** across launch seams from qualifying results -
+      **and it has to be derived, because AC will not hand it over.** A
+      qualifying session carries no `raceResult`, confirmed on a properly run
+      session where every car set a time and the player took pole by five
+      seconds. Only race sessions write one. So the grid for the next launch
+      comes from sorting `bestLaps` ourselves, which also means deciding what
+      to do with a car that set no time at all - it has no best lap to sort on
+      and cannot simply be dropped, since it still occupies a grid slot.
+      **The derivation is known to be right, though**: on the qualifying spike
+      the order `summarise()` derived from best laps matched the grid AC itself
+      built from that session, confirmed at both ends - pole and last. So
+      sorting on best lap reproduces AC's own qualifying classification, and
+      reconstruction is a matter of writing that order into `[CAR_n]` rather
+      than of guessing at what AC would have done
+- [x] **Spike qualifying versus `STARTING_POSITION`** - **qualifying wins, and
+      completely.** The race asked for position 8; the player qualified on pole
+      and started on pole, while Car 6 - slowest in qualifying - started 8th.
+      The whole grid was the qualifying order, both ends confirmed, and the key
+      was disregarded. Whether AC ignores it or the qualifying result overwrites
+      it cannot be told apart from outside, and does not matter.
+      **So `STARTING_POSITION` only bites in a launch with no qualifying in it**,
+      which is exactly the case `spikes/grid` proved it working in. The two
+      results are consistent rather than contradictory
+- [ ] Player last when qualifying is skipped; AI by rating with randomness -
+      unblocked by the above: "skipped" means no qualifying session in that
+      launch, which is precisely when `STARTING_POSITION` is honoured
 - [ ] Track grip continuity across separate launches
 - [ ] Race setup screen: weather, start time, AI difficulty, session lengths
 - [ ] Results screen per session
@@ -593,6 +685,68 @@ Spikes first - they decide what weekend formats are expressible.
 - [ ] Replace the road-temperature approximation with Kunos' curve
 - [ ] Offer to write CM's `Arguments.txt` (`--skip-all-results`,
       `--hide-race-cancel-button`)
+
+### Spike runbook
+
+The harness is built and the probes are ready to drive. All three use base
+content - `bmw_m3_e30_gra` at `magione` - with no weather controller, so
+nothing PURE does can explain away a surprise. `npm run results` reads a
+result file back without interpreting it: it prints what AC wrote, and prints
+**both** readings of `raceResult` side by side so a real finishing order can
+pick one. Default is the newest archive; `--live` reads AC's own
+`race_out.json` before anything overwrites it, and `--list` shows the archives.
+
+| Probe | Run | Record |
+| --- | --- | --- |
+| ~~Starting position~~ | ~~`npm run race -- spikes/grid`~~ | **Done** - one-based, and AI follow `[CAR_n]` order with the player inserted. See the ticked item above |
+| ~~Repeated sessions~~ | ~~`npm run race -- spikes/sprint-feature`~~ | **Done** - the launch ends at its first race. At most one race per launch, last in it |
+| ~~Early exit~~ | ~~`npm run race -- spikes/weekend`, quit mid-race~~ | **Done** - the result is written either way, and quitting a race does not abort it: AC finishes it without you and classifies you on the laps you did |
+| ~~Qualifying vs the grid~~ | ~~`npm run race -- spikes/qualifying`~~ | **Done** - qualifying sets the whole grid and `STARTING_POSITION` is disregarded. Qualifying carries no `raceResult` of its own |
+| ~~Lapped car~~ | ~~`npm run race -- spikes/dnf`~~ | **Done** - the lapped car is present, the array stays full length, and it is placed last, which is what inference already said |
+| ~~`raceResult`~~ | ~~Finish `spikes/grid` mid-pack, then `npm run results`~~ | **Done** - it is a finishing order, `raceResult[n]` being the car that finished `n`-th. See the ticked item above |
+
+**The results file cannot answer the grid probe** - only watching the race can.
+This was tried on the `spikes/grid` capture and both proxies failed: lap-0
+sector times are dominated by pace, not by the metre or so of grid spacing, and
+subtracting each car's own best sector to isolate the standing-start penalty
+just swaps one confound for another, since a car in traffic loses more than a
+car in clean air. It produced an order in which the race winner started
+seventh and the last-placed car started first. Grid slot has to be read off the
+screen on the formation lap.
+
+Answers land here, and the weekend model, bundler and grid reconstruction are
+written against them.
+
+### What the bundler now knows
+
+Four rules, all of them measured rather than assumed:
+
+1. **A launch holds any run of practice and qualifying, then at most one race,
+   which ends it.** A second race is listed in the weekend structure and is
+   unreachable, so a sprint plus a feature is two launches and every weekend
+   splits after each race.
+2. **Qualifying in the launch owns the grid.** `STARTING_POSITION` is
+   disregarded whenever a qualifying session precedes the race.
+3. **Without qualifying in the launch, the grid is entirely ours** - a
+   one-based `STARTING_POSITION` for the player, `[CAR_n]` order for the AI.
+4. **A launch either runs or it does not - it cannot half-run.** Whatever
+   sessions started are written, and quitting a race only removes you from it
+   rather than ending it, so there is no partial state to resume inside a
+   launch. `number_of_sessions` holds the configured count against `sessions`
+   for what ran, which spots a session that never *started* but not one that was
+   abandoned partway; `event` is useless for telling sessions apart.
+
+Rules 2 and 3 fit together better than they first look. A race bundled behind
+its own qualifying needs no grid reconstruction, because AC has already built
+the grid; a race split into its own launch is exactly where reconstruction is
+needed, and exactly where we are allowed to do it. The two cases never overlap.
+
+The one consequence to design around: a series wanting a grid that is *not*
+the qualifying order - a reverse-grid sprint, or a fixed grid - must run
+qualifying in its own launch, since the two cannot be combined and overridden.
+
+This also dissolves the `LAPS` versus `RACE_LAPS` question: one race per launch
+means the two keys always carry the same number.
 
 ## Phase 4 - Series, teams and the editor
 

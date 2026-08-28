@@ -37,7 +37,9 @@ export interface RaceOutLap {
  */
 export interface RaceOutSession {
   /**
-   * Session index within the weekend.
+   * Always 0 in every capture so far, including weekends where three sessions
+   * ran, so it is not the session index it looks like. Identify a session by
+   * its position in the array, or by type and name.
    */
   event: number;
   /**
@@ -61,7 +63,7 @@ export interface RaceOutSession {
    */
   laps: RaceOutLap[];
   /**
-   * Total time per car, indexed by car.
+   * Laps completed per car, indexed by car.
    */
   lapstotal: number[];
   /**
@@ -81,6 +83,18 @@ export interface RaceOutSession {
      */
     lap: number;
   }[];
+  /**
+   * AC's own finishing order: `raceResult[n]` is the index of the car that
+   * finished `n`-th. Always the full length of the entry list, lapped cars
+   * included, so it is safe to index. Written on race sessions only - practice
+   * and qualifying carry none, even when every car set a time.
+   *
+   * Nothing derives standings from it yet. It has matched our laps-then-time
+   * inference in every race captured, so it adds no information; it is worth
+   * adopting only because it is AC's answer rather than ours and so cannot
+   * inherit our sorting bugs.
+   */
+  raceResult?: number[];
 }
 
 /**
@@ -110,7 +124,14 @@ export interface RaceOut {
    */
   track: string;
   /**
-   * How many sessions the weekend contained. AC's own field name.
+   * How many sessions the weekend was *configured* with, which is not how many
+   * ran: a four-session weekend stopped after the third wrote 4 here against
+   * three entries in `sessions`.
+   *
+   * It only reveals a session that never *started*. One that started and was
+   * abandoned still counts as run - quitting out of a race mid-way reported
+   * 3 of 3, because AC finishes the race without the player rather than
+   * ending it. AC's own field name.
    */
   number_of_sessions: number;
   /**

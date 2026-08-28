@@ -1,0 +1,44 @@
+{
+  "id": "spike-grid",
+  "name": "Spike - starting position and grid order",
+  "notes": "Two questions at once. (1) The player is given startingPosition 4 in an eight-car field: look at the grid on the formation lap and count. Fourth means AC counts from one, fifth means it counts from zero, and anything else means the key is ignored. (2) Every AI is named after its [CAR_n] section, so if grid order follows section order they line up Car 1 through Car 7 behind whichever slot the player is not in. Then drive it to the flag, finishing somewhere in the middle rather than first or last, note the real order, and read it back with `npm run results` - a mid-pack finish is what tells the two raceResult readings apart. Base content and no weather controller on purpose: every extra variable is one more thing that could explain a surprise.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 8,
+    "aiLevel": 88,
+    "aiLevelMin": 78,
+    "aiAggression": 30,
+    "opponents": [
+      { "driver": "Car 1" },
+      { "driver": "Car 2" },
+      { "driver": "Car 3" },
+      { "driver": "Car 4" },
+      { "driver": "Car 5" },
+      { "driver": "Car 6" },
+      { "driver": "Car 7" }
+    ]
+  },
+
+  "sessions": [
+    { "type": "race", "name": "Race", "laps": 3, "spawnSet": "START", "startingPosition": 4 }
+  ],
+
+  "conditions": {
+    "weather": "3_clear",
+    "timeOfDay": "12:00",
+    "ambient": 22,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}

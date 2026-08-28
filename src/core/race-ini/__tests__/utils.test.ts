@@ -237,6 +237,22 @@ describe('core/race-ini/utils', () => {
       expect(buildSessionSection({ type: 'race' }).SPAWN_SET).toBe('START');
     });
 
+    it('writes the starting position when the session asks for one', () => {
+      expect(buildSessionSection({ type: 'race', startingPosition: 4 }).STARTING_POSITION).toBe(4);
+    });
+
+    // CM omits STARTING_POSITION entirely, so writing it unasked would put every
+    // generated INI out of step with the test-mode reference we diff against.
+    it('omits the starting position when the session does not ask for one', () => {
+      expect(buildSessionSection({ type: 'race', laps: 3 })).not.toHaveProperty('STARTING_POSITION');
+    });
+
+    // Slot 1 is pole, confirmed against AC rather than assumed, so a 0 is a real
+    // request for the front row and must not be mistaken for "unset".
+    it('writes a starting position of zero rather than treating it as absent', () => {
+      expect(buildSessionSection({ type: 'race', startingPosition: 0 }).STARTING_POSITION).toBe(0);
+    });
+
     it('throws on a session type AC does not know', () => {
       expect(() => buildSessionSection({ type: 'rallycross' } as never))
         .toThrow('Unknown session type');

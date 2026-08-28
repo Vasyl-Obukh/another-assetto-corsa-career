@@ -256,6 +256,10 @@ export const buildSessionSection = (session: SessionDefinition): Record<string, 
   // AC reads race length from [RACE] RACE_LAPS, but CM writes it here too.
   if (session.type === 'race') out.LAPS = session.laps ?? 0;
 
+  // Only written when asked for: CM omits it, and writing it unconditionally
+  // would put every generated INI out of step with the test-mode reference.
+  if (session.startingPosition != null) out.STARTING_POSITION = session.startingPosition;
+
   return out;
 };
 

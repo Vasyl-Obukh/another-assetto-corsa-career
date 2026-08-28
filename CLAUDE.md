@@ -60,7 +60,7 @@ npm run build     # -> dist/{main,preload,renderer}
 npm run start     # run the built app
 
 npm run scan   npm run dry   npm run race   npm run watch
-npm run weather   npm run testmode
+npm run results   npm run weather   npm run testmode
 npm run check     # typecheck (both projects) + lint
 npm run lint:fix
 
@@ -117,7 +117,7 @@ per project.
 | Path | Purpose |
 | --- | --- |
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
-| `src/cli/` | `scan`, `dry`, `run`, `watch`, `weather`, `testmode`, one per file. All reached through npm scripts, which carry the transform flag |
+| `src/cli/` | `scan`, `dry`, `run`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
 | `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme, the English wording for every content issue reason |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
@@ -142,6 +142,7 @@ per project.
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
 | `races/*.json` | Race definitions in our own format |
+| `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
 
 ### Paths, probing and overrides
 
@@ -366,12 +367,17 @@ describe('core/race-ini/utils', () => {
   excluding it does not help either, and both have been tried. This is why
   `src/renderer/src/lib/routes/` builds paths itself instead of calling
   react-router's own `generatePath`, and imports `PathParam` as a type only.
+- **`src/cli/constants.ts` cannot be imported by a test** for the same reason:
+  it derives `PROJECT_ROOT` from `import.meta.dirname`, so a suite that reaches
+  it fails to parse rather than failing an assertion. Mock it -
+  `jest.mock('../../../constants.ts', () => ({ RESULTS_DIR: 'results-dir' }))` -
+  which also keeps the test off the real results folder.
 
 **What is covered, and what is deliberately not.** `src/shared`, `src/core`, the
-renderer's pure helpers, the settings store, and the handful of main-process
-functions with real logic behind them (`isOnSomeDisplay`, `toIpcError`) - those
-two need a small `electron` fake, since outside Electron the module resolves to a
-path string rather than the API.
+CLI's pure helpers, the renderer's pure helpers, the settings store, and the
+handful of main-process functions with real logic behind them
+(`isOnSomeDisplay`, `toIpcError`) - those two need a small `electron` fake,
+since outside Electron the module resolves to a path string rather than the API.
 
 Out of scope for now: React components, `createWindow` and the app lifecycle, and
 `registerHandlers`. They are mostly orchestration, where the test asserts on its
@@ -425,16 +431,43 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
 
 ## Known gaps
 
-- Results carry no positions or DNFs; standings are derived by sorting on
-  laps-then-total-time and are untested against retirements or lapped cars.
-  **But**: archived `race_out.json` files carry a `raceResult` array of car
-  indices that looks like AC's real finishing order, and neither `types.ts` nor
-  `summarise()` reads it. Worth a spike before assuming Phase 12 is the only
-  route to positions.
+- Standings are derived by sorting on laps-then-total-time. **`raceResult` is
+  real but adds nothing to that**: race sessions carry an array where
+  `raceResult[n]` is the car index that finished `n`-th, and across four driven
+  races - including one with a deliberately lapped car - it has matched our
+  inferred order every time. The array is always the full length of the entry
+  list, so it is safe to index. It is modelled on `RaceOutSession` and printed
+  by `npm run results`; `summarise()` does not read it yet. Worth adopting for
+  race sessions regardless, since it is AC's own answer and cannot inherit our
+  sorting bugs - but it is corroboration, not the route to real positions.
+- **Retirements genuinely cannot be observed.** AC writes no retirement flag,
+  so a car that stops is indistinguishable from one never classified, and
+  being lapped is the only under-distance case that can be produced on purpose.
+  Positions with retirements and penalties still wait on Phase 12.
+- **Quitting a race does not abort it.** AC runs it to completion without the
+  player, at normal AI pace, and writes a full result recording them on the
+  laps they managed. So a launch never half-runs and there is nothing to resume
+  inside one - only which launches of a weekend have been run needs tracking.
+  It also means a mid-race quit reads exactly like being lapped, which is the
+  retirement problem again, and serves as a workable DNF proxy for a career.
+- `summarise()` sums only valid laps into `totalTime` while counting
+  invalidated ones in `laps`, so a driver with a cut lap gets an artificially
+  low total and can sort ahead unfairly. It also presents grid order as a
+  result for a zero-lap session rather than saying "unclassified". Both unfixed.
 - Assists cannot be set through `race/config` yet - CM wants its own serialized
   preset format there, not an `assists.ini`.
-- Only single-session races are proven. Multi-session practice/qualify/race is
-  generated but unverified, including whether qualifying sets the grid.
+- **A launch ends at its first race.** Practice and qualifying ahead of a race
+  all run in one launch - proven - but AC offers no way past the chequered
+  flag, so a second race in the same INI is listed in the weekend structure and
+  never reachable. At most one race per launch, last in it; a sprint plus a
+  feature is two launches.
+- **Qualifying sets the grid, and `STARTING_POSITION` cannot override it.** A
+  race asking for position 8 started the pole-sitter on pole and the slowest
+  qualifier last - the key was disregarded entirely. It is honoured only in a
+  launch containing no qualifying session. So we own the grid exactly when we
+  run the race on its own, which is also the case where we need to: a race
+  bundled with its own qualifying needs no reconstruction, because AC has
+  already done it.
 - Road temperature is an approximation of Kunos' curve.
 - `__CM_WEATHER_CONTROLLER` overrides the user's own `weather_fx.ini` for the
   race and does not restore it. Correct for a career, but should be surfaced in

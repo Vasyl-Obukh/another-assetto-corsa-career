@@ -1,0 +1,44 @@
+{
+  "id": "spike-weekend",
+  "name": "Spike - quitting a weekend mid-session",
+  "notes": "The last thing the resumable weekend state machine needs. A clean close from the results screen is already known to write one entry per session run; this is the harsh variant nobody chooses on purpose - the player who binds off mid-race. Let practice and qualifying run out, start the race, drive a lap, then ESC and quit out of the session. The point is that two sessions completed before the abort, so we learn whether AC preserves them. Check `npm run results -- --live` BEFORE launching as well as after: if AC writes nothing, the live file still holds the previous capture, and the only way to tell that apart from a fresh write is to know what was there first. The drivers here are named Quit 1 to Quit 5 for exactly that reason - see those names and the file is new, see anything else and AC wrote nothing. Note also that `npm run race` will sit waiting on a result that may never arrive, so expect to Ctrl+C it and read the live file yourself. If the two completed sessions survive, a bundle can resume from what AC leaves behind; if nothing is written, a launch is atomic and we must archive after each one ourselves.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 6,
+    "aiLevel": 85,
+    "aiLevelMin": 78,
+    "aiAggression": 30,
+    "opponents": [
+      { "driver": "Quit 1" },
+      { "driver": "Quit 2" },
+      { "driver": "Quit 3" },
+      { "driver": "Quit 4" },
+      { "driver": "Quit 5" }
+    ]
+  },
+
+  "sessions": [
+    { "type": "practice", "name": "Practice", "minutes": 2, "spawnSet": "PIT" },
+    { "type": "qualify", "name": "Qualifying", "minutes": 2, "spawnSet": "PIT" },
+    { "type": "race", "name": "Race", "laps": 3, "spawnSet": "START" }
+  ],
+
+  "conditions": {
+    "weather": "3_clear",
+    "timeOfDay": "12:00",
+    "ambient": 22,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}

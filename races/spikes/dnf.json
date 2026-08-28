@@ -1,0 +1,47 @@
+{
+  "id": "spike-dnf",
+  "name": "Spike - lapped cars in raceResult",
+  "notes": "raceResult is confirmed as a finishing order, but only on races where every car finished on the same lap - the one case where it and our laps-then-time inference cannot disagree. This separates them, without depending on AC ending a session while a car sits parked. YOU JUST DRIVE AND FINISH: five laps, normally, take the flag. Car 5 is the experiment - 500kg of ballast, a 60% restrictor and AI level 50, so it is crippled badly enough to be lapped at least once over the distance while everyone else races normally. Because you finish, the session ends the way it always has and race_out.json is written the way it always is. Then read it back with `npm run results` and ask three things of Car 5. Is it in raceResult at all, or is the array shorter than the entry list - that decides whether the array can be indexed safely. Is it placed last, which is what our laps-then-time inference already says, or somewhere else, which would mean raceResult carries information inference cannot reach. And does lapstotal show its real lap count against everyone else's five. AC has no retirement flag anywhere - a car that stops is indistinguishable from one that was never classified - so being lapped is the only under-distance case that can actually be produced on purpose.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 6,
+    "aiLevel": 84,
+    "aiLevelMin": 76,
+    "aiAggression": 30,
+    "opponents": [
+      { "driver": "Car 1" },
+      { "driver": "Car 2" },
+      { "driver": "Car 3" },
+      { "driver": "Car 4" },
+      {
+        "driver": "Car 5",
+        "aiLevel": 50,
+        "ballast": 500,
+        "restrictor": 60
+      }
+    ]
+  },
+
+  "sessions": [
+    { "type": "race", "name": "Race", "laps": 5, "spawnSet": "START", "startingPosition": 2 }
+  ],
+
+  "conditions": {
+    "weather": "3_clear",
+    "timeOfDay": "12:00",
+    "ambient": 22,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}
