@@ -18,7 +18,7 @@ import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
  * amending the catalogue has to invalidate it the same way a shape change does.
  * Keeping the switch here means a data edit never needs main to know.
  */
-export const CONTENT_CATALOGUE_VERSION = 6;
+export const CONTENT_CATALOGUE_VERSION = 7;
 
 /**
  * Cars everyone who owns Assetto Corsa has.
@@ -342,6 +342,30 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   urd_michigan_egt: ModMaker.URD,
   urd_radical_sr10xxr_2023: ModMaker.URD,
   urd_radical_sr3xxr_2023: ModMaker.URD,
+  vrc_arc_ta2_chevrette: ModMaker.VRC,
+  vrc_arc_ta2_chevrette_csp: ModMaker.VRC,
+  vrc_arc_ta2_dagger: ModMaker.VRC,
+  vrc_arc_ta2_dagger_csp: ModMaker.VRC,
+  vrc_arc_ta2_mare: ModMaker.VRC,
+  vrc_arc_ta2_mare_csp: ModMaker.VRC,
+  vrc_erc_1994_vokker: ModMaker.VRC,
+  vrc_erc_1994_vokker_csp: ModMaker.VRC,
+  vrc_erc_1997_beamer: ModMaker.VRC,
+  vrc_erc_1997_beamer_csp: ModMaker.VRC,
+  vrc_erc_1998_alfio: ModMaker.VRC,
+  vrc_erc_1998_alfio_csp: ModMaker.VRC,
+  vrc_erc_1998_auriel: ModMaker.VRC,
+  vrc_erc_1998_auriel_csp: ModMaker.VRC,
+  vrc_erc_1998_pageau: ModMaker.VRC,
+  vrc_erc_1998_pageau_csp: ModMaker.VRC,
+  vrc_erc_1999_fortix: ModMaker.VRC,
+  vrc_erc_1999_fortix_csp: ModMaker.VRC,
+  vrc_erc_1999_gojira: ModMaker.VRC,
+  vrc_erc_1999_gojira_csp: ModMaker.VRC,
+  vrc_erc_1999_renoir: ModMaker.VRC,
+  vrc_erc_1999_renoir_csp: ModMaker.VRC,
+  vrc_erc_1999_vorax: ModMaker.VRC,
+  vrc_erc_1999_vorax_csp: ModMaker.VRC,
   'vrc_1988_mclaren_mp4-4_r02': ModMaker.VRC,
   'vrc_1988_mclaren_mp4-4_r04': ModMaker.VRC,
   'vrc_1988_mclaren_mp4-4_r09': ModMaker.VRC,
@@ -357,6 +381,8 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   vrc_formula_alpha_2007_f07: ModMaker.VRC,
   vrc_formula_alpha_2007_mc22: ModMaker.VRC,
   vrc_formula_alpha_2022: ModMaker.VRC,
+  vrc_formula_alpha_2023: ModMaker.VRC,
+  vrc_formula_alpha_2023_csp: ModMaker.VRC,
   vrc_formula_alpha_2024: ModMaker.VRC,
   vrc_formula_alpha_2024_csp: ModMaker.VRC,
   vrc_formula_alpha_2025: ModMaker.VRC,
@@ -371,6 +397,9 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   vrc_formula_na_2018_oval: ModMaker.VRC,
   vrc_formula_na_2018_road: ModMaker.VRC,
   vrc_formula_na_2018_short: ModMaker.VRC,
+  vrc_formula_na_2021_oval: ModMaker.VRC,
+  vrc_formula_na_2021_road: ModMaker.VRC,
+  vrc_formula_na_2021_short: ModMaker.VRC,
   vrc_pt_2023_pageau_98: ModMaker.VRC,
   vrc_pt_2023_pageau_98_csp: ModMaker.VRC,
   vrc_pt_2024_arden: ModMaker.VRC,

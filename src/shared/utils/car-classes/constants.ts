@@ -40,6 +40,8 @@ export const CLASS_NAMES: Readonly<Record<CarClass, string>> = {
   [CarClass.N_GT]: 'N-GT',
   [CarClass.DTM]: 'DTM',
   [CarClass.TCR]: 'TCR',
+  [CarClass.SUPER_TOURING]: 'Super Touring',
+  [CarClass.TRANS_AM]: 'Trans-Am',
   [CarClass.PORSCHE_CUP]: 'Porsche Cup',
 };
 
@@ -79,7 +81,8 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.FORMULA_1_2021]: { class: CarClass.FORMULA_1, name: 'Formula 1 2021' },
   [CarSpec.FORMULA_1_2022_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2022 (RSS)' },
   [CarSpec.FORMULA_1_2022_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2022 (VRC)' },
-  [CarSpec.FORMULA_1_2023]: { class: CarClass.FORMULA_1, name: 'Formula 1 2023' },
+  [CarSpec.FORMULA_1_2023_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2023 (RSS)' },
+  [CarSpec.FORMULA_1_2023_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2023 (VRC)' },
   [CarSpec.FORMULA_1_2024_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2024 (RSS)' },
   [CarSpec.FORMULA_1_2024_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2024 (VRC)' },
   [CarSpec.FORMULA_1_2025_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2025 (RSS)' },
@@ -102,6 +105,9 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.INDYCAR_2018_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2018 (oval kit)' },
   [CarSpec.INDYCAR_2020_ROAD]: { class: CarClass.INDYCAR, name: 'IndyCar 2020 (road)' },
   [CarSpec.INDYCAR_2020_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2020 (oval)' },
+  [CarSpec.INDYCAR_2021_ROAD]: { class: CarClass.INDYCAR, name: 'IndyCar 2021 (road kit)' },
+  [CarSpec.INDYCAR_2021_SHORT]: { class: CarClass.INDYCAR, name: 'IndyCar 2021 (short oval kit)' },
+  [CarSpec.INDYCAR_2021_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2021 (oval kit)' },
   [CarSpec.LMH_LFM]: { class: CarClass.LMH, name: 'Hypercar (LFM)' },
   [CarSpec.LMH_VRC]: { class: CarClass.LMH, name: 'Hypercar (VRC)' },
   [CarSpec.LMH_RSS]: { class: CarClass.LMH, name: 'Hypercar (RSS)' },
@@ -137,6 +143,8 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.DTM_2025_LFM]: { class: CarClass.DTM, name: 'DTM 2025 (LFM)' },
   [CarSpec.DTM_2025_RSS]: { class: CarClass.DTM, name: 'DTM 2025 (RSS)' },
   [CarSpec.TCR_2024]: { class: CarClass.TCR, name: 'TCR' },
+  [CarSpec.SUPER_TOURING_1990S]: { class: CarClass.SUPER_TOURING, name: 'Super Touring (1990s)' },
+  [CarSpec.TRANS_AM_TA2]: { class: CarClass.TRANS_AM, name: 'Trans-Am TA2' },
 };
 
 /**
@@ -248,8 +256,12 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.FORMULA_1_2022_VRC]: [
     'vrc_formula_alpha_2022',
   ],
-  [CarSpec.FORMULA_1_2023]: [
+  [CarSpec.FORMULA_1_2023_RSS]: [
     'rss_formula_hybrid_2023',
+  ],
+  [CarSpec.FORMULA_1_2023_VRC]: [
+    'vrc_formula_alpha_2023',
+    'vrc_formula_alpha_2023_csp',
   ],
   [CarSpec.FORMULA_1_2024_RSS]: [
     'rss_formula_hybrid_2024',
@@ -322,6 +334,15 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   ],
   [CarSpec.INDYCAR_2020_OVAL]: [
     'rss_formula_americas_2020_oval',
+  ],
+  [CarSpec.INDYCAR_2021_ROAD]: [
+    'vrc_formula_na_2021_road',
+  ],
+  [CarSpec.INDYCAR_2021_SHORT]: [
+    'vrc_formula_na_2021_short',
+  ],
+  [CarSpec.INDYCAR_2021_OVAL]: [
+    'vrc_formula_na_2021_oval',
   ],
   [CarSpec.LMH_LFM]: [
     'alpine_a424',
@@ -576,5 +597,33 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'fw_audi_rs3_tcr_2024',
     'fw_cupra_tcr_2024',
     'fw_elantra_tcr_2024',
+  ],
+  [CarSpec.SUPER_TOURING_1990S]: [
+    'vrc_erc_1994_vokker',
+    'vrc_erc_1994_vokker_csp',
+    'vrc_erc_1997_beamer',
+    'vrc_erc_1997_beamer_csp',
+    'vrc_erc_1998_alfio',
+    'vrc_erc_1998_alfio_csp',
+    'vrc_erc_1998_auriel',
+    'vrc_erc_1998_auriel_csp',
+    'vrc_erc_1998_pageau',
+    'vrc_erc_1998_pageau_csp',
+    'vrc_erc_1999_fortix',
+    'vrc_erc_1999_fortix_csp',
+    'vrc_erc_1999_gojira',
+    'vrc_erc_1999_gojira_csp',
+    'vrc_erc_1999_renoir',
+    'vrc_erc_1999_renoir_csp',
+    'vrc_erc_1999_vorax',
+    'vrc_erc_1999_vorax_csp',
+  ],
+  [CarSpec.TRANS_AM_TA2]: [
+    'vrc_arc_ta2_chevrette',
+    'vrc_arc_ta2_chevrette_csp',
+    'vrc_arc_ta2_dagger',
+    'vrc_arc_ta2_dagger_csp',
+    'vrc_arc_ta2_mare',
+    'vrc_arc_ta2_mare_csp',
   ],
 };
