@@ -129,6 +129,55 @@ describe('core/results', () => {
       expect(summary.sessions[0].standings[0].cuts).toBe(3);
     });
 
+    it('says the order was inferred when AC classified nothing', () => {
+      expect(summarise(makeRaceOut([lap(0, 90000)])).sessions[0].order).toBe('inferred');
+    });
+
+    it('takes AC own finishing order on a race session', () => {
+      const raceOut = makeRaceOut([lap(0, 80000), lap(1, 90000)]);
+      raceOut.sessions[0].raceResult = [1, 0];
+
+      const summary = summarise(raceOut);
+      expect(summary.sessions[0].standings.map((entry) => entry.driver))
+        .toEqual(['Driver 1', 'Driver 0']);
+      expect(summary.sessions[0].order).toBe('raceResult');
+    });
+
+    it('prefers AC classification over its own inference when they disagree', () => {
+      // Driver 0 is quicker on total time, so inference would put them first.
+      const raceOut = makeRaceOut([lap(0, 80000), lap(1, 90000)]);
+      raceOut.sessions[0].raceResult = [1, 0];
+
+      expect(summarise(raceOut).sessions[0].standings[0].driver).toBe('Driver 1');
+    });
+
+    it('numbers positions from 1 down AC order', () => {
+      const raceOut = makeRaceOut([lap(0, 80000), lap(1, 90000), lap(2, 95000)], 3);
+      raceOut.sessions[0].raceResult = [2, 0, 1];
+
+      expect(summarise(raceOut).sessions[0].standings.map((entry) => entry.position))
+        .toEqual([1, 2, 3]);
+    });
+
+    it('falls back to inference when raceResult is not a permutation of the field', () => {
+      const raceOut = makeRaceOut([lap(0, 80000), lap(1, 90000)]);
+      raceOut.sessions[0].raceResult = [1, 1];
+
+      const summary = summarise(raceOut);
+      expect(summary.sessions[0].order).toBe('inferred');
+      expect(summary.sessions[0].standings[0].driver).toBe('Driver 0');
+    });
+
+    it('ignores raceResult on anything that is not a race', () => {
+      const raceOut = makeRaceOut([lap(0, 70000), lap(1, 60000)]);
+      raceOut.sessions[0].type = 2;
+      raceOut.sessions[0].raceResult = [0, 1];
+
+      const summary = summarise(raceOut);
+      expect(summary.sessions[0].order).toBe('inferred');
+      expect(summary.sessions[0].standings[0].driver).toBe('Driver 1');
+    });
+
     it('tolerates a session with no players or sessions at all', () => {
       const empty = { track: 't', number_of_sessions: 0 } as RaceOut;
       expect(() => summarise(empty)).not.toThrow();

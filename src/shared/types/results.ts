@@ -196,6 +196,14 @@ export interface Standing {
 }
 
 /**
+ * Where a session's finishing order came from.
+ *
+ * "raceResult" is AC's own classification, which it writes on race sessions
+ * only; "inferred" is ours, sorted from the lap data.
+ */
+export type StandingsOrder = 'raceResult' | 'inferred';
+
+/**
  * One session, summarised into a classification.
  */
 export interface SessionSummary {
@@ -219,6 +227,11 @@ export interface SessionSummary {
    * Drivers in finishing order.
    */
   standings: Standing[];
+  /**
+   * Which classification the order came from. Practice and qualifying carry no
+   * raceResult, so they are always inferred.
+   */
+  order: StandingsOrder;
 }
 
 /**

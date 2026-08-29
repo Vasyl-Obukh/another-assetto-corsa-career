@@ -80,6 +80,7 @@ export type {
   RaceSummary,
   SessionSummary,
   Standing,
+  StandingsOrder,
 } from './results.ts';
 
 export type {
@@ -89,6 +90,14 @@ export type {
   ThemeChoice,
   WindowState,
 } from './settings.ts';
+
+export type {
+  LaunchRecord,
+  StartingGrid,
+  WeekendLaunch,
+  WeekendPlan,
+  WeekendState,
+} from './weekend.ts';
 
 export type {
   IpcChannel,

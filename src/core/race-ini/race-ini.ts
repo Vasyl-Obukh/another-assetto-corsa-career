@@ -32,8 +32,8 @@ import type { Content, RaceDefinition, SessionDefinition } from '../../shared/ty
 import { writeIni } from '../ini/index.ts';
 import type { IniWritable } from '../ini/index.ts';
 
-export { SESSION_TYPE, TRACK_STATE } from './constants.ts';
-export { parseClock, sunAngleFromTime } from './utils.ts';
+export { DEFAULT_RACE_LAPS, SESSION_TYPE, TRACK_STATE } from './constants.ts';
+export { buildGrid, parseClock, sunAngleFromTime } from './utils.ts';
 
 /**
  * Builds race.ini text from a race definition and the installed content.
@@ -99,7 +99,11 @@ export const buildRaceIni = (race: RaceDefinition, content: Content): string => 
 
     GROOVE: { ...GROOVE },
 
-    DYNAMIC_TRACK: { ...trackState },
+    // startGrip is what carries a rubbered-in track from one launch to the
+    // next: AC resets to the preset's own SESSION_START every time it starts.
+    DYNAMIC_TRACK: conditions.startGrip == null
+      ? { ...trackState }
+      : { ...trackState, SESSION_START: conditions.startGrip },
 
     TEMPERATURE: {
       AMBIENT: conditions.ambient ?? DEFAULT_AMBIENT,

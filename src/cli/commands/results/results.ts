@@ -27,7 +27,7 @@ const resolveTarget = async (args: string[]): Promise<string | null> => {
  *
  * A probe rather than a feature: it shows the raw session shape, how many
  * sessions ran against how many were configured, and both readings of
- * raceResult next to the standings summarise() infers. The finishing-order
+ * raceResult next to the standings summarise() produces. The finishing-order
  * reading is the confirmed one; the other is kept as a cross-check, so a
  * capture that ever disagreed would be visible rather than silently absorbed.
  * @param args Command arguments; --live reads AC's own file, --list shows the archives
@@ -68,6 +68,6 @@ export const cmdResults = async (args: string[]): Promise<void> => {
     console.log();
   });
 
-  console.log('Inferred from lap data by summarise(), for comparison:\n');
+  console.log('As summarise() classifies it, for comparison:\n');
   printResults(summarise(result));
 };

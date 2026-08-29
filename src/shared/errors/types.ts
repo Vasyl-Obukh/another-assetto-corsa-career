@@ -28,6 +28,10 @@ export type ErrorCode =
   | 'race.car.noSkins'
   | 'race.grid.exceedsPitboxes'
   | 'race.session.unknownType'
+  // src/core/weekend
+  | 'weekend.complete'
+  | 'weekend.launch.outOfRange'
+  | 'weekend.state.stale'
   // src/main/ipc
   | 'ipc.noWindow'
   | 'ipc.pathsNotLocated';

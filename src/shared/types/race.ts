@@ -51,6 +51,23 @@ export interface SessionDefinition {
    * qualifying sets the entire grid and this is disregarded, silently.
    */
   startingPosition?: number;
+  /**
+   * Offset in days from the first day of the weekend, so 0 is the opening day
+   * and 2 is race day on a three-day weekend. Defaults to 0.
+   *
+   * Sessions on different days can never share a launch, since a launch is one
+   * run of the game.
+   */
+  day?: number;
+  /**
+   * "HH:MM", or hours as a number, overriding the weekend's own time of day for
+   * the launch this session opens.
+   *
+   * Only the first session of a launch is read: AC's [LIGHTING] SUN_ANGLE is
+   * written once per INI, so a launch has a single start time and the clock
+   * runs on from there.
+   */
+  timeOfDay?: string | number;
 }
 
 /**
@@ -179,6 +196,14 @@ export interface Conditions {
    * How much rubber is down when the session starts.
    */
   trackState?: TrackStateName;
+  /**
+   * Starting grip as a percentage, overriding the track state preset's own.
+   *
+   * What carries a rubbered-in track across a launch boundary: AC resets grip
+   * to [DYNAMIC_TRACK] SESSION_START every time the game starts, so a Sunday
+   * race would otherwise open on the same green track Friday practice did.
+   */
+  startGrip?: number;
   /**
    * How fast the clock runs relative to real time.
    */

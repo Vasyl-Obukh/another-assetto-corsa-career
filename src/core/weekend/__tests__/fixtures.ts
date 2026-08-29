@@ -1,0 +1,142 @@
+// Shared fixtures for the weekend tests. Deliberately small: one car with
+// enough liveries to go round a six-car field, one track with room for it, and
+// a four-session weekend that splits into two launches.
+
+import type {
+  Car, Content, RaceDefinition, RaceOut, RaceOutLap, RaceOutSession, Skin,
+} from '../../../shared/types/index.ts';
+import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
+
+/**
+ * Builds a livery carrying nothing but its folder name.
+ * @param id The livery folder name
+ * @returns A complete Skin
+ */
+const makeSkin = (id: string): Skin => ({
+  id, name: id, driver: null, team: null, number: null, country: null,
+});
+
+/**
+ * Builds a car, defaulting everything the weekend module does not look at.
+ * @param id The car folder name
+ * @param skins How many liveries it ships
+ * @returns A complete Car
+ */
+const makeCar = (id: string, skins: number): Car => ({
+  id,
+  name: id,
+  brand: null,
+  provenance: carProvenance(id),
+  tags: [],
+  carClass: null,
+  year: null,
+  country: null,
+  skins: Array.from({ length: skins }, (unused, index) => makeSkin(`skin_${index}`)),
+  performance: {
+    bhp: null,
+    torqueNm: null,
+    weightKg: null,
+    topSpeedKph: null,
+    accelerationSeconds: null,
+    powerToWeight: null,
+    raw: {
+      bhp: null, torque: null, weight: null, topspeed: null, acceleration: null, pwratio: null,
+    },
+  },
+});
+
+/**
+ * Installed content the weekend tests resolve against.
+ * @returns A fresh Content, so a test mutating it cannot affect another
+ */
+export const makeContent = (): Content => ({
+  cars: [makeCar('test_car', 8)],
+  tracks: [{
+    id: 'test_track',
+    layout: '',
+    key: 'test_track',
+    name: 'Test Track',
+    country: null,
+    pitboxes: 24,
+    geotags: { lat: null, lon: null },
+    provenance: trackProvenance('test_track', ''),
+  }],
+  weather: [{
+    id: 'test_clear', name: 'Clear', type: 15, temperatureCoeff: 0, author: null,
+  }],
+  controllers: [],
+  issues: [],
+});
+
+/**
+ * A weekend that splits into two launches: practice, qualifying and a sprint,
+ * then a feature race on its own.
+ * @returns A fresh RaceDefinition
+ */
+export const makeWeekend = (): RaceDefinition => ({
+  id: 'test-weekend',
+  name: 'Test Weekend',
+  track: { id: 'test_track' },
+  playerCar: { model: 'test_car', driver: 'Player' },
+  grid: { size: 6, aiLevel: 90, aiLevelMin: 80 },
+  sessions: [
+    { type: 'practice', name: 'Practice', minutes: 10 },
+    { type: 'qualify', name: 'Qualifying', minutes: 10 },
+    { type: 'race', name: 'Sprint', laps: 2 },
+    { type: 'race', name: 'Feature', laps: 6 },
+  ],
+  conditions: { trackState: 'green' },
+});
+
+/**
+ * Builds one lap row.
+ * @param car Index into the session's car list
+ * @param time Lap time in milliseconds, or -1 when invalidated
+ * @returns The lap row
+ */
+export const lap = (car: number, time: number): RaceOutLap => ({
+  lap: 0, car, sectors: [], time, cuts: 0, tyre: 'SM',
+});
+
+/**
+ * Builds one session's results.
+ * @param type AC's numeric session type
+ * @param name Session name
+ * @param laps Lap rows, in the order AC recorded them
+ * @returns The session
+ */
+export const makeSession = (
+  type: number,
+  name: string,
+  laps: RaceOutLap[] = [],
+): RaceOutSession => ({
+  event: 0, name, type, lapsCount: 0, duration: 0, laps, lapstotal: [], bestLaps: [],
+});
+
+/**
+ * Builds a race_out.json for a field of the given size.
+ * @param sessions The sessions that ran
+ * @param drivers How many entries the launch had
+ * @returns A RaceOut ready to feed advanceWeekend
+ */
+export const makeRaceOut = (sessions: RaceOutSession[], drivers = 6): RaceOut => ({
+  track: 'test_track',
+  number_of_sessions: sessions.length,
+  players: Array.from({ length: drivers }, (unused, index) => ({
+    name: index === 0 ? 'Player' : `AI Driver ${index}`,
+    car: 'test_car',
+    skin: `skin_${index}`,
+  })),
+  sessions,
+});
+
+/**
+ * A qualifying session classifying the field in the given order.
+ * @param order Car indices, fastest first
+ * @returns The session, each car a half second behind the one ahead
+ */
+export const makeQualifying = (order: number[]): RaceOutSession => makeSession(
+  2,
+  'Qualifying',
+  order.map((car, position) => lap(car, 60_000 + position * 500)),
+);

@@ -35,6 +35,12 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     'Grid of {{cars}} cars exceeds the {{pitboxes}} pit boxes at {{track}}',
   'race.session.unknownType': 'Unknown session type: {{type}}',
 
+  'weekend.complete': 'Every launch of {{race}} has already been run.',
+  'weekend.launch.outOfRange': 'Launch {{index}} does not exist: {{race}} plans {{count}}.',
+  'weekend.state.stale':
+    'Saved progress for {{race}} covers {{saved}} launches, but it now plans {{planned}}. '
+    + 'Reset the weekend to run it again.',
+
   'ipc.noWindow': 'No window to attach the folder picker to.',
   'ipc.pathsNotLocated': 'Cannot scan content until the Assetto Corsa install has been located.',
 };

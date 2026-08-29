@@ -4,13 +4,41 @@ import {
 import { stat } from 'node:fs/promises';
 
 
-import { mtimeOf, sleepUntilEvent } from '../utils.ts';
+import { isPermutation, mtimeOf, sleepUntilEvent } from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
 const statMock = jest.mocked(stat);
 
 describe('core/results/utils', () => {
+  describe('isPermutation', () => {
+    it('accepts an order that places every car exactly once', () => {
+      expect(isPermutation([3, 0, 2, 1], 4)).toBe(true);
+    });
+
+    it('accepts an empty order for an empty field', () => {
+      expect(isPermutation([], 0)).toBe(true);
+    });
+
+    it('rejects an order that is not the size of the field', () => {
+      expect(isPermutation([0, 1], 3)).toBe(false);
+      expect(isPermutation([0, 1, 2, 3], 3)).toBe(false);
+    });
+
+    it('rejects an order naming a car twice', () => {
+      expect(isPermutation([0, 1, 1], 3)).toBe(false);
+    });
+
+    it('rejects an order reaching outside the field', () => {
+      expect(isPermutation([0, 1, 5], 3)).toBe(false);
+      expect(isPermutation([0, 1, -1], 3)).toBe(false);
+    });
+
+    it('rejects an order that is not there at all', () => {
+      expect(isPermutation(undefined, 3)).toBe(false);
+    });
+  });
+
   describe('mtimeOf', () => {
     it('returns the last modified time', async () => {
       statMock.mockResolvedValue({ mtimeMs: 1_700_000_000_000 } as never);

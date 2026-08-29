@@ -69,7 +69,11 @@ export const printResults = (summary: RaceSummary): void => {
   console.log(`Track: ${summary.track}`);
 
   summary.sessions.forEach((session) => {
-    console.log(`\n  ${session.name}`);
+    // Worth saying out loud: AC's own classification and our inference have
+    // agreed every time so far, so knowing which one produced the table is the
+    // only way anyone would notice if they ever stopped.
+    const source = session.order === 'raceResult' ? '   [AC classification]' : '';
+    console.log(`\n  ${session.name}${source}`);
     session.standings.forEach((entry) => {
       const position = String(entry.position).padStart(2);
       const driver = entry.driver.padEnd(18);

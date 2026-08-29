@@ -604,19 +604,24 @@ Spikes first - they decide what weekend formats are expressible.
       laps you completed. Practice and qualifying carry no `raceResult`.
       Untested, and deliberately: killing the process outright, which presumably
       writes nothing and simply costs that launch
-- [ ] **`event` is not a session index** - AC writes `event: 0` on every session,
+- [x] **`event` is not a session index** - AC writes `event: 0` on every session,
       including all three of a weekend, so sessions are told apart by array
       position or by type and name. Typed and commented; nothing depends on it
       yet, but it would have been a silent wrong assumption
-- [ ] **Adopt `raceResult` for race sessions, keeping inference as the fallback**
+- [x] **Adopt `raceResult` for race sessions, keeping inference as the fallback**
       - not for new information, since it has never disagreed with our inferred
       order, but because it is AC's own classification and therefore immune to
       bugs in ours. One such bug is already known and parked: `summarise()` sums
       only valid laps into `totalTime` while counting invalidated ones in `laps`,
       so a driver with a cut lap gets an artificially low total and can sort
       ahead unfairly. `raceResult` cannot get that wrong. Practice and qualifying
-      carry none, so inference stays and that bug still needs fixing for them
-- [ ] **A race ends at the leader's distance** - the lapped car was classified on
+      carry none, so inference stays and that bug still needs fixing for them.
+      **Done**: `summarise()` takes AC's order whenever the session carries a
+      `raceResult` that is a genuine permutation of the field, and falls back to
+      the laps-then-time sort otherwise. `SessionSummary.order` records which of
+      the two produced the table, because two classifications that have never
+      yet disagreed are exactly the ones nobody would notice diverging
+- [x] **A race ends at the leader's distance** - the lapped car was classified on
       four laps rather than being sent out to complete a fifth, so the session
       ends when the leader takes the flag and everyone else is classified where
       they are. The weekend state machine can assume a race session terminates
@@ -643,10 +648,24 @@ Spikes first - they decide what weekend formats are expressible.
       under-distance case that can be created on purpose.
       So `raceResult` is corroboration rather than new information, and real
       positions still wait on Phase 12. It is worth adopting anyway - see below
-- [ ] Weekend model: ordered sessions with day offsets and per-series formats
-- [ ] Launch bundler: group consecutive sessions into the fewest launches AC allows
-- [ ] Weekend state machine - resumable, each bundle independently launchable
-- [ ] **Grid reconstruction** across launch seams from qualifying results -
+- [x] **Weekend model** - a weekend is a `RaceDefinition` whose `sessions`
+      cover the whole event, rather than a second format beside it. Sessions
+      gained `day` and `timeOfDay`: the day is what Phase 5's calendar will
+      schedule against and is a hard bundling boundary here, and the time is
+      per launch rather than per session because `[LIGHTING] SUN_ANGLE` is
+      written once per INI. Per-series formats belong to Phase 4's series
+      schema, so only the shape they will be expressed in landed here
+- [x] **Launch bundler** - `planWeekend()` in `src/core/weekend/`, applying
+      the four rules below. It also **materialises the entry list once** and
+      freezes it into every launch: left as a bulk description, liveries and AI
+      levels would be resolved afresh each launch and the feature would be run
+      by a different field than the sprint
+- [x] **Weekend state machine** - `nextLaunch()` and `advanceWeekend()`, both
+      pure functions over a `WeekendState`; the timestamp and archive path are
+      passed in rather than read. Rule 4 is why it is so small: a launch never
+      half-runs, so a record is only ever pending or done. The CLI keeps the
+      value in `data/weekends/`; Phase 6's career store adopts the same reducer
+- [x] **Grid reconstruction** across launch seams from qualifying results -
       **and it has to be derived, because AC will not hand it over.** A
       qualifying session carries no `raceResult`, confirmed on a properly run
       session where every car set a time and the player took pole by five
@@ -659,7 +678,17 @@ Spikes first - they decide what weekend formats are expressible.
       built from that session, confirmed at both ends - pole and last. So
       sorting on best lap reproduces AC's own qualifying classification, and
       reconstruction is a matter of writing that order into `[CAR_n]` rather
-      than of guessing at what AC would have done
+      than of guessing at what AC would have done.
+      **Done.** The order is derived from the session's raw laps rather than
+      from `bestLaps`, so an invalidated lap's -1 can never become a pole time,
+      and a car that set no time at all sorts behind every car that did while
+      keeping its slot. Two details only showed up in the writing. A result's
+      car indices are positions in *that launch's* `[CAR_n]` order, not in the
+      weekend's, so an inherited order has to be mapped back through the order
+      the launch was run with - otherwise the second reconstruction of a
+      weekend silently permutes the field. And `[CAR_0]` stays the player in
+      every launch, because AC *inserts* them at `STARTING_POSITION` rather
+      than swapping, so only the AI are reordered in the INI
 - [x] **Spike qualifying versus `STARTING_POSITION`** - **qualifying wins, and
       completely.** The race asked for position 8; the player qualified on pole
       and started on pole, while Car 6 - slowest in qualifying - started 8th.
@@ -669,10 +698,28 @@ Spikes first - they decide what weekend formats are expressible.
       **So `STARTING_POSITION` only bites in a launch with no qualifying in it**,
       which is exactly the case `spikes/grid` proved it working in. The two
       results are consistent rather than contradictory
-- [ ] Player last when qualifying is skipped; AI by rating with randomness -
+- [x] **Player last when qualifying is skipped; AI by rating with randomness** -
       unblocked by the above: "skipped" means no qualifying session in that
-      launch, which is precisely when `STARTING_POSITION` is honoured
-- [ ] Track grip continuity across separate launches
+      launch, which is precisely when `STARTING_POSITION` is honoured. The
+      randomness is a seeded Park-Miller generator keyed on the weekend id and
+      launch index, not `Math.random`: a career has to be able to re-plan a
+      launch it has already shown the player and get the same grid back
+- [x] **Track grip continuity across separate launches** - AC resets grip to
+      `[DYNAMIC_TRACK] SESSION_START` every time the game starts, so a Sunday
+      race would otherwise open on the same green track Friday practice did.
+      `Conditions.startGrip` overrides the preset and the bundler raises it per
+      launch from the sessions already run. **This one is an approximation, not
+      a measurement** - AC's grip accumulation curve is not published and we
+      have not probed it, so it sits in the same class as the road-temperature
+      stand-in. Worth a spike: run practice twice on a green track and read the
+      grip figure back.
+      **It is also monotone and weather-blind**, which is the sharper
+      limitation: every completed session raises the figure, when a wet session
+      washes rubber off the track and should lower it well below where the
+      weekend started. That cannot be expressed today - `Conditions` sits on the
+      weekend, so every launch of one shares its weather - so the model becomes
+      reachable and wrong at the same moment. Filed against Phase 4, where a
+      session first gets a weather of its own
 - [ ] Race setup screen: weather, start time, AI difficulty, session lengths
 - [ ] Results screen per session
 - [ ] **Throttle or hide the renderer while a race is live** - the app sits
@@ -681,7 +728,6 @@ Spikes first - they decide what weekend formats are expressible.
       main hides or backgrounds the window on launch and restores it when
       `race_out.json` arrives
 - [ ] Resolve the assists question so regulations can be enforced
-- [ ] Verify `[SESSION_n] LAPS` vs `[RACE] RACE_LAPS`
 - [ ] Replace the road-temperature approximation with Kunos' curve
 - [ ] Offer to write CM's `Arguments.txt` (`--skip-all-results`,
       `--hide-race-cancel-button`)
@@ -748,6 +794,19 @@ qualifying in its own launch, since the two cannot be combined and overridden.
 This also dissolves the `LAPS` versus `RACE_LAPS` question: one race per launch
 means the two keys always carry the same number.
 
+### Running a weekend
+
+`npm run weekend -- <name>` runs the next launch that has not been run, waits
+for it, archives the result and remembers what it produced, so the launch after
+it inherits the grid. `--status` prints the plan without launching anything and
+`--reset` forgets the progress. Progress lives in `data/weekends/`, which is the
+CLI's own business: the state machine itself is pure, and Phase 6's career store
+will persist the same value its own way.
+
+A weekend is an ordinary race definition whose `sessions` cover the whole event,
+so everything that already worked on a race - `npm run dry`, validation against
+installed content, the spike files - keeps working unchanged.
+
 ## Phase 4 - Series, teams and the editor
 
 - [ ] Series schema: discipline, rounds, weekend format, regulations, points,
@@ -788,6 +847,18 @@ means the two keys always carry the same number.
       content pickers are Phase 2's browser shell with selection added, not new
       screens; see *Where the browsers end up*
 - [ ] Per-round conditions: weather, time, track state, sessions
+- [ ] **Make track grip weather-aware**, alongside the above. `gripAfter()` in
+      `src/core/weekend/` adds a flat `GRIP_GAIN_PER_SESSION` for every session
+      already run, which only holds while a weekend has one weather throughout.
+      A dry, wet, dry weekend breaks it in the obvious direction: the wet
+      session scrubs the rubber off, so the Sunday race should start on a
+      *greener* track than Saturday left, not a faster one. It lands here rather
+      than in Phase 3 because a session cannot carry its own weather until this
+      phase gives it one - the day the format becomes expressible is the day the
+      model becomes wrong. A wet session needs to subtract rather than add, and
+      the result wants either the same "approximation, clearly labelled"
+      honesty it has now or a spike to measure what AC actually does to grip
+      across a wet session
 - [ ] Clone a series; extend an existing one with extra rounds
 - [ ] Export / import series files
 - [ ] Content manifest per series with `acmanager://install` for missing content

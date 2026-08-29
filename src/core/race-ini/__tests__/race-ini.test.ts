@@ -91,6 +91,20 @@ describe('core/race-ini', () => {
       expect(build().DYNAMIC_TRACK).toMatchObject({ SESSION_START: '95' });
     });
 
+    it('overrides the preset starting grip when one is asked for', () => {
+      const race = { ...makeRace(), conditions: { trackState: 'green' as const, startGrip: 88 } };
+
+      // Only the starting figure moves; the rest of the preset is untouched.
+      expect(build(race).DYNAMIC_TRACK).toMatchObject({
+        SESSION_START: '88', SESSION_TRANSFER: '60', LAP_GAIN: '200',
+      });
+    });
+
+    it('leaves the preset alone when no starting grip is asked for', () => {
+      const race = { ...makeRace(), conditions: { trackState: 'green' as const } };
+      expect(build(race).DYNAMIC_TRACK).toMatchObject({ SESSION_START: '80' });
+    });
+
     it('writes the resolved weather id', () => {
       const race = { ...makeRace(), conditions: { weather: 'test_rain' } };
       expect(build(race).WEATHER?.NAME).toBe('test_rain');

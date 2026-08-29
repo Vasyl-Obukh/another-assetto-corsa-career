@@ -177,6 +177,9 @@
     "race.car.noSkins": "Автомобіль {{car}} не має жодного скіна",
     "race.grid.exceedsPitboxes": "Стартове поле з {{cars}} авто перевищує {{pitboxes}} піт-боксів на трасі {{track}}",
     "race.session.unknownType": "Невідомий тип сесії: {{type}}",
+    "weekend.complete": "Усі запуски вікенду {{race}} вже виконано.",
+    "weekend.launch.outOfRange": "Запуску {{index}} не існує: {{race}} планує {{count}}.",
+    "weekend.state.stale": "Збережений прогрес для {{race}} охоплює {{saved}} запусків, але зараз заплановано {{planned}}. Скиньте вікенд, щоб пройти його знову.",
     "ipc.noWindow": "Немає вікна, до якого можна прикріпити вибір теки.",
     "ipc.pathsNotLocated": "Неможливо сканувати контент, доки не знайдено Assetto Corsa."
   },

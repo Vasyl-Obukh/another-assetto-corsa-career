@@ -33,3 +33,20 @@ export const sleepUntilEvent = (ms: number, wakeups: (() => void)[]): Promise<vo
     wakeups.push(finish);
   })
 );
+
+/**
+ * Whether an order is a usable permutation of a field of the given size.
+ *
+ * Guards the two places a bad order would do silent damage: AC's own
+ * raceResult, and a grid order stored against a field that has changed since.
+ * @param order The order to check
+ * @param size How many cars there are
+ * @returns True when every car appears exactly once
+ */
+export const isPermutation = (order: readonly number[] | undefined, size: number): boolean => {
+  if (!order || order.length !== size) return false;
+
+  const seen = new Set(order.filter((car) => Number.isInteger(car) && car >= 0 && car < size));
+
+  return seen.size === size;
+};

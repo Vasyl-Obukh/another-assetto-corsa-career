@@ -19,13 +19,14 @@ import {
   SETTLE_READS,
 } from './constants.ts';
 import type { WaitOptions } from './types.ts';
-import { mtimeOf, sleepUntilEvent } from './utils.ts';
+import { isPermutation, mtimeOf, sleepUntilEvent } from './utils.ts';
 import { MS_PER_MINUTE, MS_PER_SECOND } from '../../shared/constants/index.ts';
 import type {
-  ArchiveMeta, RaceOut, RaceSummary, Standing,
+  ArchiveMeta, RaceOut, RaceSummary, Standing, StandingsOrder,
 } from '../../shared/types/index.ts';
 
 export type { WaitOptions } from './types.ts';
+export { isPermutation } from './utils.ts';
 
 /**
  * Reads a file that may still be being written, until it parses and settles.
@@ -160,27 +161,43 @@ export const summarise = (raceOut: RaceOut): RaceSummary => {
       };
     });
 
-    // Races order by laps completed then total time; everything else by best lap.
+    // AC writes its own finishing order on race sessions, and it is the one
+    // classification that cannot inherit a bug in ours - the known totalTime
+    // bug below being exactly the sort it routes around. Practice and
+    // qualifying carry none, so those stay inferred.
     const isRace = session.type === SESSION_TYPE_RACE;
-    standings.sort((a, b) => {
-      if (isRace && a.laps !== b.laps) return b.laps - a.laps;
-      const key = isRace ? 'totalTime' : 'bestLap';
-      const left = a[key];
-      const right = b[key];
-      if (left == null) return 1;
-      if (right == null) return -1;
-      return left - right;
-    });
-    standings.forEach((entry, index) => {
+    const official = isRace && isPermutation(session.raceResult, players.length)
+      ? session.raceResult
+      : undefined;
+
+    // Races order by laps completed then total time; everything else by best lap.
+    if (!official) {
+      standings.sort((a, b) => {
+        if (isRace && a.laps !== b.laps) return b.laps - a.laps;
+        const key = isRace ? 'totalTime' : 'bestLap';
+        const left = a[key];
+        const right = b[key];
+        if (left == null) return 1;
+        if (right == null) return -1;
+        return left - right;
+      });
+    }
+
+    // raceResult[n] is the car index that finished nth, and standings are still
+    // in [CAR_n] order at this point, so it indexes them directly.
+    const ordered = official ? official.map((car) => standings[car]) : standings;
+    ordered.forEach((entry, index) => {
       Object.assign(entry, { position: index + 1 });
     });
+    const order: StandingsOrder = official ? 'raceResult' : 'inferred';
 
     return {
       name: session.name,
       type: session.type,
       lapCount: session.lapsCount ?? 0,
       durationMinutes: session.duration ?? 0,
-      standings,
+      standings: ordered,
+      order,
     };
   });
 

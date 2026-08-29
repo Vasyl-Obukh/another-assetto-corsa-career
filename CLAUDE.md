@@ -59,8 +59,8 @@ npm run dev       # electron-vite dev server
 npm run build     # -> dist/{main,preload,renderer}
 npm run start     # run the built app
 
-npm run scan   npm run dry   npm run race   npm run watch
-npm run results   npm run weather   npm run testmode
+npm run scan   npm run dry   npm run race   npm run weekend
+npm run watch   npm run results   npm run weather   npm run testmode
 npm run check     # typecheck (both projects) + lint
 npm run lint:fix
 
@@ -117,8 +117,8 @@ per project.
 | Path | Purpose |
 | --- | --- |
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
-| `src/cli/` | `scan`, `dry`, `run`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
-| `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, settings, IPC |
+| `src/cli/` | `scan`, `dry`, `run`, `weekend`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
+| `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, weekend, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme, the English wording for every content issue reason |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
@@ -133,6 +133,7 @@ per project.
 | `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM |
 | `src/core/results/` | Watching, stable-reading and summarising results |
+| `src/core/weekend/` | Splitting a weekend into the launches AC allows, and carrying the grid and the track across the seams. Pure: no I/O, so the state machine is a reducer over a value rather than a store |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
 | `src/main/` | App lifecycle, window, settings store, content store, theme, IPC handlers |
@@ -141,7 +142,7 @@ per project.
 | `src/preload/` | The single `contextBridge` surface (`window.api`) |
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
-| `races/*.json` | Race definitions in our own format |
+| `races/*.json` | Race definitions in our own format. A weekend is one of these too - its `sessions` cover the whole event and `src/core/weekend/` splits it into launches |
 | `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
 
 ### Paths, probing and overrides
@@ -431,15 +432,15 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
 
 ## Known gaps
 
-- Standings are derived by sorting on laps-then-total-time. **`raceResult` is
-  real but adds nothing to that**: race sessions carry an array where
-  `raceResult[n]` is the car index that finished `n`-th, and across four driven
-  races - including one with a deliberately lapped car - it has matched our
-  inferred order every time. The array is always the full length of the entry
-  list, so it is safe to index. It is modelled on `RaceOutSession` and printed
-  by `npm run results`; `summarise()` does not read it yet. Worth adopting for
-  race sessions regardless, since it is AC's own answer and cannot inherit our
-  sorting bugs - but it is corroboration, not the route to real positions.
+- **A race session is classified by AC's own `raceResult`; everything else is
+  inferred.** `raceResult[n]` is the car index that finished `n`-th, and across
+  four driven races - including one with a deliberately lapped car - it has
+  matched our laps-then-time inference every time, so adopting it bought no new
+  information. It was adopted anyway, because it is AC's answer and therefore
+  cannot inherit a bug in ours. Practice and qualifying carry none, so those
+  stay inferred, and `SessionSummary.order` says which of the two produced any
+  given table. It is still corroboration rather than the route to real
+  positions, which wait on Phase 12.
 - **Retirements genuinely cannot be observed.** AC writes no retirement flag,
   so a car that stops is indistinguishable from one never classified, and
   being lapped is the only under-distance case that can be produced on purpose.
