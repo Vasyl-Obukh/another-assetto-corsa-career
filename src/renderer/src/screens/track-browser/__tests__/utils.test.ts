@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { makeGroup, makeGroupOf } from './fixtures.ts';
-import { isLocated, pitboxRange, trackImageSources } from '../utils.ts';
+import { makeGroup, makeGroupOf, makeGroupOfLengths } from './fixtures.ts';
+import {
+  isLocated, lengthRange, pitboxRange, trackImageSources,
+} from '../utils.ts';
 
 describe('renderer/screens/track-browser/utils', () => {
   describe('trackImageSources', () => {
@@ -99,4 +101,26 @@ describe('renderer/screens/track-browser/utils', () => {
     });
   });
 
+  describe('lengthRange', () => {
+    it('is a single figure when there is only one layout', () => {
+      expect(lengthRange(makeGroup({ id: 'spa', lengthM: 7004 })))
+        .toEqual({ from: 7004, to: 7004 });
+    });
+
+    // The Nordschleife ships a 3.8 km sprint beside a 25.4 km endurance layout,
+    // and picking either to stand for the circuit would be a lie.
+    it('spans the layouts when they disagree', () => {
+      expect(lengthRange(makeGroupOfLengths('ks_nordschleife', [20832, 25378, 3800])))
+        .toEqual({ from: 3800, to: 25378 });
+    });
+
+    it('ignores the layouts that state nothing', () => {
+      expect(lengthRange(makeGroupOfLengths('x', [null, 5793, null])))
+        .toEqual({ from: 5793, to: 5793 });
+    });
+
+    it('is null when no layout states a length', () => {
+      expect(lengthRange(makeGroupOfLengths('x', [null, null]))).toBeNull();
+    });
+  });
 });

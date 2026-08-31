@@ -22,18 +22,13 @@ export const FULL_GRIP = 100;
  * How much of the gap to a fully rubbered track one completed session closes,
  * before the preset's own SESSION_TRANSFER is applied on top.
  *
- * An approximation, in the same class as roadTemperature: AC's grip
- * accumulation curve is not published and we have not measured it, so this is
- * honest plumbing rather than a derived figure. It never exceeds FULL_GRIP, and
- * a longer weekend starts its race on a faster track, which is the behaviour
- * being modelled.
+ * An approximation, in the same class as roadTemperature: AC's grip curve is
+ * not published and we have not measured it. It never exceeds FULL_GRIP, and a
+ * longer weekend starts its race on a faster track.
  *
- * It is also monotone and takes no account of weather, which is wrong for a dry
- * then wet then dry weekend: rain scrubs the rubber off and grip should fall
- * below where the weekend started rather than climb. That format cannot be
- * expressed yet - Conditions sits on the weekend, so every launch of one shares
- * its weather - so this becomes reachable and wrong at the same moment. Both
- * land together in Phase 4; see the roadmap item beside per-round conditions.
+ * It is monotone and ignores weather, which is wrong for a dry-wet-dry weekend:
+ * rain scrubs rubber off and grip should fall. A wet session needs to subtract
+ * rather than add; see the roadmap item beside per-round conditions in Phase 4.
  */
 export const GRIP_GAIN_PER_SESSION = 0.25;
 

@@ -8,6 +8,7 @@ import type {
   ContentIssue,
   ContentSummary,
   Page,
+  Track,
   TrackFacets,
   TrackGroup,
   TrackQuery,
@@ -106,12 +107,30 @@ export interface ContentStore {
    */
   car(id: string): Promise<Car | null>;
   /**
+   * The whole scan.
+   *
+   * The only accessor that hands the raw Content out rather than a query over
+   * it, because buildRaceIni, validateRace and planWeekend all take the lot -
+   * they resolve a track, a car, its skins and a weather preset against each
+   * other, which no page of results can answer.
+   * @returns Everything the scan found
+   * @throws AppError when no install has been located
+   */
+  content(): Promise<Content>;
+  /**
    * One page of tracks, each holding the layouts that matched.
    * @param query What to search, filter, sort and page by
    * @returns The matching page
    * @throws AppError when no install has been located
    */
   tracks(query: TrackQuery): Promise<Page<TrackGroup>>;
+  /**
+   * One track layout by its key.
+   * @param key The folder ID for a single-layout track, "<id>/<layout>" otherwise
+   * @returns The layout, or null when nothing is installed under that key
+   * @throws AppError when no install has been located
+   */
+  track(key: string): Promise<Track | null>;
   /**
    * Counts behind the car browser's filter lists.
    * @param query The filters currently applied

@@ -1,6 +1,6 @@
 // Shared fixtures for the weekend tests. Deliberately small: one car with
 // enough liveries to go round a six-car field, one track with room for it, and
-// a four-session weekend that splits into two launches.
+// a four-session weekend, which is four launches.
 
 import type {
   Car, Content, RaceDefinition, RaceOut, RaceOutLap, RaceOutSession, Skin,
@@ -58,19 +58,27 @@ export const makeContent = (): Content => ({
     name: 'Test Track',
     country: null,
     pitboxes: 24,
+    lengthM: null,
+    widthM: null,
     geotags: { lat: null, lon: null },
     provenance: trackProvenance('test_track', ''),
   }],
   weather: [{
-    id: 'test_clear', name: 'Clear', type: 15, temperatureCoeff: 0, author: null,
+    id: 'test_clear',
+    name: 'Clear',
+    type: 15,
+    temperatureCoeff: 0,
+    author: null,
+    timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
   }],
   controllers: [],
   issues: [],
 });
 
 /**
- * A weekend that splits into two launches: practice, qualifying and a sprint,
- * then a feature race on its own.
+ * A four-session weekend - practice, qualifying, a sprint and a feature - which
+ * is four launches, one each. The feature is reachable now: it was listed and
+ * unrunnable while a launch ended at its first race.
  * @returns A fresh RaceDefinition
  */
 export const makeWeekend = (): RaceDefinition => ({

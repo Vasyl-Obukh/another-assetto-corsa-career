@@ -1,22 +1,20 @@
 // Turning ui_car.json's specs block into numbers we can price and classify from.
 //
-// Deliberately independent of src/core/content: it takes the raw value straight
-// off the parsed JSON, which is also the only honest signature for it - mods
-// ship "specs" as a string or an array often enough that a typed parameter would
-// be a lie.
+// Deliberately independent of src/core/content, and takes the raw value straight
+// off the parsed JSON: mods ship "specs" as a string or an array often enough
+// that a typed parameter would be a lie.
 
 import { KG_PER_TONNE, MAX_YEAR, MIN_YEAR } from './constants.ts';
 import type { UiCarSpecs } from './types.ts';
 import {
-  parseLooseNumber,
   parsePower,
   parseSeconds,
   parseSpeed,
   parseTorque,
   parseWeight,
-  specString,
 } from './utils.ts';
 import type { CarPerformance } from '../../shared/types/index.ts';
+import { parseLooseNumber, specString } from '../loose-number/index.ts';
 
 export type { UiCarSpecs } from './types.ts';
 

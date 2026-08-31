@@ -23,7 +23,7 @@ import {
   buildLighting,
   buildSessionSection,
   findTrack,
-  findWeather,
+  resolveWeather,
   roadTemperature,
 } from './utils.ts';
 import { appErrorInfo, isAppError } from '../../shared/errors/index.ts';
@@ -45,7 +45,7 @@ export { buildGrid, parseClock, sunAngleFromTime } from './utils.ts';
 export const buildRaceIni = (race: RaceDefinition, content: Content): string => {
   const track = findTrack(content, race.track);
   const conditions = race.conditions ?? {};
-  const weather = findWeather(content, conditions.weather);
+  const { preset: weather, type: weatherType } = resolveWeather(content, conditions);
   const grid = buildGrid(race, content);
   const sessions: SessionDefinition[] = race.sessions ?? [{ type: 'race', laps: DEFAULT_RACE_LAPS }];
   const raceSession = sessions.find((session) => session.type === 'race');
@@ -75,8 +75,8 @@ export const buildRaceIni = (race: RaceDefinition, content: Content): string => 
 
     OPTIONS: { USE_MPH: race.useMph ? 1 : 0 },
 
-    // Sections AC expects to exist even when inactive. CM always writes them,
-    // and matching its output keeps the test-mode diff clean.
+    // AC expects these even when inactive, and CM writes them, so matching its
+    // output keeps the test-mode diff clean.
     BENCHMARK: { ACTIVE: 0 },
     REPLAY: { ACTIVE: 0 },
     RESTART: { ACTIVE: 0 },
@@ -118,7 +118,7 @@ export const buildRaceIni = (race: RaceDefinition, content: Content): string => 
       DIRECTION_DEG: conditions.windDirection ?? 0,
     },
 
-    LIGHTING: buildLighting(conditions, track, weather),
+    LIGHTING: buildLighting(conditions, track, weatherType),
   };
 
   // [CAR_0] is the player, [CAR_1..n] the AI. Order here is grid order.
@@ -156,7 +156,7 @@ export const validateRace = (race: RaceDefinition, content: Content): AppErrorIn
   };
 
   collect(() => findTrack(content, race.track));
-  collect(() => findWeather(content, race.conditions?.weather));
+  collect(() => resolveWeather(content, race.conditions ?? {}));
 
   const models = new Set([
     race.playerCar?.model,
@@ -170,8 +170,8 @@ export const validateRace = (race: RaceDefinition, content: Content): AppErrorIn
     }
   });
 
-  // A missing controller does not fail loudly at launch - CSP just falls back
-  // and the race silently runs with the wrong weather, so check it here.
+  // A missing controller does not fail at launch: CSP falls back and the race
+  // silently runs with the wrong weather, so check it here.
   const controller = race.conditions?.weatherController;
   if (controller && !content.controllers.some((entry) => entry.id === controller)) {
     problems.push(appErrorInfo('race.weatherController.notInstalled', {

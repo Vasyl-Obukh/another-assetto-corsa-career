@@ -2,9 +2,8 @@
 // app is open.
 //
 // Follows createSettingsStore's technique - tolerant read, debounced atomic
-// write - but not its recovery policy: a settings file is the user's own data
-// and gets quarantined, whereas this is derived data whose only correct response
-// to corruption is to throw it away and scan again.
+// write - but not its recovery policy: settings are the user's own data and get
+// quarantined, whereas this is derived and a corrupt cache is simply rescanned.
 
 import { watch } from 'node:fs';
 import type { FSWatcher } from 'node:fs';
@@ -77,8 +76,8 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     };
 
     try {
-      // No indent, unlike settings: a user may hand-edit settings.json, but this
-      // runs to megabytes on a large library and nobody is meant to read it.
+      // No indent, unlike settings: this runs to megabytes on a large library
+      // and nobody is meant to read it.
       await writeFile(tmp, JSON.stringify(cache), 'utf8');
       await rename(tmp, file);
     } catch (error) {
@@ -224,13 +223,21 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async car(id) {
-      // A lookup by primary key, so it stays here rather than going through
-      // content-query: there is nothing to filter, sort or page.
+      // A lookup by primary key, so there is nothing for content-query to do.
       return (await current()).content.cars.find((entry) => entry.id === id) ?? null;
+    },
+
+    async content() {
+      return (await current()).content;
     },
 
     async tracks(query) {
       return queryTracks((await current()).content.tracks, query);
+    },
+
+    async track(key) {
+      // A lookup by primary key, like car() above.
+      return (await current()).content.tracks.find((entry) => entry.key === key) ?? null;
     },
 
     async carFacets(query) {

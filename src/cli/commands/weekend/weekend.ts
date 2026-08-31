@@ -23,10 +23,10 @@ import {
 import { assertRunnable, loadRace, printResults } from '../../utils.ts';
 
 /**
- * Runs a race weekend one launch at a time.
+ * Runs a race weekend one session at a time.
  *
- * A weekend cannot be handed to AC in one go - a launch ends at its first race
- * - so this plans the splits, runs the next launch that has not been run, and
+ * A weekend cannot be handed to AC in one go - every session is its own launch
+ * - so this plans them, runs the next session that has not been run, and
  * remembers what it produced so the following one can inherit its grid.
  * @param args Command arguments; a weekend name or path, plus --status or --reset
  * @returns Resolves once the launch has finished and its result been archived
@@ -43,7 +43,7 @@ export const cmdWeekend = async (args: string[]): Promise<void> => {
 
   if (args.includes('--reset')) {
     await clearState(plan.raceId);
-    console.log(`\nProgress cleared. ${plan.raceName} starts again from launch 0.\n`);
+    console.log(`\nProgress cleared. ${plan.raceName} starts again from its first session.\n`);
 
     return;
   }
@@ -61,7 +61,7 @@ export const cmdWeekend = async (args: string[]): Promise<void> => {
   const launch = nextLaunch(plan, state);
   if (!launch) {
     describePlan(plan, state).forEach((line) => console.log(line));
-    throw new Error(`Every launch of ${plan.raceName} has run. Use --reset to start it again.`);
+    throw new Error(`Every session of ${plan.raceName} has run. Use --reset to start it again.`);
   }
 
   const definition = prepareLaunch(plan, state, launch.index);
@@ -72,9 +72,9 @@ export const cmdWeekend = async (args: string[]): Promise<void> => {
   // Anything written at or before this point is a previous session's result.
   const launchedAt = Date.now();
 
-  const names = (definition.sessions ?? []).map((session) => session.name ?? session.type);
-  console.log(`\nLaunching: ${plan.raceName} - launch ${launch.index} of ${plan.launches.length}`);
-  console.log(`  sessions ${names.join(', ')}`);
+  const name = launch.session.name ?? launch.session.type;
+  console.log(`\nLaunching: ${plan.raceName} - ${name}`);
+  console.log(`  session ${launch.index + 1} of ${plan.launches.length}, day ${launch.day}`);
   console.log(`  via ${paths.contentManager}`);
   await launchUri(paths.contentManager, buildRaceUri(raceIni));
   console.log('  Handed off to Content Manager.\n');
@@ -92,7 +92,7 @@ export const cmdWeekend = async (args: string[]): Promise<void> => {
 
   const archived = await archiveResults(raceOut, RESULTS_DIR, {
     raceId: race.id,
-    raceName: `${race.name} - launch ${launch.index}`,
+    raceName: `${race.name} - ${launch.session.name ?? launch.session.type}`,
   });
   const advanced = advanceWeekend(plan, state, raceOut, {
     archive: path.relative(PROJECT_ROOT, archived),

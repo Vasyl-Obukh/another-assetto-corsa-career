@@ -8,6 +8,7 @@ export {
 } from './browser/index.ts';
 export type { RangeValue, SortItem } from './browser/index.ts';
 export { ContentImage } from './content-image/index.ts';
+export { CarPicker, TrackPicker } from './content-picker/index.ts';
 export type { ContentImageProps } from './content-image/index.ts';
 export { ContentCard } from './ContentCard.tsx';
 export { ContentIssues } from './content-issues/index.ts';

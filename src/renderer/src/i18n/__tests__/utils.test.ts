@@ -101,6 +101,29 @@ describe('renderer/i18n/utils', () => {
     it('rounds fractional milliseconds', () => {
       expect(formattersFor('en').formatDuration(213.7)).toContain('214');
     });
+
+    it('reports a track width in metres', () => {
+      const width = formattersFor('en').formatDistance(12);
+
+      expect(width).toContain('12');
+      expect(width).toContain('m');
+    });
+
+    // A lap is stated in metres and read in kilometres, and the third place is
+    // load-bearing: Spa is 7.004 km and rounding it to 7 loses the circuit.
+    it('reports a lap length in kilometres, to three places', () => {
+      expect(formattersFor('en').formatDistance(7004)).toContain('7.004');
+      expect(formattersFor('en').formatDistance(20832)).toContain('20.832');
+    });
+
+    it('rounds a width to whole metres', () => {
+      expect(formattersFor('en').formatDistance(12.4)).toContain('12');
+    });
+
+    it('punctuates a distance per locale', () => {
+      expect(formattersFor('en').formatDistance(7004))
+        .not.toBe(formattersFor('uk').formatDistance(7004));
+    });
   });
   describe('formatContentIssueReason', () => {
     it('renders the reason from the active catalogue', () => {

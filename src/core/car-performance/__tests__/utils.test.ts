@@ -1,81 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  parseLooseNumber,
-  parsePower,
-  parseSeconds,
-  parseSpeed,
-  parseTorque,
-  parseWeight,
-  specString,
+  parsePower, parseSeconds, parseSpeed, parseTorque, parseWeight,
 } from '../utils.ts';
 
 describe('core/car-performance/utils', () => {
-  describe('specString', () => {
-    it('trims what the author wrote', () => {
-      expect(specString('  560 bhp  ')).toBe('560 bhp');
-    });
-
-    it('accepts a number, which mods ship as often as a string', () => {
-      expect(specString(1200)).toBe('1200');
-    });
-
-    it('treats every way of writing "nothing" as nothing', () => {
-      ['', '  ', '-', '--', '?', 'N/A', 'n/a', 'NA', 'TBD', 'Unknown'].forEach((text) => {
-        expect(specString(text)).toBeNull();
-      });
-    });
-
-    it('is null for anything that is not text or a finite number', () => {
-      expect(specString(undefined)).toBeNull();
-      expect(specString(null)).toBeNull();
-      expect(specString(NaN)).toBeNull();
-      expect(specString(['560'])).toBeNull();
-    });
-  });
-
-  describe('parseLooseNumber', () => {
-    it('reads a number written against its unit', () => {
-      expect(parseLooseNumber('560bhp')).toBe(560);
-      expect(parseLooseNumber('682 Nm')).toBe(682);
-    });
-
-    it('reads a thousands separator, whichever one the author used', () => {
-      expect(parseLooseNumber('1,200 kg')).toBe(1200);
-      expect(parseLooseNumber('1.200 kg')).toBe(1200);
-      expect(parseLooseNumber('1,234,567')).toBe(1234567);
-    });
-
-    it('reads a decimal separator, whichever one the author used', () => {
-      expect(parseLooseNumber('7.4')).toBe(7.4);
-      expect(parseLooseNumber('6,46 kg/hp')).toBeCloseTo(6.46);
-    });
-
-    it('reads both separators in one number', () => {
-      expect(parseLooseNumber('1,234.56')).toBeCloseTo(1234.56);
-      expect(parseLooseNumber('1.234,56')).toBeCloseTo(1234.56);
-    });
-
-    // A lone leading zero means a decimal, not a thousands group: 0.500 is half,
-    // not five hundred.
-    it('does not read 0.500 as five hundred', () => {
-      expect(parseLooseNumber('0.500')).toBeCloseTo(0.5);
-      expect(parseLooseNumber('0,500')).toBeCloseTo(0.5);
-    });
-
-    it('takes the first number, so approximations and ranges still read', () => {
-      expect(parseLooseNumber('300+ km/h')).toBe(300);
-      expect(parseLooseNumber('~560 bhp')).toBe(560);
-      expect(parseLooseNumber('560-580 bhp')).toBe(560);
-    });
-
-    it('is null when there is no number in there at all', () => {
-      expect(parseLooseNumber('--- kg')).toBeNull();
-      expect(parseLooseNumber('km/h')).toBeNull();
-      expect(parseLooseNumber('N/A')).toBeNull();
-    });
-  });
-
   describe('parsePower', () => {
     it('takes hp, ps, cv and bare numbers as bhp', () => {
       expect(parsePower('560 bhp')).toBe(560);

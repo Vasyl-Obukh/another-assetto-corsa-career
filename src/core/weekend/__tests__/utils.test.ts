@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { lap, makeSession, makeWeekend } from './fixtures.ts';
-import type { GridEntry, SessionDefinition } from '../../../shared/types/index.ts';
+import type { GridEntry } from '../../../shared/types/index.ts';
 import {
   bestLapOrder,
   dayOf,
@@ -11,7 +11,6 @@ import {
   materialiseRace,
   randomFrom,
   seedFrom,
-  splitSessions,
 } from '../utils.ts';
 
 /**
@@ -53,44 +52,6 @@ describe('core/weekend/utils', () => {
     });
   });
 
-  describe('splitSessions', () => {
-    it('ends a launch at its first race', () => {
-      const sessions: SessionDefinition[] = [
-        { type: 'practice' }, { type: 'qualify' }, { type: 'race' }, { type: 'race' },
-      ];
-
-      expect(splitSessions(sessions).map((group) => group.map((session) => session.type)))
-        .toEqual([['practice', 'qualify', 'race'], ['race']]);
-    });
-
-    it('keeps practice and qualifying together in one launch', () => {
-      const sessions: SessionDefinition[] = [
-        { type: 'practice' }, { type: 'practice' }, { type: 'qualify' },
-      ];
-
-      expect(splitSessions(sessions)).toHaveLength(1);
-    });
-
-    it('splits when the day changes, even with no race between', () => {
-      const sessions: SessionDefinition[] = [
-        { type: 'practice', day: 0 }, { type: 'practice', day: 1 }, { type: 'qualify', day: 1 },
-      ];
-
-      expect(splitSessions(sessions).map((group) => group.length)).toEqual([1, 2]);
-    });
-
-    it('splits a race from the day after it', () => {
-      const sessions: SessionDefinition[] = [
-        { type: 'qualify', day: 0 }, { type: 'race', day: 0 }, { type: 'race', day: 1 },
-      ];
-
-      expect(splitSessions(sessions).map((group) => group.length)).toEqual([2, 1]);
-    });
-
-    it('returns nothing for no sessions at all', () => {
-      expect(splitSessions([])).toEqual([]);
-    });
-  });
 
   describe('gripAfter', () => {
     it('leaves an untouched track on the preset for the opening launch', () => {
@@ -246,7 +207,7 @@ describe('core/weekend/utils', () => {
   describe('materialiseRace', () => {
     it('writes the grid out entry by entry rather than as a bulk description', () => {
       const grid = makeGrid(6);
-      const race = materialiseRace(makeWeekend(), grid, [{ type: 'race' }], {});
+      const race = materialiseRace(makeWeekend(), grid, { type: 'race' });
 
       expect(race.grid?.size).toBe(6);
       expect(race.grid?.opponents).toHaveLength(5);
@@ -254,29 +215,44 @@ describe('core/weekend/utils', () => {
       expect(race.playerCar.driver).toBe('Player');
     });
 
-    it('carries only the sessions this launch runs', () => {
-      const race = materialiseRace(makeWeekend(), makeGrid(2), [{ type: 'practice' }], {});
+    it('carries only the session this launch runs', () => {
+      const race = materialiseRace(makeWeekend(), makeGrid(2), { type: 'practice' });
       expect(race.sessions).toEqual([{ type: 'practice' }]);
     });
 
-    it('leaves the weekend conditions alone when nothing overrides them', () => {
-      const race = materialiseRace(makeWeekend(), makeGrid(2), [], {});
+    it('strips the session conditions once they are resolved onto the race', () => {
+      // Otherwise a materialised launch carries conditions in two places and
+      // buildRaceIni could read the wrong one.
+      const race = materialiseRace(makeWeekend(), makeGrid(2), {
+        type: 'race', conditions: { ambient: 11 },
+      });
+
+      expect(race.sessions).toEqual([{ type: 'race' }]);
+      expect(race.conditions?.ambient).toBe(11);
+    });
+
+    it('leaves the weekend conditions alone when the session overrides nothing', () => {
+      const race = materialiseRace(makeWeekend(), makeGrid(2), { type: 'practice' });
       expect(race.conditions?.startGrip).toBeUndefined();
       expect(race.conditions?.trackState).toBe('green');
     });
 
-    it('applies a time of day and a starting grip when given them', () => {
-      const race = materialiseRace(makeWeekend(), makeGrid(2), [], {
-        timeOfDay: '09:00', startGrip: 97,
-      });
-
-      expect(race.conditions?.timeOfDay).toBe('09:00');
+    it('applies the starting grip it is handed', () => {
+      const race = materialiseRace(makeWeekend(), makeGrid(2), { type: 'race' }, 97);
       expect(race.conditions?.startGrip).toBe(97);
+    });
+
+    it('lets the session keep its own starting grip over the carried one', () => {
+      const race = materialiseRace(makeWeekend(), makeGrid(2), {
+        type: 'race', conditions: { startGrip: 62 },
+      }, 97);
+
+      expect(race.conditions?.startGrip).toBe(62);
     });
 
     it('does not mutate the weekend it was built from', () => {
       const weekend = makeWeekend();
-      materialiseRace(weekend, makeGrid(6), [{ type: 'race' }], { startGrip: 97 });
+      materialiseRace(weekend, makeGrid(6), { type: 'race' }, 97);
 
       expect(weekend.sessions).toHaveLength(4);
       expect(weekend.grid?.opponents).toBeUndefined();

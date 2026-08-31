@@ -7,7 +7,7 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
-  DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES,
+  DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES, WEATHER_SYSTEMS,
 } from '../../constants/index.ts';
 import type { PathOverrides, Settings, WindowState } from '../../types/index.ts';
 
@@ -106,11 +106,16 @@ export const migrateSettings = (raw: unknown): Settings => {
   if (!isRecord(raw)) return structuredClone(DEFAULT_SETTINGS);
 
   const setupCompletedAt = cleanString(raw.setupCompletedAt);
+  const driverName = cleanString(raw.driverName);
 
   return {
     version: 1,
     theme: oneOf(raw.theme, THEME_CHOICES, DEFAULT_SETTINGS.theme),
     language: oneOf(raw.language, LANGUAGES, DEFAULT_SETTINGS.language),
+    weatherSystem: oneOf(raw.weatherSystem, WEATHER_SYSTEMS, DEFAULT_SETTINGS.weatherSystem),
+    // Absent rather than empty, so clearing the field means "let Assetto Corsa
+    // decide" rather than racing under a blank name.
+    ...(driverName ? { driverName } : {}),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

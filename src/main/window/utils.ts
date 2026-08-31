@@ -1,7 +1,8 @@
 import { screen } from 'electron';
+import type { BrowserWindow } from 'electron';
 
 import { MIN_VISIBLE_HEIGHT, MIN_VISIBLE_WIDTH } from './constants.ts';
-import type { WindowState } from '../../shared/types/index.ts';
+import type { RacePhase, WindowState } from '../../shared/types/index.ts';
 
 /**
  * Checks whether a saved position would still land on an attached display.
@@ -21,4 +22,27 @@ export const isOnSomeDisplay = (state: WindowState): boolean => {
 
     return overlapX > MIN_VISIBLE_WIDTH && overlapY > MIN_VISIBLE_HEIGHT;
   });
+};
+
+/**
+ * Gets the window out of the way while a race is live, and brings it back after.
+ *
+ * The app sits alongside a running game, so it should not be drawing frames
+ * behind it. Minimised rather than hidden: Windows stops painting either way,
+ * but hiding also removes the taskbar entry, and a window the user cannot find
+ * while a race runs reads as a crash rather than as tact.
+ * @param window The main window
+ * @param phase What the app is doing about a race right now
+ */
+export const followRace = (window: BrowserWindow, phase: RacePhase): void => {
+  if (window.isDestroyed()) return;
+
+  if (phase === 'idle') {
+    if (window.isMinimized()) window.restore();
+    window.focus();
+
+    return;
+  }
+
+  if (!window.isMinimized()) window.minimize();
 };

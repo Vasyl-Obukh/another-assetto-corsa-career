@@ -355,7 +355,15 @@ describe('core/content', () => {
 
       const { entries } = await scanWeather('content');
       expect(entries).toEqual([{
-        id: 'career_rain', name: 'Rain', type: 7, temperatureCoeff: -0.2, author: 'Me',
+        id: 'career_rain',
+        name: 'Rain',
+        type: 7,
+        temperatureCoeff: -0.2,
+        author: 'Me',
+        timeDiapason: null,
+        cloudCover: 0,
+        rain: null,
+        forceHeadlights: false,
       }]);
     });
 
@@ -394,7 +402,12 @@ describe('core/content', () => {
 
       const { entries } = await scanWeatherControllers('acRoot');
       expect(entries).toEqual([{
-        id: 'pureCtrl static', name: 'Pure Static', author: 'Peter', description: 'Fixed',
+        id: 'pureCtrl static',
+        name: 'Pure Static',
+        author: 'Peter',
+        description: 'Fixed',
+        version: null,
+        follows: { weather: 'yes', temperature: 'yes', wind: 'yes' },
       }]);
     });
 
@@ -404,7 +417,12 @@ describe('core/content', () => {
 
       const { entries, issues } = await scanWeatherControllers('acRoot');
       expect(entries).toEqual([{
-        id: 'bareCtrl', name: 'bareCtrl', author: null, description: null,
+        id: 'bareCtrl',
+        name: 'bareCtrl',
+        author: null,
+        description: null,
+        version: null,
+        follows: { weather: 'yes', temperature: 'yes', wind: 'yes' },
       }]);
       expect(issues).toEqual([]);
     });

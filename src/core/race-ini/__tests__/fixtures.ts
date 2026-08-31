@@ -68,6 +68,8 @@ export const makeContent = (): Content => ({
       name: 'Test Track',
       country: 'Testland',
       pitboxes: 24,
+      lengthM: null,
+      widthM: null,
       geotags: { lat: 52.5, lon: -1.25 },
       provenance: trackProvenance('test_track', ''),
     },
@@ -78,6 +80,8 @@ export const makeContent = (): Content => ({
       name: 'Multi GP',
       country: null,
       pitboxes: 4,
+      lengthM: null,
+      widthM: null,
       geotags: { lat: null, lon: null },
       provenance: trackProvenance('multi_track', 'gp'),
     },
@@ -85,17 +89,24 @@ export const makeContent = (): Content => ({
   weather: [
     {
       id: 'test_clear', name: 'Clear', type: 15, temperatureCoeff: 1, author: null,
+      timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
     },
     {
       id: 'test_rain', name: 'Rain', type: 8, temperatureCoeff: -0.5, author: null,
+      timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
     },
     {
       id: 'kunos_weather', name: 'Kunos', type: null, temperatureCoeff: 0, author: null,
+      timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
     },
   ],
   controllers: [
     {
-      id: 'testCtrl static', name: 'Test Static', author: null, description: null,
+      id: 'testCtrl static',
+      name: 'Test Static',
+      author: null,
+      description: null,
+      version: null, follows: { weather: 'yes', temperature: 'yes', wind: 'yes' },
     },
   ],
   issues: [],

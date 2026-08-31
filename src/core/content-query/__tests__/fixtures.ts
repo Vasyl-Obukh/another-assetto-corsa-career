@@ -55,6 +55,8 @@ export const makeTrackEntry = (
   key: track.layout ? `${track.id}/${track.layout}` : track.id,
   country: null,
   pitboxes: null,
+  lengthM: null,
+  widthM: null,
   geotags: { lat: null, lon: null },
   provenance: trackProvenance(track.id, track.layout ?? ''),
   ...track,

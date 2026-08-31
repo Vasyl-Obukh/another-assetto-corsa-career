@@ -94,9 +94,24 @@ export const DEFAULT_WEATHER_ID = '3_clear';
 export const DEFAULT_RACE_LAPS = 5;
 
 /**
- * Spawn point set used when a session names none.
+ * Spawn point set for a session that lines up on the grid.
  */
 export const DEFAULT_SPAWN_SET = 'START';
+
+/**
+ * Spawn point set for a session that goes out from the pit lane.
+ */
+export const PIT_SPAWN_SET = 'PIT';
+
+/**
+ * The session types that start from the pits when the session names no spawn
+ * set of its own.
+ *
+ * Only a race lines up on the grid; practice and qualifying are run out of the
+ * pit box, and putting them on the grid instead is wrong in a way that is
+ * obvious in game and invisible in the INI.
+ */
+export const PIT_SPAWN_TYPES: SessionType[] = ['practice', 'qualify'];
 
 /**
  * Keeps AC's per-track track limits default rather than forcing a value.

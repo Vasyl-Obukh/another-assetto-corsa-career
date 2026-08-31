@@ -11,6 +11,8 @@ import {
   firstSkin,
   nextSkin,
   parseClock,
+  presetForType,
+  resolveWeather,
   roadTemperature,
   spreadAiLevel,
   sunAngleFromTime,
@@ -32,6 +34,12 @@ describe('core/race-ini/utils', () => {
     it('throws on anything that is not HH:MM', () => {
       expect(() => parseClock('half past two')).toThrow('Invalid time of day');
       expect(() => parseClock('9:5')).toThrow('Invalid time of day');
+    });
+
+    // A cleared time input reads as '', which survives ?? and arrives here.
+    // The setup screen has to send undefined instead, and this is why.
+    it('rejects an empty string rather than reading it as midnight', () => {
+      expect(() => parseClock('')).toThrow('Invalid time of day');
     });
   });
 
@@ -77,6 +85,73 @@ describe('core/race-ini/utils', () => {
 
     it('throws when a named preset is missing', () => {
       expect(() => findWeather(makeContent(), 'nope')).toThrow('Weather not installed: nope');
+    });
+  });
+
+  describe('presetForType', () => {
+    it('finds a preset declaring the type asked for', () => {
+      expect(presetForType(makeContent(), 8)?.id).toBe('test_rain');
+    });
+
+    // A preset carrying [RAINFX] is what makes rain deterministic, so one is
+    // preferred over another declaring the same type without it.
+    it('prefers a preset that carries rain figures', () => {
+      const content = makeContent();
+      content.weather.push({
+        id: 'career_rain',
+        name: 'Career Rain',
+        type: 8,
+        temperatureCoeff: -0.5,
+        author: null,
+        timeDiapason: null,
+        cloudCover: 0,
+        rain: { intensity: 0.125, wetness: 1, water: 0.5 },
+        forceHeadlights: false,
+      });
+
+      expect(presetForType(content, 8)?.id).toBe('career_rain');
+    });
+
+    it('is null when nothing installed declares the type', () => {
+      expect(presetForType(makeContent(), 20)).toBeNull();
+    });
+  });
+
+  describe('resolveWeather', () => {
+    it('reads a named preset and the type it declares', () => {
+      expect(resolveWeather(makeContent(), { weather: 'test_rain' }))
+        .toMatchObject({ type: 8 });
+    });
+
+    // A type still needs a folder behind it, because [WEATHER] NAME wants one
+    // and the road temperature wants the preset's coefficient.
+    it('resolves a chosen type to a preset that stands for it', () => {
+      const resolved = resolveWeather(makeContent(), { weatherType: 8 });
+
+      expect(resolved.preset?.id).toBe('test_rain');
+      expect(resolved.type).toBe(8);
+    });
+
+    // Failing here beats letting CSP fall back silently to the wrong weather.
+    it('throws rather than asking for a type nothing can render', () => {
+      expect(() => resolveWeather(makeContent(), { weatherType: 20 }))
+        .toThrow(/20/);
+    });
+
+    it('takes a chosen type ahead of a preset named beside it', () => {
+      expect(resolveWeather(makeContent(), { weather: 'test_clear', weatherType: 8 }).preset?.id)
+        .toBe('test_rain');
+    });
+
+    it('answers with neither when the race names no weather at all', () => {
+      expect(resolveWeather(makeContent(), {})).toEqual({ preset: null, type: null });
+    });
+
+    // A Kunos preset declares no __LAUNCHER_CM type, and that is not an error -
+    // it means "let Content Manager decide".
+    it('reads a preset declaring no type as no type', () => {
+      expect(resolveWeather(makeContent(), { weather: 'kunos_weather' }))
+        .toMatchObject({ type: null });
     });
   });
 
@@ -233,8 +308,21 @@ describe('core/race-ini/utils', () => {
       expect(buildSessionSection({ type: 'practice', minutes: 20 })).not.toHaveProperty('LAPS');
     });
 
-    it('defaults the spawn set to START', () => {
+    it('lines a race up on the grid when it names no spawn set', () => {
       expect(buildSessionSection({ type: 'race' }).SPAWN_SET).toBe('START');
+    });
+
+    // Fixed: everything defaulted to START, so a practice or qualifying session
+    // created in the app - which names no spawn set - was put on the grid
+    // instead of in the pit box. Hand-written race files had been working
+    // around it by naming PIT itself, which is why it went unnoticed.
+    it('sends practice and qualifying out from the pits instead', () => {
+      expect(buildSessionSection({ type: 'practice' }).SPAWN_SET).toBe('PIT');
+      expect(buildSessionSection({ type: 'qualify' }).SPAWN_SET).toBe('PIT');
+    });
+
+    it('still lets a session name a spawn set of its own', () => {
+      expect(buildSessionSection({ type: 'qualify', spawnSet: 'START' }).SPAWN_SET).toBe('START');
     });
 
     it('writes the starting position when the session asks for one', () => {
@@ -305,12 +393,12 @@ describe('core/race-ini/utils', () => {
       expect(lighting.__CM_WEATHER_CONTROLLER).toBe('testCtrl static');
     });
 
-    it('writes the CSP weather type when the preset carries one', () => {
-      expect(buildLighting({}, track, content.weather[1]).__CM_WEATHER_TYPE).toBe(8);
+    it('writes the CSP weather type when there is one to ask for', () => {
+      expect(buildLighting({}, track, 8).__CM_WEATHER_TYPE).toBe(8);
     });
 
-    it('omits the weather type for a Kunos preset that has none', () => {
-      expect(buildLighting({}, track, content.weather[2])).not.toHaveProperty('__CM_WEATHER_TYPE');
+    it('omits the weather type when there is none, as a Kunos preset has', () => {
+      expect(buildLighting({}, track, null)).not.toHaveProperty('__CM_WEATHER_TYPE');
     });
 
     it('unclamps the sun angle past the vanilla limit, so night works', () => {

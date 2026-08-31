@@ -1,16 +1,14 @@
-// A race weekend and the launches it splits into.
+// A race weekend and the launches it runs as.
 //
-// AC cannot run a whole weekend in one go: a launch holds any run of practice
-// and qualifying and then at most one race, which ends it. So a weekend is a
-// RaceDefinition whose sessions cover the whole event, and the bundler lowers
-// it into several launch-ready RaceDefinitions - each one a race in its own
-// right, built by the same buildRaceIni().
+// One session, one launch. A weekend is a RaceDefinition whose sessions cover
+// the whole event, and planWeekend() lowers each session into a launch-ready
+// RaceDefinition of its own - each a race in its own right, built by the same
+// buildRaceIni(), with the weekend's conditions resolved onto it.
 
-import type { GridEntry, RaceDefinition } from './race.ts';
+import type { GridEntry, RaceDefinition, SessionDefinition } from './race.ts';
 
 /**
- * One launch of the game: a run of practice and qualifying, then at most one
- * race, which ends it.
+ * One launch of the game, which runs exactly one session.
  */
 export interface WeekendLaunch {
   /**
@@ -28,18 +26,15 @@ export interface WeekendLaunch {
    */
   race: RaceDefinition;
   /**
-   * Whether this launch runs a qualifying session, in which case AC owns the
-   * grid and STARTING_POSITION is disregarded.
+   * The session this launch runs, which is the same session its `race` carries
+   * as its only entry. Held here so that naming a launch, badging its progress
+   * and asking whether it is the race do not each have to reach into the race.
    */
-  hasQualifying: boolean;
-  /**
-   * Whether this launch ends in a race.
-   */
-  hasRace: boolean;
+  session: SessionDefinition;
 }
 
 /**
- * A weekend split into the launches AC allows.
+ * A weekend as the launches that run it, one per session.
  */
 export interface WeekendPlan {
   /**

@@ -12,7 +12,24 @@ it behind real navigation. Provenance says which car or track is base game, DLC
 or a mod, the class catalogue says which grid each named car races in, and the
 ladder names the disciplines a championship can sit on. Liveries carry their
 name, driver, team, number and country, and a car opens onto a page of them.
-Race weekends are next.
+
+**Phase 3 is most of the way there.** The spikes settled what AC will and will
+not do, and the app now drives the result: a race is set up, launched, watched
+and classified without a terminal, and the window steps aside while the game
+runs. Weather selection has been rebuilt on how CSP actually works, after the
+first attempt modelled a controller and a weather as two independent things.
+
+**Sessions now run one per launch** rather than being bundled, which reverses an
+early decision and is worth reading in *Weekends and sessions* before touching
+the weekend code. It made the grid unconditionally ours and gave every session
+its own weather, wind, temperature, track state and start time.
+
+What is left of the reshaping is **dynamic weather as generated plans** handed to
+PURE Planner or Sol Planner, whose file formats and autoload hooks are recorded
+in *Weather, and how dynamic weather is actually driven*, and the single
+**weather system setting** that goes with it. Still outstanding beyond those:
+assists, the road-temperature curve, and writing Content Manager's
+`Arguments.txt`.
 
 ## Decisions taken
 
@@ -22,7 +39,10 @@ Race weekends are next.
 | Results fidelity                | **Inferred now, CSP Lua recorder later.** Positions derived from laps-then-time until an in-game recorder replaces them.                                                                                                                  |
 | Series authoring                | **In-app editor.**                                                                                                                                                                                                                        |
 | In-game UI                      | **Desktop only for now.**                                                                                                                                                                                                                 |
-| Race weekends                   | **User-defined session lists, bundled into as few launches as AC allows.** Jump between sessions in-game where AC permits; split into separate launches only where it doesn't.                                                            |
+| Race weekends                   | **User-defined session lists, one session per launch.** Each session is started from the app and run on its own. Reversed from bundling - see *Weekends and sessions*.                                                            |
+| Weather system                  | **One choice in settings: PURE, Sol, or none.** Not a per-race question - it decides who renders, which is a look rather than a simulation. "None" is CSP's own `base` controller: **it still rains** - RainFX is core CSP - but the strength comes from the weather type rather than a preset's `[RAINFX]`, and weather cannot change mid-session. |
+| Dynamic weather                 | **Generated plans handed to PURE Planner or Sol Planner.** Both read plan files we can write, and both have a "CM" slot meaning "take it from `race.ini`", so an authored plan can start from the session's own weather and evolve. |
+| Live weather                    | **Dropped.** A career should not depend on the internet, so the `base-live` controller is not offered.                                                                                                                       |
 | Grid when qualifying is skipped | **Player starts last.** AI ordered by rating with slight randomness so skipped sessions don't produce identical grids.                                                                                                                    |
 | Simulating rounds               | **Never.** Skip practice or qualifying and you are last on the timing sheet; skip the race and it is a DNS.                                                                                                                               |
 | DNS                             | Entry fee lost, no points, **rating untouched**.                                                                                                                                                                                          |
@@ -279,11 +299,167 @@ Sessions carry a **day offset**. Weekends run up to three days (Friday to
 Sunday); races fall on Saturday or Sunday and never Friday. One-off and historic
 events should prefer weekdays so they don't collide with championship rounds.
 
-The app **bundles consecutive sessions into as few AC launches as possible**, so
-you advance session-to-session inside the game rather than alt-tabbing back.
-Where AC cannot express a format in one launch, the weekend splits and we
-reconstruct the grid across the seam using `STARTING_POSITION` and `[CAR_n]`
-ordering. Quitting mid-weekend is detected and the remainder resumes later.
+**Each session is its own launch, started from the app one at a time.** This
+reverses the original decision to bundle sessions into as few launches as AC
+allows, and it was reversed on purpose. **Built**: `planWeekend()` maps one
+session to one launch, and `splitSessions()` is gone.
+
+Bundling was chosen to save alt-tabbing: practice, qualifying and a race could
+run back to back inside one start of the game. What it cost was clarity and
+control. A weekend still had to split after every race, so a sprint-plus-feature
+format was two launches anyway and the user had to understand why; and because
+`race.ini` writes `[LIGHTING] SUN_ANGLE`, `[TEMPERATURE]`, `[WEATHER]`,
+`[WIND]` and `[DYNAMIC_TRACK]` once per launch, every session inside a bundle
+was forced to share one set of conditions.
+
+One session per launch buys three things:
+
+- **Conditions per session.** Weather, wind, temperature, track state and start
+  time all become session-level, because a session is now a whole `race.ini`.
+- **The grid is always ours.** Qualifying can never share a launch with a race,
+  so `STARTING_POSITION` is always honoured and the grid is always ours to
+  write. That replaces the old two-case rule - "qualifying owns the grid, except
+  when the race runs alone" - with one invariant, and it was the trickiest
+  conditional in the system.
+- **A format is what it says it is.** No bundling rules to explain, and no
+  weekend that silently splits somewhere the user did not ask for.
+
+What it costs is a full AC load per session - thirty to sixty seconds on a large
+mod track - and a return to the app between each one. Nothing is lost on tyres or
+fuel, which AC resets between sessions in either arrangement.
+
+The grid is carried across every seam with `STARTING_POSITION` and `[CAR_n]`
+ordering, derived from the previous session's own lap times.
+
+### Weather, and how dynamic weather is actually driven
+
+Four layers, and confusing any two of them produces a race that silently runs in
+the wrong weather - which is this area's characteristic failure, because nothing
+reports it.
+
+1. **The weather** is what the race asks for: a CSP weather type
+   (`ac.WeatherType`, 33 values) or a named `content/weather/` preset. It
+   reaches AC as `[WEATHER] NAME` plus `[LIGHTING] __CM_WEATHER_TYPE`.
+2. **The controller** is a Lua script under `extension/weather-controllers/`
+   that renders it. One is always running, named by the user's
+   `cfg/extension/weather_fx.ini`, and `__CM_WEATHER_CONTROLLER` overrides that
+   for one race without restoring it afterwards.
+3. **Whether the weather is read at all** is the controller's own decision,
+   declared as `FOLLOWS_SELECTED_WEATHER` in its `manifest.ini`. Set to 0 it
+   ignores the race and drives the weather itself; absent or 1 it renders what
+   was asked. That flag is the only thing separating *dynamic weather* from a
+   *controller*, and it is why the two were merged into one menu.
+4. **A planner app** is where a dynamic controller gets its weather. PURE
+   Planner and Sol Planner are separate apps with their own plan files, and a
+   plan is a sequence of weather states with durations.
+
+**PURE ships no weather presets.** It renders the type, so choosing "Rain" *is*
+choosing PURE's rain. Its own `Default_WeatherPresets.json` holds 37 entries
+whose first 31 are `ac.WeatherType` one for one. Sol ships one `content/weather/`
+folder per type instead, which is where a library's `sol_*` presets come from.
+
+#### Plan files, which we can generate
+
+Both planners read plans we can write. Both also have a **"CM" weather slot**
+that looked like it meant "take it from `race.ini`" - it does not, see below -
+so a generated plan states its own weather in every step, which the generator
+knows anyway.
+
+**Sol Planner** (`apps/python/sol_planner/`) uses INI, which we already read and
+write. A plan is slot-indexed keys - `<n>-weather`, `-rain`, `-rainprobability`,
+`-rainvariance`, `-wetness`, `-wetfine`, `-puddles`, `-humidity`, `-fog`,
+`-tempambient`, `-temproad`, `-wind`, `-winddirection`, `-playseconds`,
+`-stamphour`, `-stampminute` - over **nine** slots, then `timemode`,
+`timemultiplier`, `repeat`, `playing`. `repeat` and `playing` are compared as
+Python booleans, so they are written `True` and `False`, capitalised.
+
+**The autoload hook is `presets/presets.ini`**: `[general] loadWithStart = <n>`
+plus sections `[0]`-`[4]`. `sol_planner.py` imports that file at startup and
+presses the flagged preset, so a plan written there runs without the user
+touching anything.
+
+**Two spellings in that file are traps, and both were found by reading the
+installed source rather than the files.** `sol_planner.py` sets
+`presets_ini.optionxform = str`, which makes ConfigParser options
+case-sensitive, and then only ever asks for `loadWithStart` - while the file it
+ships writes `loadwithstart`. So autoload is doing nothing on a stock install,
+and a plan written with the lowercase key would silently never load. Write
+camelCase. `usefullday` is dead for the same reason: only `useFullDay` is read,
+the writer deletes it, and every file on disk carries the unmatched lowercase
+form - use `timemode` instead (`0` day cycle, `1` timespan, `2` timestamp).
+
+**PURE Planner** (`extension/config-ext/PurePlanner/`) uses JSON:
+`{ control: { timemulti, loop, type }, container: [ { data: { duration,
+timestamp, weather: {...} } } ] }`, `duration` in seconds and the `weather`
+object carrying **all 35 keys** - we write every one, since a partial object has
+never been tested against their loader. It loads `Plans/last_used.json` by
+default (`LAST_USED=1` in `pureCtrl/settings.ini`), or a named plan from
+`Plans/{Daycycle,Timed,Stamp}/` - **`Daycycle` is one word** - when
+`PLAN = <mode>/<name>` is set with `LAST_USED=0`. The name carries **no `.json`
+extension** and uses a forward slash. `AUTOSTART=1` starts it with the race.
+
+**`control.type` is the mode, and the folder a plan sits in does not set it.**
+`PLANNER_Plan_TYPE` in `apps/lua/PurePlanner/plan/plan_manager.lua` is daycycle
+1, timed 2, stamp 3, live 4, database 5. A **daycycle** plan ignores every
+step's `duration` and spreads the steps evenly across 24 hours - a three-step
+plan becomes three eight-hour blocks - while only **timed** honours them,
+multiplying each by `timemulti`. Writing a plan into `Plans/Timed/` with
+`type: 1` was driven and came back as a day cycle, which is how this was found.
+
+**The timestamps are not decoration either.** PURE builds its sun table from the
+first step's timestamp to the last one's plus its duration, so they decide what
+time of day the session runs at - a plan chained from midnight races in the
+dark. They have to be set from the session's own start time.
+
+**PURE shows plan times in local time while ours are UTC**, so a plan written for
+midday appears in its UI as 14:00 at UTC+2. Worth knowing before reading that as
+a bug. Whether the *sun* is placed from the timestamp as UTC or as local is a
+separate question and is not yet answered - it only starts to matter when a plan
+is generated for a real session and has to agree with race.ini's own SUN_ANGLE.
+
+**The weather numbering is shared but written two ways.** `weather_params` in
+`sol_planner.py` is the table both use: a row per weather, carrying a name and
+an `id`. Sol's plans store the **row index**; PURE's store the **id**. They
+differ past row 32 - row 33 is No Clouds with id 100, and row 38 is `"CM"` with
+**id 50**, which is the `index: 50` PURE writes into its own plans. The table
+also carries `Random Dry`, `Random Rainy` and `Random Bad`, which both
+controllers expose through their settings - worth knowing, because randomly
+generated weather may need no plan authoring at all.
+
+**But below that they all agree, which is what makes the writers small.** For
+values 0 to 32 our own `WeatherType`, PURE's id and Sol's row index are the
+same number, checked row by row against both tables: `LIGHT_THUNDERSTORM = 0`
+through `HAIL = 32` line up exactly. So the mapping is the identity plus the
+handful of specials above it, and a weather Sol numbers differently is refused
+rather than silently written as a random-weather row. A third scheme exists and
+is not ours to write: `CM_WEATHER` in the controllers' own `settings.ini` is a
+1-based list where No Clouds is 1.
+
+**Both mean writing into the user's mod folders**, the same intrusion the career
+weather presets already make. Rather than stomping what they read by default, we
+**claim a slot of our own**: a named plan at `Plans/Timed/career.json` for PURE,
+and Sol preset `[4]`. `Plans/last_used.json` and Sol slots `[0]`-`[3]` are never
+written.
+
+Two changes to files we are guests in are unavoidable - PURE ignores a named
+plan unless `LAST_USED` is off, and Sol needs its autoload flag - so **what was
+there is recorded first and put back by `npm run weather -- plan remove`**,
+including anything the user already had in slot `[4]`. That is done with
+`patchIni`, a line-level edit added for the purpose: `pureCtrl/settings.ini`
+documents every weather value in inline comments, and a `parseIni`/`writeIni`
+round trip would delete all of them. Verified on the real install - installing
+both plans and removing them again leaves all three files byte-identical.
+
+**One thing we cannot give back, and it is worth warning about: PURE overwrites
+`Plans/last_used.json` with whatever plan it just ran.** So driving a generated
+plan destroys whatever the user last had loaded, even though our writer never
+touches that file. Nothing in our remove can restore it, because the damage is
+done by their app during the race rather than by us before it. If a career ever
+installs plans routinely, it should copy that file aside the first time and say
+so, or accept that the slot is ours in practice whatever the folder layout says.
+
+What still wants driving is whether either planner actually *reads* what we
+wrote; see the two runbook rows.
 
 ### The calendar
 
@@ -720,23 +896,207 @@ Spikes first - they decide what weekend formats are expressible.
       weekend, so every launch of one shares its weather - so the model becomes
       reachable and wrong at the same moment. Filed against Phase 4, where a
       session first gets a weather of its own
-- [ ] Race setup screen: weather, start time, AI difficulty, session lengths
-- [ ] Results screen per session
-- [ ] **Throttle or hide the renderer while a race is live** - the app sits
-      alongside a running game, so it should not burn frames in the background.
-      Lands here because this is where the launch path first exists to trigger it:
-      main hides or backgrounds the window on launch and restores it when
-      `race_out.json` arrives
-- [ ] Resolve the assists question so regulations can be enforced
+- [x] **Race setup screen** - track, car, grid, sessions and conditions, with
+      the launch plan and everything blocking it beneath. The pickers are the
+      existing browsers rather than new screens: `CarCard` and `TrackCard` gained
+      an optional `onSelect`, which is the whole of the selection semantics Phase
+      2 said they lacked, and `content:track { key }` is the single-entity lookup
+      that was still missing.
+      **Picking a track is two steps, and it has to be**: a layout is what
+      `race.ini` runs on, and a layout's *name* says nothing about its shape -
+      "Endurance" and "Sprint" are both the Nordschleife. So the circuit is
+      picked first and its layouts second, as tiles showing each one's own
+      `outline.png`, which is the only thing that tells them apart; every layout
+      of a circuit shares the same pit-straight photograph. A one-layout circuit
+      picks straight through and never shows the step.
+      That is also why the scan now reads `length` and `width` from
+      `ui_track.json` - a tile reading "20.8 km" beside a map is identifiable in
+      a way a folder name never was. The unit is the whole difficulty: authors
+      write "5793", "5.793", "20,832", "4.5 km" and "13.626km" for the same kind
+      of field, and an explicit unit has to override the thousands-separator rule
+      or Le Mans reads as thirteen thousand kilometres. Checked against the
+      install: all 315 layouts parse, and every circuit whose length everyone
+      knows comes out right.
+      **Every launch goes through `planWeekend()`, including a single race**,
+      which is simply a one-launch weekend. Routing single races around the
+      bundler would have meant two code paths where AC allows one, and it is why
+      a sprint plus a feature splits correctly from the first day the screen
+      exists rather than from whenever someone wired the weekend path in
+- [x] **Results screen per session** - the archive list, and one page per result
+      with a table per session. The order badge says whether the classification
+      is AC's own `raceResult` or ours, which is what `SessionSummary.order`
+      exists for: two orders that have never yet disagreed are exactly the ones
+      nobody would notice diverging. `formatLapTime` moved from `src/core/results/`
+      to `src/shared/utils/lap-time/`, since the renderer may not import core,
+      and it stays outside the `Intl` formatters on purpose - `1:32.451` is a
+      timing-screen convention rather than a locale decision
+- [x] **Throttle or hide the renderer while a race is live** - main minimises the
+      window when a launch starts and restores it when the result lands.
+      Minimised rather than hidden: Windows stops painting either way, but hiding
+      also takes the taskbar entry, and a window the user cannot find while a
+      race runs reads as a crash rather than as tact
+- [x] **The race path in main** - none of the above was reachable before,
+      because nothing under `src/main/` imported `core/launch`, `core/results`,
+      `core/race-ini` or `core/weekend`: a race was launchable only from the CLI.
+      `src/main/race-store/` now owns the draft, the weekend progress and the
+      launch in flight, running the same steps in the same order as
+      `cmdWeekend`. The one thing that does not fit request/response is waiting
+      for a result - a launch resolves as soon as CM has the URI and the result
+      lands hours later - so the wait is detached and everything it changes
+      arrives as a `race:changed` push. That also gave `waitForResults` an
+      `AbortSignal`: the CLI ends the wait with Ctrl+C, and the app has to stop
+      watching without stopping anything else
+- [x] **Weather is chosen the way CSP actually works** - the picker was built on
+      the wrong model and offered a weather preset and a "controller" as two
+      independent dropdowns. A controller declaring `FOLLOWS_SELECTED_WEATHER = 0`
+      in its `manifest.ini` ignores the race's weather entirely and drives it
+      from its own planner app, and PURE's manifest says so beside the flag:
+      *"this parameter is static and moves weather controller into a different
+      section"*. So Pure, Sol 2.5 dynamic and Live are **dynamic weather**, and
+      Default, Pure Static, Sol and Sol 2.5 static are **controllers**. The scan
+      reads that flag, plus `TIME_DIAPASON`, `[CLOUDS] COVER`, `[RAINFX]` and
+      `[CAR_LIGHTS] FORCE_ON`, and one merged menu offers dynamic weather, the
+      33 `ac.WeatherType` values and the installed presets grouped by author.
+      **PURE ships no weather folders at all** - it renders the type - which is
+      why asking for a type had to become expressible at all (`Conditions.weatherType`);
+      a preset is still resolved behind it because `[WEATHER] NAME` needs a
+      folder, preferring our `career_*` presets for their `[RAINFX]` block.
+      `__CM_WEATHER_CONTROLLER` is now written only when a race names one, and
+      the user's own `weather_fx.ini` is read back so the screen can warn when a
+      static weather is about to be ignored
+- [x] **Run each session as its own launch** - see *Weekends and sessions*.
+      `splitSessions()` is deleted and `planWeekend()` maps sessions to launches
+      one for one; `WeekendLaunch` carries the `session` it runs in place of the
+      `hasQualifying` / `hasRace` pair those rules needed. `Conditions` moved
+      down onto `SessionDefinition` with the weekend holding defaults, merged by
+      a new `src/shared/utils/conditions/` - shared rather than in core because
+      the renderer shows a session its inherited values. **Weather merges as a
+      group**: `weather`, `weatherType` and `weatherController` answer one
+      question, so a session naming any of them replaces all three, or a session
+      asking for a CSP type would keep the weekend's preset beside it and the
+      two would disagree silently.
+      **The conditional this existed to remove is gone**: `startingGrid()` was
+      `if (!launch?.hasRace || launch.hasQualifying) return null`, and is now
+      `if (launch?.session.type !== 'race')`. Grid reconstruction went from a
+      special case to the only case, and `spikes/qualifying` now runs its race in
+      a launch of its own where `STARTING_POSITION` is actually honoured.
+      Proven not to have moved anything else: a one-session weekend comes out of
+      the bundler byte-for-byte identical to what `buildRaceIni` produces from
+      the definition directly, checked for `demo` and `spikes/grid`.
+      **Driven end to end through the app**: a qualifying session, then a race in
+      a launch of its own, with the field ordered on the qualifying times. That
+      is the first time a result from one launch has set the grid of another,
+      and it is the whole point of the change
+- [x] **Practice and qualifying start from the pit box** - `DEFAULT_SPAWN_SET`
+      was `START` for every session type, and every spike file had been naming
+      `"spawnSet": "PIT"` by hand, so the default was never exercised until the
+      app created a session that named none. A qualifying session was put on the
+      grid: wrong in a way that is obvious in game and invisible in the INI. The
+      default is now per type, and guarded by a test
+- [x] **Plain Custom Shaders Patch rains** - driven, after source-reading had
+      already been wrong twice on this mod stack. The `base` controller with
+      weather type 7 produced water on the road and spray off the car, so
+      "none" is a real option rather than a dry one. The gate is CSP itself -
+      its preview builds are what carry WeatherFX and RainFX - and not the
+      choice of controller.
+      **A caveat worth keeping**: the type filter this justified is honest but
+      near-vacuous. PURE lacks only Cold and Hot, and on a library with Sol
+      installed no preset declares either, so all three systems offer the same
+      31 types. The visible difference a system makes is whether weather can
+      change at all
+- [x] **Weather system setting** - PURE, Sol or none, chosen once rather than per
+      race, mapping to `pureCtrl static` / `sol2static` / `base` for static
+      weather and to `pureCtrl` / `sol2` / nothing for dynamic. The per-race
+      controller field is gone from the race screen, though `Conditions.weatherController`
+      survives as a hand-authored override, because the weather-plan spikes name
+      a controller explicitly and have to keep working. `base-live` is not
+      offered, since a career should not depend on the internet.
+      It needed **a settings screen**, which the app did not have: theme and
+      language were two selects in the header, and "which weather system" needs
+      a paragraph a header cannot carry. They moved into it.
+- [x] **Weather that changes during a session** - the weather picker is slots.
+      One slot is static weather and behaves exactly as before; adding a second
+      turns it into a plan, and the last slot **holds until the session ends**,
+      which is the only way a plan is expressible for a race measured in laps
+      rather than minutes. Removing back down to one slot collapses to a plain
+      static choice. The race store installs the plan before handing over and
+      removes it in `settle()`, the one path every ending goes through - so a
+      cancelled or failed launch gives the planner its settings back too.
+      **Offered weather is filtered three ways**: to types an installed preset
+      declares, to what the chosen planner numbers (PURE has no Cold or Hot),
+      and - with RainFX off - away from anything wet, since asking for rain that
+      cannot be drawn produces a dry race and reports nothing
+- [x] **The weather picker offers types only** - installed presets are no longer
+      listed. It had shown all 45 of them grouped by author beside the 31 types,
+      which asked the same question twice and made the redundancy visible rather
+      than fixing it. **A preset is not owned by a weather system**, which is why
+      "filter the presets by system" has no answer: it is a `content/weather/`
+      folder carrying a type, and PURE renders Sol's presets perfectly well by
+      reading that type. Nothing is lost by dropping them, because
+      `presetForType` already resolves a type to the best preset behind it,
+      preferring one carrying `[RAINFX]` - which is what the `career_*` presets
+      exist for. Picking "Rain" gets `career_rain` without anyone knowing.
+      `Conditions.weather` survives for hand-written race files, which the
+      spikes use
+- [x] **Conditions moved into a dialog**, having first been squeezed into a grid
+      cell. A slot row - weather, length, remove - wants about 400px; the first
+      cell of the three-column conditions grid inside a session row offers about
+      270, so every slot wrapped onto two lines and adding one grew a single
+      cell while the five fields beside it stayed short. **Conditions are the
+      part of a session that does not fit beside anything**, so they left the
+      grid rather than being squeezed further: the weekend card and each session
+      row now open the same dialog, two columns, the weather list growing down
+      one of them. It also collapsed a duplication - the weekend defaults and a
+      session's overrides were two copies of the same fields, and are now one
+      `ConditionsBody` taking three props for the three ways they differ
+- [x] **Every field in a session row is a fixed width**, the name included. It
+      was given the slack the others left, which made it the one field whose
+      right edge moved with the window - and so the one field that put every
+      field after it out of line with the row above. A list of rows wants
+      columns; the widths were narrowed instead, which is what got the badge and
+      the move buttons back onto the same line
+- [x] **The dialog is one column of weather over a grid of everything else.**
+      Two columns put the weather list beside the single values, which meant the
+      widest thing in the dialog and the narrowest sat in the same row: the wind
+      fields ended up about 115px each, too narrow to read their own "Same as
+      weekend" placeholder. Weather now sits in a panel of its own above the
+      rest, which also stops a three-slot plan reading as part of the fields
+      under it, and the six single values share a three-column grid where every
+      one of them is the same width. The slot table lost its "Weather" column
+      heading with it - the panel is already headed that, and the two stacked
+      read as a mistake
+- [x] **Your name is a setting, not a race field.** It was in the car card of the
+      race screen, where it read as a property of the car and had to be retyped
+      for every race. It belongs to the person playing, so it moved to
+      `Settings.driverName` and `race-store` writes it into each launch, the
+      same way `withWeatherSystem` fills the controller in - and, the same way,
+      a race file naming its own driver keeps it, which is what lets a spike
+      race under a name of its own
+- [x] **Weather changes belong to a session, not to the weekend** - the weekend
+      defaults offer static weather only. A plan there would be inherited by
+      every session, so practice, qualifying and the race would each run the
+      same rain arriving at the same minute, which is not weather.
+      **It also exposed a real bug in the merge**: `weatherSteps` was not part
+      of the weather group in `src/shared/utils/conditions/`, so a session
+      choosing a steady weather kept the weekend's plan beside it - and
+      `isDynamic` would then have installed a plan for a session that asked for
+      one weather. The group exists precisely to stop two answers to the weather
+      question surviving together, and it was missing its newest member
+- [ ] Resolve the assists question so regulations can be enforced. **CM's own
+      preset format has since been found**: a saved Quick Drive `.cmpreset` on
+      this machine carries `"AssistsData":"{\"IdealLine\":false,\"Abs\":1,\"Damage\":100.0,...}"`
+      - JSON, not the `assists.ini` `buildAssistsIni` renders. That is what
+      `buildRaceUri`'s unused `assistsPreset` argument wants
 - [ ] Replace the road-temperature approximation with Kunos' curve
 - [ ] Offer to write CM's `Arguments.txt` (`--skip-all-results`,
       `--hide-race-cancel-button`)
 
 ### Spike runbook
 
-The harness is built and the probes are ready to drive. All three use base
-content - `bmw_m3_e30_gra` at `magione` - with no weather controller, so
-nothing PURE does can explain away a surprise. `npm run results` reads a
+The harness is built and the probes are ready to drive. The six that are done
+use base content - `bmw_m3_e30_gra` at `magione` - with no weather controller,
+so nothing PURE does can explain away a surprise. The two weather-plan probes
+are the exception and necessarily name one. `npm run results` reads a
 result file back without interpreting it: it prints what AC wrote, and prints
 **both** readings of `raceResult` side by side so a real finishing order can
 pick one. Default is the newest archive; `--live` reads AC's own
@@ -750,6 +1110,11 @@ pick one. Default is the newest archive; `--live` reads AC's own
 | ~~Qualifying vs the grid~~ | ~~`npm run race -- spikes/qualifying`~~ | **Done** - qualifying sets the whole grid and `STARTING_POSITION` is disregarded. Qualifying carries no `raceResult` of its own |
 | ~~Lapped car~~ | ~~`npm run race -- spikes/dnf`~~ | **Done** - the lapped car is present, the array stays full length, and it is placed last, which is what inference already said |
 | ~~`raceResult`~~ | ~~Finish `spikes/grid` mid-pack, then `npm run results`~~ | **Done** - it is a finishing order, `raceResult[n]` being the car that finished `n`-th. See the ticked item above |
+| ~~Solo qualifying~~ | ~~`npm run race -- spikes/solo-qualifying`~~ | **Done - a launch that is nothing but qualifying works, and one session per launch rests on it.** One session of type 2, all six cars classified, `raceResult` absent as it always is for qualifying, and the session ended on its own clock. **A cut lap is written as `time: -1` with `cuts: 1`**, which confirms rather than assumes the invariant `bestLapOrder()` depends on: the out-lap was invalidated and the clean 1:28.983 took pole. AC also writes `bestLaps` on a qualifying session, and sorting it gives the same order we derive from the raw laps |
+| ~~Solo practice~~ | ~~`npm run race -- spikes/solo-practice`~~ | **Done - a practice-only launch is an ordinary thing.** One session of type 1, all six cars setting laps, `raceResult` absent, and the session ending on its own clock with the file written. It cannot be mistaken for a grid source either: `lastQualifying()` matches on type 2, so a practice launch records `qualifyingOrder: null` and a race behind it falls through to the seeded skill order |
+| ~~PURE plan~~ | ~~`npm run weather -- plan pure evolve`, then `npm run race -- spikes/weather-plan`~~ | **Done - PURE follows a plan we generated.** Clear, heavy rain, clear, three minutes each, and `AUTOSTART` starts it with the race. Took two runs: `control.type` was first written as `1`, which is daycycle, and that ignores every step's duration and spread three steps over three eight-hour blocks. `2` is timed and honours them. **This is the result the whole approach rested on** - generated dynamic weather is expressible |
+| ~~Sol plan~~ | ~~`npm run weather -- plan sol evolve`, then `npm run race -- spikes/weather-plan-sol`~~ | **Done - Sol Planner follows a plan we generated too.** It autoloads `[4]`, and writes the file back in its own ConfigParser formatting with `loadWithStart = 4` still set, which is proof the camelCase spelling is the one that works: the lowercase key sitting beside it was ignored as their source said it would be. Took two runs, for a reason worth remembering - **only one weather controller runs per race**, so the first attempt was driven against a file naming `pureCtrl` and Sol correctly reported "Sol 2.5 controller not running" while doing nothing. Each planner needs its own race file |
+| ~~CM slot defers~~ | ~~`npm run weather -- plan pure defer`, then `npm run race -- spikes/weather-plan-defer`~~ | **Done, and the answer is no.** A race asking for Fog through `__CM_WEATHER_TYPE=20` alongside the dynamic `pureCtrl` still opened on scattered clouds. Their source says why: `pureCtrl/controller.lua` reads the race's type into `wid`, but only ever publishes it as `CM.initWeather.weatherID` inside `if __PURE__controller_type < 1` - the **static** branch. A plan only runs under the dynamic controller, so the slot the planner app reads is never written and it falls back. **A generated plan must state its own weather in every step.** No loss: the generator knows what the session asked for |
 
 **The results file cannot answer the grid probe** - only watching the race can.
 This was tried on the `spikes/grid` capture and both proxies failed: lap-0
@@ -782,16 +1147,19 @@ Four rules, all of them measured rather than assumed:
    for what ran, which spots a session that never *started* but not one that was
    abandoned partway; `event` is useless for telling sessions apart.
 
-Rules 2 and 3 fit together better than they first look. A race bundled behind
-its own qualifying needs no grid reconstruction, because AC has already built
-the grid; a race split into its own launch is exactly where reconstruction is
-needed, and exactly where we are allowed to do it. The two cases never overlap.
+**What one-session-per-launch did to these rules, now that it is built.** Rule 1
+is moot: no launch holds a run of anything, so there is nothing to bundle and
+nothing to split. Rule 2 can never fire, because qualifying and a race are never
+in the same launch - which means **rule 3 is the only case there is, and the
+grid is unconditionally ours**. Rule 4 stands unchanged and is what makes the
+state machine small.
 
-The one consequence to design around: a series wanting a grid that is *not*
-the qualifying order - a reverse-grid sprint, or a fixed grid - must run
-qualifying in its own launch, since the two cannot be combined and overridden.
+The measurements themselves keep their value: they are why we know the grid can
+be written at all, and rule 2 is why a bundled qualifying could never have been
+overridden. A series wanting a grid that is *not* the qualifying order - a
+reverse-grid sprint, or a fixed grid - simply gets one, with no special case.
 
-This also dissolves the `LAPS` versus `RACE_LAPS` question: one race per launch
+The `LAPS` versus `RACE_LAPS` question stays dissolved: one race per launch
 means the two keys always carry the same number.
 
 ### Running a weekend
@@ -806,6 +1174,21 @@ will persist the same value its own way.
 A weekend is an ordinary race definition whose `sessions` cover the whole event,
 so everything that already worked on a race - `npm run dry`, validation against
 installed content, the spike files - keeps working unchanged.
+
+**One session, one launch**, so `--status` lists the weekend's sessions and each
+run of the command plays exactly one of them. The state machine, the grid
+reconstruction and the archive-per-launch shape came through the change
+untouched, since none of them ever depended on a launch holding more than one
+session; archives are now named after the session rather than the launch number.
+
+**The app runs the same reducer over its own storage.** `src/main/race-store/`
+keeps the draft, the progress and the archives under
+`%APPDATA%/ac-career-mode/race/`, deliberately apart from the CLI's `out/`,
+`data/results/` and `data/weekends/`: the state machine is pure, and each caller
+persists it its own way. Editing a weekend that has already started discards its
+progress, because a launch inherits its grid from the one before and that
+inheritance means nothing once the sessions have changed underneath it - so the
+setup screen locks itself once a launch has run and offers to start again.
 
 ## Phase 4 - Series, teams and the editor
 
@@ -846,8 +1229,28 @@ installed content, the spike files - keeps working unchanged.
 - [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
       content pickers are Phase 2's browser shell with selection added, not new
       screens; see *Where the browsers end up*
-- [ ] Per-round conditions: weather, time, track state, sessions
-- [ ] **Make track grip weather-aware**, alongside the above. `gripAfter()` in
+- [x] **Per-session conditions** - landed early with one session per launch, in
+      Phase 3. A session is a whole `race.ini`, so it carries its own weather,
+      wind, temperature, track state and start time, overriding the weekend's
+      defaults field by field
+- [ ] Per-round conditions as part of a **series format**, which is what is left
+      of the above: the round owning the conditions rather than the weekend
+- [ ] **Generated weather for shipped championships.** Hand-authored weekends use
+      weekend defaults plus per-session overrides, which is what keeps building a
+      deliberate weekend easy. The championships we ship do the opposite: they
+      generate a weather per session and write it as a full override on each.
+      **Generated by our own rules and probabilities, not by PURE's or Sol's own
+      randomisation**, which produces too many extremes for a career - a series
+      wants a wet round now and again, not a tornado
+- [ ] **A weather forecast.** The whole event's weather is generated once, when
+      the calendar first reaches the event's opening day, and shown to the player
+      before they run anything. That is what makes generated weather a feature
+      rather than a surprise, and it constrains the generator: it has to be
+      deterministic and stored on the event, not rolled per launch, or the
+      forecast and the race would disagree
+- [ ] **Make track grip weather-aware**, alongside the above - and **now
+      reachable**, because per-session conditions were the thing it waited on.
+      `gripAfter()` in
       `src/core/weekend/` adds a flat `GRIP_GAIN_PER_SESSION` for every session
       already run, which only holds while a weekend has one weather throughout.
       A dry, wet, dry weekend breaks it in the obvious direction: the wet
@@ -994,6 +1397,14 @@ Design to be settled before building - see Open questions.
 - [ ] Autosave count and save behaviour
 - [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate)
 - [ ] Economy tuning: prize and fee multipliers, starting money, price overrides
+- [ ] **Weather system**: PURE, Sol or none, chosen once. Decides who renders
+      static weather and which planner a dynamic race drives. "None" is CSP's
+      `base` controller, which has no rain FX and so means no rain ever
+- [ ] **Generated weather plans** for PURE Planner and Sol Planner, so dynamic
+      weather is ours rather than whatever the user last set. See *Weather, and
+      how dynamic weather is actually driven* for both file formats and both
+      autoload hooks. Wants a spike per system first, and has to be honest that
+      it writes into the user's mod folders and overwrites a plan slot of theirs
 - [ ] Weather preset management; surface that installing touches the AC folder
 - [ ] Warn that `__CM_WEATHER_CONTROLLER` overrides the user's `weather_fx.ini`
 - [ ] Uninstall/cleanup: remove career weathers, restore CM arguments

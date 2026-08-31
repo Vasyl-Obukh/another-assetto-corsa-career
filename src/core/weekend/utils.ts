@@ -1,6 +1,5 @@
-// Helpers behind the bundler: where a weekend splits, how much rubber is down
-// by the time a launch starts, and how a grid is ordered when no qualifying
-// session ordered it.
+// Helpers behind the weekend: how much rubber is down by the time a session
+// starts, and how a grid is ordered when no qualifying session ordered it.
 
 import {
   AI_ORDER_JITTER,
@@ -20,6 +19,7 @@ import type {
   RaceOutSession,
   SessionDefinition,
 } from '../../shared/types/index.ts';
+import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { TRACK_STATE } from '../race-ini/index.ts';
 
 /**
@@ -29,47 +29,15 @@ import { TRACK_STATE } from '../race-ini/index.ts';
  */
 export const dayOf = (session: SessionDefinition): number => session.day ?? DEFAULT_DAY;
 
-/**
- * Splits a weekend's sessions into the runs AC can actually launch.
- *
- * Two rules, both measured: a launch ends at its first race, because AC offers
- * no way past the chequered flag; and sessions on different days cannot share
- * one, because a launch is a single run of the game.
- * @param sessions The weekend's sessions, in order
- * @returns One group per launch, in the order they must be run
- */
-export const splitSessions = (
-  sessions: readonly SessionDefinition[],
-): SessionDefinition[][] => {
-  const groups: SessionDefinition[][] = [];
-  let current: SessionDefinition[] = [];
-  let closed = false;
-
-  sessions.forEach((session) => {
-    const sameDay = current.length === 0 || dayOf(session) === dayOf(current[0]);
-    if (current.length && (closed || !sameDay)) {
-      groups.push(current);
-      current = [];
-      closed = false;
-    }
-
-    current.push(session);
-    if (session.type === 'race') closed = true;
-  });
-
-  if (current.length) groups.push(current);
-
-  return groups;
-};
 
 /**
- * Starting grip for a launch, given how much of the weekend ran before it.
+ * Starting grip for a session, given how much of the weekend ran before it.
  *
  * An approximation - see GRIP_GAIN_PER_SESSION. Each completed session closes
  * part of the gap to a fully rubbered track, damped by the track state's own
- * SESSION_TRANSFER, which is what AC uses for the same job between sessions of
- * one launch.
- * @param conditions The weekend's conditions, which name the track state
+ * SESSION_TRANSFER. AC does this itself between sessions of one launch, and
+ * every session is its own launch now, so nothing else carries the rubber.
+ * @param conditions The session's resolved conditions, naming the track state
  * @param sessionsBefore How many sessions have already run this weekend
  * @returns Starting grip as a whole percentage
  */
@@ -194,33 +162,36 @@ export const lastQualifying = (
 };
 
 /**
- * Freezes a weekend's grid and one run of its sessions into a launchable race.
+ * Freezes a weekend's grid and one of its sessions into a launchable race.
  *
- * The grid is written out entry by entry rather than left as a bulk
- * description, which is what keeps a driver the same driver all weekend: a
- * size and an aiLevel alone would let skins and skill be re-rolled for every
- * launch.
+ * The grid is written out entry by entry rather than as a bulk description,
+ * which is what keeps a driver the same driver all weekend: a size and an
+ * aiLevel alone would re-roll skins and skill every launch. The session's own
+ * conditions are resolved onto the race and stripped off the session, so a
+ * launch has exactly one place conditions live.
  * @param race The weekend definition
  * @param grid The materialised entry list, the player first
- * @param sessions The sessions this launch runs
- * @param overrides Time of day and starting grip for this launch
+ * @param session The session this launch runs
+ * @param startGrip Rubber carried in from the sessions already run, if any
  * @returns A race definition ready for buildRaceIni
  */
 export const materialiseRace = (
   race: RaceDefinition,
   grid: readonly GridEntry[],
-  sessions: SessionDefinition[],
-  overrides: { timeOfDay?: string | number; startGrip?: number },
+  session: SessionDefinition,
+  startGrip?: number,
 ): RaceDefinition => {
-  const conditions: Conditions = { ...race.conditions };
-  if (overrides.timeOfDay != null) conditions.timeOfDay = overrides.timeOfDay;
-  if (overrides.startGrip != null) conditions.startGrip = overrides.startGrip;
+  const { conditions: own, ...rest } = session;
+  const conditions = resolveConditions(race.conditions, own);
+  // An explicit startGrip is the author overriding the model, so the carried-in
+  // figure only fills a gap they left.
+  if (conditions.startGrip == null && startGrip != null) conditions.startGrip = startGrip;
 
   return {
     ...race,
     playerCar: { ...grid[0] },
     grid: { ...race.grid, size: grid.length, opponents: grid.slice(1) },
-    sessions,
+    sessions: [rest],
     conditions,
   };
 };

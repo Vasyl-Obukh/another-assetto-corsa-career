@@ -13,7 +13,7 @@ export const CACHE_FILE = 'content-cache.json';
  * story: an older file is thrown away and the library is scanned again, which is
  * cheap and can never feed a stale shape into anything downstream.
  */
-export const CONTENT_CACHE_VERSION = 2;
+export const CONTENT_CACHE_VERSION = 4;
 
 /**
  * How long to wait before writing the cache out, as the settings store does.

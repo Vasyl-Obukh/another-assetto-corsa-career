@@ -1,7 +1,6 @@
-// Reading result files and rendering them for the terminal. This is a probe
-// rather than a feature: it prints the raw shape rather than an interpretation,
-// which is what settled the Phase 3 questions about what AC actually writes and
-// is what any future surprise will be diagnosed with.
+// Reading result files and rendering them for the terminal. A diagnostic rather
+// than a feature: it prints the raw shape rather than an interpretation, which
+// is what any surprise in what AC writes gets diagnosed with.
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';

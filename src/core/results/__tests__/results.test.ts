@@ -7,7 +7,7 @@ import path from 'node:path';
 
 import type { RaceOut } from '../../../shared/types/index.ts';
 import {
-  archiveResults, formatLapTime, readStable, summarise,
+  archiveResults, readStable, summarise,
 } from '../results.ts';
 
 jest.mock('node:fs/promises');
@@ -54,22 +54,6 @@ const lap = (car: number, time: number, cuts = 0) => ({
 });
 
 describe('core/results', () => {
-  describe('formatLapTime', () => {
-    it('renders minutes, seconds and milliseconds', () => {
-      expect(formatLapTime(83456)).toBe('1:23.456');
-    });
-
-    it('pads seconds and milliseconds', () => {
-      expect(formatLapTime(61007)).toBe('1:01.007');
-    });
-
-    it('shows a placeholder when no lap was set', () => {
-      expect(formatLapTime(null)).toBe('--:--.---');
-      expect(formatLapTime(0)).toBe('--:--.---');
-      expect(formatLapTime(-1)).toBe('--:--.---');
-    });
-  });
-
   describe('summarise', () => {
     it('carries the track through', () => {
       expect(summarise(makeRaceOut([])).track).toBe('test_track');

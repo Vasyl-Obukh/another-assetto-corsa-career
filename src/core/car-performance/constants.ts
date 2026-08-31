@@ -2,12 +2,6 @@
 // ui_car.json's specs block.
 
 /**
- * What a mod author writes when there is no figure. Compared lowercased and
- * trimmed.
- */
-export const NOTHING_TOKENS = new Set(['', '-', '--', '?', 'n/a', 'na', 'n.a.', 'tbd', 'unknown']);
-
-/**
  * Brake horsepower per kilowatt.
  */
 export const BHP_PER_KW = 1.34102;

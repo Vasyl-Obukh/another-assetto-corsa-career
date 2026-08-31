@@ -15,10 +15,14 @@ import type { NavEntry } from './types.ts';
  * router has nothing to resolve against there.
  */
 export const ROUTE = {
+  race: '/race',
+  results: '/results',
+  result: '/results/:file',
   cars: '/cars',
   car: '/cars/:id',
   tracks: '/tracks',
   diagnostics: '/diagnostics',
+  settings: '/settings',
 } as const;
 
 /**
@@ -31,9 +35,12 @@ export const ROUTE = {
  * field on each entry is where that split belongs.
  */
 export const NAV = [
+  { id: 'race', label: 'nav.race' },
+  { id: 'results', label: 'nav.results' },
   { id: 'cars', label: 'nav.cars' },
   { id: 'tracks', label: 'nav.tracks' },
   { id: 'diagnostics', label: 'nav.diagnostics' },
+  { id: 'settings', label: 'nav.settings' },
 ] as const satisfies readonly NavEntry[];
 
 /**

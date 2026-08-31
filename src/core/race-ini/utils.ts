@@ -10,6 +10,8 @@ import {
   DEFAULT_SPAWN_SET,
   DEFAULT_TIME_OF_DAY,
   MIN_SPREAD_FIELD_SIZE,
+  PIT_SPAWN_SET,
+  PIT_SPAWN_TYPES,
   ROAD_TEMP_COEFF_SCALE,
   SESSION_TYPE,
   SUN_ANGLE_CLAMP,
@@ -95,6 +97,52 @@ export const findWeather = (content: Content, id: string | undefined): Weather |
   if (!found) throw new AppError('race.weather.notInstalled', { weather: id });
 
   return found;
+};
+
+/**
+ * Picks the installed preset that best stands for a CSP weather type.
+ *
+ * A type needs a preset behind it whatever else happens: `[WEATHER] NAME` wants
+ * a folder and the road temperature wants its coefficient. Our own career
+ * presets win where one declares the type, since their `[RAINFX]` section is
+ * what makes rain deterministic. Sol's set is the usual fallback.
+ * @param content Installed content to look in
+ * @param type The CSP weather type asked for
+ * @returns The preset to name, or null when nothing installed declares the type
+ */
+export const presetForType = (content: Content, type: number): Weather | null => {
+  const declaring = content.weather.filter((weather) => weather.type === type);
+
+  return declaring.find((weather) => weather.rain !== null) ?? declaring[0] ?? null;
+};
+
+/**
+ * Works out which weather a race is asking for, and which type that is.
+ *
+ * The two answers are separate because AC needs both and they come from
+ * different places: `[WEATHER] NAME` is always a folder, while
+ * `__CM_WEATHER_TYPE` is the number a CSP controller actually reads.
+ * @param content Installed content to resolve against
+ * @param conditions The race's conditions
+ * @returns The preset to name and the type to ask for, either of which may be null
+ * @throws When the race names a preset or a type that is not installed
+ */
+export const resolveWeather = (
+  content: Content,
+  conditions: Conditions,
+): { preset: Weather | null; type: number | null } => {
+  if (conditions.weatherType != null) {
+    const preset = presetForType(content, conditions.weatherType);
+    if (!preset) {
+      throw new AppError('race.weatherType.unavailable', { type: conditions.weatherType });
+    }
+
+    return { preset, type: conditions.weatherType };
+  }
+
+  const preset = findWeather(content, conditions.weather);
+
+  return { preset, type: preset?.type ?? null };
 };
 
 /**
@@ -250,7 +298,11 @@ export const buildSessionSection = (session: SessionDefinition): Record<string, 
     NAME: session.name ?? capitalise(session.type),
     TYPE: type,
     DURATION_MINUTES: session.minutes ?? 0,
-    SPAWN_SET: session.spawnSet ?? DEFAULT_SPAWN_SET,
+    // Practice and qualifying go out from the pit box; only a race lines up on
+    // the grid. Defaulting everything to START put qualifying on the grid, which
+    // nothing in the INI makes obvious.
+    SPAWN_SET: session.spawnSet
+      ?? (PIT_SPAWN_TYPES.includes(session.type) ? PIT_SPAWN_SET : DEFAULT_SPAWN_SET),
   };
 
   // AC reads race length from [RACE] RACE_LAPS, but CM writes it here too.
@@ -282,13 +334,13 @@ export const roadTemperature = (conditions: Conditions, weather: Weather | null)
  * Renders the [LIGHTING] section, including CM's weather extensions.
  * @param conditions The race's conditions
  * @param track The resolved track, whose geotags place the sun
- * @param weather The resolved weather preset, or null when the race named none
+ * @param weatherType The CSP weather type to ask for, or null when there is none
  * @returns The section's keys and values
  */
 export const buildLighting = (
   conditions: Conditions,
   track: Track,
-  weather: Weather | null,
+  weatherType: number | null,
 ): Record<string, IniValue> => {
   const sunAngle = sunAngleFromTime(conditions.timeOfDay ?? DEFAULT_TIME_OF_DAY);
   const lighting: Record<string, IniValue> = {
@@ -304,15 +356,15 @@ export const buildLighting = (
   }
 
   // CSP weather controller, by folder id under extension/weather-controllers.
-  // This overrides the user's cfg/extension/weather_fx.ini for the race, so it
-  // decides whether our weather is honoured at all: PURE's dynamic `pureCtrl`
-  // ignores race weather and defaults to LAST_USED (the previous race's
-  // weather), while `pureCtrl static` reads the type from the race.
+  // This overrides the user's cfg/extension/weather_fx.ini for the race and does
+  // not put it back, so it is written only when the race names one. A controller
+  // whose manifest sets FOLLOWS_SELECTED_WEATHER to 0 ignores the type below and
+  // drives the weather from its own planner app instead.
   if (conditions.weatherController) {
     lighting.__CM_WEATHER_CONTROLLER = conditions.weatherController;
   }
-  if (weather?.type != null) {
-    lighting.__CM_WEATHER_TYPE = weather.type;
+  if (weatherType != null) {
+    lighting.__CM_WEATHER_TYPE = weatherType;
   }
   // Vanilla clamps SUN_ANGLE to +/-80; CSP honours this flag to allow night.
   if (Math.abs(sunAngle) > SUN_ANGLE_CLAMP) {

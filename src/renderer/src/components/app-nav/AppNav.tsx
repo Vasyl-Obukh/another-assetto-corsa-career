@@ -1,4 +1,6 @@
-import { CarIcon, MapIcon, WrenchIcon } from 'lucide-react';
+import {
+  CarIcon, FlagIcon, MapIcon, SettingsIcon, TrophyIcon, WrenchIcon,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,9 +16,12 @@ import type { NavId } from '@/lib/routes';
  * destination without an icon does not compile.
  */
 const NAV_ICONS: Record<NavId, ReactNode> = {
+  race: <FlagIcon />,
+  results: <TrophyIcon />,
   cars: <CarIcon />,
   tracks: <MapIcon />,
   diagnostics: <WrenchIcon />,
+  settings: <SettingsIcon />,
 };
 
 export const AppNav = () => {

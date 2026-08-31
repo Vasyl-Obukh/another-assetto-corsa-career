@@ -1,5 +1,5 @@
-// Integration spike: race definition -> race.ini -> acmanager://race/config ->
-// Content Manager -> AC (with CSP/PURE intact) -> race_out.json -> results.
+// The regression harness for src/core: race definition -> race.ini ->
+// acmanager://race/config -> Content Manager -> AC -> race_out.json -> results.
 
 import {
   cmdDry, cmdResults, cmdRun, cmdScan, cmdTestMode, cmdWatch, cmdWeather, cmdWeekend,

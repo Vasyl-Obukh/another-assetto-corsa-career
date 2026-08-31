@@ -1,6 +1,9 @@
 // Our own race definition format, which race.ini is generated from. AC's native
 // content/career/<SERIES>/series.ini is deliberately not used.
 
+import type { WeatherStep } from './weather-plan.ts';
+import type { WeatherType } from '../constants/weather-types.ts';
+
 /**
  * A session type, mapped to AC's numeric session codes when the INI is written.
  */
@@ -47,27 +50,25 @@ export interface SessionDefinition {
    * fourth on the grid. The AI keep their `[CAR_n]` order and the player is
    * inserted at this slot rather than swapped with whoever held it.
    *
-   * Honoured only in a launch with no qualifying session ahead of the race:
-   * qualifying sets the entire grid and this is disregarded, silently.
+   * Always honoured, now that a session is a launch of its own: qualifying
+   * overrides this only when it runs in the same launch, which can no longer
+   * happen.
    */
   startingPosition?: number;
   /**
    * Offset in days from the first day of the weekend, so 0 is the opening day
    * and 2 is race day on a three-day weekend. Defaults to 0.
-   *
-   * Sessions on different days can never share a launch, since a launch is one
-   * run of the game.
    */
   day?: number;
   /**
-   * "HH:MM", or hours as a number, overriding the weekend's own time of day for
-   * the launch this session opens.
+   * What this session overrides of the weekend's own conditions.
    *
-   * Only the first session of a launch is read: AC's [LIGHTING] SUN_ANGLE is
-   * written once per INI, so a launch has a single start time and the clock
-   * runs on from there.
+   * A session is a whole race.ini, so it carries its own weather, wind,
+   * temperature, track state and start time. Unset fields inherit from the
+   * weekend; weather is inherited as a group rather than field by field. Merge
+   * it with resolveConditions() rather than by hand.
    */
-  timeOfDay?: string | number;
+  conditions?: Conditions;
 }
 
 /**
@@ -161,13 +162,42 @@ export interface GridDefinition {
  */
 export interface Conditions {
   /**
-   * Weather preset folder ID.
+   * Weather preset folder ID, when the race names a specific installed preset.
+   *
+   * Mutually exclusive with `weatherType`, which is the more usual way to ask:
+   * PURE ships no weather folders at all and renders the type.
    */
   weather?: string;
   /**
+   * CSP weather type to ask the controller for.
+   *
+   * Takes precedence over `weather`. A preset is still resolved behind it -
+   * `[WEATHER] NAME` wants a folder and the road temperature wants its
+   * coefficient - but the type is what a controller actually reads.
+   */
+  weatherType?: WeatherType;
+  /**
    * CSP weather controller folder ID. Overrides the user's own weather_fx.ini.
+   *
+   * Two quite different things travel through this one field, because AC has
+   * one key for them. A controller that follows the selected weather is a
+   * renderer - Pure Static, Sol, Default. One that does not is dynamic weather
+   * in its own right: Pure, Sol 2.5 dynamic and Live ignore everything the race
+   * says about weather and drive it from their own planner app. Which is which
+   * is `WeatherController.follows.weather`, read from its manifest.
    */
   weatherController?: string;
+  /**
+   * What the weather does over the session, when it does not simply hold.
+   *
+   * One step, or none at all, is static weather and `weather` / `weatherType`
+   * say what it is. Two or more is a plan: the session runs its planner app,
+   * a plan is written for it, and the last step holds until the session ends,
+   * which is what makes this expressible for a race measured in laps.
+   *
+   * Only PURE and Sol can run one - see src/shared/utils/weather-system/.
+   */
+  weatherSteps?: WeatherStep[];
   /**
    * "HH:MM", or hours as a number.
    */

@@ -14,4 +14,12 @@ export interface WaitOptions {
    * Called once per poll, so a caller can show that it is still waiting.
    */
   onWait?: () => void;
+  /**
+   * Stops the wait early when aborted, resolving null as a timeout does.
+   *
+   * The CLI never needed one - Ctrl+C ends the process - but the app has to be
+   * able to stop watching without ending anything else, and the poll loop is
+   * otherwise a four hour commitment.
+   */
+  signal?: AbortSignal;
 }

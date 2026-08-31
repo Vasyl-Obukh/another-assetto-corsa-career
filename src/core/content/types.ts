@@ -81,6 +81,15 @@ export interface UiTrack {
    */
   pitboxes?: string | number;
   /**
+   * Lap length, written as a number or free text, in metres or kilometres
+   * depending on the author.
+   */
+  length?: string | number;
+  /**
+   * Track width in metres, written as a number or free text.
+   */
+  width?: string | number;
+  /**
    * Latitude then longitude, as degrees-minutes-seconds or decimal strings.
    */
   geotags?: string[];

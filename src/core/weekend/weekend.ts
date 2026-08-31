@@ -1,17 +1,10 @@
-// Splitting a race weekend into the launches AC allows, and carrying the grid
-// and the track across the seams between them.
+// Running a race weekend one session at a time, and carrying the grid and the
+// track across the seams between them.
 //
-// Four rules drive all of this, and every one of them was measured rather than
-// assumed - see the spike runbook in ROADMAP.md:
-//
-// 1. A launch holds any run of practice and qualifying, then at most one race,
-//    which ends it. A second race is listed in the weekend structure and is
-//    simply unreachable.
-// 2. Qualifying in the launch owns the grid; STARTING_POSITION is disregarded.
-// 3. Without qualifying in the launch, the grid is entirely ours - a one-based
-//    STARTING_POSITION for the player, [CAR_n] order for the AI.
-// 4. A launch either runs or it does not. Quitting a race does not abort it, so
-//    there is no partial state inside a launch to resume.
+// Every session is its own launch, so the grid is always ours: a one-based
+// STARTING_POSITION for the player, [CAR_n] order for the AI. Quitting a race
+// does not abort it, so nothing is partial inside a launch - only which of them
+// have run needs tracking.
 
 import {
   bestLapOrder,
@@ -20,7 +13,6 @@ import {
   gripAfter,
   lastQualifying,
   materialiseRace,
-  splitSessions,
 } from './utils.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
@@ -35,16 +27,16 @@ import type {
   WeekendPlan,
   WeekendState,
 } from '../../shared/types/index.ts';
+import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
 import { isPermutation } from '../results/index.ts';
 
 /**
- * Splits a weekend into the launches AC allows.
+ * Lowers a weekend into the launches that run it, one per session.
  *
  * The entry list is materialised once here and frozen into every launch, which
  * is what makes a driver the same driver all weekend: left as a bulk
- * description, skins and AI levels would be resolved afresh for each launch and
- * the feature would be run by a different field than the sprint.
+ * description, skins and AI levels would be re-rolled for each launch.
  * @param race The weekend, as a race definition whose sessions cover all of it
  * @param content Installed content, to resolve cars and liveries against
  * @returns The plan, with one entry per launch in the order they must be run
@@ -56,19 +48,17 @@ export const planWeekend = (race: RaceDefinition, content: Content): WeekendPlan
     ? race.sessions
     : [{ type: 'race', laps: DEFAULT_RACE_LAPS }];
 
-  let sessionsBefore = 0;
-  const launches: WeekendLaunch[] = splitSessions(sessions).map((group, index) => {
-    // The opening launch is left on the track state's own preset, so a
-    // single-launch weekend generates exactly what a plain race always did.
-    const startGrip = index === 0 ? undefined : gripAfter(race.conditions, sessionsBefore);
-    sessionsBefore += group.length;
+  const launches: WeekendLaunch[] = sessions.map((session, index) => {
+    // The opening session is left on the track state's own preset, so a
+    // one-session weekend generates exactly what a plain race always did.
+    const resolved = resolveConditions(race.conditions, session.conditions);
+    const startGrip = index === 0 ? undefined : gripAfter(resolved, index);
 
     return {
       index,
-      day: dayOf(group[0]),
-      hasQualifying: group.some((session) => session.type === 'qualify'),
-      hasRace: group.some((session) => session.type === 'race'),
-      race: materialiseRace(race, grid, group, { timeOfDay: group[0].timeOfDay, startGrip }),
+      day: dayOf(session),
+      session,
+      race: materialiseRace(race, grid, session, startGrip),
     };
   });
 
@@ -116,15 +106,15 @@ export const nextLaunch = (plan: WeekendPlan, state: WeekendState): WeekendLaunc
 );
 
 /**
- * The grid a launch should be run on, when the grid is ours to write.
+ * The grid a launch should be run on.
  *
- * Rule 2 is why this can return nothing: a launch with its own qualifying has
- * its grid built by AC, and writing STARTING_POSITION there would be a value
- * that is silently disregarded rather than an instruction.
+ * Always ours to write when the launch runs a race: qualifying can no longer
+ * share a launch with one, so STARTING_POSITION is always honoured. Nothing is
+ * returned for a session that lines nobody up.
  * @param plan The weekend plan
  * @param state How far through it we are
  * @param index Which launch to build a grid for
- * @returns The grid, or null when AC owns it or the launch runs no race
+ * @returns The grid, or null when the launch runs no race
  */
 export const startingGrid = (
   plan: WeekendPlan,
@@ -132,7 +122,7 @@ export const startingGrid = (
   index: number,
 ): StartingGrid | null => {
   const launch = plan.launches[index];
-  if (!launch?.hasRace || launch.hasQualifying) return null;
+  if (launch?.session.type !== 'race') return null;
 
   const size = plan.grid.length;
   const usable = state.completed.filter((record): record is LaunchRecord & { qualifyingOrder: number[] } => (
@@ -150,9 +140,8 @@ export const startingGrid = (
  * The [CAR_n] order a launch is written with.
  *
  * [CAR_0] is always the player: AC inserts them at STARTING_POSITION rather
- * than swapping them with whoever held the slot, so only the AI move. This is
- * what a result's car indices refer to, and so what they have to be read back
- * through.
+ * than swapping them with whoever held the slot, so only the AI move. A result's
+ * car indices refer to this order.
  * @param plan The weekend plan
  * @param state How far through it we are
  * @param index Which launch
@@ -233,13 +222,9 @@ export const advanceWeekend = (
   const size = plan.grid.length;
   const gridOrder = appliedOrder(plan, state, index);
   const qualifying = lastQualifying(raceOut, SESSION_TYPE.qualify);
-  // A result's car indices are positions in that launch's own [CAR_n] order,
-  // so they only mean anything after being mapped back through it. Today that
-  // mapping is always the identity, because AC owns the grid of any launch
-  // that qualifies and so such a launch is always run on entry order - but the
-  // order is recorded and applied rather than assumed, since nothing in the
-  // types says the two must stay in step. A field that is not the size we
-  // launched cannot be mapped at all.
+  // A result's car indices are positions in that launch's own [CAR_n] order, so
+  // they mean nothing until mapped back through it. A field that is not the size
+  // we launched cannot be mapped at all.
   const translatable = qualifying != null && (raceOut.players ?? []).length === size;
   const qualifyingOrder = translatable
     ? bestLapOrder(qualifying, size).map((car) => gridOrder[car] ?? car)

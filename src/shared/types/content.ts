@@ -292,6 +292,18 @@ export interface Track {
    */
   pitboxes: number | null;
   /**
+   * Lap length in metres, or null when ui_track.json does not say.
+   *
+   * Always metres, whatever the author wrote: they use metres and kilometres
+   * about equally often, and a figure whose unit depends on who made the track
+   * is not a figure.
+   */
+  lengthM: number | null;
+  /**
+   * Track width in metres, or null when ui_track.json does not say.
+   */
+  widthM: number | null;
+  /**
    * Real-world position, for CSP.
    */
   geotags: Geotags;
@@ -356,9 +368,53 @@ export interface Weather {
    */
   temperatureCoeff: number;
   /**
-   * Preset author, or null when unattributed.
+   * Preset author, or null when unattributed. Also the grouping the weather
+   * menu uses, since sorting forty-five presets by folder ID interleaves the
+   * Kunos seven, Sol's set and our own meaninglessly.
    */
   author: string | null;
+  /**
+   * When the preset is meant to be used, as `HH:MM-HH:MM`, or null when it says
+   * nothing. Sol and PURE presets use it heavily; a night preset at noon is
+   * something the menu can warn about rather than let through.
+   */
+  timeDiapason: string | null;
+  /**
+   * How much of the sky is covered, 0 to 1, from `[CLOUDS] COVER`.
+   */
+  cloudCover: number;
+  /**
+   * Rain figures CSP reads directly, or null when the preset carries no
+   * `[RAINFX]` section.
+   *
+   * Almost nothing does: on a Sol-equipped library six of forty-five presets
+   * have one, and all six are ours. That is the whole reason
+   * `src/core/weather/` installs its own - PURE reads these values instead of
+   * resolving the weather type, which makes rain deterministic.
+   */
+  rain: WeatherRain | null;
+  /**
+   * Whether the preset forces headlights on, from `[CAR_LIGHTS] FORCE_ON`.
+   */
+  forceHeadlights: boolean;
+}
+
+/**
+ * The rain a weather preset asks CSP for, all 0 to 1.
+ */
+export interface WeatherRain {
+  /**
+   * How hard it falls.
+   */
+  intensity: number;
+  /**
+   * How wet the surface gets.
+   */
+  wetness: number;
+  /**
+   * How much standing water collects.
+   */
+  water: number;
 }
 
 /**
@@ -381,6 +437,43 @@ export interface WeatherController {
    * Manifest description, or null when absent.
    */
   description: string | null;
+  /**
+   * Controller version from the manifest, or null when it names none.
+   */
+  version: string | null;
+  /**
+   * What the controller takes from the race, and what it decides for itself.
+   */
+  follows: WeatherFollows;
+}
+
+/**
+ * Whether a controller honours what the race asked for.
+ *
+ * "no" is the load-bearing one: a controller that does not follow the selected
+ * weather ignores it entirely and drives the weather from its own planner app.
+ * PURE's manifest says as much beside the flag - "this parameter is static and
+ * moves weather controller into a different section" - so those are not
+ * controllers to choose between at all, they are dynamic weather.
+ */
+export type WeatherFollow = 'yes' | 'no' | 'depends';
+
+/**
+ * A controller's three follow flags.
+ */
+export interface WeatherFollows {
+  /**
+   * Whether the race's weather is honoured.
+   */
+  weather: WeatherFollow;
+  /**
+   * Whether the race's ambient temperature is honoured.
+   */
+  temperature: WeatherFollow;
+  /**
+   * Whether the race's wind is honoured.
+   */
+  wind: WeatherFollow;
 }
 
 /**
@@ -515,4 +608,23 @@ export interface ContentChange {
    * How many entries went away, per collection.
    */
   removed: ContentCounts;
+}
+
+/**
+ * Whether Custom Shaders Patch's weather and rain modules are switched on.
+ *
+ * Separate from the weather controller and from each other, and either being off
+ * changes what a race can meaningfully be asked for: with WeatherFX off no
+ * controller runs at all, and with RainFX off a wet weather is simply never wet.
+ * Neither reports itself anywhere, which is the reason to read them.
+ */
+export interface WeatherFxState {
+  /**
+   * Whether WeatherFX runs at all.
+   */
+  weatherFx: boolean;
+  /**
+   * Whether RainFX draws rain.
+   */
+  rainFx: boolean;
 }

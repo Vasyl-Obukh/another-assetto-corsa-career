@@ -4,13 +4,13 @@ import path from 'node:path';
 import { DEFAULT_RACE, RACES_DIR } from './constants.ts';
 import type { LoadedRace } from './types.ts';
 import { validateRace } from '../core/race-ini/index.ts';
-import { formatLapTime } from '../core/results/index.ts';
 import { CONTENT_ISSUE_REASONS } from '../shared/constants/index.ts';
 import { SCAN_HINT } from '../shared/errors/index.ts';
 import type { AppErrorInfo } from '../shared/errors/index.ts';
 import type {
   Content, ContentIssue, RaceDefinition, RaceSummary,
 } from '../shared/types/index.ts';
+import { formatLapTime } from '../shared/utils/lap-time/index.ts';
 
 /**
  * Loads a race definition by name or path.

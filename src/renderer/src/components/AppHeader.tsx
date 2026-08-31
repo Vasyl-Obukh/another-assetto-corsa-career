@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
 import { AppNav } from './app-nav/index.ts';
-import { LanguageSelect } from './LanguageSelect.tsx';
-import { ThemeSelect } from './ThemeSelect.tsx';
 
 export const AppHeader = () => {
   const { t } = useTranslation();
@@ -12,11 +10,6 @@ export const AppHeader = () => {
       <div className="flex min-w-0 items-center gap-6">
         <h1 className="shrink-0 text-lg font-semibold tracking-tight">{t('app.title')}</h1>
         <AppNav />
-      </div>
-
-      <div className="flex shrink-0 items-center gap-3">
-        <ThemeSelect />
-        <LanguageSelect />
       </div>
     </header>
   );

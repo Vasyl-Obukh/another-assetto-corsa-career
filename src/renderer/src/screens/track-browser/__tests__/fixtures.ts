@@ -15,6 +15,8 @@ export const makeTrack = (track: Pick<Track, 'id'> & Partial<Track>): Track => (
   name: track.id,
   country: null,
   pitboxes: null,
+  lengthM: null,
+  widthM: null,
   geotags: { lat: null, lon: null },
   provenance: {
     source: ContentSource.MOD, pack: null, maker: null, distributor: null,
@@ -62,3 +64,19 @@ export const makeGroupOf = (
 
   return { ...makeGroup({ id }), layouts };
 };
+
+/**
+ * Builds a track of several layouts of stated lengths.
+ * @param id Track folder name
+ * @param lengths One lap length per layout, null where the layout states none
+ * @returns A complete TrackGroup
+ */
+export const makeGroupOfLengths = (
+  id: string,
+  lengths: readonly (number | null)[],
+): TrackGroup => ({
+  ...makeGroup({ id }),
+  layouts: lengths.map((lengthM, index) => makeTrack({
+    id, layout: `l${index}`, name: `${id} ${index}`, lengthM,
+  })),
+});

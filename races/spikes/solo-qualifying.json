@@ -1,0 +1,42 @@
+{
+  "id": "spike-solo-qualifying",
+  "name": "Spike - a launch that is nothing but qualifying",
+  "notes": "The whole one-session-per-launch model rests on this. Practice, qualifying and a race in one launch is proven; qualifying ALONE has never been driven, and if it does not come back with classifiable laps then a race can never inherit a grid from a qualifying session that ran in its own launch, and the model has to keep those two bundled. YOU MUST SET A VALID FLYING LAP, and so must the AI - five minutes is enough at Magione for everyone to get a clean one in. What has to be true afterwards, read with `npm run results`: the file exists at all; it holds exactly one session, of AC type 2; that session's `laps` array carries entries for the cars that ran, with times above zero; and the order bestLapOrder() derives from them is a full permutation of the six-car field. That last point is what advanceWeekend() needs to record a qualifyingOrder, and a field that is not the size we launched is refused rather than guessed at. Note also whether the session ends by itself when the clock runs out or whether it waits for something - a launch that never terminates is as fatal to the model as one that writes nothing. Second question, free with the same run: does a qualifying session on its own carry a raceResult? It carried none when it ran ahead of a race, but nobody had set a time in that capture either.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 6,
+    "aiLevel": 88,
+    "aiLevelMin": 78,
+    "aiAggression": 30,
+    "opponents": [
+      { "driver": "Car 1" },
+      { "driver": "Car 2" },
+      { "driver": "Car 3" },
+      { "driver": "Car 4" },
+      { "driver": "Car 5" }
+    ]
+  },
+
+  "sessions": [
+    { "type": "qualify", "name": "Qualifying", "minutes": 5, "spawnSet": "PIT" }
+  ],
+
+  "conditions": {
+    "weather": "3_clear",
+    "timeOfDay": "12:00",
+    "ambient": 22,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}

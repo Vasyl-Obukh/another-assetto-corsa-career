@@ -58,7 +58,10 @@ export const clearState = async (raceId: string): Promise<void> => {
 };
 
 /**
- * Says where a launch's grid comes from, in the terms the four rules use.
+ * Says where a session's grid comes from.
+ *
+ * There is no longer a case where AC owns it: qualifying cannot share a launch
+ * with a race, so a race session is always lined up by us.
  * @param plan The weekend plan
  * @param state How far through it we are
  * @param index Which launch
@@ -70,19 +73,21 @@ export const describeGrid = (
   index: number,
 ): string => {
   const launch = plan.launches[index];
-  if (!launch.hasRace) return 'no race in this launch';
-  if (launch.hasQualifying) return 'built by AC from this launch\'s own qualifying';
+  if (launch.session.type !== 'race') return 'no race in this session';
 
-  const source = plan.launches.slice(0, index).reverse().find((earlier) => earlier.hasQualifying);
+  const source = plan.launches
+    .slice(0, index)
+    .reverse()
+    .find((earlier) => earlier.session.type === 'qualify');
   if (source && !state.completed.some((record) => record.index === source.index)) {
-    return `inherits launch ${source.index} qualifying, which has not run yet`;
+    return `inherits session ${source.index} qualifying, which has not run yet`;
   }
 
   const grid = startingGrid(plan, state, index);
-  if (!grid) return 'no race in this launch';
+  if (!grid) return 'no race in this session';
 
   return source
-    ? `from launch ${source.index} qualifying - player starts P${grid.playerSlot}`
+    ? `from session ${source.index} qualifying - player starts P${grid.playerSlot}`
     : `no qualifying this weekend - AI on skill, player starts P${grid.playerSlot}`;
 };
 
@@ -93,19 +98,19 @@ export const describeGrid = (
  * @returns The lines to print
  */
 export const describePlan = (plan: WeekendPlan, state: WeekendState): string[] => {
-  const sessions = plan.launches.reduce((total, launch) => total + (launch.race.sessions?.length ?? 0), 0);
-  const launches = plan.launches.length === 1 ? '1 launch' : `${plan.launches.length} launches`;
+  // One launch per session, so there is only one number to report.
+  const count = plan.launches.length === 1 ? '1 session' : `${plan.launches.length} sessions`;
   const lines = [
     `\n${plan.raceName}  (${plan.raceId})`,
-    `  ${plan.grid.length} cars, ${sessions} sessions, ${launches}\n`,
+    `  ${plan.grid.length} cars, ${count}, one launch each\n`,
   ];
 
   plan.launches.forEach((launch) => {
     const done = state.completed.find((record) => record.index === launch.index);
     const status = done ? 'done' : (launch.index === state.completed.length ? 'next' : 'pending');
-    const names = (launch.race.sessions ?? []).map((session) => session.name ?? session.type);
+    const name = launch.session.name ?? launch.session.type;
 
-    lines.push(`  [${launch.index}] day ${launch.day}  ${status.padEnd(7)}  ${names.join(', ')}`);
+    lines.push(`  [${launch.index}] day ${launch.day}  ${status.padEnd(7)}  ${name}`);
     lines.push(`      grid    ${describeGrid(plan, state, launch.index)}`);
 
     const grip = launch.race.conditions?.startGrip;
@@ -113,7 +118,7 @@ export const describePlan = (plan: WeekendPlan, state: WeekendState): string[] =
       // Both figures, because an optimum track starts at 100% and carries
       // nothing - printing only the first would read as a gain that never was.
       const preset = TRACK_STATE[launch.race.conditions?.trackState ?? 'fast'] ?? TRACK_STATE.fast;
-      lines.push(`      grip    starts at ${grip}%, against ${preset.SESSION_START}% for a fresh launch`);
+      lines.push(`      grip    starts at ${grip}%, against ${preset.SESSION_START}% for a fresh track`);
     }
     if (done) lines.push(`      result  ${done.archive}`);
   });

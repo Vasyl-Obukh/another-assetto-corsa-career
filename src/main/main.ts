@@ -5,9 +5,10 @@ import { registerContentScheme, serveContent } from './content-protocol/index.ts
 import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
 import { createContentStore } from './content-store/index.ts';
 import { registerHandlers, send } from './ipc/index.ts';
+import { createRaceStore } from './race-store/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
-import { createWindow } from './window/index.ts';
+import { createWindow, followRace } from './window/index.ts';
 
 // The app sits alongside a running game; a second copy racing it for the same
 // settings file and the same AC folders helps nobody.
@@ -29,8 +30,9 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(async () => {
     const settings = await createSettingsStore(app.getPath('userData'));
     const content = await createContentStore(app.getPath('userData'));
+    const race = await createRaceStore(app.getPath('userData'), content, settings);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content);
+    registerHandlers(settings, content, race);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
@@ -56,6 +58,14 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow) send(mainWindow, 'content:changed', change);
     });
 
+    race.onChange((setup) => {
+      if (!mainWindow) return;
+      send(mainWindow, 'race:changed', setup);
+      // The app sits alongside a running game, so it gets out of the way for
+      // the length of a launch and comes back when the result lands.
+      followRace(mainWindow, setup.status.phase);
+    });
+
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         mainWindow = createWindow(settings, preload, rendererUrl);
@@ -65,6 +75,7 @@ if (!app.requestSingleInstanceLock()) {
     app.on('before-quit', () => {
       void settings.flush();
       void content.flush();
+      void race.flush();
       content.dispose();
     });
   }, (error: unknown) => {

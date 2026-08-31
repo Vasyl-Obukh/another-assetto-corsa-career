@@ -52,6 +52,8 @@ export const makeTrack = (id: string): Track => ({
   name: id,
   country: null,
   pitboxes: 24,
+  lengthM: null,
+  widthM: null,
   geotags: { lat: null, lon: null },
 });
 
@@ -61,7 +63,12 @@ export const makeTrack = (id: string): Track => ({
  * @returns A complete Weather
  */
 export const makeWeather = (id: string): Weather => ({
-  id, name: id, type: null, temperatureCoeff: 0, author: null,
+  id,
+  name: id,
+  type: null,
+  temperatureCoeff: 0,
+  author: null,
+  timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
 });
 
 /**
@@ -70,7 +77,11 @@ export const makeWeather = (id: string): Weather => ({
  * @returns A complete WeatherController
  */
 export const makeController = (id: string): WeatherController => ({
-  id, name: id, author: null, description: null,
+  id,
+  name: id,
+  author: null,
+  description: null,
+  version: null, follows: { weather: 'yes', temperature: 'yes', wind: 'yes' },
 });
 
 /**

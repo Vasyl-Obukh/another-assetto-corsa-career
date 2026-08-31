@@ -22,16 +22,28 @@ export type ErrorCode =
   | 'race.track.required'
   | 'race.track.notInstalled'
   | 'race.weather.notInstalled'
+  | 'race.weatherType.unavailable'
   | 'race.weatherController.notInstalled'
   | 'race.playerCar.required'
   | 'race.car.notInstalled'
   | 'race.car.noSkins'
   | 'race.grid.exceedsPitboxes'
   | 'race.session.unknownType'
+  // src/core/weather-plan
+  | 'weatherPlan.weather.unmappable'
+  | 'weatherPlan.planner.notInstalled'
+  | 'weatherPlan.plan.openEndedStep'
   // src/core/weekend
   | 'weekend.complete'
   | 'weekend.launch.outOfRange'
   | 'weekend.state.stale'
+  // src/main/race-store
+  | 'run.inFlight'
+  | 'run.notPlanned'
+  | 'run.notLaunched'
+  | 'run.resultTimedOut'
+  | 'run.result.notFound'
+  | 'run.result.notRecorded'
   // src/main/ipc
   | 'ipc.noWindow'
   | 'ipc.pathsNotLocated';

@@ -6,7 +6,7 @@ import type { TFunction } from 'i18next';
 
 import { DEFAULT_CURRENCY, FALLBACK_LANGUAGE, LOCALES } from './constants.ts';
 import type { Formatters } from './types.ts';
-import { CONTENT_ISSUE_REASONS, MS_PER_SECOND } from '../../../shared/constants';
+import { CONTENT_ISSUE_REASONS, M_PER_KM, MS_PER_SECOND } from '../../../shared/constants';
 import type { AppErrorInfo } from '../../../shared/errors';
 import type { ContentIssueReason, Language } from '../../../shared/types';
 
@@ -121,6 +121,24 @@ export const formattersFor = (language: Language): Formatters => {
           style: 'unit', unit: 'second', unitDisplay: 'narrow', maximumFractionDigits: 1,
         }),
       ).format(ms / MS_PER_SECOND);
+    },
+
+    formatDistance: (metres) => {
+      if (metres < M_PER_KM) {
+        return cached(
+          `u:${locale}:m`,
+          () => new Intl.NumberFormat(locale, {
+            style: 'unit', unit: 'meter', unitDisplay: 'short', maximumFractionDigits: 0,
+          }),
+        ).format(metres);
+      }
+
+      return cached(
+        `u:${locale}:km`,
+        () => new Intl.NumberFormat(locale, {
+          style: 'unit', unit: 'kilometer', unitDisplay: 'short', maximumFractionDigits: 3,
+        }),
+      ).format(metres / M_PER_KM);
     },
 
     compare: (a, b) => cached(

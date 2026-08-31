@@ -10,7 +10,6 @@ import path from 'node:path';
 
 import {
   DEFAULT_TIMEOUT,
-  NO_LAP_TIME,
   POLL_INTERVAL,
   READ_ATTEMPTS,
   READ_BACKOFF_BASE_MS,
@@ -20,7 +19,6 @@ import {
 } from './constants.ts';
 import type { WaitOptions } from './types.ts';
 import { isPermutation, mtimeOf, sleepUntilEvent } from './utils.ts';
-import { MS_PER_MINUTE, MS_PER_SECOND } from '../../shared/constants/index.ts';
 import type {
   ArchiveMeta, RaceOut, RaceSummary, Standing, StandingsOrder,
 } from '../../shared/types/index.ts';
@@ -67,12 +65,14 @@ export const readStable = async <T>(
 /**
  * Waits for a new race_out.json to appear, then returns its parsed contents.
  * @param raceOutPath Absolute path to race_out.json
- * @param options When to start counting from, how long to wait, and progress reporting
- * @returns The parsed results, or null when the wait timed out
+ * @param options When to start counting from, how long to wait, progress reporting and cancellation
+ * @returns The parsed results, or null when the wait timed out or was aborted
  */
 export const waitForResults = async (
   raceOutPath: string,
-  { since = Date.now(), timeoutMs = DEFAULT_TIMEOUT, onWait }: WaitOptions = {},
+  {
+    since = Date.now(), timeoutMs = DEFAULT_TIMEOUT, onWait, signal,
+  }: WaitOptions = {},
 ): Promise<RaceOut | null> => {
   const deadline = Date.now() + timeoutMs;
   const dir = path.dirname(raceOutPath);
@@ -80,19 +80,22 @@ export const waitForResults = async (
 
   // fs.watch only wakes the poll loop early; polling is what guarantees we notice.
   const wakeups: (() => void)[] = [];
+  const wake = (): void => { while (wakeups.length) wakeups.pop()?.(); };
+
   let watcher;
   try {
     watcher = watch(dir, (_event, changed) => {
-      if (!changed || changed.toString().toLowerCase() === filename) {
-        while (wakeups.length) wakeups.pop()?.();
-      }
+      if (!changed || changed.toString().toLowerCase() === filename) wake();
     });
   } catch {
     // Directory may not exist yet - polling still covers it.
   }
 
+  // Aborting cuts the current sleep short rather than waiting out the interval.
+  signal?.addEventListener('abort', wake, { once: true });
+
   try {
-    while (Date.now() < deadline) {
+    while (Date.now() < deadline && signal?.aborted !== true) {
       const mtime = await mtimeOf(raceOutPath);
       if (mtime && mtime > since) {
         const parsed = await readStable<RaceOut>(raceOutPath);
@@ -102,6 +105,7 @@ export const waitForResults = async (
       await sleepUntilEvent(POLL_INTERVAL, wakeups);
     }
   } finally {
+    signal?.removeEventListener('abort', wake);
     watcher?.close();
   }
 
@@ -161,10 +165,8 @@ export const summarise = (raceOut: RaceOut): RaceSummary => {
       };
     });
 
-    // AC writes its own finishing order on race sessions, and it is the one
-    // classification that cannot inherit a bug in ours - the known totalTime
-    // bug below being exactly the sort it routes around. Practice and
-    // qualifying carry none, so those stay inferred.
+    // AC's own finishing order is the one classification that cannot inherit a
+    // bug in ours. Practice and qualifying carry none, so those stay inferred.
     const isRace = session.type === SESSION_TYPE_RACE;
     const official = isRace && isPermutation(session.raceResult, players.length)
       ? session.raceResult
@@ -202,19 +204,4 @@ export const summarise = (raceOut: RaceOut): RaceSummary => {
   });
 
   return { track: raceOut.track, sessions };
-};
-
-/**
- * Renders a lap time the way a timing screen would.
- * @param ms The lap time in milliseconds, or null when none was set
- * @returns The time as m:ss.mmm, or a placeholder when there is none
- */
-export const formatLapTime = (ms: number | null): string => {
-  if (ms == null || ms <= 0) return NO_LAP_TIME;
-
-  const minutes = Math.floor(ms / MS_PER_MINUTE);
-  const seconds = Math.floor((ms % MS_PER_MINUTE) / MS_PER_SECOND);
-  const millis = ms % MS_PER_SECOND;
-
-  return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 };

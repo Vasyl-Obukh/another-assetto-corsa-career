@@ -9,6 +9,11 @@ import path from 'node:path';
 import {
   ARCMINUTES_PER_DEGREE,
   ARCSECONDS_PER_DEGREE,
+  BARE_LENGTH_IS_KM_BELOW,
+  MAX_TRACK_LENGTH_M,
+  MAX_TRACK_WIDTH_M,
+  MIN_TRACK_LENGTH_M,
+  MIN_TRACK_WIDTH_M,
   SKINS_DIR,
   TRACKS_DIR,
   UI_CAR_FILE,
@@ -17,8 +22,13 @@ import {
   UI_TRACK_FILE,
 } from './constants.ts';
 import type { JsonRead, LooseJson, UiTrack } from './types.ts';
-import type { Track } from '../../shared/types/index.ts';
+import { M_PER_KM, M_PER_MILE } from '../../shared/constants/index.ts';
+import type { Track, WeatherFollow, WeatherRain } from '../../shared/types/index.ts';
 import { trackProvenance } from '../content-catalogue/index.ts';
+import type { IniSection } from '../ini/index.ts';
+import {
+  inRange, parseDecimalNumber, parseLooseNumber, specString,
+} from '../loose-number/index.ts';
 
 /**
  * Escapes raw newlines and tabs that sit inside a JSON string literal.
@@ -187,15 +197,10 @@ const dirStamp = async (dir: string): Promise<string> => {
  * Fingerprints one car and every livery it ships, so an unchanged one need not
  * be read again.
  *
- * The ui file is stamped rather than its folder, because a folder's mtime moves
- * only when its entries are added or removed - not when a mod author saves over
- * ui_car.json, which is the commonest update there is. Every livery's own
- * ui_skin.json needs the same treatment for the same reason: the skins folder's
- * stamp covers liveries appearing and disappearing and sees nothing at all when
- * one of them is edited in place.
- *
- * Skins are sorted before stamping, for the reason fingerprintTrack records
- * below - the two orders a skin list can arrive in must encode identically.
+ * The ui files are stamped rather than their folders: a folder's mtime moves
+ * only when entries are added or removed, not when a mod author saves over
+ * ui_car.json or a ui_skin.json. Skins are sorted first, for the reason
+ * fingerprintTrack records below.
  * @param carsDir The content/cars directory
  * @param id Car folder name
  * @param skins The livery folder names this car is known to have
@@ -223,13 +228,10 @@ export const fingerprintCar = async (
 /**
  * Fingerprints one track and all of its layouts.
  *
- * The ui folder's own stamp covers layouts appearing and disappearing, so when
- * it has not moved the layout list cannot have changed - which is what lets a
- * track be revalidated without listing its directory again.
- *
- * Layouts are sorted before stamping. A fresh scan discovers them in readdir
- * order while a later one reads them back off entries sorted by display name,
- * and encoding those two orders differently made every multi-layout track look
+ * The ui folder's own stamp covers layouts appearing and disappearing, so an
+ * unmoved one means the layout list cannot have changed. Layouts are sorted
+ * first: a fresh scan finds them in readdir order and a revalidation in display
+ * order, and encoding those differently made every multi-layout track look
  * changed on every scan.
  * @param contentDir The AC content directory
  * @param id Track folder name
@@ -313,6 +315,43 @@ export const parseGeotag = (value: unknown): number | null => {
 };
 
 /**
+ * Reads a lap length out of whatever the author wrote, always as metres.
+ *
+ * The unit is the whole difficulty. ui_track.json carries "5793", "5.793",
+ * "20,832", "4.5 km" and "2.2 miles" for the same kind of field, and the
+ * separator rule in loose-number already turns "5.793" and "20,832" into metres
+ * for us. What is left is a small bare number, which can only be kilometres.
+ * @param value The raw ui_track.json length value
+ * @returns Length in metres, or null when it could not be read
+ */
+export const parseTrackLength = (value: unknown): number | null => {
+  const text = specString(value) ?? '';
+  const km = /km(?![a-z])/i.test(text);
+  const miles = /mi(?:le)?s?(?![a-z])/i.test(text);
+
+  // A written unit settles the separator too: "13.626km" is Le Mans, not
+  // thirteen thousand kilometres. A bare figure keeps the thousands rule, which
+  // is what makes "20,832" and "5.793" both come out as metres.
+  const number = km || miles ? parseDecimalNumber(value) : parseLooseNumber(value);
+  if (number === null) return null;
+
+  let metres = number;
+  if (miles) metres = number * M_PER_MILE;
+  else if (km || number < BARE_LENGTH_IS_KM_BELOW) metres = number * M_PER_KM;
+
+  return inRange(metres, MIN_TRACK_LENGTH_M, MAX_TRACK_LENGTH_M);
+};
+
+/**
+ * Reads a track width, which authors write in metres and nothing else.
+ * @param value The raw ui_track.json width value
+ * @returns Width in metres, or null when it could not be read
+ */
+export const parseTrackWidth = (value: unknown): number | null => (
+  inRange(parseLooseNumber(value), MIN_TRACK_WIDTH_M, MAX_TRACK_WIDTH_M)
+);
+
+/**
  * Builds a track entry from one parsed ui_track.json.
  * @param id Track folder name
  * @param layout Layout folder name, or an empty string for single-layout tracks
@@ -330,7 +369,45 @@ export const makeTrack = (id: string, layout: string, ui: UiTrack): Track => {
     name: ui.name ?? id,
     country: ui.country ?? null,
     pitboxes: Number.isFinite(pitboxes) ? pitboxes : null,
+    lengthM: parseTrackLength(ui.length),
+    widthM: parseTrackWidth(ui.width),
     geotags: { lat: parseGeotag(lat), lon: parseGeotag(lon) },
     provenance: trackProvenance(id, layout),
+  };
+};
+
+/**
+ * Reads a weather controller's follow flag.
+ *
+ * Three answers rather than two, because the flag is not always a literal: PURE
+ * and Live write `FOLLOWS_SELECTED_TEMPERATURE = not SETTINGS/REAL_TEMPERATURE`,
+ * a query into their own settings. Reporting that as "depends" beats guessing,
+ * which would be a silent wrong-weather bug. An absent flag is "yes", which is
+ * how the CSP-shipped controllers declare that they follow the race.
+ * @param value The raw manifest value, or undefined when the key is absent
+ * @returns Whether the controller honours what the race asked for
+ */
+export const parseFollows = (value: string | undefined): WeatherFollow => {
+  if (value === undefined) return 'yes';
+
+  const trimmedValue = value.trim();
+  if (trimmedValue === '0') return 'no';
+  if (trimmedValue === '1' || trimmedValue === '') return 'yes';
+
+  return 'depends';
+};
+
+/**
+ * Reads a `[RAINFX]` section into rain figures.
+ * @param section The section, or undefined when the preset carries none
+ * @returns The figures, or null when there is no section to read
+ */
+export const parseRain = (section: IniSection | undefined): WeatherRain | null => {
+  if (!section) return null;
+
+  return {
+    intensity: parseFloat(section.INTENSITY ?? '0') || 0,
+    wetness: parseFloat(section.WETNESS ?? '0') || 0,
+    water: parseFloat(section.WATER ?? '0') || 0,
   };
 };

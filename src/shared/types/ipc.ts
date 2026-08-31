@@ -6,9 +6,18 @@ import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
 } from './content-query.ts';
 import type {
-  Car, ContentChange, ContentIssue, ContentSummary, TrackGroup,
+  Car,
+  ContentChange,
+  ContentIssue,
+  ContentSummary,
+  Track,
+  TrackGroup,
+  Weather,
+  WeatherController,
 } from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
+import type { RaceSetup, ResultRecord } from './race-run.ts';
+import type { RaceDefinition } from './race.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
 
@@ -62,10 +71,62 @@ export interface IpcContract {
    */
   'content:trackFacets': { req: { query?: TrackQuery }; res: TrackFacets };
   /**
+   * One track layout by its key - the folder ID for a single-layout track,
+   * "<id>/<layout>" otherwise.
+   *
+   * Null rather than an error, for the same reason content:car is: a search
+   * cannot resolve a single track, and a track uninstalled while it is named by
+   * a race is an ordinary outcome rather than a failure.
+   */
+  'content:track': { req: { key: string }; res: Track | null };
+  /**
+   * Every installed weather preset and CSP weather controller.
+   *
+   * Not paged or filtered: a large library holds thousands of cars and a few
+   * dozen weathers, so the race setup screen takes the lot and puts them in a
+   * pair of menus.
+   */
+  'content:weather': { req: void; res: { weather: Weather[]; controllers: WeatherController[] } };
+  /**
    * Everything the last scan found broken, so it can be reported rather than
    * silently missing.
    */
   'content:issues': { req: void; res: ContentIssue[] };
+  /**
+   * The race being set up, how it splits into launches, and what is stopping it.
+   */
+  'race:get': { req: void; res: RaceSetup };
+  /**
+   * Replace the race being set up, re-plan it and re-validate it.
+   *
+   * The renderer sends the whole definition rather than a patch: main owns the
+   * value, and a patch would mean the rules living in two places. Weekend
+   * progress is discarded when the new definition no longer plans the same
+   * launches, since a half-run weekend cannot be carried onto a different one.
+   */
+  'race:set': { req: RaceDefinition; res: RaceSetup };
+  /**
+   * Launch the next launch that has not been run, and start watching for its
+   * result. Resolves as soon as Content Manager has been handed the URI; the
+   * result arrives later as a race:changed push.
+   */
+  'race:launch': { req: void; res: RaceSetup };
+  /**
+   * Stop waiting for a result, without advancing the weekend.
+   */
+  'race:cancel': { req: void; res: RaceSetup };
+  /**
+   * Forget weekend progress so the race starts again from its first launch.
+   */
+  'race:reset': { req: void; res: RaceSetup };
+  /**
+   * Every result the app has archived, newest first.
+   */
+  'race:results': { req: void; res: ResultRecord[] };
+  /**
+   * One archived result by file name.
+   */
+  'race:result': { req: { file: string }; res: ResultRecord };
   /**
    * Read the current settings.
    */
@@ -111,6 +172,15 @@ export interface IpcEvents {
    * Content was installed or removed while the app was open.
    */
   'content:changed': ContentChange;
+  /**
+   * The race being set up changed, or the launch in flight moved on.
+   *
+   * One payload rather than several events: a launch finishing changes the
+   * status, the weekend progress and what the next launch will be at the same
+   * instant, and pushing those separately would let the screen paint a state
+   * that never existed.
+   */
+  'race:changed': RaceSetup;
 }
 
 /**

@@ -99,3 +99,34 @@ export const SCAN_CONCURRENCY = 32;
  * flight, which is exactly the spike the outer limit exists to prevent.
  */
 export const SKIN_CONCURRENCY = 8;
+
+/**
+ * Below this, a bare length is kilometres rather than metres.
+ *
+ * ui_track.json is written in both and rarely says which: Kunos put "5793" for
+ * Brands Hatch and mods put "4.5" for the same kind of circuit. Nothing anyone
+ * races on is 100 metres round, so a small bare number can only be kilometres.
+ */
+export const BARE_LENGTH_IS_KM_BELOW = 100;
+
+/**
+ * Shortest plausible lap, in metres. A drag strip is 400.
+ */
+export const MIN_TRACK_LENGTH_M = 100;
+
+/**
+ * Longest plausible lap, in metres. Targa Florio mods run to about 72 km, so
+ * this is generous on purpose and only there to reject a decimal point in the
+ * wrong place.
+ */
+export const MAX_TRACK_LENGTH_M = 150000;
+
+/**
+ * Narrowest plausible track, in metres.
+ */
+export const MIN_TRACK_WIDTH_M = 3;
+
+/**
+ * Widest plausible track, in metres.
+ */
+export const MAX_TRACK_WIDTH_M = 100;

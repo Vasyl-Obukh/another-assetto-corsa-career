@@ -7,6 +7,9 @@ import { path, ROUTE } from '@/lib/routes';
 import { CarBrowser } from '@/screens/car-browser';
 import { CarDetail } from '@/screens/car-detail';
 import { Diagnostics } from '@/screens/diagnostics';
+import { Race } from '@/screens/race';
+import { ResultDetail, Results } from '@/screens/results';
+import { Settings } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
 import { TrackBrowser } from '@/screens/track-browser';
 
@@ -26,6 +29,9 @@ export const App = ({ initialReport }: AppProps) => {
 
       <main className="min-h-0 flex-1">
         <Routes>
+          <Route path={ROUTE.race} element={<Race />} />
+          <Route path={ROUTE.results} element={<Results />} />
+          <Route path={ROUTE.result} element={<ResultDetail />} />
           <Route path={ROUTE.cars} element={<CarBrowser />} />
           <Route path={ROUTE.car} element={<CarDetail />} />
           <Route path={ROUTE.tracks} element={<TrackBrowser />} />
@@ -33,7 +39,8 @@ export const App = ({ initialReport }: AppProps) => {
             path={ROUTE.diagnostics}
             element={<Diagnostics initialReport={initialReport} />}
           />
-          <Route path="*" element={<Navigate to={path.cars()} replace />} />
+          <Route path={ROUTE.settings} element={<Settings />} />
+          <Route path="*" element={<Navigate to={path.race()} replace />} />
         </Routes>
       </main>
     </div>

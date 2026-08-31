@@ -49,6 +49,16 @@ export interface Formatters {
    */
   formatDuration(ms: number): string;
   /**
+   * Formats a distance, switching between metres and kilometres.
+   *
+   * Which unit reads best depends on the figure: a 400 metre drag strip is not
+   * 0.4 km, and the Nordschleife is not 20,832 m. The switch is at a kilometre,
+   * which is also where circuits stop being measured in metres by anyone.
+   * @param metres The distance in metres
+   * @returns The distance with a localised unit
+   */
+  formatDistance(metres: number): string;
+  /**
    * Compares two display strings for sorting, in the active locale.
    *
    * Case- and accent-insensitive, and numeric, so Citroen sorts beside Citroen

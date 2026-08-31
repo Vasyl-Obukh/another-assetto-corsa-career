@@ -1,0 +1,42 @@
+{
+  "id": "spike-solo-practice",
+  "name": "Spike - a launch that is nothing but practice",
+  "notes": "The companion to solo-qualifying, and the cheaper half. One session per launch makes a practice-only launch an ordinary thing rather than an oddity, so it has to be known to run and to write a result - a practice session sets no grid and settles nothing about ordering, but a launch that hangs or writes nothing would still strand a weekend on its first session. Three minutes is enough. What has to be true, read with `npm run results`: one session, of AC type 1, with laps for whoever set one, and the launch ending by itself when the clock runs out. Nothing here needs a fast lap - drive a couple and come in. Worth noting whether AC offers anything but 'close' at the end of it, since that is what decides whether returning to the app between sessions is one click or several.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 6,
+    "aiLevel": 88,
+    "aiLevelMin": 78,
+    "aiAggression": 30,
+    "opponents": [
+      { "driver": "Car 1" },
+      { "driver": "Car 2" },
+      { "driver": "Car 3" },
+      { "driver": "Car 4" },
+      { "driver": "Car 5" }
+    ]
+  },
+
+  "sessions": [
+    { "type": "practice", "name": "Practice", "minutes": 3, "spawnSet": "PIT" }
+  ],
+
+  "conditions": {
+    "weather": "3_clear",
+    "timeOfDay": "12:00",
+    "ambient": 22,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}

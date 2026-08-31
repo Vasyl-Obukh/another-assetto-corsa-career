@@ -35,8 +35,3 @@ export const DEFAULT_TIMEOUT = 4 * MS_PER_HOUR;
  * AC's numeric session type for a race.
  */
 export const SESSION_TYPE_RACE = 3;
-
-/**
- * Shown in place of a lap time when no valid lap was set.
- */
-export const NO_LAP_TIME = '--:--.---';

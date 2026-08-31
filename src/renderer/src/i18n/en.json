@@ -4,9 +4,12 @@
     "subtitle": "Championships you actually drive"
   },
   "nav": {
+    "race": "Race",
+    "results": "Results",
     "cars": "Cars",
     "tracks": "Tracks",
-    "diagnostics": "Diagnostics"
+    "diagnostics": "Diagnostics",
+    "settings": "Settings"
   },
   "paths": {
     "title": "Detected installation",
@@ -127,7 +130,19 @@
   },
   "settings": {
     "theme": "Theme",
-    "language": "Language"
+    "language": "Language",
+    "title": "Settings",
+    "subtitle": "How the app looks, and which mods it drives Assetto Corsa with.",
+    "appearance": "Appearance",
+    "weather": "Weather",
+    "weatherHint": "Which mod renders the weather. This is a property of your install rather than of a race, so it is chosen once here.",
+    "weatherSystem": "Weather system",
+    "weatherPlanWarning": "A session whose weather changes needs the planner app running. Note that it saves the last plan it ran over its own, so a plan you had loaded there will be replaced.",
+    "driver": "Driver",
+    "driverHint": "Who you are on the timing screen. This belongs to you rather than to a race, so it is set once here and used by every session you launch.",
+    "driverName": "Your name",
+    "driverNamePlaceholder": "Player",
+    "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks."
   },
   "theme": {
     "system": "System",
@@ -148,6 +163,186 @@
     "continue": "Continue",
     "ready": "Everything is where it should be.",
     "blocked": "Locate all three before continuing."
+  },
+  "race": {
+    "title": "Race",
+    "subtitle": "Set a race up here, and Content Manager launches it.",
+    "track": {
+      "label": "Track",
+      "none": "No track picked yet.",
+      "pick": "Pick a track",
+      "change": "Change track"
+    },
+    "car": {
+      "label": "Car",
+      "none": "No car picked yet.",
+      "pick": "Pick a car",
+      "change": "Change car"
+    },
+    "grid": {
+      "label": "Grid",
+      "size": "Cars, including you",
+      "aiLevel": "Fastest AI",
+      "aiLevelMin": "Slowest AI",
+      "aiAggression": "AI aggression",
+      "spread": "AI skill is spread evenly from the fastest opponent down to the slowest, so the field is not one pace."
+    },
+    "sessions": {
+      "label": "Sessions",
+      "add": "Add a session",
+      "remove": "Remove this session",
+      "up": "Move earlier",
+      "down": "Move later",
+      "type": "Type",
+      "name": "Name",
+      "minutes": "Minutes",
+      "laps": "Laps",
+      "day": "Day",
+      "empty": "A race needs at least one session.",
+      "startTime": "Starts at",
+      "clockHint": "Each session is launched on its own, so each carries its own start time and may answer the weekend's conditions differently.",
+      "conditions": "Conditions",
+      "inherit": "Same as weekend",
+      "overrides_one": "{{count}} override",
+      "overrides_other": "{{count}} overrides"
+    },
+    "sessionType": {
+      "practice": "Practice",
+      "qualify": "Qualifying",
+      "race": "Race",
+      "hotlap": "Hotlap",
+      "timeAttack": "Time attack",
+      "drift": "Drift",
+      "drag": "Drag"
+    },
+    "conditions": {
+      "label": "Conditions",
+      "weather": "Weather",
+      "weatherDefault": "Assetto Corsa default",
+      "timeOfDay": "Default start time",
+      "ambient": "Air temperature (°C)",
+      "trackState": "Track state",
+      "windMin": "Wind, slowest (km/h)",
+      "windMax": "Wind, fastest (km/h)",
+      "windDirection": "Wind direction (°)",
+      "defaultsHint": "What every session runs in unless it says otherwise. Weather that changes during a session is set on the session itself.",
+      "slot": "Slot {{index}}",
+      "slotMinutes": "For (minutes)",
+      "slotUntilEnd": "Until the end",
+      "slotAdd": "Add a slot",
+      "slotMakeChanging": "Make the weather change",
+      "slotRemove": "Remove this slot",
+      "slotHint": "The weather moves through these in order. The last one holds until the session ends, however long it turns out to be.",
+      "slotFor": "For",
+      "edit": "Edit conditions",
+      "dialogWeekend": "Weekend conditions",
+      "dialogWeekendHint": "What every session runs in unless it says otherwise. Only a session can have weather that changes, since every session would otherwise get the same one.",
+      "dialogSession": "{{name}} - conditions",
+      "dialogSessionHint": "Anything left alone here runs in whatever the weekend asks for.",
+      "summarySlots": "{{count}} weather slots",
+      "summaryAmbient": "{{value}}°C",
+      "summaryNothing": "Nothing set - Assetto Corsa decides."
+    },
+    "trackState": {
+      "green": "Green",
+      "fast": "Fast",
+      "optimum": "Optimum"
+    },
+    "plan": {
+      "label": "Launches",
+      "hint": "Every session is one launch of the game. You come back here between them, and the grid is carried across from qualifying to the race.",
+      "done": "Run",
+      "next": "Next",
+      "pending": "Not run yet",
+      "none": "Pick a track and a car, and the launches appear here."
+    },
+    "launch": {
+      "action": "Launch",
+      "launching": "Handing it to Content Manager…",
+      "waiting": "Waiting for the session to finish. This window steps aside and comes back when the result lands.",
+      "cancel": "Stop waiting",
+      "reset": "Start this weekend again",
+      "started": "Started {{when}}",
+      "locked": "This weekend has already started, so its setup is fixed. Start it again to change anything.",
+      "finished": "Every session has been run.",
+      "actionNamed": "Launch {{name}}"
+    },
+    "problems": {
+      "label": "Not ready to launch",
+      "hint": "Assetto Corsa fails quietly on most of these, so they are caught here instead."
+    },
+    "pick": {
+      "car": "Pick a car",
+      "carHint": "Search and filter exactly as the car browser does.",
+      "track": "Pick a track",
+      "trackHint": "Pick the circuit; if it has more than one layout you choose that next.",
+      "layout": "Pick a layout",
+      "layoutHint": "A layout is what the race runs on, and its map is the only thing that tells one from another - every layout of a circuit shares the same pit straight.",
+      "allTracks": "All tracks"
+    },
+    "weatherType": {
+      "clear": "Clear",
+      "fewClouds": "Few clouds",
+      "scatteredClouds": "Scattered clouds",
+      "brokenClouds": "Broken clouds",
+      "overcastClouds": "Overcast",
+      "windy": "Windy",
+      "haze": "Haze",
+      "mist": "Mist",
+      "fog": "Fog",
+      "lightDrizzle": "Light drizzle",
+      "drizzle": "Drizzle",
+      "heavyDrizzle": "Heavy drizzle",
+      "lightRain": "Light rain",
+      "rain": "Rain",
+      "heavyRain": "Heavy rain",
+      "lightThunderstorm": "Light thunderstorm",
+      "thunderstorm": "Thunderstorm",
+      "heavyThunderstorm": "Heavy thunderstorm",
+      "lightSleet": "Light sleet",
+      "sleet": "Sleet",
+      "heavySleet": "Heavy sleet",
+      "lightSnow": "Light snow",
+      "snow": "Snow",
+      "heavySnow": "Heavy snow",
+      "hail": "Hail",
+      "cold": "Cold",
+      "hot": "Hot",
+      "smoke": "Smoke",
+      "dust": "Dust",
+      "sand": "Sand",
+      "squalls": "Squalls",
+      "tornado": "Tornado",
+      "hurricane": "Hurricane"
+    }
+  },
+  "results": {
+    "title": "Results",
+    "subtitle": "Every session this app has run, as Assetto Corsa classified it.",
+    "empty": "No races run yet.",
+    "back": "All results",
+    "notFound": "That result is no longer there.",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "scheduledLaps_one": "{{count}} lap",
+    "scheduledLaps_other": "{{count}} laps",
+    "scheduledMinutes_one": "{{count}} minute",
+    "scheduledMinutes_other": "{{count}} minutes",
+    "order": {
+      "raceResult": "Assetto Corsa's order",
+      "inferred": "Inferred order",
+      "raceResultHint": "Classified by Assetto Corsa itself, which is why it cannot inherit a sorting bug of ours.",
+      "inferredHint": "Practice and qualifying carry no classification of their own, so this order is sorted from the lap data."
+    },
+    "column": {
+      "position": "#",
+      "driver": "Driver",
+      "car": "Car",
+      "laps": "Laps",
+      "best": "Best lap",
+      "cuts": "Cuts",
+      "total": "Total"
+    }
   },
   "cars": {
     "title": "Cars",
@@ -196,6 +391,7 @@
     "pitboxes_one": "{{count}} pit box",
     "pitboxes_other": "{{count}} pit boxes",
     "pitboxesRange": "{{from}}-{{to}} pit boxes",
+    "lengthRange": "{{from}}-{{to}}",
     "unknownPitboxes": "Grid size unknown",
     "sort": {
       "name": "Name",
@@ -211,5 +407,15 @@
       "makers": "Mod maker",
       "distributors": "Distributed by"
     }
+  },
+  "weatherSystem": {
+    "none": "Custom Shaders Patch only",
+    "pure": "PURE",
+    "sol": "Sol"
+  },
+  "weatherSystemHint": {
+    "none": "Weather holds for the whole session and cannot change part way through - that needs a planner app, which only PURE and Sol have. Rain still works, but its strength comes from the weather type rather than from the exact figures a preset asks for.",
+    "pure": "PURE renders the weather, and PURE Planner can make it change during a session. Rain uses the exact figures a preset asks for.",
+    "sol": "Sol renders the weather, and Sol Planner can make it change during a session. Rain uses the exact figures a preset asks for."
   }
 }

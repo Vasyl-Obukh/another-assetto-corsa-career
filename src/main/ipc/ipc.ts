@@ -9,6 +9,7 @@ import { probePaths } from '../../core/paths/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
+import type { RaceStore } from '../race-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { resolvedTheme } from '../theme/index.ts';
 
@@ -21,13 +22,20 @@ export { send } from './utils.ts';
  * skin arrays, so the renderer asks for one page at a time rather than a copy.
  * @param settings The store handlers read and write settings through
  * @param content The store handlers read installed content through
+ * @param race The store handlers set up, launch and archive races through
  */
-export const registerHandlers = (settings: SettingsStore, content: ContentStore): void => {
+export const registerHandlers = (
+  settings: SettingsStore,
+  content: ContentStore,
+  race: RaceStore,
+): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
-    // The store follows whatever install the probe actually resolved, and drops
-    // a cache that was built from a different one.
+    // Both stores follow whatever install the probe actually resolved. The
+    // content store drops a cache built from a different one; the race store
+    // simply has nowhere to launch until all three paths are there.
     content.use(report.derived?.content ?? null);
+    race.use(report.derived);
 
     return report;
   };
@@ -59,7 +67,21 @@ export const registerHandlers = (settings: SettingsStore, content: ContentStore)
   handle('content:tracks', async (query) => content.tracks(query));
   handle('content:carFacets', async ({ query }) => content.carFacets(query));
   handle('content:trackFacets', async ({ query }) => content.trackFacets(query));
+  handle('content:track', async ({ key }) => content.track(key));
+  handle('content:weather', async () => {
+    const installed = await content.content();
+
+    return { weather: installed.weather, controllers: installed.controllers };
+  });
   handle('content:issues', async () => content.issues());
+
+  handle('race:get', async () => race.get());
+  handle('race:set', async (definition) => race.set(definition));
+  handle('race:launch', async () => race.launch());
+  handle('race:cancel', async () => race.cancel());
+  handle('race:reset', async () => race.reset());
+  handle('race:results', async () => race.results());
+  handle('race:result', async ({ file }) => race.result(file));
 
   handle('settings:get', async () => settings.get());
   handle('settings:patch', async (patch) => settings.patch(patch));

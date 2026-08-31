@@ -1,20 +1,16 @@
 // Turning route patterns into the URLs links and navigations use.
 //
-// Two things that read alike and are not:
+// Two things that read alike and are not, and only agree when a destination
+// takes no parameters:
 //
 //   ROUTE.car    '/cars/:id'          the pattern - <Route path>, useMatch
 //   path.car()   '/cars/ks_ferrari'   the URL     - <Link to>, navigate, <Navigate>
 //
-// They are the same string only for a destination that takes no parameters, so
-// reaching for whichever is to hand works right up until it does not.
-//
-// react-router ships generatePath, which does exactly what buildPath does here,
-// and it is deliberately not used. It is an ESM-only package whose graph reaches
-// an `import.meta.hot`, and that cannot be expressed in the CommonJS Jest
-// compiles to - importing it would put this module, and everything importing it,
-// out of reach of the test suite. Teaching Jest to transform the package was
-// tried and gets as far as that same `import.meta`. The type-only import in
-// types.ts is free, being erased before either bundler or test runner sees it.
+// react-router's own generatePath does exactly what buildPath does and is
+// deliberately not used: the package is ESM-only and its graph reaches an
+// `import.meta.hot`, which the CommonJS Jest compiles to cannot express, so
+// importing it would put this module and its dependents out of reach of the
+// suite. The type-only import in types.ts is erased before either sees it.
 
 import { OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE } from './constants.ts';
 import type { RouteParams } from './types.ts';
@@ -46,8 +42,8 @@ const encodeSegment = (value: string): string => (
  */
 export const buildPath = <P extends string>(pattern: P, params: RouteParams<P>): string => (
   pattern.replace(PARAM_PLACEHOLDER, (placeholder, name: string) => {
-    // The cast is the one place the pattern's derived key type has to become an
-    // ordinary lookup; everything above this line is checked.
+    // The one place the pattern's derived key type has to become an ordinary
+    // lookup; everything above this line is checked.
     const value = (params as Readonly<Record<string, string | undefined>>)[name];
     if (value === undefined) throw new Error(`Route ${pattern} is missing ${placeholder}`);
 
@@ -62,6 +58,27 @@ export const buildPath = <P extends string>(pattern: P, params: RouteParams<P>):
  * way to ask for a URL rather than two.
  */
 export const path = {
+  /**
+   * The race setup screen.
+   * @returns Its URL
+   */
+  race: (): string => ROUTE.race,
+  /**
+   * The list of archived results.
+   * @returns Its URL
+   */
+  results: (): string => ROUTE.results,
+  /**
+   * One archived result.
+   * @param params The archive's file name
+   * @returns Its URL, with the file name encoded
+   */
+  result: (params: RouteParams<typeof ROUTE.result>): string => buildPath(ROUTE.result, params),
+  /**
+   * The settings screen.
+   * @returns Its URL
+   */
+  settings: (): string => ROUTE.settings,
   /**
    * The car browser.
    * @returns Its URL

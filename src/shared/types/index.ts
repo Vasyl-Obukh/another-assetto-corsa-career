@@ -2,9 +2,8 @@
 // individual files.
 
 // The provenance and classification vocabularies are exported as values, not
-// types: these are enums, so ContentSource.BASE is the whole point of them.
-// Object.values() enumerates each one, which is why there is no separate list of
-// them anywhere.
+// types: they are enums, so ContentSource.BASE is the point of them and
+// Object.values() is why no separate list of them exists.
 export { CarClass, CarSpec } from './car-classes.ts';
 
 export {
@@ -31,6 +30,10 @@ export type {
   TrackGroup,
   Weather,
   WeatherController,
+  WeatherFollow,
+  WeatherFollows,
+  WeatherFxState,
+  WeatherRain,
 } from './content.ts';
 
 export type {
@@ -72,6 +75,13 @@ export type {
 } from './race.ts';
 
 export type {
+  RacePhase,
+  RaceSetup,
+  RaceStatus,
+  ResultRecord,
+} from './race-run.ts';
+
+export type {
   ArchiveMeta,
   RaceOut,
   RaceOutLap,
@@ -82,6 +92,14 @@ export type {
   Standing,
   StandingsOrder,
 } from './results.ts';
+
+export type {
+  PlannerKind,
+  StepWeather,
+  WeatherPlan,
+  WeatherStep,
+  WeatherSystem,
+} from './weather-plan.ts';
 
 export type {
   Language,

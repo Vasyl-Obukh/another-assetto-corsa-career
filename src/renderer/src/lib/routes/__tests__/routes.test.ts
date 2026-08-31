@@ -65,10 +65,20 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.car({ id: 'car#1' })).toBe('/cars/car%231');
     });
 
+    // An archive is named by an ISO timestamp with its colons replaced, so the
+    // file name reaches the URL as it stands.
+    it('builds the page for one archived result from its file name', () => {
+      expect(path.result({ file: '2026-08-31T18-04-11-123Z.json' }))
+        .toBe('/results/2026-08-31T18-04-11-123Z.json');
+    });
+
     it('returns the pattern itself where a destination takes no parameters', () => {
+      expect(path.race()).toBe(ROUTE.race);
+      expect(path.results()).toBe(ROUTE.results);
       expect(path.cars()).toBe(ROUTE.cars);
       expect(path.tracks()).toBe(ROUTE.tracks);
       expect(path.diagnostics()).toBe(ROUTE.diagnostics);
+      expect(path.settings()).toBe(ROUTE.settings);
     });
 
     // Adding a route without a builder would leave callers reaching for the

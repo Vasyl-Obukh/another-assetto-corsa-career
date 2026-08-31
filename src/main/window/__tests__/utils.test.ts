@@ -2,10 +2,10 @@ import {
   describe, expect, it, jest,
 } from '@jest/globals';
 import { screen } from 'electron';
-
+import type { BrowserWindow } from 'electron';
 
 import type { WindowState } from '../../../shared/types/index.ts';
-import { isOnSomeDisplay } from '../utils.ts';
+import { followRace, isOnSomeDisplay } from '../utils.ts';
 
 // Outside a running Electron process the real module is just a path string, so
 // only the one call this file makes is faked.
@@ -32,6 +32,24 @@ const geometry = (state: Partial<WindowState>): WindowState => ({
 
 const PRIMARY = {
   x: 0, y: 0, width: 1920, height: 1040,
+};
+
+/**
+ * A window stand-in recording the calls followRace makes on it.
+ * @param state What the window reports about itself
+ * @returns The fake window, typed as the real one
+ */
+const fakeWindow = (state: { destroyed?: boolean; minimized?: boolean } = {}) => {
+  const calls: string[] = [];
+  const window = {
+    isDestroyed: () => state.destroyed ?? false,
+    isMinimized: () => state.minimized ?? false,
+    restore: () => { calls.push('restore'); },
+    focus: () => { calls.push('focus'); },
+    minimize: () => { calls.push('minimize'); },
+  };
+
+  return { window: window as unknown as BrowserWindow, calls };
 };
 
 describe('main/window/utils', () => {
@@ -76,6 +94,55 @@ describe('main/window/utils', () => {
     it('rejects everything when no display is attached at all', () => {
       withDisplays();
       expect(isOnSomeDisplay(geometry({ x: 100, y: 100 }))).toBe(false);
+    });
+  });
+
+  describe('followRace', () => {
+    // Minimised rather than hidden: hiding also removes the taskbar entry, and
+    // a window the user cannot find while a race runs reads as a crash.
+    it('minimises the window while a launch is in flight', () => {
+      const { window, calls } = fakeWindow();
+
+      followRace(window, 'launching');
+      expect(calls).toEqual(['minimize']);
+    });
+
+    it('stays out of the way for the whole wait', () => {
+      const { window, calls } = fakeWindow();
+
+      followRace(window, 'waiting');
+      expect(calls).toEqual(['minimize']);
+    });
+
+    it('brings the window back when the race is over', () => {
+      const { window, calls } = fakeWindow({ minimized: true });
+
+      followRace(window, 'idle');
+      expect(calls).toEqual(['restore', 'focus']);
+    });
+
+    // The user may have restored it themselves, and a second minimise would
+    // take away a window they had just gone looking for.
+    it('does not minimise a window that already is', () => {
+      const { window, calls } = fakeWindow({ minimized: true });
+
+      followRace(window, 'waiting');
+      expect(calls).toEqual([]);
+    });
+
+    it('does not restore a window the user left open', () => {
+      const { window, calls } = fakeWindow();
+
+      followRace(window, 'idle');
+      expect(calls).toEqual(['focus']);
+    });
+
+    // A result can land after the window has gone, since the wait outlives it.
+    it('does nothing to a window that has been destroyed', () => {
+      const { window, calls } = fakeWindow({ destroyed: true });
+
+      followRace(window, 'idle');
+      expect(calls).toEqual([]);
     });
   });
 });

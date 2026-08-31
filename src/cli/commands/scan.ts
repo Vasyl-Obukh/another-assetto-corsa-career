@@ -23,6 +23,14 @@ export const cmdScan = async (): Promise<void> => {
   console.log(`  ${content.cars.length} cars, ${content.tracks.length} track layouts, ${content.weather.length} weathers`);
   console.log(`  ${typed.length} weathers carry a CSP weather type; ${content.weather.length - typed.length} rely on CM inferring it`);
 
+  // The split that decides whether a race's weather is honoured at all: a
+  // controller declaring FOLLOWS_SELECTED_WEATHER = 0 drives the weather from
+  // its own planner app and ignores everything the race says about it.
+  const dynamic = content.controllers.filter((entry) => entry.follows.weather === 'no');
+  const rendering = content.controllers.filter((entry) => entry.follows.weather !== 'no');
+  console.log(`  Dynamic weather  ${dynamic.map((entry) => entry.name).join(', ') || 'none installed'}`);
+  console.log(`  Controllers      ${rendering.map((entry) => entry.name).join(', ') || 'none installed'}`);
+
   if (content.issues.length) {
     console.log(`\nBroken content (${content.issues.length})`);
     const lines = describeIssues(content.issues);

@@ -136,6 +136,7 @@ describe('shared/utils/settings', () => {
         version: 1,
         theme: 'dark',
         language: 'uk',
+        weatherSystem: 'pure',
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -152,6 +153,30 @@ describe('shared/utils/settings', () => {
 
     it('rejects a language it does not have a catalogue for', () => {
       expect(migrateSettings({ language: 'fr' }).language).toBe('en');
+    });
+
+    it('keeps a weather system it knows and rejects one it does not', () => {
+      expect(migrateSettings({ weatherSystem: 'sol' }).weatherSystem).toBe('sol');
+      expect(migrateSettings({ weatherSystem: 'seasons' }).weatherSystem)
+        .toBe(DEFAULT_SETTINGS.weatherSystem);
+    });
+
+    // An install with neither mod is the only thing we can assume, and plain
+    // Custom Shaders Patch is what that install has.
+    it('assumes neither weather mod is installed', () => {
+      expect(DEFAULT_SETTINGS.weatherSystem).toBe('none');
+    });
+
+    it('reads the driver name the user set', () => {
+      expect(migrateSettings({ driverName: '  Vasyl  ' }).driverName).toBe('Vasyl');
+    });
+
+    // Absent rather than empty, so clearing the field means "let Assetto Corsa
+    // decide" rather than racing under a blank name.
+    it('leaves a blank driver name absent rather than empty', () => {
+      expect(migrateSettings({ driverName: '   ' })).not.toHaveProperty('driverName');
+      expect(migrateSettings({})).not.toHaveProperty('driverName');
+      expect(migrateSettings({ driverName: 7 })).not.toHaveProperty('driverName');
     });
 
     it('always reports version 1', () => {

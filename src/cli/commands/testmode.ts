@@ -37,7 +37,7 @@ authoritative reference to diff ours against.
 
   4. Remove the flag when you are done, or CM will never launch a race again.
 
-Also worth adding once the spike works, for a seamless career loop:
+Also worth adding, for a seamless career loop:
 
   --skip-all-results          skip CM's results screen between races
   --hide-race-cancel-button   stop accidental cancels mid-series

@@ -1,10 +1,8 @@
 // Scanning installed content. Car and track IDs are just folder names, so mods
 // need no special handling - but mod authors ship malformed ui_*.json routinely,
-// so reads are lenient and failures skip the entry rather than throwing.
-//
-// Nothing is hidden, though. Every skipped or degraded entry is recorded as a
-// ContentIssue, and every entry carries a fingerprint so the next scan can tell
-// what actually changed instead of reading the whole library again.
+// so reads are lenient and a failure skips the entry rather than throwing.
+// Nothing is hidden: every skipped or degraded entry becomes a ContentIssue, and
+// every entry carries a fingerprint so the next scan re-reads only what moved.
 
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -35,6 +33,8 @@ import {
   listDirs,
   makeTrack,
   mapLimit,
+  parseFollows,
+  parseRain,
   readJsonFile,
   skinNumber,
   trimmed,
@@ -189,9 +189,8 @@ export const scanCars = async (
   const kept = issuesByFolder(previous?.issues ?? []);
 
   const scanned = await mapLimit(ids, SCAN_CONCURRENCY, async (id) => {
-    // The fingerprint covers each livery's own ui_skin.json, so revalidating one
-    // needs the list of liveries the last scan found - which the cached car
-    // carries, exactly as a cached track carries its layouts.
+    // The fingerprint covers each livery's own ui_skin.json, so revalidating a
+    // car needs the livery list the last scan found, which the cached car carries.
     const car = cached.get(id);
     if (car) {
       const known = car.skins.map((skin) => skin.id);
@@ -231,8 +230,8 @@ const readTrack = async (
   const issues: ContentIssue[] = [];
 
   // Single-layout tracks put ui_track.json directly in ui/. A root file does not
-  // rule out layouts beside it: a layout pack dropped into a Kunos track keeps the
-  // original selectable, so spa ships vanilla Spa plus 2022 and the two LFM starts.
+  // rule out layouts beside it: a layout pack dropped into a Kunos track leaves
+  // the original selectable.
   const root = await readJsonFile<UiTrack>(path.join(uiDir, UI_TRACK_FILE));
   const rootTrack: Track[] = [];
   if (root.value !== null) {
@@ -325,11 +324,8 @@ export const scanTracks = async (
  * Scans all installed weather presets.
  *
  * The CSP weather type is read from each weather.ini rather than a hardcoded
- * table, which is how Content Manager gets it too - so mod weathers work without
- * any extra mapping.
- *
- * Not fingerprinted: there are tens of these, each a small ini, so re-reading
- * them costs nothing measurable and the bookkeeping would not pay for itself.
+ * table, which is how Content Manager gets it too, so mod weathers need no extra
+ * mapping. Not fingerprinted: there are tens of these, each a small ini.
  * @param contentDir The AC content directory
  * @returns Every readable weather preset sorted by ID, plus issues
  */
@@ -358,6 +354,10 @@ export const scanWeather = async (contentDir: string): Promise<ScanPart<Weather>
       type: type === undefined ? null : parseInt(type, 10),
       temperatureCoeff: parseFloat(ini.LAUNCHER?.TEMPERATURE_COEFF ?? '0') || 0,
       author: ini.__LAUNCHER_CM?.AUTHOR ?? null,
+      timeDiapason: ini.__LAUNCHER_CM?.TIME_DIAPASON ?? null,
+      cloudCover: parseFloat(ini.CLOUDS?.COVER ?? '0') || 0,
+      rain: parseRain(ini.RAINFX),
+      forceHeadlights: ini.CAR_LIGHTS?.FORCE_ON === '1',
     };
   });
 
@@ -392,15 +392,27 @@ export const scanWeatherControllers = async (
       // A controller without a manifest still works; the id is what matters.
     }
 
+    // The FOLLOWS_ flags sit inside [ABOUT], beside the name and version rather
+    // than in a section of their own.
     return {
       id,
       name: ini.ABOUT?.NAME ?? id,
       author: ini.ABOUT?.AUTHOR ?? null,
       description: ini.ABOUT?.DESCRIPTION ?? null,
+      version: ini.ABOUT?.VERSION ?? null,
+      follows: {
+        weather: parseFollows(ini.ABOUT?.FOLLOWS_SELECTED_WEATHER),
+        temperature: parseFollows(ini.ABOUT?.FOLLOWS_SELECTED_TEMPERATURE),
+        wind: parseFollows(ini.ABOUT?.FOLLOWS_SELECTED_WIND),
+      },
     };
   });
 
-  return { entries, issues: [], fingerprints: {} };
+  return {
+    entries: entries.sort((a, b) => a.name.localeCompare(b.name)),
+    issues: [],
+    fingerprints: {},
+  };
 };
 
 /**
@@ -543,10 +555,9 @@ export const contentPath = (contentDir: string, target: ContentUrlTarget): strin
  *
  * The protocol handler serves bytes off disk, so this is the gate that stops a
  * crafted URL reading anything outside the game folder. Symlinks are
- * deliberately not resolved: modded AC installs routinely junction content/cars
- * or an individual mod onto another drive, and since the filename is fixed to
- * one of four images, following a link the user made themselves is not an
- * escalation.
+ * deliberately not resolved: modded installs routinely junction content onto
+ * another drive, and with the filename fixed to one of four images, following a
+ * link the user made themselves is not an escalation.
  * @param contentDir The AC content directory
  * @param target The absolute path to test
  * @returns True when target is inside contentDir

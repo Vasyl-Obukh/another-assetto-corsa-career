@@ -5,7 +5,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type {
-  GridEntry, WeekendLaunch, WeekendPlan, WeekendState,
+  GridEntry, SessionDefinition, WeekendLaunch, WeekendPlan, WeekendState,
 } from '../../../../shared/types/index.ts';
 import {
   clearState, describeGrid, describePlan, loadState, saveState, stateFile,
@@ -39,24 +39,34 @@ const grid: GridEntry[] = Array.from({ length: 6 }, (unused, index) => ({
 }));
 
 /**
- * Builds one launch of the plan below.
+ * Builds one launch of the plan below, which runs the one session it names.
  * @param index Position in the launch list
+ * @param session The session this launch runs
  * @param launch What this launch does differently
  * @returns A complete WeekendLaunch
  */
 const makeLaunch = (
   index: number,
-  launch: Partial<WeekendLaunch> & Pick<WeekendLaunch, 'race'>,
+  session: SessionDefinition,
+  launch: Partial<WeekendLaunch> = {},
 ): WeekendLaunch => ({
   index,
   day: 0,
-  hasQualifying: false,
-  hasRace: true,
+  session,
+  race: {
+    id: 'test-weekend',
+    name: 'Test Weekend',
+    track: { id: 'test_track' },
+    playerCar: { model: 'test_car' },
+    sessions: [session],
+    conditions: { trackState: 'green' },
+  },
   ...launch,
 });
 
 /**
- * A two-launch plan: practice, qualifying and a sprint, then a feature.
+ * A three-launch plan - practice, qualifying, then a race the day after - which
+ * is one launch per session.
  * @returns A fresh WeekendPlan
  */
 const makePlan = (): WeekendPlan => ({
@@ -64,30 +74,26 @@ const makePlan = (): WeekendPlan => ({
   raceName: 'Test Weekend',
   grid,
   launches: [
-    makeLaunch(0, {
-      hasQualifying: true,
+    makeLaunch(0, { type: 'practice', name: 'Practice' }),
+    makeLaunch(1, { type: 'qualify', name: 'Qualifying' }, {
       race: {
         id: 'test-weekend',
         name: 'Test Weekend',
         track: { id: 'test_track' },
         playerCar: { model: 'test_car' },
-        sessions: [
-          { type: 'practice', name: 'Practice' },
-          { type: 'qualify', name: 'Qualifying' },
-          { type: 'race', name: 'Sprint' },
-        ],
-        conditions: { trackState: 'green' },
+        sessions: [{ type: 'qualify', name: 'Qualifying' }],
+        conditions: { trackState: 'green', startGrip: 83 },
       },
     }),
-    makeLaunch(1, {
+    makeLaunch(2, { type: 'race', name: 'Race' }, {
       day: 1,
       race: {
         id: 'test-weekend',
         name: 'Test Weekend',
         track: { id: 'test_track' },
         playerCar: { model: 'test_car' },
-        sessions: [{ type: 'race', name: 'Feature' }],
-        conditions: { trackState: 'green', startGrip: 88 },
+        sessions: [{ type: 'race', name: 'Race' }],
+        conditions: { trackState: 'green', startGrip: 86 },
       },
     }),
   ],
@@ -98,23 +104,24 @@ const makePlan = (): WeekendPlan => ({
  * @returns A fresh WeekendState
  */
 const fresh = (): WeekendState => ({
-  raceId: 'test-weekend', launchCount: 2, completed: [],
+  raceId: 'test-weekend', launchCount: 3, completed: [],
 });
 
 /**
- * Progress with the first launch run and a qualifying order recorded.
- * @param qualifyingOrder What its qualifying classified
- * @returns A WeekendState with one launch done
+ * Progress with practice and qualifying run, and an order recorded for the
+ * qualifying, which is what the race inherits its grid from.
+ * @param qualifyingOrder What the qualifying session classified
+ * @returns A WeekendState with two launches done
  */
-const afterFirst = (qualifyingOrder: number[] | null): WeekendState => ({
+const afterQualifying = (qualifyingOrder: number[] | null): WeekendState => ({
   ...fresh(),
-  completed: [{
-    index: 0,
+  completed: [0, 1].map((index) => ({
+    index,
     completedAt: '2026-01-01T00:00:00.000Z',
     archive: 'data/results/one.json',
     gridOrder: [0, 1, 2, 3, 4, 5],
-    qualifyingOrder,
-  }],
+    qualifyingOrder: index === 1 ? qualifyingOrder : null,
+  })),
 });
 
 describe('cli/commands/weekend/utils', () => {
@@ -152,7 +159,7 @@ describe('cli/commands/weekend/utils', () => {
       expect(mkdirMock).toHaveBeenCalledWith('weekends-dir', { recursive: true });
       expect(writeFileMock).toHaveBeenCalledWith(
         path.join('weekends-dir', 'test-weekend.json'),
-        expect.stringContaining('"launchCount": 2'),
+        expect.stringContaining('"launchCount": 3'),
       );
     });
 
@@ -172,36 +179,29 @@ describe('cli/commands/weekend/utils', () => {
   });
 
   describe('describeGrid', () => {
-    it('says AC owns the grid of a launch that qualifies for itself', () => {
-      expect(describeGrid(makePlan(), fresh(), 0)).toContain('built by AC');
-    });
-
-    it('says a launch is still waiting on qualifying that has not run', () => {
-      expect(describeGrid(makePlan(), fresh(), 1)).toBe(
-        'inherits launch 0 qualifying, which has not run yet',
+    it('says a race is still waiting on qualifying that has not run', () => {
+      expect(describeGrid(makePlan(), fresh(), 2)).toBe(
+        'inherits session 1 qualifying, which has not run yet',
       );
     });
 
-    it('names the launch a grid came from, and where the player starts', () => {
-      expect(describeGrid(makePlan(), afterFirst([3, 1, 5, 0, 2, 4]), 1)).toBe(
-        'from launch 0 qualifying - player starts P4',
+    it('names the session a grid came from, and where the player starts', () => {
+      expect(describeGrid(makePlan(), afterQualifying([3, 1, 5, 0, 2, 4]), 2)).toBe(
+        'from session 1 qualifying - player starts P4',
       );
     });
 
     it('says the player starts last when nothing qualified them', () => {
       const plan = makePlan();
-      plan.launches[0].hasQualifying = false;
+      plan.launches[1].session = { type: 'practice', name: 'Practice 2' };
 
-      expect(describeGrid(plan, afterFirst(null), 1)).toBe(
+      expect(describeGrid(plan, afterQualifying(null), 2)).toBe(
         'no qualifying this weekend - AI on skill, player starts P6',
       );
     });
 
-    it('says so when a launch runs no race at all', () => {
-      const plan = makePlan();
-      plan.launches[1].hasRace = false;
-
-      expect(describeGrid(plan, fresh(), 1)).toBe('no race in this launch');
+    it('says so for a session that runs no race', () => {
+      expect(describeGrid(makePlan(), fresh(), 0)).toBe('no race in this session');
     });
   });
 
@@ -209,42 +209,43 @@ describe('cli/commands/weekend/utils', () => {
     it('heads the plan with the weekend and the size of it', () => {
       const lines = describePlan(makePlan(), fresh()).join('\n');
       expect(lines).toContain('Test Weekend  (test-weekend)');
-      expect(lines).toContain('6 cars, 4 sessions, 2 launches');
+      expect(lines).toContain('6 cars, 3 sessions, one launch each');
     });
 
-    it('says one launch rather than 1 launches', () => {
+    it('says one session rather than 1 sessions', () => {
       const plan = makePlan();
       plan.launches = [plan.launches[0]];
 
-      expect(describePlan(plan, fresh()).join('\n')).toContain('3 sessions, 1 launch');
+      expect(describePlan(plan, fresh()).join('\n')).toContain('6 cars, 1 session, one launch each');
     });
 
     it('marks which launch has run, which is next and which is waiting', () => {
       const lines = describePlan(makePlan(), fresh()).join('\n');
       expect(lines).toContain('[0] day 0  next');
-      expect(lines).toContain('[1] day 1  pending');
+      expect(lines).toContain('[2] day 1  pending');
     });
 
     it('shows a completed launch and where its result went', () => {
-      const lines = describePlan(makePlan(), afterFirst([3, 1, 5, 0, 2, 4])).join('\n');
+      const lines = describePlan(makePlan(), afterQualifying([3, 1, 5, 0, 2, 4])).join('\n');
       expect(lines).toContain('[0] day 0  done');
       expect(lines).toContain('result  data/results/one.json');
     });
 
-    it('shows carried grip against what a fresh launch would have started on', () => {
+    it('shows carried grip against what a fresh track would have started on', () => {
       const lines = describePlan(makePlan(), fresh()).join('\n');
-      expect(lines).toContain('starts at 88%, against 80% for a fresh launch');
+      expect(lines).toContain('starts at 83%, against 80% for a fresh track');
     });
 
-    it('says nothing about grip for a launch running on the preset', () => {
+    it('says nothing about grip for the session running on the preset', () => {
       const lines = describePlan(makePlan(), fresh());
-      expect(lines.filter((line) => line.includes('grip'))).toHaveLength(1);
+      expect(lines.filter((line) => line.includes('grip'))).toHaveLength(2);
     });
 
-    it('lists each launch sessions by name', () => {
+    it('names each launch after the session it runs', () => {
       const lines = describePlan(makePlan(), fresh()).join('\n');
-      expect(lines).toContain('Practice, Qualifying, Sprint');
-      expect(lines).toContain('Feature');
+      expect(lines).toContain('next     Practice');
+      expect(lines).toContain('pending  Qualifying');
+      expect(lines).toContain('pending  Race');
     });
   });
 });

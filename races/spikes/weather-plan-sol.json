@@ -1,0 +1,32 @@
+{
+  "id": "spike-weather-plan-sol",
+  "name": "Spike - does Sol Planner follow a plan we wrote",
+  "notes": "The Sol half of spikes/weather-plan. Install with `npm run weather -- plan sol evolve`, which claims Sol preset slot [4] and flags it with `[general] loadWithStart = 4` - camelCase, because sol_planner.py sets optionxform = str and only ever reads that spelling, while the file it ships writes lowercase. THE CONTROLLER IS THE WHOLE POINT OF THIS SEPARATE FILE: only one weather controller runs per race, so driving the PURE spike leaves Sol Planner reporting 'Sol 2.5 controller not running' and doing nothing. This file names sol2, Sol's own dynamic controller. Sol Planner must also be enabled in AC's app list. What has to be true: the weather changes at roughly 3 and 6 minutes. Sol rewrites presets.ini when it closes, from what it read at startup, so a good sign before you even drive is that our [4] comes back reformatted in its own style with loadWithStart still set to 4 - that means it read and kept our preset.",
+  "track": {
+    "id": "magione"
+  },
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+  "grid": {
+    "size": 1
+  },
+  "sessions": [
+    {
+      "type": "practice",
+      "name": "Practice",
+      "minutes": 10,
+      "spawnSet": "PIT"
+    }
+  ],
+  "conditions": {
+    "weatherController": "sol2",
+    "timeOfDay": "12:00",
+    "ambient": 20,
+    "trackState": "optimum",
+    "timeMultiplier": 1
+  }
+}

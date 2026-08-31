@@ -124,23 +124,30 @@ per project.
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
 | `src/shared/utils/search/` | Folding and term matching for every search box, shared because the browsers query in main and the livery list filters in the renderer |
+| `src/shared/utils/weather-system/` | Which controller each weather system runs, and whether it can change the weather at all. Shared because main writes the controller into `race.ini` and the renderer decides whether to offer a second slot |
+| `src/shared/utils/conditions/` | Merging a session's own conditions over the weekend's defaults. Shared because both the bundler and the race screen need the same answer, and the renderer may not import core. Weather merges as a group, since its three fields answer one question |
+| `src/shared/utils/lap-time/` | `m:ss.mmm`, shared by the CLI's timing sheet and the results screen. Deliberately outside the `Intl` formatters: a lap time is a motorsport convention, not a locale decision |
 | `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content, liveries and their `ui_skin.json` included; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
+| `src/core/loose-number/` | Reading a number out of the free text a mod author wrote - separators, units, "N/A". Shared by the car and track readers, because a car's weight and a circuit's length are the same parsing problem |
 | `src/core/car-performance/` | `ui_car.json` specs -> numbers, tolerant of free text |
 | `src/core/content-catalogue/` | Which folder ID is base game, which DLC pack, whose mod, who redistributes it; every ID listed, nothing inferred |
 | `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan; tracks filter per layout and come back grouped one per folder |
 | `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM |
 | `src/core/results/` | Watching, stable-reading and summarising results |
-| `src/core/weekend/` | Splitting a weekend into the launches AC allows, and carrying the grid and the track across the seams. Pure: no I/O, so the state machine is a reducer over a value rather than a store |
+| `src/core/weekend/` | Lowering a weekend into launches, one per session, and carrying the grid and the track across the seams between them. Pure: no I/O, so the state machine is a reducer over a value rather than a store |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
+| `src/core/weather-plan/` | Weather plans for the PURE and Sol planner apps: our own step model, a writer per format, and installing them into a slot we own without disturbing the user's. Dynamic weather is driven by those apps, not by `race.ini` |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
-| `src/main/` | App lifecycle, window, settings store, content store, theme, IPC handlers |
+| `src/main/` | App lifecycle, window, settings store, content store, race store, theme, IPC handlers |
 | `src/main/content-store/` | The scan, cached to `%APPDATA%`, watched and revalidated |
+| `src/main/race-store/` | The race being set up, its weekend progress and the launch in flight, all under `%APPDATA%/ac-career-mode/race/`. The same steps `npm run weekend` runs, in the same order; the wait for a result is detached and reaches the renderer as a push |
 | `src/main/content-protocol/` | Serves preview images out of the AC install |
 | `src/preload/` | The single `contextBridge` surface (`window.api`) |
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
+| `src/renderer/src/screens/` | One folder per route-level screen. `car-browser` and `track-browser` each expose a `*BrowserBody`, which is the whole browser with an optional `onSelect` - that is what the race screen's pickers are, rather than screens of their own |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
 | `races/*.json` | Race definitions in our own format. A weekend is one of these too - its `sessions` cover the whole event and `src/core/weekend/` splits it into launches |
 | `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
@@ -445,6 +452,12 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   so a car that stops is indistinguishable from one never classified, and
   being lapped is the only under-distance case that can be produced on purpose.
   Positions with retirements and penalties still wait on Phase 12.
+- **Closing the app while a race is running loses that launch.** The wait for
+  `race_out.json` is a watcher in main, and it dies with the process, so a result
+  written meanwhile is never adopted: the launch simply reads as still pending
+  and has to be run again. The CLI has the same hole and an answer for it -
+  `npm run watch` reads whatever AC last wrote - and the app wants the same
+  "adopt the last result" action rather than a longer-lived watcher.
 - **Quitting a race does not abort it.** AC runs it to completion without the
   player, at normal AI pace, and writes a full result recording them on the
   laps they managed. So a launch never half-runs and there is nothing to resume
@@ -453,28 +466,87 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   retirement problem again, and serves as a workable DNF proxy for a career.
 - `summarise()` sums only valid laps into `totalTime` while counting
   invalidated ones in `laps`, so a driver with a cut lap gets an artificially
-  low total and can sort ahead unfairly. It also presents grid order as a
+  low total and can sort ahead unfairly. **Observed rather than merely feared**:
+  the solo-qualifying spike has a driver on two laps whose `totalTime` counts
+  one. It is harmless in practice and qualifying, which sort on best lap, and
+  bites only a race - where `raceResult` is now preferred anyway. It also presents grid order as a
   result for a zero-lap session rather than saying "unclassified". Both unfixed.
 - Assists cannot be set through `race/config` yet - CM wants its own serialized
-  preset format there, not an `assists.ini`.
-- **A launch ends at its first race.** Practice and qualifying ahead of a race
-  all run in one launch - proven - but AC offers no way past the chequered
-  flag, so a second race in the same INI is listed in the weekend structure and
-  never reachable. At most one race per launch, last in it; a sprint plus a
-  feature is two launches.
-- **Qualifying sets the grid, and `STARTING_POSITION` cannot override it.** A
-  race asking for position 8 started the pole-sitter on pole and the slowest
-  qualifier last - the key was disregarded entirely. It is honoured only in a
-  launch containing no qualifying session. So we own the grid exactly when we
-  run the race on its own, which is also the case where we need to: a race
-  bundled with its own qualifying needs no reconstruction, because AC has
-  already done it.
+  preset format there, not an `assists.ini`. That format has since been found:
+  a saved Quick Drive `.cmpreset` carries `AssistsData` as JSON
+  (`{"IdealLine":false,"Abs":1,"Damage":100.0,...}`), which is what
+  `buildRaceUri`'s unused `assistsPreset` argument wants.
+- **A launch ends at its first race**, and **qualifying in a launch owns its
+  grid** - both measured, and both now routed around rather than worked within.
+  AC offers no way past the chequered flag, so a second race in the same INI is
+  listed in the weekend structure and never reachable; and a race asking for
+  `STARTING_POSITION` 8 behind a qualifying session started the pole-sitter on
+  pole, the key disregarded entirely. **Sessions now run one per launch**, so
+  neither can arise: no launch holds a run of anything, qualifying and a race are
+  never in the same INI, and `STARTING_POSITION` is always honoured - confirmed
+  by driving a qualifying session and then a race through the app, with the
+  field ordered on the qualifying times. They are kept here because they are why
+  we know the grid can be written at all, and why a bundled qualifying could
+  never have been overridden.
+- **A qualifying session runs perfectly well on its own** - driven, and the
+  first time a qualifying result set the grid of a *separate* launch. Six cars
+  classified, the session ended on its own clock, and `raceResult` is absent as
+  it always is for qualifying. **An invalidated lap is written as `time: -1`
+  with its `cuts` count**, so the `time > 0` filter in `bestLapOrder()` is doing
+  real work: a cut out-lap was excluded and the clean lap took pole. AC also
+  writes `bestLaps` on a qualifying session, and it sorts to the same order we
+  derive from the raw laps. **A practice-only launch behaves the same way** -
+  driven, one session of type 1, and it cannot be mistaken for a grid source,
+  since `lastQualifying()` matches on type 2 and so a race behind it falls
+  through to the seeded skill order.
 - Road temperature is an approximation of Kunos' curve.
+- **A weather controller is either a renderer or a weather in its own right**,
+  and `manifest.ini`'s `FOLLOWS_SELECTED_WEATHER` is the only thing that says
+  which. Set to 0 the controller drives the weather from its own planner app
+  and ignores the race entirely, so Pure, Sol 2.5 dynamic and Live are offered
+  as *dynamic weather*; Default, Pure Static, Sol and Sol 2.5 static render
+  what the race asked for and are offered as *controllers*. The flags for
+  temperature and wind are sometimes a query into the controller's own
+  settings rather than a literal, which is reported as "may override" rather
+  than guessed at.
+- **PURE ships no weather presets.** It renders the CSP weather type, so a
+  race asks for one of `ac.WeatherType`'s 33 values and a preset is resolved
+  behind it only because `[WEATHER] NAME` needs a folder. Our own `career_*`
+  presets win that resolution where one declares the type, since they carry
+  the `[RAINFX]` section that makes rain deterministic.
 - `__CM_WEATHER_CONTROLLER` overrides the user's own `weather_fx.ini` for the
-  race and does not restore it. Correct for a career, but should be surfaced in
-  the UI rather than done silently.
+  race and does not restore it, so it is now written only when the race names
+  a controller. What would otherwise render is read back out of
+  `weather_fx.ini` and shown, which is what lets the setup screen warn when a
+  static weather is about to be ignored by a dynamic controller.
 - Career weather presets are written into the AC install (`content/weather/`)
   and stay until `npm run weather -- remove`.
+- **Rain works under any controller, including plain CSP** - driven, not just
+  read. `races/spikes/plain-rain.json` with the `base` controller and weather
+  type 7 put water on the road and spray off the car. **The gate is Custom
+  Shaders Patch itself**, whose preview builds carry WeatherFX and RainFX; the
+  controller only decides the numbers. So the weather system setting is a
+  choice about look and about whether weather can change mid-session, not
+  about whether it can rain.
+- **Only PURE and Sol read a preset's `[RAINFX]`.** A grep of the whole
+  `extension/` tree finds that section in `pureCtrl` and `sol2` and nowhere
+  else, so it is their convention rather than a CSP one. Plain CSP still rains -
+  RainFX is a core module and `base/controller.lua` sets an intensity
+  unconditionally - but from a hardcoded per-type table, so `career_rain` runs
+  at CSP's 0.1 rather than the 0.125 it asks for. Three things are involved and
+  confusing them is easy: **RainFX** draws the rain, the **implementation**
+  (`extension/weather/`) draws sky and clouds, and the **controller** only
+  decides the numbers.
+- **`weather_fx.ini` has two axes and we own only one.** `CONTROLLER` is set per
+  race through `__CM_WEATHER_CONTROLLER`; `IMPLEMENTATION` - the weather style -
+  has no per-race equivalent, so the weather system setting deliberately does not
+  claim it. A user on PURE's controller with the `base` implementation gets
+  PURE's conditions and CSP's sky, and nothing reports that.
+- **PURE overwrites its own `Plans/last_used.json` with whatever plan it just
+  ran.** So driving a generated plan replaces whatever the user had loaded
+  there. Our writer never touches that file and `removePlans` cannot undo it,
+  because the damage is done by their app during the race rather than by us
+  before it. The settings screen warns about it; nothing else can.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
 - Liveries are read from `ui_skin.json` and browsable per car, but nothing pins

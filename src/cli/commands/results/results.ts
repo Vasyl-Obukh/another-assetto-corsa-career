@@ -25,11 +25,10 @@ const resolveTarget = async (args: string[]): Promise<string | null> => {
 /**
  * Prints what AC actually wrote into a result file, without interpreting it.
  *
- * A probe rather than a feature: it shows the raw session shape, how many
- * sessions ran against how many were configured, and both readings of
- * raceResult next to the standings summarise() produces. The finishing-order
- * reading is the confirmed one; the other is kept as a cross-check, so a
- * capture that ever disagreed would be visible rather than silently absorbed.
+ * Shows the raw session shape, how many sessions ran against how many were
+ * configured, and both readings of raceResult next to the standings summarise()
+ * produces. The finishing-order reading is the confirmed one; the other is kept
+ * as a cross-check, so a capture that disagreed would be visible.
  * @param args Command arguments; --live reads AC's own file, --list shows the archives
  * @returns Resolves once the file has been printed
  * @throws When there is no result file to read
