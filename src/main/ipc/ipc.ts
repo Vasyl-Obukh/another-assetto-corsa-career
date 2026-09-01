@@ -5,6 +5,7 @@
 import { BrowserWindow, dialog } from 'electron';
 
 import { handle } from './utils.ts';
+import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts';
 import { probePaths } from '../../core/paths/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
@@ -82,6 +83,9 @@ export const registerHandlers = (
   handle('race:reset', async () => race.reset());
   handle('race:results', async () => race.results());
   handle('race:result', async ({ file }) => race.result(file));
+
+  handle('cm:arguments', readCmArguments);
+  handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));
 
   handle('settings:get', async () => settings.get());
   handle('settings:patch', async (patch) => settings.patch(patch));

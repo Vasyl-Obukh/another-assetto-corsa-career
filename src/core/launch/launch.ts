@@ -12,20 +12,12 @@
 import { execFile } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 
-import {
-  DEFAULT_ABS,
-  DEFAULT_DAMAGE,
-  DEFAULT_FUEL_RATE,
-  DEFAULT_SLIPSTREAM,
-  DEFAULT_STABILITY_CONTROL,
-  DEFAULT_TRACTION_CONTROL,
-  DEFAULT_TYRE_WEAR,
-  LAUNCH_MAX_BUFFER,
-} from './constants.ts';
+import { LAUNCH_MAX_BUFFER } from './constants.ts';
 import type { LaunchOptions, RaceUriOptions } from './types.ts';
-import { assistFlag, toCutBase64 } from './utils.ts';
+import { assistFlag, resolveAssists, toCutBase64 } from './utils.ts';
 import type { Assists } from '../../shared/types/index.ts';
 
+export { assistsPresetJson } from './assists.ts';
 export type { LaunchOptions, RaceUriOptions } from './types.ts';
 export { fromCutBase64, toCutBase64 } from './utils.ts';
 
@@ -97,26 +89,31 @@ export const launchUri = (
 /**
  * Renders assists in the layout AC writes to cfg/assists.ini.
  *
- * Not yet usable at launch: acmanager://race/config wants Content Manager's own
- * serialized preset format rather than this.
+ * Not what the URI carries - that is `assistsPresetJson` - but it is the same
+ * values in the form AC and Content Manager write them to disk, which is what
+ * makes `cfg/assists.ini` readable as a check on what actually arrived.
  * @param assists The assists to render, defaulting to AC's own defaults
  * @returns INI text with CRLF line endings
  */
-export const buildAssistsIni = (assists: Assists = {}): string => [
-  '[ASSISTS]',
-  `IDEAL_LINE=${assistFlag(assists.idealLine, 0)}`,
-  `AUTO_BLIP=${assistFlag(assists.autoBlip, 0)}`,
-  `STABILITY_CONTROL=${assists.stabilityControl ?? DEFAULT_STABILITY_CONTROL}`,
-  `AUTO_BRAKE=${assistFlag(assists.autoBrake, 0)}`,
-  `AUTO_SHIFTER=${assistFlag(assists.autoShifter, 0)}`,
-  `ABS=${assists.abs ?? DEFAULT_ABS}`,
-  `TRACTION_CONTROL=${assists.tractionControl ?? DEFAULT_TRACTION_CONTROL}`,
-  `AUTO_CLUTCH=${assistFlag(assists.autoClutch, 0)}`,
-  `VISUALDAMAGE=${assistFlag(assists.visualDamage, 1)}`,
-  `DAMAGE=${assists.damage ?? DEFAULT_DAMAGE}`,
-  `FUEL_RATE=${assists.fuelRate ?? DEFAULT_FUEL_RATE}`,
-  `TYRE_WEAR=${assists.tyreWear ?? DEFAULT_TYRE_WEAR}`,
-  `TYRE_BLANKETS=${assistFlag(assists.tyreBlankets, 1)}`,
-  `SLIPSTREAM=${assists.slipstream ?? DEFAULT_SLIPSTREAM}`,
-  '',
-].join('\r\n');
+export const buildAssistsIni = (assists: Assists = {}): string => {
+  const a = resolveAssists(assists);
+
+  return [
+    '[ASSISTS]',
+    `IDEAL_LINE=${assistFlag(a.idealLine)}`,
+    `AUTO_BLIP=${assistFlag(a.autoBlip)}`,
+    `STABILITY_CONTROL=${a.stabilityControl}`,
+    `AUTO_BRAKE=${assistFlag(a.autoBrake)}`,
+    `AUTO_SHIFTER=${assistFlag(a.autoShifter)}`,
+    `ABS=${a.abs}`,
+    `TRACTION_CONTROL=${a.tractionControl}`,
+    `AUTO_CLUTCH=${assistFlag(a.autoClutch)}`,
+    `VISUALDAMAGE=${assistFlag(a.visualDamage)}`,
+    `DAMAGE=${a.damage}`,
+    `FUEL_RATE=${a.fuelRate}`,
+    `TYRE_WEAR=${a.tyreWear}`,
+    `TYRE_BLANKETS=${assistFlag(a.tyreBlankets)}`,
+    `SLIPSTREAM=${a.slipstream}`,
+    '',
+  ].join('\r\n');
+};

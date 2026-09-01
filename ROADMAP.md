@@ -24,12 +24,18 @@ early decision and is worth reading in *Weekends and sessions* before touching
 the weekend code. It made the grid unconditionally ours and gave every session
 its own weather, wind, temperature, track state and start time.
 
-What is left of the reshaping is **dynamic weather as generated plans** handed to
-PURE Planner or Sol Planner, whose file formats and autoload hooks are recorded
-in *Weather, and how dynamic weather is actually driven*, and the single
-**weather system setting** that goes with it. Still outstanding beyond those:
-assists, the road-temperature curve, and writing Content Manager's
-`Arguments.txt`.
+**Every item in the phase is done.** Dynamic weather as generated plans landed,
+along with the weather system setting that goes with it; road temperature is
+Kunos' own curve rather than a stand-in; Content Manager's `Arguments.txt` is
+written, from the settings screen for the two flags a career wants and from
+`npm run testmode` for the one that stops CM racing; and assists reach CM in its own serialized
+format - **measured, not inferred**, since `races/spikes/assists.json` came back
+in `cfg/assists.ini` with all eight of its values intact - with driving aids in
+settings and regulations on the race.
+
+One row of the runbook is still open, and it corroborates rather than blocks:
+the road-temperature diff against CM's own `race.ini` at 22:00, which is the
+only hour where the curve we ship and the one Kunos wrote disagree.
 
 ## Decisions taken
 
@@ -1082,14 +1088,88 @@ Spikes first - they decide what weekend formats are expressible.
       `isDynamic` would then have installed a plan for a session that asked for
       one weather. The group exists precisely to stop two answers to the weather
       question surviving together, and it was missing its newest member
-- [ ] Resolve the assists question so regulations can be enforced. **CM's own
-      preset format has since been found**: a saved Quick Drive `.cmpreset` on
-      this machine carries `"AssistsData":"{\"IdealLine\":false,\"Abs\":1,\"Damage\":100.0,...}"`
-      - JSON, not the `assists.ini` `buildAssistsIni` renders. That is what
-      `buildRaceUri`'s unused `assistsPreset` argument wants
-- [ ] Replace the road-temperature approximation with Kunos' curve
-- [ ] Offer to write CM's `Arguments.txt` (`--skip-all-results`,
-      `--hide-race-cancel-button`)
+- [x] **Assists reach Content Manager, and arrive.**
+      `buildRaceUri` could always send an `assistsData` parameter and had never
+      been given one, because `acmanager://race/config` wants CM's own
+      serialization rather than the `assists.ini` `buildAssistsIni` renders.
+      **That format was read off a saved Quick Drive `.cmpreset` on this
+      machine**: `AssistsData` is a JSON *string* whose contents are themselves
+      JSON, the same double-serialized convention its sibling
+      `TrackPropertiesData` uses, and both deserialize into CM's own
+      `Game.AssistsProperties` - so the parameter takes the inner object rather
+      than the whole preset. **Two of their key names are traps and neither is
+      guessable**: slipstream is spelt `SlipSteam`, one `s` short, and fuel rate
+      is `FuelConsumption`. `assistsPresetJson` writes them, `resolveAssists`
+      is the one place a default lives so the JSON and the INI can never
+      disagree, and every launch sends it - omitting it would leave CM applying
+      whatever its own Quick Drive last held, which is a wrong answer that
+      reports nothing.
+      **Aids belong to the player and regulations to the race**, the same split
+      `driverName` already makes: ideal line, auto blip, auto brake, auto
+      shifter, auto clutch, ABS, traction control, stability control, tyre
+      blankets and visual damage are `Settings.drivingAids`; damage, fuel rate,
+      tyre wear and slipstream sit on the race, where Phase 4's series will set
+      them. A race naming a field wins, field by field - which is why the merge
+      drops explicitly-undefined keys first, since the race screen writes
+      `undefined` for every box the user has emptied and a bare spread would
+      turn a setting off rather than defer to it.
+      **That CM reads it is now measured**, and it cost no driving:
+      `races/spikes/assists.json` was run with `--enable-race-ini-test-mode`
+      on, and **CM writes `cfg/assists.ini` in the same preparation pass that
+      writes `cfg/race.ini`** - so the answer was on disk with nothing
+      launched. All eight of the spike's non-default values came back exactly
+      as asked, `SLIPSTREAM=3` and `FUEL_RATE=5` among them, which is what
+      settles both the inner-blob reading and the two trap spellings at once:
+      had `assistsData=` wanted a whole `.cmpreset`, or had either key been
+      spelt the obvious way, those two lines would have held AC's defaults
+- [x] **Road temperature is Kunos' own curve now** - found twice, in
+      `content/weather/readme_weather.txt` where they state the equation and in
+      `launcher/themes/default/js/ui.js`, where `calctemp` implements it. The
+      old stand-in was `ambient + ambient * coeff * 0.5` and **took no account
+      of the time of day at all**, which is most of what the curve is for.
+      **Two things came out of transcribing it that reading it did not show.**
+      Kunos guard the coefficient with `if (!COEFF) COEFF = 1`, so a preset
+      declaring zero and a race naming no preset both warm the road rather than
+      leaving it at ambient - a real behavioural change, and the reason the
+      weather-plan spikes moved from ROAD=20 to ROAD=28. And **their formula is
+      only defined across the 08:00 to 18:00 slider their launcher offered**:
+      run out to midnight, which our clock allows, and it returns **214C**. So
+      what is implemented is CSP's restatement from
+      `extension/internal/lua-shared/sim/weather.lua`, which is the same curve
+      algebraically - checked hour by hour, identical to four decimals from
+      07:00 to 18:00 - plus the phase cap and evening fade that keep it bounded.
+      Adopting the guards is a departure from "Kunos raw", and it was made on
+      the 214C rather than on taste.
+      Verified as a diff: every `races/*.json` and `races/spikes/*.json` comes
+      out of `npm run dry` byte-identical except `[TEMPERATURE] ROAD`, and
+      `demo` is identical outright because it names a road temperature of its
+      own. **What is still to measure is CM's own answer** - see the runbook row
+- [x] **Content Manager's `Arguments.txt` is written, from two places on
+      purpose.** The settings screen has a switch for `--skip-all-results` and
+      `--hide-race-cancel-button`, which are preferences a career wants;
+      `--enable-race-ini-test-mode` is set by `npm run testmode -- on|off` and
+      appears in no UI at all, because it stops CM launching anything and so is
+      a debugging tool rather than a setting. `SettingsCmFlag` excludes it in
+      the type rather than merely omitting it from a list, which is what lets
+      the screen's translations drop its wording too.
+      **The file is the state; nothing is mirrored into `settings.json`.** The
+      user can edit it by hand, and the CLI writes it too, so a copy of ours
+      would start lying the moment either happened; both IPC channels answer
+      with a fresh read.
+      **And no backup, unlike `src/core/weather-plan/`.** There, an install
+      overwrites `LAST_USED` and a whole preset slot with values that cannot be
+      reconstructed, so `rememberOnce` records them first. Here a flag's
+      presence *is* the state, turning it off is a complete undo, and every
+      other line is passed through untouched - so there is nothing to record and
+      no file of ours to leave in someone else's folder. A file left holding
+      nothing but blank lines is removed rather than left behind empty.
+      **Driven against the real install**: the file did not exist, so
+      create-from-nothing is the ordinary path; a file carrying the user's own
+      two arguments came back byte-identical after a flag was added and removed;
+      setting a flag that is already set does nothing rather than moving it to
+      the end; and a flag outside `CM_FLAGS` is refused in main before anything
+      is written, so a renderer bug cannot append an arbitrary line to Content
+      Manager's startup arguments
 
 ### Spike runbook
 
@@ -1115,6 +1195,9 @@ pick one. Default is the newest archive; `--live` reads AC's own
 | ~~PURE plan~~ | ~~`npm run weather -- plan pure evolve`, then `npm run race -- spikes/weather-plan`~~ | **Done - PURE follows a plan we generated.** Clear, heavy rain, clear, three minutes each, and `AUTOSTART` starts it with the race. Took two runs: `control.type` was first written as `1`, which is daycycle, and that ignores every step's duration and spread three steps over three eight-hour blocks. `2` is timed and honours them. **This is the result the whole approach rested on** - generated dynamic weather is expressible |
 | ~~Sol plan~~ | ~~`npm run weather -- plan sol evolve`, then `npm run race -- spikes/weather-plan-sol`~~ | **Done - Sol Planner follows a plan we generated too.** It autoloads `[4]`, and writes the file back in its own ConfigParser formatting with `loadWithStart = 4` still set, which is proof the camelCase spelling is the one that works: the lowercase key sitting beside it was ignored as their source said it would be. Took two runs, for a reason worth remembering - **only one weather controller runs per race**, so the first attempt was driven against a file naming `pureCtrl` and Sol correctly reported "Sol 2.5 controller not running" while doing nothing. Each planner needs its own race file |
 | ~~CM slot defers~~ | ~~`npm run weather -- plan pure defer`, then `npm run race -- spikes/weather-plan-defer`~~ | **Done, and the answer is no.** A race asking for Fog through `__CM_WEATHER_TYPE=20` alongside the dynamic `pureCtrl` still opened on scattered clouds. Their source says why: `pureCtrl/controller.lua` reads the race's type into `wid`, but only ever publishes it as `CM.initWeather.weatherID` inside `if __PURE__controller_type < 1` - the **static** branch. A plan only runs under the dynamic controller, so the slot the planner app reads is never written and it falls back. **A generated plan must state its own weather in every step.** No loss: the generator knows what the session asked for |
+| Assists blob | `npm run race -- spikes/assists`, then read `cfg/assists.ini` | **Run, and it needed no driving.** CM's `AssistsData` is a JSON string inside a JSON string, read off a saved Quick Drive preset; whether `assistsData=` on the URI wanted that inner object or a whole `.cmpreset` was an inference from their file format rather than a measurement. **CM writes `cfg/assists.ini` in the same preparation pass that writes `cfg/race.ini`**, so with `--enable-race-ini-test-mode` on the answer landed on disk with nothing launched. All eight values the spike asks for came back exactly: `IDEAL_LINE=1`, `AUTO_SHIFTER=1`, `ABS=2`, `DAMAGE=0`, `FUEL_RATE=5`, `TYRE_WEAR=5`, `TYRE_BLANKETS=0`, `SLIPSTREAM=3`. The last two lines are the informative ones - they are what `SlipSteam` and `FuelConsumption` write, so a wrong spelling or a wrapped preset would have left AC's defaults there. **Keep the spike**: it is the regression test for a serialization we cannot see fail any other way |
+| CM overrides the player's driver name | Same test-mode pass, with `[CAR_0] DRIVER_NAME` set to something distinctive | **Run.** The whole-file diff of our `race.ini` against the `cfg/race.ini` CM handed AC showed CM had replaced the player car's `DRIVER_NAME` with the name from its own profile. Re-run sending `Zoltan Quixbarrow` to rule out a placeholder being substituted - it came back as CM's name again. AI names in `[CAR_n]` pass through untouched, and CM's only other change to the file was adding the track geotag and timezone keys CSP needs. So `Settings.driverName` reaches the INI and stops there |
+| Road temperature vs CM | `--enable-race-ini-test-mode`, one Quick Drive race at 14:00, 09:00 and 22:00 | **To drive.** Kunos' curve is transcribed from their own launcher and agrees with CSP's restatement to four decimals across 07:00 to 18:00, so 14:00 and 09:00 should simply match. **22:00 is the one that discriminates**: raw Kunos declines through the evening and runs away after midnight, while CSP caps the phase and fades it, which walks back over the afternoon peak and reads about 1.5C *warmer* at 20:00 than at 18:00. Neither is obviously right and CM is what we hand the INI to, so whatever CM writes is the answer to adopt. **What the assists pass already settled** is that this is a question of agreement rather than effect: CM handed AC our INI with `[TEMPERATURE] ROAD` untouched, so whatever we compute is what races - the diff only says whether we agree with CM's own Quick Drive |
 
 **The results file cannot answer the grid probe** - only watching the race can.
 This was tried on the `spikes/grid` capture and both proxies failed: lap-0

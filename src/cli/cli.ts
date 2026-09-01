@@ -23,7 +23,7 @@ export const main = async (command: string, args: string[]): Promise<void> => {
     case 'results': return cmdResults(args);
     case 'weekend': return cmdWeekend(args);
     case 'weather': return cmdWeather(args);
-    case 'testmode': return cmdTestMode();
+    case 'testmode': return cmdTestMode(args);
     default:
       throw new Error(
         `Unknown command: ${command}. `

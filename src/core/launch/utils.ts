@@ -1,4 +1,7 @@
 import { BASE64_GROUP } from './constants.ts';
+import { DEFAULT_ASSISTS } from '../../shared/constants/index.ts';
+import type { Assists } from '../../shared/types/index.ts';
+import { defined } from '../../shared/utils/defined/index.ts';
 
 /**
  * Encodes text as Content Manager's "cut base64": standard base64 with '='
@@ -26,12 +29,24 @@ export const fromCutBase64 = (encoded: string): string => {
 };
 
 /**
- * Renders an optional boolean assist as AC's 1 or 0.
- * @param value The assist setting, or undefined when the race omits it
- * @param fallback Used when the value is undefined
+ * Fills in every assist AC ships a default for.
+ *
+ * One resolution behind both renderings, so the INI and the JSON can never
+ * disagree about what an omitted field meant. Merged through `defined` rather
+ * than by a bare spread, so a field explicitly set to undefined - which the
+ * race screen writes for every box the user has emptied - falls back to the
+ * default instead of overwriting it with nothing.
+ * @param assists The assists a race asked for
+ * @returns Every assist, with nothing left undefined
+ */
+export const resolveAssists = (assists: Assists = {}): Required<Assists> => ({
+  ...DEFAULT_ASSISTS,
+  ...defined(assists),
+});
+
+/**
+ * Renders a boolean assist as AC's 1 or 0.
+ * @param value The assist setting
  * @returns 1 when enabled, 0 when not
  */
-export const assistFlag = (value: boolean | undefined, fallback: number): number => {
-  if (value === undefined) return fallback;
-  return value ? 1 : 0;
-};
+export const assistFlag = (value: boolean): number => (value ? 1 : 0);

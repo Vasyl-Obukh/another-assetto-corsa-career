@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { PathsReport } from '../../../../shared/types';
 import { useSettings } from '@/app';
 import {
-  ContentCard, ErrorCard, LanguageSelect, PathsCard, ThemeSelect,
+  ContentCard, ErrorCard, LanguageSelect, PathsCard, ScreenBody, ThemeSelect,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useInstallation } from '@/hooks';
@@ -22,7 +22,7 @@ export const Setup = ({ initialReport }: SetupProps) => {
   const install = useInstallation(initialReport);
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col gap-8 overflow-y-auto px-8 py-8">
+    <ScreenBody className="flex flex-col gap-8 py-8">
       <header className="flex items-start justify-between gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">{t('setup.title')}</h1>
@@ -71,6 +71,6 @@ export const Setup = ({ initialReport }: SetupProps) => {
           </Button>
         </div>
       </main>
-    </div>
+    </ScreenBody>
   );
 };

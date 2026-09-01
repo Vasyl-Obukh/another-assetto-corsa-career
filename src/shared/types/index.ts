@@ -101,7 +101,12 @@ export type {
   WeatherSystem,
 } from './weather-plan.ts';
 
+export type { CmArguments, CmFlag } from './cm-arguments.ts';
+
 export type {
+  DrivingAidFlag,
+  DrivingAidNumber,
+  DrivingAids,
   Language,
   ResolvedTheme,
   Settings,

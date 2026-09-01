@@ -33,6 +33,9 @@ export type ErrorCode =
   | 'weatherPlan.weather.unmappable'
   | 'weatherPlan.planner.notInstalled'
   | 'weatherPlan.plan.openEndedStep'
+  // src/core/cm-arguments
+  | 'cm.arguments.unknownFlag'
+  | 'cm.arguments.noDataDir'
   // src/core/weekend
   | 'weekend.complete'
   | 'weekend.launch.outOfRange'

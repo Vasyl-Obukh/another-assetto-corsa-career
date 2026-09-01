@@ -119,7 +119,7 @@ per project.
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
 | `src/cli/` | `scan`, `dry`, `run`, `weekend`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
 | `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, weekend, settings, IPC |
-| `src/shared/constants/` | Time units, settings defaults, the `accontent://` scheme, the English wording for every content issue reason |
+| `src/shared/constants/` | Time units, settings defaults, the assists Assetto Corsa itself ships, the Content Manager flags we offer, the `accontent://` scheme, the English wording for every content issue reason |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
@@ -135,12 +135,13 @@ per project.
 | `src/core/content-catalogue/` | Which folder ID is base game, which DLC pack, whose mod, who redistributes it; every ID listed, nothing inferred |
 | `src/core/content-query/` | Pure filter, sort, page and facet counting over a scan; tracks filter per layout and come back grouped one per folder |
 | `src/core/race-ini/` | Race definition -> `race.ini` |
-| `src/core/launch/` | Cut-base64, URI construction, spawning CM |
+| `src/core/launch/` | Cut-base64, URI construction, spawning CM, and rendering assists both ways - Content Manager's serialized JSON for the URI, AC's `assists.ini` layout for reading back what arrived |
 | `src/core/results/` | Watching, stable-reading and summarising results |
 | `src/core/weekend/` | Lowering a weekend into launches, one per session, and carrying the grid and the track across the seams between them. Pure: no I/O, so the state machine is a reducer over a value rather than a store |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
 | `src/core/weather-plan/` | Weather plans for the PURE and Sol planner apps: our own step model, a writer per format, and installing them into a slot we own without disturbing the user's. Dynamic weather is driven by those apps, not by `race.ini` |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
+| `src/core/cm-arguments/` | Content Manager's own `Arguments.txt`, one flag per line. Line-level and backup-free, unlike `weather-plan`: a flag's presence is the state, so turning it off is a complete undo. The settings screen writes two of the flags; race INI test mode is set through `npm run testmode` alone |
 | `src/main/` | App lifecycle, window, settings store, content store, race store, theme, IPC handlers |
 | `src/main/content-store/` | The scan, cached to `%APPDATA%`, watched and revalidated |
 | `src/main/race-store/` | The race being set up, its weekend progress and the launch in flight, all under `%APPDATA%/ac-career-mode/race/`. The same steps `npm run weekend` runs, in the same order; the wait for a result is detached and reaches the renderer as a push |
@@ -149,6 +150,7 @@ per project.
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
 | `src/renderer/src/screens/` | One folder per route-level screen. `car-browser` and `track-browser` each expose a `*BrowserBody`, which is the whole browser with an optional `onSelect` - that is what the race screen's pickers are, rather than screens of their own |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
+| `src/renderer/src/lib/layout.ts` | The measurements more than one screen shares: the content width, the settings control width, the two-column field grid |
 | `races/*.json` | Race definitions in our own format. A weekend is one of these too - its `sessions` cover the whole event and `src/core/weekend/` splits it into launches |
 | `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
 
@@ -175,13 +177,21 @@ Electron flattens `Error` into something unreadable - so each resolves an
 Content Manager can write `race.ini` without launching the game, which gives an
 authoritative reference:
 
-1. Put `--enable-race-ini-test-mode` in CM's `Arguments.txt`
-   (`%LOCALAPPDATA%\AcTools Content Manager\Arguments.txt`), one flag per line.
-2. Set the same race up in CM's Quick Drive and hit Go - nothing launches.
+1. `npm run testmode -- on`, which writes `--enable-race-ini-test-mode` into
+   `%LOCALAPPDATA%\AcTools Content Manager\Arguments.txt`.
+2. Restart CM, set the same race up in its Quick Drive and hit Go - nothing
+   launches.
 3. Diff `out\race.ini` against `Documents\Assetto Corsa\cfg\race.ini`.
-4. Remove the flag afterwards or CM will never launch a race again.
+4. `npm run testmode -- off` afterwards, or CM will never launch a race again.
 
-`npm run testmode` prints this with the paths filled in.
+`npm run testmode` with no argument prints that procedure with the paths filled
+in, and says which of our flags the file currently holds. **The flag is
+deliberately CLI-only**: it stops CM launching anything, so it is a debugging
+tool rather than something to leave switchable in the app. The settings screen
+offers the other two flags, neither of which can stop a race.
+
+CM writes `cfg\assists.ini` in the same preparation pass, so the same procedure
+checks the assists blob without driving.
 
 When a launch misbehaves, `cfg\race.ini` immediately afterwards is the fastest
 diagnostic - it is what CM actually handed AC, rather than what we intended.
@@ -437,6 +447,22 @@ appends it (`describeProblems` in `src/cli/utils.ts`) rather than baking it in.
 **Colours live in one file.** `src/renderer/src/globals.css` defines the token
 layer for both themes. A hardcoded colour anywhere else is a bug.
 
+**So do the shared measurements.** `src/renderer/src/lib/layout.ts` holds the
+content width every screen shares, the width every settings control shares, and
+the two-column field grid. Each was a per-screen literal before and each had
+drifted - seven screens held five different widths, and a select sized itself to
+its own longest option, so theme and language came out different widths side by
+side.
+
+**Reach all three through components, never by pasting the classes.**
+`<ScreenBody>` owns the scrolling element and the content column, so a screen
+writes only its own gap and padding; `<FieldGrid>` and `<FieldRow>` own the
+settings layout, so every control in every card shares two left edges and one
+width. That this is a component rather than a class is load-bearing: putting the
+grid classes on a `CardContent` looks identical but is not, because
+`CardContent` carries `px-6` for the width cap to land on, and that card's
+columns come out 48px narrower than the rest.
+
 ## Known gaps
 
 - **A race session is classified by AC's own `raceResult`; everything else is
@@ -471,11 +497,38 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   one. It is harmless in practice and qualifying, which sort on best lap, and
   bites only a race - where `raceResult` is now preferred anyway. It also presents grid order as a
   result for a zero-lap session rather than saying "unclassified". Both unfixed.
-- Assists cannot be set through `race/config` yet - CM wants its own serialized
-  preset format there, not an `assists.ini`. That format has since been found:
-  a saved Quick Drive `.cmpreset` carries `AssistsData` as JSON
-  (`{"IdealLine":false,"Abs":1,"Damage":100.0,...}`), which is what
-  `buildRaceUri`'s unused `assistsPreset` argument wants.
+- **Assists are sent and arrive** - measured, not inferred. `race/config` wants
+  CM's own serialization rather than an `assists.ini`, and that format was read
+  off a saved Quick Drive `.cmpreset`: `AssistsData` is a JSON *string* whose
+  contents are themselves JSON, the same convention its sibling
+  `TrackPropertiesData` uses, and both deserialize into CM's
+  `Game.AssistsProperties`. So `assistsData=` takes the *inner* object, not a
+  whole preset. **Two key names are traps**: slipstream is `SlipSteam`, one `s`
+  short, and fuel rate is `FuelConsumption`. `races/spikes/assists.json` proved
+  all of it at once by reading `cfg/assists.ini` back - CM writes that file in
+  the same preparation pass as `cfg/race.ini`, so
+  `--enable-race-ini-test-mode` gets the answer without launching. Keep the
+  spike: a wrong key here fails silently, with the assist simply left at AC's
+  default and nothing said anywhere.
+- **Content Manager overwrites the player car's `DRIVER_NAME` with its own
+  profile name.** Measured through the test-mode pass: a race sending
+  `DRIVER_NAME=Zoltan Quixbarrow` for `[CAR_0]` came back as CM's own name in
+  `cfg/race.ini`, so it is not a placeholder being substituted - the key is
+  simply not ours to set. AI names in `[CAR_n]` pass through untouched. So the
+  `driverName` setting reaches the INI and no further, and its hint - "leave
+  this empty to race under whatever name Assetto Corsa picks" - describes what
+  actually happens either way. Changing it means changing CM's own player name,
+  which we do not own.
+- **CM otherwise hands AC the INI we wrote, verbatim.** Same pass, diffed whole:
+  the only additions were the track geotag and timezone keys CSP needs, which
+  CM derives itself. `[TEMPERATURE] ROAD` in particular is passed through
+  untouched, so whatever curve we compute is the one that races - the open
+  question about Kunos' curve versus CSP's is about agreeing with CM's Quick
+  Drive, not about whether our answer takes effect.
+- **Sending assists rewrites the user's own `cfg/assists.ini` and does not put
+  it back** - the same intrusion `__CM_WEATHER_CONTROLLER` makes on
+  `weather_fx.ini`. CM does it from its own Quick Drive too, so it is not new
+  behaviour, but it is ours to own now.
 - **A launch ends at its first race**, and **qualifying in a launch owns its
   grid** - both measured, and both now routed around rather than worked within.
   AC offers no way past the chequered flag, so a second race in the same INI is
@@ -499,7 +552,19 @@ layer for both themes. A hardcoded colour anywhere else is a bug.
   driven, one session of type 1, and it cannot be mistaken for a grid source,
   since `lastQualifying()` matches on type 2 and so a race behind it falls
   through to the seeded skill order.
-- Road temperature is an approximation of Kunos' curve.
+- **Road temperature is Kunos' curve, with CSP's guards.** The equation is
+  stated by Kunos in `content/weather/readme_weather.txt` and implemented as
+  `calctemp` in `launcher/themes/default/js/ui.js`; what we run is CSP's
+  restatement of it from `extension/internal/lua-shared/sim/weather.lua`, which
+  is the same curve algebraically and identical to four decimals from 07:00 to
+  18:00. The guards are not decoration: Kunos' launcher only ever offered an
+  08:00 to 18:00 slider, our clock offers the whole day, and raw it returns
+  214C at midnight. Their `if (!COEFF) COEFF = 1` is reproduced too, so a
+  preset declaring zero and a race naming no preset both warm the road.
+  **Two things are still unmeasured**: what CM itself writes at 22:00, where the
+  two variants disagree, and CSP's evening fade reads about 1.5C warmer at 20:00
+  than at 18:00, because winding the phase back down walks over the curve's own
+  afternoon peak.
 - **A weather controller is either a renderer or a weather in its own right**,
   and `manifest.ini`'s `FOLLOWS_SELECTED_WEATHER` is the only thing that says
   which. Set to 0 the controller drives the weather from its own planner app

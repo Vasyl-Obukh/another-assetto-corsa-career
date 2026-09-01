@@ -26,7 +26,7 @@ import type { CspSetup, RaceStore } from './types.ts';
 import {
   isArchiveName, readJson, readRecord, writeJson,
 } from './utils.ts';
-import { buildRaceUri, launchUri } from '../../core/launch/index.ts';
+import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
 import { buildRaceIni, parseClock, validateRace } from '../../core/race-ini/index.ts';
 import { archiveResults, waitForResults } from '../../core/results/index.ts';
 import { readWeatherFx, readWeatherFxController } from '../../core/weather/index.ts';
@@ -46,6 +46,7 @@ import type {
   WeekendPlan,
   WeekendState,
 } from '../../shared/types/index.ts';
+import { defined } from '../../shared/utils/defined/index.ts';
 import {
   controllerFor, isDynamic, plannerFor, supportsDynamic,
 } from '../../shared/utils/weather-system/index.ts';
@@ -220,6 +221,21 @@ export const createRaceStore = async (
 
     return { ...race, playerCar: { ...race.playerCar, driver: driverName } };
   };
+
+  /**
+   * Fills in the driving aids the player chose in settings.
+   *
+   * The same arrangement `withDriver` uses, and for the same reason: aids belong
+   * to the person playing, while damage, fuel rate, tyre wear and slipstream are
+   * regulations and belong to the race. A race naming any of them keeps it,
+   * field by field, so a spike can still pin the lot.
+   * @param race The launch, already prepared
+   * @returns The launch with its assists filled in
+   */
+  const withAssists = (race: RaceDefinition): RaceDefinition => ({
+    ...race,
+    assists: { ...settings.get().drivingAids, ...defined(race.assists) },
+  });
 
   /**
    * Names the controller a launch should run, and installs a plan when its
@@ -406,9 +422,14 @@ export const createRaceStore = async (
       // way out has to give them back - a race that failed to start must not
       // leave PURE pointed at our plan.
       let raceIni: string;
+      let assists: string;
       try {
-        const prepared = await withWeatherSystem(withDriver(launched));
+        const prepared = await withWeatherSystem(withAssists(withDriver(launched)));
         raceIni = buildRaceIni(prepared, installed);
+        // Sent on every launch, never omitted: with no assistsData at all,
+        // Content Manager applies whatever its own Quick Drive last held, which
+        // is a wrong answer that reports nothing.
+        assists = assistsPresetJson(prepared.assists);
         await mkdir(path.dirname(iniFile), { recursive: true });
         await writeFile(iniFile, raceIni);
       } catch (error) {
@@ -427,7 +448,10 @@ export const createRaceStore = async (
       // Anything written at or before this point is a previous session's result.
       const since = Date.now();
       try {
-        await launchUri(paths.contentManager, buildRaceUri(raceIni));
+        await launchUri(
+          paths.contentManager,
+          buildRaceUri(raceIni, { assistsPreset: assists }),
+        );
       } catch (error) {
         await settle(null);
         throw error;

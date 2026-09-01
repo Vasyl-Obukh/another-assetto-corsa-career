@@ -5,7 +5,7 @@
 //   npm run race          launch the race and wait for results
 //   npm run watch         wait for the next race_out.json on its own
 //   npm run weather --    install or remove career weather presets
-//   npm run testmode      how to diff our INI against Content Manager's
+//   npm run testmode --   turn CM's race INI test mode on or off, or explain it
 //
 // Through npm, not `node spike.ts` directly: the scripts pass
 // --experimental-transform-types, without which Node cannot run our enums.

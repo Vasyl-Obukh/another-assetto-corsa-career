@@ -1,5 +1,6 @@
 import type { ParseKeys } from 'i18next';
 
+import type { RegulationKey } from './types.ts';
 import { WeatherType } from '../../../../shared/constants';
 import type { SessionType, TrackStateName } from '../../../../shared/types';
 
@@ -157,3 +158,18 @@ export const PURE_MISSING_TYPES: ReadonlySet<WeatherType> = new Set([
   WeatherType.COLD,
   WeatherType.HOT,
 ]);
+
+/**
+ * The regulations the race screen offers, in the order it shows them.
+ *
+ * Paired with the DOM id rather than deriving one, so the ids stay kebab-case
+ * and stable while the key stays the field on `Assists`. Every one of these is
+ * a plain positive number with the same bounds, which is why they render from
+ * a list where `GridFields` spells its four out - those carry a range each.
+ */
+export const REGULATIONS: readonly { key: RegulationKey; id: string }[] = [
+  { key: 'damage', id: 'race-damage' },
+  { key: 'fuelRate', id: 'race-fuel-rate' },
+  { key: 'tyreWear', id: 'race-tyre-wear' },
+  { key: 'slipstream', id: 'race-slipstream' },
+];

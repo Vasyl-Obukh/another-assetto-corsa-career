@@ -3,7 +3,8 @@
  */
 export interface RaceUriOptions {
   /**
-   * Content Manager serialized assists preset - not an assists.ini.
+   * Content Manager's serialized assists, from `assistsPresetJson` - the JSON
+   * its own .cmpreset files carry, not an assists.ini.
    */
   assistsPreset?: string;
 }

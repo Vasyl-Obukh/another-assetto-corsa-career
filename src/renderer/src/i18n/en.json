@@ -142,7 +142,14 @@
     "driverHint": "Who you are on the timing screen. This belongs to you rather than to a race, so it is set once here and used by every session you launch.",
     "driverName": "Your name",
     "driverNamePlaceholder": "Player",
-    "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks."
+    "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks.",
+    "drivingAids": "Driving aids",
+    "drivingAidsHint": "The aids you drive with. These belong to you rather than to a race, so they are set once here and used by every session you launch.",
+    "drivingAidsOverride": "A race or a championship may still ask for something stricter, and what it names wins.",
+    "contentManager": "Content Manager",
+    "contentManagerHint": "Flags Content Manager reads when it starts. They live in its own Arguments.txt, so anything you put there by hand stays where it is.",
+    "contentManagerRestart": "Content Manager reads these the next time it starts.",
+    "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it."
   },
   "theme": {
     "system": "System",
@@ -314,6 +321,14 @@
       "squalls": "Squalls",
       "tornado": "Tornado",
       "hurricane": "Hurricane"
+    },
+    "regulations": {
+      "label": "Regulations",
+      "hint": "What the rules allow, rather than what you drive with - your own aids are in Settings. An empty field is whatever Assetto Corsa ships.",
+      "damage": "Damage",
+      "fuelRate": "Fuel use",
+      "tyreWear": "Tyre wear",
+      "slipstream": "Slipstream"
     }
   },
   "results": {
@@ -417,5 +432,34 @@
     "none": "Weather holds for the whole session and cannot change part way through - that needs a planner app, which only PURE and Sol have. Rain still works, but its strength comes from the weather type rather than from the exact figures a preset asks for.",
     "pure": "PURE renders the weather, and PURE Planner can make it change during a session. Rain uses the exact figures a preset asks for.",
     "sol": "Sol renders the weather, and Sol Planner can make it change during a session. Rain uses the exact figures a preset asks for."
+  },
+  "toggle": {
+    "on": "On",
+    "off": "Off"
+  },
+  "assist": {
+    "idealLine": "Ideal line",
+    "autoBlip": "Auto blip",
+    "autoBrake": "Auto brake",
+    "autoShifter": "Auto shifter",
+    "autoClutch": "Auto clutch",
+    "abs": "ABS",
+    "tractionControl": "Traction control",
+    "stabilityControl": "Stability control",
+    "tyreBlankets": "Tyre blankets",
+    "visualDamage": "Visual damage"
+  },
+  "assistMode": {
+    "0": "Off",
+    "1": "Factory",
+    "2": "On"
+  },
+  "cmFlag": {
+    "--skip-all-results": "Skip the results screen",
+    "--hide-race-cancel-button": "Hide the cancel button"
+  },
+  "cmFlagHint": {
+    "--skip-all-results": "Content Manager shows its own results screen after every session. Without it you come back here sooner.",
+    "--hide-race-cancel-button": "Puts a cancelled race more than one misclick away. Quitting does not abort a race either way - Assetto Corsa finishes it without you."
   }
 }

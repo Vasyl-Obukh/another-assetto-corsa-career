@@ -7,9 +7,16 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
-  DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES, WEATHER_SYSTEMS,
+  DEFAULT_SETTINGS,
+  DRIVING_AID_FLAGS,
+  DRIVING_AID_NUMBERS,
+  LANGUAGES,
+  THEME_CHOICES,
+  WEATHER_SYSTEMS,
 } from '../../constants/index.ts';
-import type { PathOverrides, Settings, WindowState } from '../../types/index.ts';
+import type {
+  DrivingAids, PathOverrides, Settings, WindowState,
+} from '../../types/index.ts';
 
 /**
  * Narrows a value to a plain object, excluding arrays and null.
@@ -71,6 +78,41 @@ export const readPaths = (raw: unknown): PathOverrides => {
 };
 
 /**
+ * Reads an optional boolean, treating anything that is not a boolean as absent.
+ * @param value The value to read
+ * @returns The boolean, or undefined when there was not one
+ */
+export const optionalBoolean = (value: unknown): boolean | undefined => (
+  typeof value === 'boolean' ? value : undefined
+);
+
+/**
+ * Reads the persisted driving aids, dropping anything malformed.
+ *
+ * Absent rather than defaulted, field by field: an aid nobody has chosen has to
+ * stay distinguishable from one deliberately set to what Assetto Corsa ships,
+ * because a race may only override what the player actually asked for.
+ * @param raw The value read from disk
+ * @returns Aids containing only the keys that held a usable value
+ */
+export const readDrivingAids = (raw: unknown): DrivingAids => {
+  if (!isRecord(raw)) return {};
+
+  const aids: DrivingAids = {};
+
+  DRIVING_AID_FLAGS.forEach((key) => {
+    const value = optionalBoolean(raw[key]);
+    if (value !== undefined) aids[key] = value;
+  });
+  DRIVING_AID_NUMBERS.forEach((key) => {
+    const value = finiteNumber(raw[key]);
+    if (value !== undefined) aids[key] = value;
+  });
+
+  return aids;
+};
+
+/**
  * Reads persisted window geometry, clamped to a usable size.
  * @param raw The value read from disk
  * @returns Valid window state, falling back to the defaults field by field
@@ -116,6 +158,7 @@ export const migrateSettings = (raw: unknown): Settings => {
     // Absent rather than empty, so clearing the field means "let Assetto Corsa
     // decide" rather than racing under a blank name.
     ...(driverName ? { driverName } : {}),
+    drivingAids: readDrivingAids(raw.drivingAids),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

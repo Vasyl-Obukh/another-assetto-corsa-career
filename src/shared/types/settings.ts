@@ -1,6 +1,7 @@
 // App settings, as persisted to settings.json in the user data folder.
 
 import type { PathOverrides } from './paths.ts';
+import type { Assists } from './race.ts';
 import type { WeatherSystem } from './weather-plan.ts';
 
 /**
@@ -45,6 +46,45 @@ export interface WindowState {
 }
 
 /**
+ * The half of the assists that belongs to the person playing rather than to a
+ * race.
+ *
+ * A `Pick` off `Assists` rather than a list of its own, so the two can never
+ * drift apart. The rest - damage, fuel rate, tyre wear and slipstream - are
+ * regulations, and a series sets those.
+ */
+export type DrivingAids = Pick<
+  Assists,
+  | 'idealLine'
+  | 'autoBlip'
+  | 'autoBrake'
+  | 'autoShifter'
+  | 'autoClutch'
+  | 'abs'
+  | 'tractionControl'
+  | 'stabilityControl'
+  | 'tyreBlankets'
+  | 'visualDamage'
+>;
+
+/**
+ * A driving aid that is simply on or off.
+ *
+ * Split from the numeric ones because reading them back off disk and rendering
+ * them are both per-type jobs, and because `Extract` makes a renamed field fail
+ * the typecheck rather than quietly dropping out of the migration.
+ */
+export type DrivingAidFlag = Extract<
+  keyof DrivingAids,
+  'idealLine' | 'autoBlip' | 'autoBrake' | 'autoShifter' | 'autoClutch' | 'tyreBlankets' | 'visualDamage'
+>;
+
+/**
+ * A driving aid Assetto Corsa measures rather than switches.
+ */
+export type DrivingAidNumber = Exclude<keyof DrivingAids, DrivingAidFlag>;
+
+/**
  * Everything persisted between runs.
  */
 export interface Settings {
@@ -76,6 +116,14 @@ export interface Settings {
    * default. A race file may still name its own driver, which wins.
    */
   driverName?: string;
+  /**
+   * The driving aids every launch is run with.
+   *
+   * A property of the person playing rather than of a race, for the same reason
+   * `driverName` is: nobody wants to re-pick ABS for every race. A race that
+   * names one of these keeps it, which is what lets a spike pin them all.
+   */
+  drivingAids: DrivingAids;
   /**
    * Paths the user has corrected by hand.
    */

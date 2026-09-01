@@ -6,6 +6,7 @@ import { useSettings } from '@/app';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { CONTROL_WIDTH } from '@/lib/layout';
 
 export const ThemeSelect = () => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export const ThemeSelect = () => {
       value={settings.theme}
       onValueChange={(value) => patch({ theme: value as ThemeChoice })}
     >
-      <SelectTrigger size="sm" aria-label={t('settings.theme')}>
+      <SelectTrigger size="sm" className={CONTROL_WIDTH} aria-label={t('settings.theme')}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

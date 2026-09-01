@@ -6,6 +6,7 @@ import {
   buildLighting,
   buildSessionSection,
   capitalise,
+  clamp,
   findTrack,
   findWeather,
   firstSkin,
@@ -13,6 +14,7 @@ import {
   parseClock,
   presetForType,
   resolveWeather,
+  roadTempCurve,
   roadTemperature,
   spreadAiLevel,
   sunAngleFromTime,
@@ -347,6 +349,64 @@ describe('core/race-ini/utils', () => {
     });
   });
 
+  describe('clamp', () => {
+    it('returns the value when it is already between the bounds', () => {
+      expect(clamp(2, 0, 3)).toBe(2);
+    });
+
+    it('returns the bound the value passed', () => {
+      expect(clamp(5, 0, 3)).toBe(3);
+      expect(clamp(-1, 0, 3)).toBe(0);
+    });
+
+    it('keeps the bounds themselves', () => {
+      expect(clamp(0, 0, 3)).toBe(0);
+      expect(clamp(3, 0, 3)).toBe(3);
+    });
+  });
+
+  describe('roadTempCurve', () => {
+    // Kunos' curve, checked against CSP's restatement of it hour by hour. These
+    // are the figures that decide what reaches [TEMPERATURE] ROAD, so they are
+    // pinned rather than merely bounded.
+    it('follows Kunos through the middle of the day', () => {
+      expect(roadTempCurve(12, 20, 1)).toBeCloseTo(28.2149, 4);
+      expect(roadTempCurve(14, 20, 1)).toBeCloseTo(28.2541, 4);
+      expect(roadTempCurve(18, 20, 1)).toBeCloseTo(26.3559, 4);
+    });
+
+    // Raw Kunos returns 214C here, because their launcher only ever exposed an
+    // 08:00 to 18:00 slider. Our clock offers the whole day, so the phase is
+    // capped and the curve stays bounded.
+    it('leaves the road at ambient before dawn and at midnight', () => {
+      expect(roadTempCurve(0, 20, 1)).toBe(20);
+      expect(roadTempCurve(6, 20, 1)).toBe(20);
+      expect(roadTempCurve(7, 20, 1)).toBe(20);
+      expect(roadTempCurve(24, 20, 1)).toBe(20);
+    });
+
+    it('cools the road under a negative coefficient', () => {
+      expect(roadTempCurve(14, 20, -1)).toBeCloseTo(11.7459, 4);
+    });
+
+    it('leaves the road at ambient when the coefficient is zero', () => {
+      expect(roadTempCurve(14, 20, 0)).toBe(20);
+    });
+
+    // Recorded rather than fixed: winding the phase back down walks back over
+    // the curve's own afternoon peak, so the evening is not monotone. It is
+    // CSP's behaviour, and it is bounded.
+    it('reads warmer at 20:00 than at 18:00, which is CSP\'s fade, not a bug', () => {
+      expect(roadTempCurve(20, 20, 1)).toBeGreaterThan(roadTempCurve(18, 20, 1));
+      expect(roadTempCurve(20, 20, 1)).toBeLessThan(roadTempCurve(14, 20, 1));
+    });
+
+    it('scales with ambient, since the whole curve is a multiple of it', () => {
+      expect(roadTempCurve(14, 0, 1)).toBe(0);
+      expect(roadTempCurve(14, 30, 1)).toBeCloseTo(roadTempCurve(14, 10, 1) * 3, 10);
+    });
+  });
+
   describe('roadTemperature', () => {
     it('uses an explicit road temperature when given', () => {
       expect(roadTemperature({ road: 31, ambient: 10 }, null)).toBe(31);
@@ -354,16 +414,18 @@ describe('core/race-ini/utils', () => {
 
     it('derives a warmer road under a positive coefficient', () => {
       const weather = makeContent().weather[0];
-      expect(roadTemperature({ ambient: 20 }, weather)).toBe(30);
+      expect(roadTemperature({ ambient: 20 }, weather)).toBe(28);
     });
 
     it('derives a cooler road under a negative coefficient', () => {
       const weather = makeContent().weather[1];
-      expect(roadTemperature({ ambient: 20 }, weather)).toBe(15);
+      expect(roadTemperature({ ambient: 20 }, weather)).toBe(16);
     });
 
-    it('falls back to the default ambient when none is given', () => {
-      expect(roadTemperature({}, null)).toBe(20);
+    // Kunos' own `if (!COEFF) COEFF = 1`, not ours, so this no longer reads back
+    // the ambient it was given.
+    it('falls back to the default ambient, and to a coefficient of one', () => {
+      expect(roadTemperature({}, null)).toBe(28);
     });
   });
 

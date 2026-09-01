@@ -2,6 +2,7 @@
 // types from IpcContract, so a channel cannot drift out of sync on one side
 // without failing to compile on the others.
 
+import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
 } from './content-query.ts';
@@ -127,6 +128,18 @@ export interface IpcContract {
    * One archived result by file name.
    */
   'race:result': { req: { file: string }; res: ResultRecord };
+  /**
+   * What Content Manager's Arguments.txt holds.
+   *
+   * Read off disk on every call rather than mirrored into settings: the user
+   * may edit that file by hand, and a copy of ours would go stale silently.
+   */
+  'cm:arguments': { req: void; res: CmArguments };
+  /**
+   * Add or remove one of Content Manager's startup flags, leaving every other
+   * line in the file alone.
+   */
+  'cm:setArgument': { req: { flag: CmFlag; enabled: boolean }; res: CmArguments };
   /**
    * Read the current settings.
    */

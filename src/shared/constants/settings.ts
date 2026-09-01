@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   language: 'en',
   weatherSystem: 'none',
+  drivingAids: {},
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

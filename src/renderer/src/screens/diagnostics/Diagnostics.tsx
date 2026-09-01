@@ -1,6 +1,8 @@
 import type { PathsReport } from '../../../../shared/types';
 import { useSettings } from '@/app';
-import { ContentCard, ErrorCard, PathsCard } from '@/components';
+import {
+  ContentCard, ErrorCard, PathsCard, ScreenBody,
+} from '@/components';
 import { useInstallation } from '@/hooks';
 
 interface DiagnosticsProps {
@@ -15,30 +17,28 @@ export const Diagnostics = ({ initialReport }: DiagnosticsProps) => {
   const install = useInstallation(initialReport);
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex max-w-4xl flex-col gap-6 px-8 py-8">
-        {install.error ? (
-          <ErrorCard error={install.error} onDismiss={install.dismissError} />
-        ) : null}
+    <ScreenBody className="flex flex-col gap-6 py-8">
+      {install.error ? (
+        <ErrorCard error={install.error} onDismiss={install.dismissError} />
+      ) : null}
 
-        <PathsCard
-          report={install.report}
-          overrides={settings.paths}
-          busy={install.busy}
-          onPick={install.pick}
-          onClear={install.clear}
-          onRefresh={install.refresh}
-        />
+      <PathsCard
+        report={install.report}
+        overrides={settings.paths}
+        busy={install.busy}
+        onPick={install.pick}
+        onClear={install.clear}
+        onRefresh={install.refresh}
+      />
 
-        <ContentCard
-          ready={install.ready}
-          summary={install.summary}
-          issues={install.issues}
-          scanning={install.scanning}
-          onScan={install.scan}
-          onOpenIssues={install.loadIssues}
-        />
-      </div>
-    </div>
+      <ContentCard
+        ready={install.ready}
+        summary={install.summary}
+        issues={install.issues}
+        scanning={install.scanning}
+        onScan={install.scan}
+        onOpenIssues={install.loadIssues}
+      />
+    </ScreenBody>
   );
 };

@@ -2,6 +2,8 @@ export { useCarBrowser } from './use-car-browser/index.ts';
 export type { CarBrowser, CarCriteria } from './use-car-browser/index.ts';
 export { useCarDetail } from './use-car-detail/index.ts';
 export type { CarDetail } from './use-car-detail/index.ts';
+export { useCmArguments } from './use-cm-arguments/index.ts';
+export type { CmArgumentsState } from './use-cm-arguments/index.ts';
 export { useDebouncedValue } from './use-debounced-value/index.ts';
 export { useInfiniteScroll } from './use-infinite-scroll/index.ts';
 export type { InfiniteScroll } from './use-infinite-scroll/index.ts';

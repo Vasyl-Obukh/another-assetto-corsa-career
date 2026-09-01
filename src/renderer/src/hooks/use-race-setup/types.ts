@@ -1,4 +1,5 @@
 import type {
+  Assists,
   Conditions,
   GridDefinition,
   RaceSetup,
@@ -67,6 +68,12 @@ export interface RaceSetupState {
    * @param conditions The conditions to apply
    */
   setConditions(conditions: Conditions): void;
+  /**
+   * Replaces the regulations - what the rules allow, rather than the driving
+   * aids, which belong to the player and live in settings.
+   * @param assists The assists to apply
+   */
+  setAssists(assists: Assists): void;
   /**
    * Hands the next launch that has not been run to Content Manager.
    */

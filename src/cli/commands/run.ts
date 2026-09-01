@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { scanContent } from '../../core/content/index.ts';
-import { buildRaceUri, launchUri } from '../../core/launch/index.ts';
+import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
 import { buildRaceIni } from '../../core/race-ini/index.ts';
 import { archiveResults, summarise, waitForResults } from '../../core/results/index.ts';
@@ -30,7 +30,10 @@ export const cmdRun = async (args: string[]): Promise<void> => {
 
   console.log(`\nLaunching: ${race.name}`);
   console.log(`  via ${paths.contentManager}`);
-  await launchUri(paths.contentManager, buildRaceUri(raceIni));
+  await launchUri(
+    paths.contentManager,
+    buildRaceUri(raceIni, { assistsPreset: assistsPresetJson(race.assists) }),
+  );
   console.log('  Handed off to Content Manager.\n');
   console.log('Waiting for the session to finish (Ctrl+C to stop watching)...');
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { assistFlag, fromCutBase64, toCutBase64 } from '../utils.ts';
+import { DEFAULT_ASSISTS } from '../../../shared/constants/index.ts';
+import { assistFlag, fromCutBase64, resolveAssists, toCutBase64 } from '../utils.ts';
 
 describe('core/launch/utils', () => {
   describe('toCutBase64', () => {
@@ -34,14 +35,36 @@ describe('core/launch/utils', () => {
   });
 
   describe('assistFlag', () => {
-    it('renders a set boolean as 1 or 0', () => {
-      expect(assistFlag(true, 0)).toBe(1);
-      expect(assistFlag(false, 1)).toBe(0);
+    it('renders a boolean as 1 or 0', () => {
+      expect(assistFlag(true)).toBe(1);
+      expect(assistFlag(false)).toBe(0);
+    });
+  });
+
+  describe('resolveAssists', () => {
+    // This is where the per-assist fallback moved to, so that both the INI and
+    // the JSON blob read one answer rather than each carrying their own.
+    it('fills in what the race omitted with the values AC ships', () => {
+      expect(resolveAssists({ damage: 50 })).toEqual({ ...DEFAULT_ASSISTS, damage: 50 });
+      expect(resolveAssists()).toEqual(DEFAULT_ASSISTS);
     });
 
-    it('uses the fallback when the race omits the assist', () => {
-      expect(assistFlag(undefined, 1)).toBe(1);
-      expect(assistFlag(undefined, 0)).toBe(0);
+    it('keeps a deliberate zero, which is not the same as an absent field', () => {
+      expect(resolveAssists({ damage: 0 }).damage).toBe(0);
+      expect(resolveAssists({ tyreBlankets: false }).tyreBlankets).toBe(false);
+    });
+
+    // The race screen writes undefined for every box the user has emptied. A
+    // bare spread would put that undefined over the default and Required<Assists>
+    // would be a lie, which JSON.stringify then turns into a missing key.
+    it('treats a field set to undefined as one the race never named', () => {
+      expect(resolveAssists({ damage: undefined, abs: undefined })).toEqual(DEFAULT_ASSISTS);
+    });
+
+    it('leaves the object it was given alone', () => {
+      const assists = { damage: 50 };
+      resolveAssists(assists);
+      expect(assists).toEqual({ damage: 50 });
     });
   });
 });

@@ -47,6 +47,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     'Only the last stretch of a weather plan may run until the session ends: '
     + 'stretch {{index}} states no length.',
 
+  'cm.arguments.unknownFlag': '{{flag}} is not a Content Manager flag this app sets.',
+  'cm.arguments.noDataDir':
+    'Cannot find Content Manager\'s data folder: LOCALAPPDATA is not set.',
+
   'weekend.complete': 'Every launch of {{race}} has already been run.',
   'weekend.launch.outOfRange': 'Launch {{index}} does not exist: {{race}} plans {{count}}.',
   'weekend.state.stale':

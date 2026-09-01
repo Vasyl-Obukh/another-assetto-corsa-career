@@ -128,6 +128,8 @@ export const useRaceSetup = (): RaceSetupState => {
 
     setConditions: (conditions) => edit((from) => ({ ...from, conditions })),
 
+    setAssists: (assists) => edit((from) => ({ ...from, assists })),
+
     launch: () => { void run(() => invoke('race:launch', undefined)); },
     cancel: () => { void run(() => invoke('race:cancel', undefined)); },
     reset: () => { void run(() => invoke('race:reset', undefined)); },

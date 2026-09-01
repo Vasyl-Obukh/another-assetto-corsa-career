@@ -6,6 +6,7 @@ import { useSettings } from '@/app';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { CONTROL_WIDTH } from '@/lib/layout';
 
 export const LanguageSelect = () => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export const LanguageSelect = () => {
       value={settings.language}
       onValueChange={(value) => patch({ language: value as Language })}
     >
-      <SelectTrigger size="sm" aria-label={t('settings.language')}>
+      <SelectTrigger size="sm" className={CONTROL_WIDTH} aria-label={t('settings.language')}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

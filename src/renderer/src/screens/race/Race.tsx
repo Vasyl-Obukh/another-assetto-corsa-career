@@ -4,10 +4,11 @@ import { CarField } from './CarField.tsx';
 import { ConditionsFields } from './ConditionsFields.tsx';
 import { GridFields } from './GridFields.tsx';
 import { LaunchPanel } from './LaunchPanel.tsx';
+import { RegulationsFields } from './RegulationsFields.tsx';
 import { SessionList } from './SessionList.tsx';
 import { TrackField } from './TrackField.tsx';
 import { useSettings } from '@/app';
-import { ErrorCard } from '@/components';
+import { ErrorCard, ScreenBody } from '@/components';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useRaceContent, useRaceSetup } from '@/hooks';
 
@@ -23,78 +24,82 @@ export const Race = () => {
   const { setup } = race;
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-8 py-8">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">{t('race.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('race.subtitle')}</p>
-        </header>
+    <ScreenBody className="flex flex-col gap-6 py-8">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold">{t('race.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('race.subtitle')}</p>
+      </header>
 
-        {race.error ? (
-          <ErrorCard error={race.error} onDismiss={race.dismissError} />
-        ) : null}
+      {race.error ? (
+        <ErrorCard error={race.error} onDismiss={race.dismissError} />
+      ) : null}
 
-        {race.loading ? (
-          <div className="flex flex-col gap-6">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : null}
+      {race.loading ? (
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      ) : null}
 
-        {setup ? (
-          <>
-            <TrackField
-              track={content.track}
-              locked={race.locked}
-              onPick={race.setTrack}
-            />
+      {setup ? (
+        <>
+          <TrackField
+            track={content.track}
+            locked={race.locked}
+            onPick={race.setTrack}
+          />
 
-            <CarField
-              car={content.car}
-              locked={race.locked}
-              onPick={(car) => race.setCar(car.id)}
-            />
+          <CarField
+            car={content.car}
+            locked={race.locked}
+            onPick={(car) => race.setCar(car.id)}
+          />
 
-            <GridFields
-              grid={setup.definition.grid ?? {}}
-              locked={race.locked}
-              onChange={race.setGrid}
-            />
+          <GridFields
+            grid={setup.definition.grid ?? {}}
+            locked={race.locked}
+            onChange={race.setGrid}
+          />
 
-            <ConditionsFields
-              conditions={setup.definition.conditions ?? {}}
-              weather={content.weather}
-              controllers={content.controllers}
-              system={settings.weatherSystem}
-              rainFx={setup.weatherFx.rainFx}
-              locked={race.locked}
-              onChange={race.setConditions}
-            />
+          <ConditionsFields
+            conditions={setup.definition.conditions ?? {}}
+            weather={content.weather}
+            controllers={content.controllers}
+            system={settings.weatherSystem}
+            rainFx={setup.weatherFx.rainFx}
+            locked={race.locked}
+            onChange={race.setConditions}
+          />
 
-            <SessionList
-              sessions={setup.definition.sessions ?? []}
-              conditions={setup.definition.conditions ?? {}}
-              weather={content.weather}
-              controllers={content.controllers}
-              system={settings.weatherSystem}
-              rainFx={setup.weatherFx.rainFx}
-              completed={setup.state?.completed.length ?? 0}
-              locked={race.locked}
-              onChange={race.setSessions}
-            />
+          <RegulationsFields
+            assists={setup.definition.assists ?? {}}
+            locked={race.locked}
+            onChange={race.setAssists}
+          />
 
-            <LaunchPanel
-              setup={setup}
-              runnable={race.runnable}
-              busy={race.busy}
-              onLaunch={race.launch}
-              onCancel={race.cancel}
-              onReset={race.reset}
-            />
-          </>
-        ) : null}
-      </div>
-    </div>
+          <SessionList
+            sessions={setup.definition.sessions ?? []}
+            conditions={setup.definition.conditions ?? {}}
+            weather={content.weather}
+            controllers={content.controllers}
+            system={settings.weatherSystem}
+            rainFx={setup.weatherFx.rainFx}
+            completed={setup.state?.completed.length ?? 0}
+            locked={race.locked}
+            onChange={race.setSessions}
+          />
+
+          <LaunchPanel
+            setup={setup}
+            runnable={race.runnable}
+            busy={race.busy}
+            onLaunch={race.launch}
+            onCancel={race.cancel}
+            onReset={race.reset}
+          />
+        </>
+      ) : null}
+    </ScreenBody>
   );
 };

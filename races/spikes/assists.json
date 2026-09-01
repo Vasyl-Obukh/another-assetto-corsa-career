@@ -1,0 +1,47 @@
+{
+  "id": "spike-assists",
+  "name": "Spike - does Content Manager read the assists blob off the URI",
+
+  "notes": "Whether regulations can be enforced at all rests on this. buildRaceUri has always been able to send an assistsData parameter and has never been given one, because CM wants its own serialized format rather than an assists.ini. That format has now been read out of a saved Quick Drive preset on this machine: a .cmpreset carries AssistsData as a JSON string whose contents are themselves JSON, the same double-serialized convention its sibling TrackPropertiesData uses, and both deserialize into CM's own Game.AssistsProperties. So the inference was that assistsData wants the inner object rather than the whole preset - and running this spike SETTLED IT: with --enable-race-ini-test-mode on, nothing launched and every value below came back in cfg/assists.ini exactly as asked. Keep it as the regression test for that serialization, because a wrong key here fails silently - the assist is left at AC's own default and nothing is reported anywhere. WHAT MAKES THIS CHEAP: CM writes Documents/Assetto Corsa/cfg/assists.ini during the same preparation pass that writes cfg/race.ini, so the answer is on disk rather than in the seat. PROCEDURE: note the mtime of cfg/assists.ini, run `npm run race -- spikes/assists`, then read cfg/assists.ini back. Every value below differs from AC's shipped default, so there is nothing to squint at: IDEAL_LINE=1, AUTO_SHIFTER=1, ABS=2, DAMAGE=0, FUEL_RATE=5, TYRE_WEAR=5, TYRE_BLANKETS=0, SLIPSTREAM=3. Compare against out/assists.ini, which npm run dry writes in the same layout. Try it first with --enable-race-ini-test-mode on - if CM's preparation pass writes assists.ini without launching the game, the whole probe costs no driving; if it does not, drive the practice session. IF THE VALUES ARRIVE the format is settled and the settings and regulations UI can be built on it. IF THEY DO NOT, the ladder to climb is: send a whole .cmpreset as assistsData; write Presets/Assists/career.cmpreset and pass assistsFile with a path, since CM's GetSettings reads <key>File that way and the ConfigFile literal is in its binary; and last, write cfg/assists.ini ourselves before launching and accept that CM may overwrite it. ALSO WORTH NOTING either way: sending assists means CM rewrites the user's own cfg/assists.ini and does not put it back, which is the same intrusion __CM_WEATHER_CONTROLLER makes.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 2,
+    "aiLevel": 88,
+    "aiAggression": 20,
+    "opponents": [
+      { "driver": "Anyone" }
+    ]
+  },
+
+  "sessions": [
+    { "type": "practice", "name": "Practice", "minutes": 5, "spawnSet": "PIT" }
+  ],
+
+  "conditions": {
+    "timeOfDay": "12:00",
+    "ambient": 20,
+    "trackState": "optimum"
+  },
+
+  "assists": {
+    "idealLine": true,
+    "autoShifter": true,
+    "abs": 2,
+    "damage": 0,
+    "fuelRate": 5,
+    "tyreWear": 5,
+    "tyreBlankets": false,
+    "slipstream": 3
+  }
+}

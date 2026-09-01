@@ -8,6 +8,8 @@ import {
   isRecord,
   migrateSettings,
   oneOf,
+  optionalBoolean,
+  readDrivingAids,
   readPaths,
   readWindow,
 } from '../settings.ts';
@@ -118,6 +120,59 @@ describe('shared/utils/settings', () => {
     });
   });
 
+  describe('optionalBoolean', () => {
+    it('reads a boolean through', () => {
+      expect(optionalBoolean(true)).toBe(true);
+      expect(optionalBoolean(false)).toBe(false);
+    });
+
+    it('treats anything that is not a boolean as absent', () => {
+      expect(optionalBoolean('true')).toBeUndefined();
+      expect(optionalBoolean(1)).toBeUndefined();
+      expect(optionalBoolean(0)).toBeUndefined();
+      expect(optionalBoolean(null)).toBeUndefined();
+      expect(optionalBoolean(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('readDrivingAids', () => {
+    it('reads switches and numbers through', () => {
+      expect(readDrivingAids({ idealLine: true, abs: 2, stabilityControl: 40 })).toEqual({
+        idealLine: true, abs: 2, stabilityControl: 40,
+      });
+    });
+
+    // An aid nobody has chosen has to stay distinguishable from one deliberately
+    // set to what AC ships, because a race may only override what the player
+    // actually asked for.
+    it('leaves out an aid nobody has set, rather than defaulting it', () => {
+      const aids = readDrivingAids({ abs: 1 });
+
+      expect(aids).toEqual({ abs: 1 });
+      expect(aids).not.toHaveProperty('idealLine');
+    });
+
+    it('keeps a switch turned deliberately off', () => {
+      expect(readDrivingAids({ visualDamage: false })).toEqual({ visualDamage: false });
+    });
+
+    it('drops a field of the wrong type rather than the whole set', () => {
+      expect(readDrivingAids({ idealLine: 'yes', abs: 2 })).toEqual({ abs: 2 });
+      expect(readDrivingAids({ abs: 'two', idealLine: true })).toEqual({ idealLine: true });
+    });
+
+    it('ignores keys that are not driving aids at all', () => {
+      // Damage is a regulation and belongs to the race, not to the player.
+      expect(readDrivingAids({ damage: 50, tyreWear: 3, abs: 1 })).toEqual({ abs: 1 });
+    });
+
+    it('reads anything that is not an object as no aids at all', () => {
+      expect(readDrivingAids(null)).toEqual({});
+      expect(readDrivingAids('abs')).toEqual({});
+      expect(readDrivingAids(undefined)).toEqual({});
+    });
+  });
+
   describe('migrateSettings', () => {
     it('returns the defaults for anything that is not an object', () => {
       expect(migrateSettings(undefined)).toEqual(DEFAULT_SETTINGS);
@@ -137,6 +192,7 @@ describe('shared/utils/settings', () => {
         theme: 'dark',
         language: 'uk',
         weatherSystem: 'pure',
+        drivingAids: { abs: 2, idealLine: true },
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,

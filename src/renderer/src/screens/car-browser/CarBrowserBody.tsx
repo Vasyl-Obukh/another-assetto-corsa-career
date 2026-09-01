@@ -4,7 +4,7 @@ import { CarCard } from './CarCard.tsx';
 import { CarFilters } from './CarFilters.tsx';
 import { CAR_SORTS } from './constants.ts';
 import type { Car } from '../../../../shared/types';
-import { BrowserGrid, BrowserToolbar, SortSelect } from '@/components';
+import { BrowserGrid, BrowserToolbar, ScreenBody, SortSelect } from '@/components';
 import { useCarBrowser, useInfiniteScroll } from '@/hooks';
 
 interface CarBrowserBodyProps {
@@ -32,49 +32,47 @@ export const CarBrowserBody = ({ onSelect, selectedId }: CarBrowserBodyProps) =>
   );
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-7xl px-8">
-        <BrowserToolbar
-          search={browser.search}
-          placeholder={t('cars.searchPlaceholder')}
-          shown={list.items.length}
-          total={list.total}
-          filtered={browser.filtered}
-          stale={browser.stale}
-          onSearchChange={browser.setSearch}
-          onClear={browser.clear}
-          onRefresh={browser.refresh}
-        >
-          <SortSelect
-            items={CAR_SORTS}
-            value={criteria.sort ?? 'name'}
-            direction={criteria.direction ?? 'asc'}
-            onChange={(sort) => browser.setCriteria({ ...criteria, sort })}
-            onDirectionChange={(direction) => browser.setCriteria({ ...criteria, direction })}
-          />
-          <CarFilters
-            criteria={criteria}
-            facets={browser.facets}
-            onChange={browser.setCriteria}
-          />
-        </BrowserToolbar>
+    <ScreenBody scrollRef={scrollRef}>
+      <BrowserToolbar
+        search={browser.search}
+        placeholder={t('cars.searchPlaceholder')}
+        shown={list.items.length}
+        total={list.total}
+        filtered={browser.filtered}
+        stale={browser.stale}
+        onSearchChange={browser.setSearch}
+        onClear={browser.clear}
+        onRefresh={browser.refresh}
+      >
+        <SortSelect
+          items={CAR_SORTS}
+          value={criteria.sort ?? 'name'}
+          direction={criteria.direction ?? 'asc'}
+          onChange={(sort) => browser.setCriteria({ ...criteria, sort })}
+          onDirectionChange={(direction) => browser.setCriteria({ ...criteria, direction })}
+        />
+        <CarFilters
+          criteria={criteria}
+          facets={browser.facets}
+          onChange={browser.setCriteria}
+        />
+      </BrowserToolbar>
 
-        <BrowserGrid
-          list={list}
-          filtered={browser.filtered}
-          sentinelRef={sentinelRef}
-          onClear={browser.clear}
-        >
-          {list.items.map((car) => (
-            <CarCard
-              key={car.id}
-              car={car}
-              onSelect={onSelect}
-              selected={car.id === selectedId}
-            />
-          ))}
-        </BrowserGrid>
-      </div>
-    </div>
+      <BrowserGrid
+        list={list}
+        filtered={browser.filtered}
+        sentinelRef={sentinelRef}
+        onClear={browser.clear}
+      >
+        {list.items.map((car) => (
+          <CarCard
+            key={car.id}
+            car={car}
+            onSelect={onSelect}
+            selected={car.id === selectedId}
+          />
+        ))}
+      </BrowserGrid>
+    </ScreenBody>
   );
 };
