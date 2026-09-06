@@ -6,15 +6,7 @@ import type { ContentCache } from './types.ts';
 import type { ContentScan } from '../../core/content/index.ts';
 import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
 import type { Content, ContentCounts, ContentSummary } from '../../shared/types/index.ts';
-
-/**
- * Checks that a value is a plain object we can read fields off.
- * @param value Anything at all
- * @returns True when it is a non-null, non-array object
- */
-const isRecord = (value: unknown): value is Record<string, unknown> => (
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-);
+import { isRecord } from '../../shared/utils/coerce/index.ts';
 
 /**
  * Checks that a value is an array of things that at least have string IDs.

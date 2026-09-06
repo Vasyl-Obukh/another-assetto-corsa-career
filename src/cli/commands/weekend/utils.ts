@@ -8,8 +8,8 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { TRACK_STATE } from '../../../core/race-ini/index.ts';
-import { startingGrid } from '../../../core/weekend/index.ts';
-import type { WeekendPlan, WeekendState } from '../../../shared/types/index.ts';
+import { chainOf, startingGrid } from '../../../core/weekend/index.ts';
+import type { LaunchRecord, WeekendPlan, WeekendState } from '../../../shared/types/index.ts';
 import { WEEKENDS_DIR } from '../../constants.ts';
 
 /**
@@ -58,6 +58,18 @@ export const clearState = async (raceId: string): Promise<void> => {
 };
 
 /**
+ * What to call a launch's session in a line of output.
+ * @param plan The weekend plan
+ * @param index Which launch
+ * @returns Its name, or its type when it was authored without one
+ */
+const nameOf = (plan: WeekendPlan, index: number): string => {
+  const { session } = plan.launches[index];
+
+  return session.name ?? session.type;
+};
+
+/**
  * Says where a session's grid comes from.
  *
  * There is no longer a case where AC owns it: qualifying cannot share a launch
@@ -75,20 +87,32 @@ export const describeGrid = (
   const launch = plan.launches[index];
   if (launch.session.type !== 'race') return 'no race in this session';
 
-  const source = plan.launches
-    .slice(0, index)
-    .reverse()
-    .find((earlier) => earlier.session.type === 'qualify');
+  // The chain the engine actually reads, rather than a second guess at it: a
+  // race behind a knockout is lined up by every segment of it, newest first.
+  const chain = chainOf(plan, index);
+  const named = chain.map((at) => nameOf(plan, at));
+  const source = chain.length ? plan.launches[chain[0]] : undefined;
   if (source && !state.completed.some((record) => record.index === source.index)) {
-    return `inherits session ${source.index} qualifying, which has not run yet`;
+    return `inherits ${named[0]}, which has not run yet`;
   }
 
   const grid = startingGrid(plan, state, index);
   if (!grid) return 'no race in this session';
+  if (!source) return `no qualifying this weekend - AI on skill, player starts P${grid.playerSlot}`;
 
-  return source
-    ? `from session ${source.index} qualifying - player starts P${grid.playerSlot}`
-    : `no qualifying this weekend - AI on skill, player starts P${grid.playerSlot}`;
+  return `from ${named.join(' <- ')} - player starts P${grid.playerSlot}`;
+};
+
+/**
+ * The word a launch's line is badged with.
+ * @param record What the launch left behind, or undefined when it has not run
+ * @param next Whether this is the launch that runs next
+ * @returns One of done, simulated, next or pending
+ */
+const launchStatus = (record: LaunchRecord | undefined, next: boolean): string => {
+  if (record) return record.skipped ? 'simulated' : 'done';
+
+  return next ? 'next' : 'pending';
 };
 
 /**
@@ -107,10 +131,11 @@ export const describePlan = (plan: WeekendPlan, state: WeekendState): string[] =
 
   plan.launches.forEach((launch) => {
     const done = state.completed.find((record) => record.index === launch.index);
-    const status = done ? 'done' : (launch.index === state.completed.length ? 'next' : 'pending');
-    const name = launch.session.name ?? launch.session.type;
+    const status = launchStatus(done, launch.index === state.completed.length);
 
-    lines.push(`  [${launch.index}] day ${launch.day}  ${status.padEnd(7)}  ${name}`);
+    lines.push(
+      `  [${launch.index}] day ${launch.day}  ${status.padEnd(7)}  ${nameOf(plan, launch.index)}`,
+    );
     lines.push(`      grid    ${describeGrid(plan, state, launch.index)}`);
 
     const grip = launch.race.conditions?.startGrip;
@@ -120,7 +145,13 @@ export const describePlan = (plan: WeekendPlan, state: WeekendState): string[] =
       const preset = TRACK_STATE[launch.race.conditions?.trackState ?? 'fast'] ?? TRACK_STATE.fast;
       lines.push(`      grip    starts at ${grip}%, against ${preset.SESSION_START}% for a fresh track`);
     }
-    if (done) lines.push(`      result  ${done.archive}`);
+    // A simulated segment has no archive to name, so it says what it invented
+    // instead - which is the only place that order is visible at all.
+    if (done?.skipped) {
+      lines.push(`      order   simulated: ${(done.qualifyingOrder ?? []).join(', ')}`);
+    } else if (done) {
+      lines.push(`      result  ${done.archive}`);
+    }
   });
 
   return [...lines, ''];

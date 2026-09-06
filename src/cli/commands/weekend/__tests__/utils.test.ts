@@ -124,6 +124,23 @@ const afterQualifying = (qualifyingOrder: number[] | null): WeekendState => ({
   })),
 });
 
+/**
+ * A knockout plan: two qualifying segments linked together, then the race.
+ * @returns A fresh WeekendPlan
+ */
+const makeKnockoutPlan = (): WeekendPlan => ({
+  raceId: 'test-weekend',
+  raceName: 'Test Weekend',
+  grid,
+  launches: [
+    makeLaunch(0, { id: 'q1', type: 'qualify', name: 'Q1' }),
+    makeLaunch(1, {
+      id: 'q2', type: 'qualify', name: 'Q2', inherit: { from: 'q1', top: 3 },
+    }),
+    makeLaunch(2, { type: 'race', name: 'Race', inherit: { from: 'q2' } }),
+  ],
+});
+
 describe('cli/commands/weekend/utils', () => {
   describe('stateFile', () => {
     it('names the file after the weekend', () => {
@@ -179,16 +196,44 @@ describe('cli/commands/weekend/utils', () => {
   });
 
   describe('describeGrid', () => {
-    it('says a race is still waiting on qualifying that has not run', () => {
+    it('says a race is still waiting on the qualifying that has not run', () => {
       expect(describeGrid(makePlan(), fresh(), 2)).toBe(
-        'inherits session 1 qualifying, which has not run yet',
+        'inherits Qualifying, which has not run yet',
       );
     });
 
     it('names the session a grid came from, and where the player starts', () => {
+      // Names it rather than numbering it: a knockout composes a grid out of
+      // several segments, and "session 1" says nothing about which chain.
       expect(describeGrid(makePlan(), afterQualifying([3, 1, 5, 0, 2, 4]), 2)).toBe(
-        'from session 1 qualifying - player starts P4',
+        'from Qualifying - player starts P4',
       );
+    });
+
+    it('names every segment of the chain a knockout grid was composed from', () => {
+      const state: WeekendState = {
+        raceId: 'test-weekend',
+        launchCount: 3,
+        completed: [
+          {
+            index: 0,
+            completedAt: 'now',
+            archive: 'q1.json',
+            gridOrder: [0, 1, 2, 3, 4, 5],
+            qualifyingOrder: [3, 0, 1, 5, 2, 4],
+          },
+          {
+            index: 1,
+            completedAt: 'now',
+            archive: 'q2.json',
+            gridOrder: [0, 3, 1],
+            qualifyingOrder: [0, 3, 1],
+          },
+        ],
+      };
+
+      expect(describeGrid(makeKnockoutPlan(), state, 2))
+        .toBe('from Q2 <- Q1 - player starts P1');
     });
 
     it('says the player starts last when nothing qualified them', () => {
@@ -223,6 +268,38 @@ describe('cli/commands/weekend/utils', () => {
       const lines = describePlan(makePlan(), fresh()).join('\n');
       expect(lines).toContain('[0] day 0  next');
       expect(lines).toContain('[2] day 1  pending');
+    });
+
+    it('badges a simulated segment as simulated rather than as run', () => {
+      // The one thing it must not say: the player was never in that session.
+      const state: WeekendState = {
+        raceId: 'test-weekend',
+        launchCount: 3,
+        completed: [
+          {
+            index: 0,
+            completedAt: 'now',
+            archive: 'q1.json',
+            gridOrder: [0, 1, 2, 3, 4, 5],
+            qualifyingOrder: [3, 1, 5, 0, 2, 4],
+          },
+          {
+            index: 1,
+            completedAt: 'now',
+            archive: '',
+            gridOrder: [3, 1, 5],
+            qualifyingOrder: [1, 3, 5],
+            skipped: true,
+          },
+        ],
+      };
+      const lines = describePlan(makeKnockoutPlan(), state).join('\n');
+
+      expect(lines).toContain('[0] day 0  done');
+      expect(lines).toContain('[1] day 0  simulated');
+      // It has no archive to name, so it says what it invented instead - the
+      // only place that order is visible at all.
+      expect(lines).toContain('order   simulated: 1, 3, 5');
     });
 
     it('shows a completed launch and where its result went', () => {

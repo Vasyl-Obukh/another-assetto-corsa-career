@@ -63,6 +63,7 @@ const carFilters = (query: CarQuery): Filters<Car> => {
 
   return {
     search: (car) => matchesTerms(terms, [car.name, car.brand, car.id]),
+    ids: (car) => isOneOf(car.id, query.ids),
     brands: (car) => isOneOf(car.brand, query.brands),
     countries: (car) => isOneOf(car.country, query.countries),
     // A car races on as many grids as the catalogue gives it, so these two ask

@@ -24,7 +24,7 @@ import type {
 } from '../../shared/types/index.ts';
 
 export type { WaitOptions } from './types.ts';
-export { isPermutation } from './utils.ts';
+export { isDistinctSubset, isPermutation } from './utils.ts';
 
 /**
  * Reads a file that may still be being written, until it parses and settles.

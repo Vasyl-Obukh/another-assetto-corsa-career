@@ -1,0 +1,688 @@
+// A championship: what it races, where, under what rules, and how far up the
+// ladder each way into it sits.
+//
+// Three constraints shape this file, and each was a decision rather than a
+// default.
+//
+// Everything here is JSON - primitives, arrays and plain objects, no Date, no
+// Map, no functions. The shipped library is authored as TypeScript so a renamed
+// spec is a compile error rather than a runtime miss, but JSON.stringify of a
+// Championship has to be a valid series file, because the fork, export and
+// import items later in this phase are that plus validateSeries.
+//
+// Eligibility is a spec or an explicit list of cars, never a class. Every spec
+// belongs to exactly one class, so a spec already implies its class, and there
+// is deliberately no way to write a rule that lets a 2007 car onto a 2023 grid.
+// The car list is what one-make series use, since those cars carry no spec at
+// all.
+//
+// A tier lives on the class entry rather than on the championship, because a
+// multi-class series is entered at a different level depending on which class
+// you enter it in - WEC's LMGT3 entry sits a tier below its Hypercar one.
+
+import type { CarSpec } from './car-classes.ts';
+import type {
+  ContentProvenance, ContentSource, DLCPack, ModMaker,
+} from './content.ts';
+import type { LadderPosition } from './ladder.ts';
+import type { Assists, Conditions, SessionDefinition } from './race.ts';
+import type { DrivingAids } from './settings.ts';
+import type { AppErrorInfo } from '../errors/types.ts';
+
+/**
+ * An assist a series regulates rather than the player choosing.
+ *
+ * The complement of `DrivingAids`: what the aids leave over on `Assists` is
+ * exactly what a series regulates, so neither list has to be written twice.
+ */
+export type RegulationKey = Exclude<keyof Assists, keyof DrivingAids>;
+
+/**
+ * A regulation that is simply allowed or not.
+ *
+ * Split from the numeric ones the way `DrivingAidFlag` is, and for the same
+ * reason: the two render differently, and `Extract` makes a renamed field fail
+ * the typecheck rather than quietly dropping off the screen.
+ */
+export type RegulationFlag = Extract<RegulationKey, 'tyreBlankets'>;
+
+/**
+ * A regulation Assetto Corsa measures rather than switches.
+ */
+export type RegulationNumber = Exclude<RegulationKey, RegulationFlag>;
+
+/**
+ * The assists a series sets, as opposed to the aids the player sets.
+ */
+export type RegulatedAssists = Pick<Assists, RegulationKey>;
+
+/**
+ * Every rule a series imposes on a race.
+ *
+ * Nested rather than flattened because four of these - fixed setup, penalties,
+ * the jump-start penalty and the track-limits allowance - are fields of
+ * RaceDefinition rather than of Assists, so a flat shape could not be a Pick of
+ * anything and would need a hand-written list of assist keys to separate them
+ * again.
+ */
+export interface Regulations {
+  /**
+   * Damage, fuel rate, tyre wear, slipstream and tyre blankets. Merged over the
+   * player's own aids when the race is launched, so a rule the series states
+   * wins and every field it leaves alone defers to the player.
+   */
+  assists?: RegulatedAssists;
+  /**
+   * Force every entry onto the same setup.
+   */
+  fixedSetup?: boolean;
+  /**
+   * Enforce track limits and pit lane rules.
+   */
+  penalties?: boolean;
+  /**
+   * Seconds of drive-through penalty for a jump start.
+   */
+  jumpStartPenalty?: number;
+  /**
+   * How many wheels may leave the track before a lap is cut. -1 leaves Assetto
+   * Corsa's own per-track default alone.
+   */
+  allowedTyresOut?: number;
+}
+
+/**
+ * What a class entry may be driven in.
+ *
+ * A spec is a grid, so it names as many cars as the catalogue puts on it and is
+ * satisfied by whichever of them the user owns. A car list names the cars
+ * themselves, which is what a one-make series is - and there every named car
+ * matters, since a missing one changes what you are racing.
+ */
+export type Eligibility =
+  | {
+    /**
+     * Which of the two ways this rule is written.
+     */
+    kind: 'spec';
+    /**
+     * The grid the class entry races on.
+     */
+    spec: CarSpec;
+    /**
+     * How many distinct models must be installed for the entry to be raceable.
+     *
+     * One installed model is a grid of clones rather than the championship, so
+     * a floor is what stops a spec reading available on a library holding
+     * almost none of it. Defaults to DEFAULT_MIN_MODELS.
+     */
+    minModels?: number;
+  }
+  | {
+    /**
+     * Which of the two ways this rule is written.
+     */
+    kind: 'cars';
+    /**
+     * Car folder IDs, in the order the field should draw from them.
+     */
+    cars: readonly string[];
+  };
+
+/**
+ * A balance-of-performance adjustment for one car.
+ */
+export interface BopEntry {
+  /**
+   * Car folder ID this applies to.
+   */
+  car: string;
+  /**
+   * Added weight in kilograms.
+   */
+  ballast?: number;
+  /**
+   * Intake restriction as a percentage.
+   */
+  restrictor?: number;
+}
+
+/**
+ * How strong the AI are in a series, or in one class of it.
+ *
+ * The same three fields GridDefinition carries, so a class entry and a race
+ * definition describe an AI field the same way.
+ */
+export interface SeriesGrid {
+  /**
+   * AI skill of the fastest opponent.
+   */
+  aiLevel?: number;
+  /**
+   * Slowest AI in the class; levels are spread linearly down to this.
+   */
+  aiLevelMin?: number;
+  /**
+   * AI aggression applied to the class.
+   */
+  aiAggression?: number;
+}
+
+/**
+ * One way into a championship, and one standings table.
+ *
+ * Not to be confused with the entry list, which is the grid. A multi-class
+ * series has a class entry per class it runs - WEC is entered as Hypercar, LMP2
+ * or LMGT3 - each with its own tier, its own eligibility and, from Phase 5, its
+ * own standings.
+ */
+export interface ClassEntry {
+  /**
+   * Stable identifier, unique within the championship.
+   */
+  id: string;
+  /**
+   * Display name, for example "LMGT3".
+   */
+  name: string;
+  /**
+   * Which discipline this way in belongs to, and which rung of it.
+   */
+  ladder: LadderPosition;
+  /**
+   * How many cars of this class are on the grid, the player included.
+   *
+   * A placeholder for the seat list: when teams and seats land this becomes a
+   * list of seats and this number is its length, which is a format version bump
+   * rather than an addition.
+   */
+  entrants: number;
+  /**
+   * What may be driven in this class.
+   */
+  eligibility: Eligibility;
+  /**
+   * Per-car balance of performance, applied to the AI and to the player alike.
+   */
+  bop?: readonly BopEntry[];
+  /**
+   * AI strength for this class, overriding the championship's own.
+   */
+  grid?: SeriesGrid;
+}
+
+/**
+ * One class entry's eligibility, replaced for a single round.
+ */
+export interface RoundEligibility {
+  /**
+   * Which class entry this overrides, by its id.
+   */
+  entry: string;
+  /**
+   * What that class may be driven in at this round instead.
+   */
+  eligibility: Eligibility;
+}
+
+/**
+ * One event on a championship's calendar.
+ */
+export interface Round {
+  /**
+   * Stable identifier, unique within the championship. Part of the race id its
+   * results are archived under, so renaming one orphans its results.
+   */
+  id: string;
+  /**
+   * Display name, usually the event rather than the circuit.
+   */
+  name: string;
+  /**
+   * Which track and layout this round runs on.
+   */
+  track: {
+    /**
+     * Track folder ID.
+     */
+    id: string;
+    /**
+     * Layout folder name; omitted for single-layout tracks.
+     */
+    layout?: string;
+  };
+  /**
+   * Which weekend format this round runs, by its id in `weekendFormats`.
+   *
+   * Omitted, the round runs the championship's `defaultWeekendFormat`. A named
+   * reference rather than a session list of its own, so a calendar mixing
+   * sprint and regular weekends says which is which - and so a one-off format
+   * is authored once and referenced, rather than being an anonymous list that
+   * happens to differ from the championship's.
+   */
+  weekendFormat?: string;
+  /**
+   * Eligibility replaced for this round, per class entry.
+   *
+   * Some fields change car with the track - IndyCar runs road, short-oval and
+   * superspeedway kits as separate car folders across one season with one entry
+   * list. Only the car varies; the calendar, the entry list and the standings
+   * stay at championship level.
+   */
+  eligibility?: readonly RoundEligibility[];
+  /**
+   * Weather, time and track state for the round, which its sessions may in turn
+   * override field by field.
+   */
+  conditions?: Conditions;
+  /**
+   * What entering this round costs, overriding the championship's own fee.
+   */
+  entryFee?: number;
+}
+
+/**
+ * One named way of scoring a race.
+ *
+ * A list of these rather than one table, for the same reason a championship
+ * holds several weekend formats: a sprint weekend is one event scoring twice,
+ * on two scales, and a race that cannot name which scale it pays is not a
+ * sprint. Named rather than written out at the session, so the two races of a
+ * double-header that score alike say so instead of repeating a table that can
+ * then drift.
+ *
+ * Everything here is per-race. How many results are dropped is a standings rule
+ * rather than a scoring one, so `drops` sits on the championship.
+ *
+ * Carried and applied in Phase 5. It belongs in the schema now because a series
+ * file is a shareable document from the moment it ships, and adding the field
+ * later would invalidate every file authored or forked before then.
+ */
+export interface PointsSystem {
+  /**
+   * Stable identifier, unique within the championship.
+   */
+  id: string;
+  /**
+   * Display name, for example "Sprint points".
+   */
+  name: string;
+  /**
+   * Points by finishing position, the winner first.
+   */
+  positions: readonly number[];
+  /**
+   * Points for the fastest lap.
+   */
+  fastestLap?: number;
+  /**
+   * Points for pole position.
+   */
+  pole?: number;
+}
+
+/**
+ * A session inside a championship's weekend format.
+ *
+ * A SessionDefinition plus what only a championship can say about it. Points
+ * are kept out of SessionDefinition itself because a hand-authored weekend has
+ * no standings for them to feed, and src/core/weekend/ must go on knowing
+ * nothing about series - so the extra field rides into RaceDefinition.sessions
+ * inert rather than the weekend engine learning to ignore it.
+ */
+export interface SeriesSession extends SessionDefinition {
+  /**
+   * Which points system this session pays, by its id in `pointsSystems`.
+   *
+   * Omitted, the session pays the championship's `defaultPointsSystem`. A named
+   * reference rather than a table of its own, the same way a round names a
+   * weekend format: the sprint of every sprint weekend pays one scale, and
+   * writing it out per session is how two of them come to disagree.
+   *
+   * Only meaningful on a race session, which validateFormat enforces.
+   */
+  pointsSystem?: string;
+}
+
+/**
+ * One named way of running a race weekend.
+ *
+ * Named rather than a bare session list, because a championship holds several
+ * and a round, a card and a picker all have to say which one they mean.
+ */
+export interface WeekendFormat {
+  /**
+   * Stable identifier, unique within the championship.
+   */
+  id: string;
+  /**
+   * Display name, for example "Sprint weekend".
+   */
+  name: string;
+  /**
+   * The sessions, in the order they are run.
+   *
+   * SessionDefinition already carries the day offset, the length and its own
+   * conditions, so nothing else is needed here. Day-of-week rules are
+   * validation over `day` rather than data.
+   */
+  sessions: readonly SeriesSession[];
+}
+
+/**
+ * What a championship pays out.
+ */
+export interface PrizeMoney {
+  /**
+   * Prize money by finishing position in a round, the winner first.
+   */
+  positions?: readonly number[];
+  /**
+   * Prize money by final championship standing, the champion first.
+   */
+  standings?: readonly number[];
+}
+
+/**
+ * A championship, in our own format rather than Assetto Corsa's.
+ *
+ * AC's native content/career/SERIES/series.ini is deliberately not used: it is
+ * rigid and tied to the vanilla launcher's progression.
+ */
+export interface Championship {
+  /**
+   * Which revision of this schema the championship was written against.
+   *
+   * Present from the first shipped file rather than the second, because a
+   * series is a document users fork, export and import, and a file carrying no
+   * format version is a migration that cannot be written.
+   */
+  version: number;
+  /**
+   * Stable identifier, unique across the library.
+   */
+  id: string;
+  /**
+   * Display name.
+   */
+  name: string;
+  /**
+   * Free-text notes, shown on the championship's own page.
+   */
+  notes?: string;
+  /**
+   * The ways into this championship, one per class it runs. Usually one.
+   */
+  entries: readonly ClassEntry[];
+  /**
+   * The calendar, in the order the rounds are run.
+   */
+  rounds: readonly Round[];
+  /**
+   * Every way this championship runs a weekend, in the order they are offered.
+   *
+   * A list rather than one format, because a real championship has more than
+   * one: this year's Formula 1 runs a regular weekend and a sprint weekend, and
+   * GT World Challenge's sprint rounds carry two qualifyings and two races.
+   * Always at least one entry, which validateSeries enforces.
+   */
+  weekendFormats: readonly WeekendFormat[];
+  /**
+   * Which format a round runs when it names none, by its id.
+   *
+   * Required rather than defaulting to the first entry: a list's order is an
+   * authoring accident, and a championship reordering its formats must not
+   * quietly change what every round of it races.
+   */
+  defaultWeekendFormat: string;
+  /**
+   * Every way this championship scores a race, in the order it offers them.
+   *
+   * Always at least one entry, which validateSeries enforces.
+   */
+  pointsSystems: readonly PointsSystem[];
+  /**
+   * Which system a race pays when it names none, by its id.
+   *
+   * Required rather than defaulting to the first entry, for the same reason
+   * `defaultWeekendFormat` is: a list's order is an authoring accident, and
+   * reordering the tables must not quietly change what a season pays.
+   */
+  defaultPointsSystem: string;
+  /**
+   * How many worst results are dropped from the final standings.
+   *
+   * On the championship rather than on a points system: it is a rule about the
+   * season rather than about scoring a race, and a sprint table carrying its own
+   * would be a number nothing could ever read.
+   */
+  drops?: number;
+  /**
+   * The rules the series imposes, as against the aids the player chooses.
+   */
+  regulations?: Regulations;
+  /**
+   * AI strength across the field, which a class entry may override.
+   */
+  grid?: SeriesGrid;
+  /**
+   * What entering a round costs, which a round may override.
+   */
+  entryFee?: number;
+  /**
+   * What the championship pays out.
+   */
+  prizes?: PrizeMoney;
+  /**
+   * The championship this was forked from, when it was forked from one.
+   *
+   * A fork diverges from the moment it is made and a later update to the
+   * original never reaches it, so this is provenance rather than a link.
+   */
+  forkedFrom?: string;
+}
+
+/**
+ * A car a championship needs and the library does not have.
+ *
+ * No display name: nothing uninstalled has one. The provenance catalogue is
+ * what names it down to the DLC pack or the mod team instead.
+ */
+export interface MissingCar {
+  /**
+   * Car folder ID.
+   */
+  id: string;
+  /**
+   * Where it would have come from, so it can be named as a pack or a mod.
+   */
+  provenance: ContentProvenance;
+}
+
+/**
+ * A track layout a championship needs and the library does not have.
+ */
+export interface MissingTrack {
+  /**
+   * The track's own ID for a single-layout track, "id/layout" otherwise.
+   */
+  key: string;
+  /**
+   * Track folder ID.
+   */
+  id: string;
+  /**
+   * Layout folder name, or an empty string.
+   */
+  layout: string;
+  /**
+   * Where it would have come from.
+   */
+  provenance: ContentProvenance;
+}
+
+/**
+ * Whether one class entry can be raced against the installed content.
+ */
+export interface EntryAvailability {
+  /**
+   * Which class entry this describes, by its id.
+   */
+  entry: string;
+  /**
+   * Installed car folder IDs it may use, in the order the field draws from
+   * them.
+   */
+  eligible: readonly string[];
+  /**
+   * Cars it names that are not installed. Always empty for a spec, which is
+   * satisfied by whichever of it the user owns.
+   */
+  missing: readonly MissingCar[];
+  /**
+   * Whether enough is installed to race it - nothing missing from a car list,
+   * or at least minModels distinct models of a spec.
+   */
+  enough: boolean;
+}
+
+/**
+ * Whether one round can be raced against the installed content.
+ */
+export interface RoundAvailability {
+  /**
+   * Which round this describes, by its id.
+   */
+  round: string;
+  /**
+   * The track it needs, when that track is not installed. Null when it is.
+   */
+  track: MissingTrack | null;
+  /**
+   * The field it asks for against the pit boxes the track has, when the track
+   * has too few. Null when the field fits.
+   *
+   * Reported rather than clamped: silently shrinking the grid would mean two
+   * users' "same" championship quietly differ, and their results stop
+   * comparing.
+   */
+  pitboxes: {
+    /**
+     * Cars the championship fields.
+     */
+    needed: number;
+    /**
+     * Pit boxes the track has.
+     */
+    available: number;
+  } | null;
+  /**
+   * Availability of any class entry whose eligibility this round overrides.
+   */
+  entries: readonly EntryAvailability[];
+}
+
+/**
+ * What owning a championship's content amounts to, derived from provenance.
+ *
+ * Derived rather than declared: a field on the championship saying "this is a
+ * DLC series" could disagree with the catalogue, and the catalogue is the
+ * authority. This is what the content source toggles will filter on.
+ */
+export interface SeriesRequirements {
+  /**
+   * Whether it reaches base, DLC or mod content.
+   */
+  sources: readonly ContentSource[];
+  /**
+   * Which DLC packs it needs.
+   */
+  packs: readonly DLCPack[];
+  /**
+   * Which mod teams it needs.
+   */
+  makers: readonly ModMaker[];
+}
+
+/**
+ * Whether a championship can be entered, and what is stopping it.
+ */
+export interface SeriesAvailability {
+  /**
+   * Which championship this describes, by its id.
+   */
+  series: string;
+  /**
+   * Whether it can be entered as it stands.
+   */
+  available: boolean;
+  /**
+   * What is structurally wrong with the championship itself, independent of
+   * installed content. Empty for anything we ship.
+   */
+  problems: readonly AppErrorInfo[];
+  /**
+   * One per class entry, in the championship's own order.
+   */
+  entries: readonly EntryAvailability[];
+  /**
+   * One per round, in calendar order.
+   */
+  rounds: readonly RoundAvailability[];
+  /**
+   * What owning this championship's content amounts to.
+   */
+  requires: SeriesRequirements;
+}
+
+/**
+ * The whole championship library, and what it could not read.
+ *
+ * An envelope rather than a bare list, because an empty list and a directory of
+ * files that all failed to parse look identical otherwise - and the second is
+ * the one worth saying something about.
+ */
+export interface SeriesLibrary {
+  /**
+   * Every championship that loaded, in ladder order.
+   */
+  series: readonly SeriesListing[];
+  /**
+   * Everything wrong with the files that did not load. Never about the
+   * championships the app ships, which are compiled in.
+   */
+  problems: readonly AppErrorInfo[];
+}
+
+/**
+ * Where a championship came from.
+ *
+ * Derived from where it was loaded rather than declared inside it, so a file
+ * cannot claim to be the app's own by saying so, and one that is copied or
+ * shared stays exactly what it is. `adjusted` is a user file carrying a shipped
+ * championship's id: it replaces the app's, and deleting it puts the original
+ * back.
+ */
+export type SeriesOrigin = 'shipped' | 'user' | 'adjusted';
+
+/**
+ * A championship and whether it can be raced, which is how it crosses IPC.
+ *
+ * One value rather than two channels: a championship shown without its
+ * availability is a card that cannot say whether its own button works.
+ */
+export interface SeriesListing {
+  /**
+   * The championship itself.
+   */
+  series: Championship;
+  /**
+   * Whether it can be entered against the installed content.
+   */
+  availability: SeriesAvailability;
+  /**
+   * Whether the app ships it, the user wrote it, or the user replaced a
+   * shipped one with it.
+   */
+  origin: SeriesOrigin;
+}

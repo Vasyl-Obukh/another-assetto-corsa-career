@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CarCard } from './CarCard.tsx';
 import { CarFilters } from './CarFilters.tsx';
 import { CAR_SORTS } from './constants.ts';
-import type { Car } from '../../../../shared/types';
+import type { Car, CarQuery } from '../../../../shared/types';
 import { BrowserGrid, BrowserToolbar, ScreenBody, SortSelect } from '@/components';
 import { useCarBrowser, useInfiniteScroll } from '@/hooks';
 
@@ -19,11 +19,26 @@ interface CarBrowserBodyProps {
    * Folder ID of the car already chosen, when there is one.
    */
   selectedId?: string;
+  /**
+   * A query every request is narrowed by, before the user filters anything.
+   *
+   * What a restricted picker is: the search, the facets and the paging all work
+   * as they do on the Cars page, over a smaller library.
+   */
+  baseQuery?: CarQuery;
+  /**
+   * Which browser this is, for one that comes back to the filters it was left
+   * with. Omitted, it opens unfiltered every time - which is what a picker
+   * wants, since its library is already restricted to one question.
+   */
+  memoryId?: string;
 }
 
-export const CarBrowserBody = ({ onSelect, selectedId }: CarBrowserBodyProps) => {
+export const CarBrowserBody = ({
+  onSelect, selectedId, baseQuery, memoryId,
+}: CarBrowserBodyProps) => {
   const { t } = useTranslation();
-  const browser = useCarBrowser();
+  const browser = useCarBrowser(baseQuery, memoryId);
   const { list, criteria } = browser;
 
   const { scrollRef, sentinelRef } = useInfiniteScroll(

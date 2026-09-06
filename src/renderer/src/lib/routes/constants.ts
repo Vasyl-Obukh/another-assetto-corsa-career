@@ -16,6 +16,8 @@ import type { NavEntry } from './types.ts';
  */
 export const ROUTE = {
   race: '/race',
+  championships: '/championships',
+  championship: '/championships/:id',
   results: '/results',
   result: '/results/:file',
   cars: '/cars',
@@ -36,6 +38,7 @@ export const ROUTE = {
  */
 export const NAV = [
   { id: 'race', label: 'nav.race' },
+  { id: 'championships', label: 'nav.championships' },
   { id: 'results', label: 'nav.results' },
   { id: 'cars', label: 'nav.cars' },
   { id: 'tracks', label: 'nav.tracks' },

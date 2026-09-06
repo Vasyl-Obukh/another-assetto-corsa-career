@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  makeContent, makeQualifying, makeRaceOut, makeSession, makeWeekend,
+  makeContent, makeKnockout, makeQualifying, makeRaceOut, makeSession, makeWeekend,
 } from './fixtures.ts';
 import type { RaceDefinition, WeekendPlan, WeekendState } from '../../../shared/types/index.ts';
 import {
@@ -9,9 +9,12 @@ import {
   appliedOrder,
   assertStateMatches,
   initWeekendState,
+  launchRunnable,
   nextLaunch,
   planWeekend,
   prepareLaunch,
+  skipEliminated,
+  skipLaunch,
   startingGrid,
 } from '../weekend.ts';
 
@@ -57,6 +60,18 @@ const throughQualifying = (weekendPlan: WeekendPlan, order: number[]): WeekendSt
 
   return complete(weekendPlan, afterPractice, [makeQualifying(order)]);
 };
+
+/**
+ * Runs the first qualifying segment of the knockout fixture.
+ * @param weekendPlan The plan
+ * @param order The order Q1 classified the six cars in
+ * @returns The state with launch 0 recorded
+ */
+const throughFirstSegment = (weekendPlan: WeekendPlan, order: number[]): WeekendState => complete(
+  weekendPlan,
+  initWeekendState(weekendPlan),
+  [makeQualifying(order)],
+);
 
 describe('core/weekend', () => {
   describe('planWeekend', () => {
@@ -319,6 +334,187 @@ describe('core/weekend', () => {
       const weekendPlan = plan();
       expect(() => prepareLaunch(weekendPlan, initWeekendState(weekendPlan), 9))
         .toThrow(/Launch 9 does not exist/);
+    });
+  });
+
+  describe('launchRunnable', () => {
+    it('says yes to every launch of a weekend that eliminates nobody', () => {
+      const weekendPlan = plan();
+      const state = initWeekendState(weekendPlan);
+
+      expect(weekendPlan.launches.map((launch) => launchRunnable(weekendPlan, state, launch.index)))
+        .toEqual([true, true, true, true]);
+    });
+
+    it('says yes to a segment the player is still in', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+
+      expect(launchRunnable(knockout, state, 1)).toBe(true);
+    });
+
+    it('says no to a segment the player was knocked out of', () => {
+      // Assetto Corsa has no session without them, so this is not a launch that
+      // can be run at all rather than one that would run badly.
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+
+      expect(launchRunnable(knockout, state, 1)).toBe(false);
+    });
+  });
+
+  describe('skipLaunch', () => {
+    it('records the segment as simulated, with nothing archived', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+      const after = skipLaunch(knockout, state, '2026-01-02T00:00:00.000Z');
+
+      expect(after.completed[1]).toMatchObject({
+        index: 1, skipped: true, archive: '', completedAt: '2026-01-02T00:00:00.000Z',
+      });
+    });
+
+    it('invents an order over the cars that went through, and only those', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+      const { qualifyingOrder, gridOrder } = skipLaunch(knockout, state, 'now').completed[1];
+
+      expect(gridOrder).toEqual([3, 1, 5, 2]);
+      expect([...(qualifyingOrder ?? [])].sort((left, right) => left - right)).toEqual([1, 2, 3, 5]);
+    });
+
+    it('invents the same order every time, so a reload never reshuffles a grid', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+
+      expect(skipLaunch(knockout, state, 'now').completed[1].qualifyingOrder)
+        .toEqual(skipLaunch(knockout, state, 'later').completed[1].qualifyingOrder);
+    });
+
+    it('refuses a launch the player is in, which has to be driven', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+
+      expect(() => skipLaunch(knockout, state, 'now')).toThrow(/has to be driven/);
+    });
+
+    it('refuses once the weekend is finished', () => {
+      const knockout = plan(makeKnockout());
+      const state: WeekendState = {
+        ...initWeekendState(knockout),
+        completed: knockout.launches.map((launch) => ({
+          index: launch.index,
+          completedAt: 'now',
+          archive: '',
+          gridOrder: [],
+          qualifyingOrder: null,
+        })),
+      };
+
+      expect(() => skipLaunch(knockout, state, 'now')).toThrow(/already been run/);
+    });
+
+    it('leaves the state it was given alone', () => {
+      const knockout = plan(makeKnockout());
+      const before = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+      skipLaunch(knockout, before, 'now');
+
+      expect(before.completed).toHaveLength(1);
+    });
+  });
+
+  describe('skipEliminated', () => {
+    it('hands back the same state when the player is still in', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+
+      // The same object, which is what tells a caller nothing was written.
+      expect(skipEliminated(knockout, state, 'now')).toBe(state);
+    });
+
+    it('skips every segment the player is out of, and stops at the race', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+      const after = skipEliminated(knockout, state, 'now');
+
+      expect(after.completed.map((done) => done.skipped)).toEqual([undefined, true, true]);
+      expect(nextLaunch(knockout, after)?.session.name).toBe('Race');
+    });
+
+    it('leaves a finished weekend where it is rather than running off the end', () => {
+      const weekendPlan = plan();
+      let state = initWeekendState(weekendPlan);
+      state = complete(weekendPlan, state, [makeSession(1, 'Practice')]);
+      state = complete(weekendPlan, state, [makeQualifying([0, 1, 2, 3, 4, 5])]);
+      state = complete(weekendPlan, state, [makeSession(3, 'Sprint')]);
+      state = complete(weekendPlan, state, [makeSession(3, 'Feature')]);
+
+      expect(skipEliminated(weekendPlan, state, 'now')).toBe(state);
+    });
+  });
+
+  describe('knockout qualifying', () => {
+    it('runs a segment with only the cars its link let through', () => {
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+      const q2 = prepareLaunch(knockout, state, 1);
+
+      expect(q2.grid?.size).toBe(4);
+      expect(appliedOrder(knockout, state, 1)).toEqual([0, 3, 1, 5]);
+      expect(q2.grid?.opponents?.map((car) => car.driver))
+        .toEqual([3, 1, 5].map((car) => knockout.grid[car].driver));
+    });
+
+    it('reads a short segment back rather than throwing its result away', () => {
+      // Sized on the launch's own field: on the whole grid the result would
+      // read as untranslatable and the segment would be lost in silence.
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+      const after = advanceWeekend(knockout, state, makeRaceOut([makeQualifying([1, 0, 3, 2])], 4), {
+        archive: 'q2.json', completedAt: 'now',
+      });
+
+      // The result indexes the launch's [CAR_n] order, so 1 is car 3 and 3 is 5.
+      expect(after.completed[1].qualifyingOrder).toEqual([3, 0, 5, 1]);
+    });
+
+    it('composes the race grid across the whole chain', () => {
+      const knockout = plan(makeKnockout());
+      let state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
+      state = advanceWeekend(knockout, state, makeRaceOut([makeQualifying([1, 0, 3, 2])], 4), {
+        archive: 'q2.json', completedAt: 'now',
+      });
+      state = advanceWeekend(knockout, state, makeRaceOut([makeQualifying([1, 0])], 2), {
+        archive: 'q3.json', completedAt: 'now',
+      });
+
+      // Q3 ran cars 3 and 0 and put 0 second; then Q2's eliminated, 5 and 1;
+      // then Q1's, 2 and 4.
+      expect(startingGrid(knockout, state, 3)?.order).toEqual([3, 0, 5, 1, 2, 4]);
+    });
+
+    it('lines the player up where their last driven segment left them', () => {
+      const knockout = plan(makeKnockout());
+      const eliminated = skipEliminated(
+        knockout,
+        throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]),
+        'now',
+      );
+      const grid = startingGrid(knockout, eliminated, 3);
+
+      expect(grid?.playerSlot).toBe(5);
+      expect(grid?.order.slice(4)).toEqual([0, 4]);
+    });
+
+    it('does not simply reuse the order of the segment the player went out in', () => {
+      // If it did, the front of the grid would stand as Q1 left it, which is to
+      // say the two segments after it never happened.
+      const knockout = plan(makeKnockout());
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+      const eliminated = skipEliminated(knockout, state, 'now');
+
+      expect(startingGrid(knockout, eliminated, 3)?.order.slice(0, 4))
+        .not.toEqual([3, 1, 5, 2]);
     });
   });
 

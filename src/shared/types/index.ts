@@ -70,6 +70,7 @@ export type {
   PlayerCar,
   RaceDefinition,
   SessionDefinition,
+  SessionInheritance,
   SessionType,
   TrackStateName,
 } from './race.ts';
@@ -102,6 +103,34 @@ export type {
 } from './weather-plan.ts';
 
 export type { CmArguments, CmFlag } from './cm-arguments.ts';
+
+export type {
+  BopEntry,
+  Championship,
+  ClassEntry,
+  Eligibility,
+  EntryAvailability,
+  MissingCar,
+  MissingTrack,
+  PointsSystem,
+  PrizeMoney,
+  RegulatedAssists,
+  RegulationFlag,
+  RegulationKey,
+  RegulationNumber,
+  Regulations,
+  Round,
+  RoundAvailability,
+  RoundEligibility,
+  SeriesAvailability,
+  SeriesGrid,
+  SeriesLibrary,
+  SeriesListing,
+  SeriesOrigin,
+  SeriesRequirements,
+  SeriesSession,
+  WeekendFormat,
+} from './series.ts';
 
 export type {
   DrivingAidFlag,

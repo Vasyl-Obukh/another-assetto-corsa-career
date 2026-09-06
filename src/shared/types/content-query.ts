@@ -67,6 +67,16 @@ export interface CarQuery {
    */
   search?: string;
   /**
+   * Keep only these exact cars, by folder ID.
+   *
+   * What a championship's car picker restricts itself to, where `specs` covers
+   * the other half of the same question. An empty array is deliberately not a
+   * filter, matching every other list here - so never send one derived from an
+   * eligibility rule that resolved to nothing, or the picker offers the whole
+   * library instead of nothing.
+   */
+  ids?: string[];
+  /**
    * Keep only cars of these brands.
    */
   brands?: string[];

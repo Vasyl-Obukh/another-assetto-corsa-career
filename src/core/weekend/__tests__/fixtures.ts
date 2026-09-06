@@ -1,6 +1,6 @@
 // Shared fixtures for the weekend tests. Deliberately small: one car with
 // enough liveries to go round a six-car field, one track with room for it, and
-// a four-session weekend, which is four launches.
+// two four-session weekends - a plain one and a knockout.
 
 import type {
   Car, Content, RaceDefinition, RaceOut, RaceOutLap, RaceOutSession, Skin,
@@ -92,6 +92,35 @@ export const makeWeekend = (): RaceDefinition => ({
     { type: 'qualify', name: 'Qualifying', minutes: 10 },
     { type: 'race', name: 'Sprint', laps: 2 },
     { type: 'race', name: 'Feature', laps: 6 },
+  ],
+  conditions: { trackState: 'green' },
+});
+
+/**
+ * A knockout weekend: three qualifying segments into a race.
+ *
+ * Six cars, so Q2 runs four of them and Q3 two - small enough that a composed
+ * grid can be read at a glance, and enough that being eliminated is expressible
+ * at every stage.
+ * @returns A fresh RaceDefinition
+ */
+export const makeKnockout = (): RaceDefinition => ({
+  id: 'test-knockout',
+  name: 'Test Knockout',
+  track: { id: 'test_track' },
+  playerCar: { model: 'test_car', driver: 'Player' },
+  grid: { size: 6, aiLevel: 90, aiLevelMin: 80 },
+  sessions: [
+    { id: 'q1', type: 'qualify', name: 'Q1', minutes: 5 },
+    {
+      id: 'q2', type: 'qualify', name: 'Q2', minutes: 5, inherit: { from: 'q1', top: 4 },
+    },
+    {
+      id: 'q3', type: 'qualify', name: 'Q3', minutes: 5, inherit: { from: 'q2', top: 2 },
+    },
+    {
+      type: 'race', name: 'Race', laps: 3, inherit: { from: 'q3' },
+    },
   ],
   conditions: { trackState: 'green' },
 });

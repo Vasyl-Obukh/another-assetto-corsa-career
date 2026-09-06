@@ -8,10 +8,17 @@ import { ConditionsDialog } from './ConditionsDialog.tsx';
 import { SESSION_TYPE_LABEL, SESSION_TYPES } from './constants.ts';
 import { Field } from './Field.tsx';
 import {
-  countsLaps, fromNumber, isOffered, overrideCount, withSessionCondition, withSessionConditions,
+  countsLaps,
+  fromNumber,
+  isOffered,
+  measuredInLaps,
+  overrideCount,
+  withSessionCondition,
+  withSessionConditions,
+  withSessionLength,
 } from './utils.ts';
 import type {
-  Conditions, SessionDefinition, Weather, WeatherController, WeatherSystem,
+  Conditions, LaunchRecord, SessionDefinition, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -57,10 +64,13 @@ interface SessionRowProps {
    */
   rainFx: boolean;
   /**
-   * How many launches have been run, which says whether this session is done,
-   * next, or still waiting.
+   * What this session's launch left behind, or null when it has not run.
    */
-  completed: number;
+  record: LaunchRecord | null;
+  /**
+   * Whether this is the session that runs next.
+   */
+  next: boolean;
   /**
    * Whether the weekend has started, in which case nothing here can change.
    */
@@ -82,15 +92,17 @@ interface SessionRowProps {
 }
 
 export const SessionRow = ({
-  session, index, count, resolved, weather, controllers, system, rainFx, completed, locked,
-  onChange, onMove, onRemove,
+  session, index, count, resolved, weather, controllers, system, rainFx, record, next,
+  locked, onChange, onMove, onRemove,
 }: SessionRowProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const laps = countsLaps(session.type);
+  const laps = measuredInLaps(session);
   const overrides = overrideCount(session);
-  const ran = index < completed;
-  const next = index === completed;
+  // A simulated segment is recorded like a driven one, so the record is what
+  // tells them apart - a knockout the player was eliminated from was never run.
+  const simulated = record?.skipped === true;
+  const ran = record !== null && !simulated;
 
   return (
     <div className="flex flex-col gap-3 rounded-md border p-3">
@@ -101,11 +113,13 @@ export const SessionRow = ({
             disabled={locked}
             onValueChange={(value) => {
               if (!isOffered(value)) return;
-              // Minutes and laps are different questions, so the answer to the
-              // old one is dropped rather than carried into the new one.
-              onChange(countsLaps(value)
-                ? { ...session, type: value, minutes: undefined, laps: session.laps ?? 5 }
-                : { ...session, type: value, laps: undefined, minutes: session.minutes ?? 15 });
+              // A race may be measured either way, so becoming one keeps the
+              // length it already had. Everything else runs to the clock, so a
+              // lap count is dropped rather than carried into a unit that
+              // cannot express it.
+              onChange(countsLaps(value) && session.minutes !== undefined
+                ? { ...session, type: value }
+                : withSessionLength({ ...session, type: value }, countsLaps(value)));
             }}
           >
             <SelectTrigger id={`session-${index}-type`} className="w-32">
@@ -132,20 +146,41 @@ export const SessionRow = ({
 
         <Field
           id={`session-${index}-length`}
-          label={laps ? t('race.sessions.laps') : t('race.sessions.minutes')}
+          label={countsLaps(session.type)
+            ? t('race.sessions.length')
+            : t('race.sessions.minutes')}
         >
-          <Input
-            id={`session-${index}-length`}
-            className="w-16"
-            type="number"
-            min={1}
-            value={fromNumber(laps ? session.laps : session.minutes)}
-            disabled={locked}
-            onChange={(event) => {
-              const value = event.target.value === '' ? undefined : Number(event.target.value);
-              onChange(laps ? { ...session, laps: value } : { ...session, minutes: value });
-            }}
-          />
+          <div className="flex items-center gap-2">
+            {/* Only a race is offered the choice: everything else runs to the
+                clock, and AC reads LAPS on a race session alone. */}
+            {countsLaps(session.type) ? (
+              <Select
+                value={laps ? 'laps' : 'minutes'}
+                disabled={locked}
+                onValueChange={(value) => onChange(withSessionLength(session, value === 'laps'))}
+              >
+                <SelectTrigger aria-label={t('race.sessions.lengthUnit')} className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="laps">{t('race.sessions.laps')}</SelectItem>
+                  <SelectItem value="minutes">{t('race.sessions.minutes')}</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : null}
+            <Input
+              id={`session-${index}-length`}
+              className="w-16"
+              type="number"
+              min={1}
+              value={fromNumber(laps ? session.laps : session.minutes)}
+              disabled={locked}
+              onChange={(event) => {
+                const value = event.target.value === '' ? undefined : Number(event.target.value);
+                onChange(laps ? { ...session, laps: value } : { ...session, minutes: value });
+              }}
+            />
+          </div>
         </Field>
 
         <Field id={`session-${index}-time`} label={t('race.sessions.startTime')}>
@@ -185,8 +220,13 @@ export const SessionRow = ({
               {t('race.plan.done')}
             </Badge>
           ) : null}
+          {simulated ? (
+            <Badge variant="outline">{t('race.plan.simulated')}</Badge>
+          ) : null}
           {next ? <Badge>{t('race.plan.next')}</Badge> : null}
-          {!ran && !next ? <Badge variant="outline">{t('race.plan.pending')}</Badge> : null}
+          {!ran && !simulated && !next ? (
+            <Badge variant="outline">{t('race.plan.pending')}</Badge>
+          ) : null}
 
           <Button
             type="button"

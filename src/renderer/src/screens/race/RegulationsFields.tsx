@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
-import { REGULATIONS } from './constants.ts';
+import { REGULATION_FLAGS, REGULATIONS } from './constants.ts';
 import { Field } from './Field.tsx';
 import { fromNumber, toNumber } from './utils.ts';
 import { DEFAULT_ASSISTS } from '../../../../shared/constants';
 import type { Assists } from '../../../../shared/types';
+import { ToggleButton } from '@/components';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
@@ -48,6 +49,20 @@ export const RegulationsFields = ({ assists, locked, onChange }: RegulationsFiel
               value={fromNumber(assists[key])}
               disabled={locked}
               onChange={(event) => onChange({ ...assists, [key]: toNumber(event.target.value) })}
+            />
+          </Field>
+        ))}
+
+        {/* In the same grid as the numbers rather than a settings-style row
+            beneath them: it is one more rule of the same set, and the on/off
+            control is the one the settings screen uses. */}
+        {REGULATION_FLAGS.map(({ key, id }) => (
+          <Field key={key} id={id} label={t(`race.regulations.${key}`)}>
+            <ToggleButton
+              id={id}
+              value={assists[key] ?? DEFAULT_ASSISTS[key]}
+              disabled={locked}
+              onChange={(next) => onChange({ ...assists, [key]: next })}
             />
           </Field>
         ))}

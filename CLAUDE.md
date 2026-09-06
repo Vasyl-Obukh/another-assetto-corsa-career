@@ -60,7 +60,8 @@ npm run build     # -> dist/{main,preload,renderer}
 npm run start     # run the built app
 
 npm run scan   npm run dry   npm run race   npm run weekend
-npm run watch   npm run results   npm run weather   npm run testmode
+npm run series   npm run watch   npm run results
+npm run weather   npm run testmode
 npm run check     # typecheck (both projects) + lint
 npm run lint:fix
 
@@ -117,9 +118,9 @@ per project.
 | Path | Purpose |
 | --- | --- |
 | `spike.ts` | Thin CLI entry point over `src/cli/` |
-| `src/cli/` | `scan`, `dry`, `run`, `weekend`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
-| `src/shared/types/` | Every domain type: content, classes, ladder, paths, race, results, weekend, settings, IPC |
-| `src/shared/constants/` | Time units, settings defaults, the assists Assetto Corsa itself ships, the Content Manager flags we offer, the `accontent://` scheme, the English wording for every content issue reason |
+| `src/cli/` | `scan`, `dry`, `run`, `weekend`, `series`, `watch`, `results`, `weather`, `testmode`, one per file - or a folder, where a command needs helpers of its own. All reached through npm scripts, which carry the transform flag |
+| `src/shared/types/` | Every domain type: content, classes, ladder, series, paths, race, results, weekend, settings, IPC |
+| `src/shared/constants/` | Time units, settings defaults, the assists Assetto Corsa itself ships, the Content Manager flags we offer, the `accontent://` scheme, the English wording for every content issue reason. `Assists` is split in two by `Pick`, never by a second list: `DrivingAids` is what the player chooses and `RegulationKey` is whatever that leaves over, so an assist moves side by side simply by moving in the `Pick` - which is how tyre blankets became a rule a series states rather than a switch in settings |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
 | `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
@@ -128,6 +129,10 @@ per project.
 | `src/shared/utils/conditions/` | Merging a session's own conditions over the weekend's defaults. Shared because both the bundler and the race screen need the same answer, and the renderer may not import core. Weather merges as a group, since its three fields answer one question |
 | `src/shared/utils/lap-time/` | `m:ss.mmm`, shared by the CLI's timing sheet and the results screen. Deliberately outside the `Intl` formatters: a lap time is a motorsport convention, not a locale decision |
 | `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
+| `src/core/series/` | Reading a championship: validating it, saying what it needs against the installed library, and lowering one round into an ordinary `RaceDefinition`. That last part is the point - a round runs through `planWeekend`, `buildGrid` and `buildRaceIni` exactly as a hand-authored weekend does, so nothing under `src/core/weekend/`, `src/core/race-ini/` or `src/main/race-store/` knows what a series is |
+| `src/core/series-file/` | A championship as a document: `unknown` off disk to a typed `Championship`, and back. Every string that indexes a catalogue - a spec, a discipline, a session type, a weather type - is checked against that catalogue's own members, because a user's file has no compiler behind it. Structural only; whether the championship is coherent is `validateSeries`. `writeSeries` is the other direction, which is what forking a shipped championship will use |
+| `src/core/series-library/` | The championships the app ships - TypeScript constants under `shipped/`, one file per championship, so a renamed spec is a compile error and adding a series is adding a file - merged with whatever the user wrote as JSON. A user's file carrying a shipped id replaces it and reads as `adjusted` rather than clashing with it; deleting that file puts the original back, because the override is the file's existence and nothing else. Ladder order is derived from the tiers, so adding a championship never means renumbering one |
+| `src/core/seeded-random/` | The Park-Miller generator and the string hash that seeds it. Its own module because two callers need the same answer twice - the weekend shuffling a grid with no qualifying to order it, and a series composing a round's field |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content, liveries and their `ui_skin.json` included; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
 | `src/core/loose-number/` | Reading a number out of the free text a mod author wrote - separators, units, "N/A". Shared by the car and track readers, because a car's weight and a circuit's length are the same parsing problem |
@@ -137,7 +142,7 @@ per project.
 | `src/core/race-ini/` | Race definition -> `race.ini` |
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM, and rendering assists both ways - Content Manager's serialized JSON for the URI, AC's `assists.ini` layout for reading back what arrived |
 | `src/core/results/` | Watching, stable-reading and summarising results |
-| `src/core/weekend/` | Lowering a weekend into launches, one per session, and carrying the grid and the track across the seams between them. Pure: no I/O, so the state machine is a reducer over a value rather than a store |
+| `src/core/weekend/` | Lowering a weekend into launches, one per session, and carrying the grid and the track across the seams between them. Pure: no I/O, so the state machine is a reducer over a value rather than a store. A launch's field is its own: `SessionDefinition.inherit` names which session a launch follows and how many of it carry over, so a knockout qualifying segment goes out with a short `[CAR_n]` list and a race composes its grid back along the whole chain |
 | `src/core/weather/` | Career weather presets installed into AC's content folder |
 | `src/core/weather-plan/` | Weather plans for the PURE and Sol planner apps: our own step model, a writer per format, and installing them into a slot we own without disturbing the user's. Dynamic weather is driven by those apps, not by `race.ini` |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
@@ -145,12 +150,14 @@ per project.
 | `src/main/` | App lifecycle, window, settings store, content store, race store, theme, IPC handlers |
 | `src/main/content-store/` | The scan, cached to `%APPDATA%`, watched and revalidated |
 | `src/main/race-store/` | The race being set up, its weekend progress and the launch in flight, all under `%APPDATA%/ac-career-mode/race/`. The same steps `npm run weekend` runs, in the same order; the wait for a result is detached and reaches the renderer as a push |
+| `src/main/series-store/` | The championship library, loaded once at startup and answered from memory. Only the user's half is read from disk, out of `%APPDATA%/ac-career-mode/series/`; `reload()` is what the series editor will call once it can write one. `series:list` answers with an envelope rather than a bare list, so a file that would not load travels with the ones that did |
 | `src/main/content-protocol/` | Serves preview images out of the AC install |
 | `src/preload/` | The single `contextBridge` surface (`window.api`) |
 | `src/renderer/` | React UI; `src/renderer/src/components/ui/` is vendored shadcn source |
-| `src/renderer/src/screens/` | One folder per route-level screen. `car-browser` and `track-browser` each expose a `*BrowserBody`, which is the whole browser with an optional `onSelect` - that is what the race screen's pickers are, rather than screens of their own |
+| `src/renderer/src/screens/` | One folder per route-level screen. `car-browser` and `track-browser` each expose a `*BrowserBody`, which is the whole browser with an optional `onSelect` - that is what the race screen's pickers are, rather than screens of their own. A body given a `memoryId` comes back to the filters it was left with; a picker passes none, so its restricted library never inherits or leaks the page's filters |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
 | `src/renderer/src/lib/layout.ts` | The measurements more than one screen shares: the content width, the settings control width, the two-column field grid |
+| `src/renderer/src/lib/browser-memory/` | The filters and the search a browser was left with, held per browser id for as long as the window lives, so leaving a browser page and coming back does not mean setting them again. Module state rather than a provider, because nothing renders from it and the only reader is the next mount. Deliberately not the scroll offset: restoring one means paging every entry under it back in first |
 | `races/*.json` | Race definitions in our own format. A weekend is one of these too - its `sessions` cover the whole event and `src/core/weekend/` splits it into launches |
 | `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
 
@@ -454,6 +461,15 @@ drifted - seven screens held five different widths, and a select sized itself to
 its own longest option, so theme and language came out different widths side by
 side.
 
+**A picker's second step is laid over its browser, never swapped for it.**
+Both pickers ask two questions - a circuit then its layout, a car then its
+livery - and the second step is an absolutely positioned overlay while the
+browser stays mounted underneath. Rendering one *or* the other unmounts the
+browser, which throws away the filters the user set and the scroll offset they
+were at, so Back lands them at the top of the whole library. The overlay carries
+its own `z-20`: the browser's toolbar is sticky at `z-10`, and being later in the
+DOM is not enough to cover it.
+
 **Reach all three through components, never by pasting the classes.**
 `<ScreenBody>` owns the scrolling element and the content column, so a screen
 writes only its own gap and padding; `<FieldGrid>` and `<FieldRow>` own the
@@ -474,6 +490,20 @@ columns come out 48px narrower than the rest.
   stay inferred, and `SessionSummary.order` says which of the two produced any
   given table. It is still corroboration rather than the route to real
   positions, which wait on Phase 12.
+- **A qualifying segment the player is eliminated from is simulated, not
+  driven.** Knockout qualifying runs each segment with only the cars still in
+  it, so a segment the player is out of has no field they are in - and Assetto
+  Corsa has no session without them. It cannot be launched at all, so there is
+  no AC answer to prefer over ours: the advancing field is re-ordered off its
+  previous segment with seeded jitter, recorded with `skipped: true` and an
+  empty archive, and the race composes its grid across the chain as if it had
+  been driven. **It is the one place in the project where a classification is
+  invented rather than read back from AC**, which is why it is seeded - the same
+  weekend always invents the same order, and reloading never reshuffles a grid.
+  Leaving those segments unrun was the alternative and is worse: the front of
+  the grid would stand in the order the last driven segment left it, which is to
+  say the segments never happened. The persistent AI field Phase 5 introduces is
+  what would let them be simulated on driver ratings rather than on order alone.
 - **Retirements genuinely cannot be observed.** AC writes no retirement flag,
   so a car that stops is indistinguishable from one never classified, and
   being lapped is the only under-distance case that can be produced on purpose.
@@ -614,9 +644,20 @@ columns come out 48px narrower than the rest.
   before it. The settings screen warns about it; nothing else can.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
-- Liveries are read from `ui_skin.json` and browsable per car, but nothing pins
-  one to a driver yet - that needs the driver, team and seat entities Phase 4
-  introduces. About a twelfth of liveries ship no `ui_skin.json` at all and a
+- **A field larger than a car's livery count collapses onto one livery.**
+  `buildGrid` gives each entry a unique skin and then falls back to the *player's*
+  skin once `nextSkin` runs out, so Formula Abarth's fourteen Tatuus entries over
+  five liveries come out as eleven identical cars. Pre-existing, and nothing had
+  reached it before: a hand-authored race sizes its grid to what it has, and a
+  one-make championship naming a field size is the first thing that cannot.
+  Cycling back through the liveries rather than collapsing would fix it, and would
+  change what `npm run dry` writes for any race that exhausts them, so it wants
+  doing deliberately rather than in passing.
+- Liveries are read from `ui_skin.json`, browsable per car, and the player picks
+  their own as a second step of the car picker - the same shape as picking a
+  layout after a circuit, skipped for a car that ships fewer than two. Nothing
+  pins one to an *AI* driver yet - that needs the driver, team and seat entities
+  Phase 4 introduces. About a twelfth of liveries ship no `ui_skin.json` at all and a
   handful ship it broken; those wear their folder name and raise no issue, since
   a livery with no metadata still races perfectly.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
@@ -629,6 +670,23 @@ columns come out 48px narrower than the rest.
   gate checks alongside its own version, so a core-only data edit does not need
   main to know. Forgetting it serves stale provenance from the cache and looks
   exactly like the code not working.
+- **The library is stored two ways, and the split is deliberate.** A shipped
+  championship is a TypeScript constant, so `CarSpec.GT3_2010S` and
+  `Discipline.SPORTSCAR` are real references and a renamed spec is a compile
+  error. A user's is JSON under `%APPDATA%/ac-career-mode/series/`, because it
+  has to be - those are written outside the build - so what the compiler does
+  for the shipped half, `parseSeries` does for theirs at load: every value with
+  a closed set behind it is checked and reported. **The compiler still only
+  checks half of what matters.** Whether a format's days run in order, whether a
+  session that inherits names one that exists, whether two rounds share an id
+  are all `validateSeries`, and nothing calls it on the shipped library at build
+  time - which is what `src/core/series-library/__tests__/` is for, asserting
+  every shipped championship validates clean. **The two catalogues are a
+  different case again.** `src/shared/utils/car-classes/` is
+  `Record<CarSpec, ...>`, exhaustive over the enum, so adding a spec breaks the
+  build until every table is filled in - a guarantee no runtime check recovers;
+  and `src/core/content-catalogue/` is not a user document at all, with edits
+  that have to invalidate the content cache.
 - The **class catalogue is the exception to that**, on purpose. Nothing in
   `src/shared/utils/car-classes/` is baked into a scanned `Car`; class and spec
   are looked up at runtime by both `src/core/content-query/` and the renderer. So

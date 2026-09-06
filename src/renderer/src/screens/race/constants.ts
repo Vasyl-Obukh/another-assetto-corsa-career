@@ -1,8 +1,9 @@
 import type { ParseKeys } from 'i18next';
 
-import type { RegulationKey } from './types.ts';
 import { WeatherType } from '../../../../shared/constants';
-import type { SessionType, TrackStateName } from '../../../../shared/types';
+import type {
+  RegulationFlag, RegulationNumber, SessionType, TrackStateName,
+} from '../../../../shared/types';
 
 /**
  * The session types the setup screen offers.
@@ -13,6 +14,16 @@ import type { SessionType, TrackStateName } from '../../../../shared/types';
  * never been driven through this path, so offering them would be a guess.
  */
 export const SESSION_TYPES: SessionType[] = ['practice', 'qualify', 'race'];
+
+/**
+ * Race distance a race gets when it is switched onto laps with none set.
+ */
+export const DEFAULT_SESSION_LAPS = 5;
+
+/**
+ * Duration a session gets when it is switched onto the clock with none set.
+ */
+export const DEFAULT_SESSION_MINUTES = 15;
 
 /**
  * The label for every session type, including the ones not offered - a draft
@@ -167,9 +178,16 @@ export const PURE_MISSING_TYPES: ReadonlySet<WeatherType> = new Set([
  * a plain positive number with the same bounds, which is why they render from
  * a list where `GridFields` spells its four out - those carry a range each.
  */
-export const REGULATIONS: readonly { key: RegulationKey; id: string }[] = [
+export const REGULATIONS: readonly { key: RegulationNumber; id: string }[] = [
   { key: 'damage', id: 'race-damage' },
   { key: 'fuelRate', id: 'race-fuel-rate' },
   { key: 'tyreWear', id: 'race-tyre-wear' },
   { key: 'slipstream', id: 'race-slipstream' },
+];
+
+/**
+ * The regulations that are allowed or not, rather than measured.
+ */
+export const REGULATION_FLAGS: readonly { key: RegulationFlag; id: string }[] = [
+  { key: 'tyreBlankets', id: 'race-tyre-blankets' },
 ];

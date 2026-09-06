@@ -1,5 +1,5 @@
 import type { WeatherType } from '../../../../shared/constants';
-import type { Assists, DrivingAids, TrackStateName } from '../../../../shared/types';
+import type { TrackStateName } from '../../../../shared/types';
 
 /**
  * What one entry in the weather menu stands for.
@@ -78,11 +78,3 @@ export interface ConditionsSummary {
    */
   trackState: TrackStateName | null;
 }
-
-/**
- * A rule the race sets rather than the player.
- *
- * The complement of `DrivingAids`: what the aids leave over on `Assists` is
- * exactly what a series regulates, so neither list has to be written twice.
- */
-export type RegulationKey = Exclude<keyof Assists, keyof DrivingAids>;

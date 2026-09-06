@@ -4,7 +4,7 @@ import {
 import { stat } from 'node:fs/promises';
 
 
-import { isPermutation, mtimeOf, sleepUntilEvent } from '../utils.ts';
+import { isDistinctSubset, isPermutation, mtimeOf, sleepUntilEvent } from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
@@ -36,6 +36,36 @@ describe('core/results/utils', () => {
 
     it('rejects an order that is not there at all', () => {
       expect(isPermutation(undefined, 3)).toBe(false);
+    });
+  });
+
+  describe('isDistinctSubset', () => {
+    it('accepts the whole field, which is a subset like any other', () => {
+      expect(isDistinctSubset([3, 0, 2, 1], 4)).toBe(true);
+    });
+
+    it('accepts the short field a knockout segment runs', () => {
+      expect(isDistinctSubset([5, 2], 8)).toBe(true);
+    });
+
+    it('rejects an order longer than the field it is read against', () => {
+      expect(isDistinctSubset([0, 1, 2, 3], 3)).toBe(false);
+    });
+
+    it('rejects an order naming a car twice', () => {
+      expect(isDistinctSubset([2, 2], 4)).toBe(false);
+    });
+
+    it('rejects an order reaching outside the field', () => {
+      expect(isDistinctSubset([0, 9], 4)).toBe(false);
+      expect(isDistinctSubset([0, -1], 4)).toBe(false);
+      expect(isDistinctSubset([0, 1.5], 4)).toBe(false);
+    });
+
+    it('rejects an order that classified nobody, which cannot line anyone up', () => {
+      expect(isDistinctSubset([], 4)).toBe(false);
+      expect(isDistinctSubset(null, 4)).toBe(false);
+      expect(isDistinctSubset(undefined, 4)).toBe(false);
     });
   });
 

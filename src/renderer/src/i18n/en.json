@@ -5,6 +5,7 @@
   },
   "nav": {
     "race": "Race",
+    "championships": "Championships",
     "results": "Results",
     "cars": "Cars",
     "tracks": "Tracks",
@@ -183,6 +184,7 @@
     "car": {
       "label": "Car",
       "none": "No car picked yet.",
+      "anyLivery": "Whichever livery Assetto Corsa picks",
       "pick": "Pick a car",
       "change": "Change car"
     },
@@ -204,6 +206,8 @@
       "name": "Name",
       "minutes": "Minutes",
       "laps": "Laps",
+      "length": "Length",
+      "lengthUnit": "Measured in",
       "day": "Day",
       "empty": "A race needs at least one session.",
       "startTime": "Starts at",
@@ -259,6 +263,7 @@
       "label": "Launches",
       "hint": "Every session is one launch of the game. You come back here between them, and the grid is carried across from qualifying to the race.",
       "done": "Run",
+      "simulated": "Simulated",
       "next": "Next",
       "pending": "Not run yet",
       "none": "Pick a track and a car, and the launches appear here."
@@ -280,7 +285,10 @@
     },
     "pick": {
       "car": "Pick a car",
-      "carHint": "Search and filter exactly as the car browser does.",
+      "carHint": "Search and filter exactly as the car browser does; if the car has more than one livery you choose that next.",
+      "skin": "Pick a livery",
+      "skinHint": "A livery is what the car wears on track, and on a mod car it often carries a real number, team and driver with it.",
+      "allCars": "All cars",
       "track": "Pick a track",
       "trackHint": "Pick the circuit; if it has more than one layout you choose that next.",
       "layout": "Pick a layout",
@@ -328,8 +336,109 @@
       "damage": "Damage",
       "fuelRate": "Fuel use",
       "tyreWear": "Tyre wear",
+      "tyreBlankets": "Tyre blankets",
       "slipstream": "Slipstream"
     }
+  },
+  "championships": {
+    "title": "Championships",
+    "subtitle": "Every championship the app ships or you have written, and whether your library can race it.",
+    "empty": "No championships are shipped yet.",
+    "problems": {
+      "label_one": "{{count}} championship could not be read",
+      "label_other": "{{count}} championships could not be read",
+      "hint": "These are files in your own championships folder. The rest of the library is unaffected."
+    },
+    "back": "All championships",
+    "notFound": "No such championship.",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "origin": {
+      "user": "Yours",
+      "adjusted": "Adjusted"
+    },
+    "rounds_one": "{{count}} round",
+    "rounds_other": "{{count}} rounds",
+    "classes_one": "{{count}} class",
+    "classes_other": "{{count}} classes",
+    "cars_one": "{{count}} car",
+    "cars_other": "{{count}} cars",
+    "tier": "Tier {{tier}}",
+    "grid": "{{count}} on the grid",
+    "entryFee": "Entry fee {{value}}",
+    "discipline": {
+      "single-seater": "Single-seater",
+      "sportscar": "Sportscar",
+      "touring": "Touring",
+      "road": "Road"
+    },
+    "entries": {
+      "title": "Ways in",
+      "spec": "Spec",
+      "cars": "Named cars",
+      "eligible_one": "{{count}} car installed",
+      "eligible_other": "{{count}} cars installed",
+      "notEnough": "Not enough installed to race this class.",
+      "bop": "Balance of performance",
+      "ballast": "{{value}} kg",
+      "restrictor": "{{value}}% restrictor",
+      "bopRow": "{{car}} - {{adjustments}}"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "round": "Round {{number}}",
+      "race": "Race this round",
+      "missingTrack": "Track not installed",
+      "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field"
+    },
+    "format": {
+      "title_one": "Weekend format",
+      "title_other": "Weekend formats",
+      "default": "Default",
+      "day": "Day {{number}}",
+      "laps_one": "{{count}} lap",
+      "laps_other": "{{count}} laps",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "session": "{{name}} - {{length}}",
+      "sessionPlain": "{{name}}"
+    },
+    "points": {
+      "title_one": "Points",
+      "title_other": "Points systems",
+      "default": "Default",
+      "drops_one": "The worst result of the season is dropped from the standings.",
+      "drops_other": "The worst {{count}} results of the season are dropped from the standings.",
+      "position": "P{{number}}",
+      "fastestLap": "Fastest lap",
+      "pole": "Pole",
+      "row": "{{label}} {{points}}"
+    },
+    "regulations": {
+      "title": "Regulations",
+      "fixedSetup": "Fixed setup",
+      "penalties": "Penalties enforced",
+      "jumpStartPenalty": "Jump start penalty",
+      "allowedTyresOut": "Wheels allowed off track",
+      "seconds": "{{value}} s"
+    },
+    "missing": {
+      "title": "What this needs",
+      "cars": "Cars",
+      "tracks": "Tracks"
+    },
+    "enter": {
+      "title": "Race {{round}}",
+      "hint": "Pick the class you are entering and the car you will drive. The round is set up on the race screen, where you launch it session by session.",
+      "entry": "Class",
+      "car": "Car",
+      "carLivery": "{{car}} - {{livery}}",
+      "pick": "Pick a car",
+      "change": "Change car",
+      "confirm": "Set up the round",
+      "cancel": "Cancel"
+    },
+    "entryLabel": "{{discipline}}, tier {{tier}}"
   },
   "results": {
     "title": "Results",
@@ -446,7 +555,6 @@
     "abs": "ABS",
     "tractionControl": "Traction control",
     "stabilityControl": "Stability control",
-    "tyreBlankets": "Tyre blankets",
     "visualDamage": "Visual damage"
   },
   "assistMode": {

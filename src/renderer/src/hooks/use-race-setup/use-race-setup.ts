@@ -115,11 +115,12 @@ export const useRaceSetup = (): RaceSetupState => {
       track: layout.layout ? { id: layout.id, layout: layout.layout } : { id: layout.id },
     })),
 
-    // The livery goes with the old car: a skin folder belongs to one model, and
-    // carrying it over would name one that is not installed.
-    setCar: (model) => edit((from) => ({
+    // The livery arrives with the car, chosen in the same dialog, so it can
+    // never outlive the model it belongs to. Unset when the car ships none,
+    // which buildGrid refuses at launch rather than here.
+    setCar: (model, skin) => edit((from) => ({
       ...from,
-      playerCar: { ...from.playerCar, model, skin: undefined },
+      playerCar: { ...from.playerCar, model, skin },
     })),
 
     setGrid: (grid) => edit((from) => ({ ...from, grid })),

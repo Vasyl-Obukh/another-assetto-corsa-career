@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSettings } from '@/app';
@@ -9,6 +10,8 @@ export const DriverField = () => {
   const { t } = useTranslation();
   const { settings, patch } = useSettings();
 
+  const [draft, setDraft] = useState(settings.driverName ?? '');
+
   return (
     <div className="flex flex-col gap-3">
       <FieldGrid>
@@ -16,9 +19,12 @@ export const DriverField = () => {
           <Input
             id="settings-driver"
             className={CONTROL_WIDTH}
-            value={settings.driverName ?? ''}
+            value={draft}
             placeholder={t('settings.driverNamePlaceholder')}
-            onChange={(event) => patch({ driverName: event.target.value })}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              patch({ driverName: event.target.value });
+            }}
           />
         </FieldRow>
       </FieldGrid>

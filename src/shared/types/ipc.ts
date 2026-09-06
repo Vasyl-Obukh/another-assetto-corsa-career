@@ -19,6 +19,7 @@ import type {
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { RaceSetup, ResultRecord } from './race-run.ts';
 import type { RaceDefinition } from './race.ts';
+import type { SeriesLibrary, SeriesListing } from './series.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
 
@@ -128,6 +129,40 @@ export interface IpcContract {
    * One archived result by file name.
    */
   'race:result': { req: { file: string }; res: ResultRecord };
+  /**
+   * Every championship the app knows, each with whether it can be raced.
+   *
+   * Not paged, and carrying whole championships rather than summaries: a
+   * championship is a few kilobytes of plain JSON and the library is a handful
+   * of them, which is nothing beside the mod library content:cars pages for.
+   * Summaries would cost the detail screen a second round trip and leave two
+   * payloads to keep in step for no measurable gain.
+   */
+  'series:list': { req: void; res: SeriesLibrary };
+  /**
+   * One championship by id, or null when the library has none.
+   *
+   * Null rather than an error, for the same reason content:car is: a deep link
+   * to a series that is no longer shipped is an ordinary outcome.
+   */
+  'series:get': { req: { id: string }; res: SeriesListing | null };
+  /**
+   * Set up one round of a championship as the race being prepared.
+   *
+   * Lowers the round into an ordinary race definition and hands it to the race
+   * store, so a championship round runs through exactly the path a
+   * hand-authored weekend does. Resolves the setup the race screen renders, so
+   * the renderer's next move is to navigate there.
+   */
+  'series:setupRound': {
+    req: {
+      series: string;
+      entry: string;
+      round: string;
+      car: { model: string; skin?: string };
+    };
+    res: RaceSetup;
+  };
   /**
    * What Content Manager's Arguments.txt holds.
    *

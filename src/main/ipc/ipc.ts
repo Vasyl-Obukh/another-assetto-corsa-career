@@ -11,6 +11,7 @@ import { AppError } from '../../shared/errors/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
+import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { resolvedTheme } from '../theme/index.ts';
 
@@ -29,6 +30,7 @@ export const registerHandlers = (
   settings: SettingsStore,
   content: ContentStore,
   race: RaceStore,
+  series: SeriesStore,
 ): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
@@ -83,6 +85,10 @@ export const registerHandlers = (
   handle('race:reset', async () => race.reset());
   handle('race:results', async () => race.results());
   handle('race:result', async ({ file }) => race.result(file));
+
+  handle('series:list', async () => series.list());
+  handle('series:get', async ({ id }) => series.get(id));
+  handle('series:setupRound', async (request) => series.setupRound(request));
 
   handle('cm:arguments', readCmArguments);
   handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));

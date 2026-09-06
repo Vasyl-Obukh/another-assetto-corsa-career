@@ -22,4 +22,5 @@ export { ProvenanceBadges } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
 export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';
+export { ToggleButton } from './ToggleButton.tsx';
 export { ToggleRow } from './ToggleRow.tsx';

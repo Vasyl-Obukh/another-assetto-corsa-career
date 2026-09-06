@@ -1,5 +1,6 @@
 // Helpers behind the weekend: how much rubber is down by the time a session
-// starts, and how a grid is ordered when no qualifying session ordered it.
+// starts, which sessions order a launch, and how a grid is composed out of
+// them - including the segments a knocked-out player never drove.
 
 import {
   AI_ORDER_JITTER,
@@ -7,20 +8,23 @@ import {
   DEFAULT_TRACK_STATE,
   FULL_GRIP,
   GRIP_GAIN_PER_SESSION,
-  HASH_MULTIPLIER,
-  SEED_MODULUS,
-  SEED_MULTIPLIER,
+  SEGMENT_ORDER_JITTER,
 } from './constants.ts';
 import type {
   Conditions,
   GridEntry,
+  LaunchRecord,
   RaceDefinition,
   RaceOut,
   RaceOutSession,
   SessionDefinition,
+  WeekendPlan,
+  WeekendState,
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { TRACK_STATE } from '../race-ini/index.ts';
+import { isDistinctSubset } from '../results/index.ts';
+import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 
 /**
  * Which day of the weekend a session runs on.
@@ -28,7 +32,6 @@ import { TRACK_STATE } from '../race-ini/index.ts';
  * @returns The day offset, defaulting to the opening day
  */
 export const dayOf = (session: SessionDefinition): number => session.day ?? DEFAULT_DAY;
-
 
 /**
  * Starting grip for a session, given how much of the weekend ran before it.
@@ -54,39 +57,6 @@ export const gripAfter = (
   }
 
   return Math.round(Math.min(FULL_GRIP, grip));
-};
-
-/**
- * Turns a label into a seed for the generator below.
- * @param text Anything stable about the launch being seeded
- * @returns A seed inside the generator's valid range
- */
-export const seedFrom = (text: string): number => {
-  let hash = 0;
-  for (let index = 0; index < text.length; index += 1) {
-    hash = (hash * HASH_MULTIPLIER + text.charCodeAt(index)) % SEED_MODULUS;
-  }
-
-  return (hash % (SEED_MODULUS - 1)) + 1;
-};
-
-/**
- * A Park-Miller generator, so a grid shuffled without qualifying comes out the
- * same every time the same launch is planned.
- *
- * Deliberately not Math.random: a career must be able to re-plan a launch it
- * has already shown the player and get the same grid back.
- * @param seed Where to start, from seedFrom
- * @returns A function yielding numbers from zero up to but not including one
- */
-export const randomFrom = (seed: number): (() => number) => {
-  let state = seed;
-
-  return () => {
-    state = (state * SEED_MULTIPLIER) % SEED_MODULUS;
-
-    return state / SEED_MODULUS;
-  };
 };
 
 /**
@@ -139,6 +109,166 @@ export const bestLapOrder = (session: RaceOutSession, size: number): number[] =>
 
     return left.best - right.best;
   });
+
+  return ranked.map((entry) => entry.car);
+};
+
+/**
+ * Finds the launch that runs a named session.
+ * @param plan The weekend plan
+ * @param id The session id to look for
+ * @param before Only look at launches earlier than this one
+ * @returns The launch index, or -1 when nothing earlier carries that id
+ */
+export const launchOf = (plan: WeekendPlan, id: string, before: number): number => (
+  plan.launches.findIndex((launch) => launch.index < before && launch.session.id === id)
+);
+
+/**
+ * The launches whose classifications order a launch, latest first.
+ *
+ * Two ways of producing one chain rather than two rules: a session naming an
+ * `inherit.from` is followed back link by link, and one naming none falls back
+ * to every qualifying launch before it, newest first - which is exactly what
+ * the weekend did before links existed. A link that does not resolve is
+ * dropped, so a weekend edited into an inconsistent shape still runs.
+ * @param plan The weekend plan
+ * @param index Which launch the chain leads into
+ * @returns Launch indices, the most recent first
+ */
+export const chainOf = (plan: WeekendPlan, index: number): number[] => {
+  const chain: number[] = [];
+  const declared = plan.launches[index]?.session.inherit?.from;
+
+  if (declared !== undefined) {
+    let at = launchOf(plan, declared, index);
+    // A cycle cannot be authored past validation, but a hand-edited weekend is
+    // not validated - so the seen set is what stops this spinning.
+    while (at >= 0 && !chain.includes(at)) {
+      chain.push(at);
+      const next = plan.launches[at]?.session.inherit?.from;
+      at = next === undefined ? -1 : launchOf(plan, next, at);
+    }
+
+    return chain;
+  }
+
+  for (let earlier = index - 1; earlier >= 0; earlier -= 1) {
+    if (plan.launches[earlier]?.session.type === 'qualify') chain.push(earlier);
+  }
+
+  return chain;
+};
+
+/**
+ * Composes an order out of a chain of classifications.
+ *
+ * Walked latest first, each car taken the first time it is seen, so a knockout
+ * comes out finalists then each earlier segment's eliminated behind them in
+ * that segment's own order. Anything the chain never classified follows in grid
+ * order, which is what keeps the result a full grid.
+ *
+ * With one qualifying session, or several that each ran the whole field, this
+ * returns the latest order exactly - which is why every weekend authored before
+ * knockout qualifying comes out unchanged.
+ * @param chain Launch indices, the most recent first
+ * @param records The launches that have run
+ * @param size How many cars the weekend fields
+ * @returns The composed order, or null when the chain classified nobody
+ */
+export const composeOrder = (
+  chain: readonly number[],
+  records: readonly LaunchRecord[],
+  size: number,
+): number[] | null => {
+  const order: number[] = [];
+  const seen = new Set<number>();
+
+  chain.forEach((at) => {
+    const classified = records.find((record) => record.index === at)?.qualifyingOrder;
+    if (!isDistinctSubset(classified, size)) return;
+
+    classified.forEach((car) => {
+      if (seen.has(car)) return;
+      seen.add(car);
+      order.push(car);
+    });
+  });
+
+  if (order.length === 0) return null;
+
+  for (let car = 0; car < size; car += 1) {
+    if (!seen.has(car)) order.push(car);
+  }
+
+  return order;
+};
+
+/**
+ * The cars a launch runs with, when a knockout has narrowed the field.
+ *
+ * Only `inherit.top` narrows anything: a link with no `top` inherits the order
+ * and nothing else, which is what a race behind a qualifying chain wants.
+ * @param plan The weekend plan
+ * @param state How far through it we are
+ * @param index Which launch
+ * @returns Car indices into the weekend's grid, or null for the whole field
+ */
+export const fieldFor = (
+  plan: WeekendPlan,
+  state: WeekendState,
+  index: number,
+): number[] | null => {
+  const inherit = plan.launches[index]?.session.inherit;
+  if (inherit?.top === undefined) return null;
+
+  const source = launchOf(plan, inherit.from, index);
+  const classified = state.completed.find((record) => record.index === source)?.qualifyingOrder;
+  if (!isDistinctSubset(classified, plan.grid.length)) return null;
+
+  // Truncated rather than refused: a format written for twenty cars run on
+  // twelve eliminates nobody instead of failing to plan.
+  return classified.slice(0, Math.max(1, inherit.top));
+};
+
+/**
+ * Puts the player at the front of a field, wherever they were in it.
+ *
+ * [CAR_0] is always them: AC inserts the player at STARTING_POSITION rather
+ * than swapping them with whoever held the slot, so only the AI move. Every
+ * field reaching here has them in it - a segment they were knocked out of is
+ * recorded rather than launched - so the player is moved, never added.
+ * @param cars Car indices into the weekend's grid, in the order they line up
+ * @returns The same cars, the player first
+ */
+export const playerFirst = (cars: readonly number[]): number[] => (
+  [0, ...cars.filter((car) => car !== 0)]
+);
+
+/**
+ * Invents a classification for a segment that cannot be driven.
+ *
+ * Assetto Corsa has no session without the player, so a segment they were
+ * eliminated from has no result to read back - and leaving it unrun would mean
+ * the front of the grid stands in the order the segment before it left, which
+ * is to say the segment never happened. So it is fabricated, and said to be.
+ *
+ * Ranked on position in the previous segment rather than on AI skill: that
+ * segment was actually driven, so its order carries what those cars did on this
+ * track today, and re-ranking on aiLevel would throw that away.
+ * @param previous The cars, in the order the segment before classified them
+ * @param seed Stable label for this launch, so the same weekend invents the
+ * same order every time it is read
+ * @returns Car indices in their simulated order
+ */
+export const simulateSegment = (previous: readonly number[], seed: string): number[] => {
+  const random = randomFrom(seedFrom(seed));
+  const ranked = previous.map((car, position) => ({
+    car,
+    rating: position + (random() * 2 - 1) * SEGMENT_ORDER_JITTER,
+  }));
+
+  ranked.sort((left, right) => left.rating - right.rating);
 
   return ranked.map((entry) => entry.car);
 };

@@ -100,6 +100,16 @@ export interface LaunchRecord {
    * classified them, or null when it ran none.
    */
   qualifyingOrder: number[] | null;
+  /**
+   * Whether this launch was simulated rather than driven.
+   *
+   * A qualifying segment the player was eliminated from cannot be run at all -
+   * Assetto Corsa has no session without them - so its order is invented and
+   * said to be. Optional so that progress written before knockout qualifying
+   * existed reads back unchanged; `archive` is empty on one, since nothing was
+   * archived.
+   */
+  skipped?: boolean;
 }
 
 /**

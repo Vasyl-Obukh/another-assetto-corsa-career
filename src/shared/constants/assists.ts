@@ -44,7 +44,6 @@ export const DRIVING_AID_FLAGS: readonly DrivingAidFlag[] = [
   'autoBrake',
   'autoShifter',
   'autoClutch',
-  'tyreBlankets',
   'visualDamage',
 ];
 

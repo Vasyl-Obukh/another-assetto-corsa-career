@@ -52,8 +52,9 @@ export const Race = () => {
 
           <CarField
             car={content.car}
+            skinId={setup.definition.playerCar.skin}
             locked={race.locked}
-            onPick={(car) => race.setCar(car.id)}
+            onPick={(car, skin) => race.setCar(car.id, skin?.id)}
           />
 
           <GridFields
@@ -85,7 +86,7 @@ export const Race = () => {
             controllers={content.controllers}
             system={settings.weatherSystem}
             rainFx={setup.weatherFx.rainFx}
-            completed={setup.state?.completed.length ?? 0}
+            records={setup.state?.completed ?? []}
             locked={race.locked}
             onChange={race.setSessions}
           />

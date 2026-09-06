@@ -53,9 +53,64 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   'weekend.complete': 'Every launch of {{race}} has already been run.',
   'weekend.launch.outOfRange': 'Launch {{index}} does not exist: {{race}} plans {{count}}.',
+  'weekend.launch.runnable':
+    'Launch {{index}} of {{race}} is one you take part in, so it has to be driven rather than skipped.',
   'weekend.state.stale':
     'Saved progress for {{race}} covers {{saved}} launches, but it now plans {{planned}}. '
     + 'Reset the weekend to run it again.',
+
+  'seriesFile.notAnObject': '{{file}} is not a championship: the file holds no object',
+  'seriesFile.unparseable': '{{file}} is not valid JSON: {{reason}}',
+  'seriesFile.field.invalid': '{{file}} has an unreadable {{field}}: {{value}}',
+  'seriesFile.unwritable': 'Championship {{series}} holds something JSON cannot carry',
+  'seriesFile.directoryUnreadable': 'Could not read the championships in {{dir}}: {{reason}}',
+  'seriesFile.duplicateId': '{{file}} claims the id {{series}}, which {{taken}} already has',
+
+  'series.notFound': 'Championship not found: {{series}}',
+  'series.version.unsupported':
+    'Championship {{series}} is written for series format {{version}}, and this build reads {{supported}}.',
+  'series.entries.empty': 'Championship {{series}} has no class entries',
+  'series.rounds.empty': 'Championship {{series}} has no rounds',
+  'series.sessions.empty': 'Weekend format {{format}} of {{series}} has no sessions',
+  'series.formats.empty': 'Championship {{series}} declares no weekend formats',
+  'series.format.unknown':
+    'Round {{round}} of {{series}} runs a weekend format it does not have: {{format}}',
+  'series.format.defaultUnknown':
+    'Championship {{series}} defaults to a weekend format it does not have: {{format}}',
+  'series.points.onNonRace':
+    'Session "{{session}}" of {{format}} in {{series}} names a points system, and only a race scores.',
+  'series.points.empty': 'Championship {{series}} declares no points systems',
+  'series.points.unknown':
+    'Session "{{session}}" of {{format}} in {{series}} pays a points system it does not have: {{points}}',
+  'series.points.defaultUnknown':
+    'Championship {{series}} defaults to a points system it does not have: {{points}}',
+  'series.inherit.unknown':
+    'Session "{{session}}" of {{format}} in {{series}} follows a session that format does not have: {{from}}',
+  'series.inherit.notEarlier':
+    'Session "{{session}}" of {{format}} in {{series}} follows "{{from}}", which does not run before it',
+  'series.inherit.notQualifying':
+    'Session "{{session}}" of {{format}} in {{series}} follows "{{from}}", which is not a qualifying session and so classifies nobody',
+  'series.inherit.topInvalid':
+    'Session "{{session}}" of {{format}} in {{series}} lets {{top}} cars through; it must let at least one',
+  'series.id.duplicate': 'Duplicate {{kind}} id in {{series}}: {{id}}',
+  'series.entry.notFound': 'Class entry not found in {{series}}: {{entry}}',
+  'series.entry.unknown': 'Round {{round}} overrides a class entry {{series}} does not have: {{entry}}',
+  'series.entry.noCars': 'Class entry {{entry}} names no cars',
+  'series.entrants.invalid': 'Class entry {{entry}} fields {{entrants}} cars; it must field at least one',
+  'series.tier.invalid': 'Class entry {{entry}} sits at tier {{tier}}; tier 1 is the top and there is nothing above it',
+  'series.days.gapped': 'Weekend format {{format}} of {{series}} skips day {{day}}',
+  'series.days.tooMany':
+    'Weekend format {{format}} of {{series}} runs over {{days}} days; a weekend is at most {{max}}',
+  'series.days.outOfOrder':
+    'Weekend format {{format}} of {{series}} goes back in time at "{{session}}"',
+  'series.race.onOpeningDay':
+    'Weekend format {{format}} of {{series}} runs a race on its opening day. A three-day weekend opens on Friday, and races fall on Saturday or Sunday.',
+  'series.startingPosition.authored':
+    'Session "{{session}}" of {{format}} in {{series}} sets a starting position. The grid comes from qualifying or from the ladder, so an authored one would be silently overwritten.',
+  'series.bop.notEligible': 'Class entry {{entry}} balances a car it cannot field: {{car}}',
+  'series.round.notFound': 'Round not found in {{series}}: {{round}}',
+  'series.round.unavailable': 'Round {{round}} of {{series}} cannot be raced against the installed content',
+  'series.car.notEligible': 'Car {{car}} is not eligible for {{entry}} at this round',
 
   'run.inFlight': 'A race is already running. Wait for it to finish, or cancel it first.',
   'run.notPlanned':

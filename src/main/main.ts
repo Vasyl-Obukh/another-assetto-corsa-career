@@ -6,6 +6,7 @@ import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
 import { createContentStore } from './content-store/index.ts';
 import { registerHandlers, send } from './ipc/index.ts';
 import { createRaceStore } from './race-store/index.ts';
+import { createSeriesStore } from './series-store/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
 import { createWindow, followRace } from './window/index.ts';
@@ -31,8 +32,9 @@ if (!app.requestSingleInstanceLock()) {
     const settings = await createSettingsStore(app.getPath('userData'));
     const content = await createContentStore(app.getPath('userData'));
     const race = await createRaceStore(app.getPath('userData'), content, settings);
+    const series = await createSeriesStore(app.getPath('userData'), content, race);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race);
+    registerHandlers(settings, content, race, series);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');

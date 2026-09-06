@@ -17,11 +17,19 @@ interface TrackBrowserBodyProps {
    * Key of the layout already chosen, when there is one.
    */
   selectedKey?: string;
+  /**
+   * Which browser this is, for one that comes back to the filters it was left
+   * with. Omitted, it opens unfiltered every time - which is what a picker
+   * wants, since its library is already restricted to one question.
+   */
+  memoryId?: string;
 }
 
-export const TrackBrowserBody = ({ onSelect, selectedKey }: TrackBrowserBodyProps) => {
+export const TrackBrowserBody = ({
+  onSelect, selectedKey, memoryId,
+}: TrackBrowserBodyProps) => {
   const { t } = useTranslation();
-  const browser = useTrackBrowser();
+  const browser = useTrackBrowser(memoryId);
   const { list, criteria } = browser;
 
   const { scrollRef, sentinelRef } = useInfiniteScroll(

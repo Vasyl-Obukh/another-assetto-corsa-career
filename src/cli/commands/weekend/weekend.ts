@@ -16,6 +16,7 @@ import {
   nextLaunch,
   planWeekend,
   prepareLaunch,
+  skipEliminated,
 } from '../../../core/weekend/index.ts';
 import {
   OUT_DIR, PROJECT_ROOT, RESULTS_DIR, TICKS_PER_DOT,
@@ -49,8 +50,15 @@ export const cmdWeekend = async (args: string[]): Promise<void> => {
   }
 
   const saved = await loadState(plan.raceId);
-  const state = saved ?? initWeekendState(plan);
   if (saved) assertStateMatches(plan, saved);
+  // Before anything reads it, so --status and the next launch agree: a segment
+  // the player was knocked out of cannot be run, and is recorded as simulated.
+  const before = saved ?? initWeekendState(plan);
+  const state = skipEliminated(plan, before, new Date().toISOString());
+  // Only when something was actually skipped: skipEliminated returns the state
+  // it was handed otherwise, and --status must not write progress for a weekend
+  // nothing has been run of.
+  if (state !== before) await saveState(state);
 
   if (args.includes('--status')) {
     describePlan(plan, state).forEach((line) => console.log(line));

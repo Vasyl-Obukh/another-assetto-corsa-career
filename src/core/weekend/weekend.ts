@@ -8,17 +8,21 @@
 
 import {
   bestLapOrder,
+  chainOf,
+  composeOrder,
   dayOf,
   defaultOrder,
+  fieldFor,
   gripAfter,
   lastQualifying,
   materialiseRace,
+  playerFirst,
+  simulateSegment,
 } from './utils.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
   Content,
   GridEntry,
-  LaunchRecord,
   RaceDefinition,
   RaceOut,
   SessionDefinition,
@@ -29,7 +33,8 @@ import type {
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
-import { isPermutation } from '../results/index.ts';
+
+export { chainOf } from './utils.ts';
 
 /**
  * Lowers a weekend into the launches that run it, one per session.
@@ -124,11 +129,11 @@ export const startingGrid = (
   const launch = plan.launches[index];
   if (launch?.session.type !== 'race') return null;
 
-  const size = plan.grid.length;
-  const usable = state.completed.filter((record): record is LaunchRecord & { qualifyingOrder: number[] } => (
-    record.index < index && isPermutation(record.qualifyingOrder ?? undefined, size)
-  ));
-  const inherited = usable.length ? usable[usable.length - 1].qualifyingOrder : null;
+  // Composed across the whole chain, so a knockout lines up finalists first and
+  // each earlier segment's eliminated behind them. A chain of one full-field
+  // qualifying composes to that qualifying's own order, which is what every
+  // weekend authored before links existed gets.
+  const inherited = composeOrder(chainOf(plan, index), state.completed, plan.grid.length);
   // With no qualifying anywhere behind it, the field lines up on skill and the
   // player starts last, having earned nothing.
   const order = inherited ?? defaultOrder(plan.grid, `${plan.raceId}:${index}`);
@@ -153,9 +158,103 @@ export const appliedOrder = (
   index: number,
 ): number[] => {
   const grid = startingGrid(plan, state, index);
-  if (!grid) return plan.grid.map((unused, car) => car);
+  // A qualifying segment behind an elimination runs only who is left, in the
+  // order the segment before classified them. Everything else runs the lot.
+  const field = grid?.order ?? fieldFor(plan, state, index);
 
-  return [0, ...grid.order.filter((car) => car !== 0)];
+  return field ? playerFirst(field) : plan.grid.map((unused, car) => car);
+};
+
+/**
+ * Whether a launch is one the player is in.
+ *
+ * A knockout eliminates them like anyone else, and Assetto Corsa has no session
+ * without them - so a segment they are out of is not a launch that can be run.
+ * @param plan The weekend plan
+ * @param state How far through it we are
+ * @param index Which launch
+ * @returns True when the player takes part, which is every launch of an
+ * ordinary weekend
+ */
+export const launchRunnable = (
+  plan: WeekendPlan,
+  state: WeekendState,
+  index: number,
+): boolean => {
+  const field = fieldFor(plan, state, index);
+
+  return field === null || field.includes(0);
+};
+
+/**
+ * Records a launch the player was eliminated from, with an invented result.
+ *
+ * The order is fabricated, and `skipped` says so. There is no Assetto Corsa
+ * answer to prefer here: the session cannot be launched at all, and leaving it
+ * unrun would put the front of the grid in the order the segment before it left,
+ * which is to say the segment never happened.
+ *
+ * Pure - the timestamp is supplied rather than read, the same way advanceWeekend
+ * takes one - so the same weekend always produces the same state.
+ * @param plan The weekend plan
+ * @param state How far through it we were
+ * @param completedAt When it was skipped, as an ISO timestamp
+ * @returns The state with this launch marked simulated
+ * @throws When the weekend is finished, or the launch is one the player is in
+ */
+export const skipLaunch = (
+  plan: WeekendPlan,
+  state: WeekendState,
+  completedAt: string,
+): WeekendState => {
+  const index = state.completed.length;
+  if (index >= plan.launches.length) {
+    throw new AppError('weekend.complete', { race: plan.raceId });
+  }
+  if (launchRunnable(plan, state, index)) {
+    throw new AppError('weekend.launch.runnable', { index, race: plan.raceId });
+  }
+
+  // Never null in practice: launchRunnable above answers true when it is.
+  const field = fieldFor(plan, state, index) ?? [];
+
+  return {
+    ...state,
+    completed: [...state.completed, {
+      index,
+      completedAt,
+      archive: '',
+      gridOrder: field,
+      qualifyingOrder: simulateSegment(field, `${plan.raceId}:simulate:${index}`),
+      skipped: true,
+    }],
+  };
+};
+
+/**
+ * Skips forward over every launch the player has been eliminated from.
+ *
+ * What both drivers of the weekend call before asking for the next launch, so a
+ * knockout that ends the player's qualifying does not leave the weekend stuck
+ * on a session that cannot be run.
+ * @param plan The weekend plan
+ * @param state How far through it we are
+ * @param completedAt When the skipping happened, as an ISO timestamp
+ * @returns The state, with any such launches recorded as simulated
+ */
+export const skipEliminated = (
+  plan: WeekendPlan,
+  state: WeekendState,
+  completedAt: string,
+): WeekendState => {
+  let current = state;
+
+  while (current.completed.length < plan.launches.length
+    && !launchRunnable(plan, current, current.completed.length)) {
+    current = skipLaunch(plan, current, completedAt);
+  }
+
+  return current;
 };
 
 /**
@@ -179,20 +278,27 @@ export const prepareLaunch = (
   }
 
   const grid = startingGrid(plan, state, index);
-  if (!grid) return launch.race;
+  const field = grid?.order ?? fieldFor(plan, state, index);
+  // Nothing orders this launch and nothing narrows it, so it runs the entry
+  // list exactly as materialiseRace froze it.
+  if (!field) return launch.race;
 
-  const opponents: GridEntry[] = grid.order
-    .filter((car) => car !== 0)
-    .map((car) => plan.grid[car]);
+  // A narrowed segment is a smaller race in every other respect, so it is
+  // written the way any smaller grid is rather than by hiding the eliminated.
+  const order = playerFirst(field);
+  const opponents: GridEntry[] = order.slice(1).map((car) => plan.grid[car]);
+  // Only a race is lined up: a narrowed qualifying segment has a field but no
+  // grid, and AC would disregard a starting position on it anyway.
+  const sessions = (launch.race.sessions ?? []).map((session) => (
+    grid && session.type === 'race'
+      ? { ...session, startingPosition: grid.playerSlot }
+      : session
+  ));
 
   return {
     ...launch.race,
-    grid: { ...launch.race.grid, opponents },
-    sessions: (launch.race.sessions ?? []).map((session) => (
-      session.type === 'race'
-        ? { ...session, startingPosition: grid.playerSlot }
-        : session
-    )),
+    grid: { ...launch.race.grid, size: order.length, opponents },
+    sessions,
   };
 };
 
@@ -219,15 +325,18 @@ export const advanceWeekend = (
     throw new AppError('weekend.complete', { race: plan.raceId });
   }
 
-  const size = plan.grid.length;
   const gridOrder = appliedOrder(plan, state, index);
+  // The launch's own field, not the weekend's: a knockout segment runs short,
+  // and sizing on the whole grid would read its result as untranslatable and
+  // throw the segment away in silence.
+  const size = gridOrder.length;
   const qualifying = lastQualifying(raceOut, SESSION_TYPE.qualify);
   // A result's car indices are positions in that launch's own [CAR_n] order, so
   // they mean nothing until mapped back through it. A field that is not the size
   // we launched cannot be mapped at all.
   const translatable = qualifying != null && (raceOut.players ?? []).length === size;
   const qualifyingOrder = translatable
-    ? bestLapOrder(qualifying, size).map((car) => gridOrder[car] ?? car)
+    ? bestLapOrder(qualifying, size).map((car) => gridOrder[car])
     : null;
 
   return {

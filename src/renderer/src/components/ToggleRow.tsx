@@ -1,8 +1,5 @@
-import { useTranslation } from 'react-i18next';
-
 import { FieldRow } from './FieldRow.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { CONTROL_WIDTH } from '@/lib/layout';
+import { ToggleButton } from './ToggleButton.tsx';
 
 interface ToggleRowProps {
   /**
@@ -30,22 +27,8 @@ interface ToggleRowProps {
 
 export const ToggleRow = ({
   label, hint, value, disabled = false, onChange,
-}: ToggleRowProps) => {
-  const { t } = useTranslation();
-
-  return (
-    <FieldRow label={label} hint={hint}>
-      <Button
-        type="button"
-        variant={value ? 'secondary' : 'outline'}
-        size="sm"
-        className={CONTROL_WIDTH}
-        aria-pressed={value}
-        disabled={disabled}
-        onClick={() => onChange(!value)}
-      >
-        {value ? t('toggle.on') : t('toggle.off')}
-      </Button>
-    </FieldRow>
-  );
-};
+}: ToggleRowProps) => (
+  <FieldRow label={label} hint={hint}>
+    <ToggleButton label={label} value={value} disabled={disabled} onChange={onChange} />
+  </FieldRow>
+);

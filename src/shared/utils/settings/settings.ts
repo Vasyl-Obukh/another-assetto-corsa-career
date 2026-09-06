@@ -17,15 +17,7 @@ import {
 import type {
   DrivingAids, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
-
-/**
- * Narrows a value to a plain object, excluding arrays and null.
- * @param value The value to test
- * @returns True when the value is a plain object
- */
-export const isRecord = (value: unknown): value is Record<string, unknown> => (
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-);
+import { isRecord } from '../coerce/index.ts';
 
 /**
  * Reads a trimmed, non-empty string. A blank override means "unset".

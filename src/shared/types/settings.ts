@@ -50,8 +50,10 @@ export interface WindowState {
  * race.
  *
  * A `Pick` off `Assists` rather than a list of its own, so the two can never
- * drift apart. The rest - damage, fuel rate, tyre wear and slipstream - are
- * regulations, and a series sets those.
+ * drift apart. The rest - damage, fuel rate, tyre wear, slipstream and tyre
+ * blankets - are regulations, and a series sets those. Tyre blankets in
+ * particular are a rule a championship writes down, not a preference: real
+ * series allow or ban them, and the same driver races under both.
  */
 export type DrivingAids = Pick<
   Assists,
@@ -63,7 +65,6 @@ export type DrivingAids = Pick<
   | 'abs'
   | 'tractionControl'
   | 'stabilityControl'
-  | 'tyreBlankets'
   | 'visualDamage'
 >;
 
@@ -76,7 +77,7 @@ export type DrivingAids = Pick<
  */
 export type DrivingAidFlag = Extract<
   keyof DrivingAids,
-  'idealLine' | 'autoBlip' | 'autoBrake' | 'autoShifter' | 'autoClutch' | 'tyreBlankets' | 'visualDamage'
+  'idealLine' | 'autoBlip' | 'autoBrake' | 'autoShifter' | 'autoClutch' | 'visualDamage'
 >;
 
 /**

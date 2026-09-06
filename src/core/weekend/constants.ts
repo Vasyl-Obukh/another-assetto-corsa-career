@@ -40,17 +40,14 @@ export const GRIP_GAIN_PER_SESSION = 0.25;
 export const AI_ORDER_JITTER = 3;
 
 /**
- * Modulus of the Park-Miller generator, which is 2^31 - 1.
+ * How far, in grid positions, a car may be shuffled from where the previous
+ * qualifying segment left it when a segment has to be simulated rather than
+ * driven.
+ *
+ * Positions rather than skill points, unlike AI_ORDER_JITTER: the segment
+ * before it was actually driven, so its order already carries what those cars
+ * did on this track today, and the only question is how much a second run would
+ * move them. Wide enough that neighbours trade places, narrow enough that
+ * nobody climbs from the back of the segment to the front of it.
  */
-export const SEED_MODULUS = 2147483647;
-
-/**
- * Multiplier of the Park-Miller generator. Chosen with the modulus above so
- * every product stays inside the range a double represents exactly.
- */
-export const SEED_MULTIPLIER = 16807;
-
-/**
- * Multiplier of the string hash that turns a launch's name into a seed.
- */
-export const HASH_MULTIPLIER = 31;
+export const SEGMENT_ORDER_JITTER = 1.5;

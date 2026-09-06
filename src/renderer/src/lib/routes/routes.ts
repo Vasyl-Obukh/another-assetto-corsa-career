@@ -64,6 +64,19 @@ export const path = {
    */
   race: (): string => ROUTE.race,
   /**
+   * The list of shipped championships.
+   * @returns Its URL
+   */
+  championships: (): string => ROUTE.championships,
+  /**
+   * One championship's page.
+   * @param params The championship's id
+   * @returns Its URL, with the id encoded
+   */
+  championship: (
+    params: RouteParams<typeof ROUTE.championship>,
+  ): string => buildPath(ROUTE.championship, params),
+  /**
    * The list of archived results.
    * @returns Its URL
    */

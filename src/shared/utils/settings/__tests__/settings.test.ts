@@ -5,7 +5,6 @@ import {
   applyPatch,
   cleanString,
   finiteNumber,
-  isRecord,
   migrateSettings,
   oneOf,
   optionalBoolean,
@@ -15,19 +14,6 @@ import {
 } from '../settings.ts';
 
 describe('shared/utils/settings', () => {
-  describe('isRecord', () => {
-    it('accepts a plain object', () => {
-      expect(isRecord({ a: 1 })).toBe(true);
-    });
-
-    it('rejects null, arrays and primitives', () => {
-      expect(isRecord(null)).toBe(false);
-      expect(isRecord([1, 2])).toBe(false);
-      expect(isRecord('x')).toBe(false);
-      expect(isRecord(undefined)).toBe(false);
-    });
-  });
-
   describe('cleanString', () => {
     it('trims a usable string', () => {
       expect(cleanString('  D:\\ac  ')).toBe('D:\\ac');

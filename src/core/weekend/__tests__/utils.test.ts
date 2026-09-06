@@ -1,17 +1,26 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { lap, makeSession, makeWeekend } from './fixtures.ts';
-import type { GridEntry } from '../../../shared/types/index.ts';
+import {
+  lap, makeContent, makeKnockout, makeSession, makeWeekend,
+} from './fixtures.ts';
+import type {
+  GridEntry, LaunchRecord, RaceDefinition, WeekendPlan, WeekendState,
+} from '../../../shared/types/index.ts';
 import {
   bestLapOrder,
+  chainOf,
+  composeOrder,
   dayOf,
   defaultOrder,
+  fieldFor,
   gripAfter,
   lastQualifying,
+  launchOf,
   materialiseRace,
-  randomFrom,
-  seedFrom,
+  playerFirst,
+  simulateSegment,
 } from '../utils.ts';
+import { planWeekend } from '../weekend.ts';
 
 /**
  * Builds a grid entry, defaulting everything but the fields being tested.
@@ -41,6 +50,38 @@ const makeGrid = (size: number): GridEntry[] => Array.from(
   (unused, index) => (index === 0 ? entry('Player') : entry(`AI ${index}`, 95 - index)),
 );
 
+/**
+ * Plans a weekend against the fixture content.
+ * @param race The weekend to plan
+ * @returns The plan
+ */
+const planned = (race: RaceDefinition): WeekendPlan => planWeekend(race, makeContent());
+
+/**
+ * A completed launch carrying a classification, as the state holds one.
+ * @param index Which launch it records
+ * @param qualifyingOrder The order it classified, or null when it classified none
+ * @returns The record
+ */
+const record = (index: number, qualifyingOrder: number[] | null): LaunchRecord => ({
+  index,
+  completedAt: '2026-01-01T00:00:00.000Z',
+  archive: 'archive.json',
+  gridOrder: [0, 1, 2, 3, 4, 5],
+  qualifyingOrder,
+});
+
+/**
+ * Progress holding the given records, for the functions that read one.
+ * @param records What has run
+ * @returns The state
+ */
+const stateOf = (records: LaunchRecord[]): WeekendState => ({
+  raceId: 'test-knockout',
+  launchCount: 4,
+  completed: records,
+});
+
 describe('core/weekend/utils', () => {
   describe('dayOf', () => {
     it('reads the day a session names', () => {
@@ -51,7 +92,6 @@ describe('core/weekend/utils', () => {
       expect(dayOf({ type: 'race' })).toBe(0);
     });
   });
-
 
   describe('gripAfter', () => {
     it('leaves an untouched track on the preset for the opening launch', () => {
@@ -79,41 +119,6 @@ describe('core/weekend/utils', () => {
     it('builds on an explicit starting grip rather than the preset', () => {
       expect(gripAfter({ trackState: 'green', startGrip: 90 }, 0)).toBe(90);
       expect(gripAfter({ trackState: 'green', startGrip: 90 }, 1)).toBeGreaterThan(90);
-    });
-  });
-
-  describe('seedFrom', () => {
-    it('gives the same label the same seed', () => {
-      expect(seedFrom('weekend:1')).toBe(seedFrom('weekend:1'));
-    });
-
-    it('gives different labels different seeds', () => {
-      expect(seedFrom('weekend:1')).not.toBe(seedFrom('weekend:2'));
-    });
-
-    it('stays inside the generator range, empty string included', () => {
-      [' ', '', 'weekend:0', 'a much longer label than any launch would carry'].forEach((label) => {
-        expect(seedFrom(label)).toBeGreaterThanOrEqual(1);
-        expect(seedFrom(label)).toBeLessThanOrEqual(2147483646);
-      });
-    });
-  });
-
-  describe('randomFrom', () => {
-    it('yields the same sequence from the same seed', () => {
-      const left = randomFrom(seedFrom('x'));
-      const right = randomFrom(seedFrom('x'));
-
-      expect([left(), left(), left()]).toEqual([right(), right(), right()]);
-    });
-
-    it('yields numbers from zero up to but not including one', () => {
-      const random = randomFrom(seedFrom('y'));
-      Array.from({ length: 200 }).forEach(() => {
-        const value = random();
-        expect(value).toBeGreaterThanOrEqual(0);
-        expect(value).toBeLessThan(1);
-      });
     });
   });
 
@@ -169,6 +174,198 @@ describe('core/weekend/utils', () => {
     it('still returns a slot for every car, so the order can be indexed', () => {
       const session = makeSession(2, 'Q', [lap(0, 60_000)]);
       expect(bestLapOrder(session, 4)).toHaveLength(4);
+    });
+  });
+
+  describe('launchOf', () => {
+    it('finds the launch carrying a session id', () => {
+      expect(launchOf(planned(makeKnockout()), 'q2', 3)).toBe(1);
+    });
+
+    it('will not look forwards, so a link can only ever point back', () => {
+      expect(launchOf(planned(makeKnockout()), 'q3', 1)).toBe(-1);
+    });
+
+    it('answers -1 for an id the weekend does not carry', () => {
+      expect(launchOf(planned(makeKnockout()), 'sq1', 3)).toBe(-1);
+    });
+  });
+
+  describe('chainOf', () => {
+    it('follows a declared link back segment by segment', () => {
+      expect(chainOf(planned(makeKnockout()), 3)).toEqual([2, 1, 0]);
+    });
+
+    it('takes every earlier qualifying, newest first, when nothing is declared', () => {
+      // Which is exactly what the weekend did before links existed, and why
+      // every weekend authored without them comes out unchanged.
+      const weekend = makeWeekend();
+      weekend.sessions = [
+        { type: 'qualify' }, { type: 'practice' }, { type: 'qualify' }, { type: 'race' },
+      ];
+
+      expect(chainOf(planned(weekend), 3)).toEqual([2, 0]);
+    });
+
+    it('gives a race with nothing behind it an empty chain', () => {
+      const weekend = makeWeekend();
+      weekend.sessions = [{ type: 'practice' }, { type: 'race' }];
+
+      expect(chainOf(planned(weekend), 1)).toEqual([]);
+    });
+
+    it('drops a link naming a session the weekend does not have', () => {
+      const weekend = makeKnockout();
+      weekend.sessions = [{ type: 'qualify', id: 'q1' }, { type: 'race', inherit: { from: 'x' } }];
+
+      expect(chainOf(planned(weekend), 1)).toEqual([]);
+    });
+
+    it('stops rather than spinning on a weekend hand-edited into a cycle', () => {
+      // Validation refuses one, but a races/*.json file is not validated.
+      const weekend = makeKnockout();
+      weekend.sessions = [
+        { id: 'a', type: 'qualify', inherit: { from: 'b' } },
+        { id: 'b', type: 'qualify', inherit: { from: 'a' } },
+        { type: 'race', inherit: { from: 'b' } },
+      ];
+
+      expect(chainOf(planned(weekend), 2)).toEqual([1, 0]);
+    });
+  });
+
+  describe('composeOrder', () => {
+    it('returns a single full-field classification exactly as it stands', () => {
+      expect(composeOrder([1], [record(1, [3, 1, 5, 0, 2, 4])], 6)).toEqual([3, 1, 5, 0, 2, 4]);
+    });
+
+    it('lines a knockout up finalists first, each segment behind the next', () => {
+      const records = [
+        record(0, [3, 1, 5, 0, 2, 4]),
+        record(1, [1, 3, 0, 5]),
+        record(2, [3, 1]),
+      ];
+
+      // Q3's two, then the two Q2 knocked out in Q2's order, then Q1's.
+      expect(composeOrder([2, 1, 0], records, 6)).toEqual([3, 1, 0, 5, 2, 4]);
+    });
+
+    it('puts anything the chain never classified at the back, in grid order', () => {
+      expect(composeOrder([0], [record(0, [4, 2])], 6)).toEqual([4, 2, 0, 1, 3, 5]);
+    });
+
+    it('skips a launch that classified nobody', () => {
+      expect(composeOrder([1, 0], [record(0, [2, 1, 0]), record(1, null)], 3)).toEqual([2, 1, 0]);
+    });
+
+    it('skips a classification that cannot be mapped back onto the field', () => {
+      expect(composeOrder([0], [record(0, [0, 0, 9])], 6)).toBeNull();
+    });
+
+    it('returns nothing when the chain has run nothing yet', () => {
+      expect(composeOrder([2, 1], [], 6)).toBeNull();
+      expect(composeOrder([], [record(0, [1, 0])], 6)).toBeNull();
+    });
+  });
+
+  describe('fieldFor', () => {
+    it('narrows a segment to the cars its link lets through', () => {
+      const knockout = planned(makeKnockout());
+      const state = stateOf([record(0, [3, 1, 5, 0, 2, 4])]);
+
+      expect(fieldFor(knockout, state, 1)).toEqual([3, 1, 5, 0]);
+    });
+
+    it('leaves a session with no link to the whole field', () => {
+      expect(fieldFor(planned(makeKnockout()), stateOf([]), 0)).toBeNull();
+    });
+
+    it('leaves a race to the whole field, since a chain orders without eliminating', () => {
+      // The race links to Q3 but sets no top: it lines up on that chain and
+      // everyone starts, which is why nothing here has to ask what type it is.
+      const state = stateOf([
+        record(0, [3, 1, 5, 0, 2, 4]), record(1, [1, 3, 0, 5]), record(2, [3, 1]),
+      ]);
+
+      expect(fieldFor(planned(makeKnockout()), state, 3)).toBeNull();
+    });
+
+    it('leaves the field alone until the segment it follows has run', () => {
+      expect(fieldFor(planned(makeKnockout()), stateOf([]), 1)).toBeNull();
+    });
+
+    it('takes what there is when the link lets more through than ran', () => {
+      // A format written for twenty cars run on six eliminates nobody rather
+      // than failing to plan.
+      const weekend = makeKnockout();
+      weekend.sessions = [
+        { id: 'q1', type: 'qualify' },
+        { type: 'qualify', inherit: { from: 'q1', top: 20 } },
+      ];
+
+      expect(fieldFor(planned(weekend), stateOf([record(0, [2, 0, 1])]), 1)).toEqual([2, 0, 1]);
+    });
+
+    it('lets at least one car through whatever the link says', () => {
+      const weekend = makeKnockout();
+      weekend.sessions = [
+        { id: 'q1', type: 'qualify' },
+        { type: 'qualify', inherit: { from: 'q1', top: 0 } },
+      ];
+
+      expect(fieldFor(planned(weekend), stateOf([record(0, [2, 0, 1])]), 1)).toEqual([2]);
+    });
+  });
+
+  describe('playerFirst', () => {
+    it('moves the player to CAR_0 and leaves the rest in order', () => {
+      expect(playerFirst([3, 1, 0, 5])).toEqual([0, 3, 1, 5]);
+    });
+
+    it('leaves a field already led by the player alone', () => {
+      expect(playerFirst([0, 2, 4])).toEqual([0, 2, 4]);
+    });
+  });
+
+  describe('simulateSegment', () => {
+    it('classifies exactly the cars that were still in the segment', () => {
+      const order = simulateSegment([4, 2, 7, 1, 9], 'race:simulate:2');
+
+      expect([...order].sort((left, right) => left - right)).toEqual([1, 2, 4, 7, 9]);
+    });
+
+    it('invents the same order every time, so a reload never reshuffles a grid', () => {
+      const previous = [4, 2, 7, 1, 9, 3];
+
+      expect(simulateSegment(previous, 'race:simulate:2'))
+        .toEqual(simulateSegment(previous, 'race:simulate:2'));
+    });
+
+    it('invents a different one for a different segment', () => {
+      const previous = [4, 2, 7, 1, 9, 3, 8, 5];
+
+      expect(simulateSegment(previous, 'race:simulate:1'))
+        .not.toEqual(simulateSegment(previous, 'race:simulate:2'));
+    });
+
+    it('moves the field rather than handing back the order it was given', () => {
+      // The whole point of simulating it: leaving the order alone would say the
+      // segment never happened.
+      const previous = Array.from({ length: 12 }, (unused, car) => car);
+
+      expect(simulateSegment(previous, 'race:simulate:2')).not.toEqual(previous);
+    });
+
+    it('keeps the quick near the front, so nobody climbs from last to pole', () => {
+      const previous = Array.from({ length: 12 }, (unused, car) => car);
+      const moved = simulateSegment(previous, 'race:simulate:2')
+        .map((car, position) => Math.abs(position - car));
+
+      expect(Math.max(...moved)).toBeLessThanOrEqual(3);
+    });
+
+    it('copes with a segment nobody is left in', () => {
+      expect(simulateSegment([], 'race:simulate:2')).toEqual([]);
     });
   });
 

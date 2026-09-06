@@ -22,6 +22,30 @@ export type SessionType =
 export type TrackStateName = 'green' | 'fast' | 'optimum';
 
 /**
+ * Where a session takes its field and its order from.
+ *
+ * One shape for what reads as two rules, because they are the same rule. On a
+ * qualifying segment it says who is still in - `{ from: 'q1', top: 15 }` is
+ * "the fastest fifteen of Q1 run this one". On a race it says which chain lines
+ * it up - `{ from: 'q3' }` sets the grid from Q3, and from Q2 and Q1 behind it,
+ * without restricting who starts.
+ */
+export interface SessionInheritance {
+  /**
+   * Id of an earlier session whose classification this one follows.
+   */
+  from: string;
+  /**
+   * How many of that session's classification carry into this one's field.
+   *
+   * Omitted, the whole field takes part and only the order is inherited, which
+   * is what a race wants. Set, this session runs that many cars and the rest
+   * are eliminated.
+   */
+  top?: number;
+}
+
+/**
  * One session within a race weekend.
  */
 export interface SessionDefinition {
@@ -29,6 +53,13 @@ export interface SessionDefinition {
    * Which kind of session this is.
    */
   type: SessionType;
+  /**
+   * Stable identifier, unique within the weekend, for other sessions to name.
+   *
+   * Optional because only a session something links to needs one, and every
+   * weekend authored before links existed has none.
+   */
+  id?: string;
   /**
    * Display name shown in game; defaults to the capitalised type.
    */
@@ -60,6 +91,17 @@ export interface SessionDefinition {
    * and 2 is race day on a three-day weekend. Defaults to 0.
    */
   day?: number;
+  /**
+   * Which session this one takes its field and its order from.
+   *
+   * `top` is what restricts the field; the chain always orders it. So a race
+   * simply never sets `top`, and nothing has to special-case a session type.
+   *
+   * A link naming a session that is not there, or that runs later, is ignored
+   * rather than fatal: the weekend falls back to the last qualifying before the
+   * race, which is what every weekend did before links existed.
+   */
+  inherit?: SessionInheritance;
   /**
    * What this session overrides of the weekend's own conditions.
    *

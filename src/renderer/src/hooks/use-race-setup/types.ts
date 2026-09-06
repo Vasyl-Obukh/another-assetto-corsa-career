@@ -49,10 +49,11 @@ export interface RaceSetupState {
    */
   setTrack(layout: Track): void;
   /**
-   * Replaces the player's car, dropping any livery chosen for the old one.
+   * Replaces the player's car and the livery it races in.
    * @param model The chosen car's folder ID
+   * @param skin The chosen livery's folder name, or undefined for none
    */
-  setCar(model: string): void;
+  setCar(model: string, skin?: string): void;
   /**
    * Replaces the AI field's description.
    * @param grid The grid to apply

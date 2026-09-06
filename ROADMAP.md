@@ -31,7 +31,9 @@ written, from the settings screen for the two flags a career wants and from
 `npm run testmode` for the one that stops CM racing; and assists reach CM in its own serialized
 format - **measured, not inferred**, since `races/spikes/assists.json` came back
 in `cfg/assists.ini` with all eight of its values intact - with driving aids in
-settings and regulations on the race.
+settings and regulations on the race. **Tyre blankets moved across in Phase 4**:
+they read as a driving aid but are a rule a championship writes down, so they
+sit with damage, fuel use, tyre wear and slipstream rather than with ABS.
 
 One row of the runbook is still open, and it corroborates rather than blocks:
 the road-temperature diff against CM's own `race.ini` at 22:00, which is the
@@ -712,7 +714,11 @@ had exercised.
       nothing at all when one is edited in place. **Pinning liveries to drivers
       is deliberately not here** - there is no driver, team or seat until Phase
       4, so a pin would have nowhere to persist. Reading the data was the
-      blocker, and that is what has gone
+      blocker, and that is what has gone. **The player's own livery is picked**,
+      though: the car picker asks for it as a second step, exactly as the track
+      picker asks for a layout, and skips the step for a car shipping fewer than
+      two. That reaches `race.ini`'s `SKIN` for `[CAR_0]`; the AI field is still
+      `buildGrid`'s automatic assignment
 - [x] **Translate `ContentIssueReason` in the renderer** - the broken-content
       count on the content card is now a popover listing every broken entry
       grouped by reason, off the `content:issues` channel that had been wired end
@@ -1275,27 +1281,138 @@ setup screen locks itself once a launch has run and offers to start again.
 
 ## Phase 4 - Series, teams and the editor
 
-- [ ] Series schema: discipline, rounds, weekend format, regulations, points,
-      BoP - the tier sits on the class entry below, not here
-- [ ] **Weekend formats** with day offsets and day-of-week rules
+**The series backbone has landed.** A championship is a type, a shipped library,
+a validator, an availability report and a lowering into an ordinary
+`RaceDefinition` - so a round is picked from a screen and runs through the whole
+Phase 3 path with no series-aware code anywhere in `src/core/weekend`,
+`src/core/race-ini` or `src/main/race-store`. Four exemplars ship, chosen to
+prove different axes rather than to fill a ladder. The editor, forking,
+export/import, the class and spec UI and generated weather are all still open.
+
+- [x] Series schema: discipline, rounds, weekend format, regulations, points,
+      BoP - the tier sits on the class entry below, not here.
+      `src/shared/types/series.ts`, and four decisions worth recording.
+      **A weekend format was `SessionDefinition[]` and nothing more**, on the
+      grounds that the type already carries the day offset, the length and its
+      own conditions - and that was wrong as soon as a championship needed two
+      of them. It is now a named `WeekendFormat` in `weekendFormats`, with
+      `defaultWeekendFormat` naming the one a round gets and `Round.weekendFormat`
+      picking another; `Round.format` is gone, since a one-off format is just an
+      entry only one round references. Format version 2. **`Regulations` is
+      nested rather than flat**, because `fixedSetup`, `penalties`, `jumpStartPenalty` and
+      `allowedTyresOut` live on `RaceDefinition` rather than on `Assists`: a flat
+      shape could not have been a `Pick` of anything and would have needed a
+      hand-written list of assist keys to separate them again. `RegulationKey`
+      moved here out of the race screen, where it had been living. **`version` is
+      on the championship from the first shipped file**, since a series is a
+      document users will fork, export and import, and one with no format version
+      is a migration that cannot be written. **Points are carried and not
+      applied** - Phase 5 owns scoring, but a series file is shareable from the
+      moment it ships, so adding the field later would invalidate every file
+      authored before then. Scoring is a named list too: `pointsSystems` with
+      `defaultPointsSystem`, and a race session naming one through
+      `SeriesSession.pointsSystem`, the same shape the weekend formats take.
+      **`drops` moved onto the championship** - how many results a season throws
+      away is a standings rule rather than a way of scoring a race, and a sprint
+      table carrying its own would be a number nothing could read
+- [x] **Weekend formats** with day offsets and day-of-week rules - validation
+      over `day` rather than new data. Days start at 0, run contiguously, never
+      go backwards down the list and span at most three; a race may not sit on
+      day 0 of a three-day format, which is "races fall on Saturday or Sunday and
+      never Friday" as far as it can be said before Phase 5 gives a round a date.
+      One rule only validation would ever have caught: **a session may not author
+      its own `startingPosition`**, because `prepareLaunch` writes the grid from
+      qualifying or from the ladder and an authored one is overwritten with
+      nothing said
+- [x] **Several formats per championship**, because real ones have several: this
+      year's Formula 1 runs a regular weekend and a sprint weekend, and GT World
+      Challenge's sprint rounds carry two qualifyings and two races. A format is
+      named, so a calendar row can say which of them it runs. **The sessions of a
+      sprint weekend interleave** - qualifying 1, race 1, qualifying 2, race 2 -
+      because a race inherits the last qualifying run before it, so pairing the
+      two qualifyings at the front would give both races the same grid. GT3
+      Sprint Series ships one and runs it at two rounds. **A race session names
+      its own points system**, which is the other half of why a sprint weekend is
+      a separate format at all; nothing reads it until Phase 5, but a shipped
+      sprint format that cannot say what its sprint pays is not the format. A
+      reference rather than a table written out at the session, so the sprint of
+      every sprint weekend pays one scale instead of several copies that drift
+- [x] **Knockout qualifying**, and with it the relations a format could not
+      express. One field says both: `SessionDefinition.inherit` is
+      `{ from, top }`, where `top` restricts the field and the chain always
+      orders it - so `{ from: 'q1', top: 15 }` is "the fastest fifteen of Q1 run
+      this one" and `{ from: 'q3' }` is "the grid comes from Q3, and from Q2 and
+      Q1 behind it". A race simply never sets `top`, which is why one concept
+      covers what reads as two rules. **It had to be stated rather than
+      inferred**: an F1 sprint weekend runs two independent chains, SQ1 to SQ3
+      into the sprint and Q1 to Q3 into the grand prix, and "the last qualifying
+      before this race" only happens to be right while sessions interleave. The
+      old rule survives as the fallback for a format that names no link, which
+      is what keeps every weekend authored before this working - the GT3 sprint
+      format was given explicit links and composes exactly the grid the
+      positional rule did, checked rather than assumed. The links live on
+      `SessionDefinition` rather than on `SeriesSession`, so `src/core/weekend/`
+      implements them without learning what a series is and a hand-authored
+      `races/spikes/knockout-qualifying.json` can use them
+- [x] **A segment the player is eliminated from is simulated.** Assetto Corsa
+      has no session without them, so it cannot be launched: the advancing field
+      is re-ordered off its previous segment with seeded jitter and recorded as
+      `skipped`, and the weekend skips forward to the next launch the player is
+      in. Position rather than AI skill is the rating, because the segment
+      before it was actually driven and its order already carries what those
+      cars did on the day. The one invented classification in the project, and
+      said to be - the CLI prints those launches as simulated and the race
+      screen badges them
+- [ ] **Refuse to edit a championship, a weekend format or a session while a
+      weekend of it is in progress**, with text saying the weekend has to be
+      finished first. Belongs to the series editor rather than here: the race
+      screen already locks once a launch has run, but that is the temporary way
+      in. A calendar screen replaces it - pick a weekend, start it, come back
+      between sessions - and championship editing moves into settings, which is
+      where the gate has to live
 - [ ] **Teams and seats**; entry lists as seats
-- [ ] Eligibility: a **spec**, or an **explicit list of cars** - never a class, so
+- [x] Eligibility: a **spec**, or an **explicit list of cars** - never a class, so
       an era cannot leak onto a grid it does not belong on. The car list is what
       makes one-make championships work without a class per model, and it is needed
-      for one-offs and invitationals anyway
+      for one-offs and invitationals anyway.
+      **The two are satisfied differently, and that asymmetry is the whole of the
+      availability rule**: an explicit car list is a requirement and every car in
+      it must be installed, because a one-make series' cars *are* the series and a
+      missing one changes what you are racing; a spec is satisfied by whichever of
+      its grid you own, because demanding all fourteen GT3 cars would make every
+      spec-based series unavailable to everybody. A spec carries a `minModels`
+      floor so that owning one car of it reads as unavailable rather than as a
+      grid of clones
 - [ ] **Per-round eligibility override.** The championship declares eligibility
       once; a round may override it, because some fields change car with the track.
       IndyCar is the case that forces it - road, short-oval and superspeedway kits
       are separate car folders and separate specs, yet one championship with one
       entry list and one standings table. Group C's 962C longtail at Le Mans and
       Monza, and URD's sprint versus endurance EGT cars, are the same shape. The
-      entry list and standings stay at series level; only the car resolves per round
-- [ ] **Multi-class entries** - one championship, one calendar, and one *class
+      entry list and standings stay at series level; only the car resolves per round.
+      **Built - schema, validation and lowering all honour it - and deliberately
+      used by nothing we ship.** Every real case is DLC or mod content: the
+      IndyCar kits, the 962C longtail, URD's sprint against endurance EGT cars.
+      Inventing a base-content one would be tidiness over truth, which is the
+      mistake the class catalogue audit already had to undo once. Its first
+      shipped user is the Group C championship, when DLC championships land
+- [x] **Multi-class entries** - one championship, one calendar, and one *class
       entry* per class it runs, each carrying its own tier, its own eligibility
       and its own standings table. WEC is the case: Hypercar, LMP2 and LMGT3
       entered separately, the GT3 entry a tier below the prototypes. A different
       axis from the per-round override above - that varies the car across the
-      calendar, this varies it across the grid
+      calendar, this varies it across the grid.
+      **Base content cannot express WEC's own shape**, which is worth stating
+      rather than working around: vanilla Assetto Corsa ships no prototype class,
+      so the Hypercar-over-LMGT3 example the ladder is described with is not
+      buildable base-only. Lotus Cup is - a real multi-class one-make
+      championship, every car base - and it exercises the same three things: two
+      class entries on one shared grid, a tier per class entry, and balance of
+      performance applied to the AI and the player alike.
+      One simplification is in the code rather than hidden: **AI levels spread
+      within a class, not across the field**. One linear ramp over a multi-class
+      grid would make the slower class's drivers weak as well as their cars,
+      which is not what a class difference is
 - [ ] **Class and spec management UI**: create classes and specs, classify mods the
       shipped catalogue does not name, and override what we ship. The shipped
       catalogue is the base layer; the user layer is resolved over it at runtime
@@ -1306,12 +1423,27 @@ setup screen locks itself once a launch has run and offers to start again.
       would claim the car is two eras of that category at once
 - [ ] Prize money tables (per finishing position, per final standing)
 - [ ] Entry fees per round
-- [ ] **Availability against installed content** - what a championship is missing,
-      named down to the DLC pack or the mod, with `acmanager://install` where the
-      mod offers one. Missing anything blocks entry rather than adapting silently
+- [x] **Availability against installed content** - what a championship is missing,
+      named down to the DLC pack or the mod. Missing anything blocks entry rather
+      than adapting silently: the round's own button is disabled rather than the
+      field quietly shrinking, because two users' "same" championship differing is
+      how results stop comparing.
+      **A round's pit boxes are checked here rather than left to fail at launch.**
+      `buildGrid` throws `race.grid.exceedsPitboxes`, which is the right answer at
+      the wrong moment - a 24-car series at an 18-box circuit is a fact about the
+      calendar, so it is reported beside the round.
+      **`acmanager://install` is not offered**, and cannot be yet: the provenance
+      catalogue names the mod team but carries no per-mod install URL. Adding one
+      is a catalogue change, not a UI one
 - [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
       content pickers are Phase 2's browser shell with selection added, not new
-      screens; see *Where the browsers end up*
+      screens; see *Where the browsers end up*.
+      **Half of what it needs is already built.** `CarQuery` gained an `ids`
+      filter and `CarBrowserBody` a `baseQuery`, so a picker restricted to an
+      arbitrary set of cars is now what the round-entry dialog already uses -
+      three cars out of six hundred, with the search, facets and paging intact.
+      One trap to carry forward: `isOneOf` treats an empty array as no filter at
+      all, so `ids: []` offers the whole library. Never send one
 - [x] **Per-session conditions** - landed early with one session per launch, in
       Phase 3. A session is a whole `race.ini`, so it carries its own weather,
       wind, temperature, track state and start time, overriding the weekend's
@@ -1345,6 +1477,35 @@ setup screen locks itself once a launch has run and offers to start again.
       the result wants either the same "approximation, clearly labelled"
       honesty it has now or a spike to measure what AC actually does to grip
       across a wet session
+- [x] **The library is the app's own championships and the user's, as one list.**
+      The two halves are stored differently on purpose: shipped ones stay
+      TypeScript constants, so a renamed `CarSpec` is a compile error, and a
+      user's is JSON under `%APPDATA%/ac-career-mode/series/`, because those are
+      written outside the build. `parseSeries` is what does for a user's file
+      what the compiler does for a shipped one - every spec, discipline, session
+      type and weather type checked against its own catalogue at load. Both come
+      out as the same `Championship`, and everything above the library is blind
+      to which was which except for the `SeriesOrigin` that says so. **The
+      alternative was shipping JSON too**, which reads better - one document
+      format, dogfooded - and was built and then reverted: it cost the compile
+      check on the four championships most likely to be edited, and bought only
+      the dogfooding, since `writeSeries` round-trips a constant to a file and
+      back and a test pins that
+- [x] **A user file carrying a shipped id replaces it**, and reads as
+      `adjusted`. The override is the file's existence and nothing else, which
+      is what makes reverting a deletion
+- [ ] **Revert an adjusted championship to the app's own** - delete the user's
+      file and the shipped one is simply there again. Belongs with the editor,
+      which is what creates the copy in the first place
+- [x] **Say when a championship could not be read.** `series:list` answers with
+      an envelope rather than a bare list, so a file that failed to parse
+      travels beside the ones that loaded and the championships screen names it
+      - an empty list and a directory of broken files looked identical before
+- [ ] **Say on the card when a championship is misconfigured.** Failing to parse
+      is now reported; failing `validateSeries` is not. A user's file can name a
+      spec that does not exist or a format that skips a day, and those problems
+      reach `SeriesAvailability.problems` with nothing rendering them. The card
+      wants a badge and the page wants the list
 - [ ] Clone a series; extend an existing one with extra rounds
 - [ ] Export / import series files
 - [ ] Content manifest per series with `acmanager://install` for missing content
@@ -1360,11 +1521,52 @@ setup screen locks itself once a launch has run and offers to start again.
       and the S1 upgrade carry no spec, so the series names the two cars
       directly. They had a spec each until the customer-F1 pair was dropped:
       a customer chassis sold as an experience is not a category, and two specs
-      of one car were never a grid
-- [ ] **Formula Abarth** - the championship the Tatuus FA01 exists for. A real
+      of one car were never a grid.
+      **Held back on the calendar rather than on the cars**: `BASE_TRACKS` holds
+      two UK circuits, `ks_silverstone` and `ks_silverstone1967`, so a base-only
+      Formula UK is either two tracks or dishonest about where it races. It wants
+      Brands Hatch from Dream Pack 3, which makes it a DLC championship - and
+      that is also where the two Exos cars would show off balance of performance
+- [x] **Formula Abarth** - the championship the Tatuus FA01 exists for. A real
       junior ladder rung, but a single-chassis one with a single car installed,
       so its class, its spec and its car were the same thing three times over.
-      The class and spec are gone; the series names the car
+      The class and spec are gone; the series names the car - `tatuusfa1`, which
+      appears in no spec at all, so a car list is the only way to reach it.
+      Five Italian base circuits, and **a three-day format with two races**,
+      which is what proves a weekend can hold more than one race now that a
+      session is a launch of its own: it plans into four launches, one per
+      session, across three days
+- [x] **Lotus Cup** - the multi-class exemplar, and a real championship rather
+      than a shape invented to exercise the schema. Lotus Cup Europe runs its own
+      classes on one entry list with separate standings, and every car it needs is
+      base content: Open is the 2-Eleven, the Exige V6 Cup and the Evora GX, with
+      the GX ballasted and restricted because a Grand-Am car against a track-day
+      special is only a grid once the quick one is slowed down; Production is the
+      Elise SC, the Exige S and the Exige 240. Sixteen cars over two classes and
+      two tiers. It is also **the only shipped championship on the road
+      discipline**, which nothing else would reach - road cars carry no spec on
+      purpose, so a series gets at them by naming them
+- [x] **GT3 Sprint Series** - the spec exemplar, and what "a spec is satisfied by
+      whatever you own" looks like on a real install: five of `GT3_2010S` are base
+      content, and Ready to Race, the Tripl3 Pack or Porsche Pack 3 simply widen
+      the field rather than unlocking the series.
+      **Deliberately not named for a real season.** The spec spans 2011 to 2016
+      machinery, so a 2013 Blancpain field would not have held an AMG GT3 - naming
+      a year would make the series claim something its own grid contradicts
+- [x] **Formula 1 2023** - the knockout exemplar, and the only shipped
+      championship that needs content Assetto Corsa does not ship. There is no
+      base-game F1 car, so the format that motivated knockout qualifying could
+      not be built honestly on one; it runs on VRC's Formula Alpha 2023 instead,
+      and anyone without the mod sees it unavailable with VRC named, which is
+      what the provenance catalogue is for. Twenty cars, `minModels: 1` because
+      the mod is one chassis in twenty liveries rather than ten distinct ones,
+      and both formats: a regular weekend of three practices, Q1/Q2/Q3 and the
+      grand prix, and a sprint weekend that runs SQ1/SQ2/SQ3 into the sprint and
+      Q1/Q2/Q3 into the grand prix - **two chains on one weekend, which is the
+      thing no earlier format could say**. Austria and Belgium run the sprint.
+      **Zandvoort is missing from an otherwise real calendar** because Assetto
+      Corsa's has eighteen pit boxes against a twenty-car field, so
+      `seriesAvailability` would report it rather than race it
 - [ ] **American Le Mans Series (ALMS)** - the championship the BMW M3 E46 GTR
       exists for. Built for ALMS GT in 2001, it won the class and was legislated
       out a year later, so it has no grid to sit on: it carries no spec and the

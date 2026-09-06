@@ -32,7 +32,13 @@ import { archiveResults, waitForResults } from '../../core/results/index.ts';
 import { readWeatherFx, readWeatherFxController } from '../../core/weather/index.ts';
 import { installPlan, removePlans } from '../../core/weather-plan/index.ts';
 import {
-  advanceWeekend, assertStateMatches, initWeekendState, nextLaunch, planWeekend, prepareLaunch,
+  advanceWeekend,
+  assertStateMatches,
+  initWeekendState,
+  nextLaunch,
+  planWeekend,
+  prepareLaunch,
+  skipEliminated,
 } from '../../core/weekend/index.ts';
 import { MS_PER_HOUR } from '../../shared/constants/index.ts';
 import { AppError, isAppError } from '../../shared/errors/index.ts';
@@ -133,15 +139,20 @@ export const createRaceStore = async (
    */
   const reconciled = (plan: WeekendPlan | null): WeekendState | null => {
     if (!plan) return null;
-    if (!state) return initWeekendState(plan);
 
-    try {
-      assertStateMatches(plan, state);
-    } catch {
-      return initWeekendState(plan);
+    let usable = state;
+    if (usable) {
+      try {
+        assertStateMatches(plan, usable);
+      } catch {
+        usable = null;
+      }
     }
 
-    return state;
+    // Skipping happens here rather than at launch: describe() writes back a
+    // reconciliation that changed anything, so a knockout that ended the
+    // player's qualifying shows on the screen the moment the result lands.
+    return skipEliminated(plan, usable ?? initWeekendState(plan), new Date().toISOString());
   };
 
   /**

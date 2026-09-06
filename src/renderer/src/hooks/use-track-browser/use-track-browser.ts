@@ -8,17 +8,24 @@ import { isTrackFiltered, toTrackQuery, trackQueryKey } from './utils.ts';
 import type { TrackFacets } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
+import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 import { invoke, subscribe } from '@/lib/ipc';
 
 export type { TrackBrowser, TrackCriteria } from './types.ts';
 
 /**
  * Everything the track browser screen needs: criteria, facet counts and the list.
+ * @param memoryId Which browser this is, for one that comes back where it was
  * @returns The current state and the actions the screen binds to
  */
-export const useTrackBrowser = (): TrackBrowser => {
-  const [search, setSearch] = useState('');
-  const [criteria, setCriteria] = useState<TrackCriteria>(EMPTY_CRITERIA);
+export const useTrackBrowser = (memoryId?: string): TrackBrowser => {
+  // Read once, at mount: the store keeps being written while the screen is
+  // open, and reading it again would answer with what the user is looking at
+  // rather than what they were.
+  const [memory] = useState(() => readBrowserMemory<TrackCriteria>(memoryId));
+
+  const [search, setSearch] = useState(memory.search);
+  const [criteria, setCriteria] = useState<TrackCriteria>(memory.criteria ?? EMPTY_CRITERIA);
   const [facets, setFacets] = useState<TrackFacets | null>(null);
   const [stale, setStale] = useState(false);
 
@@ -43,6 +50,15 @@ export const useTrackBrowser = (): TrackBrowser => {
 
     return () => { live = false; };
   }, [query]);
+
+  // Written to a module store rather than lifted into a provider: nothing
+  // renders from it, and the only reader is the next mount of this browser.
+  // The list itself is not remembered - coming back to the same filters at the
+  // first page is the point, and restoring a scroll offset would mean paging
+  // every entry under it back in first.
+  useEffect(() => {
+    rememberBrowser<TrackCriteria>(memoryId, { search, criteria });
+  }, [memoryId, search, criteria]);
 
   const { reload } = list;
   const refresh = useCallback(() => {

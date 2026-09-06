@@ -5,25 +5,41 @@ import {
 import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
 import type { CarBrowser, CarCriteria } from './types.ts';
 import { carQueryKey, isCarFiltered, toCarQuery } from './utils.ts';
-import type { CarFacets } from '../../../../shared/types';
+import type { CarFacets, CarQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
+import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 import { invoke, subscribe } from '@/lib/ipc';
 
 export type { CarBrowser, CarCriteria } from './types.ts';
 
 /**
  * Everything the car browser screen needs: criteria, facet counts and the list.
+ * @param base A query every request is narrowed by, for a picker with a
+ *   restricted set of cars to offer
+ * @param memoryId Which browser this is, for one that comes back where it was
  * @returns The current state and the actions the screen binds to
  */
-export const useCarBrowser = (): CarBrowser => {
-  const [search, setSearch] = useState('');
-  const [criteria, setCriteria] = useState<CarCriteria>(EMPTY_CRITERIA);
+export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser => {
+  // Read once, at mount: the store keeps being written while the screen is
+  // open, and reading it again would answer with what the user is looking at
+  // rather than what they were.
+  const [memory] = useState(() => readBrowserMemory<CarCriteria>(memoryId));
+
+  const [search, setSearch] = useState(memory.search);
+  const [criteria, setCriteria] = useState<CarCriteria>(memory.criteria ?? EMPTY_CRITERIA);
   const [facets, setFacets] = useState<CarFacets | null>(null);
   const [stale, setStale] = useState(false);
 
   const settled = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const query = useMemo(() => toCarQuery(criteria, settled), [criteria, settled]);
+  // Serialised rather than depended on directly, since a picker rebuilds its
+  // base query object on every render and the identity would never settle.
+  const baseKey = useMemo(() => JSON.stringify(base ?? null), [base]);
+  const query = useMemo(
+    () => toCarQuery(criteria, settled, base),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
+    [criteria, settled, baseKey],
+  );
   const key = useMemo(() => carQueryKey(query), [query]);
 
   const load = useCallback(
@@ -45,6 +61,15 @@ export const useCarBrowser = (): CarBrowser => {
 
     return () => { live = false; };
   }, [query]);
+
+  // Written to a module store rather than lifted into a provider: nothing
+  // renders from it, and the only reader is the next mount of this browser.
+  // The list itself is not remembered - coming back to the same filters at the
+  // first page is the point, and restoring a scroll offset would mean paging
+  // every entry under it back in first.
+  useEffect(() => {
+    rememberBrowser<CarCriteria>(memoryId, { search, criteria });
+  }, [memoryId, search, criteria]);
 
   const { reload } = list;
   const refresh = useCallback(() => {

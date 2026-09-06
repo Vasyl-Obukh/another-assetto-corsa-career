@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { SessionRow } from './SessionRow.tsx';
 import { moveSession, nextSession } from './utils.ts';
 import type {
-  Conditions, SessionDefinition, Weather, WeatherController, WeatherSystem,
+  Conditions, LaunchRecord, SessionDefinition, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { resolveConditions } from '../../../../shared/utils/conditions';
 import { Button } from '@/components/ui/button.tsx';
@@ -39,9 +39,13 @@ interface SessionListProps {
    */
   rainFx: boolean;
   /**
-   * How many launches have been run, which badges each session.
+   * What each launch left behind, in order, which is what badges each session.
+   *
+   * The records rather than a count of them: a segment the player was
+   * eliminated from is recorded like any other, and badging on the count alone
+   * would call it run when it was invented.
    */
-  completed: number;
+  records: readonly LaunchRecord[];
   /**
    * Whether the weekend has started, in which case the list cannot change.
    */
@@ -54,7 +58,7 @@ interface SessionListProps {
 }
 
 export const SessionList = ({
-  sessions, conditions, weather, controllers, system, rainFx, completed, locked, onChange,
+  sessions, conditions, weather, controllers, system, rainFx, records, locked, onChange,
 }: SessionListProps) => {
   const { t } = useTranslation();
 
@@ -84,7 +88,8 @@ export const SessionList = ({
             controllers={controllers}
             system={system}
             rainFx={rainFx}
-            completed={completed}
+            record={records[index] ?? null}
+            next={index === records.length}
             locked={locked}
             onChange={(next) => onChange(sessions.map((own, at) => (at === index ? next : own)))}
             onMove={(by) => onChange(moveSession(sessions, index, by))}

@@ -1,4 +1,6 @@
 import {
+  DEFAULT_SESSION_LAPS,
+  DEFAULT_SESSION_MINUTES,
   DEFAULT_SLOT_MINUTES,
   MIN_PLAN_SLOTS,
   NOT_SET,
@@ -51,6 +53,39 @@ export const fromNumber = (value: number | undefined): string => (
 export const countsLaps = (type: SessionType): boolean => type === 'race';
 
 /**
+ * Whether a session as written is measured in laps rather than on the clock.
+ *
+ * Only a race can be either, and which one it is is data rather than type: a
+ * 30-minute race and a 12-lap race are both races. Laps win when a session
+ * somehow carries both, because that is what race.ini does - RACE_LAPS above
+ * zero is a lap race whatever DURATION_MINUTES says.
+ * @param session The session to read
+ * @returns True when its length is a lap count
+ */
+export const measuredInLaps = (session: SessionDefinition): boolean => (
+  countsLaps(session.type) && (session.laps !== undefined || session.minutes === undefined)
+);
+
+/**
+ * Switches a session between a lap count and a duration.
+ *
+ * The other unit is cleared rather than kept, and that is not tidiness: a stale
+ * `laps` left on a timed race would still be written into [RACE] RACE_LAPS, and
+ * Assetto Corsa runs a lap race whenever that is above zero. So switching the
+ * unit forgets the old number, and the session falls back to a default the next
+ * time it is switched back.
+ * @param session The session to change
+ * @param inLaps Whether it should be measured in laps
+ * @returns The session, measured the way it was asked for
+ */
+export const withSessionLength = (
+  session: SessionDefinition,
+  inLaps: boolean,
+): SessionDefinition => (inLaps
+  ? { ...session, minutes: undefined, laps: session.laps ?? DEFAULT_SESSION_LAPS }
+  : { ...session, laps: undefined, minutes: session.minutes ?? DEFAULT_SESSION_MINUTES });
+
+/**
  * Builds the session added when the user asks for one more.
  *
  * A practice unless there is no race yet, in which case a race - a definition
@@ -63,8 +98,8 @@ export const nextSession = (sessions: SessionDefinition[]): SessionDefinition =>
   const day = sessions.at(-1)?.day ?? 0;
 
   return hasRace
-    ? { type: 'practice', minutes: 15, day }
-    : { type: 'race', laps: 5, day };
+    ? { type: 'practice', minutes: DEFAULT_SESSION_MINUTES, day }
+    : { type: 'race', laps: DEFAULT_SESSION_LAPS, day };
 };
 
 /**

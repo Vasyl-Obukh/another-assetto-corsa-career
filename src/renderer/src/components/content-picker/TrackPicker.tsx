@@ -61,16 +61,14 @@ export const TrackPicker = ({
         </DialogHeader>
 
         {/* The browser paints its own scroller, so this only has to give it a
-            height to fill and a minimum of zero to shrink into. */}
-        <div className="min-h-0 flex-1">
-          {chosen ? (
-            <LayoutStep
-              group={chosen}
-              selectedKey={selectedKey}
-              onBack={() => setChosen(null)}
-              onPick={pick}
-            />
-          ) : (
+            height to fill and a minimum of zero to shrink into. The second step
+            is laid over it rather than swapped for it: unmounting the browser
+            would throw away the filters and the scroll offset the user was at,
+            and going back would land them at the top of the whole library. It
+            needs a z-index of its own: the browser's toolbar is sticky at z-10,
+            so being later in the DOM is not enough to cover it. */}
+        <div className="relative min-h-0 flex-1">
+          <div className="h-full" inert={chosen !== null}>
             <TrackBrowserBody
               selectedKey={selectedKey}
               onSelect={(group) => {
@@ -79,7 +77,18 @@ export const TrackPicker = ({
                 else setChosen(group);
               }}
             />
-          )}
+          </div>
+
+          {chosen ? (
+            <div className="absolute inset-0 z-20 bg-background">
+              <LayoutStep
+                group={chosen}
+                selectedKey={selectedKey}
+                onBack={() => setChosen(null)}
+                onPick={pick}
+              />
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
