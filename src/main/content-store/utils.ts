@@ -2,10 +2,12 @@
 // does over a scan.
 
 import { CONTENT_CACHE_VERSION } from './constants.ts';
-import type { ContentCache } from './types.ts';
+import type { ContentCache, ContentLibrary } from './types.ts';
 import type { ContentScan } from '../../core/content/index.ts';
-import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
-import type { Content, ContentCounts, ContentSummary } from '../../shared/types/index.ts';
+import { CONTENT_CATALOGUE_VERSION, isCatalogued } from '../../core/content-catalogue/index.ts';
+import type {
+  Content, ContentCounts, ContentSummary, HiddenCounts,
+} from '../../shared/types/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
 
 /**
@@ -61,6 +63,51 @@ export const cacheToScan = (cache: ContentCache): ContentScan => ({
   durationMs: cache.durationMs,
 });
 
+// A scan is replaced wholesale rather than edited, so keying on the object
+// itself is all the invalidation a derived view of it needs.
+const LIBRARIES = new WeakMap<Content, ContentLibrary>();
+
+/**
+ * Narrows a scan to the content the provenance catalogue names.
+ *
+ * What every browser, picker and facet count is answered from. The whole scan
+ * stays reachable through the store's own content(), because a race already set
+ * up and a championship naming its cars both reach content the library leaves
+ * out - naming a car is itself an act of choosing it.
+ *
+ * Tracks are judged per layout, exactly as every other track filter is, so a
+ * circuit with LFM layouts inside a folder nobody claims narrows to those rather
+ * than disappearing.
+ * @param content The scanned content
+ * @returns Its catalogued cars and track layouts
+ */
+export const libraryOf = (content: Content): ContentLibrary => {
+  const known = LIBRARIES.get(content);
+  if (known) return known;
+
+  const library: ContentLibrary = {
+    cars: content.cars.filter((car) => isCatalogued(car.provenance)),
+    tracks: content.tracks.filter((track) => isCatalogued(track.provenance)),
+  };
+
+  LIBRARIES.set(content, library);
+  return library;
+};
+
+/**
+ * Counts what the catalogue does not name, and so what the library leaves out.
+ * @param content The scanned content
+ * @returns How many cars and track layouts are hidden
+ */
+export const hiddenIn = (content: Content): HiddenCounts => {
+  const library = libraryOf(content);
+
+  return {
+    cars: content.cars.length - library.cars.length,
+    tracks: content.tracks.length - library.tracks.length,
+  };
+};
+
 /**
  * Counts what a scan found.
  * @param content The scanned content
@@ -82,6 +129,7 @@ export const countsOf = (content: Content): ContentCounts => ({
 export const summaryOf = (scan: ContentScan, cached: boolean): ContentSummary => ({
   ...countsOf(scan.content),
   issues: scan.content.issues.length,
+  hidden: hiddenIn(scan.content),
   scannedAt: scan.scannedAt,
   durationMs: scan.durationMs,
   cached,

@@ -78,7 +78,8 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Base-only career                | **Guaranteed.** A complete ladder is always playable on vanilla content alone. DLC and mods extend the ladder; they never fill holes in it.                                                                                               |
 | Editing a shipped championship  | **Forking copies.** The fork diverges from that moment, and a later update to the original does not flow into it.                                                                                                                         |
 | Missing content                 | **Report, block, offer to fix.** A championship missing anything is listed with what it needs, named down to the pack or the mod, and cannot be entered until it is forked or the content installed.                                      |
-| Content source toggles          | **They govern which championships are offered, nothing else.** The library always shows everything installed.                                                                                                                             |
+| What the library shows          | **The content the catalogue names, and nothing else until the user says so.** A car or track layout in no provenance record is an anonymous mod - no class, no spec, no price, no championship that can reach it - so the browsers and pickers leave it out, and a settings page will let the user add their own back. |
+| Content source toggles          | **They govern which championships are offered, nothing else.**                                                                                                                                                                           |
 
 ---
 
@@ -112,6 +113,13 @@ layout rather than by track.
 record per question - `BASE_CARS`, `DLC_CARS`, `MOD_CARS`, `DISTRIBUTOR_CARS` and
 the same four for tracks - and an ID in none of them is a mod whose author we do
 not know, which is the honest answer.
+
+**That answer now decides what the library offers.** `isCatalogued` is the six
+records read as one question, and an ID in none of them is left out of the car
+and track browsers and the pickers built from them until the user adds it - see
+*Shipped championships*. So a missing row is no longer only a missing badge; it
+is a car nobody can pick, which is what makes *Keeping the catalogue current*
+under Open questions sharper than it was.
 
 Inference was tried and dropped. Folder prefixes read plausibly and are wrong in
 both directions: a mod that predates its team's naming convention reads as
@@ -253,10 +261,23 @@ moment and **diverges** - a later update to the original does not flow into it, 
 the user is told so rather than discovering it.
 
 **Content source toggles** say which championships you want offered: base, DLC,
-and one per mod maker. They govern that list and nothing else. The car and track
-browsers always show everything installed, because "what have I got" and "what do
-I want to race" are different questions, and a library that hides your own mods
-reads as a bug.
+and one per mod maker. They govern that list and nothing else.
+
+**The library itself shows what the catalogue names**, which reverses an earlier
+rule that it always shows everything installed. That rule was argued from "what
+have I got" and "what do I want to race" being different questions, and from a
+library that hides your own mods reading as a bug - and the first half is still
+true, which is what the diagnostics card is for. What it missed is that
+everything else in the app is keyed on the catalogue: an uncatalogued mod carries
+no provenance to badge, no class or spec to filter by, no price when Phase 7
+lands, and no championship that can reach it. Six hundred cars of which a third
+are folder names is not a library, and a career should open on a curated one.
+
+**The user adds their own back**, one at a time, in settings - the same
+base-layer-over-user-layer shape the class and spec catalogue takes. Until that
+page exists the catalogue is the whole of it, which is why the diagnostics card
+says how much is being left out rather than letting a third of an install
+disappear quietly.
 
 ### Disciplines and tiers
 
@@ -725,6 +746,27 @@ had exercised.
       to end and never called. The English wording moved to
       `src/shared/constants/`, so the CLI and the app read one table rather than
       two
+- [x] **The library is what the catalogue names, not everything installed** - the
+      browsers and the race screen's pickers now answer from the catalogued half
+      of the scan. `isCatalogued` in `src/core/content-catalogue/` is the whole
+      rule - base or DLC by source, a named mod by its maker, an LFM car or
+      layout by its distributor - so nothing new is scanned and
+      `CONTENT_CACHE_VERSION` does not move. On the install it was written
+      against that is **418 cars of 622 and 66 circuits of 96**, and the 204
+      cars and 90 layouts left out are exactly the anonymous mods the catalogue
+      already declines to attribute. Reverses "the library always shows
+      everything installed"; see *Shipped championships*.
+      **Tracks are judged per layout**, as every other track filter already is,
+      so a circuit whose folder nobody claims but which LFM ships layouts into
+      narrows to those rather than disappearing - seven of them do.
+      **Narrowed in `src/main/content-store/` and nowhere else**, which is what
+      keeps the blast radius to browsing: `content()` still hands out the whole
+      scan, so a race already set up still runs, `seriesAvailability` still
+      judges a championship against what is installed - naming a car is itself
+      an act of choosing it - and `npm run scan` still counts all 622. The
+      diagnostics card says how much is being left out, because hiding a third
+      of someone's library with nothing said is the failure mode this project
+      complains about everywhere else
 
 **Where the browsers end up.** They are the substrate, not the destination. The
 two route-level pages are about a hundred lines of wiring; everything beneath
@@ -1421,6 +1463,20 @@ export/import, the class and spec UI and generated weather are all still open.
       that car** - you cannot reach a GT3 spec from a car you have put in GT4 and
       Track Special. Within one class only a single spec may be picked, since two
       would claim the car is two eras of that category at once
+- [ ] **Add your own content to the library**, in settings. The browsers and
+      pickers show what the provenance catalogue names; anything in no record is
+      an anonymous mod and is left out, so this page is the way back in. It lists
+      exactly those entries - the same browser shell with a toggle per card
+      rather than a screen of its own - and stores what the user ticked as a list
+      of folder IDs in `settings.json`, resolved over the catalogue at runtime
+      rather than baked into the content cache, so adding one never means a
+      rescan. It **widens `isCatalogued` rather than replacing it**: the
+      predicate becomes "catalogued, or one the user named", and the six store
+      methods behind it do not change. Adding a track adds every layout of it,
+      since recognition is per layout and a part-catalogued circuit is what LFM's
+      layouts inside a folder nobody claims produce. Wants a bulk "add
+      everything matching" too, which has to page rather than trusting one query
+      to return the lot
 - [ ] Prize money tables (per finishing position, per final standing)
 - [ ] Entry fees per round
 - [x] **Availability against installed content** - what a championship is missing,

@@ -75,6 +75,15 @@ export const ContentCard = ({
               </div>
             ) : null}
 
+            {summary && (summary.hidden.cars > 0 || summary.hidden.tracks > 0) ? (
+              <p className="text-xs text-muted-foreground">
+                {t('content.hidden', {
+                  cars: t('content.hiddenCars', { count: summary.hidden.cars }),
+                  tracks: t('content.hiddenTracks', { count: summary.hidden.tracks }),
+                })}
+              </p>
+            ) : null}
+
             <div className="flex items-center gap-3">
               <Button size="sm" disabled={scanning} onClick={onScan}>
                 <RefreshCwIcon className={scanning ? 'animate-spin' : undefined} />

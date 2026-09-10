@@ -267,7 +267,7 @@ describe('main/content-store', () => {
 
   describe('queries', () => {
     it('scans first, then answers from the scan', async () => {
-      rescanMock.mockResolvedValue(makeScan(makeContent(['car_a', 'car_b'], ['spa'])));
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'abarth500'], ['spa'])));
 
       const store = await createContentStore('D:\\userData');
       store.use(DIR);
@@ -278,10 +278,10 @@ describe('main/content-store', () => {
     });
 
     it('answers with facets and with whatever is broken', async () => {
-      const content = makeContent(['car_a']);
+      const content = makeContent(['bmw_m3_e30']);
       content.cars[0] = { ...content.cars[0], brand: 'Marque' };
       content.issues = [{
-        kind: 'car', id: 'car_a', reason: 'uiMissing', detail: 'ENOENT',
+        kind: 'car', id: 'bmw_m3_e30', reason: 'uiMissing', detail: 'ENOENT',
       }];
       rescanMock.mockResolvedValue(makeScan(content));
 
@@ -298,12 +298,12 @@ describe('main/content-store', () => {
     // content:cars searches name, brand, folder ID and tags alike, so it cannot
     // resolve a single car - which is what this lookup exists for.
     it('finds one car by its folder ID', async () => {
-      rescanMock.mockResolvedValue(makeScan(makeContent(['car_a', 'car_b'])));
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'abarth500'])));
 
       const store = await createContentStore('D:\\userData');
       store.use(DIR);
 
-      await expect(store.car('car_b')).resolves.toMatchObject({ id: 'car_b' });
+      await expect(store.car('abarth500')).resolves.toMatchObject({ id: 'abarth500' });
     });
 
     // A car uninstalled while its page is open is an ordinary outcome, not a

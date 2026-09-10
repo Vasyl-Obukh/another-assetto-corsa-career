@@ -109,6 +109,8 @@ describe('main/content-store/utils', () => {
         weather: 0,
         controllers: 0,
         issues: 1,
+        // Car 'a' is in no provenance record, so it is not in the library.
+        hidden: { cars: 1, tracks: 0 },
         scannedAt: '2026-01-01T00:00:00.000Z',
         durationMs: 12,
         cached: true,

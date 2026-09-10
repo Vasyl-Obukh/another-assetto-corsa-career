@@ -15,7 +15,8 @@ import {
 } from './constants.ts';
 import type { ContentCache, ContentStore, RevalidateOptions } from './types.ts';
 import {
-  appearedIn, cacheToScan, countsOf, readContentCache, reusedEverything, sameCounts, summaryOf,
+  appearedIn, cacheToScan, countsOf, libraryOf, readContentCache, reusedEverything,
+  sameCounts, summaryOf,
 } from './utils.ts';
 import { contentWatchDirs, rescanContent } from '../../core/content/index.ts';
 import type { ContentScan } from '../../core/content/index.ts';
@@ -219,12 +220,12 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async cars(query) {
-      return queryCars((await current()).content.cars, query);
+      return queryCars(libraryOf((await current()).content).cars, query);
     },
 
     async car(id) {
       // A lookup by primary key, so there is nothing for content-query to do.
-      return (await current()).content.cars.find((entry) => entry.id === id) ?? null;
+      return libraryOf((await current()).content).cars.find((entry) => entry.id === id) ?? null;
     },
 
     async content() {
@@ -232,20 +233,20 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async tracks(query) {
-      return queryTracks((await current()).content.tracks, query);
+      return queryTracks(libraryOf((await current()).content).tracks, query);
     },
 
     async track(key) {
       // A lookup by primary key, like car() above.
-      return (await current()).content.tracks.find((entry) => entry.key === key) ?? null;
+      return libraryOf((await current()).content).tracks.find((entry) => entry.key === key) ?? null;
     },
 
     async carFacets(query) {
-      return carFacets((await current()).content.cars, query);
+      return carFacets(libraryOf((await current()).content).cars, query);
     },
 
     async trackFacets(query) {
-      return trackFacets((await current()).content.tracks, query);
+      return trackFacets(libraryOf((await current()).content).tracks, query);
     },
 
     async issues() {

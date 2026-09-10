@@ -62,6 +62,26 @@ export const carProvenance = (id: string): ContentProvenance => {
 };
 
 /**
+ * Whether the catalogue names this piece of content at all.
+ *
+ * Base and DLC pass on the source alone, a named mod on its maker, and an
+ * LFM-redistributed car or layout on its distributor. Anything in none of the
+ * six records is the anonymous mod the catalogue already declines to attribute,
+ * and that is what the library leaves out - it carries no class, no spec and no
+ * championship that can reach it, so offering it is offering a folder name.
+ *
+ * The single seam a user layer widens: adding your own content makes this
+ * "catalogued, or one the user named", and nothing above it has to change.
+ * @param provenance What carProvenance or trackProvenance resolved
+ * @returns True when some record names it
+ */
+export const isCatalogued = (provenance: ContentProvenance): boolean => (
+  provenance.source !== ContentSource.MOD
+  || provenance.maker !== null
+  || provenance.distributor !== null
+);
+
+/**
  * Where a track layout came from.
  *
  * Everything but the redistributor is keyed by the track, since a pack ships a

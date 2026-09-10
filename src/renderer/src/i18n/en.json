@@ -52,6 +52,11 @@
     "controllers_other": "{{count}} weather controllers",
     "issues_one": "{{count}} broken",
     "issues_other": "{{count}} broken",
+    "hidden": "Not in our catalogue: {{cars}} and {{tracks}}. Those are anonymous mods, so the car and track libraries leave them out until you add them yourself.",
+    "hiddenCars_one": "{{count}} car",
+    "hiddenCars_other": "{{count}} cars",
+    "hiddenTracks_one": "{{count}} track layout",
+    "hiddenTracks_other": "{{count}} track layouts",
     "brokenTitle": "Broken content",
     "brokenDetail": "Details: {{detail}}",
     "kind": {

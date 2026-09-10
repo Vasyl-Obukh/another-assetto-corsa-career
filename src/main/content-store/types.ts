@@ -53,6 +53,24 @@ export interface ContentCache {
 }
 
 /**
+ * The scan narrowed to what the provenance catalogue names.
+ *
+ * What every browser, picker and facet count is answered from. Weather and
+ * controllers are absent because nothing catalogues them: a preset is picked by
+ * what it renders rather than by who shipped it.
+ */
+export interface ContentLibrary {
+  /**
+   * Catalogued cars, in scan order.
+   */
+  cars: Car[];
+  /**
+   * Catalogued track layouts, in scan order.
+   */
+  tracks: Track[];
+}
+
+/**
  * Options for a revalidation pass.
  */
 export interface RevalidateOptions {
@@ -113,6 +131,10 @@ export interface ContentStore {
    * it, because buildRaceIni, validateRace and planWeekend all take the lot -
    * they resolve a track, a car, its skins and a weather preset against each
    * other, which no page of results can answer.
+   *
+   * Also the only one that is not narrowed to the library: a race already set up
+   * and a championship naming its cars both reach content the catalogue does not
+   * name, and naming a car is itself an act of choosing it.
    * @returns Everything the scan found
    * @throws AppError when no install has been located
    */

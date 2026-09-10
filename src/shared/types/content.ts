@@ -570,6 +570,24 @@ export interface ContentCounts {
 }
 
 /**
+ * How much installed content the catalogue does not name.
+ *
+ * Those entries are left out of the library the browsers and pickers show, so
+ * this is what stops a third of someone's install disappearing with nothing
+ * said. Tracks are counted in layouts, as ContentCounts counts them.
+ */
+export interface HiddenCounts {
+  /**
+   * Cars in no provenance record.
+   */
+  cars: number;
+  /**
+   * Track layouts in no provenance record.
+   */
+  tracks: number;
+}
+
+/**
  * Counts from a content scan, without the content itself. Sent over IPC in place
  * of the full Content, which is megabytes of skin arrays on a large mod library.
  */
@@ -578,6 +596,10 @@ export interface ContentSummary extends ContentCounts {
    * How many entries were broken, incomplete or degraded.
    */
   issues: number;
+  /**
+   * How much of the above the catalogue does not name, and so is not offered.
+   */
+  hidden: HiddenCounts;
   /**
    * ISO timestamp of when the scan finished.
    */

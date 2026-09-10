@@ -25,6 +25,7 @@ export type {
   ContentProvenance,
   ContentSummary,
   Geotags,
+  HiddenCounts,
   Skin,
   Track,
   TrackGroup,
