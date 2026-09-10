@@ -18,7 +18,7 @@ import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
  * amending the catalogue has to invalidate it the same way a shape change does.
  * Keeping the switch here means a data edit never needs main to know.
  */
-export const CONTENT_CATALOGUE_VERSION = 7;
+export const CONTENT_CATALOGUE_VERSION = 8;
 
 /**
  * Cars everyone who owns Assetto Corsa has.
@@ -387,6 +387,8 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   vrc_formula_alpha_2024_csp: ModMaker.VRC,
   vrc_formula_alpha_2025: ModMaker.VRC,
   vrc_formula_alpha_2025_csp: ModMaker.VRC,
+  vrc_formula_alpha_2026: ModMaker.VRC,
+  vrc_formula_alpha_2026_csp: ModMaker.VRC,
   vrc_formula_beta_2024: ModMaker.VRC,
   vrc_formula_beta_2024_csp: ModMaker.VRC,
   vrc_2019_formula_lithium: ModMaker.VRC,

@@ -87,7 +87,8 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.FORMULA_1_2024_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2024 (VRC)' },
   [CarSpec.FORMULA_1_2025_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2025 (RSS)' },
   [CarSpec.FORMULA_1_2025_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2025 (VRC)' },
-  [CarSpec.FORMULA_1_2026]: { class: CarClass.FORMULA_1, name: 'Formula 1 2026' },
+  [CarSpec.FORMULA_1_2026_RSS]: { class: CarClass.FORMULA_1, name: 'Formula 1 2026 (RSS)' },
+  [CarSpec.FORMULA_1_2026_VRC]: { class: CarClass.FORMULA_1, name: 'Formula 1 2026 (VRC)' },
   [CarSpec.SUPER_FORMULA_2019]: { class: CarClass.SUPER_FORMULA, name: 'Super Formula 2019' },
   [CarSpec.SUPER_FORMULA_2023]: { class: CarClass.SUPER_FORMULA, name: 'Super Formula 2023' },
   [CarSpec.FORMULA_2_2017]: { class: CarClass.FORMULA_2, name: 'Formula 2 2017' },
@@ -277,8 +278,12 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'vrc_formula_alpha_2025',
     'vrc_formula_alpha_2025_csp',
   ],
-  [CarSpec.FORMULA_1_2026]: [
+  [CarSpec.FORMULA_1_2026_RSS]: [
     'rss_formula_hybrid_x_2026',
+  ],
+  [CarSpec.FORMULA_1_2026_VRC]: [
+    'vrc_formula_alpha_2026',
+    'vrc_formula_alpha_2026_csp',
   ],
   [CarSpec.SUPER_FORMULA_2019]: [
     'rss_formula_rss_supreme',
