@@ -352,15 +352,18 @@
     "problems": {
       "label_one": "{{count}} championship could not be read",
       "label_other": "{{count}} championships could not be read",
-      "hint": "These are files in your own championships folder. The rest of the library is unaffected."
+      "hint": "These are files in your own championships folder. The rest of the library is unaffected.",
+      "series_one": "{{count}} problem with this championship",
+      "series_other": "{{count}} problems with this championship",
+      "seriesHint": "This file does not describe a championship that can be raced. Installing content will not help."
     },
     "back": "All championships",
     "notFound": "No such championship.",
     "available": "Available",
     "unavailable": "Unavailable",
     "origin": {
-      "user": "Yours",
-      "adjusted": "Adjusted"
+      "user": "Custom",
+      "adjusted": "Modified"
     },
     "rounds_one": "{{count}} round",
     "rounds_other": "{{count}} rounds",
@@ -443,7 +446,39 @@
       "confirm": "Set up the round",
       "cancel": "Cancel"
     },
-    "entryLabel": "{{discipline}}, tier {{tier}}"
+    "entryLabel": "{{discipline}}, tier {{tier}}",
+    "misconfigured": "Misconfigured",
+    "forkedFrom": "Copied from {{series}}",
+    "actions": {
+      "menu": "Actions for {{name}}",
+      "customise": "Customise",
+      "duplicate": "Duplicate",
+      "copyName": "{{name}} (copy)",
+      "revert": "Revert",
+      "delete": "Delete",
+      "export": "Export",
+      "import": "Import"
+    },
+    "duplicate": {
+      "title": "Duplicate {{name}}",
+      "hint": "The copy is yours to change, and it goes its own way from here: a later update to the original never reaches it.",
+      "name": "Name",
+      "cancel": "Cancel",
+      "confirm": "Duplicate"
+    },
+    "revert": {
+      "title": "Revert to the app's own championship?",
+      "body": "Your version of {{name}} is deleted and the app's own comes back. This cannot be undone."
+    },
+    "delete": {
+      "title": "Delete this championship?",
+      "body": "{{name}} is deleted from your library. This cannot be undone."
+    },
+    "import": {
+      "failed_one": "{{count}} problem with the file you picked",
+      "failed_other": "{{count}} problems with the file you picked",
+      "failedHint": "Nothing was added to your library."
+    }
   },
   "results": {
     "title": "Results",
@@ -574,5 +609,8 @@
   "cmFlagHint": {
     "--skip-all-results": "Content Manager shows its own results screen after every session. Without it you come back here sooner.",
     "--hide-race-cancel-button": "Puts a cancelled race more than one misclick away. Quitting does not abort a race either way - Assetto Corsa finishes it without you."
+  },
+  "confirm": {
+    "cancel": "Cancel"
   }
 }

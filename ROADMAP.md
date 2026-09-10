@@ -1328,8 +1328,23 @@ a validator, an availability report and a lowering into an ordinary
 `RaceDefinition` - so a round is picked from a screen and runs through the whole
 Phase 3 path with no series-aware code anywhere in `src/core/weekend`,
 `src/core/race-ini` or `src/main/race-store`. Four exemplars ship, chosen to
-prove different axes rather than to fill a ladder. The editor, forking,
-export/import, the class and spec UI and generated weather are all still open.
+prove different axes rather than to fill a ladder.
+
+**A championship is now a document the app can write, not only read.** The
+library gained its disk half - customise, revert, duplicate, delete, import and
+export - and the validation problems `seriesAvailability` had been computing
+since the beginning finally reach the screen. Two things learned building it are
+worth carrying into the editor. **A file's name and the id inside it are allowed
+to disagree**, because `readSeriesDir` keys on the id, so every delete and every
+overwrite goes through `LoadedSeries.file` and only a *new* file's name is
+derived from the id. And **an id that cannot safely be a file name is refused
+rather than repaired**: the id is what the library keys on, what `forkedFrom`
+points at and what a career will file results under, so quietly rewriting it
+would leave the file and the document disagreeing about which championship this
+is.
+
+The editor itself, the class and spec UI, teams and seats, and generated weather
+are all still open.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1500,6 +1515,15 @@ export/import, the class and spec UI and generated weather are all still open.
       three cars out of six hundred, with the search, facets and paging intact.
       One trap to carry forward: `isOneOf` treats an empty array as no filter at
       all, so `ids: []` offers the whole library. Never send one
+- [ ] **Customise should open the editor, not just write a copy.** Today it
+      writes the shipped championship into the user's folder and lands them on
+      the championship page, which is half an answer: taking a copy is the
+      *precondition* for editing one, not a thing anyone wants on its own, and
+      with no editor behind it the action reads as doing nothing. Once the
+      editor exists, Customise should copy and then open that page **in edit
+      mode** - switching into it in place when the user is already there. The
+      write half is built and is exactly what the editor's save will call, so
+      this is a navigation change rather than a new command
 - [x] **Per-session conditions** - landed early with one session per launch, in
       Phase 3. A session is a whole `race.ini`, so it carries its own weather,
       wind, temperature, track state and start time, overriding the weekend's
@@ -1550,25 +1574,68 @@ export/import, the class and spec UI and generated weather are all still open.
 - [x] **A user file carrying a shipped id replaces it**, and reads as
       `adjusted`. The override is the file's existence and nothing else, which
       is what makes reverting a deletion
-- [ ] **Revert an adjusted championship to the app's own** - delete the user's
-      file and the shipped one is simply there again. Belongs with the editor,
-      which is what creates the copy in the first place
+- [x] **Revert an adjusted championship to the app's own** - delete the user's
+      file and the shipped one is simply there again. Landed with Customise, the
+      action that creates the copy: `Customise` writes a shipped championship
+      into `%APPDATA%/ac-career-mode/series/` under **its own id**, so the
+      library's existing override rule turns it into `adjusted` and reverting is
+      nothing but deleting that file. That is also the roadmap's "copy, disable
+      the original" in full - the user's file *is* the disable - so no
+      disabled-series list was needed anywhere, and `SeriesOrigin: 'adjusted'`
+      stopped being a state only a hand-edit could reach
 - [x] **Say when a championship could not be read.** `series:list` answers with
       an envelope rather than a bare list, so a file that failed to parse
       travels beside the ones that loaded and the championships screen names it
       - an empty list and a directory of broken files looked identical before
-- [ ] **Say on the card when a championship is misconfigured.** Failing to parse
-      is now reported; failing `validateSeries` is not. A user's file can name a
-      spec that does not exist or a format that skips a day, and those problems
-      reach `SeriesAvailability.problems` with nothing rendering them. The card
-      wants a badge and the page wants the list
-- [ ] Clone a series; extend an existing one with extra rounds
-- [ ] Export / import series files
+- [x] **Say on the card when a championship is misconfigured.** The card's
+      badge went from two states to three - `Misconfigured` beats
+      `Available`/`Unavailable` outright - and the detail page lists every
+      problem above the calendar, which is why its Race buttons are dead.
+      **Problems win over missing content on purpose**: a championship that does
+      not validate cannot be raced whatever you install, so pointing the user at
+      a shopping list sends them after a fix that does not exist - and
+      `availability.entries` and `.rounds` are derived from a document already
+      declared incoherent, so the missing-content card is suppressed rather than
+      shown from data that cannot be trusted.
+      **It found a real bug while being driven**: `roundRaceable` never consulted
+      `problems` at all, so a misconfigured championship offered a live Race
+      button and `roundRace` threw on the click. Failing at validation time
+      rather than at launch time is the stance everywhere else here, so it now
+      refuses up front
+- [x] **Clone a series** - `Duplicate` writes a copy under a fresh id with
+      `forkedFrom` recording where it came from, so the copy sits beside the
+      original rather than replacing it. **The id is main's to derive, not the
+      renderer's**, which is what stopped this being one general "save this
+      championship" command: the set of taken ids is not the loaded library, it
+      is the loaded library *plus the directory's own file stems*, because a file
+      that failed to parse owns its name without appearing in the library at all
+      - and picking a "free" id from what loaded would overwrite the very file
+      the user is trying to fix. The dialog asks for a name and nothing else.
+      Extending an existing series with extra rounds is still the editor's job
+- [x] **Export / import series files.** Export writes `writeSeries` output
+      wherever the user points; import reads, parses and writes in one step,
+      because neither outcome of an id collision destroys anything and so neither
+      is worth stopping to ask about. **The collision rule is the interesting
+      part**: a file naming a *shipped* id is written under it and reads as
+      `adjusted`, which is how "here is my adjusted Formula 1, try it" arrives
+      and is undone by one click of Revert; a file naming one of the *user's own*
+      is renamed instead, because a file they wrote is never written over. A file
+      that does not parse is refused with its reasons and nothing is written -
+      it must not become a permanent entry in the library's problems that they
+      then have to delete by hand.
+      Driven end to end with the native dialogs stubbed and everything behind
+      them real: export, import-as-adjusted, import-renamed, and a junk file
+      refused with five problems and nothing written
 - [ ] Content manifest per series with `acmanager://install` for missing content
 - [ ] **Championship configuration page**: every shipped championship, available or
       not, and what content it needs
-- [ ] **Fork a shipped championship** - copy, disable the original, substitute or
-      drop content. The copy diverges; a later update to the original never reaches it
+- [x] **Fork a shipped championship** - and it turned out to be two actions
+      rather than one, both built on the override rule the library already had.
+      **Customise** takes the copy under the same id, so the app's own is
+      replaced and Revert brings it back; **Duplicate** takes it under a new one,
+      so both sit on the ladder. Either way the copy diverges - nothing links it
+      back except `forkedFrom`, which is a record rather than a live reference.
+      Substituting or dropping content within the fork waits on the editor
 - [ ] **Content source toggles** governing which championships are offered - base,
       DLC, and one per mod maker
 - [ ] Ship the championship library, with a **complete base-only ladder** across

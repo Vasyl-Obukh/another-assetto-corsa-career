@@ -48,6 +48,11 @@ export type ErrorCode =
   | 'seriesFile.unwritable'
   | 'seriesFile.directoryUnreadable'
   | 'seriesFile.duplicateId'
+  // src/core/series-library
+  | 'seriesFile.idUnsafe'
+  | 'seriesFile.idReserved'
+  | 'seriesFile.writeFailed'
+  | 'seriesFile.deleteFailed'
   // src/core/series
   | 'series.notFound'
   | 'series.version.unsupported'
@@ -80,6 +85,10 @@ export type ErrorCode =
   | 'series.round.notFound'
   | 'series.round.unavailable'
   | 'series.car.notEligible'
+  // src/main/series-store
+  | 'series.notShipped'
+  | 'series.notAdjusted'
+  | 'series.notDeletable'
   // src/main/race-store
   | 'run.inFlight'
   | 'run.notPlanned'

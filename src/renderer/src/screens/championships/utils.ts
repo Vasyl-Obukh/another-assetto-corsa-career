@@ -7,6 +7,7 @@ import type {
   PointsSystem,
   Round,
   RoundAvailability,
+  SeriesAvailability,
   SeriesListing,
   SeriesSession,
   SessionDefinition,
@@ -69,6 +70,10 @@ export const roundAvailability = (
 export const roundRaceable = (listing: SeriesListing, round: string): boolean => {
   const state = roundAvailability(listing, round);
   if (!state) return false;
+
+  // A championship that does not validate cannot be raced whatever is
+  // installed, so it is refused here rather than by roundRace on the click.
+  if (listing.availability.problems.length > 0) return false;
 
   return state.track === null
     && state.pitboxes === null
@@ -162,4 +167,29 @@ export const sessionsByDay = <T extends SessionDefinition>(
   return [...days.entries()]
     .sort(([left], [right]) => left - right)
     .map(([day, onThatDay]) => ({ day, sessions: onThatDay }));
+};
+
+/**
+ * Which of three things a championship's availability is actually saying.
+ *
+ * Two states were not enough: `validateSeries` problems force `available` to
+ * false, so a broken file read as "Unavailable" - the same word as "you do not
+ * own this mod", which points at a fix that does not exist.
+ */
+export type AvailabilityState = 'available' | 'misconfigured' | 'unavailable';
+
+/**
+ * Reads an availability as one of those three.
+ *
+ * Problems win over missing content: a championship that does not validate
+ * cannot be raced whatever is installed, and its `entries` and `rounds` are
+ * derived from a document already called incoherent. Only ever fires on a
+ * user's file - the shipped library is asserted to validate clean.
+ * @param availability What seriesAvailability said
+ * @returns Which state to render
+ */
+export const availabilityState = (availability: SeriesAvailability): AvailabilityState => {
+  if (availability.problems.length > 0) return 'misconfigured';
+
+  return availability.available ? 'available' : 'unavailable';
 };

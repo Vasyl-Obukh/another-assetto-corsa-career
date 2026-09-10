@@ -47,6 +47,15 @@
   --provenance-mod-foreground: oklch(0.38 0.13 295);
   --provenance-distribution: oklch(0.93 0.05 235);
   --provenance-distribution-foreground: oklch(0.38 0.12 250);
+
+  /* Whose championship this is. Two hues, both clear of the provenance four
+     above, because the two questions can be on screen at once. Modified is a
+     championship the app ships that you have taken over; custom is one that was
+     never ours. */
+  --origin-modified: oklch(0.93 0.05 195);
+  --origin-modified-foreground: oklch(0.36 0.09 200);
+  --origin-custom: oklch(0.93 0.05 340);
+  --origin-custom-foreground: oklch(0.38 0.12 340);
 }
 
 [data-theme="dark"] {
@@ -82,6 +91,11 @@
   --provenance-mod-foreground: oklch(0.86 0.1 295);
   --provenance-distribution: oklch(0.33 0.07 245);
   --provenance-distribution-foreground: oklch(0.86 0.09 240);
+
+  --origin-modified: oklch(0.32 0.06 195);
+  --origin-modified-foreground: oklch(0.86 0.09 200);
+  --origin-custom: oklch(0.33 0.07 340);
+  --origin-custom-foreground: oklch(0.86 0.1 340);
 }
 
 @theme inline {
@@ -111,6 +125,10 @@
   --color-provenance-mod-foreground: var(--provenance-mod-foreground);
   --color-provenance-distribution: var(--provenance-distribution);
   --color-provenance-distribution-foreground: var(--provenance-distribution-foreground);
+  --color-origin-modified: var(--origin-modified);
+  --color-origin-modified-foreground: var(--origin-modified-foreground);
+  --color-origin-custom: var(--origin-custom);
+  --color-origin-custom-foreground: var(--origin-custom-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

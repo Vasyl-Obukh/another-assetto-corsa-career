@@ -1,11 +1,18 @@
-// Reading a directory of championship files, and putting what came back in the
-// order a career would climb them.
+// Reading a directory of championship files, writing one back, and putting what
+// came back in the order a career would climb them.
 
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import {
+  COPY_SUFFIX,
+  COPY_SUFFIX_PATTERN,
+  MAX_SERIES_ID_LENGTH,
+  RESERVED_FILE_NAMES,
+  SERIES_ID_PATTERN,
+} from './constants.ts';
 import type { LoadedSeries } from './types.ts';
-import { appErrorInfo } from '../../shared/errors/index.ts';
+import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { Championship } from '../../shared/types/index.ts';
 import { readSeries, SERIES_FILE_EXTENSION } from '../series-file/index.ts';
@@ -88,4 +95,120 @@ export const readSeriesDir = async (
   }
 
   return { series, problems };
+};
+
+/**
+ * The file a championship is written as, when it has no file already.
+ *
+ * Only for a championship the folder does not hold yet: anything already on
+ * disk is rewritten under the name it was read from, since a file's name and
+ * the id inside it are allowed to disagree.
+ * @param id The championship's id, which must already be a safe one
+ * @returns The file name
+ */
+export const seriesFileName = (id: string): string => `${id}${SERIES_FILE_EXTENSION}`;
+
+/**
+ * Whether an id can safely become a file name.
+ * @param id The championship's id
+ * @returns True when it may be written
+ */
+export const isSafeSeriesId = (id: string): boolean => (
+  SERIES_ID_PATTERN.test(id)
+    && id.length <= MAX_SERIES_ID_LENGTH
+    && !RESERVED_FILE_NAMES.has(id)
+);
+
+/**
+ * Refuses an id that cannot be a file name.
+ *
+ * Refused rather than repaired: the id is what the library keys on and what
+ * `forkedFrom` points at, so rewriting it would leave the file and the document
+ * disagreeing about which championship this is.
+ * @param id The championship's id
+ * @throws When the id is not one a file can be called
+ */
+export const assertSafeSeriesId = (id: string): void => {
+  if (isSafeSeriesId(id)) return;
+
+  // A reserved name passes the pattern perfectly well, so it needs its own
+  // sentence - "use lower-case letters" is no help to someone who wrote `nul`.
+  throw RESERVED_FILE_NAMES.has(id)
+    ? new AppError('seriesFile.idReserved', { series: id })
+    : new AppError('seriesFile.idUnsafe', { series: id });
+};
+
+/**
+ * The first id in a series of candidates that nothing has taken.
+ *
+ * Unbounded: the loop only runs as long as the user has that many already, and
+ * a ceiling would refuse for a reason they could not act on.
+ * @param first The candidate to prefer
+ * @param nth Builds the candidate after the first, counting from two
+ * @param taken Everything already in use, lower-cased
+ * @returns The first free candidate
+ */
+const firstFree = (
+  first: string,
+  nth: (n: number) => string,
+  taken: ReadonlySet<string>,
+): string => {
+  if (!taken.has(first.toLowerCase())) return first;
+
+  for (let n = 2; ; n += 1) {
+    const candidate = nth(n);
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+};
+
+/**
+ * A free id for a copy of a championship.
+ *
+ * Counts on from a copy's own suffix rather than stacking, so duplicating
+ * `lotus-cup-copy` gives `lotus-cup-copy-2`.
+ * @param id The id being copied
+ * @param taken Every id already in use, lower-cased
+ * @returns An id nothing holds
+ */
+export const nextSeriesId = (id: string, taken: ReadonlySet<string>): string => {
+  const first = `${id.replace(COPY_SUFFIX_PATTERN, '')}-${COPY_SUFFIX}`;
+
+  return firstFree(first, (n) => `${first}-${n}`, taken);
+};
+
+/**
+ * A file name for a championship that no other file has spent.
+ *
+ * Needed because a name and the id inside it may disagree: `lotus-cup.json` can
+ * hold something else entirely, and writing a new championship over it would
+ * destroy a file of the user's. The id is unchanged - only the name moves.
+ * @param id The championship's id, which must already be a safe one
+ * @param taken Every file stem already in use, lower-cased
+ * @returns A file name nothing holds
+ */
+export const freeSeriesFileName = (id: string, taken: ReadonlySet<string>): string => (
+  seriesFileName(firstFree(id, (n) => `${id}-${n}`, taken))
+);
+
+/**
+ * Every id the user's folder already spends a file on.
+ *
+ * Read from the directory rather than from the loaded library, because a file
+ * that failed to parse is in neither - and deriving a free name from what
+ * loaded would overwrite the very file the user is trying to fix.
+ * @param dir Directory the user's own championships live in
+ * @returns The file stems, lower-cased, or an empty set when there is no folder
+ */
+export const takenSeriesIds = async (dir: string): Promise<Set<string>> => {
+  try {
+    const names = await readdir(dir);
+
+    return new Set(names
+      .filter((name) => name.endsWith(SERIES_FILE_EXTENSION))
+      .map((name) => name.slice(0, -SERIES_FILE_EXTENSION.length).toLowerCase()));
+  } catch {
+    // A folder that is not there spends no names, which is the same answer as
+    // one that is empty. Anything worse readSeriesDir reports already.
+    return new Set();
+  }
 };

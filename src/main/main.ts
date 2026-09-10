@@ -60,6 +60,10 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow) send(mainWindow, 'content:changed', change);
     });
 
+    series.onChange((library) => {
+      if (mainWindow) send(mainWindow, 'series:changed', library);
+    });
+
     race.onChange((setup) => {
       if (!mainWindow) return;
       send(mainWindow, 'race:changed', setup);

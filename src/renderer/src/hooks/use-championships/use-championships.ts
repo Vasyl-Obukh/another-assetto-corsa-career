@@ -11,7 +11,8 @@ export type { ChampionshipsState } from './types.ts';
  *
  * Re-read on content:changed rather than only on mount: a championship's
  * availability is a fact about the library, so installing a mod while the
- * screen is open changes the answer.
+ * screen is open changes the answer. And adopted straight off series:changed,
+ * so a championship written from the detail screen reaches the list behind it.
  * @returns The listings and what is stopping them loading
  */
 export const useChampionships = (): ChampionshipsState => {
@@ -31,6 +32,9 @@ export const useChampionships = (): ChampionshipsState => {
 
   useEffect(load, [load]);
   useEffect(() => subscribe('content:changed', () => { load(); }), [load]);
+  // The push carries the whole library, which is exactly what series:list
+  // answers - so unlike content:changed beside it, this needs no round trip.
+  useEffect(() => subscribe('series:changed', setLibrary), []);
 
   return {
     listings: library?.series ?? [],

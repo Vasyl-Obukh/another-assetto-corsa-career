@@ -65,6 +65,12 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'seriesFile.unwritable': 'Championship {{series}} holds something JSON cannot carry',
   'seriesFile.directoryUnreadable': 'Could not read the championships in {{dir}}: {{reason}}',
   'seriesFile.duplicateId': '{{file}} claims the id {{series}}, which {{taken}} already has',
+  'seriesFile.idUnsafe':
+    '{{series}} cannot be a championship file name. An id is lower-case letters, digits and hyphens.',
+  'seriesFile.idReserved':
+    '{{series}} is a name Windows reserves for a device, so no file can be called that.',
+  'seriesFile.writeFailed': 'Could not save championship {{series}}: {{reason}}',
+  'seriesFile.deleteFailed': 'Could not delete championship {{series}}: {{reason}}',
 
   'series.notFound': 'Championship not found: {{series}}',
   'series.version.unsupported':
@@ -111,6 +117,12 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.round.notFound': 'Round not found in {{series}}: {{round}}',
   'series.round.unavailable': 'Round {{round}} of {{series}} cannot be raced against the installed content',
   'series.car.notEligible': 'Car {{car}} is not eligible for {{entry}} at this round',
+  'series.notShipped':
+    'Championship {{series}} is already yours, so there is nothing the app ships to adjust.',
+  'series.notAdjusted':
+    'Championship {{series}} does not replace one the app ships, so there is nothing to go back to.',
+  'series.notDeletable':
+    'Championship {{series}} is not one you wrote. An adjusted championship is reverted rather than deleted.',
 
   'run.inFlight': 'A race is already running. Wait for it to finish, or cancel it first.',
   'run.notPlanned':

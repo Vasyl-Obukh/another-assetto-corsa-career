@@ -1,7 +1,6 @@
-import { ipcMain } from 'electron';
-import type { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 
-import { isAppError } from '../../shared/errors/index.ts';
+import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type {
   IpcChannel,
   IpcError,
@@ -61,4 +60,19 @@ export const send = <E extends IpcEventName>(
 ): void => {
   if (window.isDestroyed()) return;
   window.webContents.send(event, payload);
+};
+
+/**
+ * The window a native dialog should be parented to.
+ *
+ * Focused first, then whatever is open: a dialog has to belong to something, or
+ * it appears detached and the app stays interactive behind it.
+ * @returns The window
+ * @throws When there is no window at all, which is the app shutting down
+ */
+export const focusedWindow = (): BrowserWindow => {
+  const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+  if (!window) throw new AppError('ipc.noWindow');
+
+  return window;
 };

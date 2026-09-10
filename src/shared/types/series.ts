@@ -686,3 +686,49 @@ export interface SeriesListing {
    */
   origin: SeriesOrigin;
 }
+
+/**
+ * What one command left the library looking like.
+ *
+ * The whole library rather than the one championship that changed, because
+ * every one of these commands changes the *list*: customising flips an origin,
+ * duplicating adds a row and re-sorts the ladder - `byLadder` is derived from
+ * tiers, so a copy lands wherever its own tiers put it - and reverting can
+ * change the name at that id. Handing back a single listing would leave the
+ * renderer guessing whether to splice, re-sort or read again.
+ */
+export interface SeriesCommandResult {
+  /**
+   * The library as it now stands, so the caller needs no second read.
+   */
+  library: SeriesLibrary;
+  /**
+   * The championship the command leaves the user looking at, or null when it
+   * removed one. What duplicating and importing navigate to.
+   */
+  id: string | null;
+}
+
+/**
+ * What importing a championship file produced.
+ *
+ * Read and written in one step rather than stopping to confirm, because neither
+ * outcome of an id collision destroys anything: taking over a shipped
+ * championship's id is undone by reverting, and a copy that had to be renamed
+ * is undone by deleting it.
+ */
+export interface SeriesImportResult {
+  /**
+   * The library as it now stands.
+   */
+  library: SeriesLibrary;
+  /**
+   * The id it came in under, or null when the file held no championship.
+   */
+  id: string | null;
+  /**
+   * Everything wrong with the file - why it was refused, or what is still
+   * wrong with what came in.
+   */
+  problems: readonly AppErrorInfo[];
+}

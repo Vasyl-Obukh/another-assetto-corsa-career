@@ -1,10 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
+import { AvailabilityBadge } from './AvailabilityBadge.tsx';
+import { ChampionshipActions } from './ChampionshipActions.tsx';
+import { OriginBadge } from './OriginBadge.tsx';
 import { disciplineKey } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
+import type { SeriesCommandsState } from '@/hooks';
 import { path } from '@/lib/routes';
 
 interface ChampionshipCardProps {
@@ -12,59 +16,63 @@ interface ChampionshipCardProps {
    * The championship and whether the library can race it.
    */
   listing: SeriesListing;
+  /**
+   * The screen's commands, shared by every card so one busy flag and one error
+   * surface cover the whole list.
+   */
+  commands: SeriesCommandsState;
 }
 
-export const ChampionshipCard = ({ listing }: ChampionshipCardProps) => {
+export const ChampionshipCard = ({ listing, commands }: ChampionshipCardProps) => {
   const { t } = useTranslation();
   const { series, availability, origin } = listing;
 
+  // The link is stretched over the card rather than wrapping it, which is what
+  // lets the menu live inside: a button nested in an anchor is neither valid nor
+  // clickable in the way anyone expects.
   return (
-    <Link
-      to={path.championship({ id: series.id })}
-      className="rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-    >
-      <Card className="transition-[box-shadow,border-color] hover:border-primary">
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="min-w-0 flex-1 truncate font-medium">{series.name}</span>
+    <Card className="relative transition-[box-shadow,border-color] focus-within:border-primary hover:border-primary">
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to={path.championship({ id: series.id })}
+            className="min-w-0 flex-1 truncate font-medium after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none"
+          >
+            {series.name}
+          </Link>
 
-            {/* Only when it is not simply the app's own: a badge down every row
-                saying "shipped" would be noise, and what a list has to show is
-                which of its entries you have had a hand in. */}
-            {origin === 'shipped' ? null : (
-              <Badge variant="outline">{t(`championships.origin.${origin}`)}</Badge>
-            )}
+          <OriginBadge origin={origin} />
+          <AvailabilityBadge availability={availability} />
 
-            <Badge variant={availability.available ? 'secondary' : 'destructive'}>
-              {t(availability.available ? 'championships.available' : 'championships.unavailable')}
-            </Badge>
+          <div className="relative z-10 -my-2 -mr-2">
+            <ChampionshipActions listing={listing} commands={commands} />
           </div>
+        </div>
 
-          {series.notes ? (
-            <p className="text-sm text-muted-foreground">{series.notes}</p>
-          ) : null}
+        {series.notes ? (
+          <p className="text-sm text-muted-foreground">{series.notes}</p>
+        ) : null}
 
-          <div className="flex flex-wrap items-center gap-2">
-            {series.entries.map((entry) => (
-              <Badge key={entry.id} variant="outline">
-                {t('championships.entryLabel', {
-                  discipline: t(disciplineKey(entry.ladder.discipline)),
-                  tier: entry.ladder.tier,
-                })}
-              </Badge>
-            ))}
+        <div className="flex flex-wrap items-center gap-2">
+          {series.entries.map((entry) => (
+            <Badge key={entry.id} variant="outline">
+              {t('championships.entryLabel', {
+                discipline: t(disciplineKey(entry.ladder.discipline)),
+                tier: entry.ladder.tier,
+              })}
+            </Badge>
+          ))}
 
+          <Badge variant="outline">
+            {t('championships.rounds', { count: series.rounds.length })}
+          </Badge>
+          {series.entries.length > 1 ? (
             <Badge variant="outline">
-              {t('championships.rounds', { count: series.rounds.length })}
+              {t('championships.classes', { count: series.entries.length })}
             </Badge>
-            {series.entries.length > 1 ? (
-              <Badge variant="outline">
-                {t('championships.classes', { count: series.entries.length })}
-              </Badge>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

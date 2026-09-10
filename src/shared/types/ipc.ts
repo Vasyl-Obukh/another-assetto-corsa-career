@@ -19,7 +19,9 @@ import type {
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { RaceSetup, ResultRecord } from './race-run.ts';
 import type { RaceDefinition } from './race.ts';
-import type { SeriesLibrary, SeriesListing } from './series.ts';
+import type {
+  SeriesCommandResult, SeriesImportResult, SeriesLibrary, SeriesListing,
+} from './series.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
 
@@ -164,6 +166,47 @@ export interface IpcContract {
     res: RaceSetup;
   };
   /**
+   * Take a copy of a championship the app ships, under its own id.
+   *
+   * The copy replaces the original rather than sitting beside it, since a user
+   * file carrying a shipped id is exactly what `adjusted` means - so this is
+   * both "fork it" and "disable the app's own" in one write.
+   */
+  'series:customise': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Copy a championship into a separate one of the user's own.
+   *
+   * The id of the copy is main's to pick and is not sent: only main knows what
+   * is taken, since a file that failed to parse owns its name without appearing
+   * in the library at all. The name is sent, because it is user-visible copy
+   * and translating it here would bake English into a Ukrainian library.
+   */
+  'series:duplicate': { req: { id: string; name?: string }; res: SeriesCommandResult };
+  /**
+   * Delete the user's version of a championship the app ships, putting the
+   * app's own back.
+   */
+  'series:revert': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Delete one of the user's own championships. Nothing takes its place.
+   */
+  'series:delete': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Read a championship file the user picks into their library.
+   *
+   * Null when they cancelled, matching paths:pick. Neither outcome of an id
+   * collision is destructive, so the file is read and written in one step
+   * rather than stopping to ask: taking over a shipped id is undone by
+   * reverting, and a copy that had to be renamed is undone by deleting it.
+   */
+  'series:import': { req: void; res: SeriesImportResult | null };
+  /**
+   * Write one championship out as a file the user can share.
+   *
+   * Resolves the path written, or null when they cancelled the dialog.
+   */
+  'series:export': { req: { id: string }; res: string | null };
+  /**
    * What Content Manager's Arguments.txt holds.
    *
    * Read off disk on every call rather than mirrored into settings: the user
@@ -229,6 +272,16 @@ export interface IpcEvents {
    * that never existed.
    */
   'race:changed': RaceSetup;
+  /**
+   * The championship library changed, because a command wrote or deleted one of
+   * the user's files.
+   *
+   * Pushed as well as returned, because two screens read the library at once: a
+   * duplicate performed on the detail screen has to reach the list mounted
+   * behind it. Carries the whole library, which is the same value series:list
+   * answers, so a listener needs no round trip of its own.
+   */
+  'series:changed': SeriesLibrary;
 }
 
 /**

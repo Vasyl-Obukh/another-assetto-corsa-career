@@ -22,6 +22,8 @@ export { useResult } from './use-result/index.ts';
 export type { ResultDetail } from './use-result/index.ts';
 export { useResults } from './use-results/index.ts';
 export type { ResultsState } from './use-results/index.ts';
+export { useSeriesCommands } from './use-series-commands/index.ts';
+export type { SeriesCommandsState } from './use-series-commands/index.ts';
 export type { PagedList } from './use-paged-content/index.ts';
 export { useTrackBrowser } from './use-track-browser/index.ts';
 export type { TrackBrowser, TrackCriteria } from './use-track-browser/index.ts';

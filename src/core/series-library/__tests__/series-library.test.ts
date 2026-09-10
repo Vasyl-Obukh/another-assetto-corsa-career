@@ -1,11 +1,21 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import {
+  beforeEach, describe, expect, it, jest,
+} from '@jest/globals';
+import path from 'node:path';
 
+import { isAppError } from '../../../shared/errors/index.ts';
+import type { Championship } from '../../../shared/types/index.ts';
 import { validateSeries } from '../../series/index.ts';
-import { loadSeriesLibrary, SHIPPED_SERIES } from '../index.ts';
+import { readSeries } from '../../series-file/index.ts';
+import {
+  deleteUserSeries, loadSeriesLibrary, saveUserSeries, SHIPPED_SERIES,
+} from '../index.ts';
 
 jest.mock('node:fs/promises');
 
-const { readdir, readFile } = jest.requireMock<typeof import('node:fs/promises')>('node:fs/promises');
+const {
+  mkdir, readdir, readFile, rename, rm, writeFile,
+} = jest.requireMock<typeof import('node:fs/promises')>('node:fs/promises');
 
 /**
  * Stands a directory of championship files up in the mocked filesystem.
@@ -54,7 +64,37 @@ const seriesFile = (overrides: Record<string, unknown> = {}): string => JSON.str
   ...overrides,
 });
 
+/**
+ * A championship a write test can name whatever it needs to.
+ * @param id What to call it
+ * @returns The championship
+ */
+const championship = (id: string): Championship => (
+  { ...JSON.parse(seriesFile()) as Championship, id }
+);
+
+/**
+ * The code a write refused with.
+ * @param write The call to make
+ * @returns The error code, or null when it did not refuse
+ */
+const refusal = async (write: Promise<unknown>): Promise<string | null> => {
+  try {
+    await write;
+
+    return null;
+  } catch (error) {
+    return isAppError(error) ? error.code : 'not-an-app-error';
+  }
+};
+
 describe('core/series-library', () => {
+  // clearMocks resets calls but not implementations, so a rejection set by one
+  // test would otherwise leak into the next.
+  beforeEach(() => {
+    [mkdir, writeFile, rename, rm].forEach((fn) => jest.mocked(fn).mockReset());
+  });
+
   describe('SHIPPED_SERIES', () => {
     // The compiler checks that a spec and a discipline are real members, and
     // nothing else: whether a format's days run in order, whether a session
@@ -152,6 +192,95 @@ describe('core/series-library', () => {
 
       expect(library.problems.map((problem) => problem.code))
         .toEqual(['seriesFile.directoryUnreadable']);
+    });
+  });
+  describe('saveUserSeries', () => {
+    it('writes through a temp file and a rename, so a crash cannot truncate it', async () => {
+      const name = await saveUserSeries('user-dir', championship('sunday-cup'));
+
+      expect(name).toBe('sunday-cup.json');
+      expect(jest.mocked(mkdir)).toHaveBeenCalledWith('user-dir', { recursive: true });
+      expect(jest.mocked(writeFile).mock.calls[0][0])
+        .toBe(path.join('user-dir', 'sunday-cup.json.tmp'));
+      expect(jest.mocked(rename)).toHaveBeenCalledWith(
+        path.join('user-dir', 'sunday-cup.json.tmp'),
+        path.join('user-dir', 'sunday-cup.json'),
+      );
+    });
+
+    it('writes something readSeries reads back as the same championship', async () => {
+      await saveUserSeries('user-dir', championship('sunday-cup'));
+      const written = jest.mocked(writeFile).mock.calls[0][1] as string;
+
+      expect(readSeries(written, 'sunday-cup.json').series?.id).toBe('sunday-cup');
+    });
+
+    // A file's name and the id inside it are allowed to disagree, so one already
+    // on disk is rewritten under the name it was read from - a derived name
+    // would leave two files claiming one id.
+    it('overwrites the file it was given rather than one named after the id', async () => {
+      const name = await saveUserSeries('user-dir', championship('sunday-cup'), 'weird.json');
+
+      expect(name).toBe('weird.json');
+      expect(jest.mocked(rename).mock.calls[0][1]).toBe(path.join('user-dir', 'weird.json'));
+    });
+
+    it('refuses an id that could not be a file name, writing nothing', async () => {
+      expect(await refusal(saveUserSeries('user-dir', championship('../evil'))))
+        .toBe('seriesFile.idUnsafe');
+      expect(jest.mocked(writeFile)).not.toHaveBeenCalled();
+    });
+
+    // The file argument is a name read off disk rather than one we derived,
+    // which is what this second guard is really for.
+    it('refuses a file name that would reach outside the folder', async () => {
+      expect(await refusal(saveUserSeries('user-dir', championship('sunday-cup'), '../evil.json')))
+        .toBe('seriesFile.idUnsafe');
+      expect(jest.mocked(writeFile)).not.toHaveBeenCalled();
+    });
+
+    it('says which championship could not be saved when the disk refuses', async () => {
+      jest.mocked(writeFile).mockRejectedValue(new Error('EACCES: permission denied'));
+
+      expect(await refusal(saveUserSeries('user-dir', championship('sunday-cup'))))
+        .toBe('seriesFile.writeFailed');
+    });
+  });
+
+  describe('deleteUserSeries', () => {
+    it('deletes the file it was given', async () => {
+      await deleteUserSeries('user-dir', 'weird.json', 'sunday-cup');
+
+      expect(jest.mocked(rm))
+        .toHaveBeenCalledWith(path.join('user-dir', 'weird.json'), { force: true });
+    });
+
+    // Reverting twice asks for a state the folder is already in, so force
+    // rather than an error.
+    it('is not an error when the file is already gone', async () => {
+      expect(await refusal(deleteUserSeries('user-dir', 'gone.json', 'sunday-cup'))).toBeNull();
+    });
+
+    it('refuses a name to delete that would reach outside the folder', async () => {
+      expect(await refusal(deleteUserSeries('user-dir', '../evil.json', 'sunday-cup')))
+        .toBe('seriesFile.idUnsafe');
+      expect(jest.mocked(rm)).not.toHaveBeenCalled();
+    });
+
+    // Guards the invariant the store leans on: only a shipped championship has
+    // no file, and revert and delete both refuse those before they reach here.
+    // An empty name would otherwise resolve to the folder itself.
+    it('refuses an empty name to delete', async () => {
+      expect(await refusal(deleteUserSeries('user-dir', '', 'sunday-cup')))
+        .toBe('seriesFile.idUnsafe');
+      expect(jest.mocked(rm)).not.toHaveBeenCalled();
+    });
+
+    it('says which championship could not be deleted when the disk refuses', async () => {
+      jest.mocked(rm).mockRejectedValue(new Error('EBUSY: resource busy'));
+
+      expect(await refusal(deleteUserSeries('user-dir', 'sunday-cup.json', 'sunday-cup')))
+        .toBe('seriesFile.deleteFailed');
     });
   });
 });

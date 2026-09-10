@@ -38,8 +38,11 @@ export const useChampionship = (id: string): ChampionshipState => {
   }, [id, key]);
 
   // Availability is a fact about the library, so installing a mod while this
-  // screen is open changes what it should be saying.
+  // screen is open changes what it should say, and so does a command written
+  // anywhere else. This screen wants one championship out of the pushed
+  // library rather than the library itself, so it re-reads either way.
   useEffect(() => subscribe('content:changed', () => setNonce((prev) => prev + 1)), []);
+  useEffect(() => subscribe('series:changed', () => setNonce((prev) => prev + 1)), []);
 
   const enterRound = useCallback(
     async (entry: string, round: string, car: string, skin?: string): Promise<boolean> => {

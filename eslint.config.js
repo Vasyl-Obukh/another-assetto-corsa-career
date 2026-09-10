@@ -137,6 +137,9 @@ export default defineConfig([
       'func-style': 'off',
       'import-x/order': 'off',
       'sort-imports': 'off',
+      // Upstream writes inline type members newline-separated with no
+      // delimiter, which is what dropdown-menu.tsx carries.
+      '@stylistic/member-delimiter-style': 'off',
       'max-len': 'off',
       'no-use-before-define': 'off',
       '@typescript-eslint/no-use-before-define': 'off',
