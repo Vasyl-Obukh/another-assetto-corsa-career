@@ -15,7 +15,11 @@
 :root {
   --radius: 0.625rem;
 
-  --background: oklch(0.985 0.002 250);
+  /* The page is a shade of cool grey and a card is white, rather than both
+     being white a rounding error apart. Every neutral carries a little blue
+     chroma for the same reason: a UI mixed from pure greys reads as unfinished
+     rather than as restrained. */
+  --background: oklch(0.965 0.007 250);
   --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.01 260);
@@ -23,18 +27,24 @@
   --popover-foreground: oklch(0.16 0.01 260);
   --primary: oklch(0.48 0.2 262);
   --primary-foreground: oklch(0.985 0.005 260);
-  --secondary: oklch(0.96 0.004 250);
-  --secondary-foreground: oklch(0.22 0.01 260);
-  --muted: oklch(0.96 0.004 250);
+  --secondary: oklch(0.935 0.012 252);
+  --secondary-foreground: oklch(0.28 0.03 258);
+  --muted: oklch(0.94 0.01 252);
   --muted-foreground: oklch(0.53 0.012 258);
-  --accent: oklch(0.95 0.008 250);
-  --accent-foreground: oklch(0.22 0.01 260);
+  --accent: oklch(0.925 0.018 255);
+  --accent-foreground: oklch(0.28 0.04 258);
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(0.985 0.005 60);
   --success: oklch(0.55 0.13 155);
   --success-foreground: oklch(0.985 0.005 155);
-  --border: oklch(0.9 0.005 255);
-  --input: oklch(0.9 0.005 255);
+  /* Amber sits between "fine" and "broken", which several states genuinely
+     are: a championship whose file does not validate, a qualifying segment
+     nobody drove. Dark text on it, because an amber light enough to read as a
+     warning cannot carry white. */
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
   --ring: oklch(0.48 0.2 262);
 
   /* Where content came from. One hue per source, plus a fourth for whoever
@@ -56,12 +66,39 @@
   --origin-modified-foreground: oklch(0.36 0.09 200);
   --origin-custom: oklch(0.93 0.05 340);
   --origin-custom-foreground: oklch(0.38 0.12 340);
+
+  /* What kind of session a chip stands for. A weekend format is a row of these
+     and reading it at a glance is the whole point, so practice, qualifying and
+     the race get a hue each - and the race is deeper than the other two,
+     because a weekend has one thing in it that counts. The four exotic types
+     share a neutral on purpose: "something else" is not a category worth a
+     colour, and giving it one would make a legend necessary. */
+  --session-practice: oklch(0.93 0.045 250);
+  --session-practice-foreground: oklch(0.4 0.13 258);
+  --session-qualify: oklch(0.93 0.05 310);
+  --session-qualify-foreground: oklch(0.4 0.15 310);
+  --session-race: oklch(0.89 0.085 150);
+  --session-race-foreground: oklch(0.33 0.1 152);
+  --session-other: oklch(0.93 0.006 255);
+  --session-other-foreground: oklch(0.42 0.012 260);
+
+  /* A podium finish, wherever one is listed - what a place pays, what it
+     scores, who took it. Three metals rather than three arbitrary hues, so the
+     order is legible without reading the number: gold is the lightest and
+     yellowest, bronze the deepest and reddest, and silver holds no hue at all
+     so it cannot be mistaken for either. */
+  --podium-gold: oklch(0.9 0.085 88);
+  --podium-gold-foreground: oklch(0.42 0.1 75);
+  --podium-silver: oklch(0.91 0.008 255);
+  --podium-silver-foreground: oklch(0.42 0.015 260);
+  --podium-bronze: oklch(0.89 0.07 52);
+  --podium-bronze-foreground: oklch(0.41 0.09 48);
 }
 
 [data-theme="dark"] {
-  --background: oklch(0.17 0.012 265);
+  --background: oklch(0.165 0.012 265);
   --foreground: oklch(0.94 0.005 260);
-  --card: oklch(0.21 0.014 265);
+  --card: oklch(0.225 0.015 265);
   --card-foreground: oklch(0.94 0.005 260);
   --popover: oklch(0.23 0.014 265);
   --popover-foreground: oklch(0.94 0.005 260);
@@ -77,6 +114,8 @@
   --destructive-foreground: oklch(0.16 0.02 30);
   --success: oklch(0.7 0.15 158);
   --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   /* Lighter and less saturated than its light-theme counterpart, which glares
@@ -96,6 +135,22 @@
   --origin-modified-foreground: oklch(0.86 0.09 200);
   --origin-custom: oklch(0.33 0.07 340);
   --origin-custom-foreground: oklch(0.86 0.1 340);
+
+  --session-practice: oklch(0.32 0.06 250);
+  --session-practice-foreground: oklch(0.86 0.09 255);
+  --session-qualify: oklch(0.33 0.07 310);
+  --session-qualify-foreground: oklch(0.87 0.1 310);
+  --session-race: oklch(0.35 0.09 150);
+  --session-race-foreground: oklch(0.88 0.13 150);
+  --session-other: oklch(0.3 0.008 260);
+  --session-other-foreground: oklch(0.8 0.012 260);
+
+  --podium-gold: oklch(0.36 0.07 88);
+  --podium-gold-foreground: oklch(0.89 0.12 92);
+  --podium-silver: oklch(0.33 0.006 260);
+  --podium-silver-foreground: oklch(0.86 0.008 260);
+  --podium-bronze: oklch(0.33 0.06 50);
+  --podium-bronze-foreground: oklch(0.85 0.09 55);
 }
 
 @theme inline {
@@ -117,6 +172,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-provenance-base: var(--provenance-base);
   --color-provenance-base-foreground: var(--provenance-base-foreground);
   --color-provenance-dlc: var(--provenance-dlc);
@@ -129,6 +186,20 @@
   --color-origin-modified-foreground: var(--origin-modified-foreground);
   --color-origin-custom: var(--origin-custom);
   --color-origin-custom-foreground: var(--origin-custom-foreground);
+  --color-session-practice: var(--session-practice);
+  --color-session-practice-foreground: var(--session-practice-foreground);
+  --color-session-qualify: var(--session-qualify);
+  --color-session-qualify-foreground: var(--session-qualify-foreground);
+  --color-session-race: var(--session-race);
+  --color-session-race-foreground: var(--session-race-foreground);
+  --color-session-other: var(--session-other);
+  --color-session-other-foreground: var(--session-other-foreground);
+  --color-podium-gold: var(--podium-gold);
+  --color-podium-gold-foreground: var(--podium-gold-foreground);
+  --color-podium-silver: var(--podium-silver);
+  --color-podium-silver-foreground: var(--podium-silver-foreground);
+  --color-podium-bronze: var(--podium-bronze);
+  --color-podium-bronze-foreground: var(--podium-bronze-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

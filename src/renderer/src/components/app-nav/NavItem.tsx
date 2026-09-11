@@ -4,6 +4,7 @@ import { NavLink, useMatch } from 'react-router';
 import { Button } from '@/components/ui/button.tsx';
 import { path, ROUTE } from '@/lib/routes';
 import type { NavId } from '@/lib/routes';
+import { cn } from '@/lib/utils.ts';
 
 interface NavItemProps {
   /**
@@ -29,8 +30,17 @@ export const NavItem = ({ id, label, icon }: NavItemProps) => {
   // so opening a car from the browser does not darken the Cars tab.
   const active = useMatch({ path: ROUTE[id], end: false }) !== null;
 
+  // Tinted with the app's own accent rather than the grey a secondary button
+  // wears: the header is the one thing on screen at all times, and "which
+  // section am I in" should not be a shade of the same neutral as everything
+  // around it.
   return (
-    <Button asChild size="sm" variant={active ? 'secondary' : 'ghost'}>
+    <Button
+      asChild
+      size="sm"
+      variant="ghost"
+      className={cn(active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary')}
+    >
       <NavLink to={path[id]()}>
         {icon}
         {label}

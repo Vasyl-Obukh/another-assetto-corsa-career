@@ -23,8 +23,10 @@ export const StatusBadge = ({ probe }: StatusBadgeProps) => {
     );
   }
 
+  // Red for a path that was named and is not there, amber for one nothing has
+  // named yet: the first is broken and the second is merely not done.
   return (
-    <Badge variant="destructive">
+    <Badge variant={probe.value ? 'destructive' : 'warning'}>
       <TriangleAlertIcon />
       {probe.value ? t('paths.missing') : t('paths.undetected')}
     </Badge>

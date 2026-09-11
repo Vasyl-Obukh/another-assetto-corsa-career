@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
+import { SESSION_ACCENT } from '@/lib/accents';
 
 interface FormatCardProps {
   /**
@@ -68,7 +69,10 @@ export const FormatCard = ({ series }: FormatCardProps) => {
                   // format is a fixed list rather than a reordered one.
                   // eslint-disable-next-line react/no-array-index-key
                   <span key={index} className="flex items-center gap-1">
-                    <Badge variant="outline">{label(session)}</Badge>
+                    {/* Coloured by what it is rather than by where it sits,
+                        so a format reads as practice, qualifying and a race
+                        without anybody working down the row. */}
+                    <Badge className={SESSION_ACCENT[session.type]}>{label(session)}</Badge>
                     {/* A race paying its own table is the whole reason a sprint
                         weekend is a separate format, so it is said here rather
                         than left to the points card, which shows the

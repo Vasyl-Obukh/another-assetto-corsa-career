@@ -47,7 +47,7 @@ export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
           <Badge variant="outline">{t('championships.entries.cars')}</Badge>
         )}
 
-        <Badge variant={availability?.enough ? 'secondary' : 'destructive'}>
+        <Badge variant={availability?.enough ? 'success' : 'destructive'}>
           {t('championships.entries.eligible', { count: availability?.eligible.length ?? 0 })}
         </Badge>
       </div>

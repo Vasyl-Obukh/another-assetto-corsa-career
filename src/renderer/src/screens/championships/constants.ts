@@ -1,4 +1,8 @@
+import type { VariantProps } from 'class-variance-authority';
+
+import type { AvailabilityState } from './utils.ts';
 import type { SeriesOrigin } from '../../../../shared/types';
+import type { badgeVariants } from '@/components/ui/badge.tsx';
 
 /**
  * The colour each origin's badge takes.
@@ -31,3 +35,20 @@ export const ORIGIN_TAG_CLASS = {
  * 56rem less the 8rem gutter leaves each column 24rem.
  */
 export const SEAT_COLUMNS = 'columns-1 max-w-4xl gap-x-32 sm:columns-2';
+
+/**
+ * The badge each availability state wears.
+ *
+ * A traffic light rather than a pair: "Misconfigured" is neither a library
+ * problem nor nothing wrong, and amber is what says so without a sentence.
+ * Checked against the badge's own variants, so a colour that is not offered
+ * fails here rather than silently rendering as the default one.
+ */
+export const AVAILABILITY_VARIANT = {
+  available: 'success',
+  misconfigured: 'warning',
+  unavailable: 'destructive',
+} as const satisfies Record<
+AvailabilityState,
+NonNullable<VariantProps<typeof badgeVariants>['variant']>
+>;

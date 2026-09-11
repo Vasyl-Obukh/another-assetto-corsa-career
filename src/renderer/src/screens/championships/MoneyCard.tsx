@@ -6,6 +6,7 @@ import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
+import { PODIUM_ACCENT } from '@/lib/accents';
 
 interface MoneyCardProps {
   /**
@@ -29,12 +30,17 @@ export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
    * same list read two ways and a career page showing them differently would be
    * saying something it does not mean.
    * @param amounts What each position pays
-   * @returns One label per position paid
+   * @returns One label per position paid, with the colour it wears
    */
-  const rows = (amounts: readonly number[]): string[] => amounts.map((amount, index) => t(
-    'championships.money.row',
-    { label: t('championships.money.position', { number: index + 1 }), amount: formatMoney(amount) },
-  ));
+  const rows = (amounts: readonly number[]): { label: string; accent?: string }[] => amounts.map(
+    (amount, index) => ({
+      label: t('championships.money.row', {
+        label: t('championships.money.position', { number: index + 1 }),
+        amount: formatMoney(amount),
+      }),
+      accent: PODIUM_ACCENT[index],
+    }),
+  );
 
   return (
     <Card>
@@ -54,7 +60,9 @@ export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
             <span className="text-sm font-medium">{t('championships.money.roundPrizes')}</span>
             <div className="flex flex-wrap gap-2">
               {rows(prizes.positions).map((row) => (
-                <Badge key={row} variant="outline">{row}</Badge>
+                <Badge key={row.label} variant="outline" className={row.accent}>
+                  {row.label}
+                </Badge>
               ))}
             </div>
           </div>
@@ -65,7 +73,9 @@ export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
             <span className="text-sm font-medium">{t('championships.money.seasonPrizes')}</span>
             <div className="flex flex-wrap gap-2">
               {rows(prizes.standings).map((row) => (
-                <Badge key={row} variant="outline">{row}</Badge>
+                <Badge key={row.label} variant="outline" className={row.accent}>
+                  {row.label}
+                </Badge>
               ))}
             </div>
           </div>

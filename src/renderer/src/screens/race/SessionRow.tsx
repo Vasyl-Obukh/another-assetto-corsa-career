@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { cn } from '@/lib/utils.ts';
 
 interface SessionRowProps {
   /**
@@ -105,7 +106,13 @@ export const SessionRow = ({
   const ran = record !== null && !simulated;
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border p-3">
+    // The session that runs next is picked out by its own frame, so the plan
+    // says where you are up to before any badge in it is read.
+    <div className={cn(
+      'flex flex-col gap-3 rounded-md border p-3',
+      next && 'border-primary/60 bg-primary/5',
+    )}
+    >
       <div className="flex items-end gap-2">
         <Field id={`session-${index}-type`} label={t('race.sessions.type')}>
           <Select
@@ -215,13 +222,15 @@ export const SessionRow = ({
 
         <div className="ml-auto flex shrink-0 items-center gap-0.5">
           {ran ? (
-            <Badge variant="secondary">
+            <Badge variant="success">
               <CheckIcon />
               {t('race.plan.done')}
             </Badge>
           ) : null}
+          {/* Amber rather than green: the segment has a classification, but
+              nobody drove it. */}
           {simulated ? (
-            <Badge variant="outline">{t('race.plan.simulated')}</Badge>
+            <Badge variant="warning">{t('race.plan.simulated')}</Badge>
           ) : null}
           {next ? <Badge>{t('race.plan.next')}</Badge> : null}
           {!ran && !simulated && !next ? (

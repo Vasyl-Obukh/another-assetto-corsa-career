@@ -157,6 +157,7 @@ per project.
 | `src/renderer/src/screens/` | One folder per route-level screen. `car-browser` and `track-browser` each expose a `*BrowserBody`, which is the whole browser with an optional `onSelect` - that is what the race screen's pickers are, rather than screens of their own. A body given a `memoryId` comes back to the filters it was left with; a picker passes none, so its restricted library never inherits or leaks the page's filters |
 | `src/renderer/src/lib/routes/` | Every route pattern, the builders that turn one into a URL, and which destinations navigation offers. `ROUTE.x` is the pattern, `path.x()` is the URL |
 | `src/renderer/src/lib/layout.ts` | The measurements more than one screen shares: the content width, the settings control width, the two-column field grid |
+| `src/renderer/src/lib/accents.ts` | The colour a chip wears when what it says is one of a closed set, for the sets more than one screen shows: which kind of session, which podium place. Class strings rather than tokens, so a caller hands one to a `Badge` and tailwind-merge drops the variant's own fill for it - and a value the map does not cover keeps that variant untouched, which is how fourth place comes out unfilled |
 | `src/renderer/src/lib/browser-memory/` | The filters and the search a browser was left with, held per browser id for as long as the window lives, so leaving a browser page and coming back does not mean setting them again. Module state rather than a provider, because nothing renders from it and the only reader is the next mount. Deliberately not the scroll offset: restoring one means paging every entry under it back in first |
 | `races/*.json` | Race definitions in our own format. A weekend is one of these too - its `sessions` cover the whole event and `src/core/weekend/` splits it into launches |
 | `races/spikes/` | Probes that pin down AC behaviour we depend on, one per question, each carrying its procedure in its `notes`. Run with `npm run race -- spikes/<name>`; read the result back with `npm run results` |
@@ -457,6 +458,34 @@ appends it (`describeProblems` in `src/cli/utils.ts`) rather than baking it in.
 
 **Colours live in one file.** `src/renderer/src/globals.css` defines the token
 layer for both themes. A hardcoded colour anywhere else is a bug.
+
+**And the app is meant to carry colour.** A career mode is not an admin panel,
+and a screen where everything is the same white-on-grey makes the reader work
+out what matters from the words alone. So a chip standing for one of a closed
+set gets a colour of its own - content provenance, whose championship this is,
+what kind of session a format runs, which podium place a row pays - and a state
+worth noticing gets the traffic light it deserves, amber included. Three rules
+keep that off the rainbow:
+
+- **A colour has to mean something.** Decoration is what makes an interface
+  noisy; a colour nobody can name the rule for is decoration. Where a set is
+  genuinely "everything else", it stays neutral on purpose - that is why the
+  four exotic session types share one grey.
+- **Mid-tone, both ways.** A tinted chip is a pale background with a saturated
+  foreground - about `0.93` lightness over `0.4` in light, inverted to about
+  `0.33` over `0.86` in dark; a solid status badge is a mid-lightness fill with
+  its own contrasting text. Nothing is a pure hue and nothing is near-black or
+  near-white, which is what keeps a screenful of them calm.
+- **Hues clear of each other where they meet.** Two families that can be on one
+  screen may not sit next to each other on the wheel. The note beside each set
+  in `globals.css` says which others it had to avoid and why.
+
+Light mode carries its own version of the same point: the page is a cool grey
+and a card is white, so a card is a card rather than a hairline border. Reach
+for a new token family rather than a one-off class, and put the reasoning in
+`globals.css` next to it. `src/renderer/src/lib/accents.ts` is where a colour
+map lives once more than one screen reads it, the way `layout.ts` holds the
+measurements more than one screen shares.
 
 **So does the cursor.** Tailwind v4's preflight gives a `<button>`
 `cursor: default` and shadcn ships `cursor-default` on menu and select options,

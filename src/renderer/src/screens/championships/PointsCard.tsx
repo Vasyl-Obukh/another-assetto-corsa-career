@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
+import { PODIUM_ACCENT } from '@/lib/accents';
 
 interface PointsCardProps {
   /**
@@ -28,21 +29,30 @@ export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) =
    * Lists one system as the badges it is made of.
    *
    * Built as a list rather than conditional blocks in the markup, so the badges
-   * are one shape and the composition stays a translation decision.
+   * are one shape and the composition stays a translation decision. Each row
+   * carries its own colour, which for the first three is the metal that place
+   * is worth - the top of a points table is the part anybody reads.
    * @param points The system to describe
-   * @returns One label per award it pays
+   * @returns One label per award it pays, with the colour it wears
    */
-  const rows = (points: PointsSystem): string[] => [
-    ...points.positions.map((value, index) => t('championships.points.row', {
-      label: t('championships.points.position', { number: index + 1 }),
-      points: value,
+  const rows = (points: PointsSystem): { label: string; accent?: string }[] => [
+    ...points.positions.map((value, index) => ({
+      label: t('championships.points.row', {
+        label: t('championships.points.position', { number: index + 1 }),
+        points: value,
+      }),
+      accent: PODIUM_ACCENT[index],
     })),
-    ...(points.fastestLap ? [t('championships.points.row', {
-      label: t('championships.points.fastestLap'), points: points.fastestLap,
-    })] : []),
-    ...(points.pole ? [t('championships.points.row', {
-      label: t('championships.points.pole'), points: points.pole,
-    })] : []),
+    ...(points.fastestLap ? [{
+      label: t('championships.points.row', {
+        label: t('championships.points.fastestLap'), points: points.fastestLap,
+      }),
+    }] : []),
+    ...(points.pole ? [{
+      label: t('championships.points.row', {
+        label: t('championships.points.pole'), points: points.pole,
+      }),
+    }] : []),
   ];
 
   return (
@@ -62,7 +72,11 @@ export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) =
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
-              {rows(points).map((row) => <Badge key={row} variant="outline">{row}</Badge>)}
+              {rows(points).map((row) => (
+                <Badge key={row.label} variant="outline" className={row.accent}>
+                  {row.label}
+                </Badge>
+              ))}
             </div>
           </div>
         ))}

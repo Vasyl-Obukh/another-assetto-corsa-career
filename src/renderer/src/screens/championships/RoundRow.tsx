@@ -55,7 +55,7 @@ export const RoundRow = ({
       </div>
 
       {format ? (
-        <Badge variant="outline">{format.name}</Badge>
+        <Badge variant="secondary">{format.name}</Badge>
       ) : null}
 
       {/* Only what this round says for itself. A calendar's job is to show

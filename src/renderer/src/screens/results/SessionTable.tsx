@@ -7,6 +7,8 @@ import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
+import { PODIUM_ACCENT } from '@/lib/accents';
+import { cn } from '@/lib/utils.ts';
 
 interface SessionTableProps {
   /**
@@ -29,10 +31,12 @@ export const SessionTable = ({ session }: SessionTableProps) => {
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2">
           {session.name}
-          <Badge variant={official ? 'secondary' : 'outline'}>
+          {/* Green for AC's own answer, amber for ours: an inferred order is
+              not wrong, but it is the one a reader should know about. */}
+          <Badge variant={official ? 'success' : 'warning'}>
             {official ? t('results.order.raceResult') : t('results.order.inferred')}
           </Badge>
-          <Badge variant="outline">{scheduled}</Badge>
+          <Badge variant="secondary">{scheduled}</Badge>
         </CardTitle>
         <CardDescription>
           {official ? t('results.order.raceResultHint') : t('results.order.inferredHint')}
@@ -58,7 +62,23 @@ export const SessionTable = ({ session }: SessionTableProps) => {
             <tbody>
               {session.standings.map((standing) => (
                 <tr key={`${standing.position}-${standing.driver}`} className="border-b last:border-0">
-                  <td className="py-2 pr-2 tabular-nums">{formatNumber(standing.position)}</td>
+                  <td className="py-2 pr-2">
+                    {/* The podium is a chip and the rest of the field is not,
+                        so the top three are findable without reading down the
+                        column. Fourth place onwards gets no badge at all rather
+                        than a grey one, which would only make the table noisier -
+                        but it keeps the chip's width, or the column comes out
+                        ragged where the podium ends. */}
+                    {PODIUM_ACCENT[standing.position - 1] ? (
+                      <Badge className={cn('w-7', PODIUM_ACCENT[standing.position - 1])}>
+                        {formatNumber(standing.position)}
+                      </Badge>
+                    ) : (
+                      <span className="inline-block w-7 text-center tabular-nums">
+                        {formatNumber(standing.position)}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 pr-4" data-selectable>{standing.driver}</td>
                   <td className="py-2 pr-4 text-muted-foreground" data-selectable>{standing.car}</td>
                   <td className="py-2 pr-4 text-right tabular-nums">{formatNumber(standing.laps)}</td>

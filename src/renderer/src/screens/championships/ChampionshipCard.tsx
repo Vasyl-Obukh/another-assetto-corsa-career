@@ -55,7 +55,7 @@ export const ChampionshipCard = ({ listing, commands }: ChampionshipCardProps) =
 
         <div className="flex flex-wrap items-center gap-2">
           {series.entries.map((entry) => (
-            <Badge key={entry.id} variant="outline">
+            <Badge key={entry.id} variant="secondary">
               {t('championships.entryLabel', {
                 discipline: t(disciplineKey(entry.ladder.discipline)),
                 tier: entry.ladder.tier,

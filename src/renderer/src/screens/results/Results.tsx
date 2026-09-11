@@ -40,7 +40,7 @@ export const Results = () => {
         >
           <Card className="transition-[box-shadow,border-color] hover:border-primary">
             <CardContent className="flex flex-wrap items-center gap-3">
-              <TrophyIcon className="size-5 shrink-0 text-muted-foreground" />
+              <TrophyIcon className="text-podium-gold-foreground size-5 shrink-0" />
 
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate font-medium">
@@ -51,7 +51,7 @@ export const Results = () => {
                 </span>
               </div>
 
-              <Badge variant="outline">
+              <Badge variant="secondary">
                 {t('results.sessions', { count: record.summary.sessions.length })}
               </Badge>
               <span className="text-xs text-muted-foreground">
