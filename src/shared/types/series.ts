@@ -169,6 +169,137 @@ export interface SeriesGrid {
 }
 
 /**
+ * How well funded a team is.
+ *
+ * Carried and not applied, the same way points are: Phase 9 shapes a team's
+ * offers from this, and a series file is a shareable document from the moment
+ * it ships, so adding the field later would invalidate every file written
+ * before then.
+ */
+export enum TeamBudget {
+  WORKS = 'works',
+  INDEPENDENT = 'independent',
+  PRIVATEER = 'privateer',
+}
+
+/**
+ * A team fielding seats in a championship.
+ *
+ * Listed on the championship and referenced by id from a seat, rather than
+ * written out at each seat: a team fields more than one, and Phase 9 needs a
+ * team to be one thing that offers a contract rather than a name repeated down
+ * the entry list.
+ */
+export interface Team {
+  /**
+   * Stable identifier, unique within the championship.
+   */
+  id: string;
+  /**
+   * Display name.
+   */
+  name: string;
+  /**
+   * Full nationality name.
+   */
+  nationality?: string;
+  /**
+   * Three-letter nation code, for example "GBR".
+   */
+  nationCode?: string;
+  /**
+   * How well funded the team is. Carried and not applied.
+   */
+  budget?: TeamBudget;
+  /**
+   * Standing in the paddock, from 0 to 100. Carried and not applied.
+   */
+  reputation?: number;
+}
+
+/**
+ * Who sits in a seat.
+ *
+ * The same three fields CarEntry carries, because that is where they end up:
+ * Assetto Corsa's [CAR_n] has a driver name, a nationality and a nation code
+ * and nothing else about a person.
+ */
+export interface SeatDriver {
+  /**
+   * Driver name, shown on the timing screen.
+   */
+  name: string;
+  /**
+   * Full nationality name.
+   */
+  nationality?: string;
+  /**
+   * Three-letter nation code, for example "ITA".
+   */
+  nationCode?: string;
+}
+
+/**
+ * What a seat is driven in, when the championship pins it.
+ *
+ * Both halves are optional and both are left unset by everything the app ships.
+ * A shipped championship cannot know which liveries a user's copy of a mod
+ * installs, so pinning one would be a livery that resolves to nothing on half
+ * the libraries that have the car. The editor is where a user who owns the real
+ * liveries assigns them driver by driver.
+ */
+export interface SeatCar {
+  /**
+   * Car folder ID. Drawn from the class's eligible cars when omitted.
+   */
+  model?: string;
+  /**
+   * Skin folder ID. Assigned automatically when omitted, and ignored when the
+   * resolved model does not have it installed.
+   */
+  skin?: string;
+}
+
+/**
+ * One place on the grid, for a whole season.
+ *
+ * What replaced a bare entrant count: a seat is what a team fields, what a
+ * contract binds a driver to, and what makes a driver look like the same driver
+ * all season. Almost everything on it is optional, so a championship that has
+ * nothing to say about who is racing simply lists seats with ids.
+ */
+export interface Seat {
+  /**
+   * Stable identifier, unique across the championship.
+   */
+  id: string;
+  /**
+   * Which team fields it, by its id in `teams`.
+   */
+  team?: string;
+  /**
+   * Who drives it. Left out, the grid is filled with generated names, which is
+   * what every field did before seats existed.
+   */
+  driver?: SeatDriver;
+  /**
+   * The car and livery this seat is pinned to.
+   */
+  car?: SeatCar;
+  /**
+   * AI skill for this seat, overriding the class's own spread.
+   *
+   * True per-driver skill is one of the things AC lets us do that a career mode
+   * usually cannot, and a star driver beating their team-mate is what it is for.
+   */
+  aiLevel?: number;
+  /**
+   * AI aggression for this seat, overriding the class's own.
+   */
+  aiAggression?: number;
+}
+
+/**
  * One way into a championship, and one standings table.
  *
  * Not to be confused with the entry list, which is the grid. A multi-class
@@ -190,13 +321,13 @@ export interface ClassEntry {
    */
   ladder: LadderPosition;
   /**
-   * How many cars of this class are on the grid, the player included.
+   * The cars of this class on the grid, the player included.
    *
-   * A placeholder for the seat list: when teams and seats land this becomes a
-   * list of seats and this number is its length, which is a format version bump
-   * rather than an addition.
+   * The field size is this list's length. It replaced an `entrants` count in
+   * format version 3, which is what the count was always a placeholder for -
+   * the player takes the last seat of the class they enter.
    */
-  entrants: number;
+  seats: readonly Seat[];
   /**
    * What may be driven in this class.
    */
@@ -414,6 +545,14 @@ export interface Championship {
    * The ways into this championship, one per class it runs. Usually one.
    */
   entries: readonly ClassEntry[];
+  /**
+   * The teams fielding seats, in the order they are offered.
+   *
+   * On the championship rather than on a class entry, because a team runs cars
+   * in more than one class of a multi-class series and would otherwise be two
+   * teams sharing a name.
+   */
+  teams?: readonly Team[];
   /**
    * The calendar, in the order the rounds are run.
    */

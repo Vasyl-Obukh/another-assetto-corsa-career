@@ -1343,8 +1343,15 @@ points at and what a career will file results under, so quietly rewriting it
 would leave the file and the document disagreeing about which championship this
 is.
 
-The editor itself, the class and spec UI, teams and seats, and generated weather
-are all still open.
+**The document is now finished.** Teams and seats replaced the entrant count, at
+format version 3 and with the migration that field was put there for; prize
+money and entry fees are checked and shown; and per-round conditions turned out
+to have landed with the round schema. That was done before the editor rather
+than after it on purpose - building the editor's screens against a shape about
+to gain a seat list is the mistake Phase 2 avoided when it landed the content
+data layer before the browsers.
+
+The editor itself, the class and spec UI, and generated weather are still open.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1427,7 +1434,29 @@ are all still open.
       in. A calendar screen replaces it - pick a weekend, start it, come back
       between sessions - and championship editing moves into settings, which is
       where the gate has to live
-- [ ] **Teams and seats**; entry lists as seats
+- [x] **Teams and seats** - a class entry's `entrants` count became its seat
+      list, which is the format version bump the count was always a placeholder
+      for. A **seat** is one place on the grid for a whole season, carrying a
+      team, a driver with a nationality, an optional car and livery, and an
+      optional AI level of its own; a **team** sits on the championship rather
+      than on a class entry, because a team fields cars in more than one class
+      of a multi-class series and would otherwise be two teams sharing a name.
+      **Version 3, and the first real migration**: a version 2 file's
+      `entrants: 8` converts to eight empty seats losslessly, so `migrateSeries`
+      carries it forward silently rather than the library refusing a document
+      written a fortnight ago. That is what the `version` field was put on the
+      championship from the first shipped file for.
+      **The player takes the last seat of the class they enter**, which is the
+      smallest thing that could replace `entrants - 1` and keeps a
+      championship's named front-runners rather than its tail-ender.
+      **Almost everything on a seat is optional**, so a championship with
+      nothing to say about who is racing lists seats with ids and the grid is
+      filled with generated names exactly as before.
+      All four shipped championships now carry an entry list: Formula 1 2023 the
+      real ten teams and twenty drivers of that season, and the other three
+      plausible invented fields, since those series' real entry lists do not
+      exist. **No shipped seat names a car or a livery**, and that is a rule
+      rather than an omission - see the editor item below
 - [x] Eligibility: a **spec**, or an **explicit list of cars** - never a class, so
       an era cannot leak onto a grid it does not belong on. The car list is what
       makes one-make championships work without a class per model, and it is needed
@@ -1492,8 +1521,18 @@ are all still open.
       layouts inside a folder nobody claims produce. Wants a bulk "add
       everything matching" too, which has to page rather than trusting one query
       to return the lot
-- [ ] Prize money tables (per finishing position, per final standing)
-- [ ] Entry fees per round
+- [x] Prize money tables (per finishing position, per final standing) - the
+      schema and the shipped figures were already there; what was missing is
+      that nothing checked or showed them. `parseSeries` reads both tables as
+      numbers, `validateSeries` refuses a negative one, and the championship
+      page has a Money card. **Bounded from below only**: what a series is worth
+      is the author's business, and a table that does not descend is a series
+      paying a flat rate rather than a mistake
+- [x] Entry fees per round - the same, for `Championship.entryFee` and the
+      `Round.entryFee` that overrides it. A round only badges its fee when it
+      states one, since the same figure down every row of a calendar says
+      nothing. **A fee of zero is not an absent fee**, so Formula 1 reads "Free
+      to enter" rather than showing nothing
 - [x] **Availability against installed content** - what a championship is missing,
       named down to the DLC pack or the mod. Missing anything blocks entry rather
       than adapting silently: the round's own button is disabled rather than the
@@ -1515,6 +1554,14 @@ are all still open.
       three cars out of six hundred, with the search, facets and paging intact.
       One trap to carry forward: `isOneOf` treats an empty array as no filter at
       all, so `ids: []` offers the whole library. Never send one
+- [ ] **Assign a livery per driver in the editor.** `Seat.car` carries a model
+      and a skin from the day seats landed, and no shipped championship sets
+      either - a shipped file cannot know which liveries a user's copy of a mod
+      installs, so pinning one would resolve to nothing on half the libraries
+      that have the car. The editor is where a user who owns the real Formula 1
+      liveries puts each driver in theirs, against the skin browser Phase 2
+      built. The lowering already honours it, and already falls back to
+      automatic assignment when the named skin is not installed
 - [ ] **Customise should open the editor, not just write a copy.** Today it
       writes the shipped championship into the user's folder and lands them on
       the championship page, which is half an answer: taking a copy is the
@@ -1528,8 +1575,12 @@ are all still open.
       Phase 3. A session is a whole `race.ini`, so it carries its own weather,
       wind, temperature, track state and start time, overriding the weekend's
       defaults field by field
-- [ ] Per-round conditions as part of a **series format**, which is what is left
-      of the above: the round owning the conditions rather than the weekend
+- [x] Per-round conditions - the round owning the conditions rather than the
+      weekend. Landed with the round schema rather than as work of its own:
+      `Round.conditions` is lowered into `RaceDefinition.conditions`, which is
+      the weekend's defaults, and a session still overrides it field by field
+      through `src/shared/utils/conditions/`. The calendar badges a round that
+      carries its own
 - [ ] **Generated weather for shipped championships.** Hand-authored weekends use
       weekend defaults plus per-session overrides, which is what keeps building a
       deliberate weekend easy. The championships we ship do the opposite: they

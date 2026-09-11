@@ -1,9 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { Discipline } from '../../../shared/types/index.ts';
-import type { Championship, SeriesSession, WeekendFormat } from '../../../shared/types/index.ts';
+import type {
+  Championship, ClassEntry, SeriesSession, WeekendFormat,
+} from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../constants.ts';
-import { validateFormat } from '../utils.ts';
+import {
+  fieldableCars, seatSkin, validateFormat, validateMoney,
+} from '../utils.ts';
+import { makeContent } from './fixtures.ts';
 
 /**
  * A championship with one format, which the tests below replace.
@@ -22,7 +27,7 @@ const withSessions = (
       id: 'main',
       name: 'Main',
       ladder: { discipline: Discipline.ROAD, tier: 6 },
-      entrants: 8,
+      seats: Array.from({ length: 8 }, (unused, at) => ({ id: `main-${at + 1}` })),
       eligibility: { kind: 'cars', cars: ['test_car'] },
     }],
     rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
@@ -139,6 +144,130 @@ describe('core/series/utils', () => {
       ])).toEqual([
         'series.inherit.unknown', 'series.inherit.topInvalid', 'series.inherit.unknown',
       ]);
+    });
+  });
+
+  describe('fieldableCars', () => {
+    /**
+     * A championship whose one class swaps cars at a single round.
+     * @returns The championship and the class entry to read
+     */
+    const withOverride = (): { series: Championship; entry: ClassEntry } => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+      const swapped: Championship = {
+        ...series,
+        rounds: [
+          series.rounds[0],
+          {
+            id: 'oval',
+            name: 'Oval',
+            track: { id: 'daytona' },
+            eligibility: [{ entry: 'main', eligibility: { kind: 'cars', cars: ['oval_car'] } }],
+          },
+        ],
+      };
+
+      return { series: swapped, entry: swapped.entries[0] };
+    };
+
+    it('reads the class entry own cars when no round overrides it', () => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+
+      expect([...fieldableCars(series, series.entries[0])]).toEqual(['test_car']);
+    });
+
+    it('adds the cars a round swaps to, since a seat is pinned for the season', () => {
+      const { series, entry } = withOverride();
+
+      expect([...fieldableCars(series, entry)].sort()).toEqual(['oval_car', 'test_car']);
+    });
+
+    it('ignores an override aimed at a different class entry', () => {
+      const { series, entry } = withOverride();
+      const elsewhere: Championship = {
+        ...series,
+        rounds: series.rounds.map((round) => (round.eligibility
+          ? { ...round, eligibility: [{ entry: 'other', eligibility: { kind: 'cars' as const, cars: ['oval_car'] } }] }
+          : round)),
+      };
+
+      expect([...fieldableCars(elsewhere, entry)]).toEqual(['test_car']);
+    });
+  });
+
+  describe('seatSkin', () => {
+    const content = makeContent();
+
+    it('takes the livery when the resolved car has it installed', () => {
+      expect(seatSkin(content, 'test_car', 'blue')).toBe('blue');
+    });
+
+    // A user pins a livery against their own copy of a mod, and the next
+    // release of it may have renamed the folder. Falling back to automatic
+    // assignment beats writing a SKIN key Assetto Corsa cannot resolve.
+    it('gives up on a livery that car does not have', () => {
+      expect(seatSkin(content, 'test_car', 'chartreuse')).toBeUndefined();
+      expect(seatSkin(content, 'ghost_car', 'blue')).toBeUndefined();
+    });
+
+    it('asks for nothing when the seat pinned nothing', () => {
+      expect(seatSkin(content, 'test_car', undefined)).toBeUndefined();
+    });
+  });
+
+  describe('validateMoney', () => {
+    /**
+     * The codes checking one championship's money produced.
+     * @param overrides What to change about a clean championship
+     * @returns One code per problem
+     */
+    const moneyCodes = (overrides: Partial<Championship>): string[] => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+
+      return validateMoney({ ...series, ...overrides }).map((problem) => problem.code);
+    };
+
+    it('passes a championship that says nothing about money', () => {
+      expect(moneyCodes({})).toEqual([]);
+    });
+
+    // A flat rate is a real way to pay a series, so only a negative figure is
+    // refused - a table that does not descend is deliberately left alone.
+    it('accepts a prize table that does not descend', () => {
+      expect(moneyCodes({ prizes: { positions: [100, 100, 100] } })).toEqual([]);
+    });
+
+    it('refuses a negative prize, naming which table and position', () => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+      const [problem] = validateMoney({ ...series, prizes: { standings: [500, -1] } });
+
+      expect(problem.code).toBe('series.prizes.invalid');
+      expect(problem.params).toMatchObject({ table: 'championship', position: 2, amount: -1 });
+    });
+
+    it('refuses a negative entry fee on the championship', () => {
+      expect(moneyCodes({ entryFee: -1 })).toEqual(['series.entryFee.invalid']);
+    });
+
+    // Round five of twenty is otherwise reported as a number with nowhere to
+    // go and look for it.
+    it('names the round a bad entry fee is on', () => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+      const rounds = [{ ...series.rounds[0], entryFee: -5 }];
+      const [problem] = validateMoney({ ...series, rounds });
+
+      expect(problem.code).toBe('series.entryFee.invalid');
+      expect(problem.params).toMatchObject({ scope: 'round magione', amount: -5 });
+    });
+
+    it('accepts a free championship, which is not the same as charging nothing', () => {
+      expect(moneyCodes({ entryFee: 0 })).toEqual([]);
+    });
+
+    it('refuses drops that are negative or not a whole number of results', () => {
+      expect(moneyCodes({ drops: -1 })).toEqual(['series.drops.invalid']);
+      expect(moneyCodes({ drops: 1.5 })).toEqual(['series.drops.invalid']);
+      expect(moneyCodes({ drops: 0 })).toEqual([]);
     });
   });
 });

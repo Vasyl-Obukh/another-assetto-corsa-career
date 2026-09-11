@@ -16,6 +16,7 @@ import {
   resolveWeather,
   roadTempCurve,
   roadTemperature,
+  skinKey,
   spreadAiLevel,
   sunAngleFromTime,
 } from '../utils.ts';
@@ -170,16 +171,30 @@ describe('core/race-ini/utils', () => {
 
   describe('nextSkin', () => {
     it('picks a skin not already on the grid', () => {
-      expect(nextSkin(makeContent(), 'test_car', new Set(['red']))).toBe('blue');
+      const used = new Set([skinKey('test_car', 'red')]);
+      expect(nextSkin(makeContent(), 'test_car', used, 1)).toBe('blue');
     });
 
-    it('reuses the first skin once every one is taken', () => {
-      const used = new Set(['red', 'blue', 'green']);
-      expect(nextSkin(makeContent(), 'test_car', used)).toBe('red');
+    // Guards the fix for a field larger than a car's livery count collapsing
+    // onto one skin: every entry past the last free livery used to be handed
+    // skins[0], so eleven of fourteen Tatuus entries came out identical.
+    it('cycles back through the liveries once every one is taken', () => {
+      const used = new Set(['red', 'blue', 'green'].map((skin) => skinKey('test_car', skin)));
+      expect(nextSkin(makeContent(), 'test_car', used, 3)).toBe('red');
+      expect(nextSkin(makeContent(), 'test_car', used, 4)).toBe('blue');
+      expect(nextSkin(makeContent(), 'test_car', used, 5)).toBe('green');
+    });
+
+    // Skin folders share names across cars, so a reservation has to say which
+    // car it is for - otherwise one pinned livery makes every other car on a
+    // multi-model grid skip its own folder of that name.
+    it('ignores a livery of that name reserved on a different car', () => {
+      const used = new Set([skinKey('other_car', 'red')]);
+      expect(nextSkin(makeContent(), 'test_car', used, 1)).toBe('red');
     });
 
     it('returns null for an unknown car', () => {
-      expect(nextSkin(makeContent(), 'ghost', new Set())).toBeNull();
+      expect(nextSkin(makeContent(), 'ghost', new Set(), 0)).toBeNull();
     });
   });
 
@@ -262,6 +277,53 @@ describe('core/race-ini/utils', () => {
     it('throws when the player car has no skins installed', () => {
       const race = { ...makeRace(), playerCar: { model: 'skinless_car' } };
       expect(() => buildGrid(race, makeContent())).toThrow('has no skins installed');
+    });
+
+    // Guards the fix for a field larger than its car's livery count: every
+    // entry past the last free one used to be handed skins[0], so eleven of
+    // fourteen one-make entries came out identical.
+    it('cycles through the liveries once a field outruns them', () => {
+      const race = { ...makeRace(), grid: { size: 6 } };
+      const skins = buildGrid(race, makeContent()).map((entry) => entry.skin);
+
+      expect(skins).toEqual(['red', 'blue', 'green', 'red', 'blue', 'green']);
+    });
+
+    // Guards the fix for an automatic assignment stealing a livery a later
+    // entry asked for by name: 'blue' is free when car 1 is filled in, and it
+    // is car 2 that has claimed it.
+    it('reserves a pinned livery before handing any out', () => {
+      const race = {
+        ...makeRace(),
+        grid: { size: 3, opponents: [{}, { skin: 'blue' }] },
+      };
+      const skins = buildGrid(race, makeContent()).map((entry) => entry.skin);
+
+      expect(skins).toEqual(['red', 'green', 'blue']);
+    });
+
+    // Guards the fix for reserving past the field: size is authored separately
+    // from the opponent list, so a race listing more opponents than it starts
+    // used to hold liveries back from the cars that actually make the grid.
+    it('reserves nothing for an opponent the field is too small to reach', () => {
+      const race = {
+        ...makeRace(),
+        grid: { size: 2, opponents: [{}, { skin: 'blue' }, { skin: 'green' }] },
+      };
+      const skins = buildGrid(race, makeContent()).map((entry) => entry.skin);
+
+      expect(skins).toEqual(['red', 'blue']);
+    });
+
+    // Same folder name on two different cars is the normal case, not a clash.
+    it('lets two cars wear their own livery of the same name', () => {
+      const race = {
+        ...makeRace(),
+        grid: { size: 2, opponents: [{ model: 'other_car', skin: 'white' }] },
+      };
+      const skins = buildGrid(race, makeContent()).map((entry) => entry.skin);
+
+      expect(skins).toEqual(['red', 'white']);
     });
   });
 

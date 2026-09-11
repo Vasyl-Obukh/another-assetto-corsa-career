@@ -22,6 +22,7 @@ import {
   eligibleCars,
   entryGrid,
   entryOf,
+  fieldableCars,
   fieldSize,
   findLayout,
   formatOf,
@@ -30,7 +31,9 @@ import {
   pickModels,
   requirementsOf,
   roundOf,
+  seatSkin,
   validateFormat,
+  validateMoney,
 } from './utils.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
@@ -79,27 +82,57 @@ export const validateSeries = (series: Championship): AppErrorInfo[] => {
     problems.push(appErrorInfo('series.id.duplicate', { series: series.id, kind: 'round', id }));
   });
 
+  const teamIds = series.teams?.map((team) => team.id) ?? [];
+  duplicates(teamIds).forEach((id) => {
+    problems.push(appErrorInfo('series.id.duplicate', { series: series.id, kind: 'team', id }));
+  });
+  // Seat ids are unique across the whole championship rather than within a
+  // class: a seat is what a contract binds to and what standings will file a
+  // result under, and neither of those is scoped to one class entry.
+  duplicates(series.entries.flatMap((entry) => entry.seats.map((seat) => seat.id))).forEach((id) => {
+    problems.push(appErrorInfo('series.id.duplicate', { series: series.id, kind: 'seat', id }));
+  });
+
+  const teams = new Set(teamIds);
+
   series.entries.forEach((entry) => {
-    if (entry.entrants < 1) {
-      problems.push(appErrorInfo('series.entrants.invalid', {
-        entry: entry.id, entrants: entry.entrants,
-      }));
+    if (entry.seats.length === 0) {
+      problems.push(appErrorInfo('series.seats.empty', { entry: entry.id }));
     }
     if (entry.ladder.tier < 1) {
       problems.push(appErrorInfo('series.tier.invalid', { entry: entry.id, tier: entry.ladder.tier }));
     }
+    // Its own rule rather than the whole calendar: a round override says what
+    // this class swaps to, not what it can run when no round says otherwise.
     if (carsOf(entry.eligibility).length === 0) {
       problems.push(appErrorInfo('series.entry.noCars', { entry: entry.id }));
     }
-    // A balanced car nobody can field is a rule with no subject, which is
-    // almost always a folder ID typed wrong.
-    const fieldable = new Set(carsOf(entry.eligibility));
+
+    // Balance of performance and a pinned seat are both named for the season,
+    // so both are checked against every car the class fields at any round. A
+    // car nobody can field is a rule with no subject - almost always a folder
+    // ID typed wrong.
+    const fieldable = fieldableCars(series, entry);
     entry.bop?.forEach((bop) => {
       if (!fieldable.has(bop.car)) {
         problems.push(appErrorInfo('series.bop.notEligible', { entry: entry.id, car: bop.car }));
       }
     });
+    entry.seats.forEach((seat) => {
+      if (seat.team !== undefined && !teams.has(seat.team)) {
+        problems.push(appErrorInfo('series.seat.teamUnknown', {
+          series: series.id, seat: seat.id, team: seat.team,
+        }));
+      }
+      if (seat.car?.model !== undefined && !fieldable.has(seat.car.model)) {
+        problems.push(appErrorInfo('series.seat.carNotEligible', {
+          seat: seat.id, car: seat.car.model,
+        }));
+      }
+    });
   });
+
+  problems.push(...validateMoney(series));
 
   const entryIds = new Set(series.entries.map((entry) => entry.id));
   series.rounds.forEach((round) => {
@@ -245,21 +278,36 @@ export const roundRace = (request: RoundRaceRequest, content: Content): RaceDefi
       throw new AppError('series.entry.noCars', { entry: entry.id });
     }
 
-    // The player occupies one of their own class's entrants, so that class
-    // fields one fewer car than it has entries.
-    const count = entry.id === playerEntry.id ? entry.entrants - 1 : entry.entrants;
+    // The player takes the last seat of the class they enter, so a championship
+    // that named its front-runners keeps them and gives up its tail-ender.
+    const seats = entry.id === playerEntry.id ? entry.seats.slice(0, -1) : entry.seats;
+    const count = seats.length;
     const grid = entryGrid(series, entry);
     const random = randomFrom(seedFrom(`${series.id}:${round.id}:${entry.id}`));
+    // Drawn for every seat, pinned ones included, so pinning one car does not
+    // reshuffle what the rest of the class is given.
+    const drawn = pickModels(models, count, random);
 
-    return pickModels(models, count, random).map((model, index) => ({
-      model,
-      ...bopFor(entry, model),
-      // Spread within the class rather than across the field: one linear ramp
-      // over a multi-class grid would make the slower class's drivers weak as
-      // well as their cars, which is not what a class difference is.
-      aiLevel: levelIn(grid.aiLevel, grid.aiLevelMin, index, count),
-      aiAggression: grid.aiAggression,
-    }));
+    return seats.map((seat, index) => {
+      const pinned = seat.car?.model;
+      // A seat pinned to a car this round does not run falls back to the draw:
+      // the round's own eligibility is what may be raced here.
+      const model = pinned !== undefined && models.includes(pinned) ? pinned : drawn[index];
+
+      return {
+        model,
+        skin: seatSkin(content, model, seat.car?.skin),
+        driver: seat.driver?.name,
+        nationality: seat.driver?.nationality,
+        nationCode: seat.driver?.nationCode,
+        ...bopFor(entry, model),
+        // Spread within the class rather than across the field: one linear ramp
+        // over a multi-class grid would make the slower class's drivers weak as
+        // well as their cars, which is not what a class difference is.
+        aiLevel: seat.aiLevel ?? levelIn(grid.aiLevel, grid.aiLevelMin, index, count),
+        aiAggression: seat.aiAggression ?? grid.aiAggression,
+      };
+    });
   });
 
   return {

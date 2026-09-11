@@ -6,6 +6,7 @@ import {
 import type { Round, SeriesListing } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { useFormat } from '@/i18n';
 
 interface RoundRowProps {
   /**
@@ -34,6 +35,7 @@ export const RoundRow = ({
   listing, round, number, busy, onRace,
 }: RoundRowProps) => {
   const { t } = useTranslation();
+  const { formatMoney } = useFormat();
   const state = roundAvailability(listing, round.id);
   const raceable = roundRaceable(listing, round.id);
   // Only when the round runs something other than the default: badging every
@@ -54,6 +56,19 @@ export const RoundRow = ({
 
       {format ? (
         <Badge variant="outline">{format.name}</Badge>
+      ) : null}
+
+      {/* Only what this round says for itself. A calendar's job is to show
+          which of its rows are the odd ones, so the championship's own fee and
+          conditions are left to the cards that own them. */}
+      {round.conditions ? (
+        <Badge variant="outline">{t('championships.calendar.ownConditions')}</Badge>
+      ) : null}
+
+      {round.entryFee !== undefined ? (
+        <Badge variant="outline">
+          {t('championships.entryFee', { value: formatMoney(round.entryFee) })}
+        </Badge>
       ) : null}
 
       {state?.track ? (

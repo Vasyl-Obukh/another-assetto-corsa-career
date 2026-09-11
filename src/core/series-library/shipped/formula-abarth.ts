@@ -1,4 +1,5 @@
-import { Discipline } from '../../../shared/types/index.ts';
+import { seat, team } from './utils.ts';
+import { Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -20,12 +21,39 @@ export const FORMULA_ABARTH: Championship = {
   name: 'Formula Abarth',
   notes: 'A single-chassis junior formula on the Italian circuits. Two races a weekend, the '
     + 'second from a grid the first has already been run for.',
+  teams: [
+    team('arcadia', 'Scuderia Arcadia', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
+    team('vento', 'Vento Corse', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
+    team('aurelia', 'Aurelia Motorsport', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
+    team('nordkap', 'Nordkap Racing', 'Sweden', 'SWE', TeamBudget.PRIVATEER),
+    team('bluewave', 'Bluewave Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+    team('castellana', 'Castellana Sport', 'Spain', 'ESP', TeamBudget.PRIVATEER),
+    team('helio', 'Helio Racing', 'Brazil', 'BRA', TeamBudget.PRIVATEER),
+  ],
   entries: [
     {
       id: 'main',
       name: 'Formula Abarth',
       ladder: { discipline: Discipline.SINGLE_SEATER, tier: 5 },
-      entrants: 14,
+      // Seven two-car teams, ordered so the class ramp from 88 down to 80 puts
+      // the funded Italian squads at the front and the privateers behind them,
+      // which is what a junior formula's pecking order actually is.
+      seats: [
+        seat('arc-1', 'arcadia', 'Matteo Brugnara', 'Italy', 'ITA'),
+        seat('arc-2', 'arcadia', 'Sofia Renzetti', 'Italy', 'ITA'),
+        seat('ven-1', 'vento', 'Luca Pellegatti', 'Italy', 'ITA'),
+        seat('ven-2', 'vento', 'Andrea Sartori', 'Italy', 'ITA'),
+        seat('aur-1', 'aurelia', 'Nikolas Weiss', 'Austria', 'AUT'),
+        seat('aur-2', 'aurelia', 'Tommaso Gallo', 'Italy', 'ITA'),
+        seat('nor-1', 'nordkap', 'Elias Hedlund', 'Sweden', 'SWE'),
+        seat('nor-2', 'nordkap', 'Aino Vartia', 'Finland', 'FIN'),
+        seat('blu-1', 'bluewave', 'Callum Reeve', 'Great Britain', 'GBR'),
+        seat('blu-2', 'bluewave', 'Priya Nandakumar', 'Great Britain', 'GBR'),
+        seat('cas-1', 'castellana', 'Ivan Berrocal', 'Spain', 'ESP'),
+        seat('cas-2', 'castellana', 'Marc Fontcuberta', 'Spain', 'ESP'),
+        seat('hel-1', 'helio', 'Rafael Peixoto', 'Brazil', 'BRA'),
+        seat('hel-2', 'helio', 'Diego Arriaga', 'Mexico', 'MEX'),
+      ],
       eligibility: { kind: 'cars', cars: ['tatuusfa1'] },
     },
   ],

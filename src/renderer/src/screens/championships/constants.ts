@@ -16,3 +16,18 @@ export const ORIGIN_TAG_CLASS = {
   user: 'border-transparent bg-origin-custom text-origin-custom-foreground',
   shipped: '',
 } as const satisfies Record<SeriesOrigin, string>;
+
+/**
+ * The entry list laid out as columns read downwards.
+ *
+ * CSS multi-column rather than a grid, which is the whole point: a grid flows
+ * left to right, so a twenty-car field would read 1, 2 across the first row.
+ * Columns flow down then across, so the left column is the front half of the
+ * field and the right is the back, which is how an entry list is printed.
+ *
+ * The cap and the wide gutter are FIELD_GRID's, and for its reason: a seat puts
+ * the driver at one end of its row and the team at the other, so given the
+ * whole card they drift too far apart to read across. Same arithmetic too -
+ * 56rem less the 8rem gutter leaves each column 24rem.
+ */
+export const SEAT_COLUMNS = 'columns-1 max-w-4xl gap-x-32 sm:columns-2';

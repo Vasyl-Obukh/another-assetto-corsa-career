@@ -130,8 +130,8 @@ per project.
 | `src/shared/utils/lap-time/` | `m:ss.mmm`, shared by the CLI's timing sheet and the results screen. Deliberately outside the `Intl` formatters: a lap time is a motorsport convention, not a locale decision |
 | `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
 | `src/core/series/` | Reading a championship: validating it, saying what it needs against the installed library, and lowering one round into an ordinary `RaceDefinition`. That last part is the point - a round runs through `planWeekend`, `buildGrid` and `buildRaceIni` exactly as a hand-authored weekend does, so nothing under `src/core/weekend/`, `src/core/race-ini/` or `src/main/race-store/` knows what a series is |
-| `src/core/series-file/` | A championship as a document: `unknown` off disk to a typed `Championship`, and back. Every string that indexes a catalogue - a spec, a discipline, a session type, a weather type - is checked against that catalogue's own members, because a user's file has no compiler behind it. Structural only; whether the championship is coherent is `validateSeries`. `writeSeries` is the other direction, and everything that writes a championship goes through it |
-| `src/core/series-library/` | The championships the app ships - TypeScript constants under `shipped/`, one file per championship, so a renamed spec is a compile error and adding a series is adding a file - merged with whatever the user wrote as JSON. A user's file carrying a shipped id replaces it and reads as `adjusted` rather than clashing with it; deleting that file puts the original back, because the override is the file's existence and nothing else. Ladder order is derived from the tiers, so adding a championship never means renumbering one. **It writes as well as reads**: `saveUserSeries` and `deleteUserSeries` are the disk side, and both are addressed by the *file* rather than by the id, because the two are allowed to disagree - `readSeriesDir` keys a championship on the id inside the document, so `weird.json` may perfectly well hold `lotus-cup` and a name computed from that id would hit the wrong file. A new file's name is derived from the id but only once nothing else has spent it - `lotus-cup.json` may hold something else entirely, and writing over it would destroy a file of the user's - and an id that could not safely be a name at all is refused rather than repaired |
+| `src/core/series-file/` | A championship as a document: `unknown` off disk to a typed `Championship`, and back. Every string that indexes a catalogue - a spec, a discipline, a session type, a weather type - is checked against that catalogue's own members, because a user's file has no compiler behind it. Structural only; whether the championship is coherent is `validateSeries`. `writeSeries` is the other direction, and everything that writes a championship goes through it. **`migrateSeries` runs first**, before anything is read, so an older revision is checked against the shape this build understands and every field path in a problem names where the value is now; version 2's `entrants` count becomes version 3's seat list, which is lossless and so is reported as nothing at all |
+| `src/core/series-library/` | The championships the app ships - TypeScript constants under `shipped/`, one file per championship, so a renamed spec is a compile error and adding a series is adding a file - with `shipped/utils.ts` holding the `team` and `seat` constructors, because an entry list is a table and twenty drivers written out as object literals is not one anybody can read down - merged with whatever the user wrote as JSON. A user's file carrying a shipped id replaces it and reads as `adjusted` rather than clashing with it; deleting that file puts the original back, because the override is the file's existence and nothing else. Ladder order is derived from the tiers, so adding a championship never means renumbering one. **It writes as well as reads**: `saveUserSeries` and `deleteUserSeries` are the disk side, and both are addressed by the *file* rather than by the id, because the two are allowed to disagree - `readSeriesDir` keys a championship on the id inside the document, so `weird.json` may perfectly well hold `lotus-cup` and a name computed from that id would hit the wrong file. A new file's name is derived from the id but only once nothing else has spent it - `lotus-cup.json` may hold something else entirely, and writing over it would destroy a file of the user's - and an id that could not safely be a name at all is refused rather than repaired |
 | `src/core/seeded-random/` | The Park-Miller generator and the string hash that seeds it. Its own module because two callers need the same answer twice - the weekend shuffling a grid with no qualifying to order it, and a series composing a round's field |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content, liveries and their `ui_skin.json` included; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
@@ -409,7 +409,11 @@ Out of scope for now: React components, `createWindow` and the app lifecycle, an
 own mock rather than on behaviour. Running the app covers them better.
 
 **The vendored exception.** `src/renderer/src/components/ui/` is shadcn source
-generated by `npx shadcn@latest add`. It is kept exactly as upstream ships it -
+generated by `npx shadcn@latest add`. There is no `components.json`, so that
+command needs an `init` before it will add anything, and `init` rewrites
+`globals.css` - so a new component is copied from upstream by hand instead, with
+its Radix package added to `devDependencies` and pinned exactly, the way its six
+siblings are. It is kept exactly as upstream ships it -
 several components per file, function declarations, no JSDoc, and upstream's own
 import order - so the CLI keeps working and upstream fixes stay diffable.
 `eslint.config.js` exempts it explicitly, import ordering included. Nothing else
@@ -453,6 +457,14 @@ appends it (`describeProblems` in `src/cli/utils.ts`) rather than baking it in.
 
 **Colours live in one file.** `src/renderer/src/globals.css` defines the token
 layer for both themes. A hardcoded colour anywhere else is a bug.
+
+**So does the cursor.** Tailwind v4's preflight gives a `<button>`
+`cursor: default` and shadcn ships `cursor-default` on menu and select options,
+so nothing in the app looked clickable until one rule at the end of
+`globals.css` said otherwise. It is deliberately **outside `@layer base`**,
+because those `cursor-default` classes are utilities and no base rule can
+outrank a utility - unlayered CSS can. Disabled controls are excluded so they
+keep their own `disabled:cursor-not-allowed`.
 
 **So do the shared measurements.** `src/renderer/src/lib/layout.ts` holds the
 content width every screen shares, the width every settings control shares, and
@@ -644,20 +656,26 @@ columns come out 48px narrower than the rest.
   before it. The settings screen warns about it; nothing else can.
 - Errors raised in `src/core/` reach the UI in English. They are diagnostic
   strings, not catalogue keys, so the localisation stops at the boundary.
-- **A field larger than a car's livery count collapses onto one livery.**
-  `buildGrid` gives each entry a unique skin and then falls back to the *player's*
-  skin once `nextSkin` runs out, so Formula Abarth's fourteen Tatuus entries over
-  five liveries come out as eleven identical cars. Pre-existing, and nothing had
-  reached it before: a hand-authored race sizes its grid to what it has, and a
-  one-make championship naming a field size is the first thing that cannot.
-  Cycling back through the liveries rather than collapsing would fix it, and would
-  change what `npm run dry` writes for any race that exhausts them, so it wants
-  doing deliberately rather than in passing.
+- **A field larger than a car's livery count used to collapse onto one livery,
+  and now cycles.** `nextSkin` handed back `skins[0]` to every entry past the
+  last free one, so Formula Abarth's fourteen Tatuus entries over five liveries
+  came out as ten identical cars. It now takes how many of that model are
+  already placed and wraps - `skins[placed % skins.length]` - so the field runs
+  back through the liveries instead. Fixed alongside seats, which is what made
+  it visible: eleven identically liveried cars carrying eleven different
+  drivers' names is a different order of wrong. **Pinned liveries are also
+  reserved before any are handed out**, or an automatically assigned car early
+  in the field takes the skin an entry further down asked for by name.
+  `npm run dry` was diffed either side and `races/demo.json` is byte-identical,
+  its eight cars fitting inside the mod's own eight liveries.
 - Liveries are read from `ui_skin.json`, browsable per car, and the player picks
   their own as a second step of the car picker - the same shape as picking a
-  layout after a circuit, skipped for a car that ships fewer than two. Nothing
-  pins one to an *AI* driver yet - that needs the driver, team and seat entities
-  Phase 4 introduces. About a twelfth of liveries ship no `ui_skin.json` at all and a
+  layout after a circuit, skipped for a car that ships fewer than two. **A seat
+  can now pin one to an AI driver** - `Seat.car` carries a model and a skin -
+  but nothing the app ships does: a shipped championship cannot know which
+  liveries a user's copy of a mod installs, so assigning them is the editor's
+  job and the lowering falls back to automatic assignment for a skin that is not
+  there. About a twelfth of liveries ship no `ui_skin.json` at all and a
   handful ship it broken; those wear their folder name and raise no issue, since
   a livery with no metadata still races perfectly.
 - The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is

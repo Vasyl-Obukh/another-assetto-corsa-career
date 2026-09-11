@@ -381,7 +381,8 @@
       "road": "Road"
     },
     "entries": {
-      "title": "Ways in",
+      "title_one": "Class",
+      "title_other": "Classes",
       "spec": "Spec",
       "cars": "Named cars",
       "eligible_one": "{{count}} car installed",
@@ -390,14 +391,17 @@
       "bop": "Balance of performance",
       "ballast": "{{value}} kg",
       "restrictor": "{{value}}% restrictor",
-      "bopRow": "{{car}} - {{adjustments}}"
+      "bopRow": "{{car}} - {{adjustments}}",
+      "seats": "Entry list",
+      "seatUnnamed": "Seat open"
     },
     "calendar": {
       "title": "Calendar",
       "round": "Round {{number}}",
       "race": "Race this round",
       "missingTrack": "Track not installed",
-      "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field"
+      "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field",
+      "ownConditions": "Own conditions"
     },
     "format": {
       "title_one": "Weekend format",
@@ -421,6 +425,15 @@
       "fastestLap": "Fastest lap",
       "pole": "Pole",
       "row": "{{label}} {{points}}"
+    },
+    "money": {
+      "title": "Money",
+      "entryFee": "Entry fee",
+      "free": "Free to enter",
+      "roundPrizes": "Race prize money",
+      "seasonPrizes": "Championship prize money",
+      "position": "P{{number}}",
+      "row": "{{label}} {{amount}}"
     },
     "regulations": {
       "title": "Regulations",

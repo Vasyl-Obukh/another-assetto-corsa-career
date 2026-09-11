@@ -136,12 +136,57 @@ export const entryGrid = (series: Championship, entry: ClassEntry): Required<Ser
 /**
  * How many cars a championship puts on the grid.
  * @param series The championship
- * @returns The sum of every class entry's entrants
+ * @returns The sum of every class entry's seats
  */
 export const fieldSize = (series: Championship): number => series.entries.reduce(
-  (total, entry) => total + entry.entrants,
+  (total, entry) => total + entry.seats.length,
   0,
 );
+
+/**
+ * Every car folder ID a class entry may field across the whole calendar.
+ *
+ * Its own rule plus every round that overrides it, because a seat pinned to a
+ * car is pinned for the season and some fields change car with the track - so
+ * an IndyCar-shaped championship pins a road kit that only three rounds run.
+ * @param series The championship
+ * @param entry The class entry
+ * @returns Every car it may field at some point in the season
+ */
+export const fieldableCars = (series: Championship, entry: ClassEntry): Set<string> => {
+  const cars = new Set(carsOf(entry.eligibility));
+
+  series.rounds.forEach((round) => {
+    round.eligibility
+      ?.filter((override) => override.entry === entry.id)
+      .forEach((override) => carsOf(override.eligibility).forEach((car) => cars.add(car)));
+  });
+
+  return cars;
+};
+
+/**
+ * Reads the livery a seat is pinned to, when the library actually has it.
+ *
+ * A shipped championship names none, and one a user pinned may have been
+ * authored against a different release of the same mod - so a livery that is
+ * not installed falls back to automatic assignment rather than writing a SKIN
+ * key Assetto Corsa cannot resolve.
+ * @param content Installed content to check against
+ * @param model The car folder ID the seat ended up with
+ * @param skin The skin folder ID the seat asks for, if any
+ * @returns The skin, or undefined when it is not installed on that car
+ */
+export const seatSkin = (
+  content: Content,
+  model: string,
+  skin: string | undefined,
+): string | undefined => {
+  if (skin === undefined) return undefined;
+  const car = content.cars.find((candidate) => candidate.id === model);
+
+  return car?.skins.some((candidate) => candidate.id === skin) ? skin : undefined;
+};
 
 /**
  * Reads the weekend format a round is run over.
@@ -311,6 +356,60 @@ export const validateFormat = (
 };
 
 /**
+ * Whether a figure is an amount of money the schema will accept.
+ * @param amount The figure
+ * @returns True when it is a real number of zero or more
+ */
+const isPayable = (amount: number): boolean => Number.isFinite(amount) && amount >= 0;
+
+/**
+ * Checks what a championship charges and what it pays out.
+ *
+ * Bounded from below only. What a series is worth is the author's business, and
+ * a table that does not descend is a flat rate rather than a mistake - only a
+ * negative one means nothing.
+ * @param series The championship to check
+ * @returns One entry per rule broken
+ */
+export const validateMoney = (series: Championship): AppErrorInfo[] => {
+  const problems: AppErrorInfo[] = [];
+  const where = { series: series.id };
+
+  const prizes: { table: string; amounts: readonly number[] | undefined }[] = [
+    { table: 'round', amounts: series.prizes?.positions },
+    { table: 'championship', amounts: series.prizes?.standings },
+  ];
+  prizes.forEach(({ table, amounts }) => {
+    amounts?.forEach((amount, index) => {
+      if (!isPayable(amount)) {
+        problems.push(appErrorInfo('series.prizes.invalid', {
+          ...where, table, position: index + 1, amount,
+        }));
+      }
+    });
+  });
+
+  // Each fee names where it lives: a negative one on round five of twenty is
+  // otherwise reported as a number with nowhere to go and look for it.
+  const fees = [
+    { scope: 'the championship', fee: series.entryFee },
+    ...series.rounds.map((round) => ({ scope: `round ${round.id}`, fee: round.entryFee })),
+  ];
+  fees.forEach(({ scope, fee }) => {
+    if (fee !== undefined && !isPayable(fee)) {
+      problems.push(appErrorInfo('series.entryFee.invalid', { ...where, scope, amount: fee }));
+    }
+  });
+
+  // A count rather than an amount, so it has to be whole as well as positive.
+  if (series.drops !== undefined && (!Number.isInteger(series.drops) || series.drops < 0)) {
+    problems.push(appErrorInfo('series.drops.invalid', { ...where, drops: series.drops }));
+  }
+
+  return problems;
+};
+
+/**
  * Checks one class entry against the installed content.
  * @param entry The class entry
  * @param content Installed content to check against
@@ -383,13 +482,7 @@ export const requirementsOf = (series: Championship): SeriesRequirements => {
   };
 
   series.entries.forEach((entry) => {
-    const rules = [
-      entry.eligibility,
-      ...series.rounds.flatMap((round) => (
-        round.eligibility?.filter((override) => override.entry === entry.id) ?? []
-      )).map((override) => override.eligibility),
-    ];
-    rules.forEach((rule) => carsOf(rule).forEach((car) => record(carProvenance(car))));
+    fieldableCars(series, entry).forEach((car) => record(carProvenance(car)));
   });
   series.rounds.forEach((round) => {
     record(trackProvenance(round.track.id, round.track.layout ?? ''));

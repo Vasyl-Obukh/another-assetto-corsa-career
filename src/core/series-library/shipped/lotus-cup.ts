@@ -1,4 +1,5 @@
-import { Discipline } from '../../../shared/types/index.ts';
+import { seat, team } from './utils.ts';
+import { Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -26,12 +27,31 @@ export const LOTUS_CUP: Championship = {
   name: 'Lotus Cup',
   notes: 'Two classes sharing one grid and one calendar, scored separately. The Open cars are '
     + 'balanced against each other; Production runs the road cars as they come.',
+  teams: [
+    team('hethel', 'Hethel Race Group', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('brooklands', 'Brooklands Lightweight', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('ardennes', 'Ecurie Ardennes', 'Belgium', 'BEL', TeamBudget.PRIVATEER),
+    team('kleinsee', 'Kleinsee Sportwagen', 'Germany', 'GER', TeamBudget.PRIVATEER),
+    team('ostwind', 'Ostwind Clubsport', 'Netherlands', 'NED', TeamBudget.PRIVATEER),
+    team('valdarno', 'Valdarno Corse', 'Italy', 'ITA', TeamBudget.PRIVATEER),
+  ],
   entries: [
     {
       id: 'open',
       name: 'Open',
       ladder: { discipline: Discipline.ROAD, tier: 4 },
-      entrants: 8,
+      // The teams run cars in both classes, which is the point of holding them
+      // on the championship rather than on a class entry.
+      seats: [
+        seat('opn-hethel-1', 'hethel', 'Gareth Pryce', 'Great Britain', 'GBR'),
+        seat('opn-hethel-2', 'hethel', 'Imogen Shaw', 'Great Britain', 'GBR'),
+        seat('opn-brook-1', 'brooklands', 'Neil Garrick', 'Great Britain', 'GBR'),
+        seat('opn-brook-2', 'brooklands', 'Fraser Dunnett', 'Great Britain', 'GBR'),
+        seat('opn-ard-1', 'ardennes', 'Vincent Delacroix', 'Belgium', 'BEL'),
+        seat('opn-kle-1', 'kleinsee', 'Hanno Reimer', 'Germany', 'GER'),
+        seat('opn-ost-1', 'ostwind', 'Bram Kuipers', 'Netherlands', 'NED'),
+        seat('opn-val-1', 'valdarno', 'Cesare Bonanno', 'Italy', 'ITA'),
+      ],
       eligibility: {
         kind: 'cars',
         cars: ['lotus_2_eleven', 'lotus_exige_v6_cup', 'lotus_evora_gx'],
@@ -45,7 +65,16 @@ export const LOTUS_CUP: Championship = {
       id: 'production',
       name: 'Production',
       ladder: { discipline: Discipline.ROAD, tier: 5 },
-      entrants: 8,
+      seats: [
+        seat('prd-hethel-1', 'hethel', 'Dermot Kavanagh', 'Ireland', 'IRL'),
+        seat('prd-brook-1', 'brooklands', 'Sally Wenlock', 'Great Britain', 'GBR'),
+        seat('prd-brook-2', 'brooklands', 'Toby Ferreira', 'South Africa', 'RSA'),
+        seat('prd-ard-1', 'ardennes', 'Mathieu Servais', 'Belgium', 'BEL'),
+        seat('prd-ard-2', 'ardennes', 'Lotte Vandenberghe', 'Belgium', 'BEL'),
+        seat('prd-kle-1', 'kleinsee', 'Sabine Nowak', 'Germany', 'GER'),
+        seat('prd-ost-1', 'ostwind', 'Joost Tielemans', 'Netherlands', 'NED'),
+        seat('prd-val-1', 'valdarno', 'Emilio Rasetti', 'Italy', 'ITA'),
+      ],
       eligibility: {
         kind: 'cars',
         cars: ['lotus_elise_sc', 'lotus_exige_s', 'lotus_exige_240'],

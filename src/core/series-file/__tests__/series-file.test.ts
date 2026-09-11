@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { SHIPPED_SERIES } from '../../series-library/index.ts';
 import { parseSeries, readSeries, writeSeries } from '../index.ts';
 
@@ -9,14 +10,15 @@ import { parseSeries, readSeries, writeSeries } from '../index.ts';
  * @returns The value JSON.parse would have returned
  */
 const raw = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
-  version: 2,
+  version: SERIES_FORMAT_VERSION,
   id: 'sunday-cup',
   name: 'Sunday Cup',
+  teams: [{ id: 'privateer', name: 'Privateer', budget: 'privateer' }],
   entries: [{
     id: 'main',
     name: 'Main',
     ladder: { discipline: 'road', tier: 6 },
-    entrants: 8,
+    seats: [{ id: 'main-1', team: 'privateer', driver: { name: 'Ada Marchetti' } }, { id: 'main-2' }],
     eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
   }],
   rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
@@ -164,6 +166,64 @@ describe('core/series-file', () => {
       const value = raw({ id: 42, name: null, rounds: 'nope' });
 
       expect(codesFor(value)).toHaveLength(3);
+    });
+
+    it('rejects a class entry with no seat list at all', () => {
+      const { seats, ...entry } = (raw().entries as Record<string, unknown>[])[0];
+
+      expect(codesFor(raw({ entries: [entry] }))).toEqual(['seriesFile.field.invalid']);
+      expect(seats).toBeDefined();
+    });
+
+    it('rejects a seat with no id to be named by', () => {
+      expect(codesFor(raw({
+        entries: [{ ...(raw().entries as Record<string, unknown>[])[0], seats: [{ team: 'privateer' }] }],
+      }))).toEqual(['seriesFile.field.invalid']);
+    });
+
+    // A driver with no name would race under a generated one while claiming to
+    // hold somebody, which is worse than the seat holding nobody at all.
+    it('rejects a seat holding a driver with no name', () => {
+      expect(codesFor(raw({
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          seats: [{ id: 'main-1', driver: { nationCode: 'ITA' } }],
+        }],
+      }))).toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('names every bad seat rather than the first', () => {
+      expect(codesFor(raw({
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          seats: [{ team: 1 }, { id: 'ok' }, 'nope'],
+        }],
+      }))).toHaveLength(3);
+    });
+
+    it('rejects a team budget tier that is not a real one', () => {
+      const value = raw({ teams: [{ id: 'works', name: 'Works', budget: 'enormous' }] });
+
+      expect(codesFor(value)).toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('accepts a championship that names no teams at all', () => {
+      const { teams, ...rest } = raw();
+
+      expect(codesFor(rest)).toEqual([]);
+      expect(teams).toBeDefined();
+    });
+
+    it('rejects prize money that is not numbers, which would pay NaN', () => {
+      expect(codesFor(raw({ prizes: { positions: [1000, 'lots'] } })))
+        .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('rejects an entry fee or a drop count that is not a number', () => {
+      expect(codesFor(raw({ entryFee: 'free' }))).toEqual(['seriesFile.field.invalid']);
+      expect(codesFor(raw({ drops: 'one' }))).toEqual(['seriesFile.field.invalid']);
+      expect(codesFor(raw({ rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' }, entryFee: 'free' }] })))
+        .toEqual(['seriesFile.field.invalid']);
     });
   });
 

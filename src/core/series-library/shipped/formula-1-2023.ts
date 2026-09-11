@@ -1,4 +1,5 @@
-import { CarSpec, Discipline } from '../../../shared/types/index.ts';
+import { seat, team } from './utils.ts';
+import { CarSpec, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship, SeriesSession } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -54,13 +55,51 @@ export const FORMULA_1_2023: Championship = {
   name: 'Formula 1 2023',
   notes: 'Twenty cars, knockout qualifying and two sprint rounds, on VRC\'s Formula Alpha 2023. '
     + 'The mod is a single car in twenty liveries rather than ten distinct chassis, so the field '
-    + 'is one spec on merit alone.',
+    + 'is one spec on merit alone. Liveries are assigned automatically, since which of them a '
+    + 'copy of the mod installs is not ours to assume.',
+  teams: [
+    team('red-bull', 'Red Bull Racing', 'Austria', 'AUT', TeamBudget.WORKS),
+    team('mercedes', 'Mercedes', 'Germany', 'GER', TeamBudget.WORKS),
+    team('ferrari', 'Ferrari', 'Italy', 'ITA', TeamBudget.WORKS),
+    team('aston-martin', 'Aston Martin', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('mclaren', 'McLaren', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('alpine', 'Alpine', 'France', 'FRA', TeamBudget.WORKS),
+    team('williams', 'Williams', 'Great Britain', 'GBR'),
+    team('alphatauri', 'AlphaTauri', 'Italy', 'ITA'),
+    team('alfa-romeo', 'Alfa Romeo', 'Switzerland', 'SUI'),
+    team('haas', 'Haas', 'United States', 'USA'),
+  ],
   entries: [
     {
       id: 'main',
       name: 'Formula 1',
       ladder: { discipline: Discipline.SINGLE_SEATER, tier: 1 },
-      entrants: 20,
+      // Ordered as the season finished, so the class ramp from 96 down to 86
+      // lines the field up roughly on merit. A seat states a level of its own
+      // only where that ramp gets a driver wrong - all three below were well
+      // adrift of the car under them.
+      seats: [
+        seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED'),
+        seat('rbr-2', 'red-bull', 'Sergio Perez', 'Mexico', 'MEX', 93),
+        seat('mer-1', 'mercedes', 'Lewis Hamilton', 'Great Britain', 'GBR'),
+        seat('mer-2', 'mercedes', 'George Russell', 'Great Britain', 'GBR'),
+        seat('fer-1', 'ferrari', 'Charles Leclerc', 'Monaco', 'MON'),
+        seat('fer-2', 'ferrari', 'Carlos Sainz', 'Spain', 'ESP'),
+        seat('amr-1', 'aston-martin', 'Fernando Alonso', 'Spain', 'ESP'),
+        seat('amr-2', 'aston-martin', 'Lance Stroll', 'Canada', 'CAN', 90),
+        seat('mcl-1', 'mclaren', 'Lando Norris', 'Great Britain', 'GBR'),
+        seat('mcl-2', 'mclaren', 'Oscar Piastri', 'Australia', 'AUS'),
+        seat('alp-1', 'alpine', 'Esteban Ocon', 'France', 'FRA'),
+        seat('alp-2', 'alpine', 'Pierre Gasly', 'France', 'FRA'),
+        seat('wil-1', 'williams', 'Alexander Albon', 'Thailand', 'THA'),
+        seat('wil-2', 'williams', 'Logan Sargeant', 'United States', 'USA', 87),
+        seat('at-1', 'alphatauri', 'Yuki Tsunoda', 'Japan', 'JPN'),
+        seat('at-2', 'alphatauri', 'Daniel Ricciardo', 'Australia', 'AUS'),
+        seat('alf-1', 'alfa-romeo', 'Valtteri Bottas', 'Finland', 'FIN'),
+        seat('alf-2', 'alfa-romeo', 'Zhou Guanyu', 'China', 'CHN'),
+        seat('haa-1', 'haas', 'Nico Hulkenberg', 'Germany', 'GER'),
+        seat('haa-2', 'haas', 'Kevin Magnussen', 'Denmark', 'DEN'),
+      ],
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2023_VRC, minModels: 1 },
     },
   ],

@@ -407,7 +407,10 @@
       "road": "Дорожні"
     },
     "entries": {
-      "title": "Способи участі",
+      "title_one": "Клас",
+      "title_few": "Класи",
+      "title_many": "Класів",
+      "title_other": "Класи",
       "spec": "Специфікація",
       "cars": "Названі автомобілі",
       "eligible_one": "{{count}} автомобіль встановлено",
@@ -418,14 +421,17 @@
       "bop": "Балансування продуктивності",
       "ballast": "{{value}} кг",
       "restrictor": "рестриктор {{value}}%",
-      "bopRow": "{{car}} - {{adjustments}}"
+      "bopRow": "{{car}} - {{adjustments}}",
+      "seats": "Заявковий список",
+      "seatUnnamed": "Місце вільне"
     },
     "calendar": {
       "title": "Календар",
       "round": "Етап {{number}}",
       "race": "Провести цей етап",
       "missingTrack": "Трасу не встановлено",
-      "tooFewPitboxes": "Лише {{available}} боксів для {{needed}} автомобілів"
+      "tooFewPitboxes": "Лише {{available}} боксів для {{needed}} автомобілів",
+      "ownConditions": "Власні умови"
     },
     "format": {
       "title_one": "Формат вікенду",
@@ -459,6 +465,15 @@
       "fastestLap": "Найшвидше коло",
       "pole": "Поул",
       "row": "{{label}} {{points}}"
+    },
+    "money": {
+      "title": "Гроші",
+      "entryFee": "Вступний внесок",
+      "free": "Участь безкоштовна",
+      "roundPrizes": "Призові за етап",
+      "seasonPrizes": "Призові за чемпіонат",
+      "position": "P{{number}}",
+      "row": "{{label}} {{amount}}"
     },
     "regulations": {
       "title": "Регламент",

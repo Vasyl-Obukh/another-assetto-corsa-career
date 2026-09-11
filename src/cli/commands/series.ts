@@ -52,15 +52,27 @@ const printDetail = (
     + (availability.requires.packs.length ? ` + ${availability.requires.packs.join(', ')}` : '')
     + (availability.requires.makers.length ? ` + ${availability.requires.makers.join(', ')}` : ''));
 
+  const teams = new Map((series.teams ?? []).map((one) => [one.id, one]));
+
   series.entries.forEach((entry) => {
     const state = availability.entries.find((one) => one.entry === entry.id);
     const rule = entry.eligibility.kind === 'spec' ? entry.eligibility.spec : 'named cars';
     console.log(`\n  ${entry.name}  tier ${entry.ladder.tier} ${entry.ladder.discipline}`
-      + `  ${entry.entrants} cars  (${rule})`);
+      + `  ${entry.seats.length} cars  (${rule})`);
     state?.eligible.forEach((eligible) => console.log(`    + ${eligible}`));
     state?.missing.forEach((missing) => {
       const from = missing.provenance.pack ?? missing.provenance.maker ?? missing.provenance.source;
       console.log(`    - ${missing.id}  (${from})`);
+    });
+
+    // The entry list is what npm run series is for as much as the calendar is:
+    // a seat pinned to a team nobody fields is a validation problem, and a
+    // driver that reads oddly is only ever visible here.
+    entry.seats.forEach((one, at) => {
+      const driver = one.driver?.name ?? '(unnamed)';
+      const fielded = teams.get(one.team ?? '')?.name ?? one.team ?? '';
+      const level = one.aiLevel ? `  AI ${one.aiLevel}` : '';
+      console.log(`    ${String(at + 1).padStart(2)}  ${driver.padEnd(22)} ${fielded}${level}`);
     });
   });
 
@@ -90,6 +102,14 @@ const printDetail = (
   });
   if (series.drops) console.log(`    Worst ${series.drops} dropped from the standings`);
 
+  if (series.entryFee !== undefined || series.prizes) {
+    console.log('\n  Money');
+    if (series.entryFee !== undefined) console.log(`    Entry fee      ${series.entryFee}`);
+    const { positions, standings } = series.prizes ?? {};
+    if (positions) console.log(`    Round prizes   ${positions.join('-')}`);
+    if (standings) console.log(`    Season prizes  ${standings.join('-')}`);
+  }
+
   console.log('\n  Calendar');
   series.rounds.forEach((round, index) => {
     const state = availability.rounds.find((one) => one.round === round.id);
@@ -101,7 +121,8 @@ const printDetail = (
     // Only a round running something other than the default names its format:
     // the same word down every row would say nothing.
     const format = round.weekendFormat ? `  [${round.weekendFormat}]` : '';
-    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}`);
+    const fee = round.entryFee !== undefined ? `  fee ${round.entryFee}` : '';
+    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}${fee}`);
   });
 };
 

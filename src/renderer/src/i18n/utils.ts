@@ -100,8 +100,12 @@ export const formattersFor = (language: Language): Formatters => {
 
     formatMoney: (value, currency = DEFAULT_CURRENCY) => cached(
       `m:${locale}:${currency}`,
+      // narrowSymbol rather than the locale's default: en-GB renders USD as
+      // "US$1,200", which is correct English and wrong for a game currency -
+      // the decision is a plain dollar sign, and uk-UA gets its own placement
+      // of one rather than the "USD" it would otherwise spell out.
       () => new Intl.NumberFormat(locale, {
-        style: 'currency', currency, maximumFractionDigits: 0,
+        style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0,
       }),
     ).format(value),
 

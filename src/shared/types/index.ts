@@ -11,6 +11,7 @@ export {
 } from './content.ts';
 
 export { Discipline } from './ladder.ts';
+export { TeamBudget } from './series.ts';
 
 export type {
   Car,
@@ -123,6 +124,9 @@ export type {
   Round,
   RoundAvailability,
   RoundEligibility,
+  Seat,
+  SeatCar,
+  SeatDriver,
   SeriesAvailability,
   SeriesCommandResult,
   SeriesGrid,
@@ -132,6 +136,7 @@ export type {
   SeriesOrigin,
   SeriesRequirements,
   SeriesSession,
+  Team,
   WeekendFormat,
 } from './series.ts';
 

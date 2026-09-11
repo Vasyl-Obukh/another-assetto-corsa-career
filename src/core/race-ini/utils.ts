@@ -171,17 +171,43 @@ export const firstSkin = (content: Content, model: string): string => (
 );
 
 /**
+ * The key a livery is reserved under.
+ *
+ * Keyed on the car as well as the folder name, because skin folders share names
+ * across cars - `00_official` exists under most of them. Reserving the bare
+ * name would let one car's pinned livery make every other car on a multi-model
+ * grid skip its own.
+ * @param model Car folder ID
+ * @param skin Skin folder ID
+ * @returns The key to reserve it under
+ */
+export const skinKey = (model: string, skin: string): string => `${model}:${skin}`;
+
+/**
  * Picks a skin that is not already on the grid, so the field looks varied.
+ *
+ * Once every livery of a car is taken it cycles back through them rather than
+ * handing the first one to everybody left: a fourteen-car field on a car with
+ * five liveries used to come out as ten identical entries, which a one-make
+ * championship reaches immediately.
  * @param content Installed content to look in
  * @param model Car folder ID
- * @param used Skins already assigned
- * @returns An unused skin, the first skin when all are taken, or null when the car is unknown
+ * @param used Skins already reserved, keyed by skinKey
+ * @param placed How many of this model are already on the grid
+ * @returns A skin for this entry, or null when the car is unknown
  */
-export const nextSkin = (content: Content, model: string, used: Set<string>): string | null => {
+export const nextSkin = (
+  content: Content,
+  model: string,
+  used: Set<string>,
+  placed: number,
+): string | null => {
   const car = content.cars.find((entry) => entry.id === model);
   if (!car) return null;
 
-  return car.skins.find((skin) => !used.has(skin.id))?.id ?? car.skins[0]?.id ?? null;
+  return car.skins.find((skin) => !used.has(skinKey(model, skin.id)))?.id
+    ?? car.skins[placed % car.skins.length]?.id
+    ?? null;
 };
 
 /**
@@ -224,13 +250,33 @@ export const buildGrid = (race: RaceDefinition, content: Content): GridEntry[] =
   const spec = race.grid ?? {};
   const opponents = spec.opponents ?? [];
   const size = spec.size ?? opponents.length + 1;
-  const usedSkins = new Set<string>([grid[0].skin]);
+  /**
+   * The car one opponent slot ends up in.
+   * @param at Index into the opponent list
+   * @returns Its own model, the grid's default, or the player's
+   */
+  const modelAt = (at: number): string => opponents[at]?.model ?? spec.model ?? player.model;
+
+  // Every pinned livery is reserved before a single one is handed out, or an
+  // automatic assignment early in the field takes the skin an entry further
+  // down asked for by name. Only as far as `size`, which is authored separately
+  // from the opponent list: reserving past it would hold liveries back from the
+  // cars that actually start.
+  const usedSkins = new Set<string>([skinKey(player.model, grid[0].skin)]);
+  for (let i = 1; i < size; i += 1) {
+    const pinned = opponents[i - 1]?.skin;
+    if (pinned !== undefined) usedSkins.add(skinKey(modelAt(i - 1), pinned));
+  }
+
+  const placed = new Map<string, number>([[player.model, 1]]);
 
   for (let i = 1; i < size; i += 1) {
     const defined = opponents[i - 1] ?? {};
-    const model = defined.model ?? spec.model ?? player.model;
-    const skin = defined.skin ?? nextSkin(content, model, usedSkins) ?? grid[0].skin;
-    usedSkins.add(skin);
+    const model = modelAt(i - 1);
+    const already = placed.get(model) ?? 0;
+    const skin = defined.skin ?? nextSkin(content, model, usedSkins, already) ?? grid[0].skin;
+    placed.set(model, already + 1);
+    usedSkins.add(skinKey(model, skin));
 
     grid.push({
       model,

@@ -102,7 +102,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.entry.notFound': 'Class entry not found in {{series}}: {{entry}}',
   'series.entry.unknown': 'Round {{round}} overrides a class entry {{series}} does not have: {{entry}}',
   'series.entry.noCars': 'Class entry {{entry}} names no cars',
-  'series.entrants.invalid': 'Class entry {{entry}} fields {{entrants}} cars; it must field at least one',
+  'series.seats.empty': 'Class entry {{entry}} has no seats; it must field at least one car',
+  'series.seat.teamUnknown': 'Seat {{seat}} is fielded by a team {{series}} does not have: {{team}}',
+  'series.seat.carNotEligible': 'Seat {{seat}} is pinned to a car its class cannot field: {{car}}',
   'series.tier.invalid': 'Class entry {{entry}} sits at tier {{tier}}; tier 1 is the top and there is nothing above it',
   'series.days.gapped': 'Weekend format {{format}} of {{series}} skips day {{day}}',
   'series.days.tooMany':
@@ -114,6 +116,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.startingPosition.authored':
     'Session "{{session}}" of {{format}} in {{series}} sets a starting position. The grid comes from qualifying or from the ladder, so an authored one would be silently overwritten.',
   'series.bop.notEligible': 'Class entry {{entry}} balances a car it cannot field: {{car}}',
+  'series.prizes.invalid': 'Championship {{series}} pays {{amount}} for {{table}} position {{position}}; prize money cannot be negative',
+  'series.entryFee.invalid': 'Entry fee of {{amount}} on {{scope}} in {{series}}; an entry fee cannot be negative',
+  'series.drops.invalid': 'Championship {{series}} drops {{drops}} results; that must be a whole number and not negative',
   'series.round.notFound': 'Round not found in {{series}}: {{round}}',
   'series.round.unavailable': 'Round {{round}} of {{series}} cannot be raced against the installed content',
   'series.car.notEligible': 'Car {{car}} is not eligible for {{entry}} at this round',

@@ -1,4 +1,5 @@
-import { CarSpec, Discipline } from '../../../shared/types/index.ts';
+import { seat, team } from './utils.ts';
+import { CarSpec, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -19,12 +20,37 @@ export const GT3_SPRINT_SERIES: Championship = {
   name: 'GT3 Sprint Series',
   notes: 'One-hour sprint races for 2010s GT3 machinery. The field is drawn from whichever of the '
     + 'class you own, so DLC widens the grid rather than unlocking the series.',
+  teams: [
+    team('kestrel', 'Kestrel Autosport', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('rheinwerk', 'Rheinwerk Motorsport', 'Germany', 'GER', TeamBudget.WORKS),
+    team('scuderia-oltre', 'Scuderia Oltre', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
+    team('gravelines', 'Gravelines Competition', 'France', 'FRA', TeamBudget.INDEPENDENT),
+    team('zuiderzee', 'Zuiderzee Racing', 'Netherlands', 'NED', TeamBudget.PRIVATEER),
+    team('black-fen', 'Black Fen Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+  ],
   entries: [
     {
       id: 'gt3',
       name: 'GT3',
+      // Six two-car teams. Which car each of them fields is drawn from whatever
+      // of the spec is installed, so a seat names a driver and a team and stops
+      // there - a GT3 series is not one make, and pinning a car would make half
+      // the entry list unraceable on a base-content library.
       ladder: { discipline: Discipline.SPORTSCAR, tier: 3 },
-      entrants: 12,
+      seats: [
+        seat('kes-1', 'kestrel', 'Duncan Aldridge', 'Great Britain', 'GBR'),
+        seat('kes-2', 'kestrel', 'Marius Thorne', 'Great Britain', 'GBR'),
+        seat('rhe-1', 'rheinwerk', 'Jonas Kirchner', 'Germany', 'GER'),
+        seat('rhe-2', 'rheinwerk', 'Lena Osterhoff', 'Germany', 'GER'),
+        seat('olt-1', 'scuderia-oltre', 'Giulio Mancuso', 'Italy', 'ITA'),
+        seat('olt-2', 'scuderia-oltre', 'Bernardo Lisi', 'Italy', 'ITA'),
+        seat('gra-1', 'gravelines', 'Thibault Mercier', 'France', 'FRA'),
+        seat('gra-2', 'gravelines', 'Camille Desrosiers', 'France', 'FRA'),
+        seat('zui-1', 'zuiderzee', 'Wouter van Dijk', 'Netherlands', 'NED'),
+        seat('zui-2', 'zuiderzee', 'Femke Ravensberg', 'Netherlands', 'NED'),
+        seat('bfr-1', 'black-fen', 'Owen Lattimer', 'Great Britain', 'GBR'),
+        seat('bfr-2', 'black-fen', 'Ilya Sokolenko', 'Ukraine', 'UKR'),
+      ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
     },
   ],

@@ -10,6 +10,7 @@ import { EnterRoundDialog } from './EnterRoundDialog.tsx';
 import { EntryCard } from './EntryCard.tsx';
 import { FormatCard } from './FormatCard.tsx';
 import { MissingContent } from './MissingContent.tsx';
+import { MoneyCard } from './MoneyCard.tsx';
 import { OriginBadge } from './OriginBadge.tsx';
 import { PointsCard } from './PointsCard.tsx';
 import { RoundRow } from './RoundRow.tsx';
@@ -99,13 +100,18 @@ export const ChampionshipDetail = () => {
           />
 
           <Card>
-            <CardHeader><CardTitle>{t('championships.entries.title')}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>
+                {t('championships.entries.title', { count: listing.series.entries.length })}
+              </CardTitle>
+            </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {listing.series.entries.map((entry) => (
                 <EntryCard
                   key={entry.id}
                   entry={entry}
                   availability={entryAvailability(listing, entry.id)}
+                  teams={listing.series.teams ?? []}
                 />
               ))}
             </CardContent>
@@ -134,6 +140,8 @@ export const ChampionshipDetail = () => {
             defaultSystem={listing.series.defaultPointsSystem}
             drops={listing.series.drops}
           />
+
+          <MoneyCard entryFee={listing.series.entryFee} prizes={listing.series.prizes} />
 
           {/* Only when content is genuinely what is missing. A misconfigured
               file's entries and rounds are derived from a document already

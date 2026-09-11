@@ -8,8 +8,12 @@ import type { SeriesGrid } from '../../shared/types/index.ts';
  * A championship declaring anything else is refused rather than guessed at:
  * a series is a document users fork, export and import, and reading an unknown
  * revision leniently is how a field silently means two things.
+ *
+ * Revision 3 replaced a class entry's `entrants` count with its seat list;
+ * migrateSeries carries a revision 2 file across, which is what the field was
+ * put here for in the first place.
  */
-export const SERIES_FORMAT_VERSION = 2;
+export const SERIES_FORMAT_VERSION = 3;
 
 /**
  * How many days a race weekend may run over.

@@ -3,7 +3,14 @@
 // rather than the first.
 
 import {
-  DISCIPLINES, SESSION_TYPES, SPECS, TRACK_STATE_NAMES, WEATHER_TYPES,
+  DISCIPLINES,
+  MIGRATABLE_VERSION,
+  SEATS_VERSION,
+  SESSION_TYPES,
+  SPECS,
+  TEAM_BUDGETS,
+  TRACK_STATE_NAMES,
+  WEATHER_TYPES,
 } from './constants.ts';
 import type { Reporter } from './types.ts';
 import { appErrorInfo } from '../../shared/errors/index.ts';
@@ -32,6 +39,32 @@ export const reporter = (file: string, problems: AppErrorInfo[]): Reporter => ({
     return memberOf(value, allowed) !== undefined || this.bad(field, value);
   },
 });
+
+/**
+ * Checks a value that has to be a number when it is there at all.
+ * @param value The value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readOptionalNumber = (
+  value: unknown,
+  field: string,
+  report: Reporter,
+): boolean => value === undefined || typeof value === 'number' || report.bad(field, value);
+
+/**
+ * Checks a value that has to be a string when it is there at all.
+ * @param value The value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readOptionalString = (
+  value: unknown,
+  field: string,
+  report: Reporter,
+): boolean => value === undefined || typeof value === 'string' || report.bad(field, value);
 
 /**
  * Checks the conditions block a round or a session may carry.
@@ -106,7 +139,67 @@ export const readPoints = (value: unknown, field: string, report: Reporter): boo
 };
 
 /**
- * Checks one class entry's discipline and what it may be driven in.
+ * Checks one seat's id and whoever is in it.
+ *
+ * Shallow, like the rest of this module: a team id and a car folder name index
+ * the championship's own lists rather than a catalogue, so validateSeries is
+ * where they are resolved.
+ * @param value The seat value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readSeat = (value: unknown, field: string, report: Reporter): boolean => {
+  if (!isRecord(value)) return report.bad(field, value);
+
+  const id = (typeof value.id === 'string' && value.id !== '')
+    || report.bad(`${field}.id`, value.id);
+  const team = value.team === undefined
+    || typeof value.team === 'string'
+    || report.bad(`${field}.team`, value.team);
+  // A driver with no name would race under a generated one while claiming to
+  // hold somebody. Every leaf is checked, not just the ones with a catalogue behind them: an
+  // aiLevel of "fast" would reach race.ini as AI_LEVEL=fast, which Assetto
+  // Corsa reads as garbage with nothing said anywhere.
+  const driver = value.driver === undefined
+    || ((isRecord(value.driver) && typeof value.driver.name === 'string' && value.driver.name !== ''
+      && readOptionalString(value.driver.nationality, `${field}.driver.nationality`, report)
+      && readOptionalString(value.driver.nationCode, `${field}.driver.nationCode`, report))
+      || report.bad(`${field}.driver`, value.driver));
+  const car = value.car === undefined
+    || ((isRecord(value.car)
+      && readOptionalString(value.car.model, `${field}.car.model`, report)
+      && readOptionalString(value.car.skin, `${field}.car.skin`, report))
+      || report.bad(`${field}.car`, value.car));
+  const levels = [
+    readOptionalNumber(value.aiLevel, `${field}.aiLevel`, report),
+    readOptionalNumber(value.aiAggression, `${field}.aiAggression`, report),
+  ].every(Boolean);
+
+  return id && team && driver && car && levels;
+};
+
+/**
+ * Checks one team's id, name and budget tier.
+ * @param value The team value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readTeam = (value: unknown, field: string, report: Reporter): boolean => {
+  if (!isRecord(value)) return report.bad(field, value);
+
+  const id = (typeof value.id === 'string' && value.id !== '')
+    || report.bad(`${field}.id`, value.id);
+  const name = typeof value.name === 'string' || report.bad(`${field}.name`, value.name);
+  const budget = value.budget === undefined
+    || report.closedSet(value.budget, TEAM_BUDGETS, `${field}.budget`);
+
+  return id && name && budget;
+};
+
+/**
+ * Checks one class entry's discipline, seats and what it may be driven in.
  * @param value The entry value
  * @param field Dotted path to it
  * @param report Where to record what is wrong
@@ -119,8 +212,13 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     ? report.closedSet(value.ladder.discipline, DISCIPLINES, `${field}.ladder.discipline`)
     : report.bad(`${field}.ladder`, value.ladder);
 
+  // Mapped before every(), so an entry with three bad seats names three.
+  const seats = Array.isArray(value.seats)
+    ? value.seats.map((seat, at) => readSeat(seat, `${field}.seats[${at}]`, report)).every(Boolean)
+    : report.bad(`${field}.seats`, value.seats);
+
   const rule = value.eligibility;
-  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule);
+  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats;
 
   // A spec indexes the class catalogue, so it has to be a real member. A car
   // list is folder names, which seriesAvailability checks against the install
@@ -129,7 +227,58 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     ? report.closedSet(rule.spec, SPECS, `${field}.eligibility.spec`)
     : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
 
-  return ladder && eligibility;
+  return ladder && seats && eligibility;
+};
+
+/**
+ * Checks the prize money a championship pays.
+ *
+ * The same argument readPoints makes: a table of anything but numbers would pay
+ * NaN a phase later rather than fail to read now.
+ * @param value The prizes value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readPrizes = (value: unknown, field: string, report: Reporter): boolean => {
+  if (value === undefined) return true;
+  if (!isRecord(value)) return report.bad(field, value);
+
+  return (['positions', 'standings'] as const).map((table) => {
+    const amounts = value[table];
+
+    return amounts === undefined
+      || (Array.isArray(amounts) && amounts.every((amount) => typeof amount === 'number'))
+      || report.bad(`${field}.${table}`, amounts);
+  }).every(Boolean);
+};
+
+/**
+ * Carries a championship written against an older revision forward.
+ *
+ * Revision 2 gave a class entry an `entrants` count; revision 3 gives it a seat
+ * list, and the count is exactly that list's length with nothing said about who
+ * is in it - so the conversion loses nothing and reports nothing. Anything else
+ * is left alone for validateSeries to refuse on its version, and so is the
+ * revision this produces once it stops being the one the build reads.
+ * @param raw The record read out of the file
+ * @returns The same record at the current revision, or unchanged
+ */
+export const migrateSeries = (raw: Record<string, unknown>): Record<string, unknown> => {
+  if (raw.version !== MIGRATABLE_VERSION || !Array.isArray(raw.entries)) return raw;
+
+  const entries = raw.entries.map((entry) => {
+    if (!isRecord(entry) || typeof entry.entrants !== 'number') return entry;
+    const { entrants, ...rest } = entry;
+    const id = typeof entry.id === 'string' ? entry.id : 'entry';
+
+    return {
+      ...rest,
+      seats: Array.from({ length: Math.max(0, entrants) }, (unused, at) => ({ id: `${id}-${at + 1}` })),
+    };
+  });
+
+  return { ...raw, version: SEATS_VERSION, entries };
 };
 
 /**
@@ -145,6 +294,7 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
   const track = isRecord(value.track) && typeof value.track.id === 'string'
     ? true
     : report.bad(`${field}.track`, value.track);
+  const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
 
-  return readConditions(value.conditions, `${field}.conditions`, report) && track;
+  return readConditions(value.conditions, `${field}.conditions`, report) && track && fee;
 };
