@@ -13,10 +13,10 @@
 
 import type { ParsedSeries } from './types.ts';
 import {
-  migrateSeries,
   readEntry,
   readFormat,
   readOptionalNumber,
+  readOptionalString,
   readPoints,
   readPrizes,
   readRound,
@@ -56,11 +56,6 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     return { series: null, problems };
   }
 
-  // Migrated before it is read rather than after: an older revision is checked
-  // against the shape this build understands, so every field path in a problem
-  // names where the value is now.
-  const record = migrateSeries(raw);
-
   /**
    * Checks every entry of a list the file has to carry.
    * @param value The list
@@ -82,24 +77,24 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
   // Collected rather than short-circuited: a file is read once, and naming one
   // fault at a time would mean fixing it to be told about the next.
   const readable = [
-    typeof record.version === 'number' || report.bad('version', record.version),
-    (typeof record.id === 'string' && record.id !== '') || report.bad('id', record.id),
-    typeof record.name === 'string' || report.bad('name', record.name),
-    readList(record.entries, 'entries', (entry, at) => readEntry(entry, at, report)),
-    readList(record.rounds, 'rounds', (round, at) => readRound(round, at, report)),
-    readList(record.weekendFormats, 'weekendFormats', (format, at) => readFormat(format, at, report)),
-    readList(record.pointsSystems, 'pointsSystems', (points, at) => readPoints(points, at, report)),
-    record.teams === undefined
-      || readList(record.teams, 'teams', (team, at) => readTeam(team, at, report)),
-    readPrizes(record.prizes, 'prizes', report),
-    readOptionalNumber(record.entryFee, 'entryFee', report),
-    readOptionalNumber(record.drops, 'drops', report),
+    typeof raw.version === 'number' || report.bad('version', raw.version),
+    (typeof raw.id === 'string' && raw.id !== '') || report.bad('id', raw.id),
+    typeof raw.name === 'string' || report.bad('name', raw.name),
+    readList(raw.entries, 'entries', (entry, at) => readEntry(entry, at, report)),
+    readList(raw.rounds, 'rounds', (round, at) => readRound(round, at, report)),
+    readList(raw.weekendFormats, 'weekendFormats', (format, at) => readFormat(format, at, report)),
+    readList(raw.pointsSystems, 'pointsSystems', (points, at) => readPoints(points, at, report)),
+    raw.teams === undefined
+      || readList(raw.teams, 'teams', (team, at) => readTeam(team, at, report)),
+    readPrizes(raw.prizes, 'prizes', report),
+    readOptionalNumber(raw.entryFee, 'entryFee', report),
+    readOptionalString(raw.description, 'description', report),
   ].every(Boolean);
 
   // Cast rather than rebuilt: every value with a catalogue behind it has been
   // checked, and the rest is the shape validateSeries reads next. The same
   // stance readContentCache takes on the content cache, for the same reason.
-  return { series: readable ? record as unknown as Championship : null, problems };
+  return { series: readable ? raw as unknown as Championship : null, problems };
 };
 
 /**

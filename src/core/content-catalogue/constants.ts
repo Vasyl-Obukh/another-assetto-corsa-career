@@ -17,8 +17,11 @@ import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
  * The content cache stores whole Car and Track objects, provenance included, so
  * amending the catalogue has to invalidate it the same way a shape change does.
  * Keeping the switch here means a data edit never needs main to know.
+ *
+ * Climbs for the same reason CONTENT_CACHE_VERSION does: what it invalidates is
+ * a cache, not a document.
  */
-export const CONTENT_CATALOGUE_VERSION = 8;
+export const CONTENT_CATALOGUE_VERSION = 1;
 
 /**
  * Cars everyone who owns Assetto Corsa has.

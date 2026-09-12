@@ -12,8 +12,12 @@ export const CACHE_FILE = 'content-cache.json';
  * from the cache exactly as it was read before. That is the whole migration
  * story: an older file is thrown away and the library is scanned again, which is
  * cheap and can never feed a stale shape into anything downstream.
+ *
+ * Which is why this one keeps climbing where the series format does not - the
+ * cache is derived data nobody authored, so discarding it costs a rescan rather
+ * than someone's work.
  */
-export const CONTENT_CACHE_VERSION = 4;
+export const CONTENT_CACHE_VERSION = 1;
 
 /**
  * How long to wait before writing the cache out, as the settings store does.

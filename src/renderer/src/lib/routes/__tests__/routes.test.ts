@@ -72,6 +72,10 @@ describe('renderer/lib/routes/routes', () => {
         .toBe('/results/2026-08-31T18-04-11-123Z.json');
     });
 
+    it('builds a championship editor beneath its own page', () => {
+      expect(path.championshipEdit({ id: 'lotus-cup' })).toBe('/championships/lotus-cup/edit');
+    });
+
     it('returns the pattern itself where a destination takes no parameters', () => {
       expect(path.race()).toBe(ROUTE.race);
       expect(path.results()).toBe(ROUTE.results);

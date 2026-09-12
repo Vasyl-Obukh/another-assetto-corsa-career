@@ -24,7 +24,7 @@ import {
 } from './constants.ts';
 import type { CspSetup, RaceStore } from './types.ts';
 import {
-  isArchiveName, readJson, readRecord, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, writeJson,
 } from './utils.ts';
 import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
 import { buildRaceIni, parseClock, validateRace } from '../../core/race-ini/index.ts';
@@ -59,7 +59,7 @@ import {
 import type { ContentStore } from '../content-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 
-export type { RaceStore } from './types.ts';
+export type { RaceProgress, RaceStore } from './types.ts';
 
 /**
  * Loads the race being set up and returns a store over it.
@@ -397,6 +397,11 @@ export const createRaceStore = async (
     },
 
     get: describe,
+
+    // Deliberately off the draft and the weekend state rather than off a plan:
+    // this is asked once per championship listing, and describe() reaches the
+    // content scan.
+    progress: () => progressOf(state, definition.id, status.phase !== 'idle'),
 
     async set(next) {
       if (status.phase !== 'idle') throw new AppError('run.inFlight');

@@ -1,13 +1,14 @@
 import { useTranslation } from 'react-i18next';
 
 import { SeatList } from './SeatList.tsx';
-import { disciplineKey } from './utils.ts';
+import { disciplineKey, tierAccent } from './utils.ts';
 import type { ClassEntry, EntryAvailability, Team } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
+import { DISCIPLINE_ACCENT } from '@/lib/accents';
 
 interface EntryCardProps {
   /**
@@ -35,8 +36,13 @@ export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
       <div className="flex flex-wrap items-center gap-2">
         <span className="min-w-0 flex-1 truncate font-medium">{entry.name}</span>
 
-        <Badge variant="outline">{t(disciplineKey(entry.ladder.discipline))}</Badge>
-        <Badge variant="outline">{t('championships.tier', { tier: entry.ladder.tier })}</Badge>
+        <Badge className={DISCIPLINE_ACCENT[entry.ladder.discipline]}>
+          {t(disciplineKey(entry.ladder.discipline))}
+        </Badge>
+
+        <Badge className={tierAccent(entry.ladder.tier)}>
+          {t('championships.tier', { tier: entry.ladder.tier })}
+        </Badge>
         <Badge variant="outline">{t('championships.grid', { count: entry.seats.length })}</Badge>
       </div>
 

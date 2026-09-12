@@ -1,8 +1,7 @@
-import { ArrowLeftIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { AvailabilityBadge } from './AvailabilityBadge.tsx';
 import { ChampionshipActions } from './ChampionshipActions.tsx';
@@ -16,10 +15,10 @@ import { PointsCard } from './PointsCard.tsx';
 import { RoundRow } from './RoundRow.tsx';
 import { availabilityState, entryAvailability } from './utils.ts';
 import type { Round } from '../../../../shared/types';
-import { ErrorCard, ProblemList, ScreenBody } from '@/components';
 import {
-  Card, CardContent, CardHeader, CardTitle,
-} from '@/components/ui/card.tsx';
+  ErrorCard, ProblemList, ScreenBody, ScreenHeader,
+} from '@/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useChampionship, useSeriesCommands } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
@@ -38,14 +37,24 @@ export const ChampionshipDetail = () => {
   const error = championship.error ?? commands.error;
 
   return (
-    <ScreenBody className="flex flex-col gap-4 py-8">
-      <Link
-        to={path.championships()}
-        className="flex w-fit items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-4" />
-        {t('championships.back')}
-      </Link>
+    <ScreenBody className="flex flex-col gap-4 pb-8">
+      <ScreenHeader back={{ to: path.championships(), label: t('championships.back') }}>
+        {listing ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold">{listing.series.name}</h1>
+            <OriginBadge origin={listing.origin} />
+            <AvailabilityBadge availability={listing.availability} />
+
+            <div className="ml-auto">
+              <ChampionshipActions
+                listing={listing}
+                commands={commands}
+                onDeleted={() => navigate(path.championships())}
+              />
+            </div>
+          </div>
+        ) : null}
+      </ScreenHeader>
 
       {error ? (
         <ErrorCard
@@ -62,32 +71,19 @@ export const ChampionshipDetail = () => {
 
       {listing ? (
         <>
-          <header className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold">{listing.series.name}</h1>
-              <OriginBadge origin={listing.origin} />
-              <AvailabilityBadge availability={listing.availability} />
-
-              <div className="ml-auto">
-                <ChampionshipActions
-                  listing={listing}
-                  commands={commands}
-                  onDeleted={() => navigate(path.championships())}
-                />
-              </div>
-            </div>
-            {listing.series.notes ? (
-              <p className="text-sm text-muted-foreground">{listing.series.notes}</p>
-            ) : null}
-            {/* Only ever set by Duplicate, and it is a record of where the copy
-                came from rather than a live link - the original may since have
-                changed, or be gone. */}
-            {listing.series.forkedFrom ? (
-              <p className="text-xs text-muted-foreground">
-                {t('championships.forkedFrom', { series: listing.series.forkedFrom })}
-              </p>
-            ) : null}
-          </header>
+          {/* Under the pinned header rather than in it, so the bar stays two
+              lines however much the description says. */}
+          {listing.series.description ? (
+            <p className="text-sm text-muted-foreground">{listing.series.description}</p>
+          ) : null}
+          {/* Only ever set by Duplicate, and it is a record of where the copy
+              came from rather than a live link - the original may since have
+              changed, or be gone. */}
+          {listing.series.forkedFrom ? (
+            <p className="text-xs text-muted-foreground">
+              {t('championships.forkedFrom', { series: listing.series.forkedFrom })}
+            </p>
+          ) : null}
 
           {/* Above the calendar, because it is why every Race button below is
               dead - and installing content will not change that. */}
@@ -138,7 +134,6 @@ export const ChampionshipDetail = () => {
           <PointsCard
             systems={listing.series.pointsSystems}
             defaultSystem={listing.series.defaultPointsSystem}
-            drops={listing.series.drops}
           />
 
           <MoneyCard entryFee={listing.series.entryFee} prizes={listing.series.prizes} />

@@ -25,7 +25,7 @@ export const LOTUS_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'lotus-cup',
   name: 'Lotus Cup',
-  notes: 'Two classes sharing one grid and one calendar, scored separately. The Open cars are '
+  description: 'Two classes sharing one grid and one calendar, scored separately. The Open cars are '
     + 'balanced against each other; Production runs the road cars as they come.',
   teams: [
     team('hethel', 'Hethel Race Group', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),

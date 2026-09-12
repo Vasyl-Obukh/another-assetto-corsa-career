@@ -47,27 +47,6 @@ export const SESSION_TYPES: readonly SessionType[] = [
 export const TRACK_STATE_NAMES: readonly TrackStateName[] = ['green', 'fast', 'optimum'];
 
 /**
- * The revision a championship file is migrated from.
- *
- * Revision 2 carried an `entrants` count where revision 3 carries a seat list,
- * and the count converts to seats losslessly - so a file written before seats
- * existed is read rather than refused.
- */
-export const MIGRATABLE_VERSION = 2;
-
-/**
- * The revision that conversion produces.
- *
- * Stamped literally rather than as SERIES_FORMAT_VERSION, even though the two
- * are the same number today. A migration may only claim the revision it
- * actually wrote: label a revision 2 file as whatever the build currently reads
- * and a later revision 4 would find its own step quietly skipped, which is the
- * silent "a field means two things" the version field exists to prevent. Left
- * behind, it fails the version gate loudly instead.
- */
-export const SEATS_VERSION = 3;
-
-/**
  * The file extension a championship is written as.
  */
 export const SERIES_FILE_EXTENSION = '.json';

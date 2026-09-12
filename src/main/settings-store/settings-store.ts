@@ -10,7 +10,7 @@ import type { SettingsStore } from './types.ts';
 import { quarantine } from './utils.ts';
 import { DEFAULT_SETTINGS } from '../../shared/constants/index.ts';
 import type { Settings } from '../../shared/types/index.ts';
-import { applyPatch, migrateSettings } from '../../shared/utils/settings/index.ts';
+import { applyPatch, readSettings } from '../../shared/utils/settings/index.ts';
 
 export type { SettingsStore } from './types.ts';
 
@@ -26,7 +26,7 @@ export const createSettingsStore = async (userDataDir: string): Promise<Settings
   let current: Settings;
   try {
     const text = await readFile(file, 'utf8');
-    current = migrateSettings(JSON.parse(text));
+    current = readSettings(JSON.parse(text));
   } catch (error) {
     const missing = (error as NodeJS.ErrnoException).code === 'ENOENT';
     if (!missing) {

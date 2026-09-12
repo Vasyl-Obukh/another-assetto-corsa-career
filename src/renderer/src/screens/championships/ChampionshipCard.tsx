@@ -49,8 +49,8 @@ export const ChampionshipCard = ({ listing, commands }: ChampionshipCardProps) =
           </div>
         </div>
 
-        {series.notes ? (
-          <p className="text-sm text-muted-foreground">{series.notes}</p>
+        {series.description ? (
+          <p className="text-sm text-muted-foreground">{series.description}</p>
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2">

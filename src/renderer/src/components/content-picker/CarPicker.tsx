@@ -29,6 +29,15 @@ interface CarPickerProps {
    */
   baseQuery?: CarQuery;
   /**
+   * Whether the livery is part of what is being picked.
+   *
+   * A seat pins a car and a livery, so it asks both questions. An eligibility
+   * list and a balance-of-performance table name a model alone, and a livery
+   * step there is a question whose answer would be thrown away. Defaults to
+   * true.
+   */
+  pickSkin?: boolean;
+  /**
    * Called when the dialog opens or closes itself - Escape, the close button,
    * or a click outside.
    * @param open Whether it should now be showing
@@ -44,7 +53,7 @@ interface CarPickerProps {
 }
 
 export const CarPicker = ({
-  open, selectedId, selectedSkinId, baseQuery, onOpenChange, onPick,
+  open, selectedId, selectedSkinId, baseQuery, pickSkin = true, onOpenChange, onPick,
 }: CarPickerProps) => {
   const { t } = useTranslation();
 
@@ -90,7 +99,8 @@ export const CarPicker = ({
                 // A car with no livery at all is refused at launch by
                 // race.car.noSkins rather than here, which is where every other
                 // "that cannot race" answer is given.
-                if (car.skins.length < 2) pick(car, only ?? null);
+                if (!pickSkin) pick(car, null);
+                else if (car.skins.length < 2) pick(car, only ?? null);
                 else setChosen(car);
               }}
             />

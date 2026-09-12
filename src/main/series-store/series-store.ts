@@ -12,13 +12,14 @@ import path from 'node:path';
 
 import { SERIES_DIR } from './constants.ts';
 import type { SeriesStore } from './types.ts';
+import { isEditable, weekendOf } from './utils.ts';
 import { roundRace, seriesAvailability, validateSeries } from '../../core/series/index.ts';
-import { readSeries, writeSeries } from '../../core/series-file/index.ts';
+import { parseSeries, readSeries, writeSeries } from '../../core/series-file/index.ts';
 import {
   deleteUserSeries,
   freeSeriesFileName,
   loadSeriesLibrary,
-  nextSeriesId,
+  newSeriesId,
   saveUserSeries,
   seriesById,
   takenSeriesIds,
@@ -80,12 +81,13 @@ export const createSeriesStore = async (
    * Describes one loaded championship for the renderer.
    * @param one The championship and where it came from
    * @param installed What content the library has
-   * @returns The listing
+   * @returns The listing, including any weekend of it that is under way
    */
   const listing = (one: LoadedSeries, installed: Content): SeriesListing => ({
     series: one.series,
     availability: seriesAvailability(one.series, installed),
     origin: one.origin,
+    weekend: weekendOf(one.series, race.progress()),
   });
 
   /**
@@ -123,6 +125,35 @@ export const createSeriesStore = async (
    */
   const insistOrigin = (found: LoadedSeries, origin: SeriesOrigin, code: ErrorCode): void => {
     if (found.origin !== origin) throw new AppError(code, { series: found.series.id });
+  };
+
+  /**
+   * Finds a championship the editor is allowed to write over, or says why not.
+   *
+   * Every refusal a save can make, in one place and before anything is
+   * written - which is the shape held() and insistOrigin() already give the
+   * other commands.
+   * @param id The championship's id
+   * @param series The document offered for it
+   * @returns It, with the file to write and the origin that allowed it
+   * @throws When the app ships it, when the document renames it, or when a
+   * weekend of it has already begun
+   */
+  const writable = (id: string, series: Championship): LoadedSeries => {
+    const found = held(id);
+    if (!isEditable(found.origin)) throw new AppError('series.notEditable', { series: id });
+
+    // The id is what the library keys on, so a rename is Duplicate's job.
+    if (series.id !== id) {
+      throw new AppError('series.id.immutable', { series: id, id: series.id });
+    }
+
+    const underway = weekendOf(found.series, race.progress());
+    if (underway) {
+      throw new AppError('series.weekendInProgress', { series: id, round: underway.round });
+    }
+
+    return found;
   };
 
   /**
@@ -209,6 +240,38 @@ export const createSeriesStore = async (
       return race.set(definition);
     },
 
+    async validate(series) {
+      return seriesAvailability(series, await content.content());
+    },
+
+    async save(id, series) {
+      // Non-null by the origin guard inside: only a shipped championship has no
+      // file of its own.
+      const file = writable(id, series).file as string;
+
+      // The payload is unknown at runtime however the contract types it, and
+      // main is where a write is checked. parseSeries also normalises, so what
+      // is written and what is answered with are both the parsed document
+      // rather than what the renderer happened to send.
+      const parsed = parseSeries(series, file);
+      if (!parsed.series) {
+        throw new AppError('series.save.unreadable', {
+          series: id,
+          reason: parsed.problems[0]?.message ?? 'it is not a championship',
+        });
+      }
+
+      await saveUserSeries(userDir, parsed.series, file);
+      await settle(id);
+
+      // Off the reloaded library rather than off `parsed`, so the answer
+      // carries the origin and the weekend state the listing is built with.
+      const after = seriesById(library, id);
+      if (!after) throw new AppError('series.notFound', { series: id });
+
+      return listing(after, await content.content());
+    },
+
     async customise(id) {
       const found = held(id);
       insistOrigin(found, 'shipped', 'series.notShipped');
@@ -229,7 +292,7 @@ export const createSeriesStore = async (
       const free = await taken();
       const copy: Championship = {
         ...found.series,
-        id: nextSeriesId(found.series.id, free),
+        id: newSeriesId(),
         ...(name ? { name } : {}),
         forkedFrom: found.series.id,
       };
@@ -259,7 +322,7 @@ export const createSeriesStore = async (
       const clash = existing !== null && existing.origin !== 'shipped';
       const free = await taken();
       const imported: Championship = clash
-        ? { ...read.series, id: nextSeriesId(read.series.id, free) }
+        ? { ...read.series, id: newSeriesId() }
         : read.series;
 
       await saveUserSeries(userDir, imported, freeSeriesFileName(imported.id, free));

@@ -93,6 +93,68 @@
   --podium-silver-foreground: oklch(0.42 0.015 260);
   --podium-bronze: oklch(0.89 0.07 52);
   --podium-bronze-foreground: oklch(0.41 0.09 48);
+
+  /* Which kind of racing a class entry is - the axis the career ladder is
+     organised on. Four hues, `road` included: it is a rung of the ladder, not
+     the bucket the other three leave over.
+
+     Chroma sits a little above the pale families so the set reads as its own.
+     The championship detail page shows provenance, session, origin and
+     availability chips beside these, so: 112 keeps 24 clear of podium gold
+     (88); 175 keeps 20 clear of success and the race chip (150-155) and 20 of a
+     modified origin (195); 212 keeps 17 clear of that origin and 23 of a
+     redistributed-content tag (235); 270 keeps 20 clear of practice (250) and
+     25 of a mod provenance tag (295), and sits 8 off primary (262) - survivable
+     only because primary is never a chip fill. */
+  --discipline-single-seater: oklch(0.925 0.06 212);
+  --discipline-single-seater-foreground: oklch(0.36 0.11 215);
+  --discipline-sportscar: oklch(0.925 0.06 112);
+  --discipline-sportscar-foreground: oklch(0.36 0.1 118);
+  --discipline-touring: oklch(0.925 0.055 175);
+  --discipline-touring-foreground: oklch(0.35 0.09 178);
+  --discipline-road: oklch(0.925 0.06 270);
+  --discipline-road-foreground: oklch(0.37 0.12 270);
+
+  /* How well funded a team is. Three hues rather than one hue at three depths,
+     which at chip size reads as one colour. Chroma steps down from works to
+     privateer, so the order survives as a second cue.
+
+     They spend the last two gaps on the wheel. Works at 320 sits 10 off the
+     qualifying chip (310), independent at 18 sits 9 off destructive (27), and
+     privateer at 132 sits 18 clear of the race chip (150) and 20 of sportscar
+     (112). All three are survivable only because a team chip appears on the
+     teams card alone, where none of those neighbours do - destructive included,
+     which only fills a menu item. */
+  --budget-works: oklch(0.91 0.075 320);
+  --budget-works-foreground: oklch(0.38 0.15 320);
+  --budget-independent: oklch(0.92 0.06 18);
+  --budget-independent-foreground: oklch(0.42 0.13 22);
+  --budget-privateer: oklch(0.93 0.055 132);
+  --budget-privateer-foreground: oklch(0.4 0.09 135);
+
+  /* How far up its discipline a class entry sits. Metals rather than hues,
+     because a tier is an order with no fixed length and a ramp of named
+     materials reads as a rank while costing the palette almost nothing.
+
+     The podium's metals one step down, with platinum above gold, since a
+     ladder has a rung above gold and a podium does not. Separate tokens with
+     the same values on purpose: moving what first place looks like must not
+     move what tier 2 looks like. Steel is every rung from the fifth down, so
+     the ramp ends rather than fading into the card.
+
+     Platinum is told from silver by chroma rather than hue, and the same low
+     chroma (0.022 against 0.05) keeps it clear of a modified origin (195) and
+     a redistribution tag (235) near its hue. */
+  --tier-platinum: oklch(0.945 0.022 210);
+  --tier-platinum-foreground: oklch(0.4 0.05 215);
+  --tier-gold: oklch(0.9 0.085 88);
+  --tier-gold-foreground: oklch(0.42 0.1 75);
+  --tier-silver: oklch(0.91 0.008 255);
+  --tier-silver-foreground: oklch(0.42 0.015 260);
+  --tier-bronze: oklch(0.89 0.07 52);
+  --tier-bronze-foreground: oklch(0.41 0.09 48);
+  --tier-steel: oklch(0.875 0.022 250);
+  --tier-steel-foreground: oklch(0.36 0.035 255);
 }
 
 [data-theme="dark"] {
@@ -151,6 +213,33 @@
   --podium-silver-foreground: oklch(0.86 0.008 260);
   --podium-bronze: oklch(0.33 0.06 50);
   --podium-bronze-foreground: oklch(0.85 0.09 55);
+
+  --discipline-single-seater: oklch(0.32 0.07 212);
+  --discipline-single-seater-foreground: oklch(0.86 0.1 212);
+  --discipline-sportscar: oklch(0.32 0.07 112);
+  --discipline-sportscar-foreground: oklch(0.86 0.1 112);
+  --discipline-touring: oklch(0.32 0.065 175);
+  --discipline-touring-foreground: oklch(0.86 0.09 175);
+  --discipline-road: oklch(0.32 0.07 270);
+  --discipline-road-foreground: oklch(0.86 0.1 270);
+
+  --budget-works: oklch(0.34 0.085 320);
+  --budget-works-foreground: oklch(0.87 0.11 320);
+  --budget-independent: oklch(0.33 0.07 18);
+  --budget-independent-foreground: oklch(0.86 0.09 22);
+  --budget-privateer: oklch(0.32 0.06 132);
+  --budget-privateer-foreground: oklch(0.86 0.08 135);
+
+  --tier-platinum: oklch(0.34 0.025 210);
+  --tier-platinum-foreground: oklch(0.9 0.03 210);
+  --tier-gold: oklch(0.36 0.07 88);
+  --tier-gold-foreground: oklch(0.89 0.12 92);
+  --tier-silver: oklch(0.33 0.006 260);
+  --tier-silver-foreground: oklch(0.86 0.008 260);
+  --tier-bronze: oklch(0.33 0.06 50);
+  --tier-bronze-foreground: oklch(0.85 0.09 55);
+  --tier-steel: oklch(0.315 0.028 250);
+  --tier-steel-foreground: oklch(0.82 0.035 255);
 }
 
 @theme inline {
@@ -200,6 +289,30 @@
   --color-podium-silver-foreground: var(--podium-silver-foreground);
   --color-podium-bronze: var(--podium-bronze);
   --color-podium-bronze-foreground: var(--podium-bronze-foreground);
+  --color-discipline-single-seater: var(--discipline-single-seater);
+  --color-discipline-single-seater-foreground: var(--discipline-single-seater-foreground);
+  --color-discipline-sportscar: var(--discipline-sportscar);
+  --color-discipline-sportscar-foreground: var(--discipline-sportscar-foreground);
+  --color-discipline-touring: var(--discipline-touring);
+  --color-discipline-touring-foreground: var(--discipline-touring-foreground);
+  --color-discipline-road: var(--discipline-road);
+  --color-discipline-road-foreground: var(--discipline-road-foreground);
+  --color-budget-works: var(--budget-works);
+  --color-budget-works-foreground: var(--budget-works-foreground);
+  --color-budget-independent: var(--budget-independent);
+  --color-budget-independent-foreground: var(--budget-independent-foreground);
+  --color-budget-privateer: var(--budget-privateer);
+  --color-budget-privateer-foreground: var(--budget-privateer-foreground);
+  --color-tier-platinum: var(--tier-platinum);
+  --color-tier-platinum-foreground: var(--tier-platinum-foreground);
+  --color-tier-gold: var(--tier-gold);
+  --color-tier-gold-foreground: var(--tier-gold-foreground);
+  --color-tier-silver: var(--tier-silver);
+  --color-tier-silver-foreground: var(--tier-silver-foreground);
+  --color-tier-bronze: var(--tier-bronze);
+  --color-tier-bronze-foreground: var(--tier-bronze-foreground);
+  --color-tier-steel: var(--tier-steel);
+  --color-tier-steel-foreground: var(--tier-steel-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -260,4 +373,16 @@ summary,
 [role="menuitemradio"]:not([data-disabled]),
 [role="option"]:not([data-disabled]) {
   cursor: pointer;
+}
+
+/*
+ * A drag handle says so instead. After the rule above and unlayered like it: a
+ * grip is a <button>, so a `cursor-grab` utility would lose to `cursor: pointer`.
+ */
+[draggable="true"]:not(:disabled) {
+  cursor: grab;
+}
+
+[draggable="true"]:not(:disabled):active {
+  cursor: grabbing;
 }

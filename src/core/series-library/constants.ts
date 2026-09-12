@@ -12,7 +12,9 @@
  * The shape a championship id has to have to be written as a file.
  *
  * Every championship the app ships already matches it - `gt3-sprint-series`,
- * `formula-1-2023`, `lotus-cup`, `formula-abarth`.
+ * `formula-1-2023`, `lotus-cup`, `formula-abarth` - and so does the UUID
+ * newSeriesId mints for every other one, since a canonical UUID is lower-case
+ * hex in hyphenated groups.
  */
 export const SERIES_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -33,16 +35,3 @@ export const RESERVED_FILE_NAMES: ReadonlySet<string> = new Set([
   'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
   'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
 ]);
-
-/**
- * What a duplicated championship's id gets on the end.
- */
-export const COPY_SUFFIX = 'copy';
-
-/**
- * The suffix a duplicate already carries, so copying one counts on rather than
- * stacking. Built once here rather than per call, and with the digit class
- * escaped for the template literal - `\d` inside one collapses to a literal `d`,
- * which silently matched nothing and produced `lotus-cup-copy-2-copy`.
- */
-export const COPY_SUFFIX_PATTERN = new RegExp(`-${COPY_SUFFIX}(?:-\\d+)?$`);

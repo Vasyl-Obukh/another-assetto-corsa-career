@@ -91,6 +91,8 @@ export type DrivingAidNumber = Exclude<keyof DrivingAids, DrivingAidFlag>;
 export interface Settings {
   /**
    * Schema version, so a future shape can be migrated rather than discarded.
+   *
+   * Nothing reads it until the app is released.
    */
   version: 1;
   /**

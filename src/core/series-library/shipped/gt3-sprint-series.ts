@@ -18,7 +18,7 @@ export const GT3_SPRINT_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt3-sprint-series',
   name: 'GT3 Sprint Series',
-  notes: 'One-hour sprint races for 2010s GT3 machinery. The field is drawn from whichever of the '
+  description: 'One-hour sprint races for 2010s GT3 machinery. The field is drawn from whichever of the '
     + 'class you own, so DLC widens the grid rather than unlocking the series.',
   teams: [
     team('kestrel', 'Kestrel Autosport', 'Great Britain', 'GBR', TeamBudget.WORKS),
@@ -104,11 +104,10 @@ export const GT3_SPRINT_SERIES: Championship = {
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
   ],
   pointsSystems: [
-    { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], pole: 1 },
+    { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [1] },
     { id: 'sprint', name: 'Sprint points', positions: [15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  drops: 1,
   grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 35 },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },

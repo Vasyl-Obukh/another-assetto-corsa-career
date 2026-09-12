@@ -136,6 +136,7 @@ export type {
   SeriesOrigin,
   SeriesRequirements,
   SeriesSession,
+  SeriesWeekendState,
   Team,
   WeekendFormat,
 } from './series.ts';

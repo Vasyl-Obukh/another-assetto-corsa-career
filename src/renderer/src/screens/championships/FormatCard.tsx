@@ -7,6 +7,7 @@ import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
 import { SESSION_ACCENT } from '@/lib/accents';
+import { SESSION_TYPE_LABEL, sessionLength } from '@/screens/race';
 
 interface FormatCardProps {
   /**
@@ -25,21 +26,12 @@ export const FormatCard = ({ series }: FormatCardProps) => {
    * @returns Its label, already translated
    */
   const label = (session: SeriesSession): string => {
-    const name = session.name ?? t(`race.sessionType.${session.type}`);
-    if (session.laps) {
-      return t('championships.format.session', {
-        name,
-        length: t('championships.format.laps', { count: session.laps }),
-      });
-    }
-    if (session.minutes) {
-      return t('championships.format.session', {
-        name,
-        length: t('championships.format.minutes', { count: session.minutes }),
-      });
-    }
+    const name = session.name ?? t(SESSION_TYPE_LABEL[session.type]);
+    const length = sessionLength(session);
 
-    return t('championships.format.sessionPlain', { name });
+    return length === null
+      ? t('championships.format.sessionPlain', { name })
+      : t('championships.format.session', { name, length: t(length.key, { count: length.count }) });
   };
 
   return (
@@ -52,10 +44,10 @@ export const FormatCard = ({ series }: FormatCardProps) => {
           <div key={format.id} className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{format.name}</span>
-              {/* Only worth saying when there is something to default against:
-                  a championship running one format defaults to it trivially. */}
+              {/* Filled, as the format most rounds run. Only worth saying when
+                  there is something to default against. */}
               {formats.length > 1 && format.id === defaultFormat ? (
-                <Badge variant="secondary">{t('championships.format.default')}</Badge>
+                <Badge>{t('championships.format.default')}</Badge>
               ) : null}
             </div>
             {sessionsByDay(format.sessions).map(({ day, sessions }) => (

@@ -42,6 +42,7 @@ export const RoundRow = ({
   // row with the same word says nothing, and what a calendar has to show is
   // which of its weekends are the odd ones.
   const format = round.weekendFormat === undefined ? null : formatOf(listing.series, round);
+  const underway = listing.weekend?.round === round.id;
 
   return (
     <div className="flex flex-wrap items-center gap-3 border-b py-3 last:border-b-0">
@@ -68,6 +69,13 @@ export const RoundRow = ({
       {round.entryFee !== undefined ? (
         <Badge variant="outline">
           {t('championships.entryFee', { value: formatMoney(round.entryFee) })}
+        </Badge>
+      ) : null}
+
+      {/* Also what stops the championship being edited. */}
+      {underway ? (
+        <Badge variant="warning">
+          {t('championships.calendar.underway')}
         </Badge>
       ) : null}
 

@@ -13,6 +13,7 @@ import type {
   SessionDefinition,
   WeekendFormat,
 } from '../../../../shared/types';
+import { TIER_ACCENT } from '@/lib/accents';
 
 /**
  * The label for each discipline.
@@ -193,3 +194,17 @@ export const availabilityState = (availability: SeriesAvailability): Availabilit
 
   return availability.available ? 'available' : 'unavailable';
 };
+
+/**
+ * The colour a tier is chipped in.
+ *
+ * Its own helper rather than an index at each call site, because a tier is
+ * 1-based and unbounded: everything from the last metal down wears that metal,
+ * and a tier below 1 cannot happen but must not reach past the front of the
+ * ramp if a file claims one.
+ * @param tier Which rung, 1 being the top
+ * @returns The accent classes for it
+ */
+export const tierAccent = (tier: number): string => (
+  TIER_ACCENT[Math.min(Math.max(tier, 1), TIER_ACCENT.length) - 1]
+);

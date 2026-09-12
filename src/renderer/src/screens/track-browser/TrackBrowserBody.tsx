@@ -38,7 +38,7 @@ export const TrackBrowserBody = ({
   );
 
   return (
-    <ScreenBody scrollRef={scrollRef}>
+    <ScreenBody scrollRef={scrollRef} backToTop={onSelect === undefined}>
       <BrowserToolbar
         search={browser.search}
         placeholder={t('tracks.searchPlaceholder')}

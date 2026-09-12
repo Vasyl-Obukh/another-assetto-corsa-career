@@ -1,7 +1,8 @@
 // Helpers behind reading a championship: resolving what overrides what, and
 // composing the field a round is raced against.
 
-import { DEFAULT_MIN_MODELS, DEFAULT_SERIES_GRID, MAX_WEEKEND_DAYS } from './constants.ts';
+import { DEFAULT_SERIES_GRID } from './constants.ts';
+import { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { ContentSource } from '../../shared/types/index.ts';
@@ -23,8 +24,26 @@ import type {
   WeekendFormat,
 } from '../../shared/types/index.ts';
 import { SPEC_CARS } from '../../shared/utils/car-classes/index.ts';
+import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
 import { shuffle } from '../seeded-random/index.ts';
+
+/**
+ * The id the race a round lowers into carries.
+ *
+ * One function because `roundRace` stamps it and the series store matches it
+ * back to find a live weekend's championship - composed differently, the
+ * editor's lock would silently stop catching. Each half is URI-encoded around
+ * a `/`, so no two pairs compose the same id: joined with a hyphen, series
+ * `gt3` round `sprint-r1` and series `gt3-sprint` round `r1` were one string.
+ * An id of the usual `[a-z0-9-]` shape encodes to itself.
+ * @param series The championship's id
+ * @param round The round's id
+ * @returns The RaceDefinition id for that round
+ */
+export const roundRaceId = (series: string, round: string): string => (
+  `${encodeURIComponent(series)}/${encodeURIComponent(round)}`
+);
 
 /**
  * Finds a class entry by its id.
@@ -66,15 +85,6 @@ export const roundOf = (series: Championship, id: string): Round => {
 export const eligibilityFor = (entry: ClassEntry, round?: Round): Eligibility => (
   round?.eligibility?.find((override) => override.entry === entry.id)?.eligibility
   ?? entry.eligibility
-);
-
-/**
- * Every car folder ID an eligibility rule names, whether installed or not.
- * @param eligibility The rule to read
- * @returns The car IDs, in the order a field should draw from them
- */
-export const carsOf = (eligibility: Eligibility): readonly string[] => (
-  eligibility.kind === 'cars' ? eligibility.cars : SPEC_CARS[eligibility.spec]
 );
 
 /**
@@ -142,28 +152,6 @@ export const fieldSize = (series: Championship): number => series.entries.reduce
   (total, entry) => total + entry.seats.length,
   0,
 );
-
-/**
- * Every car folder ID a class entry may field across the whole calendar.
- *
- * Its own rule plus every round that overrides it, because a seat pinned to a
- * car is pinned for the season and some fields change car with the track - so
- * an IndyCar-shaped championship pins a road kit that only three rounds run.
- * @param series The championship
- * @param entry The class entry
- * @returns Every car it may field at some point in the season
- */
-export const fieldableCars = (series: Championship, entry: ClassEntry): Set<string> => {
-  const cars = new Set(carsOf(entry.eligibility));
-
-  series.rounds.forEach((round) => {
-    round.eligibility
-      ?.filter((override) => override.entry === entry.id)
-      .forEach((override) => carsOf(override.eligibility).forEach((car) => cars.add(car)));
-  });
-
-  return cars;
-};
 
 /**
  * Reads the livery a seat is pinned to, when the library actually has it.
@@ -400,11 +388,6 @@ export const validateMoney = (series: Championship): AppErrorInfo[] => {
       problems.push(appErrorInfo('series.entryFee.invalid', { ...where, scope, amount: fee }));
     }
   });
-
-  // A count rather than an amount, so it has to be whole as well as positive.
-  if (series.drops !== undefined && (!Number.isInteger(series.drops) || series.drops < 0)) {
-    problems.push(appErrorInfo('series.drops.invalid', { ...where, drops: series.drops }));
-  }
 
   return problems;
 };

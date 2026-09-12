@@ -1,12 +1,14 @@
-import { ArrowLeftIcon, CarIcon } from 'lucide-react';
+import { CarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
 import { SKIN_GRID, SKIN_SKELETON_COUNT } from './constants.ts';
 import { SkinCard } from './SkinCard.tsx';
 import { carBadgeUrl, isSafeSegment } from '../../../../shared/utils/content-url';
-import { ContentImage, ErrorCard, ProvenanceBadges, ScreenBody, SpecBadge } from '@/components';
+import {
+  ContentImage, ErrorCard, ProvenanceBadges, ScreenBody, ScreenHeader, SpecBadge,
+} from '@/components';
 import { SearchField } from '@/components/browser';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -23,43 +25,11 @@ export const CarDetail = () => {
 
   const { car, skins } = detail;
 
-  const back = (
-    <Button asChild size="sm" variant="ghost" className="-ml-2 w-fit">
-      <Link to={path.cars()}>
-        <ArrowLeftIcon />
-        {t('cars.detail.back')}
-      </Link>
-    </Button>
-  );
-
   return (
-    <ScreenBody className="flex flex-col gap-4 py-6">
-      {back}
-
-      {detail.error !== null ? (
-        <ErrorCard error={detail.error} onDismiss={detail.dismissError} />
-      ) : null}
-
-      {detail.loading ? (
-        <>
-          <Skeleton className="h-16 w-80" />
-          <div className={SKIN_GRID}>
-            {Array.from({ length: SKIN_SKELETON_COUNT }, (unused, index) => index).map((key) => (
-              <Skeleton key={key} className="h-64" />
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      {detail.missing ? (
-        <p className="py-12 text-center text-muted-foreground">
-          {t('cars.detail.notFound', { id })}
-        </p>
-      ) : null}
-
-      {car !== null ? (
-        <>
-          <header className="flex items-center gap-4">
+    <ScreenBody className="flex flex-col gap-4 pb-8">
+      <ScreenHeader back={{ to: path.cars(), label: t('cars.detail.back') }}>
+        {car !== null ? (
+          <div className="flex items-center gap-4">
             <div className="relative size-16 shrink-0">
               <ContentImage
                 sources={isSafeSegment(car.id) ? [carBadgeUrl(car.id)] : []}
@@ -86,7 +56,33 @@ export const CarDetail = () => {
                 <SpecBadge carId={car.id} />
               </div>
             </div>
-          </header>
+          </div>
+        ) : null}
+      </ScreenHeader>
+
+      {detail.error !== null ? (
+        <ErrorCard error={detail.error} onDismiss={detail.dismissError} />
+      ) : null}
+
+      {detail.loading ? (
+        <>
+          <Skeleton className="h-16 w-80" />
+          <div className={SKIN_GRID}>
+            {Array.from({ length: SKIN_SKELETON_COUNT }, (unused, index) => index).map((key) => (
+              <Skeleton key={key} className="h-64" />
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {detail.missing ? (
+        <p className="py-12 text-center text-muted-foreground">
+          {t('cars.detail.notFound', { id })}
+        </p>
+      ) : null}
+
+      {car !== null ? (
+        <>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">

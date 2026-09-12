@@ -36,22 +36,34 @@ export const ChampionshipActions = ({ listing, commands, onDeleted }: Championsh
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [duplicating, setDuplicating] = useState(false);
+  const [copying, setCopying] = useState(false);
   const [confirming, setConfirming] = useState<Confirming>(null);
 
   const { id, name } = listing.series;
+  const editor = path.championshipEdit({ id });
+
+  /**
+   * Opens the editor, taking a copy of a shipped championship on the way.
+   *
+   * The copy keeps the id, so one navigation covers both ways in.
+   */
+  const edit = (): void => {
+    commands.customise(id).then((ok) => {
+      setCopying(false);
+      if (ok) navigate(editor);
+    }, () => setCopying(false));
+  };
 
   return (
     <>
       <ChampionshipMenu
         listing={listing}
         busy={commands.busy}
-        onCustomise={() => {
-          // Navigating afterwards even from the detail page, where it is a
-          // no-op: customising is the first half of "edit this championship",
-          // and the editor is where it will land once there is one.
-          commands.customise(id).then((ok) => {
-            if (ok) navigate(path.championship({ id }));
-          }, () => undefined);
+        onEdit={() => {
+          // The app's own is replaced until it is reverted, which is worth
+          // saying out loud rather than discovering.
+          if (listing.origin === 'shipped') setCopying(true);
+          else navigate(editor);
         }}
         onDuplicate={() => setDuplicating(true)}
         onRevert={() => setConfirming('revert')}
@@ -74,6 +86,16 @@ export const ChampionshipActions = ({ listing, commands, onDeleted }: Championsh
             if (copied) navigate(path.championship({ id: copied }));
           }, () => setDuplicating(false));
         }}
+      />
+
+      <ConfirmDialog
+        open={copying}
+        busy={commands.busy}
+        title={t('championships.edit.title', { name })}
+        description={t('championships.edit.body')}
+        confirmLabel={t('championships.edit.confirm')}
+        onClose={() => setCopying(false)}
+        onConfirm={edit}
       />
 
       <ConfirmDialog

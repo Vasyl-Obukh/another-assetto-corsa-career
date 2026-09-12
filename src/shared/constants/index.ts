@@ -39,3 +39,5 @@ export {
 export {
   DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES, WEATHER_SYSTEMS,
 } from './settings.ts';
+
+export { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS } from './series.ts';

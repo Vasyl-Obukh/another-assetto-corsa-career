@@ -18,6 +18,7 @@ export const ROUTE = {
   race: '/race',
   championships: '/championships',
   championship: '/championships/:id',
+  championshipEdit: '/championships/:id/edit',
   results: '/results',
   result: '/results/:file',
   cars: '/cars',

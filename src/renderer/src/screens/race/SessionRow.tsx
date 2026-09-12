@@ -99,7 +99,7 @@ export const SessionRow = ({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const laps = measuredInLaps(session);
-  const overrides = overrideCount(session);
+  const overrides = overrideCount(session.conditions ?? {});
   // A simulated segment is recorded like a driven one, so the record is what
   // tells them apart - a knockout the player was eliminated from was never run.
   const simulated = record?.skipped === true;

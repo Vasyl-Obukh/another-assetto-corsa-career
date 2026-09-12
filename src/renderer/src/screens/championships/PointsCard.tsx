@@ -16,13 +16,9 @@ interface PointsCardProps {
    * The id of the system a race pays when it names none.
    */
   defaultSystem: string;
-  /**
-   * How many worst results the season drops, if any.
-   */
-  drops?: number;
 }
 
-export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) => {
+export const PointsCard = ({ systems, defaultSystem }: PointsCardProps) => {
   const { t } = useTranslation();
 
   /**
@@ -48,11 +44,14 @@ export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) =
         label: t('championships.points.fastestLap'), points: points.fastestLap,
       }),
     }] : []),
-    ...(points.pole ? [{
+    // The same metals as the finishing table: pole is a podium of its own.
+    ...(points.qualifying ?? []).map((value, index) => ({
       label: t('championships.points.row', {
-        label: t('championships.points.pole'), points: points.pole,
+        label: t('championships.points.qualifying', { number: index + 1 }),
+        points: value,
       }),
-    }] : []),
+      accent: PODIUM_ACCENT[index],
+    })),
   ];
 
   return (
@@ -65,10 +64,11 @@ export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) =
           <div key={points.id} className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{points.name}</span>
-              {/* Only worth saying when there is something to default against,
-                  the same rule the weekend formats card follows. */}
+              {/* Filled, and only worth saying when there is something to
+                  default against - the same rule and the same weight the
+                  weekend formats card uses. */}
               {systems.length > 1 && points.id === defaultSystem ? (
-                <Badge variant="secondary">{t('championships.points.default')}</Badge>
+                <Badge>{t('championships.points.default')}</Badge>
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -80,13 +80,6 @@ export const PointsCard = ({ systems, defaultSystem, drops }: PointsCardProps) =
             </div>
           </div>
         ))}
-        {/* A season rule rather than a scoring one, so it sits under the
-            systems rather than inside any of them. */}
-        {drops ? (
-          <span className="text-xs text-muted-foreground">
-            {t('championships.points.drops', { count: drops })}
-          </span>
-        ) : null}
       </CardContent>
     </Card>
   );

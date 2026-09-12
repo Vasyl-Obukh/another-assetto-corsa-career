@@ -2,7 +2,7 @@ import { PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SessionRow } from './SessionRow.tsx';
-import { moveSession, nextSession } from './utils.ts';
+import { moveAt, nextSession } from './utils.ts';
 import type {
   Conditions, LaunchRecord, SessionDefinition, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
@@ -92,7 +92,7 @@ export const SessionList = ({
             next={index === records.length}
             locked={locked}
             onChange={(next) => onChange(sessions.map((own, at) => (at === index ? next : own)))}
-            onMove={(by) => onChange(moveSession(sessions, index, by))}
+            onMove={(by) => onChange(moveAt(sessions, index, by))}
             onRemove={() => onChange(sessions.filter((_, at) => at !== index))}
           />
         ))}

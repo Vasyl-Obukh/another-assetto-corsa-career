@@ -16,13 +16,11 @@ import type { RoundRaceRequest } from './types.ts';
 import {
   availabilityOf,
   bopFor,
-  carsOf,
   duplicates,
   eligibilityFor,
   eligibleCars,
   entryGrid,
   entryOf,
-  fieldableCars,
   fieldSize,
   findLayout,
   formatOf,
@@ -31,6 +29,7 @@ import {
   pickModels,
   requirementsOf,
   roundOf,
+  roundRaceId,
   seatSkin,
   validateFormat,
   validateMoney,
@@ -45,10 +44,11 @@ import type {
   RoundAvailability,
   SeriesAvailability,
 } from '../../shared/types/index.ts';
+import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 
 export { SERIES_FORMAT_VERSION } from './constants.ts';
-export { eligibleCars } from './utils.ts';
+export { eligibleCars, roundRaceId } from './utils.ts';
 
 /**
  * Checks a championship against the schema's own rules.
@@ -311,7 +311,7 @@ export const roundRace = (request: RoundRaceRequest, content: Content): RaceDefi
   });
 
   return {
-    id: `${series.id}-${round.id}`,
+    id: roundRaceId(series.id, round.id),
     name: `${series.name} - ${round.name}`,
     track: round.track,
     playerCar: { model: car.model, skin: car.skin, ...bopFor(playerEntry, car.model) },

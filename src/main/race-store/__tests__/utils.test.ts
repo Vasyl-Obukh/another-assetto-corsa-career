@@ -3,9 +3,9 @@ import {
 } from '@jest/globals';
 import { readFile, rename, writeFile } from 'node:fs/promises';
 
-import type { RaceOut } from '../../../shared/types/index.ts';
+import type { RaceOut, WeekendState } from '../../../shared/types/index.ts';
 import {
-  isArchiveName, readJson, readRecord, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, writeJson,
 } from '../utils.ts';
 
 jest.mock('node:fs/promises');
@@ -94,6 +94,64 @@ describe('main/race-store/utils', () => {
       await expect(writeJson(FILE, {})).resolves.toBeUndefined();
       expect(console.error).toHaveBeenCalled();
       expect(renameMock).not.toHaveBeenCalled();
+    });
+  });
+
+
+  describe('progressOf', () => {
+    /**
+     * Saved weekend progress with a given number of launches run.
+     * @param completed How many have run
+     * @param launchCount How many the plan held
+     * @returns The state
+     */
+    const state = (completed: number, launchCount: number): WeekendState => ({
+      raceId: 'lotus-cup/monza',
+      launchCount,
+      completed: Array.from({ length: completed }, (unused, at) => ({
+        index: at,
+        completedAt: '2026-09-11T18:00:00.000Z',
+        archive: `${at}.json`,
+        gridOrder: [0],
+        qualifyingOrder: null,
+      })),
+    });
+
+    it('says nothing when no launch has run and none is in flight', () => {
+      expect(progressOf(null, 'lotus-cup/monza', false)).toBeNull();
+      expect(progressOf(state(0, 4), 'lotus-cup/monza', false)).toBeNull();
+    });
+
+    it('reports a weekend part-way through', () => {
+      expect(progressOf(state(1, 4), 'lotus-cup/monza', false))
+        .toEqual({ raceId: 'lotus-cup/monza', completed: 1, inFlight: false });
+    });
+
+    // Guards a bug: this returned the progress whatever the launch count, so a
+    // weekend whose every launch had run still read as under way - and since
+    // the state is only cleared by a reset or by setting up a different race,
+    // and is read back off disk on the next start, that locked its
+    // championship out of the editor for good.
+    it('says nothing for a weekend that has run every launch it planned', () => {
+      expect(progressOf(state(4, 4), 'lotus-cup/monza', false)).toBeNull();
+      expect(progressOf(state(5, 4), 'lotus-cup/monza', false)).toBeNull();
+    });
+
+    it('reports a launch in flight even before one has finished', () => {
+      expect(progressOf(null, 'lotus-cup/monza', true))
+        .toEqual({ raceId: 'lotus-cup/monza', completed: 0, inFlight: true });
+    });
+
+    // A finished weekend being relaunched is under way again, so the flag has
+    // to win over the count rather than the other way round.
+    it('reports a finished weekend whose launch is back in flight', () => {
+      expect(progressOf(state(4, 4), 'lotus-cup/monza', true))
+        .toEqual({ raceId: 'lotus-cup/monza', completed: 4, inFlight: true });
+    });
+
+    it('falls back to the race it was given when there is no state to name one', () => {
+      expect(progressOf(null, 'formula-abarth-monza', true)?.raceId)
+        .toBe('formula-abarth-monza');
     });
   });
 

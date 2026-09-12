@@ -73,8 +73,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'seriesFile.deleteFailed': 'Could not delete championship {{series}}: {{reason}}',
 
   'series.notFound': 'Championship not found: {{series}}',
+  // Says to delete it because that is genuinely the answer: there are no
+  // migrations before release, so nothing can carry an older file forward.
   'series.version.unsupported':
-    'Championship {{series}} is written for series format {{version}}, and this build reads {{supported}}.',
+    'Championship {{series}} is written for series format {{version}}, and this build reads {{supported}}. Delete the file and make it again.',
   'series.entries.empty': 'Championship {{series}} has no class entries',
   'series.rounds.empty': 'Championship {{series}} has no rounds',
   'series.sessions.empty': 'Weekend format {{format}} of {{series}} has no sessions',
@@ -118,7 +120,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.bop.notEligible': 'Class entry {{entry}} balances a car it cannot field: {{car}}',
   'series.prizes.invalid': 'Championship {{series}} pays {{amount}} for {{table}} position {{position}}; prize money cannot be negative',
   'series.entryFee.invalid': 'Entry fee of {{amount}} on {{scope}} in {{series}}; an entry fee cannot be negative',
-  'series.drops.invalid': 'Championship {{series}} drops {{drops}} results; that must be a whole number and not negative',
   'series.round.notFound': 'Round not found in {{series}}: {{round}}',
   'series.round.unavailable': 'Round {{round}} of {{series}} cannot be raced against the installed content',
   'series.car.notEligible': 'Car {{car}} is not eligible for {{entry}} at this round',
@@ -128,6 +129,13 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     'Championship {{series}} does not replace one the app ships, so there is nothing to go back to.',
   'series.notDeletable':
     'Championship {{series}} is not one you wrote. An adjusted championship is reverted rather than deleted.',
+  'series.notEditable':
+    'Championship {{series}} is one the app ships. Take your own copy of it before editing.',
+  'series.id.immutable':
+    'Championship {{series}} cannot be renamed to {{id}}. Duplicate it instead, which gives the copy an id of its own.',
+  'series.weekendInProgress':
+    'Round {{round}} of {{series}} is part-way through. Finish that weekend, or reset it, before editing the championship.',
+  'series.save.unreadable': 'Championship {{series}} could not be saved: {{reason}}',
 
   'run.inFlight': 'A race is already running. Wait for it to finish, or cancel it first.',
   'run.notPlanned':

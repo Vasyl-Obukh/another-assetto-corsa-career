@@ -3,12 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { TRACK_STATE_LABEL, WEATHER_TYPE_LABEL } from './constants.ts';
 import { conditionsSummary } from './utils.ts';
 import type { Conditions } from '../../../../shared/types';
+import { cn } from '@/lib/utils.ts';
 
 interface ConditionsSummaryLineProps {
   /**
    * The conditions to describe.
    */
   conditions: Conditions;
+  /**
+   * Classes for the line, for somewhere its muted grey would not read - a
+   * tooltip paints its own fill.
+   */
+  className?: string;
 }
 
 /**
@@ -18,7 +24,7 @@ interface ConditionsSummaryLineProps {
  * The parts come from `conditionsSummary`, which is pure and knows nothing about
  * translation; joining and naming them is this component's whole job.
  */
-export const ConditionsSummaryLine = ({ conditions }: ConditionsSummaryLineProps) => {
+export const ConditionsSummaryLine = ({ conditions, className }: ConditionsSummaryLineProps) => {
   const { t } = useTranslation();
   const summary = conditionsSummary(conditions);
 
@@ -34,7 +40,7 @@ export const ConditionsSummaryLine = ({ conditions }: ConditionsSummaryLineProps
   ].filter((part): part is string => Boolean(part));
 
   return (
-    <p className="min-w-0 text-sm text-muted-foreground">
+    <p className={cn('min-w-0 text-sm text-muted-foreground', className)}>
       {parts.length > 0 ? parts.join(' · ') : t('race.conditions.summaryNothing')}
     </p>
   );

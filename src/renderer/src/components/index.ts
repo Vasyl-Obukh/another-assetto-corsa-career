@@ -3,6 +3,8 @@
 
 export { AppHeader } from './AppHeader.tsx';
 export { AppNav } from './app-nav/index.ts';
+export { BackLink } from './BackLink.tsx';
+export { BackToTop } from './BackToTop.tsx';
 export {
   BrowserGrid, BrowserToolbar, FacetFilter, RangeFilter, SearchField, SortSelect, ToggleFilter,
 } from './browser/index.ts';
@@ -22,6 +24,7 @@ export { ProblemList } from './ProblemList.tsx';
 export type { PathKind } from './paths-card/index.ts';
 export { ProvenanceBadges } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
+export { ScreenHeader } from './ScreenHeader.tsx';
 export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';
 export { ToggleButton } from './ToggleButton.tsx';

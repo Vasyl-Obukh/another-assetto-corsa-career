@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { RaceContent, ResolvedContent } from './types.ts';
 import type { RaceDefinition } from '../../../../shared/types';
+import { useWeatherContent } from '../use-weather-content/index.ts';
 import { invoke, subscribe } from '@/lib/ipc';
 
 export type { RaceContent } from './types.ts';
@@ -18,9 +19,10 @@ export type { RaceContent } from './types.ts';
  */
 export const useRaceContent = (definition: RaceDefinition | null): RaceContent => {
   const [resolved, setResolved] = useState<ResolvedContent>({
-    trackKey: '', track: null, carId: '', car: null, weather: [], controllers: [],
+    trackKey: '', track: null, carId: '', car: null,
   });
   const [nonce, setNonce] = useState(0);
+  const { weather, controllers } = useWeatherContent();
 
   const { id, layout } = definition?.track ?? { id: '', layout: undefined };
   const trackKey = layout ? `${id}/${layout}` : id;
@@ -50,25 +52,14 @@ export const useRaceContent = (definition: RaceDefinition | null): RaceContent =
     return () => { live = false; };
   }, [carId, nonce]);
 
-  useEffect(() => {
-    let live = true;
-    invoke('content:weather', undefined).then(
-      ({ weather, controllers }) => {
-        if (live) setResolved((prev) => ({ ...prev, weather, controllers }));
-      },
-      () => { /* the menus stay empty, and the setup says why */ },
-    );
-
-    return () => { live = false; };
-  }, [nonce]);
-
-  // Weather installed while the screen is open should show up in the menu.
+  // Content installed while the screen is open should show up. The weather half
+  // of that is useWeatherContent's own business.
   useEffect(() => subscribe('content:changed', () => setNonce((n) => n + 1)), []);
 
   return {
     track: resolved.trackKey === trackKey ? resolved.track : null,
     car: resolved.carId === carId ? resolved.car : null,
-    weather: resolved.weather,
-    controllers: resolved.controllers,
+    weather,
+    controllers,
   };
 };

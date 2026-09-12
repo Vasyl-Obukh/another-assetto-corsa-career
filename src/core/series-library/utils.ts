@@ -1,12 +1,11 @@
 // Reading a directory of championship files, writing one back, and putting what
 // came back in the order a career would climb them.
 
+import { randomUUID } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  COPY_SUFFIX,
-  COPY_SUFFIX_PATTERN,
   MAX_SERIES_ID_LENGTH,
   RESERVED_FILE_NAMES,
   SERIES_ID_PATTERN,
@@ -162,19 +161,18 @@ const firstFree = (
 };
 
 /**
- * A free id for a copy of a championship.
+ * An id for a championship the app is about to mint.
  *
- * Counts on from a copy's own suffix rather than stacking, so duplicating
- * `lotus-cup-copy` gives `lotus-cup-copy-2`.
- * @param id The id being copied
- * @param taken Every id already in use, lower-cased
- * @returns An id nothing holds
+ * A UUID rather than something derived from a name, because an id is not a
+ * thing anyone reads: the library keys on it, forkedFrom points at it and
+ * results are filed under it, so it can never change - and a name-shaped id
+ * invites the idea that renaming should move it.
+ *
+ * A canonical UUID is lower-case hex in hyphenated groups, so it satisfies
+ * SERIES_ID_PATTERN and the safety layer needs no exception for it.
+ * @returns An id nothing else holds
  */
-export const nextSeriesId = (id: string, taken: ReadonlySet<string>): string => {
-  const first = `${id.replace(COPY_SUFFIX_PATTERN, '')}-${COPY_SUFFIX}`;
-
-  return firstFree(first, (n) => `${first}-${n}`, taken);
-};
+export const newSeriesId = (): string => randomUUID();
 
 /**
  * A file name for a championship that no other file has spent.

@@ -5,7 +5,7 @@ import {
   assertSafeSeriesId,
   freeSeriesFileName,
   isSafeSeriesId,
-  nextSeriesId,
+  newSeriesId,
   seriesFileName,
   takenSeriesIds,
 } from '../utils.ts';
@@ -95,35 +95,15 @@ describe('core/series-library/utils', () => {
     });
   });
 
-  describe('nextSeriesId', () => {
-    it('adds a copy suffix when nothing holds one', () => {
-      expect(nextSeriesId('lotus-cup', new Set())).toBe('lotus-cup-copy');
+  describe('newSeriesId', () => {
+    // The whole reason the id may be a UUID: the safety layer takes no
+    // exception for one, so a minted id has to satisfy it like any other.
+    it('mints an id that is safe to be a file name', () => {
+      expect(isSafeSeriesId(newSeriesId())).toBe(true);
     });
 
-    it('counts on when the copy itself is taken', () => {
-      expect(nextSeriesId('lotus-cup', new Set(['lotus-cup-copy']))).toBe('lotus-cup-copy-2');
-      expect(nextSeriesId('lotus-cup', new Set(['lotus-cup-copy', 'lotus-cup-copy-2'])))
-        .toBe('lotus-cup-copy-3');
-    });
-
-    it('counts on from a copy rather than stacking suffixes', () => {
-      expect(nextSeriesId('lotus-cup-copy', new Set(['lotus-cup-copy'])))
-        .toBe('lotus-cup-copy-2');
-    });
-
-    // Guards a bug: the suffix pattern was built with `\d` inside a template
-    // literal, where it collapses to a literal `d`, so a numbered suffix was
-    // never stripped and duplicating a copy gave `lotus-cup-copy-2-copy`.
-    it('counts on from a numbered copy rather than stacking suffixes', () => {
-      expect(nextSeriesId('lotus-cup-copy-2', new Set(['lotus-cup-copy', 'lotus-cup-copy-2'])))
-        .toBe('lotus-cup-copy-3');
-    });
-
-    // The taken set arrives lower-cased - takenSeriesIds folds it and the store
-    // folds the loaded ids - so it is the candidate this has to fold, or an id
-    // differing only in case would collide on a filesystem that ignores case.
-    it('folds the candidate, so a differently-cased id does not collide silently', () => {
-      expect(nextSeriesId('LOTUS-CUP', new Set(['lotus-cup-copy']))).toBe('LOTUS-CUP-copy-2');
+    it('mints a different id every time, so nothing can collide', () => {
+      expect(newSeriesId()).not.toBe(newSeriesId());
     });
   });
 

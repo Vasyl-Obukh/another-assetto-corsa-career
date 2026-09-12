@@ -4,8 +4,6 @@
 
 import {
   DISCIPLINES,
-  MIGRATABLE_VERSION,
-  SEATS_VERSION,
   SESSION_TYPES,
   SPECS,
   TEAM_BUDGETS,
@@ -132,10 +130,15 @@ export const readPoints = (value: unknown, field: string, report: Reporter): boo
   const id = typeof value.id === 'string' || report.bad(`${field}.id`, value.id);
   // A finish is scored against these, so a list of anything else would come out
   // as NaN points a phase later rather than as a file that would not read.
-  const scored = Array.isArray(value.positions)
-    && value.positions.every((points) => typeof points === 'number');
+  const scored = (Array.isArray(value.positions)
+    && value.positions.every((points) => typeof points === 'number'))
+    || report.bad(`${field}.positions`, value.positions);
+  const qualifying = value.qualifying === undefined
+    || (Array.isArray(value.qualifying)
+      && value.qualifying.every((points) => typeof points === 'number'))
+    || report.bad(`${field}.qualifying`, value.qualifying);
 
-  return (scored || report.bad(`${field}.positions`, value.positions)) && id;
+  return scored && qualifying && id;
 };
 
 /**
@@ -251,34 +254,6 @@ export const readPrizes = (value: unknown, field: string, report: Reporter): boo
       || (Array.isArray(amounts) && amounts.every((amount) => typeof amount === 'number'))
       || report.bad(`${field}.${table}`, amounts);
   }).every(Boolean);
-};
-
-/**
- * Carries a championship written against an older revision forward.
- *
- * Revision 2 gave a class entry an `entrants` count; revision 3 gives it a seat
- * list, and the count is exactly that list's length with nothing said about who
- * is in it - so the conversion loses nothing and reports nothing. Anything else
- * is left alone for validateSeries to refuse on its version, and so is the
- * revision this produces once it stops being the one the build reads.
- * @param raw The record read out of the file
- * @returns The same record at the current revision, or unchanged
- */
-export const migrateSeries = (raw: Record<string, unknown>): Record<string, unknown> => {
-  if (raw.version !== MIGRATABLE_VERSION || !Array.isArray(raw.entries)) return raw;
-
-  const entries = raw.entries.map((entry) => {
-    if (!isRecord(entry) || typeof entry.entrants !== 'number') return entry;
-    const { entrants, ...rest } = entry;
-    const id = typeof entry.id === 'string' ? entry.id : 'entry';
-
-    return {
-      ...rest,
-      seats: Array.from({ length: Math.max(0, entrants) }, (unused, at) => ({ id: `${id}-${at + 1}` })),
-    };
-  });
-
-  return { ...raw, version: SEATS_VERSION, entries };
 };
 
 /**

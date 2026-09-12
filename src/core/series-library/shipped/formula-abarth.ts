@@ -19,7 +19,7 @@ export const FORMULA_ABARTH: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-abarth',
   name: 'Formula Abarth',
-  notes: 'A single-chassis junior formula on the Italian circuits. Two races a weekend, the '
+  description: 'A single-chassis junior formula on the Italian circuits. Two races a weekend, the '
     + 'second from a grid the first has already been run for.',
   teams: [
     team('arcadia', 'Scuderia Arcadia', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
@@ -87,7 +87,7 @@ export const FORMULA_ABARTH: Championship = {
       name: 'Race points',
       positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
       fastestLap: 1,
-      pole: 1,
+      qualifying: [1],
     },
   ],
   defaultPointsSystem: 'race',

@@ -4,11 +4,12 @@
 // anything the map does not cover falls through to that variant untouched.
 //
 // Shared rather than kept beside one screen, for the reason the measurements
-// in `layout.ts` are: both of these are read in two places already, and a
-// podium that is gold on the points card and grey on a results table would be
-// saying something it does not mean.
+// in `layout.ts` are: each of these is read on more than one screen already,
+// and a podium that is gold on the points card and grey on a results table
+// would be saying something it does not mean. A set only one screen shows stays
+// beside that screen - a team's budget is in the editor's own constants.
 
-import type { SessionType } from '../../../shared/types';
+import type { Discipline, SessionType } from '../../../shared/types';
 
 /**
  * The colour each kind of session is chipped in.
@@ -40,4 +41,38 @@ export const PODIUM_ACCENT: readonly string[] = [
   'border-transparent bg-podium-gold text-podium-gold-foreground',
   'border-transparent bg-podium-silver text-podium-silver-foreground',
   'border-transparent bg-podium-bronze text-podium-bronze-foreground',
+];
+
+/**
+ * The colour each discipline is chipped in.
+ *
+ * A record over the enum rather than a lookup by string, so adding a discipline
+ * fails to compile until it has been given a colour - the same trap the
+ * discipline labels and the nav icons set.
+ *
+ * All four carry a hue, `road` included: it is a rung of the ladder with its
+ * own driver level and its own championships, not the bucket the other three
+ * leave over. Only a set with no name of its own stays grey.
+ */
+export const DISCIPLINE_ACCENT = {
+  'single-seater': 'border-transparent bg-discipline-single-seater text-discipline-single-seater-foreground',
+  sportscar: 'border-transparent bg-discipline-sportscar text-discipline-sportscar-foreground',
+  touring: 'border-transparent bg-discipline-touring text-discipline-touring-foreground',
+  road: 'border-transparent bg-discipline-road text-discipline-road-foreground',
+} as const satisfies Record<Discipline, string>;
+
+/**
+ * The metal each rung of a discipline is chipped in, the top rung first.
+ *
+ * Platinum, gold, silver, bronze, then steel for every rung below the fourth -
+ * so the ramp ends rather than fading into the card, and a championship five
+ * tiers down still says so. Read through `tierAccent`, which does the clamping,
+ * because a tier is 1-based and has no fixed maximum.
+ */
+export const TIER_ACCENT: readonly string[] = [
+  'border-transparent bg-tier-platinum text-tier-platinum-foreground',
+  'border-transparent bg-tier-gold text-tier-gold-foreground',
+  'border-transparent bg-tier-silver text-tier-silver-foreground',
+  'border-transparent bg-tier-bronze text-tier-bronze-foreground',
+  'border-transparent bg-tier-steel text-tier-steel-foreground',
 ];

@@ -13,12 +13,14 @@ import {
   countsLaps,
   fromNumber,
   isOffered,
-  moveSession,
+  moveAt,
+  moveTo,
   nextSession,
   offeredTypes,
   overrideCount,
   removeWeatherSlot,
   seedType,
+  sessionLength,
   setWeatherSlot,
   toNumber,
   weatherChoice,
@@ -127,24 +129,68 @@ describe('renderer/screens/race/utils', () => {
     });
   });
 
-  describe('moveSession', () => {
+  describe('sessionLength', () => {
+    it('reads a lap race in laps', () => {
+      expect(sessionLength({ type: 'race', laps: 12 })).toEqual({ key: 'championships.format.laps', count: 12 });
+    });
+
+    it('reads a timed session in minutes', () => {
+      expect(sessionLength({ type: 'qualify', minutes: 15 }))
+        .toEqual({ key: 'championships.format.minutes', count: 15 });
+    });
+
+    // A practice carrying a stale lap count runs to the clock, whatever the
+    // leftover field says - the read screen used to show the laps.
+    it('reads a session the way race.ini will run it rather than by whichever field is set', () => {
+      expect(sessionLength({ type: 'practice', laps: 5, minutes: 30 }))
+        .toEqual({ key: 'championships.format.minutes', count: 30 });
+    });
+
+    it('states nothing for a session with no length of its own', () => {
+      expect(sessionLength({ type: 'race' })).toBeNull();
+      expect(sessionLength({ type: 'practice', laps: 5 })).toBeNull();
+    });
+  });
+
+  describe('moveTo', () => {
+    const items = ['a', 'b', 'c', 'd'];
+
+    it('lands an item moved later after the one it was dropped on', () => {
+      expect(moveTo(items, 0, 2)).toEqual(['b', 'c', 'a', 'd']);
+    });
+
+    it('lands an item moved earlier before the one it was dropped on', () => {
+      expect(moveTo(items, 3, 1)).toEqual(['a', 'd', 'b', 'c']);
+    });
+
+    it('hands back the same list when nothing moves, so nothing reads as changed', () => {
+      expect(moveTo(items, 1, 1)).toBe(items);
+    });
+
+    it('refuses a target outside the list rather than growing it', () => {
+      expect(moveTo(items, 1, -1)).toBe(items);
+      expect(moveTo(items, 1, 4)).toBe(items);
+    });
+  });
+
+  describe('moveAt', () => {
     const sessions: SessionDefinition[] = [
       { type: 'practice' }, { type: 'qualify' }, { type: 'race' },
     ];
 
     it('moves a session later', () => {
-      expect(moveSession(sessions, 0, 1).map((session) => session.type))
+      expect(moveAt(sessions, 0, 1).map((session) => session.type))
         .toEqual(['qualify', 'practice', 'race']);
     });
 
     it('moves a session earlier', () => {
-      expect(moveSession(sessions, 2, -1).map((session) => session.type))
+      expect(moveAt(sessions, 2, -1).map((session) => session.type))
         .toEqual(['practice', 'race', 'qualify']);
     });
 
     it('leaves the list alone rather than wrapping round an end', () => {
-      expect(moveSession(sessions, 0, -1)).toBe(sessions);
-      expect(moveSession(sessions, 2, 1)).toBe(sessions);
+      expect(moveAt(sessions, 0, -1)).toBe(sessions);
+      expect(moveAt(sessions, 2, 1)).toBe(sessions);
     });
   });
 
@@ -283,7 +329,7 @@ describe('renderer/screens/race/utils', () => {
 
   describe('withSessionConditions', () => {
     it('carries the overrides onto the session', () => {
-      const next = withSessionConditions({ type: 'race' }, { ambient: 18 });
+      const next = withSessionConditions<SessionDefinition>({ type: 'race' }, { ambient: 18 });
 
       expect(next.conditions).toEqual({ ambient: 18 });
     });
@@ -294,6 +340,17 @@ describe('renderer/screens/race/utils', () => {
       const next = withSessionConditions({ type: 'race', conditions: { ambient: 18 } }, {});
 
       expect(next).not.toHaveProperty('conditions');
+    });
+
+    // A championship's round states its conditions the same way, and used to be
+    // written back with an empty block after its dialog was cleared.
+    it('drops an emptied block from a round as well as a session', () => {
+      const next = withSessionConditions(
+        { id: 'magione', name: 'Magione', track: { id: 'magione' }, conditions: { ambient: 18 } },
+        {},
+      );
+
+      expect(next).toEqual({ id: 'magione', name: 'Magione', track: { id: 'magione' } });
     });
   });
 
@@ -327,18 +384,17 @@ describe('renderer/screens/race/utils', () => {
 
   describe('overrideCount', () => {
     it('counts the fields a session answers for itself', () => {
-      expect(overrideCount({ type: 'race', conditions: { ambient: 18, trackState: 'green' } })).toBe(2);
+      expect(overrideCount({ ambient: 18, trackState: 'green' })).toBe(2);
     });
 
     it('counts nothing for a session that inherits everything', () => {
-      expect(overrideCount({ type: 'race' })).toBe(0);
-      expect(overrideCount({ type: 'race', conditions: {} })).toBe(0);
+      expect(overrideCount({})).toBe(0);
     });
 
     // A field explicitly set to undefined is inherited, not overridden, so it
     // must not put a badge on a row that answers nothing.
     it('does not count a field cleared back to inheriting', () => {
-      expect(overrideCount({ type: 'race', conditions: { ambient: undefined } })).toBe(0);
+      expect(overrideCount({ ambient: undefined })).toBe(0);
     });
   });
 

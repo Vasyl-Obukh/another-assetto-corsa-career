@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
@@ -23,9 +24,10 @@ interface ChampionshipMenuProps {
    */
   busy: boolean;
   /**
-   * Called to take a copy of a shipped championship under its own id.
+   * Called to open this championship in the editor. A shipped one is copied
+   * first, which is what the caller confirms before calling.
    */
-  onCustomise: () => void;
+  onEdit: () => void;
   /**
    * Called to copy this championship into a separate one.
    */
@@ -45,10 +47,10 @@ interface ChampionshipMenuProps {
 }
 
 export const ChampionshipMenu = ({
-  listing, busy, onCustomise, onDuplicate, onRevert, onDelete, onExport,
+  listing, busy, onEdit, onDuplicate, onRevert, onDelete, onExport,
 }: ChampionshipMenuProps) => {
   const { t } = useTranslation();
-  const { origin } = listing;
+  const { origin, weekend } = listing;
 
   return (
     <DropdownMenu>
@@ -64,13 +66,17 @@ export const ChampionshipMenu = ({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        {/* Only one of Customise, Revert and Delete ever applies, and which one
-            is decided by where the championship came from. */}
-        {origin === 'shipped' ? (
-          <DropdownMenuItem onSelect={onCustomise}>
-            <PencilIcon />
-            {t('championships.actions.customise')}
-          </DropdownMenuItem>
+        {/* Whatever the origin - a shipped one is copied first. Only a weekend
+            under way stops it. */}
+        <DropdownMenuItem disabled={weekend !== null} onSelect={onEdit}>
+          <PencilIcon />
+          {t('championships.actions.edit')}
+        </DropdownMenuItem>
+
+        {weekend ? (
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+            {t('championships.actions.editLocked')}
+          </DropdownMenuLabel>
         ) : null}
 
         <DropdownMenuItem onSelect={onDuplicate}>

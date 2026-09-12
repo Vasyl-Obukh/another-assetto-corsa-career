@@ -77,6 +77,14 @@ export const path = {
     params: RouteParams<typeof ROUTE.championship>,
   ): string => buildPath(ROUTE.championship, params),
   /**
+   * One championship's editor.
+   * @param params The championship's id
+   * @returns Its URL, with the id encoded
+   */
+  championshipEdit: (
+    params: RouteParams<typeof ROUTE.championshipEdit>,
+  ): string => buildPath(ROUTE.championshipEdit, params),
+  /**
    * The list of archived results.
    * @returns Its URL
    */

@@ -2,7 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 
 import { appErrorInfo } from '../../../../../shared/errors';
 import type { SeriesAvailability, SeriesListing } from '../../../../../shared/types';
-import { availabilityState, roundRaceable } from '../utils.ts';
+import { availabilityState, roundRaceable, tierAccent } from '../utils.ts';
+import { TIER_ACCENT } from '@/lib/accents';
 
 /**
  * An availability with nothing wrong with it, for a test to spoil one field of.
@@ -32,6 +33,7 @@ const listing = (overrides: Partial<SeriesAvailability> = {}): SeriesListing => 
   series: { id: 'sunday-cup' } as SeriesListing['series'],
   availability: availability(overrides),
   origin: 'user',
+  weekend: null,
 });
 
 describe('renderer/screens/championships/utils', () => {
@@ -114,6 +116,21 @@ describe('renderer/screens/championships/utils', () => {
       })];
 
       expect(roundRaceable(listing({ available: false, problems }), 'magione')).toBe(false);
+    });
+  });
+
+  describe('tierAccent', () => {
+    it('gives each of the top rungs its own metal, platinum first', () => {
+      expect([1, 2, 3, 4, 5].map(tierAccent)).toEqual(TIER_ACCENT);
+    });
+
+    it('keeps the last metal for every rung below it, since a ladder has no floor', () => {
+      expect(tierAccent(9)).toBe(TIER_ACCENT[TIER_ACCENT.length - 1]);
+    });
+
+    it('reads a tier above the top as the top rather than reaching past the ramp', () => {
+      expect(tierAccent(0)).toBe(TIER_ACCENT[0]);
+      expect(tierAccent(-2)).toBe(TIER_ACCENT[0]);
     });
   });
 });

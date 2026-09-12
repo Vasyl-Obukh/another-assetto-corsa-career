@@ -22,6 +22,30 @@ export interface CspSetup {
 }
 
 /**
+ * How far through a weekend the app is, for whoever needs to know that one is
+ * under way without planning it again.
+ *
+ * The series store is the caller: a championship whose weekend has started
+ * cannot be edited, because a launch inherits its grid from the one before it
+ * and everything the editor can change decides what that grid holds.
+ */
+export interface RaceProgress {
+  /**
+   * Which race the progress belongs to - RaceDefinition.id, which a lowered
+   * round composes through roundRaceId.
+   */
+  raceId: string;
+  /**
+   * How many launches have already run.
+   */
+  completed: number;
+  /**
+   * Whether a launch is with Content Manager right now.
+   */
+  inFlight: boolean;
+}
+
+/**
  * The race being set up, the launches it splits into, and the one in flight.
  *
  * Main owns this for the same reason it owns settings: it is persisted, and
@@ -71,6 +95,17 @@ export interface RaceStore {
    * @throws AppError when a launch is in flight
    */
   reset(): Promise<RaceSetup>;
+  /**
+   * How far through the current weekend the app is, or null when nothing has
+   * started.
+   *
+   * Cheap on purpose - it reads what the store already holds, with no content
+   * scan and no planning - because the series store asks it for every listing
+   * it builds.
+   * @returns The progress, or null when the weekend has not started, has
+   * finished every launch it planned, and has none in flight
+   */
+  progress(): RaceProgress | null;
   /**
    * Every result the app has archived, newest first.
    * @returns One record per archive, summarised

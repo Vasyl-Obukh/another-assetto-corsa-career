@@ -21,6 +21,10 @@ breaks all of that.
 Planned work lives in [ROADMAP.md](ROADMAP.md), which doubles as the TODO list -
 check it before starting anything, and tick items off as they land.
 
+**If you are building a screen, read *Colour is not optional* in Conventions
+first.** It is the rule this project has had to restate most often, and a screen
+of grey chips has been shipped and sent back three times.
+
 ## Stack
 
 - **Node.js 24+** for all integration logic - the entire surface is file I/O and
@@ -122,16 +126,17 @@ per project.
 | `src/shared/types/` | Every domain type: content, classes, ladder, series, paths, race, results, weekend, settings, IPC |
 | `src/shared/constants/` | Time units, settings defaults, the assists Assetto Corsa itself ships, the Content Manager flags we offer, the `accontent://` scheme, the English wording for every content issue reason. `Assists` is split in two by `Pick`, never by a second list: `DrivingAids` is what the player chooses and `RegulationKey` is whatever that leaves over, so an assist moves side by side simply by moving in the `Pick` - which is how tyre blankets became a rule a series states rather than a switch in settings |
 | `src/shared/errors/` | `AppError`, the `ErrorCode` union and its English templates |
-| `src/shared/utils/settings/` | Tolerant settings migration, shared by main and renderer |
+| `src/shared/utils/settings/` | `readSettings`, the tolerant reader behind `settings.json` - every field coerced, nothing thrown - plus `applyPatch`, which is a merge put back through it. Shared by main and renderer. Deliberately not a migration: nothing branches on the version |
 | `src/shared/utils/content-url/` | The `accontent://` URL grammar, built and parsed in one place |
 | `src/shared/utils/search/` | Folding and term matching for every search box, shared because the browsers query in main and the livery list filters in the renderer |
 | `src/shared/utils/weather-system/` | Which controller each weather system runs, and whether it can change the weather at all. Shared because main writes the controller into `race.ini` and the renderer decides whether to offer a second slot |
 | `src/shared/utils/conditions/` | Merging a session's own conditions over the weekend's defaults. Shared because both the bundler and the race screen need the same answer, and the renderer may not import core. Weather merges as a group, since its three fields answer one question |
+| `src/shared/utils/eligibility/` | Which cars an eligibility rule names, and every car a class entry may field across the calendar. Shared because the validator and the championship editor need the same answer, and the renderer may not import core |
 | `src/shared/utils/lap-time/` | `m:ss.mmm`, shared by the CLI's timing sheet and the results screen. Deliberately outside the `Intl` formatters: a lap time is a motorsport convention, not a locale decision |
 | `src/shared/utils/car-classes/` | The shipped class catalogue: which grids each catalogued car races on, and which family each grid belongs to. A car may hold several, so both lookups return lists. Resolved at runtime, so it is deliberately not in the content cache |
 | `src/core/series/` | Reading a championship: validating it, saying what it needs against the installed library, and lowering one round into an ordinary `RaceDefinition`. That last part is the point - a round runs through `planWeekend`, `buildGrid` and `buildRaceIni` exactly as a hand-authored weekend does, so nothing under `src/core/weekend/`, `src/core/race-ini/` or `src/main/race-store/` knows what a series is |
-| `src/core/series-file/` | A championship as a document: `unknown` off disk to a typed `Championship`, and back. Every string that indexes a catalogue - a spec, a discipline, a session type, a weather type - is checked against that catalogue's own members, because a user's file has no compiler behind it. Structural only; whether the championship is coherent is `validateSeries`. `writeSeries` is the other direction, and everything that writes a championship goes through it. **`migrateSeries` runs first**, before anything is read, so an older revision is checked against the shape this build understands and every field path in a problem names where the value is now; version 2's `entrants` count becomes version 3's seat list, which is lossless and so is reported as nothing at all |
-| `src/core/series-library/` | The championships the app ships - TypeScript constants under `shipped/`, one file per championship, so a renamed spec is a compile error and adding a series is adding a file - with `shipped/utils.ts` holding the `team` and `seat` constructors, because an entry list is a table and twenty drivers written out as object literals is not one anybody can read down - merged with whatever the user wrote as JSON. A user's file carrying a shipped id replaces it and reads as `adjusted` rather than clashing with it; deleting that file puts the original back, because the override is the file's existence and nothing else. Ladder order is derived from the tiers, so adding a championship never means renumbering one. **It writes as well as reads**: `saveUserSeries` and `deleteUserSeries` are the disk side, and both are addressed by the *file* rather than by the id, because the two are allowed to disagree - `readSeriesDir` keys a championship on the id inside the document, so `weird.json` may perfectly well hold `lotus-cup` and a name computed from that id would hit the wrong file. A new file's name is derived from the id but only once nothing else has spent it - `lotus-cup.json` may hold something else entirely, and writing over it would destroy a file of the user's - and an id that could not safely be a name at all is refused rather than repaired |
+| `src/core/series-file/` | A championship as a document: `unknown` off disk to a typed `Championship`, and back. Every string that indexes a catalogue - a spec, a discipline, a session type, a weather type - is checked against that catalogue's own members, because a user's file has no compiler behind it. Structural only; whether the championship is coherent is `validateSeries`. `writeSeries` is the other direction, and everything that writes a championship goes through it. **There is no migration**, and that is the policy rather than an omission - see *No schema migrations before the first release*. A championship written against another revision is refused by `validateSeries` and the answer is to delete the file. **Note that `parseSeries` casts the record it read rather than rebuilding it**, which is what makes a rename or a removal a real format change rather than something a tolerant reader could absorb: a key nobody checks still round-trips straight back out through `writeSeries` |
+| `src/core/series-library/` | The championships the app ships - TypeScript constants under `shipped/`, one file per championship, so a renamed spec is a compile error and adding a series is adding a file - with `shipped/utils.ts` holding the `team` and `seat` constructors, because an entry list is a table and twenty drivers written out as object literals is not one anybody can read down - merged with whatever the user wrote as JSON. A user's file carrying a shipped id replaces it and reads as `adjusted` rather than clashing with it; deleting that file puts the original back, because the override is the file's existence and nothing else. Ladder order is derived from the tiers, so adding a championship never means renumbering one. **It writes as well as reads**: `saveUserSeries` and `deleteUserSeries` are the disk side, and both are addressed by the *file* rather than by the id, because the two are allowed to disagree - `readSeriesDir` keys a championship on the id inside the document, so `weird.json` may perfectly well hold `lotus-cup` and a name computed from that id would hit the wrong file. A new file's name is derived from the id but only once nothing else has spent it - `lotus-cup.json` may hold something else entirely, and writing over it would destroy a file of the user's - and an id that could not safely be a name at all is refused rather than repaired. **Only the championships the app ships carry an authored id**; every other one gets a UUID from `newSeriesId`, because an id is not a thing anyone reads - the library keys on it, `forkedFrom` points at it and results are filed under it, and it can never change. A canonical UUID satisfies `SERIES_ID_PATTERN` as it stands, so the safety layer takes no exception for it. Customise is the one write that keeps the id it was given, which is the whole of how `adjusted` and Revert work |
 | `src/core/seeded-random/` | The Park-Miller generator and the string hash that seeds it. Its own module because two callers need the same answer twice - the weekend shuffling a grid with no qualifying to order it, and a series composing a round's field |
 | `src/core/paths/` | Probes for CM's exe, the AC root and AC's Documents folder |
 | `src/core/content/` | Scans installed content, liveries and their `ui_skin.json` included; lenient about malformed mod JSON; fingerprints so a rescan re-reads only what moved |
@@ -430,6 +435,33 @@ Skip the entry, never throw. The same applies to the settings file: a corrupted
 or hand-edited `settings.json` is quarantined and replaced with defaults rather
 than blocking startup.
 
+**No schema migrations before the first release.** Every persisted format is at
+version 1 and stays there. Changing one is not an occasion to write a migration
+step - it is an occasion to **delete the out-of-date file**, because the only
+files that exist anywhere are the author's own and there is nobody a broken one
+could affect. Migrations start to matter when the app has users whose files are
+not ours to throw away, which is **Phase 14 - Distribution**: that is when a
+version bump has to come with a step that reads the old shape, and when this
+paragraph stops being true.
+
+So a format change is three things and not four: change the type, change
+whatever reads it, and leave the version alone. The refusal already in place is
+the whole story - `validateSeries` reports `series.version.unsupported` for a
+championship written against another revision, and the content cache throws
+itself away and rescans - and the answer to either is to delete the file.
+
+Two things this is not about. `readSettings` is a **tolerant reader**, not a
+migration: it coerces `settings.json` field by field and never throws, because
+that is a file a user may reasonably hand-edit. `assertStateMatches` is a
+**staleness check** on derived weekend progress, comparing launch counts rather
+than versions. Both stay whatever the migration policy says.
+
+**Deleting an out-of-date file is the user's to do, not the agent's.** Say which
+file is stale and why, then let them delete it. Anything **outside the repo** -
+`%APPDATA%/ac-career-mode/`, the AC install, Content Manager's own folders -
+**must be asked for rather than deleted**, every time, even when it is obviously
+regenerable. Files inside the repo still get named rather than removed unasked.
+
 **Errors we raise carry a code.** Anything the app decides is wrong throws
 `AppError` from `src/shared/errors/`, with a stable `ErrorCode` and typed params:
 
@@ -459,11 +491,69 @@ appends it (`describeProblems` in `src/cli/utils.ts`) rather than baking it in.
 **Colours live in one file.** `src/renderer/src/globals.css` defines the token
 layer for both themes. A hardcoded colour anywhere else is a bug.
 
+### Colour is not optional, and this is the rule that keeps being broken
+
+**Read this before writing a screen, and again before reporting one finished.**
+Three separate passes over the championship editor shipped screens where every
+chip was `variant="outline"` or `variant="secondary"`, and each time the author
+had read the paragraphs below and decided the grey was acceptable for now. It is
+not. `outline` and `secondary` are the path of least resistance, not a default -
+reaching for them on a value that is one of a closed set is the bug, not the
+starting point.
+
+So, concretely, and in this order:
+
+1. **List every chip on the screen you just built.** For each one ask: is what
+   it says one of a *closed set*? A discipline, a session type, a provenance, a
+   budget tier, a podium place, an origin - yes. A car count, a lap count, a
+   catalogue name, free text - no.
+2. **Every closed-set chip gets a colour family.** If one does not exist, add it
+   to `globals.css` with the note the section below demands. "There was no token
+   for it" is a description of the work, not a reason to skip it.
+3. **Everything else stays neutral on purpose**, and the *reason* goes in a
+   comment at the call site. Neutral has to be a decision that was made, not one
+   that was defaulted into.
+4. **Look at it.** If a screenshot of the finished screen is grey, the work is
+   not done, whatever the checklist says.
+
+**The palette is full, and that is not an excuse - it is a constraint to
+design within.** Hues in use, so a new family can be placed without re-cutting
+an existing one: budget independent 18, destructive 27, podium bronze 52, DLC
+75, warning 80, podium gold 88, sportscar 112, budget privateer 132, race 150,
+success and base provenance 155, touring 175, modified origin 195, single-seater
+212, redistribution 235, practice 250, primary 262, road 270, mod provenance
+295, qualify 310, budget works 320, custom origin 340. The budget chips spent
+the last two gaps, so a new family has to share a hue with one that never
+appears on the same screen, and say so in `globals.css`.
+
+**If a set needs more hues than there is room for, the answer is never flat
+grey.** Two techniques, in the order to reach for them, and one that looks
+like a technique and is not:
+
+- **An ordered scale of named materials**, for anything ordinal. The tier chips
+  run platinum, gold, silver, bronze, steel, which reads as a rank without a
+  legend and spends two nearly-neutral hues instead of five categorical ones.
+  The podium metals are the same idea.
+- **Depth within one hue is not one of them.** A team's budget was one hue at
+  three lightnesses, on the argument that it is an order, and at chip size the
+  three read as the same colour - grey by another route. Depth is fine as a
+  *second* cue over distinct hues, which is what the budget chips keep.
+- **Leave a genuine catch-all neutral**, the way the four exotic session types
+  are. Be strict about what a catch-all is: `road` was made grey on that
+  argument and it was wrong, because road racing is a rung of the ladder rather
+  than the leftovers of the other three.
+
+Merging two chips into one is a last resort and was tried here first: the
+discipline and the tier were briefly one chip reading "Road · Tier 4", which
+bought a hue at the cost of saying two things in one place. An ordinal scale was
+the better answer and cost the palette almost nothing.
+
 **And the app is meant to carry colour.** A career mode is not an admin panel,
 and a screen where everything is the same white-on-grey makes the reader work
 out what matters from the words alone. So a chip standing for one of a closed
 set gets a colour of its own - content provenance, whose championship this is,
-what kind of session a format runs, which podium place a row pays - and a state
+which discipline and rung a class enters at, how well funded a team is, what
+kind of session a format runs, which podium place a row pays - and a state
 worth noticing gets the traffic light it deserves, amber included. Three rules
 keep that off the rainbow:
 
@@ -519,6 +609,17 @@ width. That this is a component rather than a class is load-bearing: putting the
 grid classes on a `CardContent` looks identical but is not, because
 `CardContent` carries `px-6` for the width cap to land on, and that card's
 columns come out 48px narrower than the rest.
+
+**A long page keeps its way out in reach, one of two ways.** A screen reached
+from another heads itself with `<ScreenHeader>`, which pins Back and the title
+row to the top of the scroller - Back is always `<BackLink>`, so every one looks
+and sits alike - and passes `ScreenBody` no top padding. The header is `z-20`
+rather than the browser toolbar's `z-10`, because editor rows lift their menus
+and badges to `z-10` and would otherwise draw over it. A screen with no Back of
+its own sets `backToTop` on `ScreenBody` instead, which floats an arrow beside the
+content column once the page has scrolled past a screen's height. A browser body
+sets it only when it is the page, never inside a picker, where `fixed` would
+anchor to the dialog.
 
 ## Known gaps
 
@@ -707,7 +808,9 @@ columns come out 48px narrower than the rest.
   there. About a twelfth of liveries ship no `ui_skin.json` at all and a
   handful ship it broken; those wear their folder name and raise no issue, since
   a livery with no metadata still races perfectly.
-- The content cache has no migration, by design: `CONTENT_CACHE_VERSION` is
+- The content cache has no migration, by design - and unlike the series format
+  it is a counter that genuinely keeps climbing, because what it invalidates is
+  derived data nobody authored: `CONTENT_CACHE_VERSION` is
   bumped and the library is scanned again. Bump it whenever `Car`, `Track`,
   `Skin`, `CarPerformance` or the fingerprint encoding changes, and whenever a
   scan starts finding content it used to miss - an unchanged folder keeps its

@@ -5,11 +5,11 @@ import {
   applyPatch,
   cleanString,
   finiteNumber,
-  migrateSettings,
   oneOf,
   optionalBoolean,
   readDrivingAids,
   readPaths,
+  readSettings,
   readWindow,
 } from '../settings.ts';
 
@@ -159,15 +159,15 @@ describe('shared/utils/settings', () => {
     });
   });
 
-  describe('migrateSettings', () => {
+  describe('readSettings', () => {
     it('returns the defaults for anything that is not an object', () => {
-      expect(migrateSettings(undefined)).toEqual(DEFAULT_SETTINGS);
-      expect(migrateSettings('corrupt')).toEqual(DEFAULT_SETTINGS);
-      expect(migrateSettings([])).toEqual(DEFAULT_SETTINGS);
+      expect(readSettings(undefined)).toEqual(DEFAULT_SETTINGS);
+      expect(readSettings('corrupt')).toEqual(DEFAULT_SETTINGS);
+      expect(readSettings([])).toEqual(DEFAULT_SETTINGS);
     });
 
     it('does not hand back the shared defaults object', () => {
-      const migrated = migrateSettings(null);
+      const migrated = readSettings(null);
       expect(migrated).not.toBe(DEFAULT_SETTINGS);
       expect(migrated.paths).not.toBe(DEFAULT_SETTINGS.paths);
     });
@@ -184,22 +184,22 @@ describe('shared/utils/settings', () => {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
         },
       };
-      expect(migrateSettings(stored)).toEqual(stored);
+      expect(readSettings(stored)).toEqual(stored);
     });
 
     it('keeps the good fields when one is nonsense', () => {
-      const migrated = migrateSettings({ theme: 'chartreuse', language: 'uk' });
+      const migrated = readSettings({ theme: 'chartreuse', language: 'uk' });
       expect(migrated.theme).toBe(DEFAULT_SETTINGS.theme);
       expect(migrated.language).toBe('uk');
     });
 
     it('rejects a language it does not have a catalogue for', () => {
-      expect(migrateSettings({ language: 'fr' }).language).toBe('en');
+      expect(readSettings({ language: 'fr' }).language).toBe('en');
     });
 
     it('keeps a weather system it knows and rejects one it does not', () => {
-      expect(migrateSettings({ weatherSystem: 'sol' }).weatherSystem).toBe('sol');
-      expect(migrateSettings({ weatherSystem: 'seasons' }).weatherSystem)
+      expect(readSettings({ weatherSystem: 'sol' }).weatherSystem).toBe('sol');
+      expect(readSettings({ weatherSystem: 'seasons' }).weatherSystem)
         .toBe(DEFAULT_SETTINGS.weatherSystem);
     });
 
@@ -210,30 +210,30 @@ describe('shared/utils/settings', () => {
     });
 
     it('reads the driver name the user set', () => {
-      expect(migrateSettings({ driverName: '  Vasyl  ' }).driverName).toBe('Vasyl');
+      expect(readSettings({ driverName: '  Vasyl  ' }).driverName).toBe('Vasyl');
     });
 
     // Absent rather than empty, so clearing the field means "let Assetto Corsa
     // decide" rather than racing under a blank name.
     it('leaves a blank driver name absent rather than empty', () => {
-      expect(migrateSettings({ driverName: '   ' })).not.toHaveProperty('driverName');
-      expect(migrateSettings({})).not.toHaveProperty('driverName');
-      expect(migrateSettings({ driverName: 7 })).not.toHaveProperty('driverName');
+      expect(readSettings({ driverName: '   ' })).not.toHaveProperty('driverName');
+      expect(readSettings({})).not.toHaveProperty('driverName');
+      expect(readSettings({ driverName: 7 })).not.toHaveProperty('driverName');
     });
 
     it('always reports version 1', () => {
-      expect(migrateSettings({ version: 99 }).version).toBe(1);
+      expect(readSettings({ version: 99 }).version).toBe(1);
     });
 
     it('never throws, whatever it is given', () => {
       const nasty = [0, false, () => {}, Symbol('x'), { window: 'no' }, { paths: 7 }];
-      nasty.forEach((value) => expect(() => migrateSettings(value)).not.toThrow());
+      nasty.forEach((value) => expect(() => readSettings(value)).not.toThrow());
     });
   });
 
   describe('applyPatch', () => {
     it('replaces only the patched fields', () => {
-      const current = migrateSettings({ theme: 'dark', language: 'uk' });
+      const current = readSettings({ theme: 'dark', language: 'uk' });
       const next = applyPatch(current, { theme: 'light' });
 
       expect(next.theme).toBe('light');
@@ -241,14 +241,14 @@ describe('shared/utils/settings', () => {
     });
 
     it('re-validates the patch rather than trusting it', () => {
-      const current = migrateSettings(null);
+      const current = readSettings(null);
       const next = applyPatch(current, { theme: 'neon' } as never);
 
       expect(next.theme).toBe(DEFAULT_SETTINGS.theme);
     });
 
     it('does not mutate the settings it was given', () => {
-      const current = migrateSettings({ theme: 'dark' });
+      const current = readSettings({ theme: 'dark' });
       applyPatch(current, { theme: 'light' });
 
       expect(current.theme).toBe('dark');

@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { HashRouter } from 'react-router';
+import { createHashRouter, RouterProvider } from 'react-router';
 
 import './globals.css';
 import { App, SettingsProvider } from '@/app';
@@ -26,12 +26,15 @@ const start = async (): Promise<void> => {
   const container = document.getElementById('root');
   if (!container) throw new Error('No #root element to mount into.');
 
+  // A data router rather than <HashRouter>, because only a data router can
+  // block a navigation - which is how the editor asks before losing a draft.
+  // One splat route: App keeps its own <Routes> underneath.
+  const router = createHashRouter([{ path: '*', element: <App initialReport={report} /> }]);
+
   createRoot(container).render(
     <StrictMode>
       <SettingsProvider initialSettings={settings} initialTheme={theme}>
-        <HashRouter>
-          <App initialReport={report} />
-        </HashRouter>
+        <RouterProvider router={router} />
       </SettingsProvider>
     </StrictMode>,
   );

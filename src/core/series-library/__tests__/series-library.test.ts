@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import { isAppError } from '../../../shared/errors/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
-import { validateSeries } from '../../series/index.ts';
+import { SERIES_FORMAT_VERSION, validateSeries } from '../../series/index.ts';
 import { readSeries } from '../../series-file/index.ts';
 import {
   deleteUserSeries, loadSeriesLibrary, saveUserSeries, SHIPPED_SERIES,
@@ -42,14 +42,14 @@ const givenFiles = (files: Record<string, string>): void => {
  * @returns The file's text
  */
 const seriesFile = (overrides: Record<string, unknown> = {}): string => JSON.stringify({
-  version: 2,
+  version: SERIES_FORMAT_VERSION,
   id: 'sunday-cup',
   name: 'Sunday Cup',
   entries: [{
     id: 'main',
     name: 'Main',
     ladder: { discipline: 'road', tier: 6 },
-    entrants: 8,
+    seats: [{ id: 'main-1' }, { id: 'main-2' }],
     eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
   }],
   rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],

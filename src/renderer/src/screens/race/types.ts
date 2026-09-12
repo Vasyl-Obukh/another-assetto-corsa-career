@@ -1,3 +1,5 @@
+import type { ParseKeys } from 'i18next';
+
 import type { WeatherType } from '../../../../shared/constants';
 import type { TrackStateName } from '../../../../shared/types';
 
@@ -77,4 +79,18 @@ export interface ConditionsSummary {
    * How much rubber is down, or null.
    */
   trackState: TrackStateName | null;
+}
+
+/**
+ * How long a session runs, ready to be put into words.
+ */
+export interface SessionLength {
+  /**
+   * The translation key for its unit, which pluralises on `count`.
+   */
+  key: ParseKeys;
+  /**
+   * How many laps or minutes.
+   */
+  count: number;
 }

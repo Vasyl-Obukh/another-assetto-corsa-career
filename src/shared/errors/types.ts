@@ -86,7 +86,6 @@ export type ErrorCode =
   | 'series.bop.notEligible'
   | 'series.prizes.invalid'
   | 'series.entryFee.invalid'
-  | 'series.drops.invalid'
   | 'series.round.notFound'
   | 'series.round.unavailable'
   | 'series.car.notEligible'
@@ -94,6 +93,10 @@ export type ErrorCode =
   | 'series.notShipped'
   | 'series.notAdjusted'
   | 'series.notDeletable'
+  | 'series.notEditable'
+  | 'series.id.immutable'
+  | 'series.weekendInProgress'
+  | 'series.save.unreadable'
   // src/main/race-store
   | 'run.inFlight'
   | 'run.notPlanned'

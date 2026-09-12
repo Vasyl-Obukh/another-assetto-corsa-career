@@ -20,7 +20,12 @@ import type { PathOverrides, PathsReport } from './paths.ts';
 import type { RaceSetup, ResultRecord } from './race-run.ts';
 import type { RaceDefinition } from './race.ts';
 import type {
-  SeriesCommandResult, SeriesImportResult, SeriesLibrary, SeriesListing,
+  Championship,
+  SeriesAvailability,
+  SeriesCommandResult,
+  SeriesImportResult,
+  SeriesLibrary,
+  SeriesListing,
 } from './series.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
@@ -165,6 +170,23 @@ export interface IpcContract {
     };
     res: RaceSetup;
   };
+  /**
+   * What is wrong with a championship as it currently stands, without writing
+   * anything.
+   *
+   * A whole availability rather than a bare problem list, because the editor
+   * wants both halves - what does not validate, and what is not installed -
+   * and main has the content scan in hand.
+   */
+  'series:validate': { req: { series: Championship }; res: SeriesAvailability };
+  /**
+   * Write a championship the user owns back over its own file.
+   *
+   * The id is sent alongside the document and the two must agree. A document
+   * that does not validate is written anyway, as an imported one is; see
+   * SeriesStore.save for what is refused.
+   */
+  'series:save': { req: { id: string; series: Championship }; res: SeriesListing };
   /**
    * Take a copy of a championship the app ships, under its own id.
    *

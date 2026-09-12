@@ -24,7 +24,7 @@ export const Race = () => {
   const { setup } = race;
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-8">
+    <ScreenBody className="flex flex-col gap-6 py-8" backToTop>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{t('race.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('race.subtitle')}</p>

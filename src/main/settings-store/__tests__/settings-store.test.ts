@@ -44,7 +44,7 @@ describe('main/settings-store', () => {
       expect(renameMock).not.toHaveBeenCalled();
     });
 
-    it('loads and migrates an existing file', async () => {
+    it('loads an existing file, coercing what it holds', async () => {
       readFileMock.mockResolvedValue('{"theme":"dark","language":"uk"}');
 
       const store = await createSettingsStore('D:\\userData');

@@ -29,7 +29,9 @@ import { writeSeries } from '../series-file/index.ts';
 export { SHIPPED_SERIES } from './shipped/index.ts';
 export type { LoadedLibrary, LoadedSeries } from './types.ts';
 // Re-exported because callers import the folder, never a file inside it.
-export { freeSeriesFileName, nextSeriesId, takenSeriesIds } from './utils.ts';
+export {
+  freeSeriesFileName, isSafeSeriesId, newSeriesId, takenSeriesIds,
+} from './utils.ts';
 
 /**
  * Reads the championship library.

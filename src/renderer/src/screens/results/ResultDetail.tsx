@@ -1,11 +1,11 @@
-import { ChevronLeftIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
 import { SessionTable } from './SessionTable.tsx';
-import { ErrorCard, ScreenBody } from '@/components';
-import { Button } from '@/components/ui/button.tsx';
+import {
+  ErrorCard, ScreenBody, ScreenHeader,
+} from '@/components';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useResult } from '@/hooks';
 import { useFormat } from '@/i18n';
@@ -20,15 +20,19 @@ export const ResultDetail = () => {
   const { record } = detail;
 
   return (
-    <ScreenBody className="flex flex-col gap-4 py-6">
-      <div>
-        <Button asChild size="sm" variant="ghost">
-          <Link to={path.results()}>
-            <ChevronLeftIcon />
-            {t('results.back')}
-          </Link>
-        </Button>
-      </div>
+    <ScreenBody className="flex flex-col gap-4 pb-8">
+      <ScreenHeader back={{ to: path.results(), label: t('results.back') }}>
+        {record ? (
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold" data-selectable>
+              {record.raceName ?? record.summary.track}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {formatDateTime(new Date(record.recordedAt))}
+            </p>
+          </div>
+        ) : null}
+      </ScreenHeader>
 
       {detail.error ? (
         <ErrorCard error={detail.error} onDismiss={detail.dismissError} />
@@ -42,15 +46,6 @@ export const ResultDetail = () => {
 
       {record ? (
         <>
-          <header className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold" data-selectable>
-              {record.raceName ?? record.summary.track}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {formatDateTime(new Date(record.recordedAt))}
-            </p>
-          </header>
-
           {record.summary.sessions.map((session, index) => (
             <SessionTable
               // AC gives a session no identifier, and two practices in one

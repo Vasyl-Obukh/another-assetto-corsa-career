@@ -16,7 +16,7 @@ export const Results = () => {
   const results = useResults();
 
   return (
-    <ScreenBody className="flex flex-col gap-4 py-8">
+    <ScreenBody className="flex flex-col gap-4 py-8" backToTop>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{t('results.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('results.subtitle')}</p>

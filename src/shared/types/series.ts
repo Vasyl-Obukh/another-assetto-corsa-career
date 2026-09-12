@@ -211,10 +211,6 @@ export interface Team {
    * How well funded the team is. Carried and not applied.
    */
   budget?: TeamBudget;
-  /**
-   * Standing in the paddock, from 0 to 100. Carried and not applied.
-   */
-  reputation?: number;
 }
 
 /**
@@ -422,8 +418,7 @@ export interface Round {
  * double-header that score alike say so instead of repeating a table that can
  * then drift.
  *
- * Everything here is per-race. How many results are dropped is a standings rule
- * rather than a scoring one, so `drops` sits on the championship.
+ * Everything here is per-race.
  *
  * Carried and applied in Phase 5. It belongs in the schema now because a series
  * file is a shareable document from the moment it ships, and adding the field
@@ -447,9 +442,13 @@ export interface PointsSystem {
    */
   fastestLap?: number;
   /**
-   * Points for pole position.
+   * Points by qualifying position, pole first, paid for the qualifying that
+   * sets this race's grid.
+   *
+   * A table rather than a pole bonus, because championships pay more than pole -
+   * DTM pays 3, 2 and 1 to the top three. Omitted, qualifying scores nothing.
    */
-  pole?: number;
+  qualifying?: readonly number[];
 }
 
 /**
@@ -538,9 +537,10 @@ export interface Championship {
    */
   name: string;
   /**
-   * Free-text notes, shown on the championship's own page.
+   * Free-text description, shown on the championship's own page and on its
+   * card in the library.
    */
-  notes?: string;
+  description?: string;
   /**
    * The ways into this championship, one per class it runs. Usually one.
    */
@@ -588,14 +588,6 @@ export interface Championship {
    * reordering the tables must not quietly change what a season pays.
    */
   defaultPointsSystem: string;
-  /**
-   * How many worst results are dropped from the final standings.
-   *
-   * On the championship rather than on a points system: it is a rule about the
-   * season rather than about scoring a race, and a sprint table carrying its own
-   * would be a number nothing could ever read.
-   */
-  drops?: number;
   /**
    * The rules the series imposes, as against the aids the player chooses.
    */
@@ -805,9 +797,34 @@ export interface SeriesLibrary {
 export type SeriesOrigin = 'shipped' | 'user' | 'adjusted';
 
 /**
- * A championship and whether it can be raced, which is how it crosses IPC.
+ * A weekend of this championship that has already begun.
  *
- * One value rather than two channels: a championship shown without its
+ * What the editor is gated on. A launch inherits its grid from the one before
+ * it, and everything the editor can change - the entry list, the balance of
+ * performance, the round's track and conditions, the format's sessions -
+ * decides what that grid holds, so the document is locked whole rather than
+ * section by section.
+ */
+export interface SeriesWeekendState {
+  /**
+   * Which round is under way.
+   */
+  round: string;
+  /**
+   * How many of its launches have run.
+   */
+  completed: number;
+  /**
+   * Whether one is with Content Manager right now.
+   */
+  inFlight: boolean;
+}
+
+/**
+ * A championship, whether it can be raced, and what is happening to it - which
+ * is how it crosses IPC.
+ *
+ * One value rather than several channels: a championship shown without its
  * availability is a card that cannot say whether its own button works.
  */
 export interface SeriesListing {
@@ -824,6 +841,11 @@ export interface SeriesListing {
    * shipped one with it.
    */
   origin: SeriesOrigin;
+  /**
+   * The weekend of this championship that is part-way through, or null when
+   * none is. Non-null is what stops it being edited.
+   */
+  weekend: SeriesWeekendState | null;
 }
 
 /**

@@ -1,6 +1,8 @@
 import type {
+  Championship,
   IpcRequest,
   RaceSetup,
+  SeriesAvailability,
   SeriesCommandResult,
   SeriesImportResult,
   SeriesLibrary,
@@ -34,6 +36,34 @@ export interface SeriesStore {
    * @returns The race setup, ready for the race screen
    */
   setupRound: (request: IpcRequest<'series:setupRound'>) => Promise<RaceSetup>;
+  /**
+   * What is wrong with a championship as it stands, writing nothing.
+   *
+   * The editor's live problem list. Takes a whole document rather than an id,
+   * because what it is asked about is a draft that exists nowhere yet.
+   * @param series The championship to check
+   * @returns Everything wrong with it, and what it needs that is not installed
+   */
+  validate: (series: Championship) => Promise<SeriesAvailability>;
+  /**
+   * Writes a championship the user owns back over its own file.
+   *
+   * A document that does not validate is written and reported rather than
+   * refused, which is the same stance importing takes: a championship the app
+   * will not store is one the user cannot fix. Three things are refused - one
+   * the app ships, an id that does not match the document's, and a
+   * championship whose weekend has already begun.
+   *
+   * Written by the file it was loaded from, never by a name derived from the
+   * id: the two are allowed to disagree, so `weird.json` may perfectly well
+   * hold `lotus-cup`.
+   * @param id The championship's id, which the document must also carry
+   * @param series The championship to write
+   * @returns The listing as it now stands, off the document that was written
+   * @throws When it is not the user's to edit, is renamed, or is part-way
+   * through a weekend
+   */
+  save: (id: string, series: Championship) => Promise<SeriesListing>;
   /**
    * Takes a copy of one the app ships, under its own id.
    *

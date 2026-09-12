@@ -1,8 +1,9 @@
 import { readFile, rename, writeFile } from 'node:fs/promises';
 
 import { ARCHIVE_NAME } from './constants.ts';
+import type { RaceProgress } from './types.ts';
 import { summarise } from '../../core/results/index.ts';
-import type { RaceOut, ResultRecord } from '../../shared/types/index.ts';
+import type { RaceOut, ResultRecord, WeekendState } from '../../shared/types/index.ts';
 
 /**
  * Reads a JSON file, treating anything unreadable as absent.
@@ -79,4 +80,28 @@ export const readRecord = async (file: string, full: string): Promise<ResultReco
     ...(typeof parsed.raceName === 'string' ? { raceName: parsed.raceName } : {}),
     summary: summarise(result),
   };
+};
+
+/**
+ * How far through a weekend the app is, or null when none is under way.
+ *
+ * The whole of the series editor's lock. A weekend that has run every launch
+ * is finished rather than under way, even though its state stays on disk until
+ * a reset or a different race replaces it.
+ * @param state The weekend's saved progress, or null when there is none
+ * @param raceId What to call the race when there is no state to name it
+ * @param inFlight Whether a launch is with Content Manager right now
+ * @returns The progress, or null when nothing has started, everything has
+ * finished, or both
+ */
+export const progressOf = (
+  state: WeekendState | null,
+  raceId: string,
+  inFlight: boolean,
+): RaceProgress | null => {
+  const completed = state?.completed.length ?? 0;
+  const finished = state !== null && completed >= state.launchCount;
+  if (!inFlight && (completed === 0 || finished)) return null;
+
+  return { raceId: state?.raceId ?? raceId, completed, inFlight };
 };

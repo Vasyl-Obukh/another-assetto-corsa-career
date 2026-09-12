@@ -1,5 +1,6 @@
 import { BrowserWindow, ipcMain } from 'electron';
 
+import { isSafeSeriesId } from '../../core/series-library/index.ts';
 import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type {
   IpcChannel,
@@ -75,4 +76,21 @@ export const focusedWindow = (): BrowserWindow => {
   if (!window) throw new AppError('ipc.noWindow');
 
   return window;
+};
+
+/**
+ * A file name to suggest for a championship the user is exporting.
+ *
+ * Off the name rather than the id, since a minted id is a UUID. Put through
+ * `isSafeSeriesId` because it knows more than a character class - `NUL` is a
+ * Windows device name, and a very long name is a path nothing can open. Anything
+ * it refuses falls back to the id, which is always safe.
+ * @param name What the championship is called
+ * @param id Its id, used when the name yields nothing usable
+ * @returns A file name, without its extension
+ */
+export const fileNameFor = (name: string, id: string): string => {
+  const stem = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+  return isSafeSeriesId(stem) ? stem : id;
 };

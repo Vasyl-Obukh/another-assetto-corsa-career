@@ -133,10 +133,13 @@ export const readWindow = (raw: unknown): WindowState => {
  *
  * Never throws. Unknown or malformed fields fall back to their defaults field by
  * field, so one bad value does not discard the rest of the file.
+ *
+ * A tolerant reader rather than a migration: nothing branches on the incoming
+ * version. It earns its keep because settings.json may reasonably be hand-edited.
  * @param raw The parsed contents of settings.json, or anything else
  * @returns Valid settings
  */
-export const migrateSettings = (raw: unknown): Settings => {
+export const readSettings = (raw: unknown): Settings => {
   if (!isRecord(raw)) return structuredClone(DEFAULT_SETTINGS);
 
   const setupCompletedAt = cleanString(raw.setupCompletedAt);
@@ -165,5 +168,5 @@ export const migrateSettings = (raw: unknown): Settings => {
  * @returns The merged settings, validated
  */
 export const applyPatch = (current: Settings, patch: Partial<Settings>): Settings => (
-  migrateSettings({ ...current, ...patch })
+  readSettings({ ...current, ...patch })
 );

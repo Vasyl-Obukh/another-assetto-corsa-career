@@ -8,7 +8,7 @@ import {
   SESSION_TYPES,
   WEATHER_VALUE,
 } from './constants.ts';
-import type { ConditionsSummary, WeatherChoice } from './types.ts';
+import type { ConditionsSummary, SessionLength, WeatherChoice } from './types.ts';
 import { WEATHER_TYPE_ORDER, WeatherType, WET_WEATHER_TYPES } from '../../../../shared/constants';
 import type {
   Conditions,
@@ -67,6 +67,22 @@ export const measuredInLaps = (session: SessionDefinition): boolean => (
 );
 
 /**
+ * How long a session runs, in whichever unit it is measured in.
+ *
+ * Off measuredInLaps, so a session carrying both reads as what race.ini will
+ * run rather than whichever field happens to be set.
+ * @param session The session to read
+ * @returns Its length, or null when it states none
+ */
+export const sessionLength = (session: SessionDefinition): SessionLength | null => {
+  const laps = measuredInLaps(session);
+  const count = laps ? session.laps : session.minutes;
+  if (count === undefined) return null;
+
+  return { key: laps ? 'championships.format.laps' : 'championships.format.minutes', count };
+};
+
+/**
  * Switches a session between a lap count and a duration.
  *
  * The other unit is cleared rather than kept, and that is not tidiness: a stale
@@ -103,26 +119,45 @@ export const nextSession = (sessions: SessionDefinition[]): SessionDefinition =>
 };
 
 /**
- * Moves one session along the list, clamped to its ends.
- * @param sessions The sessions, in the order they run
- * @param index Which session to move
- * @param by How far to move it, positive being later
- * @returns The reordered sessions, or the same list when nothing moved
+ * Moves one item to another position in a list.
+ *
+ * Generic because everything an editor reorders reorders the same way - the
+ * sessions of a weekend, the rounds of a calendar, the seats of a class entry.
+ *
+ * Note which side of the target the item lands on, because a drop indicator has
+ * to say the same thing: taking the item out first shifts everything after it
+ * down one, so moving an item *later* lands it after the target, and moving it
+ * *earlier* lands it before. That is not a choice this function makes - it is
+ * what removing before inserting does.
+ * @param items The items, in the order they are shown
+ * @param from Which item to move
+ * @param to Where it should go
+ * @returns The reordered items, or the same list when nothing moved
  */
-export const moveSession = (
-  sessions: SessionDefinition[],
-  index: number,
-  by: number,
-): SessionDefinition[] => {
-  const target = index + by;
-  if (target < 0 || target >= sessions.length) return sessions;
+export const moveTo = <T>(items: T[], from: number, to: number): T[] => {
+  if (from === to || to < 0 || to >= items.length) return items;
 
-  const next = [...sessions];
-  const [moved] = next.splice(index, 1);
-  next.splice(target, 0, moved);
+  const next = [...items];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
 
   return next;
 };
+
+/**
+ * Moves one item along a list by a number of places, clamped to its ends.
+ *
+ * What the reorder buttons call, where moveTo is what a drag calls. Written over
+ * it rather than splicing again: two implementations of one operation end up
+ * disagreeing about the clamp.
+ * @param items The items, in the order they are shown
+ * @param index Which item to move
+ * @param by How far to move it, positive being later
+ * @returns The reordered items, or the same list when nothing moved
+ */
+export const moveAt = <T>(items: T[], index: number, by: number): T[] => (
+  moveTo(items, index, index + by)
+);
 
 /**
  * Whether a session type can be picked in the menu.
@@ -247,26 +282,27 @@ export const availableTypes = (weather: Weather[]): WeatherType[] => {
 };
 
 /**
- * Applies a session's overrides, dropping the block entirely when it overrides
- * nothing.
+ * Applies the conditions a session or a round answers for itself, dropping the
+ * block entirely when it overrides nothing.
  *
- * An empty `conditions: {}` left behind would read as a session that differs
- * from the weekend when it does not.
- * @param session The session to change
+ * An empty `conditions: {}` left behind would read as something that differs
+ * from what it inherits when it does not.
+ * @param holder The session or round to change
  * @param conditions What it should override
- * @returns The session to put in its place
+ * @returns The session or round to put in its place
  */
-export const withSessionConditions = (
-  session: SessionDefinition,
+export const withSessionConditions = <T extends { conditions?: Conditions }>(
+  holder: T,
   conditions: Conditions,
-): SessionDefinition => {
+): T => {
   if (Object.keys(conditions).length === 0) {
-    const { conditions: unused, ...rest } = session;
+    const { conditions: unused, ...rest } = holder;
 
-    return rest;
+    // Only an optional key has gone, so what is left is still a T.
+    return rest as T;
   }
 
-  return { ...session, conditions };
+  return { ...holder, conditions };
 };
 
 /**
@@ -289,15 +325,17 @@ export const withSessionCondition = <K extends keyof Conditions>(
 };
 
 /**
- * How many of the weekend's conditions a session answers for itself.
+ * How many conditions a session or a round answers for itself.
  *
  * Shown on the row so an override is visible without opening the dialog - the
- * whole risk of an inherited value is that nobody looks.
- * @param session The session to count
- * @returns How many fields it overrides
+ * whole risk of an inherited value is that nobody looks. Takes the conditions
+ * rather than what holds them, since a championship's round states its own the
+ * same way a session does.
+ * @param conditions The conditions to count
+ * @returns How many fields are set
  */
-export const overrideCount = (session: SessionDefinition): number => (
-  Object.values(session.conditions ?? {}).filter((value) => value !== undefined).length
+export const overrideCount = (conditions: Conditions): number => (
+  Object.values(conditions).filter((value) => value !== undefined).length
 );
 
 /**

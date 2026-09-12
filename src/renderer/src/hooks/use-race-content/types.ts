@@ -32,6 +32,9 @@ export interface RaceContent {
  * The stamps are what let the hook derive its answer during render: an answer
  * whose stamp no longer matches the definition is simply not shown, so a track
  * the user has just replaced never lingers under the new one.
+ *
+ * Only the two the definition points at: the weather menus are the same
+ * whatever race is being set up, so they come from useWeatherContent instead.
  */
 export interface ResolvedContent {
   /**
@@ -50,12 +53,4 @@ export interface ResolvedContent {
    * What came back for it.
    */
   car: Car | null;
-  /**
-   * Every installed weather preset.
-   */
-  weather: Weather[];
-  /**
-   * Every installed CSP weather controller.
-   */
-  controllers: WeatherController[];
 }

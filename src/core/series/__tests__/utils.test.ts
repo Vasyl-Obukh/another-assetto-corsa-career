@@ -2,11 +2,11 @@ import { describe, expect, it } from '@jest/globals';
 
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
-  Championship, ClassEntry, SeriesSession, WeekendFormat,
+  Championship, SeriesSession, WeekendFormat,
 } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../constants.ts';
 import {
-  fieldableCars, seatSkin, validateFormat, validateMoney,
+  roundRaceId, seatSkin, validateFormat, validateMoney,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -52,6 +52,19 @@ const codesFor = (sessions: SeriesSession[]): string[] => {
 };
 
 describe('core/series/utils', () => {
+  describe('roundRaceId', () => {
+    it('composes the id the race a round lowers into carries', () => {
+      expect(roundRaceId('lotus-cup', 'monza')).toBe('lotus-cup/monza');
+    });
+
+    // Guards a bug: joined with a hyphen, these two pairs composed one id, so
+    // a weekend of either locked both championships in the editor.
+    it('never composes one id for two different pairs', () => {
+      expect(roundRaceId('gt3', 'sprint-r1')).not.toBe(roundRaceId('gt3-sprint', 'r1'));
+      expect(roundRaceId('a/b', 'c')).not.toBe(roundRaceId('a', 'b/c'));
+    });
+  });
+
   describe('validateFormat', () => {
     it('passes a knockout whose segments each follow the one before', () => {
       expect(codesFor([
@@ -147,54 +160,6 @@ describe('core/series/utils', () => {
     });
   });
 
-  describe('fieldableCars', () => {
-    /**
-     * A championship whose one class swaps cars at a single round.
-     * @returns The championship and the class entry to read
-     */
-    const withOverride = (): { series: Championship; entry: ClassEntry } => {
-      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
-      const swapped: Championship = {
-        ...series,
-        rounds: [
-          series.rounds[0],
-          {
-            id: 'oval',
-            name: 'Oval',
-            track: { id: 'daytona' },
-            eligibility: [{ entry: 'main', eligibility: { kind: 'cars', cars: ['oval_car'] } }],
-          },
-        ],
-      };
-
-      return { series: swapped, entry: swapped.entries[0] };
-    };
-
-    it('reads the class entry own cars when no round overrides it', () => {
-      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
-
-      expect([...fieldableCars(series, series.entries[0])]).toEqual(['test_car']);
-    });
-
-    it('adds the cars a round swaps to, since a seat is pinned for the season', () => {
-      const { series, entry } = withOverride();
-
-      expect([...fieldableCars(series, entry)].sort()).toEqual(['oval_car', 'test_car']);
-    });
-
-    it('ignores an override aimed at a different class entry', () => {
-      const { series, entry } = withOverride();
-      const elsewhere: Championship = {
-        ...series,
-        rounds: series.rounds.map((round) => (round.eligibility
-          ? { ...round, eligibility: [{ entry: 'other', eligibility: { kind: 'cars' as const, cars: ['oval_car'] } }] }
-          : round)),
-      };
-
-      expect([...fieldableCars(elsewhere, entry)]).toEqual(['test_car']);
-    });
-  });
-
   describe('seatSkin', () => {
     const content = makeContent();
 
@@ -262,12 +227,6 @@ describe('core/series/utils', () => {
 
     it('accepts a free championship, which is not the same as charging nothing', () => {
       expect(moneyCodes({ entryFee: 0 })).toEqual([]);
-    });
-
-    it('refuses drops that are negative or not a whole number of results', () => {
-      expect(moneyCodes({ drops: -1 })).toEqual(['series.drops.invalid']);
-      expect(moneyCodes({ drops: 1.5 })).toEqual(['series.drops.invalid']);
-      expect(moneyCodes({ drops: 0 })).toEqual([]);
     });
   });
 });

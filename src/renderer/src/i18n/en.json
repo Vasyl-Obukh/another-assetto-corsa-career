@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Assetto Corsa Career",
-    "subtitle": "Championships you actually drive"
+    "subtitle": "Championships you actually drive",
+    "backToTop": "Back to top"
   },
   "nav": {
     "race": "Race",
@@ -401,7 +402,8 @@
       "race": "Race this round",
       "missingTrack": "Track not installed",
       "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field",
-      "ownConditions": "Own conditions"
+      "ownConditions": "Own conditions",
+      "underway": "Weekend under way"
     },
     "format": {
       "title_one": "Weekend format",
@@ -419,11 +421,9 @@
       "title_one": "Points",
       "title_other": "Points systems",
       "default": "Default",
-      "drops_one": "The worst result of the season is dropped from the standings.",
-      "drops_other": "The worst {{count}} results of the season are dropped from the standings.",
       "position": "P{{number}}",
       "fastestLap": "Fastest lap",
-      "pole": "Pole",
+      "qualifying": "Quali P{{number}}",
       "row": "{{label}} {{points}}"
     },
     "money": {
@@ -464,7 +464,8 @@
     "forkedFrom": "Copied from {{series}}",
     "actions": {
       "menu": "Actions for {{name}}",
-      "customise": "Customise",
+      "edit": "Edit",
+      "editLocked": "A weekend of this championship is part-way through",
       "duplicate": "Duplicate",
       "copyName": "{{name}} (copy)",
       "revert": "Revert",
@@ -479,6 +480,11 @@
       "cancel": "Cancel",
       "confirm": "Duplicate"
     },
+    "edit": {
+      "title": "Edit {{name}}?",
+      "body": "This is a championship the app ships, so editing it takes your own copy first. The app’s own version is replaced until you revert it.",
+      "confirm": "Take a copy and edit"
+    },
     "revert": {
       "title": "Revert to the app's own championship?",
       "body": "Your version of {{name}} is deleted and the app's own comes back. This cannot be undone."
@@ -491,6 +497,221 @@
       "failed_one": "{{count}} problem with the file you picked",
       "failed_other": "{{count}} problems with the file you picked",
       "failedHint": "Nothing was added to your library."
+    }
+  },
+  "editor": {
+    "back": "Back to the championship",
+    "notFound": "That championship is no longer in the library.",
+    "shipped": "This is a championship the app ships, so there is no file of yours to edit. Take a copy of it first.",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "discard": "Discard changes",
+    "problems": {
+      "label_one": "{{count}} problem with this championship",
+      "label_other": "{{count}} problems with this championship",
+      "hint": "These are checked as you type and nothing is written until you save. A championship that does not validate can still be saved, but it cannot be raced."
+    },
+    "rows": {
+      "moveUp": "Move {{label}} earlier",
+      "moveDown": "Move {{label}} later",
+      "remove": "Remove",
+      "edit": "Edit",
+      "menu": "More for {{label}}",
+      "drag": "Reorder {{label}} by dragging",
+      "makeDefault": "Use by default",
+      "confirm": "Confirm"
+    },
+    "leave": {
+      "title": "Leave without saving?",
+      "body": "The changes you have made to {{name}} have not been written yet.",
+      "confirm": "Leave"
+    },
+    "locked": {
+      "title": "This championship cannot be edited yet",
+      "body": "A weekend of it is part-way through. Everything below decides what the next session's grid holds, so the document is locked until that weekend is finished or reset.",
+      "race": "Go to the race"
+    },
+    "details": {
+      "title": "Details",
+      "name": "Name",
+      "description": "Description",
+      "entryFee": "Entry fee",
+      "entryFeeHint": "What a round costs to enter unless the round says otherwise. Zero is free to enter, which is not the same as saying nothing."
+    },
+    "grid": {
+      "title": "AI field",
+      "hint": "What the field is worth where a class entry and a seat say nothing of their own.",
+      "aiLevel": "AI level",
+      "aiLevelMin": "Slowest AI level",
+      "aiAggression": "AI aggression"
+    },
+    "regulations": {
+      "title": "Regulations",
+      "hint": "What the series allows, and what it does when the rules are broken. These are the rules rather than what you drive with - your own aids are in Settings - and an empty field is whatever Assetto Corsa ships.",
+      "fixedSetup": "Fixed setup",
+      "penalties": "Penalties",
+      "jumpStartPenalty": "Jump start penalty",
+      "jumpStartPenaltyHint": "Seconds of drive-through penalty for a jump start.",
+      "allowedTyresOut": "Wheels allowed off",
+      "allowedTyresOutHint": "-1 leaves Assetto Corsa's own per-track answer alone."
+    },
+    "nation": {
+      "nationality": "Nationality",
+      "nationCode": "Nation code"
+    },
+    "teams": {
+      "title": "Teams",
+      "hint": "Who fields the seats. A team is described once and referenced by every seat it runs, so a multi-class series never ends up with two teams sharing a name. The budget is carried and not applied yet: a later phase shapes contract offers from it.",
+      "empty": "No teams yet. A seat can be left without one.",
+      "add": "Add a team",
+      "name": "Name",
+      "budgetLabel": "Budget",
+      "budget": {
+        "unsaid": "Not stated",
+        "works": "Works",
+        "independent": "Independent",
+        "privateer": "Privateer"
+      },
+      "count_one": "{{count}} team",
+      "count_other": "{{count}} teams"
+    },
+    "entries": {
+      "title": "Classes",
+      "hint": "One way into the championship per class it runs, each with its own rung of the ladder, its own cars and its own standings. Most championships run a single class.",
+      "add": "Add a class",
+      "name": "Name",
+      "discipline": "Discipline",
+      "tier": "Tier",
+      "tierHint": "1 is the top of a discipline. A driver may enter any series at or below their level in it.",
+      "eligibility": "Cars",
+      "performance": "Performance",
+      "seats": "Seats",
+      "count_one": "{{count}} class",
+      "count_other": "{{count}} classes",
+      "seatCount_one": "{{count}} seat",
+      "seatCount_other": "{{count}} seats",
+      "formHint": "What the class is called and where on the ladder it sits. Its cars, its AI field and its seats are in the sections below."
+    },
+    "eligibility": {
+      "kind": "Written as",
+      "spec": "A catalogued grid",
+      "cars": "A list of cars",
+      "specLabel": "Grid",
+      "minModels": "Models needed",
+      "minModelsHint": "How many distinct models must be installed before the class can be raced. One model is a field of clones rather than the championship.",
+      "noCars": "No cars named yet. A class that names none cannot be raced.",
+      "addCar": "Add a car"
+    },
+    "bop": {
+      "empty": "Nothing is balanced. Every car runs as it is.",
+      "car": "Car",
+      "ballast": "Ballast (kg)",
+      "restrictor": "Restrictor (%)",
+      "add": "Balance a car"
+    },
+    "seats": {
+      "number": "Seat {{number}}",
+      "driver": "Driver",
+      "team": "Team",
+      "noTeam": "No team",
+      "car": "Car and livery",
+      "fromClass": "Drawn from the class",
+      "pinned": "{{car}} - {{skin}}",
+      "pinnedCar": "{{car}}",
+      "unpin": "Take the pinned car off this seat",
+      "aiLevel": "AI level",
+      "aiAggression": "AI aggression",
+      "add": "Add a seat",
+      "unnamed": "Seat free",
+      "aiSet": "AI set"
+    },
+    "roundEligibility": {
+      "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list, the calendar and the standings stay at championship level.",
+      "toggle": "Runs different cars here"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "empty": "No rounds yet. A championship needs at least one.",
+      "add": "Add a round",
+      "name": "Name",
+      "track": "Circuit",
+      "noTrack": "No circuit chosen",
+      "format": "Weekend format",
+      "defaultFormat": "The championship's own",
+      "entryFee": "Entry fee",
+      "entryFeeHint": "Overrides the championship's, for this round alone.",
+      "conditions": "Conditions",
+      "conditionsHint": "What this round runs in, unless one of its sessions says otherwise.",
+      "missingTrack": "Circuit not installed",
+      "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field",
+      "cars": "Cars",
+      "count_one": "{{count}} round",
+      "count_other": "{{count}} rounds",
+      "swapLine": "{{entry}}: {{cars}}"
+    },
+    "formats": {
+      "title": "Weekend formats",
+      "hint": "Every way this championship runs a weekend. A round names one when it differs from the default, so a calendar mixing sprint and regular weekends says which is which.",
+      "add": "Add a format",
+      "name": "Name",
+      "formHint": "What this way of running a weekend is called. Its sessions are listed on its panel.",
+      "rounds_one": "{{count}} round",
+      "rounds_other": "{{count}} rounds",
+      "count_one": "{{count}} format",
+      "count_other": "{{count}} formats"
+    },
+    "sessions": {
+      "add": "Add a session",
+      "type": "Type",
+      "name": "Name",
+      "laps": "Laps",
+      "minutes": "Minutes",
+      "lengthUnit": "Measured in",
+      "day": "Day",
+      "dayHint": "Which day of the weekend it runs on. A race cannot open a three-day weekend.",
+      "points": "Points",
+      "defaultPoints": "The championship's own",
+      "follows": "Takes its field from",
+      "followsHint": "Which qualifying decides who starts, and in what order. Only an earlier qualifying can, since nothing else leaves a classification behind.",
+      "followsNothing": "Nothing",
+      "followsTop": "{{name}}, top {{top}}",
+      "top": "Cars carried over",
+      "topHint": "How many of that session's field go through. Leave it empty for all of them, which is what a race after qualifying wants.",
+      "topAll": "The whole field",
+      "conditions": "Conditions",
+      "conditionsHint": "What this session runs in, wherever the format is raced. Anything left unset takes the round's own answer.",
+      "inherit": "The round's own"
+    },
+    "points": {
+      "title": "Points systems",
+      "hint": "Every way this championship scores a race. A race names one when it differs from the default, which is what makes a sprint a sprint. Carried and not applied yet: standings arrive with the career.",
+      "add": "Add a points system",
+      "name": "Name",
+      "fastestLap": "Fastest lap",
+      "qualifying": "Points by qualifying position",
+      "qualifyingHint": "A bonus for where a driver qualifies, pole first - DTM pays 3, 2 and 1 to the top three. Leave it empty to pay nothing for qualifying.",
+      "qualifyingEmpty": "Qualifying scores nothing.",
+      "qualifyingBonus": "Qualifying {{points}}",
+      "table": "Points by position",
+      "tableHint": "What each finishing position scores, the winner first. The table grows and shrinks at the end, so how far down it pays is its length.",
+      "empty": "Nothing scores. Every position pays zero.",
+      "positions_one": "{{count}} position",
+      "positions_other": "{{count}} positions",
+      "count_one": "{{count}} system",
+      "count_other": "{{count}} systems"
+    },
+    "prizes": {
+      "title": "Prize money",
+      "hint": "What the championship pays out. Carried and not applied yet, the same way points are. What entering costs is on the details card.",
+      "round": "Race prize money",
+      "roundHint": "Paid for a finishing position at every round.",
+      "season": "Championship prize money",
+      "seasonHint": "Paid once, for where a driver finishes the season.",
+      "empty": "Nothing is paid."
+    },
+    "positions": {
+      "add": "Add a position",
+      "remove": "Drop the last"
     }
   },
   "results": {

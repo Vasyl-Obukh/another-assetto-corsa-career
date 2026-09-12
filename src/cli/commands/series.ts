@@ -94,13 +94,12 @@ const printDetail = (
   series.pointsSystems.forEach((points) => {
     const badge = points.id === series.defaultPointsSystem ? '  (default)' : '';
     const extras = [
-      points.pole ? `pole ${points.pole}` : '',
+      points.qualifying?.length ? `qualifying ${points.qualifying.join('-')}` : '',
       points.fastestLap ? `fastest lap ${points.fastestLap}` : '',
     ].filter(Boolean).join(', ');
     console.log(`    ${points.name.padEnd(16)} (${points.id})${badge}`);
     console.log(`      ${points.positions.join('-')}${extras ? `  +${extras}` : ''}`);
   });
-  if (series.drops) console.log(`    Worst ${series.drops} dropped from the standings`);
 
   if (series.entryFee !== undefined || series.prizes) {
     console.log('\n  Money');

@@ -12,6 +12,17 @@
 export const SCREEN_WIDTH = 'mx-auto w-full max-w-7xl px-8';
 
 /**
+ * Where the back-to-top button floats: beside the content column rather than
+ * in the window's corner, which on a wide window is a long way from anything.
+ *
+ * Measured off SCREEN_WIDTH's `max-w-7xl` - half the space either side of the
+ * column, less the button's own width and a little, puts it about 48px clear
+ * of the content. It never comes closer to the window edge than 24px,
+ * which is where it lands once the window is narrower than the column.
+ */
+export const BACK_TO_TOP_POSITION = 'fixed bottom-6 right-[max(1.5rem,calc((100vw_-_var(--container-7xl))_/_2_-_2.75rem))]';
+
+/**
  * The width every settings control is given.
  *
  * Fixed rather than intrinsic so a row of them lines up regardless of what is

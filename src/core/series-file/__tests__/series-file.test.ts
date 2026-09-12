@@ -219,11 +219,14 @@ describe('core/series-file', () => {
         .toEqual(['seriesFile.field.invalid']);
     });
 
-    it('rejects an entry fee or a drop count that is not a number', () => {
+    it('rejects an entry fee that is not a number', () => {
       expect(codesFor(raw({ entryFee: 'free' }))).toEqual(['seriesFile.field.invalid']);
-      expect(codesFor(raw({ drops: 'one' }))).toEqual(['seriesFile.field.invalid']);
       expect(codesFor(raw({ rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' }, entryFee: 'free' }] })))
         .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('rejects a description that is not a string', () => {
+      expect(codesFor(raw({ description: 42 }))).toEqual(['seriesFile.field.invalid']);
     });
   });
 

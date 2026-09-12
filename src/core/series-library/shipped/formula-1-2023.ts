@@ -53,7 +53,7 @@ export const FORMULA_1_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2023',
   name: 'Formula 1 2023',
-  notes: 'Twenty cars, knockout qualifying and two sprint rounds, on VRC\'s Formula Alpha 2023. '
+  description: 'Twenty cars, knockout qualifying and two sprint rounds, on VRC\'s Formula Alpha 2023. '
     + 'The mod is a single car in twenty liveries rather than ten distinct chassis, so the field '
     + 'is one spec on merit alone. Liveries are assigned automatically, since which of them a '
     + 'copy of the mod installs is not ours to assume.',

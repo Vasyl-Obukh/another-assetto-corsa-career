@@ -4,7 +4,7 @@
 
 import { dialog } from 'electron';
 
-import { focusedWindow, handle } from './utils.ts';
+import { fileNameFor, focusedWindow, handle } from './utils.ts';
 import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts';
 import { probePaths } from '../../core/paths/index.ts';
 import { SERIES_FILE_EXTENSION } from '../../core/series-file/index.ts';
@@ -87,6 +87,8 @@ export const registerHandlers = (
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
   handle('series:setupRound', async (request) => series.setupRound(request));
+  handle('series:validate', async ({ series: draft }) => series.validate(draft));
+  handle('series:save', async ({ id, series: draft }) => series.save(id, draft));
   handle('series:customise', async ({ id }) => series.customise(id));
   handle('series:duplicate', async ({ id, name }) => series.duplicate(id, name));
   handle('series:revert', async ({ id }) => series.revert(id));
@@ -105,10 +107,14 @@ export const registerHandlers = (
   });
 
   handle('series:export', async ({ id }) => {
+    // Named after the championship, since a minted id is a UUID.
+    const listing = await series.get(id);
+    const suggested = listing ? fileNameFor(listing.series.name, id) : id;
+
     // No title: omitted so Windows supplies its own localised "Save As" rather
     // than us pushing a translated string across IPC purely to label a dialog.
     const result = await dialog.showSaveDialog(focusedWindow(), {
-      defaultPath: `${id}${SERIES_FILE_EXTENSION}`,
+      defaultPath: `${suggested}${SERIES_FILE_EXTENSION}`,
       filters: [{ name: 'Championship', extensions: ['json'] }],
     });
     if (result.canceled || !result.filePath) return null;

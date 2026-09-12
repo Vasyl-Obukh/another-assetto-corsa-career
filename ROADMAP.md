@@ -507,7 +507,7 @@ declined beforehand. This is the primary limit on how much you can race.
 ### Teams, seats and contracts
 
 A **team** fields **seats** in a series, supplies or withholds cars, and has a
-budget tier and reputation. Series entry lists are lists of seats.
+budget tier. Series entry lists are lists of seats.
 
 A contract binds you to a seat and sets who pays:
 
@@ -751,7 +751,7 @@ had exercised.
       of the scan. `isCatalogued` in `src/core/content-catalogue/` is the whole
       rule - base or DLC by source, a named mod by its maker, an LFM car or
       layout by its distributor - so nothing new is scanned and
-      `CONTENT_CACHE_VERSION` does not move. On the install it was written
+      `CONTENT_CACHE_VERSION` did not have to move. On the install it was written
       against that is **418 cars of 622 and 66 circuits of 96**, and the 204
       cars and 90 layouts left out are exactly the anonymous mods the catalogue
       already declines to attribute. Reverses "the library always shows
@@ -1343,15 +1343,20 @@ points at and what a career will file results under, so quietly rewriting it
 would leave the file and the document disagreeing about which championship this
 is.
 
-**The document is now finished.** Teams and seats replaced the entrant count, at
-format version 3 and with the migration that field was put there for; prize
-money and entry fees are checked and shown; and per-round conditions turned out
-to have landed with the round schema. That was done before the editor rather
+**The document is now finished.** Teams and seats replaced the entrant count -
+a format change carried by a migration at the time, and since reverted to the
+one revision this build reads; prize money and entry fees are checked and shown;
+and per-round conditions turned out to have landed with the round schema. That was done before the editor rather
 than after it on purpose - building the editor's screens against a shape about
 to gain a seat list is the mistake Phase 2 avoided when it landed the content
 data layer before the browsers.
 
-The editor itself, the class and spec UI, and generated weather are still open.
+**And the editor is now built**, in three stages: the document's own details,
+rules and AI field; then teams, classes, seats, liveries, balance of performance
+and the calendar; then weekend formats with their session lists, points systems
+and prize tables. What is still open in this phase is the class and spec
+management UI, generated weather, and making Customise open the editor rather
+than only writing a copy.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1370,15 +1375,19 @@ The editor itself, the class and spec UI, and generated weather are still open.
       moved here out of the race screen, where it had been living. **`version` is
       on the championship from the first shipped file**, since a series is a
       document users will fork, export and import, and one with no format version
-      is a migration that cannot be written. **Points are carried and not
+      is a migration that cannot be written - even though the migration itself
+      waits for Phase 14 and the number stays at 1 until then. **Points are carried and not
       applied** - Phase 5 owns scoring, but a series file is shareable from the
       moment it ships, so adding the field later would invalidate every file
       authored before then. Scoring is a named list too: `pointsSystems` with
       `defaultPointsSystem`, and a race session naming one through
       `SeriesSession.pointsSystem`, the same shape the weekend formats take.
-      **`drops` moved onto the championship** - how many results a season throws
-      away is a standings rule rather than a way of scoring a race, and a sprint
-      table carrying its own would be a number nothing could read
+      **`drops` was moved onto the championship and has since been dropped
+      altogether** - how many results a season throws away is a standings rule
+      rather than a way of scoring a race, which is why it never belonged on a
+      points system; it turned out not to be wanted at all, and a field carried
+      but never applied is worse than no field. Removed alongside `notes`
+      becoming `description`, both at version 1 rather than as a fourth revision
 - [x] **Weekend formats** with day offsets and day-of-week rules - validation
       over `day` rather than new data. Days start at 0, run contiguously, never
       go backwards down the list and span at most three; a race may not sit on
@@ -1427,13 +1436,17 @@ The editor itself, the class and spec UI, and generated weather are still open.
       cars did on the day. The one invented classification in the project, and
       said to be - the CLI prints those launches as simulated and the race
       screen badges them
-- [ ] **Refuse to edit a championship, a weekend format or a session while a
+- [x] **Refuse to edit a championship, a weekend format or a session while a
       weekend of it is in progress**, with text saying the weekend has to be
-      finished first. Belongs to the series editor rather than here: the race
-      screen already locks once a launch has run, but that is the temporary way
-      in. A calendar screen replaces it - pick a weekend, start it, come back
-      between sessions - and championship editing moves into settings, which is
-      where the gate has to live
+      finished first. It landed in the editor rather than in settings, which is
+      where this item guessed it would live, and it is gated in both halves:
+      `series-store` throws `series.weekendInProgress` on every write, and the
+      editor reads `SeriesWeekendState` off the listing, disables every control
+      on the page and heads it with `EditorLockNotice`. The document is locked
+      **whole** rather than section by section, because a launch inherits its
+      grid from the one before it and everything the editor can change - the
+      entry list, the balance of performance, a round's track, a format's
+      sessions - decides what that grid holds
 - [x] **Teams and seats** - a class entry's `entrants` count became its seat
       list, which is the format version bump the count was always a placeholder
       for. A **seat** is one place on the grid for a whole season, carrying a
@@ -1441,11 +1454,14 @@ The editor itself, the class and spec UI, and generated weather are still open.
       optional AI level of its own; a **team** sits on the championship rather
       than on a class entry, because a team fields cars in more than one class
       of a multi-class series and would otherwise be two teams sharing a name.
-      **Version 3, and the first real migration**: a version 2 file's
-      `entrants: 8` converts to eight empty seats losslessly, so `migrateSeries`
-      carries it forward silently rather than the library refusing a document
-      written a fortnight ago. That is what the `version` field was put on the
-      championship from the first shipped file for.
+      It was a format version bump with a migration behind it at the time, and
+      **both the bump and the migration have since been reverted**: every
+      persisted format sits at version 1 until the app is released, because the
+      only files in existence are the author's own and deleting an out-of-date
+      one is cheaper than a step that reads it. See *No schema migrations before
+      the first release* in CLAUDE.md. The `version` field stays on the
+      championship - a document that cannot say what shape it is in is one no
+      later migration could read - and Phase 14 is when it starts earning that.
       **The player takes the last seat of the class they enter**, which is the
       smallest thing that could replace `entrants - 1` and keeps a
       championship's named front-runners rather than its tail-ender.
@@ -1469,7 +1485,7 @@ The editor itself, the class and spec UI, and generated weather are still open.
       spec-based series unavailable to everybody. A spec carries a `minModels`
       floor so that owning one car of it reads as unavailable rather than as a
       grid of clones
-- [ ] **Per-round eligibility override.** The championship declares eligibility
+- [x] **Per-round eligibility override.** The championship declares eligibility
       once; a round may override it, because some fields change car with the track.
       IndyCar is the case that forces it - road, short-oval and superspeedway kits
       are separate car folders and separate specs, yet one championship with one
@@ -1481,7 +1497,16 @@ The editor itself, the class and spec UI, and generated weather are still open.
       IndyCar kits, the 962C longtail, URD's sprint against endurance EGT cars.
       Inventing a base-content one would be tidiness over truth, which is the
       mistake the class catalogue audit already had to undo once. Its first
-      shipped user is the Group C championship, when DLC championships land
+      shipped user is the Group C championship, when DLC championships land.
+      **Now has a user interface**: a round's Cars dialog carries a toggle per
+      class entry, seeded from that class's own rule rather than from nothing -
+      a round that swaps cars usually swaps a few of them - and turning it off
+      drops the override rather than leaving an empty block behind. Narrowing
+      one clears up after itself: a seat pinned to a car the class can no longer
+      field is unpinned and a balance-of-performance row balancing it is
+      dropped, because validateSeries reports both and neither is visible from
+      where the change was made. Driven through the app against a two-class
+      championship, saved, and read back off disk
 - [x] **Multi-class entries** - one championship, one calendar, and one *class
       entry* per class it runs, each carrying its own tier, its own eligibility
       and its own standings table. WEC is the case: Hypercar, LMP2 and LMGT3
@@ -1545,23 +1570,53 @@ The editor itself, the class and spec UI, and generated weather are still open.
       **`acmanager://install` is not offered**, and cannot be yet: the provenance
       catalogue names the mod team but carries no per-mod install URL. Adding one
       is a catalogue change, not a UI one
-- [ ] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
+- [x] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
       content pickers are Phase 2's browser shell with selection added, not new
       screens; see *Where the browsers end up*.
-      **Half of what it needs is already built.** `CarQuery` gained an `ids`
-      filter and `CarBrowserBody` a `baseQuery`, so a picker restricted to an
-      arbitrary set of cars is now what the round-entry dialog already uses -
-      three cars out of six hundred, with the search, facets and paging intact.
+      The pickers cost nothing in the end: `CarQuery` gained an `ids` filter and
+      `CarBrowserBody` a `baseQuery`, so a picker restricted to an arbitrary set
+      of cars is what the round-entry dialog uses - three cars out of six
+      hundred, with the search, facets and paging intact.
       One trap to carry forward: `isOneOf` treats an empty array as no filter at
-      all, so `ids: []` offers the whole library. Never send one
-- [ ] **Assign a livery per driver in the editor.** `Seat.car` carries a model
+      all, so `ids: []` offers the whole library. Never send one.
+      **Every list in it is one pattern**, arrived at after the first pass of
+      dialogs proved too many clicks for the thing done most - filling in a
+      calendar. A row reads as text until it is clicked, then becomes its own
+      form in place with Confirm and Cancel; `ListRow`, `RowForm` and
+      `ConfirmActions` are that shape, `useRowEdit` holds which single row is
+      open **for the whole page** - so opening one quietens every other list,
+      a class's seats included - and `useRowDrag` is the mouse affordance for
+      reordering, with the chevrons kept as the keyboard one. Nothing reaches
+      the draft until Confirm and nothing reaches disk until Save.
+      A container gets a panel instead: `PanelRow` is a tinted heading with the
+      list's contents below it, which is how a class entry holds its cars,
+      performance and seats, and how a weekend format holds its sessions.
+      **Two things the editor repairs rather than reports.** Removing a weekend
+      format re-points `defaultWeekendFormat` and drops the rounds' references
+      to it; removing a points system does the same for `defaultPointsSystem`
+      and the races that paid it. validateSeries would report both, but the row
+      that explained the reference is the row that has just been removed.
+      **A session link is minted where it is made**: `inherit.from` names a
+      session by id and a session only carries one when something names it, so
+      the form offers earlier qualifyings by *position* and `withSession` gives
+      the source an id at the moment the link is committed
+- [x] **Assign a livery per driver in the editor.** `Seat.car` carries a model
       and a skin from the day seats landed, and no shipped championship sets
       either - a shipped file cannot know which liveries a user's copy of a mod
       installs, so pinning one would resolve to nothing on half the libraries
       that have the car. The editor is where a user who owns the real Formula 1
       liveries puts each driver in theirs, against the skin browser Phase 2
       built. The lowering already honours it, and already falls back to
-      automatic assignment when the named skin is not installed
+      automatic assignment when the named skin is not installed.
+      **Landed**, and the whole two-step picker came for free: a seat's Car and
+      livery button opens the car picker restricted to what the class may field,
+      the livery step follows, and Clear unpins. Driven end to end - pinning
+      `kunos_racing_41` to one seat of the Lotus Cup put that driver in the
+      grid wearing it while the other 2-Eleven was assigned a livery
+      automatically, and pointing the same seat at a livery that is not
+      installed dropped the SKIN key rather than writing one AC could not
+      resolve. The empty-`ids` trap is guarded by disabling the button: a class
+      that names no cars would otherwise open a picker onto the whole library
 - [ ] **Customise should open the editor, not just write a copy.** Today it
       writes the shipped championship into the user's folder and lands them on
       the championship page, which is half an answer: taking a copy is the
@@ -1749,7 +1804,7 @@ The editor itself, the class and spec UI, and generated weather are still open.
 
 ## Phase 5 - Championship engine and calendar
 
-- [ ] Configurable points systems (custom tables, fastest lap, pole, drops)
+- [ ] Configurable points systems (custom tables, fastest lap, qualifying positions)
 - [ ] Driver and team standings
 - [ ] **Career calendar with dates**; clock advances on starting a later session
 - [ ] **Advance to date** action, stopping at events you are entered in rather
@@ -1776,7 +1831,10 @@ The editor itself, the class and spec UI, and generated weather are still open.
 - [ ] Warn on load that anything done since that session boundary is discarded
 - [ ] Decide the save-scumming policy: one-way autosaves, a recorded rollback, or
       neither
-- [ ] Save format with a version field and migrations
+- [ ] **Save format with a version field** - the field only. Writing a step that
+      reads an older save waits for Phase 14, like every other format here: until
+      the app is released an out-of-date save is deleted rather than carried
+      forward. See *No schema migrations before the first release* in CLAUDE.md
 - [ ] Multiple concurrent careers
 - [ ] Backup and restore
 - [ ] Archived results linked to career, season and round
@@ -1814,11 +1872,11 @@ The editor itself, the class and spec UI, and generated weather are still open.
 - [ ] Entry fee coverage: full, partial, none
 - [ ] Car source per seat: team-supplied, owned, rented
 - [ ] **Exclusivity**: forbidden, permission required, or free to race elsewhere
-- [ ] Offer generation driven by rating, discipline level and reputation
+- [ ] Offer generation driven by rating, discipline level and experience
 - [ ] Offer deadlines and a decision window
 - [ ] Contract expiry and renewal
 - [ ] Buying a seat as a pay driver
-- [ ] Team budgets and reputation shaping offers
+- [ ] Team budgets shaping offers
 
 ## Phase 10 - Sponsors
 

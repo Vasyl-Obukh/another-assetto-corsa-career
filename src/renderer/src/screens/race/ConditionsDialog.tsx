@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { ConditionsBody } from './ConditionsBody.tsx';
 import type {
   Conditions, Weather, WeatherController, WeatherSystem,
@@ -65,6 +67,11 @@ interface ConditionsDialogProps {
    */
   locked: boolean;
   /**
+   * Anything the dialog should end with - the series editor's Confirm and
+   * Cancel. The race screen passes none, since a race is edited live.
+   */
+  footer?: ReactNode;
+  /**
    * Called when the dialog opens or closes.
    * @param open Whether it should be showing
    */
@@ -78,7 +85,7 @@ interface ConditionsDialogProps {
 
 export const ConditionsDialog = ({
   open, title, description, conditions, resolved, inheritLabel, showTimeOfDay, weather,
-  controllers, system, rainFx, allowSlots, idPrefix, locked, onOpenChange, onChange,
+  controllers, system, rainFx, allowSlots, idPrefix, locked, footer, onOpenChange, onChange,
 }: ConditionsDialogProps) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     {/*
@@ -107,6 +114,8 @@ export const ConditionsDialog = ({
         locked={locked}
         onChange={onChange}
       />
+
+      {footer}
     </DialogContent>
   </Dialog>
 );
