@@ -65,7 +65,7 @@ export const TrackField = ({ track, locked, onPick }: TrackFieldProps) => {
             <>
               <span className="truncate font-medium" title={track.name}>{track.name}</span>
               <div className="flex flex-wrap gap-1">
-                <ProvenanceBadges provenance={track.provenance} />
+                <ProvenanceBadges provenance={track.provenance} trackId={track.id} />
                 {track.lengthM === null ? null : (
                   <Badge variant="outline">{formatDistance(track.lengthM)}</Badge>
                 )}

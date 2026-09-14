@@ -6,9 +6,10 @@ export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
 export { BackToTop } from './BackToTop.tsx';
 export {
-  BrowserGrid, BrowserToolbar, FacetFilter, RangeFilter, SearchField, SortSelect, ToggleFilter,
+  BrowserGrid, BrowserToolbar, FacetFilter, RangeFilter, SearchField, SortSelect, ToggleCard,
+  ToggleFilter,
 } from './browser/index.ts';
-export type { RangeValue, SortItem } from './browser/index.ts';
+export type { BrowserToggle, RangeValue, SortItem } from './browser/index.ts';
 export { ContentImage } from './content-image/index.ts';
 export { CarPicker, TrackPicker } from './content-picker/index.ts';
 export type { ContentImageProps } from './content-image/index.ts';
@@ -25,6 +26,7 @@ export type { PathKind } from './paths-card/index.ts';
 export { ProvenanceBadges } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
 export { ScreenHeader } from './ScreenHeader.tsx';
+export { ScreenStrip } from './ScreenStrip.tsx';
 export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';
 export { ToggleButton } from './ToggleButton.tsx';

@@ -72,6 +72,7 @@
     "hiddenTracks_few": "{{count}} конфігурації траси",
     "hiddenTracks_many": "{{count}} конфігурацій траси",
     "hiddenTracks_other": "{{count}} конфігурації траси",
+    "hiddenManage": "Додати свої",
     "brokenTitle": "Пошкоджений контент",
     "brokenDetail": "Подробиці: {{detail}}",
     "kind": {
@@ -111,6 +112,7 @@
       "mod": "Мод"
     },
     "packTag": "DLC - {{pack}}",
+    "customTag": "Власний",
     "makerTag": {
       "guerilla": "GUERILLA",
       "rss": "RSS",
@@ -170,7 +172,18 @@
     "contentManager": "Content Manager",
     "contentManagerHint": "Прапорці, які Content Manager читає під час запуску. Вони лежать у його власному Arguments.txt, тож усе, що ви дописали туди вручну, лишається на місці.",
     "contentManagerRestart": "Content Manager прочитає їх під час наступного запуску.",
-    "contentManagerMissing": "У Content Manager ще немає Arguments.txt. Увімкнення будь-якого з цих пунктів створить його."
+    "contentManagerMissing": "У Content Manager ще немає Arguments.txt. Увімкнення будь-якого з цих пунктів створить його.",
+    "tabs": {
+      "general": "Загальні",
+      "content": "Ваш контент"
+    }
+  },
+  "yourContent": {
+    "subtitle": "Моди, яких не знає наш каталог. Увімкніть мод, щоб він з'явився в бібліотеках автомобілів і трас, у виборі на екрані гонки та в редакторі чемпіонатів.",
+    "kind": {
+      "cars": "Автомобілі",
+      "tracks": "Траси"
+    }
   },
   "theme": {
     "system": "Системна",

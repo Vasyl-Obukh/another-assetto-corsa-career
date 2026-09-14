@@ -5,7 +5,8 @@ import {
   isLocated, lengthRange, pitboxRange, trackImageSources,
 } from './utils.ts';
 import type { TrackGroup } from '../../../../shared/types';
-import { ContentImage, ProvenanceBadges } from '@/components';
+import { ContentImage, ProvenanceBadges, ToggleCard } from '@/components';
+import type { BrowserToggle } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
@@ -29,9 +30,16 @@ interface TrackCardProps {
    * The key of the layout that is the current answer, when one has been picked.
    */
   selectedKey?: string;
+  /**
+   * A switch on the card, for a browser deciding something about each circuit.
+   * Wins over `onSelect`: the card flips its switch rather than answering.
+   */
+  toggle?: BrowserToggle;
 }
 
-export const TrackCard = ({ group, onSelect, selectedKey }: TrackCardProps) => {
+export const TrackCard = ({
+  group, onSelect, selectedKey, toggle,
+}: TrackCardProps) => {
   const { t } = useTranslation();
   const { formatDistance } = useFormat();
 
@@ -54,13 +62,16 @@ export const TrackCard = ({ group, onSelect, selectedKey }: TrackCardProps) => {
   });
 
   const picked = group.layouts.some((layout) => layout.key === selectedKey);
+  const on = toggle?.isOn(group.id) ?? false;
 
   const card = (
     <Card className={cn(
       'h-full gap-0 overflow-hidden py-0',
       '[contain-intrinsic-size:auto_18rem] [content-visibility:auto]',
       onSelect && 'transition-[box-shadow,border-color] hover:border-primary hover:shadow-[0_0_20px_2px] hover:shadow-primary/55',
+      toggle && 'transition-[border-color] hover:border-primary',
       picked && 'border-primary shadow-[0_0_20px_2px] shadow-primary/55',
+      on && 'border-primary',
     )}
     >
       <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-muted">
@@ -87,7 +98,8 @@ export const TrackCard = ({ group, onSelect, selectedKey }: TrackCardProps) => {
         </div>
 
         <div className="flex flex-wrap gap-1">
-          <ProvenanceBadges provenance={group.provenance} />
+          {/* No Custom badge on a toggling card: its switch already says so. */}
+          <ProvenanceBadges provenance={group.provenance} trackId={toggle ? undefined : group.id} />
           {group.layouts.length > 1 ? (
             <Badge variant="secondary">
               {t('tracks.layouts', { count: group.layouts.length })}
@@ -105,6 +117,14 @@ export const TrackCard = ({ group, onSelect, selectedKey }: TrackCardProps) => {
       </div>
     </Card>
   );
+
+  if (toggle) {
+    return (
+      <ToggleCard checked={on} label={group.name} onChange={(next) => toggle.onToggle(group.id, next)}>
+        {card}
+      </ToggleCard>
+    );
+  }
 
   if (!onSelect) return card;
 

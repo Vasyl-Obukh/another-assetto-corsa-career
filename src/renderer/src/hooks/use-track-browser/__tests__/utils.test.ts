@@ -23,6 +23,18 @@ describe('renderer/hooks/use-track-browser/utils', () => {
       });
     });
 
+    it('narrows every query by the base query it was given', () => {
+      expect(toTrackQuery({ countries: ['Italy'] }, 'monza', { anonymous: true })).toEqual({
+        countries: ['Italy'], search: 'monza', anonymous: true,
+      });
+    });
+
+    // Applied last, so a filter the user picks can never widen a browser past
+    // the collection it was restricted to.
+    it('lets the base query win over the criteria', () => {
+      expect(toTrackQuery({ anonymous: false }, '', { anonymous: true })).toEqual({ anonymous: true });
+    });
+
     it('does not mutate the criteria it was given', () => {
       const criteria = { countries: ['Italy'] };
       toTrackQuery(criteria, 'monza');

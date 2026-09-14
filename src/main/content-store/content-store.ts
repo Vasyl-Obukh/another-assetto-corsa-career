@@ -13,10 +13,12 @@ import path from 'node:path';
 import {
   CACHE_FILE, CONTENT_CACHE_VERSION, WATCH_DEBOUNCE_MS, WRITE_DEBOUNCE_MS,
 } from './constants.ts';
-import type { ContentCache, ContentStore, RevalidateOptions } from './types.ts';
+import type {
+  ContentCache, ContentLibrary, ContentStore, RevalidateOptions,
+} from './types.ts';
 import {
-  appearedIn, cacheToScan, countsOf, libraryOf, readContentCache, reusedEverything,
-  sameCounts, summaryOf,
+  anonymousOf, appearedIn, cacheToScan, countsOf, libraryOf, readContentCache,
+  reusedEverything, sameCounts, summaryOf,
 } from './utils.ts';
 import { contentWatchDirs, rescanContent } from '../../core/content/index.ts';
 import type { ContentScan } from '../../core/content/index.ts';
@@ -25,7 +27,9 @@ import {
   carFacets, queryCars, queryTracks, trackFacets,
 } from '../../core/content-query/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
-import type { ContentChange, ContentSummary } from '../../shared/types/index.ts';
+import type {
+  AddedContent, CarQuery, Content, ContentChange, TrackQuery,
+} from '../../shared/types/index.ts';
 
 export type { ContentCache, ContentStore } from './types.ts';
 
@@ -52,7 +56,10 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
 
   let dir: string | null = null;
   let scan: ContentScan | null = null;
-  let summary: ContentSummary | null = null;
+  // Whether the last scan reused everything, rather than the summary itself:
+  // its hidden counts follow the user's list, which moves without a scan.
+  let cached: boolean | null = null;
+  let added: AddedContent = { cars: [], tracks: [] };
   let checked = false;
   let checkedAt = 0;
   let running: Promise<ContentScan> | null = null;
@@ -104,7 +111,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     running = rescanContent(target, from)
       .then((next) => {
         scan = next;
-        summary = summaryOf(next, reusedEverything(from, next));
+        cached = reusedEverything(from, next);
         checked = true;
         checkedAt = Date.now();
         scheduleWrite();
@@ -126,6 +133,17 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
 
     return run(scan);
   };
+
+  /**
+   * Which collection a query asks about: the library, or the anonymous mods the
+   * page that adds them browses.
+   * @param content The scanned content
+   * @param query The query, whose `anonymous` flag decides
+   * @returns The cars and track layouts to answer from
+   */
+  const collection = (content: Content, query?: CarQuery | TrackQuery): ContentLibrary => (
+    query?.anonymous === true ? anonymousOf(content) : libraryOf(content, added)
+  );
 
   const emit = (change: ContentChange): void => {
     for (const listener of listeners) listener(change);
@@ -150,7 +168,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     if (wasCached && sameCounts(counts.before, counts.after)) return null;
 
     const change: ContentChange = {
-      summary: summaryOf(next, wasCached),
+      summary: summaryOf(next, wasCached, added),
       added: appearedIn(previous, next.content),
       removed: appearedIn(next.content, previous),
     };
@@ -205,27 +223,31 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       // another one has to start over.
       const adopted = contentDir !== null && stored?.contentDir === contentDir ? stored : null;
       scan = adopted ? cacheToScan(adopted) : null;
-      summary = null;
+      cached = null;
 
       if (contentDir !== null) startWatching(contentDir);
+    },
+
+    include(next) {
+      added = next;
     },
 
     contentDir: () => dir,
 
     async summary(force = false) {
-      await current(force);
-      if (!summary) throw new AppError('ipc.pathsNotLocated');
+      const latest = await current(force);
+      if (cached === null) throw new AppError('ipc.pathsNotLocated');
 
-      return summary;
+      return summaryOf(latest, cached, added);
     },
 
     async cars(query) {
-      return queryCars(libraryOf((await current()).content).cars, query);
+      return queryCars(collection((await current()).content, query).cars, query);
     },
 
     async car(id) {
       // A lookup by primary key, so there is nothing for content-query to do.
-      return libraryOf((await current()).content).cars.find((entry) => entry.id === id) ?? null;
+      return libraryOf((await current()).content, added).cars.find((entry) => entry.id === id) ?? null;
     },
 
     async content() {
@@ -233,20 +255,20 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async tracks(query) {
-      return queryTracks(libraryOf((await current()).content).tracks, query);
+      return queryTracks(collection((await current()).content, query).tracks, query);
     },
 
     async track(key) {
       // A lookup by primary key, like car() above.
-      return libraryOf((await current()).content).tracks.find((entry) => entry.key === key) ?? null;
+      return libraryOf((await current()).content, added).tracks.find((entry) => entry.key === key) ?? null;
     },
 
     async carFacets(query) {
-      return carFacets(libraryOf((await current()).content).cars, query);
+      return carFacets(collection((await current()).content, query).cars, query);
     },
 
     async trackFacets(query) {
-      return trackFacets(libraryOf((await current()).content).tracks, query);
+      return trackFacets(collection((await current()).content, query).tracks, query);
     },
 
     async issues() {

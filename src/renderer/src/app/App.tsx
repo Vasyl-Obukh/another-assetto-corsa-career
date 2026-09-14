@@ -12,9 +12,10 @@ import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Race } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
-import { Settings } from '@/screens/settings';
+import { Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
 import { TrackBrowser } from '@/screens/track-browser';
+import { YourContent } from '@/screens/your-content';
 
 interface AppProps {
   /**
@@ -48,7 +49,10 @@ export const App = ({ initialReport }: AppProps) => {
               path={ROUTE.diagnostics}
               element={<Diagnostics initialReport={initialReport} />}
             />
-            <Route path={ROUTE.settings} element={<Settings />} />
+            <Route path={ROUTE.settings} element={<SettingsLayout />}>
+              <Route index element={<Settings />} />
+              <Route path={ROUTE.settingsContent} element={<YourContent />} />
+            </Route>
             <Route path="*" element={<Navigate to={path.race()} replace />} />
           </Routes>
         </main>

@@ -1,18 +1,47 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  makeCache, makeContent, makeScan, makeWeather,
+  makeCache, makeContent, makeScan, makeTrack, makeWeather,
 } from './fixtures.ts';
+import type { AddedContent, Content } from '../../../shared/types/index.ts';
+import { ModDistributor } from '../../../shared/types/index.ts';
 import { CONTENT_CACHE_VERSION } from '../constants.ts';
 import {
+  anonymousOf,
   appearedIn,
   cacheToScan,
   countsOf,
+  hiddenIn,
+  libraryOf,
   readContentCache,
   reusedEverything,
   sameCounts,
   summaryOf,
 } from '../utils.ts';
+
+/**
+ * Nothing added by the user.
+ */
+const NONE: AddedContent = { cars: [], tracks: [] };
+
+/**
+ * A circuit in a folder nobody claims, with one layout LFM redistributes - the
+ * shape that makes the library judge tracks per layout.
+ * @returns Content holding that circuit's two layouts
+ */
+const circuitWithOneLfmLayout = (): Content => {
+  const content = makeContent([], ['portimao']);
+  const lfm = makeTrack('portimao');
+
+  content.tracks.push({
+    ...lfm,
+    layout: 'lfm',
+    key: 'portimao/lfm',
+    provenance: { ...lfm.provenance, distributor: ModDistributor.LFM },
+  });
+
+  return content;
+};
 
 describe('main/content-store/utils', () => {
   describe('readContentCache', () => {
@@ -96,6 +125,74 @@ describe('main/content-store/utils', () => {
     });
   });
 
+  describe('libraryOf', () => {
+    it('offers catalogued content and leaves anonymous mods out', () => {
+      const library = libraryOf(makeContent(['bmw_m3_e30', 'my_mod'], ['spa', 'my_track']), NONE);
+
+      expect(library.cars.map((car) => car.id)).toEqual(['bmw_m3_e30']);
+      expect(library.tracks.map((track) => track.id)).toEqual(['spa']);
+    });
+
+    it('offers an anonymous mod once the user has added it', () => {
+      const library = libraryOf(
+        makeContent(['bmw_m3_e30', 'my_mod'], ['spa', 'my_track']),
+        { cars: ['my_mod'], tracks: ['my_track'] },
+      );
+
+      expect(library.cars.map((car) => car.id)).toEqual(['bmw_m3_e30', 'my_mod']);
+      expect(library.tracks.map((track) => track.id)).toEqual(['spa', 'my_track']);
+    });
+
+    // Recognition is per layout, but the user's list names the circuit: a
+    // folder nobody claims holding one LFM layout comes back whole.
+    it('brings every layout of a circuit the user added', () => {
+      const content = circuitWithOneLfmLayout();
+
+      expect(libraryOf(content, NONE).tracks.map((track) => track.key)).toEqual(['portimao/lfm']);
+      expect(libraryOf(content, { cars: [], tracks: ['portimao'] }).tracks.map((track) => track.key))
+        .toEqual(['portimao', 'portimao/lfm']);
+    });
+
+    // Settings are replaced wholesale on every change, so a new list is a new
+    // object - and a memo keyed on the scan alone would serve the old library.
+    it('answers again when handed a different list for the same scan', () => {
+      const content = makeContent(['my_mod']);
+
+      expect(libraryOf(content, NONE).cars).toHaveLength(0);
+      expect(libraryOf(content, { cars: ['my_mod'], tracks: [] }).cars).toHaveLength(1);
+    });
+
+    it('reuses its answer for the same scan and the same list', () => {
+      const content = makeContent(['bmw_m3_e30']);
+
+      expect(libraryOf(content, NONE)).toBe(libraryOf(content, NONE));
+    });
+  });
+
+  describe('anonymousOf', () => {
+    it('keeps only what the catalogue does not name', () => {
+      const anonymous = anonymousOf(makeContent(['bmw_m3_e30', 'my_mod'], ['spa', 'my_track']));
+
+      expect(anonymous.cars.map((car) => car.id)).toEqual(['my_mod']);
+      expect(anonymous.tracks.map((track) => track.id)).toEqual(['my_track']);
+    });
+
+    it('judges a circuit per layout, leaving out the ones LFM redistributes', () => {
+      expect(anonymousOf(circuitWithOneLfmLayout()).tracks.map((track) => track.key))
+        .toEqual(['portimao']);
+    });
+  });
+
+  describe('hiddenIn', () => {
+    it('counts the anonymous mods the user has not added', () => {
+      const content = makeContent(['bmw_m3_e30', 'mod_a', 'mod_b'], ['spa', 'my_track']);
+
+      expect(hiddenIn(content, NONE)).toEqual({ cars: 2, tracks: 1 });
+      expect(hiddenIn(content, { cars: ['mod_a'], tracks: ['my_track'] }))
+        .toEqual({ cars: 1, tracks: 0 });
+    });
+  });
+
   describe('summaryOf', () => {
     it('describes a scan for the renderer', () => {
       const content = makeContent(['a'], ['spa']);
@@ -103,7 +200,7 @@ describe('main/content-store/utils', () => {
         kind: 'car', id: 'a', reason: 'noSkins', detail: null,
       }];
 
-      expect(summaryOf(makeScan(content), true)).toEqual({
+      expect(summaryOf(makeScan(content), true, NONE)).toEqual({
         cars: 1,
         tracks: 1,
         weather: 0,
@@ -115,6 +212,12 @@ describe('main/content-store/utils', () => {
         durationMs: 12,
         cached: true,
       });
+    });
+
+    it('stops counting a mod as hidden once the user has added it', () => {
+      const scan = makeScan(makeContent(['a'], ['spa']));
+
+      expect(summaryOf(scan, true, { cars: ['a'], tracks: [] }).hidden).toEqual({ cars: 0, tracks: 0 });
     });
   });
 

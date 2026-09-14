@@ -4,7 +4,10 @@ import { Link } from 'react-router';
 
 import { carImageSources, roundRatio } from './utils.ts';
 import type { Car } from '../../../../shared/types';
-import { ContentImage, ProvenanceBadges, SpecBadge } from '@/components';
+import {
+  ContentImage, ProvenanceBadges, SpecBadge, ToggleCard,
+} from '@/components';
+import type { BrowserToggle } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
@@ -29,13 +32,21 @@ interface CarCardProps {
    * Whether this card is the current answer, when it is being picked from.
    */
   selected?: boolean;
+  /**
+   * A switch on the card, for a browser deciding something about each car.
+   * Wins over `onSelect`: the card flips its switch rather than answering.
+   */
+  toggle?: BrowserToggle;
 }
 
-export const CarCard = ({ car, onSelect, selected = false }: CarCardProps) => {
+export const CarCard = ({
+  car, onSelect, selected = false, toggle,
+}: CarCardProps) => {
   const { t } = useTranslation();
   const { formatNumber, formatYear } = useFormat();
 
   const { performance } = car;
+  const on = toggle?.isOn(car.id) ?? false;
 
   // A parsed number where there is one, the author's own words where there is
   // not, and nothing at all otherwise - the row wraps, so a gap is invisible.
@@ -55,6 +66,7 @@ export const CarCard = ({ car, onSelect, selected = false }: CarCardProps) => {
       'hover:shadow-[0_0_20px_2px] hover:shadow-primary/55',
       '[contain-intrinsic-size:auto_18rem] [content-visibility:auto]',
       selected && 'border-primary shadow-[0_0_20px_2px] shadow-primary/55',
+      on && 'border-primary',
     )}
     >
       <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-muted">
@@ -79,7 +91,8 @@ export const CarCard = ({ car, onSelect, selected = false }: CarCardProps) => {
         </div>
 
         <div className="flex flex-wrap gap-1">
-          <ProvenanceBadges provenance={car.provenance} />
+          {/* No Custom badge on a toggling card: its switch already says so. */}
+          <ProvenanceBadges provenance={car.provenance} carId={toggle ? undefined : car.id} />
           {car.year !== null ? (
             <Badge variant="outline">{formatYear(car.year)}</Badge>
           ) : null}
@@ -101,6 +114,14 @@ export const CarCard = ({ car, onSelect, selected = false }: CarCardProps) => {
 
   const wrapper = 'block w-full rounded-xl text-left focus-visible:ring-[3px] '
     + 'focus-visible:ring-ring/50 focus-visible:outline-none';
+
+  if (toggle) {
+    return (
+      <ToggleCard checked={on} label={car.name} onChange={(next) => toggle.onToggle(car.id, next)}>
+        {card}
+      </ToggleCard>
+    );
+  }
 
   if (onSelect) {
     return (

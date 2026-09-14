@@ -29,6 +29,10 @@ export {
   MOD_TRACKS,
 } from './constants.ts';
 
+// Lives in shared so the renderer can badge what the user added, but it is this
+// catalogue's question, so it is answered from here too.
+export { isCatalogued } from '../../shared/utils/library/index.ts';
+
 // Membership is asked once per entry on every cold scan, so the base lists are
 // read as sets rather than searched as arrays.
 const BASE_CAR_IDS = new Set(BASE_CARS);
@@ -60,26 +64,6 @@ export const carProvenance = (id: string): ContentProvenance => {
     distributor: DISTRIBUTOR_CARS[id] ?? null,
   };
 };
-
-/**
- * Whether the catalogue names this piece of content at all.
- *
- * Base and DLC pass on the source alone, a named mod on its maker, and an
- * LFM-redistributed car or layout on its distributor. Anything in none of the
- * six records is the anonymous mod the catalogue already declines to attribute,
- * and that is what the library leaves out - it carries no class, no spec and no
- * championship that can reach it, so offering it is offering a folder name.
- *
- * The single seam a user layer widens: adding your own content makes this
- * "catalogued, or one the user named", and nothing above it has to change.
- * @param provenance What carProvenance or trackProvenance resolved
- * @returns True when some record names it
- */
-export const isCatalogued = (provenance: ContentProvenance): boolean => (
-  provenance.source !== ContentSource.MOD
-  || provenance.maker !== null
-  || provenance.distributor !== null
-);
 
 /**
  * Where a track layout came from.

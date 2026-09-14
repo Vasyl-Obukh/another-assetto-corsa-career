@@ -193,6 +193,60 @@ describe('main/content-store', () => {
     });
   });
 
+  describe('include', () => {
+    it('puts the mods the user added into the library', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'my_mod'], ['my_track'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.include({ cars: ['my_mod'], tracks: ['my_track'] });
+
+      await expect(store.cars({})).resolves.toMatchObject({ total: 2 });
+      await expect(store.car('my_mod')).resolves.toMatchObject({ id: 'my_mod' });
+      await expect(store.track('my_track')).resolves.toMatchObject({ id: 'my_track' });
+    });
+
+    // The list lives in settings and moves without the install moving, so
+    // taking a mod back out must not wait for a rescan to take effect.
+    it('follows a changed list without scanning again', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.include({ cars: ['my_mod'], tracks: [] });
+      await expect(store.cars({})).resolves.toMatchObject({ total: 1 });
+
+      store.include({ cars: [], tracks: [] });
+      await expect(store.cars({})).resolves.toMatchObject({ total: 0 });
+      expect(rescanMock).toHaveBeenCalledTimes(1);
+    });
+
+    // A summary held from the scan it came from would keep counting an added mod
+    // as hidden until the next rescan.
+    it('moves the hidden counts the summary reports', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'], ['my_track'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      expect((await store.summary()).hidden).toEqual({ cars: 1, tracks: 1 });
+
+      store.include({ cars: ['my_mod'], tracks: [] });
+      expect((await store.summary()).hidden).toEqual({ cars: 0, tracks: 1 });
+    });
+
+    it('tells no listener, since nothing was installed or removed', async () => {
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      await store.summary();
+
+      const listener = jest.fn();
+      store.onChange(listener);
+      store.include({ cars: ['car_a'], tracks: [] });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
   describe('summary', () => {
     it('scans on the first question and not again afterwards', async () => {
       const store = await createContentStore('D:\\userData');
@@ -304,6 +358,46 @@ describe('main/content-store', () => {
       store.use(DIR);
 
       await expect(store.car('abarth500')).resolves.toMatchObject({ id: 'abarth500' });
+    });
+
+    it('leaves anonymous mods out of every library query', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'my_mod'], ['spa', 'my_track'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.cars({})).resolves.toMatchObject({ total: 1 });
+      await expect(store.tracks({})).resolves.toMatchObject({ total: 1 });
+      await expect(store.car('my_mod')).resolves.toBeNull();
+      await expect(store.track('my_track')).resolves.toBeNull();
+    });
+
+    it('answers over only the anonymous mods when asked for them', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'my_mod'], ['spa', 'my_track'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      const cars = await store.cars({ anonymous: true });
+      expect(cars.items.map((car) => car.id)).toEqual(['my_mod']);
+      await expect(store.tracks({ anonymous: true })).resolves.toMatchObject({
+        items: [{ id: 'my_track' }],
+      });
+      await expect(store.carFacets({ anonymous: true })).resolves.toMatchObject({
+        sources: [{ value: 'mod', count: 1 }],
+      });
+    });
+
+    // The page that adds them browses this collection, so a mod switched on has
+    // to stay on it to be switched off again.
+    it('keeps an added mod among the anonymous ones', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.include({ cars: ['my_mod'], tracks: [] });
+
+      await expect(store.cars({ anonymous: true })).resolves.toMatchObject({ total: 1 });
     });
 
     // A car uninstalled while its page is open is an ordinary outcome, not a

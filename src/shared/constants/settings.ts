@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   language: 'en',
   weatherSystem: 'none',
   drivingAids: {},
+  addedContent: { cars: [], tracks: [] },
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

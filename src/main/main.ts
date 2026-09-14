@@ -31,6 +31,7 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(async () => {
     const settings = await createSettingsStore(app.getPath('userData'));
     const content = await createContentStore(app.getPath('userData'));
+    content.include(settings.get().addedContent);
     const race = await createRaceStore(app.getPath('userData'), content, settings);
     const series = await createSeriesStore(app.getPath('userData'), content, race);
     applyThemeChoice(settings.get().theme);
@@ -53,6 +54,7 @@ if (!app.requestSingleInstanceLock()) {
 
     settings.onChange((next) => {
       applyThemeChoice(next.theme);
+      content.include(next.addedContent);
       if (mainWindow) send(mainWindow, 'settings:changed', next);
     });
 

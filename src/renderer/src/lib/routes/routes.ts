@@ -96,10 +96,16 @@ export const path = {
    */
   result: (params: RouteParams<typeof ROUTE.result>): string => buildPath(ROUTE.result, params),
   /**
-   * The settings screen.
+   * The settings screen, on its General tab.
    * @returns Its URL
    */
   settings: (): string => ROUTE.settings,
+  /**
+   * The settings screen's Your content tab, which adds anonymous mods to the
+   * library.
+   * @returns Its URL
+   */
+  settingsContent: (): string => ROUTE.settingsContent,
   /**
    * The car browser.
    * @returns Its URL

@@ -15,7 +15,7 @@ import {
   WEATHER_SYSTEMS,
 } from '../../constants/index.ts';
 import type {
-  DrivingAids, PathOverrides, Settings, WindowState,
+  AddedContent, DrivingAids, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
 import { isRecord } from '../coerce/index.ts';
 
@@ -67,6 +67,29 @@ export const readPaths = (raw: unknown): PathOverrides => {
     ...(acRoot ? { acRoot } : {}),
     ...(documents ? { documents } : {}),
   };
+};
+
+/**
+ * Reads a list of folder IDs, dropping anything that is not a usable one.
+ * @param raw The value read from disk
+ * @returns The IDs, each once, sorted so the file diffs cleanly
+ */
+const readIds = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) return [];
+
+  const ids = raw.map(cleanString).filter((id): id is string => id !== undefined);
+  return [...new Set(ids)].sort();
+};
+
+/**
+ * Reads the content the user added to the library themselves.
+ * @param raw The value read from disk
+ * @returns Both lists, empty where nothing usable was there
+ */
+export const readAddedContent = (raw: unknown): AddedContent => {
+  if (!isRecord(raw)) return { cars: [], tracks: [] };
+
+  return { cars: readIds(raw.cars), tracks: readIds(raw.tracks) };
 };
 
 /**
@@ -154,6 +177,7 @@ export const readSettings = (raw: unknown): Settings => {
     // decide" rather than racing under a blank name.
     ...(driverName ? { driverName } : {}),
     drivingAids: readDrivingAids(raw.drivingAids),
+    addedContent: readAddedContent(raw.addedContent),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

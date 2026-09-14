@@ -78,7 +78,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Base-only career                | **Guaranteed.** A complete ladder is always playable on vanilla content alone. DLC and mods extend the ladder; they never fill holes in it.                                                                                               |
 | Editing a shipped championship  | **Forking copies.** The fork diverges from that moment, and a later update to the original does not flow into it.                                                                                                                         |
 | Missing content                 | **Report, block, offer to fix.** A championship missing anything is listed with what it needs, named down to the pack or the mod, and cannot be entered until it is forked or the content installed.                                      |
-| What the library shows          | **The content the catalogue names, and nothing else until the user says so.** A car or track layout in no provenance record is an anonymous mod - no class, no spec, no price, no championship that can reach it - so the browsers and pickers leave it out, and a settings page will let the user add their own back. |
+| What the library shows          | **The content the catalogue names, and nothing else until the user says so.** A car or track layout in no provenance record is an anonymous mod - no class, no spec, no price, no championship that can reach it - so the browsers and pickers leave it out, and a settings page lets the user add their own back. |
 | Content source toggles          | **They govern which championships are offered, nothing else.**                                                                                                                                                                           |
 
 ---
@@ -273,11 +273,10 @@ no provenance to badge, no class or spec to filter by, no price when Phase 7
 lands, and no championship that can reach it. Six hundred cars of which a third
 are folder names is not a library, and a career should open on a curated one.
 
-**The user adds their own back**, one at a time, in settings - the same
-base-layer-over-user-layer shape the class and spec catalogue takes. Until that
-page exists the catalogue is the whole of it, which is why the diagnostics card
-says how much is being left out rather than letting a third of an install
-disappear quietly.
+**The user adds their own back**, one at a time, in settings - the
+same base-layer-over-user-layer shape the class and spec catalogue takes. The
+diagnostics card still says how much is being left out, rather than letting a
+third of an install disappear quietly, and links to that page.
 
 ### Disciplines and tiers
 
@@ -1354,9 +1353,9 @@ data layer before the browsers.
 **And the editor is now built**, in three stages: the document's own details,
 rules and AI field; then teams, classes, seats, liveries, balance of performance
 and the calendar; then weekend formats with their session lists, points systems
-and prize tables. What is still open in this phase is the class and spec
-management UI, generated weather, and making Customise open the editor rather
-than only writing a copy.
+and prize tables. **Anonymous mods can now be let back into the library** from
+settings, which is the precondition for classifying them. What is still open in
+this phase is the class and spec management UI and generated weather.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1532,7 +1531,7 @@ than only writing a copy.
       that car** - you cannot reach a GT3 spec from a car you have put in GT4 and
       Track Special. Within one class only a single spec may be picked, since two
       would claim the car is two eras of that category at once
-- [ ] **Add your own content to the library**, in settings. The browsers and
+- [x] **Add your own content to the library**, in settings. The browsers and
       pickers show what the provenance catalogue names; anything in no record is
       an anonymous mod and is left out, so this page is the way back in. It lists
       exactly those entries - the same browser shell with a toggle per card
@@ -1543,9 +1542,39 @@ than only writing a copy.
       predicate becomes "catalogued, or one the user named", and the six store
       methods behind it do not change. Adding a track adds every layout of it,
       since recognition is per layout and a part-catalogued circuit is what LFM's
-      layouts inside a folder nobody claims produce. Wants a bulk "add
-      everything matching" too, which has to page rather than trusting one query
-      to return the lot
+      layouts inside a folder nobody claims produce.
+      **Landed as the Your content tab of Settings** - `/settings/content`,
+      beside General - and linked from the diagnostics card's hidden count.
+      **A bulk "add everything matching" was built and taken back out**: one card
+      at a time is the intended way in, since what goes into the library is a
+      choice made per mod. **Only an anonymous circuit is ever added here, never
+      a layout on its own**: source, pack and maker are keyed by the circuit's
+      folder, so a mod that drops an extra layout into a circuit the catalogue
+      names is already in the library under that circuit's provenance - nothing
+      hides it, which also means nothing badges it as a mod. Four things worth
+      knowing. **`isCatalogued` moved to `src/shared/utils/library/`**, beside
+      `isInLibrary` and `isUserAdded`, because the renderer needs the same answer
+      to badge what the user added - `content-catalogue` re-exports it, so
+      nothing that asked it before had to change. **The page browses a second
+      collection rather than a filter**: `anonymous: true` on `CarQuery` or
+      `TrackQuery` makes the content store answer over every uncatalogued entry,
+      added or not, so a switch turned on stays on the page to be turned off
+      again; content-query never sees the flag. **The store is told the list
+      rather than reading settings**: `ContentStore.include()` is called at
+      startup and on every settings change, and deliberately pushes nothing,
+      since the screens that browse the library are not the one editing it. And
+      **an added mod says so everywhere**: `ProvenanceBadges` takes the entry's
+      folder ID and swaps the Mod chip for Custom, in the custom-origin hue that
+      already means "yours" on a championship - everywhere but the tab itself,
+      where the switch already says it. Driven end to end: switching two cars on
+      put them in the Cars library wearing the chip, and adding circuits took
+      the diagnostics hidden count down by their layouts.
+      **It found a race in settings while being driven**: main pushes
+      `settings:changed` on every patch as well as answering it, so two switches
+      flipped in quick succession could have the first answer put the second
+      back, and a third built on top of that lose it for good. The provider now
+      ignores what main says while a patch of its own is in flight, and adopts
+      the answer to the last one
 - [x] Prize money tables (per finishing position, per final standing) - the
       schema and the shipped figures were already there; what was missing is
       that nothing checked or showed them. `parseSeries` reads both tables as
@@ -1617,7 +1646,11 @@ than only writing a copy.
       installed dropped the SKIN key rather than writing one AC could not
       resolve. The empty-`ids` trap is guarded by disabling the button: a class
       that names no cars would otherwise open a picker onto the whole library
-- [ ] **Customise should open the editor, not just write a copy.** Today it
+- [x] **Customise should open the editor, not just write a copy.** Found already
+      done when Phase 4 was next picked up: the menu's Edit item on a shipped
+      championship confirms, takes the copy through `series:customise` and
+      navigates to `/championships/:id/edit`, so the item had simply never been
+      ticked. What it said at the time follows. Today it
       writes the shipped championship into the user's folder and lands them on
       the championship page, which is half an answer: taking a copy is the
       *precondition* for editing one, not a thing anyone wants on its own, and

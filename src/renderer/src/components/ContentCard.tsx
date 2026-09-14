@@ -1,5 +1,6 @@
 import { RefreshCwIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 
 import { ContentIssues } from './content-issues/index.ts';
 import type { ContentIssue, ContentSummary } from '../../../shared/types';
@@ -35,6 +36,11 @@ interface ContentCardProps {
    * Fetches the broken content behind the count.
    */
   onOpenIssues(): void;
+  /**
+   * Where the user adds what the catalogue leaves out, for a screen from which
+   * that page can be reached - first-run setup cannot.
+   */
+  addContentHref?: string;
 }
 
 export const ContentCard = ({
@@ -44,6 +50,7 @@ export const ContentCard = ({
   scanning,
   onScan,
   onOpenIssues,
+  addContentHref,
 }: ContentCardProps) => {
   const { t } = useTranslation();
   const { formatDateTime, formatDuration } = useFormat();
@@ -81,6 +88,14 @@ export const ContentCard = ({
                   cars: t('content.hiddenCars', { count: summary.hidden.cars }),
                   tracks: t('content.hiddenTracks', { count: summary.hidden.tracks }),
                 })}
+                {addContentHref === undefined ? null : (
+                  <>
+                    {' '}
+                    <Link to={addContentHref} className="text-primary underline-offset-4 hover:underline">
+                      {t('content.hiddenManage')}
+                    </Link>
+                  </>
+                )}
               </p>
             ) : null}
 

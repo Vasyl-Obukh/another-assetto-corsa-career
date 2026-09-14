@@ -193,6 +193,15 @@ export const SOURCE_TAG_CLASS = {
 } as const satisfies Record<ContentSource, string>;
 
 /**
+ * The colour of the Custom badge an anonymous mod wears once the user has added
+ * it to the library.
+ *
+ * Takes the place of the Mod badge rather than joining it, and borrows the hue
+ * that already says "yours" on a championship, since it means the same thing.
+ */
+export const CUSTOM_TAG_CLASS = 'border-transparent bg-origin-custom text-origin-custom-foreground';
+
+/**
  * The colour a redistributor's badge takes - its own hue again, because who
  * shipped it to you is a different question from who made it.
  */

@@ -58,6 +58,7 @@
     "hiddenCars_other": "{{count}} cars",
     "hiddenTracks_one": "{{count}} track layout",
     "hiddenTracks_other": "{{count}} track layouts",
+    "hiddenManage": "Add your own",
     "brokenTitle": "Broken content",
     "brokenDetail": "Details: {{detail}}",
     "kind": {
@@ -97,6 +98,7 @@
       "mod": "Mod"
     },
     "packTag": "DLC - {{pack}}",
+    "customTag": "Custom",
     "makerTag": {
       "guerilla": "GUERILLA",
       "rss": "RSS",
@@ -156,7 +158,18 @@
     "contentManager": "Content Manager",
     "contentManagerHint": "Flags Content Manager reads when it starts. They live in its own Arguments.txt, so anything you put there by hand stays where it is.",
     "contentManagerRestart": "Content Manager reads these the next time it starts.",
-    "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it."
+    "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it.",
+    "tabs": {
+      "general": "General",
+      "content": "Your content"
+    }
+  },
+  "yourContent": {
+    "subtitle": "Mods our catalogue does not know. Switch one on to put it in the car and track libraries, the race screen's pickers and the championship editor.",
+    "kind": {
+      "cars": "Cars",
+      "tracks": "Tracks"
+    }
   },
   "theme": {
     "system": "System",

@@ -26,6 +26,7 @@ export const ROUTE = {
   tracks: '/tracks',
   diagnostics: '/diagnostics',
   settings: '/settings',
+  settingsContent: '/settings/content',
 } as const;
 
 /**

@@ -7,6 +7,7 @@ import {
   finiteNumber,
   oneOf,
   optionalBoolean,
+  readAddedContent,
   readDrivingAids,
   readPaths,
   readSettings,
@@ -67,6 +68,32 @@ describe('shared/utils/settings', () => {
     it('returns empty for anything that is not an object', () => {
       expect(readPaths(undefined)).toEqual({});
       expect(readPaths('nonsense')).toEqual({});
+    });
+  });
+
+  describe('readAddedContent', () => {
+    it('reads both lists through', () => {
+      expect(readAddedContent({ cars: ['a_car'], tracks: ['a_track'] })).toEqual({
+        cars: ['a_car'], tracks: ['a_track'],
+      });
+    });
+
+    it('trims each ID and drops anything that is not a usable one', () => {
+      expect(readAddedContent({ cars: [' a_car ', '', 42, null], tracks: 'a_track' })).toEqual({
+        cars: ['a_car'], tracks: [],
+      });
+    });
+
+    // A hand-edited file that lists a mod twice must not add it twice.
+    it('keeps each ID once, sorted so the file diffs cleanly', () => {
+      expect(readAddedContent({ cars: ['zeta', 'alpha', 'zeta'], tracks: [] })).toEqual({
+        cars: ['alpha', 'zeta'], tracks: [],
+      });
+    });
+
+    it('returns both lists empty for anything that is not an object', () => {
+      expect(readAddedContent(undefined)).toEqual({ cars: [], tracks: [] });
+      expect(readAddedContent(['a_car'])).toEqual({ cars: [], tracks: [] });
     });
   });
 
@@ -179,6 +206,7 @@ describe('shared/utils/settings', () => {
         language: 'uk',
         weatherSystem: 'pure',
         drivingAids: { abs: 2, idealLine: true },
+        addedContent: { cars: ['my_car'], tracks: ['my_track'] },
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,

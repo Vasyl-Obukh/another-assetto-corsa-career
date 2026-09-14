@@ -2,14 +2,24 @@ import type { TrackCriteria } from './types.ts';
 import type { TrackQuery } from '../../../../shared/types';
 
 /**
- * Folds the criteria and the settled search text into one query.
+ * Folds the criteria, the settled search text and any base query into one.
+ *
+ * The base query is applied last, as the car browser's is, so a filter the user
+ * picks cannot widen past it.
  * @param criteria The filters and sort currently applied
  * @param search The search text, once it has stopped changing
+ * @param base A query every request is narrowed by, or undefined
  * @returns The query to send, with empty search omitted rather than sent blank
  */
-export const toTrackQuery = (criteria: TrackCriteria, search: string): TrackQuery => (
-  search.trim() === '' ? criteria : { ...criteria, search: search.trim() }
-);
+export const toTrackQuery = (
+  criteria: TrackCriteria,
+  search: string,
+  base?: TrackQuery,
+): TrackQuery => ({
+  ...criteria,
+  ...(search.trim() === '' ? {} : { search: search.trim() }),
+  ...base,
+});
 
 /**
  * A stable identity for a query, so that changing it starts the list over.

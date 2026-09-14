@@ -1,5 +1,6 @@
 import type { ContentFingerprints } from '../../core/content/index.ts';
 import type {
+  AddedContent,
   Car,
   CarFacets,
   CarQuery,
@@ -53,7 +54,8 @@ export interface ContentCache {
 }
 
 /**
- * The scan narrowed to what the provenance catalogue names.
+ * The scan narrowed to one collection of cars and track layouts - the library,
+ * or the anonymous mods left out of it.
  *
  * What every browser, picker and facet count is answered from. Weather and
  * controllers are absent because nothing catalogues them: a preset is picked by
@@ -61,11 +63,11 @@ export interface ContentCache {
  */
 export interface ContentLibrary {
   /**
-   * Catalogued cars, in scan order.
+   * The cars in this collection, in scan order.
    */
   cars: Car[];
   /**
-   * Catalogued track layouts, in scan order.
+   * The track layouts in this collection, in scan order.
    */
   tracks: Track[];
 }
@@ -98,6 +100,15 @@ export interface ContentStore {
    * @param contentDir The AC content directory, or null when it is not located
    */
   use(contentDir: string | null): void;
+  /**
+   * Hands the store the content the user added to the library themselves.
+   *
+   * Called with whatever settings hold, at startup and on every change. Says
+   * nothing to listeners: the screens that browse the library are not the one
+   * that edits this list, and they read it fresh the next time they open.
+   * @param added The folder IDs the user added
+   */
+  include(added: AddedContent): void;
   /**
    * The install the store is pointed at.
    * @returns The AC content directory, or null when it is not located

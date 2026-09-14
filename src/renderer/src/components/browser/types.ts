@@ -15,6 +15,25 @@ export interface SortItem<K extends string> {
 }
 
 /**
+ * A switch on every card, for a browser that decides something about each entry
+ * rather than opening or picking one.
+ */
+export interface BrowserToggle {
+  /**
+   * Whether an entry's switch is on.
+   * @param id The entry's folder ID
+   * @returns True when it is on
+   */
+  isOn(id: string): boolean;
+  /**
+   * Flips an entry's switch.
+   * @param id The entry's folder ID
+   * @param on Whether it should now be on
+   */
+  onToggle(id: string, on: boolean): void;
+}
+
+/**
  * A numeric range filter's current value. Either end may be unset.
  */
 export interface RangeValue {

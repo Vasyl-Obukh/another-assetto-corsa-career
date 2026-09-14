@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { TRACK_SORTS } from './constants.ts';
 import { TrackCard } from './TrackCard.tsx';
 import { TrackFilters } from './TrackFilters.tsx';
-import type { TrackGroup } from '../../../../shared/types';
+import type { TrackGroup, TrackQuery } from '../../../../shared/types';
 import { BrowserGrid, BrowserToolbar, ScreenBody, SortSelect } from '@/components';
+import type { BrowserToggle } from '@/components';
 import { useInfiniteScroll, useTrackBrowser } from '@/hooks';
 
 interface TrackBrowserBodyProps {
@@ -18,18 +19,27 @@ interface TrackBrowserBodyProps {
    */
   selectedKey?: string;
   /**
+   * A query every request is narrowed by, before the user filters anything.
+   */
+  baseQuery?: TrackQuery;
+  /**
    * Which browser this is, for one that comes back to the filters it was left
    * with. Omitted, it opens unfiltered every time - which is what a picker
    * wants, since its library is already restricted to one question.
    */
   memoryId?: string;
+  /**
+   * A switch on every card, for a browser deciding something about each
+   * circuit rather than opening or picking one.
+   */
+  toggle?: BrowserToggle;
 }
 
 export const TrackBrowserBody = ({
-  onSelect, selectedKey, memoryId,
+  onSelect, selectedKey, baseQuery, memoryId, toggle,
 }: TrackBrowserBodyProps) => {
   const { t } = useTranslation();
-  const browser = useTrackBrowser(memoryId);
+  const browser = useTrackBrowser(baseQuery, memoryId);
   const { list, criteria } = browser;
 
   const { scrollRef, sentinelRef } = useInfiniteScroll(
@@ -76,6 +86,7 @@ export const TrackBrowserBody = ({
             group={group}
             onSelect={onSelect}
             selectedKey={selectedKey}
+            toggle={toggle}
           />
         ))}
       </BrowserGrid>

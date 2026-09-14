@@ -80,7 +80,7 @@ export const CarField = ({
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  <ProvenanceBadges provenance={car.provenance} />
+                  <ProvenanceBadges provenance={car.provenance} carId={car.id} />
                 </div>
               </>
             ) : (

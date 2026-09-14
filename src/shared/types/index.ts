@@ -142,6 +142,7 @@ export type {
 } from './series.ts';
 
 export type {
+  AddedContent,
   DrivingAidFlag,
   DrivingAidNumber,
   DrivingAids,

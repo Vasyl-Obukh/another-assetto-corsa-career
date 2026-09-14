@@ -86,6 +86,26 @@ export type DrivingAidFlag = Extract<
 export type DrivingAidNumber = Exclude<keyof DrivingAids, DrivingAidFlag>;
 
 /**
+ * Content the user put into the library themselves, by folder ID.
+ *
+ * Only ever consulted for what the provenance catalogue does not name, so a row
+ * the catalogue later gains is harmless rather than a conflict. Resolved over the
+ * catalogue at runtime rather than baked into the content cache, so adding one
+ * never means a rescan.
+ */
+export interface AddedContent {
+  /**
+   * Folder names under content/cars.
+   */
+  cars: string[];
+  /**
+   * Folder names under content/tracks. A circuit rather than a layout, so adding
+   * one brings every layout of it along.
+   */
+  tracks: string[];
+}
+
+/**
  * Everything persisted between runs.
  */
 export interface Settings {
@@ -127,6 +147,13 @@ export interface Settings {
    * names one of these keeps it, which is what lets a spike pin them all.
    */
   drivingAids: DrivingAids;
+  /**
+   * Anonymous mods the user has let into the library.
+   *
+   * The browsers and pickers show what the provenance catalogue names; this is
+   * the way back in for everything else. See src/shared/utils/library/.
+   */
+  addedContent: AddedContent;
   /**
    * Paths the user has corrected by hand.
    */

@@ -1,7 +1,16 @@
 // What the settings screen offers, and in what order. The aid lists themselves
 // are shared, since the settings migration reads the same fields.
 
-import type { AidMode, SettingsCmFlag } from './types.ts';
+import type { AidMode, SettingsCmFlag, SettingsTab } from './types.ts';
+import { path } from '@/lib/routes';
+
+/**
+ * The settings screen's tabs, in the order they are shown.
+ */
+export const SETTINGS_TABS: readonly SettingsTab[] = [
+  { to: path.settings(), label: 'settings.tabs.general', end: true },
+  { to: path.settingsContent(), label: 'settings.tabs.content', end: false },
+];
 
 /**
  * The aids Assetto Corsa gives three settings rather than two.

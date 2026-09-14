@@ -15,12 +15,7 @@ export const Settings = () => {
   const { t } = useTranslation();
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-8" backToTop>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{t('settings.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('settings.subtitle')}</p>
-      </header>
-
+    <ScreenBody className="flex flex-col gap-6 py-6" backToTop>
       <Card>
         <CardHeader>
           <CardTitle>{t('settings.appearance')}</CardTitle>

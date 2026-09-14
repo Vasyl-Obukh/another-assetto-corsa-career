@@ -52,7 +52,7 @@ export const CarDetail = () => {
                 {car.year !== null ? (
                   <Badge variant="outline">{formatYear(car.year)}</Badge>
                 ) : null}
-                <ProvenanceBadges provenance={car.provenance} />
+                <ProvenanceBadges provenance={car.provenance} carId={car.id} />
                 <SpecBadge carId={car.id} />
               </div>
             </div>

@@ -1,5 +1,5 @@
 import {
-  useCallback, useEffect, useMemo, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import type { ReactNode } from 'react';
 
@@ -40,7 +40,14 @@ export const SettingsProvider = ({
     });
   }, [initialTheme]);
 
-  useEffect(() => subscribe('settings:changed', setSettings), []);
+  // While a patch of ours is on its way, what main says predates what is on
+  // screen, and adopting it would undo a later click. Main applies patches in
+  // order, so the answer to the last one carries all of them.
+  const inFlight = useRef(0);
+
+  useEffect(() => subscribe('settings:changed', (next) => {
+    if (inFlight.current === 0) setSettings(next);
+  }), []);
 
   useEffect(() => {
     void setLanguage(settings.language);
@@ -50,7 +57,12 @@ export const SettingsProvider = ({
   const patch = useCallback((next: Partial<Settings>) => {
     // Applied locally first so the UI does not lag a round trip behind the click.
     setSettings((current) => ({ ...current, ...next }));
-    void invoke('settings:patch', next).then(setSettings, (error: unknown) => {
+    inFlight.current += 1;
+    void invoke('settings:patch', next).then((answer) => {
+      inFlight.current -= 1;
+      if (inFlight.current === 0) setSettings(answer);
+    }, (error: unknown) => {
+      inFlight.current -= 1;
       console.error('Could not save settings.', error);
     });
   }, []);

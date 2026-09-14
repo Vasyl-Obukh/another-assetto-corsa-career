@@ -4,6 +4,7 @@ import {
   ContentCard, ErrorCard, PathsCard, ScreenBody,
 } from '@/components';
 import { useInstallation } from '@/hooks';
+import { path } from '@/lib/routes';
 
 interface DiagnosticsProps {
   /**
@@ -38,6 +39,7 @@ export const Diagnostics = ({ initialReport }: DiagnosticsProps) => {
         scanning={install.scanning}
         onScan={install.scan}
         onOpenIssues={install.loadIssues}
+        addContentHref={path.settingsContent()}
       />
     </ScreenBody>
   );

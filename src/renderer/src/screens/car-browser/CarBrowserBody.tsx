@@ -5,6 +5,7 @@ import { CarFilters } from './CarFilters.tsx';
 import { CAR_SORTS } from './constants.ts';
 import type { Car, CarQuery } from '../../../../shared/types';
 import { BrowserGrid, BrowserToolbar, ScreenBody, SortSelect } from '@/components';
+import type { BrowserToggle } from '@/components';
 import { useCarBrowser, useInfiniteScroll } from '@/hooks';
 
 interface CarBrowserBodyProps {
@@ -32,10 +33,15 @@ interface CarBrowserBodyProps {
    * wants, since its library is already restricted to one question.
    */
   memoryId?: string;
+  /**
+   * A switch on every card, for a browser deciding something about each car
+   * rather than opening or picking one.
+   */
+  toggle?: BrowserToggle;
 }
 
 export const CarBrowserBody = ({
-  onSelect, selectedId, baseQuery, memoryId,
+  onSelect, selectedId, baseQuery, memoryId, toggle,
 }: CarBrowserBodyProps) => {
   const { t } = useTranslation();
   const browser = useCarBrowser(baseQuery, memoryId);
@@ -85,6 +91,7 @@ export const CarBrowserBody = ({
             car={car}
             onSelect={onSelect}
             selected={car.id === selectedId}
+            toggle={toggle}
           />
         ))}
       </BrowserGrid>

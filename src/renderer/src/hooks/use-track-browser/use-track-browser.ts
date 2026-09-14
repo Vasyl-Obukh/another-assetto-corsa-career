@@ -5,7 +5,7 @@ import {
 import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
 import type { TrackBrowser, TrackCriteria } from './types.ts';
 import { isTrackFiltered, toTrackQuery, trackQueryKey } from './utils.ts';
-import type { TrackFacets } from '../../../../shared/types';
+import type { TrackFacets, TrackQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
 import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
@@ -15,10 +15,12 @@ export type { TrackBrowser, TrackCriteria } from './types.ts';
 
 /**
  * Everything the track browser screen needs: criteria, facet counts and the list.
+ * @param base A query every request is narrowed by, for a browser with a
+ *   restricted set of tracks to offer
  * @param memoryId Which browser this is, for one that comes back where it was
  * @returns The current state and the actions the screen binds to
  */
-export const useTrackBrowser = (memoryId?: string): TrackBrowser => {
+export const useTrackBrowser = (base?: TrackQuery, memoryId?: string): TrackBrowser => {
   // Read once, at mount: the store keeps being written while the screen is
   // open, and reading it again would answer with what the user is looking at
   // rather than what they were.
@@ -30,7 +32,14 @@ export const useTrackBrowser = (memoryId?: string): TrackBrowser => {
   const [stale, setStale] = useState(false);
 
   const settled = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const query = useMemo(() => toTrackQuery(criteria, settled), [criteria, settled]);
+  // Serialised rather than depended on directly, as the car browser's is, since
+  // a caller rebuilding its base query each render would never settle.
+  const baseKey = useMemo(() => JSON.stringify(base ?? null), [base]);
+  const query = useMemo(
+    () => toTrackQuery(criteria, settled, base),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
+    [criteria, settled, baseKey],
+  );
   const key = useMemo(() => trackQueryKey(query), [query]);
 
   const load = useCallback(

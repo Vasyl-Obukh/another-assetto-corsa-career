@@ -4,11 +4,12 @@
 import { CONTENT_CACHE_VERSION } from './constants.ts';
 import type { ContentCache, ContentLibrary } from './types.ts';
 import type { ContentScan } from '../../core/content/index.ts';
-import { CONTENT_CATALOGUE_VERSION, isCatalogued } from '../../core/content-catalogue/index.ts';
+import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
 import type {
-  Content, ContentCounts, ContentSummary, HiddenCounts,
+  AddedContent, Content, ContentCounts, ContentSummary, HiddenCounts,
 } from '../../shared/types/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
+import { isCatalogued, isInLibrary } from '../../shared/utils/library/index.ts';
 
 /**
  * Checks that a value is an array of things that at least have string IDs.
@@ -63,12 +64,15 @@ export const cacheToScan = (cache: ContentCache): ContentScan => ({
   durationMs: cache.durationMs,
 });
 
-// A scan is replaced wholesale rather than edited, so keying on the object
-// itself is all the invalidation a derived view of it needs.
-const LIBRARIES = new WeakMap<Content, ContentLibrary>();
+// A scan is replaced wholesale rather than edited, and so is the user's list
+// whenever settings change, so comparing the two by identity is all the
+// invalidation a derived view needs.
+const LIBRARIES = new WeakMap<Content, { added: AddedContent; library: ContentLibrary }>();
+const ANONYMOUS = new WeakMap<Content, ContentLibrary>();
 
 /**
- * Narrows a scan to the content the provenance catalogue names.
+ * Narrows a scan to the library: what the provenance catalogue names, and what
+ * the user added themselves.
  *
  * What every browser, picker and facet count is answered from. The whole scan
  * stays reachable through the store's own content(), because a race already set
@@ -77,30 +81,52 @@ const LIBRARIES = new WeakMap<Content, ContentLibrary>();
  *
  * Tracks are judged per layout, exactly as every other track filter is, so a
  * circuit with LFM layouts inside a folder nobody claims narrows to those rather
- * than disappearing.
+ * than disappearing. The user's list names the circuit, so adding one brings
+ * every layout of it back.
  * @param content The scanned content
- * @returns Its catalogued cars and track layouts
+ * @param added The folder IDs the user added
+ * @returns The cars and track layouts the library offers
  */
-export const libraryOf = (content: Content): ContentLibrary => {
+export const libraryOf = (content: Content, added: AddedContent): ContentLibrary => {
   const known = LIBRARIES.get(content);
-  if (known) return known;
+  if (known?.added === added) return known.library;
 
   const library: ContentLibrary = {
-    cars: content.cars.filter((car) => isCatalogued(car.provenance)),
-    tracks: content.tracks.filter((track) => isCatalogued(track.provenance)),
+    cars: content.cars.filter((car) => isInLibrary(car.provenance, car.id, added.cars)),
+    tracks: content.tracks.filter((track) => isInLibrary(track.provenance, track.id, added.tracks)),
   };
 
-  LIBRARIES.set(content, library);
+  LIBRARIES.set(content, { added, library });
   return library;
 };
 
 /**
- * Counts what the catalogue does not name, and so what the library leaves out.
+ * Narrows a scan to the anonymous mods the catalogue does not name, whether or
+ * not the user has added them - the collection the page that adds them browses.
  * @param content The scanned content
+ * @returns Its uncatalogued cars and track layouts
+ */
+export const anonymousOf = (content: Content): ContentLibrary => {
+  const known = ANONYMOUS.get(content);
+  if (known) return known;
+
+  const anonymous: ContentLibrary = {
+    cars: content.cars.filter((car) => !isCatalogued(car.provenance)),
+    tracks: content.tracks.filter((track) => !isCatalogued(track.provenance)),
+  };
+
+  ANONYMOUS.set(content, anonymous);
+  return anonymous;
+};
+
+/**
+ * Counts what the library leaves out: anonymous mods the user has not added.
+ * @param content The scanned content
+ * @param added The folder IDs the user added
  * @returns How many cars and track layouts are hidden
  */
-export const hiddenIn = (content: Content): HiddenCounts => {
-  const library = libraryOf(content);
+export const hiddenIn = (content: Content, added: AddedContent): HiddenCounts => {
+  const library = libraryOf(content, added);
 
   return {
     cars: content.cars.length - library.cars.length,
@@ -124,12 +150,17 @@ export const countsOf = (content: Content): ContentCounts => ({
  * Builds the counts the renderer sees.
  * @param scan The scan to describe
  * @param cached Whether every car and track came from the cache
+ * @param added The folder IDs the user added, which decide what is hidden
  * @returns The summary for this scan
  */
-export const summaryOf = (scan: ContentScan, cached: boolean): ContentSummary => ({
+export const summaryOf = (
+  scan: ContentScan,
+  cached: boolean,
+  added: AddedContent,
+): ContentSummary => ({
   ...countsOf(scan.content),
   issues: scan.content.issues.length,
-  hidden: hiddenIn(scan.content),
+  hidden: hiddenIn(scan.content, added),
   scannedAt: scan.scannedAt,
   durationMs: scan.durationMs,
   cached,

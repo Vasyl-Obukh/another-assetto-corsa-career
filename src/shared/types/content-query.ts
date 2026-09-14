@@ -61,6 +61,16 @@ export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerTo
  */
 export interface CarQuery {
   /**
+   * Ask about the anonymous mods the catalogue does not name, instead of the
+   * library.
+   *
+   * A choice of collection rather than a filter, so the content store answers it
+   * and content-query never sees it. Covers every uncatalogued car whether or
+   * not the user has added it, which is what lets the page that adds them take
+   * one back out again.
+   */
+  anonymous?: boolean;
+  /**
    * Free text. Every whitespace-separated term must match the name, brand or
    * folder ID. Deliberately not the mod author's own tags: they are free text
    * nothing else reads, so matching them surfaced cars for words never shown.
@@ -160,6 +170,12 @@ export type TrackSortKey = 'name' | 'country' | 'pitboxes';
  * layouts does - so this reads as a layout query and answers with tracks.
  */
 export interface TrackQuery {
+  /**
+   * Ask about the anonymous mods the catalogue does not name, instead of the
+   * library. Judged per layout, like every other track filter, so a circuit
+   * holding LFM layouts comes back with only the layouts nobody claims.
+   */
+  anonymous?: boolean;
   /**
    * Free text. Every whitespace-separated term must match the name, folder ID
    * or country.

@@ -83,6 +83,7 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.tracks()).toBe(ROUTE.tracks);
       expect(path.diagnostics()).toBe(ROUTE.diagnostics);
       expect(path.settings()).toBe(ROUTE.settings);
+      expect(path.settingsContent()).toBe(ROUTE.settingsContent);
     });
 
     // Adding a route without a builder would leave callers reaching for the

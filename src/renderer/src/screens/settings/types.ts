@@ -1,7 +1,28 @@
 // Which Content Manager flags the screen is allowed to offer, and which aids
 // get a select rather than a switch.
 
+import type { ParseKeys } from 'i18next';
+
 import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
+
+/**
+ * One tab across the top of the settings screen.
+ */
+export interface SettingsTab {
+  /**
+   * The URL the tab opens.
+   */
+  to: string;
+  /**
+   * The catalogue key for its label.
+   */
+  label: ParseKeys;
+  /**
+   * Whether it is active only on exactly its own URL, rather than on anything
+   * under it - true for the tab sitting at the settings root.
+   */
+  end: boolean;
+}
 
 /**
  * An aid Assetto Corsa gives three settings rather than two.
