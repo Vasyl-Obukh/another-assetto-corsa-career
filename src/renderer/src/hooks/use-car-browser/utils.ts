@@ -1,5 +1,23 @@
 import type { CarCriteria } from './types.ts';
-import type { CarQuery } from '../../../../shared/types';
+import type { CarQuery, ClassCatalogue } from '../../../../shared/types';
+
+/**
+ * Drops any class or spec the catalogue no longer has from the filters.
+ *
+ * A user's own can be deleted while a browser remembers it ticked, and a spec
+ * that is gone matches no car and is listed nowhere to untick.
+ * @param criteria The filters currently applied
+ * @param catalogue The catalogue as it now stands
+ * @returns The very criteria given when nothing was dropped, so the query built
+ *   from them keeps its identity
+ */
+export const withKnownClasses = (criteria: CarCriteria, catalogue: ClassCatalogue): CarCriteria => {
+  const classes = criteria.classes?.filter((one) => catalogue.classById.has(one));
+  const specs = criteria.specs?.filter((one) => catalogue.specById.has(one));
+  if (classes?.length === criteria.classes?.length && specs?.length === criteria.specs?.length) return criteria;
+
+  return { ...criteria, classes, specs };
+};
 
 /**
  * Folds the criteria, the settled search text and any base query into one.

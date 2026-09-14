@@ -9,7 +9,7 @@
 // would be saying something it does not mean. A set only one screen shows stays
 // beside that screen - a team's budget is in the editor's own constants.
 
-import type { Discipline, SessionType } from '../../../shared/types';
+import type { ClassificationOrigin, Discipline, SessionType } from '../../../shared/types';
 
 /**
  * The colour each kind of session is chipped in.
@@ -60,6 +60,25 @@ export const DISCIPLINE_ACCENT = {
   touring: 'border-transparent bg-discipline-touring text-discipline-touring-foreground',
   road: 'border-transparent bg-discipline-road text-discipline-road-foreground',
 } as const satisfies Record<Discipline, string>;
+
+/**
+ * The colour a thing the user had a hand in is chipped in, by whose it is.
+ *
+ * A hue of its own per origin, so "you changed the app's own" and "this was
+ * never ours" are told apart where both appear. Read by a championship's origin
+ * and by a car's classification, which answer the same question about different
+ * things - so a spec the user restated is the same Modified colour as a
+ * championship they adjusted. Shipped carries nothing and keeps whatever
+ * variant the caller asked for.
+ *
+ * Keyed on the origin rather than on the word shown: `adjusted` reads as
+ * "Modified" and `user` as "Custom", which are translations rather than renames.
+ */
+export const ORIGIN_ACCENT = {
+  adjusted: 'border-transparent bg-origin-modified text-origin-modified-foreground',
+  user: 'border-transparent bg-origin-custom text-origin-custom-foreground',
+  shipped: '',
+} as const satisfies Record<ClassificationOrigin, string>;
 
 /**
  * The metal each rung of a discipline is chipped in, the top rung first.

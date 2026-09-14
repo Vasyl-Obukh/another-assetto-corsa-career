@@ -234,9 +234,12 @@ removed every one of those: they cluster tidily by power-to-weight and name no
 series at all. A base-only career that wants them reaches them by car list, the
 same way a one-make does.
 
-Only cars the provenance catalogue already names get a spec. Anything else is a
-mod we cannot identify, and leaving it unclassified is the honest answer -
-the same stance provenance takes on an anonymous mod.
+Only cars the provenance catalogue already names get a spec **in the shipped
+layer**. Anything else is a mod we cannot identify, and leaving it unclassified
+is the honest answer - the same stance provenance takes on an anonymous mod. The
+user's own layer is where the rest gets classified: once a mod is added to the
+library, its page offers Classify, and a class or spec the app does not ship can
+be made in Settings.
 
 ### Shipped championships
 
@@ -1354,8 +1357,11 @@ data layer before the browsers.
 rules and AI field; then teams, classes, seats, liveries, balance of performance
 and the calendar; then weekend formats with their session lists, points systems
 and prize tables. **Anonymous mods can now be let back into the library** from
-settings, which is the precondition for classifying them. What is still open in
-this phase is the class and spec management UI and generated weather.
+settings, which is the precondition for classifying them - **and classifying them
+has now landed too**: a user layer over the class catalogue, Classify on a car's
+page, and a Classes tab for classes and specs of the user's own. What is still
+open in this phase is generated weather, the championship configuration page and
+content source toggles.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1523,14 +1529,56 @@ this phase is the class and spec management UI and generated weather.
       within a class, not across the field**. One linear ramp over a multi-class
       grid would make the slower class's drivers weak as well as their cars,
       which is not what a class difference is
-- [ ] **Class and spec management UI**: create classes and specs, classify mods the
+- [x] **Class and spec management UI**: create classes and specs, classify mods the
       shipped catalogue does not name, and override what we ship. The shipped
-      catalogue is the base layer; the user layer is resolved over it at runtime
-- [ ] **Adding or editing a car picks classes first, then specs.** A car holds a
+      catalogue is the base layer; the user layer is resolved over it at runtime.
+      **Landed as the Classes tab of Settings** - `/settings/classes`, beside
+      Your content - over a user layer in `%APPDATA%/ac-career-mode/car-classes.json`
+      that `src/main/class-store/` owns. Four things worth knowing.
+      **The catalogue is now a value rather than module state**:
+      `resolveCatalogue(layer)` builds a `ClassCatalogue`, every lookup is handed
+      one, and main and the renderer each resolve the same layer with the same
+      function - main pushes the layer, never the maps. `SHIPPED_CATALOGUE` is the
+      default only at the entry points the CLI calls, so `npm run dry` and
+      `npm run series` still see the shipped half alone and came out
+      byte-identical. **The enums stay**: `CarSpec.GT3_2010S` in a shipped
+      championship is still a compile error when renamed, and `Eligibility.spec`
+      simply widened to a `SpecId` string. **So a spec stopped being a closed
+      set**: `parseSeries` checks only its shape, and `validateSeries` reports
+      `series.spec.unknown` against the catalogue it is handed - which also
+      fixed a latent crash, since a bogus spec on a *round* override was never
+      parsed at all and indexed `SPEC_CARS` to undefined. **Overrides are car
+      assignments only**: the app's own classes and specs cannot be renamed or
+      deleted, because shipped championships name them. A user class or spec
+      gets a UUID, since a slug could collide with one we ship later; deleting a
+      spec is refused while a championship races in it, and a class while it
+      holds specs. One consequence accepted rather than guarded: restating a
+      shipped car can empty a shipped spec, and the championship on it then
+      reads as unavailable, which is the truth. A championship naming a spec of
+      the user's does not travel to another machine - it arrives reporting the
+      spec as unknown. A file that is not JSON is quarantined as settings.json is.
+      Driven end to end on a scratch profile: a class and a spec made, a car put
+      in it, a championship pointed at it, the delete refused naming that
+      championship, a move that would clash refused, both deleted again, and a
+      corrupt file moved aside at startup
+- [x] **Adding or editing a car picks classes first, then specs.** A car holds a
       list of specs, so the spec options are **filtered by the classes chosen for
       that car** - you cannot reach a GT3 spec from a car you have put in GT4 and
       Track Special. Within one class only a single spec may be picked, since two
-      would claim the car is two eras of that category at once
+      would claim the car is two eras of that category at once.
+      **Landed as Classify on the car's own page**: a dialog whose first step is
+      a toggle per class and whose second is one select per chosen class, which
+      is what makes two specs of a class unpickable rather than refused. A class
+      with a single spec has it chosen at once. The car's list replaces the
+      shipped one outright; picking no class leaves it deliberately
+      unclassified, and a list that matches what we ship drops the override, so
+      Revert only appears where it would change something. **The spec chips are
+      coloured by whose classification it is** rather than by spec, since specs
+      are an open set: neutral as shipped, Modified where the user restated a car
+      we classify, Custom where only they do - the origin hues a championship
+      already wears, moved into `ORIGIN_ACCENT`. Driven: adding DTM 2025 (LFM) to
+      the Audi R8 LMS's GT3 spec put it in that spec's filter and facet count in
+      main at once, the header chips turned Modified, and Revert put it back
 - [x] **Add your own content to the library**, in settings. The browsers and
       pickers show what the provenance catalogue names; anything in no record is
       an anonymous mod and is left out, so this page is the way back in. It lists

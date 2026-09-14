@@ -1,7 +1,9 @@
 import {
   beforeEach, describe, expect, it, jest,
 } from '@jest/globals';
-import { readFile, rename, writeFile } from 'node:fs/promises';
+import {
+  copyFile, readFile, rename, unlink, writeFile,
+} from 'node:fs/promises';
 
 
 import { DEFAULT_SETTINGS } from '../../../shared/constants/index.ts';
@@ -12,6 +14,7 @@ jest.mock('node:fs/promises');
 const readFileMock = jest.mocked(readFile);
 const writeFileMock = jest.mocked(writeFile);
 const renameMock = jest.mocked(rename);
+const copyFileMock = jest.mocked(copyFile);
 
 /**
  * The error Node raises for a file that is not there.
@@ -25,6 +28,8 @@ describe('main/settings-store', () => {
   beforeEach(() => {
     writeFileMock.mockResolvedValue(undefined);
     renameMock.mockResolvedValue(undefined);
+    copyFileMock.mockResolvedValue(undefined);
+    jest.mocked(unlink).mockResolvedValue(undefined);
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -56,9 +61,10 @@ describe('main/settings-store', () => {
 
       const store = await createSettingsStore('D:\\userData');
 
-      expect(renameMock).toHaveBeenCalledWith(
+      expect(copyFileMock).toHaveBeenCalledWith(
         expect.stringContaining('settings.json'),
         expect.stringContaining('settings.corrupt-1.json'),
+        expect.any(Number),
       );
       expect(store.get()).toEqual(DEFAULT_SETTINGS);
     });

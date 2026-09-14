@@ -69,6 +69,11 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
   }), [adopt, id]);
 
   const settled = useDebouncedValue(draft, CHECK_DEBOUNCE_MS);
+  // Bumped when the class catalogue changes, since what a spec holds decides
+  // whether the unchanged draft is still raceable.
+  const [classified, setClassified] = useState(0);
+
+  useEffect(() => subscribe('classes:changed', () => setClassified((n) => n + 1)), []);
 
   useEffect(() => {
     if (!settled) return undefined;
@@ -83,7 +88,7 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
     );
 
     return () => { live = false; };
-  }, [settled]);
+  }, [settled, classified]);
 
   const edit = useCallback((change: (from: Championship) => Championship): void => {
     if (!current.current) return;

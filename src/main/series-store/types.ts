@@ -117,6 +117,21 @@ export interface SeriesStore {
    */
   exportTo: (id: string, file: string) => Promise<void>;
   /**
+   * Works availability out afresh and tells everyone, writing nothing.
+   *
+   * For a change outside the library that moves what it can race - the class
+   * catalogue, which decides what a spec holds. Quiet while the install is
+   * unlocated, since there is nothing to judge availability against.
+   * @returns Resolves once listeners have the library
+   */
+  refresh: () => Promise<void>;
+  /**
+   * Every championship racing in a spec, on a class entry or on a round.
+   * @param spec The spec
+   * @returns Their names, in library order
+   */
+  usingSpec: (spec: string) => string[];
+  /**
    * Reads every championship file again.
    * @returns Resolves once the library has been replaced
    */

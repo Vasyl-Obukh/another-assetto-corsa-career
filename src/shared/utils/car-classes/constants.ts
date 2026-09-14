@@ -5,8 +5,10 @@
 // Evora GTE, the X-Bow R and the P1 GTR "street", and says nothing at all for
 // most mods, so it is a hint while authoring and never an authority.
 //
-// Only IDs the provenance catalogue already names get a spec. Anything else is
-// a mod we cannot identify, and leaving it unclassified is the honest answer.
+// Only IDs the provenance catalogue already names get a spec here. Anything else
+// is a mod we cannot identify, and leaving it unclassified is the honest answer -
+// the user may classify it in their own layer, which resolveCatalogue reads over
+// this one.
 //
 // Deliberately not part of the content cache: unlike provenance, nothing here is
 // baked into a scanned Car, so correcting a row takes effect on next launch with

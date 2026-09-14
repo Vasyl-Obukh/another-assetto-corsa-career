@@ -161,8 +161,31 @@
     "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it.",
     "tabs": {
       "general": "General",
-      "content": "Your content"
+      "content": "Your content",
+      "classes": "Classes"
     }
+  },
+  "carClasses": {
+    "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them, then put a car in a spec from its page in the Cars library.",
+    "addClass": "Add class",
+    "addSpec": "Add spec",
+    "className": "Class name",
+    "specName": "Spec name",
+    "specClass": "Class",
+    "save": "Save",
+    "edit": "Edit {{name}}",
+    "delete": "Delete {{name}}",
+    "noSpecs": "No specs yet.",
+    "specs_one": "{{count}} spec",
+    "specs_other": "{{count}} specs",
+    "rename": "Rename",
+    "deleteClass": "Delete class",
+    "cars_one": "{{count}} car",
+    "cars_other": "{{count}} cars",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteClassBody": "The class is removed. It holds no specs, so nothing else changes.",
+    "deleteSpecBody": "The spec is removed and every car in it is taken off it. A championship still racing in it stops the delete.",
+    "deleteConfirm": "Delete"
   },
   "yourContent": {
     "subtitle": "Mods our catalogue does not know. Switch one on to put it in the car and track libraries, the race screen's pickers and the championship editor.",
@@ -770,6 +793,20 @@
       "number": "#{{value}}",
       "noMatch": "No livery matches that search.",
       "notFound": "No car is installed under \"{{id}}\"."
+    },
+    "classify": {
+      "open": "Classify",
+      "title": "Classify {{name}}",
+      "classesHint": "Pick every class this car races in. Leaving them all unpicked says it races on no grid.",
+      "specsHint": "Pick the grid it races on in each class. A car holds one spec per class.",
+      "pickSpec": "Pick a spec",
+      "next": "Next",
+      "back": "Back",
+      "save": "Save",
+      "cancel": "Cancel",
+      "unclassify": "Leave unclassified",
+      "revert": "Revert to the app's own",
+      "unclassified": "Unclassified"
     },
     "sort": {
       "name": "Name",

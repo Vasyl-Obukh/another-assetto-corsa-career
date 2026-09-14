@@ -56,14 +56,24 @@ describe('core/series-file', () => {
       expect(parseSeries('nope', 'test.json').series).toBeNull();
     });
 
-    // This is the check that replaced the compiler for user files: a spec is a
-    // key into SPEC_CARS, so a typo would resolve to undefined and read as a
-    // class nobody owns rather than as a mistake.
-    it('rejects a car spec that is not a real one', () => {
+    // A spec may be one the user made, so whether it resolves is validateSeries'
+    // question against the catalogue it is handed, not a closed set here.
+    it('leaves a spec it cannot resolve to validateSeries', () => {
       const value = raw({
         entries: [{
           ...(raw().entries as Record<string, unknown>[])[0],
           eligibility: { kind: 'spec', spec: 'gt3-2010' },
+        }],
+      });
+
+      expect(codesFor(value)).toEqual([]);
+    });
+
+    it('rejects a spec that is not a string at all', () => {
+      const value = raw({
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          eligibility: { kind: 'spec', spec: 42 },
         }],
       });
 

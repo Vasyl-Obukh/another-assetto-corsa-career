@@ -15,7 +15,7 @@ import { PrizesCard } from './PrizesCard.tsx';
 import { TeamsCard } from './TeamsCard.tsx';
 import { namedCars } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
-import { useSettings } from '@/app';
+import { useClasses, useSettings } from '@/app';
 import {
   ConfirmDialog, ErrorCard, ProblemList, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -33,12 +33,13 @@ export const ChampionshipEditor = () => {
   // Read live rather than off the draft: the weather system is a setting, and
   // it decides whether a round may ask for weather that changes mid-session.
   const { settings } = useSettings();
+  const { catalogue } = useClasses();
 
   const {
     draft, listing, checked, locked,
   } = editor;
   // One call for every car the draft mentions, rather than one per control.
-  const nameOf = useCarNames(draft === null ? [] : namedCars(draft));
+  const nameOf = useCarNames(draft === null ? [] : namedCars(draft, catalogue));
   const back = path.championship({ id });
   // Reachable by deep link even though no menu offers it: a shipped
   // championship is compiled in, so there is no file of the user's to write.

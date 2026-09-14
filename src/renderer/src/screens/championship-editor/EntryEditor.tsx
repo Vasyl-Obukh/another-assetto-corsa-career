@@ -10,6 +10,7 @@ import type {
   Championship, ClassEntry, EntryAvailability, Team,
 } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
+import { useClasses } from '@/app';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion.tsx';
@@ -100,6 +101,7 @@ export const EntryEditor = ({
   onChange, onEligibility, onEdit, onMove, onRemove,
 }: EntryEditorProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
   const idPrefix = `entry-${entry.id}`;
   // An open row quietens the eligibility rule too, since that is a list; the
   // plain fields beside it stay live.
@@ -134,9 +136,11 @@ export const EntryEditor = ({
 
         <Badge variant="outline">{t('championships.grid', { count: entry.seats.length })}</Badge>
 
+        {/* Neutral on purpose: specs are an open set the user can add to, so
+            no palette could give each its own colour. */}
         {entry.eligibility.kind === 'spec' ? (
           <Badge variant="secondary" className="max-w-48 truncate">
-            {carSpecName(entry.eligibility.spec)}
+            {carSpecName(entry.eligibility.spec, catalogue)}
           </Badge>
         ) : null}
 

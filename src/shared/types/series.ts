@@ -20,7 +20,7 @@
 // multi-class series is entered at a different level depending on which class
 // you enter it in - WEC's LMGT3 entry sits a tier below its Hypercar one.
 
-import type { CarSpec } from './car-classes.ts';
+import type { SpecId } from './car-classes.ts';
 import type {
   ContentProvenance, ContentSource, DLCPack, ModMaker,
 } from './content.ts';
@@ -106,9 +106,9 @@ export type Eligibility =
      */
     kind: 'spec';
     /**
-     * The grid the class entry races on.
+     * The grid the class entry races on - shipped, or one the user made.
      */
-    spec: CarSpec;
+    spec: SpecId;
     /**
      * How many distinct models must be installed for the entry to be raceable.
      *

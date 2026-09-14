@@ -6,6 +6,7 @@ import { EligibilityField } from './EligibilityField.tsx';
 import type { SetAside } from './types.ts';
 import { withRoundEligibility } from './utils.ts';
 import type { Championship, Eligibility, Round } from '../../../../shared/types';
+import { useClasses } from '@/app';
 import { ToggleRow } from '@/components';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -61,6 +62,7 @@ export const RoundEligibilityDialog = ({
   series, round, locked, nameOf, onChange, onConfirm, onCancel,
 }: RoundEligibilityDialogProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
   // What these changes took off each class, so turning an override back on
   // restores it. Lives as long as the dialog, which is how long a detour lasts.
   const [aside, setAside] = useState<SetAside>({});
@@ -71,7 +73,7 @@ export const RoundEligibilityDialog = ({
    * @param eligibility The rule to apply, or null to stop overriding
    */
   const apply = (entry: string, eligibility: Eligibility | null): void => {
-    const narrowed = withRoundEligibility(series, round.id, entry, eligibility, aside);
+    const narrowed = withRoundEligibility(series, round.id, entry, eligibility, catalogue, aside);
     setAside(narrowed.aside);
     onChange(narrowed.series);
   };

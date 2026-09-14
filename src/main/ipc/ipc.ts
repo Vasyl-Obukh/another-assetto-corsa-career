@@ -9,6 +9,7 @@ import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts
 import { probePaths } from '../../core/paths/index.ts';
 import { SERIES_FILE_EXTENSION } from '../../core/series-file/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
+import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
@@ -26,12 +27,14 @@ export { send } from './utils.ts';
  * @param content The store handlers read installed content through
  * @param race The store handlers set up, launch and archive races through
  * @param series The store handlers read and write the championship library through
+ * @param classes The store handlers read and write the user's class layer through
  */
 export const registerHandlers = (
   settings: SettingsStore,
   content: ContentStore,
   race: RaceStore,
   series: SeriesStore,
+  classes: ClassStore,
 ): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
@@ -123,6 +126,16 @@ export const registerHandlers = (
 
     return result.filePath;
   });
+
+  handle('classes:get', async () => classes.layer());
+  handle('classes:assignCar', async ({ car, specs }) => classes.assignCar(car, specs));
+  handle('classes:revertCar', async ({ car }) => classes.revertCar(car));
+  handle('classes:saveClass', async (draft) => classes.saveClass(draft));
+  handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id));
+  handle('classes:saveSpec', async (draft) => classes.saveSpec(draft));
+  // Which championships race a spec is the series store's to know, so the class
+  // store is told them rather than reaching into the library itself.
+  handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, series.usingSpec(id)));
 
   handle('cm:arguments', readCmArguments);
   handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));

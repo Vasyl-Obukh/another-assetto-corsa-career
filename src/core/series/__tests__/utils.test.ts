@@ -4,9 +4,10 @@ import { Discipline } from '../../../shared/types/index.ts';
 import type {
   Championship, SeriesSession, WeekendFormat,
 } from '../../../shared/types/index.ts';
+import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import { SERIES_FORMAT_VERSION } from '../constants.ts';
 import {
-  roundRaceId, seatSkin, validateFormat, validateMoney,
+  eligibleCars, minModelsOf, roundRaceId, seatSkin, validateFormat, validateMoney,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -177,6 +178,49 @@ describe('core/series/utils', () => {
 
     it('asks for nothing when the seat pinned nothing', () => {
       expect(seatSkin(content, 'test_car', undefined)).toBeUndefined();
+    });
+  });
+
+  describe('minModelsOf', () => {
+    /**
+     * The catalogue of a user whose spec holds the given cars.
+     * @param cars The cars they put in it
+     * @returns The resolved catalogue
+     */
+    const holding = (cars: string[]) => resolveCatalogue({
+      version: 1,
+      classes: [{ id: 'user-class', name: 'Hillclimb' }],
+      specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
+      cars: Object.fromEntries(cars.map((car) => [car, ['user-spec']])),
+    });
+
+    it('needs every car a car list names', () => {
+      expect(minModelsOf({ kind: 'cars', cars: ['a', 'b'] }, SHIPPED_CATALOGUE)).toBe(2);
+    });
+
+    it('needs no more of a spec than its grid holds', () => {
+      expect(minModelsOf({ kind: 'spec', spec: 'user-spec', minModels: 5 }, holding(['a', 'b']))).toBe(2);
+    });
+
+    // A spec the user emptied, or one this catalogue lacks, would otherwise be
+    // satisfied by owning nothing and read as raceable.
+    it('needs at least one car of a spec with nobody on its grid', () => {
+      expect(minModelsOf({ kind: 'spec', spec: 'user-spec' }, holding([]))).toBe(1);
+      expect(minModelsOf({ kind: 'spec', spec: 'ghost-spec' }, SHIPPED_CATALOGUE)).toBe(1);
+    });
+  });
+
+  describe('eligibleCars', () => {
+    it('resolves a spec through the catalogue it is handed, skipping cars not installed', () => {
+      const catalogue = resolveCatalogue({
+        version: 1,
+        classes: [{ id: 'user-class', name: 'Hillclimb' }],
+        specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
+        cars: { oval_car: ['user-spec'], ghost_car: ['user-spec'], skinless_car: ['user-spec'] },
+      });
+
+      expect(eligibleCars({ kind: 'spec', spec: 'user-spec' }, makeContent(), catalogue).map((car) => car.id))
+        .toEqual(['oval_car']);
     });
   });
 

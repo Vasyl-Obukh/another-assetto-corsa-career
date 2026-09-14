@@ -1,28 +1,9 @@
 import type { ReactNode } from 'react';
 
 import type {
-  BopEntry, CarClass, CarSpec, Championship, SeatCar, SeriesSession,
+  BopEntry, Championship, SeatCar, SeriesSession,
 } from '../../../../shared/types';
 import type { RowDrag } from '@/hooks';
-
-/**
- * One class and every spec catalogued under it.
- *
- * What the eligibility menu is grouped by: a flat list of over a hundred specs
- * is unreadable, and a spec's class is the only thing that sorts them into
- * groups a reader already knows the names of.
- */
-export interface SpecGroup {
-  /**
-   * The class the specs belong to.
-   */
-  carClass: CarClass;
-  /**
-   * Its specs, in catalogue order - which is chronological, so the eras of a
-   * class read down the group.
-   */
-  specs: readonly CarSpec[];
-}
 
 /**
  * One extra thing a row's menu offers, beyond editing and removing it.

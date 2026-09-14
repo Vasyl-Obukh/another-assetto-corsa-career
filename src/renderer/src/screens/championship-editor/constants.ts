@@ -1,14 +1,10 @@
-// What the editor's own controls are bounded by, the sentinel a select needs
-// where "not set" means "whatever the championship says", and the spec
-// catalogue grouped the way a menu over a hundred of them has to be.
+// What the editor's own controls are bounded by, and the sentinel a select needs
+// where "not set" means "whatever the championship says".
 
 import type { ParseKeys } from 'i18next';
 
-import type { SpecGroup } from './types.ts';
 import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
 import { Discipline, TeamBudget } from '../../../../shared/types';
-import type { CarClass, CarSpec } from '../../../../shared/types';
-import { SPECS } from '../../../../shared/utils/car-classes';
 
 /**
  * The value a select carries when the answer is the championship's default.
@@ -117,31 +113,6 @@ export const MIN_MODELS = 1;
  * How long a nation code is. Three letters, as Assetto Corsa wants them.
  */
 export const NATION_CODE_LENGTH = 3;
-
-/**
- * Builds the grouping, once.
- * @returns One group per class, in the order a class first appears
- */
-const groupSpecs = (): SpecGroup[] => {
-  const groups = new Map<CarClass, CarSpec[]>();
-  const specs = Object.entries(SPECS) as [CarSpec, { class: CarClass }][];
-
-  specs.forEach(([spec, { class: carClass }]) => {
-    groups.set(carClass, [...(groups.get(carClass) ?? []), spec]);
-  });
-
-  return [...groups.entries()].map(([carClass, grouped]) => ({ carClass, specs: grouped }));
-};
-
-/**
- * Every spec there is, gathered under the class it belongs to.
- *
- * Built once at module load, the way the class catalogue builds its own reverse
- * index: a menu over a hundred specs is unreadable as one list, and grouping it
- * per render would rebuild the whole catalogue on every keystroke elsewhere in
- * the card.
- */
-export const SPEC_GROUPS: readonly SpecGroup[] = groupSpecs();
 
 /**
  * The disciplines a class entry may be put in, in ladder order.

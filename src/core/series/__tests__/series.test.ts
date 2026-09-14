@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { Championship, ClassEntry, Seat } from '../../../shared/types/index.ts';
-import { roundRace, validateSeries } from '../series.ts';
+import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
+import { roundRace, seriesAvailability, validateSeries } from '../series.ts';
 import { makeContent, makeSeries } from './fixtures.ts';
 
 /**
@@ -24,6 +25,29 @@ const withSeats = (seats: Seat[], entry: Partial<ClassEntry> = {}): Championship
 
   return { ...base, entries: [{ ...base.entries[0], seats, ...entry }] };
 };
+
+/**
+ * A championship whose only class races in a spec the user made.
+ */
+const USER_SPEC_SERIES = withSeats(
+  [{ id: 'one' }, { id: 'two' }],
+  { eligibility: { kind: 'spec', spec: 'user-spec' } },
+);
+
+/**
+ * The layer of a user who made that spec and put the test car in it.
+ */
+const USER_CATALOGUE_LAYER = {
+  version: 1,
+  classes: [{ id: 'user-class', name: 'Hillclimb' }],
+  specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
+  cars: { test_car: ['user-spec'] },
+};
+
+/**
+ * The catalogue that layer resolves to.
+ */
+const USER_CATALOGUE = resolveCatalogue(USER_CATALOGUE_LAYER);
 
 describe('core/series', () => {
   describe('validateSeries', () => {
@@ -112,6 +136,48 @@ describe('core/series', () => {
     it('carries the money rules, so a bad prize is a problem with the series', () => {
       expect(codesFor({ prizes: { positions: [-1] } })).toEqual(['series.prizes.invalid']);
     });
+
+    it('resolves a spec against the catalogue it is handed', () => {
+      expect(validateSeries(USER_SPEC_SERIES, USER_CATALOGUE)).toEqual([]);
+    });
+
+    // A championship exported from another machine names a spec only that
+    // machine's layer holds, and "no cars" would send the user looking for a
+    // missing mod rather than a missing spec.
+    it('reports a spec the catalogue lacks as unknown rather than as fielding no cars', () => {
+      expect(validateSeries(USER_SPEC_SERIES).map((one) => one.code)).toEqual(['series.spec.unknown']);
+    });
+
+    // An unknown spec inside a round override used to index the shipped table
+    // to undefined and throw, rather than being reported at all.
+    it('reports a spec a round swaps to that the catalogue lacks', () => {
+      const base = makeSeries();
+      const swapped: Championship = {
+        ...base,
+        rounds: [{
+          ...base.rounds[0],
+          eligibility: [{ entry: 'main', eligibility: { kind: 'spec', spec: 'ghost-spec' } }],
+        }],
+      };
+
+      expect(validateSeries(swapped).map((one) => one.code)).toEqual(['series.round.specUnknown']);
+    });
+  });
+
+  describe('seriesAvailability', () => {
+    it('counts the cars a user spec holds as what a class can field', () => {
+      const availability = seriesAvailability(USER_SPEC_SERIES, makeContent(), USER_CATALOGUE);
+
+      expect(availability.problems).toEqual([]);
+      expect(availability.entries[0]).toMatchObject({ enough: true });
+    });
+
+    // Owning none of an empty grid is not owning enough of it.
+    it('never reads a class as raceable on a spec with no cars', () => {
+      const empty = resolveCatalogue({ ...USER_CATALOGUE_LAYER, cars: {} });
+
+      expect(seriesAvailability(USER_SPEC_SERIES, makeContent(), empty).entries[0]).toMatchObject({ enough: false });
+    });
   });
 
   describe('roundRace', () => {
@@ -189,6 +255,16 @@ describe('core/series', () => {
       const series = makeSeries();
 
       expect(lower(series).grid?.opponents).toEqual(lower(series).grid?.opponents);
+    });
+
+    it('fields a class out of a user spec, given the catalogue that holds it', () => {
+      const race = roundRace(
+        { series: USER_SPEC_SERIES, entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        makeContent(),
+        USER_CATALOGUE,
+      );
+
+      expect(race.grid?.opponents?.map((one) => one.model)).toEqual(['test_car']);
     });
   });
 });

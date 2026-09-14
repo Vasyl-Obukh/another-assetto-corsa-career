@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import type {
-  CarClass, CarFacets, CarSpec, ContentSource, DLCPack, ModDistributor, ModMaker,
+  CarFacets, ContentSource, DLCPack, ModDistributor, ModMaker,
 } from '../../../../shared/types';
 import { carClassName, carSpecName, classOfSpec } from '../../../../shared/utils/car-classes';
+import { useClasses } from '@/app';
 import { FacetFilter, RangeFilter, ToggleFilter } from '@/components';
 import {
   distributorKey, makerKey, packKey, sourceKey,
@@ -29,6 +30,7 @@ interface CarFiltersProps {
 
 export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
 
   // Facet values are raw catalogue IDs; a key we do not have yet falls back to
   // the ID rather than rendering as a missing translation.
@@ -42,18 +44,18 @@ export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
   // going missing for no reason.
   const pickClasses = (classes: string[]): void => onChange({
     ...criteria,
-    classes: classes as CarClass[],
+    classes,
     specs: classes.length === 0
       ? criteria.specs
-      : criteria.specs?.filter((spec) => classes.includes(classOfSpec(spec))),
+      : criteria.specs?.filter((spec) => classes.includes(classOfSpec(spec, catalogue) ?? '')),
   });
 
   const pickSpecs = (specs: string[]): void => {
-    const covered = new Set(specs.map((spec) => classOfSpec(spec as CarSpec)));
+    const covered = new Set(specs.map((spec) => classOfSpec(spec, catalogue)));
 
     onChange({
       ...criteria,
-      specs: specs as CarSpec[],
+      specs,
       classes: specs.length === 0
         ? criteria.classes
         : criteria.classes?.filter((carClass) => covered.has(carClass)),
@@ -75,7 +77,7 @@ export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
         label={t('cars.filter.classes')}
         facets={facets?.classes ?? []}
         selected={criteria.classes ?? []}
-        format={(value) => carClassName(value as CarClass)}
+        format={(value) => carClassName(value, catalogue)}
         onChange={pickClasses}
       />
 
@@ -83,7 +85,7 @@ export const CarFilters = ({ criteria, facets, onChange }: CarFiltersProps) => {
         label={t('cars.filter.specs')}
         facets={facets?.specs ?? []}
         selected={criteria.specs ?? []}
-        format={(value) => carSpecName(value as CarSpec)}
+        format={(value) => carSpecName(value, catalogue)}
         onChange={pickSpecs}
       />
 

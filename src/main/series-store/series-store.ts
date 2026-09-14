@@ -37,6 +37,8 @@ import type {
   SeriesListing,
   SeriesOrigin,
 } from '../../shared/types/index.ts';
+import { usesSpec } from '../../shared/utils/eligibility/index.ts';
+import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 
@@ -62,12 +64,14 @@ const warnProblems = (loaded: LoadedLibrary): void => {
  * @param userDataDir Folder the user's own championships live under
  * @param content The content store, for what is installed
  * @param race The race store, which takes a lowered round
+ * @param classes The class store, whose catalogue every spec resolves against
  * @returns A store holding the loaded library
  */
 export const createSeriesStore = async (
   userDataDir: string,
   content: ContentStore,
   race: RaceStore,
+  classes: ClassStore,
 ): Promise<SeriesStore> => {
   // The app's own are compiled in; only the user's are read from disk.
   const userDir = path.join(userDataDir, SERIES_DIR);
@@ -85,7 +89,7 @@ export const createSeriesStore = async (
    */
   const listing = (one: LoadedSeries, installed: Content): SeriesListing => ({
     series: one.series,
-    availability: seriesAvailability(one.series, installed),
+    availability: seriesAvailability(one.series, installed, classes.catalogue()),
     origin: one.origin,
     weekend: weekendOf(one.series, race.progress()),
   });
@@ -235,13 +239,13 @@ export const createSeriesStore = async (
         entry: request.entry,
         round: request.round,
         car: request.car,
-      }, await content.content());
+      }, await content.content(), classes.catalogue());
 
       return race.set(definition);
     },
 
     async validate(series) {
-      return seriesAvailability(series, await content.content());
+      return seriesAvailability(series, await content.content(), classes.catalogue());
     },
 
     async save(id, series) {
@@ -334,7 +338,7 @@ export const createSeriesStore = async (
         // Reported rather than refused: a championship the app will not accept
         // is one the user cannot fix, and the misconfigured badge makes letting
         // it in safe.
-        problems: validateSeries(imported),
+        problems: validateSeries(imported, classes.catalogue()),
       };
     },
 
@@ -350,6 +354,21 @@ export const createSeriesStore = async (
           series: id, reason: (error as Error).message,
         });
       }
+    },
+
+    async refresh() {
+      try {
+        const next = await list();
+        listeners.forEach((listener) => listener(next));
+      } catch (error) {
+        // Availability needs the scan, and there is none until the install is
+        // located; the championships screen asks again once it is.
+        if (!(error instanceof AppError && error.code === 'ipc.pathsNotLocated')) throw error;
+      }
+    },
+
+    usingSpec(spec) {
+      return library.series.filter((one) => usesSpec(one.series, spec)).map((one) => one.series.name);
     },
 
     async reload() {

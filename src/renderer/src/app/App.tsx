@@ -6,6 +6,7 @@ import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { path, ROUTE } from '@/lib/routes';
 import { CarBrowser } from '@/screens/car-browser';
+import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
 import { ChampionshipEditor } from '@/screens/championship-editor';
 import { ChampionshipDetail, Championships } from '@/screens/championships';
@@ -52,6 +53,7 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.settings} element={<SettingsLayout />}>
               <Route index element={<Settings />} />
               <Route path={ROUTE.settingsContent} element={<YourContent />} />
+              <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
             </Route>
             <Route path="*" element={<Navigate to={path.race()} replace />} />
           </Routes>

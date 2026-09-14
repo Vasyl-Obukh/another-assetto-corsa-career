@@ -39,11 +39,13 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   CarEntry,
   Championship,
+  ClassCatalogue,
   Content,
   RaceDefinition,
   RoundAvailability,
   SeriesAvailability,
 } from '../../shared/types/index.ts';
+import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 
@@ -57,10 +59,18 @@ export { eligibleCars, roundRaceId } from './utils.ts';
  * championship can be wrong without anything being uninstalled, and the two
  * questions want separate answers. Shaped like validateRace, so the CLI and the
  * UI report both the same way.
+ *
+ * The class catalogue is the one thing outside the document it reads, because
+ * a spec may be one the user made - and a championship naming a spec this
+ * catalogue lacks is wrong in the same way as one naming a format it lacks.
  * @param series The championship to check
+ * @param catalogue The class catalogue specs resolve against
  * @returns One entry per rule broken, empty when it is well formed
  */
-export const validateSeries = (series: Championship): AppErrorInfo[] => {
+export const validateSeries = (
+  series: Championship,
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+): AppErrorInfo[] => {
   const problems: AppErrorInfo[] = [];
 
   if (series.version !== SERIES_FORMAT_VERSION) {
@@ -104,7 +114,11 @@ export const validateSeries = (series: Championship): AppErrorInfo[] => {
     }
     // Its own rule rather than the whole calendar: a round override says what
     // this class swaps to, not what it can run when no round says otherwise.
-    if (carsOf(entry.eligibility).length === 0) {
+    if (entry.eligibility.kind === 'spec' && !isKnownSpec(entry.eligibility.spec, catalogue)) {
+      problems.push(appErrorInfo('series.spec.unknown', {
+        entry: entry.id, spec: entry.eligibility.spec,
+      }));
+    } else if (carsOf(entry.eligibility, catalogue).length === 0) {
       problems.push(appErrorInfo('series.entry.noCars', { entry: entry.id }));
     }
 
@@ -112,7 +126,7 @@ export const validateSeries = (series: Championship): AppErrorInfo[] => {
     // so both are checked against every car the class fields at any round. A
     // car nobody can field is a rule with no subject - almost always a folder
     // ID typed wrong.
-    const fieldable = fieldableCars(series, entry);
+    const fieldable = fieldableCars(series, entry, catalogue);
     entry.bop?.forEach((bop) => {
       if (!fieldable.has(bop.car)) {
         problems.push(appErrorInfo('series.bop.notEligible', { entry: entry.id, car: bop.car }));
@@ -140,6 +154,11 @@ export const validateSeries = (series: Championship): AppErrorInfo[] => {
       if (!entryIds.has(override.entry)) {
         problems.push(appErrorInfo('series.entry.unknown', {
           series: series.id, round: round.id, entry: override.entry,
+        }));
+      }
+      if (override.eligibility.kind === 'spec' && !isKnownSpec(override.eligibility.spec, catalogue)) {
+        problems.push(appErrorInfo('series.round.specUnknown', {
+          round: round.id, entry: override.entry, spec: override.eligibility.spec,
         }));
       }
     });
@@ -199,21 +218,23 @@ export const validateSeries = (series: Championship): AppErrorInfo[] => {
  * differing is how results stop comparing.
  * @param series The championship to check
  * @param content Installed content to check against
+ * @param catalogue The class catalogue specs resolve against
  * @returns What it needs and whether it has it
  */
 export const seriesAvailability = (
   series: Championship,
   content: Content,
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
 ): SeriesAvailability => {
-  const problems = validateSeries(series);
-  const entries = series.entries.map((entry) => availabilityOf(entry, content));
+  const problems = validateSeries(series, catalogue);
+  const entries = series.entries.map((entry) => availabilityOf(entry, content, catalogue));
   const needed = fieldSize(series);
 
   const rounds: RoundAvailability[] = series.rounds.map((round) => {
     const track = findLayout(content, round.track);
     const overridden = series.entries
       .filter((entry) => round.eligibility?.some((override) => override.entry === entry.id))
-      .map((entry) => availabilityOf(entry, content, round));
+      .map((entry) => availabilityOf(entry, content, catalogue, round));
 
     return {
       round: round.id,
@@ -237,7 +258,7 @@ export const seriesAvailability = (
     problems,
     entries,
     rounds,
-    requires: requirementsOf(series),
+    requires: requirementsOf(series, catalogue),
   };
 };
 
@@ -250,10 +271,15 @@ export const seriesAvailability = (
  * already been shown comes back the same next time it is looked at.
  * @param request Which round of which championship, and the player's car
  * @param content Installed content to resolve eligibility against
+ * @param catalogue The class catalogue specs resolve against
  * @returns A race definition, ready for validateRace and planWeekend
  * @throws When the round, entry or car cannot be raced
  */
-export const roundRace = (request: RoundRaceRequest, content: Content): RaceDefinition => {
+export const roundRace = (
+  request: RoundRaceRequest,
+  content: Content,
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+): RaceDefinition => {
   const { series, car } = request;
   const round = roundOf(series, request.round);
   const playerEntry = entryOf(series, request.entry);
@@ -267,13 +293,14 @@ export const roundRace = (request: RoundRaceRequest, content: Content): RaceDefi
     });
   }
 
-  const allowed = eligibleCars(eligibilityFor(playerEntry, round), content);
+  const allowed = eligibleCars(eligibilityFor(playerEntry, round), content, catalogue);
   if (!allowed.some((eligible) => eligible.id === car.model)) {
     throw new AppError('series.car.notEligible', { car: car.model, entry: playerEntry.name });
   }
 
   const opponents: CarEntry[] = series.entries.flatMap((entry) => {
-    const models = eligibleCars(eligibilityFor(entry, round), content).map((eligible) => eligible.id);
+    const models = eligibleCars(eligibilityFor(entry, round), content, catalogue)
+      .map((eligible) => eligible.id);
     if (models.length === 0) {
       throw new AppError('series.entry.noCars', { entry: entry.id });
     }

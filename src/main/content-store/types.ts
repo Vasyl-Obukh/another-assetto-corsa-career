@@ -4,6 +4,7 @@ import type {
   Car,
   CarFacets,
   CarQuery,
+  ClassCatalogue,
   Content,
   ContentChange,
   ContentIssue,
@@ -109,6 +110,15 @@ export interface ContentStore {
    * @param added The folder IDs the user added
    */
   include(added: AddedContent): void;
+  /**
+   * Hands the store the class catalogue, resolved over the user's own layer.
+   *
+   * Called at startup and whenever the user's layer changes. Like include(), it
+   * says nothing to listeners - the class store's own push is what tells the
+   * browsers to ask again.
+   * @param catalogue The catalogue class and spec filters answer from
+   */
+  classify(catalogue: ClassCatalogue): void;
   /**
    * The install the store is pointed at.
    * @returns The AC content directory, or null when it is not located

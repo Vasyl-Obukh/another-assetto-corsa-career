@@ -4,10 +4,13 @@ import {
 
 import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
 import type { CarBrowser, CarCriteria } from './types.ts';
-import { carQueryKey, isCarFiltered, toCarQuery } from './utils.ts';
+import {
+  carQueryKey, isCarFiltered, toCarQuery, withKnownClasses,
+} from './utils.ts';
 import type { CarFacets, CarQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
+import { useClasses } from '@/app';
 import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 import { invoke, subscribe } from '@/lib/ipc';
 
@@ -27,9 +30,17 @@ export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser =>
   const [memory] = useState(() => readBrowserMemory<CarCriteria>(memoryId));
 
   const [search, setSearch] = useState(memory.search);
-  const [criteria, setCriteria] = useState<CarCriteria>(memory.criteria ?? EMPTY_CRITERIA);
+  const [picked, setCriteria] = useState<CarCriteria>(memory.criteria ?? EMPTY_CRITERIA);
   const [facets, setFacets] = useState<CarFacets | null>(null);
   const [stale, setStale] = useState(false);
+  // Bumped when the class catalogue changes, which moves the class and spec
+  // counts without the query itself changing.
+  const [classified, setClassified] = useState(0);
+
+  // Read through the catalogue rather than as picked, since a class or spec of
+  // the user's can be deleted while this browser has it ticked.
+  const { catalogue } = useClasses();
+  const criteria = useMemo(() => withKnownClasses(picked, catalogue), [picked, catalogue]);
 
   const settled = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   // Serialised rather than depended on directly, since a picker rebuilds its
@@ -60,7 +71,7 @@ export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser =>
     );
 
     return () => { live = false; };
-  }, [query]);
+  }, [query, classified]);
 
   // Written to a module store rather than lifted into a provider: nothing
   // renders from it, and the only reader is the next mount of this browser.
@@ -82,10 +93,24 @@ export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser =>
   // asked for. Past that, yanking a scrolled grid back to the top is worse than
   // a button, so the screen is only told that what it has is out of date.
   const shallow = list.items.length <= PAGE_SIZE;
-  useEffect(() => subscribe('content:changed', () => {
-    if (shallow) refresh();
-    else setStale(true);
-  }), [shallow, refresh]);
+  useEffect(() => {
+    const follow = (): void => {
+      if (shallow) refresh();
+      else setStale(true);
+    };
+    const offContent = subscribe('content:changed', follow);
+    // A car classified elsewhere can join or leave a class or spec filter, so the
+    // list follows the same rule; the counts always refetch.
+    const offClasses = subscribe('classes:changed', () => {
+      setClassified((n) => n + 1);
+      follow();
+    });
+
+    return () => {
+      offContent();
+      offClasses();
+    };
+  }, [shallow, refresh]);
 
   return {
     search,

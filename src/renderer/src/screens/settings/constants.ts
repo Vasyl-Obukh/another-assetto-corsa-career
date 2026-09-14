@@ -10,6 +10,7 @@ import { path } from '@/lib/routes';
 export const SETTINGS_TABS: readonly SettingsTab[] = [
   { to: path.settings(), label: 'settings.tabs.general', end: true },
   { to: path.settingsContent(), label: 'settings.tabs.content', end: false },
+  { to: path.settingsClasses(), label: 'settings.tabs.classes', end: false },
 ];
 
 /**

@@ -1,7 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import { EMPTY_CRITERIA } from '../constants.ts';
-import { carQueryKey, isCarFiltered, toCarQuery } from '../utils.ts';
+import {
+  carQueryKey, isCarFiltered, toCarQuery, withKnownClasses,
+} from '../utils.ts';
 
 describe('renderer/hooks/use-car-browser/utils', () => {
   describe('toCarQuery', () => {
@@ -89,6 +92,37 @@ describe('renderer/hooks/use-car-browser/utils', () => {
 
     it('is false once the toggle has been turned off again', () => {
       expect(isCarFiltered({ hasSkins: undefined }, '')).toBe(false);
+    });
+  });
+
+  describe('withKnownClasses', () => {
+    const [shippedClass] = SHIPPED_CATALOGUE.classes;
+    const shippedSpec = shippedClass.specs[0];
+
+    // A user's own spec can be deleted while a browser remembers it ticked, and
+    // a spec that is gone matched no car and was listed nowhere to untick.
+    it('drops a class or spec the catalogue no longer has', () => {
+      const criteria = { classes: [shippedClass.id, 'gone-class'], specs: ['gone-spec', shippedSpec] };
+
+      expect(withKnownClasses(criteria, SHIPPED_CATALOGUE))
+        .toEqual({ classes: [shippedClass.id], specs: [shippedSpec] });
+    });
+
+    it('keeps one of the user\'s own while it still exists', () => {
+      const catalogue = resolveCatalogue({
+        version: 1, classes: [{ id: 'mine', name: 'Mine' }], specs: [], cars: {},
+      });
+
+      expect(withKnownClasses({ classes: ['mine'] }, catalogue)).toEqual({ classes: ['mine'] });
+    });
+
+    // The query is memoised on the criteria, so a new object every time would
+    // refetch the list for nothing.
+    it('hands back the very criteria it was given when nothing is dropped', () => {
+      const criteria = { brands: ['Ferrari'], specs: [shippedSpec] };
+
+      expect(withKnownClasses(criteria, SHIPPED_CATALOGUE)).toBe(criteria);
+      expect(withKnownClasses(EMPTY_CRITERIA, SHIPPED_CATALOGUE)).toBe(EMPTY_CRITERIA);
     });
   });
 });

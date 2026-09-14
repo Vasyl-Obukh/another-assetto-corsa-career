@@ -6,6 +6,20 @@
 // Object.values() is why no separate list of them exists.
 export { CarClass, CarSpec } from './car-classes.ts';
 
+export type {
+  CatalogueClass,
+  CatalogueSpec,
+  ClassCatalogue,
+  ClassCommandResult,
+  ClassId,
+  ClassificationOrigin,
+  ClassLayer,
+  ClassOrigin,
+  SpecId,
+  UserCarClass,
+  UserCarSpec,
+} from './car-classes.ts';
+
 export {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';

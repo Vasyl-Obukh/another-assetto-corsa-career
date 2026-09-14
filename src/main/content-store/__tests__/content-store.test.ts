@@ -9,6 +9,7 @@ import {
 } from './fixtures.ts';
 import { contentWatchDirs, rescanContent } from '../../../core/content/index.ts';
 import { CONTENT_CATALOGUE_VERSION } from '../../../core/content-catalogue/index.ts';
+import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
 import { CONTENT_CACHE_VERSION, WATCH_DEBOUNCE_MS } from '../constants.ts';
 import { createContentStore } from '../content-store.ts';
 
@@ -244,6 +245,29 @@ describe('main/content-store', () => {
       store.include({ cars: ['car_a'], tracks: [] });
 
       expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('classify', () => {
+    const catalogue = resolveCatalogue({
+      version: 1,
+      classes: [{ id: 'user-class', name: 'Hillclimb' }],
+      specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
+      cars: { my_mod: ['user-spec'] },
+    });
+
+    it('filters and counts classes through the catalogue it was handed, without scanning again', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.include({ cars: ['my_mod'], tracks: [] });
+      await expect(store.cars({ specs: ['user-spec'] })).resolves.toMatchObject({ total: 0 });
+
+      store.classify(catalogue);
+      await expect(store.cars({ specs: ['user-spec'] })).resolves.toMatchObject({ total: 1 });
+      await expect(store.carFacets({})).resolves.toMatchObject({ classes: [{ value: 'user-class', count: 1 }] });
+      expect(rescanMock).toHaveBeenCalledTimes(1);
     });
   });
 

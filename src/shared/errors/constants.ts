@@ -104,6 +104,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.entry.notFound': 'Class entry not found in {{series}}: {{entry}}',
   'series.entry.unknown': 'Round {{round}} overrides a class entry {{series}} does not have: {{entry}}',
   'series.entry.noCars': 'Class entry {{entry}} names no cars',
+  'series.spec.unknown': 'Class entry {{entry}} races on a spec the class catalogue does not have: {{spec}}',
+  'series.round.specUnknown':
+    'Round {{round}} moves class entry {{entry}} onto a spec the class catalogue does not have: {{spec}}',
   'series.seats.empty': 'Class entry {{entry}} has no seats; it must field at least one car',
   'series.seat.teamUnknown': 'Seat {{seat}} is fielded by a team {{series}} does not have: {{team}}',
   'series.seat.carNotEligible': 'Seat {{seat}} is pinned to a car its class cannot field: {{car}}',
@@ -136,6 +139,21 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.weekendInProgress':
     'Round {{round}} of {{series}} is part-way through. Finish that weekend, or reset it, before editing the championship.',
   'series.save.unreadable': 'Championship {{series}} could not be saved: {{reason}}',
+
+  'classes.car.specUnknown': 'There is no spec {{spec}} to put {{car}} in.',
+  'classes.car.classClash': '{{car}} cannot race in two specs of {{class}} at once.',
+  'classes.name.empty': 'It needs a name.',
+  'classes.name.taken': 'The name {{name}} is already taken.',
+  'classes.class.shipped': '{{class}} is a class the app ships, so it cannot be changed or deleted.',
+  'classes.class.notFound': 'There is no class of yours with the id {{class}}.',
+  'classes.class.notEmpty': '{{class}} still has specs. Delete those first.',
+  'classes.spec.shipped': '{{spec}} is a spec the app ships, so it cannot be changed or deleted.',
+  'classes.spec.notFound': 'There is no spec of yours with the id {{spec}}.',
+  'classes.spec.classUnknown': 'There is no class {{class}} to put {{spec}} in.',
+  'classes.spec.classClash':
+    '{{spec}} cannot move into {{class}}: {{car}} already races in a spec of that class.',
+  'classes.spec.inUse': '{{spec}} is raced by {{series}}. Change that championship first.',
+  'classes.writeFailed': 'The class catalogue could not be saved: {{reason}}',
 
   'run.inFlight': 'A race is already running. Wait for it to finish, or cancel it first.',
   'run.notPlanned':

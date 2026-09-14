@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CarListField } from './CarListField.tsx';
-import { MIN_MODELS, SPEC_GROUPS } from './constants.ts';
+import { MIN_MODELS } from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { DEFAULT_MIN_MODELS } from '../../../../shared/constants';
-import type { CarSpec, Eligibility } from '../../../../shared/types';
-import {
-  carClassName, carSpecName, carSpecsOf, SPECS,
-} from '../../../../shared/utils/car-classes';
+import type { ClassCatalogue, Eligibility, SpecId } from '../../../../shared/types';
+import { carSpecName, carSpecsOf } from '../../../../shared/utils/car-classes';
+import { useClasses } from '@/app';
 import { CarPicker } from '@/components';
 import {
   Select,
@@ -38,12 +37,13 @@ const KINDS: Eligibility['kind'][] = ['spec', 'cars'];
  * spec in the catalogue otherwise, because Eligibility has no way to say "a
  * spec, not chosen yet".
  * @param cars The cars the rule named, if it named any
+ * @param catalogue The class catalogue to look the cars up in
  * @returns The spec to start from
  */
-const specFor = (cars: readonly string[]): CarSpec => {
-  const [first] = cars.flatMap((car) => [...carSpecsOf(car)]);
+const specFor = (cars: readonly string[], catalogue: ClassCatalogue): SpecId => {
+  const [first] = cars.flatMap((car) => [...carSpecsOf(car, catalogue)]);
 
-  return first ?? (Object.keys(SPECS) as CarSpec[])[0];
+  return first ?? catalogue.specById.keys().next().value ?? '';
 };
 
 interface EligibilityFieldProps {
@@ -83,6 +83,7 @@ export const EligibilityField = ({
   idPrefix, eligibility, locked, nameOf, onChange,
 }: EligibilityFieldProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
   const [picking, setPicking] = useState(false);
 
   const cars = eligibility.kind === 'cars' ? eligibility.cars : [];
@@ -99,7 +100,7 @@ export const EligibilityField = ({
               // writing thirty catalogue ids into the document is a decision,
               // and one nobody asked for.
               if (value === 'cars') onChange({ kind: 'cars', cars: [] });
-              else onChange({ kind: 'spec', spec: specFor(cars) });
+              else onChange({ kind: 'spec', spec: specFor(cars, catalogue) });
             }}
           >
             <SelectTrigger id={`${idPrefix}-kind`} className="w-full">
@@ -121,17 +122,20 @@ export const EligibilityField = ({
               <Select
                 value={eligibility.spec}
                 disabled={locked}
-                onValueChange={(spec) => onChange({ ...eligibility, spec: spec as CarSpec })}
+                onValueChange={(spec) => onChange({ ...eligibility, spec })}
               >
                 <SelectTrigger id={`${idPrefix}-spec`} className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SPEC_GROUPS.map((group) => (
-                    <SelectGroup key={group.carClass}>
-                      <SelectLabel>{carClassName(group.carClass)}</SelectLabel>
+                  {/* Grouped by class: a flat list of over a hundred specs is
+                      unreadable, and the class is the grouping a reader already
+                      knows the names of. A class with no specs has nothing to offer. */}
+                  {catalogue.classes.filter((group) => group.specs.length > 0).map((group) => (
+                    <SelectGroup key={group.id}>
+                      <SelectLabel>{group.name}</SelectLabel>
                       {group.specs.map((spec) => (
-                        <SelectItem key={spec} value={spec}>{carSpecName(spec)}</SelectItem>
+                        <SelectItem key={spec} value={spec}>{carSpecName(spec, catalogue)}</SelectItem>
                       ))}
                     </SelectGroup>
                   ))}

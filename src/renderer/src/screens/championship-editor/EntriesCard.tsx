@@ -12,6 +12,7 @@ import {
 } from './utils.ts';
 import type { Championship, SeriesAvailability } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
+import { useClasses } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import type { RowEditState } from '@/hooks';
 import { moveAt } from '@/screens/race';
@@ -51,6 +52,7 @@ export const EntriesCard = ({
   series, checked, rows, locked, nameOf, onChange,
 }: EntriesCardProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
   // What eligibility changes took off each class, so changing back restores it.
   const [aside, setAside] = useState<SetAside>({});
   const seats = series.entries.reduce((total, entry) => total + entry.seats.length, 0);
@@ -78,13 +80,13 @@ export const EntriesCard = ({
           count={series.entries.length}
           availability={checked?.entries.find((one) => one.entry === entry.id)}
           teams={series.teams ?? []}
-          fieldable={[...fieldableCars(series, entry)]}
+          fieldable={[...fieldableCars(series, entry, catalogue)]}
           locked={locked}
           rows={rows}
           nameOf={nameOf}
           onChange={(next) => onChange(withEntry(series, entry.id, next))}
           onEligibility={(next) => {
-            const narrowed = withEntryEligibility(series, entry.id, next, aside);
+            const narrowed = withEntryEligibility(series, entry.id, next, catalogue, aside);
             setAside(narrowed.aside);
             onChange(narrowed.series);
           }}

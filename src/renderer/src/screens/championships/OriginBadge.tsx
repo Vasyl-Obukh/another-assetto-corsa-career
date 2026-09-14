@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { ORIGIN_TAG_CLASS } from './constants.ts';
 import type { SeriesOrigin } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
+import { ORIGIN_ACCENT } from '@/lib/accents';
 
 interface OriginBadgeProps {
   /**
@@ -20,6 +20,6 @@ export const OriginBadge = ({ origin }: OriginBadgeProps) => {
   if (origin === 'shipped') return null;
 
   return (
-    <Badge className={ORIGIN_TAG_CLASS[origin]}>{t(`championships.origin.${origin}`)}</Badge>
+    <Badge className={ORIGIN_ACCENT[origin]}>{t(`championships.origin.${origin}`)}</Badge>
   );
 };

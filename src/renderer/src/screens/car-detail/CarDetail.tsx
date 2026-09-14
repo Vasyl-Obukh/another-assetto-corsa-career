@@ -1,8 +1,10 @@
-import { CarIcon } from 'lucide-react';
+import { CarIcon, TagsIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
+import { ClassifyDialog } from './ClassifyDialog.tsx';
 import { SKIN_GRID, SKIN_SKELETON_COUNT } from './constants.ts';
 import { SkinCard } from './SkinCard.tsx';
 import { carBadgeUrl, isSafeSegment } from '../../../../shared/utils/content-url';
@@ -22,6 +24,7 @@ export const CarDetail = () => {
   const { formatNumber, formatYear } = useFormat();
   const { id = '' } = useParams<PathParam<typeof ROUTE.car>>();
   const detail = useCarDetail(id);
+  const [classifying, setClassifying] = useState(false);
 
   const { car, skins } = detail;
 
@@ -53,12 +56,21 @@ export const CarDetail = () => {
                   <Badge variant="outline">{formatYear(car.year)}</Badge>
                 ) : null}
                 <ProvenanceBadges provenance={car.provenance} carId={car.id} />
-                <SpecBadge carId={car.id} />
+                <SpecBadge carId={car.id} showUnclassified />
               </div>
             </div>
+
+            <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={() => setClassifying(true)}>
+              <TagsIcon />
+              {t('cars.classify.open')}
+            </Button>
           </div>
         ) : null}
       </ScreenHeader>
+
+      {car !== null && classifying ? (
+        <ClassifyDialog carId={car.id} carName={car.name} onClose={() => setClassifying(false)} />
+      ) : null}
 
       {detail.error !== null ? (
         <ErrorCard error={detail.error} onDismiss={detail.dismissError} />

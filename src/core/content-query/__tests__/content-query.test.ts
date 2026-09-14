@@ -2,9 +2,24 @@ import { describe, expect, it } from '@jest/globals';
 
 import { makeCars, makeTrackEntry, makeTracks } from './fixtures.ts';
 import { CarClass } from '../../../shared/types/index.ts';
+import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
 import {
   carFacets, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
+
+const USER_CLASS = 'user-class';
+const USER_SPEC = 'user-spec';
+
+/**
+ * A catalogue where the user took the Porsche off its grid and classified the
+ * mod the shipped tables do not name.
+ */
+const USER_CATALOGUE = resolveCatalogue({
+  version: 1,
+  classes: [{ id: USER_CLASS, name: 'Hillclimb' }],
+  specs: [{ id: USER_SPEC, name: 'Hillclimb (2020s)', class: USER_CLASS }],
+  cars: { ks_porsche_911_gt3_r_2016: [], nameless_mod: [USER_SPEC] },
+});
 
 /**
  * Reads the IDs off a page, which is what most of these assertions compare.
@@ -89,6 +104,12 @@ describe('core/content-query', () => {
 
     it('clamps the limit rather than serving whatever was asked for', () => {
       expect(queryCars(makeCars(), { limit: 1_000_000 }).limit).toBe(500);
+    });
+
+    it('filters on classes and specs through the catalogue it is handed', () => {
+      expect(ids(queryCars(makeCars(), { classes: [USER_CLASS] }, USER_CATALOGUE))).toEqual(['nameless_mod']);
+      expect(ids(queryCars(makeCars(), { specs: [USER_SPEC] }, USER_CATALOGUE))).toEqual(['nameless_mod']);
+      expect(ids(queryCars(makeCars(), { classes: [CarClass.GT3] }, USER_CATALOGUE))).toEqual([]);
     });
   });
 
@@ -216,6 +237,13 @@ describe('core/content-query', () => {
     it('narrows on a search as well as on a filter', () => {
       expect(carFacets(makeCars(), { search: 'porsche' }).brands)
         .toEqual([{ value: 'Porsche', count: 1 }]);
+    });
+
+    it('counts classes and specs through the catalogue it is handed', () => {
+      const facets = carFacets(makeCars(), {}, USER_CATALOGUE);
+
+      expect(facets.classes).toEqual([{ value: USER_CLASS, count: 1 }]);
+      expect(facets.specs).toEqual([{ value: USER_SPEC, count: 1 }]);
     });
   });
 

@@ -27,6 +27,7 @@ export const ROUTE = {
   diagnostics: '/diagnostics',
   settings: '/settings',
   settingsContent: '/settings/content',
+  settingsClasses: '/settings/classes',
 } as const;
 
 /**

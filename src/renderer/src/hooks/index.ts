@@ -3,6 +3,8 @@ export type { CarBrowser, CarCriteria } from './use-car-browser/index.ts';
 export { useCarDetail } from './use-car-detail/index.ts';
 export type { CarDetail } from './use-car-detail/index.ts';
 export { useCarNames } from './use-car-names/index.ts';
+export { useClassCommands } from './use-class-commands/index.ts';
+export type { ClassCommandsState } from './use-class-commands/index.ts';
 export { useChampionship } from './use-championship/index.ts';
 export type { ChampionshipState } from './use-championship/index.ts';
 export { useChampionships } from './use-championships/index.ts';

@@ -1,11 +1,14 @@
 // Reading a championship off disk, and writing one back.
 //
 // This is the job a TypeScript library did not have. Authored as a constant,
-// CarSpec.GT3_2010S was a real reference and a renamed spec was a compile
-// error. A JSON file carries the string "gt3-2010s" instead, and a typo would
-// index SPEC_CARS to undefined without a word said - reading as a class nobody
-// owns rather than as a mistake. So what the compiler used to do happens here,
-// at load, and is reported the way validateSeries reports.
+// Discipline.SPORTSCAR is a real reference and a renamed member is a compile
+// error. A JSON file carries the string "sportscar" instead, and a typo would
+// fail quietly somewhere far from the file. So what the compiler used to do
+// happens here, at load, and is reported the way validateSeries reports.
+//
+// A spec is the exception. The user may make their own, so the set a spec
+// belongs to is only known once their class layer is resolved - which is why
+// validateSeries checks it, against the catalogue it is handed.
 //
 // Two layers on purpose. This one answers "is this a Championship at all", and
 // validateSeries answers "is it a coherent one". A file that fails here never
@@ -35,9 +38,10 @@ export { SERIES_FILE_EXTENSION } from './constants.ts';
  * Reads a championship out of parsed JSON.
  *
  * Shallow where the shape is obvious and deep where a value has a closed set
- * behind it: every string that indexes a catalogue - a spec, a discipline, a
+ * behind it: every string that indexes a closed catalogue - a discipline, a
  * session type, a weather type - is checked against that catalogue's own
- * members, because those are the ones that fail quietly rather than loudly.
+ * members, because those are the ones that fail quietly rather than loudly. A
+ * spec is checked for shape only, since the user may have made it.
  *
  * Structural only. Whether the championship makes sense is validateSeries, and
  * whether the library can race it is seriesAvailability.

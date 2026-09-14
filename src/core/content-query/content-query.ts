@@ -10,19 +10,22 @@ import {
 import type { SortValue } from './utils.ts';
 import type {
   Car,
-  CarClass,
   CarFacets,
   CarQuery,
   CarSortKey,
-  CarSpec,
+  ClassCatalogue,
+  ClassId,
   Page,
+  SpecId,
   Track,
   TrackFacets,
   TrackGroup,
   TrackQuery,
   TrackSortKey,
 } from '../../shared/types/index.ts';
-import { carClassesOf, carSpecsOf, classOfSpec } from '../../shared/utils/car-classes/index.ts';
+import {
+  carClassesOf, carSpecsOf, classOfSpec, SHIPPED_CATALOGUE,
+} from '../../shared/utils/car-classes/index.ts';
 
 /**
  * A named test an entry has to pass, so a facet can leave its own one out.
@@ -56,9 +59,10 @@ const TRACK_SORTS: Record<TrackSortKey, (group: TrackGroup) => SortValue> = {
 /**
  * Builds the tests a car has to pass, one per filter the query can set.
  * @param query What the caller asked for
+ * @param catalogue The class catalogue classes and specs resolve against
  * @returns The tests, keyed by the filter they come from
  */
-const carFilters = (query: CarQuery): Filters<Car> => {
+const carFilters = (query: CarQuery, catalogue: ClassCatalogue): Filters<Car> => {
   const terms = searchTerms(query.search);
 
   return {
@@ -68,8 +72,8 @@ const carFilters = (query: CarQuery): Filters<Car> => {
     countries: (car) => isOneOf(car.country, query.countries),
     // A car races on as many grids as the catalogue gives it, so these two ask
     // whether any of its values was picked rather than whether its one value was.
-    classes: (car) => hasAnyOf(carClassesOf(car.id), query.classes),
-    specs: (car) => hasAnyOf(carSpecsOf(car.id), query.specs),
+    classes: (car) => hasAnyOf(carClassesOf(car.id, catalogue), query.classes),
+    specs: (car) => hasAnyOf(carSpecsOf(car.id, catalogue), query.specs),
     sources: (car) => isOneOf(car.provenance.source, query.sources),
     packs: (car) => isOneOf(car.provenance.pack, query.packs),
     makers: (car) => isOneOf(car.provenance.maker, query.makers),
@@ -122,10 +126,15 @@ const applyFilters = <T>(
  * Filters, sorts and pages a car list.
  * @param cars Every installed car
  * @param query What to search, filter, sort and page by
+ * @param catalogue The class catalogue classes and specs resolve against
  * @returns One page, with the full match count beside it
  */
-export const queryCars = (cars: readonly Car[], query: CarQuery = {}): Page<Car> => {
-  const matched = applyFilters(cars, carFilters(query));
+export const queryCars = (
+  cars: readonly Car[],
+  query: CarQuery = {},
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+): Page<Car> => {
+  const matched = applyFilters(cars, carFilters(query, catalogue));
   const sorted = sortBy(matched, CAR_SORTS[query.sort ?? 'name'], (car) => car.name, query.direction);
 
   return paginate(sorted, query.offset, query.limit);
@@ -165,10 +174,15 @@ export const queryTracks = (
  * independent dimensions - see below.
  * @param cars Every installed car
  * @param query The filters currently applied
+ * @param catalogue The class catalogue classes and specs resolve against
  * @returns Counts per brand, country, class, spec, provenance and year
  */
-export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets => {
-  const filters = carFilters(query);
+export const carFacets = (
+  cars: readonly Car[],
+  query: CarQuery = {},
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+): CarFacets => {
+  const filters = carFilters(query, catalogue);
   const without = (except: string): Car[] => applyFilters(cars, filters, except);
 
   // Every other facet counts whatever the surviving entries carry, but a car
@@ -178,20 +192,22 @@ export const carFacets = (cars: readonly Car[], query: CarQuery = {}): CarFacets
   // together. So the pair narrows each other - pick a class and the spec list is
   // that class's grids, pick a spec and the class list is the class it sits in.
   const pickedClasses = query.classes ?? [];
-  const pickedSpecClasses = new Set((query.specs ?? []).map(classOfSpec));
+  const pickedSpecClasses = new Set((query.specs ?? []).map((spec) => classOfSpec(spec, catalogue)));
 
-  const inPickedClass = (spec: CarSpec): boolean => (
-    pickedClasses.length === 0 || pickedClasses.includes(classOfSpec(spec))
-  );
-  const inPickedSpecClass = (carClass: CarClass): boolean => (
+  const inPickedClass = (spec: SpecId): boolean => {
+    const carClass = classOfSpec(spec, catalogue);
+
+    return pickedClasses.length === 0 || (carClass !== null && pickedClasses.includes(carClass));
+  };
+  const inPickedSpecClass = (carClass: ClassId): boolean => (
     pickedSpecClasses.size === 0 || pickedSpecClasses.has(carClass)
   );
 
   return {
     brands: countValues(without('brands'), (car) => [car.brand]),
     countries: countValues(without('countries'), (car) => [car.country]),
-    classes: countValues(without('classes'), (car) => carClassesOf(car.id).filter(inPickedSpecClass)),
-    specs: countValues(without('specs'), (car) => carSpecsOf(car.id).filter(inPickedClass)),
+    classes: countValues(without('classes'), (car) => carClassesOf(car.id, catalogue).filter(inPickedSpecClass)),
+    specs: countValues(without('specs'), (car) => carSpecsOf(car.id, catalogue).filter(inPickedClass)),
     sources: countValues(without('sources'), (car) => [car.provenance.source]),
     packs: countValues(without('packs'), (car) => [car.provenance.pack]),
     makers: countValues(without('makers'), (car) => [car.provenance.maker]),

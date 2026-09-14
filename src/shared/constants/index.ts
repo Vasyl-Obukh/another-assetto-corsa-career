@@ -17,6 +17,8 @@ export {
 
 export { DEFAULT_ASSISTS, DRIVING_AID_FLAGS, DRIVING_AID_NUMBERS } from './assists.ts';
 
+export { CLASS_LAYER_VERSION, EMPTY_CLASS_LAYER } from './car-classes.ts';
+
 export { CM_FLAGS, RACE_INI_TEST_MODE } from './cm-arguments.ts';
 
 export { CONTENT_ISSUE_REASONS } from './content-issues.ts';

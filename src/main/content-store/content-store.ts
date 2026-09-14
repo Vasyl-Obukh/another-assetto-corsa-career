@@ -28,8 +28,9 @@ import {
 } from '../../core/content-query/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
-  AddedContent, CarQuery, Content, ContentChange, TrackQuery,
+  AddedContent, CarQuery, ClassCatalogue, Content, ContentChange, TrackQuery,
 } from '../../shared/types/index.ts';
+import { SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 
 export type { ContentCache, ContentStore } from './types.ts';
 
@@ -60,6 +61,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
   // its hidden counts follow the user's list, which moves without a scan.
   let cached: boolean | null = null;
   let added: AddedContent = { cars: [], tracks: [] };
+  let catalogue: ClassCatalogue = SHIPPED_CATALOGUE;
   let checked = false;
   let checkedAt = 0;
   let running: Promise<ContentScan> | null = null;
@@ -232,6 +234,10 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       added = next;
     },
 
+    classify(next) {
+      catalogue = next;
+    },
+
     contentDir: () => dir,
 
     async summary(force = false) {
@@ -242,7 +248,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async cars(query) {
-      return queryCars(collection((await current()).content, query).cars, query);
+      return queryCars(collection((await current()).content, query).cars, query, catalogue);
     },
 
     async car(id) {
@@ -264,7 +270,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async carFacets(query) {
-      return carFacets(collection((await current()).content, query).cars, query);
+      return carFacets(collection((await current()).content, query).cars, query, catalogue);
     },
 
     async trackFacets(query) {

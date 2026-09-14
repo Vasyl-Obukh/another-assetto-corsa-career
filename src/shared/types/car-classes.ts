@@ -156,3 +156,181 @@ export enum CarSpec {
   TRANS_AM_TA2 = 'trans-am-ta2',
   SPORTS_PROTOTYPE_60S = 'sports-prototype-60s',
 }
+
+// The catalogue above is the shipped layer. The user's own sits over it,
+// resolved at runtime: classes and specs of their own beside ours, and a car's
+// specs restated wherever they disagree with what we ship. So a class or spec
+// is addressed by a string rather than by the enum - a CarClass value, or the
+// id main minted for one the user made.
+
+/**
+ * A class, addressed by id: a CarClass value, or a user class's own id.
+ */
+export type ClassId = string;
+
+/**
+ * A spec, addressed by id: a CarSpec value, or a user spec's own id.
+ */
+export type SpecId = string;
+
+/**
+ * Whether a class or spec is one the app ships or one the user made.
+ */
+export type ClassOrigin = 'shipped' | 'user';
+
+/**
+ * Where a car's specs came from.
+ *
+ * `adjusted` is a car the shipped catalogue classifies and the user restated,
+ * `user` one only the user classifies - the same three words a championship's
+ * origin uses, because they answer the same question about a different thing.
+ */
+export type ClassificationOrigin = 'shipped' | 'adjusted' | 'user';
+
+/**
+ * A class the user made.
+ */
+export interface UserCarClass {
+  /**
+   * Its id, minted by main and never changed.
+   */
+  id: ClassId;
+  /**
+   * What it is called.
+   */
+  name: string;
+}
+
+/**
+ * A spec the user made.
+ */
+export interface UserCarSpec {
+  /**
+   * Its id, minted by main and never changed.
+   */
+  id: SpecId;
+  /**
+   * What it is called.
+   */
+  name: string;
+  /**
+   * The class it belongs to - shipped or the user's own.
+   */
+  class: ClassId;
+}
+
+/**
+ * The user's layer over the shipped class catalogue, as written to
+ * car-classes.json.
+ */
+export interface ClassLayer {
+  /**
+   * Format version. Stays 1 until the app is released.
+   */
+  version: number;
+  /**
+   * Classes the user made, in the order they were made.
+   */
+  classes: UserCarClass[];
+  /**
+   * Specs the user made, in the order they were made.
+   */
+  specs: UserCarSpec[];
+  /**
+   * Car folder ID to the specs it races in. Replaces whatever the app ships for
+   * that car, and an empty list is a car deliberately left unclassified.
+   */
+  cars: Record<string, SpecId[]>;
+}
+
+/**
+ * What a command on the user's class layer answers with.
+ */
+export interface ClassCommandResult {
+  /**
+   * The layer as it now stands.
+   */
+  layer: ClassLayer;
+  /**
+   * The class or spec the command left the user looking at, or null.
+   */
+  id: string | null;
+}
+
+/**
+ * One class of the resolved catalogue.
+ */
+export interface CatalogueClass {
+  /**
+   * Its id.
+   */
+  id: ClassId;
+  /**
+   * What it is called.
+   */
+  name: string;
+  /**
+   * Whether the app ships it or the user made it.
+   */
+  origin: ClassOrigin;
+  /**
+   * Every spec of it, shipped ones first.
+   */
+  specs: readonly SpecId[];
+}
+
+/**
+ * One spec of the resolved catalogue.
+ */
+export interface CatalogueSpec {
+  /**
+   * Its id.
+   */
+  id: SpecId;
+  /**
+   * What it is called.
+   */
+  name: string;
+  /**
+   * The class it belongs to.
+   */
+  class: ClassId;
+  /**
+   * Whether the app ships it or the user made it.
+   */
+  origin: ClassOrigin;
+}
+
+/**
+ * The shipped class catalogue with the user's layer resolved over it.
+ *
+ * A value rather than module state, so main and the renderer each build their
+ * own from the same layer and nothing reads a catalogue it was not handed.
+ */
+export interface ClassCatalogue {
+  /**
+   * Every class, the shipped ones first in catalogue order.
+   */
+  classes: readonly CatalogueClass[];
+  /**
+   * Class id to its class.
+   */
+  classById: ReadonlyMap<ClassId, CatalogueClass>;
+  /**
+   * Spec id to its spec.
+   */
+  specById: ReadonlyMap<SpecId, CatalogueSpec>;
+  /**
+   * Spec id to the car folder IDs racing in it, in the order a field draws
+   * from them.
+   */
+  carsBySpec: ReadonlyMap<SpecId, readonly string[]>;
+  /**
+   * Car folder ID to the specs it races in.
+   */
+  specsByCar: ReadonlyMap<string, readonly SpecId[]>;
+  /**
+   * Car folder IDs whose specs the user restated.
+   */
+  overridden: ReadonlySet<string>;
+}

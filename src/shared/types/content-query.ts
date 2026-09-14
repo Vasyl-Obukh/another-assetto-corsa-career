@@ -2,7 +2,7 @@
 // boundary, so a browser screen asks main for one page rather than holding a
 // copy of a mod library that runs to thousands of entries.
 
-import type { CarClass, CarSpec } from './car-classes.ts';
+import type { ClassId, SpecId } from './car-classes.ts';
 import type {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
@@ -97,11 +97,11 @@ export interface CarQuery {
   /**
    * Keep only cars in these classes - the coarse family, across every era of it.
    */
-  classes?: CarClass[];
+  classes?: ClassId[];
   /**
    * Keep only cars racing in these specs.
    */
-  specs?: CarSpec[];
+  specs?: SpecId[];
   /**
    * Earliest model year, inclusive. Cars with no year are excluded when set.
    */

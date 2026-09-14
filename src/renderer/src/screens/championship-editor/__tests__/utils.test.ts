@@ -4,6 +4,7 @@ import { Discipline } from '../../../../../shared/types';
 import type {
   Championship, ClassEntry, Round, SeriesSession, WeekendFormat,
 } from '../../../../../shared/types';
+import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import { DEFAULT_POINTS, DEFAULT_TIER } from '../constants.ts';
 import {
   bopScope,
@@ -311,7 +312,7 @@ describe('renderer/screens/championship-editor/utils', () => {
           ],
         })],
       });
-      const next = withEntryEligibility(championship, 'main', cars(['kept_car']));
+      const next = withEntryEligibility(championship, 'main', cars(['kept_car']), SHIPPED_CATALOGUE);
 
       expect(next.series.entries[0].seats).toEqual([
         { id: 'a', car: undefined },
@@ -324,7 +325,7 @@ describe('renderer/screens/championship-editor/utils', () => {
         entries: [entry('main', ['old_car'], { bop: [{ car: 'old_car', ballast: 20 }] })],
       });
 
-      expect(withEntryEligibility(championship, 'main', cars(['new_car'])).series.entries[0].bop)
+      expect(withEntryEligibility(championship, 'main', cars(['new_car']), SHIPPED_CATALOGUE).series.entries[0].bop)
         .toBeUndefined();
     });
 
@@ -336,7 +337,7 @@ describe('renderer/screens/championship-editor/utils', () => {
       const championship = series([swapped], {
         entries: [entry('main', ['road_car'], { seats: [{ id: 'a', car: { model: 'oval_car' } }] })],
       });
-      const next = withEntryEligibility(championship, 'main', cars(['other_car']));
+      const next = withEntryEligibility(championship, 'main', cars(['other_car']), SHIPPED_CATALOGUE);
 
       expect(next.series.entries[0].seats[0].car).toEqual({ model: 'oval_car' });
     });
@@ -349,7 +350,7 @@ describe('renderer/screens/championship-editor/utils', () => {
         })],
       });
 
-      expect(withEntryEligibility(championship, 'main', cars([])).aside).toEqual({
+      expect(withEntryEligibility(championship, 'main', cars([]), SHIPPED_CATALOGUE).aside).toEqual({
         main: { cars: { a: { model: 'a_car', skin: 'red' } }, bop: [{ car: 'a_car', ballast: 20 }] },
       });
     });
@@ -363,8 +364,8 @@ describe('renderer/screens/championship-editor/utils', () => {
           bop: [{ car: 'a_car', ballast: 20 }],
         })],
       });
-      const away = withEntryEligibility(original, 'main', cars(['b_car']));
-      const back = withEntryEligibility(away.series, 'main', cars(['a_car', 'b_car']), away.aside);
+      const away = withEntryEligibility(original, 'main', cars(['b_car']), SHIPPED_CATALOGUE);
+      const back = withEntryEligibility(away.series, 'main', cars(['a_car', 'b_car']), SHIPPED_CATALOGUE, away.aside);
 
       expect(back.series.entries[0]).toEqual(original.entries[0]);
       expect(back.aside).toEqual({ main: { cars: {}, bop: [] } });
@@ -374,12 +375,12 @@ describe('renderer/screens/championship-editor/utils', () => {
       const original = series([], {
         entries: [entry('main', ['a_car', 'b_car'], { seats: [{ id: 'a', car: { model: 'a_car' } }] })],
       });
-      const away = withEntryEligibility(original, 'main', cars(['b_car']));
+      const away = withEntryEligibility(original, 'main', cars(['b_car']), SHIPPED_CATALOGUE);
       const repinned = withEntry(away.series, 'main', {
         ...away.series.entries[0],
         seats: [{ id: 'a', car: { model: 'b_car' } }],
       });
-      const back = withEntryEligibility(repinned, 'main', cars(['a_car', 'b_car']), away.aside);
+      const back = withEntryEligibility(repinned, 'main', cars(['a_car', 'b_car']), SHIPPED_CATALOGUE, away.aside);
 
       expect(back.series.entries[0].seats).toEqual([{ id: 'a', car: { model: 'b_car' } }]);
       expect(back.aside.main.cars).toEqual({});
@@ -389,8 +390,8 @@ describe('renderer/screens/championship-editor/utils', () => {
       const original = series([], {
         entries: [entry('main', ['a_car'], { seats: [{ id: 'a', car: { model: 'a_car' } }] })],
       });
-      const away = withEntryEligibility(original, 'main', cars(['b_car']));
-      const further = withEntryEligibility(away.series, 'main', cars(['c_car']), away.aside);
+      const away = withEntryEligibility(original, 'main', cars(['b_car']), SHIPPED_CATALOGUE);
+      const further = withEntryEligibility(away.series, 'main', cars(['c_car']), SHIPPED_CATALOGUE, away.aside);
 
       expect(further.series.entries[0].seats[0].car).toBeUndefined();
       expect(further.aside.main.cars).toEqual({ a: { model: 'a_car' } });
@@ -405,7 +406,7 @@ describe('renderer/screens/championship-editor/utils', () => {
           entry('other', ['b_car'], { seats: [{ id: 'x', car: { model: 'stray_car' } }] }),
         ],
       });
-      const next = withEntryEligibility(championship, 'main', cars(['c_car']));
+      const next = withEntryEligibility(championship, 'main', cars(['c_car']), SHIPPED_CATALOGUE);
 
       expect(next.series.entries[1]).toBe(championship.entries[1]);
     });
@@ -415,14 +416,14 @@ describe('renderer/screens/championship-editor/utils', () => {
     const cars = (list: string[]) => ({ kind: 'cars' as const, cars: list });
 
     it('adds an override to a round that had none', () => {
-      const next = withRoundEligibility(series([round('oval')]), 'oval', 'main', cars(['oval_car']));
+      const next = withRoundEligibility(series([round('oval')]), 'oval', 'main', cars(['oval_car']), SHIPPED_CATALOGUE);
 
       expect(next.series.rounds[0].eligibility).toEqual([{ entry: 'main', eligibility: cars(['oval_car']) }]);
     });
 
     it('replaces an override the round already held for that class', () => {
       const swapped: Round = { ...round('oval'), eligibility: [{ entry: 'main', eligibility: cars(['a']) }] };
-      const next = withRoundEligibility(series([swapped]), 'oval', 'main', cars(['b']));
+      const next = withRoundEligibility(series([swapped]), 'oval', 'main', cars(['b']), SHIPPED_CATALOGUE);
 
       expect(next.series.rounds[0].eligibility).toEqual([{ entry: 'main', eligibility: cars(['b']) }]);
     });
@@ -430,7 +431,7 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('stops overriding, leaving no empty list behind', () => {
       const swapped: Round = { ...round('oval'), eligibility: [{ entry: 'main', eligibility: cars(['a']) }] };
 
-      expect(withRoundEligibility(series([swapped]), 'oval', 'main', null).series.rounds[0].eligibility)
+      expect(withRoundEligibility(series([swapped]), 'oval', 'main', null, SHIPPED_CATALOGUE).series.rounds[0].eligibility)
         .toBeUndefined();
     });
 
@@ -439,8 +440,8 @@ describe('renderer/screens/championship-editor/utils', () => {
       const championship = series([swapped], {
         entries: [entry('main', ['road_car'], { seats: [{ id: 'a', car: { model: 'oval_car' } }] })],
       });
-      const off = withRoundEligibility(championship, 'oval', 'main', null);
-      const on = withRoundEligibility(off.series, 'oval', 'main', cars(['oval_car']), off.aside);
+      const off = withRoundEligibility(championship, 'oval', 'main', null, SHIPPED_CATALOGUE);
+      const on = withRoundEligibility(off.series, 'oval', 'main', cars(['oval_car']), SHIPPED_CATALOGUE, off.aside);
 
       expect(off.series.entries[0].seats[0].car).toBeUndefined();
       expect(on.series.entries[0].seats[0].car).toEqual({ model: 'oval_car' });
@@ -457,7 +458,7 @@ describe('renderer/screens/championship-editor/utils', () => {
         entries: [entry('pro', ['a_car', 'b_car']), entry('am', ['b_car'])],
       });
 
-      expect(namedCars(championship).sort()).toEqual(['a_car', 'b_car', 'oval_car']);
+      expect(namedCars(championship, SHIPPED_CATALOGUE).sort()).toEqual(['a_car', 'b_car', 'oval_car']);
     });
   });
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Championship, Round } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { carsOf } from '../../../../shared/utils/eligibility';
+import { useClasses } from '@/app';
 
 interface SwapSummaryProps {
   /**
@@ -29,6 +30,7 @@ interface SwapSummaryProps {
  */
 export const SwapSummary = ({ series, round, nameOf }: SwapSummaryProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
 
   return (
     <ul className="flex flex-col gap-1">
@@ -42,8 +44,8 @@ export const SwapSummary = ({ series, round, nameOf }: SwapSummaryProps) => {
               // A spec is a grid the catalogue names, so naming it beats
               // listing the thirty cars it happens to hold.
               cars: override.eligibility.kind === 'spec'
-                ? carSpecName(override.eligibility.spec)
-                : carsOf(override.eligibility).map(nameOf).join(', '),
+                ? carSpecName(override.eligibility.spec, catalogue)
+                : carsOf(override.eligibility, catalogue).map(nameOf).join(', '),
             })}
           </li>
         );

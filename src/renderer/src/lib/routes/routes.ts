@@ -107,6 +107,12 @@ export const path = {
    */
   settingsContent: (): string => ROUTE.settingsContent,
   /**
+   * The settings screen's Classes tab, where the user makes classes and specs
+   * of their own.
+   * @returns Its URL
+   */
+  settingsClasses: (): string => ROUTE.settingsClasses,
+  /**
    * The car browser.
    * @returns Its URL
    */

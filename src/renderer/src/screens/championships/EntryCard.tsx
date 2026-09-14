@@ -4,6 +4,7 @@ import { SeatList } from './SeatList.tsx';
 import { disciplineKey, tierAccent } from './utils.ts';
 import type { ClassEntry, EntryAvailability, Team } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
+import { useClasses } from '@/app';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion.tsx';
@@ -27,6 +28,7 @@ interface EntryCardProps {
 
 export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
   const { t } = useTranslation();
+  const { catalogue } = useClasses();
 
   return (
     // Separated from the next class rather than boxed, the way the calendar
@@ -47,8 +49,10 @@ export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        {/* Neutral on purpose: specs are an open set the user can add to, so
+            no palette could give each its own colour. */}
         {entry.eligibility.kind === 'spec' ? (
-          <Badge variant="secondary">{carSpecName(entry.eligibility.spec)}</Badge>
+          <Badge variant="secondary">{carSpecName(entry.eligibility.spec, catalogue)}</Badge>
         ) : (
           <Badge variant="outline">{t('championships.entries.cars')}</Badge>
         )}

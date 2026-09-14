@@ -10,6 +10,7 @@ import type {
   BopEntry,
   Car,
   Championship,
+  ClassCatalogue,
   ClassEntry,
   Content,
   DLCPack,
@@ -23,7 +24,7 @@ import type {
   Track,
   WeekendFormat,
 } from '../../shared/types/index.ts';
-import { SPEC_CARS } from '../../shared/utils/car-classes/index.ts';
+import { specCars } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
 import { shuffle } from '../seeded-random/index.ts';
@@ -91,14 +92,19 @@ export const eligibilityFor = (entry: ClassEntry, round?: Round): Eligibility =>
  * How many distinct models an eligibility rule needs installed to be raceable.
  *
  * A car list needs all of them, since a one-make series' cars are the series. A
- * spec needs enough of its grid to be a grid.
+ * spec needs enough of its grid to be a grid, and never none - a spec nobody
+ * races in is not satisfied by owning nothing.
  * @param eligibility The rule to read
+ * @param catalogue The class catalogue a spec resolves against
  * @returns The number of installed models required
  */
-export const minModelsOf = (eligibility: Eligibility): number => (
+export const minModelsOf = (eligibility: Eligibility, catalogue: ClassCatalogue): number => (
   eligibility.kind === 'cars'
     ? eligibility.cars.length
-    : Math.min(eligibility.minModels ?? DEFAULT_MIN_MODELS, SPEC_CARS[eligibility.spec].length)
+    : Math.max(1, Math.min(
+      eligibility.minModels ?? DEFAULT_MIN_MODELS,
+      specCars(eligibility.spec, catalogue).length,
+    ))
 );
 
 /**
@@ -226,12 +232,17 @@ export const pickModels = (
  * does not change when a mod is renamed.
  * @param eligibility The rule to resolve
  * @param content Installed content to resolve against
+ * @param catalogue The class catalogue a spec resolves against
  * @returns The cars, in the order a field should draw from them
  */
-export const eligibleCars = (eligibility: Eligibility, content: Content): Car[] => {
+export const eligibleCars = (
+  eligibility: Eligibility,
+  content: Content,
+  catalogue: ClassCatalogue,
+): Car[] => {
   const installed = new Map(content.cars.map((car) => [car.id, car]));
 
-  return carsOf(eligibility)
+  return carsOf(eligibility, catalogue)
     .map((id) => installed.get(id))
     // A car with no liveries cannot be raced - buildGrid throws on it - so it
     // counts as missing rather than as an entry nobody can see.
@@ -396,16 +407,18 @@ export const validateMoney = (series: Championship): AppErrorInfo[] => {
  * Checks one class entry against the installed content.
  * @param entry The class entry
  * @param content Installed content to check against
+ * @param catalogue The class catalogue a spec resolves against
  * @param round The round being checked, when its eligibility overrides the entry's
  * @returns What it can field and whether that is enough
  */
 export const availabilityOf = (
   entry: ClassEntry,
   content: Content,
+  catalogue: ClassCatalogue,
   round?: Round,
 ): EntryAvailability => {
   const eligibility = eligibilityFor(entry, round);
-  const installed = eligibleCars(eligibility, content);
+  const installed = eligibleCars(eligibility, content, catalogue);
   const have = new Set(installed.map((car) => car.id));
 
   return {
@@ -419,7 +432,7 @@ export const availabilityOf = (
         .filter((car) => !have.has(car))
         .map((car) => ({ id: car, provenance: carProvenance(car) }))
       : [],
-    enough: installed.length >= minModelsOf(eligibility),
+    enough: installed.length >= minModelsOf(eligibility, catalogue),
   };
 };
 
@@ -451,9 +464,10 @@ export const missingTrack = (round: Round): RoundAvailability['track'] => {
 /**
  * Works out what owning a championship's content amounts to.
  * @param series The championship
+ * @param catalogue The class catalogue a spec resolves against
  * @returns The sources, packs and mod makers it reaches
  */
-export const requirementsOf = (series: Championship): SeriesRequirements => {
+export const requirementsOf = (series: Championship, catalogue: ClassCatalogue): SeriesRequirements => {
   const sources = new Set<ContentSource>();
   const packs = new Set<DLCPack>();
   const makers = new Set<ModMaker>();
@@ -465,7 +479,7 @@ export const requirementsOf = (series: Championship): SeriesRequirements => {
   };
 
   series.entries.forEach((entry) => {
-    fieldableCars(series, entry).forEach((car) => record(carProvenance(car)));
+    fieldableCars(series, entry, catalogue).forEach((car) => record(carProvenance(car)));
   });
   series.rounds.forEach((round) => {
     record(trackProvenance(round.track.id, round.track.layout ?? ''));

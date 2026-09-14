@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 
+import { createClassStore } from './class-store/index.ts';
 import { registerContentScheme, serveContent } from './content-protocol/index.ts';
 import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
 import { createContentStore } from './content-store/index.ts';
@@ -32,10 +33,12 @@ if (!app.requestSingleInstanceLock()) {
     const settings = await createSettingsStore(app.getPath('userData'));
     const content = await createContentStore(app.getPath('userData'));
     content.include(settings.get().addedContent);
+    const classes = await createClassStore(app.getPath('userData'));
+    content.classify(classes.catalogue());
     const race = await createRaceStore(app.getPath('userData'), content, settings);
-    const series = await createSeriesStore(app.getPath('userData'), content, race);
+    const series = await createSeriesStore(app.getPath('userData'), content, race, classes);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race, series);
+    registerHandlers(settings, content, race, series, classes);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
@@ -64,6 +67,15 @@ if (!app.requestSingleInstanceLock()) {
 
     series.onChange((library) => {
       if (mainWindow) send(mainWindow, 'series:changed', library);
+    });
+
+    classes.onChange((layer) => {
+      content.classify(classes.catalogue());
+      if (mainWindow) send(mainWindow, 'classes:changed', layer);
+      // What a spec holds decides whether a championship can be raced.
+      series.refresh().catch((error: unknown) => {
+        console.error('Could not refresh the championship library.', error);
+      });
     });
 
     race.onChange((setup) => {

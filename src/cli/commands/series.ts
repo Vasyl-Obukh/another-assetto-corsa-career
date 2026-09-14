@@ -11,6 +11,7 @@ import { AppError } from '../../shared/errors/index.ts';
 import type {
   Championship, Content, SeriesAvailability, SessionDefinition,
 } from '../../shared/types/index.ts';
+import { SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { OUT_DIR } from '../constants.ts';
 import { describeProblems } from '../utils.ts';
 
@@ -146,7 +147,7 @@ const firstEligible = (
   const override = series.rounds
     .find((one) => one.id === round)?.eligibility
     ?.find((one) => one.entry === entry)?.eligibility;
-  const cars = eligibleCars(override ?? target.eligibility, content);
+  const cars = eligibleCars(override ?? target.eligibility, content, SHIPPED_CATALOGUE);
   if (cars.length === 0) throw new AppError('series.entry.noCars', { entry });
 
   return cars[0].id;

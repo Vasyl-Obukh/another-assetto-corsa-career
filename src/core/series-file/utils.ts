@@ -5,7 +5,6 @@
 import {
   DISCIPLINES,
   SESSION_TYPES,
-  SPECS,
   TEAM_BUDGETS,
   TRACK_STATE_NAMES,
   WEATHER_TYPES,
@@ -223,11 +222,12 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
   const rule = value.eligibility;
   if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats;
 
-  // A spec indexes the class catalogue, so it has to be a real member. A car
-  // list is folder names, which seriesAvailability checks against the install
-  // rather than against anything knowable here.
+  // Only the shape of a spec is checked here. It may be one the user made, so
+  // the set it belongs to is the resolved class catalogue rather than anything
+  // closed, and validateSeries is what resolves it. A car list is folder names,
+  // which seriesAvailability checks against the install.
   const eligibility = rule.kind === 'spec'
-    ? report.closedSet(rule.spec, SPECS, `${field}.eligibility.spec`)
+    ? (typeof rule.spec === 'string' && rule.spec !== '') || report.bad(`${field}.eligibility.spec`, rule.spec)
     : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
 
   return ladder && seats && eligibility;

@@ -1,7 +1,7 @@
 // The closed sets a championship file's strings have to belong to.
 
 import { WeatherType } from '../../shared/constants/index.ts';
-import { CarSpec, Discipline, TeamBudget } from '../../shared/types/index.ts';
+import { Discipline, TeamBudget } from '../../shared/types/index.ts';
 import type { SessionType, TrackStateName } from '../../shared/types/index.ts';
 import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/index.ts';
 
@@ -9,15 +9,6 @@ import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/i
  * Every discipline, for checking one read off disk.
  */
 export const DISCIPLINES: readonly Discipline[] = stringEnumValues(Discipline);
-
-/**
- * Every car spec, for checking one read off disk.
- *
- * This is the one the compiler used to check. A spec that is not a member here
- * indexes SPEC_CARS to undefined, which reads as a class nobody owns rather
- * than as a mistake.
- */
-export const SPECS: readonly CarSpec[] = stringEnumValues(CarSpec);
 
 /**
  * Every team budget tier, for checking one read off disk.

@@ -2,8 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 
 import { CarSpec, Discipline } from '../../../types/index.ts';
 import type { Championship, ClassEntry, Round } from '../../../types/index.ts';
-import { SPEC_CARS } from '../../car-classes/index.ts';
-import { carsOf, fieldableCars } from '../eligibility.ts';
+import { resolveCatalogue, SHIPPED_CATALOGUE, SPEC_CARS } from '../../car-classes/index.ts';
+import { carsOf, fieldableCars, usesSpec } from '../eligibility.ts';
 
 /**
  * A championship with one class, racing the rounds a test names.
@@ -51,11 +51,15 @@ const MAGIONE: Round = { id: 'magione', name: 'Magione', track: { id: 'magione' 
 describe('shared/utils/eligibility', () => {
   describe('carsOf', () => {
     it('reads a car list as it is written', () => {
-      expect(carsOf({ kind: 'cars', cars: ['b_car', 'a_car'] })).toEqual(['b_car', 'a_car']);
+      expect(carsOf({ kind: 'cars', cars: ['b_car', 'a_car'] }, SHIPPED_CATALOGUE)).toEqual(['b_car', 'a_car']);
     });
 
     it('reads a spec as whatever the catalogue puts on its grid', () => {
-      expect(carsOf({ kind: 'spec', spec: CarSpec.GT3_2010S })).toBe(SPEC_CARS[CarSpec.GT3_2010S]);
+      expect(carsOf({ kind: 'spec', spec: CarSpec.GT3_2010S }, SHIPPED_CATALOGUE)).toBe(SPEC_CARS[CarSpec.GT3_2010S]);
+    });
+
+    it('reads a spec the catalogue lacks as no cars at all', () => {
+      expect(carsOf({ kind: 'spec', spec: 'ghost-spec' }, SHIPPED_CATALOGUE)).toEqual([]);
     });
   });
 
@@ -63,19 +67,19 @@ describe('shared/utils/eligibility', () => {
     it('reads the class entry own cars when no round overrides it', () => {
       const { series, entry } = withRounds([MAGIONE]);
 
-      expect([...fieldableCars(series, entry)]).toEqual(['test_car']);
+      expect([...fieldableCars(series, entry, SHIPPED_CATALOGUE)]).toEqual(['test_car']);
     });
 
     it('adds the cars a round swaps to, since a seat is pinned for the season', () => {
       const { series, entry } = withRounds([MAGIONE, swapping('main', ['oval_car'])]);
 
-      expect([...fieldableCars(series, entry)].sort()).toEqual(['oval_car', 'test_car']);
+      expect([...fieldableCars(series, entry, SHIPPED_CATALOGUE)].sort()).toEqual(['oval_car', 'test_car']);
     });
 
     it('ignores an override aimed at a different class entry', () => {
       const { series, entry } = withRounds([MAGIONE, swapping('other', ['oval_car'])]);
 
-      expect([...fieldableCars(series, entry)]).toEqual(['test_car']);
+      expect([...fieldableCars(series, entry, SHIPPED_CATALOGUE)]).toEqual(['test_car']);
     });
 
     it('names a car once however many rounds swap to it', () => {
@@ -84,7 +88,47 @@ describe('shared/utils/eligibility', () => {
         { ...swapping('main', ['oval_car']), id: 'oval-2' },
       ]);
 
-      expect([...fieldableCars(series, entry)]).toEqual(['test_car', 'oval_car']);
+      expect([...fieldableCars(series, entry, SHIPPED_CATALOGUE)]).toEqual(['test_car', 'oval_car']);
+    });
+
+    it('reads a spec through the catalogue it is handed', () => {
+      const { series, entry } = withRounds([MAGIONE]);
+      const racing = { ...entry, eligibility: { kind: 'spec' as const, spec: 'user-spec' } };
+      const catalogue = resolveCatalogue({
+        version: 1,
+        classes: [{ id: 'user-class', name: 'Hillclimb' }],
+        specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
+        cars: { my_mod: ['user-spec'] },
+      });
+
+      expect([...fieldableCars({ ...series, entries: [racing] }, racing, catalogue)]).toEqual(['my_mod']);
+    });
+  });
+
+  describe('usesSpec', () => {
+    it('finds a spec a class entry races in', () => {
+      const { series, entry } = withRounds([MAGIONE]);
+      const racing = { ...series, entries: [{ ...entry, eligibility: { kind: 'spec' as const, spec: CarSpec.GT3_2010S } }] };
+
+      expect(usesSpec(racing, CarSpec.GT3_2010S)).toBe(true);
+    });
+
+    // A round swapping a class onto a spec needs that spec as much as the
+    // season does, so deleting it is refused either way.
+    it('finds a spec only one round swaps to', () => {
+      const { series } = withRounds([MAGIONE, {
+        ...MAGIONE,
+        id: 'oval',
+        eligibility: [{ entry: 'main', eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S } }],
+      }]);
+
+      expect(usesSpec(series, CarSpec.GT3_2010S)).toBe(true);
+    });
+
+    it('does not find a spec nothing races in', () => {
+      const { series } = withRounds([MAGIONE, swapping('main', ['oval_car'])]);
+
+      expect(usesSpec(series, CarSpec.GT3_2010S)).toBe(false);
     });
   });
 });

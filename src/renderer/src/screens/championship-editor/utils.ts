@@ -9,6 +9,7 @@ import type { Narrowed, SessionEdit, SetAside } from './types.ts';
 import { Discipline } from '../../../../shared/types';
 import type {
   Championship,
+  ClassCatalogue,
   ClassEntry,
   Eligibility,
   PointsSystem,
@@ -162,14 +163,20 @@ export const withEntry = (
  * keeps it, and whatever was set aside for it is forgotten.
  * @param series The championship, with the new rule already on it
  * @param entry Which class entry's rule changed
+ * @param catalogue The class catalogue a spec resolves against
  * @param aside What earlier changes set aside
  * @returns The championship and what is set aside now
  */
-const pruneEntry = (series: Championship, entry: string, aside: SetAside): Narrowed => {
+const pruneEntry = (
+  series: Championship,
+  entry: string,
+  catalogue: ClassCatalogue,
+  aside: SetAside,
+): Narrowed => {
   const one = series.entries.find((candidate) => candidate.id === entry);
   if (!one) return { series, aside };
 
-  const fieldable = fieldableCars(series, one);
+  const fieldable = fieldableCars(series, one, catalogue);
   const kept = aside[entry] ?? { cars: {}, bop: [] };
   const cars: Record<string, SeatCar> = {};
 
@@ -303,6 +310,7 @@ export const withoutTeam = (series: Championship, id: string): Championship => (
  * @param series The championship
  * @param id Which entry's rule to replace
  * @param eligibility The rule to apply
+ * @param catalogue The class catalogue a spec resolves against
  * @param aside What earlier eligibility changes set aside
  * @returns The championship, and what is set aside now
  */
@@ -310,11 +318,12 @@ export const withEntryEligibility = (
   series: Championship,
   id: string,
   eligibility: Eligibility,
+  catalogue: ClassCatalogue,
   aside: SetAside = {},
 ): Narrowed => pruneEntry({
   ...series,
   entries: series.entries.map((one) => (one.id === id ? { ...one, eligibility } : one)),
-}, id, aside);
+}, id, catalogue, aside);
 
 /**
  * Replaces what one class entry may be driven in at one round, or stops
@@ -323,6 +332,7 @@ export const withEntryEligibility = (
  * @param round Which round to override at
  * @param entry Which class entry to override
  * @param eligibility The rule to apply, or null to run the season's own cars
+ * @param catalogue The class catalogue a spec resolves against
  * @param aside What earlier eligibility changes set aside
  * @returns The championship, and what is set aside now
  */
@@ -331,6 +341,7 @@ export const withRoundEligibility = (
   round: string,
   entry: string,
   eligibility: Eligibility | null,
+  catalogue: ClassCatalogue,
   aside: SetAside = {},
 ): Narrowed => {
   const rounds = series.rounds.map((one) => {
@@ -353,7 +364,7 @@ export const withRoundEligibility = (
     };
   });
 
-  return pruneEntry({ ...series, rounds }, entry, aside);
+  return pruneEntry({ ...series, rounds }, entry, catalogue, aside);
 };
 
 /**
@@ -364,10 +375,11 @@ export const withRoundEligibility = (
  * pinned or a row balances is inside that set by construction - and one that is
  * not is reported by validateSeries rather than being worth a name.
  * @param series The championship
+ * @param catalogue The class catalogue a spec resolves against
  * @returns The car folder IDs, deduplicated
  */
-export const namedCars = (series: Championship): string[] => [...new Set(
-  series.entries.flatMap((entry) => [...fieldableCars(series, entry)]),
+export const namedCars = (series: Championship, catalogue: ClassCatalogue): string[] => [...new Set(
+  series.entries.flatMap((entry) => [...fieldableCars(series, entry, catalogue)]),
 )];
 
 /**

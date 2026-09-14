@@ -2,6 +2,9 @@
 // types from IpcContract, so a channel cannot drift out of sync on one side
 // without failing to compile on the others.
 
+import type {
+  ClassCommandResult, ClassId, ClassLayer, SpecId,
+} from './car-classes.ts';
 import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
@@ -229,6 +232,43 @@ export interface IpcContract {
    */
   'series:export': { req: { id: string }; res: string | null };
   /**
+   * The user's layer over the shipped class catalogue.
+   *
+   * The layer rather than the resolved catalogue: the catalogue holds maps,
+   * which do not survive the trip, and the renderer resolves the same answer
+   * from the layer with the same shared function.
+   */
+  'classes:get': { req: void; res: ClassLayer };
+  /**
+   * Restate which specs a car races in. An empty list leaves it deliberately
+   * unclassified; specs matching what the app ships drop the override.
+   */
+  'classes:assignCar': { req: { car: string; specs: SpecId[] }; res: ClassCommandResult };
+  /**
+   * Put a car back to whatever the app ships for it.
+   */
+  'classes:revertCar': { req: { car: string }; res: ClassCommandResult };
+  /**
+   * Add a class of the user's, or rename one. The id of a new class is main's
+   * to mint.
+   */
+  'classes:saveClass': { req: { id?: ClassId; name: string }; res: ClassCommandResult };
+  /**
+   * Delete a class of the user's, once it holds no specs.
+   */
+  'classes:deleteClass': { req: { id: ClassId }; res: ClassCommandResult };
+  /**
+   * Add a spec of the user's, or rename or move one.
+   */
+  'classes:saveSpec': {
+    req: { id?: SpecId; name: string; class: ClassId };
+    res: ClassCommandResult;
+  };
+  /**
+   * Delete a spec of the user's, once no championship races in it.
+   */
+  'classes:deleteSpec': { req: { id: SpecId }; res: ClassCommandResult };
+  /**
    * What Content Manager's Arguments.txt holds.
    *
    * Read off disk on every call rather than mirrored into settings: the user
@@ -304,6 +344,13 @@ export interface IpcEvents {
    * answers, so a listener needs no round trip of its own.
    */
   'series:changed': SeriesLibrary;
+  /**
+   * The user's class layer changed, because a command wrote it.
+   *
+   * Pushed for the same reason series:changed is: the car page classifying a
+   * car has to reach the browser and the championship editor behind it.
+   */
+  'classes:changed': ClassLayer;
 }
 
 /**
