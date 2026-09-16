@@ -1,5 +1,6 @@
 // Settings defaults and the closed sets of values they accept.
 
+import { WeatherType } from './weather-types.ts';
 import type {
   Language, Settings, ThemeChoice, WeatherSystem,
 } from '../types/index.ts';
@@ -23,6 +24,34 @@ export const LANGUAGES: readonly Language[] = ['en', 'uk'];
 export const WEATHER_SYSTEMS: readonly WeatherSystem[] = ['none', 'pure', 'sol'];
 
 /**
+ * The weather a fresh install lets into the sim, in menu order.
+ *
+ * Whatever a championship actually races in: skies, the fogs, drizzle, rain and
+ * thunderstorms. Snow, sleet, hail, sandstorms, smoke, squalls, tornadoes,
+ * hurricanes and the three effect types start switched off, since a career
+ * wants a wet round now and again rather than an extreme.
+ */
+export const DEFAULT_ALLOWED_WEATHER: readonly WeatherType[] = [
+  WeatherType.CLEAR,
+  WeatherType.FEW_CLOUDS,
+  WeatherType.SCATTERED_CLOUDS,
+  WeatherType.BROKEN_CLOUDS,
+  WeatherType.OVERCAST_CLOUDS,
+  WeatherType.HAZE,
+  WeatherType.MIST,
+  WeatherType.FOG,
+  WeatherType.LIGHT_DRIZZLE,
+  WeatherType.DRIZZLE,
+  WeatherType.HEAVY_DRIZZLE,
+  WeatherType.LIGHT_RAIN,
+  WeatherType.RAIN,
+  WeatherType.HEAVY_RAIN,
+  WeatherType.LIGHT_THUNDERSTORM,
+  WeatherType.THUNDERSTORM,
+  WeatherType.HEAVY_THUNDERSTORM,
+];
+
+/**
  * What a fresh install starts with, and what any unreadable field falls back to.
  */
 export const DEFAULT_SETTINGS: Settings = {
@@ -30,6 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   language: 'en',
   weatherSystem: 'none',
+  allowedWeather: [...DEFAULT_ALLOWED_WEATHER],
   drivingAids: {},
   addedContent: { cars: [], tracks: [] },
   paths: {},

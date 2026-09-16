@@ -10,7 +10,7 @@ import { TrackField } from './TrackField.tsx';
 import { useSettings } from '@/app';
 import { ErrorCard, ScreenBody } from '@/components';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useRaceContent, useRaceSetup } from '@/hooks';
+import { useRaceContent, useRaceForecast, useRaceSetup } from '@/hooks';
 
 export const Race = () => {
   const { t } = useTranslation();
@@ -20,6 +20,7 @@ export const Race = () => {
   // not reach this screen until something else happened to it.
   const { settings } = useSettings();
   const content = useRaceContent(race.setup?.definition ?? null);
+  const forecast = useRaceForecast(race.setup?.definition.id);
 
   const { setup } = race;
 
@@ -87,6 +88,7 @@ export const Race = () => {
             system={settings.weatherSystem}
             rainFx={setup.weatherFx.rainFx}
             records={setup.state?.completed ?? []}
+            forecast={forecast}
             locked={race.locked}
             onChange={race.setSessions}
           />

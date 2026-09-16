@@ -34,6 +34,7 @@ import type {
   Track,
   Weather,
 } from '../../shared/types/index.ts';
+import { staticWeatherType } from '../../shared/utils/weather-types/index.ts';
 import type { IniValue } from '../ini/index.ts';
 
 /**
@@ -146,13 +147,16 @@ export const resolveWeather = (
   content: Content,
   conditions: Conditions,
 ): { preset: Weather | null; type: number | null } => {
-  if (conditions.weatherType != null) {
-    const preset = presetForType(content, conditions.weatherType);
+  // A plan names its weather per step, and a planner that is not there to run
+  // it still leaves race.ini needing one - the step the session opens on.
+  const type = staticWeatherType(conditions);
+  if (type !== undefined) {
+    const preset = presetForType(content, type);
     if (!preset) {
-      throw new AppError('race.weatherType.unavailable', { type: conditions.weatherType });
+      throw new AppError('race.weatherType.unavailable', { type });
     }
 
-    return { preset, type: conditions.weatherType };
+    return { preset, type };
   }
 
   const preset = findWeather(content, conditions.weather);

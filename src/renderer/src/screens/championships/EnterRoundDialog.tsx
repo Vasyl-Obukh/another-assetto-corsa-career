@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 import { carsFor } from './utils.ts';
 import type {
-  Car, Round, SeriesListing, Skin,
+  Car, Round, RoundForecast, SeriesListing, Skin,
 } from '../../../../shared/types';
-import { CarPicker } from '@/components';
+import { CarPicker, WeekendForecast } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -25,6 +25,10 @@ interface EnterRoundDialogProps {
    */
   listing: SeriesListing;
   /**
+   * The round's weather forecast, or null when its weather is authored.
+   */
+  forecast: RoundForecast | null;
+  /**
    * Whether the round is being set up right now.
    */
   busy: boolean;
@@ -42,7 +46,7 @@ interface EnterRoundDialogProps {
 }
 
 export const EnterRoundDialog = ({
-  round, listing, busy, onClose, onConfirm,
+  round, listing, forecast, busy, onClose, onConfirm,
 }: EnterRoundDialogProps) => {
   const { t } = useTranslation();
   const [entry, setEntry] = useState(listing.series.entries[0]?.id ?? '');
@@ -101,6 +105,10 @@ export const EnterRoundDialog = ({
               </Select>
             </div>
           ) : null}
+
+          {/* Before the car, since the weather is part of what is being
+              committed to - and it is the same draw the race will run. */}
+          {forecast ? <WeekendForecast forecast={forecast} /> : null}
 
           <div className="flex items-center justify-between gap-4">
             <span className="min-w-0 flex-1 truncate text-sm" title={chosen}>{chosen}</span>

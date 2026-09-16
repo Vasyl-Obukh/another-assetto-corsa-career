@@ -27,7 +27,9 @@ export { M_PER_KM, M_PER_MILE } from './distance.ts';
 
 // A value, not a type: WeatherType.RAIN is the whole point of it, and the
 // number it carries is what __CM_WEATHER_TYPE wants.
-export { WEATHER_TYPE_ORDER, WeatherType, WET_WEATHER_TYPES } from './weather-types.ts';
+export {
+  PURE_MISSING_TYPES, RAIN_INTENSITY, WEATHER_TYPE_ORDER, WeatherType, WET_WEATHER_TYPES,
+} from './weather-types.ts';
 
 export {
   HOURS_PER_DAY,
@@ -39,7 +41,7 @@ export {
 } from './time.ts';
 
 export {
-  DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES, WEATHER_SYSTEMS,
+  DEFAULT_ALLOWED_WEATHER, DEFAULT_SETTINGS, LANGUAGES, THEME_CHOICES, WEATHER_SYSTEMS,
 } from './settings.ts';
 
 export { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS } from './series.ts';

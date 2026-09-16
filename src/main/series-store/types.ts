@@ -2,6 +2,7 @@ import type {
   Championship,
   IpcRequest,
   RaceSetup,
+  RoundForecast,
   SeriesAvailability,
   SeriesCommandResult,
   SeriesImportResult,
@@ -45,6 +46,22 @@ export interface SeriesStore {
    * @returns Everything wrong with it, and what it needs that is not installed
    */
   validate: (series: Championship) => Promise<SeriesAvailability>;
+  /**
+   * Every round's generated weather.
+   *
+   * Drawn over what the install can render and what the user allows, the same
+   * offer a round is set up with, so the calendar shows what the race runs.
+   * @param id The championship's id
+   * @returns One forecast per round, empty when its weather is authored
+   * @throws When the library holds no such championship
+   */
+  forecast: (id: string) => Promise<RoundForecast[]>;
+  /**
+   * The forecast of the round a race was set up from.
+   * @param raceId The race definition's id
+   * @returns The round's forecast, or null when the race is no generated round
+   */
+  raceForecast: (raceId: string) => Promise<RoundForecast | null>;
   /**
    * Writes a championship the user owns back over its own file.
    *

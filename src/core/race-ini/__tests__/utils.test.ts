@@ -146,6 +146,17 @@ describe('core/race-ini/utils', () => {
         .toBe('test_rain');
     });
 
+    // A plan with no weatherType used to send no weather at all when no planner
+    // was there to run it. Guards that fix.
+    it('resolves a plan naming no type to the preset its first step stands for', () => {
+      const resolved = resolveWeather(makeContent(), {
+        weatherSteps: [{ weather: 8, minutes: 10 }, { weather: 15 }],
+      });
+
+      expect(resolved.preset?.id).toBe('test_rain');
+      expect(resolved.type).toBe(8);
+    });
+
     it('answers with neither when the race names no weather at all', () => {
       expect(resolveWeather(makeContent(), {})).toEqual({ preset: null, type: null });
     });

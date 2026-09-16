@@ -4,21 +4,22 @@ import {
   DEFAULT_SLOT_MINUTES,
   MIN_PLAN_SLOTS,
   NOT_SET,
-  PURE_MISSING_TYPES,
   SESSION_TYPES,
   WEATHER_VALUE,
 } from './constants.ts';
 import type { ConditionsSummary, SessionLength, WeatherChoice } from './types.ts';
-import { WEATHER_TYPE_ORDER, WeatherType, WET_WEATHER_TYPES } from '../../../../shared/constants';
+import { WEATHER_TYPE_ORDER, WeatherType } from '../../../../shared/constants';
 import type {
   Conditions,
   SessionDefinition,
+  SessionForecast,
   SessionType,
   Weather,
   WeatherController,
   WeatherStep,
   WeatherSystem,
 } from '../../../../shared/types';
+import { offerableTypes } from '../../../../shared/utils/weather-types';
 
 /**
  * Reads a number out of a text input, treating an empty box as "not set".
@@ -332,31 +333,77 @@ export const withSessionCondition = <K extends keyof Conditions>(
  * rather than what holds them, since a championship's round states its own the
  * same way a session does.
  * @param conditions The conditions to count
+ * @param except Fields not to count, such as those a forecast wrote
  * @returns How many fields are set
  */
-export const overrideCount = (conditions: Conditions): number => (
-  Object.values(conditions).filter((value) => value !== undefined).length
+export const overrideCount = (conditions: Conditions, except: Conditions = {}): number => (
+  Object.entries(conditions)
+    .filter(([key, value]) => value !== undefined && !(key in except))
+    .length
 );
 
 /**
- * The weather types this install and this system can actually render.
- *
- * Three filters: a type nothing declares cannot be resolved to a `[WEATHER]
- * NAME` folder; a type the chosen planner does not number cannot be written into
- * its plan; and a wet type with RainFX off produces a dry race while claiming
- * otherwise.
+ * The weather types this install, this system and the user's settings allow -
+ * offerableTypes over the installed presets, the same answer generated weather
+ * is drawn over.
  * @param weather Every installed preset
  * @param system Which mod renders the weather
  * @param rainFx Whether RainFX will draw rain
+ * @param allowed The types the user lets into the sim
  * @returns The types worth offering, in menu order
  */
 export const offeredTypes = (
   weather: Weather[],
   system: WeatherSystem,
   rainFx: boolean,
-): WeatherType[] => availableTypes(weather)
-  .filter((type) => rainFx || !WET_WEATHER_TYPES.has(type))
-  .filter((type) => system !== 'pure' || !PURE_MISSING_TYPES.has(type));
+  allowed: readonly WeatherType[] = WEATHER_TYPE_ORDER,
+): WeatherType[] => offerableTypes(weather.map((preset) => preset.type), allowed, system, rainFx);
+
+/**
+ * Whether a session still runs the weather its round's forecast gave it.
+ *
+ * Every field generation wrote has to be there unchanged. A session edited since
+ * - its weather swapped by hand, its temperature nudged - is no longer running
+ * the forecast, and neither is one whose forecast has moved under it because the
+ * user's settings or the installed weather changed after the round was set up.
+ * @param session The session as the race now holds it
+ * @param forecast What its round's forecast says for it, if anything
+ * @returns True when the session carries exactly what was generated
+ */
+export const isForecast = (
+  session: SessionDefinition,
+  forecast: SessionForecast | undefined,
+): forecast is SessionForecast => {
+  if (!forecast?.generated) return false;
+
+  const own = session.conditions ?? {};
+  return Object.entries(forecast.conditions).every(([key, value]) => (
+    JSON.stringify(own[key as keyof Conditions]) === JSON.stringify(value)
+  ));
+};
+
+/**
+ * The types on offer, plus any the conditions already name.
+ *
+ * A race file may name a type the user has since switched off, or one RainFX no
+ * longer draws, and a select whose value is not among its items renders blank -
+ * which reads as nothing chosen when something is.
+ * @param types The types on offer
+ * @param conditions The conditions being edited
+ * @returns The types to list, in menu order
+ */
+export const withChosenTypes = (
+  types: readonly WeatherType[],
+  conditions: Conditions,
+): WeatherType[] => {
+  const chosen = new Set<number>(types);
+  if (conditions.weatherType != null) chosen.add(conditions.weatherType);
+  conditions.weatherSteps?.forEach((step) => {
+    if (typeof step.weather === 'number') chosen.add(step.weather);
+  });
+
+  return WEATHER_TYPE_ORDER.filter((type) => chosen.has(type));
+};
 
 /**
  * The weather a static choice stands for, as a type a plan slot can hold.

@@ -16,11 +16,11 @@ import { RoundRow } from './RoundRow.tsx';
 import { availabilityState, entryAvailability } from './utils.ts';
 import type { Round } from '../../../../shared/types';
 import {
-  ErrorCard, ProblemList, ScreenBody, ScreenHeader,
+  ClimateBadge, ErrorCard, ProblemList, ScreenBody, ScreenHeader,
 } from '@/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useChampionship, useSeriesCommands } from '@/hooks';
+import { useChampionship, useForecast, useSeriesCommands } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 
 export const ChampionshipDetail = () => {
@@ -29,7 +29,17 @@ export const ChampionshipDetail = () => {
   const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
   const championship = useChampionship(id);
   const commands = useSeriesCommands();
+  const forecasts = useForecast(id === '' ? undefined : id);
   const [entering, setEntering] = useState<Round | null>(null);
+
+  /**
+   * One round's forecast, when the championship generates its weather.
+   * @param round The round's id
+   * @returns Its forecast, or null
+   */
+  const forecastOf = (round: string | undefined) => (
+    forecasts.find((one) => one.round === round) ?? null
+  );
 
   const { listing } = championship;
   // One card rather than two: the two hooks fail for the same kinds of reason,
@@ -114,7 +124,16 @@ export const ChampionshipDetail = () => {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>{t('championships.calendar.title')}</CardTitle></CardHeader>
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle>{t('championships.calendar.title')}</CardTitle>
+                {/* The climate every round expects unless it names its own, which
+                    is why a round row only badges the ones that do. */}
+                {listing.series.generatedWeather ? (
+                  <ClimateBadge climate={listing.series.generatedWeather.climate} />
+                ) : null}
+              </div>
+            </CardHeader>
             <CardContent className="flex flex-col">
               {listing.series.rounds.map((round, index) => (
                 <RoundRow
@@ -123,6 +142,7 @@ export const ChampionshipDetail = () => {
                   round={round}
                   number={index + 1}
                   busy={championship.busy}
+                  forecast={forecastOf(round.id)}
                   onRace={() => setEntering(round)}
                 />
               ))}
@@ -152,6 +172,7 @@ export const ChampionshipDetail = () => {
             key={entering?.id ?? ''}
             round={entering}
             listing={listing}
+            forecast={forecastOf(entering?.id)}
             busy={championship.busy}
             onClose={() => setEntering(null)}
             onConfirm={(entry, car, skin) => {

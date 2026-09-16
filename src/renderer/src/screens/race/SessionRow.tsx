@@ -18,8 +18,15 @@ import {
   withSessionLength,
 } from './utils.ts';
 import type {
-  Conditions, LaunchRecord, SessionDefinition, Weather, WeatherController, WeatherSystem,
+  Conditions,
+  LaunchRecord,
+  SessionDefinition,
+  SessionForecast,
+  Weather,
+  WeatherController,
+  WeatherSystem,
 } from '../../../../shared/types';
+import { SessionForecastChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -69,6 +76,11 @@ interface SessionRowProps {
    */
   record: LaunchRecord | null;
   /**
+   * The weather its championship round forecast, or null when the session is
+   * no longer running it or never was.
+   */
+  forecast: SessionForecast | null;
+  /**
    * Whether this is the session that runs next.
    */
   next: boolean;
@@ -93,13 +105,14 @@ interface SessionRowProps {
 }
 
 export const SessionRow = ({
-  session, index, count, resolved, weather, controllers, system, rainFx, record, next,
+  session, index, count, resolved, weather, controllers, system, rainFx, record, forecast, next,
   locked, onChange, onMove, onRemove,
 }: SessionRowProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const laps = measuredInLaps(session);
-  const overrides = overrideCount(session.conditions ?? {});
+  // A forecast says so beside the button, so only what it did not write counts.
+  const overrides = overrideCount(session.conditions ?? {}, forecast?.conditions);
   // A simulated segment is recorded like a driven one, so the record is what
   // tells them apart - a knockout the player was eliminated from was never run.
   const simulated = record?.skipped === true;
@@ -270,7 +283,7 @@ export const SessionRow = ({
         </div>
       </div>
 
-      <div>
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(true)}>
           <SettingsIcon />
           {t('race.sessions.conditions')}
@@ -278,6 +291,13 @@ export const SessionRow = ({
             <Badge variant="secondary">{t('race.sessions.overrides', { count: overrides })}</Badge>
           ) : null}
         </Button>
+
+        {forecast ? (
+          <>
+            <span className="text-xs text-muted-foreground">{t('forecast.badge')}</span>
+            <SessionForecastChip session={forecast} />
+          </>
+        ) : null}
       </div>
 
       <ConditionsDialog

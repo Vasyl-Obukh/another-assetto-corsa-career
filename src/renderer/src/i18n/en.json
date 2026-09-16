@@ -147,6 +147,18 @@
     "weatherHint": "Which mod renders the weather. This is a property of your install rather than of a race, so it is chosen once here.",
     "weatherSystem": "Weather system",
     "weatherPlanWarning": "A session whose weather changes needs the planner app running. Note that it saves the last plan it ran over its own, so a plan you had loaded there will be replaced.",
+    "allowedWeather": "Weather in the sim",
+    "allowedWeatherHint": "Which weather championships may generate and the race screen offers. Anything left out is swapped for the nearest weather that is allowed, so a wet round stays wet.",
+    "allowedWeatherCount": "{{count}} of {{total}}",
+    "allowedWeatherReset": "Reset to defaults",
+    "weatherGroup": {
+      "skies": "Skies",
+      "visibility": "Haze and fog",
+      "rain": "Rain",
+      "storms": "Storms",
+      "winter": "Snow and sleet",
+      "effects": "Effects"
+    },
     "driver": "Driver",
     "driverHint": "Who you are on the timing screen. This belongs to you rather than to a race, so it is set once here and used by every session you launch.",
     "driverName": "Your name",
@@ -572,7 +584,10 @@
       "name": "Name",
       "description": "Description",
       "entryFee": "Entry fee",
-      "entryFeeHint": "What a round costs to enter unless the round says otherwise. Zero is free to enter, which is not the same as saying nothing."
+      "entryFeeHint": "What a round costs to enter unless the round says otherwise. Zero is free to enter, which is not the same as saying nothing.",
+      "generatedWeather": "Generated weather",
+      "generatedWeatherHint": "Every session's weather, temperature and wind are drawn from a climate. Conditions a round or a session sets for itself still win.",
+      "climate": "Climate"
     },
     "grid": {
       "title": "AI field",
@@ -674,6 +689,8 @@
       "noTrack": "No circuit chosen",
       "format": "Weekend format",
       "defaultFormat": "The championship's own",
+      "climate": "Climate",
+      "defaultClimate": "The championship's own ({{climate}})",
       "entryFee": "Entry fee",
       "entryFeeHint": "Overrides the championship's, for this round alone.",
       "conditions": "Conditions",
@@ -865,6 +882,25 @@
     "none": "Weather holds for the whole session and cannot change part way through - that needs a planner app, which only PURE and Sol have. Rain still works, but its strength comes from the weather type rather than from the exact figures a preset asks for.",
     "pure": "PURE renders the weather, and PURE Planner can make it change during a session. Rain uses the exact figures a preset asks for.",
     "sol": "Sol renders the weather, and Sol Planner can make it change during a session. Rain uses the exact figures a preset asks for."
+  },
+  "climate": {
+    "arid": "Arid",
+    "mediterranean": "Mediterranean",
+    "temperate": "Temperate",
+    "oceanic": "Oceanic"
+  },
+  "forecast": {
+    "title": "Weekend forecast",
+    "hint": "Generated from the round's climate. The race runs in exactly this weather.",
+    "day": "Day {{number}}",
+    "ambient": "{{value}}°C",
+    "wind": "{{min}}-{{max}} km/h",
+    "change": "{{from}}, then {{to}}",
+    "substituted": "{{intended}} is switched off or not installed, so this runs {{actual}} instead",
+    "authored": "Set by the championship rather than generated",
+    "preset": "A named weather preset",
+    "unavailable": "No allowed weather is installed, so none is set",
+    "badge": "Forecast"
   },
   "toggle": {
     "on": "On",

@@ -30,6 +30,25 @@ export const weekendOf = (
 };
 
 /**
+ * Which round of which championship a race was set up from, by the race's id.
+ * @param library Every championship the library holds
+ * @param raceId The race definition's id
+ * @returns The championship and the round's id, or null when the race is no
+ * round of any of them
+ */
+export const roundOfRace = (
+  library: readonly Championship[],
+  raceId: string,
+): { series: Championship; round: string } | null => {
+  for (const series of library) {
+    const round = series.rounds.find((one) => roundRaceId(series.id, one.id) === raceId);
+    if (round) return { series, round: round.id };
+  }
+
+  return null;
+};
+
+/**
  * Whether a championship is one the editor may write over.
  *
  * Only the user's own and the user's replacement of a shipped one: the app's

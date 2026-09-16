@@ -1,5 +1,5 @@
 import { seat, team } from './utils.ts';
-import { Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -98,8 +98,12 @@ export const LOTUS_CUP: Championship = {
     { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' } },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' } },
+    {
+      id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' }, climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+    },
   ],
   pointsSystems: [
     {
@@ -111,6 +115,7 @@ export const LOTUS_CUP: Championship = {
   ],
   defaultPointsSystem: 'race',
   grid: { aiLevel: 90, aiLevelMin: 82, aiAggression: 30 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,

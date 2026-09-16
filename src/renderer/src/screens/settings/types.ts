@@ -3,7 +3,22 @@
 
 import type { ParseKeys } from 'i18next';
 
+import type { WeatherType } from '../../../../shared/constants';
 import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
+
+/**
+ * A heading on the allowed weather list, and the types under it.
+ */
+export interface WeatherGroup {
+  /**
+   * The catalogue key for its heading.
+   */
+  label: ParseKeys;
+  /**
+   * The types it holds, in the order they are listed.
+   */
+  types: readonly WeatherType[];
+}
 
 /**
  * One tab across the top of the settings screen.

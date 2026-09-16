@@ -32,7 +32,9 @@ import type { Content, RaceDefinition, SessionDefinition } from '../../shared/ty
 import { writeIni } from '../ini/index.ts';
 import type { IniWritable } from '../ini/index.ts';
 
-export { DEFAULT_RACE_LAPS, SESSION_TYPE, TRACK_STATE } from './constants.ts';
+export {
+  DEFAULT_RACE_LAPS, DEFAULT_TIME_OF_DAY, SESSION_TYPE, TRACK_STATE,
+} from './constants.ts';
 export { buildGrid, parseClock, sunAngleFromTime } from './utils.ts';
 
 /**

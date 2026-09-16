@@ -1,13 +1,16 @@
 import { FileTextIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { MIN_MONEY } from './constants.ts';
+import { CLIMATES, DEFAULT_CLIMATE, MIN_MONEY } from './constants.ts';
 import { EditorSection } from './EditorSection.tsx';
 import { NumberField } from './NumberField.tsx';
 import { optionalText } from './utils.ts';
-import type { Championship } from '../../../../shared/types';
-import { FieldGrid } from '@/components';
+import type { Championship, Climate } from '../../../../shared/types';
+import { FieldGrid, ToggleButton } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
 import { Field } from '@/screens/race';
 
@@ -56,6 +59,46 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
           disabled={locked}
           onChange={(entryFee) => onChange({ ...series, entryFee })}
         />
+
+        <Field
+          id="editor-generated-weather"
+          label={t('editor.details.generatedWeather')}
+          hint={t('editor.details.generatedWeatherHint')}
+        >
+          <ToggleButton
+            id="editor-generated-weather"
+            value={series.generatedWeather !== undefined}
+            disabled={locked}
+            // Switched on at the middle climate, since on means "from a climate"
+            // and there is no way to say which without picking one.
+            onChange={(on) => onChange({
+              ...series,
+              generatedWeather: on ? { climate: DEFAULT_CLIMATE } : undefined,
+            })}
+          />
+        </Field>
+
+        {series.generatedWeather ? (
+          <Field id="editor-climate" label={t('editor.details.climate')}>
+            <Select
+              value={series.generatedWeather.climate}
+              disabled={locked}
+              onValueChange={(value) => onChange({
+                ...series,
+                generatedWeather: { climate: value as Climate },
+              })}
+            >
+              <SelectTrigger id="editor-climate" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CLIMATES.map((climate) => (
+                  <SelectItem key={climate} value={climate}>{t(`climate.${climate}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        ) : null}
       </FieldGrid>
 
       <Field id="editor-description" label={t('editor.details.description')}>

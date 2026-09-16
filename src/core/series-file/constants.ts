@@ -1,7 +1,7 @@
 // The closed sets a championship file's strings have to belong to.
 
 import { WeatherType } from '../../shared/constants/index.ts';
-import { Discipline, TeamBudget } from '../../shared/types/index.ts';
+import { Climate, Discipline, TeamBudget } from '../../shared/types/index.ts';
 import type { SessionType, TrackStateName } from '../../shared/types/index.ts';
 import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/index.ts';
 
@@ -14,6 +14,11 @@ export const DISCIPLINES: readonly Discipline[] = stringEnumValues(Discipline);
  * Every team budget tier, for checking one read off disk.
  */
 export const TEAM_BUDGETS: readonly TeamBudget[] = stringEnumValues(TeamBudget);
+
+/**
+ * Every climate, for checking one read off disk.
+ */
+export const CLIMATES: readonly Climate[] = stringEnumValues(Climate);
 
 /**
  * Every CSP weather type, without the reverse mapping a numeric enum carries.

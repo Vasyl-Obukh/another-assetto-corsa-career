@@ -155,6 +155,26 @@
   --tier-bronze-foreground: oklch(0.41 0.09 48);
   --tier-steel: oklch(0.875 0.022 250);
   --tier-steel-foreground: oklch(0.36 0.035 255);
+
+  /* What kind of weather a round expects. Named materials rather than hues,
+     the technique the tier metals use, because climates run in an order - dry
+     to wet - and the palette has no four free hues left: sand, olive, moss and
+     slate walk from desert to sea.
+
+     They share hues with families that can sit on the same screen - sand with
+     DLC (75), olive with sportscar (112), moss with race (150), slate with
+     redistribution (235) - and are told apart from them by chroma, at about
+     half of theirs, which is what makes them read as earth rather than as
+     another category. The calendar never shows provenance or disciplines on a
+     round row, which is where these appear. */
+  --climate-arid: oklch(0.93 0.04 70);
+  --climate-arid-foreground: oklch(0.42 0.06 65);
+  --climate-mediterranean: oklch(0.93 0.035 108);
+  --climate-mediterranean-foreground: oklch(0.41 0.055 110);
+  --climate-temperate: oklch(0.925 0.03 150);
+  --climate-temperate-foreground: oklch(0.4 0.05 150);
+  --climate-oceanic: oklch(0.925 0.03 232);
+  --climate-oceanic-foreground: oklch(0.4 0.05 235);
 }
 
 [data-theme="dark"] {
@@ -240,6 +260,15 @@
   --tier-bronze-foreground: oklch(0.85 0.09 55);
   --tier-steel: oklch(0.315 0.028 250);
   --tier-steel-foreground: oklch(0.82 0.035 255);
+
+  --climate-arid: oklch(0.33 0.035 70);
+  --climate-arid-foreground: oklch(0.86 0.06 75);
+  --climate-mediterranean: oklch(0.32 0.03 108);
+  --climate-mediterranean-foreground: oklch(0.86 0.055 110);
+  --climate-temperate: oklch(0.32 0.03 150);
+  --climate-temperate-foreground: oklch(0.85 0.05 150);
+  --climate-oceanic: oklch(0.32 0.03 232);
+  --climate-oceanic-foreground: oklch(0.85 0.045 235);
 }
 
 @theme inline {
@@ -313,6 +342,14 @@
   --color-tier-bronze-foreground: var(--tier-bronze-foreground);
   --color-tier-steel: var(--tier-steel);
   --color-tier-steel-foreground: var(--tier-steel-foreground);
+  --color-climate-arid: var(--climate-arid);
+  --color-climate-arid-foreground: var(--climate-arid-foreground);
+  --color-climate-mediterranean: var(--climate-mediterranean);
+  --color-climate-mediterranean-foreground: var(--climate-mediterranean-foreground);
+  --color-climate-temperate: var(--climate-temperate);
+  --color-climate-temperate-foreground: var(--climate-temperate-foreground);
+  --color-climate-oceanic: var(--climate-oceanic);
+  --color-climate-oceanic-foreground: var(--climate-oceanic-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

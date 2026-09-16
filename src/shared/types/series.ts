@@ -183,6 +183,32 @@ export enum TeamBudget {
 }
 
 /**
+ * The kind of weather a round can expect, which is what generated weather draws
+ * its odds from.
+ *
+ * Named for real climates rather than for how wet they are, because a climate
+ * also says how warm and how windy - Bahrain and Spa differ in more than rain.
+ * Ordered driest first. Until Phase 5 gives a round a date, each assumes the
+ * racing season.
+ */
+export enum Climate {
+  ARID = 'arid',
+  MEDITERRANEAN = 'mediterranean',
+  TEMPERATE = 'temperate',
+  OCEANIC = 'oceanic',
+}
+
+/**
+ * A championship asking for its weather to be generated rather than authored.
+ */
+export interface GeneratedWeather {
+  /**
+   * The climate a round expects when it names none of its own.
+   */
+  climate: Climate;
+}
+
+/**
  * A team fielding seats in a championship.
  *
  * Listed on the championship and referenced by id from a seat, rather than
@@ -403,6 +429,14 @@ export interface Round {
    */
   conditions?: Conditions;
   /**
+   * The climate this round's weather is generated from, overriding the
+   * championship's own.
+   *
+   * Ignored unless the championship generates its weather. What the round's
+   * own `conditions` state still wins over anything generated.
+   */
+  climate?: Climate;
+  /**
    * What entering this round costs, overriding the championship's own fee.
    */
   entryFee?: number;
@@ -596,6 +630,15 @@ export interface Championship {
    * AI strength across the field, which a class entry may override.
    */
   grid?: SeriesGrid;
+  /**
+   * Generate every session's weather from a climate rather than leaving it to
+   * what the rounds and formats author.
+   *
+   * Present is on, so there is no way to switch it on without saying what
+   * climate it draws from. Conditions a round or a session states for itself
+   * still win, field by field, over anything generated.
+   */
+  generatedWeather?: GeneratedWeather;
   /**
    * What entering a round costs, which a round may override.
    */

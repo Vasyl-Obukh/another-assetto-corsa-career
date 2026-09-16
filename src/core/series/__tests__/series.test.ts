@@ -1,9 +1,27 @@
 import { describe, expect, it } from '@jest/globals';
 
-import type { Championship, ClassEntry, Seat } from '../../../shared/types/index.ts';
-import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
-import { roundRace, seriesAvailability, validateSeries } from '../series.ts';
+import { WeatherType } from '../../../shared/constants/index.ts';
+import { Climate } from '../../../shared/types/index.ts';
+import type {
+  Championship, ClassEntry, Seat, WeatherOffer,
+} from '../../../shared/types/index.ts';
+import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
+import {
+  roundRace, seriesAvailability, seriesForecast, validateSeries,
+} from '../series.ts';
 import { makeContent, makeSeries } from './fixtures.ts';
+
+/**
+ * A static offer holding one dry and one wet weather, so a forecast is one
+ * step per session and never depends on what the fixture content declares.
+ */
+const OFFER: WeatherOffer = { types: [WeatherType.CLEAR, WeatherType.RAIN], dynamic: false };
+
+/**
+ * A championship that generates its weather from an oceanic climate.
+ * @returns The championship
+ */
+const generated = (): Championship => makeSeries({ generatedWeather: { climate: Climate.OCEANIC } });
 
 /**
  * The codes validating a championship produced.
@@ -180,6 +198,40 @@ describe('core/series', () => {
     });
   });
 
+  describe('seriesForecast', () => {
+    it('forecasts nothing for a championship that authors its weather', () => {
+      expect(seriesForecast(makeSeries(), OFFER)).toEqual([]);
+    });
+
+    it('forecasts every round, each from its own climate where it names one', () => {
+      const base = generated();
+      const series = {
+        ...base,
+        rounds: [
+          base.rounds[0],
+          {
+            id: 'magione-2', name: 'Magione again', track: { id: 'magione' }, climate: Climate.ARID,
+          },
+        ],
+      };
+      const forecast = seriesForecast(series, OFFER);
+
+      expect(forecast.map((one) => [one.round, one.climate])).toEqual([
+        ['magione', Climate.OCEANIC], ['magione-2', Climate.ARID],
+      ]);
+      forecast.forEach((one) => {
+        expect(one.series).toBe('test-cup');
+        expect(one.sessions).toHaveLength(1);
+      });
+    });
+
+    it('draws only weather the offer holds', () => {
+      seriesForecast(generated(), OFFER).forEach((round) => round.sessions.forEach((session) => {
+        session.steps.forEach((step) => expect(OFFER.types).toContain(step.weather));
+      }));
+    });
+  });
+
   describe('roundRace', () => {
     /**
      * Lowers the only round of a championship, with the player in its only class.
@@ -255,6 +307,28 @@ describe('core/series', () => {
       const series = makeSeries();
 
       expect(lower(series).grid?.opponents).toEqual(lower(series).grid?.opponents);
+    });
+
+    it('leaves the format sessions as they are when the weather is authored', () => {
+      const series = makeSeries();
+
+      expect(lower(series).sessions).toEqual(series.weekendFormats[0].sessions);
+    });
+
+    // The race has to run exactly what the round's forecast showed.
+    it('writes the generated forecast onto the sessions it races', () => {
+      const series = generated();
+      const race = roundRace(
+        { series, entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        makeContent(),
+        SHIPPED_CATALOGUE,
+        OFFER,
+      );
+      const [forecast] = seriesForecast(series, OFFER);
+
+      expect(race.sessions?.[0].conditions).toEqual(forecast.sessions[0].conditions);
+      expect(race.sessions?.[0]).toMatchObject({ type: 'race', laps: 8 });
+      expect(race.sessions?.[0].conditions?.weatherType).toBeDefined();
     });
 
     it('fields a class out of a user spec, given the catalogue that holds it', () => {

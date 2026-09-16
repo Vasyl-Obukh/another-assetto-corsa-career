@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
-import { NOT_SET, WEATHER_TYPE_LABEL } from './constants.ts';
+import { NOT_SET } from './constants.ts';
 import type { WeatherChoice } from './types.ts';
 import { chosenWeather, weatherChoice, weatherValue } from './utils.ts';
 import type { WeatherType } from '../../../../shared/constants';
 import type { Conditions, WeatherController } from '../../../../shared/types';
+import { WEATHER_TYPE_LABEL } from '@/components';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';

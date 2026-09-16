@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { WeatherType } from '../../../../../shared/constants';
+import { WEATHER_TYPE_ORDER, WeatherType } from '../../../../../shared/constants';
 import type {
-  Conditions, SessionDefinition, Weather, WeatherController, WeatherFollow,
+  Conditions, SessionDefinition, SessionForecast, Weather, WeatherController, WeatherFollow,
 } from '../../../../../shared/types';
 import { DEFAULT_SLOT_MINUTES, NOT_SET } from '../constants.ts';
 import {
@@ -12,6 +12,7 @@ import {
   conditionsSummary,
   countsLaps,
   fromNumber,
+  isForecast,
   isOffered,
   moveAt,
   moveTo,
@@ -25,6 +26,7 @@ import {
   toNumber,
   weatherChoice,
   weatherValue,
+  withChosenTypes,
   withSessionCondition,
   withSessionConditions,
   withWeather,
@@ -61,6 +63,24 @@ const controller = (id: string, weather: WeatherFollow): WeatherController => ({
   description: null,
   version: null,
   follows: { weather, temperature: weather, wind: weather },
+});
+
+/**
+ * Builds a session's forecast carrying the conditions generation wrote.
+ * @param conditions What generation wrote onto the session
+ * @param generated Whether the weather was generated
+ * @returns A complete SessionForecast
+ */
+const forecastOf = (conditions: Conditions, generated = true): SessionForecast => ({
+  index: 0,
+  day: 0,
+  type: 'race',
+  generated,
+  steps: [],
+  ambient: 20,
+  windMin: null,
+  windMax: null,
+  conditions,
 });
 
 const installed = [
@@ -396,6 +416,15 @@ describe('renderer/screens/race/utils', () => {
     it('does not count a field cleared back to inheriting', () => {
       expect(overrideCount({ ambient: undefined })).toBe(0);
     });
+
+    // A forecast session used to hide its count entirely, taking a format's own
+    // time of day or track state out of sight along with the forecast.
+    it('leaves out only the fields a forecast wrote', () => {
+      expect(overrideCount(
+        { ambient: 18, weatherType: 1, timeOfDay: '14:00' },
+        { ambient: 18, weatherType: 1 },
+      )).toBe(1);
+    });
   });
 
   describe('offeredTypes', () => {
@@ -416,6 +445,125 @@ describe('renderer/screens/race/utils', () => {
     it('drops the two types PURE does not number', () => {
       expect(offeredTypes(installed, 'pure', true)).not.toContain(WeatherType.COLD);
       expect(offeredTypes(installed, 'sol', true)).toContain(WeatherType.COLD);
+    });
+
+    it('drops a type the user switched off even though a preset declares it', () => {
+      const types = offeredTypes(installed, 'sol', true, [WeatherType.CLEAR, WeatherType.COLD]);
+
+      expect(types).toEqual([WeatherType.CLEAR, WeatherType.COLD]);
+    });
+
+    it('allows every installed type when the user has not narrowed them', () => {
+      expect(offeredTypes(installed, 'sol', true))
+        .toEqual([WeatherType.CLEAR, WeatherType.RAIN, WeatherType.COLD]);
+    });
+
+    it('still drops wet weather and the types PURE does not number from what the user allowed', () => {
+      const allowed = [WeatherType.CLEAR, WeatherType.RAIN, WeatherType.COLD];
+
+      expect(offeredTypes(installed, 'sol', false, allowed)).toEqual([WeatherType.CLEAR, WeatherType.COLD]);
+      expect(offeredTypes(installed, 'pure', true, allowed)).toEqual([WeatherType.CLEAR, WeatherType.RAIN]);
+    });
+  });
+
+  describe('isForecast', () => {
+    const generated: Conditions = {
+      weatherType: WeatherType.CLEAR,
+      ambient: 21,
+      weatherSteps: [
+        { weather: WeatherType.CLEAR, minutes: 10 },
+        { weather: WeatherType.RAIN },
+      ],
+    };
+
+    it('says no when there is no forecast for the session', () => {
+      expect(isForecast({ type: 'race', conditions: generated }, undefined)).toBe(false);
+    });
+
+    // Authored weather is in the forecast too, but running it is not running a
+    // forecast, so the marker belongs only on what was generated.
+    it('says no for a session whose weather was authored rather than generated', () => {
+      expect(isForecast({ type: 'race', conditions: generated }, forecastOf(generated, false))).toBe(false);
+    });
+
+    it('recognises a session carrying exactly what was generated, plan steps included', () => {
+      const session: SessionDefinition = {
+        type: 'race',
+        conditions: {
+          ...generated,
+          weatherSteps: generated.weatherSteps?.map((step) => ({ ...step })),
+        },
+      };
+
+      expect(isForecast(session, forecastOf(generated))).toBe(true);
+    });
+
+    it('stops recognising a session once any generated field is edited', () => {
+      const ambient = { type: 'race' as const, conditions: { ...generated, ambient: 22 } };
+      const steps = {
+        type: 'race' as const,
+        conditions: {
+          ...generated,
+          weatherSteps: [{ weather: WeatherType.CLEAR, minutes: 12 }, { weather: WeatherType.RAIN }],
+        },
+      };
+      const cleared = { type: 'race' as const, conditions: { ...generated, weatherType: undefined } };
+
+      expect(isForecast(ambient, forecastOf(generated))).toBe(false);
+      expect(isForecast(steps, forecastOf(generated))).toBe(false);
+      expect(isForecast(cleared, forecastOf(generated))).toBe(false);
+    });
+
+    it('says no for a session with no conditions of its own when something was generated', () => {
+      expect(isForecast({ type: 'race' }, forecastOf(generated))).toBe(false);
+    });
+
+    // Generation owns only the fields it wrote; the rest of the session's
+    // conditions are the user's and do not take it off the forecast.
+    it('ignores conditions the session sets that generation never wrote', () => {
+      const session: SessionDefinition = {
+        type: 'race',
+        conditions: { ...generated, timeOfDay: '15:00', trackState: 'green' },
+      };
+
+      expect(isForecast(session, forecastOf(generated))).toBe(true);
+    });
+  });
+
+  describe('withChosenTypes', () => {
+    it('lists only what is on offer when the conditions name nothing else', () => {
+      expect(withChosenTypes([WeatherType.CLEAR, WeatherType.RAIN], {}))
+        .toEqual([WeatherType.CLEAR, WeatherType.RAIN]);
+    });
+
+    // A select whose value is not among its items renders blank, which reads as
+    // nothing chosen when something is.
+    it('keeps a chosen type the menu no longer offers', () => {
+      expect(withChosenTypes([WeatherType.CLEAR], { weatherType: WeatherType.RAIN }))
+        .toEqual([WeatherType.CLEAR, WeatherType.RAIN]);
+    });
+
+    it('keeps the types plan slots name, and passes over a slot deferring to the race', () => {
+      const types = withChosenTypes([WeatherType.CLEAR], {
+        weatherSteps: [
+          { weather: WeatherType.FOG, minutes: 5 },
+          { weather: 'race', minutes: 5 },
+          { weather: WeatherType.HEAVY_RAIN },
+        ],
+      });
+
+      expect(types).toEqual([WeatherType.CLEAR, WeatherType.FOG, WeatherType.HEAVY_RAIN]);
+    });
+
+    it('lists in menu order with nothing twice, whatever order it was handed', () => {
+      const types = withChosenTypes([WeatherType.RAIN, WeatherType.CLEAR], {
+        weatherType: WeatherType.RAIN,
+        weatherSteps: [{ weather: WeatherType.FOG, minutes: 5 }, { weather: WeatherType.CLEAR }],
+      });
+      const inMenuOrder = WEATHER_TYPE_ORDER.filter((type) => types.includes(type));
+
+      expect(types).toEqual([WeatherType.CLEAR, WeatherType.FOG, WeatherType.RAIN]);
+      expect(types).toEqual(inMenuOrder);
     });
   });
 

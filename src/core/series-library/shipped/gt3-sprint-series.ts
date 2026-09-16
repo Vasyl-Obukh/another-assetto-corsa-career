@@ -1,5 +1,7 @@
 import { seat, team } from './utils.ts';
-import { CarSpec, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import {
+  CarSpec, Climate, Discipline, TeamBudget,
+} from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -86,19 +88,28 @@ export const GT3_SPRINT_SERIES: Championship = {
   defaultWeekendFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    { id: 'silverstone', name: 'Silverstone', track: { id: 'ks_silverstone', layout: 'gp' } },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' } },
+    {
+      id: 'silverstone',
+      name: 'Silverstone',
+      track: { id: 'ks_silverstone', layout: 'gp' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+    },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
       track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
       weekendFormat: 'sprint',
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
       track: { id: 'ks_zandvoort' },
       weekendFormat: 'sprint',
+      climate: Climate.TEMPERATE,
     },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
@@ -109,6 +120,7 @@ export const GT3_SPRINT_SERIES: Championship = {
   ],
   defaultPointsSystem: 'race',
   grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 35 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },
     penalties: true,

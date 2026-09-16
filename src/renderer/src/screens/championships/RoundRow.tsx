@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import {
   formatOf, roundAvailability, roundRaceable, trackKeyOf,
 } from './utils.ts';
-import type { Round, SeriesListing } from '../../../../shared/types';
+import type { Round, RoundForecast, SeriesListing } from '../../../../shared/types';
+import { ClimateBadge, ForecastStrip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
@@ -26,13 +27,18 @@ interface RoundRowProps {
    */
   busy: boolean;
   /**
+   * The round's weather forecast, or null when the championship's weather is
+   * authored rather than generated.
+   */
+  forecast: RoundForecast | null;
+  /**
    * Called when this round should be set up as the race being prepared.
    */
   onRace: () => void;
 }
 
 export const RoundRow = ({
-  listing, round, number, busy, onRace,
+  listing, round, number, busy, forecast, onRace,
 }: RoundRowProps) => {
   const { t } = useTranslation();
   const { formatMoney } = useFormat();
@@ -57,6 +63,11 @@ export const RoundRow = ({
 
       {format ? (
         <Badge variant="secondary">{format.name}</Badge>
+      ) : null}
+
+      {/* Only a round expecting other weather than the championship's own. */}
+      {listing.series.generatedWeather && round.climate ? (
+        <ClimateBadge climate={round.climate} />
       ) : null}
 
       {/* Only what this round says for itself. A calendar's job is to show
@@ -95,6 +106,15 @@ export const RoundRow = ({
       <Button size="sm" variant="outline" disabled={!raceable || busy} onClick={onRace}>
         {t('championships.calendar.race')}
       </Button>
+
+      {/* A line of its own, lined up under the name rather than the round
+          number, so a weekend of eight sessions never squeezes the row. */}
+      {forecast ? (
+        <div className="flex basis-full gap-3">
+          <span className="w-20 shrink-0" aria-hidden />
+          <ForecastStrip forecast={forecast} />
+        </div>
+      ) : null}
     </div>
   );
 };

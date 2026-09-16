@@ -5,6 +5,7 @@ import { CountBadge } from './CountBadge.tsx';
 import { ListRow } from './ListRow.tsx';
 import { SwapSummary } from './SwapSummary.tsx';
 import type { Championship, Round, RoundAvailability } from '../../../../shared/types';
+import { ClimateBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
 import { trackKeyOf } from '@/screens/championships';
@@ -134,6 +135,10 @@ export const RoundRow = ({
       {format === undefined ? null : (
         <Badge variant="secondary" className="max-w-40 shrink-0 truncate">{format.name}</Badge>
       )}
+
+      {/* Only a round that expects weather of its own, and only while the
+          championship generates it - a climate is ignored otherwise. */}
+      {series.generatedWeather && round.climate ? <ClimateBadge climate={round.climate} /> : null}
 
       <CountBadge
         icon={<CloudSunIcon />}

@@ -107,6 +107,14 @@ export interface RaceStore {
    */
   progress(): RaceProgress | null;
   /**
+   * Which of CSP's weather modules the install runs, read once per install.
+   *
+   * Asked by the series store too, because whether RainFX draws rain decides
+   * what weather a championship can be generated in.
+   * @returns Whether WeatherFX and RainFX are switched on
+   */
+  weatherFx(): Promise<WeatherFxState>;
+  /**
    * Every result the app has archived, newest first.
    * @returns One record per archive, summarised
    */

@@ -8,10 +8,13 @@ import {
   DEFAULT_TRACK_STATE,
   FULL_GRIP,
   GRIP_GAIN_PER_SESSION,
+  RAIN_FOR_FULL_WASH,
   SEGMENT_ORDER_JITTER,
 } from './constants.ts';
+import { RAIN_INTENSITY } from '../../shared/constants/index.ts';
 import type {
   Conditions,
+  Content,
   GridEntry,
   LaunchRecord,
   RaceDefinition,
@@ -22,6 +25,7 @@ import type {
   WeekendState,
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
+import { staticWeatherType } from '../../shared/utils/weather-types/index.ts';
 import { TRACK_STATE } from '../race-ini/index.ts';
 import { isDistinctSubset } from '../results/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
@@ -34,29 +38,103 @@ import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 export const dayOf = (session: SessionDefinition): number => session.day ?? DEFAULT_DAY;
 
 /**
- * Starting grip for a session, given how much of the weekend ran before it.
+ * Whether a session runs to a clock rather than to a lap count, so its length
+ * in minutes is known before it has been driven.
+ * @param session The session to read
+ * @returns True when it has minutes and is not a race measured in laps
+ */
+export const runsToClock = (session: SessionDefinition): boolean => (
+  session.minutes !== undefined && !(session.type === 'race' && session.laps !== undefined)
+);
+
+/**
+ * Starting grip for a session, given what the weekend ran before it.
  *
- * An approximation - see GRIP_GAIN_PER_SESSION. Each completed session closes
- * part of the gap to a fully rubbered track, damped by the track state's own
- * SESSION_TRANSFER. AC does this itself between sessions of one launch, and
- * every session is its own launch now, so nothing else carries the rubber.
+ * An approximation - see GRIP_GAIN_PER_SESSION and RAIN_FOR_FULL_WASH. Each
+ * completed session closes part of the gap to a fully rubbered track, damped by
+ * the track state's own SESSION_TRANSFER, and then gives some of it back if it
+ * rained: rain washes the rubber off, so a wet session leaves the track greener
+ * than it found it rather than faster. AC does all of this itself between
+ * sessions of one launch, and every session is its own launch now, so nothing
+ * else carries the rubber.
  * @param conditions The session's resolved conditions, naming the track state
- * @param sessionsBefore How many sessions have already run this weekend
+ * @param rainBefore How hard it rained in each session already run this weekend,
+ * in order, 0 for a dry one
  * @returns Starting grip as a whole percentage
  */
 export const gripAfter = (
   conditions: Conditions | undefined,
-  sessionsBefore: number,
+  rainBefore: readonly number[],
 ): number => {
   const preset = TRACK_STATE[conditions?.trackState ?? DEFAULT_TRACK_STATE] ?? TRACK_STATE.fast;
   const transfer = preset.SESSION_TRANSFER / FULL_GRIP;
-  let grip = conditions?.startGrip ?? preset.SESSION_START;
+  const start = conditions?.startGrip ?? preset.SESSION_START;
+  // Rain takes back what the weekend laid down, never what the track started
+  // with - and never more than a green track has, whatever the author set.
+  const floor = Math.min(preset.SESSION_START, start);
 
-  for (let session = 0; session < sessionsBefore; session += 1) {
-    grip += (FULL_GRIP - grip) * transfer * GRIP_GAIN_PER_SESSION;
-  }
+  const grip = rainBefore.reduce((current, rain) => {
+    const rubbered = current + (FULL_GRIP - current) * transfer * GRIP_GAIN_PER_SESSION;
+    const wash = Math.min(1, Math.max(0, rain / RAIN_FOR_FULL_WASH));
+
+    return rubbered - Math.max(0, rubbered - floor) * wash;
+  }, start);
 
   return Math.round(Math.min(FULL_GRIP, grip));
+};
+
+/**
+ * How hard a weather type rains.
+ *
+ * A preset declares its type as a bare number, which may be one CSP does not
+ * number at all - so the table is read as a lookup that can miss.
+ * @param type The weather type
+ * @returns Rain intensity, from 0 to 1, and 0 for a type the table does not hold
+ */
+const typeIntensity = (type: number): number => (
+  (RAIN_INTENSITY as Record<number, number | undefined>)[type] ?? 0
+);
+
+/**
+ * How hard it rained over a session, as grip feels it.
+ *
+ * Weighted by how long each stretch lasted rather than taken at its peak,
+ * because rubber goes with exposure: a sprinkle in the last minute of an hour's
+ * dry practice should not wash away the hour. The stretch that holds to the end
+ * lasts whatever the session has left, or - for a race run to a lap count,
+ * whose length nobody knows - as long as the stretches before it did on average.
+ * @param session The session
+ * @param conditions Its resolved conditions
+ * @param content Installed content, for the rain a named preset carries
+ * @returns Rain intensity, from 0 to 1
+ */
+export const sessionRain = (
+  session: SessionDefinition,
+  conditions: Conditions,
+  content: Content,
+): number => {
+  const preset = conditions.weather === undefined
+    ? undefined
+    : content.weather.find((one) => one.id === conditions.weather);
+  const type = staticWeatherType(conditions) ?? preset?.type ?? null;
+  const flat = preset?.rain?.intensity ?? (type === null ? 0 : typeIntensity(type));
+
+  const steps = conditions.weatherSteps ?? [];
+  if (steps.length < 2) return steps[0]?.rain ?? flat;
+
+  const closed = steps.slice(0, -1).map((step) => step.minutes ?? 0);
+  const elapsed = closed.reduce((sum, minutes) => sum + minutes, 0);
+  const remaining = runsToClock(session)
+    ? Math.max(0, (session.minutes ?? 0) - elapsed)
+    : elapsed / closed.length;
+  const weights = [...closed, remaining];
+  const total = weights.reduce((sum, minutes) => sum + minutes, 0);
+  if (total === 0) return flat;
+
+  return steps.reduce((sum, step, at) => (
+    sum + (step.rain ?? (typeof step.weather === 'number' ? typeIntensity(step.weather) : flat))
+      * (weights[at] ?? 0)
+  ), 0) / total;
 };
 
 /**

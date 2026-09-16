@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { DEFAULT_SETTINGS } from '../../../constants/index.ts';
+import { DEFAULT_ALLOWED_WEATHER, DEFAULT_SETTINGS, WeatherType } from '../../../constants/index.ts';
 import {
   applyPatch,
   cleanString,
@@ -8,6 +8,7 @@ import {
   oneOf,
   optionalBoolean,
   readAddedContent,
+  readAllowedWeather,
   readDrivingAids,
   readPaths,
   readSettings,
@@ -94,6 +95,37 @@ describe('shared/utils/settings', () => {
     it('returns both lists empty for anything that is not an object', () => {
       expect(readAddedContent(undefined)).toEqual({ cars: [], tracks: [] });
       expect(readAddedContent(['a_car'])).toEqual({ cars: [], tracks: [] });
+    });
+  });
+
+  describe('readAllowedWeather', () => {
+    it('falls back to a fresh copy of the default for anything that is not a list', () => {
+      const read = readAllowedWeather(undefined);
+
+      expect(read).toEqual(DEFAULT_ALLOWED_WEATHER);
+      expect(read).not.toBe(DEFAULT_ALLOWED_WEATHER);
+      expect(readAllowedWeather({ 7: true })).toEqual(DEFAULT_ALLOWED_WEATHER);
+    });
+
+    it('drops anything that is not a weather type', () => {
+      expect(readAllowedWeather([WeatherType.RAIN, 99, 'RAIN', null, '7']))
+        .toEqual([WeatherType.RAIN]);
+    });
+
+    // A hand-edited file that lists a type twice must not offer it twice.
+    it('keeps each type once', () => {
+      expect(readAllowedWeather([WeatherType.FOG, WeatherType.FOG])).toEqual([WeatherType.FOG]);
+    });
+
+    it('puts the types in menu order, whatever order the file holds them in', () => {
+      expect(readAllowedWeather([WeatherType.HEAVY_RAIN, WeatherType.CLEAR, WeatherType.FOG]))
+        .toEqual([WeatherType.CLEAR, WeatherType.FOG, WeatherType.HEAVY_RAIN]);
+    });
+
+    // The settings screen never writes an empty list, so one was put there by
+    // hand and is taken at its word.
+    it('honours an empty list rather than reading it as the default', () => {
+      expect(readAllowedWeather([])).toEqual([]);
     });
   });
 
@@ -205,6 +237,7 @@ describe('shared/utils/settings', () => {
         theme: 'dark',
         language: 'uk',
         weatherSystem: 'pure',
+        allowedWeather: [15, 7],
         drivingAids: { abs: 2, idealLine: true },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
         paths: { acRoot: 'D:\\ac' },

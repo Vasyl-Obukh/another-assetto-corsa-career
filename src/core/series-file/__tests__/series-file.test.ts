@@ -144,6 +144,39 @@ describe('core/series-file', () => {
       expect(codesFor(value)).toEqual([]);
     });
 
+    it('accepts generated weather and a round climate that are real ones', () => {
+      const { series, problems } = parseSeries(raw({
+        generatedWeather: { climate: 'temperate' },
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, climate: 'arid',
+        }],
+      }), 'test.json');
+
+      expect(problems).toEqual([]);
+      expect(series?.generatedWeather?.climate).toBe('temperate');
+      expect(series?.rounds[0].climate).toBe('arid');
+    });
+
+    it('rejects a championship climate that is not a real one', () => {
+      expect(codesFor(raw({ generatedWeather: { climate: 'tropical' } })))
+        .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('rejects generated weather that is not an object', () => {
+      expect(codesFor(raw({ generatedWeather: 'temperate' })))
+        .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('rejects a round climate that is not a real one', () => {
+      const value = raw({
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, climate: 'Temperate',
+        }],
+      });
+
+      expect(codesFor(value)).toEqual(['seriesFile.field.invalid']);
+    });
+
     it('rejects a weekend format with no id to be named by', () => {
       // A round names its format by id, so one without is a format nothing can
       // reach - and the file must not read as though it had been understood.

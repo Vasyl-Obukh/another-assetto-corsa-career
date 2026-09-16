@@ -31,3 +31,11 @@ export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';
 export { ToggleButton } from './ToggleButton.tsx';
 export { ToggleRow } from './ToggleRow.tsx';
+export {
+  ClimateBadge,
+  ForecastStrip,
+  SessionForecastChip,
+  WEATHER_ICON,
+  WEATHER_TYPE_LABEL,
+  WeekendForecast,
+} from './weather-forecast/index.ts';

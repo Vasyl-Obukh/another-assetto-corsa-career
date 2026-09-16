@@ -12,6 +12,7 @@ import type {
   Championship,
   ClassCatalogue,
   ClassEntry,
+  Climate,
   Content,
   DLCPack,
   Eligibility,
@@ -181,6 +182,17 @@ export const seatSkin = (
 
   return car?.skins.some((candidate) => candidate.id === skin) ? skin : undefined;
 };
+
+/**
+ * The climate a round's weather is generated from.
+ * @param series The championship
+ * @param round The round being raced
+ * @returns The round's own climate, the championship's otherwise, or null when
+ * the championship does not generate its weather
+ */
+export const climateOf = (series: Championship, round: Round): Climate | null => (
+  series.generatedWeather ? round.climate ?? series.generatedWeather.climate : null
+);
 
 /**
  * Reads the weekend format a round is run over.

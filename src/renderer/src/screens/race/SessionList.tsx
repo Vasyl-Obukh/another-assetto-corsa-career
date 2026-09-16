@@ -2,9 +2,16 @@ import { PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SessionRow } from './SessionRow.tsx';
-import { moveAt, nextSession } from './utils.ts';
+import { isForecast, moveAt, nextSession } from './utils.ts';
 import type {
-  Conditions, LaunchRecord, SessionDefinition, Weather, WeatherController, WeatherSystem,
+  Conditions,
+  LaunchRecord,
+  RoundForecast,
+  SessionDefinition,
+  SessionForecast,
+  Weather,
+  WeatherController,
+  WeatherSystem,
 } from '../../../../shared/types';
 import { resolveConditions } from '../../../../shared/utils/conditions';
 import { Button } from '@/components/ui/button.tsx';
@@ -47,6 +54,11 @@ interface SessionListProps {
    */
   records: readonly LaunchRecord[];
   /**
+   * The forecast of the championship round this race was set up from, or null
+   * for a race that is not one.
+   */
+  forecast: RoundForecast | null;
+  /**
    * Whether the weekend has started, in which case the list cannot change.
    */
   locked: boolean;
@@ -57,8 +69,19 @@ interface SessionListProps {
   onChange: (sessions: SessionDefinition[]) => void;
 }
 
+/**
+ * A session's forecast, when it still runs what the forecast gave it.
+ * @param session The session as the race holds it
+ * @param forecast The forecast at the same position in its round, if any
+ * @returns The forecast, or null when the session has moved away from it
+ */
+const forecastFor = (
+  session: SessionDefinition,
+  forecast: SessionForecast | undefined,
+): SessionForecast | null => (isForecast(session, forecast) ? forecast : null);
+
 export const SessionList = ({
-  sessions, conditions, weather, controllers, system, rainFx, records, locked, onChange,
+  sessions, conditions, weather, controllers, system, rainFx, records, forecast, locked, onChange,
 }: SessionListProps) => {
   const { t } = useTranslation();
 
@@ -89,6 +112,7 @@ export const SessionList = ({
             system={system}
             rainFx={rainFx}
             record={records[index] ?? null}
+            forecast={forecastFor(session, forecast?.sessions[index])}
             next={index === records.length}
             locked={locked}
             onChange={(next) => onChange(sessions.map((own, at) => (at === index ? next : own)))}

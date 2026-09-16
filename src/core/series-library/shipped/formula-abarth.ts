@@ -1,5 +1,5 @@
 import { seat, team } from './utils.ts';
-import { Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -92,6 +92,7 @@ export const FORMULA_ABARTH: Championship = {
   ],
   defaultPointsSystem: 'race',
   grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 30 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },
     penalties: true,

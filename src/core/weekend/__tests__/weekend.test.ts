@@ -121,6 +121,17 @@ describe('core/weekend', () => {
         .toEqual([undefined, 83, 86, 88]);
     });
 
+    it('starts a session after a wet one on a greener track than after a dry one', () => {
+      const after = (weatherType: number): number | undefined => {
+        const weekend = makeWeekend();
+        weekend.sessions = [{ type: 'practice', conditions: { weatherType } }, { type: 'qualify' }];
+
+        return plan(weekend).launches[1].race.conditions?.startGrip;
+      };
+
+      expect(after(7)).toBeLessThan(after(15) ?? 0);
+    });
+
     it('takes each launch its day from its session', () => {
       const weekend = makeWeekend();
       weekend.sessions = [

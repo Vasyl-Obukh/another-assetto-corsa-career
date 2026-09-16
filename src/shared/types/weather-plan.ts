@@ -15,6 +15,23 @@ import type { WeatherType } from '../constants/weather-types.ts';
 export type WeatherSystem = 'none' | 'pure' | 'sol';
 
 /**
+ * The weather this install and these settings can actually race in.
+ *
+ * Handed to generated weather so it never names a type nothing can render, and
+ * read by the race screen so it never offers one.
+ */
+export interface WeatherOffer {
+  /**
+   * The types on offer, in menu order.
+   */
+  types: readonly WeatherType[];
+  /**
+   * Whether the weather may change during a session, which takes a planner app.
+   */
+  dynamic: boolean;
+}
+
+/**
  * Which planner app a plan is written for.
  *
  * The weather systems that have one, which is every system but `'none'`: PURE

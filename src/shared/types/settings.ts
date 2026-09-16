@@ -3,6 +3,7 @@
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
 import type { WeatherSystem } from './weather-plan.ts';
+import type { WeatherType } from '../constants/weather-types.ts';
 
 /**
  * What the user picked in the theme menu. "system" follows the OS.
@@ -131,6 +132,14 @@ export interface Settings {
    * here and not on a race definition. See src/shared/utils/weather-system/.
    */
   weatherSystem: WeatherSystem;
+  /**
+   * The weather types the user lets into the sim, in menu order.
+   *
+   * Governs what a championship may generate and what the race screen offers.
+   * A type left out is swapped for the nearest one allowed rather than refused,
+   * and a hand-written race file may still name anything it likes.
+   */
+  allowedWeather: WeatherType[];
   /**
    * The name shown on Assetto Corsa's timing screen.
    *

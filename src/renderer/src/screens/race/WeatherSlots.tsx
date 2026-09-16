@@ -1,15 +1,22 @@
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { WEATHER_TYPE_LABEL } from './constants.ts';
 import {
-  addWeatherSlot, fromNumber, offeredTypes, removeWeatherSlot, setWeatherSlot, toNumber,
+  addWeatherSlot,
+  fromNumber,
+  offeredTypes,
+  removeWeatherSlot,
+  setWeatherSlot,
+  toNumber,
+  withChosenTypes,
 } from './utils.ts';
 import { WeatherSelect } from './WeatherSelect.tsx';
 import type {
   Conditions, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { supportsDynamic } from '../../../../shared/utils/weather-system';
+import { useSettings } from '@/app';
+import { WEATHER_TYPE_LABEL } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import {
@@ -80,8 +87,11 @@ export const WeatherSlots = ({
 }: WeatherSlotsProps) => {
   const { t } = useTranslation();
 
+  const { settings } = useSettings();
+
   const steps = conditions.weatherSteps ?? [];
-  const types = offeredTypes(weather, system, rainFx);
+  const offered = offeredTypes(weather, system, rainFx, settings.allowedWeather);
+  const types = withChosenTypes(offered, conditions);
   // One step is a weather that simply holds, which is static weather by another
   // name - so the plain picker stays until there are two.
   const changing = steps.length > 1;
@@ -178,7 +188,7 @@ export const WeatherSlots = ({
             size="sm"
             variant="outline"
             disabled={locked}
-            onClick={() => onChange(addWeatherSlot(conditions, weather, types))}
+            onClick={() => onChange(addWeatherSlot(conditions, weather, offered))}
           >
             <PlusIcon />
             {changing ? t('race.conditions.slotAdd') : t('race.conditions.slotMakeChanging')}

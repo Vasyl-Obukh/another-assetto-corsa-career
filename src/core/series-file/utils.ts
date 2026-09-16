@@ -3,6 +3,7 @@
 // rather than the first.
 
 import {
+  CLIMATES,
   DISCIPLINES,
   SESSION_TYPES,
   TEAM_BUDGETS,
@@ -270,6 +271,22 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
     ? true
     : report.bad(`${field}.track`, value.track);
   const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
+  const climate = value.climate === undefined
+    || report.closedSet(value.climate, CLIMATES, `${field}.climate`);
 
-  return readConditions(value.conditions, `${field}.conditions`, report) && track && fee;
+  return readConditions(value.conditions, `${field}.conditions`, report) && track && fee && climate;
+};
+
+/**
+ * Checks a championship's request for generated weather.
+ * @param value The generated weather value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readGeneratedWeather = (value: unknown, field: string, report: Reporter): boolean => {
+  if (value === undefined) return true;
+  if (!isRecord(value)) return report.bad(field, value);
+
+  return report.closedSet(value.climate, CLIMATES, `${field}.climate`);
 };

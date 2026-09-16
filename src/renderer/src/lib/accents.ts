@@ -9,7 +9,9 @@
 // would be saying something it does not mean. A set only one screen shows stays
 // beside that screen - a team's budget is in the editor's own constants.
 
-import type { ClassificationOrigin, Discipline, SessionType } from '../../../shared/types';
+import type {
+  ClassificationOrigin, Climate, Discipline, SessionType,
+} from '../../../shared/types';
 
 /**
  * The colour each kind of session is chipped in.
@@ -79,6 +81,20 @@ export const ORIGIN_ACCENT = {
   user: 'border-transparent bg-origin-custom text-origin-custom-foreground',
   shipped: '',
 } as const satisfies Record<ClassificationOrigin, string>;
+
+/**
+ * The material each climate is chipped in, driest first.
+ *
+ * Sand, olive, moss and slate: an order from desert to sea rather than four
+ * categories, for the reason the tier metals are - see the note beside the
+ * tokens. Read by the calendar, the Enter round dialog and the editor.
+ */
+export const CLIMATE_ACCENT = {
+  arid: 'border-transparent bg-climate-arid text-climate-arid-foreground',
+  mediterranean: 'border-transparent bg-climate-mediterranean text-climate-mediterranean-foreground',
+  temperate: 'border-transparent bg-climate-temperate text-climate-temperate-foreground',
+  oceanic: 'border-transparent bg-climate-oceanic text-climate-oceanic-foreground',
+} as const satisfies Record<Climate, string>;
 
 /**
  * The metal each rung of a discipline is chipped in, the top rung first.

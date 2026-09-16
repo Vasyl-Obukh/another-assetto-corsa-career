@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DEFAULT_REF, MIN_MONEY } from './constants.ts';
+import { CLIMATES, DEFAULT_REF, MIN_MONEY } from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
-import type { Championship, Round, Track } from '../../../../shared/types';
+import type {
+  Championship, Climate, Round, Track,
+} from '../../../../shared/types';
 import { TrackPicker } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -112,6 +114,35 @@ export const RoundForm = ({
         disabled={locked}
         onChange={(entryFee) => setDraft({ ...draft, entryFee })}
       />
+
+      {/* Only while the championship generates its weather: a climate means
+          nothing to a calendar whose conditions are authored. */}
+      {series.generatedWeather ? (
+        <Field id={`${idPrefix}-climate`} label={t('editor.calendar.climate')}>
+          <Select
+            value={draft.climate ?? DEFAULT_REF}
+            disabled={locked}
+            onValueChange={(value) => setDraft({
+              ...draft,
+              climate: value === DEFAULT_REF ? undefined : value as Climate,
+            })}
+          >
+            <SelectTrigger id={`${idPrefix}-climate`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={DEFAULT_REF}>
+                {t('editor.calendar.defaultClimate', {
+                  climate: t(`climate.${series.generatedWeather.climate}`),
+                })}
+              </SelectItem>
+              {CLIMATES.map((climate) => (
+                <SelectItem key={climate} value={climate}>{t(`climate.${climate}`)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      ) : null}
 
       <TrackPicker
         open={picking}

@@ -1,5 +1,7 @@
 import { seat, team } from './utils.ts';
-import { CarSpec, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import {
+  CarSpec, Climate, Discipline, TeamBudget,
+} from '../../../shared/types/index.ts';
 import type { Championship, SeriesSession } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -157,14 +159,27 @@ export const FORMULA_1_2023: Championship = {
       name: 'Austria',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
       weekendFormat: 'sprint',
+      climate: Climate.TEMPERATE,
     },
-    { id: 'silverstone', name: 'Great Britain', track: { id: 'ks_silverstone', layout: 'gp' } },
-    { id: 'spa', name: 'Belgium', track: { id: 'spa' }, weekendFormat: 'sprint' },
+    {
+      id: 'silverstone',
+      name: 'Great Britain',
+      track: { id: 'ks_silverstone', layout: 'gp' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'spa',
+      name: 'Belgium',
+      track: { id: 'spa' },
+      weekendFormat: 'sprint',
+      climate: Climate.OCEANIC,
+    },
     { id: 'monza', name: 'Italy', track: { id: 'monza' } },
     {
       id: 'nurburgring',
       name: 'Germany',
       track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      climate: Climate.TEMPERATE,
     },
   ],
   pointsSystems: [
@@ -178,6 +193,7 @@ export const FORMULA_1_2023: Championship = {
   ],
   defaultPointsSystem: 'race',
   grid: { aiLevel: 96, aiLevelMin: 86, aiAggression: 40 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1, tyreBlankets: true },
     penalties: true,

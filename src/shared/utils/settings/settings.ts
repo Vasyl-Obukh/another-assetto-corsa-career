@@ -7,17 +7,20 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
+  DEFAULT_ALLOWED_WEATHER,
   DEFAULT_SETTINGS,
   DRIVING_AID_FLAGS,
   DRIVING_AID_NUMBERS,
   LANGUAGES,
   THEME_CHOICES,
   WEATHER_SYSTEMS,
+  WEATHER_TYPE_ORDER,
 } from '../../constants/index.ts';
+import type { WeatherType } from '../../constants/index.ts';
 import type {
   AddedContent, DrivingAids, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
-import { isRecord } from '../coerce/index.ts';
+import { isRecord, memberOf } from '../coerce/index.ts';
 
 /**
  * Reads a trimmed, non-empty string. A blank override means "unset".
@@ -90,6 +93,22 @@ export const readAddedContent = (raw: unknown): AddedContent => {
   if (!isRecord(raw)) return { cars: [], tracks: [] };
 
   return { cars: readIds(raw.cars), tracks: readIds(raw.tracks) };
+};
+
+/**
+ * Reads the weather types the user lets into the sim.
+ *
+ * Anything that is not a list falls back to the default rather than to nothing,
+ * since a sim with no weather allowed cannot race. An empty list is honoured -
+ * the settings screen never writes one, so it was put there by hand.
+ * @param raw The value read from disk
+ * @returns Every allowed type once, in menu order
+ */
+export const readAllowedWeather = (raw: unknown): WeatherType[] => {
+  if (!Array.isArray(raw)) return [...DEFAULT_ALLOWED_WEATHER];
+
+  const allowed = new Set(raw.map((value) => memberOf(value, WEATHER_TYPE_ORDER)));
+  return WEATHER_TYPE_ORDER.filter((type) => allowed.has(type));
 };
 
 /**
@@ -173,6 +192,7 @@ export const readSettings = (raw: unknown): Settings => {
     theme: oneOf(raw.theme, THEME_CHOICES, DEFAULT_SETTINGS.theme),
     language: oneOf(raw.language, LANGUAGES, DEFAULT_SETTINGS.language),
     weatherSystem: oneOf(raw.weatherSystem, WEATHER_SYSTEMS, DEFAULT_SETTINGS.weatherSystem),
+    allowedWeather: readAllowedWeather(raw.allowedWeather),
     // Absent rather than empty, so clearing the field means "let Assetto Corsa
     // decide" rather than racing under a blank name.
     ...(driverName ? { driverName } : {}),

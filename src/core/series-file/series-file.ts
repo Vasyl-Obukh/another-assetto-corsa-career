@@ -18,6 +18,7 @@ import type { ParsedSeries } from './types.ts';
 import {
   readEntry,
   readFormat,
+  readGeneratedWeather,
   readOptionalNumber,
   readOptionalString,
   readPoints,
@@ -91,6 +92,7 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     raw.teams === undefined
       || readList(raw.teams, 'teams', (team, at) => readTeam(team, at, report)),
     readPrizes(raw.prizes, 'prizes', report),
+    readGeneratedWeather(raw.generatedWeather, 'generatedWeather', report),
     readOptionalNumber(raw.entryFee, 'entryFee', report),
     readOptionalString(raw.description, 'description', report),
   ].every(Boolean);

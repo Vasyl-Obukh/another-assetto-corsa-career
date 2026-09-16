@@ -36,7 +36,13 @@ if (!app.requestSingleInstanceLock()) {
     const classes = await createClassStore(app.getPath('userData'));
     content.classify(classes.catalogue());
     const race = await createRaceStore(app.getPath('userData'), content, settings);
-    const series = await createSeriesStore(app.getPath('userData'), content, race, classes);
+    const series = await createSeriesStore(
+      app.getPath('userData'),
+      content,
+      race,
+      classes,
+      settings,
+    );
     applyThemeChoice(settings.get().theme);
     registerHandlers(settings, content, race, series, classes);
     serveContent(() => content.contentDir());

@@ -4,12 +4,22 @@ import path from 'node:path';
 import { scanContent } from '../../core/content/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
 import { buildRaceIni } from '../../core/race-ini/index.ts';
-import { eligibleCars, roundRace, seriesAvailability } from '../../core/series/index.ts';
+import {
+  eligibleCars, roundRace, seriesAvailability, seriesForecast,
+} from '../../core/series/index.ts';
 import { loadSeriesLibrary, seriesById } from '../../core/series-library/index.ts';
+import { readWeatherFx } from '../../core/weather/index.ts';
+import { defaultWeatherOffer } from '../../core/weather-forecast/index.ts';
 import { planWeekend } from '../../core/weekend/index.ts';
+import { WeatherType } from '../../shared/constants/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
-  Championship, Content, SeriesAvailability, SessionDefinition,
+  Championship,
+  Content,
+  RoundForecast,
+  SeriesAvailability,
+  SessionDefinition,
+  WeatherOffer,
 } from '../../shared/types/index.ts';
 import { SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { OUT_DIR } from '../constants.ts';
@@ -23,6 +33,37 @@ import { describeProblems } from '../utils.ts';
 const sessionLength = (session: SessionDefinition): string => (
   session.laps ? `${session.laps} laps` : `${session.minutes ?? 0} min`
 );
+
+/**
+ * Names a weather type the way a forecast line reads it.
+ * @param type The type
+ * @returns Its enum name in lower case, "light rain" for LIGHT_RAIN
+ */
+const weatherName = (type: WeatherType): string => WeatherType[type].toLowerCase().replaceAll('_', ' ');
+
+/**
+ * Renders a round's forecast as one line per day.
+ *
+ * Printed under the calendar so a spread across rounds can be read at a glance,
+ * which is also how a seed that fails to vary between rounds would show.
+ * @param forecast The round's forecast
+ * @returns The lines, without indentation
+ */
+const forecastLines = (forecast: RoundForecast): string[] => {
+  const days = new Map<number, string[]>();
+
+  forecast.sessions.forEach((session) => {
+    const empty = session.generated ? '(nothing on offer)' : '(preset)';
+    const weather = session.steps.length === 0
+      ? empty
+      : session.steps.map((step) => weatherName(step.weather)).join(' -> ');
+    const authored = session.generated ? '' : ' (authored)';
+    const line = `${session.name ?? session.type} ${weather}${authored} ${session.ambient}C`;
+    days.set(session.day, [...(days.get(session.day) ?? []), line]);
+  });
+
+  return [...days].map(([day, sessions]) => `day ${day}  ${sessions.join(' | ')}`);
+};
 
 /**
  * Prints one championship's headline and availability.
@@ -43,12 +84,16 @@ const printSeries = (series: Championship, availability: SeriesAvailability): vo
  * @param series The championship
  * @param availability What it needs and whether the install has it
  * @param content Installed content, for naming the tracks it does have
+ * @param offer What generated weather may be drawn over
  */
 const printDetail = (
   series: Championship,
   availability: SeriesAvailability,
   content: Content,
+  offer: WeatherOffer,
 ): void => {
+  const forecasts = seriesForecast(series, offer);
+
   console.log(`  Requires  ${availability.requires.sources.join(', ')}`
     + (availability.requires.packs.length ? ` + ${availability.requires.packs.join(', ')}` : '')
     + (availability.requires.makers.length ? ` + ${availability.requires.makers.join(', ')}` : ''));
@@ -122,7 +167,11 @@ const printDetail = (
     // the same word down every row would say nothing.
     const format = round.weekendFormat ? `  [${round.weekendFormat}]` : '';
     const fee = round.entryFee !== undefined ? `  fee ${round.entryFee}` : '';
-    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}${fee}`);
+    const climate = round.climate ? `  {${round.climate}}` : '';
+    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}${fee}${climate}`);
+
+    const forecast = forecasts.find((one) => one.round === round.id);
+    if (forecast) forecastLines(forecast).forEach((line) => console.log(`          ${line}`));
   });
 };
 
@@ -186,15 +235,18 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
 
   const { series } = held;
   const availability = seriesAvailability(series, content);
+  // The CLI has no settings of its own, but the install's RainFX switch is real.
+  const { rainFx } = await readWeatherFx(paths.acRoot, paths.documents);
+  const offer = defaultWeatherOffer(content, rainFx);
   printSeries(series, availability);
-  printDetail(series, availability, content);
+  printDetail(series, availability, content, offer);
 
   if (!entry || !round) return;
 
   const model = car ?? firstEligible(series, entry, round, content);
   const race = roundRace({
     series, entry, round, car: { model },
-  }, content);
+  }, content, SHIPPED_CATALOGUE, offer);
   // The whole round as one INI is not what runs - the app plans one launch
   // per session - so the plan is printed beside it rather than left implied.
   const plan = planWeekend(race, content);
@@ -216,7 +268,13 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
   Launches  ${plan.launches.length}, one per session`);
   plan.launches.forEach((launch) => {
     const name = (launch.session.name ?? launch.session.type).padEnd(12);
-    console.log(`    ${launch.index + 1}  day ${launch.day}  ${name} ${sessionLength(launch.session)}`);
+    const { conditions = {} } = launch.race;
+    const steps = conditions.weatherSteps
+      ?.map((step) => (typeof step.weather === 'number' ? weatherName(step.weather) : step.weather))
+      .join(' -> ');
+    const weather = steps ?? (conditions.weatherType == null ? '' : weatherName(conditions.weatherType));
+    const ambient = conditions.ambient === undefined ? '' : ` ${conditions.ambient}C`;
+    console.log(`    ${launch.index + 1}  day ${launch.day}  ${name} ${sessionLength(launch.session).padEnd(8)} ${weather}${ambient}`);
   });
   console.log(`
   Wrote out/race.ini for launch 1 (${raceIni.length} bytes)

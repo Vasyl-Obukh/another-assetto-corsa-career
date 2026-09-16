@@ -17,6 +17,7 @@ import {
   lastQualifying,
   materialiseRace,
   playerFirst,
+  sessionRain,
   simulateSegment,
 } from './utils.ts';
 import { AppError } from '../../shared/errors/index.ts';
@@ -34,7 +35,7 @@ import type {
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
 
-export { chainOf } from './utils.ts';
+export { chainOf, dayOf, runsToClock } from './utils.ts';
 
 /**
  * Lowers a weekend into the launches that run it, one per session.
@@ -53,11 +54,13 @@ export const planWeekend = (race: RaceDefinition, content: Content): WeekendPlan
     ? race.sessions
     : [{ type: 'race', laps: DEFAULT_RACE_LAPS }];
 
+  const resolved = sessions.map((session) => resolveConditions(race.conditions, session.conditions));
+  const rain = sessions.map((session, index) => sessionRain(session, resolved[index], content));
+
   const launches: WeekendLaunch[] = sessions.map((session, index) => {
     // The opening session is left on the track state's own preset, so a
     // one-session weekend generates exactly what a plain race always did.
-    const resolved = resolveConditions(race.conditions, session.conditions);
-    const startGrip = index === 0 ? undefined : gripAfter(resolved, index);
+    const startGrip = index === 0 ? undefined : gripAfter(resolved[index], rain.slice(0, index));
 
     return {
       index,

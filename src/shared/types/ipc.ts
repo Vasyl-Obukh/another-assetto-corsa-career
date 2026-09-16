@@ -19,6 +19,7 @@ import type {
   Weather,
   WeatherController,
 } from './content.ts';
+import type { RoundForecast } from './forecast.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { RaceSetup, ResultRecord } from './race-run.ts';
 import type { RaceDefinition } from './race.ts';
@@ -182,6 +183,22 @@ export interface IpcContract {
    * and main has the content scan in hand.
    */
   'series:validate': { req: { series: Championship }; res: SeriesAvailability };
+  /**
+   * Every round's generated weather, for a championship that generates it.
+   *
+   * Worked out against the install and the user's settings as they stand, so
+   * it is asked again when either changes. Empty for a championship whose
+   * weather is authored.
+   */
+  'series:forecast': { req: { series: string }; res: RoundForecast[] };
+  /**
+   * The forecast of the round a race was set up from, or null when the race
+   * came from no championship round that generates its weather.
+   *
+   * Main matches the id, so the renderer never learns how a round's race id is
+   * composed.
+   */
+  'series:raceForecast': { req: { race: string }; res: RoundForecast | null };
   /**
    * Write a championship the user owns back over its own file.
    *

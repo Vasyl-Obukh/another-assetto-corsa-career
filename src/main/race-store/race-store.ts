@@ -403,6 +403,8 @@ export const createRaceStore = async (
     // content scan.
     progress: () => progressOf(state, definition.id, status.phase !== 'idle'),
 
+    weatherFx: async () => (await cspSetup()).weatherFx,
+
     async set(next) {
       if (status.phase !== 'idle') throw new AppError('run.inFlight');
 

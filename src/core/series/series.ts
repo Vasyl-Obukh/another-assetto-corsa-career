@@ -16,6 +16,7 @@ import type { RoundRaceRequest } from './types.ts';
 import {
   availabilityOf,
   bopFor,
+  climateOf,
   duplicates,
   eligibilityFor,
   eligibleCars,
@@ -43,11 +44,14 @@ import type {
   Content,
   RaceDefinition,
   RoundAvailability,
+  RoundForecast,
   SeriesAvailability,
+  WeatherOffer,
 } from '../../shared/types/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
+import { applyForecast, defaultWeatherOffer, forecastRound } from '../weather-forecast/index.ts';
 
 export { SERIES_FORMAT_VERSION } from './constants.ts';
 export { eligibleCars, roundRaceId } from './utils.ts';
@@ -263,15 +267,39 @@ export const seriesAvailability = (
 };
 
 /**
+ * Every round's forecast, for a championship that generates its weather.
+ *
+ * The same draw roundRace writes onto the sessions, so what the calendar shows
+ * is what the round races in. A round whose format does not resolve has no
+ * sessions to forecast and is left out, which validateSeries already reports.
+ * @param series The championship
+ * @param offer What the install and settings can race in
+ * @returns One forecast per round, empty when the weather is not generated
+ */
+export const seriesForecast = (series: Championship, offer: WeatherOffer): RoundForecast[] => (
+  series.rounds.flatMap((round) => {
+    const climate = climateOf(series, round);
+    const format = formatOf(series, round);
+
+    return climate !== null && format !== null
+      ? [forecastRound(series.id, round, format, climate, offer)]
+      : [];
+  })
+);
+
+/**
  * Lowers one round of a championship into a race.
  *
  * The field is composed from every class entry, not just the player's, since a
  * multi-class series is one grid entered several ways. It is seeded on the
  * series, round and class rather than on the clock, so a round the player has
- * already been shown comes back the same next time it is looked at.
+ * already been shown comes back the same next time it is looked at. Generated
+ * weather is seeded the same way, and written onto the sessions, so the race
+ * runs exactly what the round's forecast said.
  * @param request Which round of which championship, and the player's car
  * @param content Installed content to resolve eligibility against
  * @param catalogue The class catalogue specs resolve against
+ * @param offer What the install and settings can race in, for generated weather
  * @returns A race definition, ready for validateRace and planWeekend
  * @throws When the round, entry or car cannot be raced
  */
@@ -279,6 +307,7 @@ export const roundRace = (
   request: RoundRaceRequest,
   content: Content,
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+  offer: WeatherOffer = defaultWeatherOffer(content),
 ): RaceDefinition => {
   const { series, car } = request;
   const round = roundOf(series, request.round);
@@ -337,13 +366,17 @@ export const roundRace = (
     });
   });
 
+  const climate = climateOf(series, round);
+
   return {
     id: roundRaceId(series.id, round.id),
     name: `${series.name} - ${round.name}`,
     track: round.track,
     playerCar: { model: car.model, skin: car.skin, ...bopFor(playerEntry, car.model) },
     grid: { size: opponents.length + 1, opponents },
-    sessions: [...format.sessions],
+    sessions: climate === null
+      ? [...format.sessions]
+      : applyForecast(format.sessions, forecastRound(series.id, round, format, climate, offer)),
     conditions: round.conditions,
     assists: series.regulations?.assists,
     fixedSetup: series.regulations?.fixedSetup,

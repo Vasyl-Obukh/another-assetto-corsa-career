@@ -1,6 +1,5 @@
 import type { ParseKeys } from 'i18next';
 
-import { WeatherType } from '../../../../shared/constants';
 import type {
   RegulationFlag, RegulationNumber, SessionType, TrackStateName,
 } from '../../../../shared/types';
@@ -110,45 +109,6 @@ export const WEATHER_VALUE = {
 } as const;
 
 /**
- * The label for every CSP weather type.
- */
-export const WEATHER_TYPE_LABEL: Record<WeatherType, ParseKeys> = {
-  [WeatherType.CLEAR]: 'race.weatherType.clear',
-  [WeatherType.FEW_CLOUDS]: 'race.weatherType.fewClouds',
-  [WeatherType.SCATTERED_CLOUDS]: 'race.weatherType.scatteredClouds',
-  [WeatherType.BROKEN_CLOUDS]: 'race.weatherType.brokenClouds',
-  [WeatherType.OVERCAST_CLOUDS]: 'race.weatherType.overcastClouds',
-  [WeatherType.WINDY]: 'race.weatherType.windy',
-  [WeatherType.HAZE]: 'race.weatherType.haze',
-  [WeatherType.MIST]: 'race.weatherType.mist',
-  [WeatherType.FOG]: 'race.weatherType.fog',
-  [WeatherType.LIGHT_DRIZZLE]: 'race.weatherType.lightDrizzle',
-  [WeatherType.DRIZZLE]: 'race.weatherType.drizzle',
-  [WeatherType.HEAVY_DRIZZLE]: 'race.weatherType.heavyDrizzle',
-  [WeatherType.LIGHT_RAIN]: 'race.weatherType.lightRain',
-  [WeatherType.RAIN]: 'race.weatherType.rain',
-  [WeatherType.HEAVY_RAIN]: 'race.weatherType.heavyRain',
-  [WeatherType.LIGHT_THUNDERSTORM]: 'race.weatherType.lightThunderstorm',
-  [WeatherType.THUNDERSTORM]: 'race.weatherType.thunderstorm',
-  [WeatherType.HEAVY_THUNDERSTORM]: 'race.weatherType.heavyThunderstorm',
-  [WeatherType.LIGHT_SLEET]: 'race.weatherType.lightSleet',
-  [WeatherType.SLEET]: 'race.weatherType.sleet',
-  [WeatherType.HEAVY_SLEET]: 'race.weatherType.heavySleet',
-  [WeatherType.LIGHT_SNOW]: 'race.weatherType.lightSnow',
-  [WeatherType.SNOW]: 'race.weatherType.snow',
-  [WeatherType.HEAVY_SNOW]: 'race.weatherType.heavySnow',
-  [WeatherType.HAIL]: 'race.weatherType.hail',
-  [WeatherType.COLD]: 'race.weatherType.cold',
-  [WeatherType.HOT]: 'race.weatherType.hot',
-  [WeatherType.SMOKE]: 'race.weatherType.smoke',
-  [WeatherType.DUST]: 'race.weatherType.dust',
-  [WeatherType.SAND]: 'race.weatherType.sand',
-  [WeatherType.SQUALLS]: 'race.weatherType.squalls',
-  [WeatherType.TORNADO]: 'race.weatherType.tornado',
-  [WeatherType.HURRICANE]: 'race.weatherType.hurricane',
-};
-
-/**
  * How many slots make a plan rather than a static weather.
  */
 export const MIN_PLAN_SLOTS = 2;
@@ -157,18 +117,6 @@ export const MIN_PLAN_SLOTS = 2;
  * How long a slot runs for when one is added, in minutes.
  */
 export const DEFAULT_SLOT_MINUTES = 10;
-
-/**
- * The weather types PURE's own table does not carry.
- *
- * Its Default_WeatherPresets.json runs 0-28 then 31, 32 - Cold and Hot are
- * simply absent, where Sol has them. Asking PURE for one would write an index
- * it cannot look up.
- */
-export const PURE_MISSING_TYPES: ReadonlySet<WeatherType> = new Set([
-  WeatherType.COLD,
-  WeatherType.HOT,
-]);
 
 /**
  * The regulations the race screen offers, in the order it shows them.

@@ -112,3 +112,59 @@ export const WET_WEATHER_TYPES = new Set<WeatherType>([
   WeatherType.SQUALLS,
   WeatherType.HURRICANE,
 ]);
+
+/**
+ * The weather types PURE's own table does not carry.
+ *
+ * Its Default_WeatherPresets.json runs 0-28 then 31, 32 - Cold and Hot are
+ * simply absent, where Sol has them. Asking PURE for one would write an index
+ * it cannot look up.
+ */
+export const PURE_MISSING_TYPES: ReadonlySet<WeatherType> = new Set([
+  WeatherType.COLD,
+  WeatherType.HOT,
+]);
+
+/**
+ * How hard each weather type rains, from 0 to 1.
+ *
+ * Read off the `rain` column of PURE's own defaults table
+ * (apps/lua/PurePlanner/settings/settings_defaults.lua), the same table the
+ * career presets took their values from, rather than invented. Snow, hail and
+ * everything dry put no water on the track and read 0.
+ */
+export const RAIN_INTENSITY: Record<WeatherType, number> = {
+  [WeatherType.LIGHT_THUNDERSTORM]: 0.1,
+  [WeatherType.THUNDERSTORM]: 0.2,
+  [WeatherType.HEAVY_THUNDERSTORM]: 0.35,
+  [WeatherType.LIGHT_DRIZZLE]: 0.001,
+  [WeatherType.DRIZZLE]: 0.02,
+  [WeatherType.HEAVY_DRIZZLE]: 0.075,
+  [WeatherType.LIGHT_RAIN]: 0.05,
+  [WeatherType.RAIN]: 0.125,
+  [WeatherType.HEAVY_RAIN]: 0.6,
+  [WeatherType.LIGHT_SNOW]: 0,
+  [WeatherType.SNOW]: 0,
+  [WeatherType.HEAVY_SNOW]: 0,
+  [WeatherType.LIGHT_SLEET]: 0.05,
+  [WeatherType.SLEET]: 0.1,
+  [WeatherType.HEAVY_SLEET]: 0.3,
+  [WeatherType.CLEAR]: 0,
+  [WeatherType.FEW_CLOUDS]: 0,
+  [WeatherType.SCATTERED_CLOUDS]: 0,
+  [WeatherType.BROKEN_CLOUDS]: 0,
+  [WeatherType.OVERCAST_CLOUDS]: 0,
+  [WeatherType.FOG]: 0,
+  [WeatherType.MIST]: 0,
+  [WeatherType.SMOKE]: 0,
+  [WeatherType.HAZE]: 0,
+  [WeatherType.SAND]: 0,
+  [WeatherType.DUST]: 0,
+  [WeatherType.SQUALLS]: 0.025,
+  [WeatherType.TORNADO]: 0,
+  [WeatherType.HURRICANE]: 0.8,
+  [WeatherType.COLD]: 0,
+  [WeatherType.HOT]: 0,
+  [WeatherType.WINDY]: 0,
+  [WeatherType.HAIL]: 0,
+};

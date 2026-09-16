@@ -12,8 +12,10 @@ import path from 'node:path';
 
 import { SERIES_DIR } from './constants.ts';
 import type { SeriesStore } from './types.ts';
-import { isEditable, weekendOf } from './utils.ts';
-import { roundRace, seriesAvailability, validateSeries } from '../../core/series/index.ts';
+import { isEditable, roundOfRace, weekendOf } from './utils.ts';
+import {
+  roundRace, seriesAvailability, seriesForecast, validateSeries,
+} from '../../core/series/index.ts';
 import { parseSeries, readSeries, writeSeries } from '../../core/series-file/index.ts';
 import {
   deleteUserSeries,
@@ -36,11 +38,14 @@ import type {
   SeriesLibrary,
   SeriesListing,
   SeriesOrigin,
+  WeatherOffer,
 } from '../../shared/types/index.ts';
 import { usesSpec } from '../../shared/utils/eligibility/index.ts';
+import { weatherOffer } from '../../shared/utils/weather-types/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
+import type { SettingsStore } from '../settings-store/index.ts';
 
 export type { SeriesStore } from './types.ts';
 
@@ -65,6 +70,7 @@ const warnProblems = (loaded: LoadedLibrary): void => {
  * @param content The content store, for what is installed
  * @param race The race store, which takes a lowered round
  * @param classes The class store, whose catalogue every spec resolves against
+ * @param settings The settings store, for the weather generation may use
  * @returns A store holding the loaded library
  */
 export const createSeriesStore = async (
@@ -72,6 +78,7 @@ export const createSeriesStore = async (
   content: ContentStore,
   race: RaceStore,
   classes: ClassStore,
+  settings: SettingsStore,
 ): Promise<SeriesStore> => {
   // The app's own are compiled in; only the user's are read from disk.
   const userDir = path.join(userDataDir, SERIES_DIR);
@@ -93,6 +100,33 @@ export const createSeriesStore = async (
     origin: one.origin,
     weekend: weekendOf(one.series, race.progress()),
   });
+
+  /**
+   * What generated weather may be drawn over, as the install and settings stand.
+   *
+   * Setting a round up and forecasting it both ask this, which is what keeps
+   * the race and its forecast one draw.
+   * @param installed What content the library has
+   * @returns The weather on offer
+   */
+  const offer = async (installed: Content): Promise<WeatherOffer> => {
+    const { allowedWeather, weatherSystem } = settings.get();
+    let rainFx = true;
+    try {
+      ({ rainFx } = await race.weatherFx());
+    } catch (error) {
+      // Enabled is CSP's own default, and an unreadable config is no reason to
+      // refuse to forecast.
+      console.warn('Could not read the RainFX setting.', error);
+    }
+
+    return weatherOffer(
+      installed.weather.map((preset) => preset.type),
+      allowedWeather,
+      weatherSystem,
+      rainFx,
+    );
+  };
 
   /**
    * Everything the library holds, with availability worked out afresh.
@@ -234,18 +268,33 @@ export const createSeriesStore = async (
       const found = seriesById(library, request.series);
       if (!found) throw new AppError('series.notFound', { series: request.series });
 
+      const installed = await content.content();
       const definition = roundRace({
         series: found.series,
         entry: request.entry,
         round: request.round,
         car: request.car,
-      }, await content.content(), classes.catalogue());
+      }, installed, classes.catalogue(), await offer(installed));
 
       return race.set(definition);
     },
 
     async validate(series) {
       return seriesAvailability(series, await content.content(), classes.catalogue());
+    },
+
+    async forecast(id) {
+      const { series } = held(id);
+
+      return seriesForecast(series, await offer(await content.content()));
+    },
+
+    async raceForecast(raceId) {
+      const found = roundOfRace(library.series.map((one) => one.series), raceId);
+      if (!found) return null;
+
+      const forecasts = seriesForecast(found.series, await offer(await content.content()));
+      return forecasts.find((one) => one.round === found.round) ?? null;
     },
 
     async save(id, series) {

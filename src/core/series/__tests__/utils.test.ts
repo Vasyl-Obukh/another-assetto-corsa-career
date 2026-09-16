@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Discipline } from '../../../shared/types/index.ts';
+import { Climate, Discipline } from '../../../shared/types/index.ts';
 import type {
   Championship, SeriesSession, WeekendFormat,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import { SERIES_FORMAT_VERSION } from '../constants.ts';
 import {
-  eligibleCars, minModelsOf, roundRaceId, seatSkin, validateFormat, validateMoney,
+  climateOf, eligibleCars, minModelsOf, roundRaceId, seatSkin, validateFormat, validateMoney,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -63,6 +63,29 @@ describe('core/series/utils', () => {
     it('never composes one id for two different pairs', () => {
       expect(roundRaceId('gt3', 'sprint-r1')).not.toBe(roundRaceId('gt3-sprint', 'r1'));
       expect(roundRaceId('a/b', 'c')).not.toBe(roundRaceId('a', 'b/c'));
+    });
+  });
+
+  describe('climateOf', () => {
+    it('answers null for a championship that authors its weather', () => {
+      const { series } = withSessions([{ type: 'race', laps: 5 }]);
+
+      expect(climateOf(series, { ...series.rounds[0], climate: Climate.ARID })).toBeNull();
+    });
+
+    it('takes the round climate over the championship default', () => {
+      const { series } = withSessions([{ type: 'race', laps: 5 }]);
+      const generated = { ...series, generatedWeather: { climate: Climate.OCEANIC } };
+
+      expect(climateOf(generated, { ...series.rounds[0], climate: Climate.ARID }))
+        .toBe(Climate.ARID);
+    });
+
+    it('falls back to the championship climate for a round naming none', () => {
+      const { series } = withSessions([{ type: 'race', laps: 5 }]);
+      const generated = { ...series, generatedWeather: { climate: Climate.OCEANIC } };
+
+      expect(climateOf(generated, series.rounds[0])).toBe(Climate.OCEANIC);
     });
   });
 

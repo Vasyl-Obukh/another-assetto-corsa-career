@@ -4,8 +4,9 @@ import {
   lap, makeContent, makeKnockout, makeSession, makeWeekend,
 } from './fixtures.ts';
 import type {
-  GridEntry, LaunchRecord, RaceDefinition, WeekendPlan, WeekendState,
+  Content, GridEntry, LaunchRecord, RaceDefinition, WeekendPlan, WeekendState,
 } from '../../../shared/types/index.ts';
+import { RAIN_FOR_FULL_WASH } from '../constants.ts';
 import {
   bestLapOrder,
   chainOf,
@@ -18,6 +19,8 @@ import {
   launchOf,
   materialiseRace,
   playerFirst,
+  runsToClock,
+  sessionRain,
   simulateSegment,
 } from '../utils.ts';
 import { planWeekend } from '../weekend.ts';
@@ -82,6 +85,29 @@ const stateOf = (records: LaunchRecord[]): WeekendState => ({
   completed: records,
 });
 
+/**
+ * The rain of a run of dry sessions, as gripAfter reads what came before.
+ * @param sessions How many sessions ran
+ * @returns One zero per session
+ */
+const dry = (sessions: number): number[] => Array.from({ length: sessions }, () => 0);
+
+/**
+ * The fixture content with a preset that carries rain of its own.
+ * @returns Content holding a wet preset beside the clear one
+ */
+const withWetPreset = (): Content => {
+  const content = makeContent();
+  content.weather.push({
+    ...content.weather[0],
+    id: 'test_wet',
+    type: 7,
+    rain: { intensity: 0.3, wetness: 0.5, water: 0.2 },
+  });
+
+  return content;
+};
+
 describe('core/weekend/utils', () => {
   describe('dayOf', () => {
     it('reads the day a session names', () => {
@@ -93,32 +119,122 @@ describe('core/weekend/utils', () => {
     });
   });
 
+  describe('runsToClock', () => {
+    it('runs a timed session to its clock', () => {
+      expect(runsToClock({ type: 'practice', minutes: 10 })).toBe(true);
+    });
+
+    it('runs a race with a lap count to its laps, even when it names minutes', () => {
+      expect(runsToClock({ type: 'race', laps: 5, minutes: 30 })).toBe(false);
+    });
+
+    it('does not know the length of a session naming no minutes', () => {
+      expect(runsToClock({ type: 'qualify' })).toBe(false);
+      expect(runsToClock({ type: 'race', laps: 5 })).toBe(false);
+    });
+  });
+
   describe('gripAfter', () => {
     it('leaves an untouched track on the preset for the opening launch', () => {
-      expect(gripAfter({ trackState: 'green' }, 0)).toBe(80);
-      expect(gripAfter({ trackState: 'fast' }, 0)).toBe(95);
+      expect(gripAfter({ trackState: 'green' }, dry(0))).toBe(80);
+      expect(gripAfter({ trackState: 'fast' }, dry(0))).toBe(95);
     });
 
     it('rubbers the track in as sessions are run', () => {
-      const green = [0, 1, 2, 3].map((sessions) => gripAfter({ trackState: 'green' }, sessions));
+      const green = [0, 1, 2, 3].map((sessions) => gripAfter({ trackState: 'green' }, dry(sessions)));
       expect(green).toEqual([80, 83, 86, 88]);
     });
 
     it('never climbs past a fully rubbered track', () => {
-      expect(gripAfter({ trackState: 'green' }, 500)).toBe(100);
+      expect(gripAfter({ trackState: 'green' }, dry(500))).toBe(100);
     });
 
     it('leaves an already optimum track where it is', () => {
-      expect(gripAfter({ trackState: 'optimum' }, 4)).toBe(100);
+      expect(gripAfter({ trackState: 'optimum' }, dry(4))).toBe(100);
     });
 
     it('assumes the same default track state buildRaceIni does', () => {
-      expect(gripAfter(undefined, 0)).toBe(gripAfter({ trackState: 'fast' }, 0));
+      expect(gripAfter(undefined, dry(0))).toBe(gripAfter({ trackState: 'fast' }, dry(0)));
     });
 
     it('builds on an explicit starting grip rather than the preset', () => {
-      expect(gripAfter({ trackState: 'green', startGrip: 90 }, 0)).toBe(90);
-      expect(gripAfter({ trackState: 'green', startGrip: 90 }, 1)).toBeGreaterThan(90);
+      expect(gripAfter({ trackState: 'green', startGrip: 90 }, dry(0))).toBe(90);
+      expect(gripAfter({ trackState: 'green', startGrip: 90 }, dry(1))).toBeGreaterThan(90);
+    });
+
+    // Guards a fix: rain used to lay rubber down exactly as a dry session did.
+    it('washes a steadily rained session back to the grip the track started on', () => {
+      expect(gripAfter({ trackState: 'green' }, [RAIN_FOR_FULL_WASH])).toBe(80);
+      expect(gripAfter({ trackState: 'green' }, [0, RAIN_FOR_FULL_WASH])).toBe(80);
+    });
+
+    it('washes less off under lighter rain, in proportion', () => {
+      const wetter = gripAfter({ trackState: 'green' }, [0, 0, RAIN_FOR_FULL_WASH]);
+      const lighter = gripAfter({ trackState: 'green' }, [0, 0, RAIN_FOR_FULL_WASH / 2]);
+      const dryRun = gripAfter({ trackState: 'green' }, dry(3));
+
+      expect(lighter).toBeGreaterThan(wetter);
+      expect(lighter).toBeLessThan(dryRun);
+    });
+
+    it('never washes below a green track or the grip the author set, whichever is lower', () => {
+      expect(gripAfter({ trackState: 'green', startGrip: 90 }, [1])).toBe(80);
+      expect(gripAfter({ trackState: 'green', startGrip: 70 }, [1, 1])).toBe(70);
+    });
+
+    it('leaves a weekend with a wet session in the middle greener than a dry one', () => {
+      expect(gripAfter({ trackState: 'green' }, [0, RAIN_FOR_FULL_WASH, 0]))
+        .toBeLessThan(gripAfter({ trackState: 'green' }, dry(3)));
+    });
+  });
+
+  describe('sessionRain', () => {
+    it('reads a dry session, or one naming no weather, as no rain', () => {
+      expect(sessionRain({ type: 'race' }, { weatherType: 15 }, makeContent())).toBe(0);
+      expect(sessionRain({ type: 'race' }, {}, makeContent())).toBe(0);
+    });
+
+    it('reads a static weather type off the rain table', () => {
+      expect(sessionRain({ type: 'race' }, { weatherType: 7 }, makeContent())).toBe(0.125);
+    });
+
+    it('takes the rain a named preset carries over the table value for its type', () => {
+      expect(sessionRain({ type: 'race' }, { weather: 'test_wet' }, withWetPreset())).toBe(0.3);
+    });
+
+    // Guards a fix: a single-step plan used to ignore the step's own rain.
+    it('honours the rain a single-step plan states for its step', () => {
+      const conditions = { weatherSteps: [{ weather: 7 as const, rain: 0.4 }] };
+
+      expect(sessionRain({ type: 'race' }, conditions, makeContent())).toBe(0.4);
+    });
+
+    it('weights a timed plan by minutes, the last step taking what the session has left', () => {
+      const conditions = { weatherSteps: [{ weather: 15 as const, minutes: 10 }, { weather: 7 as const }] };
+
+      // Ten dry minutes, then twenty at 0.125.
+      expect(sessionRain({ type: 'practice', minutes: 30 }, conditions, makeContent()))
+        .toBeCloseTo((0.125 * 20) / 30);
+    });
+
+    it('gives the open last step of a lap race the mean length of the steps before it', () => {
+      const conditions = {
+        weatherSteps: [
+          { weather: 15 as const, minutes: 10 }, { weather: 8 as const, minutes: 20 }, { weather: 7 as const },
+        ],
+      };
+
+      // 10 dry, 20 at 0.6, then the mean of 15 at 0.125.
+      expect(sessionRain({ type: 'race', laps: 10 }, conditions, makeContent()))
+        .toBeCloseTo((0.6 * 20 + 0.125 * 15) / 45);
+    });
+
+    it('takes a step own rain over what its weather type implies', () => {
+      const conditions = {
+        weatherSteps: [{ weather: 15 as const, minutes: 10, rain: 0.2 }, { weather: 15 as const }],
+      };
+
+      expect(sessionRain({ type: 'practice', minutes: 20 }, conditions, makeContent())).toBeCloseTo(0.1);
     });
   });
 

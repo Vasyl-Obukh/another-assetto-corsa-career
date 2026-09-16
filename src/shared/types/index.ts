@@ -25,7 +25,7 @@ export {
 } from './content.ts';
 
 export { Discipline } from './ladder.ts';
-export { TeamBudget } from './series.ts';
+export { Climate, TeamBudget } from './series.ts';
 
 export type {
   Car,
@@ -113,6 +113,7 @@ export type {
 export type {
   PlannerKind,
   StepWeather,
+  WeatherOffer,
   WeatherPlan,
   WeatherStep,
   WeatherSystem,
@@ -120,12 +121,15 @@ export type {
 
 export type { CmArguments, CmFlag } from './cm-arguments.ts';
 
+export type { ForecastStep, RoundForecast, SessionForecast } from './forecast.ts';
+
 export type {
   BopEntry,
   Championship,
   ClassEntry,
   Eligibility,
   EntryAvailability,
+  GeneratedWeather,
   MissingCar,
   MissingTrack,
   PointsSystem,

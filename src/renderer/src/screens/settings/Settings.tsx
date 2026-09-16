@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { AllowedWeatherField } from './AllowedWeatherField.tsx';
 import { ContentManagerField } from './ContentManagerField.tsx';
 import { DriverField } from './DriverField.tsx';
 import { DrivingAidsField } from './DrivingAidsField.tsx';
@@ -63,7 +64,10 @@ export const Settings = () => {
         </CardHeader>
 
         <CardContent>
-          <WeatherSystemField />
+          <div className="flex flex-col gap-6">
+            <WeatherSystemField />
+            <AllowedWeatherField />
+          </div>
         </CardContent>
       </Card>
 

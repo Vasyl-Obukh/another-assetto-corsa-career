@@ -4,7 +4,7 @@ import { SERIES_FORMAT_VERSION } from '../../../core/series/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type { Championship, Round } from '../../../shared/types/index.ts';
 import type { RaceProgress } from '../../race-store/index.ts';
-import { isEditable, weekendOf } from '../utils.ts';
+import { isEditable, roundOfRace, weekendOf } from '../utils.ts';
 
 /**
  * A championship holding the rounds a test matches against.
@@ -79,6 +79,21 @@ describe('main/series-store/utils', () => {
     // than defended against, so nobody reads it as a bug later.
     it('lifts the lock when the round it was running is gone', () => {
       expect(weekendOf(series('lotus-cup', ['magione']), progress('lotus-cup/monza'))).toBeNull();
+    });
+  });
+
+  describe('roundOfRace', () => {
+    it('finds the championship and the round a race was set up from', () => {
+      const library = [series('lotus-cup'), series('gt3-sprint-series')];
+      const found = roundOfRace(library, 'gt3-sprint-series/monza');
+
+      expect(found?.series.id).toBe('gt3-sprint-series');
+      expect(found?.round).toBe('monza');
+    });
+
+    it('answers null for a race that is no round of any championship', () => {
+      expect(roundOfRace([series('lotus-cup')], 'lotus-cup/spa')).toBeNull();
+      expect(roundOfRace([series('lotus-cup')], 'demo')).toBeNull();
     });
   });
 

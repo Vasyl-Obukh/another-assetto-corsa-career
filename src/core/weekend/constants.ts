@@ -24,13 +24,23 @@ export const FULL_GRIP = 100;
  *
  * An approximation, in the same class as roadTemperature: AC's grip curve is
  * not published and we have not measured it. It never exceeds FULL_GRIP, and a
- * longer weekend starts its race on a faster track.
- *
- * It is monotone and ignores weather, which is wrong for a dry-wet-dry weekend:
- * rain scrubs rubber off and grip should fall. A wet session needs to subtract
- * rather than add; see the roadmap item beside per-round conditions in Phase 4.
+ * longer dry weekend starts its race on a faster track. A wet one gives some of
+ * it back - see RAIN_FOR_FULL_WASH.
  */
 export const GRIP_GAIN_PER_SESSION = 0.25;
+
+/**
+ * How hard a session has to rain, on average, to wash every bit of rubber the
+ * weekend laid down back off the track.
+ *
+ * An approximation too, and unmeasured: what AC does to grip across a wet
+ * session has not been driven. The figure is the career preset's own Rain, so
+ * a session of steady rain returns the track to its starting state, a light
+ * shower takes back less than half, and drizzle barely registers. Lighter rain
+ * scales down linearly; anything heavier washes no further, since there is
+ * nothing left to take.
+ */
+export const RAIN_FOR_FULL_WASH = 0.125;
 
 /**
  * How far, in AI skill points, a driver may be shuffled from their rating when

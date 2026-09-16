@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-import { TRACK_STATE_LABEL, WEATHER_TYPE_LABEL } from './constants.ts';
+import { TRACK_STATE_LABEL } from './constants.ts';
 import { conditionsSummary } from './utils.ts';
 import type { Conditions } from '../../../../shared/types';
+import { WEATHER_TYPE_LABEL } from '@/components';
 import { cn } from '@/lib/utils.ts';
 
 interface ConditionsSummaryLineProps {
