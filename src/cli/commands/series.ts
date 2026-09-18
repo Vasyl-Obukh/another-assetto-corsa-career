@@ -13,6 +13,7 @@ import { defaultWeatherOffer } from '../../core/weather-forecast/index.ts';
 import { planWeekend } from '../../core/weekend/index.ts';
 import { WeatherType } from '../../shared/constants/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
+import { ContentSource } from '../../shared/types/index.ts';
 import type {
   Championship,
   Content,
@@ -94,9 +95,12 @@ const printDetail = (
 ): void => {
   const forecasts = seriesForecast(series, offer);
 
-  console.log(`  Requires  ${availability.requires.sources.join(', ')}`
-    + (availability.requires.packs.length ? ` + ${availability.requires.packs.join(', ')}` : '')
-    + (availability.requires.makers.length ? ` + ${availability.requires.makers.join(', ')}` : ''));
+  const { requires } = availability;
+  const needed: string[] = [...requires.packs, ...requires.makers];
+  if (requires.sources.includes(ContentSource.MOD) && !requires.makers.length) needed.push('uncredited mods');
+  const widened = [...requires.widenedBy.packs, ...requires.widenedBy.makers];
+  console.log(`  Needs     ${needed.length ? needed.join(', ') : 'base only'}`);
+  if (widened.length) console.log(`  Widened   ${widened.join(', ')}`);
 
   const teams = new Map((series.teams ?? []).map((one) => [one.id, one]));
 

@@ -10,7 +10,6 @@
     "results": "Results",
     "cars": "Cars",
     "tracks": "Tracks",
-    "diagnostics": "Diagnostics",
     "settings": "Settings"
   },
   "paths": {
@@ -173,8 +172,11 @@
     "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it.",
     "tabs": {
       "general": "General",
+      "diagnostics": "Diagnostics",
       "content": "Your content",
-      "classes": "Classes"
+      "classes": "Classes",
+      "championships": "Championships",
+      "sources": "Content sources"
     }
   },
   "carClasses": {
@@ -396,7 +398,7 @@
   },
   "championships": {
     "title": "Championships",
-    "subtitle": "Every championship the app ships or you have written, and whether your library can race it.",
+    "subtitle": "The championships you can race today.",
     "empty": "No championships are shipped yet.",
     "problems": {
       "label_one": "{{count}} championship could not be read",
@@ -492,7 +494,6 @@
       "seconds": "{{value}} s"
     },
     "missing": {
-      "title": "What this needs",
       "cars": "Cars",
       "tracks": "Tracks"
     },
@@ -547,8 +548,30 @@
       "failedHint": "Nothing was added to your library."
     }
   },
+  "championshipLibrary": {
+    "sources": "Content sources",
+    "sourcesHint": "Which championships are offered, by the content they need. This hides championships and nothing else: your cars and tracks stay in the library either way.",
+    "base": "Base game",
+    "baseHint": "A career on the base game alone is always playable, so there is no switch for it.",
+    "alwaysOffered": "Always offered",
+    "dlc": "DLC packs",
+    "dlcHint": "Championships needing a pack you leave out are not offered. One that only races a spec is still offered while enough of its grid is left.",
+    "packCount": "{{count}} of {{total}}",
+    "offerAll": "Offer every pack",
+    "championshipCount_one": "Hides {{count}}",
+    "championshipCount_other": "Hides {{count}}",
+    "hides_one": "Switching this off hides {{count}} championship.",
+    "hides_other": "Switching this off hides {{count}} championships.",
+    "needs": "Needs",
+    "optional": "Widened by",
+    "active": "{{name}} on the Championships page",
+    "unavailable": "Not on the Championships page: content it needs is not installed.",
+    "create": {
+      "name": "My championship"
+    }
+  },
   "editor": {
-    "back": "Back to the championship",
+    "back": "Back to championships settings",
     "notFound": "That championship is no longer in the library.",
     "shipped": "This is a championship the app ships, so there is no file of yours to edit. Take a copy of it first.",
     "unsaved": "Unsaved changes",
@@ -902,10 +925,6 @@
     "unavailable": "No allowed weather is installed, so none is set",
     "badge": "Forecast"
   },
-  "toggle": {
-    "on": "On",
-    "off": "Off"
-  },
   "assist": {
     "idealLine": "Ideal line",
     "autoBlip": "Auto blip",
@@ -932,5 +951,8 @@
   },
   "confirm": {
     "cancel": "Cancel"
+  },
+  "common": {
+    "new": "New"
   }
 }

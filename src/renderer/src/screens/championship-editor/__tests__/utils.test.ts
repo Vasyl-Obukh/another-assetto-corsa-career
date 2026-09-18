@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { SERIES_FORMAT_VERSION } from '../../../../../shared/constants';
 import { Discipline } from '../../../../../shared/types';
 import type {
   Championship, ClassEntry, Round, SeriesSession, WeekendFormat,
@@ -8,6 +9,7 @@ import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import { DEFAULT_POINTS, DEFAULT_TIER } from '../constants.ts';
 import {
   bopScope,
+  emptySeries,
   freeId,
   namedCars,
   nextEntry,
@@ -107,6 +109,24 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('counts on past whatever is taken', () => {
       expect(freeId('round-3', new Set(['round-3']))).toBe('round-3-2');
       expect(freeId('round-3', new Set(['round-3', 'round-3-2']))).toBe('round-3-3');
+    });
+  });
+
+  describe('emptySeries', () => {
+    // Four choices nobody made are what a seeded draft would carry, so a new
+    // championship starts with none of them.
+    it('starts with no class, round, format or points system', () => {
+      expect(emptySeries('My championship')).toEqual({
+        version: SERIES_FORMAT_VERSION,
+        id: '',
+        name: 'My championship',
+        entries: [],
+        rounds: [],
+        weekendFormats: [],
+        defaultWeekendFormat: '',
+        pointsSystems: [],
+        defaultPointsSystem: '',
+      });
     });
   });
 

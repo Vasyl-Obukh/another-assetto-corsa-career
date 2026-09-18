@@ -225,6 +225,14 @@ export interface IpcContract {
    */
   'series:duplicate': { req: { id: string; name?: string }; res: SeriesCommandResult };
   /**
+   * Write a championship of the user's own for the first time.
+   *
+   * The whole document is sent, because it was drafted in the editor and
+   * nothing was written while it was being made. The id is main's to pick, for
+   * the same reason a copy's is, and whatever the draft carried is replaced.
+   */
+  'series:create': { req: { series: Championship }; res: SeriesCommandResult };
+  /**
    * Delete the user's version of a championship the app ships, putting the
    * app's own back.
    */

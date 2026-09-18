@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { DEFAULT_ALLOWED_WEATHER, DEFAULT_SETTINGS, WeatherType } from '../../../constants/index.ts';
+import { DLCPack, ModMaker } from '../../../types/index.ts';
 import {
   applyPatch,
   cleanString,
@@ -10,6 +11,7 @@ import {
   readAddedContent,
   readAllowedWeather,
   readDrivingAids,
+  readHiddenContentSources,
   readPaths,
   readSettings,
   readWindow,
@@ -95,6 +97,32 @@ describe('shared/utils/settings', () => {
     it('returns both lists empty for anything that is not an object', () => {
       expect(readAddedContent(undefined)).toEqual({ cars: [], tracks: [] });
       expect(readAddedContent(['a_car'])).toEqual({ cars: [], tracks: [] });
+    });
+  });
+
+  describe('readHiddenContentSources', () => {
+    it('reads both lists through', () => {
+      expect(readHiddenContentSources({ packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC] })).toEqual({
+        packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC],
+      });
+    });
+
+    it('drops anything that is not a pack or a mod team, and keeps each once', () => {
+      expect(readHiddenContentSources({
+        packs: [DLCPack.RED_PACK, 'no-such-pack', DLCPack.RED_PACK, 7],
+        makers: 'vrc',
+      })).toEqual({ packs: [DLCPack.RED_PACK], makers: [] });
+    });
+
+    it('puts them in catalogue order, whatever order the file holds them in', () => {
+      expect(readHiddenContentSources({ packs: [], makers: [ModMaker.VRC, ModMaker.RSS] }).makers)
+        .toEqual([ModMaker.RSS, ModMaker.VRC]);
+    });
+
+    // Hiding nothing offers every championship, which is the safe way round.
+    it('hides nothing for anything that is not an object', () => {
+      expect(readHiddenContentSources(undefined)).toEqual({ packs: [], makers: [] });
+      expect(readHiddenContentSources([DLCPack.RED_PACK])).toEqual({ packs: [], makers: [] });
     });
   });
 
@@ -240,6 +268,8 @@ describe('shared/utils/settings', () => {
         allowedWeather: [15, 7],
         drivingAids: { abs: 2, idealLine: true },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
+        hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'] },
+        inactiveSeries: ['lotus-cup'],
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,

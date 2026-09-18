@@ -1,4 +1,4 @@
-import type { SeriesImportResult } from '../../../../shared/types';
+import type { Championship, SeriesImportResult } from '../../../../shared/types';
 import type { DisplayableError } from '@/lib/ipc';
 
 /**
@@ -34,6 +34,12 @@ export interface SeriesCommandsState {
    * @returns The copy's id, or null when it failed
    */
   duplicate(id: string, name: string): Promise<string | null>;
+  /**
+   * Writes a championship of the user's own for the first time.
+   * @param series The draft to write
+   * @returns Its id, or null when it failed
+   */
+  create(series: Championship): Promise<string | null>;
   /**
    * Deletes the user's version of a championship the app ships.
    * @param id The adjusted championship's id

@@ -6,8 +6,8 @@ export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
 export { BackToTop } from './BackToTop.tsx';
 export {
-  BrowserGrid, BrowserToolbar, FacetFilter, RangeFilter, SearchField, SortSelect, ToggleCard,
-  ToggleFilter,
+  BrowserGrid, BrowserToolbar, FacetFilter, RangeFilter, SearchField, SortSelect, SWITCH_TRACK,
+  ToggleCard, ToggleFilter,
 } from './browser/index.ts';
 export type { BrowserToggle, RangeValue, SortItem } from './browser/index.ts';
 export { ContentImage } from './content-image/index.ts';
@@ -23,7 +23,7 @@ export { LanguageSelect } from './LanguageSelect.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
 export type { PathKind } from './paths-card/index.ts';
-export { ProvenanceBadges } from './provenance-badges/index.ts';
+export { makerNameKey, packNameKey, ProvenanceBadges } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
 export { ScreenHeader } from './ScreenHeader.tsx';
 export { ScreenStrip } from './ScreenStrip.tsx';

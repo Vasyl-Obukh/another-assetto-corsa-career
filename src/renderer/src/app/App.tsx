@@ -9,7 +9,9 @@ import { CarBrowser } from '@/screens/car-browser';
 import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
 import { ChampionshipEditor } from '@/screens/championship-editor';
+import { ChampionshipLibrary } from '@/screens/championship-library';
 import { ChampionshipDetail, Championships } from '@/screens/championships';
+import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Race } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
@@ -40,21 +42,24 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.race} element={<Race />} />
             <Route path={ROUTE.championships} element={<Championships />} />
             <Route path={ROUTE.championship} element={<ChampionshipDetail />} />
-            <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
             <Route path={ROUTE.results} element={<Results />} />
             <Route path={ROUTE.result} element={<ResultDetail />} />
             <Route path={ROUTE.cars} element={<CarBrowser />} />
             <Route path={ROUTE.car} element={<CarDetail />} />
             <Route path={ROUTE.tracks} element={<TrackBrowser />} />
-            <Route
-              path={ROUTE.diagnostics}
-              element={<Diagnostics initialReport={initialReport} />}
-            />
             <Route path={ROUTE.settings} element={<SettingsLayout />}>
               <Route index element={<Settings />} />
+              <Route
+                path={ROUTE.diagnostics}
+                element={<Diagnostics initialReport={initialReport} />}
+              />
               <Route path={ROUTE.settingsContent} element={<YourContent />} />
               <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
+              <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
+              <Route path={ROUTE.settingsSources} element={<ContentSources />} />
             </Route>
+            <Route path={ROUTE.championshipNew} element={<ChampionshipEditor />} />
+            <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
             <Route path="*" element={<Navigate to={path.race()} replace />} />
           </Routes>
         </main>

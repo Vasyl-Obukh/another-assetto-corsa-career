@@ -18,3 +18,16 @@ export const MAX_WEEKEND_DAYS = 3;
  * is a different thing from the series being available.
  */
 export const DEFAULT_MIN_MODELS = 3;
+
+/**
+ * Which revision of the series schema this build reads.
+ *
+ * A championship declaring anything else is refused rather than guessed at: a
+ * series is a document users fork, export and import, and reading an unknown
+ * revision leniently is how a field silently means two things.
+ *
+ * Stays 1 until the app is released: before then a format change means
+ * deleting the out-of-date file rather than writing a migration (see CLAUDE.md).
+ * The field stays on the document so a future migration has something to read.
+ */
+export const SERIES_FORMAT_VERSION = 1;

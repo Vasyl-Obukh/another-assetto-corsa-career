@@ -96,6 +96,7 @@ export const registerHandlers = (
   handle('series:save', async ({ id, series: draft }) => series.save(id, draft));
   handle('series:customise', async ({ id }) => series.customise(id));
   handle('series:duplicate', async ({ id, name }) => series.duplicate(id, name));
+  handle('series:create', async ({ series: drafted }) => series.create(drafted));
   handle('series:revert', async ({ id }) => series.revert(id));
   handle('series:delete', async ({ id }) => series.remove(id));
 

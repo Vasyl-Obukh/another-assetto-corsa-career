@@ -20,21 +20,32 @@ export type { SeriesEditorState } from './types.ts';
  * edit is half-done by construction while it is being made. So the draft lives
  * here, problems come from a check that writes nothing, and Save is the only
  * thing that touches the file.
- * @param id The championship's id, from the route
+ *
+ * A championship being started is the same screen with nothing behind it: the
+ * draft is whatever `blank` holds, there is no listing, and the first save
+ * writes it rather than replacing anything.
+ * @param id The championship's id, from the route, or undefined for a new one
+ * @param blank The document a new championship starts from
  * @returns The draft, what is wrong with it, and the actions the screen binds to
  */
-export const useSeriesEditor = (id: string): SeriesEditorState => {
+export const useSeriesEditor = (id: string | undefined, blank: Championship): SeriesEditorState => {
   const [listing, setListing] = useState<SeriesListing | null>(null);
-  const [draft, setDraft] = useState<Championship | null>(null);
+  // Unsaved from the first render when it is new, since there is nothing on
+  // disk for it to differ from.
+  const [draft, setDraft] = useState<Championship | null>(id === undefined ? blank : null);
   const [checked, setChecked] = useState<SeriesAvailability | null>(null);
-  const [dirty, setDirty] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [dirty, setDirty] = useState(id === undefined);
+  const [loading, setLoading] = useState(id !== undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
 
   // The draft as it stands right now: state would be a render behind the
   // keystroke an edit is reading.
-  const current = useRef<Championship | null>(null);
+  const current = useRef<Championship | null>(id === undefined ? blank : null);
+  // The id main gave a new championship on its first save. Held here rather
+  // than waiting on the route, so a second Save before the screen has moved
+  // writes the same file instead of creating another.
+  const minted = useRef<string | undefined>(undefined);
   // Counts the checks issued, so a slow answer to an old draft cannot overwrite
   // the answer to a newer one.
   const issued = useRef(0);
@@ -47,6 +58,7 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
   }, []);
 
   useEffect(() => {
+    if (id === undefined) return undefined;
     let live = true;
 
     invoke('series:get', { id }).then(
@@ -65,6 +77,8 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
   // somewhere else, which leaves the editor holding a draft with nowhere to go.
   // A push is deliberately not adopted - it would clobber the draft mid-typing.
   useEffect(() => subscribe('series:changed', (library) => {
+    // Nothing to lose track of until it has been written once.
+    if (id === undefined) return;
     if (!library.series.some((one) => one.series.id === id)) adopt(null);
   }), [adopt, id]);
 
@@ -99,8 +113,8 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
     setDirty(true);
   }, []);
 
-  const save = useCallback(async (): Promise<boolean> => {
-    if (!current.current) return false;
+  const save = useCallback(async (): Promise<string | null> => {
+    if (!current.current) return null;
 
     // Compared by identity afterwards, and edit() always builds a new object,
     // so this says exactly whether anything was typed while the write was in
@@ -111,7 +125,21 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
     setBusy(true);
     setError(null);
     try {
-      const saved = await invoke('series:save', { id, series: sent });
+      // A championship that has never been written is created instead, which is
+      // where its id comes from: the screen then moves to that id's own URL.
+      const target = id ?? minted.current;
+      if (target === undefined) {
+        const created = await invoke('series:create', { series: sent });
+        minted.current = created.id ?? undefined;
+        // Settled, or the screen's own guard against leaving with a draft
+        // unwritten would block the move to the new id's URL. Only when the
+        // draft stood still, on the same terms as a save.
+        if (current.current === sent) setDirty(false);
+
+        return created.id;
+      }
+
+      const saved = await invoke('series:save', { id: target, series: sent });
 
       // Adopting what comes back rather than what was sent: parseSeries
       // normalises in main, so the two would otherwise drift wherever it
@@ -121,11 +149,11 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
       if (current.current === sent) adopt(saved);
       else setListing(saved);
 
-      return true;
+      return target;
     } catch (thrown: unknown) {
       setError(toDisplayableError(thrown));
 
-      return false;
+      return null;
     } finally {
       setBusy(false);
     }
@@ -143,6 +171,13 @@ export const useSeriesEditor = (id: string): SeriesEditorState => {
     dismissError: () => setError(null),
     edit,
     save,
-    discard: () => adopt(listing),
+    discard: () => {
+      // A new championship has nothing on disk to go back to, so it starts
+      // again from the blank it opened with, and stays unsaved.
+      if (id !== undefined) { adopt(listing); return; }
+
+      current.current = blank;
+      setDraft(blank);
+    },
   };
 };

@@ -1,12 +1,12 @@
 // Shared fixtures for the series tests: a small installed library, and a
 // championship clean enough that a test can break exactly one thing about it.
 
+import { SERIES_FORMAT_VERSION } from '../../../shared/constants/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
   Car, Championship, Content, Skin, Track,
 } from '../../../shared/types/index.ts';
 import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
-import { SERIES_FORMAT_VERSION } from '../constants.ts';
 
 /**
  * Builds a livery carrying nothing but its folder name.

@@ -1362,8 +1362,8 @@ has now landed too**: a user layer over the class catalogue, Classify on a car's
 page, and a Classes tab for classes and specs of the user's own. **Generated
 weather has landed with its forecast and a weather-aware track**, along with a
 setting for which weather the sim may use at all. What is still open in this
-phase is the championship configuration page, content source toggles and the
-rest of the shipped library.
+phase is the rest of the shipped library - **the championship configuration page
+and content source toggles have landed**, as one Championships tab in settings.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1872,8 +1872,27 @@ rest of the shipped library.
       them real: export, import-as-adjusted, import-renamed, and a junk file
       refused with five problems and nothing written
 - [ ] Content manifest per series with `acmanager://install` for missing content
-- [ ] **Championship configuration page**: every shipped championship, available or
-      not, and what content it needs
+- [x] **Championship configuration page**: every shipped championship, available or
+      not, and what content it needs.
+      **Landed as the Championships tab of Settings** - `/settings/championships`,
+      beside Classes, together with the toggles below, since both answer "which
+      championships, and what do they need". It lists every championship rather
+      than only the shipped ones - the user's own included - each with its
+      origin, its availability, the packs and mod teams it needs and the ones
+      that only widen its field, and, when a toggle hides it, which one.
+      **It has since become where the whole library is managed** - see the
+      split below - so the missing content, the problems and every action that
+      changes a championship moved here off the championship's own page.
+      **It found that `requires` answered the wrong question**: it recorded the
+      provenance of every car a spec could field, so GT3 Sprint Series read as
+      needing Ready to Race, the Tripl3 Pack and Porsche Pack 3 - and gating on
+      that would have hidden a base-only championship behind three DLC
+      switches. `SeriesRequirements` now keeps needing and reaching apart: a
+      source is needed when a track or a car list names it, or when a spec
+      falls below its floor without it - which is what makes Formula 1 2023
+      need VRC - and everything else a spec reaches is `widenedBy`. The spec
+      grids travel along as `pools`, because two packs neither of which a spec
+      needs alone can still leave it short together
 - [x] **Fork a shipped championship** - and it turned out to be two actions
       rather than one, both built on the override rule the library already had.
       **Customise** takes the copy under the same id, so the app's own is
@@ -1881,8 +1900,57 @@ rest of the shipped library.
       so both sit on the ladder. Either way the copy diverges - nothing links it
       back except `forkedFrom`, which is a record rather than a live reference.
       Substituting or dropping content within the fork waits on the editor
-- [ ] **Content source toggles** governing which championships are offered - base,
-      DLC, and one per mod maker
+- [x] **Content source toggles** governing which championships are offered - base,
+      DLC, and one per mod maker.
+      **Base has no switch**, since a base-only ladder is always offered; the
+      eleven DLC packs are one multi-select, in the shape of Weather in the sim,
+      and each mod team is a toggle of its own. A championship is offered only
+      while everything it needs is switched on, and **the rule covers every
+      championship**, the user's own included. `settings.hiddenContentSources`
+      stores what is **switched off** - the opposite of `allowedWeather` - so a
+      pack or a mod team the catalogue gains later arrives switched on rather
+      than quietly hiding what needs it. The gate is
+      `src/shared/utils/content-sources/`, read by both the list and the tab.
+      **Nothing is hidden silently**: the championships list says how many are
+      hidden and links to the tab, every switch says how many championships it
+      would hide, and a hidden championship's own page stays reachable
+- [x] **Racing and managing are two pages.** The Championships page is the one
+      a career races from, so it is read-only and lists only what can be raced
+      today: a championship switched **Active**, offered by the content sources,
+      and available - misconfigured and unavailable ones are left off, and one
+      line says how many and links to settings. Its page keeps the calendar and
+      the Race buttons and loses the actions menu, the problems and the missing
+      content. **Everything that changes a championship is the settings tab's**:
+      New, Import, Edit, Duplicate, Export, Revert, Delete, the Active switch,
+      availability, problems and what it needs. **One card does both**:
+      `ChampionshipCard` is read-only and a stretched link on the list, and given
+      the screen's commands it manages the championship instead. The editor's
+      Back now returns to the tab, and a duplicate opens in the editor.
+      `settings.inactiveSeries` stores what is switched **off**, like the content
+      sources, so anything written, imported or duplicated arrives active.
+      **New championship writes nothing until the first Save.** It opens the
+      editor on `/settings/championships/new` over an `emptySeries` - no class,
+      no round, no format, no points system, since every one of those would be a
+      choice nobody made - and `series:create` takes the whole drafted document
+      and mints its id. The editor then replaces the URL with that id's own.
+      `SERIES_FORMAT_VERSION` moved to `src/shared/constants/` for it, since the
+      renderer now drafts a document of its own.
+      **The editor moved under settings** - `/settings/championships/:id/edit` -
+      so the nav lights Settings rather than Championships while a championship
+      is being edited. It is deliberately not nested inside the settings layout,
+      which would head the editor with the settings tabs.
+      **The content source switches govern the app's own championships only**:
+      one of ours that needs a source switched off is not listed at all, since
+      those switches are how it comes back, while a championship the user wrote
+      or adjusted is their document and is never hidden by them. Settings has a
+      **Content sources** tab of its own, between General and Classes.
+      **Every on/off control is now one switch**: `ToggleButton` renders the
+      same `Switch` the library cards use, green when on through the shared
+      `SWITCH_TRACK`, so settings, the editor, the race screen and the cards no
+      longer mix On/Off buttons with switches. A championship's switch sits in
+      its card's bottom corner, and switching it off fades everything else on
+      the card. The Championships page says nothing about what it leaves out -
+      it is a page to race from, and what is missing is the settings tab's
 - [ ] Ship the championship library, with a **complete base-only ladder** across
       several disciplines and tiers
 - [ ] **Formula UK** - the championship the Lotus Exos 125 exists for. Both it

@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
-import { useBlocker, useParams } from 'react-router';
+import { useBlocker, useNavigate, useParams } from 'react-router';
 
 import { CalendarCard } from './CalendarCard.tsx';
 import { DetailsCard } from './DetailsCard.tsx';
@@ -13,7 +14,7 @@ import { GridCard } from './GridCard.tsx';
 import { PointsCard } from './PointsCard.tsx';
 import { PrizesCard } from './PrizesCard.tsx';
 import { TeamsCard } from './TeamsCard.tsx';
-import { namedCars } from './utils.ts';
+import { emptySeries, namedCars } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
 import { useClasses, useSettings } from '@/app';
 import {
@@ -25,8 +26,13 @@ import { path, ROUTE } from '@/lib/routes';
 
 export const ChampionshipEditor = () => {
   const { t } = useTranslation();
-  const { id = '' } = useParams<PathParam<typeof ROUTE.championshipEdit>>();
-  const editor = useSeriesEditor(id);
+  const navigate = useNavigate();
+  // Absent on the New route, which is the whole difference between the two: a
+  // championship that has never been written has no id until it is saved.
+  const { id } = useParams<PathParam<typeof ROUTE.championshipEdit>>();
+  const [blank] = useState(() => emptySeries(t('championshipLibrary.create.name')));
+  const [created, setCreated] = useState<string | null>(null);
+  const editor = useSeriesEditor(id, blank);
   // One for the whole screen, so opening any row quietens every other.
   const rows = useRowEdit();
   const { weather, controllers } = useWeatherContent();
@@ -40,7 +46,9 @@ export const ChampionshipEditor = () => {
   } = editor;
   // One call for every car the draft mentions, rather than one per control.
   const nameOf = useCarNames(draft === null ? [] : namedCars(draft, catalogue));
-  const back = path.championship({ id });
+  // Back to where the library is managed, since that is the only way in.
+  const back = path.settingsChampionships();
+  const creating = id === undefined;
   // Reachable by deep link even though no menu offers it: a shipped
   // championship is compiled in, so there is no file of the user's to write.
   const shipped = listing?.origin === 'shipped';
@@ -57,17 +65,33 @@ export const ChampionshipEditor = () => {
     editor.dirty && currentLocation.pathname !== nextLocation.pathname
   ));
 
+  // A new championship now has an id of its own, so the screen moves to that
+  // id's URL - replacing, since a New route that has already been written is
+  // not somewhere to go Back to. In an effect rather than in the save's own
+  // callback, which would navigate while the draft still read as unsaved and
+  // be stopped by the guard above.
+  useEffect(() => {
+    if (created === null || editor.dirty) return;
+
+    navigate(path.championshipEdit({ id: created }), { replace: true });
+  }, [created, editor.dirty, navigate]);
+
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       {/* Pinned, so Save and Back are in reach from the bottom of a long form. */}
       <ScreenHeader back={{ to: back, label: t('editor.back') }}>
-        {draft && listing && !shipped ? (
+        {draft && !shipped ? (
           <EditorHeader
-            listing={listing}
+            name={listing?.series.name ?? blank.name}
+            origin={listing?.origin ?? null}
             dirty={editor.dirty}
             busy={editor.busy}
             editable={rows.editable}
-            onSave={() => { void editor.save(); }}
+            onSave={() => {
+              editor.save().then((saved) => {
+                if (saved !== null && creating) setCreated(saved);
+              }, () => undefined);
+            }}
             onDiscard={() => { rows.close(); editor.discard(); }}
           />
         ) : null}
@@ -79,7 +103,7 @@ export const ChampionshipEditor = () => {
 
       {editor.loading ? <Skeleton className="h-24 w-full" /> : null}
 
-      {!editor.loading && listing === null && !editor.error ? (
+      {!editor.loading && !creating && listing === null && !editor.error ? (
         <p className="text-sm text-muted-foreground">{t('editor.notFound')}</p>
       ) : null}
 
@@ -87,7 +111,7 @@ export const ChampionshipEditor = () => {
         <p className="text-sm text-muted-foreground">{t('editor.shipped')}</p>
       ) : null}
 
-      {draft && listing && !shipped ? (
+      {draft && !shipped ? (
         <>
           {locked ? <EditorLockNotice /> : null}
 
@@ -177,7 +201,7 @@ export const ChampionshipEditor = () => {
       <ConfirmDialog
         open={blocker.state === 'blocked'}
         title={t('editor.leave.title')}
-        description={t('editor.leave.body', { name: listing?.series.name ?? '' })}
+        description={t('editor.leave.body', { name: listing?.series.name ?? blank.name })}
         confirmLabel={t('editor.leave.confirm')}
         onClose={() => blocker.reset?.()}
         onConfirm={() => blocker.proceed?.()}

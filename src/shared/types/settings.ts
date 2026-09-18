@@ -1,5 +1,6 @@
 // App settings, as persisted to settings.json in the user data folder.
 
+import type { DLCPack, ModMaker } from './content.ts';
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
 import type { WeatherSystem } from './weather-plan.ts';
@@ -107,6 +108,26 @@ export interface AddedContent {
 }
 
 /**
+ * The content sources the user switched off, which governs which championships
+ * are offered and nothing else.
+ *
+ * What is switched off rather than what is on - the opposite of
+ * `allowedWeather` - so a pack or mod team the catalogue gains later arrives
+ * switched on, rather than quietly hiding every championship that needs it.
+ * Base content has no entry, because a base-only ladder is always offered.
+ */
+export interface HiddenContentSources {
+  /**
+   * DLC packs whose championships are not offered.
+   */
+  packs: DLCPack[];
+  /**
+   * Mod teams whose championships are not offered.
+   */
+  makers: ModMaker[];
+}
+
+/**
  * Everything persisted between runs.
  */
 export interface Settings {
@@ -163,6 +184,20 @@ export interface Settings {
    * the way back in for everything else. See src/shared/utils/library/.
    */
   addedContent: AddedContent;
+  /**
+   * The content sources whose championships are not offered.
+   *
+   * See src/shared/utils/content-sources/.
+   */
+  hiddenContentSources: HiddenContentSources;
+  /**
+   * Championships the user switched off, by id.
+   *
+   * What is off rather than what is on, so a championship written, imported or
+   * duplicated later arrives active. An inactive one stays in settings and
+   * leaves the Championships page.
+   */
+  inactiveSeries: string[];
   /**
    * Paths the user has corrected by hand.
    */

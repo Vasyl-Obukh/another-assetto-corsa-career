@@ -12,8 +12,11 @@ import { path } from '@/lib/routes';
  */
 export const SETTINGS_TABS: readonly SettingsTab[] = [
   { to: path.settings(), label: 'settings.tabs.general', end: true },
-  { to: path.settingsContent(), label: 'settings.tabs.content', end: false },
+  { to: path.diagnostics(), label: 'settings.tabs.diagnostics', end: false },
+  { to: path.settingsSources(), label: 'settings.tabs.sources', end: false },
   { to: path.settingsClasses(), label: 'settings.tabs.classes', end: false },
+  { to: path.settingsChampionships(), label: 'settings.tabs.championships', end: false },
+  { to: path.settingsContent(), label: 'settings.tabs.content', end: false },
 ];
 
 /**

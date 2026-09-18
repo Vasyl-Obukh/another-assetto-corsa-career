@@ -51,10 +51,11 @@ export interface SeriesEditorState {
    */
   edit(change: (from: Championship) => Championship): void;
   /**
-   * Writes the draft.
-   * @returns True when it was written
+   * Writes the draft, creating the championship when it is a new one.
+   * @returns The championship's id, which is newly minted for a new one, or
+   * null when the write failed
    */
-  save(): Promise<boolean>;
+  save(): Promise<string | null>;
   /**
    * Throws the draft away and starts again from what is on disk.
    */

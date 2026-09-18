@@ -72,8 +72,15 @@ describe('renderer/lib/routes/routes', () => {
         .toBe('/results/2026-08-31T18-04-11-123Z.json');
     });
 
-    it('builds a championship editor beneath its own page', () => {
-      expect(path.championshipEdit({ id: 'lotus-cup' })).toBe('/championships/lotus-cup/edit');
+    it('builds a championship editor under settings, where the library is managed', () => {
+      expect(path.championshipEdit({ id: 'lotus-cup' })).toBe('/settings/championships/lotus-cup/edit');
+    });
+
+    // Under settings, so the nav lights Settings on every screen that manages
+    // the library - Diagnostics included, now that it is one of its tabs.
+    it('puts every managing screen under settings', () => {
+      [path.diagnostics(), path.settingsChampionships(), path.championshipNew()]
+        .forEach((url) => expect(url.startsWith(`${ROUTE.settings}/`)).toBe(true));
     });
 
     it('returns the pattern itself where a destination takes no parameters', () => {
@@ -84,6 +91,9 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.diagnostics()).toBe(ROUTE.diagnostics);
       expect(path.settings()).toBe(ROUTE.settings);
       expect(path.settingsContent()).toBe(ROUTE.settingsContent);
+      expect(path.settingsSources()).toBe(ROUTE.settingsSources);
+      expect(path.settingsChampionships()).toBe(ROUTE.settingsChampionships);
+      expect(path.championshipNew()).toBe(ROUTE.championshipNew);
     });
 
     // Adding a route without a builder would leave callers reaching for the

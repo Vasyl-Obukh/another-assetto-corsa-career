@@ -757,25 +757,69 @@ export interface RoundAvailability {
 }
 
 /**
+ * One spec a championship races, as the content source toggles see it.
+ *
+ * A spec is satisfied by whichever of its grid the user owns, so none of its
+ * cars is needed on its own - what matters is whether enough of them come from
+ * sources still switched on.
+ */
+export interface RequirementPool {
+  /**
+   * How many distinct models the spec needs to be a grid.
+   */
+  minModels: number;
+  /**
+   * Where each car of the spec comes from, one per car.
+   */
+  cars: readonly Pick<ContentProvenance, 'pack' | 'maker'>[];
+}
+
+/**
  * What owning a championship's content amounts to, derived from provenance.
  *
  * Derived rather than declared: a field on the championship saying "this is a
  * DLC series" could disagree with the catalogue, and the catalogue is the
- * authority. This is what the content source toggles will filter on.
+ * authority. This is what the content source toggles filter on.
+ *
+ * Needing and reaching are kept apart, because a spec is satisfied by whatever
+ * of it the user owns: a GT3 series reaches Ready to Race's cars without
+ * needing them, and gating it on that pack would hide a base-only championship.
  */
 export interface SeriesRequirements {
   /**
-   * Whether it reaches base, DLC or mod content.
+   * Which of base, DLC and mod content it needs, on the same terms as `packs`.
+   * The only trace of a mod nobody is credited with, which has no maker to list.
    */
   sources: readonly ContentSource[];
   /**
-   * Which DLC packs it needs.
+   * DLC packs it cannot be offered without - a track it races, a car a car list
+   * names, or a spec that falls below its floor without the pack's cars.
    */
   packs: readonly DLCPack[];
   /**
-   * Which mod teams it needs.
+   * Mod teams it needs outright, on the same terms as `packs`.
    */
   makers: readonly ModMaker[];
+  /**
+   * One per spec rule, on a class entry or on a round overriding one, for
+   * switching several sources off at once - two packs neither of which a spec
+   * needs alone may still leave it short together.
+   */
+  pools: readonly RequirementPool[];
+  /**
+   * DLC packs and mod teams reached only through a spec: they widen the field
+   * rather than being needed.
+   */
+  widenedBy: {
+    /**
+     * DLC packs only a spec reaches.
+     */
+    packs: readonly DLCPack[];
+    /**
+     * Mod teams only a spec reaches.
+     */
+    makers: readonly ModMaker[];
+  };
 }
 
 /**

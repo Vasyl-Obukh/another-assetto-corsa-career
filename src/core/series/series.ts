@@ -11,7 +11,6 @@
 // Points are carried and not applied. Standings, the calendar and prize money
 // are Phase 5; nothing here reads PointsSystem or PrizeMoney.
 
-import { SERIES_FORMAT_VERSION } from './constants.ts';
 import type { RoundRaceRequest } from './types.ts';
 import {
   availabilityOf,
@@ -35,6 +34,7 @@ import {
   validateFormat,
   validateMoney,
 } from './utils.ts';
+import { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
@@ -53,7 +53,9 @@ import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import { applyForecast, defaultWeatherOffer, forecastRound } from '../weather-forecast/index.ts';
 
-export { SERIES_FORMAT_VERSION } from './constants.ts';
+// Re-exported so the shipped library and the CLI keep reaching for it here,
+// beside the validator that enforces it.
+export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export { eligibleCars, roundRaceId } from './utils.ts';
 
 /**

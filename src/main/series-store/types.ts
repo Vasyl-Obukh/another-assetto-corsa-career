@@ -106,6 +106,15 @@ export interface SeriesStore {
    */
   duplicate: (id: string, name?: string) => Promise<SeriesCommandResult>;
   /**
+   * Writes a championship of the user's own for the first time.
+   *
+   * The document is the editor's draft, under an id derived here for the same
+   * reason `duplicate` derives one - whatever id the draft carried is replaced.
+   * @param series The drafted championship
+   * @returns The library, looking at the new championship
+   */
+  create: (series: Championship) => Promise<SeriesCommandResult>;
+  /**
    * Deletes the user's version of a championship the app ships.
    * @param id The adjusted championship's id
    * @returns The library, looking at the shipped one that is now back

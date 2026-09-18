@@ -18,16 +18,19 @@ export const ROUTE = {
   race: '/race',
   championships: '/championships',
   championship: '/championships/:id',
-  championshipEdit: '/championships/:id/edit',
   results: '/results',
   result: '/results/:file',
   cars: '/cars',
   car: '/cars/:id',
   tracks: '/tracks',
-  diagnostics: '/diagnostics',
   settings: '/settings',
+  diagnostics: '/settings/diagnostics',
   settingsContent: '/settings/content',
   settingsClasses: '/settings/classes',
+  settingsChampionships: '/settings/championships',
+  settingsSources: '/settings/sources',
+  championshipNew: '/settings/championships/new',
+  championshipEdit: '/settings/championships/:id/edit',
 } as const;
 
 /**
@@ -45,7 +48,6 @@ export const NAV = [
   { id: 'results', label: 'nav.results' },
   { id: 'cars', label: 'nav.cars' },
   { id: 'tracks', label: 'nav.tracks' },
-  { id: 'diagnostics', label: 'nav.diagnostics' },
   { id: 'settings', label: 'nav.settings' },
 ] as const satisfies readonly NavEntry[];
 

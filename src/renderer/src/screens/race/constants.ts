@@ -93,7 +93,6 @@ export const MIN_AI = 0;
  */
 export const MAX_AI = 100;
 
-
 /**
  * How a weather option encodes what it stands for.
  *

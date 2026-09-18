@@ -1,6 +1,5 @@
-import { useTranslation } from 'react-i18next';
-
-import { Button } from '@/components/ui/button.tsx';
+import { SWITCH_TRACK } from './browser';
+import { Switch } from '@/components/ui/switch.tsx';
 import { CONTROL_WIDTH } from '@/lib/layout';
 
 interface ToggleButtonProps {
@@ -29,22 +28,17 @@ interface ToggleButtonProps {
 
 export const ToggleButton = ({
   id, label, value, disabled = false, onChange,
-}: ToggleButtonProps) => {
-  const { t } = useTranslation();
-
-  return (
-    <Button
+}: ToggleButtonProps) => (
+  // The same switch every card in the app wears, held in a control-width box
+  // so it starts at the left edge every other settings control shares.
+  <span className={`${CONTROL_WIDTH} flex items-center`}>
+    <Switch
       id={id}
-      type="button"
-      variant={value ? 'secondary' : 'outline'}
-      size="sm"
-      className={CONTROL_WIDTH}
+      checked={value}
       aria-label={label}
-      aria-pressed={value}
       disabled={disabled}
-      onClick={() => onChange(!value)}
-    >
-      {value ? t('toggle.on') : t('toggle.off')}
-    </Button>
-  );
-};
+      className={SWITCH_TRACK}
+      onCheckedChange={onChange}
+    />
+  </span>
+);

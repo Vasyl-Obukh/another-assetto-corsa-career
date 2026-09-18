@@ -62,6 +62,8 @@ export const DEFAULT_SETTINGS: Settings = {
   allowedWeather: [...DEFAULT_ALLOWED_WEATHER],
   drivingAids: {},
   addedContent: { cars: [], tracks: [] },
+  hiddenContentSources: { packs: [], makers: [] },
+  inactiveSeries: [],
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

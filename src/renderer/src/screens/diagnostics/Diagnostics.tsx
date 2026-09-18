@@ -18,7 +18,7 @@ export const Diagnostics = ({ initialReport }: DiagnosticsProps) => {
   const install = useInstallation(initialReport);
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-8" backToTop>
+    <ScreenBody className="flex flex-col gap-6 py-6" backToTop>
       {install.error ? (
         <ErrorCard error={install.error} onDismiss={install.dismissError} />
       ) : null}

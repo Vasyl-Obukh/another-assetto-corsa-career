@@ -6,6 +6,7 @@
 
 import { DEFAULT_POINTS, DEFAULT_TIER } from './constants.ts';
 import type { Narrowed, SessionEdit, SetAside } from './types.ts';
+import { SERIES_FORMAT_VERSION } from '../../../../shared/constants';
 import { Discipline } from '../../../../shared/types';
 import type {
   Championship,
@@ -68,6 +69,29 @@ export const freeId = (stem: string, taken: ReadonlySet<string>): string => {
 
   return `${stem}-${next}`;
 };
+
+/**
+ * A championship with nothing in it yet.
+ *
+ * Deliberately empty rather than seeded with a class, a round, a format and a
+ * points system: those would be four choices nobody made, and every card here
+ * adds its own. It does not validate until they are filled in, which is what
+ * the problem list above the form is for - and nothing is written until Save.
+ * @param name What to call it
+ * @returns The new championship. Its id is blank: main mints one when it is
+ * written for the first time
+ */
+export const emptySeries = (name: string): Championship => ({
+  version: SERIES_FORMAT_VERSION,
+  id: '',
+  name,
+  entries: [],
+  rounds: [],
+  weekendFormats: [],
+  defaultWeekendFormat: '',
+  pointsSystems: [],
+  defaultPointsSystem: '',
+});
 
 /**
  * A round to append to a calendar, named and numbered after the last.

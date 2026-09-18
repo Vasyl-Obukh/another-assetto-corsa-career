@@ -11,8 +11,10 @@ import type {
   SeriesListing,
   SeriesSession,
   SessionDefinition,
+  Settings,
   WeekendFormat,
 } from '../../../../shared/types';
+import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { TIER_ACCENT } from '@/lib/accents';
 
 /**
@@ -194,6 +196,24 @@ export const availabilityState = (availability: SeriesAvailability): Availabilit
 
   return availability.available ? 'available' : 'unavailable';
 };
+
+/**
+ * Whether a championship belongs on the Championships page.
+ *
+ * That page is the one a career races from, so it lists only what can be raced
+ * today: switched on, offered by the content sources, and available.
+ * @param listing The championship and its availability
+ * @param settings The user's active switches and content sources
+ * @returns True when it is listed
+ */
+export const isListed = (
+  listing: SeriesListing,
+  settings: Pick<Settings, 'inactiveSeries' | 'hiddenContentSources'>,
+): boolean => (
+  !settings.inactiveSeries.includes(listing.series.id)
+  && !hiddenBySources(listing, settings.hiddenContentSources)
+  && availabilityState(listing.availability) === 'available'
+);
 
 /**
  * The colour a tier is chipped in.

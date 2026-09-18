@@ -1,5 +1,5 @@
 import {
-  CarIcon, FlagIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon, WrenchIcon,
+  CarIcon, FlagIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,6 @@ const NAV_ICONS: Record<NavId, ReactNode> = {
   results: <TrophyIcon />,
   cars: <CarIcon />,
   tracks: <MapIcon />,
-  diagnostics: <WrenchIcon />,
   settings: <SettingsIcon />,
 };
 

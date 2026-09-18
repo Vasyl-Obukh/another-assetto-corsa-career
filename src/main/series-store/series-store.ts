@@ -355,6 +355,25 @@ export const createSeriesStore = async (
       return settle(copy.id);
     },
 
+    async create(drafted) {
+      const id = newSeriesId();
+      const file = freeSeriesFileName(id, await taken());
+
+      // Checked as save checks it, or a draft that will not load is written
+      // anyway and becomes a load problem the user has to delete by hand.
+      const parsed = parseSeries({ ...drafted, id }, file);
+      if (!parsed.series) {
+        throw new AppError('series.save.unreadable', {
+          series: id,
+          reason: parsed.problems[0]?.message ?? 'it is not a championship',
+        });
+      }
+
+      await saveUserSeries(userDir, parsed.series, file);
+
+      return settle(id);
+    },
+
     // Reverting leaves the shipped championship at the same id; deleting leaves
     // nothing, so the caller is left looking at nothing.
     revert: (id) => removeFile(id, 'adjusted', 'series.notAdjusted', id),

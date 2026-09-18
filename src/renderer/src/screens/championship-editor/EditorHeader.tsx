@@ -1,16 +1,21 @@
 import { useTranslation } from 'react-i18next';
 
-import type { SeriesListing } from '../../../../shared/types';
+import type { SeriesOrigin } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { OriginBadge } from '@/screens/championships';
 
 interface EditorHeaderProps {
   /**
-   * The championship as the library holds it, for its name and where it came
-   * from. The draft's name would rename the heading as it is typed.
+   * What the library calls it, or what a championship being started is called
+   * until it is written. Deliberately not the draft's name, which would rename
+   * the heading as it is typed.
    */
-  listing: SeriesListing;
+  name: string;
+  /**
+   * Where it came from, or null for one that has never been written.
+   */
+  origin: SeriesOrigin | null;
   /**
    * Whether the draft differs from what is on disk.
    */
@@ -38,14 +43,14 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader = ({
-  listing, dirty, busy, editable, onSave, onDiscard,
+  name, origin, dirty, busy, editable, onSave, onDiscard,
 }: EditorHeaderProps) => {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <h1 className="text-2xl font-semibold">{listing.series.name}</h1>
-      <OriginBadge origin={listing.origin} />
+      <h1 className="text-2xl font-semibold">{name}</h1>
+      {origin === null ? null : <OriginBadge origin={origin} />}
 
       {dirty ? <Badge variant="warning">{t('editor.unsaved')}</Badge> : null}
 

@@ -1,13 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Climate, Discipline } from '../../../shared/types/index.ts';
+import { SERIES_FORMAT_VERSION } from '../../../shared/constants/index.ts';
+import {
+  Climate, ContentSource, Discipline, DLCPack, ModMaker,
+} from '../../../shared/types/index.ts';
 import type {
-  Championship, SeriesSession, WeekendFormat,
+  Championship, Eligibility, SeriesSession, WeekendFormat,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
-import { SERIES_FORMAT_VERSION } from '../constants.ts';
 import {
-  climateOf, eligibleCars, minModelsOf, roundRaceId, seatSkin, validateFormat, validateMoney,
+  climateOf, eligibleCars, minModelsOf, requirementsOf, roundRaceId, seatSkin, validateFormat,
+  validateMoney,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -294,6 +297,93 @@ describe('core/series/utils', () => {
 
     it('accepts a free championship, which is not the same as charging nothing', () => {
       expect(moneyCodes({ entryFee: 0 })).toEqual([]);
+    });
+  });
+
+  describe('requirementsOf', () => {
+    /**
+     * A catalogue whose one spec holds the given cars.
+     * @param cars The cars on its grid
+     * @returns The resolved catalogue
+     */
+    const specOf = (cars: string[]) => resolveCatalogue({
+      version: 1,
+      classes: [{ id: 'user-class', name: 'Mixed' }],
+      specs: [{ id: 'user-spec', name: 'Mixed', class: 'user-class' }],
+      cars: Object.fromEntries(cars.map((car) => [car, ['user-spec']])),
+    });
+
+    /**
+     * A championship racing one class at one round.
+     * @param eligibility What the class may field
+     * @param track The round's track
+     * @returns The championship
+     */
+    const racing = (eligibility: Eligibility, track = 'magione'): Championship => ({
+      ...withSessions([]).series,
+      entries: [{ ...withSessions([]).series.entries[0], eligibility }],
+      rounds: [{ id: 'r1', name: 'Round 1', track: { id: track } }],
+    });
+
+    it('needs every source a car list names', () => {
+      const requires = requirementsOf(
+        racing({ kind: 'cars', cars: ['abarth500', 'ks_audi_r8_lms_2016', 'rss_formula_2010'] }),
+        SHIPPED_CATALOGUE,
+      );
+
+      expect(requires.packs).toEqual([DLCPack.READY_TO_RACE]);
+      expect(requires.makers).toEqual([ModMaker.RSS]);
+      expect(requires.sources).toEqual(expect.arrayContaining([ContentSource.DLC, ContentSource.MOD]));
+      expect(requires.pools).toEqual([]);
+    });
+
+    it('records what a spec only reaches as widening it rather than as needed', () => {
+      const catalogue = specOf(['abarth500', 'abarth500_s1', 'bmw_1m', 'ks_audi_r8_lms_2016']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 3 }), catalogue);
+
+      expect(requires.packs).toEqual([]);
+      expect(requires.widenedBy.packs).toEqual([DLCPack.READY_TO_RACE]);
+      expect(requires.sources).toEqual([ContentSource.BASE]);
+      expect(requires.pools).toEqual([{ minModels: 3, cars: expect.any(Array) }]);
+      expect(requires.pools[0].cars).toHaveLength(4);
+    });
+
+    it('needs a source the spec cannot keep its floor without', () => {
+      const catalogue = specOf(['abarth500', 'rss_formula_2000', 'rss_formula_2010']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+
+      expect(requires.makers).toEqual([ModMaker.RSS]);
+      expect(requires.widenedBy.makers).toEqual([]);
+      expect(requires.sources).toContain(ContentSource.MOD);
+    });
+
+    it('needs a pack for the track a round races', () => {
+      const requires = requirementsOf(racing({ kind: 'cars', cars: ['abarth500'] }, 'ks_brands_hatch'), SHIPPED_CATALOGUE);
+
+      expect(requires.packs).toEqual([DLCPack.DREAM_PACK_3]);
+    });
+
+    // A mod nobody is credited with has no maker, so this is the only trace of
+    // it - the settings card read "Needs: Base game" without it.
+    it('keeps an uncredited mod a car list names as a needed source', () => {
+      const requires = requirementsOf(racing({ kind: 'cars', cars: ['someones_mod_car'] }), SHIPPED_CATALOGUE);
+
+      expect(requires.makers).toEqual([]);
+      expect(requires.sources).toContain(ContentSource.MOD);
+    });
+
+    it('pools a spec a round swaps in', () => {
+      const catalogue = specOf(['abarth500', 'bmw_1m']);
+      const base = racing({ kind: 'cars', cars: ['abarth500'] });
+      const series: Championship = {
+        ...base,
+        rounds: [{
+          ...base.rounds[0],
+          eligibility: [{ entry: 'main', eligibility: { kind: 'spec', spec: 'user-spec', minModels: 1 } }],
+        }],
+      };
+
+      expect(requirementsOf(series, catalogue).pools).toHaveLength(1);
     });
   });
 });

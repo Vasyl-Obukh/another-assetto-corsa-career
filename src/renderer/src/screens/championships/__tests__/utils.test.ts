@@ -1,8 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { appErrorInfo } from '../../../../../shared/errors';
+import { DLCPack } from '../../../../../shared/types';
 import type { SeriesAvailability, SeriesListing } from '../../../../../shared/types';
-import { availabilityState, roundRaceable, tierAccent } from '../utils.ts';
+import {
+  availabilityState, isListed, roundRaceable, tierAccent,
+} from '../utils.ts';
 import { TIER_ACCENT } from '@/lib/accents';
 
 /**
@@ -20,7 +23,9 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
   rounds: [{
     round: 'magione', track: null, pitboxes: null, entries: [],
   }],
-  requires: { sources: [], packs: [], makers: [] },
+  requires: {
+    sources: [], packs: [], makers: [], pools: [], widenedBy: { packs: [], makers: [] },
+  },
   ...overrides,
 });
 
@@ -116,6 +121,37 @@ describe('renderer/screens/championships/utils', () => {
       })];
 
       expect(roundRaceable(listing({ available: false, problems }), 'magione')).toBe(false);
+    });
+  });
+
+  describe('isListed', () => {
+    const everything = { inactiveSeries: [], hiddenContentSources: { packs: [], makers: [] } };
+
+    it('lists a championship that is switched on, offered and available', () => {
+      expect(isListed(listing(), everything)).toBe(true);
+    });
+
+    it('leaves out one the user switched off', () => {
+      expect(isListed(listing(), { ...everything, inactiveSeries: ['sunday-cup'] })).toBe(false);
+    });
+
+    it('leaves out a shipped championship the content sources hide', () => {
+      const shipped: SeriesListing = {
+        ...listing({
+          requires: {
+            sources: [], packs: [DLCPack.RED_PACK], makers: [], pools: [], widenedBy: { packs: [], makers: [] },
+          },
+        }),
+        origin: 'shipped',
+      };
+
+      expect(isListed(shipped, { ...everything, hiddenContentSources: { packs: [DLCPack.RED_PACK], makers: [] } }))
+        .toBe(false);
+    });
+
+    it('leaves out one that cannot be raced, whether content is missing or the file is broken', () => {
+      expect(isListed(listing({ available: false }), everything)).toBe(false);
+      expect(isListed(listing({ problems: [appErrorInfo('series.entry.noCars', { entry: 'main' })] }), everything)).toBe(false);
     });
   });
 

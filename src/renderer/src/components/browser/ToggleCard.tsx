@@ -1,14 +1,9 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
 
+import { SWITCH_TRACK } from './constants.ts';
 import { Switch } from '@/components/ui/switch.tsx';
 import { cn } from '@/lib/utils.ts';
-
-/**
- * A darker track for a switch that is off. The vendored one is the input
- * border's grey, which vanishes against the white backing in the light theme.
- */
-const OFF_TRACK = 'data-[state=unchecked]:bg-muted-foreground/35 dark:data-[state=unchecked]:bg-muted-foreground/35';
 
 interface ToggleCardProps {
   /**
@@ -58,7 +53,7 @@ export const ToggleCard = ({
           id={id}
           checked={checked}
           aria-label={label}
-          className={OFF_TRACK}
+          className={SWITCH_TRACK}
           onCheckedChange={onChange}
         />
       </span>

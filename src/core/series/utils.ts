@@ -14,10 +14,12 @@ import type {
   ClassEntry,
   Climate,
   Content,
+  ContentProvenance,
   DLCPack,
   Eligibility,
   EntryAvailability,
   ModMaker,
+  RequirementPool,
   Round,
   RoundAvailability,
   SeriesGrid,
@@ -26,7 +28,8 @@ import type {
   WeekendFormat,
 } from '../../shared/types/index.ts';
 import { specCars } from '../../shared/utils/car-classes/index.ts';
-import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
+import { poolHolds } from '../../shared/utils/content-sources/index.ts';
+import { carsOf } from '../../shared/utils/eligibility/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
 import { shuffle } from '../seeded-random/index.ts';
 
@@ -477,27 +480,68 @@ export const missingTrack = (round: Round): RoundAvailability['track'] => {
  * Works out what owning a championship's content amounts to.
  * @param series The championship
  * @param catalogue The class catalogue a spec resolves against
- * @returns The sources, packs and mod makers it reaches
+ * @returns The sources, packs and mod makers it needs, and what only widens it
  */
 export const requirementsOf = (series: Championship, catalogue: ClassCatalogue): SeriesRequirements => {
   const sources = new Set<ContentSource>();
   const packs = new Set<DLCPack>();
   const makers = new Set<ModMaker>();
+  const reachedPacks = new Set<DLCPack>();
+  const reachedMakers = new Set<ModMaker>();
+  const pools: RequirementPool[] = [];
 
-  const record = (provenance: ReturnType<typeof carProvenance>): void => {
+  const need = (provenance: ContentProvenance): void => {
     sources.add(provenance.source);
     if (provenance.pack) packs.add(provenance.pack);
     if (provenance.maker) makers.add(provenance.maker);
   };
 
-  series.entries.forEach((entry) => {
-    fieldableCars(series, entry, catalogue).forEach((car) => record(carProvenance(car)));
-  });
+  // A car list needs every car it names; a spec needs only enough of its grid,
+  // so its cars are pooled and what they reach is recorded apart.
+  const rule = (eligibility: Eligibility): void => {
+    if (eligibility.kind === 'cars') {
+      eligibility.cars.forEach((car) => need(carProvenance(car)));
+      return;
+    }
+
+    const cars = specCars(eligibility.spec, catalogue).map((car) => {
+      const { pack, maker } = carProvenance(car);
+      if (pack) reachedPacks.add(pack);
+      if (maker) reachedMakers.add(maker);
+      return { pack, maker };
+    });
+    pools.push({ minModels: minModelsOf(eligibility, catalogue), cars });
+  };
+
+  series.entries.forEach((entry) => rule(entry.eligibility));
   series.rounds.forEach((round) => {
-    record(trackProvenance(round.track.id, round.track.layout ?? ''));
+    need(trackProvenance(round.track.id, round.track.layout ?? ''));
+    round.eligibility?.forEach((override) => rule(override.eligibility));
   });
 
-  return { sources: [...sources], packs: [...packs], makers: [...makers] };
+  // A source a spec cannot keep its floor without is needed after all - a mod
+  // chassis in twenty liveries is a spec only that mod can fill.
+  pools.forEach((pool) => pool.cars.forEach(({ pack, maker }) => {
+    if (pack && !poolHolds(pool, { packs: [pack], makers: [] })) {
+      packs.add(pack);
+      sources.add(ContentSource.DLC);
+    }
+    if (maker && !poolHolds(pool, { packs: [], makers: [maker] })) {
+      makers.add(maker);
+      sources.add(ContentSource.MOD);
+    }
+  }));
+
+  return {
+    sources: [...sources],
+    packs: [...packs],
+    makers: [...makers],
+    pools,
+    widenedBy: {
+      packs: [...reachedPacks].filter((pack) => !packs.has(pack)),
+      makers: [...reachedMakers].filter((maker) => !makers.has(maker)),
+    },
+  };
 };
 
 /**

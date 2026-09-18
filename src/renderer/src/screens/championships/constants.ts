@@ -34,3 +34,12 @@ export const AVAILABILITY_VARIANT = {
 AvailabilityState,
 NonNullable<VariantProps<typeof badgeVariants>['variant']>
 >;
+
+/**
+ * A championship card's title, stretched over the whole card.
+ *
+ * Stretched rather than wrapping the card, so the card reads as one link or
+ * button without nesting its own controls inside it - which is why those
+ * controls each lift themselves to `z-10`.
+ */
+export const CARD_TITLE = 'min-w-0 flex-1 truncate text-left font-medium after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none';

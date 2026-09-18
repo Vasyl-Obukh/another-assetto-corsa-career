@@ -61,6 +61,11 @@ export const useSeriesCommands = (): SeriesCommandsState => {
       [run],
     ),
 
+    create: useCallback(
+      async (series) => (await run('series:create', { series }, null))?.id ?? null,
+      [run],
+    ),
+
     revert: useCallback(
       async (id) => (await run('series:revert', { id }, null)) !== null,
       [run],

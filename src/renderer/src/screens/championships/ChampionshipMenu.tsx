@@ -1,5 +1,5 @@
 import {
-  CopyIcon, MoreVerticalIcon, PencilIcon, Trash2Icon, UndoIcon, UploadIcon,
+  CopyIcon, MoreVerticalIcon, Trash2Icon, UndoIcon, UploadIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
@@ -23,11 +22,6 @@ interface ChampionshipMenuProps {
    * Whether a command is already running, which disables every item.
    */
   busy: boolean;
-  /**
-   * Called to open this championship in the editor. A shipped one is copied
-   * first, which is what the caller confirms before calling.
-   */
-  onEdit: () => void;
   /**
    * Called to copy this championship into a separate one.
    */
@@ -47,10 +41,10 @@ interface ChampionshipMenuProps {
 }
 
 export const ChampionshipMenu = ({
-  listing, busy, onEdit, onDuplicate, onRevert, onDelete, onExport,
+  listing, busy, onDuplicate, onRevert, onDelete, onExport,
 }: ChampionshipMenuProps) => {
   const { t } = useTranslation();
-  const { origin, weekend } = listing;
+  const { origin } = listing;
 
   return (
     <DropdownMenu>
@@ -66,19 +60,8 @@ export const ChampionshipMenu = ({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        {/* Whatever the origin - a shipped one is copied first. Only a weekend
-            under way stops it. */}
-        <DropdownMenuItem disabled={weekend !== null} onSelect={onEdit}>
-          <PencilIcon />
-          {t('championships.actions.edit')}
-        </DropdownMenuItem>
-
-        {weekend ? (
-          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-            {t('championships.actions.editLocked')}
-          </DropdownMenuLabel>
-        ) : null}
-
+        {/* No Edit: the card itself opens the editor, which is what this
+            screen is for. */}
         <DropdownMenuItem onSelect={onDuplicate}>
           <CopyIcon />
           {t('championships.actions.duplicate')}

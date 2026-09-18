@@ -77,14 +77,6 @@ export const path = {
     params: RouteParams<typeof ROUTE.championship>,
   ): string => buildPath(ROUTE.championship, params),
   /**
-   * One championship's editor.
-   * @param params The championship's id
-   * @returns Its URL, with the id encoded
-   */
-  championshipEdit: (
-    params: RouteParams<typeof ROUTE.championshipEdit>,
-  ): string => buildPath(ROUTE.championshipEdit, params),
-  /**
    * The list of archived results.
    * @returns Its URL
    */
@@ -113,6 +105,33 @@ export const path = {
    */
   settingsClasses: (): string => ROUTE.settingsClasses,
   /**
+   * The settings screen's Championships tab, where the championship library is
+   * managed.
+   * @returns Its URL
+   */
+  settingsChampionships: (): string => ROUTE.settingsChampionships,
+  /**
+   * The settings screen's Content sources tab, which decides which of the
+   * app's own championships are offered.
+   * @returns Its URL
+   */
+  settingsSources: (): string => ROUTE.settingsSources,
+  /**
+   * The editor, on a championship that does not exist yet. Nothing is written
+   * until the first save.
+   * @returns Its URL
+   */
+  championshipNew: (): string => ROUTE.championshipNew,
+  /**
+   * One championship's editor. Under settings, since that is where the library
+   * is managed - the Championships page itself never edits anything.
+   * @param params The championship's id
+   * @returns Its URL, with the id encoded
+   */
+  championshipEdit: (
+    params: RouteParams<typeof ROUTE.championshipEdit>,
+  ): string => buildPath(ROUTE.championshipEdit, params),
+  /**
    * The car browser.
    * @returns Its URL
    */
@@ -129,7 +148,8 @@ export const path = {
    */
   tracks: (): string => ROUTE.tracks,
   /**
-   * The diagnostics screen.
+   * The settings screen's Diagnostics tab: where Assetto Corsa lives and what
+   * the content scan found.
    * @returns Its URL
    */
   diagnostics: (): string => ROUTE.diagnostics,

@@ -17,10 +17,11 @@ import {
   WEATHER_TYPE_ORDER,
 } from '../../constants/index.ts';
 import type { WeatherType } from '../../constants/index.ts';
+import { DLCPack, ModMaker } from '../../types/index.ts';
 import type {
-  AddedContent, DrivingAids, PathOverrides, Settings, WindowState,
+  AddedContent, DrivingAids, HiddenContentSources, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
-import { isRecord, memberOf } from '../coerce/index.ts';
+import { isRecord, memberOf, stringEnumValues } from '../coerce/index.ts';
 
 /**
  * Reads a trimmed, non-empty string. A blank override means "unset".
@@ -96,6 +97,36 @@ export const readAddedContent = (raw: unknown): AddedContent => {
 };
 
 /**
+ * Reads a list of enum members, dropping anything that is not one.
+ * @param raw The value read from disk
+ * @param members Every acceptable value, in the order to keep
+ * @returns Each member found once, in the order `members` gives
+ */
+const readMembers = <T extends string | number>(raw: unknown, members: readonly T[]): T[] => {
+  if (!Array.isArray(raw)) return [];
+
+  const found = new Set(raw.map((value) => memberOf(value, members)));
+  return members.filter((member) => found.has(member));
+};
+
+/**
+ * Reads the content sources the user switched off.
+ *
+ * Anything unreadable falls back to nothing hidden, which offers every
+ * championship - the safe way round, since hiding one says nothing about why.
+ * @param raw The value read from disk
+ * @returns Both lists, empty where nothing usable was there
+ */
+export const readHiddenContentSources = (raw: unknown): HiddenContentSources => {
+  if (!isRecord(raw)) return { packs: [], makers: [] };
+
+  return {
+    packs: readMembers(raw.packs, stringEnumValues(DLCPack)),
+    makers: readMembers(raw.makers, stringEnumValues(ModMaker)),
+  };
+};
+
+/**
  * Reads the weather types the user lets into the sim.
  *
  * Anything that is not a list falls back to the default rather than to nothing,
@@ -104,12 +135,9 @@ export const readAddedContent = (raw: unknown): AddedContent => {
  * @param raw The value read from disk
  * @returns Every allowed type once, in menu order
  */
-export const readAllowedWeather = (raw: unknown): WeatherType[] => {
-  if (!Array.isArray(raw)) return [...DEFAULT_ALLOWED_WEATHER];
-
-  const allowed = new Set(raw.map((value) => memberOf(value, WEATHER_TYPE_ORDER)));
-  return WEATHER_TYPE_ORDER.filter((type) => allowed.has(type));
-};
+export const readAllowedWeather = (raw: unknown): WeatherType[] => (
+  Array.isArray(raw) ? readMembers(raw, WEATHER_TYPE_ORDER) : [...DEFAULT_ALLOWED_WEATHER]
+);
 
 /**
  * Reads an optional boolean, treating anything that is not a boolean as absent.
@@ -198,6 +226,8 @@ export const readSettings = (raw: unknown): Settings => {
     ...(driverName ? { driverName } : {}),
     drivingAids: readDrivingAids(raw.drivingAids),
     addedContent: readAddedContent(raw.addedContent),
+    hiddenContentSources: readHiddenContentSources(raw.hiddenContentSources),
+    inactiveSeries: readIds(raw.inactiveSeries),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

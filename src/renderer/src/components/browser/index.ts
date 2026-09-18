@@ -4,6 +4,7 @@ export { FacetFilter } from './FacetFilter.tsx';
 export { RangeFilter } from './RangeFilter.tsx';
 export { SearchField } from './SearchField.tsx';
 export { SortSelect } from './SortSelect.tsx';
+export { SWITCH_TRACK } from './constants.ts';
 export { ToggleCard } from './ToggleCard.tsx';
 export type { BrowserToggle, RangeValue, SortItem } from './types.ts';
 export { ToggleFilter } from './ToggleFilter.tsx';
