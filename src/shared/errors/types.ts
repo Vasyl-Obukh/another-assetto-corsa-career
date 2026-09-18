@@ -106,7 +106,6 @@ export type ErrorCode =
   | 'classes.name.taken'
   | 'classes.class.shipped'
   | 'classes.class.notFound'
-  | 'classes.class.notEmpty'
   | 'classes.spec.shipped'
   | 'classes.spec.notFound'
   | 'classes.spec.classUnknown'

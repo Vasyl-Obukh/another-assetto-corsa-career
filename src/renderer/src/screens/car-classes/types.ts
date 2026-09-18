@@ -1,34 +1,47 @@
+import type { CatalogueClass, CatalogueSpec } from '../../../../shared/types';
+
 /**
- * Which form the classes tab has open, if any.
+ * Which dialog the classes tab has open, if any.
  *
- * One at a time for the whole page, the way the championship editor holds a
- * single open row: two forms half-filled at once is two sets of changes nobody
- * is looking at.
+ * One at a time for the whole page, and every one of them is a name or a
+ * class to pick: small enough that a dialog beats a form opening inline.
  */
-export type ClassEditing =
+export type ClassDialog =
   | {
     /**
-     * A class's own form.
+     * A new class of the user's.
      */
-    kind: 'class';
-    /**
-     * The class being renamed, or undefined for a new one.
-     */
-    id?: string;
+    kind: 'add-class';
   }
   | {
     /**
-     * A spec's form.
+     * Renaming a class, or copying one into a new class.
      */
-    kind: 'spec';
+    kind: 'rename-class' | 'copy-class';
     /**
-     * The spec being edited, or undefined for a new one.
+     * The class acted on.
      */
-    id?: string;
+    carClass: CatalogueClass;
+  }
+  | {
     /**
-     * The class the form was opened under.
+     * A new spec in a class.
      */
-    carClass: string;
+    kind: 'add-spec';
+    /**
+     * The class it goes in.
+     */
+    carClass: CatalogueClass;
+  }
+  | {
+    /**
+     * Renaming a spec, or moving it to another class.
+     */
+    kind: 'rename-spec' | 'move-spec';
+    /**
+     * The spec acted on.
+     */
+    spec: CatalogueSpec;
   };
 
 /**
@@ -48,7 +61,7 @@ export interface ClassDeleting {
    */
   name: string;
   /**
-   * The class card the confirmation came from, where a refusal is shown.
+   * The class it is or sits in, where a refusal is shown.
    */
   carClass: string;
 }

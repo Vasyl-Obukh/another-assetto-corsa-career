@@ -18,6 +18,7 @@ import { resolveCatalogue } from '../../shared/utils/car-classes/index.ts';
 import {
   readClassLayer,
   withCarSpecs,
+  withClassCopy,
   withoutCarSpecs,
   withoutUserClass,
   withoutUserSpec,
@@ -114,9 +115,11 @@ export const createClassStore = async (userDataDir: string): Promise<ClassStore>
 
     saveClass: (draft) => commit((current) => withUserClass(current, catalogue, draft, randomUUID())),
 
-    deleteClass: (id) => commit((current) => ({
-      layer: withoutUserClass(current, catalogue, id), id: null,
+    deleteClass: (id, usersOf) => commit((current) => ({
+      layer: withoutUserClass(current, catalogue, id, usersOf), id: null,
     })),
+
+    copyClass: (id, name) => commit((current) => withClassCopy(current, catalogue, id, name, randomUUID)),
 
     saveSpec: (draft) => commit((current) => withUserSpec(current, catalogue, draft, randomUUID())),
 

@@ -9,6 +9,7 @@ export type ClassChannel =
   | 'classes:revertCar'
   | 'classes:saveClass'
   | 'classes:deleteClass'
+  | 'classes:copyClass'
   | 'classes:saveSpec'
   | 'classes:deleteSpec';
 
@@ -51,11 +52,18 @@ export interface ClassCommandsState {
    */
   saveClass(draft: IpcRequest<'classes:saveClass'>): Promise<string | null>;
   /**
-   * Deletes a class of the user's.
+   * Deletes a class of the user's, and every spec in it with it.
    * @param id The class
    * @returns True when it was deleted
    */
   deleteClass(id: string): Promise<boolean>;
+  /**
+   * Copies a class into a new class of the user's, specs and cars included.
+   * @param id The class to copy
+   * @param name What to call the copy
+   * @returns The new class's id, or null when it failed
+   */
+  copyClass(id: string, name: string): Promise<string | null>;
   /**
    * Adds a spec of the user's, or renames or moves one.
    * @param draft The spec as the form left it

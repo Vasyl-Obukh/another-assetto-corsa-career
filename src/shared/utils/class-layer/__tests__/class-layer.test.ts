@@ -9,6 +9,7 @@ import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../car-classes/index.ts'
 import {
   readClassLayer,
   withCarSpecs,
+  withClassCopy,
   withoutCarSpecs,
   withoutUserClass,
   withoutUserSpec,
@@ -173,23 +174,31 @@ describe('shared/utils/class-layer', () => {
     it('deletes an empty class of the user\'s', () => {
       const layer = makeLayer({ classes: [USER_CLASS] });
 
-      expect(withoutUserClass(layer, resolveCatalogue(layer), USER_CLASS.id).classes).toEqual([]);
+      expect(withoutUserClass(layer, resolveCatalogue(layer), USER_CLASS.id, () => []).classes).toEqual([]);
     });
 
-    it('refuses a class that still has specs', () => {
+    it('deletes the specs in it along with the class', () => {
+      const { layer, catalogue } = withOwn();
+      const deleted = withoutUserClass(layer, catalogue, USER_CLASS.id, () => []);
+
+      expect(deleted.classes).toEqual([]);
+      expect(deleted.specs).toEqual([]);
+    });
+
+    it('refuses a class whose spec a championship still races in', () => {
       const { layer, catalogue } = withOwn();
 
-      expect(() => withoutUserClass(layer, catalogue, USER_CLASS.id))
-        .toThrow(expect.objectContaining({ code: 'classes.class.notEmpty' }));
+      expect(() => withoutUserClass(layer, catalogue, USER_CLASS.id, () => ['Hillclimb Cup']))
+        .toThrow(expect.objectContaining({ code: 'classes.spec.inUse' }));
     });
 
     it('refuses a class the app ships', () => {
-      expect(() => withoutUserClass(makeLayer(), SHIPPED_CATALOGUE, SHIPPED_CATALOGUE.classes[0].id))
+      expect(() => withoutUserClass(makeLayer(), SHIPPED_CATALOGUE, SHIPPED_CATALOGUE.classes[0].id, () => []))
         .toThrow(expect.objectContaining({ code: 'classes.class.shipped' }));
     });
 
     it('refuses a class nobody made', () => {
-      expect(() => withoutUserClass(makeLayer(), SHIPPED_CATALOGUE, 'ghost'))
+      expect(() => withoutUserClass(makeLayer(), SHIPPED_CATALOGUE, 'ghost', () => []))
         .toThrow(expect.objectContaining({ code: 'classes.class.notFound' }));
     });
   });
@@ -281,6 +290,77 @@ describe('shared/utils/class-layer', () => {
     it('refuses a spec nobody made', () => {
       expect(() => withoutUserSpec(makeLayer(), SHIPPED_CATALOGUE, 'ghost', []))
         .toThrow(expect.objectContaining({ code: 'classes.spec.notFound' }));
+    });
+  });
+  describe('withClassCopy', () => {
+    /**
+     * Mints ids in order, so a test can say which one went where.
+     * @returns The minter
+     */
+    const minter = (): (() => string) => {
+      let n = 0;
+
+      return () => {
+        n += 1;
+
+        return `fresh-${n}`;
+      };
+    };
+
+    it('copies a class and every spec in it into classes of the user\'s', () => {
+      const { layer, catalogue } = withOwn();
+      const copy = withClassCopy(layer, catalogue, USER_CLASS.id, 'Sprint', minter());
+
+      expect(copy.id).toBe('fresh-1');
+      expect(copy.layer.classes).toEqual([USER_CLASS, { id: 'fresh-1', name: 'Sprint' }]);
+      expect(copy.layer.specs).toEqual([USER_SPEC, { id: 'fresh-2', name: 'Sprint (2020s)', class: 'fresh-1' }]);
+    });
+
+    it('names a spec not named after its class for the copy it went into', () => {
+      const { layer, catalogue } = withOwn({ specs: [{ ...USER_SPEC, name: 'Mountain' }] });
+
+      expect(withClassCopy(layer, catalogue, USER_CLASS.id, 'Sprint', minter()).layer.specs[1].name)
+        .toBe('Mountain (Sprint)');
+    });
+
+    it('numbers a spec name that is already taken', () => {
+      const taken = { id: 'taken', name: 'Sprint (2020s)', class: USER_CLASS.id };
+      const { layer, catalogue } = withOwn({ specs: [USER_SPEC, taken] });
+      const { specs } = withClassCopy(layer, catalogue, USER_CLASS.id, 'Sprint', minter()).layer;
+
+      expect(specs.map((spec) => spec.name)).toContain('Sprint (2020s) 2');
+    });
+
+    it('puts every car racing in the original in its copy as well', () => {
+      const { car, specs } = shippedCar();
+      const carClass = SHIPPED_CATALOGUE.specById.get(specs[0])?.class ?? '';
+      const copy = withClassCopy(makeLayer(), SHIPPED_CATALOGUE, carClass, 'Mine', minter());
+      const copied = copy.layer.specs.find((spec) => spec.class === copy.id);
+
+      expect(copy.layer.cars[car]).toEqual(expect.arrayContaining([...specs]));
+      expect(copy.layer.cars[car]).toHaveLength(specs.length + 1);
+      expect(copied?.class).toBe(copy.id);
+    });
+
+    // Rebuilding a car's override from the resolved catalogue used to drop a
+    // spec that did not resolve, deleting it from the user's file for good.
+    it('keeps a spec a car races in that does not resolve today', () => {
+      const { layer, catalogue } = withOwn({ cars: { my_mod: [USER_SPEC.id, 'from-elsewhere'] } });
+      const copy = withClassCopy(layer, catalogue, USER_CLASS.id, 'Sprint', minter());
+
+      expect(copy.layer.cars.my_mod).toEqual([USER_SPEC.id, 'from-elsewhere', 'fresh-2']);
+    });
+
+    it('refuses a name another class already has', () => {
+      const { layer, catalogue } = withOwn();
+
+      expect(() => withClassCopy(layer, catalogue, USER_CLASS.id, 'hillclimb', minter()))
+        .toThrow(expect.objectContaining({ code: 'classes.name.taken' }));
+    });
+
+    it('refuses a class that does not resolve', () => {
+      expect(() => withClassCopy(makeLayer(), SHIPPED_CATALOGUE, 'ghost', 'Mine', minter()))
+        .toThrow(expect.objectContaining({ code: 'classes.class.notFound' }));
     });
   });
 });

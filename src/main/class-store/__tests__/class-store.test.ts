@@ -139,7 +139,7 @@ describe('main/class-store', () => {
     it('refuses an edit without writing anything or changing the layer', async () => {
       const store = await createClassStore('D:\\userData');
 
-      await expect(store.deleteClass(SHIPPED_CATALOGUE.classes[0].id))
+      await expect(store.deleteClass(SHIPPED_CATALOGUE.classes[0].id, () => []))
         .rejects.toMatchObject({ code: 'classes.class.shipped' });
       expect(writeFileMock).not.toHaveBeenCalled();
       expect(store.layer()).toEqual(EMPTY_CLASS_LAYER);
@@ -183,6 +183,27 @@ describe('main/class-store', () => {
       await expect(store.deleteSpec(id ?? '', ['Hill Cup'])).rejects.toMatchObject({ code: 'classes.spec.inUse' });
       await store.deleteSpec(id ?? '', []);
       expect(store.layer().specs).toEqual([]);
+    });
+
+    it('copies a class, answering with the copy', async () => {
+      const store = await createClassStore('D:\\userData');
+      const original = SHIPPED_CATALOGUE.classes[0];
+      const { id } = await store.copyClass(original.id, 'Mine');
+
+      expect(store.catalogue().classById.get(id ?? '')).toMatchObject({ name: 'Mine', origin: 'user' });
+      expect(store.catalogue().classById.get(id ?? '')?.specs).toHaveLength(original.specs.length);
+    });
+
+    it('deletes a class with its specs, asking which championships race each', async () => {
+      const store = await createClassStore('D:\\userData');
+      const { id: carClass } = await store.saveClass({ name: 'Hillclimb' });
+      const { id: spec } = await store.saveSpec({ name: 'Hillclimb (2020s)', class: carClass ?? '' });
+      const usersOf = jest.fn((_spec: string): string[] => []);
+
+      await store.deleteClass(carClass ?? '', usersOf);
+
+      expect(usersOf).toHaveBeenCalledWith(spec ?? '');
+      expect(store.layer()).toMatchObject({ classes: [], specs: [] });
     });
   });
 });

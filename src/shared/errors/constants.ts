@@ -146,7 +146,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'classes.name.taken': 'The name {{name}} is already taken.',
   'classes.class.shipped': '{{class}} is a class the app ships, so it cannot be changed or deleted.',
   'classes.class.notFound': 'There is no class of yours with the id {{class}}.',
-  'classes.class.notEmpty': '{{class}} still has specs. Delete those first.',
   'classes.spec.shipped': '{{spec}} is a spec the app ships, so it cannot be changed or deleted.',
   'classes.spec.notFound': 'There is no spec of yours with the id {{spec}}.',
   'classes.spec.classUnknown': 'There is no class {{class}} to put {{spec}} in.',

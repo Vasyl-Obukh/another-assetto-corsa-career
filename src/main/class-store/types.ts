@@ -41,12 +41,23 @@ export interface ClassStore {
    */
   saveClass: (draft: IpcRequest<'classes:saveClass'>) => Promise<ClassCommandResult>;
   /**
-   * Deletes a class of the user's.
+   * Deletes a class of the user's, and every spec in it with it.
    * @param id The class
+   * @param usersOf The names of every championship racing in a spec
    * @returns The layer, looking at nothing
-   * @throws When it is not the user's, still has specs, or the write fails
+   * @throws When it is not the user's, a championship races in one of its
+   * specs, or the write fails
    */
-  deleteClass: (id: string) => Promise<ClassCommandResult>;
+  deleteClass: (id: string, usersOf: (spec: string) => readonly string[]) => Promise<ClassCommandResult>;
+  /**
+   * Copies a class into a new class of the user's, specs and cars included.
+   * @param id The class to copy, shipped or the user's
+   * @param name What to call the copy
+   * @returns The layer, looking at the new class
+   * @throws When the class does not resolve, the name is blank or taken, or the
+   * write fails
+   */
+  copyClass: (id: string, name: string) => Promise<ClassCommandResult>;
   /**
    * Adds a spec of the user's, or renames or moves one.
    * @param draft The spec as the form left it; no id means a new one

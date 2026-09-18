@@ -227,26 +227,6 @@ export const withUserClass = (
 };
 
 /**
- * Deletes a class of the user's.
- * @param layer The user's layer
- * @param catalogue The catalogue resolved from it
- * @param id The class
- * @returns The layer without it
- * @throws When it ships with the app, is not the user's, or still has specs
- */
-export const withoutUserClass = (layer: ClassLayer, catalogue: ClassCatalogue, id: string): ClassLayer => {
-  assertUserClass(layer, catalogue, id);
-
-  // One level of clean-up is enough: emptying a class is a deliberate act per
-  // spec, each with its own championships to check.
-  if (layer.specs.some((spec) => spec.class === id)) {
-    throw new AppError('classes.class.notEmpty', { class: carClassName(id, catalogue) });
-  }
-
-  return { ...layer, classes: layer.classes.filter((one) => one.id !== id) };
-};
-
-/**
  * Adds a spec of the user's, or renames or moves one.
  * @param layer The user's layer
  * @param catalogue The catalogue resolved from it
@@ -332,4 +312,116 @@ export const withoutUserSpec = (
   );
 
   return { ...layer, specs: layer.specs.filter((one) => one.id !== id), cars };
+};
+
+/**
+ * Deletes a class of the user's, and every spec in it with it.
+ * @param layer The user's layer
+ * @param catalogue The catalogue resolved from it
+ * @param id The class
+ * @param usersOf The names of every championship racing in a spec
+ * @returns The layer without the class or its specs
+ * @throws When it ships with the app, is not the user's, or a championship
+ * still races in one of its specs
+ */
+export const withoutUserClass = (
+  layer: ClassLayer,
+  catalogue: ClassCatalogue,
+  id: string,
+  usersOf: (spec: SpecId) => readonly string[],
+): ClassLayer => {
+  assertUserClass(layer, catalogue, id);
+
+  // Each spec goes the way deleting it alone would, so one a championship
+  // still races in refuses the whole delete.
+  const emptied = layer.specs
+    .filter((spec) => spec.class === id)
+    .reduce((current, spec) => withoutUserSpec(current, catalogue, spec.id, usersOf(spec.id)), layer);
+
+  return { ...emptied, classes: emptied.classes.filter((one) => one.id !== id) };
+};
+
+/**
+ * The first of `base`, `base 2`, `base 3` and so on that nothing has spent.
+ * @param base The name wanted
+ * @param spent Every name in use, folded to lower case
+ * @returns A name free to take
+ */
+const unspentName = (base: string, spent: ReadonlySet<string>): string => {
+  let name = base;
+  let n = 1;
+  while (spent.has(name.toLocaleLowerCase())) {
+    n += 1;
+    name = `${base} ${n}`;
+  }
+
+  return name;
+};
+
+/**
+ * Copies a class, shipped or the user's, into a new class of the user's.
+ *
+ * Every spec comes along as a spec of the user's, renamed after the new class
+ * since spec names are unique across the catalogue, and every car racing in one
+ * races in its copy too - a copy with empty grids is a template, not a copy.
+ * @param layer The user's layer
+ * @param catalogue The catalogue resolved from it
+ * @param from The class to copy
+ * @param draftName What to call the copy
+ * @param fresh Mints an id, once for the class and once per spec
+ * @returns The layer, and the id of the new class
+ * @throws When the class does not resolve, or the name is blank or taken
+ */
+export const withClassCopy = (
+  layer: ClassLayer,
+  catalogue: ClassCatalogue,
+  from: string,
+  draftName: string,
+  fresh: () => string,
+): { layer: ClassLayer; id: string } => {
+  const copied = catalogue.classById.get(from);
+  if (!copied) throw new AppError('classes.class.notFound', { class: from });
+
+  const name = freeName(draftName, catalogue.classes.map((one) => one.name));
+  const id = fresh();
+
+  const spent = new Set([...catalogue.specById.values()].map((one) => one.name.toLocaleLowerCase()));
+  const copies = new Map<SpecId, UserCarSpec>();
+  copied.specs.forEach((spec) => {
+    // "Formula 1 1954" copied into "F1 Mods" reads "F1 Mods 1954"; a spec not
+    // named after its class keeps its name and says where it came from.
+    const original = carSpecName(spec, catalogue);
+    const renamed = original.startsWith(`${copied.name} `)
+      ? `${name}${original.slice(copied.name.length)}`
+      : `${original} (${name})`;
+    const specName = unspentName(renamed, spent);
+    spent.add(specName.toLocaleLowerCase());
+    copies.set(spec, { id: fresh(), name: specName, class: id });
+  });
+
+  // No clash to check: a car holds at most one spec of the original, so it
+  // gains at most one of the copy. Added to what the car stores rather than to
+  // what resolves, so a spec that does not resolve today is not lost.
+  const cars = [...catalogue.specsByCar].reduce<Record<string, SpecId[]>>((settled, [car, held]) => {
+    const gained = held.flatMap((spec) => {
+      const copy = copies.get(spec);
+
+      return copy ? [copy.id] : [];
+    });
+    if (gained.length === 0) return settled;
+
+    const stored = layer.cars[car] ?? SHIPPED_CATALOGUE.specsByCar.get(car) ?? [];
+
+    return settleCar(settled, car, [...stored, ...gained]);
+  }, layer.cars);
+
+  return {
+    layer: {
+      ...layer,
+      classes: [...layer.classes, { id, name }],
+      specs: [...layer.specs, ...copies.values()],
+      cars,
+    },
+    id,
+  };
 };

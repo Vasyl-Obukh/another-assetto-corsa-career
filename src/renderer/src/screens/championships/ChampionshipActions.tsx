@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import { ChampionshipMenu } from './ChampionshipMenu.tsx';
-import { DuplicateDialog } from './DuplicateDialog.tsx';
 import type { SeriesListing } from '../../../../shared/types';
-import { ConfirmDialog } from '@/components';
+import { ConfirmDialog, NameDialog } from '@/components';
 import type { SeriesCommandsState } from '@/hooks';
 import { path } from '@/lib/routes';
 
@@ -45,10 +44,17 @@ export const ChampionshipActions = ({ listing, commands }: ChampionshipActionsPr
         onExport={() => { void commands.exportSeries(id); }}
       />
 
-      <DuplicateDialog
+      {/* The name and nothing else. The copy's id is main's to pick, because
+          only main knows what is taken - a file that failed to parse owns its
+          name without appearing in the library at all. */}
+      <NameDialog
         key={duplicating ? 'duplicating' : 'idle'}
         open={duplicating}
-        name={name}
+        title={t('championships.duplicate.title', { name })}
+        description={t('championships.duplicate.hint')}
+        label={t('championships.duplicate.name')}
+        initial={t('championships.actions.copyName', { name })}
+        confirmLabel={t('championships.duplicate.confirm')}
         busy={commands.busy}
         onClose={() => setDuplicating(false)}
         onConfirm={(copyName) => {

@@ -134,11 +134,12 @@ export const registerHandlers = (
   handle('classes:assignCar', async ({ car, specs }) => classes.assignCar(car, specs));
   handle('classes:revertCar', async ({ car }) => classes.revertCar(car));
   handle('classes:saveClass', async (draft) => classes.saveClass(draft));
-  handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id));
+  handle('classes:copyClass', async ({ id, name }) => classes.copyClass(id, name));
   handle('classes:saveSpec', async (draft) => classes.saveSpec(draft));
   // Which championships race a spec is the series store's to know, so the class
   // store is told them rather than reaching into the library itself.
   handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, series.usingSpec(id)));
+  handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, (spec) => series.usingSpec(spec)));
 
   handle('cm:arguments', readCmArguments);
   handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));

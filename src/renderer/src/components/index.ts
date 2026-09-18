@@ -20,6 +20,7 @@ export { ErrorCard } from './ErrorCard.tsx';
 export { FieldGrid } from './FieldGrid.tsx';
 export { FieldRow } from './FieldRow.tsx';
 export { LanguageSelect } from './LanguageSelect.tsx';
+export { NameDialog } from './NameDialog.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
 export type { PathKind } from './paths-card/index.ts';

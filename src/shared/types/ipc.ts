@@ -279,9 +279,15 @@ export interface IpcContract {
    */
   'classes:saveClass': { req: { id?: ClassId; name: string }; res: ClassCommandResult };
   /**
-   * Delete a class of the user's, once it holds no specs.
+   * Delete a class of the user's and every spec in it, once no championship
+   * races in any of them.
    */
   'classes:deleteClass': { req: { id: ClassId }; res: ClassCommandResult };
+  /**
+   * Copy a class, shipped or the user's, into a new class of the user's, with
+   * a copy of every spec in it and the same cars in each.
+   */
+  'classes:copyClass': { req: { id: ClassId; name: string }; res: ClassCommandResult };
   /**
    * Add a spec of the user's, or rename or move one.
    */

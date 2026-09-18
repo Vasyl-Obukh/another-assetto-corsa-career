@@ -72,6 +72,11 @@ export const useClassCommands = (): ClassCommandsState => {
       [run],
     ),
 
+    copyClass: useCallback(
+      async (id, name) => (await run('classes:copyClass', { id, name }))?.id ?? null,
+      [run],
+    ),
+
     saveSpec: useCallback(
       async (draft) => (await run('classes:saveSpec', draft))?.id ?? null,
       [run],
