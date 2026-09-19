@@ -86,6 +86,11 @@ export const SessionRow = ({
   const { t } = useTranslation();
 
   const length = sessionLength(session);
+  // A distance first: it is what the race runs to, turned into laps per round.
+  let lengthText = length === null ? '' : t(length.key, { count: length.count });
+  if (session.distance !== undefined) {
+    lengthText = t('championships.format.distance', { value: session.distance });
+  }
   const overrides = overrideCount(session.conditions ?? {});
 
   return (
@@ -122,6 +127,9 @@ export const SessionRow = ({
             // Named `top` rather than `count` on purpose: `count` is i18next's
             // own plural selector, and this string does not pluralise.
             : t('editor.sessions.followsTop', { name: follows, top: session.inherit.top })}
+          {session.inherit?.reverse === undefined
+            ? null
+            : t('editor.sessions.followsReverse', { reverse: session.inherit.reverse })}
         </Badge>
       )}
 
@@ -152,7 +160,7 @@ export const SessionRow = ({
       {/* Plain text on purpose: a length and a day are numbers, not one of a
           closed set. Fixed widths so they line up down the list. */}
       <span className="w-20 shrink-0 text-right text-xs text-muted-foreground">
-        {length === null ? '' : t(length.key, { count: length.count })}
+        {lengthText}
       </span>
 
       {days > 1 ? (

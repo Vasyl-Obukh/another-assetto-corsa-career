@@ -1,5 +1,5 @@
 import {
-  CopyIcon, MoreVerticalIcon, Trash2Icon, UndoIcon, UploadIcon,
+  CopyIcon, MoreVerticalIcon, PencilIcon, Trash2Icon, UndoIcon, UploadIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,9 +19,18 @@ interface ChampionshipMenuProps {
    */
   listing: SeriesListing;
   /**
+   * Whether the menu offers everything that manages the library, or only Edit.
+   * Only the settings tab and the pages it opens manage it.
+   */
+  manage: boolean;
+  /**
    * Whether a command is already running, which disables every item.
    */
   busy: boolean;
+  /**
+   * Called to open the championship in the editor.
+   */
+  onEdit: () => void;
   /**
    * Called to copy this championship into a separate one.
    */
@@ -41,10 +50,13 @@ interface ChampionshipMenuProps {
 }
 
 export const ChampionshipMenu = ({
-  listing, busy, onDuplicate, onRevert, onDelete, onExport,
+  listing, manage, busy, onEdit, onDuplicate, onRevert, onDelete, onExport,
 }: ChampionshipMenuProps) => {
   const { t } = useTranslation();
   const { origin } = listing;
+  // A weekend under way is raced against the championship as it stood, so it
+  // may not change until that weekend is over.
+  const locked = listing.weekend !== null;
 
   return (
     <DropdownMenu>
@@ -60,32 +72,43 @@ export const ChampionshipMenu = ({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        {/* No Edit: the card itself opens the editor, which is what this
-            screen is for. */}
-        <DropdownMenuItem onSelect={onDuplicate}>
-          <CopyIcon />
-          {t('championships.actions.duplicate')}
+        <DropdownMenuItem
+          disabled={locked}
+          title={locked ? t('championships.actions.editLocked') : undefined}
+          onSelect={onEdit}
+        >
+          <PencilIcon />
+          {t('championships.actions.edit')}
         </DropdownMenuItem>
 
-        <DropdownMenuItem onSelect={onExport}>
-          <UploadIcon />
-          {t('championships.actions.export')}
-        </DropdownMenuItem>
+        {manage ? (
+          <>
+            <DropdownMenuItem onSelect={onDuplicate}>
+              <CopyIcon />
+              {t('championships.actions.duplicate')}
+            </DropdownMenuItem>
 
-        {origin === 'shipped' ? null : <DropdownMenuSeparator />}
+            <DropdownMenuItem onSelect={onExport}>
+              <UploadIcon />
+              {t('championships.actions.export')}
+            </DropdownMenuItem>
 
-        {origin === 'adjusted' ? (
-          <DropdownMenuItem variant="destructive" onSelect={onRevert}>
-            <UndoIcon />
-            {t('championships.actions.revert')}
-          </DropdownMenuItem>
-        ) : null}
+            {origin === 'shipped' ? null : <DropdownMenuSeparator />}
 
-        {origin === 'user' ? (
-          <DropdownMenuItem variant="destructive" onSelect={onDelete}>
-            <Trash2Icon />
-            {t('championships.actions.delete')}
-          </DropdownMenuItem>
+            {origin === 'adjusted' ? (
+              <DropdownMenuItem variant="destructive" onSelect={onRevert}>
+                <UndoIcon />
+                {t('championships.actions.revert')}
+              </DropdownMenuItem>
+            ) : null}
+
+            {origin === 'user' ? (
+              <DropdownMenuItem variant="destructive" onSelect={onDelete}>
+                <Trash2Icon />
+                {t('championships.actions.delete')}
+              </DropdownMenuItem>
+            ) : null}
+          </>
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>

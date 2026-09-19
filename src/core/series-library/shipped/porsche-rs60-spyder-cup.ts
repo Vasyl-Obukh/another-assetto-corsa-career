@@ -1,0 +1,97 @@
+import { seat, team } from './utils.ts';
+import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import type { Championship } from '../../../shared/types/index.ts';
+import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
+
+/**
+ * RS 60 Spyder Cup - invented, for Porsche Pack 2's 718 RS 60 Spyder.
+ *
+ * The RS 60 won Sebring and the Targa Florio outright in 1960 and raced among
+ * the two-litre sports cars everywhere else, none of which Assetto Corsa
+ * ships, so it has no grid to join. This is a one-make cup of the kind
+ * historic racing runs for it today, on circuits of its era: Sebring, the
+ * Nordschleife, Monza's road course and Silverstone as it was. Invented, and
+ * the description says so.
+ */
+export const PORSCHE_RS60_SPYDER_CUP: Championship = {
+  version: SERIES_FORMAT_VERSION,
+  id: 'porsche-rs60-spyder-cup',
+  name: 'RS 60 Spyder Cup',
+  description: 'Invented: a one-make cup for the 718 RS 60 Spyder, which has no grid in Assetto Corsa to'
+    + ' join, on circuits of its era.',
+  teams: [
+    team('zuffenhausen-spyder', 'Spyder Klassik', 'Germany', 'GER', TeamBudget.INDEPENDENT),
+    team('scuderia-spyder', 'Scuderia Piccola', 'Italy', 'ITA', TeamBudget.PRIVATEER),
+    team('hamble', 'Hamble Historic', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+    team('ohio-spyder', 'Buckeye Vintage Racing', 'United States', 'USA', TeamBudget.PRIVATEER),
+  ],
+  entries: [
+    {
+      id: 'rs60',
+      name: 'RS 60',
+      ladder: { discipline: Discipline.SPORTSCAR, tier: 4 },
+      seats: [
+        seat('spy-1', 'zuffenhausen-spyder', 'Wolfram Eichhorn', 'Germany', 'GER'),
+        seat('spy-2', 'zuffenhausen-spyder', 'Gisela Brandl', 'Germany', 'GER'),
+        seat('spy-3', 'zuffenhausen-spyder', 'Konrad Siebert', 'Germany', 'GER'),
+        seat('pic-1', 'scuderia-spyder', 'Ennio Balestrieri', 'Italy', 'ITA'),
+        seat('pic-2', 'scuderia-spyder', 'Rinaldo Cappa', 'Italy', 'ITA'),
+        seat('ham-1', 'hamble', 'Giles Wetherall', 'Great Britain', 'GBR'),
+        seat('ham-2', 'hamble', 'Henry Pocklington', 'Great Britain', 'GBR'),
+        seat('ham-3', 'hamble', 'Mabel Throssell', 'Great Britain', 'GBR'),
+        seat('buc-1', 'ohio-spyder', 'Walt Kemper', 'United States', 'USA'),
+        seat('buc-2', 'ohio-spyder', 'Harlan Doyle', 'United States', 'USA'),
+      ],
+      eligibility: { kind: 'cars', cars: ['ks_porsche_718_spyder_rs'] },
+    },
+  ],
+  weekendFormats: [
+    {
+      id: 'standard',
+      name: 'Race weekend',
+      sessions: [
+        { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
+        { type: 'race', name: 'Race', distance: 60, day: 1 },
+      ],
+    },
+  ],
+  defaultWeekendFormat: 'standard',
+  rounds: [
+    {
+      id: 'sebring',
+      name: 'Sebring',
+      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'nordschleife',
+      name: 'Nordschleife',
+      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'monza', name: 'Monza Road Course', track: { id: 'ks_monza66', layout: 'road' } },
+    {
+      id: 'silverstone',
+      name: 'Silverstone 1967',
+      track: { id: 'ks_silverstone1967' },
+      climate: Climate.OCEANIC,
+    },
+  ],
+  pointsSystems: [
+    { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
+  ],
+  defaultPointsSystem: 'race',
+  grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 25 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
+  regulations: {
+    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    penalties: true,
+    jumpStartPenalty: 10,
+  },
+  entryFee: 2500,
+  prizes: {
+    positions: [10000, 7000, 5000, 3800, 2900, 2200, 1600, 1200, 800, 500],
+    standings: [80000, 50000, 32000, 21000, 13000],
+  },
+};

@@ -192,6 +192,18 @@ export const bestLapOrder = (session: RaceOutSession, size: number): number[] =>
 };
 
 /**
+ * Reverses the front of an order, leaving the rest where it was.
+ * @param order Car indices in grid order
+ * @param count How many from the front to reverse; clamped to the field
+ * @returns A new order
+ */
+export const reverseFront = (order: readonly number[], count: number): number[] => {
+  const cut = Math.min(Math.max(0, Math.trunc(count)), order.length);
+
+  return [...order.slice(0, cut).reverse(), ...order.slice(cut)];
+};
+
+/**
  * Finds the launch that runs a named session.
  * @param plan The weekend plan
  * @param id The session id to look for
@@ -263,7 +275,7 @@ export const composeOrder = (
   const seen = new Set<number>();
 
   chain.forEach((at) => {
-    const classified = records.find((record) => record.index === at)?.qualifyingOrder;
+    const classified = records.find((record) => record.index === at)?.classification;
     if (!isDistinctSubset(classified, size)) return;
 
     classified.forEach((car) => {
@@ -301,7 +313,7 @@ export const fieldFor = (
   if (inherit?.top === undefined) return null;
 
   const source = launchOf(plan, inherit.from, index);
-  const classified = state.completed.find((record) => record.index === source)?.qualifyingOrder;
+  const classified = state.completed.find((record) => record.index === source)?.classification;
   if (!isDistinctSubset(classified, plan.grid.length)) return null;
 
   // Truncated rather than refused: a format written for twenty cars run on
@@ -352,19 +364,19 @@ export const simulateSegment = (previous: readonly number[], seed: string): numb
 };
 
 /**
- * The last qualifying session in a result, whatever else ran alongside it.
+ * The last session of one type in a result, whatever else ran alongside it.
  *
  * Found by AC's own type code rather than by position, so a session that never
  * started cannot shift the one we are looking for out from under us.
  * @param raceOut The parsed race_out.json
- * @param qualifyType AC's numeric code for a qualifying session
+ * @param type AC's numeric code for the session type
  * @returns The session, or null when the launch ran none
  */
-export const lastQualifying = (
+export const lastSessionOf = (
   raceOut: RaceOut,
-  qualifyType: number,
+  type: number,
 ): RaceOutSession | null => {
-  const sessions = (raceOut.sessions ?? []).filter((session) => session.type === qualifyType);
+  const sessions = (raceOut.sessions ?? []).filter((session) => session.type === type);
 
   return sessions.length ? sessions[sessions.length - 1] : null;
 };

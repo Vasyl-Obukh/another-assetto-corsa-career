@@ -3,7 +3,9 @@ import { describe, expect, it } from '@jest/globals';
 import {
   makeContent, makeKnockout, makeQualifying, makeRaceOut, makeSession, makeWeekend,
 } from './fixtures.ts';
-import type { RaceDefinition, WeekendPlan, WeekendState } from '../../../shared/types/index.ts';
+import type {
+  RaceDefinition, RaceOutSession, WeekendPlan, WeekendState,
+} from '../../../shared/types/index.ts';
 import {
   advanceWeekend,
   appliedOrder,
@@ -72,6 +74,34 @@ const throughFirstSegment = (weekendPlan: WeekendPlan, order: number[]): Weekend
   initWeekendState(weekendPlan),
   [makeQualifying(order)],
 );
+
+/**
+ * A weekend whose second race follows the first, with its front reversed.
+ * @param reverse How many of the sprint's finishers the feature turns round
+ * @returns The weekend
+ */
+const makeReverseWeekend = (reverse: number): RaceDefinition => ({
+  ...makeWeekend(),
+  sessions: [
+    { id: 'q', type: 'qualify', name: 'Qualifying', minutes: 10 },
+    {
+      id: 'sprint', type: 'race', name: 'Sprint', laps: 2, inherit: { from: 'q' },
+    },
+    {
+      type: 'race', name: 'Feature', laps: 6, inherit: { from: 'sprint', reverse },
+    },
+  ],
+});
+
+/**
+ * A race session AC classified in the given order.
+ * @param order Car indices, winner first
+ * @returns The session
+ */
+const makeRace = (order: number[]): RaceOutSession => ({
+  ...makeSession(3, 'Sprint'),
+  raceResult: order,
+});
 
 describe('core/weekend', () => {
   describe('planWeekend', () => {
@@ -278,6 +308,26 @@ describe('core/weekend', () => {
       expect(startingGrid(weekendPlan, after, 2)?.playerSlot).toBe(1);
     });
 
+    it('reverses the front of the race it follows', () => {
+      const weekendPlan = plan(makeReverseWeekend(4));
+      let state = complete(weekendPlan, initWeekendState(weekendPlan), [makeQualifying([0, 1, 2, 3, 4, 5])]);
+      state = complete(weekendPlan, state, [makeRace([5, 4, 3, 2, 1, 0])]);
+
+      expect(startingGrid(weekendPlan, state, 2)).toEqual({
+        order: [2, 3, 4, 5, 1, 0], playerSlot: 6,
+      });
+    });
+
+    // A grid lined up on skill has no result behind it to turn round.
+    it('reverses nothing when there is no result to follow', () => {
+      const weekend = makeWeekend();
+      weekend.sessions = [{ type: 'race', name: 'Race', inherit: { from: 'nothing', reverse: 4 } }];
+      const weekendPlan = plan(weekend);
+      const grid = startingGrid(weekendPlan, initWeekendState(weekendPlan), 0);
+
+      expect(grid?.order[5]).toBe(0);
+    });
+
     it('starts the player last when the weekend qualifies nowhere', () => {
       const weekend = makeWeekend();
       weekend.sessions = [{ type: 'practice' }, { type: 'race', name: 'Race' }];
@@ -388,18 +438,18 @@ describe('core/weekend', () => {
     it('invents an order over the cars that went through, and only those', () => {
       const knockout = plan(makeKnockout());
       const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
-      const { qualifyingOrder, gridOrder } = skipLaunch(knockout, state, 'now').completed[1];
+      const { classification, gridOrder } = skipLaunch(knockout, state, 'now').completed[1];
 
       expect(gridOrder).toEqual([3, 1, 5, 2]);
-      expect([...(qualifyingOrder ?? [])].sort((left, right) => left - right)).toEqual([1, 2, 3, 5]);
+      expect([...(classification ?? [])].sort((left, right) => left - right)).toEqual([1, 2, 3, 5]);
     });
 
     it('invents the same order every time, so a reload never reshuffles a grid', () => {
       const knockout = plan(makeKnockout());
       const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
 
-      expect(skipLaunch(knockout, state, 'now').completed[1].qualifyingOrder)
-        .toEqual(skipLaunch(knockout, state, 'later').completed[1].qualifyingOrder);
+      expect(skipLaunch(knockout, state, 'now').completed[1].classification)
+        .toEqual(skipLaunch(knockout, state, 'later').completed[1].classification);
     });
 
     it('refuses a launch the player is in, which has to be driven', () => {
@@ -418,7 +468,7 @@ describe('core/weekend', () => {
           completedAt: 'now',
           archive: '',
           gridOrder: [],
-          qualifyingOrder: null,
+          classification: null,
         })),
       };
 
@@ -486,7 +536,7 @@ describe('core/weekend', () => {
       });
 
       // The result indexes the launch's [CAR_n] order, so 1 is car 3 and 3 is 5.
-      expect(after.completed[1].qualifyingOrder).toEqual([3, 0, 5, 1]);
+      expect(after.completed[1].classification).toEqual([3, 0, 5, 1]);
     });
 
     it('composes the race grid across the whole chain', () => {
@@ -546,7 +596,15 @@ describe('core/weekend', () => {
       const weekendPlan = plan();
       const after = throughQualifying(weekendPlan, [2, 0, 4, 1, 3, 5]);
 
-      expect(after.completed[1].qualifyingOrder).toEqual([2, 0, 4, 1, 3, 5]);
+      expect(after.completed[1].classification).toEqual([2, 0, 4, 1, 3, 5]);
+    });
+
+    it('keeps a race\'s finishing order, so a later race can follow it', () => {
+      const weekendPlan = plan(makeReverseWeekend(4));
+      let state = complete(weekendPlan, initWeekendState(weekendPlan), [makeQualifying([0, 1, 2, 3, 4, 5])]);
+      state = complete(weekendPlan, state, [makeRace([5, 4, 3, 2, 1, 0])]);
+
+      expect(state.completed[1].classification).toEqual([5, 4, 3, 2, 1, 0]);
     });
 
     it('records nothing to inherit when the launch ran no qualifying', () => {
@@ -555,7 +613,7 @@ describe('core/weekend', () => {
         makeSession(1, 'Practice'),
       ]);
 
-      expect(after.completed[0].qualifyingOrder).toBeNull();
+      expect(after.completed[0].classification).toBeNull();
     });
 
     it('records the order the launch was actually run with', () => {
@@ -575,7 +633,7 @@ describe('core/weekend', () => {
         archive: 'a.json', completedAt: 'now',
       });
 
-      expect(after.completed[0].qualifyingOrder).toBeNull();
+      expect(after.completed[0].classification).toBeNull();
     });
 
     it('refuses to record a launch when the weekend is already finished', () => {

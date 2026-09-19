@@ -96,10 +96,11 @@ export interface LaunchRecord {
    */
   gridOrder: number[];
   /**
-   * Car indices into the weekend's grid, in the order this launch's qualifying
-   * classified them, or null when it ran none.
+   * Car indices into the weekend's grid, in the order this launch classified
+   * them - fastest lap for qualifying, finishing order for a race - or null
+   * when it ran neither.
    */
-  qualifyingOrder: number[] | null;
+  classification: number[] | null;
   /**
    * Whether this launch was simulated rather than driven.
    *

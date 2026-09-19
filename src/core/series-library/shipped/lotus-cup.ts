@@ -4,29 +4,31 @@ import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * Lotus Cup - two classes, one calendar, one grid.
+ * Lotus Cup - three classes, one calendar, one grid.
  *
  * The multi-class exemplar, and a real championship rather than a shape
  * invented to exercise the schema: Lotus Cup Europe runs its own classes on one
  * entry list with separate standings, and every car it needs is base content.
  *
- * Base Assetto Corsa ships no prototype class, so WEC's own shape - the
- * Hypercar, LMP2 and LMGT3 example the ladder is described with - cannot be
- * built base-only. This is the closest real thing that can, and it exercises
- * the same three things: two class entries on one shared grid, a tier per class
- * entry rather than per championship, and balance of performance applied to the
- * AI and to the player alike.
+ * The classes are Lotus Cup Europe's own. V6 is the six-cylinder cars - the
+ * Exige V6 Cup, the Evora GX, and the Exige S that shares their engine, the
+ * two race cars held back to the road car. Open is the supercharged
+ * four-cylinder track cars, the 2-Eleven and the Exige 240R. Production is
+ * the Elise - the class the real series keeps for a naturally aspirated one,
+ * which the base game does not ship, so the supercharged SC stands in.
  *
- * It is also the only shipped championship on the road discipline, which
- * nothing else would reach - road cars carry no spec on purpose, so a series
- * gets at them by naming them.
+ * Base Assetto Corsa ships no prototype class, so WEC's own shape cannot be
+ * built base-only. This is the closest real thing that can, and it exercises
+ * the same things: several class entries on one shared grid, a tier per class
+ * entry rather than per championship, and balance of performance applied to
+ * the AI and to the player alike.
  */
 export const LOTUS_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'lotus-cup',
   name: 'Lotus Cup',
-  description: 'Two classes sharing one grid and one calendar, scored separately. The Open cars are '
-    + 'balanced against each other; Production runs the road cars as they come.',
+  description: 'Lotus Cup Europe\'s three classes on one grid, scored separately: V6, Open and '
+    + 'Production. The race cars in V6 are balanced to the Exige S.',
   teams: [
     team('hethel', 'Hethel Race Group', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
     team('brooklands', 'Brooklands Lightweight', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
@@ -37,29 +39,45 @@ export const LOTUS_CUP: Championship = {
   ],
   entries: [
     {
-      id: 'open',
-      name: 'Open',
+      id: 'v6',
+      name: 'V6',
       ladder: { discipline: Discipline.ROAD, tier: 4 },
-      // The teams run cars in both classes, which is the point of holding them
+      // The teams run cars in every class, which is the point of holding them
       // on the championship rather than on a class entry.
       seats: [
-        seat('opn-hethel-1', 'hethel', 'Gareth Pryce', 'Great Britain', 'GBR'),
-        seat('opn-hethel-2', 'hethel', 'Imogen Shaw', 'Great Britain', 'GBR'),
-        seat('opn-brook-1', 'brooklands', 'Neil Garrick', 'Great Britain', 'GBR'),
-        seat('opn-brook-2', 'brooklands', 'Fraser Dunnett', 'Great Britain', 'GBR'),
-        seat('opn-ard-1', 'ardennes', 'Vincent Delacroix', 'Belgium', 'BEL'),
-        seat('opn-kle-1', 'kleinsee', 'Hanno Reimer', 'Germany', 'GER'),
-        seat('opn-ost-1', 'ostwind', 'Bram Kuipers', 'Netherlands', 'NED'),
-        seat('opn-val-1', 'valdarno', 'Cesare Bonanno', 'Italy', 'ITA'),
+        seat('v6-hethel-1', 'hethel', 'Gareth Pryce', 'Great Britain', 'GBR'),
+        seat('v6-hethel-2', 'hethel', 'Imogen Shaw', 'Great Britain', 'GBR'),
+        seat('v6-brook-1', 'brooklands', 'Neil Garrick', 'Great Britain', 'GBR'),
+        seat('v6-ard-1', 'ardennes', 'Vincent Delacroix', 'Belgium', 'BEL'),
+        seat('v6-kle-1', 'kleinsee', 'Hanno Reimer', 'Germany', 'GER'),
+        seat('v6-val-1', 'valdarno', 'Cesare Bonanno', 'Italy', 'ITA'),
       ],
       eligibility: {
         kind: 'cars',
-        cars: ['lotus_2_eleven', 'lotus_exige_v6_cup', 'lotus_evora_gx'],
+        cars: ['lotus_exige_v6_cup', 'lotus_evora_gx', 'lotus_exige_s'],
       },
+      // Both race cars are brought to the road car, the Evora GX furthest:
+      // it is a Grand-Am car against a track-day special.
       bop: [
-        { car: 'lotus_evora_gx', ballast: 90, restrictor: 12 },
-        { car: 'lotus_exige_v6_cup', ballast: 30 },
+        { car: 'lotus_evora_gx', ballast: 60, restrictor: 10 },
+        { car: 'lotus_exige_v6_cup', ballast: 60 },
       ],
+    },
+    {
+      id: 'open',
+      name: 'Open',
+      ladder: { discipline: Discipline.ROAD, tier: 4 },
+      seats: [
+        seat('opn-brook-1', 'brooklands', 'Fraser Dunnett', 'Great Britain', 'GBR'),
+        seat('opn-ard-1', 'ardennes', 'Mathieu Servais', 'Belgium', 'BEL'),
+        seat('opn-ost-1', 'ostwind', 'Bram Kuipers', 'Netherlands', 'NED'),
+        seat('opn-ost-2', 'ostwind', 'Joost Tielemans', 'Netherlands', 'NED'),
+        seat('opn-kle-1', 'kleinsee', 'Sabine Nowak', 'Germany', 'GER'),
+        seat('opn-val-1', 'valdarno', 'Emilio Rasetti', 'Italy', 'ITA'),
+      ],
+      eligibility: { kind: 'cars', cars: ['lotus_2_eleven', 'lotus_exige_240'] },
+      // 252 bhp on 670 kg against 243 on 930: the 2-Eleven carries weight.
+      bop: [{ car: 'lotus_2_eleven', ballast: 110 }],
     },
     {
       id: 'production',
@@ -69,17 +87,16 @@ export const LOTUS_CUP: Championship = {
         seat('prd-hethel-1', 'hethel', 'Dermot Kavanagh', 'Ireland', 'IRL'),
         seat('prd-brook-1', 'brooklands', 'Sally Wenlock', 'Great Britain', 'GBR'),
         seat('prd-brook-2', 'brooklands', 'Toby Ferreira', 'South Africa', 'RSA'),
-        seat('prd-ard-1', 'ardennes', 'Mathieu Servais', 'Belgium', 'BEL'),
-        seat('prd-ard-2', 'ardennes', 'Lotte Vandenberghe', 'Belgium', 'BEL'),
-        seat('prd-kle-1', 'kleinsee', 'Sabine Nowak', 'Germany', 'GER'),
-        seat('prd-ost-1', 'ostwind', 'Joost Tielemans', 'Netherlands', 'NED'),
-        seat('prd-val-1', 'valdarno', 'Emilio Rasetti', 'Italy', 'ITA'),
+        seat('prd-ard-1', 'ardennes', 'Lotte Vandenberghe', 'Belgium', 'BEL'),
+        seat('prd-ost-1', 'ostwind', 'Femke Dijkstra', 'Netherlands', 'NED'),
+        seat('prd-val-1', 'valdarno', 'Rocco Santambrogio', 'Italy', 'ITA'),
       ],
-      eligibility: {
-        kind: 'cars',
-        cars: ['lotus_elise_sc', 'lotus_exige_s', 'lotus_exige_240'],
-      },
+      eligibility: { kind: 'cars', cars: ['lotus_elise_sc'] },
       grid: { aiLevel: 86, aiLevelMin: 78 },
+      prizes: {
+        positions: [3600, 2500, 1800, 1300, 950, 700, 550, 350, 250, 100],
+        standings: [27000, 16000, 11000, 7000, 4500],
+      },
     },
   ],
   weekendFormats: [
@@ -89,7 +106,7 @@ export const LOTUS_CUP: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 25, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
-        { type: 'race', name: 'Race', minutes: 25, day: 1 },
+        { type: 'race', name: 'Race', distance: 55, day: 1 },
       ],
     },
   ],

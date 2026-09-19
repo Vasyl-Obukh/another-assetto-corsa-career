@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
+import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL, sessionLength } from '@/screens/race';
 
@@ -19,6 +20,7 @@ interface FormatCardProps {
 export const FormatCard = ({ series }: FormatCardProps) => {
   const { weekendFormats: formats, defaultWeekendFormat: defaultFormat } = series;
   const { t } = useTranslation();
+  const { formatNumber } = useFormat();
 
   /**
    * Names one session, with its length where it has one.
@@ -27,6 +29,12 @@ export const FormatCard = ({ series }: FormatCardProps) => {
    */
   const label = (session: SeriesSession): string => {
     const name = session.name ?? t(SESSION_TYPE_LABEL[session.type]);
+    // A distance becomes laps only on a round's track, which the calendar says.
+    if (session.distance !== undefined) {
+      return t('championships.format.session', {
+        name, length: t('championships.format.distance', { value: formatNumber(session.distance) }),
+      });
+    }
     const length = sessionLength(session);
 
     return length === null

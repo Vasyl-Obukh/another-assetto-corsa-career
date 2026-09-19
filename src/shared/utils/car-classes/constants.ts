@@ -141,7 +141,7 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.PORSCHE_CUP_992_LFM]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (LFM)' },
   [CarSpec.PORSCHE_CUP_992_URD]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (URD)' },
   [CarSpec.PORSCHE_CUP_992_GUERILLA]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (GUERILLA)' },
-  [CarSpec.DTM_1992]: { class: CarClass.DTM, name: 'DTM 1992' },
+  [CarSpec.DTM_1993]: { class: CarClass.DTM, name: 'DTM 1993' },
   [CarSpec.DTM_2021_RSS]: { class: CarClass.DTM, name: 'DTM 2021 (RSS)' },
   [CarSpec.DTM_2025_LFM]: { class: CarClass.DTM, name: 'DTM 2025 (LFM)' },
   [CarSpec.DTM_2025_RSS]: { class: CarClass.DTM, name: 'DTM 2025 (RSS)' },
@@ -415,6 +415,7 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'ks_ford_gt40',
     'ks_ferrari_330_p4',
     'ks_porsche_908_lh',
+    'ks_porsche_917_k',
   ],
   [CarSpec.GT1_1990S]: [
     'ks_porsche_911_gt1',
@@ -568,7 +569,7 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.PORSCHE_CUP_992_GUERILLA]: [
     'gue_porsche_911_gt3_cup_992',
   ],
-  [CarSpec.DTM_1992]: [
+  [CarSpec.DTM_1993]: [
     'bmw_m3_e30_dtm',
     'ks_alfa_romeo_155_v6',
     'ks_mercedes_190_evo2',

@@ -48,8 +48,8 @@ export interface SessionEdit {
    */
   session: SeriesSession;
   /**
-   * Which earlier qualifying it takes its field and its order from, by
-   * position in the format, or null when it follows nothing.
+   * Which earlier session it takes its field and its order from, by position
+   * in the format, or null when it follows nothing.
    */
   from: number | null;
   /**
@@ -57,6 +57,11 @@ export interface SessionEdit {
    * them - which is what a race after a knockout segment wants.
    */
   top?: number;
+  /**
+   * How many of the inherited order's front runners a race starts in
+   * reverse, or undefined for none.
+   */
+  reverse?: number;
 }
 
 /**
@@ -136,3 +141,8 @@ export interface Narrowed {
    */
   aside: SetAside;
 }
+
+/**
+ * The unit a session's length is stated in. A distance is a race's alone.
+ */
+export type LengthUnit = 'laps' | 'minutes' | 'distance';

@@ -19,6 +19,38 @@ export interface LoadedSeries {
    * Null for a shipped championship, which is compiled in rather than read.
    */
   file: string | null;
+  /**
+   * Whether it is switched on before the user says either way.
+   *
+   * The library's call rather than the document's: some of the app's own
+   * championships start switched off, and a user's own always starts on.
+   */
+  activeByDefault: boolean;
+  /**
+   * Whether it only stands in a rung of the ladder the app's own
+   * championships leave empty, by repeating the rung below it with longer
+   * races. Such championships are hidden together by one setting.
+   */
+  filler: boolean;
+}
+
+/**
+ * One championship the app ships, and how it starts out.
+ */
+export interface ShippedSeries {
+  /**
+   * The championship itself.
+   */
+  series: Championship;
+  /**
+   * Whether it is switched on until the user says otherwise.
+   */
+  active: boolean;
+  /**
+   * Whether it only fills an empty rung of the ladder. See
+   * SeriesListing.filler.
+   */
+  filler?: boolean;
 }
 
 /**

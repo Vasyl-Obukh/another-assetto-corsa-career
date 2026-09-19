@@ -29,6 +29,7 @@ export const ROUTE = {
   settingsClasses: '/settings/classes',
   settingsChampionships: '/settings/championships',
   settingsSources: '/settings/sources',
+  settingsChampionship: '/settings/championships/:id',
   championshipNew: '/settings/championships/new',
   championshipEdit: '/settings/championships/:id/edit',
 } as const;

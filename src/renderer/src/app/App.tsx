@@ -58,6 +58,7 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
               <Route path={ROUTE.settingsSources} element={<ContentSources />} />
             </Route>
+            <Route path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />
             <Route path={ROUTE.championshipNew} element={<ChampionshipEditor />} />
             <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
             <Route path="*" element={<Navigate to={path.race()} replace />} />

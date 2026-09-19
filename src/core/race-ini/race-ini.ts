@@ -26,7 +26,7 @@ import {
   resolveWeather,
   roadTemperature,
 } from './utils.ts';
-import { appErrorInfo, isAppError } from '../../shared/errors/index.ts';
+import { AppError, appErrorInfo, isAppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { Content, RaceDefinition, SessionDefinition } from '../../shared/types/index.ts';
 import { writeIni } from '../ini/index.ts';
@@ -52,6 +52,13 @@ export const buildRaceIni = (race: RaceDefinition, content: Content): string => 
   const sessions: SessionDefinition[] = race.sessions ?? [{ type: 'race', laps: DEFAULT_RACE_LAPS }];
   const raceSession = sessions.find((session) => session.type === 'race');
   const trackState = TRACK_STATE[conditions.trackState ?? 'fast'] ?? TRACK_STATE.fast;
+
+  // AC runs a timed race on a server alone: offline it reads RACE_LAPS and
+  // nothing else, so a race sent as minutes leaves the AI with nothing to race
+  // and drives them to the pits. Refused here rather than at the flag.
+  if (raceSession && !raceSession.laps) {
+    throw new AppError('race.session.raceNotInLaps', { session: raceSession.name ?? raceSession.id ?? 'race' });
+  }
 
   const ini: IniWritable = {
     HEADER: {

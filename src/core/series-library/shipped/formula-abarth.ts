@@ -4,23 +4,32 @@ import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * Formula Abarth - the championship the Tatuus FA01 exists for.
+ * Formula Abarth, 2010 - the championship the Tatuus FA01 exists for.
  *
  * A real junior ladder rung, and a single-chassis one with a single car
- * installed, so it had a class, a spec and a car saying the same thing three
- * times over. The class and the spec are gone and the series names the car,
- * which is what an explicit car list is for.
+ * installed, so the series names the car rather than a class or a spec.
  *
- * Its three-day format is the other thing it demonstrates: two races over one
- * weekend, which is only expressible at all because a session is now a launch
- * of its own.
+ * The 2010 season as it ran: 30-minute qualifying, then two races a weekend of
+ * 28 minutes, the second starting from the first's result with its top eight
+ * turned round. Race 1 pays 20-15-12-10-8-6-4-3-2-1 and race 2
+ * 13-11-9-8-6-5-4-3-2-1, each with a point for fastest lap, and pole takes a
+ * point of its own. The real races ran 28 minutes and one lap, which Assetto
+ * Corsa cannot say at all - it times a race on a server alone - so each race is
+ * the 65 km those 28 minutes cover at the FA01's pace.
+ *
+ * Five of its seven championship rounds are base circuits, in the season's own
+ * order; Misano and Varano are not in Assetto Corsa, and the Spa round did not
+ * count. The field is invented: fourteen seats, under Magione's eighteen boxes.
+ *
+ * Source: https://en.wikipedia.org/wiki/2010_Formula_Abarth_season
  */
 export const FORMULA_ABARTH: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-abarth',
   name: 'Formula Abarth',
-  description: 'A single-chassis junior formula on the Italian circuits. Two races a weekend, the '
-    + 'second from a grid the first has already been run for.',
+  description: 'The 2010 season of the Italian single-chassis junior formula: two 28-minute races a '
+    + 'weekend, the second from the first\'s result with the top eight reversed. Misano and Varano '
+    + 'are not in Assetto Corsa, so five of its rounds are raced.',
   teams: [
     team('arcadia', 'Scuderia Arcadia', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
     team('vento', 'Vento Corse', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
@@ -62,35 +71,55 @@ export const FORMULA_ABARTH: Championship = {
       id: 'standard',
       name: 'Race weekend',
       sessions: [
-        { type: 'practice', name: 'Practice', minutes: 20, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
-        { type: 'race', name: 'Race 1', laps: 10, day: 1 },
-        { type: 'race', name: 'Race 2', laps: 12, day: 2 },
+        { type: 'practice', name: 'Free practice', minutes: 30, day: 0 },
+        { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
+        {
+          id: 'race-1',
+          type: 'race',
+          name: 'Race 1',
+          distance: 65,
+          day: 0,
+          inherit: { from: 'qualifying' },
+        },
+        {
+          type: 'race',
+          name: 'Race 2',
+          distance: 65,
+          day: 1,
+          inherit: { from: 'race-1', reverse: 8 },
+          pointsSystem: 'race-2',
+        },
       ],
     },
   ],
   defaultWeekendFormat: 'standard',
   rounds: [
+    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
+    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     {
       id: 'vallelunga',
       name: 'Vallelunga',
       track: { id: 'ks_vallelunga', layout: 'extended_circuit' },
     },
-    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
   ],
   pointsSystems: [
     {
-      id: 'race',
-      name: 'Race points',
-      positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+      id: 'race-1',
+      name: 'Race 1',
+      positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1],
       fastestLap: 1,
       qualifying: [1],
     },
+    {
+      id: 'race-2',
+      name: 'Race 2',
+      positions: [13, 11, 9, 8, 6, 5, 4, 3, 2, 1],
+      fastestLap: 1,
+    },
   ],
-  defaultPointsSystem: 'race',
+  defaultPointsSystem: 'race-1',
   grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 30 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {

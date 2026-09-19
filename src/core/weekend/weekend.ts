@@ -14,9 +14,10 @@ import {
   defaultOrder,
   fieldFor,
   gripAfter,
-  lastQualifying,
+  lastSessionOf,
   materialiseRace,
   playerFirst,
+  reverseFront,
   sessionRain,
   simulateSegment,
 } from './utils.ts';
@@ -34,6 +35,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
+import { finishingOrder } from '../results/index.ts';
 
 export { chainOf, dayOf, runsToClock } from './utils.ts';
 
@@ -139,7 +141,11 @@ export const startingGrid = (
   const inherited = composeOrder(chainOf(plan, index), state.completed, plan.grid.length);
   // With no qualifying anywhere behind it, the field lines up on skill and the
   // player starts last, having earned nothing.
-  const order = inherited ?? defaultOrder(plan.grid, `${plan.raceId}:${index}`);
+  const lined = inherited ?? defaultOrder(plan.grid, `${plan.raceId}:${index}`);
+  // Only an inherited order is reversed: a grid lined up on skill has no
+  // result behind it to turn round.
+  const reverse = launch.session.inherit?.reverse;
+  const order = inherited && reverse !== undefined ? reverseFront(lined, reverse) : lined;
 
   return { order, playerSlot: order.indexOf(0) + 1 };
 };
@@ -228,7 +234,7 @@ export const skipLaunch = (
       completedAt,
       archive: '',
       gridOrder: field,
-      qualifyingOrder: simulateSegment(field, `${plan.raceId}:simulate:${index}`),
+      classification: simulateSegment(field, `${plan.raceId}:simulate:${index}`),
       skipped: true,
     }],
   };
@@ -333,13 +339,17 @@ export const advanceWeekend = (
   // and sizing on the whole grid would read its result as untranslatable and
   // throw the segment away in silence.
   const size = gridOrder.length;
-  const qualifying = lastQualifying(raceOut, SESSION_TYPE.qualify);
+  // A race is classified on its finishing order so a later race can reverse
+  // it; everything else on fastest lap, which only qualifying ever uses.
+  const isRace = plan.launches[index]?.session.type === 'race';
+  const classified = lastSessionOf(raceOut, isRace ? SESSION_TYPE.race : SESSION_TYPE.qualify);
   // A result's car indices are positions in that launch's own [CAR_n] order, so
   // they mean nothing until mapped back through it. A field that is not the size
   // we launched cannot be mapped at all.
-  const translatable = qualifying != null && (raceOut.players ?? []).length === size;
-  const qualifyingOrder = translatable
-    ? bestLapOrder(qualifying, size).map((car) => gridOrder[car])
+  const translatable = classified != null && (raceOut.players ?? []).length === size;
+  const order = translatable && isRace ? finishingOrder(classified, size) : null;
+  const classification = translatable
+    ? (order ?? bestLapOrder(classified, size)).map((car) => gridOrder[car])
     : null;
 
   return {
@@ -349,7 +359,7 @@ export const advanceWeekend = (
       completedAt: record.completedAt,
       archive: record.archive,
       gridOrder,
-      qualifyingOrder,
+      classification,
     }],
   };
 };

@@ -1,5 +1,5 @@
 import { PlusIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
@@ -9,9 +9,11 @@ import { useSettings } from '@/app';
 import { ErrorCard, ProblemList, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useChampionships, useSeriesCommands } from '@/hooks';
+import { useChampionshipBrowser, useChampionships, useSeriesCommands } from '@/hooks';
 import { path } from '@/lib/routes';
-import { ChampionshipCard } from '@/screens/championships';
+import {
+  CHAMPIONSHIP_MEMORY, ChampionshipCard, championshipFilters, ChampionshipToolbar, NoneMatch,
+} from '@/screens/championships';
 
 export const ChampionshipLibrary = () => {
   const { t } = useTranslation();
@@ -27,12 +29,26 @@ export const ChampionshipLibrary = () => {
   // A championship of ours the content sources leave out is not listed at all,
   // since those switches are how it is turned back on. The user's own are never
   // switched off that way, so they are always here.
-  const shown = championships.listings.filter(
-    (listing) => !hiddenBySources(listing, settings.hiddenContentSources),
+  const offered = useMemo(
+    () => championships.listings.filter(
+      (listing) => !hiddenBySources(listing, settings.hiddenContentSources),
+    ),
+    [championships.listings, settings.hiddenContentSources],
+  );
+  // Rebuilt with the switches, since whether one is on is one of the filters.
+  const filters = useMemo(
+    () => championshipFilters({ seriesActive: settings.seriesActive }),
+    [settings.seriesActive],
+  );
+  const browser = useChampionshipBrowser(
+    offered,
+    filters,
+    CHAMPIONSHIP_MEMORY.library,
+    !championships.loading,
   );
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-6" backToTop>
+    <ScreenBody className="flex flex-col gap-6 py-6" scrollRef={browser.scrollRef} backToTop>
       <div className="flex flex-wrap items-center justify-end gap-2">
         {/* Nothing is written until the editor's first Save, so this is a
             navigation rather than a command. */}
@@ -84,10 +100,14 @@ export const ChampionshipLibrary = () => {
         hint={t('championships.problems.hint')}
       />
 
+      <ChampionshipToolbar browser={browser} filters={filters} />
+
       {championships.loading ? <Skeleton className="h-24 w-full" /> : null}
 
-      {shown.map((listing) => (
-        <ChampionshipCard key={listing.series.id} listing={listing} commands={commands} />
+      {offered.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
+
+      {browser.shown.map((listing) => (
+        <ChampionshipCard key={listing.series.id} listing={listing} commands={commands} manage />
       ))}
     </ScreenBody>
   );

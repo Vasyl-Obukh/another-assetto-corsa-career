@@ -11,6 +11,14 @@
 export const MAX_WEEKEND_DAYS = 3;
 
 /**
+ * The fewest cars a reverse grid may turn round.
+ *
+ * Reversing one car changes nothing, so a smaller figure is a mistake rather
+ * than a format.
+ */
+export const MIN_REVERSED = 2;
+
+/**
  * How many distinct models a spec needs installed before it is raceable.
  *
  * A spec is a grid, so it is satisfied by whichever of it the user owns - but

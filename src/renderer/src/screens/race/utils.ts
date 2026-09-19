@@ -56,16 +56,14 @@ export const countsLaps = (type: SessionType): boolean => type === 'race';
 /**
  * Whether a session as written is measured in laps rather than on the clock.
  *
- * Only a race can be either, and which one it is is data rather than type: a
- * 30-minute race and a 12-lap race are both races. Laps win when a session
- * somehow carries both, because that is what race.ini does - RACE_LAPS above
- * zero is a lap race whatever DURATION_MINUTES says.
+ * A race always is, whatever it carries: Assetto Corsa reads DURATION_MINUTES
+ * for practice and qualifying and RACE_LAPS for a race, and runs a timed race
+ * on a server alone. Driven: a race sent as three minutes and no laps let the
+ * player carry on past the clock while the AI parked in the pits.
  * @param session The session to read
  * @returns True when its length is a lap count
  */
-export const measuredInLaps = (session: SessionDefinition): boolean => (
-  countsLaps(session.type) && (session.laps !== undefined || session.minutes === undefined)
-);
+export const measuredInLaps = (session: SessionDefinition): boolean => countsLaps(session.type);
 
 /**
  * How long a session runs, in whichever unit it is measured in.

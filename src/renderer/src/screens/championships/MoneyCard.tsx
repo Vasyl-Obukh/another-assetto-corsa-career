@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import type { PrizeMoney } from '../../../../shared/types';
+import { pursesOf } from './utils.ts';
+import type { ClassEntry, PrizeMoney } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -17,9 +18,13 @@ interface MoneyCardProps {
    * What the championship pays out.
    */
   prizes?: PrizeMoney;
+  /**
+   * Its classes, any of which may pay a purse of its own.
+   */
+  entries: readonly ClassEntry[];
 }
 
-export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
+export const MoneyCard = ({ entryFee, prizes, entries }: MoneyCardProps) => {
   const { t } = useTranslation();
   const { formatMoney } = useFormat();
 
@@ -42,6 +47,51 @@ export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
     }),
   );
 
+  /**
+   * One purse's two tables, under the classes it is paid to when there is
+   * more than one purse.
+   * @param purse What is paid
+   * @param heading Which classes it is paid to, or null for a single purse
+   * @returns The tables, or null when neither pays anything
+   */
+  const tables = (purse: PrizeMoney | undefined, heading: string | null) => {
+    if (!purse?.positions?.length && !purse?.standings?.length) return null;
+
+    return (
+      <div key={heading ?? 'all'} className="flex flex-col gap-4">
+        {heading ? <span className="text-sm font-semibold">{heading}</span> : null}
+
+        {purse.positions?.length ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">{t('championships.money.roundPrizes')}</span>
+            <div className="flex flex-wrap gap-2">
+              {rows(purse.positions).map((row) => (
+                <Badge key={row.label} variant="outline" className={row.accent}>
+                  {row.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {purse.standings?.length ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">{t('championships.money.seasonPrizes')}</span>
+            <div className="flex flex-wrap gap-2">
+              {rows(purse.standings).map((row) => (
+                <Badge key={row.label} variant="outline" className={row.accent}>
+                  {row.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  const purses = pursesOf(prizes, entries);
+
   return (
     <Card>
       <CardHeader><CardTitle>{t('championships.money.title')}</CardTitle></CardHeader>
@@ -55,31 +105,12 @@ export const MoneyCard = ({ entryFee, prizes }: MoneyCardProps) => {
           </Badge>
         </div>
 
-        {prizes?.positions?.length ? (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">{t('championships.money.roundPrizes')}</span>
-            <div className="flex flex-wrap gap-2">
-              {rows(prizes.positions).map((row) => (
-                <Badge key={row.label} variant="outline" className={row.accent}>
-                  {row.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {prizes?.standings?.length ? (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">{t('championships.money.seasonPrizes')}</span>
-            <div className="flex flex-wrap gap-2">
-              {rows(prizes.standings).map((row) => (
-                <Badge key={row.label} variant="outline" className={row.accent}>
-                  {row.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        {/* Headed by class only once the classes are paid differently; one
+            purse for the whole grid needs no heading. */}
+        {purses.map((purse) => tables(
+          purse.prizes,
+          purses.length > 1 ? purse.classes.join(', ') : null,
+        ))}
       </CardContent>
     </Card>
   );

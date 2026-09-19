@@ -3,6 +3,7 @@
 
 import type { ParseKeys } from 'i18next';
 
+import type { LengthUnit } from './types.ts';
 import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
 import { Climate, Discipline, TeamBudget } from '../../../../shared/types';
 
@@ -54,6 +55,17 @@ export const MIN_LENGTH = 0;
  * zero runs for no time at all.
  */
 export const MIN_SESSION_LENGTH = 1;
+
+/**
+ * What a session switched to another unit starts at. Laps and minutes are the
+ * race screen's own defaults, restated because its module reaches react-router
+ * and this one is tested; a distance starts at a sprint's 100 km.
+ */
+export const DEFAULT_LENGTH: Readonly<Record<LengthUnit, number>> = {
+  laps: 5,
+  minutes: 15,
+  distance: 100,
+};
 
 /**
  * The first day of a weekend, counting from zero.
@@ -234,3 +246,21 @@ export const TEAM_BUDGET_ACCENT = {
   independent: 'border-transparent bg-budget-independent text-budget-independent-foreground',
   privateer: 'border-transparent bg-budget-privateer text-budget-privateer-foreground',
 } as const satisfies Record<TeamBudget, string>;
+
+/**
+ * Every unit a race may be measured in, in the order the select offers them.
+ *
+ * Minutes are not among them: Assetto Corsa runs a timed race on a server
+ * alone, so an offline race is laps, or a distance that becomes laps at each
+ * round's track.
+ */
+export const LENGTH_UNITS: readonly LengthUnit[] = ['laps', 'distance'];
+
+/**
+ * What each unit is called, as a field label and as a select option.
+ */
+export const LENGTH_LABEL = {
+  laps: 'editor.sessions.laps',
+  minutes: 'editor.sessions.minutes',
+  distance: 'editor.sessions.distance',
+} as const satisfies Record<LengthUnit, ParseKeys>;

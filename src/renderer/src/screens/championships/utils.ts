@@ -2,9 +2,11 @@ import type { ParseKeys } from 'i18next';
 
 import type {
   Championship,
+  ClassEntry,
   Discipline,
   EntryAvailability,
   PointsSystem,
+  PrizeMoney,
   Round,
   RoundAvailability,
   SeriesAvailability,
@@ -15,6 +17,7 @@ import type {
   WeekendFormat,
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
+import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import { TIER_ACCENT } from '@/lib/accents';
 
 /**
@@ -80,6 +83,7 @@ export const roundRaceable = (listing: SeriesListing, round: string): boolean =>
 
   return state.track === null
     && state.pitboxes === null
+    && state.races.every((race) => race.laps !== null)
     && listing.availability.entries.every((entry) => entry.enough)
     && state.entries.every((entry) => entry.enough);
 };
@@ -153,6 +157,61 @@ export const pointsOf = (
 };
 
 /**
+ * The purses a championship pays, each with the classes it is paid to.
+ *
+ * Classes paying the same are one purse, so classes that share one - leaving
+ * their own out, or stating the same tables - are listed together rather than
+ * as repeats. A table a class leaves out is the championship's.
+ * @param prizes What the championship pays
+ * @param entries Its classes, any of which may pay its own
+ * @returns One per distinct purse, in class order
+ */
+export const pursesOf = (
+  prizes: PrizeMoney | undefined,
+  entries: readonly ClassEntry[],
+): { prizes: PrizeMoney | undefined; classes: string[] }[] => {
+  const purses = new Map<string, { prizes: PrizeMoney | undefined; classes: string[] }>();
+
+  entries.forEach((entry) => {
+    const paid = entry.prizes && {
+      positions: entry.prizes.positions ?? prizes?.positions,
+      standings: entry.prizes.standings ?? prizes?.standings,
+    };
+    const key = JSON.stringify(paid ?? prizes ?? null);
+    const purse = purses.get(key) ?? { prizes: paid ?? prizes, classes: [] };
+    purse.classes.push(entry.name);
+    purses.set(key, purse);
+  });
+
+  return [...purses.values()];
+};
+
+/**
+ * Names a round's races, numbering the ones that would otherwise read alike.
+ *
+ * A race with no name of its own is called by its type, so a weekend of two
+ * unnamed races would put "Race" beside "Race" - which a calendar or a form
+ * listing both cannot leave that way. Only a clash is numbered, counting the
+ * races that share the label.
+ * @param names Each race's own name, or null where it has none
+ * @param fallback What a race with no name is called
+ * @returns One label per race, in the same order
+ */
+export const raceLabels = (names: readonly (string | null)[], fallback: string): string[] => {
+  const labels = names.map((name) => name ?? fallback);
+  const seen = new Map<string, number>();
+
+  return labels.map((label) => {
+    if (labels.filter((one) => one === label).length < 2) return label;
+
+    const number = (seen.get(label) ?? 0) + 1;
+    seen.set(label, number);
+
+    return `${label} ${number}`;
+  });
+};
+
+/**
  * Groups a format's sessions by the day they run on.
  * @param sessions The sessions to group
  * @returns One entry per day, in order, each with the sessions on it
@@ -201,16 +260,18 @@ export const availabilityState = (availability: SeriesAvailability): Availabilit
  * Whether a championship belongs on the Championships page.
  *
  * That page is the one a career races from, so it lists only what can be raced
- * today: switched on, offered by the content sources, and available.
+ * today: switched on, offered by the content sources, not a filler rung the
+ * user asked not to see, and available.
  * @param listing The championship and its availability
- * @param settings The user's active switches and content sources
+ * @param settings The user's active switches, content sources and filler switch
  * @returns True when it is listed
  */
 export const isListed = (
   listing: SeriesListing,
-  settings: Pick<Settings, 'inactiveSeries' | 'hiddenContentSources'>,
+  settings: Pick<Settings, 'seriesActive' | 'showFillerSeries' | 'hiddenContentSources'>,
 ): boolean => (
-  !settings.inactiveSeries.includes(listing.series.id)
+  isSeriesActive(listing, settings)
+  && !hiddenAsFiller(listing, settings)
   && !hiddenBySources(listing, settings.hiddenContentSources)
   && availabilityState(listing.availability) === 'available'
 );

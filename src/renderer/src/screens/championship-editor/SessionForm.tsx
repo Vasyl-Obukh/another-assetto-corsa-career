@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  DEFAULT_REF, MAX_DAY, MIN_INHERIT_TOP, MIN_SESSION_LENGTH,
+  DEFAULT_REF, LENGTH_LABEL, LENGTH_UNITS, MAX_DAY, MIN_INHERIT_TOP, MIN_SESSION_LENGTH,
 } from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
-import type { SessionEdit } from './types.ts';
-import { sessionSource, sessionSources } from './utils.ts';
+import type { LengthUnit, SessionEdit } from './types.ts';
+import {
+  lengthUnit, sessionSource, sessionSources, withLengthUnit,
+} from './utils.ts';
+import { MIN_REVERSED } from '../../../../shared/constants';
 import type { Championship, SeriesSession, WeekendFormat } from '../../../../shared/types';
 import { Input } from '@/components/ui/input.tsx';
 import {
@@ -19,12 +22,10 @@ import {
   Field,
   fromNumber,
   isOffered,
-  measuredInLaps,
   NOT_SET,
   SESSION_TYPE_LABEL,
   SESSION_TYPES,
   toNumber,
-  withSessionLength,
 } from '@/screens/race';
 
 interface SessionFormProps {
@@ -75,19 +76,27 @@ export const SessionForm = ({
   const [draft, setDraft] = useState<SeriesSession>({ ...session, inherit: undefined });
   const [from, setFrom] = useState(sessionSource(format.sessions, session));
   const [top, setTop] = useState(session.inherit?.top);
+  const [reverse, setReverse] = useState(session.inherit?.reverse);
+  // Held rather than read off the draft, so emptying a distance to retype it
+  // does not turn it into a lap count.
+  const [unit, setUnit] = useState(lengthUnit(session));
   const name = useFocusOnMount<HTMLInputElement>();
 
   const idPrefix = `session-${format.id}-${index}`;
-  const laps = measuredInLaps(draft);
-  const sources = sessionSources(format.sessions, index);
+  const sources = sessionSources(format.sessions, index, draft.type);
+  // Changing the type can take the chosen source out of reach - a qualifying
+  // may not follow a race - so only what is still offered is kept.
+  const follows = from !== null && sources.includes(from) ? from : null;
+  const reverses = follows !== null && draft.type === 'race';
 
   return (
     <RowForm
       locked={locked}
       onConfirm={() => onConfirm({
         session: draft,
-        from,
-        top: from === null ? undefined : top,
+        from: follows,
+        top: follows === null ? undefined : top,
+        reverse: reverses ? reverse : undefined,
       })}
       onCancel={onCancel}
     >
@@ -99,13 +108,14 @@ export const SessionForm = ({
             if (!isOffered(value)) return;
 
             // Only a race scores, so anything else drops its points system. A
-            // race may be measured either way; everything else runs to the clock.
+            // race keeps whatever it is measured in; everything else runs to
+            // the clock.
             const scored = value === 'race' ? draft.pointsSystem : undefined;
             const next = { ...draft, type: value, pointsSystem: scored };
+            const measured = countsLaps(value) ? next : withLengthUnit(next, 'minutes');
 
-            setDraft(countsLaps(value) && draft.minutes !== undefined
-              ? next
-              : withSessionLength(next, countsLaps(value)));
+            setDraft(measured);
+            setUnit(lengthUnit(measured));
           }}
         >
           <SelectTrigger id={`${idPrefix}-type`} className="w-full">
@@ -133,25 +143,27 @@ export const SessionForm = ({
         />
       </Field>
 
-      <Field
-        id={`${idPrefix}-length`}
-        label={laps ? t('editor.sessions.laps') : t('editor.sessions.minutes')}
-      >
+      <Field id={`${idPrefix}-length`} label={t(LENGTH_LABEL[unit])}>
         <div className="flex items-center gap-2">
           {/* Only a race is offered the choice: everything else runs to the
-              clock, and AC reads LAPS on a race session alone. */}
+              clock, and AC reads LAPS on a race session alone. A distance is
+              laps too, counted off each round's track. */}
           {countsLaps(draft.type) ? (
             <Select
-              value={laps ? 'laps' : 'minutes'}
+              value={unit}
               disabled={locked}
-              onValueChange={(value) => setDraft(withSessionLength(draft, value === 'laps'))}
+              onValueChange={(value) => {
+                setUnit(value as LengthUnit);
+                setDraft(withLengthUnit(draft, value as LengthUnit));
+              }}
             >
-              <SelectTrigger aria-label={t('editor.sessions.lengthUnit')} className="w-28">
+              <SelectTrigger aria-label={t('editor.sessions.lengthUnit')} className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="laps">{t('editor.sessions.laps')}</SelectItem>
-                <SelectItem value="minutes">{t('editor.sessions.minutes')}</SelectItem>
+                {LENGTH_UNITS.map((one) => (
+                  <SelectItem key={one} value={one}>{t(LENGTH_LABEL[one])}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : null}
@@ -161,13 +173,9 @@ export const SessionForm = ({
             type="number"
             className="min-w-0 flex-1"
             min={MIN_SESSION_LENGTH}
-            value={fromNumber(laps ? draft.laps : draft.minutes)}
+            value={fromNumber(draft[unit])}
             disabled={locked}
-            onChange={(event) => {
-              const value = toNumber(event.target.value);
-
-              setDraft(laps ? { ...draft, laps: value } : { ...draft, minutes: value });
-            }}
+            onChange={(event) => setDraft({ ...draft, [unit]: toNumber(event.target.value) })}
           />
         </div>
       </Field>
@@ -218,7 +226,7 @@ export const SessionForm = ({
           hint={t('editor.sessions.followsHint')}
         >
           <Select
-            value={from === null ? NOT_SET : String(from)}
+            value={follows === null ? NOT_SET : String(follows)}
             disabled={locked}
             onValueChange={(value) => setFrom(value === NOT_SET ? null : Number(value))}
           >
@@ -235,7 +243,7 @@ export const SessionForm = ({
         </Field>
       ) : null}
 
-      {from === null ? null : (
+      {follows === null ? null : (
         <NumberField
           id={`${idPrefix}-top`}
           label={t('editor.sessions.top')}
@@ -247,6 +255,20 @@ export const SessionForm = ({
           onChange={setTop}
         />
       )}
+
+      {/* A race only: nothing else lines up a grid to turn round. */}
+      {reverses ? (
+        <NumberField
+          id={`${idPrefix}-reverse`}
+          label={t('editor.sessions.reverse')}
+          hint={t('editor.sessions.reverseHint')}
+          value={reverse}
+          min={MIN_REVERSED}
+          placeholder={t('editor.sessions.reverseNone')}
+          disabled={locked}
+          onChange={setReverse}
+        />
+      ) : null}
     </RowForm>
   );
 };

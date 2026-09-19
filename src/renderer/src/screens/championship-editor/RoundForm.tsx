@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CLIMATES, DEFAULT_REF, MIN_MONEY } from './constants.ts';
+import {
+  CLIMATES, DEFAULT_REF, LENGTH_LABEL, MIN_MONEY, MIN_SESSION_LENGTH,
+} from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
+import type { LengthUnit } from './types.ts';
+import {
+  lengthUnit, withLengthUnit, withRoundLength, withRoundLengthsPruned,
+} from './utils.ts';
 import type {
   Championship, Climate, Round, Track,
 } from '../../../../shared/types';
@@ -14,8 +20,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useFocusOnMount } from '@/hooks';
-import { trackKeyOf } from '@/screens/championships';
-import { Field } from '@/screens/race';
+import { formatOf, raceLabels, trackKeyOf } from '@/screens/championships';
+import {
+  Field, fromNumber, SESSION_TYPE_LABEL, toNumber,
+} from '@/screens/race';
 
 interface RoundFormProps {
   /**
@@ -55,6 +63,13 @@ export const RoundForm = ({
   const trackKey = trackKeyOf(draft);
   const trackName = picked?.key === trackKey ? picked.name : trackKey;
   const idPrefix = `round-${round.id}`;
+  // The races of the format the round runs, which it may give lengths of its
+  // own. Only one with an id: an override names its session by id.
+  const races = (formatOf(series, draft)?.sessions ?? [])
+    .filter((session) => session.type === 'race' && session.id !== undefined);
+  // Named as the calendar names them, so an unnamed race reads "Race" rather
+  // than its id, and two of them are told apart.
+  const labels = raceLabels(races.map((race) => race.name ?? null), t(SESSION_TYPE_LABEL.race));
 
   return (
     // Name, circuit, format and fee - short enough to be one line.
@@ -88,10 +103,11 @@ export const RoundForm = ({
         <Select
           value={draft.weekendFormat ?? DEFAULT_REF}
           disabled={locked}
-          onValueChange={(value) => setDraft({
-            ...draft,
-            weekendFormat: value === DEFAULT_REF ? undefined : value,
-          })}
+          onValueChange={(value) => {
+            const weekendFormat = value === DEFAULT_REF ? undefined : value;
+
+            setDraft(withRoundLengthsPruned(series, { ...draft, weekendFormat }));
+          }}
         >
           <SelectTrigger id={`${idPrefix}-format`} className="w-full">
             <SelectValue />
@@ -104,6 +120,60 @@ export const RoundForm = ({
           </SelectContent>
         </Select>
       </Field>
+
+      {/* A race's own length at this round, over the format's: Monaco's shorter
+          grand prix, or the real lap count where the distance comes to another
+          on this track. Empty runs what the format says. */}
+      {races.map((race, index) => {
+        const id = race.id ?? '';
+        const own = draft.sessionLengths?.find((length) => length.session === id);
+        const unit = lengthUnit({ type: 'race', ...(own ?? race) });
+        const fieldId = `${idPrefix}-length-${id}`;
+
+        return (
+          <Field
+            key={id}
+            id={fieldId}
+            label={t('editor.calendar.raceLength', { name: labels[index] })}
+            hint={own ? undefined : t('editor.calendar.raceLengthHint')}
+          >
+            <div className="flex items-center gap-2">
+              <Select
+                value={unit}
+                disabled={locked}
+                onValueChange={(value) => setDraft(withRoundLength(
+                  draft,
+                  id,
+                  withLengthUnit({ ...own }, value as LengthUnit),
+                ))}
+              >
+                <SelectTrigger aria-label={t('editor.sessions.lengthUnit')} className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="laps">{t(LENGTH_LABEL.laps)}</SelectItem>
+                  <SelectItem value="distance">{t(LENGTH_LABEL.distance)}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                id={fieldId}
+                type="number"
+                className="min-w-0 flex-1"
+                min={MIN_SESSION_LENGTH}
+                value={fromNumber(own?.[unit])}
+                placeholder={fromNumber(race[unit])}
+                disabled={locked}
+                onChange={(event) => {
+                  const value = toNumber(event.target.value);
+
+                  setDraft(withRoundLength(draft, id, value === undefined ? null : { [unit]: value }));
+                }}
+              />
+            </div>
+          </Field>
+        );
+      })}
 
       <NumberField
         id={`${idPrefix}-fee`}

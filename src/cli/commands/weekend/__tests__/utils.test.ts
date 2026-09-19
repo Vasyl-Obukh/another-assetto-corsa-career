@@ -110,17 +110,17 @@ const fresh = (): WeekendState => ({
 /**
  * Progress with practice and qualifying run, and an order recorded for the
  * qualifying, which is what the race inherits its grid from.
- * @param qualifyingOrder What the qualifying session classified
+ * @param classification What the qualifying session classified
  * @returns A WeekendState with two launches done
  */
-const afterQualifying = (qualifyingOrder: number[] | null): WeekendState => ({
+const afterQualifying = (classification: number[] | null): WeekendState => ({
   ...fresh(),
   completed: [0, 1].map((index) => ({
     index,
     completedAt: '2026-01-01T00:00:00.000Z',
     archive: 'data/results/one.json',
     gridOrder: [0, 1, 2, 3, 4, 5],
-    qualifyingOrder: index === 1 ? qualifyingOrder : null,
+    classification: index === 1 ? classification : null,
   })),
 });
 
@@ -220,14 +220,14 @@ describe('cli/commands/weekend/utils', () => {
             completedAt: 'now',
             archive: 'q1.json',
             gridOrder: [0, 1, 2, 3, 4, 5],
-            qualifyingOrder: [3, 0, 1, 5, 2, 4],
+            classification: [3, 0, 1, 5, 2, 4],
           },
           {
             index: 1,
             completedAt: 'now',
             archive: 'q2.json',
             gridOrder: [0, 3, 1],
-            qualifyingOrder: [0, 3, 1],
+            classification: [0, 3, 1],
           },
         ],
       };
@@ -281,14 +281,14 @@ describe('cli/commands/weekend/utils', () => {
             completedAt: 'now',
             archive: 'q1.json',
             gridOrder: [0, 1, 2, 3, 4, 5],
-            qualifyingOrder: [3, 1, 5, 0, 2, 4],
+            classification: [3, 1, 5, 0, 2, 4],
           },
           {
             index: 1,
             completedAt: 'now',
             archive: '',
             gridOrder: [3, 1, 5],
-            qualifyingOrder: [1, 3, 5],
+            classification: [1, 3, 5],
             skipped: true,
           },
         ],

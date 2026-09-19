@@ -117,6 +117,15 @@ export const path = {
    */
   settingsSources: (): string => ROUTE.settingsSources,
   /**
+   * One championship's page as the settings tab opens it: the same page a
+   * career reads, with nothing on it that races a round.
+   * @param params The championship's id
+   * @returns Its URL, with the id encoded
+   */
+  settingsChampionship: (
+    params: RouteParams<typeof ROUTE.settingsChampionship>,
+  ): string => buildPath(ROUTE.settingsChampionship, params),
+  /**
    * The editor, on a championship that does not exist yet. Nothing is written
    * until the first save.
    * @returns Its URL

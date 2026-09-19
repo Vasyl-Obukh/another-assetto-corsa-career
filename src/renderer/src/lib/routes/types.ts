@@ -44,3 +44,20 @@ export interface NavEntry {
  * what lets their paths be built without arguments.
  */
 export type NavId = (typeof NAV)[number]['id'];
+
+/**
+ * The navigation state a screen with a Back of its own is opened with, when
+ * it can be reached from more than one place and Back should lead to the one
+ * the user came from - the championship editor, say, opened from a card or
+ * from a championship's own page.
+ */
+export interface ReturnState {
+  /**
+   * The URL Back leads to.
+   */
+  to: string;
+  /**
+   * The catalogue key for Back's label.
+   */
+  label: ParseKeys;
+}

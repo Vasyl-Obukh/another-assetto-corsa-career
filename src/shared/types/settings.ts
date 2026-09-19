@@ -191,13 +191,21 @@ export interface Settings {
    */
   hiddenContentSources: HiddenContentSources;
   /**
-   * Championships the user switched off, by id.
+   * The championships the user switched on or off, by id.
    *
-   * What is off rather than what is on, so a championship written, imported or
-   * duplicated later arrives active. An inactive one stays in settings and
-   * leaves the Championships page.
+   * Only what they actually switched: everything else is whatever the library
+   * says it starts as, so a championship the app ships later, or one written,
+   * imported or duplicated, arrives as it should without anything recorded
+   * here. Switching one back to how it starts out removes its key. An inactive
+   * one stays in settings and leaves the Championships page. Read it through
+   * src/shared/utils/series-toggles/.
    */
-  inactiveSeries: string[];
+  seriesActive: Record<string, boolean>;
+  /**
+   * Whether the championships that only fill an empty rung of the ladder are
+   * offered at all.
+   */
+  showFillerSeries: boolean;
   /**
    * Paths the user has corrected by hand.
    */

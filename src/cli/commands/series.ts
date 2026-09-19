@@ -31,9 +31,11 @@ import { describeProblems } from '../utils.ts';
  * @param session The session to measure
  * @returns Its length as a printable string
  */
-const sessionLength = (session: SessionDefinition): string => (
-  session.laps ? `${session.laps} laps` : `${session.minutes ?? 0} min`
-);
+const sessionLength = (session: SessionDefinition & { distance?: number }): string => {
+  if (session.distance) return `${session.distance} km`;
+
+  return session.laps ? `${session.laps} laps` : `${session.minutes ?? 0} min`;
+};
 
 /**
  * Names a weather type the way a forecast line reads it.
@@ -101,6 +103,8 @@ const printDetail = (
   const widened = [...requires.widenedBy.packs, ...requires.widenedBy.makers];
   console.log(`  Needs     ${needed.length ? needed.join(', ') : 'base only'}`);
   if (widened.length) console.log(`  Widened   ${widened.join(', ')}`);
+  const rounds = [...requires.rounds.packs, ...requires.rounds.makers, ...requires.rounds.distributors];
+  if (rounds.length) console.log(`  Rounds    ${rounds.join(', ')} (some rounds only)`);
 
   const teams = new Map((series.teams ?? []).map((one) => [one.id, one]));
 
@@ -151,12 +155,21 @@ const printDetail = (
     console.log(`      ${points.positions.join('-')}${extras ? `  +${extras}` : ''}`);
   });
 
-  if (series.entryFee !== undefined || series.prizes) {
+  const classPrizes = series.entries.filter((entry) => entry.prizes);
+  if (series.entryFee !== undefined || series.prizes || classPrizes.length > 0) {
     console.log('\n  Money');
     if (series.entryFee !== undefined) console.log(`    Entry fee      ${series.entryFee}`);
     const { positions, standings } = series.prizes ?? {};
     if (positions) console.log(`    Round prizes   ${positions.join('-')}`);
     if (standings) console.log(`    Season prizes  ${standings.join('-')}`);
+    classPrizes.forEach((entry) => {
+      console.log(`    ${entry.name}`);
+      // A table the class leaves out pays what the championship's does.
+      const round = entry.prizes?.positions ?? positions;
+      const season = entry.prizes?.standings ?? standings;
+      if (round) console.log(`      Round prizes   ${round.join('-')}`);
+      if (season) console.log(`      Season prizes  ${season.join('-')}`);
+    });
   }
 
   console.log('\n  Calendar');
@@ -172,7 +185,11 @@ const printDetail = (
     const format = round.weekendFormat ? `  [${round.weekendFormat}]` : '';
     const fee = round.entryFee !== undefined ? `  fee ${round.entryFee}` : '';
     const climate = round.climate ? `  {${round.climate}}` : '';
-    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}${fee}${climate}`);
+    // What each race comes to on this track, which a distance only says here.
+    const races = state?.races.length
+      ? `  (${state.races.map((race) => `${race.name ?? 'Race'} ${race.laps ?? '?'} laps`).join(', ')})`
+      : '';
+    console.log(`    ${String(index + 1).padStart(2)}  ${round.name.padEnd(22)} ${key.padEnd(38)} ${track?.name ?? ''}${note}${format}${fee}${climate}${races}`);
 
     const forecast = forecasts.find((one) => one.round === round.id);
     if (forecast) forecastLines(forecast).forEach((line) => console.log(`          ${line}`));

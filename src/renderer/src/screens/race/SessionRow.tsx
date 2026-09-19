@@ -133,13 +133,10 @@ export const SessionRow = ({
             disabled={locked}
             onValueChange={(value) => {
               if (!isOffered(value)) return;
-              // A race may be measured either way, so becoming one keeps the
-              // length it already had. Everything else runs to the clock, so a
-              // lap count is dropped rather than carried into a unit that
-              // cannot express it.
-              onChange(countsLaps(value) && session.minutes !== undefined
-                ? { ...session, type: value }
-                : withSessionLength({ ...session, type: value }, countsLaps(value)));
+              // The length changes unit with the type - a race is laps and
+              // everything else the clock - so the old number is dropped
+              // rather than carried into a unit that cannot express it.
+              onChange(withSessionLength({ ...session, type: value }, countsLaps(value)));
             }}
           >
             <SelectTrigger id={`session-${index}-type`} className="w-32">
@@ -171,23 +168,8 @@ export const SessionRow = ({
             : t('race.sessions.minutes')}
         >
           <div className="flex items-center gap-2">
-            {/* Only a race is offered the choice: everything else runs to the
-                clock, and AC reads LAPS on a race session alone. */}
-            {countsLaps(session.type) ? (
-              <Select
-                value={laps ? 'laps' : 'minutes'}
-                disabled={locked}
-                onValueChange={(value) => onChange(withSessionLength(session, value === 'laps'))}
-              >
-                <SelectTrigger aria-label={t('race.sessions.lengthUnit')} className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="laps">{t('race.sessions.laps')}</SelectItem>
-                  <SelectItem value="minutes">{t('race.sessions.minutes')}</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : null}
+            {/* No unit to choose: a race is laps and everything else is the
+                clock, since AC runs a timed race on a server alone. */}
             <Input
               id={`session-${index}-length`}
               className="w-16"

@@ -3,15 +3,57 @@ import {
 } from '@jest/globals';
 import path from 'node:path';
 
+import { DEFAULT_MIN_MODELS } from '../../../shared/constants/index.ts';
 import { isAppError } from '../../../shared/errors/index.ts';
+import { ContentSource } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { SHIPPED_CATALOGUE, specCars } from '../../../shared/utils/car-classes/index.ts';
+import { carProvenance } from '../../content-catalogue/index.ts';
 import { SERIES_FORMAT_VERSION, validateSeries } from '../../series/index.ts';
 import { readSeries } from '../../series-file/index.ts';
 import {
-  deleteUserSeries, loadSeriesLibrary, saveUserSeries, SHIPPED_SERIES,
+  deleteUserSeries, loadSeriesLibrary, saveUserSeries, SHIPPED, SHIPPED_SERIES,
 } from '../index.ts';
+import { KUNOS_LAYOUTS, PITBOXES } from './fixtures.ts';
 
 jest.mock('node:fs/promises');
+
+/**
+ * The fewest rounds a championship on the base ladder - needing only the base
+ * game, and switched on - has to leave a base-only player: a season of one or
+ * two races is not a season.
+ */
+const MIN_BASE_ROUNDS = 3;
+
+/**
+ * Whether a championship needs nothing but the base game.
+ * @param series The championship
+ * @returns True when every source it needs is the base game
+ */
+const isBaseOnly = (series: Championship): boolean => {
+  const isBase = (car: string): boolean => carProvenance(car).source === ContentSource.BASE;
+
+  // Asked of the catalogue directly rather than of the requirements: a spec
+  // several packs or mods can each fill needs none of them outright, and a car
+  // only LFM redistributes carries no pack or maker to tell it from a base one.
+  return series.entries.every(({ eligibility }) => {
+    if (eligibility.kind === 'cars') return eligibility.cars.every(isBase);
+
+    const cars = specCars(eligibility.spec, SHIPPED_CATALOGUE);
+    const floor = Math.min(eligibility.minModels ?? DEFAULT_MIN_MODELS, cars.length);
+
+    return cars.filter(isBase).length >= floor;
+  });
+};
+
+/**
+ * Keys a round's circuit the way the pit box fixture does.
+ * @param round The round
+ * @returns `track` or `track/layout`
+ */
+const trackKey = (round: Championship['rounds'][number]): string => (
+  round.track.layout === undefined ? round.track.id : `${round.track.id}/${round.track.layout}`
+);
 
 const {
   mkdir, readdir, readFile, rename, rm, writeFile,
@@ -120,6 +162,36 @@ describe('core/series-library', () => {
           .not.toContain('series.version.unsupported');
       });
     });
+
+    // A championship races every real venue it can, whatever pack or mod the
+    // circuit comes from, and a round whose track is missing is one the player
+    // skips - so what the base-only guarantee needs is enough rounds on the
+    // layouts Kunos ship: a season's worth for a championship on the ladder,
+    // one at least for the rest. Base provenance is keyed by circuit, which is
+    // why the list is the test's own: OSRW, LFM and VRC drop layouts into base
+    // folders.
+    it.each(SHIPPED
+      .filter((shipped) => isBaseOnly(shipped.series))
+      .map((shipped) => [shipped.series.id, shipped] as const))(
+      'leaves %s, which needs only the base game, enough rounds to race on it',
+      (unused, shipped) => {
+        const onBase = shipped.series.rounds.map(trackKey).filter((key) => KUNOS_LAYOUTS.includes(key));
+
+        expect(onBase.length).toBeGreaterThanOrEqual(shipped.active ? MIN_BASE_ROUNDS : 1);
+      },
+    );
+
+    it.each(SHIPPED_SERIES.map((series) => [series.id, series] as const))(
+      'fits every grid %s lines up into the pit boxes of its circuit',
+      (unused, series) => {
+        const field = series.entries.reduce((total, entry) => total + entry.seats.length, 0);
+        const short = series.rounds
+          .map(trackKey)
+          .filter((key) => (PITBOXES[key] ?? 0) < field);
+
+        expect(short).toEqual([]);
+      },
+    );
   });
 
   describe('loadSeriesLibrary', () => {
@@ -158,6 +230,35 @@ describe('core/series-library', () => {
       expect(held).toHaveLength(1);
       expect(held[0].origin).toBe('adjusted');
       expect(held[0].series.name).toBe('My version');
+    });
+
+    it('carries how each shipped championship starts out onto its listing', async () => {
+      const library = await loadSeriesLibrary();
+
+      SHIPPED.forEach((shipped) => {
+        const held = library.series.find((one) => one.series.id === shipped.series.id);
+
+        expect(held).toMatchObject({ activeByDefault: shipped.active, filler: shipped.filler ?? false });
+      });
+    });
+
+    it('starts a championship of the user\'s own switched on, and never a filler', async () => {
+      givenFiles({ 'sunday-cup.json': seriesFile() });
+      const library = await loadSeriesLibrary('user-dir');
+
+      expect(library.series.find((held) => held.series.id === 'sunday-cup'))
+        .toMatchObject({ activeByDefault: true, filler: false });
+    });
+
+    // Customising a championship must never switch it on or off by itself.
+    it('keeps how a shipped championship starts out when a user file replaces it', async () => {
+      const off = SHIPPED.find((shipped) => !shipped.active);
+      if (!off) throw new Error('the library ships nothing switched off');
+      givenFiles({ 'mine.json': seriesFile({ id: off.series.id }) });
+      const library = await loadSeriesLibrary('user-dir');
+
+      expect(library.series.find((held) => held.series.id === off.series.id))
+        .toMatchObject({ origin: 'adjusted', activeByDefault: false });
     });
 
     it('reports a user file that is not readable and keeps the rest', async () => {

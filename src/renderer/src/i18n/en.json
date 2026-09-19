@@ -420,6 +420,7 @@
       "seriesHint": "This file does not describe a championship that can be raced. Installing content will not help."
     },
     "back": "All championships",
+    "backToChampionship": "Back to the championship",
     "notFound": "No such championship.",
     "available": "Available",
     "unavailable": "Unavailable",
@@ -464,7 +465,9 @@
       "missingTrack": "Track not installed",
       "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field",
       "ownConditions": "Own conditions",
-      "underway": "Weekend under way"
+      "underway": "Weekend under way",
+      "lapUnknown": "{{name}}: lap length unknown",
+      "raceDistance": "{{distance}} - {{laps}}"
     },
     "format": {
       "title_one": "Weekend format",
@@ -476,7 +479,8 @@
       "minutes_one": "{{count}} minute",
       "minutes_other": "{{count}} minutes",
       "session": "{{name}} - {{length}}",
-      "sessionPlain": "{{name}}"
+      "sessionPlain": "{{name}}",
+      "distance": "{{value}} km"
     },
     "points": {
       "title_one": "Points",
@@ -556,9 +560,30 @@
       "failed_one": "{{count}} problem with the file you picked",
       "failed_other": "{{count}} problems with the file you picked",
       "failedHint": "Nothing was added to your library."
+    },
+    "filter": {
+      "search": "Search championships",
+      "disciplines": "Discipline",
+      "tiers": "Tier",
+      "origins": "Origin",
+      "sources": "Content",
+      "packs": "DLC packs",
+      "makers": "Mod makers",
+      "switched": "Switched",
+      "on": "On",
+      "off": "Off",
+      "availability": "Availability",
+      "shipped": "The app’s own"
+    },
+    "sort": {
+      "ladder": "Ladder",
+      "name": "Name"
     }
   },
   "championshipLibrary": {
+    "filler": "Filler championships",
+    "fillerHint": "Where the app's own championships leave a rung of a ladder empty, the rung below is repeated there with longer races, marked + and ++. They keep a career climbing without a gap; switch them off if you would rather step straight up.",
+    "fillerOffered": "Offer filler championships",
     "sources": "Content sources",
     "sourcesHint": "Which championships are offered, by the content they need. This hides championships and nothing else: your cars and tracks stay in the library either way.",
     "base": "Base game",
@@ -574,6 +599,7 @@
     "hides_other": "Switching this off hides {{count}} championships.",
     "needs": "Needs",
     "optional": "Widened by",
+    "roundsNeed": "Some rounds need",
     "active": "{{name}} on the Championships page",
     "unavailable": "Not on the Championships page: content it needs is not installed.",
     "create": {
@@ -669,6 +695,9 @@
       "tierHint": "1 is the top of a discipline. A driver may enter any series at or below their level in it.",
       "eligibility": "Cars",
       "performance": "Performance",
+      "prizes": "Prize money",
+      "prizesHint": "What this class pays, in place of the championship’s own prize money. A multi-class grid pays its classes differently; classes sharing a purse leave both tables empty.",
+      "prizesShared": "Pays what the championship pays.",
       "seats": "Seats",
       "count_one": "{{count}} class",
       "count_other": "{{count}} classes",
@@ -733,7 +762,10 @@
       "cars": "Cars",
       "count_one": "{{count}} round",
       "count_other": "{{count}} rounds",
-      "swapLine": "{{entry}}: {{cars}}"
+      "swapLine": "{{entry}}: {{cars}}",
+      "raceLength": "{{name}} length",
+      "raceLengthHint": "Empty runs what the weekend format says.",
+      "ownLength": "Own race length"
     },
     "formats": {
       "title": "Weekend formats",
@@ -758,15 +790,20 @@
       "points": "Points",
       "defaultPoints": "The championship's own",
       "follows": "Takes its field from",
-      "followsHint": "Which qualifying decides who starts, and in what order. Only an earlier qualifying can, since nothing else leaves a classification behind.",
+      "followsHint": "Which session decides who starts, and in what order. A qualifying can; a race can also follow an earlier race, which is how a reverse-grid race is set up.",
       "followsNothing": "Nothing",
       "followsTop": "{{name}}, top {{top}}",
       "top": "Cars carried over",
       "topHint": "How many of that session's field go through. Leave it empty for all of them, which is what a race after qualifying wants.",
       "topAll": "The whole field",
+      "followsReverse": ", top {{reverse}} reversed",
+      "reverse": "Cars reversed",
+      "reverseHint": "How many of the front runners start in reverse order - eight puts the eighth on pole and the winner eighth. Leave it empty for a straight grid.",
+      "reverseNone": "None",
       "conditions": "Conditions",
       "conditionsHint": "What this session runs in, wherever the format is raced. Anything left unset takes the round's own answer.",
-      "inherit": "The round's own"
+      "inherit": "The round's own",
+      "distance": "Distance (km)"
     },
     "points": {
       "title": "Points systems",

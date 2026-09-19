@@ -6,7 +6,7 @@ import { EditorSection } from './EditorSection.tsx';
 import { FormatDialog } from './FormatDialog.tsx';
 import { FormatPanel } from './FormatPanel.tsx';
 import {
-  nextFormat, withFormat, withoutFormat,
+  nextFormat, withDefaultFormat, withFormat, withoutFormat,
 } from './utils.ts';
 import type {
   Championship, Weather, WeatherController, WeatherSystem,
@@ -78,7 +78,7 @@ export const FormatsCard = ({
           editing={rows.editing(ROW_SCOPE.FORMATS, format.id)}
           onChange={(next) => onChange(withFormat(series, format.id, next))}
           onEdit={() => rows.edit(ROW_SCOPE.FORMATS, format.id)}
-          onDefault={() => onChange({ ...series, defaultWeekendFormat: format.id })}
+          onDefault={() => onChange(withDefaultFormat(series, format.id))}
           onMove={(by) => onChange({
             ...series,
             weekendFormats: moveAt([...formats], index, by),

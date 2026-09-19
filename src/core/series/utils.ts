@@ -2,7 +2,7 @@
 // composing the field a round is raced against.
 
 import { DEFAULT_SERIES_GRID } from './constants.ts';
-import { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS } from '../../shared/constants/index.ts';
+import { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS, MIN_REVERSED } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { ContentSource } from '../../shared/types/index.ts';
@@ -18,12 +18,16 @@ import type {
   DLCPack,
   Eligibility,
   EntryAvailability,
+  ModDistributor,
   ModMaker,
   RequirementPool,
   Round,
   RoundAvailability,
+  RoundRaceLength,
+  RoundSessionLength,
   SeriesGrid,
   SeriesRequirements,
+  SeriesSession,
   Track,
   WeekendFormat,
 } from '../../shared/types/index.ts';
@@ -219,6 +223,133 @@ export const formatOf = (
 };
 
 /**
+ * Which of laps, minutes and distance a session or a round's override states.
+ * @param length The session or the override
+ * @returns The ones it states, with their values
+ */
+const lengthsOf = (
+  length: Pick<RoundSessionLength, 'laps' | 'minutes' | 'distance'>,
+): { unit: 'laps' | 'minutes' | 'distance'; value: number }[] => (
+  (['laps', 'minutes', 'distance'] as const)
+    .filter((unit) => length[unit] !== undefined)
+    .map((unit) => ({ unit, value: length[unit] as number }))
+);
+
+/**
+ * Checks that a length states one unit, of a positive amount, and a distance
+ * only on a race.
+ * @param length The session or the round's override
+ * @param type What kind of session it measures
+ * @param where The message's series, format and session
+ * @returns One entry per rule broken
+ */
+export const validateLength = (
+  length: Pick<RoundSessionLength, 'laps' | 'minutes' | 'distance'>,
+  type: SeriesSession['type'],
+  where: { series: string; format: string; session: string },
+): AppErrorInfo[] => {
+  const problems: AppErrorInfo[] = [];
+  const stated = lengthsOf(length);
+
+  // Two lengths would race whichever the lowering happened to read first.
+  if (stated.length > 1) problems.push(appErrorInfo('series.length.conflict', where));
+  stated
+    .filter(({ value }) => !(Number.isFinite(value) && value > 0))
+    .forEach(({ unit, value }) => {
+      problems.push(appErrorInfo('series.length.invalid', { ...where, length: value, unit }));
+    });
+  if (length.distance !== undefined && type !== 'race') {
+    problems.push(appErrorInfo('series.distance.onNonRace', where));
+  }
+  // Assetto Corsa reads DURATION_MINUTES for practice and qualifying and
+  // RACE_LAPS for a race; a timed race is a server's. Driven: a race sent as
+  // three minutes and no laps let the player carry on past the clock while the
+  // AI parked in the pits.
+  if (length.minutes !== undefined && type === 'race') {
+    problems.push(appErrorInfo('series.race.timed', where));
+  }
+
+  return problems;
+};
+
+/**
+ * A round's sessions: its format's, with the lengths the round replaces.
+ *
+ * An override replaces the session's length outright rather than merging
+ * with it, so a race of 305 km given 78 laps is 78 laps and nothing else.
+ * @param format The format the round runs
+ * @param round The round
+ * @returns The sessions it runs, still carrying any distance
+ */
+export const roundSessions = (format: WeekendFormat, round: Round): SeriesSession[] => (
+  format.sessions.map((session) => {
+    const own = round.sessionLengths?.find((one) => one.session === session.id);
+    if (!own) return session;
+
+    return {
+      ...session, laps: own.laps, minutes: own.minutes, distance: own.distance,
+    };
+  })
+);
+
+/**
+ * How many laps cover a distance: the fewest that reach it, which is how a
+ * grand prix's distance is turned into laps.
+ * @param distance The distance in kilometres
+ * @param lap The length of a lap in metres
+ * @returns The lap count
+ */
+export const lapsFor = (distance: number, lap: number): number => (
+  // Short of an exact multiple by a rounding error is still that multiple.
+  Math.max(1, Math.ceil((distance * 1000) / lap - 1e-9))
+);
+
+/**
+ * Turns every distance among a round's sessions into laps.
+ * @param sessions The round's sessions
+ * @param lap The track's lap length in metres, or null when it is not known
+ * @returns The sessions measured in laps, or null when a distance cannot be
+ *   turned into laps for want of the lap length
+ */
+export const withDistancesInLaps = (
+  sessions: readonly SeriesSession[],
+  lap: number | null,
+): SeriesSession[] | null => {
+  if (lap === null && sessions.some((session) => session.distance !== undefined)) return null;
+
+  return sessions.map((session) => {
+    if (session.distance === undefined || lap === null) return session;
+
+    const { distance, ...rest } = session;
+
+    return { ...rest, laps: lapsFor(distance, lap) };
+  });
+};
+
+/**
+ * How long each race of a round runs, for the calendar to say.
+ * @param sessions The round's sessions
+ * @param lap The track's lap length in metres, or null when it is not known
+ * @returns One per race measured in laps or distance, in weekend order
+ */
+export const raceLengths = (
+  sessions: readonly SeriesSession[],
+  lap: number | null,
+): RoundRaceLength[] => sessions
+  .filter((session) => session.type === 'race'
+    && (session.laps !== undefined || session.distance !== undefined))
+  .map((session) => {
+    const name = session.name ?? null;
+    if (session.distance === undefined) return { name, laps: session.laps ?? null };
+
+    return {
+      name,
+      laps: lap === null ? null : lapsFor(session.distance, lap),
+      distance: session.distance,
+    };
+  });
+
+/**
  * Fills a class's share of the grid from the models it may use.
  *
  * Round-robin rather than random draw, so a class of twelve over five models
@@ -334,16 +465,17 @@ export const validateFormat = (
       problems.push(appErrorInfo('series.startingPosition.authored', { ...where, session: name }));
     }
     if (session.inherit) {
-      const { from, top } = session.inherit;
+      const { from, top, reverse } = session.inherit;
       const source = sessions.findIndex((candidate) => candidate.id === from);
+      const isRace = session.type === 'race';
 
       if (source < 0) {
         problems.push(appErrorInfo('series.inherit.unknown', { ...where, session: name, from }));
       } else if (source >= index) {
         problems.push(appErrorInfo('series.inherit.notEarlier', { ...where, session: name, from }));
-      } else if (sessions[source].type !== 'qualify') {
-        // Only a qualifying leaves a classification behind for the next session
-        // to follow; advanceWeekend records one for nothing else.
+      } else if (!(sessions[source].type === 'qualify' || (isRace && sessions[source].type === 'race'))) {
+        // advanceWeekend classifies qualifying and races and nothing else, and a
+        // race's finishing order means nothing to a qualifying session.
         problems.push(appErrorInfo('series.inherit.notQualifying', {
           ...where, session: name, from,
         }));
@@ -351,7 +483,15 @@ export const validateFormat = (
       if (top !== undefined && top < 1) {
         problems.push(appErrorInfo('series.inherit.topInvalid', { ...where, session: name, top }));
       }
+      // Past the size of the field it is clamped rather than refused, the way
+      // top is, so a format written for thirty cars still runs on twelve.
+      if (reverse !== undefined && (!isRace || reverse < MIN_REVERSED)) {
+        problems.push(appErrorInfo('series.inherit.reverseInvalid', {
+          ...where, session: name, reverse,
+        }));
+      }
     }
+    problems.push(...validateLength(session, session.type, { ...where, session: name }));
     if (session.pointsSystem !== undefined) {
       // Only a race scores, so a system named anywhere else is a reference
       // nothing will ever follow - worth saying now rather than in Phase 5.
@@ -389,9 +529,15 @@ export const validateMoney = (series: Championship): AppErrorInfo[] => {
   const problems: AppErrorInfo[] = [];
   const where = { series: series.id };
 
+  // A class paying its own names itself, so a bad table is not reported as
+  // the championship's.
   const prizes: { table: string; amounts: readonly number[] | undefined }[] = [
     { table: 'round', amounts: series.prizes?.positions },
     { table: 'championship', amounts: series.prizes?.standings },
+    ...series.entries.flatMap((entry) => [
+      { table: `class ${entry.id} round`, amounts: entry.prizes?.positions },
+      { table: `class ${entry.id} championship`, amounts: entry.prizes?.standings },
+    ]),
   ];
   prizes.forEach(({ table, amounts }) => {
     amounts?.forEach((amount, index) => {
@@ -480,14 +626,20 @@ export const missingTrack = (round: Round): RoundAvailability['track'] => {
  * Works out what owning a championship's content amounts to.
  * @param series The championship
  * @param catalogue The class catalogue a spec resolves against
- * @returns The sources, packs and mod makers it needs, and what only widens it
+ * @returns The sources, packs and mod makers its cars need, where its rounds'
+ * circuits come from, and what only widens its field
  */
 export const requirementsOf = (series: Championship, catalogue: ClassCatalogue): SeriesRequirements => {
-  const sources = new Set<ContentSource>();
+  // Assetto Corsa itself, which is all a championship of base cars needs now
+  // that a round's circuit is never needed.
+  const sources = new Set<ContentSource>([ContentSource.BASE]);
   const packs = new Set<DLCPack>();
   const makers = new Set<ModMaker>();
   const reachedPacks = new Set<DLCPack>();
   const reachedMakers = new Set<ModMaker>();
+  const roundPacks = new Set<DLCPack>();
+  const roundMakers = new Set<ModMaker>();
+  const roundDistributors = new Set<ModDistributor>();
   const pools: RequirementPool[] = [];
 
   const need = (provenance: ContentProvenance): void => {
@@ -514,8 +666,13 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
   };
 
   series.entries.forEach((entry) => rule(entry.eligibility));
+  // A circuit is never needed: missing one costs that round and no other, so
+  // where it comes from is recorded for the rounds alone.
   series.rounds.forEach((round) => {
-    need(trackProvenance(round.track.id, round.track.layout ?? ''));
+    const { pack, maker, distributor } = trackProvenance(round.track.id, round.track.layout ?? '');
+    if (pack) roundPacks.add(pack);
+    if (maker) roundMakers.add(maker);
+    if (distributor) roundDistributors.add(distributor);
     round.eligibility?.forEach((override) => rule(override.eligibility));
   });
 
@@ -537,6 +694,11 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     packs: [...packs],
     makers: [...makers],
     pools,
+    rounds: {
+      packs: [...roundPacks],
+      makers: [...roundMakers],
+      distributors: [...roundDistributors],
+    },
     widenedBy: {
       packs: [...reachedPacks].filter((pack) => !packs.has(pack)),
       makers: [...reachedMakers].filter((maker) => !makers.has(maker)),

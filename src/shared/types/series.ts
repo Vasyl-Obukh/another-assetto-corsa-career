@@ -22,7 +22,7 @@
 
 import type { SpecId } from './car-classes.ts';
 import type {
-  ContentProvenance, ContentSource, DLCPack, ModMaker,
+  ContentProvenance, ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
 import type { LadderPosition } from './ladder.ts';
 import type { Assists, Conditions, SessionDefinition } from './race.ts';
@@ -362,6 +362,37 @@ export interface ClassEntry {
    * AI strength for this class, overriding the championship's own.
    */
   grid?: SeriesGrid;
+  /**
+   * What this class pays, in place of the championship's own. A multi-class
+   * grid pays its classes differently - a Hypercar win is worth more than an
+   * LMGT3 one - and classes that share a purse simply leave this out. Each
+   * table stands alone: one left out pays what the championship's does.
+   */
+  prizes?: PrizeMoney;
+}
+
+/**
+ * One session's length, replaced for a single round.
+ *
+ * Exactly one of the three lengths, which validateSeries enforces.
+ */
+export interface RoundSessionLength {
+  /**
+   * The session it replaces the length of, by its id in the round's format.
+   */
+  session: string;
+  /**
+   * Its length in laps.
+   */
+  laps?: number;
+  /**
+   * Its length in minutes.
+   */
+  minutes?: number;
+  /**
+   * Its length in kilometres, a race only, turned into laps off the track.
+   */
+  distance?: number;
 }
 
 /**
@@ -414,6 +445,14 @@ export interface Round {
    * happens to differ from the championship's.
    */
   weekendFormat?: string;
+  /**
+   * Session lengths replaced for this round, per session of its format.
+   *
+   * The exceptions a shared format cannot state - Monaco's shorter grand prix,
+   * or a round whose real lap count differs from what the distance comes to
+   * on the track as installed.
+   */
+  sessionLengths?: readonly RoundSessionLength[];
   /**
    * Eligibility replaced for this round, per class entry.
    *
@@ -506,6 +545,16 @@ export interface SeriesSession extends SessionDefinition {
    * Only meaningful on a race session, which validateFormat enforces.
    */
   pointsSystem?: string;
+  /**
+   * The race's length in kilometres, in place of `laps` or `minutes`.
+   *
+   * Turned into laps when a round is set up, off that round's track: the
+   * fewest laps that cover the distance, which is how Formula 1 and its
+   * feeder series state a race. So one format serves every round of a season
+   * however long each lap is, and a user's own track gets a race of the right
+   * length too. A race only, which validateFormat enforces.
+   */
+  distance?: number;
 }
 
 /**
@@ -754,6 +803,33 @@ export interface RoundAvailability {
    * Availability of any class entry whose eligibility this round overrides.
    */
   entries: readonly EntryAvailability[];
+  /**
+   * How many laps each race of the round runs, where that is a count - a race
+   * measured by the clock is left out. A race stated as a distance comes to a
+   * count only off the installed track's length, so this is where the
+   * calendar reads it from.
+   */
+  races: readonly RoundRaceLength[];
+}
+
+/**
+ * How long one race of a round runs.
+ */
+export interface RoundRaceLength {
+  /**
+   * The race's name, as its format gives it, or null for a race named only by
+   * its type - which the renderer says in the user's language.
+   */
+  name: string | null;
+  /**
+   * Its length in laps, or null for a distance that cannot be turned into laps:
+   * the track is not installed, or does not say how long a lap is.
+   */
+  laps: number | null;
+  /**
+   * The distance it was stated as, in kilometres, when it was one.
+   */
+  distance?: number;
 }
 
 /**
@@ -792,8 +868,10 @@ export interface SeriesRequirements {
    */
   sources: readonly ContentSource[];
   /**
-   * DLC packs it cannot be offered without - a track it races, a car a car list
-   * names, or a spec that falls below its floor without the pack's cars.
+   * DLC packs it cannot be offered without - a car a car list names, or a spec
+   * that falls below its floor without the pack's cars. Never a track: a round
+   * whose circuit is missing is one round the player cannot race, and the rest
+   * of the calendar still runs - see `rounds`.
    */
   packs: readonly DLCPack[];
   /**
@@ -806,6 +884,24 @@ export interface SeriesRequirements {
    * needs alone may still leave it short together.
    */
   pools: readonly RequirementPool[];
+  /**
+   * Where the circuits of rounds not on the base game come from. Owning them
+   * adds those rounds; lacking them loses those rounds and nothing else.
+   */
+  rounds: {
+    /**
+     * DLC packs some rounds race in.
+     */
+    packs: readonly DLCPack[];
+    /**
+     * Mod teams some rounds race at.
+     */
+    makers: readonly ModMaker[];
+    /**
+     * Redistributors - LFM - whose layouts some rounds race on.
+     */
+    distributors: readonly ModDistributor[];
+  };
   /**
    * DLC packs and mod teams reached only through a spec: they widen the field
    * rather than being needed.
@@ -928,6 +1024,19 @@ export interface SeriesListing {
    * shipped one with it.
    */
   origin: SeriesOrigin;
+  /**
+   * Whether it is switched on before the user says either way.
+   *
+   * The library's call rather than the document's: some of the app's own
+   * championships start switched off, and a user's own always starts on.
+   */
+  activeByDefault: boolean;
+  /**
+   * Whether it only stands in a rung of the ladder the app's own
+   * championships leave empty, by repeating the rung below it with longer
+   * races. Such championships are hidden together by one setting.
+   */
+  filler: boolean;
   /**
    * The weekend of this championship that is part-way through, or null when
    * none is. Non-null is what stops it being edited.

@@ -262,6 +262,39 @@ describe('core/series-file', () => {
         .toEqual(['seriesFile.field.invalid']);
     });
 
+    it('reads a class paying its own prize money', () => {
+      const entry = { ...(raw().entries as Record<string, unknown>[])[0], prizes: { positions: [500, 300] } };
+
+      expect(codesFor(raw({ entries: [entry] }))).toEqual([]);
+    });
+
+    it('rejects a class\'s prize money that is not numbers', () => {
+      const entry = { ...(raw().entries as Record<string, unknown>[])[0], prizes: { standings: ['lots'] } };
+
+      expect(codesFor(raw({ entries: [entry] }))).toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('reads the lengths a round replaces', () => {
+      const round = {
+        id: 'magione', name: 'Magione', track: { id: 'magione' }, sessionLengths: [{ session: 'race', laps: 12 }],
+      };
+
+      expect(codesFor(raw({ rounds: [round] }))).toEqual([]);
+    });
+
+    // Whether it names a real session, and states one length, is validateSeries'.
+    // A bad item was once reported twice, as itself and as the whole list.
+    it('rejects a round length that is not shaped like one, once', () => {
+      const round = (sessionLengths: unknown) => ({
+        id: 'magione', name: 'Magione', track: { id: 'magione' }, sessionLengths,
+      });
+
+      expect(codesFor(raw({ rounds: [round('twelve laps')] }))).toEqual(['seriesFile.field.invalid']);
+      expect(codesFor(raw({ rounds: [round([{ laps: 12 }])] }))).toEqual(['seriesFile.field.invalid']);
+      expect(codesFor(raw({ rounds: [round([{ session: 'race', distance: '305 km' }])] })))
+        .toEqual(['seriesFile.field.invalid']);
+    });
+
     it('rejects an entry fee that is not a number', () => {
       expect(codesFor(raw({ entryFee: 'free' }))).toEqual(['seriesFile.field.invalid']);
       expect(codesFor(raw({ rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' }, entryFee: 'free' }] })))

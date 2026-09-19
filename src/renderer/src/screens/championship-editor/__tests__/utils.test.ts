@@ -6,11 +6,12 @@ import type {
   Championship, ClassEntry, Round, SeriesSession, WeekendFormat,
 } from '../../../../../shared/types';
 import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
-import { DEFAULT_POINTS, DEFAULT_TIER } from '../constants.ts';
+import { DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_TIER } from '../constants.ts';
 import {
   bopScope,
   emptySeries,
   freeId,
+  lengthUnit,
   namedCars,
   nextEntry,
   nextFormat,
@@ -24,9 +25,12 @@ import {
   sessionScope,
   sessionSource,
   sessionSources,
+  withDefaultFormat,
   withEntry,
   withEntryEligibility,
+  withEntryPrizes,
   withFormat,
+  withLengthUnit,
   withoutEntry,
   withoutFormat,
   withoutPoints,
@@ -35,8 +39,11 @@ import {
   withoutTeam,
   withPoints,
   withPrizes,
+  withRaceIds,
   withRound,
   withRoundEligibility,
+  withRoundLength,
+  withRoundLengthsPruned,
   withSession,
   withTeam,
 } from '../utils.ts';
@@ -507,7 +514,9 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('numbers the format after the ones already there, running what it was handed', () => {
       const sessions: SeriesSession[] = [{ type: 'race', laps: 10 }];
 
-      expect(nextFormat(series([]), sessions)).toEqual({ id: 'format-2', name: 'Format 2', sessions });
+      expect(nextFormat(series([]), sessions)).toEqual({
+        id: 'format-2', name: 'Format 2', sessions: [{ id: 'race-1', type: 'race', laps: 10 }],
+      });
     });
 
     it('steps past an id a surviving format still holds', () => {
@@ -524,6 +533,41 @@ describe('renderer/screens/championship-editor/utils', () => {
       const next = withFormat(series([]), 'sprint', { id: 'sprint', name: 'Short', sessions: [] });
 
       expect(next.weekendFormats).toEqual([{ id: 'sprint', name: 'Short', sessions: [] }]);
+    });
+
+    it('drops a round\'s length for a session the format no longer runs', () => {
+      const lengths = [{ session: 'race-1', laps: 3 }, { session: 'race-2', laps: 4 }];
+      const championship = series([{ ...round('a'), sessionLengths: lengths }], {
+        weekendFormats: [{
+          id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }, { id: 'race-2', type: 'race' }],
+        }],
+      });
+      const next = withFormat(championship, 'sprint', {
+        id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }],
+      });
+
+      expect(next.rounds[0].sessionLengths).toEqual([{ session: 'race-1', laps: 3 }]);
+    });
+  });
+
+  describe('withDefaultFormat', () => {
+    it('moves the rounds naming no format onto the new default, dropping what it does not run', () => {
+      const championship = series([
+        { ...round('a'), sessionLengths: [{ session: 'grand-prix', laps: 50 }] },
+        { ...round('b'), weekendFormat: 'weekend', sessionLengths: [{ session: 'grand-prix', laps: 60 }] },
+      ], {
+        weekendFormats: [
+          { id: 'weekend', name: 'Weekend', sessions: [{ id: 'grand-prix', type: 'race' }] },
+          { id: 'sprint', name: 'Sprint', sessions: [{ id: 'sprint', type: 'race' }] },
+        ],
+        defaultWeekendFormat: 'weekend',
+      });
+      const next = withDefaultFormat(championship, 'sprint');
+
+      expect(next.defaultWeekendFormat).toBe('sprint');
+      expect(next.rounds.map((one) => one.sessionLengths)).toEqual([
+        undefined, [{ session: 'grand-prix', laps: 60 }],
+      ]);
     });
   });
 
@@ -551,6 +595,52 @@ describe('renderer/screens/championship-editor/utils', () => {
 
     it('leaves the default alone when another format goes', () => {
       expect(withoutFormat(two(), 'sprint').defaultWeekendFormat).toBe('endurance');
+    });
+
+    it('drops a round\'s lengths for the format that went', () => {
+      const championship = two();
+      const rounds = [{ ...championship.rounds[0], sessionLengths: [{ session: 'long', minutes: 90 }] }];
+      const next = withoutFormat({ ...championship, rounds }, 'endurance');
+
+      expect(next.rounds[0].sessionLengths).toBeUndefined();
+    });
+  });
+
+  describe('withRoundLengthsPruned', () => {
+    const championship = series([], {
+      weekendFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }] }],
+    });
+
+    it('keeps the lengths for sessions the round\'s format runs', () => {
+      const kept = { ...round('a'), sessionLengths: [{ session: 'race-1', laps: 3 }] };
+
+      expect(withRoundLengthsPruned(championship, kept)).toBe(kept);
+    });
+
+    it('drops the rest, and the list once nothing is left', () => {
+      const lengths = [{ session: 'race-1', laps: 3 }, { session: 'feature', laps: 9 }];
+
+      expect(withRoundLengthsPruned(championship, { ...round('a'), sessionLengths: lengths }).sessionLengths)
+        .toEqual([{ session: 'race-1', laps: 3 }]);
+      expect(withRoundLengthsPruned(championship, {
+        ...round('a'), sessionLengths: [{ session: 'feature', laps: 9 }],
+      }).sessionLengths).toBeUndefined();
+    });
+  });
+
+  describe('withRaceIds', () => {
+    it('numbers the races that have no id, by their place among the races', () => {
+      expect(withRaceIds([{ type: 'qualify' }, { type: 'race' }, { type: 'race', name: 'Feature' }])).toEqual([
+        { type: 'qualify' },
+        { id: 'race-1', type: 'race' },
+        { id: 'race-2', type: 'race', name: 'Feature' },
+      ]);
+    });
+
+    // A round's override names its race by id, so one once given must hold.
+    it('keeps an id a race already carries, and steps past it', () => {
+      expect(withRaceIds([{ id: 'race-2', type: 'race' }, { type: 'race' }]).map((one) => one.id))
+        .toEqual(['race-2', 'race-2-2']);
     });
   });
 
@@ -599,17 +689,23 @@ describe('renderer/screens/championship-editor/utils', () => {
   });
 
   describe('sessionSources', () => {
-    it('offers only a qualifying that runs earlier', () => {
+    it('offers a qualifying session only a qualifying that runs earlier', () => {
       const sessions: SeriesSession[] = [
         { type: 'practice' }, { type: 'qualify' }, { type: 'race' }, { type: 'qualify' }, { type: 'race' },
       ];
 
-      expect(sessionSources(sessions, 2)).toEqual([1]);
-      expect(sessionSources(sessions, 4)).toEqual([1, 3]);
+      expect(sessionSources(sessions, 2, 'qualify')).toEqual([1]);
+      expect(sessionSources(sessions, 4, 'qualify')).toEqual([1, 3]);
+    });
+
+    it('offers a race an earlier race too, which is how a reverse grid follows one', () => {
+      const sessions: SeriesSession[] = [{ type: 'qualify' }, { type: 'race' }, { type: 'practice' }, { type: 'race' }];
+
+      expect(sessionSources(sessions, 3, 'race')).toEqual([0, 1]);
     });
 
     it('never offers a session itself', () => {
-      expect(sessionSources([{ type: 'qualify' }], 0)).toEqual([]);
+      expect(sessionSources([{ type: 'qualify' }], 0, 'race')).toEqual([]);
     });
   });
 
@@ -639,13 +735,13 @@ describe('renderer/screens/championship-editor/utils', () => {
         session: { type: 'race', laps: 8 }, from: null,
       });
 
-      expect(next.sessions).toEqual([{ type: 'race', laps: 8 }]);
+      expect(next.sessions).toEqual([{ id: 'race-1', type: 'race', laps: 8 }]);
     });
 
     it('appends when handed the length, which is what an add row confirms with', () => {
       const next = withSession(format([{ type: 'qualify' }]), 1, { session: { type: 'race' }, from: null });
 
-      expect(next.sessions).toEqual([{ type: 'qualify' }, { type: 'race' }]);
+      expect(next.sessions).toEqual([{ type: 'qualify' }, { id: 'race-1', type: 'race' }]);
     });
 
     it('gives an unnamed source an id so the link has something to name', () => {
@@ -655,8 +751,16 @@ describe('renderer/screens/championship-editor/utils', () => {
 
       expect(next.sessions).toEqual([
         { type: 'qualify', id: 'session-1' },
-        { type: 'race', inherit: { from: 'session-1', top: 10 } },
+        { id: 'race-1', type: 'race', inherit: { from: 'session-1', top: 10 } },
       ]);
+    });
+
+    it('carries how much of the grid a race reverses onto its link', () => {
+      const next = withSession(format([{ id: 'race-1', type: 'race' }, { type: 'race' }]), 1, {
+        session: { type: 'race' }, from: 0, reverse: 8,
+      });
+
+      expect(next.sessions[1].inherit).toEqual({ from: 'race-1', top: undefined, reverse: 8 });
     });
 
     it('keeps the id a source already carries', () => {
@@ -722,6 +826,69 @@ describe('renderer/screens/championship-editor/utils', () => {
 
     it('counts nothing for a format no round runs', () => {
       expect(roundsRunning(championship, 'unused')).toBe(0);
+    });
+  });
+
+  describe('lengthUnit', () => {
+    it('reads a distance first, whatever else is written', () => {
+      expect(lengthUnit({ type: 'race', laps: 10, distance: 50 })).toBe('distance');
+    });
+
+    // A race is never the clock's: AC reads RACE_LAPS offline and times a race
+    // on a server alone, so one written in minutes still reads as laps and
+    // validateSeries reports it.
+    it('reads a race as laps, whatever it carries', () => {
+      expect(lengthUnit({ type: 'race', laps: 10, minutes: 30 })).toBe('laps');
+      expect(lengthUnit({ type: 'race' })).toBe('laps');
+      expect(lengthUnit({ type: 'race', minutes: 30 })).toBe('laps');
+    });
+
+    it('reads anything but a race as the clock', () => {
+      expect(lengthUnit({ type: 'qualify', laps: 3 })).toBe('minutes');
+    });
+  });
+
+  describe('withLengthUnit', () => {
+    it('keeps the unit\'s own value and clears the other two', () => {
+      expect(withLengthUnit({ laps: 10, minutes: 30, distance: 50 }, 'minutes'))
+        .toEqual({ laps: undefined, minutes: 30, distance: undefined });
+    });
+
+    it('starts a unit the session had no value in at its default', () => {
+      expect(withLengthUnit({ laps: 10 }, 'distance'))
+        .toEqual({ laps: undefined, minutes: undefined, distance: DEFAULT_LENGTH.distance });
+    });
+  });
+
+  describe('withRoundLength', () => {
+    const shortened = { ...round('monaco'), sessionLengths: [{ session: 'grand-prix', laps: 78 }] };
+
+    it('replaces a session\'s length, leaving the others alone', () => {
+      const next = withRoundLength(
+        { ...shortened, sessionLengths: [...shortened.sessionLengths, { session: 'sprint', laps: 20 }] },
+        'grand-prix',
+        { distance: 260 },
+      );
+
+      expect(next.sessionLengths).toEqual([{ session: 'sprint', laps: 20 }, { session: 'grand-prix', distance: 260 }]);
+    });
+
+    it('drops the list once the last length goes back to the format\'s', () => {
+      expect(withRoundLength(shortened, 'grand-prix', null).sessionLengths).toBeUndefined();
+    });
+  });
+
+  describe('withEntryPrizes', () => {
+    const main = series([]).entries[0];
+
+    it('writes the tables the class pays of its own', () => {
+      expect(withEntryPrizes(main, { positions: [100], standings: [] }).prizes)
+        .toEqual({ positions: [100], standings: undefined });
+    });
+
+    it('puts the class back on the championship\'s purse when both are emptied', () => {
+      expect(withEntryPrizes({ ...main, prizes: { positions: [1] } }, { positions: [], standings: [] }).prizes)
+        .toBeUndefined();
     });
   });
 

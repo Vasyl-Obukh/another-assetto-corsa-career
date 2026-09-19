@@ -16,7 +16,7 @@
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { SHIPPED_SERIES } from './shipped/index.ts';
+import { SHIPPED } from './shipped/index.ts';
 import type { LoadedLibrary, LoadedSeries } from './types.ts';
 import {
   assertSafeSeriesId, byLadder, readSeriesDir, seriesFileName,
@@ -26,8 +26,8 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { Championship } from '../../shared/types/index.ts';
 import { writeSeries } from '../series-file/index.ts';
 
-export { SHIPPED_SERIES } from './shipped/index.ts';
-export type { LoadedLibrary, LoadedSeries } from './types.ts';
+export { SHIPPED, SHIPPED_SERIES } from './shipped/index.ts';
+export type { LoadedLibrary, LoadedSeries, ShippedSeries } from './types.ts';
 // Re-exported because callers import the folder, never a file inside it.
 export {
   freeSeriesFileName, isSafeSeriesId, newSeriesId, takenSeriesIds,
@@ -45,9 +45,13 @@ export {
  * user files that did not read
  */
 export const loadSeriesLibrary = async (userDir?: string): Promise<LoadedLibrary> => {
-  const byId = new Map<string, LoadedSeries>(
-    SHIPPED_SERIES.map((series) => [series.id, { series, origin: 'shipped', file: null }]),
-  );
+  const byId = new Map<string, LoadedSeries>(SHIPPED.map((shipped) => [shipped.series.id, {
+    series: shipped.series,
+    origin: 'shipped',
+    file: null,
+    activeByDefault: shipped.active,
+    filler: shipped.filler ?? false,
+  }]));
 
   const read = userDir === undefined
     ? { series: [], problems: [] as AppErrorInfo[] }
@@ -67,7 +71,15 @@ export const loadSeriesLibrary = async (userDir?: string): Promise<LoadedLibrary
       return;
     }
 
-    byId.set(series.id, { series, file, origin: held ? 'adjusted' : 'user' });
+    // An adjustment keeps how the one it replaces starts out, so customising a
+    // championship never switches it on or off by itself.
+    byId.set(series.id, {
+      series,
+      file,
+      origin: held ? 'adjusted' : 'user',
+      activeByDefault: held?.activeByDefault ?? true,
+      filler: held?.filler ?? false,
+    });
   });
 
   return { series: [...byId.values()].sort(byLadder), problems };

@@ -202,40 +202,7 @@ export const readTeam = (value: unknown, field: string, report: Reporter): boole
 };
 
 /**
- * Checks one class entry's discipline, seats and what it may be driven in.
- * @param value The entry value
- * @param field Dotted path to it
- * @param report Where to record what is wrong
- * @returns True when it reads
- */
-export const readEntry = (value: unknown, field: string, report: Reporter): boolean => {
-  if (!isRecord(value)) return report.bad(field, value);
-
-  const ladder = isRecord(value.ladder)
-    ? report.closedSet(value.ladder.discipline, DISCIPLINES, `${field}.ladder.discipline`)
-    : report.bad(`${field}.ladder`, value.ladder);
-
-  // Mapped before every(), so an entry with three bad seats names three.
-  const seats = Array.isArray(value.seats)
-    ? value.seats.map((seat, at) => readSeat(seat, `${field}.seats[${at}]`, report)).every(Boolean)
-    : report.bad(`${field}.seats`, value.seats);
-
-  const rule = value.eligibility;
-  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats;
-
-  // Only the shape of a spec is checked here. It may be one the user made, so
-  // the set it belongs to is the resolved class catalogue rather than anything
-  // closed, and validateSeries is what resolves it. A car list is folder names,
-  // which seriesAvailability checks against the install.
-  const eligibility = rule.kind === 'spec'
-    ? (typeof rule.spec === 'string' && rule.spec !== '') || report.bad(`${field}.eligibility.spec`, rule.spec)
-    : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
-
-  return ladder && seats && eligibility;
-};
-
-/**
- * Checks the prize money a championship pays.
+ * Checks the prize money a championship, or one of its classes, pays.
  *
  * The same argument readPoints makes: a table of anything but numbers would pay
  * NaN a phase later rather than fail to read now.
@@ -258,6 +225,42 @@ export const readPrizes = (value: unknown, field: string, report: Reporter): boo
 };
 
 /**
+ * Checks one class entry's discipline, seats, what it may be driven in and
+ * what it pays.
+ * @param value The entry value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readEntry = (value: unknown, field: string, report: Reporter): boolean => {
+  if (!isRecord(value)) return report.bad(field, value);
+
+  const ladder = isRecord(value.ladder)
+    ? report.closedSet(value.ladder.discipline, DISCIPLINES, `${field}.ladder.discipline`)
+    : report.bad(`${field}.ladder`, value.ladder);
+
+  // Mapped before every(), so an entry with three bad seats names three.
+  const seats = Array.isArray(value.seats)
+    ? value.seats.map((seat, at) => readSeat(seat, `${field}.seats[${at}]`, report)).every(Boolean)
+    : report.bad(`${field}.seats`, value.seats);
+
+  const prizes = readPrizes(value.prizes, `${field}.prizes`, report);
+
+  const rule = value.eligibility;
+  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats && prizes;
+
+  // Only the shape of a spec is checked here. It may be one the user made, so
+  // the set it belongs to is the resolved class catalogue rather than anything
+  // closed, and validateSeries is what resolves it. A car list is folder names,
+  // which seriesAvailability checks against the install.
+  const eligibility = rule.kind === 'spec'
+    ? (typeof rule.spec === 'string' && rule.spec !== '') || report.bad(`${field}.eligibility.spec`, rule.spec)
+    : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
+
+  return ladder && seats && prizes && eligibility;
+};
+
+/**
  * Checks one round's track and whatever conditions it carries.
  * @param value The round value
  * @param field Dotted path to it
@@ -273,8 +276,21 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
   const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
   const climate = value.climate === undefined
     || report.closedSet(value.climate, CLIMATES, `${field}.climate`);
+  // The shape only: whether each names a session of the round's format, and
+  // states one length, is validateSeries' question.
+  const lengths = value.sessionLengths === undefined || (Array.isArray(value.sessionLengths)
+    ? value.sessionLengths.map((length, at) => {
+      const where = `${field}.sessionLengths[${at}]`;
+      if (!isRecord(length) || typeof length.session !== 'string') return report.bad(where, length);
 
-  return readConditions(value.conditions, `${field}.conditions`, report) && track && fee && climate;
+      return (['laps', 'minutes', 'distance'] as const)
+        .map((unit) => readOptionalNumber(length[unit], `${where}.${unit}`, report))
+        .every(Boolean);
+    }).every(Boolean)
+    : report.bad(`${field}.sessionLengths`, value.sessionLengths));
+
+  return readConditions(value.conditions, `${field}.conditions`, report)
+    && track && fee && climate && lengths;
 };
 
 /**

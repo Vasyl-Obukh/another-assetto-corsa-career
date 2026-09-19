@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
 import { BopTable } from './BopTable.tsx';
+import { MIN_MONEY } from './constants.ts';
 import { EligibilityField } from './EligibilityField.tsx';
 import { GridFields } from './GridFields.tsx';
 import { PanelRow } from './PanelRow.tsx';
+import { PositionTable } from './PositionTable.tsx';
 import { SeatTable } from './SeatTable.tsx';
-import { bopScope } from './utils.ts';
+import { bopScope, withEntryPrizes } from './utils.ts';
 import type {
   Championship, ClassEntry, EntryAvailability, Team,
 } from '../../../../shared/types';
@@ -93,8 +95,8 @@ interface EntryEditorProps {
 }
 
 /**
- * Classes shown as a heading that says what the class is, and three sections
- * for the three lists inside it.
+ * Classes shown as a heading that says what the class is, and a section for
+ * each list inside it.
  */
 export const EntryEditor = ({
   series, entry, number, count, availability, teams, fieldable, rows, locked, nameOf,
@@ -189,6 +191,41 @@ export const EntryEditor = ({
               locked={locked}
               nameOf={nameOf}
               onChange={(bop) => onChange({ ...entry, bop: bop.length > 0 ? bop : undefined })}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="prizes">
+          <AccordionTrigger className="-mx-2 rounded-md px-2 py-2 hover:bg-accent/60 hover:no-underline">
+            {t('editor.entries.prizes')}
+          </AccordionTrigger>
+          <AccordionContent className="flex flex-col gap-6 pt-1 pb-4">
+            <p className="text-sm text-muted-foreground">{t('editor.entries.prizesHint')}</p>
+
+            <PositionTable
+              idPrefix={`${idPrefix}-prize-round`}
+              label={t('editor.prizes.round')}
+              hint={t('editor.prizes.roundHint')}
+              empty={t('editor.entries.prizesShared')}
+              values={entry.prizes?.positions ?? []}
+              min={MIN_MONEY}
+              disabled={quiet}
+              onChange={(next) => onChange(withEntryPrizes(entry, {
+                positions: next, standings: entry.prizes?.standings ?? [],
+              }))}
+            />
+
+            <PositionTable
+              idPrefix={`${idPrefix}-prize-season`}
+              label={t('editor.prizes.season')}
+              hint={t('editor.prizes.seasonHint')}
+              empty={t('editor.entries.prizesShared')}
+              values={entry.prizes?.standings ?? []}
+              min={MIN_MONEY}
+              disabled={quiet}
+              onChange={(next) => onChange(withEntryPrizes(entry, {
+                positions: entry.prizes?.positions ?? [], standings: next,
+              }))}
             />
           </AccordionContent>
         </AccordionItem>

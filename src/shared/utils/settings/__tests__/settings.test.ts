@@ -13,6 +13,7 @@ import {
   readDrivingAids,
   readHiddenContentSources,
   readPaths,
+  readSeriesActive,
   readSettings,
   readWindow,
 } from '../settings.ts';
@@ -246,6 +247,23 @@ describe('shared/utils/settings', () => {
     });
   });
 
+  describe('readSeriesActive', () => {
+    it('keeps each championship switched either way, in id order', () => {
+      expect(Object.entries(readSeriesActive({ 'lotus-cup': false, 'f1-2023': true })))
+        .toEqual([['f1-2023', true], ['lotus-cup', false]]);
+    });
+
+    it('drops a switch that is not a yes or a no, or an id that is not clean', () => {
+      expect(readSeriesActive({ 'lotus-cup': 'off', ' padded ': true, '': false, 'f1-2023': true }))
+        .toEqual({ 'f1-2023': true });
+    });
+
+    it('reads anything but a record as nothing switched', () => {
+      expect(readSeriesActive(['lotus-cup'])).toEqual({});
+      expect(readSeriesActive(undefined)).toEqual({});
+    });
+  });
+
   describe('readSettings', () => {
     it('returns the defaults for anything that is not an object', () => {
       expect(readSettings(undefined)).toEqual(DEFAULT_SETTINGS);
@@ -269,7 +287,8 @@ describe('shared/utils/settings', () => {
         drivingAids: { abs: 2, idealLine: true },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
         hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'] },
-        inactiveSeries: ['lotus-cup'],
+        seriesActive: { 'lotus-cup': false },
+        showFillerSeries: false,
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,

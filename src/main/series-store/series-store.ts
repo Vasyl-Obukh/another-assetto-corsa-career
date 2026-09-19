@@ -98,6 +98,8 @@ export const createSeriesStore = async (
     series: one.series,
     availability: seriesAvailability(one.series, installed, classes.catalogue()),
     origin: one.origin,
+    activeByDefault: one.activeByDefault,
+    filler: one.filler,
     weekend: weekendOf(one.series, race.progress()),
   });
 

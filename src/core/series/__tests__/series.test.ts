@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { WeatherType } from '../../../shared/constants/index.ts';
 import { Climate } from '../../../shared/types/index.ts';
 import type {
-  Championship, ClassEntry, Seat, WeatherOffer,
+  Championship, ClassEntry, Content, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
@@ -67,8 +67,72 @@ const USER_CATALOGUE_LAYER = {
  */
 const USER_CATALOGUE = resolveCatalogue(USER_CATALOGUE_LAYER);
 
+/**
+ * A championship whose race is 10 km, with the given rounds.
+ * @param rounds Its calendar
+ * @returns The championship
+ */
+const byDistance = (rounds: readonly Round[] = makeSeries().rounds): Championship => makeSeries({
+  rounds,
+  weekendFormats: [{
+    id: 'standard',
+    name: 'Race weekend',
+    sessions: [
+      { type: 'qualify', name: 'Qualifying', minutes: 10 },
+      {
+        id: 'race', type: 'race', name: 'Race', distance: 10, day: 0,
+      },
+    ],
+  }],
+});
+
+/**
+ * The fixture content, with Magione saying how long a lap of it is.
+ * @param lengthM The lap length in metres
+ * @returns The content
+ */
+const withLapOf = (lengthM: number): Content => {
+  const content = makeContent();
+
+  return {
+    ...content,
+    tracks: content.tracks.map((track) => (track.id === 'magione' ? { ...track, lengthM } : track)),
+  };
+};
+
 describe('core/series', () => {
   describe('validateSeries', () => {
+    /**
+     * The codes validating a round with the given overrides produced.
+     * @param sessionLengths The lengths the round replaces
+     * @returns One code per problem
+     */
+    const lengthCodes = (sessionLengths: Round['sessionLengths']): string[] => {
+      const series = byDistance();
+
+      return validateSeries({ ...series, rounds: [{ ...series.rounds[0], sessionLengths }] })
+        .map((problem) => problem.code);
+    };
+
+    it('passes a round replacing its race\'s distance with a lap count', () => {
+      expect(lengthCodes([{ session: 'race', laps: 12 }])).toEqual([]);
+    });
+
+    it('refuses a length for a session its format does not run', () => {
+      expect(lengthCodes([{ session: 'sprint', laps: 12 }])).toEqual(['series.round.sessionUnknown']);
+    });
+
+    // Found in review: an override stating nothing stripped the format's length
+    // off the race and left it running AC's default.
+    it('refuses an override that states no length', () => {
+      expect(lengthCodes([{ session: 'race' }])).toEqual(['series.round.lengthMissing']);
+    });
+
+    it('holds an override to the rules a format\'s own length follows', () => {
+      expect(lengthCodes([{ session: 'race', laps: 12, distance: 10 }])).toEqual(['series.length.conflict']);
+    });
+  
+
     it('passes a championship with nothing wrong with it', () => {
       expect(codesFor()).toEqual([]);
     });
@@ -183,6 +247,38 @@ describe('core/series', () => {
   });
 
   describe('seriesAvailability', () => {
+    it('says how many laps each race comes to on the installed track', () => {
+      const availability = seriesAvailability(byDistance(), withLapOf(2500), SHIPPED_CATALOGUE);
+
+      expect(availability.rounds[0].races).toEqual([{ name: 'Race', laps: 4, distance: 10 }]);
+      expect(availability.available).toBe(true);
+    });
+
+    it('cannot race a distance on a track that does not say how long a lap is', () => {
+      const availability = seriesAvailability(byDistance(), makeContent(), SHIPPED_CATALOGUE);
+
+      expect(availability.rounds[0].races).toEqual([{ name: 'Race', laps: null, distance: 10 }]);
+      expect(availability.available).toBe(false);
+    });
+
+    // A circuit is one round's: missing it costs that round and no other.
+    it('stays available while at least one round can be raced', () => {
+      const rounds = [
+        { id: 'magione', name: 'Magione', track: { id: 'magione' } },
+        { id: 'elsewhere', name: 'Elsewhere', track: { id: 'not_installed' } },
+      ];
+      const availability = seriesAvailability(makeSeries({ rounds }), makeContent(), SHIPPED_CATALOGUE);
+
+      expect(availability.rounds[1].track).not.toBeNull();
+      expect(availability.available).toBe(true);
+    });
+
+    it('is unavailable once no round can be raced', () => {
+      const rounds = [{ id: 'elsewhere', name: 'Elsewhere', track: { id: 'not_installed' } }];
+
+      expect(seriesAvailability(makeSeries({ rounds }), makeContent(), SHIPPED_CATALOGUE).available).toBe(false);
+    });
+
     it('counts the cars a user spec holds as what a class can field', () => {
       const availability = seriesAvailability(USER_SPEC_SERIES, makeContent(), USER_CATALOGUE);
 
@@ -233,6 +329,35 @@ describe('core/series', () => {
   });
 
   describe('roundRace', () => {
+    it('runs a distance as the fewest laps of the installed track that cover it', () => {
+      const race = roundRace(
+        { series: byDistance(), entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        withLapOf(2400),
+      );
+
+      expect(race.sessions?.[1]).toMatchObject({ type: 'race', laps: 5 });
+      expect(race.sessions?.[1]).not.toHaveProperty('distance');
+    });
+
+    it('runs the length a round gives its race over the format\'s', () => {
+      const rounds = [{
+        id: 'magione', name: 'Magione', track: { id: 'magione' }, sessionLengths: [{ session: 'race', laps: 3 }],
+      }];
+      const race = roundRace(
+        { series: byDistance(rounds), entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        makeContent(),
+      );
+
+      expect(race.sessions?.[1]).toMatchObject({ laps: 3 });
+    });
+
+    it('refuses a distance on a track that does not say how long a lap is', () => {
+      expect(() => roundRace(
+        { series: byDistance(), entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        makeContent(),
+      )).toThrow(expect.objectContaining({ code: 'series.distance.unresolved' }));
+    });
+
     /**
      * Lowers the only round of a championship, with the player in its only class.
      * @param series The championship to lower

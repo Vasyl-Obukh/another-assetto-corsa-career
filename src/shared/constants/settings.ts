@@ -63,7 +63,8 @@ export const DEFAULT_SETTINGS: Settings = {
   drivingAids: {},
   addedContent: { cars: [], tracks: [] },
   hiddenContentSources: { packs: [], makers: [] },
-  inactiveSeries: [],
+  seriesActive: {},
+  showFillerSeries: true,
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

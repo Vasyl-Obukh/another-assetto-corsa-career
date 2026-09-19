@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { EntryCars } from './EntryCars.tsx';
 import { SeatList } from './SeatList.tsx';
 import { disciplineKey, tierAccent } from './utils.ts';
 import type { ClassEntry, EntryAvailability, Team } from '../../../../shared/types';
@@ -9,6 +10,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
+import { useCars } from '@/hooks';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 
 interface EntryCardProps {
@@ -29,6 +31,12 @@ interface EntryCardProps {
 export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
   const { t } = useTranslation();
   const { catalogue } = useClasses();
+  const eligible = availability?.eligible ?? [];
+  // One lookup for both the pictures and the balance table's names.
+  const cars = useCars([...eligible, ...(entry.bop ?? []).map((bop) => bop.car)]);
+  const fielded = eligible
+    .flatMap((id) => cars.get(id) ?? [])
+    .sort((left, right) => left.name.localeCompare(right.name));
 
   return (
     // Separated from the next class rather than boxed, the way the calendar
@@ -66,13 +74,15 @@ export const EntryCard = ({ entry, availability, teams }: EntryCardProps) => {
         <p className="text-sm text-destructive">{t('championships.entries.notEnough')}</p>
       ) : null}
 
+      {fielded.length > 0 ? <EntryCars cars={fielded} /> : null}
+
       {entry.bop?.length ? (
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('championships.entries.bop')}</span>
           {entry.bop.map((bop) => (
             <span key={bop.car} className="text-sm">
               {t('championships.entries.bopRow', {
-                car: bop.car,
+                car: cars.get(bop.car)?.name ?? bop.car,
                 adjustments: [
                   bop.ballast ? t('championships.entries.ballast', { value: bop.ballast }) : null,
                   bop.restrictor

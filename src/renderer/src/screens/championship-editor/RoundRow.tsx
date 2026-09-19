@@ -136,6 +136,12 @@ export const RoundRow = ({
         <Badge variant="secondary" className="max-w-40 shrink-0 truncate">{format.name}</Badge>
       )}
 
+      {/* Only a round that runs a race of its own length. Neutral for the same
+          reason: what it says is a number, stated in the form. */}
+      {round.sessionLengths?.length ? (
+        <Badge variant="outline" className="shrink-0">{t('editor.calendar.ownLength')}</Badge>
+      ) : null}
+
       {/* Only a round that expects weather of its own, and only while the
           championship generates it - a climate is ignored otherwise. */}
       {series.generatedWeather && round.climate ? <ClimateBadge climate={round.climate} /> : null}

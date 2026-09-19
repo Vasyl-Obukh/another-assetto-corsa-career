@@ -1,7 +1,10 @@
 import type { VariantProps } from 'class-variance-authority';
+import type { ParseKeys } from 'i18next';
 
 import type { AvailabilityState } from './utils.ts';
+import type { SortItem } from '@/components';
 import type { badgeVariants } from '@/components/ui/badge.tsx';
+import type { ChampionshipSortKey } from '@/hooks';
 
 /**
  * The entry list laid out as columns read downwards.
@@ -43,3 +46,21 @@ NonNullable<VariantProps<typeof badgeVariants>['variant']>
  * controls each lift themselves to `z-10`.
  */
 export const CARD_TITLE = 'min-w-0 flex-1 truncate text-left font-medium after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none';
+
+/**
+ * Every key a championship list can be sorted by, in the order the menu
+ * offers them. The name first, because it is what a list opens on.
+ */
+export const CHAMPIONSHIP_SORTS: readonly SortItem<ChampionshipSortKey>[] = [
+  { key: 'name', label: 'championships.sort.name' },
+  { key: 'ladder', label: 'championships.sort.ladder' },
+] as const satisfies readonly { key: ChampionshipSortKey; label: ParseKeys }[];
+
+/**
+ * Which list each championship list is remembered as, so the two keep their
+ * own filters: the settings tab narrows on more than the Championships page.
+ */
+export const CHAMPIONSHIP_MEMORY = {
+  championships: 'championships',
+  library: 'championship-library',
+} as const;

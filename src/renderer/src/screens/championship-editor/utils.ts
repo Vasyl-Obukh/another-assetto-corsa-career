@@ -4,8 +4,10 @@
 // format that named it, or a seat still pinned to a car its class no longer
 // fields, is the kind of thing worth being able to read in one place.
 
-import { DEFAULT_POINTS, DEFAULT_TIER } from './constants.ts';
-import type { Narrowed, SessionEdit, SetAside } from './types.ts';
+import { DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_TIER } from './constants.ts';
+import type {
+  LengthUnit, Narrowed, SessionEdit, SetAside,
+} from './types.ts';
 import { SERIES_FORMAT_VERSION } from '../../../../shared/constants';
 import { Discipline } from '../../../../shared/types';
 import type {
@@ -14,7 +16,9 @@ import type {
   ClassEntry,
   Eligibility,
   PointsSystem,
+  PrizeMoney,
   Round,
+  RoundSessionLength,
   Seat,
   SeatCar,
   SeriesSession,
@@ -436,6 +440,65 @@ const sessionIds = (sessions: readonly SeriesSession[]): Set<string> => new Set(
 );
 
 /**
+ * Gives every race of a format an id, where it has none yet.
+ *
+ * A round replaces a race's length by naming it, so a race nobody can name is
+ * one no round can shorten - Monaco's grand prix, say. An id once given is
+ * never changed, which is what keeps a round's override pointing at the race
+ * it was written for.
+ * @param sessions The format's sessions
+ * @returns The sessions, every race carrying an id
+ */
+export const withRaceIds = (sessions: readonly SeriesSession[]): SeriesSession[] => {
+  const taken = sessionIds(sessions);
+  let races = 0;
+
+  return sessions.map((session) => {
+    if (session.type !== 'race') return session;
+
+    races += 1;
+    if (session.id !== undefined) return session;
+
+    const id = freeId(`race-${races}`, taken);
+    taken.add(id);
+
+    return { ...session, id };
+  });
+};
+
+/**
+ * Drops the lengths a round replaces for sessions its format does not run.
+ *
+ * A session removed, a format dropped or the default moved can each leave an
+ * override naming nothing, which validateSeries would refuse with the row that
+ * explained it already gone - so the repair happens where the change does.
+ * @param series The championship, whose formats the round's is looked up in
+ * @param round The round
+ * @returns The round, every override naming a session it runs
+ */
+export const withRoundLengthsPruned = (series: Championship, round: Round): Round => {
+  if (!round.sessionLengths) return round;
+
+  const wanted = round.weekendFormat ?? series.defaultWeekendFormat;
+  const format = series.weekendFormats.find((one) => one.id === wanted);
+  const ids = new Set(format?.sessions.map((session) => session.id));
+  const kept = round.sessionLengths.filter((length) => ids.has(length.session));
+  if (kept.length === round.sessionLengths.length) return round;
+
+  return { ...round, sessionLengths: kept.length > 0 ? kept : undefined };
+};
+
+/**
+ * Drops, on every round, the lengths replaced for sessions it does not run.
+ * @param series The championship
+ * @returns The championship, every override naming a session its round runs
+ */
+const withLengthsPruned = (series: Championship): Championship => ({
+  ...series,
+  rounds: series.rounds.map((round) => withRoundLengthsPruned(series, round)),
+});
+
+/**
  * A weekend format to append, numbered after the ones already there.
  *
  * The session it starts with is handed in rather than built here: the race
@@ -454,7 +517,7 @@ export const nextFormat = (
   return {
     id: freeId(`format-${number}`, idsOf(series.weekendFormats)),
     name: `Format ${number}`,
-    sessions,
+    sessions: withRaceIds(sessions),
   };
 };
 
@@ -469,10 +532,23 @@ export const withFormat = (
   series: Championship,
   id: string,
   format: WeekendFormat,
-): Championship => ({
+): Championship => withLengthsPruned({
   ...series,
   weekendFormats: replaced(series.weekendFormats, id, format),
 });
+
+/**
+ * Makes one weekend format the championship's default.
+ *
+ * Every round naming no format moves with it, so an override written for the
+ * old default's races is dropped where the new one does not run them.
+ * @param series The championship
+ * @param id Which format becomes the default
+ * @returns The championship, with that default
+ */
+export const withDefaultFormat = (series: Championship, id: string): Championship => (
+  withLengthsPruned({ ...series, defaultWeekendFormat: id })
+);
 
 /**
  * Drops one weekend format, and whatever named it.
@@ -490,7 +566,7 @@ export const withFormat = (
 export const withoutFormat = (series: Championship, id: string): Championship => {
   const kept = series.weekendFormats.filter((one) => one.id !== id);
 
-  return {
+  return withLengthsPruned({
     ...series,
     weekendFormats: kept,
     defaultWeekendFormat: series.defaultWeekendFormat === id
@@ -499,7 +575,7 @@ export const withoutFormat = (series: Championship, id: string): Championship =>
     rounds: series.rounds.map((round) => (
       round.weekendFormat === id ? { ...round, weekendFormat: undefined } : round
     )),
-  };
+  });
 };
 
 /**
@@ -564,21 +640,25 @@ export const withoutPoints = (series: Championship, id: string): Championship =>
 /**
  * Which sessions one session may take its field from.
  *
- * Only a qualifying earlier in the weekend. Both halves are validateFormat's
- * rules rather than ours: a later session has not run yet, and nothing but a
- * qualifying leaves a classification behind for the next one to follow.
- * Positions rather than ids, because most sessions have no id until something
- * names them.
+ * Only a session earlier in the weekend, and only one that leaves a
+ * classification behind: a qualifying for anything, and an earlier race for a
+ * race, which is how a reverse-grid race follows the one before it. Both are
+ * validateFormat's rules rather than ours. Positions rather than ids, because
+ * most sessions have no id until something names them.
  * @param sessions The format's sessions
  * @param index Which session is doing the following
+ * @param type What kind of session is doing the following
  * @returns The positions it may follow, in weekend order
  */
 export const sessionSources = (
   sessions: readonly SeriesSession[],
   index: number,
-): number[] => sessions.flatMap(
-  (session, at) => (at < index && session.type === 'qualify' ? [at] : []),
-);
+  type: SeriesSession['type'],
+): number[] => sessions.flatMap((session, at) => (
+  at < index && (session.type === 'qualify' || (type === 'race' && session.type === 'race'))
+    ? [at]
+    : []
+));
 
 /**
  * Which session one session follows, as a position.
@@ -607,7 +687,8 @@ export const sessionSource = (
  * Puts one session into a weekend format, and wires what it follows.
  *
  * An index past the last session appends, which is what an add row confirms
- * with. The source of a link is given an id if it has none - `inherit.from`
+ * with. Every race is given an id, so a round can replace its length. The
+ * source of a link is given an id if it has none - `inherit.from`
  * names a session by id, and the session being pointed at is usually one nobody
  * had reason to name before now.
  * @param format The format to change
@@ -623,15 +704,18 @@ export const withSession = (
   const sessions = [...format.sessions];
   sessions[index] = edit.session;
 
-  if (edit.from === null) return { ...format, sessions };
+  if (edit.from === null) return { ...format, sessions: withRaceIds(sessions) };
 
   const source = sessions[edit.from];
   const id = source.id ?? freeId(`session-${edit.from + 1}`, sessionIds(sessions));
 
   sessions[edit.from] = { ...source, id };
-  sessions[index] = { ...edit.session, inherit: { from: id, top: edit.top } };
+  sessions[index] = {
+    ...edit.session,
+    inherit: { from: id, top: edit.top, reverse: edit.reverse },
+  };
 
-  return { ...format, sessions };
+  return { ...format, sessions: withRaceIds(sessions) };
 };
 
 /**
@@ -674,10 +758,76 @@ export const roundsRunning = (series: Championship, format: string): number => s
 ).length;
 
 /**
- * Puts the prize tables back on a championship, dropping what says nothing.
+ * Which unit a session's length is stated in.
+ *
+ * A distance first, since a race carrying one runs to it whatever else is
+ * written; then laps, the way race.ini reads a race carrying both.
+ * @param session The session
+ * @returns Its unit
+ */
+export const lengthUnit = (session: Pick<SeriesSession, 'type' | 'laps' | 'minutes' | 'distance'>): LengthUnit => {
+  if (session.distance !== undefined) return 'distance';
+  // A race is never the clock's, whatever it says: AC reads RACE_LAPS offline,
+  // and validateSeries reports one written in minutes.
+  return session.type === 'race' ? 'laps' : 'minutes';
+};
+
+/**
+ * Measures a session in another unit.
+ *
+ * The other two are cleared rather than kept, for the reason withSessionLength
+ * gives: a stale lap count left beside a duration still makes a lap race.
+ * @param session The session
+ * @param unit The unit it should be measured in
+ * @returns The session, with the unit's own value or a default
+ */
+export const withLengthUnit = <S extends Pick<SeriesSession, 'laps' | 'minutes' | 'distance'>>(
+  session: S,
+  unit: LengthUnit,
+): S => ({
+  ...session,
+  laps: unit === 'laps' ? session.laps ?? DEFAULT_LENGTH.laps : undefined,
+  minutes: unit === 'minutes' ? session.minutes ?? DEFAULT_LENGTH.minutes : undefined,
+  distance: unit === 'distance' ? session.distance ?? DEFAULT_LENGTH.distance : undefined,
+});
+
+/**
+ * Replaces or drops one session's length on a round.
+ * @param round The round
+ * @param session The session's id
+ * @param length Its own length, or null to run what the format says
+ * @returns The round, with the lengths it actually replaces
+ */
+export const withRoundLength = (
+  round: Round,
+  session: string,
+  length: Omit<RoundSessionLength, 'session'> | null,
+): Round => {
+  const others = (round.sessionLengths ?? []).filter((one) => one.session !== session);
+  const next = length === null ? others : [...others, { session, ...length }];
+
+  return { ...round, sessionLengths: next.length > 0 ? next : undefined };
+};
+
+/**
+ * Turns two edited prize tables into a prize block, dropping what says nothing.
  *
  * An emptied table goes rather than being written as `[]`, and a prize block
  * with neither table in it goes with them.
+ * @param prizes The tables, either of which may be empty
+ * @returns The block, or undefined when neither table pays anything
+ */
+const toPrizes = (
+  prizes: { positions: readonly number[]; standings: readonly number[] },
+): PrizeMoney | undefined => {
+  const positions = nonEmpty(prizes.positions);
+  const standings = nonEmpty(prizes.standings);
+
+  return positions !== undefined || standings !== undefined ? { positions, standings } : undefined;
+};
+
+/**
+ * Puts the prize tables back on a championship.
  * @param series The championship
  * @param prizes The tables, either of which may be empty
  * @returns The championship, with the tables it actually has
@@ -685,13 +835,19 @@ export const roundsRunning = (series: Championship, format: string): number => s
 export const withPrizes = (
   series: Championship,
   prizes: { positions: readonly number[]; standings: readonly number[] },
-): Championship => {
-  const positions = nonEmpty(prizes.positions);
-  const standings = nonEmpty(prizes.standings);
-  const said = positions !== undefined || standings !== undefined;
+): Championship => ({ ...series, prizes: toPrizes(prizes) });
 
-  return { ...series, prizes: said ? { positions, standings } : undefined };
-};
+/**
+ * Puts a class's own prize tables back on it. Both emptied, the class goes
+ * back to paying what the championship pays.
+ * @param entry The class entry
+ * @param prizes The tables, either of which may be empty
+ * @returns The entry, with the tables it actually has
+ */
+export const withEntryPrizes = (
+  entry: ClassEntry,
+  prizes: { positions: readonly number[]; standings: readonly number[] },
+): ClassEntry => ({ ...entry, prizes: toPrizes(prizes) });
 
 /**
  * The scope one weekend format's sessions are edited under.

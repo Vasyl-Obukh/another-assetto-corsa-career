@@ -28,9 +28,10 @@ interface BrowserToolbarProps {
    */
   filtered: boolean;
   /**
-   * Whether content changed under a list the user has already scrolled.
+   * Whether content changed under a list the user has already scrolled. Left
+   * out by a list that is never out of date, such as the championships.
    */
-  stale: boolean;
+  stale?: boolean;
   /**
    * The sort control and the filter controls for this collection.
    */
@@ -45,9 +46,9 @@ interface BrowserToolbarProps {
    */
   onClear(): void;
   /**
-   * Loads the list again from the first page.
+   * Loads the list again from the first page. Needed only alongside `stale`.
    */
-  onRefresh(): void;
+  onRefresh?(): void;
 }
 
 export const BrowserToolbar = ({
@@ -56,7 +57,7 @@ export const BrowserToolbar = ({
   shown,
   total,
   filtered,
-  stale,
+  stale = false,
   children,
   onSearchChange,
   onClear,

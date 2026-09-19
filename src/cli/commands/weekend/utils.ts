@@ -148,7 +148,7 @@ export const describePlan = (plan: WeekendPlan, state: WeekendState): string[] =
     // A simulated segment has no archive to name, so it says what it invented
     // instead - which is the only place that order is visible at all.
     if (done?.skipped) {
-      lines.push(`      order   simulated: ${(done.qualifyingOrder ?? []).join(', ')}`);
+      lines.push(`      order   simulated: ${(done.classification ?? []).join(', ')}`);
     } else if (done) {
       lines.push(`      result  ${done.archive}`);
     }

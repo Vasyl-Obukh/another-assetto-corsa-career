@@ -1,0 +1,180 @@
+import { seat, team } from './utils.ts';
+import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import type { Championship } from '../../../shared/types/index.ts';
+import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
+
+/**
+ * World Touring Car Championship, 1987 - Group A's one world season, in the
+ * division the BMW M3 won.
+ *
+ * The 1987 championship ran Group A cars in three divisions by engine size,
+ * each scored on its own, and the M3 was the 2.5-litre Division 2's car. That
+ * division is what the base game can field: the M3 E30 Group A, which is also
+ * all of it that is here. Six rounds at their real lengths - the Monza 500 km,
+ * the Spa 24 Hours, 500 km at the Nurburgring and at Silverstone for the
+ * Tourist Trophy, the Bathurst 1000 and 500 km at Fuji. Jarama, Dijon, Brno,
+ * Calder and Wellington are not in Assetto Corsa. Points are the division's
+ * 20-15-12-10-8-6-4-3-2-1.
+ *
+ * The field is invented: the season's entry list crews two or three drivers a
+ * car, which a one-driver grid cannot hold, and the M3 teams' pairings were not
+ * found in a source that could be checked.
+ *
+ * Source: https://en.wikipedia.org/wiki/1987_World_Touring_Car_Championship
+ */
+export const GROUP_A_1987: Championship = {
+  version: SERIES_FORMAT_VERSION,
+  id: 'group-a-1987',
+  name: 'World Touring Car Championship 1987',
+  description: 'Group A\'s one world season, in the BMW M3\'s own division, at its real lengths: the '
+    + 'Monza 500 km, the Spa 24 Hours, the Bathurst 1000 and 500 km at the Nurburgring, Silverstone '
+    + 'and Fuji.',
+  teams: [
+    team('schwaben', 'Schwaben Tourenwagen', 'Germany', 'GER', TeamBudget.WORKS),
+    team('bologna', 'Squadra Petronio', 'Italy', 'ITA', TeamBudget.WORKS),
+    team('linz', 'Donau Motorsport', 'Austria', 'AUT', TeamBudget.INDEPENDENT),
+    team('ardennes', 'Écurie Francorchamps', 'Belgium', 'BEL', TeamBudget.INDEPENDENT),
+    team('castilla', 'Castilla Competición', 'Spain', 'ESP', TeamBudget.PRIVATEER),
+    team('brands', 'Kentish Saloon Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+  ],
+  entries: [
+    {
+      id: 'division-2',
+      name: 'Division 2',
+      ladder: { discipline: Discipline.TOURING, tier: 3 },
+      seats: [
+        seat('sch-1', 'schwaben', 'Albrecht Heigl', 'Germany', 'GER'),
+        seat('sch-2', 'schwaben', 'Wolfgang Kutscher', 'Germany', 'GER'),
+        seat('sch-3', 'schwaben', 'Rainer Lüttgens', 'Germany', 'GER'),
+        seat('bol-1', 'bologna', 'Roberto Castagnoli', 'Italy', 'ITA'),
+        seat('bol-2', 'bologna', 'Emanuele Bottazzi', 'Italy', 'ITA'),
+        seat('bol-3', 'bologna', 'Gianfranco Brancaleoni', 'Italy', 'ITA'),
+        seat('lin-1', 'linz', 'Franz Haslinger', 'Austria', 'AUT'),
+        seat('lin-2', 'linz', 'Gerold Pichlmayr', 'Austria', 'AUT'),
+        seat('ard-1', 'ardennes', 'Eric Van Damme', 'Belgium', 'BEL'),
+        seat('ard-2', 'ardennes', 'Didier Lambrechts', 'Belgium', 'BEL'),
+        seat('cas-1', 'castilla', 'Luis Pérez-Sanz', 'Spain', 'ESP'),
+        seat('cas-2', 'castilla', 'Carlos Villalobos', 'Spain', 'ESP'),
+        seat('bra-1', 'brands', 'Gordon Pettifer', 'Great Britain', 'GBR'),
+        seat('bra-2', 'brands', 'Ian Kilbride', 'Great Britain', 'GBR'),
+      ],
+      eligibility: { kind: 'cars', cars: ['bmw_m3_e30_gra'] },
+    },
+  ],
+  weekendFormats: [
+    {
+      id: 'monza-500',
+      name: '500 km (Monza)',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
+        { type: 'race', name: '500 km', laps: 87, day: 1 },
+      ],
+    },
+    {
+      id: 'nurburgring-500',
+      name: '500 km (Nurburgring)',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
+        { type: 'race', name: '500 km', laps: 98, day: 1 },
+      ],
+    },
+    {
+      id: 'silverstone-500',
+      name: '500 km (Silverstone)',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
+        { type: 'race', name: 'Tourist Trophy', laps: 85, day: 1 },
+      ],
+    },
+    {
+      id: 'bathurst-1000',
+      name: '1000 km (Bathurst)',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 1 },
+        { type: 'race', name: 'Bathurst 1000', laps: 161, day: 2 },
+      ],
+    },
+    {
+      id: 'fuji-500',
+      name: '500 km (Fuji)',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
+        { type: 'race', name: '500 km', laps: 110, day: 1 },
+      ],
+    },
+    {
+      id: 'spa-24',
+      name: '24 Hours',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 1 },
+        { id: 'race', type: 'race', name: '24 Hours', laps: 481, day: 2 },
+      ],
+    },
+  ],
+  defaultWeekendFormat: 'monza-500',
+  rounds: [
+    {
+      id: 'monza',
+      name: 'Monza 500 km',
+      track: { id: 'monza' },
+      weekendFormat: 'monza-500',
+    },
+    {
+      id: 'nurburgring',
+      name: 'Nurburgring 500 km',
+      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      weekendFormat: 'nurburgring-500',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'spa',
+      name: 'Spa 24 Hours',
+      track: { id: 'spa' },
+      weekendFormat: 'spa-24',
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'silverstone',
+      name: 'RAC Tourist Trophy',
+      track: { id: 'ks_silverstone', layout: 'gp' },
+      weekendFormat: 'silverstone-500',
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'bathurst',
+      name: 'Bathurst 1000',
+      track: { id: 'rt_bathurst' },
+      weekendFormat: 'bathurst-1000',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'fuji',
+      name: 'Fuji 500 km',
+      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      weekendFormat: 'fuji-500',
+      climate: Climate.TEMPERATE,
+    },
+  ],
+  pointsSystems: [
+    { id: 'race', name: 'Division points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
+  ],
+  defaultPointsSystem: 'race',
+  grid: { aiLevel: 92, aiLevelMin: 84, aiAggression: 40 },
+  generatedWeather: { climate: Climate.MEDITERRANEAN },
+  regulations: {
+    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    penalties: true,
+    jumpStartPenalty: 10,
+  },
+  entryFee: 4000,
+  prizes: {
+    positions: [14000, 9500, 7000, 5200, 4000, 3000, 2200, 1600, 1100, 600],
+    standings: [95000, 58000, 38000, 25000, 16000],
+  },
+};

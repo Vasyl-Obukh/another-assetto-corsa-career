@@ -43,6 +43,14 @@ export interface SessionInheritance {
    * are eliminated.
    */
   top?: number;
+  /**
+   * How many of the inherited order's front runners start in reverse.
+   *
+   * A race only, and the usual partial reverse grid: `{ from: 'race-1',
+   * reverse: 8 }` puts race 1's eighth on pole and its winner eighth, with
+   * everyone behind them where race 1 left them.
+   */
+  reverse?: number;
 }
 
 /**

@@ -9,8 +9,8 @@ import type {
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
-  climateOf, eligibleCars, minModelsOf, requirementsOf, roundRaceId, seatSkin, validateFormat,
-  validateMoney,
+  climateOf, eligibleCars, lapsFor, minModelsOf, raceLengths, requirementsOf, roundRaceId,
+  roundSessions, seatSkin, validateFormat, validateLength, validateMoney, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -152,8 +152,8 @@ describe('core/series/utils', () => {
     });
 
     it('reports a link to something that classifies nobody', () => {
-      // Only a qualifying leaves a classification behind for the next session
-      // to follow; advanceWeekend records one for nothing else.
+      // Only a qualifying or a race leaves a classification behind for the next
+      // session to follow; advanceWeekend records one for nothing else.
       expect(codesFor([
         { id: 'fp1', type: 'practice', name: 'Practice', minutes: 30 },
         {
@@ -170,6 +170,51 @@ describe('core/series/utils', () => {
         },
         { type: 'race', name: 'Race', laps: 10, day: 1 },
       ])).toEqual(['series.inherit.topInvalid']);
+    });
+
+    it('lets a race follow an earlier race, which is how a reverse grid is lined up', () => {
+      expect(codesFor([
+        { id: 'race-1', type: 'race', name: 'Race 1', laps: 10 },
+        {
+          type: 'race', name: 'Race 2', laps: 10, day: 1, inherit: { from: 'race-1', reverse: 8 },
+        },
+      ])).toEqual([]);
+    });
+
+    it('refuses a qualifying following a race, whose order means nothing to it', () => {
+      expect(codesFor([
+        { id: 'race-1', type: 'race', name: 'Race 1', laps: 10 },
+        {
+          type: 'qualify', name: 'Qualifying', minutes: 15, day: 1, inherit: { from: 'race-1' },
+        },
+        { type: 'race', name: 'Race 2', laps: 10, day: 1 },
+      ])).toEqual(['series.inherit.notQualifying']);
+    });
+
+    it('refuses a reverse too short to turn anything round', () => {
+      expect(codesFor([
+        { id: 'q1', type: 'qualify', name: 'Qualifying', minutes: 15 },
+        {
+          type: 'race', name: 'Race', laps: 10, day: 1, inherit: { from: 'q1', reverse: 1 },
+        },
+      ])).toEqual(['series.inherit.reverseInvalid']);
+    });
+
+    it('refuses a reverse on anything but a race, since nothing else lines up a grid', () => {
+      expect(codesFor([
+        { id: 'q1', type: 'qualify', name: 'Q1', minutes: 15 },
+        {
+          id: 'q2', type: 'qualify', name: 'Q2', minutes: 12, inherit: { from: 'q1', reverse: 4 },
+        },
+        { type: 'race', name: 'Race', laps: 10, day: 1 },
+      ])).toEqual(['series.inherit.reverseInvalid']);
+    });
+
+    it('checks every session\'s length', () => {
+      expect(codesFor([
+        { type: 'qualify', name: 'Qualifying', distance: 20 },
+        { type: 'race', name: 'Race', laps: 10, minutes: 30, day: 1 },
+      ])).toEqual(['series.distance.onNonRace', 'series.length.conflict', 'series.race.timed']);
     });
 
     it('names every broken link rather than the first', () => {
@@ -298,6 +343,156 @@ describe('core/series/utils', () => {
     it('accepts a free championship, which is not the same as charging nothing', () => {
       expect(moneyCodes({ entryFee: 0 })).toEqual([]);
     });
+
+    it('refuses a negative prize in a class\'s own tables, naming the class', () => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+      const entries = [{ ...series.entries[0], prizes: { positions: [100, -2] } }];
+      const [problem] = validateMoney({ ...series, entries });
+
+      expect(problem.code).toBe('series.prizes.invalid');
+      expect(problem.params).toMatchObject({ table: 'class main round', position: 2, amount: -2 });
+    });
+  });
+
+  describe('validateLength', () => {
+    const where = { series: 'test-cup', format: 'standard', session: 'Race' };
+
+    /**
+     * The codes checking one length produced.
+     * @param length The length to check
+     * @param type What kind of session it measures
+     * @returns One code per problem
+     */
+    const lengthCodes = (
+      length: Pick<SeriesSession, 'laps' | 'minutes' | 'distance'>,
+      type: SeriesSession['type'] = 'race',
+    ): string[] => validateLength(length, type, where).map((problem) => problem.code);
+
+    it('passes a single positive length in any unit', () => {
+      expect(lengthCodes({ laps: 10 })).toEqual([]);
+      expect(lengthCodes({ minutes: 30 }, 'practice')).toEqual([]);
+      expect(lengthCodes({ distance: 305 })).toEqual([]);
+    });
+
+    // Driven: a race sent as three minutes and no laps let the player carry on
+    // past the clock while the AI parked in the pits. AC times a race on a
+    // server alone.
+    it('refuses a race measured by the clock', () => {
+      expect(lengthCodes({ minutes: 30 })).toEqual(['series.race.timed']);
+    });
+
+    it('passes a session stating no length, which runs AC\'s default', () => {
+      expect(lengthCodes({})).toEqual([]);
+    });
+
+    // Two lengths would race whichever the lowering happened to read first.
+    it('refuses two lengths at once', () => {
+      expect(lengthCodes({ laps: 10, distance: 100 })).toEqual(['series.length.conflict']);
+    });
+
+    it('refuses a length that is not a positive number, naming its unit', () => {
+      const problems = validateLength({ distance: 0 }, 'race', where);
+
+      expect(problems.map((problem) => problem.code)).toEqual(['series.length.invalid']);
+      expect(problems[0].params).toMatchObject({ unit: 'distance', length: 0 });
+      expect(lengthCodes({ laps: Number.NaN })).toEqual(['series.length.invalid']);
+    });
+
+    it('refuses a distance on anything but a race', () => {
+      expect(lengthCodes({ distance: 50 }, 'qualify')).toEqual(['series.distance.onNonRace']);
+    });
+  });
+
+  describe('roundSessions', () => {
+    const format: WeekendFormat = {
+      id: 'weekend',
+      name: 'Weekend',
+      sessions: [
+        { type: 'qualify', name: 'Qualifying', minutes: 15 },
+        { id: 'grand-prix', type: 'race', name: 'Grand Prix', distance: 305 },
+      ],
+    };
+    const round = { id: 'monaco', name: 'Monaco', track: { id: 'monaco' } };
+
+    it('runs the format as it stands where the round replaces nothing', () => {
+      expect(roundSessions(format, round)).toEqual(format.sessions);
+    });
+
+    // Merging would leave a race of 305 km and 78 laps, which validateLength
+    // refuses and the lowering could not honour both of.
+    it('replaces a session\'s length outright rather than merging with it', () => {
+      const sessions = roundSessions(format, {
+        ...round, sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      });
+
+      expect(sessions[1]).toEqual({
+        id: 'grand-prix', type: 'race', name: 'Grand Prix', laps: 78, minutes: undefined, distance: undefined,
+      });
+      expect(sessions[0]).toBe(format.sessions[0]);
+    });
+  });
+
+  describe('lapsFor', () => {
+    it('takes the fewest laps that cover the distance', () => {
+      expect(lapsFor(305, 5793)).toBe(53);
+      expect(lapsFor(100, 5793)).toBe(18);
+    });
+
+    // 32.7 km over 1090 m comes to 30.000000000000004 in floating point, and a
+    // distance that is a whole number of laps must not gain one for it.
+    it('does not add a lap for a rounding error on an exact multiple', () => {
+      expect(lapsFor(32.7, 1090)).toBe(30);
+    });
+
+    it('never runs a race of no laps', () => {
+      expect(lapsFor(0.001, 5000)).toBe(1);
+    });
+  });
+
+  describe('withDistancesInLaps', () => {
+    const sessions: SeriesSession[] = [
+      { type: 'qualify', name: 'Qualifying', minutes: 15 },
+      { id: 'grand-prix', type: 'race', name: 'Grand Prix', distance: 305 },
+    ];
+
+    it('turns every distance into laps on the track\'s lap', () => {
+      expect(withDistancesInLaps(sessions, 5793)).toEqual([
+        sessions[0],
+        {
+          id: 'grand-prix', type: 'race', name: 'Grand Prix', laps: 53,
+        },
+      ]);
+    });
+
+    it('cannot run a distance where the lap length is not known', () => {
+      expect(withDistancesInLaps(sessions, null)).toBeNull();
+    });
+
+    it('needs no lap length where nothing is a distance', () => {
+      expect(withDistancesInLaps([sessions[0]], null)).toEqual([sessions[0]]);
+    });
+  });
+
+  describe('raceLengths', () => {
+    it('says each race\'s laps, and the distance they come from', () => {
+      expect(raceLengths([
+        { type: 'qualify', name: 'Qualifying', minutes: 15 },
+        { id: 'sprint', type: 'race', name: 'Sprint', distance: 100 },
+        { id: 'grand-prix', type: 'race', laps: 50 },
+      ], 5793)).toEqual([
+        { name: 'Sprint', laps: 18, distance: 100 },
+        { name: null, laps: 50 },
+      ]);
+    });
+
+    it('has no laps for a distance where the lap length is not known', () => {
+      expect(raceLengths([{ type: 'race', name: 'Race', distance: 100 }], null))
+        .toEqual([{ name: 'Race', laps: null, distance: 100 }]);
+    });
+
+    it('leaves out a race run to the clock, which has no lap count to show', () => {
+      expect(raceLengths([{ type: 'race', name: 'Race', minutes: 30 }], 5000)).toEqual([]);
+    });
   });
 
   describe('requirementsOf', () => {
@@ -357,10 +552,11 @@ describe('core/series/utils', () => {
       expect(requires.sources).toContain(ContentSource.MOD);
     });
 
-    it('needs a pack for the track a round races', () => {
+    it('records the pack a round races in against that round rather than as needed', () => {
       const requires = requirementsOf(racing({ kind: 'cars', cars: ['abarth500'] }, 'ks_brands_hatch'), SHIPPED_CATALOGUE);
 
-      expect(requires.packs).toEqual([DLCPack.DREAM_PACK_3]);
+      expect(requires.packs).toEqual([]);
+      expect(requires.rounds.packs).toEqual([DLCPack.DREAM_PACK_3]);
     });
 
     // A mod nobody is credited with has no maker, so this is the only trace of

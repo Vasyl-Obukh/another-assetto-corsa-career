@@ -1,0 +1,157 @@
+import { seat, team } from './utils.ts';
+import {
+  CarSpec, Climate, Discipline, TeamBudget,
+} from '../../../shared/types/index.ts';
+import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
+
+/**
+ * A BTCC meeting of the Super Touring years: practice, then a qualifying and a
+ * race for the sprint, and another of each for the feature race.
+ */
+const WEEKEND: WeekendFormat = {
+  id: 'race-meeting',
+  name: 'Sprint and feature',
+  sessions: [
+    { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
+    { id: 'sprint-qualifying', type: 'qualify', name: 'Sprint qualifying', minutes: 20, day: 0 },
+    { id: 'feature-qualifying', type: 'qualify', name: 'Feature qualifying', minutes: 20, day: 0 },
+    {
+      id: 'sprint',
+      type: 'race',
+      name: 'Sprint race',
+      distance: 40,
+      day: 1,
+      inherit: { from: 'sprint-qualifying' },
+    },
+    {
+      id: 'feature',
+      type: 'race',
+      name: 'Feature race',
+      distance: 80,
+      day: 1,
+      inherit: { from: 'feature-qualifying' },
+    },
+  ],
+};
+
+/**
+ * British Touring Car Championship, 1998 - Super Touring at its height.
+ *
+ * VRC's ERC cars are that era's Super Tourers under made-up names, and make up
+ * the spec. Two races a meeting, each with its own qualifying: a sprint, and a
+ * longer feature race. The circuits are those of the season that Assetto Corsa
+ * has - Thruxton, Silverstone, Brands Hatch Indy, Oulton Park, Croft and
+ * Knockhill; Donington Park and Snetterton are not in Assetto Corsa, and which
+ * Silverstone layout the season used was not checked. The races are the
+ * usual 40 and 80 kilometres, which were not checked, turned into laps off each
+ * track; the feature race's compulsory pit stop cannot be stated yet.
+ *
+ * Points are 15-12-10-8-6-5-4-3-2-1 in each race, which was not checked
+ * against the season. The field is invented.
+ *
+ * Source: https://en.wikipedia.org/wiki/1998_British_Touring_Car_Championship
+ */
+export const BTCC_1998: Championship = {
+  version: SERIES_FORMAT_VERSION,
+  id: 'btcc-1998',
+  name: 'British Touring Car Championship 1998',
+  description: 'The British Touring Car Championship of 1998 on VRC\'s Super Tourers: a sprint and a '
+    + 'feature race a meeting at Thruxton, Silverstone, Brands Hatch, Oulton Park, Croft and '
+    + 'Knockhill.',
+  teams: [
+    team('pennine', 'Pennine Motorsport', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('wessex', 'Wessex Racing', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('humber', 'Humberside Touring', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('severn', 'Severn Valley Racing', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('fenland', 'Fenland Racing', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('mersey', 'Merseyside Motorsport', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('highland', 'Highland Touring', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('tyne', 'Tyneside Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+    team('chiltern', 'Chiltern Motorsport', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+    team('solway', 'Solway Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+  ],
+  entries: [
+    {
+      id: 'super-touring',
+      name: 'Super Touring',
+      ladder: { discipline: Discipline.TOURING, tier: 2 },
+      seats: [
+        seat('pen-1', 'pennine', 'Graham Ashworth', 'Great Britain', 'GBR'),
+        seat('pen-2', 'pennine', 'Neil Brathwaite', 'Great Britain', 'GBR'),
+        seat('wes-1', 'wessex', 'Colin Sherborne', 'Great Britain', 'GBR'),
+        seat('wes-2', 'wessex', 'Martin Wareham', 'Great Britain', 'GBR'),
+        seat('hum-1', 'humber', 'Steve Harrowby', 'Great Britain', 'GBR'),
+        seat('hum-2', 'humber', 'Paul Kilburn', 'Great Britain', 'GBR'),
+        seat('sev-1', 'severn', 'Gareth Llewellin', 'Great Britain', 'GBR'),
+        seat('sev-2', 'severn', 'Rhodri Maddocks', 'Great Britain', 'GBR'),
+        seat('fen-1', 'fenland', 'Andy Pickersgill', 'Great Britain', 'GBR'),
+        seat('fen-2', 'fenland', 'Keith Mowbray', 'Great Britain', 'GBR'),
+        seat('mer-1', 'mersey', 'Tony Ackroyd', 'Great Britain', 'GBR'),
+        seat('mer-2', 'mersey', 'Dean Halewood', 'Great Britain', 'GBR'),
+        seat('hig-1', 'highland', 'Iain Strathearn', 'Great Britain', 'GBR'),
+        seat('hig-2', 'highland', 'Fraser Dunnachie', 'Great Britain', 'GBR'),
+        seat('tyn-1', 'tyne', 'Craig Hebburn', 'Great Britain', 'GBR'),
+        seat('tyn-2', 'tyne', 'Lee Fawdon', 'Great Britain', 'GBR'),
+        seat('chi-1', 'chiltern', 'Richard Penfold', 'Great Britain', 'GBR'),
+        seat('chi-2', 'chiltern', 'Julian Tresham', 'Great Britain', 'GBR'),
+        seat('sol-1', 'solway', 'Alan Gatehouse', 'Great Britain', 'GBR'),
+        seat('sol-2', 'solway', 'Rob Annandale', 'Great Britain', 'GBR'),
+      ],
+      eligibility: { kind: 'spec', spec: CarSpec.SUPER_TOURING_1990S, minModels: 3 },
+    },
+  ],
+  weekendFormats: [
+    WEEKEND,
+  ],
+  defaultWeekendFormat: 'race-meeting',
+  rounds: [
+    {
+      id: 'thruxton',
+      name: 'Thruxton',
+      track: { id: 'js_thruxton', layout: 'lfm' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'silverstone',
+      name: 'Silverstone',
+      track: { id: 'ks_silverstone', layout: 'national' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'brands-hatch',
+      name: 'Brands Hatch',
+      track: { id: 'ks_brands_hatch', layout: 'indy' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'oulton-park',
+      name: 'Oulton Park',
+      track: { id: 'rt_oulton_park', layout: 'international' },
+      climate: Climate.OCEANIC,
+    },
+    { id: 'croft', name: 'Croft', track: { id: 'zw_croft', layout: 'full' }, climate: Climate.OCEANIC },
+    {
+      id: 'knockhill',
+      name: 'Knockhill',
+      track: { id: 'knockhill2017', layout: 'knockhill' },
+      climate: Climate.OCEANIC,
+    },
+  ],
+  pointsSystems: [
+    { id: 'race', name: 'Race points', positions: [15, 12, 10, 8, 6, 5, 4, 3, 2, 1] },
+  ],
+  defaultPointsSystem: 'race',
+  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 60 },
+  generatedWeather: { climate: Climate.OCEANIC },
+  regulations: {
+    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    penalties: true,
+    jumpStartPenalty: 10,
+  },
+  entryFee: 8000,
+  prizes: {
+    positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
+    standings: [240000, 150000, 96000, 63000, 39000],
+  },
+};

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
 import { useNavigate, useParams } from 'react-router';
 
+import { ChampionshipActions } from './ChampionshipActions.tsx';
 import { EnterRoundDialog } from './EnterRoundDialog.tsx';
 import { EntryCard } from './EntryCard.tsx';
 import { FormatCard } from './FormatCard.tsx';
@@ -17,16 +18,25 @@ import {
 } from '@/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useChampionship, useForecast } from '@/hooks';
+import { useChampionship, useForecast, useSeriesCommands } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 
-// Read-only, as a career sees it: what is wrong with a championship, and every
-// way to change it, is the settings tab's.
-export const ChampionshipDetail = () => {
+interface ChampionshipDetailProps {
+  /**
+   * Whether the page is the settings tab's, which manages the library rather
+   * than racing it: the whole menu, and no round can be raced from it. Left
+   * out, it is the page a career reads, with Edit its only command.
+   */
+  manage?: boolean;
+}
+
+// Read-only either way: every change is made in the editor the menu opens.
+export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
   const championship = useChampionship(id);
+  const commands = useSeriesCommands();
   const forecasts = useForecast(id === '' ? undefined : id);
   const [entering, setEntering] = useState<Round | null>(null);
 
@@ -40,19 +50,38 @@ export const ChampionshipDetail = () => {
   );
 
   const { listing } = championship;
+  // Each back to the list it was opened from: a championship on the settings
+  // tab may be switched off, and then the Championships page does not list it.
+  const back = manage
+    ? { to: path.settingsChampionships(), label: t('editor.back') }
+    : { to: path.championships(), label: t('championships.back') };
+  const here = manage ? path.settingsChampionship({ id }) : path.championship({ id });
+  // One card rather than two, as on the settings tab.
+  const error = championship.error ?? commands.error;
+
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={{ to: path.championships(), label: t('championships.back') }}>
+      <ScreenHeader back={back}>
         {listing ? (
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold">{listing.series.name}</h1>
+            <h1 className="min-w-0 flex-1 text-2xl font-semibold">{listing.series.name}</h1>
             <OriginBadge origin={listing.origin} />
+            <ChampionshipActions
+              listing={listing}
+              commands={commands}
+              manage={manage}
+              returnTo={{ to: here, label: 'championships.backToChampionship' }}
+              onDeleted={() => navigate(back.to)}
+            />
           </div>
         ) : null}
       </ScreenHeader>
 
-      {championship.error ? (
-        <ErrorCard error={championship.error} onDismiss={championship.dismissError} />
+      {error ? (
+        <ErrorCard
+          error={error}
+          onDismiss={() => { championship.dismissError(); commands.dismissError(); }}
+        />
       ) : null}
 
       {championship.loading ? <Skeleton className="h-24 w-full" /> : null}
@@ -115,7 +144,7 @@ export const ChampionshipDetail = () => {
                   number={index + 1}
                   busy={championship.busy}
                   forecast={forecastOf(round.id)}
-                  onRace={() => setEntering(round)}
+                  onRace={manage ? undefined : () => setEntering(round)}
                 />
               ))}
             </CardContent>
@@ -128,16 +157,21 @@ export const ChampionshipDetail = () => {
             defaultSystem={listing.series.defaultPointsSystem}
           />
 
-          <MoneyCard entryFee={listing.series.entryFee} prizes={listing.series.prizes} />
+          <MoneyCard
+            entryFee={listing.series.entryFee}
+            prizes={listing.series.prizes}
+            entries={listing.series.entries}
+          />
 
-          <EnterRoundDialog
-            key={entering?.id ?? ''}
-            round={entering}
-            listing={listing}
-            forecast={forecastOf(entering?.id)}
-            busy={championship.busy}
-            onClose={() => setEntering(null)}
-            onConfirm={(entry, car, skin) => {
+          {manage ? null : (
+            <EnterRoundDialog
+              key={entering?.id ?? ''}
+              round={entering}
+              listing={listing}
+              forecast={forecastOf(entering?.id)}
+              busy={championship.busy}
+              onClose={() => setEntering(null)}
+              onConfirm={(entry, car, skin) => {
               if (!entering) return;
 
               championship.enterRound(entry, entering.id, car, skin).then((ok) => {
@@ -145,7 +179,8 @@ export const ChampionshipDetail = () => {
                 if (ok) navigate(path.race());
               }, () => setEntering(null));
             }}
-          />
+            />
+          )}
 
         </>
       ) : null}

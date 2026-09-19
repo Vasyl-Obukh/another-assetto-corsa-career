@@ -147,7 +147,7 @@ export enum CarSpec {
   PORSCHE_CUP_992_LFM = 'porsche-cup-992-lfm',
   PORSCHE_CUP_992_URD = 'porsche-cup-992-urd',
   PORSCHE_CUP_992_GUERILLA = 'porsche-cup-992-guerilla',
-  DTM_1992 = 'dtm-1992',
+  DTM_1993 = 'dtm-1993',
   DTM_2021_RSS = 'dtm-2021-rss',
   DTM_2025_LFM = 'dtm-2025-lfm',
   DTM_2025_RSS = 'dtm-2025-rss',

@@ -2,206 +2,268 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, SeriesSession } from '../../../shared/types/index.ts';
+import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * Saturday's knockout and the grand prix it lines up, which both formats run.
- *
- * Shared rather than written twice: a sprint weekend adds a chain of its own in
- * front of these, it does not change them, and two copies could drift.
+ * A grand prix weekend of 2023: three practices, the three-part
+ * knockout, and the race.
  */
-const GRAND_PRIX_DAY: readonly SeriesSession[] = [
-  { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 1 },
-  {
-    id: 'q2',
-    type: 'qualify',
-    name: 'Q2',
-    minutes: 15,
-    day: 1,
-    inherit: { from: 'q1', top: 15 },
-  },
-  {
-    id: 'q3',
-    type: 'qualify',
-    name: 'Q3',
-    minutes: 12,
-    day: 1,
-    inherit: { from: 'q2', top: 10 },
-  },
-  { type: 'race', name: 'Grand Prix', laps: 25, day: 2, inherit: { from: 'q3' } },
-];
+const WEEKEND: WeekendFormat = {
+  id: 'grand-prix',
+  name: 'Grand Prix',
+  sessions: [
+    { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
+    { type: 'practice', name: 'Free practice 2', minutes: 60, day: 0 },
+    { type: 'practice', name: 'Free practice 3', minutes: 60, day: 1 },
+    { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 1 },
+    {
+      id: 'q2',
+      type: 'qualify',
+      name: 'Q2',
+      minutes: 15,
+      day: 1,
+      inherit: { from: 'q1', top: 15 },
+    },
+    {
+      id: 'q3',
+      type: 'qualify',
+      name: 'Q3',
+      minutes: 12,
+      day: 1,
+      inherit: { from: 'q2', top: 10 },
+    },
+    { id: 'grand-prix', type: 'race', name: 'Grand Prix', distance: 305, day: 2, inherit: { from: 'q3' } },
+  ],
+};
 
 /**
- * Formula 1 2023 - the knockout exemplar.
+ * A sprint weekend of 2023: Friday's knockout sets the grand prix grid,
+ * and Saturday runs a shootout of its own for the sprint.
+ */
+const SPRINT: WeekendFormat = {
+  id: 'sprint',
+  name: 'Sprint weekend',
+  sessions: [
+    { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
+    { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 0 },
+    {
+      id: 'q2',
+      type: 'qualify',
+      name: 'Q2',
+      minutes: 15,
+      day: 0,
+      inherit: { from: 'q1', top: 15 },
+    },
+    {
+      id: 'q3',
+      type: 'qualify',
+      name: 'Q3',
+      minutes: 12,
+      day: 0,
+      inherit: { from: 'q2', top: 10 },
+    },
+    { id: 'sq1', type: 'qualify', name: 'SQ1', minutes: 12, day: 1 },
+    {
+      id: 'sq2',
+      type: 'qualify',
+      name: 'SQ2',
+      minutes: 10,
+      day: 1,
+      inherit: { from: 'sq1', top: 15 },
+    },
+    {
+      id: 'sq3',
+      type: 'qualify',
+      name: 'SQ3',
+      minutes: 8,
+      day: 1,
+      inherit: { from: 'sq2', top: 10 },
+    },
+    {
+      id: 'sprint',
+      type: 'race',
+      name: 'Sprint',
+      distance: 100,
+      day: 1,
+      inherit: { from: 'sq3' },
+      pointsSystem: 'sprint',
+    },
+    { id: 'grand-prix', type: 'race', name: 'Grand Prix', distance: 305, day: 2, inherit: { from: 'q3' } },
+  ],
+};
+
+/**
+ * Formula 1, 2023 - Max Verstappen's third title, nineteen wins in twenty-two.
  *
- * The only shipped championship that needs content Assetto Corsa does not
- * ship, and deliberately so. Knockout qualifying and the sprint weekend are
- * what Formula 1 runs, and there is no base-game car that could carry them
- * honestly - so it sits on VRC's Formula Alpha 2023, and anyone without the
- * mod sees it unavailable with VRC named, which is what the provenance
- * catalogue is for.
+ * The real entry list on VRC's Formula Alpha 2023, every seat in it. The 2023
+ * season is a championship per spec, so RSS's car of the same year races its
+ * own. 13 of 22 rounds at their real distances, four of its six sprint
+ * weekends included - the sprint lined up by a shootout of its own, the grand
+ * prix by Friday's knockout; Barcelona runs the layout without its final
+ * chicane, as it did from that year. Yas Marina runs the layout before its
+ * 2021 rebuild, so its laps cover the real distance. Jeddah, Melbourne, Baku,
+ * Miami, Monaco, Marina Bay, Suzuka, Losail and Las Vegas are not in Assetto
+ * Corsa.
  *
- * Its sprint weekend is the thing no earlier format could say: two chains on
- * one weekend, SQ1 to SQ3 into the sprint and Q1 to Q3 into the grand prix.
- * "The last qualifying before this race" would line the sprint up behind the
- * wrong one, which is why a session names where its grid comes from.
+ * Qualifying is the three-part knockout, twenty cars cut to fifteen and then
+ * to ten. Points are 25-18-15-12-10-8-6-4-2-1 and one for the fastest lap,
+ * which the season paid only to a driver in the top ten - a condition a points
+ * system cannot state yet, and a sprint pays 8-7-6-5-4-3-2-1.
  *
- * Zandvoort is missing from an otherwise real calendar because Assetto
- * Corsa's has eighteen pit boxes against a twenty-car field, so
- * seriesAvailability would report it rather than race it.
+ * Source: https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship
  */
 export const FORMULA_1_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2023',
-  name: 'Formula 1 2023',
-  description: 'Twenty cars, knockout qualifying and two sprint rounds, on VRC\'s Formula Alpha 2023. '
-    + 'The mod is a single car in twenty liveries rather than ten distinct chassis, so the field '
-    + 'is one spec on merit alone. Liveries are assigned automatically, since which of them a '
-    + 'copy of the mod installs is not ours to assume.',
+  name: 'Formula 1 2023 (VRC)',
+  description: 'Max Verstappen\'s nineteen-win season, with the real entry list on VRC\'s Formula Alpha 2023'
+    + ' and thirteen of its grands prix at their real distances.',
   teams: [
-    team('red-bull', 'Red Bull Racing', 'Austria', 'AUT', TeamBudget.WORKS),
-    team('mercedes', 'Mercedes', 'Germany', 'GER', TeamBudget.WORKS),
-    team('ferrari', 'Ferrari', 'Italy', 'ITA', TeamBudget.WORKS),
-    team('aston-martin', 'Aston Martin', 'Great Britain', 'GBR', TeamBudget.WORKS),
-    team('mclaren', 'McLaren', 'Great Britain', 'GBR', TeamBudget.WORKS),
-    team('alpine', 'Alpine', 'France', 'FRA', TeamBudget.WORKS),
-    team('williams', 'Williams', 'Great Britain', 'GBR'),
-    team('alphatauri', 'AlphaTauri', 'Italy', 'ITA'),
-    team('alfa-romeo', 'Alfa Romeo', 'Switzerland', 'SUI'),
-    team('haas', 'Haas', 'United States', 'USA'),
+    team('red-bull', 'Oracle Red Bull Racing', 'Austria', 'AUT', TeamBudget.WORKS),
+    team('ferrari', 'Scuderia Ferrari', 'Italy', 'ITA', TeamBudget.WORKS),
+    team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'Germany', 'GER', TeamBudget.WORKS),
+    team('mclaren', 'McLaren F1 Team', 'Great Britain', 'GBR', TeamBudget.INDEPENDENT),
+    team('aston-martin', 'Aston Martin Aramco Cognizant F1 Team', 'Great Britain', 'GBR', TeamBudget.WORKS),
+    team('alpine', 'BWT Alpine F1 Team', 'France', 'FRA', TeamBudget.WORKS),
+    team('williams', 'Williams Racing', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
+    team('alphatauri', 'Scuderia AlphaTauri', 'Italy', 'ITA', TeamBudget.INDEPENDENT),
+    team('alfa-romeo', 'Alfa Romeo F1 Team Stake', 'Switzerland', 'SUI', TeamBudget.INDEPENDENT),
+    team('haas', 'MoneyGram Haas F1 Team', 'United States', 'USA', TeamBudget.INDEPENDENT),
   ],
   entries: [
     {
-      id: 'main',
+      id: 'formula-1',
       name: 'Formula 1',
       ladder: { discipline: Discipline.SINGLE_SEATER, tier: 1 },
-      // Ordered as the season finished, so the class ramp from 96 down to 86
-      // lines the field up roughly on merit. A seat states a level of its own
-      // only where that ramp gets a driver wrong - all three below were well
-      // adrift of the car under them.
+      // In the order the season finished.
       seats: [
-        seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED'),
-        seat('rbr-2', 'red-bull', 'Sergio Perez', 'Mexico', 'MEX', 93),
-        seat('mer-1', 'mercedes', 'Lewis Hamilton', 'Great Britain', 'GBR'),
-        seat('mer-2', 'mercedes', 'George Russell', 'Great Britain', 'GBR'),
-        seat('fer-1', 'ferrari', 'Charles Leclerc', 'Monaco', 'MON'),
-        seat('fer-2', 'ferrari', 'Carlos Sainz', 'Spain', 'ESP'),
-        seat('amr-1', 'aston-martin', 'Fernando Alonso', 'Spain', 'ESP'),
-        seat('amr-2', 'aston-martin', 'Lance Stroll', 'Canada', 'CAN', 90),
-        seat('mcl-1', 'mclaren', 'Lando Norris', 'Great Britain', 'GBR'),
-        seat('mcl-2', 'mclaren', 'Oscar Piastri', 'Australia', 'AUS'),
-        seat('alp-1', 'alpine', 'Esteban Ocon', 'France', 'FRA'),
-        seat('alp-2', 'alpine', 'Pierre Gasly', 'France', 'FRA'),
-        seat('wil-1', 'williams', 'Alexander Albon', 'Thailand', 'THA'),
-        seat('wil-2', 'williams', 'Logan Sargeant', 'United States', 'USA', 87),
-        seat('at-1', 'alphatauri', 'Yuki Tsunoda', 'Japan', 'JPN'),
-        seat('at-2', 'alphatauri', 'Daniel Ricciardo', 'Australia', 'AUS'),
-        seat('alf-1', 'alfa-romeo', 'Valtteri Bottas', 'Finland', 'FIN'),
-        seat('alf-2', 'alfa-romeo', 'Zhou Guanyu', 'China', 'CHN'),
-        seat('haa-1', 'haas', 'Nico Hulkenberg', 'Germany', 'GER'),
-        seat('haa-2', 'haas', 'Kevin Magnussen', 'Denmark', 'DEN'),
+        seat('red-bull-verstappen', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED'),
+        seat('red-bull-perez', 'red-bull', 'Sergio Pérez', 'Mexico', 'MEX'),
+        seat('mercedes-hamilton', 'mercedes', 'Lewis Hamilton', 'Great Britain', 'GBR'),
+        seat('aston-martin-alonso', 'aston-martin', 'Fernando Alonso', 'Spain', 'ESP'),
+        seat('ferrari-leclerc', 'ferrari', 'Charles Leclerc', 'Monaco', 'MON'),
+        seat('mclaren-norris', 'mclaren', 'Lando Norris', 'Great Britain', 'GBR'),
+        seat('ferrari-sainz', 'ferrari', 'Carlos Sainz', 'Spain', 'ESP'),
+        seat('mercedes-russell', 'mercedes', 'George Russell', 'Great Britain', 'GBR'),
+        seat('mclaren-piastri', 'mclaren', 'Oscar Piastri', 'Australia', 'AUS'),
+        seat('aston-martin-stroll', 'aston-martin', 'Lance Stroll', 'Canada', 'CAN'),
+        seat('alpine-gasly', 'alpine', 'Pierre Gasly', 'France', 'FRA'),
+        seat('alpine-ocon', 'alpine', 'Esteban Ocon', 'France', 'FRA'),
+        seat('williams-albon', 'williams', 'Alexander Albon', 'Thailand', 'THA'),
+        seat('alphatauri-tsunoda', 'alphatauri', 'Yuki Tsunoda', 'Japan', 'JPN'),
+        seat('alfa-romeo-bottas', 'alfa-romeo', 'Valtteri Bottas', 'Finland', 'FIN'),
+        seat('haas-hulkenberg', 'haas', 'Nico Hülkenberg', 'Germany', 'GER'),
+        seat('alphatauri-ricciardo', 'alphatauri', 'Daniel Ricciardo', 'Australia', 'AUS'),
+        seat('alfa-romeo-guanyu', 'alfa-romeo', 'Zhou Guanyu', 'China', 'CHN'),
+        seat('haas-magnussen', 'haas', 'Kevin Magnussen', 'Denmark', 'DEN'),
+        seat('williams-sargeant', 'williams', 'Logan Sargeant', 'United States', 'USA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2023_VRC, minModels: 1 },
     },
   ],
-  weekendFormats: [
-    {
-      id: 'standard',
-      name: 'Race weekend',
-      sessions: [
-        { type: 'practice', name: 'Practice 1', minutes: 60, day: 0 },
-        { type: 'practice', name: 'Practice 2', minutes: 60, day: 0 },
-        { type: 'practice', name: 'Practice 3', minutes: 60, day: 1 },
-        ...GRAND_PRIX_DAY,
-      ],
-    },
-    {
-      id: 'sprint',
-      name: 'Sprint weekend',
-      sessions: [
-        { type: 'practice', name: 'Practice 1', minutes: 60, day: 0 },
-        { id: 'sq1', type: 'qualify', name: 'SQ1', minutes: 12, day: 0 },
-        {
-          id: 'sq2',
-          type: 'qualify',
-          name: 'SQ2',
-          minutes: 10,
-          day: 0,
-          inherit: { from: 'sq1', top: 15 },
-        },
-        {
-          id: 'sq3',
-          type: 'qualify',
-          name: 'SQ3',
-          minutes: 8,
-          day: 0,
-          inherit: { from: 'sq2', top: 10 },
-        },
-        {
-          type: 'race',
-          name: 'Sprint',
-          laps: 8,
-          day: 1,
-          inherit: { from: 'sq3' },
-          pointsSystem: 'sprint',
-        },
-        ...GRAND_PRIX_DAY,
-      ],
-    },
-  ],
-  defaultWeekendFormat: 'standard',
+  weekendFormats: [WEEKEND, SPRINT],
+  defaultWeekendFormat: 'grand-prix',
   rounds: [
-    { id: 'barcelona', name: 'Spain', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
-    { id: 'imola', name: 'Emilia-Romagna', track: { id: 'imola' } },
     {
-      id: 'red-bull-ring',
-      name: 'Austria',
+      id: 'bahrain',
+      name: 'Bahrain Grand Prix',
+      track: { id: 'fn_bahrain', layout: 'gp' },
+      climate: Climate.ARID,
+    },
+    {
+      id: 'spain',
+      name: 'Spanish Grand Prix',
+      track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
+      sessionLengths: [{ session: 'grand-prix', laps: 66 }],
+    },
+    {
+      id: 'canada',
+      name: 'Canadian Grand Prix',
+      track: { id: 'canada_2021', layout: 'lfm' },
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'austria',
+      name: 'Austrian Grand Prix',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
       weekendFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'silverstone',
-      name: 'Great Britain',
+      id: 'britain',
+      name: 'British Grand Prix',
       track: { id: 'ks_silverstone', layout: 'gp' },
       climate: Climate.OCEANIC,
     },
     {
-      id: 'spa',
-      name: 'Belgium',
+      id: 'hungary',
+      name: 'Hungarian Grand Prix',
+      track: { id: 'rt_hungaroring' },
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'belgium',
+      name: 'Belgian Grand Prix',
       track: { id: 'spa' },
       weekendFormat: 'sprint',
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Italy', track: { id: 'monza' } },
     {
-      id: 'nurburgring',
-      name: 'Germany',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      id: 'netherlands',
+      name: 'Dutch Grand Prix',
+      track: { id: 'zandvoort2023', layout: '2023' },
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'italy',
+      name: 'Italian Grand Prix',
+      track: { id: 'monza' },
+      sessionLengths: [{ session: 'grand-prix', laps: 51 }],
+    },
+    {
+      id: 'united-states',
+      name: 'United States Grand Prix',
+      track: { id: 'acu_unitedstates' },
+      weekendFormat: 'sprint',
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mexico-city',
+      name: 'Mexico City Grand Prix',
+      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      sessionLengths: [{ session: 'grand-prix', laps: 71 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'sao-paulo',
+      name: 'São Paulo Grand Prix',
+      track: { id: 'vhe_interlagos', layout: 'gp' },
+      weekendFormat: 'sprint',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'abu-dhabi',
+      name: 'Abu Dhabi Grand Prix',
+      track: { id: 'yas_marina_2021', layout: 'gp' },
+      climate: Climate.ARID,
     },
   ],
   pointsSystems: [
-    {
-      id: 'race',
-      name: 'Race points',
-      positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
-      fastestLap: 1,
-    },
+    { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 1 },
     { id: 'sprint', name: 'Sprint points', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 86, aiAggression: 40 },
+  grid: { aiLevel: 97, aiLevelMin: 89, aiAggression: 40 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1, tyreBlankets: true },
+    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: true },
     penalties: true,
     jumpStartPenalty: 10,
   },
   entryFee: 0,
   prizes: {
-    positions: [8000, 5600, 4000, 3000, 2200, 1600, 1200, 800, 500, 300],
-    standings: [60000, 36000, 24000, 16000, 10000],
+    positions: [100000, 70000, 50000, 36000, 27000, 20000, 15000, 10000, 6000, 3000],
+    standings: [700000, 420000, 280000, 180000, 120000],
   },
 };

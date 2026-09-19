@@ -113,7 +113,7 @@ describe('main/race-store/utils', () => {
         completedAt: '2026-09-11T18:00:00.000Z',
         archive: `${at}.json`,
         gridOrder: [0],
-        qualifyingOrder: null,
+        classification: null,
       })),
     });
 

@@ -15,10 +15,11 @@ import {
   defaultOrder,
   fieldFor,
   gripAfter,
-  lastQualifying,
+  lastSessionOf,
   launchOf,
   materialiseRace,
   playerFirst,
+  reverseFront,
   runsToClock,
   sessionRain,
   simulateSegment,
@@ -63,15 +64,15 @@ const planned = (race: RaceDefinition): WeekendPlan => planWeekend(race, makeCon
 /**
  * A completed launch carrying a classification, as the state holds one.
  * @param index Which launch it records
- * @param qualifyingOrder The order it classified, or null when it classified none
+ * @param classification The order it classified, or null when it classified none
  * @returns The record
  */
-const record = (index: number, qualifyingOrder: number[] | null): LaunchRecord => ({
+const record = (index: number, classification: number[] | null): LaunchRecord => ({
   index,
   completedAt: '2026-01-01T00:00:00.000Z',
   archive: 'archive.json',
   gridOrder: [0, 1, 2, 3, 4, 5],
-  qualifyingOrder,
+  classification,
 });
 
 /**
@@ -485,7 +486,23 @@ describe('core/weekend/utils', () => {
     });
   });
 
-  describe('lastQualifying', () => {
+  describe('reverseFront', () => {
+    it('turns the front of the order round and leaves the rest where it was', () => {
+      expect(reverseFront([4, 2, 0, 1, 3, 5], 4)).toEqual([1, 0, 2, 4, 3, 5]);
+    });
+
+    // A format written for a full grid still runs on a short one.
+    it('reverses the whole field when asked for more than it holds', () => {
+      expect(reverseFront([0, 1, 2], 8)).toEqual([2, 1, 0]);
+    });
+
+    it('leaves the order alone for a count of none', () => {
+      expect(reverseFront([0, 1, 2], 0)).toEqual([0, 1, 2]);
+      expect(reverseFront([0, 1, 2], -3)).toEqual([0, 1, 2]);
+    });
+  });
+
+  describe('lastSessionOf', () => {
     it('finds the qualifying session among the others', () => {
       const raceOut = {
         track: 't',
@@ -494,7 +511,7 @@ describe('core/weekend/utils', () => {
         sessions: [makeSession(1, 'P'), makeSession(2, 'Q'), makeSession(3, 'R')],
       };
 
-      expect(lastQualifying(raceOut, 2)?.name).toBe('Q');
+      expect(lastSessionOf(raceOut, 2)?.name).toBe('Q');
     });
 
     it('takes the last of several qualifying sessions', () => {
@@ -505,7 +522,7 @@ describe('core/weekend/utils', () => {
         sessions: [makeSession(2, 'Q1'), makeSession(2, 'Q2')],
       };
 
-      expect(lastQualifying(raceOut, 2)?.name).toBe('Q2');
+      expect(lastSessionOf(raceOut, 2)?.name).toBe('Q2');
     });
 
     it('returns null when the launch ran no qualifying', () => {
@@ -513,7 +530,7 @@ describe('core/weekend/utils', () => {
         track: 't', number_of_sessions: 1, players: [], sessions: [makeSession(3, 'R')],
       };
 
-      expect(lastQualifying(raceOut, 2)).toBeNull();
+      expect(lastSessionOf(raceOut, 2)).toBeNull();
     });
   });
 

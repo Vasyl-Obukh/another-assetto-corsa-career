@@ -23,6 +23,7 @@ const requiring = (overrides: Partial<SeriesRequirements> = {}): SeriesRequireme
   packs: [],
   makers: [],
   pools: [],
+  rounds: { packs: [], makers: [], distributors: [] },
   widenedBy: { packs: [], makers: [] },
   ...overrides,
 });
@@ -52,6 +53,8 @@ const listing = (origin: SeriesOrigin, requires: SeriesRequirements): SeriesList
   series: { id: 'cup' } as SeriesListing['series'],
   availability: { requires } as SeriesListing['availability'],
   origin,
+  activeByDefault: true,
+  filler: false,
   weekend: null,
 });
 

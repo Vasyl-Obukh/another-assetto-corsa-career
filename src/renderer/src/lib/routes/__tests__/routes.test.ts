@@ -76,6 +76,10 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.championshipEdit({ id: 'lotus-cup' })).toBe('/settings/championships/lotus-cup/edit');
     });
 
+    it('builds the settings tab\'s own page for one championship', () => {
+      expect(path.settingsChampionship({ id: 'lotus-cup' })).toBe('/settings/championships/lotus-cup');
+    });
+
     // Under settings, so the nav lights Settings on every screen that manages
     // the library - Diagnostics included, now that it is one of its tabs.
     it('puts every managing screen under settings', () => {

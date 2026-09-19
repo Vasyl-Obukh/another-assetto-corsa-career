@@ -27,12 +27,16 @@ import {
   levelIn,
   missingTrack,
   pickModels,
+  raceLengths,
   requirementsOf,
   roundOf,
   roundRaceId,
+  roundSessions,
   seatSkin,
   validateFormat,
+  validateLength,
   validateMoney,
+  withDistancesInLaps,
 } from './utils.ts';
 import { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
@@ -189,6 +193,31 @@ export const validateSeries = (
         series: series.id, round: round.id, format: round.weekendFormat,
       }));
     }
+
+    // A length is replaced by session id, so it has to name one the round's
+    // own format runs - an override for a sprint on a regular weekend would
+    // otherwise sit there saying nothing.
+    const format = formatOf(series, round);
+    round.sessionLengths?.forEach((length) => {
+      const session = format?.sessions.find((one) => one.id === length.session);
+      if (format && !session) {
+        problems.push(appErrorInfo('series.round.sessionUnknown', {
+          series: series.id, round: round.id, session: length.session,
+        }));
+      }
+      // A session may leave its length to AC; an override stating none would
+      // strip the format's length off the session and replace it with nothing.
+      if (session && [length.laps, length.minutes, length.distance].every((one) => one === undefined)) {
+        problems.push(appErrorInfo('series.round.lengthMissing', {
+          series: series.id, round: round.id, session: length.session,
+        }));
+      }
+      if (session) {
+        problems.push(...validateLength(length, session.type, {
+          series: series.id, format: `round ${round.id}`, session: length.session,
+        }));
+      }
+    });
   });
 
   if (series.pointsSystems.length === 0) {
@@ -218,10 +247,13 @@ export const validateSeries = (
  *
  * Every missing car and track is named down to the DLC pack or the mod team
  * through the provenance catalogue, which is a pure ID lookup and so answers
- * perfectly well for content nobody has. Nothing here is worked around: a
- * championship missing something is reported as unavailable rather than quietly
+ * perfectly well for content nobody has. Cars are never worked around: a
+ * championship missing one is reported as unavailable rather than quietly
  * running a smaller field, because two users' "same" championship silently
- * differing is how results stop comparing.
+ * differing is how results stop comparing. A circuit is different - a
+ * championship races every real venue of its season wherever it comes from,
+ * and a round whose track is missing is simply one the player cannot race,
+ * said so on the round itself.
  * @param series The championship to check
  * @param content Installed content to check against
  * @param catalogue The class catalogue specs resolve against
@@ -241,6 +273,7 @@ export const seriesAvailability = (
     const overridden = series.entries
       .filter((entry) => round.eligibility?.some((override) => override.entry === entry.id))
       .map((entry) => availabilityOf(entry, content, catalogue, round));
+    const format = formatOf(series, round);
 
     return {
       round: round.id,
@@ -249,14 +282,22 @@ export const seriesAvailability = (
         ? { needed, available: track.pitboxes }
         : null,
       entries: overridden,
+      races: format ? raceLengths(roundSessions(format, round), track?.lengthM ?? null) : [],
     };
   });
 
+  // Cars are the championship's: a grid missing some is a grid missing
+  // drivers, so every class - and every round's own cars - must be there. A
+  // circuit is one round's: a round without its track, or with too few boxes
+  // for the field, is a round the player skips, and the championship stands
+  // while at least one round can be raced.
   const available = problems.length === 0
     && entries.every((entry) => entry.enough)
-    && rounds.every((round) => (
-      round.track === null && round.pitboxes === null && round.entries.every((one) => one.enough)
-    ));
+    && rounds.every((round) => round.entries.every((one) => one.enough))
+    && rounds.some((round) => round.track === null && round.pitboxes === null
+      // A race stated as a distance runs only once the track says how long
+      // a lap is.
+      && round.races.every((race) => race.laps !== null));
 
   return {
     series: series.id,
@@ -368,6 +409,21 @@ export const roundRace = (
     });
   });
 
+  // Laps from the track as installed, so a race of 305 km is 305 km on the
+  // user's own version of the circuit too.
+  const lap = findLayout(content, round.track)?.lengthM ?? null;
+  const stated = roundSessions(format, round);
+  const sessions = withDistancesInLaps(stated, lap);
+  if (!sessions) {
+    const race = stated.find((session) => session.distance !== undefined);
+    throw new AppError('series.distance.unresolved', {
+      series: series.id,
+      round: round.id,
+      session: race?.name ?? 'race',
+      distance: race?.distance ?? 0,
+    });
+  }
+
   const climate = climateOf(series, round);
 
   return {
@@ -377,8 +433,8 @@ export const roundRace = (
     playerCar: { model: car.model, skin: car.skin, ...bopFor(playerEntry, car.model) },
     grid: { size: opponents.length + 1, opponents },
     sessions: climate === null
-      ? [...format.sessions]
-      : applyForecast(format.sessions, forecastRound(series.id, round, format, climate, offer)),
+      ? sessions
+      : applyForecast(sessions, forecastRound(series.id, round, format, climate, offer)),
     conditions: round.conditions,
     assists: series.regulations?.assists,
     fixedSetup: series.regulations?.fixedSetup,

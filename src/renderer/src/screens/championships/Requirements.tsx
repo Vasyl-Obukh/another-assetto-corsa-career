@@ -18,6 +18,8 @@ export const Requirements = ({ requires }: RequirementsProps) => {
   // A mod nobody is credited with has no maker to name, so it reads as a bare Mod.
   const uncredited = requires.sources.includes(ContentSource.MOD) && requires.makers.length === 0;
   const widens = requires.widenedBy.packs.length > 0 || requires.widenedBy.makers.length > 0;
+  const { rounds } = requires;
+  const roundsNeed = rounds.packs.length + rounds.makers.length + rounds.distributors.length > 0;
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -40,6 +42,19 @@ export const Requirements = ({ requires }: RequirementsProps) => {
           ) : null}
         </>
       )}
+
+      {/* Apart from Needs: missing one of these costs the rounds raced on it
+          and leaves the rest of the calendar running. */}
+      {roundsNeed ? (
+        <>
+          <span className="ml-2">{t('championshipLibrary.roundsNeed')}</span>
+          <SourceChips
+            packs={rounds.packs}
+            makers={rounds.makers}
+            distributors={rounds.distributors}
+          />
+        </>
+      ) : null}
 
       {widens ? (
         <>

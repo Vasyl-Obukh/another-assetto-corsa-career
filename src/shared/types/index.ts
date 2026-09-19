@@ -143,6 +143,8 @@ export type {
   Round,
   RoundAvailability,
   RoundEligibility,
+  RoundRaceLength,
+  RoundSessionLength,
   Seat,
   SeatCar,
   SeatDriver,

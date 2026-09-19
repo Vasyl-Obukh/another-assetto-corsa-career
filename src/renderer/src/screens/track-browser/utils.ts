@@ -7,10 +7,11 @@ import { isSafeSegment, trackOutlineUrl, trackPreviewUrl } from '../../../../sha
  * The URL grammar rejects folder names containing spaces and anything else a
  * path could be smuggled through, so a candidate that could only ever answer
  * 400 is dropped here rather than being requested and failing.
- * @param track The layout to illustrate
+ * @param track The layout to illustrate - only its folder and layout are read,
+ * so a round naming one serves as well as a scanned layout
  * @returns Zero or more accontent:// URLs, in the order they should be tried
  */
-export const layoutImageSources = (track: Track): string[] => {
+export const layoutImageSources = (track: Pick<Track, 'id' | 'layout'>): string[] => {
   if (!isSafeSegment(track.id)) return [];
   if (track.layout !== '' && !isSafeSegment(track.layout)) return [];
 
@@ -28,7 +29,7 @@ export const layoutImageSources = (track: Track): string[] => {
  * @param track The layout to draw
  * @returns Zero or more accontent:// URLs, in the order they should be tried
  */
-export const layoutMapSources = (track: Track): string[] => (
+export const layoutMapSources = (track: Pick<Track, 'id' | 'layout'>): string[] => (
   [...layoutImageSources(track)].reverse()
 );
 

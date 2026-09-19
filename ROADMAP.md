@@ -1361,9 +1361,12 @@ settings, which is the precondition for classifying them - **and classifying the
 has now landed too**: a user layer over the class catalogue, Classify on a car's
 page, and a Classes tab for classes and specs of the user's own. **Generated
 weather has landed with its forecast and a weather-aware track**, along with a
-setting for which weather the sim may use at all. What is still open in this
-phase is the rest of the shipped library - **the championship configuration page
-and content source toggles have landed**, as one Championships tab in settings.
+setting for which weather the sim may use at all. **The championship
+configuration page and content source toggles have landed**, as one
+Championships tab in settings. What is still open in this phase is the rest of
+the shipped library - **a championship for every car the catalogue names**, see
+*The championship catalogue* below - and the install links that wait on the
+catalogue.
 
 - [x] Series schema: discipline, rounds, weekend format, regulations, points,
       BoP - the tier sits on the class entry below, not here.
@@ -1951,18 +1954,59 @@ and content source toggles have landed**, as one Championships tab in settings.
       its card's bottom corner, and switching it off fades everything else on
       the card. The Championships page says nothing about what it leaves out -
       it is a page to race from, and what is missing is the settings tab's
-- [ ] Ship the championship library, with a **complete base-only ladder** across
-      several disciplines and tiers
-- [ ] **Formula UK** - the championship the Lotus Exos 125 exists for. Both it
-      and the S1 upgrade carry no spec, so the series names the two cars
-      directly. They had a spec each until the customer-F1 pair was dropped:
-      a customer chassis sold as an experience is not a category, and two specs
-      of one car were never a grid.
-      **Held back on the calendar rather than on the cars**: `BASE_TRACKS` holds
-      two UK circuits, `ks_silverstone` and `ks_silverstone1967`, so a base-only
-      Formula UK is either two tracks or dishonest about where it races. It wants
-      Brands Hatch from Dream Pack 3, which makes it a DLC championship - and
-      that is also where the two Exos cars would show off balance of performance
+- [x] **Reverse grids.** `SessionInheritance.reverse` turns the front of an
+      inherited order round, which Formula Abarth, F2, F3, F4, BTCC, TCR and
+      the Ginetta Supercup all race. It needed a race to classify: a race
+      launch now records its finishing order - AC's `raceResult` when it is a
+      whole permutation, laps then time otherwise - so a later race can follow
+      it, and `qualifyingOrder` became `classification`. The editor offers an
+      earlier race as a source to a race, and a *Cars reversed* field beside
+      *Cars carried over*. `npm run dry` byte-identical
+- [x] **Which championships start switched on is the library's call.** `SHIPPED`
+      registers each shipped championship with `active` and, for a filler rung,
+      `filler`; the listing carries both as `activeByDefault` and `filler`, and
+      `settings.seriesActive` stores only the switches the user actually
+      flipped, either way - `inactiveSeries` is gone. **There is no historic
+      championship in the app**: every championship is the same kind of thing,
+      and which of ours start off is the authoring rule below and nothing more.
+      A switch on the Content sources tab hides every filler championship at
+      once
+- [x] **A race is laps or a distance, never the clock.** Assetto Corsa runs a
+      timed race on a server alone - measured, not assumed, and both halves of
+      it were driven. A race sent as minutes alone writes `RACE_LAPS=0`, and the
+      AI read that as nothing to race and drove to the pits while the player's
+      own clock ran the race out; a race sent as minutes *and* a lap count
+      nothing could reach ran on past the clock, counting laps everywhere. CM's
+      Quick Drive has no timed race to copy either, so test mode had nothing to
+      show. **Eighty-two shipped championships were racing on the clock**, from
+      Formula Abarth's 28 minutes to every 24-hour race in the library, and all
+      of them had to say their races another way, and there are two answers.
+      **A race under four hours is a distance** - the kilometres that duration
+      covers at the fastest class's pace, which each file's header states - and
+      becomes laps off each round's own layout. **A race of four hours or more
+      states its laps per round**, from the real event's winning distance,
+      because one distance over a calendar runs hours long at a slow circuit:
+      Le Mans is the real 311 laps of 2024, the Rolex 24 781, the Spa 24 Hours
+      564 in 2013 and 478 in the wet 2024 edition. `championship-review.md`
+      carries every pace, every lap count and the half-dozen rounds whose real
+      race was rained off and had a normal edition stand in. The engine refuses the shape rather than trusting
+      the library: `validateSeries` reports `series.race.timed`, `buildRaceIni`
+      throws `race.session.raceNotInLaps`, and neither the editor nor the race
+      screen offers minutes on a race any more. **The calendar says both** -
+      a round badges its race as "1150 km - 235 laps", since the distance is
+      what the championship races and the lap count is what this track makes of
+      it
+- [ ] **Ship a championship for every car the catalogue names** - see *The
+      championship catalogue*. It replaces "a complete base-only ladder", which
+      is now the first batch of it
+- [x] **Formula UK** - was held for Brands Hatch on the belief it was a real
+      series. **It never raced**: Rodin Cars and Chadwick Motorsport announced a
+      one-make T125 series in 2016, pitched as the UK's Super Formula, for a
+      winter 2017 start, and nothing came of it - no calendar was ever
+      published. The Exos's honest home is **BOSS GP Open**, whose rules name
+      the Lotus T125 by name, and that is where it races on base content. Formula
+      UK still ships, in the DLC batch, labelled as the series that was proposed
+      rather than one that ran
 - [x] **Formula Abarth** - the championship the Tatuus FA01 exists for. A real
       junior ladder rung, but a single-chassis one with a single car installed,
       so its class, its spec and its car were the same thing three times over.
@@ -2003,11 +2047,255 @@ and content source toggles have landed**, as one Championships tab in settings.
       **Zandvoort is missing from an otherwise real calendar** because Assetto
       Corsa's has eighteen pit boxes against a twenty-car field, so
       `seriesAvailability` would report it rather than race it
-- [ ] **American Le Mans Series (ALMS)** - the championship the BMW M3 E46 GTR
-      exists for. Built for ALMS GT in 2001, it won the class and was legislated
-      out a year later, so it has no grid to sit on: it carries no spec and the
-      series names it directly. ALMS itself was multi-class, so this is an entry
-      list that can grow if more 2001-era GT cars turn up, not a one-car rule
+- [x] **American Le Mans Series (ALMS)** - folded into the catalogue as ALMS
+      2001, in the Guerilla batch: the E46 GTR's own GT class with RSS's 996
+      and 360 as its rivals, the Viper and the Saleen in GTS, and the 333 SP in
+      LMP900. The 911 GT1-98 was suggested as a grid-mate and does not fit - it
+      is a 1998 car of a class 2001 no longer ran
+
+### The championship catalogue
+
+A championship for every car the catalogue names - base, every DLC pack and every
+mod maker - researched against the real championships those cars raced in, on
+the install the catalogue was authored against: 418 cars, 231 layouts, pit boxes
+read off the content cache. Five rules decide how they are written.
+
+- **Real where there is a real one.** The season a car fits, its calendar where
+  we have the circuits - substitutes named in the description - its session
+  structure, qualifying format, reverse grids, points and **its real race
+  lengths**: a 24-hour race is twenty-four hours. Scaling one before its start is
+  Phase 5's.
+- **Invented where there is none, and saying so.** Road supercars and hypercars,
+  one-off race cars and fictional mods get championships too, each description
+  saying it has no real counterpart. Some may be removed on review.
+- **One championship per spec**, so every Formula 1 season we have a car for is
+  a championship of its own.
+- **Every race is laps or a distance, because Assetto Corsa has no timed race
+  offline.** Driven, twice: a race sent as minutes alone leaves `RACE_LAPS` at 0,
+  which the AI read as nothing to race and drove to the pits, while the player's
+  own clock ran the race out; and a race sent as three minutes *and* 999 laps,
+  a count nothing could reach, simply carried on past the clock with every
+  screen counting laps. Content Manager's own Quick Drive offers no timed race
+  either. So a series states what its real races ran in its description, and
+  races it another way, split at four hours. **A shorter race is a distance** -
+  the kilometres that duration covers at the fastest class's pace, so Formula
+  Abarth's 28 minutes and a lap become 65 km. **A race of four hours or more is
+  a lap count per round**, taken from the real event's own winning distance,
+  because one distance across a calendar runs six hours over at a slow circuit
+  and under at a fast one. Every pace and every lap count is listed in
+  `championship-review.md`.
+- **True tiers, and filler for the gaps.** A tier is where a series really
+  stands. Where a discipline's base rungs skip tiers, the rung below is repeated
+  in the gap with `+` and `++` in its name and longer races each step - Formula
+  Abarth + and ++ between Formula Abarth and BOSS GP Open - and one setting hides
+  them all.
+- **A real season before 2006 ships switched off.** That is the whole of what
+  "historic" means here: an authoring rule for our defaults, never a field, a
+  chip or a label. Occasionally racing an old car is what one-off events are for,
+  which wait for the career.
+
+Grids are capped at the fewest pit boxes on the calendar - plain Kunos layouts
+have 24, Zandvoort and Magione 18, Silverstone 1967 20 - and mod calendars use
+the large-box layouts (`spa/2022`, `monza/lfm`, `ks_red_bull_ring/layout_gp_lfm`,
+Le Mans at 70). VRC cars shipped twice are raced in their `_csp` folder.
+
+**Calendars take tracks from every source we support; entries take cars from
+exactly what they name.** A championship races its real venues wherever anyone
+has built them, so a round may need a mod circuit even when every car is base
+game. What is missing weighs differently: a missing track blocks only its own
+round, so a championship is available once one round can be run, while a missing
+car would leave a seat empty, so every car an entry names is a requirement. The
+library test keeps the base ladder honest under that: a base-only championship
+switched on has at least three rounds on layouts Kunos ship, and one switched off
+at least one - the list lives in the test, because base provenance is keyed by
+circuit and the OSRW, LFM and VRC layouts inside base folders read as base.
+Batches 1 and 2 were revised to their real calendars once the rule was settled.
+
+**Deliberately without one**: the drift variants, since drifting is judged rather
+than raced; the two rally cars, deferred under *Open questions*; and
+`ks_lamborghini_gallardo_sl_s3`, whose data claims 1200 bhp.
+
+**Batch 1 - the base ladder**, every one switched on. **Landed**, and the library
+test now holds the guarantee: the base-only championships that start switched on
+climb every discipline from tier 5 without a gap - single-seater to 2, sportscar
+to 2, road to 1, touring at 5 until its older rungs are switched on. Every round
+was lowered through `npm run series`, including the Spa 24 Hours - written as
+1440 minutes at the time, and 3850 km since - and the Spa 1000 km at 143 laps;
+none has been driven in the game yet. Where no
+source gave a points table - Super Trofeo, GT4 European Cup, BOSS GP, the
+Mk1 MX-5 - the file says which scale stands in. **Invented fields never borrow a
+real name**: a first pass had several real GT drivers and three real Lamborghini
+teams in made-up entry lists, and they were replaced; only a real entry list, like
+the ILMC's, names real people.
+
+- [x] Formula Abarth, brought to its real 2010 format - 28-minute races, the second
+      from the first's result with the top eight reversed, and the 20-15-12 and
+      13-11-9 tables (single-seater 5)
+- [x] Formula Abarth + and ++, filler, built by `filler()` from Formula Abarth with
+      races a quarter longer per step (single-seater 4 and 3)
+- [x] BOSS GP Open - Exos 125 and Stage 1, the upgrade balanced to the standard
+      car (single-seater 2)
+- [x] GT4 European Cup 2010 - SuperSport for the 2-Eleven GT4 and X-Bow R, GT4 for
+      the restricted Evora GTC (sportscar 5 and 4)
+- [x] Lamborghini Super Trofeo Europe 2016 (sportscar 4)
+- [x] GT3 Sprint Series, re-based on the Blancpain Sprint weekend - a qualifying
+      race setting the main race's grid (sportscar 3)
+- [x] Blancpain Endurance Series 2013 - three-hour races, the Spa 24 Hours and the
+      Nurburgring 1000 km, on the four base GT3 cars of 2013 (sportscar 3)
+- [x] Intercontinental Le Mans Cup 2011 GTE - the real GTE Pro entry, which is
+      exactly the M3 GT2, the 458 GT2 and the Evora GTE (sportscar 2)
+- [x] Trofeo Abarth 500 Italia 2009 (touring 5)
+- [x] Hot Hatch Trophy (invented), Mk1 MX-5 Championship, GT86 Cup (road 5)
+- [x] Lotus Cup, with Lotus Cup Europe's classes - V6, Open and Production (road
+      5 and 4)
+- [x] Production Car Endurance, on the Bathurst 6 Hour's class rules (road 4 and 3)
+- [x] Supercar Series, invented (road 2)
+- [x] Hypercar Invitational, invented (road 1)
+
+**Batch 2 - base, seasons before 2006**, every one switched off. **Landed.** A
+grand prix is a distance, so every round of a real season runs its real one:
+`withRaceLaps` copies a weekend format with the race's laps changed, one per
+round. (Since replaced: a race is a `distance` now, or laps, and a round keeps
+its own count as a `sessionLengths` override, so a season holds its real
+formats and nothing more.) Where the circuit is the period one - Monza's 1966 road course and its
+banked full course, Silverstone 1967, Zandvoort - the laps are the real ones;
+where it is a later layout, they cover the same distance. **The historic Formula
+1 seasons race their real entry lists**, every driver in whatever of the spec is
+installed, the way Formula 1 2023 does; the sportscar and touring seasons crew
+two or three drivers a car and assign cars from a spec, so their fields are
+invented rather than putting real crews in the wrong cars. **DTM 1993 moved here
+from the DLC batch**: its spec needs one model and the base game's M3 Sport
+Evolution is one, so it runs base-only and the Dream Pack 1 Alfa and Mercedes
+only widen it. Seasons that counted only a driver's best results, and the Spa
+24 Hours' points at six and twelve hours, cannot be said by a points system yet.
+
+- [x] Formula 1 1962, 1967, 1971, 1975 and 1986 - Lotus 25, Lotus 49 (+312/67),
+      Lotus 72D, Ferrari 312T, Lotus 98T (+RSS 1986), real entry lists and real
+      distances
+- [x] Masters Racing Legends - the Stewart class (Lotus 49, 72D) and the
+      Fittipaldi class (312T)
+- [x] World Touring Car Championship 1987 - the M3's Division 2, the Spa 24 Hours
+      and three 500 km races at real length; Youngtimer Trophy - the Group A M3
+      and the Escort RS1600 as two classes
+- [x] DTM 1993 - on the base M3 Sport Evolution, widened by Dream Pack 1
+- [x] World Sportscar Championship 1969 (GT40, +330 P4, 908, 917 K) and World
+      Sports-Prototype Championship 1990 (787B, +C9, 962 C)
+- [x] Supercar Classic, invented - the Eighties (F40, Yellowbird) and Classic
+      (Miura, Countach, 33 Stradale, Sport quattro) classes
+- [x] Masters Gentlemen Drivers with Pre-66 Touring - the Cobra in GT, the Abarth
+      595 SS in Touring
+
+**Batch 3 - DLC**. **Landed.** Twelve start switched off, fifteen on. Several
+moved in or changed on the way: WEC, Can-Am, IROC and the MX-5 Cup were always
+here; **FIA GT 1997 replaced 1998**, since the 911 GT1 and the F1 GTR are that
+season's cars and the 1998 Porsche is not in the catalogue; the one-make for the
+718 RS 60 is the Porsche RS60 Spyder Cup; and **Tuner Invitational replaced Time
+Attack Invitational**, because time attack is not wheel-to-wheel and the base
+game's stage-tuned cars wanted a home too. LMP2 is absent from both WEC seasons,
+the catalogue having no car of either. Every invented field was checked for real
+and near-real names, and several were replaced.
+
+- [x] Formula 1 1954, 1957, 2004 (off), 2013, 2015, 2017 - real entry lists and
+      real distances
+- [x] Formula UK, labelled as proposed and never raced
+- [x] WEC 2014 - LMP1 (R18, TS040) and GTE (458 GT2, C7.R); WEC 2016 - LMP1
+      (919) and GTE on the 2017 spec; Le Mans at double points in both
+- [x] BPR Global GT 1996 and FIA GT 1997 (off)
+- [x] GT Manufacturers 1962, Can-Am 1973, World Championship for Makes 1978,
+      IROC 1974, Porsche RS60 Spyder Cup (off)
+- [x] Porsche Supercup 2017
+- [x] Nurburgring Langstrecken-Serie - SP9, SP-X, Cup2, Cup3, BMW Cup, TT
+- [x] Audi Sport TT Cup 2016, MX-5 Cup
+- [x] Porsche Club Race (PCA's S4 and S6), JDM Production (invented), Roadster
+      Party Race
+- [x] XX Programme Invitational and Tuner Invitational, invented
+- [x] Tour Auto and Classic Endurance Racing 2 (off)
+
+**Batches 4 to 9 - mods, one maker at a time**, a championship needing several
+landing with the last of them:
+
+- [x] **RSS** - landed as twenty-nine championships:
+      - Formula 1 1970, 1979, 1990 and 2000 (off), 2010 and 2018 to 2021, with
+        real entry lists and real distances; the 2022 to 2026 seasons on RSS's
+        cars as `(RSS)` championships of their own, since VRC's car of the same
+        year is a separate spec - Formula 1 2023 becomes `(VRC)` in that batch.
+        Sprint weekends run in each year's shape: the sprint setting the grand
+        prix grid in 2021 and 2022, a shootout of its own from 2023, sprint
+        qualifying on Friday from 2024. `withSessionLaps` gives a weekend's
+        two races their own distances. The 2025 field is listed by team and
+        2026 is the season as announced, still under way when written
+      - FIA Formula 2 2017, 2020 and 2024, FIA Formula 3 2024, the Italian F4
+        Championship, Super Formula 2019 and 2023, IndyCar 2020 - its oval
+        opener runs at Daytona with the oval kit through `Round.eligibility`,
+        and COTA and Laguna Seca come from the calendar as first published
+      - FIA GT 2004 (off), a GT-M Championship, DTM 2021 and DTM 2025 (RSS),
+        WEC 2025's Hypercar class on the MP-H cars
+      - Formula X Invitational and Unlimited Invitational, invented - the
+        latter also takes the Hyperion 2020, which the plan had no home for
+      - Every feeder and sportscar field is invented, and several near-real
+        names were replaced. Super Formula is thin: 2019 has two rounds and
+        2023 three, all at Fuji or Okayama, because nothing else Japanese it
+        races is in Assetto Corsa. Points tables and lengths that were not
+        checked say so in each file's header
+- [x] **VRC** - landed as nineteen championships and a rebuilt one:
+      - Formula 1 1988, 1991, 1997 and 2005 (off), 2007 and 2009, real entry
+        lists and real distances; 2022 to 2026 on VRC's Formula Alpha as `(VRC)`
+        championships, the same seasons as RSS's. **Formula 1 2023 is now
+        `Formula 1 2023 (VRC)`**, rebuilt as the real season - thirteen rounds
+        at their real distances and four sprint weekends - under the id it
+        always had
+      - FIA Formula 2 2024 split in two, `(RSS)` and `(VRC)`, the same invented
+        field on both; the RSS one's id became `formula-2-2024-rss`
+      - Formula E 2020-21 on the Gen2 car and 2023-24 on the Gen3; IndyCar 2012,
+        2018 and 2021, each fielding the oval kit at a Daytona round that stands
+        in for the season's speedway race - the short-oval kits have no short
+        oval to race on
+      - British Touring Car Championship 1998 (off), Trans-Am TA2, and WEC 2024
+        (VRC) on the Prototype H cars
+      - Formula E and IndyCar are thin: one to three real venues a season.
+        Everything unverified is in `championship-review.md`
+- [x] **LFM** - landed as eight championships: WEC 2024 (LFM), Hypercar and
+      an LMGT3 class that is LFM's GT3s car for car; GT World Challenge Europe
+      Sprint Cup and Endurance Cup 2024; Intercontinental GT Challenge; ADAC GT
+      Masters; DTM 2025 (LFM), the same invented field as the RSS one; TCR
+      Europe; Porsche Supercup 2025. Sprint Cup, ADAC GT Masters, TCR Europe and
+      the IGTC are not tied to a season, their calendars being the circuits each
+      races rather than one year's. Grids use LFM's large-box layouts where the
+      real fields run past twenty-four. LFM's two LMP2s go to the Yezhrod batch
+      with ELMS and WEC 2017, its Supra GT4 to Guerilla's GT4 series and the
+      Radical it distributes to URD's Radical Cup
+- [x] **URD** - landed as three championships: the EGT Championship,
+      invented, mixing hour-long sprints with six and ten-hour races, each
+      sprint round fielding the sprint Darche 9SRs through `Round.eligibility`;
+      Porsche Supercup 2021 on URD's Darche 992 Cup, the first 992 season, with
+      the 2025 season's invented paddock; and Radical Cup UK, SR10 and SR3 as
+      two classes, not tied to a season. URD's Loire 07 LMP2 goes to the
+      Yezhrod batch's ELMS; its Mercedes CLR is already in the GT1 (1990s) spec
+      FIA GT 1997 races
+- [x] **Guerilla** - landed as nine championships: GT4 European Series; GT2
+      European Series, which names Guerilla's imagined GT2s and its Cayman RSR
+      alongside the real ones; Porsche Supercup 2023 on Guerilla's 992; BMW M2
+      CS Racing Cup Italy; Ginetta GT4 Supercup; S-FR Cup and Liana GT Cup,
+      invented, the latter for the Liana GT V6 Cup the plan had no home for;
+      American Le Mans Series 2001 (off), the E46 GTR's GT class with RSS's
+      333 SP and GT cars; and **VLN 2004 (off) in place of a Nurburgring 24
+      Hours 2004** - one race on its own would be a one-off event, which is not
+      a championship, so the 24 Hours sits inside the season that builds to it.
+      GT4 and GT2 European Series, the M2 Cup and the Ginetta Supercup are not
+      tied to a season
+- [x] **Yezhrod** - landed as seven championships: WEC 2012 (LMP1 on the R18
+      e-tron, GTE on the base GT2s), WEC 2017 (LMP2 and GTE) and WEC 2023
+      (Hypercar, LMP2, GTE Am), each with every round of its season; IMSA 2017
+      and 2025; ELMS 2025; and the FIA GT1 World Championship 2010, the MC12 and
+      Yezhrod's GT-R with RSS's DBR9 and Murcielago. Three cars have no home:
+      Yezhrod's 2014 Ligier JSP2, which would put a mod on WEC 2014's
+      requirements, and the GT-R's 2009, 2011 and Endurance versions
+
+**All nine batches have landed**: 133 championships. Everything unverified, every
+stand-in and every candidate for removal is in `championship-review.md`, and
+`missing-tracks.md` lists the tracks each real calendar still lacks. What
+remains of the checklist is the review, driving a round of each batch, and the
+tests the batches' core changes are owed.
 
 ## Phase 5 - Championship engine and calendar
 
@@ -2053,7 +2341,19 @@ and content source toggles have landed**, as one Championships tab in settings.
         than a page load - and where the result lives
 - [ ] **Give a round's climate a season.** A climate assumes the racing season
       until a round has a date; Spa in April and Spa in August are not the same odds
-- [ ] One-off and historic events, preferring weekdays
+- [ ] One-off and historic events, preferring weekdays. **Not championships**: a
+      single weekend, for racing an old car now and again rather than a season
+      of it - which is why the championships of seasons before 2006 ship
+      switched off rather than being the way to race those cars. After the
+      career exists, since an event needs a date to sit on
+- [ ] **Scale a race's length before its start.** Shipped championships race
+      their real lengths, so a 24-hour race is twenty-four hours; the player
+      should be able to shrink one at the moment they start it - 48x runs that
+      race in thirty minutes - never below five laps. Deliberately not built
+      yet: what it does to fuel and tyre wear, to a mandatory stop, and to
+      points that pay by distance are all still to be decided. One question it
+      no longer has to answer is what scaling does to a timed race, since there
+      are none - every race is laps or a distance
 - [ ] Adaptive difficulty, recording the level actually raced against
 - [ ] Season summary and history
 

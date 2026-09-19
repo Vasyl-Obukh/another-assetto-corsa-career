@@ -6,4 +6,5 @@ import type { BrowserMemory } from './types.ts';
 export const EMPTY_MEMORY: BrowserMemory<never> = {
   search: '',
   criteria: null,
+  scroll: 0,
 };

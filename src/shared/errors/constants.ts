@@ -37,6 +37,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'race.grid.exceedsPitboxes':
     'Grid of {{cars}} cars exceeds the {{pitboxes}} pit boxes at {{track}}',
   'race.session.unknownType': 'Unknown session type: {{type}}',
+  'race.session.raceNotInLaps':
+    'Race session "{{session}}" states no lap count. Assetto Corsa runs a timed race on a server alone, so an offline race is measured in laps.',
 
   'weatherPlan.weather.unmappable':
     'Sol Planner numbers weather {{weather}} differently from Assetto Corsa, so a plan '
@@ -97,9 +99,25 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.inherit.notEarlier':
     'Session "{{session}}" of {{format}} in {{series}} follows "{{from}}", which does not run before it',
   'series.inherit.notQualifying':
-    'Session "{{session}}" of {{format}} in {{series}} follows "{{from}}", which is not a qualifying session and so classifies nobody',
+    'Session "{{session}}" of {{format}} in {{series}} follows "{{from}}", which leaves it no classification to follow - a race follows a qualifying or a race, anything else only a qualifying',
   'series.inherit.topInvalid':
     'Session "{{session}}" of {{format}} in {{series}} lets {{top}} cars through; it must let at least one',
+  'series.inherit.reverseInvalid':
+    'Session "{{session}}" of {{format}} in {{series}} reverses {{reverse}} cars; only a race reverses its grid, and it must turn round at least two',
+  'series.length.conflict':
+    'Session "{{session}}" of {{format}} in {{series}} states more than one of laps, minutes and distance; it may state one',
+  'series.length.invalid':
+    'Session "{{session}}" of {{format}} in {{series}} runs {{length}} {{unit}}; a length must be a positive number',
+  'series.distance.onNonRace':
+    'Session "{{session}}" of {{format}} in {{series}} is measured as a distance; only a race may be',
+  'series.race.timed':
+    'Session "{{session}}" of {{format}} in {{series}} is a race measured by the clock. Assetto Corsa runs a timed race on a server alone, so a race states laps or a distance.',
+  'series.distance.unresolved':
+    'Round {{round}} of {{series}} runs "{{session}}" over {{distance}} km, but the track does not say how long a lap is',
+  'series.round.sessionUnknown':
+    'Round {{round}} of {{series}} sets the length of session "{{session}}", which its weekend format does not have',
+  'series.round.lengthMissing':
+    'Round {{round}} of {{series}} replaces the length of session "{{session}}" without stating one',
   'series.id.duplicate': 'Duplicate {{kind}} id in {{series}}: {{id}}',
   'series.entry.notFound': 'Class entry not found in {{series}}: {{entry}}',
   'series.entry.unknown': 'Round {{round}} overrides a class entry {{series}} does not have: {{entry}}',

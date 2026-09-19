@@ -4,7 +4,10 @@ import {
 import { stat } from 'node:fs/promises';
 
 
-import { isDistinctSubset, isPermutation, mtimeOf, sleepUntilEvent } from '../utils.ts';
+import type { RaceOutSession } from '../../../shared/types/index.ts';
+import {
+  finishingOrder, isDistinctSubset, isPermutation, mtimeOf, sleepUntilEvent,
+} from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
@@ -66,6 +69,51 @@ describe('core/results/utils', () => {
       expect(isDistinctSubset([], 4)).toBe(false);
       expect(isDistinctSubset(null, 4)).toBe(false);
       expect(isDistinctSubset(undefined, 4)).toBe(false);
+    });
+  });
+
+  describe('finishingOrder', () => {
+    /**
+     * A race session with the given laps, each one car's lap of the given time.
+     * @param laps Car index and lap time, in the order AC recorded them
+     * @param raceResult AC's own finishing order, where it wrote one
+     * @returns The session
+     */
+    const race = (laps: [number, number][], raceResult?: number[]): RaceOutSession => ({
+      event: 0,
+      name: 'Race',
+      type: 3,
+      lapsCount: 0,
+      duration: 0,
+      laps: laps.map(([car, time]) => ({
+        lap: 0, car, sectors: [], time, cuts: 0, tyre: 'SM',
+      })),
+      lapstotal: [],
+      bestLaps: [],
+      raceResult,
+    });
+
+    it('takes AC\'s own finishing order when it places the whole field', () => {
+      expect(finishingOrder(race([[0, 60_000]], [2, 0, 1]), 3)).toEqual([2, 0, 1]);
+    });
+
+    it('orders on laps completed, then total time, when AC wrote no usable order', () => {
+      const session = race([
+        [0, 61_000], [1, 60_000], [2, 59_000],
+        [0, 61_000], [1, 60_000],
+      ], [0, 0, 1]);
+
+      expect(finishingOrder(session, 3)).toEqual([1, 0, 2]);
+    });
+
+    it('counts an invalidated lap as completed but adds no time for it', () => {
+      const session = race([[0, -1], [0, 70_000], [1, 60_000], [1, 60_000]]);
+
+      expect(finishingOrder(session, 2)).toEqual([0, 1]);
+    });
+
+    it('keeps entry order between cars that did nothing to separate them', () => {
+      expect(finishingOrder(race([]), 3)).toEqual([0, 1, 2]);
     });
   });
 

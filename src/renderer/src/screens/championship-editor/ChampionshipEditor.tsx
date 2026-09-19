@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
-import { useBlocker, useNavigate, useParams } from 'react-router';
+import {
+  useBlocker, useLocation, useNavigate, useParams,
+} from 'react-router';
 
 import { CalendarCard } from './CalendarCard.tsx';
 import { DetailsCard } from './DetailsCard.tsx';
@@ -23,10 +25,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useCarNames, useRowEdit, useSeriesEditor, useWeatherContent } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
+import type { ReturnState } from '@/lib/routes';
 
 export const ChampionshipEditor = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   // Absent on the New route, which is the whole difference between the two: a
   // championship that has never been written has no id until it is saved.
   const { id } = useParams<PathParam<typeof ROUTE.championshipEdit>>();
@@ -46,8 +50,10 @@ export const ChampionshipEditor = () => {
   } = editor;
   // One call for every car the draft mentions, rather than one per control.
   const nameOf = useCarNames(draft === null ? [] : namedCars(draft, catalogue));
-  // Back to where the library is managed, since that is the only way in.
-  const back = path.settingsChampionships();
+  // Back to wherever Edit was chosen, and to where the library is managed when
+  // the editor was reached some other way - New, Duplicate or a deep link.
+  const back: ReturnState = (location.state as ReturnState | null)
+    ?? { to: path.settingsChampionships(), label: 'editor.back' };
   const creating = id === undefined;
   // Reachable by deep link even though no menu offers it: a shipped
   // championship is compiled in, so there is no file of the user's to write.
@@ -79,7 +85,7 @@ export const ChampionshipEditor = () => {
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       {/* Pinned, so Save and Back are in reach from the bottom of a long form. */}
-      <ScreenHeader back={{ to: back, label: t('editor.back') }}>
+      <ScreenHeader back={{ to: back.to, label: t(back.label) }}>
         {draft && !shipped ? (
           <EditorHeader
             name={listing?.series.name ?? blank.name}

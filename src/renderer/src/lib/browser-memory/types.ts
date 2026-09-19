@@ -16,4 +16,10 @@ export interface BrowserMemory<C> {
    * been visited yet.
    */
   criteria: C | null;
+  /**
+   * How far down the list had been scrolled, in pixels. Only a list rendered
+   * whole restores it - the championship lists - since a paged browser would
+   * have to page every entry above it back in first.
+   */
+  scroll: number;
 }

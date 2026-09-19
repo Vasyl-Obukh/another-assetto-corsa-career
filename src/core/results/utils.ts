@@ -1,5 +1,7 @@
 import { stat } from 'node:fs/promises';
 
+import type { RaceOutSession } from '../../shared/types/index.ts';
+
 /**
  * Reads a file's last modified time.
  * @param file Absolute path to the file
@@ -80,3 +82,33 @@ export const isDistinctSubset = (
     && order.length <= size
     && distinctCars(order, size) === order.length
 );
+
+/**
+ * Reads a race's finishing order.
+ *
+ * AC's own raceResult when it is a whole permutation of the field, since that
+ * cannot inherit a bug in ours; otherwise laps completed then total time.
+ * @param session The race session to classify
+ * @param size How many cars are in the field
+ * @returns Car indices in finishing order
+ */
+export const finishingOrder = (session: RaceOutSession, size: number): number[] => {
+  if (isPermutation(session.raceResult, size)) return [...(session.raceResult ?? [])];
+
+  const laps = session.laps ?? [];
+  const ranked = Array.from({ length: size }, (unused, car) => {
+    const own = laps.filter((lap) => lap.car === car);
+
+    return {
+      car,
+      laps: own.length,
+      total: own.filter((lap) => lap.time > 0).reduce((sum, lap) => sum + lap.time, 0),
+    };
+  });
+
+  ranked.sort((left, right) => (
+    right.laps - left.laps || left.total - right.total || left.car - right.car
+  ));
+
+  return ranked.map((entry) => entry.car);
+};

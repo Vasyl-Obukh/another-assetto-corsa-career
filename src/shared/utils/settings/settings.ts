@@ -74,6 +74,22 @@ export const readPaths = (raw: unknown): PathOverrides => {
 };
 
 /**
+ * Reads the championships the user switched, dropping any entry that is not an
+ * id against a yes or a no.
+ * @param raw The value read from disk
+ * @returns The switches, keyed by championship id
+ */
+export const readSeriesActive = (raw: unknown): Record<string, boolean> => {
+  if (!isRecord(raw)) return {};
+
+  return Object.fromEntries(Object.entries(raw)
+    .filter((entry): entry is [string, boolean] => (
+      cleanString(entry[0]) === entry[0] && typeof entry[1] === 'boolean'
+    ))
+    .sort(([left], [right]) => left.localeCompare(right)));
+};
+
+/**
  * Reads a list of folder IDs, dropping anything that is not a usable one.
  * @param raw The value read from disk
  * @returns The IDs, each once, sorted so the file diffs cleanly
@@ -227,7 +243,10 @@ export const readSettings = (raw: unknown): Settings => {
     drivingAids: readDrivingAids(raw.drivingAids),
     addedContent: readAddedContent(raw.addedContent),
     hiddenContentSources: readHiddenContentSources(raw.hiddenContentSources),
-    inactiveSeries: readIds(raw.inactiveSeries),
+    seriesActive: readSeriesActive(raw.seriesActive),
+    showFillerSeries: typeof raw.showFillerSeries === 'boolean'
+      ? raw.showFillerSeries
+      : DEFAULT_SETTINGS.showFillerSeries,
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.
