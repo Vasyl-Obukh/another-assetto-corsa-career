@@ -23,7 +23,7 @@ const WEEKEND: WeekendFormat = {
  * Formula 1, 1954 - the first season of the two-and-a-half litre formula, and
  * the Maserati 250F's first.
  *
- * The real entry list on the 1954 spec, which is the Tripl3 Pack's six-cylinder
+ * The real entry list on the 1954 spec, which is the Red Pack's six-cylinder
  * 250F and nothing else, so every seat drives one - Fangio included, who won
  * two rounds in a 250F before Mercedes' W196 was ready. Four of the nine rounds
  * at their real distances: Spa, on its modern circuit over the old one's

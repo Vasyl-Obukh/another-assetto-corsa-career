@@ -24,10 +24,13 @@ export { NameDialog } from './NameDialog.tsx';
 export { PATH_KINDS, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
 export type { PathKind } from './paths-card/index.ts';
-export { makerNameKey, packNameKey, ProvenanceBadges } from './provenance-badges/index.ts';
+export {
+  distributorNameKey, makerNameKey, packNameKey, ProvenanceBadges,
+} from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
 export { ScreenHeader } from './ScreenHeader.tsx';
 export { ScreenStrip } from './ScreenStrip.tsx';
+export { SourceChips } from './SourceChips.tsx';
 export { SpecBadge } from './spec-badge/index.ts';
 export { ThemeSelect } from './ThemeSelect.tsx';
 export { ToggleButton } from './ToggleButton.tsx';

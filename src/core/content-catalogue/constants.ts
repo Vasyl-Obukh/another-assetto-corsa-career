@@ -8,6 +8,14 @@
 //
 // An ID in none of these records is a mod with no maker, which is the honest
 // answer.
+//
+// That marker is still worth reading once, though, and it caught a real mistake:
+// the Red Pack and the Tripl3 Pack were swapped here from the beginning. Kunos'
+// own dlc_ui_car.json puts the seven Ferrari, Lamborghini and Maserati cars plus
+// the Red Bull Ring on Steam app 493190, which is the Red Pack, and the 488 GTB,
+// the FXX K and the Praga R1 on 509350, which is the Tripl3 Pack - three cars,
+// which is what the name says. Untrustworthy for a mod, authoritative for Kunos'
+// own content.
 
 import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
 
@@ -155,19 +163,19 @@ export const DLC_CARS: Readonly<Record<string, DLCPack>> = {
   ks_ferrari_288_gto: DLCPack.FERRARI_70TH,
   ks_ferrari_312_67: DLCPack.FERRARI_70TH,
   ks_ferrari_330_p4: DLCPack.FERRARI_70TH,
-  ks_ferrari_488_gt3: DLCPack.TRIPL3_PACK,
-  ks_ferrari_488_gtb: DLCPack.RED_PACK,
+  ks_ferrari_488_gt3: DLCPack.RED_PACK,
+  ks_ferrari_488_gtb: DLCPack.TRIPL3_PACK,
   ks_ferrari_812_superfast: DLCPack.FERRARI_70TH,
-  ks_ferrari_f138: DLCPack.TRIPL3_PACK,
+  ks_ferrari_f138: DLCPack.RED_PACK,
   ks_ferrari_f2004: DLCPack.FERRARI_70TH,
-  ks_ferrari_fxx_k: DLCPack.RED_PACK,
-  ks_ferrari_sf15t: DLCPack.TRIPL3_PACK,
+  ks_ferrari_fxx_k: DLCPack.TRIPL3_PACK,
+  ks_ferrari_sf15t: DLCPack.RED_PACK,
   ks_ferrari_sf70h: DLCPack.FERRARI_70TH,
-  ks_lamborghini_aventador_sv: DLCPack.TRIPL3_PACK,
+  ks_lamborghini_aventador_sv: DLCPack.RED_PACK,
   ks_lotus_3_eleven: DLCPack.READY_TO_RACE,
-  ks_maserati_250f_12cyl: DLCPack.TRIPL3_PACK,
-  ks_maserati_250f_6cyl: DLCPack.TRIPL3_PACK,
-  ks_maserati_gt_mc_gt4: DLCPack.TRIPL3_PACK,
+  ks_maserati_250f_12cyl: DLCPack.RED_PACK,
+  ks_maserati_250f_6cyl: DLCPack.RED_PACK,
+  ks_maserati_gt_mc_gt4: DLCPack.RED_PACK,
   ks_maserati_mc12_gt1: DLCPack.READY_TO_RACE,
   ks_mazda_mx5_cup: DLCPack.JAPANESE_PACK,
   ks_mazda_mx5_nd: DLCPack.JAPANESE_PACK,
@@ -206,7 +214,7 @@ export const DLC_CARS: Readonly<Record<string, DLCPack>> = {
   ks_porsche_991_turbo_s: DLCPack.PORSCHE_PACK_3,
   ks_porsche_cayman_gt4_clubsport: DLCPack.PORSCHE_PACK_1,
   ks_porsche_cayman_gt4_std: DLCPack.PORSCHE_PACK_2,
-  ks_praga_r1: DLCPack.RED_PACK,
+  ks_praga_r1: DLCPack.TRIPL3_PACK,
   ks_toyota_ae86: DLCPack.JAPANESE_PACK,
   ks_toyota_ae86_drift: DLCPack.JAPANESE_PACK,
   ks_toyota_ae86_tuned: DLCPack.JAPANESE_PACK,
@@ -507,7 +515,7 @@ export const DLC_TRACKS: Readonly<Record<string, DLCPack>> = {
   ks_barcelona: DLCPack.DREAM_PACK_2,
   ks_brands_hatch: DLCPack.DREAM_PACK_3,
   ks_nordschleife: DLCPack.DREAM_PACK_1,
-  ks_red_bull_ring: DLCPack.TRIPL3_PACK,
+  ks_red_bull_ring: DLCPack.RED_PACK,
 };
 
 /**

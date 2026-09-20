@@ -602,6 +602,8 @@
     "roundsNeed": "Some rounds need",
     "active": "{{name}} on the Championships page",
     "unavailable": "Not on the Championships page: content it needs is not installed.",
+    "whereToGet": "Where to get it",
+    "whereToGetHint": "Every pack, mod team and redistributor the app knows about, and the page it comes from. Opens in your browser.",
     "create": {
       "name": "My championship"
     }

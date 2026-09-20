@@ -40,7 +40,7 @@ const WEEKEND: WeekendFormat = {
 /**
  * Formula 1, 2013 - the last season of the V8s, and Sebastian Vettel's fourth title.
  *
- * The real entry list on the 2013 spec - the Tripl3 Pack's Ferrari F138 and
+ * The real entry list on the 2013 spec - the Red Pack's Ferrari F138 and
  * RSS's Formula 2013, either of which fields the grid on its own - with every
  * seat in whichever of it is installed. 13 rounds at their real distances;
  * Barcelona runs the layout with its final chicane, and where a circuit has
@@ -57,7 +57,7 @@ export const FORMULA_1_2013: Championship = {
   id: 'formula-1-2013',
   name: 'Formula 1 2013',
   description: 'The last season of the V8s, with the real entry list and thirteen of its grands prix at '
-    + 'their real distances. It runs on the Tripl3 Pack\'s F138 or RSS\'s Formula 2013, whichever '
+    + 'their real distances. It runs on the Red Pack\'s F138 or RSS\'s Formula 2013, whichever '
     + 'you own.',
   teams: [
     team('red-bull', 'Infiniti Red Bull Racing', 'Austria', 'AUT', TeamBudget.WORKS),

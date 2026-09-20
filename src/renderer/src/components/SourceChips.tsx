@@ -1,6 +1,6 @@
-import { ContentSource } from '../../../../shared/types';
-import type { DLCPack, ModDistributor, ModMaker } from '../../../../shared/types';
-import { ProvenanceBadges } from '@/components';
+import { ProvenanceBadges } from './provenance-badges/index.ts';
+import { ContentSource } from '../../../shared/types';
+import type { DLCPack, ModDistributor, ModMaker } from '../../../shared/types';
 
 interface SourceChipsProps {
   /**

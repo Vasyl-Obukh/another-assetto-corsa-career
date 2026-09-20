@@ -22,7 +22,7 @@ const WEEKEND: WeekendFormat = {
 /**
  * Formula 1, 1957 - Fangio's fifth title, and his last, in a Maserati 250F.
  *
- * The real entry list on the 1957 spec, which is the Tripl3 Pack's
+ * The real entry list on the 1957 spec, which is the Red Pack's
  * twelve-cylinder 250F - the car Maserati tried alongside the six that won -
  * and nothing else, so every seat drives one. The Nordschleife, where Fangio
  * won the race of his life, and Monza are raced at their real distances;

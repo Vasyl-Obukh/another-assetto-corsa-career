@@ -23,6 +23,8 @@ export { CM_FLAGS, RACE_INI_TEST_MODE } from './cm-arguments.ts';
 
 export { CONTENT_ISSUE_REASONS } from './content-issues.ts';
 
+export { DISTRIBUTOR_PAGES, MAKER_PAGES, PACK_PAGES } from './content-links.ts';
+
 export { M_PER_KM, M_PER_MILE } from './distance.ts';
 
 // A value, not a type: WeatherType.RAIN is the whole point of it, and the

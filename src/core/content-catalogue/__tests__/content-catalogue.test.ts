@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { ContentSource } from '../../../shared/types/index.ts';
+import { ContentSource, DLCPack } from '../../../shared/types/index.ts';
 import {
   BASE_CARS,
   BASE_TRACKS,
@@ -109,6 +109,35 @@ describe('core/content-catalogue', () => {
       if (bare !== undefined) {
         expect(trackProvenance(bare, '').distributor).toBe(DISTRIBUTOR_TRACKS[bare]);
       }
+    });
+  });
+
+  // The one place this file names rows on purpose, against its own header. The
+  // Red Pack and the Tripl3 Pack were swapped here from the first commit, and
+  // the swap is invisible from the code - both are valid DLCPack members, so
+  // nothing but the content tells them apart. Kunos' own dlc_ui_car.json and
+  // Steam's appdetails agree: 493190 is the Red Pack and holds the Ferrari,
+  // Lamborghini and Maserati cars plus the Red Bull Ring, while 509350 is the
+  // Tripl3 Pack and holds three cars, which is what the name says.
+  describe('DLC_CARS and DLC_TRACKS, on the two packs that were swapped', () => {
+    const carsIn = (pack: DLCPack): string[] => Object.entries(DLC_CARS)
+      .filter(([, value]) => value === pack)
+      .map(([id]) => id)
+      .sort();
+
+    it('gives the Tripl3 Pack exactly the three cars it is named for', () => {
+      expect(carsIn(DLCPack.TRIPL3_PACK))
+        .toEqual(['ks_ferrari_488_gtb', 'ks_ferrari_fxx_k', 'ks_praga_r1']);
+    });
+
+    it('leaves the Ferrari, Lamborghini and Maserati cars on the Red Pack', () => {
+      expect(carsIn(DLCPack.RED_PACK)).toContain('ks_ferrari_f138');
+      expect(carsIn(DLCPack.RED_PACK)).toContain('ks_lamborghini_aventador_sv');
+      expect(carsIn(DLCPack.RED_PACK)).toContain('ks_maserati_250f_6cyl');
+    });
+
+    it('ships the Red Bull Ring with the Red Pack, as that pack did', () => {
+      expect(DLC_TRACKS.ks_red_bull_ring).toBe(DLCPack.RED_PACK);
     });
   });
 });

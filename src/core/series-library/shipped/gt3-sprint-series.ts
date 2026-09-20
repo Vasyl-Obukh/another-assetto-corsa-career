@@ -22,7 +22,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * It is also what "a spec is satisfied by whatever you own" looks like on a
  * real install: five of its cars are base content, and owning Ready to Race,
- * the Tripl3 Pack or Porsche Pack 3 simply widens the field.
+ * the Red Pack or Porsche Pack 3 simply widens the field.
  *
  * Source: https://en.wikipedia.org/wiki/2011_FIA_GT1_World_Championship
  */

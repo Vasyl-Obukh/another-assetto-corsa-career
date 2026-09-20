@@ -5,6 +5,7 @@ import {
 } from '../../../../../shared/types';
 import {
   distributorKey,
+  distributorNameKey,
   distributorTagKey,
   makerKey,
   makerTagKey,
@@ -111,6 +112,15 @@ describe('renderer/components/provenance-badges/utils', () => {
     it('names a pack for the badge to interpolate', () => {
       expect(packNameKey(DLCPack.DREAM_PACK_1)).toBe('content.pack.dream-pack-1');
       expect(packNameKey(DLCPack.FERRARI_70TH)).toBe('content.pack.ferrari-70th');
+    });
+  });
+
+  describe('distributorNameKey', () => {
+    // The full name rather than the badge's abbreviation: the links card has a
+    // whole row for it, where "LFM" alone would say less than it could.
+    it('names a redistributor in full', () => {
+      expect(distributorNameKey(ModDistributor.LFM)).toBe('content.distributor.lfm');
+      expect(distributorNameKey(ModDistributor.LFM)).not.toBe(distributorTagKey(ModDistributor.LFM));
     });
   });
 

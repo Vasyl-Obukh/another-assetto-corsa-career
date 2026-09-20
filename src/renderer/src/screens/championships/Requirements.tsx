@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { SourceChips } from './SourceChips.tsx';
 import { ContentSource } from '../../../../shared/types';
 import type { SeriesRequirements } from '../../../../shared/types';
-import { ProvenanceBadges } from '@/components';
+import { ProvenanceBadges, SourceChips } from '@/components';
 
 interface RequirementsProps {
   /**

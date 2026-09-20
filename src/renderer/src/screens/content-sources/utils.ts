@@ -13,3 +13,19 @@ export const toggled = <T extends string>(list: readonly T[], value: T, order: r
 
   return order.filter((each) => next.has(each));
 };
+
+/**
+ * The host a link goes to, which is what the link says.
+ *
+ * Shown rather than a word like "Steam" because where the user is about to be
+ * sent is the thing worth stating, and a host is data rather than copy.
+ * @param url The absolute URL
+ * @returns Its host, or the URL itself when it will not parse
+ */
+export const hostOf = (url: string): string => {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
+};

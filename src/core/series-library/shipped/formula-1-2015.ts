@@ -40,7 +40,7 @@ const WEEKEND: WeekendFormat = {
 /**
  * Formula 1, 2015 - the hybrid era's second season, and Lewis Hamilton's third title.
  *
- * The real entry list on the 2015 spec - the Tripl3 Pack's Ferrari SF15-T and
+ * The real entry list on the 2015 spec - the Red Pack's Ferrari SF15-T and
  * VRC's Williams FW37, either of which fields the grid on its own - with every
  * seat in whichever of it is installed. 13 rounds at their real distances;
  * Barcelona runs the layout with its final chicane, and where a circuit has
@@ -57,7 +57,7 @@ export const FORMULA_1_2015: Championship = {
   id: 'formula-1-2015',
   name: 'Formula 1 2015',
   description: 'The hybrid era\'s second season, with the real entry list and thirteen of its grands prix '
-    + 'at their real distances. It runs on the Tripl3 Pack\'s SF15-T or VRC\'s FW37, whichever you '
+    + 'at their real distances. It runs on the Red Pack\'s SF15-T or VRC\'s FW37, whichever you '
     + 'own.',
   teams: [
     team('mercedes', 'Mercedes AMG Petronas', 'Germany', 'GER', TeamBudget.WORKS),

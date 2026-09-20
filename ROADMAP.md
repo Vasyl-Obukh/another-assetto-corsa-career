@@ -1649,9 +1649,9 @@ catalogue.
       `buildGrid` throws `race.grid.exceedsPitboxes`, which is the right answer at
       the wrong moment - a 24-car series at an 18-box circuit is a fact about the
       calendar, so it is reported beside the round.
-      **`acmanager://install` is not offered**, and cannot be yet: the provenance
-      catalogue names the mod team but carries no per-mod install URL. Adding one
-      is a catalogue change, not a UI one
+      **`acmanager://install` is not offered**, and the catalogue change that
+      looked like the way to it turned out to be the wrong question - see the
+      content manifest item below, which is where the link ended up instead
 - [x] **Series editor UI**: cars, tracks, calendar, rules, teams, money - the
       content pickers are Phase 2's browser shell with selection added, not new
       screens; see *Where the browsers end up*.
@@ -1874,7 +1874,51 @@ catalogue.
       Driven end to end with the native dialogs stubbed and everything behind
       them real: export, import-as-adjusted, import-renamed, and a junk file
       refused with five problems and nothing written
-- [ ] Content manifest per series with `acmanager://install` for missing content
+- [x] **Content manifest per series, and where to get what it is missing.** The
+      manifest half was already built and unticked: the championship's card in
+      settings lists every missing car and every missing track layout by folder
+      ID with its provenance chip, which is the manifest this item asked for.
+      What was absent is the link, and **it is a page and never an
+      `acmanager://install`** - that was checked before it was written rather
+      than assumed. The URI wants a *direct download*, and no source the
+      catalogue names has one: DLC is a Steam entitlement rather than a file,
+      RSS, VRC and URD sell their cars behind a login, Guerilla and Yezhrod
+      release through Patreon, and LFM installs its pack with its own launcher.
+      Handed a store page, Content Manager would download the HTML, find nothing
+      to install and say nothing - this area's characteristic failure. So the
+      mechanism was not built at all: `buildInstallUri`, an IPC channel and a
+      per-content URL table would have shipped with no row that could ever fill
+      them, and a field carried but never applied is worse than no field.
+      **Landed as a Where to get it card on the Content sources tab**, which is
+      the tab that already asks which sources a career wants: one row per DLC
+      pack, per mod team and per redistributor, each a provenance chip in its own
+      hue beside the host it links to. LFM is on it although it has no switch -
+      a redistributor ships other teams' work, so the makers' own switches
+      answer for it, but it is still somewhere content comes from. The table is
+      `src/shared/constants/content-links.ts` rather than the provenance
+      catalogue: the renderer is the only caller and may not import core, and
+      nothing in it is baked into a scanned `Car`, so it bumps no version. A
+      plain `target="_blank"` anchor is the whole of the mechanism, since
+      `createWindow`'s `setWindowOpenHandler` already sends one to the real
+      browser.
+      **It found a real error in the catalogue on the way.** The Steam app ids
+      were read out of Kunos' own `ui/dlc_ui_car.json` markers, cross-read
+      against the packs the catalogue assigns those cars to, and then confirmed
+      one at a time against Steam's `appdetails` API - and **the Red Pack and
+      the Tripl3 Pack were swapped**, and had been from the beginning. App
+      493190 is the Red Pack and holds the seven Ferrari, Lamborghini and
+      Maserati cars plus the Red Bull Ring; 509350 is the Tripl3 Pack and holds
+      the 488 GTB, the FXX K and the Praga R1 - three cars, which is what the
+      name says. Eleven catalogue rows, six shipped championships whose
+      descriptions named the wrong pack, and two lines of this file.
+      **No version was bumped**, per *No schema migrations before the first
+      release*: the content cache has the old provenance baked into its `Car`
+      and `Track` objects and an unchanged folder keeps its fingerprint, so
+      `%APPDATA%/ac-career-mode/content-cache.json` goes on serving the wrong
+      pack until it is deleted - which is the author's to do, not the app's.
+      Worth one correction to the standing warning that mod authors copy that
+      marker verbatim: it is untrustworthy **for a mod** and authoritative for
+      Kunos' own cars, which is exactly the case it was read in here
 - [x] **Championship configuration page**: every shipped championship, available or
       not, and what content it needs.
       **Landed as the Championships tab of Settings** - `/settings/championships`,
@@ -1888,7 +1932,7 @@ catalogue.
       changes a championship moved here off the championship's own page.
       **It found that `requires` answered the wrong question**: it recorded the
       provenance of every car a spec could field, so GT3 Sprint Series read as
-      needing Ready to Race, the Tripl3 Pack and Porsche Pack 3 - and gating on
+      needing Ready to Race, the Red Pack and Porsche Pack 3 - and gating on
       that would have hidden a base-only championship behind three DLC
       switches. `SeriesRequirements` now keeps needing and reaching apart: a
       source is needed when a track or a car list names it, or when a spec
@@ -2028,7 +2072,7 @@ catalogue.
       purpose, so a series gets at them by naming them
 - [x] **GT3 Sprint Series** - the spec exemplar, and what "a spec is satisfied by
       whatever you own" looks like on a real install: five of `GT3_2010S` are base
-      content, and Ready to Race, the Tripl3 Pack or Porsche Pack 3 simply widen
+      content, and Ready to Race, the Red Pack or Porsche Pack 3 simply widen
       the field rather than unlocking the series.
       **Deliberately not named for a real season.** The spec spans 2011 to 2016
       machinery, so a 2013 Blancpain field would not have held an AMG GT3 - naming

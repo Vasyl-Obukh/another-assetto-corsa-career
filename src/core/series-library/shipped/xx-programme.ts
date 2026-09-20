@@ -7,7 +7,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * XX Programme Invitational - invented, for the track-only specials that race
  * nobody.
  *
- * The Ferrari 599XX Evo and the Red Pack's FXX K are cars of Ferrari's XX
+ * The Ferrari 599XX Evo and the Tripl3 Pack's FXX K are cars of Ferrari's XX
  * Programme, and Ready to Race's McLaren P1 GTR is McLaren's answer to it:
  * track-day machines their makers built for owners' private sessions, which
  * are not races. This races them against each other, balanced on the install's

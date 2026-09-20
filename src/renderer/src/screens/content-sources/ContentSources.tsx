@@ -1,4 +1,5 @@
 import { FillerCard } from './FillerCard.tsx';
+import { SourceLinksCard } from './SourceLinksCard.tsx';
 import { SourcesCard } from './SourcesCard.tsx';
 import { ErrorCard, ScreenBody } from '@/components';
 import { useChampionships } from '@/hooks';
@@ -15,6 +16,8 @@ export const ContentSources = () => {
       <SourcesCard listings={championships.listings} />
 
       <FillerCard listings={championships.listings} />
+
+      <SourceLinksCard />
     </ScreenBody>
   );
 };

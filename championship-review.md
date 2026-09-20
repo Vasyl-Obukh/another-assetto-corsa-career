@@ -455,8 +455,14 @@ Each came up in at least one real season and is worth a ROADMAP decision:
 - [ ] F1 1971 and 1975 skip the Osterreichring although F1 1970 and 1979 race
       it on the Red Bull Ring; FIA GT 1997 may have Mugello in the wrong place
 - [x] F1 2005's Hungaroring now comes before Istanbul, as it ran
-- [ ] `%APPDATA%/ac-career-mode/settings.json` still holds a stale
-      `"inactiveSeries": []` key - yours to delete
+- [x] ~~Six championship descriptions named the wrong DLC pack~~ - the
+      provenance catalogue had the Red Pack and the Tripl3 Pack swapped, caught
+      while authoring the content links against Steam's own app ids. Formula 1
+      1954, 1957, 2013 and 2015 and GT3 Sprint Series said Tripl3 Pack where
+      they meant Red Pack, and XX Programme Invitational the other way round;
+      all six are corrected. No version was bumped, so
+      `%APPDATA%/ac-career-mode/content-cache.json` still holds the old
+      provenance - yours to delete
 - [ ] Cars with no championship: the Nissan GT-R GT1's 2009, 2011 and Endurance
       versions. Yezhrod's 2014 Ligier JS P2 now races LMP2 in WEC 2014 and 2016,
       which puts Yezhrod on both championships' requirements

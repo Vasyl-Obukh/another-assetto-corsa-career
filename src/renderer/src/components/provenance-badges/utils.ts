@@ -188,6 +188,15 @@ export const packNameKey = (pack: DLCPack): ProvenanceLabelKey => PACK_KEYS[pack
 export const makerNameKey = (maker: ModMaker): ProvenanceLabelKey => MAKER_KEYS[maker];
 
 /**
+ * The redistributor's full name, for somewhere with room for it.
+ * @param distributor The redistributor
+ * @returns Its key
+ */
+export const distributorNameKey = (
+  distributor: ModDistributor,
+): ProvenanceLabelKey => DISTRIBUTOR_KEYS[distributor];
+
+/**
  * The colour a badge takes, per source.
  *
  * Tokens from globals.css, never literals. A hue each is what tells the reader
