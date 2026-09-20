@@ -157,6 +157,13 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
  * the car that does not belong stands out. A car with more than one grid to race
  * on appears in each, and a car that exists only for one-make racing appears in
  * none - a championship names it directly instead.
+ *
+ * VRC ships most of its cars twice, plain and `_csp`, and only the `_csp` one is
+ * listed where both exist: the app launches through Content Manager with Custom
+ * Shaders Patch, so the plain variant is the lesser car on every install we
+ * support, and a grid drawing from both would field the same model twice. The
+ * plain one stays in the provenance catalogue and is simply unclassified, which
+ * the user's own layer can undo.
  */
 export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.FORMULA_1_1954]: [
@@ -263,28 +270,24 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'rss_formula_hybrid_2023',
   ],
   [CarSpec.FORMULA_1_2023_VRC]: [
-    'vrc_formula_alpha_2023',
     'vrc_formula_alpha_2023_csp',
   ],
   [CarSpec.FORMULA_1_2024_RSS]: [
     'rss_formula_hybrid_2024',
   ],
   [CarSpec.FORMULA_1_2024_VRC]: [
-    'vrc_formula_alpha_2024',
     'vrc_formula_alpha_2024_csp',
   ],
   [CarSpec.FORMULA_1_2025_RSS]: [
     'rss_formula_hybrid_2025_alpine',
   ],
   [CarSpec.FORMULA_1_2025_VRC]: [
-    'vrc_formula_alpha_2025',
     'vrc_formula_alpha_2025_csp',
   ],
   [CarSpec.FORMULA_1_2026_RSS]: [
     'rss_formula_hybrid_x_2026',
   ],
   [CarSpec.FORMULA_1_2026_VRC]: [
-    'vrc_formula_alpha_2026',
     'vrc_formula_alpha_2026_csp',
   ],
   [CarSpec.SUPER_FORMULA_2019]: [
@@ -303,7 +306,6 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'rss_formula_rss_2_v6_2024',
   ],
   [CarSpec.FORMULA_2_2024_VRC]: [
-    'vrc_formula_beta_2024',
     'vrc_formula_beta_2024_csp',
   ],
   [CarSpec.FORMULA_3]: [
@@ -318,7 +320,6 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'vrc_2019_formula_lithium',
   ],
   [CarSpec.FORMULA_E_GEN_3]: [
-    'vrc_formula_lithium_2023',
     'vrc_formula_lithium_2023_csp',
   ],
   [CarSpec.INDYCAR_2012_ROAD]: [
@@ -362,15 +363,10 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'toyota_gr010',
   ],
   [CarSpec.LMH_VRC]: [
-    'vrc_pt_2023_pageau_98',
     'vrc_pt_2023_pageau_98_csp',
-    'vrc_pt_2024_arden',
     'vrc_pt_2024_arden_csp',
-    'vrc_pt_2024_cadenza',
     'vrc_pt_2024_cadenza_csp',
-    'vrc_pt_2024_ferrenzo',
     'vrc_pt_2024_ferrenzo_csp',
-    'vrc_pt_2024_isola',
     'vrc_pt_2024_isola_csp',
   ],
   [CarSpec.LMH_RSS]: [
@@ -607,31 +603,19 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'fw_elantra_tcr_2024',
   ],
   [CarSpec.SUPER_TOURING_1990S]: [
-    'vrc_erc_1994_vokker',
     'vrc_erc_1994_vokker_csp',
-    'vrc_erc_1997_beamer',
     'vrc_erc_1997_beamer_csp',
-    'vrc_erc_1998_alfio',
     'vrc_erc_1998_alfio_csp',
-    'vrc_erc_1998_auriel',
     'vrc_erc_1998_auriel_csp',
-    'vrc_erc_1998_pageau',
     'vrc_erc_1998_pageau_csp',
-    'vrc_erc_1999_fortix',
     'vrc_erc_1999_fortix_csp',
-    'vrc_erc_1999_gojira',
     'vrc_erc_1999_gojira_csp',
-    'vrc_erc_1999_renoir',
     'vrc_erc_1999_renoir_csp',
-    'vrc_erc_1999_vorax',
     'vrc_erc_1999_vorax_csp',
   ],
   [CarSpec.TRANS_AM_TA2]: [
-    'vrc_arc_ta2_chevrette',
     'vrc_arc_ta2_chevrette_csp',
-    'vrc_arc_ta2_dagger',
     'vrc_arc_ta2_dagger_csp',
-    'vrc_arc_ta2_mare',
     'vrc_arc_ta2_mare_csp',
   ],
 };
