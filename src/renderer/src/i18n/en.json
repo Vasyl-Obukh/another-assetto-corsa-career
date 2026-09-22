@@ -502,7 +502,8 @@
       "start": "You start",
       "temperature": "{{value}}°C",
       "windRange": "{{min}}-{{max}} km/h",
-      "authored": "As the championship sets it"
+      "authored": "As the championship sets it",
+      "pending": "Forecast a week before the weekend"
     },
     "source": {
       "from": "The grid is the order {{from}} finished in.",
@@ -769,7 +770,8 @@
       "generatedWeatherHint": "Every session's weather, temperature and wind are drawn from a climate. Conditions a round or a session sets for itself still win.",
       "climate": "Climate",
       "seasonLength": "Season length",
-      "seasonLengthHint": "How much of a career's year this championship fills. Its rounds are spread evenly across it, so a series that really runs twice a year says half a year here rather than being written out twice."
+      "seasonLengthHint": "How much of a career's year this championship fills. Its rounds are spread evenly across it, so a series that really runs twice a year says half a year here rather than being written out twice.",
+      "hemisphere": "Hemisphere"
     },
     "grid": {
       "title": "AI field",
@@ -876,6 +878,8 @@
       "defaultFormat": "The championship's own",
       "climate": "Climate",
       "defaultClimate": "The championship's own ({{climate}})",
+      "hemisphere": "Hemisphere",
+      "defaultHemisphere": "The championship's own ({{hemisphere}})",
       "entryFee": "Entry fee",
       "entryFeeHint": "Overrides the championship's, for this round alone.",
       "conditions": "Conditions",
@@ -1082,6 +1086,10 @@
     "mediterranean": "Mediterranean",
     "temperate": "Temperate",
     "oceanic": "Oceanic"
+  },
+  "hemisphere": {
+    "north": "Northern",
+    "south": "Southern"
   },
   "seasonLength": {
     "year": "A year",

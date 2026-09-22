@@ -11,7 +11,7 @@
 // the season itself runs on - which is what lets one career hold championships
 // of different lengths without "season end" meaning two dates.
 
-import type { SessionForecast } from './forecast.ts';
+import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { SessionType } from './race.ts';
 import type { Championship, Climate, RoundRaceLength } from './series.ts';
@@ -56,6 +56,15 @@ export interface SeasonEvent {
    * What entering it costs, frozen when the season was entered.
    */
   entryFee?: number;
+  /**
+   * The weather its climate drew, issued once the clock came within
+   * `FORECAST_LEAD_DAYS` of `firstDay` and never drawn again.
+   *
+   * Absent on a weekend still further out than that, and on a championship that
+   * authors its weather rather than generating it - the two are told apart by
+   * whether the round has a climate at all.
+   */
+  forecast?: RoundDraw;
   /**
    * Whether it is still to come, has been raced, or was passed by.
    */
@@ -411,6 +420,15 @@ export interface EventSession {
    * Its weather, when the championship generates it, or null when authored.
    */
   forecast: SessionForecast | null;
+  /**
+   * Whether its weather is generated but has not been forecast yet.
+   *
+   * A forecast is issued a week before the weekend, so a round further out than
+   * that has a climate and no draw. Told apart from authored weather here
+   * rather than in the renderer, which would otherwise need the round's climate
+   * threaded down to every session row to say which kind of nothing it has.
+   */
+  pending: boolean;
   /**
    * Which session its grid comes from and how, or null when it starts from the
    * pit lane or lines up on skill.

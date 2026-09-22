@@ -38,11 +38,14 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
   const championship = useChampionship(id);
   const commands = useSeriesCommands();
-  const forecasts = useForecast(id === '' ? undefined : id);
+  const [entering, setEntering] = useState<Round | null>(null);
+  // Only while a round is being entered. A forecast belongs to the week before
+  // its weekend, so the calendar below no longer shows one at all - and loading
+  // every round's on mount would be drawing a season's weather to throw away.
+  const forecasts = useForecast(entering && id !== '' ? id : undefined);
   // The season this championship is being raced in, when the career has entered
   // it: what dates its rounds and what its standings are.
   const career = useCareer();
-  const [entering, setEntering] = useState<Round | null>(null);
 
   const season = career.career?.seasons[career.career.seasons.length - 1];
   const entered = season?.entries.find((one) => one.series === id && !one.withdrawn) ?? null;
@@ -157,7 +160,6 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
                   round={round}
                   number={index + 1}
                   busy={championship.busy}
-                  forecast={forecastOf(round.id)}
                   date={eventOf(round.id)?.raceDay}
                   status={eventOf(round.id)?.status}
                   onRace={manage ? undefined : () => setEntering(round)}

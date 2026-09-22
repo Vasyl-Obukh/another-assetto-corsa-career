@@ -5,7 +5,7 @@ import { DEFAULT_SERIES_GRID } from './constants.ts';
 import { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS, MIN_REVERSED } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
-import { ContentSource } from '../../shared/types/index.ts';
+import { ContentSource, Hemisphere } from '../../shared/types/index.ts';
 import type {
   BopEntry,
   Car,
@@ -200,6 +200,21 @@ export const seatSkin = (
  */
 export const climateOf = (series: Championship, round: Round): Climate | null => (
   series.generatedWeather ? round.climate ?? series.generatedWeather.climate : null
+);
+
+/**
+ * Which half of the world a round is raced in.
+ *
+ * North wherever nothing says otherwise, which is where all but two of the
+ * circuits we ship sit - and, more to the point, what a championship written
+ * before hemispheres existed meant.
+ * @param series The championship
+ * @param round The round being raced
+ * @returns The round's own hemisphere, the championship's otherwise, north
+ * when neither says
+ */
+export const hemisphereOf = (series: Championship, round: Round): Hemisphere => (
+  round.hemisphere ?? series.generatedWeather?.hemisphere ?? Hemisphere.NORTH
 );
 
 /**

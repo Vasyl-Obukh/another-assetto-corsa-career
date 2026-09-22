@@ -5,7 +5,9 @@ import type { ParseKeys } from 'i18next';
 
 import type { LengthUnit } from './types.ts';
 import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
-import { Climate, Discipline, SeasonLength, TeamBudget } from '../../../../shared/types';
+import {
+  Climate, Discipline, Hemisphere, SeasonLength, TeamBudget,
+} from '../../../../shared/types';
 
 /**
  * The value a select carries when the answer is the championship's default.
@@ -146,6 +148,11 @@ export const TEAM_BUDGETS: readonly TeamBudget[] = Object.values(TeamBudget);
 export const CLIMATES: readonly Climate[] = Object.values(Climate);
 
 /**
+ * The halves of the world a round may be raced in, north first.
+ */
+export const HEMISPHERES: readonly Hemisphere[] = Object.values(Hemisphere);
+
+/**
  * How much of a career's year a championship may fill, longest first.
  */
 export const SEASON_LENGTHS: readonly SeasonLength[] = Object.values(SeasonLength);
@@ -156,6 +163,12 @@ export const SEASON_LENGTHS: readonly SeasonLength[] = Object.values(SeasonLengt
  * The middle of the four, and what most of the shipped calendar races in.
  */
 export const DEFAULT_CLIMATE = Climate.MEDITERRANEAN;
+
+/**
+ * Which half of the world a championship's rounds are raced in unless one says
+ * otherwise. North, where all but two of the circuits we ship sit.
+ */
+export const DEFAULT_HEMISPHERE = Hemisphere.NORTH;
 
 /**
  * The label for each budget.

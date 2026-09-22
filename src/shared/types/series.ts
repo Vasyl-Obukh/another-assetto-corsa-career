@@ -188,14 +188,29 @@ export enum TeamBudget {
  *
  * Named for real climates rather than for how wet they are, because a climate
  * also says how warm and how windy - Bahrain and Spa differ in more than rain.
- * Ordered driest first. Until Phase 5 gives a round a date, each assumes the
- * racing season.
+ * Ordered driest first. A climate states the year as a whole; which part of it
+ * a round falls in is the round's date, read through Hemisphere.
  */
 export enum Climate {
   ARID = 'arid',
   MEDITERRANEAN = 'mediterranean',
   TEMPERATE = 'temperate',
   OCEANIC = 'oceanic',
+}
+
+/**
+ * Which half of the world a round is raced in, which is what decides whether
+ * its date falls in that climate's summer or its winter.
+ *
+ * Needed because a climate is stated for the year rather than for a month:
+ * Interlagos and Silverstone in the same February are opposite seasons, and
+ * without this every southern round would be handed the wrong half of the year.
+ * North is the default everywhere, since that is where all but two of the
+ * circuits we ship sit.
+ */
+export enum Hemisphere {
+  NORTH = 'north',
+  SOUTH = 'south',
 }
 
 /**
@@ -222,6 +237,11 @@ export interface GeneratedWeather {
    * The climate a round expects when it names none of its own.
    */
   climate: Climate;
+  /**
+   * Which half of the world its rounds are raced in, when they name none of
+   * their own. North when unsaid.
+   */
+  hemisphere?: Hemisphere;
 }
 
 /**
@@ -491,6 +511,15 @@ export interface Round {
    * own `conditions` state still wins over anything generated.
    */
   climate?: Climate;
+  /**
+   * Which half of the world this round is raced in, overriding the
+   * championship's own.
+   *
+   * A championship crossing the equator says so per round: a season is mostly
+   * one hemisphere with a flyaway or two in the other, so the override is the
+   * exception rather than the rule.
+   */
+  hemisphere?: Hemisphere;
   /**
    * What entering this round costs, overriding the championship's own fee.
    */

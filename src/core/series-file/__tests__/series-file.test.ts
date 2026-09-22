@@ -167,6 +167,34 @@ describe('core/series-file', () => {
         .toEqual(['seriesFile.field.invalid']);
     });
 
+    it('accepts a hemisphere on the championship and on a round', () => {
+      const { series, problems } = parseSeries(raw({
+        generatedWeather: { climate: 'temperate', hemisphere: 'south' },
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, hemisphere: 'north',
+        }],
+      }), 'test.json');
+
+      expect(problems).toEqual([]);
+      expect(series?.generatedWeather?.hemisphere).toBe('south');
+      expect(series?.rounds[0].hemisphere).toBe('north');
+    });
+
+    it('rejects a championship hemisphere that is not a real one', () => {
+      expect(codesFor(raw({ generatedWeather: { climate: 'temperate', hemisphere: 'east' } })))
+        .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('rejects a round hemisphere that is not a real one', () => {
+      const value = raw({
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, hemisphere: 'South',
+        }],
+      });
+
+      expect(codesFor(value)).toEqual(['seriesFile.field.invalid']);
+    });
+
     it('rejects a round climate that is not a real one', () => {
       const value = raw({
         rounds: [{

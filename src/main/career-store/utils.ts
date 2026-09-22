@@ -1,11 +1,14 @@
 // The decidable parts of the career store, kept pure so they can be read and
 // tested without a disk or an Electron fake behind them.
 
-import { CAREER_SEASON_WEEKS, CAREER_VERSION } from './constants.ts';
+import { CAREER_SEASON_WEEKS, CAREER_VERSION, FORECAST_LEAD_DAYS } from './constants.ts';
 import type { EnteredEvent } from './types.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
-import { roundRaceId, roundSpans } from '../../core/series/index.ts';
+import {
+  climateOf, formatOf, hemisphereOf, roundRaceId, roundSpans,
+} from '../../core/series/index.ts';
+import { drawRound } from '../../core/weather-forecast/index.ts';
 import { chainOf, startingGrid } from '../../core/weekend/index.ts';
 import {
   DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MINUTES_PER_HOUR, SEASON_WEEKS,
@@ -170,6 +173,81 @@ export const advanceStop = (
 };
 
 /**
+ * Draws one weekend's weather, once the clock has come within a week of it.
+ *
+ * A forecast already issued is never redrawn - that is the whole point of
+ * storing it - and a weekend still further out than the lead is left alone.
+ * A weekend already behind the clock is drawn too, so one passed by shows the
+ * weather it had rather than a forecast still to come. Pure, because the draw
+ * is stored rather than the forecast: what an install can race is asked when
+ * the weekend is shown or set up.
+ * @param career The career, whose id salts the draw
+ * @param season Which season of the career it falls in
+ * @param championship The championship it is a round of
+ * @param event The weekend
+ * @param date The ISO date the clock now stands at
+ * @returns The weekend, with a draw when it is close enough to have one
+ */
+export const issueForecast = (
+  career: Career,
+  season: number,
+  championship: Championship,
+  event: SeasonEvent,
+  date: string,
+): SeasonEvent => {
+  if (event.forecast || event.firstDay > addDays(date, FORECAST_LEAD_DAYS)) return event;
+
+  const round = championship.rounds.find((one) => one.id === event.round);
+  const climate = round && climateOf(championship, round);
+  const format = round && formatOf(championship, round);
+  if (!round || !climate || !format) return event;
+
+  return {
+    ...event,
+    forecast: drawRound(championship.id, round, format, climate, {
+      // The career and the season, so two careers never race one year's
+      // weather and a second season of a championship rolls its own.
+      salt: `${career.id}\u0000${season}`,
+      raceDay: event.raceDay,
+      hemisphere: hemisphereOf(championship, round),
+    }),
+  };
+};
+
+/**
+ * Draws the weather for every weekend of a season the clock has come within a
+ * week of.
+ * @param career The career, whose id salts every draw
+ * @param season The season being advanced through
+ * @param date The ISO date the clock now stands at
+ * @returns The season, with a draw on every weekend close enough to have one
+ */
+export const issueForecasts = (
+  career: Career,
+  season: CareerSeason,
+  date: string,
+): CareerSeason => ({
+  ...season,
+  entries: season.entries.map((entry) => ({
+    ...entry,
+    events: entry.events.map((event) => (
+      issueForecast(career, season.index, entry.championship, event, date)
+    )),
+  })),
+});
+
+/**
+ * A career with one of its seasons replaced.
+ * @param career The career
+ * @param season The season as it now is, matched on its index
+ * @returns The career holding it
+ */
+export const withSeason = (career: Career, season: CareerSeason): Career => ({
+  ...career,
+  seasons: career.seasons.map((one) => (one.index === season.index ? season : one)),
+});
+
+/**
  * One round of a championship the career is in, found by its ids.
  * @param season The season to look in
  * @param series The championship's id
@@ -276,7 +354,10 @@ export const clockTime = (time: string | number | undefined): string | null => {
  * @param stated The format's sessions as the round states them, before a
  * distance was turned into laps - which is the only place the distance survives
  * @param records What has run so far
- * @param forecast The round's generated weather, or null when authored
+ * @param forecast The round's generated weather, or null when it is authored
+ * or has not been forecast yet
+ * @param pending Whether its weather is generated but not yet forecast, which
+ * is the one thing a null forecast cannot say for itself
  * @param firstDay The ISO date the weekend opens on
  * @param score What the weekend has paid so far
  * @param playerSeat The seat the player took, when the career is entered
@@ -289,6 +370,7 @@ export const eventSessions = (
   stated: readonly SeriesSession[],
   records: readonly LaunchRecord[],
   forecast: RoundForecast | null,
+  pending: boolean,
   firstDay: string,
   score: RoundScore | undefined,
   playerSeat: string | null,
@@ -323,6 +405,7 @@ export const eventSessions = (
       minutes: session.laps === undefined ? session.minutes : undefined,
       distance: stated[index]?.distance,
       forecast: forecast?.sessions.find((one) => one.index === index) ?? null,
+      pending,
       inherit: source === undefined ? null : {
         from: plan.launches[source]?.session.name ?? null,
         reverse: session.inherit?.reverse,

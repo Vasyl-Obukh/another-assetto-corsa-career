@@ -8,23 +8,29 @@ import {
   DAY_WANDER,
   DEGREES_PER_TURN,
   DIURNAL_SWING,
+  FULL_TURN,
+  HALF_A_YEAR,
+  ISO_YEAR_LENGTH,
   LAP_RACE_CHANGE_MINUTES,
   PEAK_HOUR,
   SESSION_PERSISTENCE,
+  SUMMER_PEAK,
   WET_AMBIENT_DROP,
   WET_DAY_BREAK_CHANCE,
   WIND_WANDER,
 } from './constants.ts';
 import type {
-  ClimateProfile, DayWeather, DrawnStep, Span, WeatherWeights,
+  ClimateProfile, DayWeather, Span, WeatherWeights,
 } from './types.ts';
 import { RAIN_INTENSITY, WET_WEATHER_TYPES } from '../../shared/constants/index.ts';
 import type { WeatherType } from '../../shared/constants/index.ts';
+import { Hemisphere } from '../../shared/types/index.ts';
 import type {
-  Conditions, ForecastStep, SessionDefinition, WeatherOffer, WeatherStep,
+  Conditions, DrawnStep, ForecastStep, SessionDefinition, WeatherOffer, WeatherStep,
 } from '../../shared/types/index.ts';
 import { nearestOffered } from '../../shared/utils/weather-types/index.ts';
 import { DEFAULT_TIME_OF_DAY, parseClock } from '../race-ini/index.ts';
+import { toDayNumber } from '../season-calendar/index.ts';
 import { runsToClock } from '../weekend/index.ts';
 
 /**
@@ -34,6 +40,66 @@ import { runsToClock } from '../weekend/index.ts';
  * @returns The value that far along
  */
 export const along = (span: Span, at: number): number => span.min + (span.max - span.min) * at;
+
+/**
+ * How far through its year a date falls.
+ * @param date The ISO date
+ * @returns A share of the year from 0 up to but not including 1
+ */
+export const yearFraction = (date: string): number => {
+  const year = Number(date.slice(0, ISO_YEAR_LENGTH));
+  const start = toDayNumber(`${year}-01-01`);
+
+  return (toDayNumber(date) - start) / (toDayNumber(`${year + 1}-01-01`) - start);
+};
+
+/**
+ * How near midsummer a date is, in the hemisphere it is raced in.
+ *
+ * A cosine rather than a step per season, so two rounds a week apart are a week
+ * apart in the weather rather than falling either side of a boundary.
+ * @param date The ISO date it is raced on
+ * @param hemisphere Which half of the world it is raced in
+ * @returns 1 at the height of summer, -1 at the depth of winter
+ */
+export const summerness = (date: string, hemisphere: Hemisphere): number => {
+  const away = yearFraction(date)
+    - SUMMER_PEAK
+    + (hemisphere === Hemisphere.SOUTH ? HALF_A_YEAR : 0);
+
+  return Math.cos(away * FULL_TURN);
+};
+
+/**
+ * A climate as it stands at one time of year.
+ *
+ * The profile states the year as a whole, so this is where a round's date turns
+ * it into the month it is actually raced in - Spa in April and Spa in August
+ * are not the same odds. A round with no date at all gets the profile back
+ * untouched, which is what the CLI and a round raced outside a career see.
+ * @param profile The climate as stated for the year
+ * @param date The ISO date the round races on, or undefined when it has none
+ * @param hemisphere Which half of the world it is raced in
+ * @returns The profile as it stands that month
+ */
+export const seasonalProfile = (
+  profile: ClimateProfile,
+  date: string | undefined,
+  hemisphere: Hemisphere,
+): ClimateProfile => {
+  if (date === undefined) return profile;
+
+  const summer = summerness(date, hemisphere);
+  const warmer = summer * profile.seasonal.ambient;
+
+  return {
+    ...profile,
+    ambient: { min: profile.ambient.min + warmer, max: profile.ambient.max + warmer },
+    // Clamped, or a climate whose swing outruns its own chance could ask for a
+    // negative share of wet days - and dayIsWet reads it as a probability.
+    wetDayChance: Math.min(1, Math.max(0, profile.wetDayChance - summer * profile.seasonal.wet)),
+  };
+};
 
 /**
  * Picks one weather from a weighted list.
@@ -190,6 +256,21 @@ export const drawSession = (
 };
 
 /**
+ * The steps a session runs when its weather was authored rather than drawn.
+ *
+ * Nothing is substituted: what a document asked for is what it races, and
+ * race.ini fails loudly on a type nothing installed declares rather than
+ * quietly running something else.
+ * @param drawn The authored steps, as the draw carried them
+ * @returns The same steps, each intending itself
+ */
+export const statedSteps = (drawn: readonly DrawnStep[]): ForecastStep[] => drawn.map((step) => ({
+  weather: step.weather,
+  intended: step.weather,
+  ...(step.minutes === undefined ? {} : { minutes: step.minutes }),
+}));
+
+/**
  * Swaps what the climate drew for what the install and settings can run.
  *
  * Two stretches that come out the same are one stretch, and weather that cannot
@@ -263,21 +344,22 @@ export const weatherFields = (
 
 /**
  * The steps a set of authored conditions runs, for showing beside generated ones.
+ *
+ * Drawn steps rather than forecast ones, although nothing was drawn: an
+ * authored stretch is never substituted, so what it intends is always what it
+ * runs and `statedSteps` puts that back on the way out.
  * @param conditions The session's resolved conditions
  * @returns One step per stretch, empty when the weather is a named preset or unset
  */
-export const authoredSteps = (conditions: Conditions): ForecastStep[] => {
+export const authoredSteps = (conditions: Conditions): DrawnStep[] => {
   if (conditions.weatherSteps !== undefined && conditions.weatherSteps.length > 0) {
     return conditions.weatherSteps.flatMap((step) => (typeof step.weather === 'number'
       ? [{
         weather: step.weather,
-        intended: step.weather,
         ...(step.minutes === undefined ? {} : { minutes: step.minutes }),
       }]
       : []));
   }
 
-  return conditions.weatherType == null
-    ? []
-    : [{ weather: conditions.weatherType, intended: conditions.weatherType }];
+  return conditions.weatherType == null ? [] : [{ weather: conditions.weatherType }];
 };

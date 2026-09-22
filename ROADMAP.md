@@ -2420,41 +2420,67 @@ proof that no layer below learned what a series is.
       is part-way; and a weekend changed on the Race screen part-way is flagged
       and can only be run again from the start
 - [ ] Persistent AI field - stable names, nationalities, liveries, ratings
-- [ ] **Generate a weekend's weather one week out, not a season ahead.** Today
-      generated weather is not generated at any moment at all: it is derived on
-      every read - the whole calendar at once when the championship page opens,
-      again for the Enter round dialog, and once more when a round is set up,
-      which is the only time anything is written. Seeded on the championship and
-      the round alone, so every season of a championship races identical weather,
-      and the calendar shows a forecast for a weekend half a year away, which no
-      forecast should. What it should be instead, and all of it lands here:
-      - **A seed per season**: career, season, championship and round, so each
-        year rolls its own weather. `forecastRound` takes the salt; nothing else
-        in the generator changes
-      - **Generated when the calendar advances**: every advance - starting a
-        later session or *advance to date* - checks which weekends now start
-        within `FORECAST_LEAD_DAYS` (7) and have no forecast yet, and generates
-        theirs. Never earlier than a week before the weekend's first day
-      - **Stored on the season's event**, not recomputed, so a forecast once
-        issued stays put until the weekend is raced. `SeasonEvent` in
-        `src/shared/types/career.ts` is where that field goes; it is deliberately
-        not there yet, since a field carried but never applied is worse than no
-        field
-      - **Store the weather as drawn, substitute at setup.** The stored forecast
-        holds the climate's own draw; swapping it for what the install and the
-        allow-list offer, and collapsing a plan without a planner, happen when
-        the weekend is set up - so switching a weather off in settings still takes
-        effect on a forecast already issued, and the draw itself never moves
-      - **The calendar stops forecasting months ahead**: the forecast strips
-        under each round row go, the round keeps its climate chip as the hint of
-        what to expect, and a forecast appears only on a weekend that has one.
-        The Enter round dialog and the race screen keep theirs
-      - **What survives unchanged** is most of Phase 4's: the generator, the
-        climates, substitution, the allow-list, weather-aware grip and the
-        forecast components. What changes is the trigger - the calendar rather
-        than a page load - and where the result lives
-- [ ] **Give a round's climate a season.** A climate assumes the racing season
-      until a round has a date; Spa in April and Spa in August are not the same odds
+- [x] **Generate a weekend's weather one week out, not a season ahead.** It used
+      to be derived on every read and seeded on the championship and the round
+      alone, so every season of a championship raced identical weather and the
+      calendar showed a forecast for a weekend half a year away. Now it is drawn
+      once, a week before the weekend, and stored.
+      **The split is the whole of it, and it is the seam that was already
+      there.** `drawRound` is the climate's draw and knows nothing of what is
+      installed; `offerForecast` swaps that draw for what this install and these
+      settings can actually race and collapses a plan with no planner behind it;
+      `forecastRound` is the two composed, which is what the CLI and a round
+      raced outside a career still call. So **the draw is stored and the
+      substitution is not** - switching a weather off in settings reaches a
+      forecast issued a week ago, while the draw behind it never moves. Checked
+      by construction rather than by eye: `drawRound` then `offerForecast` is
+      deep-equal to `forecastRound`.
+      **The salt is the career and the season**, and the empty one is spelled
+      exactly as the seed always was, so a round outside a career draws what it
+      has always drawn - `npm run series` is unchanged for a generated
+      championship, which is the proof. Two careers now race different years, and
+      a second season of a championship rolls its own.
+      **Issued from the clock, not from a page load.** `issueForecasts` is pure
+      over the career - storing the draw rather than the forecast is what lets it
+      need neither the installed content nor the settings - and every path that
+      moves the clock calls it: *advance to date*, launching a weekend still
+      ahead of the clock, and a weekend finishing. `enrol` calls it too, or a
+      championship entered the week before its opener would have a blank round
+      until the clock next happened to move.
+      **Two ways to have no forecast, and they mean opposite things.** A
+      generated weekend the clock has not reached has one coming; an authored one
+      never will. `EventSession.pending` says which, rather than the renderer
+      inferring it from a climate threaded down through three components into a
+      briefing that has no other interest in climates.
+      **One thing nearly broke silently**: the race screen's Forecast marker
+      compares the conditions a session is running against the forecast, and
+      `series:raceForecast` answers from the library - which after this would
+      draw an unsalted forecast for a round racing a salted one, and the marker
+      would have vanished from every career race. The career is asked first,
+      joined on `SeasonEvent.raceId`, and the library answers only for a round
+      raced outside one. The strips under the championship page's rounds are
+      gone, and that page now loads a forecast only while the Enter round dialog
+      is open
+- [x] **Give a round's climate a season.** A climate states the year as a whole
+      and a round now has a date, so `seasonalProfile` shifts it to the month it
+      is actually raced in: the temperature band moves, and the share of wet days
+      moves against it, every climate we ship being drier in its own summer. A
+      cosine rather than a season per quarter, so two rounds a week apart are a
+      week apart in the weather rather than falling either side of a boundary,
+      and peaked in mid-July rather than at the solstice because the warmest part
+      of the year lags the longest day.
+      **Hemisphere had to become real data**, not a northern assumption:
+      Interlagos and Silverstone in the same February are opposite seasons.
+      `GeneratedWeather.hemisphere` with a `Round.hemisphere` override, the same
+      shape `climate` already had, defaulting to north - which is both where all
+      but two of the circuits we ship sit and what every championship written
+      before this meant. Thirty-six rounds carry it, all of them Interlagos or
+      Bathurst.
+      **Only the odds move, never the draw sequence**, which is the same
+      discipline substitution follows: the same round in July and in January
+      walks the same random numbers and differs only where the shifted
+      threshold is crossed. So giving a climate a season re-weighted the
+      calendar without re-rolling it
 - [ ] One-off and historic events, preferring weekdays. **Not championships**: a
       single weekend, for racing an old car now and again rather than a season
       of it - which is why the championships of seasons before 2006 ship

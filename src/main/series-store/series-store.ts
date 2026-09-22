@@ -32,8 +32,6 @@ import type { ErrorCode } from '../../shared/errors/index.ts';
 import type {
   Championship,
   Content,
-  IpcRequest,
-  RaceSetup,
   SeriesCommandResult,
   SeriesLibrary,
   SeriesListing,
@@ -133,7 +131,8 @@ export const createSeriesStore = async (
   /**
    * Lowers one round of a championship into a race, setting nothing up.
    * @param series The championship, as the caller holds it
-   * @param request Which class, which round, and the player's car
+   * @param request Which class, which round, the player's car, and the weather
+   * a career has already drawn for it
    * @returns The race the round runs as
    */
   const lowerRound: SeriesStore['lowerRound'] = async (series, request) => {
@@ -280,17 +279,17 @@ export const createSeriesStore = async (
 
     lowerRound,
 
-    async setupRound(request: IpcRequest<'series:setupRound'>): Promise<RaceSetup> {
+    async setupRound(request) {
       const found = seriesById(library, request.series);
       if (!found) throw new AppError('series.notFound', { series: request.series });
 
       return race.set(await lowerRound(found.series, {
-        entry: request.entry, round: request.round, car: request.car,
+        entry: request.entry, round: request.round, car: request.car, draw: request.draw,
       }));
     },
 
-    async forecastFor(series) {
-      return seriesForecast(series, await offer(await content.content()));
+    async offer() {
+      return offer(await content.content());
     },
 
     async validate(series) {

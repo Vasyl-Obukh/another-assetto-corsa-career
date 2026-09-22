@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
-import { Climate, Discipline } from '../../../shared/types/index.ts';
+import { Climate, Discipline, Hemisphere } from '../../../shared/types/index.ts';
 import type {
   CareerSeason,
   LaunchRecord,
@@ -23,11 +23,14 @@ import {
   eventName,
   eventSessions,
   inProgressEvent,
+  issueForecast,
+  issueForecasts,
   launchBlock,
   materialiseEvents,
   readCareer,
   scheduledEvents,
   seasonEndDate,
+  withSeason,
 } from '../utils.ts';
 import {
   makeAvailability,
@@ -322,6 +325,100 @@ describe('main/career-store/utils', () => {
     });
   });
 
+  describe('issueForecast', () => {
+    const GENERATED = makeChampionship({ generatedWeather: { climate: Climate.OCEANIC } });
+    const CLOCK = '2026-03-01';
+
+    it('draws a weekend the clock has come within a week of', () => {
+      const issued = issueForecast(makeCareer(), 0, GENERATED, makeEvent('one', addDays(CLOCK, 7)), CLOCK);
+
+      expect(issued.forecast).toMatchObject({ series: 'test-cup', round: 'one', climate: Climate.OCEANIC });
+      expect(issued.forecast?.sessions).toHaveLength(3);
+    });
+
+    it('leaves a weekend further out than a week undrawn', () => {
+      const event = makeEvent('one', addDays(CLOCK, 8));
+
+      expect(issueForecast(makeCareer(), 0, GENERATED, event, CLOCK)).toBe(event);
+    });
+
+    it('never redraws a forecast already issued', () => {
+      const event = issueForecast(makeCareer(), 0, GENERATED, makeEvent('one', CLOCK), CLOCK);
+
+      expect(issueForecast(makeCareer({ id: 'career-2' }), 1, GENERATED, event, CLOCK)).toBe(event);
+    });
+
+    it('draws a weekend the clock has already passed, so it shows the weather it had', () => {
+      const event = makeEvent('one', '2026-02-01', { status: 'missed' });
+
+      expect(issueForecast(makeCareer(), 0, GENERATED, event, CLOCK).forecast).toBeDefined();
+    });
+
+    it('draws nothing for a championship that authors its weather', () => {
+      const event = makeEvent('one', CLOCK);
+
+      expect(issueForecast(makeCareer(), 0, makeChampionship(), event, CLOCK)).toBe(event);
+    });
+
+    it('draws nothing for a round the championship no longer has', () => {
+      const event = makeEvent('gone', CLOCK);
+
+      expect(issueForecast(makeCareer(), 0, GENERATED, event, CLOCK)).toBe(event);
+    });
+
+    it('draws each career and each season its own weather', () => {
+      const draw = (career: string, season: number): string => JSON.stringify(
+        issueForecast(makeCareer({ id: career }), season, GENERATED, makeEvent('one', CLOCK), CLOCK)
+          .forecast,
+      );
+
+      expect(draw('career-1', 0)).toBe(draw('career-1', 0));
+      expect(draw('career-1', 0)).not.toBe(draw('career-2', 0));
+      expect(draw('career-1', 0)).not.toBe(draw('career-1', 1));
+    });
+
+    it('draws a southern round for its own season', () => {
+      const south = makeChampionship({
+        generatedWeather: { climate: Climate.OCEANIC, hemisphere: Hemisphere.SOUTH },
+      });
+      const ambientOf = (series: typeof south): number | undefined => (
+        issueForecast(makeCareer(), 0, series, makeEvent('one', '2026-01-16'), '2026-01-16')
+          .forecast?.sessions[0].ambient
+      );
+
+      // January is midsummer in the south, and the swing is several degrees.
+      expect(ambientOf(south)).toBeGreaterThan(ambientOf(GENERATED) ?? Infinity);
+    });
+  });
+
+  describe('issueForecasts', () => {
+    it('draws every weekend of every entry that is close enough, and no other', () => {
+      const championship = makeChampionship({ generatedWeather: { climate: Climate.OCEANIC } });
+      const season = makeSeason({
+        entries: [makeEntry({
+          championship,
+          events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-04-05')],
+        })],
+      });
+
+      const issued = issueForecasts(makeCareer(), season, '2026-02-25');
+
+      expect(issued.entries[0].events.map((event) => event.forecast !== undefined))
+        .toEqual([true, false]);
+    });
+  });
+
+  describe('withSeason', () => {
+    it('replaces the season with the same index and leaves the rest alone', () => {
+      const first = makeSeason({ index: 0 });
+      const second = makeSeason({ index: 1, startDate: '2027-01-03' });
+      const replaced = makeSeason({ index: 1, startDate: '2027-01-10' });
+
+      expect(withSeason(makeCareer({ seasons: [first, second] }), replaced).seasons)
+        .toEqual([first, replaced]);
+    });
+  });
+
   describe('enteredEvent', () => {
     const event = makeEvent('one', '2026-03-01');
     const entry = makeEntry({ events: [event, makeEvent('two', '2026-05-03')] });
@@ -539,6 +636,7 @@ describe('main/career-store/utils', () => {
      * @param live Whether the career can still run this weekend
      * @param score What the weekend has paid, when it has been scored
      * @param forecast The round's generated weather, when it has one
+     * @param pending Whether that weather is generated but not yet forecast
      * @returns The sessions as the event page would show them
      */
     const sessionsOf = (
@@ -546,8 +644,9 @@ describe('main/career-store/utils', () => {
       live = true,
       score: RoundScore | undefined = undefined,
       forecast: RoundForecast | null = null,
+      pending = false,
     ) => eventSessions(
-      makePlan(SESSIONS), STATED, records, forecast, FIRST_DAY, score, 'seat-2', live,
+      makePlan(SESSIONS), STATED, records, forecast, pending, FIRST_DAY, score, 'seat-2', live,
     );
 
     it('marks what has run, what runs next and what waits on it', () => {
@@ -618,6 +717,12 @@ describe('main/career-store/utils', () => {
 
       expect(sessions[1].forecast).toEqual({ index: 1, ambient: 18 });
       expect(sessions[0].forecast).toBeNull();
+    });
+
+    it('says on every session that a forecast is still to come', () => {
+      expect(sessionsOf([], true, undefined, null, true).map((one) => one.pending))
+        .toEqual([true, true, true]);
+      expect(sessionsOf([]).map((one) => one.pending)).toEqual([false, false, false]);
     });
 
     it('carries what the player took from a race that has been scored', () => {

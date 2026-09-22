@@ -31,6 +31,9 @@ export const CLIMATE_PROFILE: Record<Climate, ClimateProfile> = {
       [WeatherType.LIGHT_RAIN, 2],
       [WeatherType.LIGHT_THUNDERSTORM, 1],
     ],
+    // Barely moves: an arid climate's dry season is the whole year, and what
+    // little rain it gets is as likely in one month as another.
+    seasonal: { ambient: 6, wet: 0.01 },
   },
   [Climate.MEDITERRANEAN]: {
     wetDayChance: 0.1,
@@ -52,6 +55,9 @@ export const CLIMATE_PROFILE: Record<Climate, ClimateProfile> = {
       [WeatherType.THUNDERSTORM, 1.5],
       [WeatherType.HEAVY_RAIN, 0.5],
     ],
+    // The sharpest of the four on rain: a Mediterranean summer is all but
+    // rainless and its winter carries almost all of the year's wet days.
+    seasonal: { ambient: 7, wet: 0.085 },
   },
   [Climate.TEMPERATE]: {
     wetDayChance: 0.2,
@@ -74,6 +80,8 @@ export const CLIMATE_PROFILE: Record<Climate, ClimateProfile> = {
       [WeatherType.THUNDERSTORM, 1],
       [WeatherType.HEAVY_RAIN, 0.7],
     ],
+    // Rain all year, a little more of it in winter.
+    seasonal: { ambient: 8, wet: 0.07 },
   },
   [Climate.OCEANIC]: {
     wetDayChance: 0.3,
@@ -97,6 +105,9 @@ export const CLIMATE_PROFILE: Record<Climate, ClimateProfile> = {
       [WeatherType.HEAVY_RAIN, 0.8],
       [WeatherType.LIGHT_THUNDERSTORM, 0.5],
     ],
+    // Wet whatever the month, which is what an oceanic climate means - so the
+    // swing is the smallest share of its own chance of any of the four.
+    seasonal: { ambient: 6, wet: 0.07 },
   },
 };
 
@@ -178,3 +189,28 @@ export const CHANGE_SHARE: Span = { min: 0.3, max: 0.7 };
  * the race lasts is not known until it has been driven.
  */
 export const LAP_RACE_CHANGE_MINUTES: Span = { min: 8, max: 20 };
+
+/**
+ * Where in the year the northern hemisphere is warmest, as a share of it.
+ *
+ * Mid-July rather than the solstice: the warmest part of the year lags the
+ * longest day by several weeks, because the ground is still taking on heat
+ * after it. The southern hemisphere is half a year away from this.
+ */
+export const SUMMER_PEAK = 0.54;
+
+/**
+ * A full turn in radians, for the cosine the seasonal curve is drawn on.
+ */
+export const FULL_TURN = Math.PI * 2;
+
+/**
+ * Half a year, as a share of one, which is how far the southern hemisphere's
+ * seasons sit from the northern.
+ */
+export const HALF_A_YEAR = 0.5;
+
+/**
+ * How many characters the year takes at the start of an ISO date.
+ */
+export const ISO_YEAR_LENGTH = 4;

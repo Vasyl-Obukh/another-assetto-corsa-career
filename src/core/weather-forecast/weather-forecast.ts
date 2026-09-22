@@ -5,24 +5,30 @@
 // last two, so switching one weather off swaps it out rather than re-rolling.
 
 import { CLIMATE_PROFILE, WARM_UP_DRAWS, WIND_BAND } from './constants.ts';
+import type { DrawOptions } from './types.ts';
 import {
   authoredSteps,
   drawDays,
   drawSession,
   offeredSteps,
+  seasonalProfile,
   sessionAmbient,
   startHour,
+  statedSteps,
   weatherFields,
 } from './utils.ts';
 import { DEFAULT_SETTINGS } from '../../shared/constants/index.ts';
 import type { WeatherType } from '../../shared/constants/index.ts';
+import { Hemisphere } from '../../shared/types/index.ts';
 import type {
   Climate,
   Conditions,
   Content,
   Round,
+  RoundDraw,
   RoundForecast,
   SeriesSession,
+  SessionDraw,
   SessionForecast,
   WeatherOffer,
   WeekendFormat,
@@ -50,36 +56,43 @@ export const defaultWeatherOffer = (content: Content, rainFx = true): WeatherOff
 );
 
 /**
- * Forecasts one round's weekend.
+ * Draws one round's weekend from its climate.
  *
- * What a round or a session states for itself wins, a group at a time: weather
- * is generated only where neither names one, and the same goes for the air
- * temperature and for the wind.
+ * Everything the offer decides is left out, so a draw can be stored and shown
+ * against whatever is installed later. What a round or a session states for
+ * itself wins, a group at a time: weather is drawn only where neither names
+ * one, and the same goes for the air temperature and for the wind.
  * @param seriesId The championship's id, part of the seed
  * @param round The round
  * @param format The weekend format it runs
  * @param climate The climate its weather is drawn from
- * @param offer What the install and settings can race in
- * @returns One forecast per session of the format, in format order
+ * @param options The season's salt, the date it races on and its hemisphere
+ * @returns One draw per session of the format, in format order
  */
-export const forecastRound = (
+export const drawRound = (
   seriesId: string,
   round: Round,
   format: WeekendFormat,
   climate: Climate,
-  offer: WeatherOffer,
-): RoundForecast => {
-  const profile = CLIMATE_PROFILE[climate];
+  options: DrawOptions = {},
+): RoundDraw => {
+  const { salt = '', raceDay, hemisphere = Hemisphere.NORTH } = options;
+  const profile = seasonalProfile(CLIMATE_PROFILE[climate], raceDay, hemisphere);
   // The varying ids lead, so they are multiplied through the fixed tail of the
-  // hash rather than landing on its last step.
-  const random = randomFrom(seedFrom(`${round.id}\u0000${seriesId}\u0000weather`));
+  // hash rather than landing on its last step. An unsalted seed is spelled
+  // exactly as it was before seasons had one, so a round raced outside a career
+  // draws what it has always drawn.
+  const seed = salt === ''
+    ? `${round.id}\u0000${seriesId}\u0000weather`
+    : `${round.id}\u0000${seriesId}\u0000${salt}\u0000weather`;
+  const random = randomFrom(seedFrom(seed));
   Array.from({ length: WARM_UP_DRAWS }).forEach(() => random());
 
   const lastDay = Math.max(0, ...format.sessions.map(dayOf));
   const days = drawDays(lastDay + 1, profile, random);
   let before: { day: number; weather: WeatherType } | null = null;
 
-  const sessions = format.sessions.map((session, index): SessionForecast => {
+  const sessions = format.sessions.map((session, index): SessionDraw => {
     const at = dayOf(session);
     const day = days[at];
     const carried: WeatherType | null = before?.day === at ? before.weather : null;
@@ -91,13 +104,11 @@ export const forecastRound = (
     const windStated = resolved.windMin !== undefined || resolved.windMax !== undefined
       || resolved.windDirection !== undefined;
     const weatherStated = namesWeather(resolved);
-    const steps = weatherStated ? authoredSteps(resolved) : offeredSteps(drawn.steps, offer);
     const wind = windStated ? resolved.windMax ?? resolved.windMin ?? day.wind : day.wind;
 
+    // The weather group is deliberately absent: which weather actually runs is
+    // the offer's to decide, and offerForecast adds it.
     const conditions: Conditions = {
-      ...(weatherStated
-        ? {}
-        : weatherFields(steps, ambient, wind, resolved.windDirection ?? drawn.windDirection)),
       ...(resolved.ambient === undefined ? { ambient } : {}),
       ...(windStated
         ? {}
@@ -114,10 +125,12 @@ export const forecastRound = (
       type: session.type,
       ...(session.name === undefined ? {} : { name: session.name }),
       generated: !weatherStated,
-      steps,
+      steps: weatherStated ? authoredSteps(resolved) : drawn.steps,
       ambient,
       windMin: resolved.windMin ?? conditions.windMin ?? null,
       windMax: resolved.windMax ?? conditions.windMax ?? null,
+      wind,
+      windDirection: resolved.windDirection ?? drawn.windDirection,
       conditions,
     };
   });
@@ -126,6 +139,68 @@ export const forecastRound = (
     series: seriesId, round: round.id, climate, sessions,
   };
 };
+
+/**
+ * Swaps a draw for what this install and these settings can actually race.
+ *
+ * Pure and drawless: it may be run again whenever the offer moves without the
+ * weather itself changing, which is what lets a forecast issued a week out
+ * follow a weather switched off in settings the day before the race.
+ * @param draw The round as its climate drew it
+ * @param offer What the install and settings can race in
+ * @returns One forecast per session of the draw, in the same order
+ */
+export const offerForecast = (draw: RoundDraw, offer: WeatherOffer): RoundForecast => ({
+  series: draw.series,
+  round: draw.round,
+  climate: draw.climate,
+  sessions: draw.sessions.map((session): SessionForecast => {
+    const steps = session.generated
+      ? offeredSteps(session.steps, offer)
+      : statedSteps(session.steps);
+
+    return {
+      index: session.index,
+      day: session.day,
+      type: session.type,
+      ...(session.name === undefined ? {} : { name: session.name }),
+      generated: session.generated,
+      steps,
+      ambient: session.ambient,
+      windMin: session.windMin,
+      windMax: session.windMax,
+      conditions: {
+        ...(session.generated
+          ? weatherFields(steps, session.ambient, session.wind, session.windDirection)
+          : {}),
+        ...session.conditions,
+      },
+    };
+  }),
+});
+
+/**
+ * Forecasts one round's weekend.
+ *
+ * Drawing and substituting in one go, for every caller with nowhere to store a
+ * draw - the CLI, the championship library's own preview, and a round raced
+ * outside a career.
+ * @param seriesId The championship's id, part of the seed
+ * @param round The round
+ * @param format The weekend format it runs
+ * @param climate The climate its weather is drawn from
+ * @param offer What the install and settings can race in
+ * @param options The season's salt, the date it races on and its hemisphere
+ * @returns One forecast per session of the format, in format order
+ */
+export const forecastRound = (
+  seriesId: string,
+  round: Round,
+  format: WeekendFormat,
+  climate: Climate,
+  offer: WeatherOffer,
+  options: DrawOptions = {},
+): RoundForecast => offerForecast(drawRound(seriesId, round, format, climate, options), offer);
 
 /**
  * Writes a forecast onto the sessions it was made for.

@@ -1,11 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { DEFAULT_ALLOWED_WEATHER, WeatherType } from '../../../shared/constants/index.ts';
-import { Climate } from '../../../shared/types/index.ts';
+import { Climate, Hemisphere } from '../../../shared/types/index.ts';
 import type {
   Conditions, Content, Round, RoundForecast, Weather, WeatherOffer, WeekendFormat,
 } from '../../../shared/types/index.ts';
-import { applyForecast, defaultWeatherOffer, forecastRound } from '../weather-forecast.ts';
+import type { DrawOptions } from '../types.ts';
+import {
+  applyForecast, defaultWeatherOffer, drawRound, forecastRound, offerForecast,
+} from '../weather-forecast.ts';
 
 /**
  * Builds a weather preset declaring the given type.
@@ -88,6 +91,20 @@ const ROUND_IDS = Array.from({ length: 20 }, (unused, at) => `round-${at + 1}`);
  */
 const WEATHER_KEYS = ['weather', 'weatherType', 'weatherController', 'weatherSteps'];
 
+/**
+ * The average air temperature a spread of rounds draws.
+ * @param options What each round is drawn with
+ * @returns The mean over every session of every round
+ */
+const meanAmbient = (options: DrawOptions): number => {
+  const ambients = ROUND_IDS.flatMap((id) => (
+    drawRound('test-cup', makeRound(id), FORMAT, Climate.TEMPERATE, options).sessions
+      .map((session) => session.ambient)
+  ));
+
+  return ambients.reduce((sum, one) => sum + one, 0) / ambients.length;
+};
+
 describe('core/weather-forecast/weather-forecast', () => {
   describe('defaultWeatherOffer', () => {
     it('offers the default allowed weather over what the presets declare', () => {
@@ -103,6 +120,90 @@ describe('core/weather-forecast/weather-forecast', () => {
       const content = makeContent([WeatherType.RAIN, WeatherType.CLEAR]);
 
       expect(defaultWeatherOffer(content, false).types).toEqual([WeatherType.CLEAR]);
+    });
+  });
+
+  describe('drawRound', () => {
+    it('draws the same weekend for the same salt', () => {
+      const draw = (): unknown => drawRound('test-cup', makeRound('monza'), FORMAT, Climate.OCEANIC, { salt: 'a' });
+
+      expect(draw()).toEqual(draw());
+    });
+
+    it('draws another season for another salt', () => {
+      const differs = ROUND_IDS.some((id) => {
+        const draw = (salt: string): string => JSON.stringify(
+          drawRound('test-cup', makeRound(id), FORMAT, Climate.OCEANIC, { salt }).sessions,
+        );
+        return draw('career-1') !== draw('career-2');
+      });
+
+      expect(differs).toBe(true);
+    });
+
+    // An empty salt is spelled as the seed always was, so a round raced outside
+    // a career draws what it always drew.
+    it('treats an empty salt as no salt at all', () => {
+      const round = makeRound('monza');
+
+      expect(drawRound('test-cup', round, FORMAT, Climate.OCEANIC, { salt: '' }))
+        .toEqual(drawRound('test-cup', round, FORMAT, Climate.OCEANIC));
+    });
+
+    it('leaves the weather group to the offer', () => {
+      drawRound('test-cup', makeRound('monza'), FORMAT, Climate.OCEANIC).sessions.forEach((session) => {
+        expect(session.steps.length).toBeGreaterThan(0);
+        WEATHER_KEYS.forEach((key) => expect(session.conditions).not.toHaveProperty(key));
+      });
+    });
+
+    it('carries the authored steps of a session that states its own weather', () => {
+      const draw = drawRound('test-cup', makeRound('monza', { weatherType: WeatherType.FOG }), FORMAT, Climate.OCEANIC);
+
+      draw.sessions.forEach((session) => {
+        expect(session.generated).toBe(false);
+        expect(session.steps).toEqual([{ weather: WeatherType.FOG }]);
+      });
+    });
+
+    it('races warmer in summer than in winter', () => {
+      expect(meanAmbient({ raceDay: '2026-07-19' }))
+        .toBeGreaterThan(meanAmbient({ raceDay: '2026-01-18' }));
+    });
+
+    it('turns the seasons round in the southern hemisphere', () => {
+      expect(meanAmbient({ raceDay: '2026-01-18', hemisphere: Hemisphere.SOUTH }))
+        .toBeGreaterThan(meanAmbient({ raceDay: '2026-01-18', hemisphere: Hemisphere.NORTH }));
+    });
+  });
+
+  describe('offerForecast', () => {
+    it('is the draw and the offer composed, which forecastRound is', () => {
+      const round = makeRound('monza');
+
+      expect(offerForecast(drawRound('test-cup', round, FORMAT, Climate.OCEANIC), OFFER))
+        .toEqual(forecastRound('test-cup', round, FORMAT, Climate.OCEANIC, OFFER));
+    });
+
+    it('follows a change of offer without moving the air or the wind', () => {
+      const draw = drawRound('test-cup', makeRound('monza'), FORMAT, Climate.OCEANIC);
+      const narrow: WeatherOffer = { types: [WeatherType.CLEAR], dynamic: true };
+      const offered = offerForecast(draw, narrow);
+
+      offered.sessions.forEach((session, at) => {
+        expect(session.steps.map((step) => step.weather)).toEqual([WeatherType.CLEAR]);
+        expect(session.ambient).toBe(draw.sessions[at].ambient);
+        expect(session.conditions.windMax).toBe(draw.sessions[at].conditions.windMax);
+      });
+    });
+
+    it('races authored weather as authored, even when it is not on offer', () => {
+      const draw = drawRound('test-cup', makeRound('monza', { weatherType: WeatherType.FOG }), FORMAT, Climate.OCEANIC);
+
+      offerForecast(draw, { types: [WeatherType.CLEAR], dynamic: true }).sessions.forEach((session) => {
+        expect(session.steps).toEqual([{ weather: WeatherType.FOG, intended: WeatherType.FOG }]);
+        WEATHER_KEYS.forEach((key) => expect(session.conditions).not.toHaveProperty(key));
+      });
     });
   });
 

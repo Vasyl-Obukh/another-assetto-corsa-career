@@ -3,12 +3,14 @@ import type {
   IpcRequest,
   RaceDefinition,
   RaceSetup,
+  RoundDraw,
   RoundForecast,
   SeriesAvailability,
   SeriesCommandResult,
   SeriesImportResult,
   SeriesLibrary,
   SeriesListing,
+  WeatherOffer,
 } from '../../shared/types/index.ts';
 
 /**
@@ -34,10 +36,13 @@ export interface SeriesStore {
    * The store refuses while a launch is in flight, and that refusal is left to
    * travel rather than being pre-empted here: it is the same answer the race
    * screen already renders.
-   * @param request Which round of which championship, and the player's car
+   * @param request Which round of which championship, the player's car, and
+   * the weather a career has already drawn for it
    * @returns The race setup, ready for the race screen
    */
-  setupRound: (request: IpcRequest<'series:setupRound'>) => Promise<RaceSetup>;
+  setupRound: (
+    request: IpcRequest<'series:setupRound'> & { draw?: RoundDraw },
+  ) => Promise<RaceSetup>;
   /**
    * Lowers one round of a championship the caller holds into a race, without
    * setting it up.
@@ -48,19 +53,24 @@ export interface SeriesStore {
    * library round is set up with, which is why this lives here rather than being
    * copied into the career store.
    * @param series The championship, as the caller holds it
-   * @param request Which class, which round, and the player's car
+   * @param request Which class, which round, the player's car, and the weather
+   * a career has already drawn for it
    * @returns The race the round runs as
    */
   lowerRound: (
     series: Championship,
-    request: Omit<IpcRequest<'series:setupRound'>, 'series'>,
+    request: Omit<IpcRequest<'series:setupRound'>, 'series'> & { draw?: RoundDraw },
   ) => Promise<RaceDefinition>;
   /**
-   * Every round's generated weather, for a championship the caller holds.
-   * @param series The championship, as the caller holds it
-   * @returns One forecast per round, empty when its weather is authored
+   * What the install and the user's settings can race in.
+   *
+   * Exposed because a career stores the weather its climate drew rather than
+   * the weather that will run, and needs this to turn one into the other. The
+   * same offer a round is set up with, which is what keeps a forecast and its
+   * race one answer.
+   * @returns The offer as it stands
    */
-  forecastFor: (series: Championship) => Promise<RoundForecast[]>;
+  offer: () => Promise<WeatherOffer>;
   /**
    * What is wrong with a championship as it stands, writing nothing.
    *

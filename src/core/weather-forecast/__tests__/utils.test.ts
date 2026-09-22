@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { RAIN_INTENSITY, WeatherType } from '../../../shared/constants/index.ts';
+import { Hemisphere } from '../../../shared/types/index.ts';
 import type { SessionDefinition, WeatherOffer } from '../../../shared/types/index.ts';
 import { DEFAULT_TIME_OF_DAY, parseClock } from '../../race-ini/index.ts';
 import { randomFrom } from '../../seeded-random/index.ts';
@@ -23,10 +24,14 @@ import {
   drawDays,
   drawSession,
   offeredSteps,
+  seasonalProfile,
   sessionAmbient,
   startHour,
+  statedSteps,
+  summerness,
   weatherFields,
   weightedPick,
+  yearFraction,
 } from '../utils.ts';
 
 /**
@@ -74,6 +79,7 @@ const makeProfile = (overrides: Partial<ClimateProfile> = {}): ClimateProfile =>
   changeChance: 0.5,
   dry: [[WeatherType.CLEAR, 1], [WeatherType.OVERCAST_CLOUDS, 1]],
   wet: [[WeatherType.RAIN, 1], [WeatherType.HEAVY_RAIN, 1]],
+  seasonal: { ambient: 0, wet: 0 },
   ...overrides,
 });
 
@@ -118,6 +124,81 @@ describe('core/weather-forecast/utils', () => {
       expect(along({ min: 10, max: 20 }, 0)).toBe(10);
       expect(along({ min: 10, max: 20 }, 0.5)).toBe(15);
       expect(along({ min: 10, max: 20 }, 1)).toBe(20);
+    });
+  });
+
+  describe('yearFraction', () => {
+    it('reads the first of January as the start of the year', () => {
+      expect(yearFraction('2026-01-01')).toBe(0);
+    });
+
+    it('reads a date by how many days of its own year have gone', () => {
+      expect(yearFraction('2026-07-02')).toBeCloseTo(182 / 365);
+      expect(yearFraction('2028-07-02')).toBeCloseTo(183 / 366);
+    });
+
+    it('stays short of a whole year on the last day of it', () => {
+      expect(yearFraction('2026-12-31')).toBeLessThan(1);
+    });
+  });
+
+  describe('summerness', () => {
+    it('peaks in mid-July in the north and bottoms out in mid-January', () => {
+      expect(summerness('2026-07-16', Hemisphere.NORTH)).toBeCloseTo(1, 2);
+      expect(summerness('2026-01-14', Hemisphere.NORTH)).toBeCloseTo(-1, 2);
+    });
+
+    it('mirrors the south half a year away', () => {
+      for (const date of ['2026-02-01', '2026-05-20', '2026-10-09']) {
+        expect(summerness(date, Hemisphere.SOUTH))
+          .toBeCloseTo(-summerness(date, Hemisphere.NORTH));
+      }
+    });
+
+    it('moves only a little between two dates a week apart', () => {
+      expect(Math.abs(summerness('2026-04-05', Hemisphere.NORTH)
+        - summerness('2026-04-12', Hemisphere.NORTH))).toBeLessThan(0.15);
+    });
+  });
+
+  describe('seasonalProfile', () => {
+    const swinging = makeProfile({
+      ambient: { min: 10, max: 20 },
+      wetDayChance: 0.3,
+      seasonal: { ambient: 5, wet: 0.1 },
+    });
+
+    it('hands back the profile untouched for a round with no date', () => {
+      expect(seasonalProfile(swinging, undefined, Hemisphere.NORTH)).toBe(swinging);
+    });
+
+    it('warms and dries a climate at midsummer', () => {
+      const summer = seasonalProfile(swinging, '2026-07-16', Hemisphere.NORTH);
+
+      expect(summer.ambient.min).toBeCloseTo(15, 1);
+      expect(summer.ambient.max).toBeCloseTo(25, 1);
+      expect(summer.wetDayChance).toBeCloseTo(0.2, 2);
+    });
+
+    it('cools and wets it at midwinter', () => {
+      const winter = seasonalProfile(swinging, '2026-01-14', Hemisphere.NORTH);
+
+      expect(winter.ambient.min).toBeCloseTo(5, 1);
+      expect(winter.wetDayChance).toBeCloseTo(0.4, 2);
+    });
+
+    it('turns the year round for the southern hemisphere', () => {
+      const southern = seasonalProfile(swinging, '2026-01-14', Hemisphere.SOUTH);
+
+      expect(southern.ambient.max).toBeCloseTo(25, 1);
+    });
+
+    it('never asks for a share of wet days outside 0 to 1', () => {
+      const wild = makeProfile({ wetDayChance: 0.05, seasonal: { ambient: 0, wet: 0.5 } });
+
+      expect(seasonalProfile(wild, '2026-07-16', Hemisphere.NORTH).wetDayChance).toBe(0);
+      expect(seasonalProfile({ ...wild, wetDayChance: 0.95 }, '2026-01-14', Hemisphere.NORTH)
+        .wetDayChance).toBe(1);
     });
   });
 
@@ -452,6 +533,18 @@ describe('core/weather-forecast/utils', () => {
     });
   });
 
+  describe('statedSteps', () => {
+    it('marks every authored stretch as intending itself', () => {
+      expect(statedSteps([
+        { weather: WeatherType.RAIN, minutes: 15 },
+        { weather: WeatherType.CLEAR },
+      ])).toStrictEqual([
+        { weather: WeatherType.RAIN, intended: WeatherType.RAIN, minutes: 15 },
+        { weather: WeatherType.CLEAR, intended: WeatherType.CLEAR },
+      ]);
+    });
+  });
+
   describe('authoredSteps', () => {
     it('reads a plan step by step, skipping steps that defer to the race', () => {
       expect(authoredSteps({
@@ -461,19 +554,19 @@ describe('core/weather-forecast/utils', () => {
           { weather: WeatherType.CLEAR },
         ],
       })).toStrictEqual([
-        { weather: WeatherType.RAIN, intended: WeatherType.RAIN, minutes: 15 },
-        { weather: WeatherType.CLEAR, intended: WeatherType.CLEAR },
+        { weather: WeatherType.RAIN, minutes: 15 },
+        { weather: WeatherType.CLEAR },
       ]);
     });
 
     it('reads a weather type as one stretch', () => {
       expect(authoredSteps({ weatherType: WeatherType.FOG }))
-        .toStrictEqual([{ weather: WeatherType.FOG, intended: WeatherType.FOG }]);
+        .toStrictEqual([{ weather: WeatherType.FOG }]);
     });
 
     it('falls back to the weather type when the plan is empty', () => {
       expect(authoredSteps({ weatherSteps: [], weatherType: WeatherType.FOG }))
-        .toStrictEqual([{ weather: WeatherType.FOG, intended: WeatherType.FOG }]);
+        .toStrictEqual([{ weather: WeatherType.FOG }]);
     });
 
     it('has no steps to show for a named preset or for no weather at all', () => {

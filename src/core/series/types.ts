@@ -1,7 +1,7 @@
 // Types local to reading a championship. Anything that crosses IPC lives in
 // src/shared/types/series.ts instead.
 
-import type { Championship } from '../../shared/types/index.ts';
+import type { Championship, RoundDraw } from '../../shared/types/index.ts';
 
 /**
  * Everything needed to lower one round into a race.
@@ -40,4 +40,13 @@ export interface RoundRaceRequest {
      */
     skin?: string;
   };
+  /**
+   * The weather already drawn for this round, when a career has issued it.
+   *
+   * Given one, the round races that draw rather than rolling a fresh one, which
+   * is what makes the forecast the player was shown a week ago the forecast
+   * they actually race. Absent outside a career, where there is nowhere to have
+   * stored a draw and the seed alone keeps the two answers the same.
+   */
+  draw?: RoundDraw;
 }

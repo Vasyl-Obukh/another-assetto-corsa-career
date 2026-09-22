@@ -57,13 +57,15 @@ import type {
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
-import { applyForecast, defaultWeatherOffer, forecastRound } from '../weather-forecast/index.ts';
+import {
+  applyForecast, defaultWeatherOffer, forecastRound, offerForecast,
+} from '../weather-forecast/index.ts';
 
 // Re-exported so the shipped library and the CLI keep reaching for it here,
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
-  eligibleCars, formatOf, roundRaceId, roundSessions, roundSpans,
+  climateOf, eligibleCars, formatOf, hemisphereOf, roundRaceId, roundSessions, roundSpans,
 } from './utils.ts';
 
 /**
@@ -462,9 +464,13 @@ export const roundRace = (
       ...bopFor(playerEntry, car.model),
     },
     grid: { size: opponents.length + 1, opponents },
+    // A draw the career already issued is substituted rather than redrawn, so
+    // the weather raced is the weather forecast however long ago it was shown.
     sessions: climate === null
       ? sessions
-      : applyForecast(sessions, forecastRound(series.id, round, format, climate, offer)),
+      : applyForecast(sessions, request.draw
+        ? offerForecast(request.draw, offer)
+        : forecastRound(series.id, round, format, climate, offer)),
     conditions: round.conditions,
     assists: series.regulations?.assists,
     fixedSetup: series.regulations?.fixedSetup,

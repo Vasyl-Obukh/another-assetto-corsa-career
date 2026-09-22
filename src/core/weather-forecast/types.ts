@@ -1,4 +1,5 @@
 import type { WeatherType } from '../../shared/constants/index.ts';
+import type { Hemisphere } from '../../shared/types/index.ts';
 
 /**
  * A span a value is drawn from, bounds included.
@@ -21,6 +22,28 @@ export interface Span {
  * the order they are written in.
  */
 export type WeatherWeights = readonly (readonly [WeatherType, number])[];
+
+/**
+ * How far a climate moves between midsummer and midwinter.
+ *
+ * The profile beside it states the year as a whole, so these are the amounts
+ * added at the height of summer and taken away at the depth of winter. A round
+ * with no date at all gets neither, which is the profile exactly as it was
+ * before a round had a date to read.
+ */
+export interface ClimateSwing {
+  /**
+   * How far the day's peak temperature moves, in degrees Celsius.
+   */
+  ambient: number;
+  /**
+   * How far the share of wet days moves, as a share from 0 to 1.
+   *
+   * Subtracted in summer and added in winter: every climate we ship is drier in
+   * its own summer, though by wildly different amounts.
+   */
+  wet: number;
+}
 
 /**
  * What a climate makes likely, as numbers.
@@ -55,6 +78,10 @@ export interface ClimateProfile {
    * The weather a wet day draws from.
    */
   wet: WeatherWeights;
+  /**
+   * How far the above move with the time of year.
+   */
+  seasonal: ClimateSwing;
 }
 
 /**
@@ -80,16 +107,24 @@ export interface DayWeather {
 }
 
 /**
- * One stretch of a session's weather as the climate drew it, before anything
- * is swapped for what the install offers.
+ * What a draw needs beyond the championship and the round.
+ *
+ * All optional, and omitting every one of them is what a round raced outside a
+ * career gets: the seed it has always had, and a climate stated for the year
+ * rather than for the month.
  */
-export interface DrawnStep {
+export interface DrawOptions {
   /**
-   * The weather drawn.
+   * What distinguishes one season's draw from another's - the career and which
+   * season of it - so two careers do not race the same year's weather.
    */
-  weather: WeatherType;
+  salt?: string;
   /**
-   * How long it lasts, in minutes, or undefined when it holds to the end.
+   * The ISO date the round races on, which is what gives its climate a season.
    */
-  minutes?: number;
+  raceDay?: string;
+  /**
+   * Which half of the world it is raced in. North when unsaid.
+   */
+  hemisphere?: Hemisphere;
 }

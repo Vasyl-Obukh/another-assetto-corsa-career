@@ -5,6 +5,7 @@
 import {
   CLIMATES,
   DISCIPLINES,
+  HEMISPHERES,
   SESSION_TYPES,
   TEAM_BUDGETS,
   TRACK_STATE_NAMES,
@@ -276,6 +277,8 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
   const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
   const climate = value.climate === undefined
     || report.closedSet(value.climate, CLIMATES, `${field}.climate`);
+  const hemisphere = value.hemisphere === undefined
+    || report.closedSet(value.hemisphere, HEMISPHERES, `${field}.hemisphere`);
   // The shape only: whether each names a session of the round's format, and
   // states one length, is validateSeries' question.
   const lengths = value.sessionLengths === undefined || (Array.isArray(value.sessionLengths)
@@ -290,7 +293,7 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
     : report.bad(`${field}.sessionLengths`, value.sessionLengths));
 
   return readConditions(value.conditions, `${field}.conditions`, report)
-    && track && fee && climate && lengths;
+    && track && fee && climate && hemisphere && lengths;
 };
 
 /**
@@ -304,5 +307,8 @@ export const readGeneratedWeather = (value: unknown, field: string, report: Repo
   if (value === undefined) return true;
   if (!isRecord(value)) return report.bad(field, value);
 
-  return report.closedSet(value.climate, CLIMATES, `${field}.climate`);
+  const hemisphere = value.hemisphere === undefined
+    || report.closedSet(value.hemisphere, HEMISPHERES, `${field}.hemisphere`);
+
+  return report.closedSet(value.climate, CLIMATES, `${field}.climate`) && hemisphere;
 };

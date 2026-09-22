@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  CLIMATES, DEFAULT_REF, LENGTH_LABEL, MIN_MONEY, MIN_SESSION_LENGTH,
+  CLIMATES,
+  DEFAULT_HEMISPHERE,
+  DEFAULT_REF,
+  HEMISPHERES,
+  LENGTH_LABEL,
+  MIN_MONEY,
+  MIN_SESSION_LENGTH,
 } from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
@@ -11,7 +17,7 @@ import {
   lengthUnit, withLengthUnit, withRoundLength, withRoundLengthsPruned,
 } from './utils.ts';
 import type {
-  Championship, Climate, Round, Track,
+  Championship, Climate, Hemisphere, Round, Track,
 } from '../../../../shared/types';
 import { TrackPicker } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -208,6 +214,35 @@ export const RoundForm = ({
               </SelectItem>
               {CLIMATES.map((climate) => (
                 <SelectItem key={climate} value={climate}>{t(`climate.${climate}`)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      ) : null}
+
+      {series.generatedWeather ? (
+        <Field id={`${idPrefix}-hemisphere`} label={t('editor.calendar.hemisphere')}>
+          <Select
+            value={draft.hemisphere ?? DEFAULT_REF}
+            disabled={locked}
+            onValueChange={(value) => setDraft({
+              ...draft,
+              hemisphere: value === DEFAULT_REF ? undefined : value as Hemisphere,
+            })}
+          >
+            <SelectTrigger id={`${idPrefix}-hemisphere`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={DEFAULT_REF}>
+                {t('editor.calendar.defaultHemisphere', {
+                  hemisphere: t(`hemisphere.${series.generatedWeather.hemisphere ?? DEFAULT_HEMISPHERE}`),
+                })}
+              </SelectItem>
+              {HEMISPHERES.map((hemisphere) => (
+                <SelectItem key={hemisphere} value={hemisphere}>
+                  {t(`hemisphere.${hemisphere}`)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

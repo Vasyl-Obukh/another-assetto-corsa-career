@@ -17,8 +17,12 @@ export const SessionBriefing = ({ session }: SessionBriefingProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
 
-  const { forecast, inherit } = session;
+  const { forecast, inherit, pending } = session;
   const race = session.type === 'race';
+  // Two ways to have no forecast, and they mean opposite things: a generated
+  // weekend the clock has not reached yet has one coming, an authored one never
+  // will.
+  const missing = pending ? t('event.brief.pending') : t('event.brief.authored');
 
   let source: string;
   if (inherit === null) {
@@ -56,7 +60,7 @@ export const SessionBriefing = ({ session }: SessionBriefingProps) => {
                 <WeatherStepsLabel steps={forecast.steps} generated={forecast.generated} />
               </span>
             </>
-          ) : <span className="text-sm text-muted-foreground">{t('event.brief.authored')}</span>}
+          ) : <span className="text-sm text-muted-foreground">{missing}</span>}
         </BriefTile>
 
         <BriefTile label={t('event.brief.wind')}>
@@ -66,7 +70,7 @@ export const SessionBriefing = ({ session }: SessionBriefingProps) => {
                 min: formatNumber(forecast.windMin), max: formatNumber(forecast.windMax),
               })}
             </span>
-          ) : <span className="text-sm text-muted-foreground">{t('event.brief.authored')}</span>}
+          ) : <span className="text-sm text-muted-foreground">{missing}</span>}
         </BriefTile>
 
         <BriefTile label={t('event.brief.start')}>

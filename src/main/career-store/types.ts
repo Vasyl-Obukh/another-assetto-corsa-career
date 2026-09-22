@@ -1,5 +1,12 @@
 import type {
-  Career, CareerCalendar, CareerEventView, RaceSetup, SeasonEntry, SeasonEvent,
+  Career,
+  CareerCalendar,
+  CareerEventView,
+  RaceSetup,
+  RoundDraw,
+  RoundForecast,
+  SeasonEntry,
+  SeasonEvent,
 } from '../../shared/types/index.ts';
 
 /**
@@ -104,6 +111,33 @@ export interface CareerStore {
    * @throws When the date is behind the clock
    */
   advanceTo(date: string): Promise<Career>;
+  /**
+   * The weather this career already drew for the round a race was set up from.
+   *
+   * The race screen asks before the library does: a career round races the draw
+   * stored on its event, salted with the career and the season, and the library
+   * would answer with a different one - which the screen would read as a
+   * forecast that had moved under the race and stop marking its sessions.
+   * @param raceId The race definition's id
+   * @returns The forecast, or null when no event of this career holds that race
+   */
+  raceForecast(raceId: string): Promise<RoundForecast | null>;
+  /**
+   * The weather this career drew for a round it is in, for a race set up from
+   * the championship page to race the same draw as one set up from the career.
+   * @param series The championship's id
+   * @param round The round's id
+   * @returns The draw, or undefined when the career is not in that round or its
+   * weekend is still further out than the forecast lead
+   */
+  draw(series: string, round: string): Promise<RoundDraw | undefined>;
+  /**
+   * The same draw, swapped for what this install can race.
+   * @param series The championship's id
+   * @param round The round's id
+   * @returns The forecast, or null wherever `draw` has none
+   */
+  forecast(series: string, round: string): Promise<RoundForecast | null>;
   /**
    * One round as the event page shows it.
    * @param request Which championship and round

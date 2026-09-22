@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -91,6 +91,7 @@ export const FORMULA_1_1979: Championship = {
       track: { id: 'vhe_interlagos', layout: 'gp' },
       sessionLengths: [{ session: 'grand-prix', laps: 73 }],
       climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'belgium',

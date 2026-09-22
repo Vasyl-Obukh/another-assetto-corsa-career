@@ -92,10 +92,20 @@ export const registerHandlers = (
 
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
-  handle('series:setupRound', async (request) => series.setupRound(request));
+  // A round the career is in races the career's draw wherever it is set up.
+  handle('series:setupRound', async (request) => series.setupRound({
+    ...request,
+    draw: await career.draw(request.series, request.round),
+  }));
   handle('series:validate', async ({ series: draft }) => series.validate(draft));
-  handle('series:forecast', async ({ series: id }) => series.forecast(id));
-  handle('series:raceForecast', async ({ race: id }) => series.raceForecast(id));
+  handle('series:forecast', async ({ series: id }) => Promise.all(
+    (await series.forecast(id)).map(async (one) => (await career.forecast(id, one.round)) ?? one),
+  ));
+  // The career is asked first here and above: a round it is in races the draw
+  // stored on its event, and the library would answer with an unsalted one.
+  handle('series:raceForecast', async ({ race: id }) => (
+    await career.raceForecast(id) ?? series.raceForecast(id)
+  ));
   handle('series:save', async ({ id, series: draft }) => series.save(id, draft));
   handle('series:customise', async ({ id }) => series.customise(id));
   handle('series:duplicate', async ({ id, name }) => series.duplicate(id, name));

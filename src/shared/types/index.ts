@@ -25,7 +25,9 @@ export {
 } from './content.ts';
 
 export { Discipline } from './ladder.ts';
-export { Climate, SeasonLength, TeamBudget } from './series.ts';
+export {
+  Climate, Hemisphere, SeasonLength, TeamBudget,
+} from './series.ts';
 
 export type {
   Car,
@@ -147,7 +149,9 @@ export type {
 
 export type { CmArguments, CmFlag } from './cm-arguments.ts';
 
-export type { ForecastStep, RoundForecast, SessionForecast } from './forecast.ts';
+export type {
+  DrawnStep, ForecastStep, RoundDraw, RoundForecast, SessionDraw, SessionForecast,
+} from './forecast.ts';
 
 export type {
   BopEntry,

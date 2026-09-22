@@ -18,6 +18,7 @@ const session = (overrides: Partial<EventSession> = {}): EventSession => ({
   date: '2026-03-06',
   startsAt: null,
   forecast: null,
+  pending: false,
   inherit: null,
   status: 'later',
   record: null,

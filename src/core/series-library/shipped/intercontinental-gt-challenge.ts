@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -144,7 +144,13 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
   ],
   defaultWeekendFormat: 'twelve-hours',
   rounds: [
-    { id: 'bathurst', name: 'Bathurst 12 Hour', track: { id: 'rt_bathurst' }, climate: Climate.TEMPERATE },
+    {
+      id: 'bathurst',
+      name: 'Bathurst 12 Hour',
+      track: { id: 'rt_bathurst' },
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
     {
       id: 'spa',
       name: 'Spa 24 Hours',

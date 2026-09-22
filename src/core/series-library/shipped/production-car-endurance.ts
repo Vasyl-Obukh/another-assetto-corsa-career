@@ -1,5 +1,5 @@
 import { seat, team } from './utils.ts';
-import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import { Climate, Discipline, Hemisphere, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
@@ -145,6 +145,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       track: { id: 'rt_bathurst' },
       weekendFormat: 'six-hours',
       climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
     },
   ],
   pointsSystems: [

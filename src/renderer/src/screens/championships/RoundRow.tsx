@@ -5,10 +5,10 @@ import {
   formatOf, raceLabels, trackKeyOf,
 } from './utils.ts';
 import type {
-  EventStatus, Round, RoundForecast, RoundRaceLength, SeriesListing,
+  EventStatus, Round, RoundRaceLength, SeriesListing,
 } from '../../../../shared/types';
 import { roundAvailability, roundRaceable } from '../../../../shared/utils/round-availability';
-import { ClimateBadge, ContentImage, ForecastStrip } from '@/components';
+import { ClimateBadge, ContentImage } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
@@ -34,11 +34,6 @@ interface RoundRowProps {
    */
   busy: boolean;
   /**
-   * The round's weather forecast, or null when the championship's weather is
-   * authored rather than generated.
-   */
-  forecast: RoundForecast | null;
-  /**
    * The date the career put this round's race on, when a career has dated it.
    *
    * Supplied rather than worked out here, so the row stays a presentation
@@ -57,7 +52,7 @@ interface RoundRowProps {
 }
 
 export const RoundRow = ({
-  listing, round, number, busy, forecast, date, status, onRace,
+  listing, round, number, busy, date, status, onRace,
 }: RoundRowProps) => {
   const { t } = useTranslation();
   const { formatDay, formatMoney, formatNumber } = useFormat();
@@ -97,8 +92,8 @@ export const RoundRow = ({
   };
 
   return (
-    // The number and the layout are centred on the whole row, forecast
-    // included, so everything else goes in a column of its own beside them.
+    // The number and the layout are centred on the whole row, so everything
+    // else goes in a column of its own beside them.
     <div className="flex items-center gap-3 border-b py-3 last:border-b-0">
       <span className="flex w-20 shrink-0 flex-col gap-0.5 text-xs text-muted-foreground">
         {t('championships.calendar.round', { number })}
@@ -202,10 +197,6 @@ export const RoundRow = ({
           ) : null}
 
         </div>
-
-        {/* A line of its own under the name, so a weekend of eight sessions
-          never squeezes the row. */}
-        {forecast ? <ForecastStrip forecast={forecast} /> : null}
       </div>
     </div>
   );

@@ -6,8 +6,9 @@ import type {
   Championship, ClassEntry, Content, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
+import { drawRound, offerForecast } from '../../weather-forecast/index.ts';
 import {
-  roundRace, seriesAvailability, seriesForecast, validateSeries,
+  formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
 } from '../series.ts';
 import { makeContent, makeSeries } from './fixtures.ts';
 
@@ -486,6 +487,26 @@ describe('core/series', () => {
       expect(race.sessions?.[0].conditions).toEqual(forecast.sessions[0].conditions);
       expect(race.sessions?.[0]).toMatchObject({ type: 'race', laps: 8 });
       expect(race.sessions?.[0].conditions?.weatherType).toBeDefined();
+    });
+
+    it('races a draw it is handed rather than drawing its own', () => {
+      const series = generated();
+      const [round] = series.rounds;
+      const format = formatOf(series, round);
+      if (!format) throw new Error('The fixture round has no format.');
+
+      const draw = drawRound(series.id, round, format, Climate.OCEANIC, { salt: 'career-1' });
+      const race = roundRace(
+        {
+          series, entry: 'main', round: round.id, car: { model: 'test_car' }, draw,
+        },
+        makeContent(),
+        SHIPPED_CATALOGUE,
+        OFFER,
+      );
+
+      expect(race.sessions?.[0].conditions)
+        .toEqual(offerForecast(draw, OFFER).sessions[0].conditions);
     });
 
     it('fields a class out of a user spec, given the catalogue that holds it', () => {

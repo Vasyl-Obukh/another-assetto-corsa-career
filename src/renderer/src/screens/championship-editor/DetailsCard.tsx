@@ -2,13 +2,15 @@ import { FileTextIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  CLIMATES, DEFAULT_CLIMATE, MIN_MONEY, SEASON_LENGTHS,
+  CLIMATES, DEFAULT_CLIMATE, DEFAULT_HEMISPHERE, HEMISPHERES, MIN_MONEY, SEASON_LENGTHS,
 } from './constants.ts';
 import { EditorSection } from './EditorSection.tsx';
 import { NumberField } from './NumberField.tsx';
 import { optionalText } from './utils.ts';
 import { DEFAULT_SEASON_LENGTH } from '../../../../shared/constants';
-import type { Championship, Climate, SeasonLength } from '../../../../shared/types';
+import type {
+  Championship, Climate, Hemisphere, SeasonLength,
+} from '../../../../shared/types';
 import { FieldGrid, ToggleButton } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
 import {
@@ -112,7 +114,7 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
               disabled={locked}
               onValueChange={(value) => onChange({
                 ...series,
-                generatedWeather: { climate: value as Climate },
+                generatedWeather: { ...series.generatedWeather, climate: value as Climate },
               })}
             >
               <SelectTrigger id="editor-climate" className="w-full">
@@ -121,6 +123,34 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
               <SelectContent>
                 {CLIMATES.map((climate) => (
                   <SelectItem key={climate} value={climate}>{t(`climate.${climate}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        ) : null}
+
+        {series.generatedWeather ? (
+          <Field id="editor-hemisphere" label={t('editor.details.hemisphere')}>
+            <Select
+              value={series.generatedWeather.hemisphere ?? DEFAULT_HEMISPHERE}
+              disabled={locked}
+              onValueChange={(value) => onChange({
+                ...series,
+                generatedWeather: {
+                  ...series.generatedWeather,
+                  climate: series.generatedWeather?.climate ?? DEFAULT_CLIMATE,
+                  hemisphere: value as Hemisphere,
+                },
+              })}
+            >
+              <SelectTrigger id="editor-hemisphere" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {HEMISPHERES.map((hemisphere) => (
+                  <SelectItem key={hemisphere} value={hemisphere}>
+                    {t(`hemisphere.${hemisphere}`)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
