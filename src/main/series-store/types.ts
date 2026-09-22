@@ -1,6 +1,7 @@
 import type {
   Championship,
   IpcRequest,
+  RaceDefinition,
   RaceSetup,
   RoundForecast,
   SeriesAvailability,
@@ -37,6 +38,29 @@ export interface SeriesStore {
    * @returns The race setup, ready for the race screen
    */
   setupRound: (request: IpcRequest<'series:setupRound'>) => Promise<RaceSetup>;
+  /**
+   * Lowers one round of a championship the caller holds into a race, without
+   * setting it up.
+   *
+   * Takes the championship rather than an id, because a career's season races
+   * its own copy of the championship rather than whatever the library holds
+   * now. Drawn over the same content, class catalogue and weather offer a
+   * library round is set up with, which is why this lives here rather than being
+   * copied into the career store.
+   * @param series The championship, as the caller holds it
+   * @param request Which class, which round, and the player's car
+   * @returns The race the round runs as
+   */
+  lowerRound: (
+    series: Championship,
+    request: Omit<IpcRequest<'series:setupRound'>, 'series'>,
+  ) => Promise<RaceDefinition>;
+  /**
+   * Every round's generated weather, for a championship the caller holds.
+   * @param series The championship, as the caller holds it
+   * @returns One forecast per round, empty when its weather is authored
+   */
+  forecastFor: (series: Championship) => Promise<RoundForecast[]>;
   /**
    * What is wrong with a championship as it stands, writing nothing.
    *

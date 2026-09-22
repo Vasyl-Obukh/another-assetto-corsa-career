@@ -25,7 +25,7 @@ export {
 } from './content.ts';
 
 export { Discipline } from './ladder.ts';
-export { Climate, TeamBudget } from './series.ts';
+export { Climate, SeasonLength, TeamBudget } from './series.ts';
 
 export type {
   Car,
@@ -109,6 +109,32 @@ export type {
   Standing,
   StandingsOrder,
 } from './results.ts';
+
+export type {
+  CalendarEntry,
+  Career,
+  CareerCalendar,
+  CareerEventView,
+  CareerSeason,
+  EventClassOption,
+  EventEntry,
+  EventSession,
+  EventSessionStatus,
+  EventStatus,
+  PositionPoints,
+  SeasonEntry,
+  SeasonEvent,
+} from './career.ts';
+
+export type {
+  ClassStandings,
+  DriverStanding,
+  RacePlace,
+  RaceScore,
+  RoundScore,
+  SeasonStandings,
+  TeamStanding,
+} from './standings.ts';
 
 export type {
   PlannerKind,

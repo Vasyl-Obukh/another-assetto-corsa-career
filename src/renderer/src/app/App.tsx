@@ -5,6 +5,7 @@ import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { path, ROUTE } from '@/lib/routes';
+import { Calendar } from '@/screens/calendar';
 import { CarBrowser } from '@/screens/car-browser';
 import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
@@ -13,6 +14,7 @@ import { ChampionshipLibrary } from '@/screens/championship-library';
 import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
+import { Event } from '@/screens/event';
 import { Race } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
 import { Settings, SettingsLayout } from '@/screens/settings';
@@ -40,6 +42,8 @@ export const App = ({ initialReport }: AppProps) => {
         <main className="min-h-0 flex-1">
           <Routes>
             <Route path={ROUTE.race} element={<Race />} />
+            <Route path={ROUTE.calendar} element={<Calendar />} />
+            <Route path={ROUTE.event} element={<Event />} />
             <Route path={ROUTE.championships} element={<Championships />} />
             <Route path={ROUTE.championship} element={<ChampionshipDetail />} />
             <Route path={ROUTE.results} element={<Results />} />

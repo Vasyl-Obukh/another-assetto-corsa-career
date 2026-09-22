@@ -4,11 +4,12 @@ import {
   lap, makeContent, makeKnockout, makeSession, makeWeekend,
 } from './fixtures.ts';
 import type {
-  Content, GridEntry, LaunchRecord, RaceDefinition, WeekendPlan, WeekendState,
+  Content, GridEntry, LaunchRecord, RaceDefinition, RaceOutSession, WeekendPlan, WeekendState,
 } from '../../../shared/types/index.ts';
 import { RAIN_FOR_FULL_WASH } from '../constants.ts';
 import {
   bestLapOrder,
+  bestLapTimes,
   chainOf,
   composeOrder,
   dayOf,
@@ -265,6 +266,38 @@ describe('core/weekend/utils', () => {
 
     it('copes with a field of nothing but the player', () => {
       expect(defaultOrder([entry('Player')], 'test:1')).toEqual([0]);
+    });
+  });
+
+  describe('bestLapTimes', () => {
+    it('reads the best valid lap each car set', () => {
+      const session = makeSession(2, 'Q', [lap(0, 62_000), lap(0, 61_000), lap(1, 60_000)]);
+      expect(bestLapTimes(session, 2)).toEqual([61_000, 60_000]);
+    });
+
+    it('ignores an invalidated lap rather than reading -1 as the best', () => {
+      const session = makeSession(2, 'Q', [lap(0, -1), lap(0, 63_000)]);
+      expect(bestLapTimes(session, 1)).toEqual([63_000]);
+    });
+
+    it('answers null for a car that set no valid lap at all', () => {
+      const session = makeSession(2, 'Q', [lap(0, -1), lap(1, 60_000)]);
+      expect(bestLapTimes(session, 2)).toEqual([null, 60_000]);
+    });
+
+    it('answers null for a car that set no lap at all', () => {
+      expect(bestLapTimes(makeSession(2, 'Q', [lap(1, 60_000)]), 3)).toEqual([null, 60_000, null]);
+    });
+
+    it('still returns a slot for every car, so the times can be indexed', () => {
+      expect(bestLapTimes(makeSession(2, 'Q', []), 4)).toEqual([null, null, null, null]);
+    });
+
+    // The type says a session always carries laps; a mod-written file need not,
+    // which is what the guard in the source is for.
+    it('reads a session whose file carries no laps key at all', () => {
+      const session = { ...makeSession(2, 'Q', []), laps: undefined } as unknown as RaceOutSession;
+      expect(bestLapTimes(session, 2)).toEqual([null, null]);
     });
   });
 

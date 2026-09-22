@@ -131,6 +131,18 @@ export const createSeriesStore = async (
   };
 
   /**
+   * Lowers one round of a championship into a race, setting nothing up.
+   * @param series The championship, as the caller holds it
+   * @param request Which class, which round, and the player's car
+   * @returns The race the round runs as
+   */
+  const lowerRound: SeriesStore['lowerRound'] = async (series, request) => {
+    const installed = await content.content();
+
+    return roundRace({ series, ...request }, installed, classes.catalogue(), await offer(installed));
+  };
+
+  /**
    * Everything the library holds, with availability worked out afresh.
    * @returns The library
    */
@@ -266,19 +278,19 @@ export const createSeriesStore = async (
       return listing(found, await content.content());
     },
 
+    lowerRound,
+
     async setupRound(request: IpcRequest<'series:setupRound'>): Promise<RaceSetup> {
       const found = seriesById(library, request.series);
       if (!found) throw new AppError('series.notFound', { series: request.series });
 
-      const installed = await content.content();
-      const definition = roundRace({
-        series: found.series,
-        entry: request.entry,
-        round: request.round,
-        car: request.car,
-      }, installed, classes.catalogue(), await offer(installed));
+      return race.set(await lowerRound(found.series, {
+        entry: request.entry, round: request.round, car: request.car,
+      }));
+    },
 
-      return race.set(definition);
+    async forecastFor(series) {
+      return seriesForecast(series, await offer(await content.content()));
     },
 
     async validate(series) {

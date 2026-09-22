@@ -9,11 +9,13 @@ export { ChampionshipCard } from './ChampionshipCard.tsx';
 export { ChampionshipDetail } from './ChampionshipDetail.tsx';
 export { Championships } from './Championships.tsx';
 export { ChampionshipToolbar } from './ChampionshipToolbar.tsx';
+export { EnterRoundDialog } from './EnterRoundDialog.tsx';
 export { CHAMPIONSHIP_MEMORY } from './constants.ts';
 export { championshipFilters } from './filters.ts';
 export { NoneMatch } from './NoneMatch.tsx';
 export { OriginBadge } from './OriginBadge.tsx';
 
 export {
-  availabilityState, disciplineKey, formatOf, pointsOf, raceLabels, tierAccent, trackKeyOf,
+  availabilityState, disciplineKey, formatOf, isListed, pointsOf, raceLabels, tierAccent,
+  trackKeyOf,
 } from './utils.ts';

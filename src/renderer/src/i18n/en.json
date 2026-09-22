@@ -6,6 +6,7 @@
   },
   "nav": {
     "race": "Race",
+    "calendar": "Calendar",
     "championships": "Championships",
     "results": "Results",
     "cars": "Cars",
@@ -407,6 +408,124 @@
       "slipstream": "Slipstream"
     }
   },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Every weekend of your season, and what you have entered",
+    "season": "Season {{number}}",
+    "today": "Today",
+    "advanceHint": "The clock stops at the first weekend you have entered rather than going past it.",
+    "nothing": "Nothing on the calendar",
+    "nothingHint": "No championship is switched on, or none of them has a round this season.",
+    "filters": {
+      "all": "All",
+      "status": "Status",
+      "discipline": "Discipline",
+      "available": "Available",
+      "entered": "Entered",
+      "locked": "Locked"
+    },
+    "status": {
+      "scheduled": "To come",
+      "raced": "Raced",
+      "missed": "Missed"
+    },
+    "clash": "Clash",
+    "clashHint": "Another weekend you have entered overlaps this one. You can only drive one of them.",
+    "unraceable": "Cannot be raced",
+    "locked": "Above your level",
+    "enrolled": "Entered",
+    "enter": "Enter",
+    "race": "Race",
+    "withdraw": "Withdraw",
+    "withdrawTitle": "Leave {{series}}?",
+    "withdrawBody": "Every round you have not yet raced becomes a non-start. Points you have already scored stay.",
+    "standings": {
+      "title": "Standings",
+      "drivers": "Drivers",
+      "teams": "Teams",
+      "position": "Pos",
+      "driver": "Driver",
+      "team": "Team",
+      "points": "Points",
+      "wins": "Wins",
+      "races": "Races",
+      "none": "Nothing has been raced yet",
+      "showAll": "Show all",
+      "showLess": "Show fewer",
+      "you": "You"
+    },
+    "commitments": "Your commitments: {{enrolled}} entered, {{clashes}} clashes",
+    "nextEvent": "Next event",
+    "round": "R{{number}}",
+    "grid_one": "Grid {{count}}",
+    "grid_other": "Grid {{count}}",
+    "prize": "Prize {{amount}}",
+    "multiClass": "Multiclass",
+    "onThisDay_one": "{{count}} event",
+    "onThisDay_other": "{{count}} events",
+    "raceFallback": "Race",
+    "toToday": "Back to today"
+  },
+  "event": {
+    "back": "Calendar",
+    "roundOf": "Round {{number}} of {{rounds}}",
+    "dates": "{{from}} - {{to}}",
+    "weekend": "Weekend",
+    "weatherTitle": "Forecast weather",
+    "noSessions": "This round has no sessions that can be run with what is installed.",
+    "position": "P{{position}}",
+    "waits": "Runs once {{name}} has been run",
+    "status": {
+      "next": "Next",
+      "done": "Done",
+      "simulated": "Simulated"
+    },
+    "entry": {
+      "title": "Your entry",
+      "season": "Car and livery are set for the season"
+    },
+    "enter": {
+      "title": "Enter {{series}}",
+      "body": "Entering puts you in the last seat of the class for the whole season, and every round goes onto your calendar.",
+      "class": "Class",
+      "noCar": "No car picked yet",
+      "pick": "Pick a car",
+      "change": "Change",
+      "action": "Enter championship",
+      "noCars": "No installed car can race this class.",
+      "unraceable": "This round cannot be raced with what is installed."
+    },
+    "brief": {
+      "length": "Length",
+      "weather": "Weather",
+      "wind": "Wind",
+      "start": "You start",
+      "temperature": "{{value}}°C",
+      "windRange": "{{min}}-{{max}} km/h",
+      "authored": "As the championship sets it"
+    },
+    "source": {
+      "from": "The grid is the order {{from}} finished in.",
+      "reversed": "The grid is the order {{from}} finished in, with the top {{count}} turned round.",
+      "previous": "The grid is the order the session before finished in.",
+      "previousReversed": "The grid is the order the session before finished in, with the top {{count}} turned round.",
+      "skill": "No qualifying sets this grid: the field lines up on skill and you start last.",
+      "pitLane": "Everyone starts from the pit lane."
+    },
+    "start": {
+      "pitLane": "Pit lane",
+      "later": "Set by the sessions before"
+    },
+    "result": {
+      "you": "You",
+      "best": "Best lap",
+      "points": "Points",
+      "simulated": "You were knocked out before this segment, so it was simulated from the one before rather than driven."
+    },
+    "launch": {
+      "restart": "Start the weekend again"
+    }
+  },
   "championships": {
     "title": "Championships",
     "subtitle": "The championships you can race today.",
@@ -648,7 +767,9 @@
       "entryFeeHint": "What a round costs to enter unless the round says otherwise. Zero is free to enter, which is not the same as saying nothing.",
       "generatedWeather": "Generated weather",
       "generatedWeatherHint": "Every session's weather, temperature and wind are drawn from a climate. Conditions a round or a session sets for itself still win.",
-      "climate": "Climate"
+      "climate": "Climate",
+      "seasonLength": "Season length",
+      "seasonLengthHint": "How much of a career's year this championship fills. Its rounds are spread evenly across it, so a series that really runs twice a year says half a year here rather than being written out twice."
     },
     "grid": {
       "title": "AI field",
@@ -864,7 +985,8 @@
       "laps": "Laps",
       "best": "Best lap",
       "cuts": "Cuts",
-      "total": "Total"
+      "total": "Total",
+      "points": "Pts"
     }
   },
   "cars": {
@@ -960,6 +1082,11 @@
     "mediterranean": "Mediterranean",
     "temperate": "Temperate",
     "oceanic": "Oceanic"
+  },
+  "seasonLength": {
+    "year": "A year",
+    "half-year": "Half a year",
+    "quarter": "A quarter"
   },
   "forecast": {
     "title": "Weekend forecast",

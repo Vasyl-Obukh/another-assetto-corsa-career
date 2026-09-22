@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { SessionSummary } from '../../../../shared/types';
+import type { PositionPoints, SessionSummary } from '../../../../shared/types';
 import { formatLapTime } from '../../../../shared/utils/lap-time';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
@@ -15,9 +15,21 @@ interface SessionTableProps {
    * One session's classification.
    */
   session: SessionSummary;
+  /**
+   * What each finishing position scored, for a championship race - which adds a
+   * points column. Left out, the table is the plain classification the Results
+   * screen shows.
+   */
+  points?: readonly PositionPoints[];
+  /**
+   * The finishing position to pick out, which is the player's on a career's
+   * event page. By position rather than by name, because Content Manager
+   * writes its own profile name over the player's.
+   */
+  highlight?: number;
 }
 
-export const SessionTable = ({ session }: SessionTableProps) => {
+export const SessionTable = ({ session, points, highlight }: SessionTableProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
 
@@ -57,11 +69,17 @@ export const SessionTable = ({ session }: SessionTableProps) => {
                 <th scope="col" className="w-28 py-2 pr-4 text-right font-medium">{t('results.column.best')}</th>
                 <th scope="col" className="w-16 py-2 pr-4 text-right font-medium">{t('results.column.cuts')}</th>
                 <th scope="col" className="w-28 py-2 text-right font-medium">{t('results.column.total')}</th>
+                {points ? (
+                  <th scope="col" className="w-16 py-2 pl-4 text-right font-medium">{t('results.column.points')}</th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
               {session.standings.map((standing) => (
-                <tr key={`${standing.position}-${standing.driver}`} className="border-b last:border-0">
+                <tr
+                  key={`${standing.position}-${standing.driver}`}
+                  className={cn('border-b last:border-0', standing.position === highlight ? 'bg-accent font-medium' : '')}
+                >
                   <td className="py-2 pr-2">
                     {/* The podium is a chip and the rest of the field is not,
                         so the top three are findable without reading down the
@@ -85,6 +103,11 @@ export const SessionTable = ({ session }: SessionTableProps) => {
                   <td className="py-2 pr-4 text-right tabular-nums">{formatLapTime(standing.bestLap)}</td>
                   <td className="py-2 pr-4 text-right tabular-nums">{formatNumber(standing.cuts)}</td>
                   <td className="py-2 text-right tabular-nums">{formatLapTime(standing.totalTime)}</td>
+                  {points ? (
+                    <td className="py-2 pl-4 text-right font-medium tabular-nums">
+                      {formatNumber(points.find((one) => one.position === standing.position)?.points ?? 0)}
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>

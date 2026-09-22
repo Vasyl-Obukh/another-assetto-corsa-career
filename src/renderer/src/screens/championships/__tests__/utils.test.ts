@@ -4,7 +4,7 @@ import { appErrorInfo } from '../../../../../shared/errors';
 import { DLCPack } from '../../../../../shared/types';
 import type { ClassEntry, SeriesAvailability, SeriesListing } from '../../../../../shared/types';
 import {
-  availabilityState, isListed, pursesOf, raceLabels, roundRaceable, tierAccent,
+  availabilityState, isListed, pursesOf, raceLabels, tierAccent,
 } from '../utils.ts';
 import { TIER_ACCENT } from '@/lib/accents';
 
@@ -78,65 +78,6 @@ describe('renderer/screens/championships/utils', () => {
 
       expect(availabilityState(availability({ available: false, problems, entries })))
         .toBe('misconfigured');
-    });
-  });
-
-  describe('roundRaceable', () => {
-    it('races a round with its track installed and enough cars for every class', () => {
-      expect(roundRaceable(listing(), 'magione')).toBe(true);
-    });
-
-    it('refuses a round the library has no such entry for', () => {
-      expect(roundRaceable(listing(), 'monza')).toBe(false);
-    });
-
-    it('refuses a round whose track is not installed', () => {
-      const rounds = [{
-        round: 'magione',
-        track: {
-          key: 'magione', id: 'magione', layout: '', provenance: {} as never,
-        },
-        pitboxes: null,
-        entries: [],
-        races: [],
-      }];
-
-      expect(roundRaceable(listing({ rounds }), 'magione')).toBe(false);
-    });
-
-    it('refuses a round with too few pit boxes for the field', () => {
-      const rounds = [{
-        round: 'magione', track: null, pitboxes: { needed: 24, available: 18 }, entries: [], races: [],
-      }];
-
-      expect(roundRaceable(listing({ rounds }), 'magione')).toBe(false);
-    });
-
-    it('refuses a round whose class cannot field enough cars', () => {
-      const entries = [{
-        entry: 'main', eligible: [], missing: [], enough: false,
-      }];
-
-      expect(roundRaceable(listing({ entries }), 'magione')).toBe(false);
-    });
-
-    it('refuses a round with a race it cannot turn into laps', () => {
-      const rounds = [{
-        round: 'magione', track: null, pitboxes: null, entries: [], races: [{ name: 'Race', laps: null, distance: 100 }],
-      }];
-
-      expect(roundRaceable(listing({ rounds }), 'magione')).toBe(false);
-    });
-
-    // Guards a bug: this consulted only the content answer, so a championship
-    // that did not validate still offered a live Race button and roundRace threw
-    // on the click instead of the button being refused up front.
-    it('refuses every round of a championship that does not validate', () => {
-      const problems = [appErrorInfo('series.format.defaultUnknown', {
-        series: 'sunday-cup', format: 'nope',
-      })];
-
-      expect(roundRaceable(listing({ available: false, problems }), 'magione')).toBe(false);
     });
   });
 

@@ -162,6 +162,26 @@ export const defaultOrder = (grid: readonly GridEntry[], seed: string): number[]
 };
 
 /**
+ * Each car's best valid lap in a session, by car index.
+ *
+ * Read off the laps rather than off the session's own bestLaps, because an
+ * invalidated lap carries -1 and must not become a pole time or a fastest-lap
+ * point. Null where a car set no valid lap at all.
+ * @param session The session to read
+ * @param size How many cars are in the field
+ * @returns One time in milliseconds per car, or null, in car-index order
+ */
+export const bestLapTimes = (session: RaceOutSession, size: number): (number | null)[] => {
+  const laps = session.laps ?? [];
+
+  return Array.from({ length: size }, (unused, car) => {
+    const valid = laps.filter((lap) => lap.car === car && lap.time > 0);
+
+    return valid.length ? Math.min(...valid.map((lap) => lap.time)) : null;
+  });
+};
+
+/**
  * Reads a session's classification off its lap data, fastest valid lap first.
  *
  * Derived from the laps rather than from bestLaps because an invalidated lap
@@ -173,12 +193,7 @@ export const defaultOrder = (grid: readonly GridEntry[], seed: string): number[]
  * @returns Car indices in classified order
  */
 export const bestLapOrder = (session: RaceOutSession, size: number): number[] => {
-  const laps = session.laps ?? [];
-  const ranked = Array.from({ length: size }, (unused, car) => {
-    const valid = laps.filter((lap) => lap.car === car && lap.time > 0);
-
-    return { car, best: valid.length ? Math.min(...valid.map((lap) => lap.time)) : null };
-  });
+  const ranked = bestLapTimes(session, size).map((best, car) => ({ car, best }));
 
   ranked.sort((left, right) => {
     if (left.best == null && right.best == null) return left.car - right.car;

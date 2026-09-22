@@ -199,6 +199,22 @@ export enum Climate {
 }
 
 /**
+ * How much of a career's year a championship's rounds are spread over.
+ *
+ * A career season is always one calendar year, whatever is entered; this says
+ * how much of that year one championship fills. So a quarter-length series runs
+ * its rounds inside ten racing weeks and its standings are final from the spring,
+ * while the season itself still ends where the year does - which is what lets a
+ * career hold a year-long championship and a quarter-long one at once without
+ * "season end" meaning two different dates.
+ */
+export enum SeasonLength {
+  YEAR = 'year',
+  HALF_YEAR = 'half-year',
+  QUARTER = 'quarter',
+}
+
+/**
  * A championship asking for its weather to be generated rather than authored.
  */
 export interface GeneratedWeather {
@@ -640,6 +656,14 @@ export interface Championship {
    * The calendar, in the order the rounds are run.
    */
   rounds: readonly Round[];
+  /**
+   * How much of a career's year this championship's rounds are spread over.
+   *
+   * Omitted, a season fills the year. A series that really runs twice a year
+   * says so here rather than being written out twice, and the career dates its
+   * rounds evenly across whatever this names.
+   */
+  seasonLength?: SeasonLength;
   /**
    * Every way this championship runs a weekend, in the order they are offered.
    *

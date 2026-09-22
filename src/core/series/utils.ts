@@ -35,6 +35,7 @@ import { specCars } from '../../shared/utils/car-classes/index.ts';
 import { poolHolds } from '../../shared/utils/content-sources/index.ts';
 import { carsOf } from '../../shared/utils/eligibility/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
+import type { RoundSpan } from '../season-calendar/index.ts';
 import { shuffle } from '../seeded-random/index.ts';
 
 /**
@@ -221,6 +222,32 @@ export const formatOf = (
 
   return series.weekendFormats.find((format) => format.id === wanted) ?? null;
 };
+
+/**
+ * How long each round's weekend runs, for dating a season.
+ *
+ * The adapter between a championship and src/core/season-calendar/, which is
+ * deliberately three numbers per round rather than a document: the race is what
+ * gets anchored to a Sunday, so a weekend's opening day is found by counting
+ * back from it. A round whose format cannot be resolved falls back to a
+ * single-day weekend, because validateSeries reports the missing format and a
+ * calendar still has to be drawable.
+ * @param series The championship
+ * @returns One span per round, in calendar order
+ */
+export const roundSpans = (series: Championship): RoundSpan[] => series.rounds.map((round) => {
+  const format = formatOf(series, round);
+  const sessions = format?.sessions ?? [];
+  const days = sessions.reduce((most, session) => Math.max(most, session.day ?? 0), 0) + 1;
+  // The last race of the weekend is the one that ends it, so that is what falls
+  // on the Sunday: a sprint weekend's Saturday sprint counts back from it.
+  const races = sessions.filter((session) => session.type === 'race');
+  const raceDayOffset = races.length
+    ? races.reduce((last, session) => Math.max(last, session.day ?? 0), 0)
+    : days - 1;
+
+  return { id: round.id, days, raceDayOffset };
+});
 
 /**
  * Which of laps, minutes and distance a session or a round's override states.

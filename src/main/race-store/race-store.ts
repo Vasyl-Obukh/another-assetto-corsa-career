@@ -60,6 +60,9 @@ import type { ContentStore } from '../content-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 
 export type { RaceProgress, RaceStore } from './types.ts';
+// Re-exported because the career store reads the same archives back: a result's
+// raw race_out.json is what scoring needs, and results() answers summaries.
+export { RACE_DIR, RESULTS_DIR } from './constants.ts';
 
 /**
  * Loads the race being set up and returns a store over it.

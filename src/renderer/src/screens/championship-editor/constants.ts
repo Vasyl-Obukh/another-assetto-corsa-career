@@ -5,7 +5,7 @@ import type { ParseKeys } from 'i18next';
 
 import type { LengthUnit } from './types.ts';
 import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
-import { Climate, Discipline, TeamBudget } from '../../../../shared/types';
+import { Climate, Discipline, SeasonLength, TeamBudget } from '../../../../shared/types';
 
 /**
  * The value a select carries when the answer is the championship's default.
@@ -144,6 +144,11 @@ export const TEAM_BUDGETS: readonly TeamBudget[] = Object.values(TeamBudget);
  * The climates a championship or a round may expect, driest first.
  */
 export const CLIMATES: readonly Climate[] = Object.values(Climate);
+
+/**
+ * How much of a career's year a championship may fill, longest first.
+ */
+export const SEASON_LENGTHS: readonly SeasonLength[] = Object.values(SeasonLength);
 
 /**
  * The climate generated weather starts from when it is switched on.

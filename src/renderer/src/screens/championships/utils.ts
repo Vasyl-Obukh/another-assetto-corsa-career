@@ -8,7 +8,6 @@ import type {
   PointsSystem,
   PrizeMoney,
   Round,
-  RoundAvailability,
   SeriesAvailability,
   SeriesListing,
   SeriesSession,
@@ -17,6 +16,7 @@ import type {
   WeekendFormat,
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
+import { roundAvailability } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import { TIER_ACCENT } from '@/lib/accents';
 
@@ -53,40 +53,6 @@ export const entryAvailability = (
 ): EntryAvailability | undefined => listing.availability.entries.find(
   (one) => one.entry === entry,
 );
-
-/**
- * Finds one round's availability within a championship's.
- * @param listing The championship and its availability
- * @param round The round's id
- * @returns Its availability, or undefined when the two disagree
- */
-export const roundAvailability = (
-  listing: SeriesListing,
-  round: string,
-): RoundAvailability | undefined => listing.availability.rounds.find(
-  (one) => one.round === round,
-);
-
-/**
- * Whether one round can be raced as things stand.
- * @param listing The championship and its availability
- * @param round The round's id
- * @returns True when nothing it needs is missing
- */
-export const roundRaceable = (listing: SeriesListing, round: string): boolean => {
-  const state = roundAvailability(listing, round);
-  if (!state) return false;
-
-  // A championship that does not validate cannot be raced whatever is
-  // installed, so it is refused here rather than by roundRace on the click.
-  if (listing.availability.problems.length > 0) return false;
-
-  return state.track === null
-    && state.pitboxes === null
-    && state.races.every((race) => race.laps !== null)
-    && listing.availability.entries.every((entry) => entry.enough)
-    && state.entries.every((entry) => entry.enough);
-};
 
 /**
  * The cars one class entry may field at one round.

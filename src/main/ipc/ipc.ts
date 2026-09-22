@@ -9,6 +9,7 @@ import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts
 import { probePaths } from '../../core/paths/index.ts';
 import { SERIES_FILE_EXTENSION } from '../../core/series-file/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
+import type { CareerStore } from '../career-store/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
@@ -28,6 +29,7 @@ export { send } from './utils.ts';
  * @param race The store handlers set up, launch and archive races through
  * @param series The store handlers read and write the championship library through
  * @param classes The store handlers read and write the user's class layer through
+ * @param career The store handlers read and command the career through
  */
 export const registerHandlers = (
   settings: SettingsStore,
@@ -35,6 +37,7 @@ export const registerHandlers = (
   race: RaceStore,
   series: SeriesStore,
   classes: ClassStore,
+  career: CareerStore,
 ): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
@@ -140,6 +143,15 @@ export const registerHandlers = (
   // store is told them rather than reaching into the library itself.
   handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, series.usingSpec(id)));
   handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, (spec) => series.usingSpec(spec)));
+
+  handle('career:get', async () => career.get());
+  handle('career:calendar', async ({ season }) => career.calendar(season));
+  handle('career:enrol', async (request) => career.enrol(request));
+  handle('career:withdraw', async (request) => career.withdraw(request));
+  handle('career:advance', async ({ date }) => career.advanceTo(date));
+  handle('career:event', async (request) => career.event(request));
+  handle('career:launch', async (request) => career.launch(request));
+  handle('career:restartEvent', async (request) => career.restartEvent(request));
 
   handle('cm:arguments', readCmArguments);
   handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));

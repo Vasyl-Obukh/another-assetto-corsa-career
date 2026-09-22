@@ -2343,15 +2343,82 @@ tests the batches' core changes are owed.
 
 ## Phase 5 - Championship engine and calendar
 
-- [ ] Configurable points systems (custom tables, fastest lap, qualifying positions)
-- [ ] Driver and team standings
-- [ ] **Career calendar with dates**; clock advances on starting a later session
-- [ ] **Advance to date** action, stopping at events you are entered in rather
-      than skipping past them into a DNS
-- [ ] Fire dated events on arrival: offer deadlines, transfer windows, sponsors
-- [ ] **Clash detection** between events on the same day
-- [ ] Season state machine: next round, results, standings, season end
-- [ ] DNS handling: fee lost, no points, rating untouched
+**The calendar, the career and the standings have landed**, as one slice: a
+career is a clock and the championships it has entered, rounds are dated by
+spreading them evenly across a season, and the points 131 shipped championships
+have been carrying since Phase 4 are finally applied. What made it possible was
+one small change to the lowering - `roundRace` now stamps the seat, the class
+entry and the team onto every `CarEntry`, inert, the way `SeriesSession.pointsSystem`
+already rode into a session. Before that a result could only be joined back to a
+driver by name, and an unnamed field is all `AI Driver N`. **`npm run dry` was
+diffed either side and `out/race.ini` is byte-identical**, which is the whole
+proof that no layer below learned what a series is.
+
+- [x] Configurable points systems - `src/core/season-scoring/` applies
+      `positions`, `fastestLap` and `qualifying`. **Points are paid on class
+      position, not overall**: a multi-class grid runs one race and settles
+      several championships in it, so an LMGT3 car winning its class scores a
+      win from twenty-fifth. **Qualifying points pay the grid the race actually
+      started on**, composed by the weekend engine's own
+      `composeOrder(chainOf(...))` rather than by a second rule - which is what
+      makes knockout qualifying come out right for free, and what makes a
+      reverse-grid race pay on the qualifying order rather than on the reversal.
+      Fastest lap is read from the raw `race_out.json` rather than from a
+      summary, because a summary names a driver and scoring needs the car index,
+      and remapped through `LaunchRecord.gridOrder` - a result's indices are
+      positions in that launch's own `[CAR_n]` list, not in the weekend's
+- [x] Driver and team standings - one table per class entry and no overall one,
+      because a multi-class championship genuinely has none. **Every seat starts
+      in its table on nothing**, so a table is the field rather than only the
+      drivers who have scored, and the player's own name replaces the AI name
+      the document wrote in the seat they took
+- [x] **Career calendar with dates** - `src/core/season-calendar/`, pure
+      arithmetic on UTC day numbers. A career season is 52 weeks from the day it
+      opens; `Championship.seasonLength` says how much of that one championship
+      fills - a year, half a year or a quarter - so a series that really runs
+      twice a year says so instead of being written out twice. Rounds are spread
+      evenly and **every race lands on a Sunday**, with the weekend's opening day
+      counted back from it through `SessionDefinition.day`, which is what finally
+      makes that field mean something on a calendar. `validateSeries` reports
+      `series.season.tooManyRounds` rather than crowding two rounds onto one
+      weekend
+- [x] **Advance to date**, stopping at the first weekend you are entered in
+      rather than skipping past it
+- [ ] Fire dated events on arrival: offer deadlines, transfer windows, sponsors.
+      **Waits on Phases 9 to 11**, which is what would have anything to fire
+- [x] **Clash detection** - overlapping weekends rather than a shared race day,
+      since a weekend is several sessions over several days and the player is one
+      person. Reported and badged, never refused: real calendars clash, and which
+      of two to give up is the player's call
+- [x] Season state machine: next round, results and standings. **Season end is
+      not built** - a career runs one season and there is no rollover into a
+      second, which is where prize money for a final standing and the ladder
+      moving would land
+- [x] DNS handling: no points, and the entry fee **recorded rather than
+      debited**, because there is no money anywhere until Phase 7. Rating is
+      untouched because there is no rating until Phase 8
+- [x] **A season races its own copy of the championship.** Entering one copies
+      the whole document into the season, and everything about that season -
+      its dates, setting a round up, scoring, standings - reads the copy. The
+      library's championship is a rulebook a career never touches, so an edit
+      reaches the next season rather than the one being raced, and deleting it
+      cannot break a season already run. Chosen over three alternatives: reading
+      the library live (an edit changes the rules mid-season and a removed seat
+      or round orphans its results), versioned championships (a store of
+      revisions to keep and clean, for shipped constants that have no history
+      anyway), and forking into the library (which fills it with copies)
+- [x] **The event page** at `/calendar/:series/:round` - where a round is
+      entered and every session of it is run. A calendar card opens it. Your
+      entry and the weekend's sessions down the left, each with its weather;
+      the selected session on the right, as a briefing with Launch when it is
+      next and as its full classification, with points, once it has run.
+      **Each launch is copied onto the event as soon as it lands**, not when
+      the weekend ends, so practice and qualifying results are there at once
+      and a race's points reach the standings mid-weekend. Racing a weekend
+      ahead of the clock moves the clock to it, allowed only once nothing
+      entered before it is unraced; the calendar cannot move on while a weekend
+      is part-way; and a weekend changed on the Race screen part-way is flagged
+      and can only be run again from the start
 - [ ] Persistent AI field - stable names, nationalities, liveries, ratings
 - [ ] **Generate a weekend's weather one week out, not a season ahead.** Today
       generated weather is not generated at any moment at all: it is derived on
@@ -2369,7 +2436,10 @@ tests the batches' core changes are owed.
         within `FORECAST_LEAD_DAYS` (7) and have no forecast yet, and generates
         theirs. Never earlier than a week before the weekend's first day
       - **Stored on the season's event**, not recomputed, so a forecast once
-        issued stays put until the weekend is raced
+        issued stays put until the weekend is raced. `SeasonEvent` in
+        `src/shared/types/career.ts` is where that field goes; it is deliberately
+        not there yet, since a field carried but never applied is worse than no
+        field
       - **Store the weather as drawn, substitute at setup.** The stored forecast
         holds the climate's own draw; swapping it for what the install and the
         allow-list offer, and collapsing a plan without a planner, happen when
@@ -2404,9 +2474,17 @@ tests the batches' core changes are owed.
 ## Phase 6 - Career saves
 
 - [ ] Career = a folder; saves = named snapshots of full career state
-- [ ] **Career store in main**, following `createSettingsStore`: one live object,
-      `career.json` written through debounced, `career:changed` pushed to the renderer
-- [ ] **Command handlers** rather than patches, each validating before it applies
+- [x] **Career store in main**, following `createSettingsStore`: one live object,
+      `career.json` written through debounced, `career:changed` pushed to the
+      renderer. **Landed in Phase 5**, because the calendar had to live
+      somewhere; what is left here is saves on top of it. It subscribes to the
+      race store itself rather than being wired in `main.ts`, because deciding a
+      weekend has finished means reading the plan, the progress and the phase
+      together - `progressOf` returns null for a finished weekend, so the push
+      alone cannot tell one from a weekend that never began - and
+      `recordWeekend` is idempotent, since that push arrives again and again
+- [x] **Command handlers** rather than patches, each validating before it
+      applies. Landed with the store
 - [ ] Create, name, overwrite and delete saves
 - [ ] Load any older save
 - [ ] Rolling autosaves after every session, 3 deep by default - snapshots copied
@@ -2459,6 +2537,14 @@ tests the batches' core changes are owed.
 - [ ] Offer deadlines and a decision window
 - [ ] Contract expiry and renewal
 - [ ] Buying a seat as a pay driver
+- [ ] **How you are entered decides your car and your rounds.** Undecided, and
+      the user's own framing: under a contract the team supplies the car and
+      you race the whole championship, with a fine for a missed round; as a pay
+      driver you enter only the rounds you choose, in a car you own or rent.
+      Today every entry is the first kind without the fine - one car, set for
+      the season, chosen on entering. The season model already has room for
+      the second: a pay driver's season would carry a car per event and rounds
+      marked not entered, over the same copy of the championship
 - [ ] Team budgets shaping offers
 
 ## Phase 10 - Sponsors

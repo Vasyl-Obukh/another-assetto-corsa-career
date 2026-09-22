@@ -37,7 +37,9 @@ import { resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
 import { finishingOrder } from '../results/index.ts';
 
-export { chainOf, dayOf, runsToClock } from './utils.ts';
+export {
+  bestLapTimes, chainOf, composeOrder, dayOf, lastSessionOf, runsToClock,
+} from './utils.ts';
 
 /**
  * Lowers a weekend into the launches that run it, one per session.

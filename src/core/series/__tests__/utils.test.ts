@@ -10,7 +10,8 @@ import type {
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
   climateOf, eligibleCars, lapsFor, minModelsOf, raceLengths, requirementsOf, roundRaceId,
-  roundSessions, seatSkin, validateFormat, validateLength, validateMoney, withDistancesInLaps,
+  roundSessions, roundSpans, seatSkin, validateFormat, validateLength, validateMoney,
+  withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -580,6 +581,72 @@ describe('core/series/utils', () => {
       };
 
       expect(requirementsOf(series, catalogue).pools).toHaveLength(1);
+    });
+  });
+
+  describe('roundSpans', () => {
+    /**
+     * A championship running one round on the format given.
+     * @param sessions The sessions the format runs
+     * @returns The championship
+     */
+    const oneRound = (sessions: SeriesSession[]): Championship => withSessions(sessions).series;
+
+    it('measures a weekend from the last day any session runs on', () => {
+      expect(roundSpans(oneRound([
+        { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 15, day: 1 },
+        { type: 'race', name: 'Race', laps: 20, day: 2 },
+      ]))).toEqual([{ id: 'magione', days: 3, raceDayOffset: 2 }]);
+    });
+
+    it('counts a format stating no days at all as a single day', () => {
+      expect(roundSpans(oneRound([
+        { type: 'qualify', name: 'Qualifying', minutes: 15 },
+        { type: 'race', name: 'Race', laps: 20 },
+      ]))).toEqual([{ id: 'magione', days: 1, raceDayOffset: 0 }]);
+    });
+
+    // The race is what gets anchored to a Sunday, so a sprint weekend counts
+    // back from the later race rather than from the sprint.
+    it('anchors on the last race of a weekend that runs two', () => {
+      expect(roundSpans(oneRound([
+        { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
+        { id: 'sprint', type: 'race', name: 'Sprint', laps: 8, day: 1 },
+        { id: 'feature', type: 'race', name: 'Feature', laps: 20, day: 2 },
+      ]))[0].raceDayOffset).toBe(2);
+    });
+
+    // A test weekend ends where it ends, so with no race to anchor on the last
+    // day of the weekend is what falls on the Sunday.
+    it('anchors a weekend with no race on its own last day', () => {
+      expect(roundSpans(oneRound([
+        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
+        { type: 'practice', name: 'Practice 2', minutes: 60, day: 1 },
+      ]))).toEqual([{ id: 'magione', days: 2, raceDayOffset: 1 }]);
+    });
+
+    it('falls back to a single-day weekend for a round whose format is missing', () => {
+      const series: Championship = {
+        ...oneRound([{ type: 'race', name: 'Race', laps: 20, day: 1 }]),
+        weekendFormats: [],
+      };
+
+      expect(roundSpans(series)).toEqual([{ id: 'magione', days: 1, raceDayOffset: 0 }]);
+    });
+
+    it('answers one span per round, in calendar order', () => {
+      const base = oneRound([{ type: 'race', name: 'Race', laps: 20 }]);
+      const series: Championship = {
+        ...base,
+        rounds: [
+          base.rounds[0],
+          { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+          { id: 'spa', name: 'Spa', track: { id: 'spa' } },
+        ],
+      };
+
+      expect(roundSpans(series).map((span) => span.id)).toEqual(['magione', 'monza', 'spa']);
     });
   });
 });

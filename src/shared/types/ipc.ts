@@ -5,6 +5,7 @@
 import type {
   ClassCommandResult, ClassId, ClassLayer, SpecId,
 } from './car-classes.ts';
+import type { Career, CareerCalendar, CareerEventView } from './career.ts';
 import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
@@ -300,6 +301,51 @@ export interface IpcContract {
    */
   'classes:deleteSpec': { req: { id: SpecId }; res: ClassCommandResult };
   /**
+   * The career as it stands, or null when nothing has started one yet.
+   *
+   * There is no channel to start one: a career needs nothing settings does not
+   * already hold, so reading the calendar makes it.
+   */
+  'career:get': { req: void; res: Career | null };
+  /**
+   * One season's calendar, merged across every championship and dated.
+   *
+   * Derived on every call rather than stored, because it joins three things
+   * that move independently: the career, the championship library and what is
+   * installed. The current season when no season is named.
+   */
+  'career:calendar': { req: { season?: number }; res: CareerCalendar };
+  /**
+   * Enter a championship for the current season.
+   */
+  'career:enrol': {
+    req: { series: string; entry: string; car: { model: string; skin?: string } };
+    res: Career;
+  };
+  /**
+   * Pull out of a championship, marking everything still to come as missed.
+   */
+  'career:withdraw': { req: { series: string; entry: string }; res: Career };
+  /**
+   * Move the clock forward, stopping at the first enrolled weekend on the way.
+   */
+  'career:advance': { req: { date: string }; res: Career };
+  /**
+   * One round as the event page shows it: its sessions, what has run of them,
+   * and what the career can do next.
+   */
+  'career:event': { req: { series: string; round: string }; res: CareerEventView };
+  /**
+   * Run the next session of a round the career is in, setting the round up
+   * first when the race being run is another weekend.
+   */
+  'career:launch': { req: { series: string; round: string }; res: RaceSetup };
+  /**
+   * Throw away what has run of a weekend changed on the Race screen part-way,
+   * so it can be run again from the start.
+   */
+  'career:restartEvent': { req: { series: string; round: string }; res: Career };
+  /**
    * What Content Manager's Arguments.txt holds.
    *
    * Read off disk on every call rather than mirrored into settings: the user
@@ -382,6 +428,14 @@ export interface IpcEvents {
    * car has to reach the browser and the championship editor behind it.
    */
   'classes:changed': ClassLayer;
+  /**
+   * The career, after every command that changes it.
+   *
+   * The whole career rather than the part that moved: advancing the clock can
+   * mark several events missed at once, and every command changes what the
+   * calendar screen renders.
+   */
+  'career:changed': Career;
 }
 
 /**

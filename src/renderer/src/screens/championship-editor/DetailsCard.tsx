@@ -1,11 +1,14 @@
 import { FileTextIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { CLIMATES, DEFAULT_CLIMATE, MIN_MONEY } from './constants.ts';
+import {
+  CLIMATES, DEFAULT_CLIMATE, MIN_MONEY, SEASON_LENGTHS,
+} from './constants.ts';
 import { EditorSection } from './EditorSection.tsx';
 import { NumberField } from './NumberField.tsx';
 import { optionalText } from './utils.ts';
-import type { Championship, Climate } from '../../../../shared/types';
+import { DEFAULT_SEASON_LENGTH } from '../../../../shared/constants';
+import type { Championship, Climate, SeasonLength } from '../../../../shared/types';
 import { FieldGrid, ToggleButton } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
 import {
@@ -59,6 +62,30 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
           disabled={locked}
           onChange={(entryFee) => onChange({ ...series, entryFee })}
         />
+
+        <Field
+          id="editor-season-length"
+          label={t('editor.details.seasonLength')}
+          hint={t('editor.details.seasonLengthHint')}
+        >
+          <Select
+            value={series.seasonLength ?? DEFAULT_SEASON_LENGTH}
+            disabled={locked}
+            onValueChange={(value) => onChange({
+              ...series,
+              seasonLength: value as SeasonLength,
+            })}
+          >
+            <SelectTrigger id="editor-season-length" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SEASON_LENGTHS.map((length) => (
+                <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
 
         <Field
           id="editor-generated-weather"

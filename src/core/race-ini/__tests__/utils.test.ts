@@ -268,6 +268,32 @@ describe('core/race-ini/utils', () => {
       expect(buildGrid(race, makeContent())).toHaveLength(3);
     });
 
+    // Carried so a result can be scored: nothing between here and the launch
+    // reads them, but the grid is what joins a finishing position to a seat.
+    it('carries a championship entry\'s seat, class and team onto its row', () => {
+      const race = {
+        ...makeRace(),
+        playerCar: {
+          model: 'test_car', seat: 'main-8', entry: 'main', team: 'works',
+        },
+        grid: { opponents: [{ driver: 'Rival', seat: 'main-1', entry: 'main' }] },
+      };
+      const grid = buildGrid(race, makeContent());
+
+      expect(grid[0]).toMatchObject({ seat: 'main-8', entry: 'main', team: 'works' });
+      expect(grid[1]).toMatchObject({ seat: 'main-1', entry: 'main' });
+    });
+
+    // A grid is round-tripped through weekend.json, where an absent key and an
+    // undefined one are not the same thing.
+    it('writes no ids at all for a hand-authored race, rather than undefined ones', () => {
+      const grid = buildGrid({ ...makeRace(), grid: { size: 2 } }, makeContent());
+
+      expect(Object.keys(grid[0])).not.toContain('seat');
+      expect(Object.keys(grid[0])).not.toContain('entry');
+      expect(Object.keys(grid[1])).not.toContain('team');
+    });
+
     it('gives no AI keys to the player', () => {
       const grid = buildGrid(makeRace(), makeContent());
       expect(grid[0].aiLevel).toBeUndefined();

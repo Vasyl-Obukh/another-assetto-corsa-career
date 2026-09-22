@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { WeatherType } from '../../../shared/constants/index.ts';
-import { Climate } from '../../../shared/types/index.ts';
+import { Climate, SeasonLength } from '../../../shared/types/index.ts';
 import type {
   Championship, ClassEntry, Content, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
@@ -135,6 +135,38 @@ describe('core/series', () => {
 
     it('passes a championship with nothing wrong with it', () => {
       expect(codesFor()).toEqual([]);
+    });
+
+    /**
+     * A calendar of the given size, every round on the same track.
+     * @param count How many rounds to run
+     * @returns The rounds
+     */
+    const calendarOf = (count: number): Round[] => Array.from({ length: count }, (unused, at) => ({
+      id: `round-${at + 1}`, name: `Round ${at + 1}`, track: { id: 'magione' },
+    }));
+
+    // A race weekend is a week, so a season has room for as many rounds as it
+    // has weeks - and the calendar would otherwise crowd two onto one weekend.
+    it('refuses a season running more rounds than it has weeks', () => {
+      expect(codesFor({ rounds: calendarOf(41) })).toEqual(['series.season.tooManyRounds']);
+    });
+
+    it('passes a season running exactly as many rounds as it has weeks', () => {
+      expect(codesFor({ rounds: calendarOf(40) })).toEqual([]);
+    });
+
+    it('measures the room against the length the championship states, not the year', () => {
+      expect(codesFor({ rounds: calendarOf(20), seasonLength: SeasonLength.QUARTER }))
+        .toEqual(['series.season.tooManyRounds']);
+      expect(codesFor({ rounds: calendarOf(10), seasonLength: SeasonLength.QUARTER })).toEqual([]);
+    });
+
+    // A championship authored before the selector existed states no length, and
+    // every one of them meant a whole year.
+    it('reads a championship stating no length as filling the year', () => {
+      expect(codesFor({ rounds: calendarOf(41), seasonLength: undefined }))
+        .toEqual(['series.season.tooManyRounds']);
     });
 
     it('refuses a class entry that fields nobody', () => {

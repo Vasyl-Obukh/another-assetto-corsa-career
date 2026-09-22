@@ -165,8 +165,10 @@
      DLC (75), olive with sportscar (112), moss with race (150), slate with
      redistribution (235) - and are told apart from them by chroma, at about
      half of theirs, which is what makes them read as earth rather than as
-     another category. The calendar never shows provenance or disciplines on a
-     round row, which is where these appear. */
+     another category. A championship's own round row never shows provenance or
+     disciplines beside them; the career calendar, which merges several
+     championships and so has to tell them apart, shows the discipline instead
+     of the climate rather than putting the two side by side. */
   --climate-arid: oklch(0.93 0.04 70);
   --climate-arid-foreground: oklch(0.42 0.06 65);
   --climate-mediterranean: oklch(0.93 0.035 108);
@@ -175,6 +177,26 @@
   --climate-temperate-foreground: oklch(0.4 0.05 150);
   --climate-oceanic: oklch(0.925 0.03 232);
   --climate-oceanic-foreground: oklch(0.4 0.05 235);
+
+  /* A round of a career's calendar the clock went past without it being raced.
+     One token rather than a family of three, because the other two states
+     already have a colour that means them: a raced round is `success`, and a
+     clash between two entered weekends is `warning` - which is exactly what
+     that token was cut for, something between fine and broken. A round still to
+     come stays neutral on purpose, since most of the calendar is that and a
+     colour on it would say nothing.
+
+     `destructive` is wrong for a missed round - nothing failed, the player
+     chose not to race - and grey is wrong too, because a non-start is a thing
+     that happened rather than the absence of one. So: a drained rose at 8,
+     which is the widest gap left on the wheel, between a custom origin (340)
+     and an independent team (18). It has to be told from `destructive` (27),
+     which can sit on the same row, and that separation is carried by chroma at
+     about half a categorical family's - "you weren't there" beside "this is
+     broken". An independent team's chip is the editor's alone and never shares
+     a screen with this. */
+  --event-missed: oklch(0.925 0.035 8);
+  --event-missed-foreground: oklch(0.42 0.09 12);
 }
 
 [data-theme="dark"] {
@@ -269,6 +291,9 @@
   --climate-temperate-foreground: oklch(0.85 0.05 150);
   --climate-oceanic: oklch(0.32 0.03 232);
   --climate-oceanic-foreground: oklch(0.85 0.045 235);
+
+  --event-missed: oklch(0.32 0.035 8);
+  --event-missed-foreground: oklch(0.86 0.075 12);
 }
 
 @theme inline {
@@ -350,6 +375,8 @@
   --color-climate-temperate-foreground: var(--climate-temperate-foreground);
   --color-climate-oceanic: var(--climate-oceanic);
   --color-climate-oceanic-foreground: var(--climate-oceanic-foreground);
+  --color-event-missed: var(--event-missed);
+  --color-event-missed-foreground: var(--event-missed-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

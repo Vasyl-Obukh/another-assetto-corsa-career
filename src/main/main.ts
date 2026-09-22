@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 
+import { createCareerStore } from './career-store/index.ts';
 import { createClassStore } from './class-store/index.ts';
 import { registerContentScheme, serveContent } from './content-protocol/index.ts';
 import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
@@ -43,8 +44,13 @@ if (!app.requestSingleInstanceLock()) {
       classes,
       settings,
     );
+    // After the series store, because a career is entered into championships it
+    // resolves. It subscribes to the race store itself rather than being wired
+    // here: deciding that a weekend has finished means reading the plan, the
+    // progress and the phase together, which is a career rule and not wiring.
+    const career = await createCareerStore(app.getPath('userData'), series, race, content);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race, series, classes);
+    registerHandlers(settings, content, race, series, classes, career);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
@@ -84,6 +90,10 @@ if (!app.requestSingleInstanceLock()) {
       });
     });
 
+    career.onChange((next) => {
+      if (mainWindow) send(mainWindow, 'career:changed', next);
+    });
+
     race.onChange((setup) => {
       if (!mainWindow) return;
       send(mainWindow, 'race:changed', setup);
@@ -102,6 +112,7 @@ if (!app.requestSingleInstanceLock()) {
       void settings.flush();
       void content.flush();
       void race.flush();
+      void career.flush();
       content.dispose();
     });
   }, (error: unknown) => {

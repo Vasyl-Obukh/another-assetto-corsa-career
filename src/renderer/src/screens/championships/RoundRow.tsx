@@ -2,15 +2,17 @@ import { MapIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  formatOf, raceLabels, roundAvailability, roundRaceable, trackKeyOf,
+  formatOf, raceLabels, trackKeyOf,
 } from './utils.ts';
 import type {
-  Round, RoundForecast, RoundRaceLength, SeriesListing,
+  EventStatus, Round, RoundForecast, RoundRaceLength, SeriesListing,
 } from '../../../../shared/types';
+import { roundAvailability, roundRaceable } from '../../../../shared/utils/round-availability';
 import { ClimateBadge, ContentImage, ForecastStrip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
+import { EVENT_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/screens/race';
 import { layoutMapSources } from '@/screens/track-browser';
 
@@ -37,6 +39,17 @@ interface RoundRowProps {
    */
   forecast: RoundForecast | null;
   /**
+   * The date the career put this round's race on, when a career has dated it.
+   *
+   * Supplied rather than worked out here, so the row stays a presentation
+   * component and cannot disagree with the calendar about when a round runs.
+   */
+  date?: string;
+  /**
+   * What became of it in the career, when it has been reached.
+   */
+  status?: EventStatus;
+  /**
    * Called when this round should be set up as the race being prepared. Left
    * out on a page no round is raced from, which then offers no button.
    */
@@ -44,10 +57,10 @@ interface RoundRowProps {
 }
 
 export const RoundRow = ({
-  listing, round, number, busy, forecast, onRace,
+  listing, round, number, busy, forecast, date, status, onRace,
 }: RoundRowProps) => {
   const { t } = useTranslation();
-  const { formatMoney, formatNumber } = useFormat();
+  const { formatDay, formatMoney, formatNumber } = useFormat();
   const state = roundAvailability(listing, round.id);
   const raceable = roundRaceable(listing, round.id);
   // Only when the round runs something other than the default: badging every
@@ -87,8 +100,9 @@ export const RoundRow = ({
     // The number and the layout are centred on the whole row, forecast
     // included, so everything else goes in a column of its own beside them.
     <div className="flex items-center gap-3 border-b py-3 last:border-b-0">
-      <span className="w-20 shrink-0 text-xs text-muted-foreground">
+      <span className="flex w-20 shrink-0 flex-col gap-0.5 text-xs text-muted-foreground">
         {t('championships.calendar.round', { number })}
+        {date ? <span>{formatDay(date)}</span> : null}
       </span>
 
       {/* The layout's shape rather than its photo, as the race screen shows
@@ -116,6 +130,13 @@ export const RoundRow = ({
             <span className="truncate font-medium">{round.name}</span>
             <span className="truncate text-xs text-muted-foreground">{trackKeyOf(round)}</span>
           </div>
+
+          {/* Only once a career has reached it: a round still to come says so by
+              being on the calendar at all, so a chip on every row would be
+              every row wearing the same word. */}
+          {status && status !== 'scheduled' ? (
+            <Badge className={EVENT_ACCENT[status]}>{t(`calendar.status.${status}`)}</Badge>
+      ) : null}
 
           {format ? (
             <Badge variant="secondary">{format.name}</Badge>

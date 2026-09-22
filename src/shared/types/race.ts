@@ -165,6 +165,25 @@ export interface CarEntry {
    * AI aggression from 0 to 100. Ignored for the player's car.
    */
   aiAggression?: number;
+  /**
+   * Which championship seat this car is, when a championship put it here.
+   *
+   * Inert in this layer, exactly as SeriesSession.pointsSystem is: nothing in
+   * src/core/weekend/ or src/core/race-ini/ reads it, and it rides through so
+   * that scoring can say which seat a classified car was. Without it a result
+   * could only be joined back by driver name, which an unnamed field does not
+   * have. Absent on a hand-authored race, which has no seats.
+   */
+  seat?: string;
+  /**
+   * Which class entry that seat belongs to, so a multi-class grid can be scored
+   * a class at a time.
+   */
+  entry?: string;
+  /**
+   * Which team fields it, so a team's cars can be totalled.
+   */
+  team?: string;
 }
 
 /**
@@ -474,4 +493,23 @@ export interface GridEntry {
    * AI aggression, absent for the player's car.
    */
   aiAggression?: number;
+  /**
+   * Which championship seat this car is, when a championship put it here.
+   *
+   * Inert in this layer, exactly as SeriesSession.pointsSystem is: nothing in
+   * src/core/weekend/ or src/core/race-ini/ reads it, and it rides through so
+   * that scoring can say which seat a classified car was. Without it a result
+   * could only be joined back by driver name, which an unnamed field does not
+   * have. Absent on a hand-authored race, which has no seats.
+   */
+  seat?: string;
+  /**
+   * Which class entry that seat belongs to, so a multi-class grid can be scored
+   * a class at a time.
+   */
+  entry?: string;
+  /**
+   * Which team fields it, so a team's cars can be totalled.
+   */
+  team?: string;
 }

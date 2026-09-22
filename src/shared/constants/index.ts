@@ -34,8 +34,10 @@ export {
 } from './weather-types.ts';
 
 export {
+  DAYS_PER_WEEK,
   HOURS_PER_DAY,
   MINUTES_PER_HOUR,
+  MS_PER_DAY,
   MS_PER_HOUR,
   MS_PER_MINUTE,
   MS_PER_SECOND,
@@ -47,5 +49,10 @@ export {
 } from './settings.ts';
 
 export {
-  DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS, MIN_REVERSED, SERIES_FORMAT_VERSION,
+  DEFAULT_MIN_MODELS,
+  DEFAULT_SEASON_LENGTH,
+  MAX_WEEKEND_DAYS,
+  MIN_REVERSED,
+  SEASON_WEEKS,
+  SERIES_FORMAT_VERSION,
 } from './series.ts';

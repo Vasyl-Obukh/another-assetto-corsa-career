@@ -14,6 +14,7 @@
 // validateSeries answers "is it a coherent one". A file that fails here never
 // reaches the second, because there is nothing coherent to ask about.
 
+import { SEASON_LENGTHS } from './constants.ts';
 import type { ParsedSeries } from './types.ts';
 import {
   readEntry,
@@ -93,6 +94,8 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
       || readList(raw.teams, 'teams', (team, at) => readTeam(team, at, report)),
     readPrizes(raw.prizes, 'prizes', report),
     readGeneratedWeather(raw.generatedWeather, 'generatedWeather', report),
+    raw.seasonLength === undefined
+      || report.closedSet(raw.seasonLength, SEASON_LENGTHS, 'seasonLength'),
     readOptionalNumber(raw.entryFee, 'entryFee', report),
     readOptionalString(raw.description, 'description', report),
   ].every(Boolean);

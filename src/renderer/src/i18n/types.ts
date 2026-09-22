@@ -13,6 +13,17 @@ export interface Formatters {
    */
   formatDate(value: Date | string): string;
   /**
+   * Formats a calendar date that has no time of day at all.
+   *
+   * Its own formatter rather than formatDate because a YYYY-MM-DD string parses
+   * as UTC midnight, which renders as the day before anywhere west of
+   * Greenwich. A career's dates are days rather than instants, so they are read
+   * back in UTC and the day stays the day.
+   * @param value An ISO YYYY-MM-DD date
+   * @returns The date in the active locale's medium format
+   */
+  formatDay(value: string): string;
+  /**
    * Formats a date and time.
    * @param value A Date, or anything the Date constructor accepts
    * @returns The date and time in the active locale's format

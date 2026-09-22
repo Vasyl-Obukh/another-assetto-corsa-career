@@ -25,6 +25,7 @@ import {
 import { HOURS_PER_DAY, MINUTES_PER_HOUR } from '../../shared/constants/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
+  CarEntry,
   Conditions,
   Content,
   GridDefinition,
@@ -230,6 +231,22 @@ export const spreadAiLevel = (spec: GridDefinition, index: number, size: number)
 };
 
 /**
+ * The championship ids a car entry carries, where it carries any.
+ *
+ * Spread onto a grid entry rather than assigned, so a hand-authored race - which
+ * has no seats at all - writes no keys rather than three undefined ones. That
+ * matters because a grid is round-tripped through JSON in weekend.json, where an
+ * undefined value and an absent key are not the same thing.
+ * @param entry The car entry a grid row is built from
+ * @returns The ids it carries, or nothing
+ */
+const carriedIds = (entry: CarEntry): Pick<GridEntry, 'seat' | 'entry' | 'team'> => ({
+  ...(entry.seat === undefined ? {} : { seat: entry.seat }),
+  ...(entry.entry === undefined ? {} : { entry: entry.entry }),
+  ...(entry.team === undefined ? {} : { team: entry.team }),
+});
+
+/**
  * Expands the race definition's grid into concrete entries.
  * @param race The race to build a grid for
  * @param content Installed content to resolve models and skins against
@@ -249,6 +266,7 @@ export const buildGrid = (race: RaceDefinition, content: Content): GridEntry[] =
     setup: player.setup ?? '',
     ballast: player.ballast ?? 0,
     restrictor: player.restrictor ?? 0,
+    ...carriedIds(player),
   }];
 
   const spec = race.grid ?? {};
@@ -294,6 +312,7 @@ export const buildGrid = (race: RaceDefinition, content: Content): GridEntry[] =
       // A spread of AI levels makes a more believable field than one value.
       aiLevel: defined.aiLevel ?? spreadAiLevel(spec, i, size),
       aiAggression: defined.aiAggression ?? spec.aiAggression ?? DEFAULT_AI_AGGRESSION,
+      ...carriedIds(defined),
     });
   }
 

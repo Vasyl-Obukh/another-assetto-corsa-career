@@ -41,5 +41,7 @@ export {
   SessionForecastChip,
   WEATHER_ICON,
   WEATHER_TYPE_LABEL,
+  WeatherStepIcons,
+  WeatherStepsLabel,
   WeekendForecast,
 } from './weather-forecast/index.ts';

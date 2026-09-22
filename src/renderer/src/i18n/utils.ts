@@ -83,6 +83,11 @@ export const formattersFor = (language: Language): Formatters => {
       () => new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }),
     ).format(new Date(value)),
 
+    formatDay: (value) => cached(
+      `day:${locale}`,
+      () => new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }),
+    ).format(new Date(`${value}T00:00:00Z`)),
+
     formatDateTime: (value) => cached(
       `dt:${locale}`,
       () => new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }),

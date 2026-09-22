@@ -2,6 +2,8 @@
 // because both the validator in src/core/series/ and the series editor in the
 // renderer measure against them - and the renderer may not import core.
 
+import { SeasonLength } from '../types/series.ts';
+
 /**
  * How many days a race weekend may run over.
  *
@@ -39,3 +41,29 @@ export const DEFAULT_MIN_MODELS = 3;
  * The field stays on the document so a future migration has something to read.
  */
 export const SERIES_FORMAT_VERSION = 1;
+
+/**
+ * How much of a career's year a championship fills when it does not say.
+ *
+ * A whole one. Every championship authored before the selector existed reads as
+ * this, which is what every one of them meant.
+ */
+export const DEFAULT_SEASON_LENGTH = SeasonLength.YEAR;
+
+/**
+ * How many weeks of racing each season length spreads its rounds over.
+ *
+ * Forty rather than fifty-two for a full year, because a real season does not
+ * race every weekend of one: there is a winter, and the weeks a championship
+ * leaves free are what let the career put the rest of the library somewhere
+ * other than on top of it. The career's own season is still the whole
+ * fifty-two, and a championship is placed somewhere inside it.
+ *
+ * Exhaustive over the enum, so adding a length fails to compile until it has
+ * been given a span.
+ */
+export const SEASON_WEEKS: Record<SeasonLength, number> = {
+  [SeasonLength.YEAR]: 40,
+  [SeasonLength.HALF_YEAR]: 20,
+  [SeasonLength.QUARTER]: 10,
+};

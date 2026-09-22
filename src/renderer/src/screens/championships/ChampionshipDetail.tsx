@@ -18,8 +18,9 @@ import {
 } from '@/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useChampionship, useForecast, useSeriesCommands } from '@/hooks';
+import { useCareer, useChampionship, useForecast, useSeriesCommands } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
+import { StandingsCard } from '@/screens/calendar';
 
 interface ChampionshipDetailProps {
   /**
@@ -38,7 +39,20 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const championship = useChampionship(id);
   const commands = useSeriesCommands();
   const forecasts = useForecast(id === '' ? undefined : id);
+  // The season this championship is being raced in, when the career has entered
+  // it: what dates its rounds and what its standings are.
+  const career = useCareer();
   const [entering, setEntering] = useState<Round | null>(null);
+
+  const season = career.career?.seasons[career.career.seasons.length - 1];
+  const entered = season?.entries.find((one) => one.series === id && !one.withdrawn) ?? null;
+
+  /**
+   * One round's place on the career's calendar, when it has one.
+   * @param round The round's id
+   * @returns Its dated event, or undefined
+   */
+  const eventOf = (round: string) => entered?.events.find((one) => one.round === round);
 
   /**
    * One round's forecast, when the championship generates its weather.
@@ -144,11 +158,20 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
                   number={index + 1}
                   busy={championship.busy}
                   forecast={forecastOf(round.id)}
+                  date={eventOf(round.id)?.raceDay}
+                  status={eventOf(round.id)?.status}
                   onRace={manage ? undefined : () => setEntering(round)}
                 />
               ))}
             </CardContent>
           </Card>
+
+          {/* Only on the page a career races from, and only once it is in this
+              championship: the settings tab manages the library rather than
+              running a season in it. */}
+          {!manage && entered ? (
+            <StandingsCard entry={entered} seriesName={listing.series.name} />
+          ) : null}
 
           <FormatCard series={listing.series} />
 

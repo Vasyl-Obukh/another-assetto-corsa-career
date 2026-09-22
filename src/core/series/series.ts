@@ -38,7 +38,9 @@ import {
   validateMoney,
   withDistancesInLaps,
 } from './utils.ts';
-import { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
+import {
+  DEFAULT_SEASON_LENGTH, SEASON_WEEKS, SERIES_FORMAT_VERSION,
+} from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
@@ -60,7 +62,9 @@ import { applyForecast, defaultWeatherOffer, forecastRound } from '../weather-fo
 // Re-exported so the shipped library and the CLI keep reaching for it here,
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
-export { eligibleCars, roundRaceId } from './utils.ts';
+export {
+  eligibleCars, formatOf, roundRaceId, roundSessions, roundSpans,
+} from './utils.ts';
 
 /**
  * Checks a championship against the schema's own rules.
@@ -93,6 +97,16 @@ export const validateSeries = (
   }
   if (series.rounds.length === 0) {
     problems.push(appErrorInfo('series.rounds.empty', { series: series.id }));
+  }
+  // A race weekend is a week, so a season has room for as many rounds as it has
+  // weeks. More than that and the selector is saying something the calendar
+  // cannot do, which is worth refusing rather than quietly crowding two rounds
+  // onto one weekend.
+  const weeks = SEASON_WEEKS[series.seasonLength ?? DEFAULT_SEASON_LENGTH];
+  if (series.rounds.length > weeks) {
+    problems.push(appErrorInfo('series.season.tooManyRounds', {
+      series: series.id, rounds: series.rounds.length, weeks,
+    }));
   }
 
   duplicates(series.entries.map((entry) => entry.id)).forEach((id) => {
@@ -365,6 +379,10 @@ export const roundRace = (
     });
   }
 
+  // The player takes the last seat of their class, which is the one the
+  // opponent list below leaves out - so they stand in the standings where that
+  // seat does, and under its team.
+  const playerSeat = playerEntry.seats[playerEntry.seats.length - 1];
   const allowed = eligibleCars(eligibilityFor(playerEntry, round), content, catalogue);
   if (!allowed.some((eligible) => eligible.id === car.model)) {
     throw new AppError('series.car.notEligible', { car: car.model, entry: playerEntry.name });
@@ -399,6 +417,11 @@ export const roundRace = (
         driver: seat.driver?.name,
         nationality: seat.driver?.nationality,
         nationCode: seat.driver?.nationCode,
+        // Carried so the result can be scored. Nothing between here and the
+        // launch reads them - see the note on CarEntry.seat.
+        seat: seat.id,
+        entry: entry.id,
+        team: seat.team,
         ...bopFor(entry, model),
         // Spread within the class rather than across the field: one linear ramp
         // over a multi-class grid would make the slower class's drivers weak as
@@ -430,7 +453,14 @@ export const roundRace = (
     id: roundRaceId(series.id, round.id),
     name: `${series.name} - ${round.name}`,
     track: round.track,
-    playerCar: { model: car.model, skin: car.skin, ...bopFor(playerEntry, car.model) },
+    playerCar: {
+      model: car.model,
+      skin: car.skin,
+      seat: playerSeat?.id,
+      entry: playerEntry.id,
+      team: playerSeat?.team,
+      ...bopFor(playerEntry, car.model),
+    },
     grid: { size: opponents.length + 1, opponents },
     sessions: climate === null
       ? sessions

@@ -10,7 +10,7 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
-  ClassificationOrigin, Climate, Discipline, SessionType,
+  ClassificationOrigin, Climate, Discipline, EventStatus, SessionType,
 } from '../../../shared/types';
 
 /**
@@ -111,3 +111,22 @@ export const TIER_ACCENT: readonly string[] = [
   'border-transparent bg-tier-bronze text-tier-bronze-foreground',
   'border-transparent bg-tier-steel text-tier-steel-foreground',
 ];
+
+/**
+ * The colour each state of a career calendar's event is chipped in.
+ *
+ * Only two of the three carry one. A raced round is `success`, which already
+ * means done, and a missed one has a token of its own - see the note beside it
+ * in globals.css for why a non-start is neither destructive nor grey. A round
+ * still to come is deliberately empty: most of the calendar is scheduled, so a
+ * colour on it would be decoration rather than information, and the caller's
+ * own variant shows through.
+ *
+ * Read by the calendar's agenda and by a championship's round rows, which show
+ * the same three states once a career has dated them.
+ */
+export const EVENT_ACCENT = {
+  scheduled: '',
+  raced: 'border-transparent bg-success text-success-foreground',
+  missed: 'border-transparent bg-event-missed text-event-missed-foreground',
+} as const satisfies Record<EventStatus, string>;
