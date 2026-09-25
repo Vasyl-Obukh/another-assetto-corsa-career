@@ -2,7 +2,7 @@
 
 import { WeatherType } from './weather-types.ts';
 import type {
-  Language, Settings, ThemeChoice, WeatherSystem,
+  AiBase, Language, Settings, ThemeChoice, WeatherSystem,
 } from '../types/index.ts';
 
 /**
@@ -52,6 +52,15 @@ export const DEFAULT_ALLOWED_WEATHER: readonly WeatherType[] = [
 ];
 
 /**
+ * How strong and how aggressive the AI are before any championship adds to it.
+ *
+ * 88 is the middle of the 92-to-84 spread every championship used to be given
+ * when it named none, so a field with no offsets races as fast on average as it
+ * did before strength became the player's.
+ */
+export const DEFAULT_OPPONENTS: AiBase = { strength: 88, aggression: 30 };
+
+/**
  * What a fresh install starts with, and what any unreadable field falls back to.
  */
 export const DEFAULT_SETTINGS: Settings = {
@@ -61,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weatherSystem: 'none',
   allowedWeather: [...DEFAULT_ALLOWED_WEATHER],
   drivingAids: {},
+  opponents: { ...DEFAULT_OPPONENTS },
   addedContent: { cars: [], tracks: [] },
   hiddenContentSources: { packs: [], makers: [] },
   seriesActive: {},

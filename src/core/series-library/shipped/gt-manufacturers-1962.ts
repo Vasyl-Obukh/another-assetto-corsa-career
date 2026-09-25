@@ -138,7 +138,7 @@ export const GT_MANUFACTURERS_1962: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 25 },
+  grid: { strength: 1, aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

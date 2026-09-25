@@ -118,7 +118,7 @@ export const ADAC_GT_MASTERS: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 45 },
+  grid: { strength: 1, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

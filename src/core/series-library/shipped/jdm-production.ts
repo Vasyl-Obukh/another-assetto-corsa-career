@@ -69,7 +69,7 @@ export const JDM_PRODUCTION: Championship = {
         seat('ae-shi-1', 'shizuoka', 'Yusuke Hanamura', 'Japan', 'JPN'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_toyota_ae86'] },
-      grid: { aiLevel: 85, aiLevelMin: 77 },
+      grid: { strength: -3 },
       prizes: {
         positions: [4800, 3350, 2400, 1850, 1400, 1050, 800, 550, 400, 250],
         standings: [38500, 24000, 15500, 10000, 6500],
@@ -124,7 +124,7 @@ export const JDM_PRODUCTION: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 40 },
+  grid: { strength: -4, aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

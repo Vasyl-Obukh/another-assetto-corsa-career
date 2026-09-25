@@ -79,7 +79,7 @@ export const IMSA_2025: Championship = {
         seat('p2-cas-2', 'cascadia', 'Liam Ouellette', 'Canada', 'CAN'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
+      grid: { strength: -1 },
       prizes: {
         positions: [42000, 29400, 21000, 15950, 12200, 9250, 6700, 5050, 3350, 2100],
         standings: [336000, 210000, 134500, 88000, 54500],
@@ -100,7 +100,7 @@ export const IMSA_2025: Championship = {
         seat('rou-2', 'route-66', 'Mason Tedrick', 'United States', 'USA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
-      grid: { aiLevel: 92, aiLevelMin: 85 },
+      grid: { strength: -2 },
       prizes: {
         positions: [25200, 17650, 12600, 9600, 7300, 5550, 4050, 3000, 2000, 1250],
         standings: [201500, 126000, 80500, 53000, 33000],
@@ -121,7 +121,7 @@ export const IMSA_2025: Championship = {
         seat('lau-2', 'laurentian', 'Samuel Pouliot', 'Canada', 'CAN'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
-      grid: { aiLevel: 88, aiLevelMin: 80 },
+      grid: { strength: -7 },
       prizes: {
         positions: [18900, 13250, 9450, 7200, 5500, 4150, 3000, 2250, 1500, 950],
         standings: [151000, 94500, 60500, 39500, 24500],
@@ -230,7 +230,7 @@ export const IMSA_2025: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 95, aiLevelMin: 87, aiAggression: 35 },
+  grid: { strength: 3, aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

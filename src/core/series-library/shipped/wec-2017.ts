@@ -98,7 +98,7 @@ export const WEC_2017: Championship = {
         seat('gte-ita-b-1', 'gte-italia', 'Valerio Castelnuovo', 'Italy', 'ITA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
+      grid: { strength: -1 },
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
         standings: [384000, 240000, 153500, 101000, 62500],
@@ -200,7 +200,7 @@ export const WEC_2017: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 95, aiLevelMin: 87, aiAggression: 30 },
+  grid: { strength: 3 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

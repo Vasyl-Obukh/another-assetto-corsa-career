@@ -66,6 +66,31 @@ export const readOptionalString = (
 ): boolean => value === undefined || typeof value === 'string' || report.bad(field, value);
 
 /**
+ * Checks an AI grid's offsets, wherever a championship carries one.
+ *
+ * A grid that still states absolute levels - `aiLevel`, `aiLevelMin`,
+ * `aiAggression` - is reported rather than quietly ignored, since read as
+ * nothing it would race at the difficulty in settings while claiming a field of
+ * its own. Such a file was written before strength became the player's, and
+ * the answer is to delete it.
+ * @param value The grid value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readGrid = (value: unknown, field: string, report: Reporter): boolean => {
+  if (value === undefined) return true;
+  if (!isRecord(value)) return report.bad(field, value);
+
+  return [
+    readOptionalNumber(value.strength, `${field}.strength`, report),
+    readOptionalNumber(value.aggression, `${field}.aggression`, report),
+    ...(['aiLevel', 'aiLevelMin', 'aiAggression'] as const)
+      .map((key) => value[key] === undefined || report.bad(`${field}.${key}`, value[key])),
+  ].every(Boolean);
+};
+
+/**
  * Checks the conditions block a round or a session may carry.
  *
  * Only the two fields that index something: a track state names a preset and a
@@ -162,8 +187,8 @@ export const readSeat = (value: unknown, field: string, report: Reporter): boole
     || typeof value.team === 'string'
     || report.bad(`${field}.team`, value.team);
   // A driver with no name would race under a generated one while claiming to
-  // hold somebody. Every leaf is checked, not just the ones with a catalogue behind them: an
-  // aiLevel of "fast" would reach race.ini as AI_LEVEL=fast, which Assetto
+  // hold somebody. Every leaf is checked, not just the ones with a catalogue behind them: a
+  // strength of "fast" would reach race.ini as AI_LEVEL=NaN, which Assetto
   // Corsa reads as garbage with nothing said anywhere.
   const driver = value.driver === undefined
     || ((isRecord(value.driver) && typeof value.driver.name === 'string' && value.driver.name !== ''
@@ -175,9 +200,12 @@ export const readSeat = (value: unknown, field: string, report: Reporter): boole
       && readOptionalString(value.car.model, `${field}.car.model`, report)
       && readOptionalString(value.car.skin, `${field}.car.skin`, report))
       || report.bad(`${field}.car`, value.car));
+  // Absolute levels are refused for the reason readGrid gives.
   const levels = [
-    readOptionalNumber(value.aiLevel, `${field}.aiLevel`, report),
-    readOptionalNumber(value.aiAggression, `${field}.aiAggression`, report),
+    readOptionalNumber(value.strength, `${field}.strength`, report),
+    readOptionalNumber(value.aggression, `${field}.aggression`, report),
+    ...(['aiLevel', 'aiAggression'] as const)
+      .map((key) => value[key] === undefined || report.bad(`${field}.${key}`, value[key])),
   ].every(Boolean);
 
   return id && team && driver && car && levels;
@@ -246,9 +274,10 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     : report.bad(`${field}.seats`, value.seats);
 
   const prizes = readPrizes(value.prizes, `${field}.prizes`, report);
+  const grid = readGrid(value.grid, `${field}.grid`, report);
 
   const rule = value.eligibility;
-  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats && prizes;
+  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats && prizes && grid;
 
   // Only the shape of a spec is checked here. It may be one the user made, so
   // the set it belongs to is the resolved class catalogue rather than anything
@@ -258,7 +287,7 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     ? (typeof rule.spec === 'string' && rule.spec !== '') || report.bad(`${field}.eligibility.spec`, rule.spec)
     : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
 
-  return ladder && seats && prizes && eligibility;
+  return ladder && seats && prizes && grid && eligibility;
 };
 
 /**
@@ -275,6 +304,7 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
     ? true
     : report.bad(`${field}.track`, value.track);
   const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
+  const grid = readGrid(value.grid, `${field}.grid`, report);
   const climate = value.climate === undefined
     || report.closedSet(value.climate, CLIMATES, `${field}.climate`);
   const hemisphere = value.hemisphere === undefined
@@ -293,7 +323,7 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
     : report.bad(`${field}.sessionLengths`, value.sessionLengths));
 
   return readConditions(value.conditions, `${field}.conditions`, report)
-    && track && fee && climate && hemisphere && lengths;
+    && track && fee && grid && climate && hemisphere && lengths;
 };
 
 /**

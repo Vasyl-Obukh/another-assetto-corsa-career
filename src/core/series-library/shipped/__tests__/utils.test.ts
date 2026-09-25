@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { SERIES_FORMAT_VERSION } from '../../../../shared/constants/index.ts';
 import { Discipline } from '../../../../shared/types/index.ts';
 import type { Championship } from '../../../../shared/types/index.ts';
-import { filler } from '../utils.ts';
+import { filler, seat } from '../utils.ts';
 
 /**
  * A championship to derive fillers from, stating a length and a sum
@@ -41,7 +41,7 @@ const BASE: Championship = {
   defaultWeekendFormat: 'weekend',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 80 },
+  grid: { strength: 3, aggression: 5 },
   entryFee: 1000,
   prizes: { positions: [2000, 1000], standings: [10_000] },
 };
@@ -83,14 +83,31 @@ describe('core/series-library/shipped/utils', () => {
     });
 
     it('fields a stronger grid', () => {
-      expect(plus.grid).toEqual({ aiLevel: 92, aiLevelMin: 82 });
+      expect(plus.grid).toEqual({ strength: 5, aggression: 5 });
     });
 
     it('adds nothing its base does not state', () => {
       const bare = filler({ ...BASE, entryFee: undefined, prizes: undefined, grid: undefined }, 1, '');
 
       expect(bare.prizes).toBeUndefined();
-      expect(bare.grid).toEqual({});
+      // An offset rather than a level, so a base that states none is still
+      // raced a step stronger.
+      expect(bare.grid).toEqual({ strength: 2 });
+    });
+  });
+
+  describe('seat', () => {
+    it('seats a named driver with a team', () => {
+      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED')).toEqual({
+        id: 'rbr-1',
+        team: 'red-bull',
+        driver: { name: 'Max Verstappen', nationality: 'Netherlands', nationCode: 'NED' },
+      });
+    });
+
+    it('gives the driver an offset of their own only when one is stated', () => {
+      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED', 4).strength).toBe(4);
+      expect(seat('rbr-2', 'red-bull', 'Sergio Perez', 'Mexico', 'MEX')).not.toHaveProperty('strength');
     });
   });
 });

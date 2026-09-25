@@ -116,7 +116,7 @@ export const FORMULA_UK: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 87, aiAggression: 35 },
+  grid: { strength: 3, aggression: 5 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -73,7 +73,6 @@ export const ALMS_2001: Championship = {
         seat('gts-rhe-1', 'rheintal', 'Uwe Kellersmann', 'Germany', 'GER'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S, minModels: 2 },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
         standings: [240000, 150000, 96000, 63000, 39000],
@@ -104,7 +103,7 @@ export const ALMS_2001: Championship = {
           'rss_gtn_furiano_36',
         ],
       },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: -3 },
       prizes: {
         positions: [18000, 12600, 9000, 6850, 5200, 3950, 2900, 2150, 1450, 900],
         standings: [144000, 90000, 57500, 38000, 23500],
@@ -184,7 +183,7 @@ export const ALMS_2001: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 86, aiAggression: 35 },
+  grid: { strength: 2, aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

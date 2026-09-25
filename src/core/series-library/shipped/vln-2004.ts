@@ -82,7 +82,7 @@ export const VLN_2004: Championship = {
           'rss_gtn_furiano_36',
         ],
       },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: -1 },
       prizes: {
         positions: [15000, 10500, 7500, 5700, 4350, 3300, 2400, 1800, 1200, 750],
         standings: [120000, 75000, 48000, 31500, 19500],
@@ -103,7 +103,7 @@ export const VLN_2004: Championship = {
         seat('sky-bru-1', 'brunnchen', 'Heiko Gehlen', 'Germany', 'GER'),
       ],
       eligibility: { kind: 'cars', cars: ['gue_nissan_skyline_r34_24h'] },
-      grid: { aiLevel: 87, aiLevelMin: 80 },
+      grid: { strength: -4 },
       prizes: {
         positions: [9000, 6300, 4500, 3400, 2600, 2000, 1450, 1100, 700, 450],
         standings: [72000, 45000, 29000, 19000, 11500],
@@ -216,7 +216,7 @@ export const VLN_2004: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 92, aiLevelMin: 84, aiAggression: 40 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

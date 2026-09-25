@@ -127,7 +127,7 @@ export const INDYCAR_2012: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 88, aiAggression: 45 },
+  grid: { strength: 4, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

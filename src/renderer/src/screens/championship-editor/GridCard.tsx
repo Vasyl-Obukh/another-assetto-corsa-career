@@ -7,7 +7,7 @@ import type { SeriesGrid } from '../../../../shared/types';
 
 interface GridCardProps {
   /**
-   * The AI spread as the championship states it.
+   * The AI offsets as the championship states them.
    */
   grid: SeriesGrid;
   /**
@@ -20,8 +20,8 @@ interface GridCardProps {
    */
   locked: boolean;
   /**
-   * Called with the whole spread whenever any part of it changes.
-   * @param grid The spread to apply
+   * Called with both offsets whenever either changes.
+   * @param grid The offsets to apply
    */
   onChange: (grid: SeriesGrid) => void;
 }

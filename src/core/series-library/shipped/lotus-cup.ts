@@ -92,7 +92,7 @@ export const LOTUS_CUP: Championship = {
         seat('prd-val-1', 'valdarno', 'Rocco Santambrogio', 'Italy', 'ITA'),
       ],
       eligibility: { kind: 'cars', cars: ['lotus_elise_sc'] },
-      grid: { aiLevel: 86, aiLevelMin: 78 },
+      grid: { strength: -4 },
       prizes: {
         positions: [3600, 2500, 1800, 1300, 950, 700, 550, 350, 250, 100],
         standings: [27000, 16000, 11000, 7000, 4500],
@@ -131,7 +131,7 @@ export const LOTUS_CUP: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 82, aiAggression: 30 },
+  grid: { strength: -2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

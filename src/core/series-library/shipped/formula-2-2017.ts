@@ -145,7 +145,7 @@ export const FORMULA_2_2017: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 2 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { aiLevel: 95, aiLevelMin: 87, aiAggression: 45 },
+  grid: { strength: 3, aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

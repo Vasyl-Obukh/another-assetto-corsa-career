@@ -83,7 +83,7 @@ export const WEC_2023: Championship = {
         seat('p2-war-2', 'warta', 'Mikołaj Szczepanik', 'Poland', 'POL'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
+      grid: { strength: -3 },
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
         standings: [384000, 240000, 153500, 101000, 62500],
@@ -108,7 +108,7 @@ export const WEC_2023: Championship = {
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'United Arab Emirates', 'UAE'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: -6 },
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
         standings: [288000, 180000, 115000, 75500, 47000],
@@ -258,7 +258,7 @@ export const WEC_2023: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 97, aiLevelMin: 89, aiAggression: 30 },
+  grid: { strength: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -134,7 +134,7 @@ export const HOT_HATCH_TROPHY: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 85, aiLevelMin: 76, aiAggression: 45 },
+  grid: { strength: -7, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -7,7 +7,9 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
+  AI_RANGE,
   DEFAULT_ALLOWED_WEATHER,
+  DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,
   DRIVING_AID_FLAGS,
   DRIVING_AID_NUMBERS,
@@ -19,7 +21,7 @@ import {
 import type { WeatherType } from '../../constants/index.ts';
 import { DLCPack, ModMaker } from '../../types/index.ts';
 import type {
-  AddedContent, DrivingAids, HiddenContentSources, PathOverrides, Settings, WindowState,
+  AddedContent, AiBase, DrivingAids, HiddenContentSources, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
 import { isRecord, memberOf, stringEnumValues } from '../coerce/index.ts';
 
@@ -191,6 +193,33 @@ export const readDrivingAids = (raw: unknown): DrivingAids => {
 };
 
 /**
+ * Reads one AI figure, rounded and clamped to what Assetto Corsa accepts.
+ * @param value The value to read
+ * @param fallback Returned when it is not a number at all
+ * @returns The figure
+ */
+const readAiFigure = (value: unknown, fallback: number): number => {
+  const read = finiteNumber(value);
+  if (read === undefined) return fallback;
+
+  return Math.min(AI_RANGE.max, Math.max(AI_RANGE.min, Math.round(read)));
+};
+
+/**
+ * Reads the player's AI difficulty, field by field.
+ * @param raw The value read from disk
+ * @returns Both figures, defaulted where unreadable
+ */
+export const readOpponents = (raw: unknown): AiBase => {
+  const source = isRecord(raw) ? raw : {};
+
+  return {
+    strength: readAiFigure(source.strength, DEFAULT_OPPONENTS.strength),
+    aggression: readAiFigure(source.aggression, DEFAULT_OPPONENTS.aggression),
+  };
+};
+
+/**
  * Reads persisted window geometry, clamped to a usable size.
  * @param raw The value read from disk
  * @returns Valid window state, falling back to the defaults field by field
@@ -241,6 +270,7 @@ export const readSettings = (raw: unknown): Settings => {
     // decide" rather than racing under a blank name.
     ...(driverName ? { driverName } : {}),
     drivingAids: readDrivingAids(raw.drivingAids),
+    opponents: readOpponents(raw.opponents),
     addedContent: readAddedContent(raw.addedContent),
     hiddenContentSources: readHiddenContentSources(raw.hiddenContentSources),
     seriesActive: readSeriesActive(raw.seriesActive),

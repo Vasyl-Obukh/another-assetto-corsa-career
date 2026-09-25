@@ -103,7 +103,7 @@ export const TROFEO_ABARTH_500_2009: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 86, aiLevelMin: 78, aiAggression: 45 },
+  grid: { strength: -6, aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },

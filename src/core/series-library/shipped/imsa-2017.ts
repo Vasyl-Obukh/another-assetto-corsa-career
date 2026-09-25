@@ -83,7 +83,6 @@ export const IMSA_2017: Championship = {
         seat('rou-2', 'route-66', 'Mason Tedrick', 'United States', 'USA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
         standings: [288000, 180000, 115000, 75500, 47000],
@@ -108,7 +107,7 @@ export const IMSA_2017: Championship = {
         seat('rio-2', 'rioplatense', 'Joaquín Laprida', 'Argentina', 'ARG'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: -3 },
       prizes: {
         positions: [21600, 15100, 10800, 8200, 6250, 4750, 3450, 2600, 1750, 1100],
         standings: [173000, 108000, 69000, 45500, 28000],
@@ -229,7 +228,7 @@ export const IMSA_2017: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 86, aiAggression: 35 },
+  grid: { strength: 2, aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

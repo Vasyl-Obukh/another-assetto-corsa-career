@@ -1,7 +1,7 @@
 // Types local to reading a championship. Anything that crosses IPC lives in
 // src/shared/types/series.ts instead.
 
-import type { Championship, RoundDraw } from '../../shared/types/index.ts';
+import type { Championship, FieldSeat, RoundDraw } from '../../shared/types/index.ts';
 
 /**
  * Everything needed to lower one round into a race.
@@ -49,4 +49,13 @@ export interface RoundRaceRequest {
    * stored a draw and the seed alone keeps the two answers the same.
    */
   draw?: RoundDraw;
+  /**
+   * The AI field the season froze, when a career has entered the championship.
+   *
+   * Given one, every seat races the car, livery and offsets it was dealt when
+   * the season began. Absent outside a career, where the field is drawn afresh
+   * and unsalted - which comes out the same every time, and so is just as
+   * stable across a championship's rounds.
+   */
+  field?: readonly FieldSeat[];
 }

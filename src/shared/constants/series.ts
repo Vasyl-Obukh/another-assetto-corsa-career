@@ -67,3 +67,18 @@ export const SEASON_WEEKS: Record<SeasonLength, number> = {
   [SeasonLength.HALF_YEAR]: 20,
   [SeasonLength.QUARTER]: 10,
 };
+
+/**
+ * The furthest a championship, a class, a round or a seat may move the AI from
+ * the difficulty in settings, either way.
+ *
+ * Wide enough for a club series well below a world championship, narrow enough
+ * that a typo of 90 for 9 is reported rather than raced.
+ */
+export const MAX_GRID_OFFSET = 30;
+
+/**
+ * The lowest and highest AI_LEVEL and AI_AGGRESSION Assetto Corsa is sent.
+ * Every layer of offsets is summed and then clamped to this.
+ */
+export const AI_RANGE = { min: 0, max: 100 } as const;

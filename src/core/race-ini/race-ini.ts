@@ -35,7 +35,9 @@ import type { IniWritable } from '../ini/index.ts';
 export {
   DEFAULT_RACE_LAPS, DEFAULT_TIME_OF_DAY, SESSION_TYPE, TRACK_STATE,
 } from './constants.ts';
-export { buildGrid, parseClock, sunAngleFromTime } from './utils.ts';
+export {
+  buildGrid, nextSkin, parseClock, skinKey, sunAngleFromTime,
+} from './utils.ts';
 
 /**
  * Builds race.ini text from a race definition and the installed content.

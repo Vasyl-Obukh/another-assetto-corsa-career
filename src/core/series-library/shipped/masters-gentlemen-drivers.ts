@@ -77,7 +77,7 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
       },
       // The Step 2 has twice the others' power.
       bop: [{ car: 'ks_abarth_595ss_s2', restrictor: 45 }],
-      grid: { aiLevel: 86, aiLevelMin: 78 },
+      grid: { strength: -4 },
       prizes: {
         positions: [5400, 3800, 2700, 2000, 1450, 1100, 800, 600, 400, 200],
         standings: [36000, 21500, 14500, 9500, 6000],
@@ -119,7 +119,7 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 82, aiAggression: 25 },
+  grid: { strength: -2, aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

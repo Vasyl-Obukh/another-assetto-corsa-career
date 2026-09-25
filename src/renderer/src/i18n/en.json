@@ -178,7 +178,12 @@
       "classes": "Classes",
       "championships": "Championships",
       "sources": "Content sources"
-    }
+    },
+    "opponents": "AI opponents",
+    "opponentsHint": "How strong and how aggressive the AI are. This is your difficulty, and every championship states its field as a step up or down from it.",
+    "opponentsStrength": "AI strength",
+    "opponentsAggression": "AI aggression",
+    "opponentsOffsets": "A championship, a class and a round may each move these, and every driver sits a little either side of their class for the season. A change here reaches every weekend set up after it, a season already under way included; a weekend part-way through keeps the field it started with."
   },
   "carClasses": {
     "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them, then put a car in a spec from its page in the Cars library.",
@@ -775,10 +780,9 @@
     },
     "grid": {
       "title": "AI field",
-      "hint": "What the field is worth where a class entry and a seat say nothing of their own.",
-      "aiLevel": "AI level",
-      "aiLevelMin": "Slowest AI level",
-      "aiAggression": "AI aggression"
+      "hint": "How much stronger or weaker this field is than the difficulty in settings. A class and a round may move it further.",
+      "strength": "AI strength offset",
+      "aggression": "AI aggression offset"
     },
     "regulations": {
       "title": "Regulations",
@@ -857,11 +861,13 @@
       "pinned": "{{car}} - {{skin}}",
       "pinnedCar": "{{car}}",
       "unpin": "Take the pinned car off this seat",
-      "aiLevel": "AI level",
-      "aiAggression": "AI aggression",
       "add": "Add a seat",
       "unnamed": "Seat free",
-      "aiSet": "AI set"
+      "aiSet": "AI set",
+      "strength": "AI strength offset",
+      "strengthHint": "Over the class, in place of the small spread every other driver draws for the season.",
+      "aggression": "AI aggression offset",
+      "drawn": "Drawn"
     },
     "roundEligibility": {
       "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list, the calendar and the standings stay at championship level.",
@@ -892,7 +898,8 @@
       "swapLine": "{{entry}}: {{cars}}",
       "raceLength": "{{name}} length",
       "raceLengthHint": "Empty runs what the weekend format says.",
-      "ownLength": "Own race length"
+      "ownLength": "Own race length",
+      "gridHint": "Added to every class for this round alone."
     },
     "formats": {
       "title": "Weekend formats",

@@ -57,7 +57,7 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
       // 450 bhp on 1205 kg is GT3 pace; this brings it back to the 3.3 kg per
       // horsepower GT4 runs at.
       bop: [{ car: 'lotus_evora_gtc', ballast: 150, restrictor: 20 }],
-      grid: { aiLevel: 89, aiLevelMin: 81 },
+      grid: { strength: -3 },
     },
     {
       id: 'supersport',
@@ -76,7 +76,7 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
         seat('ss-eif-2', 'eifelblick', 'Jana Wesseling', 'Germany', 'GER'),
       ],
       eligibility: { kind: 'cars', cars: ['lotus_2_eleven_gt4', 'ktm_xbow_r'] },
-      grid: { aiLevel: 86, aiLevelMin: 78 },
+      grid: { strength: -6 },
       prizes: {
         positions: [3000, 2100, 1500, 1150, 850, 600, 450, 300, 200, 100],
         standings: [21500, 13000, 9000, 6000, 3500],

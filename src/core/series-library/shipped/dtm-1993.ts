@@ -120,7 +120,7 @@ export const DTM_1993: Championship = {
     { id: 'race', name: 'Heat points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 86, aiAggression: 50 },
+  grid: { strength: 2, aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

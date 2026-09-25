@@ -93,7 +93,7 @@ export const FIA_GT_2004: Championship = {
         seat('ngt-tha-2', 'thames-valley', 'Stuart Mallinder', 'Great Britain', 'GBR'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.N_GT, minModels: 2 },
-      grid: { aiLevel: 90, aiLevelMin: 82 },
+      grid: { strength: -3 },
       prizes: {
         positions: [27000, 18900, 13500, 10250, 7850, 5950, 4300, 3250, 2150, 1350],
         standings: [216000, 135000, 86500, 56500, 35000],
@@ -135,7 +135,7 @@ export const FIA_GT_2004: Championship = {
     { id: 'race', name: 'Race points', positions: [10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 35 },
+  grid: { strength: 1, aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

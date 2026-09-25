@@ -166,7 +166,7 @@ export const GROUP_A_1987: Championship = {
     { id: 'race', name: 'Division points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 92, aiLevelMin: 84, aiAggression: 40 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

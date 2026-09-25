@@ -148,24 +148,39 @@ export interface BopEntry {
 }
 
 /**
- * How strong the AI are in a series, or in one class of it.
+ * How much stronger or weaker the AI are in a series, a class of it or one round
+ * of it, than the difficulty the player chose in settings.
  *
- * The same three fields GridDefinition carries, so a class entry and a race
- * definition describe an AI field the same way.
+ * Offsets rather than levels, so the difficulty setting moves every grid at
+ * once: a championship states where it sits against the rest, never how fast
+ * its field is outright. Each layer adds to the one below it - the round's to
+ * its class's to the championship's to the player's own.
  */
 export interface SeriesGrid {
   /**
-   * AI skill of the fastest opponent.
+   * AI skill added to the difficulty, in AI_LEVEL points. Negative is slower.
    */
-  aiLevel?: number;
+  strength?: number;
   /**
-   * Slowest AI in the class; levels are spread linearly down to this.
+   * AI aggression added to the difficulty, in AI_AGGRESSION points.
    */
-  aiLevelMin?: number;
+  aggression?: number;
+}
+
+/**
+ * The AI strength a race is lowered against, before any championship adds to it.
+ *
+ * The player's difficulty, from settings. Absolute, unlike SeriesGrid.
+ */
+export interface AiBase {
   /**
-   * AI aggression applied to the class.
+   * AI_LEVEL of a driver with no offset anywhere.
    */
-  aiAggression?: number;
+  strength: number;
+  /**
+   * AI_AGGRESSION of a driver with no offset anywhere.
+   */
+  aggression: number;
 }
 
 /**
@@ -345,16 +360,51 @@ export interface Seat {
    */
   car?: SeatCar;
   /**
-   * AI skill for this seat, overriding the class's own spread.
+   * AI skill for this driver, as an offset over the class, in place of the
+   * small spread every other driver draws for the season.
    *
    * True per-driver skill is one of the things AC lets us do that a career mode
    * usually cannot, and a star driver beating their team-mate is what it is for.
    */
-  aiLevel?: number;
+  strength?: number;
   /**
-   * AI aggression for this seat, overriding the class's own.
+   * AI aggression for this driver, as an offset over the class, in place of
+   * the drawn one.
    */
-  aiAggression?: number;
+  aggression?: number;
+}
+
+/**
+ * One AI seat as a season froze it: the car, the livery and the driver's own
+ * offsets, drawn once and raced every round.
+ *
+ * What makes a driver the same driver all season. Before it, the car a seat
+ * drove was drawn afresh every round, and skill belonged to a seat's place in
+ * the entry list rather than to whoever sat in it.
+ */
+export interface FieldSeat {
+  /**
+   * The seat, by its id, which is unique across the championship.
+   */
+  seat: string;
+  /**
+   * Car folder ID, drawn over the championship's own eligibility. A round that
+   * runs other cars draws its own for that round alone, and so does every round
+   * when the championship's own eligibility has nothing installed to draw.
+   */
+  model?: string;
+  /**
+   * Skin folder ID, when the car had one to hand out.
+   */
+  skin?: string;
+  /**
+   * The driver's skill, as an offset over the class.
+   */
+  strength: number;
+  /**
+   * The driver's aggression, as an offset over the class.
+   */
+  aggression: number;
 }
 
 /**
@@ -395,7 +445,8 @@ export interface ClassEntry {
    */
   bop?: readonly BopEntry[];
   /**
-   * AI strength for this class, overriding the championship's own.
+   * AI strength for this class, added to the championship's own - so a GT3
+   * class a tier below the prototypes says how far below, not how fast.
    */
   grid?: SeriesGrid;
   /**
@@ -524,6 +575,11 @@ export interface Round {
    * What entering this round costs, overriding the championship's own fee.
    */
   entryFee?: number;
+  /**
+   * AI strength for this round alone, added to every class's own - a round the
+   * specialists turn up for, or a guest-heavy endurance classic.
+   */
+  grid?: SeriesGrid;
 }
 
 /**
@@ -729,7 +785,7 @@ export interface Championship {
    */
   regulations?: Regulations;
   /**
-   * AI strength across the field, which a class entry may override.
+   * AI strength across the field, over the difficulty in settings.
    */
   grid?: SeriesGrid;
   /**

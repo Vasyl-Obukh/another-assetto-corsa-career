@@ -114,7 +114,7 @@ export const GT86_CUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 86, aiLevelMin: 77, aiAggression: 45 },
+  grid: { strength: -6, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

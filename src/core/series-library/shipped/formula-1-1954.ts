@@ -112,7 +112,7 @@ export const FORMULA_1_1954: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 88, aiAggression: 25 },
+  grid: { strength: 4, aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

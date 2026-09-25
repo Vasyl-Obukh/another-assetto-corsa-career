@@ -145,7 +145,7 @@ export const FIA_GT1_2010: Championship = {
     { id: 'qualifying-race', name: 'Qualifying race', positions: [8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 86, aiAggression: 40 },
+  grid: { strength: 2, aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

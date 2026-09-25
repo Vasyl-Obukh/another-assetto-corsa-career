@@ -3,6 +3,7 @@
 import type { DLCPack, ModMaker } from './content.ts';
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
+import type { AiBase } from './series.ts';
 import type { WeatherSystem } from './weather-plan.ts';
 import type { WeatherType } from '../constants/weather-types.ts';
 
@@ -177,6 +178,17 @@ export interface Settings {
    * names one of these keeps it, which is what lets a spike pin them all.
    */
   drivingAids: DrivingAids;
+  /**
+   * How strong and how aggressive the AI are, before a championship, a class,
+   * a round or a driver moves them.
+   *
+   * The player's difficulty, and the one absolute figure in the chain: every
+   * championship states its field as an offset from this, so moving it moves
+   * every grid at once - a season already under way included, from the next
+   * weekend set up. A weekend is lowered once, so one part-way through keeps
+   * the field it started with.
+   */
+  opponents: AiBase;
   /**
    * Anonymous mods the user has let into the library.
    *

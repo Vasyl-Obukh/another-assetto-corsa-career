@@ -92,10 +92,12 @@ export const registerHandlers = (
 
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
-  // A round the career is in races the career's draw wherever it is set up.
+  // A round the career is in races the career's draw and field wherever it is
+  // set up.
   handle('series:setupRound', async (request) => series.setupRound({
     ...request,
     draw: await career.draw(request.series, request.round),
+    field: await career.field(request.series, request.entry),
   }));
   handle('series:validate', async ({ series: draft }) => series.validate(draft));
   handle('series:forecast', async ({ series: id }) => Promise.all(

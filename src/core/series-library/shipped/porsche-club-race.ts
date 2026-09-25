@@ -58,7 +58,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
       bop: [
         { car: 'ks_porsche_991_turbo_s', ballast: 30 },
       ],
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: 2 },
     },
     {
       id: 's4',
@@ -91,7 +91,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
       bop: [
         { car: 'ks_porsche_cayman_gt4_std', ballast: 60 },
       ],
-      grid: { aiLevel: 87, aiLevelMin: 80 },
+      grid: { strength: -1 },
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],
@@ -147,7 +147,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 89, aiLevelMin: 81, aiAggression: 30 },
+  grid: { strength: -3 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

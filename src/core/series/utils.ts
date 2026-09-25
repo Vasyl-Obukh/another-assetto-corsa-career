@@ -1,8 +1,9 @@
 // Helpers behind reading a championship: resolving what overrides what, and
 // composing the field a round is raced against.
 
-import { DEFAULT_SERIES_GRID } from './constants.ts';
-import { DEFAULT_MIN_MODELS, MAX_WEEKEND_DAYS, MIN_REVERSED } from '../../shared/constants/index.ts';
+import {
+  AI_RANGE, DEFAULT_MIN_MODELS, MAX_GRID_OFFSET, MAX_WEEKEND_DAYS, MIN_REVERSED,
+} from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { ContentSource, Hemisphere } from '../../shared/types/index.ts';
@@ -25,6 +26,7 @@ import type {
   RoundAvailability,
   RoundRaceLength,
   RoundSessionLength,
+  Seat,
   SeriesGrid,
   SeriesRequirements,
   SeriesSession,
@@ -129,34 +131,80 @@ export const bopFor = (entry: ClassEntry, car: string): Required<Omit<BopEntry, 
 };
 
 /**
- * Drops the keys a partial grid left undefined.
+ * Adds up every offset a class's AI race at in one round.
  *
- * Needed because a bare spread of a grid holding `aiLevel: undefined` would
- * overwrite the value below it with nothing rather than deferring to it.
- * @param grid The partial figures, or undefined
- * @returns The same figures with every undefined key removed
+ * The championship's, then the class's, then the round's, each an adjustment on
+ * the one below - so a GT3 class a tier below the prototypes and a round the
+ * specialists turn up for say only how far they move things.
+ * @param series The championship
+ * @param entry The class entry
+ * @param round The round being raced, when there is one
+ * @returns Both offsets, zero where nothing states one
  */
-const definedGrid = (grid: SeriesGrid | undefined): SeriesGrid => {
-  if (!grid) return {};
+export const classOffset = (
+  series: Championship,
+  entry: ClassEntry,
+  round?: Round,
+): Required<SeriesGrid> => {
+  const layers = [series.grid, entry.grid, round?.grid];
 
-  return Object.fromEntries(Object.entries(grid).filter(([, value]) => value !== undefined));
+  return {
+    strength: layers.reduce((sum, grid) => sum + (grid?.strength ?? 0), 0),
+    aggression: layers.reduce((sum, grid) => sum + (grid?.aggression ?? 0), 0),
+  };
 };
 
 /**
- * Reads the AI strength one class entry races at.
- *
- * The class entry's own figures over the championship's over the defaults,
- * field by field, so a GT3 class a tier below the prototypes can be slower
- * without restating the whole band.
- * @param series The championship
- * @param entry The class entry
- * @returns Every AI figure, with nothing left to default later
+ * Turns a base figure and the offsets on it into what Assetto Corsa is sent.
+ * @param base The absolute figure from settings
+ * @param offsets Every offset laid over it
+ * @returns The sum, rounded and clamped to the range AC accepts
  */
-export const entryGrid = (series: Championship, entry: ClassEntry): Required<SeriesGrid> => ({
-  ...DEFAULT_SERIES_GRID,
-  ...definedGrid(series.grid),
-  ...definedGrid(entry.grid),
-});
+export const aiFigure = (base: number, ...offsets: number[]): number => Math.min(
+  AI_RANGE.max,
+  Math.max(AI_RANGE.min, Math.round(offsets.reduce((sum, offset) => sum + offset, base))),
+);
+
+/**
+ * Checks that every AI offset in a championship stays within reach.
+ * @param series The championship
+ * @returns One problem per offset out of range
+ */
+export const validateOffsets = (series: Championship): AppErrorInfo[] => {
+  const grids: [string, SeriesGrid | undefined][] = [
+    ['grid', series.grid],
+    ...series.entries.flatMap((entry, at): [string, SeriesGrid | undefined][] => [
+      [`entries[${at}].grid`, entry.grid],
+      ...entry.seats.map((seat, index): [string, SeriesGrid] => [
+        `entries[${at}].seats[${index}]`,
+        { strength: seat.strength, aggression: seat.aggression },
+      ]),
+    ]),
+    ...series.rounds.map((round, at): [string, SeriesGrid | undefined] => [
+      `rounds[${at}].grid`, round.grid,
+    ]),
+  ];
+
+  return grids.flatMap(([field, grid]) => (['strength', 'aggression'] as const)
+    .filter((key) => Math.abs(grid?.[key] ?? 0) > MAX_GRID_OFFSET)
+    .map((key) => appErrorInfo('series.grid.offsetOutOfRange', {
+      series: series.id, field: `${field}.${key}`, value: grid?.[key] ?? 0, max: MAX_GRID_OFFSET,
+    })));
+};
+
+/**
+ * The seats of a class the AI drive.
+ *
+ * Every seat but the last in the player's own class, which is the one the
+ * player takes - so a championship that named its front-runners keeps them and
+ * gives up its tail-ender.
+ * @param entry The class entry
+ * @param playerEntry The class the player races in, by its id
+ * @returns The seats left to the AI
+ */
+export const aiSeats = (entry: ClassEntry, playerEntry: string): readonly Seat[] => (
+  entry.id === playerEntry ? entry.seats.slice(0, -1) : entry.seats
+);
 
 /**
  * How many cars a championship puts on the grid.
@@ -747,15 +795,3 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     },
   };
 };
-
-/**
- * Spreads one class's AI levels between its fastest and slowest.
- * @param top Skill of the fastest car in the class
- * @param bottom Skill of the slowest
- * @param index Position in the class, counting from zero
- * @param count How many cars the class fields
- * @returns The AI level for this car
- */
-export const levelIn = (top: number, bottom: number, index: number, count: number): number => (
-  count <= 1 ? top : Math.round(top - ((top - bottom) * index) / (count - 1))
-);

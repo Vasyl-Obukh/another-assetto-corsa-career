@@ -1,5 +1,6 @@
 import type {
   Championship,
+  FieldSeat,
   IpcRequest,
   RaceDefinition,
   RaceSetup,
@@ -12,6 +13,20 @@ import type {
   SeriesListing,
   WeatherOffer,
 } from '../../shared/types/index.ts';
+
+/**
+ * What a career has already drawn for a round, and races rather than redrawing.
+ */
+export interface CareerDraws {
+  /**
+   * The round's weather, issued a week out.
+   */
+  draw?: RoundDraw;
+  /**
+   * The season's AI field, frozen when the championship was entered.
+   */
+  field?: readonly FieldSeat[];
+}
 
 /**
  * The championship library, and what can be asked of it.
@@ -37,11 +52,11 @@ export interface SeriesStore {
    * travel rather than being pre-empted here: it is the same answer the race
    * screen already renders.
    * @param request Which round of which championship, the player's car, and
-   * the weather a career has already drawn for it
+   * the weather and the field a career has already drawn for it
    * @returns The race setup, ready for the race screen
    */
   setupRound: (
-    request: IpcRequest<'series:setupRound'> & { draw?: RoundDraw },
+    request: IpcRequest<'series:setupRound'> & CareerDraws,
   ) => Promise<RaceSetup>;
   /**
    * Lowers one round of a championship the caller holds into a race, without
@@ -54,13 +69,28 @@ export interface SeriesStore {
    * copied into the career store.
    * @param series The championship, as the caller holds it
    * @param request Which class, which round, the player's car, and the weather
-   * a career has already drawn for it
+   * and the field a career has already drawn for it
    * @returns The race the round runs as
    */
   lowerRound: (
     series: Championship,
-    request: Omit<IpcRequest<'series:setupRound'>, 'series'> & { draw?: RoundDraw },
+    request: Omit<IpcRequest<'series:setupRound'>, 'series'> & CareerDraws,
   ) => Promise<RaceDefinition>;
+  /**
+   * Draws a season's AI field over the installed content: every seat's car,
+   * livery and own offsets, for a career to freeze when it enters.
+   * @param series The championship, as the caller holds it
+   * @param entry The class the player enters, by its id
+   * @param car The player's car
+   * @param salt What makes this season's draw its own
+   * @returns One frozen seat per AI seat
+   */
+  drawField: (
+    series: Championship,
+    entry: string,
+    car: IpcRequest<'series:setupRound'>['car'],
+    salt: string,
+  ) => Promise<FieldSeat[]>;
   /**
    * What the install and the user's settings can race in.
    *

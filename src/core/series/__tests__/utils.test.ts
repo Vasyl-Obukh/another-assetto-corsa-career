@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { SERIES_FORMAT_VERSION } from '../../../shared/constants/index.ts';
+import { MAX_GRID_OFFSET, SERIES_FORMAT_VERSION } from '../../../shared/constants/index.ts';
 import {
   Climate, ContentSource, Discipline, DLCPack, Hemisphere, ModMaker,
 } from '../../../shared/types/index.ts';
@@ -9,9 +9,9 @@ import type {
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
-  climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf, raceLengths, requirementsOf, roundRaceId,
-  roundSessions, roundSpans, seatSkin, validateFormat, validateLength, validateMoney,
-  withDistancesInLaps,
+  aiFigure, aiSeats, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
+  raceLengths, requirementsOf, roundRaceId, roundSessions, roundSpans, seatSkin, validateFormat,
+  validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -381,6 +381,97 @@ describe('core/series/utils', () => {
 
       expect(problem.code).toBe('series.prizes.invalid');
       expect(problem.params).toMatchObject({ table: 'class main round', position: 2, amount: -2 });
+    });
+  });
+
+  describe('aiSeats', () => {
+    const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+    const [entry] = series.entries;
+
+    it('leaves the player\'s own class its every seat but the last', () => {
+      const seats = aiSeats(entry, 'main').map((seat) => seat.id);
+
+      expect(seats).toHaveLength(7);
+      expect(seats).not.toContain('main-8');
+    });
+
+    it('leaves every other class all of its seats', () => {
+      expect(aiSeats(entry, 'another')).toHaveLength(8);
+    });
+  });
+
+  describe('classOffset', () => {
+    const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+
+    it('is nothing when no layer states an offset', () => {
+      expect(classOffset(series, series.entries[0], series.rounds[0]))
+        .toEqual({ strength: 0, aggression: 0 });
+    });
+
+    // Each layer says how far it moves the one below, so a class a tier down
+    // and a round the specialists turn up for both count.
+    it('adds the championship, the class and the round together', () => {
+      const championship = { ...series, grid: { strength: 4, aggression: 10 } };
+      const entry = { ...series.entries[0], grid: { strength: -3 } };
+      const round = { ...series.rounds[0], grid: { strength: 2, aggression: -5 } };
+
+      expect(classOffset(championship, entry, round)).toEqual({ strength: 3, aggression: 5 });
+    });
+
+    it('leaves the round out when there is none', () => {
+      const championship = { ...series, grid: { strength: 4 } };
+
+      expect(classOffset(championship, series.entries[0]).strength).toBe(4);
+    });
+  });
+
+  describe('aiFigure', () => {
+    it('adds every offset to the base', () => {
+      expect(aiFigure(88, 4, -2, 1)).toBe(91);
+    });
+
+    it('rounds, since Assetto Corsa is sent whole figures', () => {
+      expect(aiFigure(88, 0.6)).toBe(89);
+    });
+
+    it('clamps to the range Assetto Corsa accepts', () => {
+      expect(aiFigure(95, 10)).toBe(100);
+      expect(aiFigure(5, -10)).toBe(0);
+    });
+  });
+
+  describe('validateOffsets', () => {
+    const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+
+    it('passes offsets up to the limit either way', () => {
+      expect(validateOffsets({
+        ...series, grid: { strength: MAX_GRID_OFFSET, aggression: -MAX_GRID_OFFSET },
+      })).toEqual([]);
+    });
+
+    // A typo of 90 for 9 would otherwise race every driver at the ceiling.
+    it('refuses an offset beyond the limit, naming where it is', () => {
+      const [problem] = validateOffsets({ ...series, grid: { strength: 90 } });
+
+      expect(problem.code).toBe('series.grid.offsetOutOfRange');
+      expect(problem.params).toMatchObject({ field: 'grid.strength', value: 90 });
+    });
+
+    it('checks every layer a championship states one on', () => {
+      const entry = {
+        ...series.entries[0],
+        grid: { aggression: -40 },
+        seats: [{ id: 'star', strength: 31 }, ...series.entries[0].seats],
+      };
+      const rounds = [{ ...series.rounds[0], grid: { strength: -35 } }];
+      const fields = validateOffsets({ ...series, entries: [entry], rounds })
+        .map((problem) => problem.params.field);
+
+      expect(fields).toEqual([
+        'entries[0].grid.aggression',
+        'entries[0].seats[0].strength',
+        'rounds[0].grid.strength',
+      ]);
     });
   });
 

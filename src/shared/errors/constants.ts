@@ -130,6 +130,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     'Session "{{session}}" of {{format}} in {{series}} is measured as a distance; only a race may be',
   'series.race.timed':
     'Session "{{session}}" of {{format}} in {{series}} is a race measured by the clock. Assetto Corsa runs a timed race on a server alone, so a race states laps or a distance.',
+  'series.grid.offsetOutOfRange':
+    '{{field}} of {{series}} moves the AI by {{value}}, further than the {{max}} a championship may move them from the difficulty in settings',
   'series.distance.unresolved':
     'Round {{round}} of {{series}} runs "{{session}}" over {{distance}} km, but the track does not say how long a lap is',
   'series.round.sessionUnknown':

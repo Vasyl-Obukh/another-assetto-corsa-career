@@ -154,11 +154,13 @@ export type {
 } from './forecast.ts';
 
 export type {
+  AiBase,
   BopEntry,
   Championship,
   ClassEntry,
   Eligibility,
   EntryAvailability,
+  FieldSeat,
   GeneratedWeather,
   MissingCar,
   MissingTrack,

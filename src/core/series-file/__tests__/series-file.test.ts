@@ -272,6 +272,58 @@ describe('core/series-file', () => {
       }))).toHaveLength(3);
     });
 
+    it('reads AI offsets on the championship, a class, a round and a seat', () => {
+      const [entry] = raw().entries as Record<string, unknown>[];
+
+      expect(codesFor(raw({
+        grid: { strength: 4, aggression: -5 },
+        entries: [{
+          ...entry,
+          grid: { strength: -2 },
+          seats: [{ id: 'main-1', strength: 3, aggression: 10 }, { id: 'main-2' }],
+        }],
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, grid: { aggression: 5 },
+        }],
+      }))).toEqual([]);
+    });
+
+    it('rejects an offset that is not a number, wherever it sits', () => {
+      const [entry] = raw().entries as Record<string, unknown>[];
+
+      expect(codesFor(raw({
+        grid: { strength: 'fast' },
+        entries: [{ ...entry, grid: { aggression: null } }],
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, grid: 'hard',
+        }],
+      }))).toHaveLength(3);
+    });
+
+    // Read as nothing, an absolute level would race at the difficulty in
+    // settings while claiming a field of its own - so the file is refused.
+    it('rejects the absolute AI levels championships were written with before', () => {
+      const [entry] = raw().entries as Record<string, unknown>[];
+
+      expect(codesFor(raw({
+        grid: { aiLevel: 95, aiLevelMin: 85, aiAggression: 30 },
+        entries: [{ ...entry, seats: [{ id: 'main-1', aiLevel: 99 }, { id: 'main-2' }] }],
+      }))).toHaveLength(4);
+    });
+
+    // Fixed: a grid was only read once the prizes or the fee beside it had
+    // passed, so a file wrong in both named one fault at a time.
+    it('names a bad grid beside a bad fee or bad prizes', () => {
+      const [entry] = raw().entries as Record<string, unknown>[];
+
+      expect(codesFor(raw({
+        entries: [{ ...entry, prizes: 'lots', grid: { aiLevel: 95 } }],
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, entryFee: 'free', grid: { aiLevel: 95 },
+        }],
+      }))).toHaveLength(4);
+    });
+
     it('rejects a team budget tier that is not a real one', () => {
       const value = raw({ teams: [{ id: 'works', name: 'Works', budget: 'enormous' }] });
 

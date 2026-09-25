@@ -5,15 +5,14 @@ import { NationFields } from './NationFields.tsx';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
 import { SeatCarField } from './SeatCarField.tsx';
+import { MAX_GRID_OFFSET } from '../../../../shared/constants';
 import type { Seat, SeatDriver, Team } from '../../../../shared/types';
 import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useFocusOnMount } from '@/hooks';
-import {
-  Field, MAX_AI, MIN_AI, NOT_SET,
-} from '@/screens/race';
+import { Field, NOT_SET } from '@/screens/race';
 
 interface SeatFormProps {
   /**
@@ -122,23 +121,26 @@ export const SeatForm = ({
 
       <div className="grid grid-cols-2 gap-4">
         <NumberField
-          id={`${idPrefix}-ai-level`}
-          label={t('editor.seats.aiLevel')}
-          value={draft.aiLevel}
-          min={MIN_AI}
-          max={MAX_AI}
+          id={`${idPrefix}-ai-strength`}
+          label={t('editor.seats.strength')}
+          hint={t('editor.seats.strengthHint')}
+          value={draft.strength}
+          min={-MAX_GRID_OFFSET}
+          max={MAX_GRID_OFFSET}
+          placeholder={t('editor.seats.drawn')}
           disabled={locked}
-          onChange={(aiLevel) => setDraft({ ...draft, aiLevel })}
+          onChange={(strength) => setDraft({ ...draft, strength })}
         />
 
         <NumberField
           id={`${idPrefix}-ai-aggression`}
-          label={t('editor.seats.aiAggression')}
-          value={draft.aiAggression}
-          min={MIN_AI}
-          max={MAX_AI}
+          label={t('editor.seats.aggression')}
+          value={draft.aggression}
+          min={-MAX_GRID_OFFSET}
+          max={MAX_GRID_OFFSET}
+          placeholder={t('editor.seats.drawn')}
           disabled={locked}
-          onChange={(aiAggression) => setDraft({ ...draft, aiAggression })}
+          onChange={(aggression) => setDraft({ ...draft, aggression })}
         />
       </div>
     </RowForm>

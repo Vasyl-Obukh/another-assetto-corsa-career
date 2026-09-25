@@ -149,7 +149,7 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 85, aiLevelMin: 76, aiAggression: 50 },
+  grid: { strength: -7, aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

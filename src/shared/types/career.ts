@@ -14,7 +14,9 @@
 import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { SessionType } from './race.ts';
-import type { Championship, Climate, RoundRaceLength } from './series.ts';
+import type {
+  Championship, Climate, FieldSeat, RoundRaceLength,
+} from './series.ts';
 import type { RacePlace, RoundScore, SeasonStandings } from './standings.ts';
 import type { LaunchRecord } from './weekend.ts';
 import type { AppErrorInfo } from '../errors/types.ts';
@@ -139,6 +141,16 @@ export interface SeasonEntry {
      */
     skin?: string;
   };
+  /**
+   * Every AI seat's car, livery and own offsets, drawn once when the season
+   * was entered and raced every round.
+   *
+   * Frozen for the reason the championship is: a driver should be the same
+   * driver from the opener to the finale, in the same colours and at the same
+   * pace against the rest. Only the offsets are frozen, never a level - the
+   * difficulty in settings is laid under them at every launch.
+   */
+  field: readonly FieldSeat[];
   /**
    * Its rounds, dated, in the order they run.
    */

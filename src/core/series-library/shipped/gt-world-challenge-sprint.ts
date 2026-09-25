@@ -110,7 +110,7 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
     { id: 'race', name: 'Race points', positions: [16.5, 12, 9.5, 7.5, 6, 4.5, 3, 2, 1, 0.5] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 40 },
+  grid: { strength: 1, aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

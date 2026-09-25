@@ -114,7 +114,7 @@ export const SUPER_FORMULA_2023: Championship = {
     { id: 'race', name: 'Race points', positions: [20, 15, 11, 8, 6, 5, 4, 3, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 88, aiAggression: 40 },
+  grid: { strength: 4, aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

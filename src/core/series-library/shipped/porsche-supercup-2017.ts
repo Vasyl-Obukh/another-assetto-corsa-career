@@ -120,7 +120,7 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
     { id: 'race', name: 'Race points', positions: [20, 18, 16, 14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 91, aiLevelMin: 84, aiAggression: 45 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

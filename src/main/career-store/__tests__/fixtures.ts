@@ -118,6 +118,7 @@ export const makeEntry = (over: Partial<SeasonEntry> = {}): SeasonEntry => ({
   entry: 'main',
   playerSeat: 'seat-2',
   car: { model: 'test_car' },
+  field: [],
   events: [],
   standings: { classes: [], updatedAt: '2026-01-04T00:00:00.000Z' },
   ...over,

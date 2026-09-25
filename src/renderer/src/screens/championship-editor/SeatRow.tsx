@@ -71,9 +71,9 @@ export const SeatRow = ({
   const unnamed = driver === undefined || driver === '';
   const team = teams.find((one) => one.id === seat.team);
   const model = seat.car?.model;
-  // Either override is worth flagging, since a seat carrying one does not run
-  // at the spread its class states.
-  const ai = seat.aiLevel ?? seat.aiAggression;
+  // Either override is worth flagging, since a seat carrying one does not draw
+  // the small spread every other driver does.
+  const ai = seat.strength ?? seat.aggression;
   const position = t('editor.seats.number', { number: index + 1 });
 
   return (

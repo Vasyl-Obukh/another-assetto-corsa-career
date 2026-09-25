@@ -1530,10 +1530,11 @@ catalogue.
       championship, every car base - and it exercises the same three things: two
       class entries on one shared grid, a tier per class entry, and balance of
       performance applied to the AI and the player alike.
-      One simplification is in the code rather than hidden: **AI levels spread
-      within a class, not across the field**. One linear ramp over a multi-class
-      grid would make the slower class's drivers weak as well as their cars,
-      which is not what a class difference is
+      One simplification is in the code rather than hidden: **AI strength is
+      stated per class, not across the field**. One ramp over a multi-class grid
+      would make the slower class's drivers weak as well as their cars, which is
+      not what a class difference is. (The linear ramp down each class's seat
+      list has since gone too - see the persistent AI field in Phase 5.)
 - [x] **Class and spec management UI**: create classes and specs, classify mods the
       shipped catalogue does not name, and override what we ship. The shipped
       catalogue is the base layer; the user layer is resolved over it at runtime.
@@ -2419,7 +2420,47 @@ proof that no layer below learned what a series is.
       entered before it is unraced; the calendar cannot move on while a weekend
       is part-way; and a weekend changed on the Race screen part-way is flagged
       and can only be run again from the start
-- [ ] Persistent AI field - stable names, nationalities, liveries, ratings
+- [x] **Persistent AI field** - a driver is the same driver all season: the
+      same car, the same livery and the same pace against the rest. Before this
+      the car a seat drove was drawn afresh every round, so in a multi-car class
+      a driver swapped marque between weekends, and skill was a linear ramp down
+      the seat list - it belonged to a place in the entry list, not to anyone.
+      Names and nationalities were already stable, since every shipped seat names
+      its driver.
+      **Strength became the player's, and a championship states an offset.**
+      `settings.opponents` holds the one absolute pair, strength and aggression,
+      defaulting to 88 and 30 - 88 being the middle of the 92-to-84 spread every
+      championship used to fall back on, so a field averages what it did. A
+      championship's `grid`, a class's and now a **round's** are offsets, each
+      added to the one below; a seat's `strength` and `aggression` are offsets
+      too, and replace that driver's drawn spread rather than adding to it. So the
+      difficulty setting moves every grid at once, a season already under way
+      included from the next weekend set up - levels are resolved at lowering,
+      never frozen, and a weekend is lowered once, so one part-way through keeps
+      the field it started with. `aiLevel`, `aiLevelMin` and `aiAggression` are gone from the
+      format rather than reinterpreted, and `parseSeries` reports them, so an old
+      file is refused rather than read as a +95. The shipped library was
+      converted mechanically: a championship's offset is its old spread's
+      midpoint less 88, a class's is its midpoint less the championship's.
+      **Every driver draws a small spread once a season** - within 2 of their
+      class for strength and 5 for aggression - seeded on the seat, the
+      championship and the season's salt, which is the career and the season
+      exactly as the forecasts spell it. `validateSeries` reports any offset
+      beyond 30 as `series.grid.offsetOutOfRange`.
+      **The field is frozen on entering**, as `SeasonEntry.field`: `drawField`
+      deals every AI seat a car over the championship's own eligibility, a
+      livery the way `buildGrid` would - pinned ones and the player's reserved
+      first - and its offsets. `roundRace` takes it as `request.field`, beside
+      `draw`, and a round that runs other cars (the IndyCar kits) or a car since
+      uninstalled draws its own for that round alone. Outside a career the field
+      is drawn unsalted on every lowering, which is the same answer every time,
+      so the championship page and `npm run series` show a stable field too.
+      Checked with `npm run series`: Monza and Spa of GT3 Sprint Series field the
+      same twelve cars in the same liveries at the same levels, and
+      `npm run dry` is byte-identical.
+      **Ratings in the Phase 8 sense are not this.** A driver's offset is fixed
+      for a season and does not move on results; a career-wide roster, where a
+      driver is one person across championships and seasons, is still to come
 - [x] **Generate a weekend's weather one week out, not a season ahead.** It used
       to be derived on every read and seeded on the championship and the round
       alone, so every season of a championship raced identical weather and the
@@ -2607,7 +2648,9 @@ Design to be settled before building - see Open questions.
 - [ ] Settings UI: paths, CM flags, units (`USE_MPH`), theme, language, currency
 - [ ] Progression speed, with the career flagged when it changes
 - [ ] Autosave count and save behaviour
-- [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate)
+- [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate).
+      **AI strength and aggression landed in Phase 5** as `settings.opponents`,
+      the base every championship's offsets are laid over
 - [ ] Economy tuning: prize and fee multipliers, starting money, price overrides
 - [ ] **Weather system**: PURE, Sol or none, chosen once. Decides who renders
       static weather and which planner a dynamic race drives. "None" is CSP's

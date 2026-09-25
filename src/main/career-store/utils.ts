@@ -173,6 +173,17 @@ export const advanceStop = (
 };
 
 /**
+ * What makes one season of one career draw differently from every other.
+ *
+ * The career and the season, so two careers never race one year's weather or
+ * field one year's drivers, and a second season of a championship rolls its own.
+ * @param career The career
+ * @param season Which season of it, counting from zero
+ * @returns The salt every draw of that season is seeded with
+ */
+export const seasonSalt = (career: Career, season: number): string => `${career.id}\u0000${season}`;
+
+/**
  * Draws one weekend's weather, once the clock has come within a week of it.
  *
  * A forecast already issued is never redrawn - that is the whole point of
@@ -205,9 +216,7 @@ export const issueForecast = (
   return {
     ...event,
     forecast: drawRound(championship.id, round, format, climate, {
-      // The career and the season, so two careers never race one year's
-      // weather and a second season of a championship rolls its own.
-      salt: `${career.id}\u0000${season}`,
+      salt: seasonSalt(career, season),
       raceDay: event.raceDay,
       hemisphere: hemisphereOf(championship, round),
     }),

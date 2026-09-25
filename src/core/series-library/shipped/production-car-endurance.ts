@@ -72,7 +72,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
         { car: 'ks_corvette_c7_stingray', ballast: 80, restrictor: 5 },
         { car: 'ks_alfa_giulia_qv', ballast: 60, restrictor: 10 },
       ],
-      grid: { aiLevel: 91, aiLevelMin: 83 },
+      grid: { strength: -1 },
     },
     {
       id: 'class-b',
@@ -93,7 +93,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       eligibility: { kind: 'cars', cars: ['bmw_1m', 'bmw_z4', 'lotus_evora_s'] },
       // The Evora is the light car of the three.
       bop: [{ car: 'lotus_evora_s', ballast: 60, restrictor: 5 }],
-      grid: { aiLevel: 88, aiLevelMin: 80 },
+      grid: { strength: -4 },
       prizes: {
         positions: [4800, 3350, 2400, 1800, 1300, 950, 700, 550, 350, 200],
         standings: [36000, 21500, 14500, 9500, 6000],

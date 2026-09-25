@@ -124,7 +124,7 @@ export const GINETTA_GT4_SUPERCUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 82, aiAggression: 55 },
+  grid: { strength: -2, aggression: 25 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

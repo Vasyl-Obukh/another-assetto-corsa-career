@@ -68,7 +68,7 @@ export const ELMS_2025: Championship = {
         seat('p2-all-2', 'allegheny', 'Cole Harrigan', 'United States', 'USA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
-      grid: { aiLevel: 90, aiLevelMin: 84 },
+      grid: { strength: -3 },
       prizes: {
         positions: [37500, 26250, 18750, 14250, 10900, 8250, 6000, 4500, 3000, 1900],
         standings: [300000, 187500, 120000, 79000, 49000],
@@ -93,7 +93,7 @@ export const ELMS_2025: Championship = {
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'United Arab Emirates', 'UAE'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
-      grid: { aiLevel: 91, aiLevelMin: 84 },
+      grid: { strength: -2 },
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
         standings: [240000, 150000, 96000, 63000, 39000],
@@ -146,7 +146,7 @@ export const ELMS_2025: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 94, aiLevelMin: 86, aiAggression: 30 },
+  grid: { strength: 2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

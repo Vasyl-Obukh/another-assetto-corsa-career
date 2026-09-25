@@ -125,7 +125,7 @@ export const GT3_SPRINT_SERIES: Championship = {
     { id: 'qualifying-race', name: 'Qualifying race', positions: [8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 35 },
+  grid: { strength: 1, aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },

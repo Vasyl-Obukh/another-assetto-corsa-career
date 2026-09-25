@@ -4,6 +4,7 @@ import { AllowedWeatherField } from './AllowedWeatherField.tsx';
 import { ContentManagerField } from './ContentManagerField.tsx';
 import { DriverField } from './DriverField.tsx';
 import { DrivingAidsField } from './DrivingAidsField.tsx';
+import { OpponentsField } from './OpponentsField.tsx';
 import { WeatherSystemField } from './WeatherSystemField.tsx';
 import {
   FieldGrid, FieldRow, LanguageSelect, ScreenBody, ThemeSelect,
@@ -54,6 +55,17 @@ export const Settings = () => {
 
         <CardContent>
           <DrivingAidsField />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.opponents')}</CardTitle>
+          <CardDescription>{t('settings.opponentsHint')}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <OpponentsField />
         </CardContent>
       </Card>
 

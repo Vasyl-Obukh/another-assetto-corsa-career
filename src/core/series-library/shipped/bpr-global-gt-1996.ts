@@ -103,7 +103,7 @@ export const BPR_GLOBAL_GT_1996: Championship = {
     { id: 'race', name: 'Race points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 95, aiLevelMin: 88, aiAggression: 30 },
+  grid: { strength: 4 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

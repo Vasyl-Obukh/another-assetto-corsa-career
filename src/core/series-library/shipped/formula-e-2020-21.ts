@@ -114,7 +114,7 @@ export const FORMULA_E_2020_21: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 95, aiLevelMin: 87, aiAggression: 50 },
+  grid: { strength: 3, aggression: 20 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

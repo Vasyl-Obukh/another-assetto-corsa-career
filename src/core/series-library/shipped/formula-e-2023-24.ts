@@ -141,7 +141,7 @@ export const FORMULA_E_2023_24: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 95, aiLevelMin: 87, aiAggression: 50 },
+  grid: { strength: 3, aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

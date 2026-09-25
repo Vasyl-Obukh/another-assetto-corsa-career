@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { DEFAULT_ALLOWED_WEATHER, DEFAULT_SETTINGS, WeatherType } from '../../../constants/index.ts';
+import {
+  DEFAULT_ALLOWED_WEATHER, DEFAULT_OPPONENTS, DEFAULT_SETTINGS, WeatherType,
+} from '../../../constants/index.ts';
 import { DLCPack, ModMaker } from '../../../types/index.ts';
 import {
   applyPatch,
@@ -12,6 +14,7 @@ import {
   readAllowedWeather,
   readDrivingAids,
   readHiddenContentSources,
+  readOpponents,
   readPaths,
   readSeriesActive,
   readSettings,
@@ -209,6 +212,23 @@ describe('shared/utils/settings', () => {
     });
   });
 
+  describe('readOpponents', () => {
+    it('reads both figures through', () => {
+      expect(readOpponents({ strength: 95, aggression: 40 })).toEqual({ strength: 95, aggression: 40 });
+    });
+
+    it('defaults each figure on its own when it is not a number', () => {
+      expect(readOpponents({ strength: 'hard', aggression: 50 }))
+        .toEqual({ strength: DEFAULT_OPPONENTS.strength, aggression: 50 });
+      expect(readOpponents(null)).toEqual(DEFAULT_OPPONENTS);
+    });
+
+    it('rounds and clamps to the range Assetto Corsa accepts', () => {
+      expect(readOpponents({ strength: 120, aggression: -5 })).toEqual({ strength: 100, aggression: 0 });
+      expect(readOpponents({ strength: 87.6, aggression: 30 }).strength).toBe(88);
+    });
+  });
+
   describe('readDrivingAids', () => {
     it('reads switches and numbers through', () => {
       expect(readDrivingAids({ idealLine: true, abs: 2, stabilityControl: 40 })).toEqual({
@@ -285,6 +305,7 @@ describe('shared/utils/settings', () => {
         weatherSystem: 'pure',
         allowedWeather: [15, 7],
         drivingAids: { abs: 2, idealLine: true },
+        opponents: { strength: 95, aggression: 40 },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
         hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'] },
         seriesActive: { 'lotus-cup': false },

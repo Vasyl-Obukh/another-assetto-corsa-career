@@ -43,7 +43,7 @@ export const TUNER_INVITATIONAL: Championship = {
         seat('unl-us-1', 'tuner-us', 'Brent Kowalski', 'United States', 'USA'),
       ],
       eligibility: { kind: 'cars', cars: ['ferrari_f40_s3', 'ferrari_458_s3', 'ks_toyota_supra_mkiv_tuned'] },
-      grid: { aiLevel: 93, aiLevelMin: 86 },
+      grid: { strength: 3 },
     },
     {
       id: 'street',
@@ -69,7 +69,6 @@ export const TUNER_INVITATIONAL: Championship = {
           'ks_audi_sport_quattro_s1',
         ],
       },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],
@@ -97,7 +96,7 @@ export const TUNER_INVITATIONAL: Championship = {
           'abarth500_s1',
         ],
       },
-      grid: { aiLevel: 87, aiLevelMin: 80 },
+      grid: { strength: -3 },
       prizes: {
         positions: [3600, 2500, 1800, 1350, 1050, 800, 600, 450, 300, 200],
         standings: [29000, 18000, 11500, 7500, 4500],
@@ -152,7 +151,7 @@ export const TUNER_INVITATIONAL: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 83, aiAggression: 45 },
+  grid: { strength: -1, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -77,7 +77,7 @@ export const TOUR_AUTO: Championship = {
         seat('tc-de-1', 'tour-de', 'Detlef Kronshage', 'Germany', 'GER'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_alfa_romeo_gta'] },
-      grid: { aiLevel: 86, aiLevelMin: 78 },
+      grid: { strength: -4 },
       prizes: {
         positions: [14400, 10100, 7200, 5450, 4150, 3200, 2300, 1750, 1150, 700],
         standings: [115000, 72000, 46000, 30500, 18500],
@@ -115,7 +115,7 @@ export const TOUR_AUTO: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 90, aiLevelMin: 82, aiAggression: 30 },
+  grid: { strength: -2 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

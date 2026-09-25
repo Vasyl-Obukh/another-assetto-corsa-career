@@ -143,7 +143,7 @@ export const FORMULA_3_2024: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], fastestLap: 1 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 50 },
+  grid: { strength: 1, aggression: 20 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

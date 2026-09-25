@@ -60,7 +60,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
       bop: [
         { car: 'rss_gtmx_macca_v8', restrictor: 15 },
       ],
-      grid: { aiLevel: 94, aiLevelMin: 87 },
+      grid: { strength: -2 },
       prizes: {
         positions: [54000, 37800, 27000, 20500, 15650, 11900, 8650, 6500, 4300, 2700],
         standings: [432000, 270000, 173000, 113500, 70000],
@@ -79,7 +79,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
         seat('hyp-kit-1', 'kitsune', 'Naoya Kurobe', 'Japan', 'JPN'),
       ],
       eligibility: { kind: 'cars', cars: ['rss_hyperion_2020'] },
-      grid: { aiLevel: 92, aiLevelMin: 85 },
+      grid: { strength: -4 },
     },
   ],
   weekendFormats: [
@@ -121,7 +121,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 89, aiAggression: 35 },
+  grid: { strength: 5, aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

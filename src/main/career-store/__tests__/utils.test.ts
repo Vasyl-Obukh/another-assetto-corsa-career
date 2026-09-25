@@ -30,6 +30,7 @@ import {
   readCareer,
   scheduledEvents,
   seasonEndDate,
+  seasonSalt,
   withSeason,
 } from '../utils.ts';
 import {
@@ -322,6 +323,20 @@ describe('main/career-store/utils', () => {
 
     it('moves the whole way when there is no season at all', () => {
       expect(advanceStop(null, '2026-01-04', '2026-06-07')).toBe('2026-06-07');
+    });
+  });
+
+  describe('seasonSalt', () => {
+    it('salts each season of each career differently', () => {
+      const career = makeCareer();
+      const other = { ...career, id: 'another-career' };
+
+      expect(seasonSalt(career, 0)).not.toBe(seasonSalt(career, 1));
+      expect(seasonSalt(career, 0)).not.toBe(seasonSalt(other, 0));
+    });
+
+    it('is the same salt every time it is asked for one season', () => {
+      expect(seasonSalt(makeCareer(), 2)).toBe(seasonSalt(makeCareer(), 2));
     });
   });
 

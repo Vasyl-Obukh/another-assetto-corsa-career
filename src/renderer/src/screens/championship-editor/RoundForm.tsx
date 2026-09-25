@@ -10,6 +10,7 @@ import {
   MIN_MONEY,
   MIN_SESSION_LENGTH,
 } from './constants.ts';
+import { GridFields } from './GridFields.tsx';
 import { NumberField } from './NumberField.tsx';
 import { RowForm } from './RowForm.tsx';
 import type { LengthUnit } from './types.ts';
@@ -189,6 +190,19 @@ export const RoundForm = ({
         min={MIN_MONEY}
         disabled={locked}
         onChange={(entryFee) => setDraft({ ...draft, entryFee })}
+      />
+
+      <GridFields
+        grid={draft.grid ?? {}}
+        idPrefix={`${idPrefix}-grid`}
+        hint={t('editor.calendar.gridHint')}
+        locked={locked}
+        // Kept off the document once both are cleared, so a round that says
+        // nothing about its field writes nothing.
+        onChange={(grid) => setDraft({
+          ...draft,
+          grid: grid.strength === undefined && grid.aggression === undefined ? undefined : grid,
+        })}
       />
 
       {/* Only while the championship generates its weather: a climate means

@@ -93,6 +93,7 @@ export type ErrorCode =
   | 'series.length.invalid'
   | 'series.distance.onNonRace'
   | 'series.race.timed'
+  | 'series.grid.offsetOutOfRange'
   | 'series.distance.unresolved'
   | 'series.round.sessionUnknown'
   | 'series.round.lengthMissing'

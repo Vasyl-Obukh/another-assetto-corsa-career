@@ -109,7 +109,7 @@ export const WEC_2025: Championship = {
           'bm_amg_evo_2020_gt3',
         ],
       },
-      grid: { aiLevel: 92, aiLevelMin: 84 },
+      grid: { strength: -5 },
       prizes: {
         positions: [28800, 20150, 14400, 10950, 8350, 6350, 4600, 3450, 2300, 1450],
         standings: [230500, 144000, 92000, 60500, 37500],
@@ -259,7 +259,7 @@ export const WEC_2025: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 97, aiLevelMin: 89, aiAggression: 30 },
+  grid: { strength: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

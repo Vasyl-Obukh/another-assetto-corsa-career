@@ -43,7 +43,8 @@ export const team = (
  * @param name Driver name
  * @param nationality Full nationality name
  * @param nationCode Three-letter nation code
- * @param aiLevel AI skill, where the class's own spread gets this seat wrong
+ * @param strength AI skill as an offset over the class, for a driver the
+ * season's small spread would get wrong
  * @returns The seat
  */
 export const seat = (
@@ -52,12 +53,12 @@ export const seat = (
   name: string,
   nationality: string,
   nationCode: string,
-  aiLevel?: number,
+  strength?: number,
 ): Seat => ({
   id,
   team: teamId,
   driver: { name, nationality, nationCode },
-  aiLevel,
+  ...(strength === undefined ? {} : { strength }),
 });
 
 /**
@@ -120,13 +121,7 @@ export const filler = (base: Championship, step: number, description: string): C
         )),
       }),
     })),
-    grid: {
-      ...grid,
-      ...(grid.aiLevel === undefined ? {} : { aiLevel: grid.aiLevel + FILLER_AI_STEP * step }),
-      ...(grid.aiLevelMin === undefined
-        ? {}
-        : { aiLevelMin: grid.aiLevelMin + FILLER_AI_STEP * step }),
-    },
+    grid: { ...grid, strength: (grid.strength ?? 0) + FILLER_AI_STEP * step },
     ...(base.entryFee === undefined ? {} : { entryFee: fee(base.entryFee) }),
     ...(base.prizes === undefined ? {} : { prizes: purse(base.prizes) }),
   };

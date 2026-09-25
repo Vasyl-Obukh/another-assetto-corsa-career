@@ -72,7 +72,7 @@ export const SUPERCAR_CLASSIC: Championship = {
         { car: 'ks_lamborghini_countach', restrictor: 8 },
         { car: 'ks_alfa_33_stradale', ballast: 100, restrictor: 5 },
       ],
-      grid: { aiLevel: 90, aiLevelMin: 82 },
+      grid: { strength: -3 },
       prizes: {
         positions: [13200, 9000, 6600, 4800, 3600, 2700, 2100, 1500, 1000, 600],
         standings: [90000, 54000, 36000, 23000, 14500],
@@ -116,7 +116,7 @@ export const SUPERCAR_CLASSIC: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 86, aiAggression: 30 },
+  grid: { strength: 2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

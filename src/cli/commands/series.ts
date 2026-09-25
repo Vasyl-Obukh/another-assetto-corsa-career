@@ -125,7 +125,7 @@ const printDetail = (
     entry.seats.forEach((one, at) => {
       const driver = one.driver?.name ?? '(unnamed)';
       const fielded = teams.get(one.team ?? '')?.name ?? one.team ?? '';
-      const level = one.aiLevel ? `  AI ${one.aiLevel}` : '';
+      const level = one.strength ? `  AI ${one.strength > 0 ? '+' : ''}${one.strength}` : '';
       console.log(`    ${String(at + 1).padStart(2)}  ${driver.padEnd(22)} ${fielded}${level}`);
     });
   });
@@ -283,7 +283,8 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
     const bop = opponent.ballast || opponent.restrictor
       ? `  ballast ${opponent.ballast}kg  restrictor ${opponent.restrictor}%`
       : '';
-    console.log(`    ${String(index + 2).padStart(2)}  ${(opponent.model ?? '').padEnd(30)} AI ${opponent.aiLevel}%${bop}`);
+    const livery = `${opponent.model ?? ''}${opponent.skin ? ` / ${opponent.skin}` : ''}`;
+    console.log(`    ${String(index + 2).padStart(2)}  ${livery.padEnd(50)} AI ${opponent.aiLevel}% ${opponent.aiAggression}${bop}`);
   });
   console.log(`
   Launches  ${plan.launches.length}, one per session`);

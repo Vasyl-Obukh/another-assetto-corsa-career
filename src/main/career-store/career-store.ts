@@ -32,6 +32,7 @@ import {
   materialiseEvents,
   readCareer,
   seasonEndDate,
+  seasonSalt,
   withSeason,
 } from './utils.ts';
 import { toDayNumber } from '../../core/season-calendar/index.ts';
@@ -497,6 +498,14 @@ export const createCareerStore = async (
         // The last seat of the class, which is the one roundRace gives up.
         playerSeat: entry.seats[entry.seats.length - 1]?.id ?? '',
         car: request.car,
+        // Salted like the forecasts, so two careers and two seasons of one
+        // championship field different drivers.
+        field: await series.drawField(
+          championship,
+          request.entry,
+          request.car,
+          seasonSalt(career, season.index),
+        ),
         events: materialiseEvents(championship, season, career.date),
         standings: buildStandings(championship, [], new Date().toISOString()),
       };
@@ -579,6 +588,14 @@ export const createCareerStore = async (
       return roundDraw(seriesId, round);
     },
 
+    async field(seriesId, entry) {
+      const season = current && currentSeason(current);
+
+      return season?.entries.find((one) => (
+        one.series === seriesId && one.entry === entry && !one.withdrawn
+      ))?.field;
+    },
+
     async forecast(seriesId, round) {
       const draw = roundDraw(seriesId, round);
       return draw ? offerForecast(draw, await series.offer()) : null;
@@ -629,7 +646,7 @@ export const createCareerStore = async (
       if (car && raceable) {
         try {
           const definition = await series.lowerRound(championship, {
-            entry: classEntry.id, round: request.round, car, draw: event.forecast,
+            entry: classEntry.id, round: request.round, car, draw: event.forecast, field: held?.entry.field,
           });
           plan = planWeekend(definition, await content.content());
         } catch (error) {
@@ -739,6 +756,7 @@ export const createCareerStore = async (
           round: request.round,
           car: held.entry.car,
           draw: event.forecast,
+          field: held.entry.field,
         }));
       }
 

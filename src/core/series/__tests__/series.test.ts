@@ -1,14 +1,15 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { WeatherType } from '../../../shared/constants/index.ts';
+import { DEFAULT_OPPONENTS, WeatherType } from '../../../shared/constants/index.ts';
 import { Climate, SeasonLength } from '../../../shared/types/index.ts';
 import type {
-  Championship, ClassEntry, Content, Round, Seat, WeatherOffer,
+  Championship, ClassEntry, Content, FieldSeat, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
-import { drawRound, offerForecast } from '../../weather-forecast/index.ts';
+import { defaultWeatherOffer, drawRound, offerForecast } from '../../weather-forecast/index.ts';
+import { DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD } from '../constants.ts';
 import {
-  formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
+  drawField, formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
 } from '../series.ts';
 import { makeContent, makeSeries } from './fixtures.ts';
 
@@ -114,6 +115,10 @@ describe('core/series', () => {
       return validateSeries({ ...series, rounds: [{ ...series.rounds[0], sessionLengths }] })
         .map((problem) => problem.code);
     };
+
+    it('reports an AI offset further than a championship may move the field', () => {
+      expect(codesFor({ grid: { strength: 50 } })).toEqual(['series.grid.offsetOutOfRange']);
+    });
 
     it('passes a round replacing its race\'s distance with a lap count', () => {
       expect(lengthCodes([{ session: 'race', laps: 12 }])).toEqual([]);
@@ -361,6 +366,79 @@ describe('core/series', () => {
     });
   });
 
+  describe('drawField', () => {
+    /**
+     * Draws the field of a championship with the player in its only class.
+     * @param series The championship
+     * @param salt The season's salt
+     * @returns The frozen field
+     */
+    const draw = (series: Championship, salt = '') => drawField(
+      series, 'main', { model: 'test_car', skin: 'red' }, makeContent(), SHIPPED_CATALOGUE, salt,
+    );
+
+    /**
+     * A class of ten seats, enough that two draws cannot agree by chance.
+     */
+    const TEN = withSeats(Array.from({ length: 10 }, (unused, at) => ({ id: `seat-${at}` })));
+
+    it('deals every AI seat a car and a livery, leaving the player\'s seat out', () => {
+      const field = draw(makeSeries());
+
+      expect(field.map((one) => one.seat)).toEqual(['main-1', 'main-2']);
+      field.forEach((one) => {
+        expect(one.model).toBe('test_car');
+        expect(one.skin).toBeDefined();
+      });
+    });
+
+    it('holds the player\'s livery back while the car has others to hand out', () => {
+      expect(draw(makeSeries()).map((one) => one.skin)).not.toContain('red');
+    });
+
+    it('keeps every driver within a small spread of their class', () => {
+      draw(TEN).forEach((one) => {
+        expect(Math.abs(one.strength)).toBeLessThanOrEqual(DRIVER_STRENGTH_SPREAD);
+        expect(Math.abs(one.aggression)).toBeLessThanOrEqual(DRIVER_AGGRESSION_SPREAD);
+      });
+    });
+
+    it('draws the same field twice for the same season', () => {
+      expect(draw(TEN, 'career\u00000')).toEqual(draw(TEN, 'career\u00000'));
+    });
+
+    it('draws another season its own drivers', () => {
+      const offsets = (salt: string) => draw(TEN, salt).map((one) => one.strength);
+
+      expect(offsets('career\u00000')).not.toEqual(offsets('career\u00001'));
+    });
+
+    it('takes a seat\'s own offsets over the spread it would have drawn', () => {
+      const [star] = draw(withSeats([{ id: 'star', strength: 12, aggression: -8 }, { id: 'player' }]));
+
+      expect(star).toMatchObject({ strength: 12, aggression: -8 });
+    });
+
+    it('honours a seat pinned to a car and livery the library has', () => {
+      const seats = [{ id: 'one', car: { model: 'test_car', skin: 'green' } }, { id: 'player' }];
+
+      expect(draw(withSeats(seats))[0]).toMatchObject({ model: 'test_car', skin: 'green' });
+    });
+
+    // Every round then draws its own, which is what an IndyCar season with
+    // only its kits installed needs.
+    it('leaves the car to each round when the championship\'s own cars are not installed', () => {
+      const series = withSeats(
+        [{ id: 'one' }, { id: 'player' }],
+        { eligibility: { kind: 'cars', cars: ['ghost_car'] } },
+      );
+      const [one] = draw(series);
+
+      expect(one.model).toBeUndefined();
+      expect(one.skin).toBeUndefined();
+    });
+  });
+
   describe('roundRace', () => {
     it('runs a distance as the fewest laps of the installed track that cover it', () => {
       const race = roundRace(
@@ -440,10 +518,11 @@ describe('core/series', () => {
       expect(opponent?.driver).toBeUndefined();
     });
 
-    it('takes a seat own AI level over the class spread', () => {
-      const seats = [{ id: 'one', aiLevel: 42 }, { id: 'two' }];
+    it('takes a seat own strength over the spread its drivers draw', () => {
+      const seats = [{ id: 'one', strength: 5 }, { id: 'two' }];
 
-      expect(lower(withSeats(seats)).grid?.opponents?.[0].aiLevel).toBe(42);
+      expect(lower(withSeats(seats)).grid?.opponents?.[0].aiLevel)
+        .toBe(DEFAULT_OPPONENTS.strength + 5);
     });
 
     it('gives a seat the livery it pins when that livery is installed', () => {
@@ -458,7 +537,8 @@ describe('core/series', () => {
     it('drops a pinned livery the installed car does not have', () => {
       const seats = [{ id: 'one', car: { model: 'test_car', skin: 'chartreuse' } }, { id: 'two' }];
 
-      expect(lower(withSeats(seats)).grid?.opponents?.[0].skin).toBeUndefined();
+      // Assigned when the season's field is drawn, rather than left to buildGrid.
+      expect(lower(withSeats(seats)).grid?.opponents?.[0].skin).not.toBe('chartreuse');
     });
 
     it('composes the same field every time, since the draw is seeded', () => {
@@ -517,6 +597,91 @@ describe('core/series', () => {
       );
 
       expect(race.grid?.opponents?.map((one) => one.model)).toEqual(['test_car']);
+    });
+
+    /**
+     * Lowers the only round of a championship over the field and base given.
+     * @param series The championship
+     * @param field The frozen field, if any
+     * @param base The difficulty in settings
+     * @returns The race definition
+     */
+    const lowerWith = (
+      series: Championship,
+      field?: FieldSeat[],
+      base = DEFAULT_OPPONENTS,
+    ) => roundRace(
+      {
+        series, entry: 'main', round: 'magione', car: { model: 'test_car' }, field,
+      },
+      makeContent(),
+      SHIPPED_CATALOGUE,
+      defaultWeatherOffer(makeContent()),
+      base,
+    );
+
+    it('races the car, livery and offsets the season froze', () => {
+      const field: FieldSeat[] = [
+        {
+          seat: 'main-1', model: 'test_car', skin: 'green', strength: 2, aggression: -3,
+        },
+        {
+          seat: 'main-2', model: 'test_car', skin: 'blue', strength: -1, aggression: 4,
+        },
+      ];
+      const [first] = lowerWith(makeSeries(), field).grid?.opponents ?? [];
+
+      expect(first).toMatchObject({
+        model: 'test_car',
+        skin: 'green',
+        aiLevel: DEFAULT_OPPONENTS.strength + 2,
+        aiAggression: DEFAULT_OPPONENTS.aggression - 3,
+      });
+    });
+
+    it('lays the difficulty in settings under every offset', () => {
+      const base = makeSeries({ grid: { strength: 5, aggression: 10 } });
+      const series = {
+        ...base,
+        entries: [{ ...base.entries[0], grid: { strength: -2 } }],
+        rounds: [{ ...base.rounds[0], grid: { strength: 1 } }],
+      };
+      const field: FieldSeat[] = [{ seat: 'main-1', model: 'test_car', strength: 1, aggression: 0 }];
+      const [first] = lowerWith(series, field, { strength: 70, aggression: 20 }).grid?.opponents ?? [];
+
+      expect(first).toMatchObject({ aiLevel: 75, aiAggression: 30 });
+    });
+
+    it('draws a round\'s own car for a seat whose season car it does not run', () => {
+      const field: FieldSeat[] = [
+        {
+          seat: 'main-1', model: 'oval_car', skin: 'white', strength: 0, aggression: 0,
+        },
+      ];
+      const [first] = lowerWith(makeSeries(), field).grid?.opponents ?? [];
+
+      expect(first.model).toBe('test_car');
+      // Left to buildGrid, since the season's livery belongs to the other car.
+      expect(first.skin).toBeUndefined();
+    });
+
+    it('fields a driver in the same car at every round outside a career too', () => {
+      const base = withSeats(
+        Array.from({ length: 6 }, (unused, at) => ({ id: `seat-${at}` })),
+        { eligibility: { kind: 'cars', cars: ['test_car', 'oval_car'] } },
+      );
+      const series = {
+        ...base,
+        rounds: [...base.rounds, { id: 'magione-again', name: 'Magione again', track: { id: 'magione' } }],
+      };
+      const cars = (round: string) => roundRace(
+        {
+          series, entry: 'main', round, car: { model: 'test_car' },
+        },
+        makeContent(),
+      ).grid?.opponents?.map((one) => `${one.model}/${one.skin}`);
+
+      expect(cars('magione')).toEqual(cars('magione-again'));
     });
   });
 });

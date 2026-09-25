@@ -14,7 +14,7 @@ import { SERIES_DIR } from './constants.ts';
 import type { SeriesStore } from './types.ts';
 import { isEditable, roundOfRace, weekendOf } from './utils.ts';
 import {
-  roundRace, seriesAvailability, seriesForecast, validateSeries,
+  drawField, roundRace, seriesAvailability, seriesForecast, validateSeries,
 } from '../../core/series/index.ts';
 import { parseSeries, readSeries, writeSeries } from '../../core/series-file/index.ts';
 import {
@@ -138,7 +138,13 @@ export const createSeriesStore = async (
   const lowerRound: SeriesStore['lowerRound'] = async (series, request) => {
     const installed = await content.content();
 
-    return roundRace({ series, ...request }, installed, classes.catalogue(), await offer(installed));
+    return roundRace(
+      { series, ...request },
+      installed,
+      classes.catalogue(),
+      await offer(installed),
+      settings.get().opponents,
+    );
   };
 
   /**
@@ -279,12 +285,20 @@ export const createSeriesStore = async (
 
     lowerRound,
 
+    async drawField(series, entry, car, salt) {
+      return drawField(series, entry, car, await content.content(), classes.catalogue(), salt);
+    },
+
     async setupRound(request) {
       const found = seriesById(library, request.series);
       if (!found) throw new AppError('series.notFound', { series: request.series });
 
       return race.set(await lowerRound(found.series, {
-        entry: request.entry, round: request.round, car: request.car, draw: request.draw,
+        entry: request.entry,
+        round: request.round,
+        car: request.car,
+        draw: request.draw,
+        field: request.field,
       }));
     },
 

@@ -120,7 +120,7 @@ export const FORMULA_ABARTH: Championship = {
     },
   ],
   defaultPointsSystem: 'race-1',
-  grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 30 },
+  grid: { strength: -4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },

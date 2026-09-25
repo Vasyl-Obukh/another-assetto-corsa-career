@@ -142,7 +142,7 @@ export const BTCC_1998: Championship = {
     { id: 'race', name: 'Race points', positions: [15, 12, 10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 60 },
+  grid: { strength: 1, aggression: 30 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

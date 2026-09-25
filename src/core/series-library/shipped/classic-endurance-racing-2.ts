@@ -56,7 +56,7 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
         seat('gt-uk-2', 'cer-uk', 'James Wetherby', 'Great Britain', 'GBR'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_carrera_rsr'] },
-      grid: { aiLevel: 88, aiLevelMin: 80 },
+      grid: { strength: -3 },
       prizes: {
         positions: [15600, 10900, 7800, 5950, 4550, 3400, 2500, 1850, 1250, 800],
         standings: [125000, 78000, 50000, 32500, 20500],
@@ -89,7 +89,7 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 91, aiLevelMin: 83, aiAggression: 30 },
+  grid: { strength: -1 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

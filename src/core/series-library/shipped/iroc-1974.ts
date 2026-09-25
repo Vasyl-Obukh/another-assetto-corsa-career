@@ -95,7 +95,7 @@ export const IROC_1974: Championship = {
     { id: 'race', name: 'Race points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 92, aiAggression: 45 },
+  grid: { strength: 6, aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

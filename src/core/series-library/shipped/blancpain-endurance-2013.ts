@@ -139,7 +139,7 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 93, aiLevelMin: 85, aiAggression: 30 },
+  grid: { strength: 1 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },

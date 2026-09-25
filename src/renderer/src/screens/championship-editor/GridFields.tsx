@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
 import { NumberField } from './NumberField.tsx';
+import { MAX_GRID_OFFSET } from '../../../../shared/constants';
 import type { SeriesGrid } from '../../../../shared/types';
-import { MAX_AI, MIN_AI } from '@/screens/race';
 
 interface GridFieldsProps {
   /**
-   * The AI spread as it is stated.
+   * The AI offsets as they are stated.
    */
   grid: SeriesGrid;
   /**
@@ -15,58 +15,57 @@ interface GridFieldsProps {
    */
   idPrefix: string;
   /**
+   * An already-translated line under the fields, saying what they are laid
+   * over.
+   */
+  hint?: string;
+  /**
    * Whether a weekend is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
-   * Called with the whole spread whenever any part of it changes.
-   * @param grid The spread to apply
+   * Called with both offsets whenever either changes.
+   * @param grid The offsets to apply
    */
   onChange: (grid: SeriesGrid) => void;
 }
 
 /**
- * The three numbers an AI field is described by, wherever it is described.
+ * The two offsets an AI field is described by, wherever it is described.
  *
- * Apart from GridCard because a class entry states the same three inside its
- * own panel, where a card would be one frame too many.
+ * Apart from GridCard because a class entry and a round state the same two
+ * inside their own forms, where a card would be one frame too many.
  */
 export const GridFields = ({
-  grid, idPrefix, locked, onChange,
+  grid, idPrefix, hint, locked, onChange,
 }: GridFieldsProps) => {
   const { t } = useTranslation();
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
       <NumberField
-        id={`${idPrefix}-ai-level`}
-        label={t('editor.grid.aiLevel')}
-        value={grid.aiLevel}
-        min={MIN_AI}
-        max={MAX_AI}
+        id={`${idPrefix}-ai-strength`}
+        label={t('editor.grid.strength')}
+        value={grid.strength}
+        min={-MAX_GRID_OFFSET}
+        max={MAX_GRID_OFFSET}
+        placeholder="0"
         disabled={locked}
-        onChange={(aiLevel) => onChange({ ...grid, aiLevel })}
-      />
-
-      <NumberField
-        id={`${idPrefix}-ai-level-min`}
-        label={t('editor.grid.aiLevelMin')}
-        value={grid.aiLevelMin}
-        min={MIN_AI}
-        max={MAX_AI}
-        disabled={locked}
-        onChange={(aiLevelMin) => onChange({ ...grid, aiLevelMin })}
+        onChange={(strength) => onChange({ ...grid, strength })}
       />
 
       <NumberField
         id={`${idPrefix}-ai-aggression`}
-        label={t('editor.grid.aiAggression')}
-        value={grid.aiAggression}
-        min={MIN_AI}
-        max={MAX_AI}
+        label={t('editor.grid.aggression')}
+        value={grid.aggression}
+        min={-MAX_GRID_OFFSET}
+        max={MAX_GRID_OFFSET}
+        placeholder="0"
         disabled={locked}
-        onChange={(aiAggression) => onChange({ ...grid, aiAggression })}
+        onChange={(aggression) => onChange({ ...grid, aggression })}
       />
+
+      {hint ? <p className="col-span-2 text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 };

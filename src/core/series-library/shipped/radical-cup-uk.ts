@@ -72,7 +72,7 @@ export const RADICAL_CUP_UK: Championship = {
         seat('sr3-mar-2', 'marches', 'Iwan Probert', 'Great Britain', 'GBR'),
       ],
       eligibility: { kind: 'cars', cars: ['urd_radical_sr3xxr_2023'] },
-      grid: { aiLevel: 87, aiLevelMin: 79 },
+      grid: { strength: -2 },
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],
@@ -117,7 +117,7 @@ export const RADICAL_CUP_UK: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 89, aiLevelMin: 81, aiAggression: 50 },
+  grid: { strength: -3, aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

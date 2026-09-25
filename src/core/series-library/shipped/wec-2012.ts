@@ -91,7 +91,7 @@ export const WEC_2012: Championship = {
         seat('gt-lum-2', 'lumiere', 'Mathis Garrigue', 'France', 'FRA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2011, minModels: 1 },
-      grid: { aiLevel: 90, aiLevelMin: 83 },
+      grid: { strength: -5 },
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
         standings: [288000, 180000, 115000, 75500, 47000],
@@ -195,7 +195,7 @@ export const WEC_2012: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 96, aiLevelMin: 88, aiAggression: 30 },
+  grid: { strength: 4 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

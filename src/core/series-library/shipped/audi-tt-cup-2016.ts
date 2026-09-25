@@ -91,7 +91,7 @@ export const AUDI_TT_CUP_2016: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { aiLevel: 88, aiLevelMin: 80, aiAggression: 45 },
+  grid: { strength: -4, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },

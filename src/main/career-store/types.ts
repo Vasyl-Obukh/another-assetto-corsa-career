@@ -2,6 +2,7 @@ import type {
   Career,
   CareerCalendar,
   CareerEventView,
+  FieldSeat,
   RaceSetup,
   RoundDraw,
   RoundForecast,
@@ -131,6 +132,17 @@ export interface CareerStore {
    * weekend is still further out than the forecast lead
    */
   draw(series: string, round: string): Promise<RoundDraw | undefined>;
+  /**
+   * The AI field this career froze for a championship, for a race set up from
+   * the championship page to field the same drivers as one set up from the
+   * career.
+   * @param series The championship's id
+   * @param entry The class the race is set up in, by its id
+   * @returns The field, or undefined when the career is not in that class of
+   * that championship - a field frozen around another class leaves the wrong
+   * seat to the player
+   */
+  field(series: string, entry: string): Promise<readonly FieldSeat[] | undefined>;
   /**
    * The same draw, swapped for what this install can race.
    * @param series The championship's id

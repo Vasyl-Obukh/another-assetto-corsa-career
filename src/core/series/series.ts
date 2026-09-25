@@ -11,20 +11,22 @@
 // Points are carried and not applied. Standings, the calendar and prize money
 // are Phase 5; nothing here reads PointsSystem or PrizeMoney.
 
+import { DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD } from './constants.ts';
 import type { RoundRaceRequest } from './types.ts';
 import {
+  aiFigure,
+  aiSeats,
   availabilityOf,
   bopFor,
+  classOffset,
   climateOf,
   duplicates,
   eligibilityFor,
   eligibleCars,
-  entryGrid,
   entryOf,
   fieldSize,
   findLayout,
   formatOf,
-  levelIn,
   missingTrack,
   pickModels,
   raceLengths,
@@ -36,18 +38,21 @@ import {
   validateFormat,
   validateLength,
   validateMoney,
+  validateOffsets,
   withDistancesInLaps,
 } from './utils.ts';
 import {
-  DEFAULT_SEASON_LENGTH, SEASON_WEEKS, SERIES_FORMAT_VERSION,
+  DEFAULT_OPPONENTS, DEFAULT_SEASON_LENGTH, SEASON_WEEKS, SERIES_FORMAT_VERSION,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
+  AiBase,
   CarEntry,
   Championship,
   ClassCatalogue,
   Content,
+  FieldSeat,
   RaceDefinition,
   RoundAvailability,
   RoundForecast,
@@ -56,6 +61,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
+import { nextSkin, skinKey } from '../race-ini/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import {
   applyForecast, defaultWeatherOffer, forecastRound, offerForecast,
@@ -173,6 +179,7 @@ export const validateSeries = (
   });
 
   problems.push(...validateMoney(series));
+  problems.push(...validateOffsets(series));
 
   const entryIds = new Set(series.entries.map((entry) => entry.id));
   series.rounds.forEach((round) => {
@@ -347,18 +354,104 @@ export const seriesForecast = (series: Championship, offer: WeatherOffer): Round
 );
 
 /**
+ * Draws a season's field: every AI seat's car, livery and own offsets, once.
+ *
+ * What a career freezes when it enters a championship, so a driver keeps their
+ * car, their colours and their pace from the opener to the finale. Drawn over
+ * the championship's own eligibility rather than any round's, since a season
+ * is not one round; a round that runs other cars draws its own for that round.
+ * Liveries are handed out the way buildGrid would, pinned ones first and the
+ * player's held back, so nobody shares colours the library had spare.
+ *
+ * Seeded on the seat, the championship and the salt - a career and season, or
+ * nothing outside one - so two careers field different drivers and a round
+ * raced outside a career fields the same ones every time.
+ * @param series The championship
+ * @param playerEntry The class the player races in, by its id
+ * @param car The player's car, whose livery nobody else is given
+ * @param content Installed content to resolve cars and liveries against
+ * @param catalogue The class catalogue specs resolve against
+ * @param salt What makes this season's draw its own, empty outside a career
+ * @returns One frozen seat per AI seat, in entry-list order
+ */
+export const drawField = (
+  series: Championship,
+  playerEntry: string,
+  car: RoundRaceRequest['car'],
+  content: Content,
+  catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+  salt = '',
+): FieldSeat[] => {
+  const draws = series.entries.flatMap((entry) => {
+    const models = eligibleCars(entry.eligibility, content, catalogue).map((one) => one.id);
+    const seats = aiSeats(entry, playerEntry);
+    const cars = randomFrom(seedFrom(`${entry.id}\u0000${series.id}\u0000${salt}\u0000cars`));
+    const drawn = models.length > 0 ? pickModels(models, seats.length, cars) : [];
+
+    return seats.map((seat, index) => {
+      const pinned = seat.car?.model;
+      const random = randomFrom(seedFrom(`${seat.id}\u0000${series.id}\u0000${salt}\u0000driver`));
+      // Both drawn whether or not the seat states its own, so stating one does
+      // not change the other.
+      const strength = Math.round((random() * 2 - 1) * DRIVER_STRENGTH_SPREAD);
+      const aggression = Math.round((random() * 2 - 1) * DRIVER_AGGRESSION_SPREAD);
+
+      return {
+        seat,
+        model: pinned !== undefined && models.includes(pinned) ? pinned : drawn[index],
+        strength: seat.strength ?? strength,
+        aggression: seat.aggression ?? aggression,
+      };
+    });
+  });
+
+  // Every pinned livery and the player's are reserved before any is handed
+  // out, which is the order buildGrid reserves them in too.
+  const playerSkin = car.skin ?? content.cars.find((one) => one.id === car.model)?.skins[0]?.id;
+  const used = new Set<string>(playerSkin === undefined ? [] : [skinKey(car.model, playerSkin)]);
+  const pinnedSkins = draws.map(({ seat, model }) => (
+    model === undefined ? undefined : seatSkin(content, model, seat.car?.skin)
+  ));
+  pinnedSkins.forEach((skin, at) => {
+    const { model } = draws[at];
+    if (skin !== undefined && model !== undefined) used.add(skinKey(model, skin));
+  });
+  const placed = new Map<string, number>([[car.model, 1]]);
+
+  return draws.map(({ seat, model, ...rest }, at) => {
+    if (model === undefined) return { seat: seat.id, ...rest };
+
+    const already = placed.get(model) ?? 0;
+    placed.set(model, already + 1);
+    const skin = pinnedSkins[at] ?? nextSkin(content, model, used, already) ?? undefined;
+    if (skin !== undefined) used.add(skinKey(model, skin));
+
+    return {
+      seat: seat.id,
+      ...rest,
+      model,
+      ...(skin === undefined ? {} : { skin }),
+    };
+  });
+};
+
+/**
  * Lowers one round of a championship into a race.
  *
  * The field is composed from every class entry, not just the player's, since a
- * multi-class series is one grid entered several ways. It is seeded on the
- * series, round and class rather than on the clock, so a round the player has
- * already been shown comes back the same next time it is looked at. Generated
- * weather is seeded the same way, and written onto the sessions, so the race
- * runs exactly what the round's forecast said.
+ * multi-class series is one grid entered several ways. Each AI seat races the
+ * car, livery and offsets its season froze - `request.field` inside a career,
+ * and otherwise drawn here unsalted, which is the same answer every time it is
+ * asked. Generated weather is seeded the same way, and written onto the
+ * sessions, so the race runs exactly what the round's forecast said.
+ *
+ * AI strength is resolved here rather than frozen, so the difficulty in
+ * settings reaches a season already under way from the next weekend set up.
  * @param request Which round of which championship, and the player's car
  * @param content Installed content to resolve eligibility against
  * @param catalogue The class catalogue specs resolve against
  * @param offer What the install and settings can race in, for generated weather
+ * @param base The player's AI difficulty, which every offset is laid over
  * @returns A race definition, ready for validateRace and planWeekend
  * @throws When the round, entry or car cannot be raced
  */
@@ -367,6 +460,7 @@ export const roundRace = (
   content: Content,
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
   offer: WeatherOffer = defaultWeatherOffer(content),
+  base: AiBase = DEFAULT_OPPONENTS,
 ): RaceDefinition => {
   const { series, car } = request;
   const round = roundOf(series, request.round);
@@ -390,6 +484,11 @@ export const roundRace = (
     throw new AppError('series.car.notEligible', { car: car.model, entry: playerEntry.name });
   }
 
+  const frozen = request.field ?? drawField(series, playerEntry.id, car, content, catalogue);
+  // Keyed on the seat alone, since validateSeries holds seat ids unique across
+  // the championship.
+  const field = new Map(frozen.map((one) => [one.seat, one]));
+
   const opponents: CarEntry[] = series.entries.flatMap((entry) => {
     const models = eligibleCars(eligibilityFor(entry, round), content, catalogue)
       .map((eligible) => eligible.id);
@@ -397,25 +496,23 @@ export const roundRace = (
       throw new AppError('series.entry.noCars', { entry: entry.id });
     }
 
-    // The player takes the last seat of the class they enter, so a championship
-    // that named its front-runners keeps them and gives up its tail-ender.
-    const seats = entry.id === playerEntry.id ? entry.seats.slice(0, -1) : entry.seats;
-    const count = seats.length;
-    const grid = entryGrid(series, entry);
-    const random = randomFrom(seedFrom(`${series.id}:${round.id}:${entry.id}`));
-    // Drawn for every seat, pinned ones included, so pinning one car does not
-    // reshuffle what the rest of the class is given.
-    const drawn = pickModels(models, count, random);
+    const seats = aiSeats(entry, playerEntry.id);
+    const offset = classOffset(series, entry, round);
+    // This round's own draw, for a seat whose season car the round does not run.
+    const drawn = pickModels(
+      models,
+      seats.length,
+      randomFrom(seedFrom(`${series.id}:${round.id}:${entry.id}`)),
+    );
 
     return seats.map((seat, index) => {
-      const pinned = seat.car?.model;
-      // A seat pinned to a car this round does not run falls back to the draw:
-      // the round's own eligibility is what may be raced here.
-      const model = pinned !== undefined && models.includes(pinned) ? pinned : drawn[index];
+      const own = field.get(seat.id);
+      const kept = own?.model !== undefined && models.includes(own.model) ? own.model : undefined;
+      const model = kept ?? drawn[index];
 
       return {
         model,
-        skin: seatSkin(content, model, seat.car?.skin),
+        skin: kept === undefined ? undefined : seatSkin(content, model, own?.skin),
         driver: seat.driver?.name,
         nationality: seat.driver?.nationality,
         nationCode: seat.driver?.nationCode,
@@ -425,11 +522,14 @@ export const roundRace = (
         entry: entry.id,
         team: seat.team,
         ...bopFor(entry, model),
-        // Spread within the class rather than across the field: one linear ramp
-        // over a multi-class grid would make the slower class's drivers weak as
-        // well as their cars, which is not what a class difference is.
-        aiLevel: seat.aiLevel ?? levelIn(grid.aiLevel, grid.aiLevelMin, index, count),
-        aiAggression: seat.aiAggression ?? grid.aiAggression,
+        // Offset per class rather than across the field, so a slower class's
+        // drivers are as good as anyone's and only their cars are slower.
+        aiLevel: aiFigure(base.strength, offset.strength, own?.strength ?? seat.strength ?? 0),
+        aiAggression: aiFigure(
+          base.aggression,
+          offset.aggression,
+          own?.aggression ?? seat.aggression ?? 0,
+        ),
       };
     });
   });
