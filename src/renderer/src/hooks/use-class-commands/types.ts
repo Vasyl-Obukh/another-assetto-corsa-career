@@ -11,6 +11,7 @@ export type ClassChannel =
   | 'classes:deleteClass'
   | 'classes:copyClass'
   | 'classes:saveSpec'
+  | 'classes:saveSpecCars'
   | 'classes:deleteSpec';
 
 /**
@@ -70,6 +71,13 @@ export interface ClassCommandsState {
    * @returns The spec's id, or null when it failed
    */
   saveSpec(draft: IpcRequest<'classes:saveSpec'>): Promise<string | null>;
+  /**
+   * Saves a spec and the cars in it as one edit.
+   * @param spec The spec as the form left it; no id means a new one
+   * @param cars Every car that should race in it
+   * @returns The spec's id, or null when it failed
+   */
+  saveSpecCars(spec: IpcRequest<'classes:saveSpecCars'>['spec'], cars: string[]): Promise<string | null>;
   /**
    * Deletes a spec of the user's.
    * @param id The spec

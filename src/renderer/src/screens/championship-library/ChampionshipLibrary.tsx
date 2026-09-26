@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, UploadIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -6,13 +6,16 @@ import { useNavigate } from 'react-router';
 import type { SeriesImportResult } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { useSettings } from '@/app';
-import { ErrorCard, ProblemList, ScreenBody } from '@/components';
+import {
+  ActiveFilters, BrowserLayout, ErrorCard, Loading, ProblemList, SearchField, SortMenu, TOOLBAR_SEARCH,
+} from '@/components';
 import { Button } from '@/components/ui/button.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useChampionshipBrowser, useChampionships, useSeriesCommands } from '@/hooks';
 import { path } from '@/lib/routes';
+import { slots } from '@/lib/slots.ts';
 import {
-  CHAMPIONSHIP_MEMORY, ChampionshipCard, championshipFilters, ChampionshipToolbar, NoneMatch,
+  CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, championshipFilters, championshipPills, ChampionshipRail, NoneMatch,
+  SEASON_SKELETON, SeasonCard, SeasonCardSkeleton,
 } from '@/screens/championships';
 
 export const ChampionshipLibrary = () => {
@@ -46,69 +49,112 @@ export const ChampionshipLibrary = () => {
     CHAMPIONSHIP_MEMORY.library,
     !championships.loading,
   );
+  const { criteria } = browser;
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-6" scrollRef={browser.scrollRef} backToTop>
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {/* Nothing is written until the editor's first Save, so this is a
-            navigation rather than a command. */}
-        <Button variant="outline" onClick={() => navigate(path.championshipNew())}>
-          <PlusIcon />
-          {t('common.new')}
-        </Button>
+    <BrowserLayout
+      rail={<ChampionshipRail browser={browser} filters={filters} loading={championships.loading} />}
+      toolbar={(
+        <>
+          <div className="flex items-center gap-2">
+            <SearchField
+              value={browser.search}
+              placeholder={t('championships.filter.search')}
+              inputClassName={TOOLBAR_SEARCH}
+              onChange={browser.setSearch}
+            />
+            <SortMenu
+              items={CHAMPIONSHIP_SORTS}
+              value={criteria.sort}
+              direction={criteria.direction}
+              onChange={(sort) => browser.setCriteria({ ...criteria, sort })}
+              onDirectionChange={(direction) => browser.setCriteria({ ...criteria, direction })}
+            />
 
-        <Button
-          variant="outline"
-          disabled={commands.busy}
-          onClick={() => {
-            commands.importSeries().then((result) => {
-              if (!result) return;
-              // A file that held no championship is reported here rather than
-              // written: it must not become a permanent entry in the library's
-              // own problems that the user then has to delete by hand.
-              if (result.id === null) { setRefused(result); return; }
+            <span aria-hidden className="mx-1 h-6 w-px bg-border" />
 
-              setRefused(null);
-            }, () => undefined);
-          }}
-        >
-          {t('championships.actions.import')}
-        </Button>
-      </div>
+            {/* Nothing is written until the editor's first Save, so this is a
+                navigation rather than a command. */}
+            <Button variant="outline" onClick={() => navigate(path.championshipNew())}>
+              <PlusIcon />
+              {t('common.new')}
+            </Button>
 
-      {error ? (
-        <ErrorCard
-          error={error}
-          onDismiss={() => { championships.dismissError(); commands.dismissError(); }}
-        />
-      ) : null}
+            <Button
+              variant="outline"
+              disabled={commands.busy}
+              onClick={() => {
+                commands.importSeries().then((result) => {
+                  if (!result) return;
+                  // A file that held no championship is reported here rather than
+                  // written: it must not become a permanent entry in the library's
+                  // own problems that the user then has to delete by hand.
+                  if (result.id === null) { setRefused(result); return; }
 
-      {refused ? (
+                  setRefused(null);
+                }, () => undefined);
+              }}
+            >
+              <UploadIcon />
+              {t('championships.actions.import')}
+            </Button>
+          </div>
+
+          <ActiveFilters
+            filters={championshipPills(browser, filters, t)}
+            shown={browser.shown.length}
+            total={browser.total}
+            stale={false}
+            loading={championships.loading}
+            onClear={browser.clear}
+            onRefresh={() => undefined}
+          />
+        </>
+      )}
+      scrollRef={browser.scrollRef}
+      backToTop
+    >
+      <div className="flex flex-col gap-4 pb-6">
+        {error ? (
+          <ErrorCard
+            error={error}
+            onDismiss={() => { championships.dismissError(); commands.dismissError(); }}
+          />
+        ) : null}
+
+        {refused ? (
+          <ProblemList
+            problems={refused.problems}
+            label={t('championships.import.failed', { count: refused.problems.length })}
+            hint={t('championships.import.failedHint')}
+          />
+        ) : null}
+
+        {/* A file the user wrote that would not load is not the same as the read
+            failing - the rest of the library is fine - so it is said here rather
+            than replacing the list with an error. */}
         <ProblemList
-          problems={refused.problems}
-          label={t('championships.import.failed', { count: refused.problems.length })}
-          hint={t('championships.import.failedHint')}
+          problems={championships.problems}
+          label={t('championships.problems.label', { count: championships.problems.length })}
+          hint={t('championships.problems.hint')}
         />
-      ) : null}
 
-      {/* A file the user wrote that would not load is not the same as the read
-          failing - the rest of the library is fine - so it is said here rather
-          than replacing the list with an error. */}
-      <ProblemList
-        problems={championships.problems}
-        label={t('championships.problems.label', { count: championships.problems.length })}
-        hint={t('championships.problems.hint')}
-      />
+        {championships.loading ? (
+          <Loading className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4">
+            {slots(SEASON_SKELETON).map((at) => <SeasonCardSkeleton key={at} />)}
+          </Loading>
+        ) : null}
 
-      <ChampionshipToolbar browser={browser} filters={filters} />
+        {offered.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
 
-      {championships.loading ? <Skeleton className="h-24 w-full" /> : null}
-
-      {offered.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
-
-      {browser.shown.map((listing) => (
-        <ChampionshipCard key={listing.series.id} listing={listing} commands={commands} manage />
-      ))}
-    </ScreenBody>
+        {browser.shown.length > 0 ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4">
+            {browser.shown.map((listing) => (
+              <SeasonCard key={listing.series.id} listing={listing} commands={commands} />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </BrowserLayout>
   );
 };

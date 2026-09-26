@@ -1,17 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { MAX_GRID_OFFSET, SERIES_FORMAT_VERSION } from '../../../shared/constants/index.ts';
 import {
-  Climate, ContentSource, Discipline, DLCPack, Hemisphere, ModMaker,
+  DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_GRID_OFFSET, SERIES_FORMAT_VERSION,
+} from '../../../shared/constants/index.ts';
+import {
+  Climate, ContentSource, Discipline, DLCPack, Hemisphere, ModDistributor, ModMaker,
 } from '../../../shared/types/index.ts';
 import type {
   Championship, Eligibility, SeriesSession, WeekendFormat,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
-  aiFigure, aiSeats, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
-  raceLengths, requirementsOf, roundRaceId, roundSessions, roundSpans, seatSkin, validateFormat,
-  validateLength, validateMoney, validateOffsets, withDistancesInLaps,
+  aiSeats, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
+  nationOf, raceLengths, requirementsOf, roundRaceId, roundSessions, roundSpans, seatDraw, seatSkin,
+  validateFormat, validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
 
@@ -425,21 +427,6 @@ describe('core/series/utils', () => {
     });
   });
 
-  describe('aiFigure', () => {
-    it('adds every offset to the base', () => {
-      expect(aiFigure(88, 4, -2, 1)).toBe(91);
-    });
-
-    it('rounds, since Assetto Corsa is sent whole figures', () => {
-      expect(aiFigure(88, 0.6)).toBe(89);
-    });
-
-    it('clamps to the range Assetto Corsa accepts', () => {
-      expect(aiFigure(95, 10)).toBe(100);
-      expect(aiFigure(5, -10)).toBe(0);
-    });
-  });
-
   describe('validateOffsets', () => {
     const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
 
@@ -701,6 +688,84 @@ describe('core/series/utils', () => {
       };
 
       expect(requirementsOf(series, catalogue).pools).toHaveLength(1);
+    });
+
+    // A car LFM redistributes credits no mod team, so without its own list the
+    // championship read as needing an uncredited mod.
+    it('needs the redistributor of every car a car list names', () => {
+      const requires = requirementsOf(racing({ kind: 'cars', cars: ['alpine_a424'] }), SHIPPED_CATALOGUE);
+
+      expect(requires.distributors).toEqual([ModDistributor.LFM]);
+      expect(requires.sources).toContain(ContentSource.MOD);
+    });
+
+    it('records a redistributor a spec only reaches as widening it', () => {
+      const catalogue = specOf(['abarth500', 'bmw_1m', 'alpine_a424']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+
+      expect(requires.distributors).toEqual([]);
+      expect(requires.widenedBy.distributors).toEqual([ModDistributor.LFM]);
+      expect(requires.pools[0].cars).toContainEqual({ pack: null, maker: null, distributor: ModDistributor.LFM });
+    });
+
+    it('needs a redistributor the spec cannot keep its floor without', () => {
+      const catalogue = specOf(['abarth500', 'alpine_a424', 'bmw_m_hybrid_v8_2023']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+
+      expect(requires.distributors).toEqual([ModDistributor.LFM]);
+      expect(requires.widenedBy.distributors).toEqual([]);
+    });
+  });
+
+  describe('seatDraw', () => {
+    const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+    const [seat] = series.entries[0].seats;
+
+    it('draws offsets inside the spread a season allows', () => {
+      series.entries[0].seats.forEach((one) => {
+        const { strength, aggression } = seatDraw(series, one, 'career:1');
+
+        expect(Math.abs(strength)).toBeLessThanOrEqual(DRIVER_STRENGTH_SPREAD);
+        expect(Math.abs(aggression)).toBeLessThanOrEqual(DRIVER_AGGRESSION_SPREAD);
+      });
+    });
+
+    it('draws the same offsets for the same seat and season every time', () => {
+      expect(seatDraw(series, seat, 'career:1')).toEqual(seatDraw(series, seat, 'career:1'));
+    });
+
+    it('draws a season of its own for each salt', () => {
+      const draws = Array.from({ length: 8 }, (unused, at) => seatDraw(series, seat, `career:${at}`));
+
+      expect(new Set(draws.map((draw) => JSON.stringify(draw))).size).toBeGreaterThan(1);
+    });
+
+    // Both are drawn either way, so stating one leaves the other where it was.
+    it('keeps an offset the seat states, and draws the other as it would have', () => {
+      const drawn = seatDraw(series, seat, 'career:1');
+
+      expect(seatDraw(series, { ...seat, strength: 7 }, 'career:1')).toEqual({ ...drawn, strength: 7 });
+      expect(seatDraw(series, { ...seat, aggression: -9 }, 'career:1')).toEqual({ ...drawn, aggression: -9 });
+    });
+  });
+
+  describe('nationOf', () => {
+    const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+    const teamed: Championship = { ...series, teams: [{ id: 'works', name: 'Works', nationCode: 'DEU' }] };
+
+    it('names the driver\'s own nation from its code, in English', () => {
+      expect(nationOf(teamed, { id: 's', team: 'works', driver: { name: 'A', nationCode: 'ITA' } }))
+        .toEqual({ nationCode: 'ITA', nationality: 'Italy' });
+    });
+
+    it('falls back to the team\'s nation for a driver who names none', () => {
+      expect(nationOf(teamed, { id: 's', team: 'works', driver: { name: 'A' } }))
+        .toEqual({ nationCode: 'DEU', nationality: 'Germany' });
+    });
+
+    it('says nothing when neither the driver nor a team names a nation', () => {
+      expect(nationOf(teamed, { id: 's', driver: { name: 'A' } })).toEqual({});
+      expect(nationOf(series, { id: 's', team: 'works' })).toEqual({});
     });
   });
 

@@ -1,13 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { DEFAULT_OPPONENTS, WeatherType } from '../../../shared/constants/index.ts';
+import {
+  DEFAULT_OPPONENTS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, WeatherType,
+} from '../../../shared/constants/index.ts';
 import { Climate, SeasonLength } from '../../../shared/types/index.ts';
 import type {
   Championship, ClassEntry, Content, FieldSeat, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import { defaultWeatherOffer, drawRound, offerForecast } from '../../weather-forecast/index.ts';
-import { DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD } from '../constants.ts';
 import {
   drawField, formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
 } from '../series.ts';
@@ -499,9 +500,9 @@ describe('core/series', () => {
       expect(drivers).toEqual(['Ahead', 'Alongside']);
     });
 
-    it('carries a seat driver name and nationality onto the grid', () => {
+    it('carries a seat driver name and nation onto the grid, naming the nation from its code', () => {
       const seats = [
-        { id: 'one', driver: { name: 'Ada Marchetti', nationality: 'Italy', nationCode: 'ITA' } },
+        { id: 'one', driver: { name: 'Ada Marchetti', nationCode: 'ITA' } },
         { id: 'two' },
       ];
 

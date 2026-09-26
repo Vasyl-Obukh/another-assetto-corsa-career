@@ -3,7 +3,9 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { ARCHIVE_NAME } from './constants.ts';
 import type { RaceProgress } from './types.ts';
 import { summarise } from '../../core/results/index.ts';
-import type { RaceOut, ResultRecord, WeekendState } from '../../shared/types/index.ts';
+import type {
+  RaceOut, RaceSetup, ResultRecord, Track, WeekendState,
+} from '../../shared/types/index.ts';
 
 /**
  * Reads a JSON file, treating anything unreadable as absent.
@@ -104,4 +106,36 @@ export const progressOf = (
   if (!inFlight && (completed === 0 || finished)) return null;
 
   return { raceId: state?.raceId ?? raceId, completed, inFlight };
+};
+
+/**
+ * Whether the slot already holds a weekend exactly as far as it has run, so its
+ * next launch can go without putting it back first.
+ *
+ * Never before its first launch: whatever set the slot up then may since have
+ * been edited, or had its forecast issued, and the race has to be the one the
+ * weekend now says.
+ * @param setup The race store as it stands
+ * @param raceId The weekend's race id
+ * @param completed How many of its launches have run
+ * @returns True when launching can carry on from the slot as it is
+ */
+export const slotHolds = (setup: RaceSetup, raceId: string, completed: number): boolean => (
+  completed > 0 && setup.definition.id === raceId && (setup.state?.completed.length ?? 0) === completed
+);
+
+/**
+ * A result with the layout it ran on, found among the installed tracks.
+ *
+ * AC records the track as its folder and layout joined by a hyphen, which
+ * cannot be split back apart - folders hold hyphens of their own - so it is
+ * matched against what is installed instead.
+ * @param record The result
+ * @param tracks Every installed layout
+ * @returns The result, with its layout when one matches
+ */
+export const withLayout = (record: ResultRecord, tracks: readonly Track[]): ResultRecord => {
+  const ran = tracks.find((track) => (track.layout ? `${track.id}-${track.layout}` : track.id) === record.summary.track);
+
+  return ran ? { ...record, layout: { id: ran.id, layout: ran.layout, name: ran.name } } : record;
 };

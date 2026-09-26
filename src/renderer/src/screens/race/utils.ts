@@ -3,16 +3,13 @@ import {
   DEFAULT_SESSION_MINUTES,
   DEFAULT_SLOT_MINUTES,
   MIN_PLAN_SLOTS,
-  NOT_SET,
-  SESSION_TYPES,
-  WEATHER_VALUE,
 } from './constants.ts';
 import type { ConditionsSummary, SessionLength, WeatherChoice } from './types.ts';
 import { WEATHER_TYPE_ORDER, WeatherType } from '../../../../shared/constants';
 import type {
   Conditions,
+  QuickRacePhase,
   SessionDefinition,
-  SessionForecast,
   SessionType,
   Weather,
   WeatherController,
@@ -46,59 +43,27 @@ export const fromNumber = (value: number | undefined): string => (
 /**
  * Whether a session type is asked for in laps rather than minutes.
  *
- * Only a race is: everything else runs to the clock, and AC reads LAPS on a
- * race session alone.
+ * Only a race is: Assetto Corsa reads DURATION_MINUTES for practice and
+ * qualifying and RACE_LAPS for a race, and runs a timed race on a server alone.
  * @param type The session type
  * @returns True when the session is defined by a lap count
  */
 export const countsLaps = (type: SessionType): boolean => type === 'race';
 
 /**
- * Whether a session as written is measured in laps rather than on the clock.
- *
- * A race always is, whatever it carries: Assetto Corsa reads DURATION_MINUTES
- * for practice and qualifying and RACE_LAPS for a race, and runs a timed race
- * on a server alone. Driven: a race sent as three minutes and no laps let the
- * player carry on past the clock while the AI parked in the pits.
- * @param session The session to read
- * @returns True when its length is a lap count
- */
-export const measuredInLaps = (session: SessionDefinition): boolean => countsLaps(session.type);
-
-/**
- * How long a session runs, in whichever unit it is measured in.
- *
- * Off measuredInLaps, so a session carrying both reads as what race.ini will
- * run rather than whichever field happens to be set.
+ * How long a session runs, in whichever unit it is measured in - by its type,
+ * so a session carrying both reads as what race.ini will run rather than
+ * whichever field happens to be set.
  * @param session The session to read
  * @returns Its length, or null when it states none
  */
 export const sessionLength = (session: SessionDefinition): SessionLength | null => {
-  const laps = measuredInLaps(session);
+  const laps = countsLaps(session.type);
   const count = laps ? session.laps : session.minutes;
   if (count === undefined) return null;
 
   return { key: laps ? 'championships.format.laps' : 'championships.format.minutes', count };
 };
-
-/**
- * Switches a session between a lap count and a duration.
- *
- * The other unit is cleared rather than kept, and that is not tidiness: a stale
- * `laps` left on a timed race would still be written into [RACE] RACE_LAPS, and
- * Assetto Corsa runs a lap race whenever that is above zero. So switching the
- * unit forgets the old number, and the session falls back to a default the next
- * time it is switched back.
- * @param session The session to change
- * @param inLaps Whether it should be measured in laps
- * @returns The session, measured the way it was asked for
- */
-export const withSessionLength = (
-  session: SessionDefinition,
-  inLaps: boolean,
-): SessionDefinition => (inLaps
-  ? { ...session, minutes: undefined, laps: session.laps ?? DEFAULT_SESSION_LAPS }
-  : { ...session, laps: undefined, minutes: session.minutes ?? DEFAULT_SESSION_MINUTES });
 
 /**
  * Builds the session added when the user asks for one more.
@@ -159,71 +124,7 @@ export const moveAt = <T>(items: T[], index: number, by: number): T[] => (
 );
 
 /**
- * Whether a session type can be picked in the menu.
- * @param type The type to check
- * @returns True when the menu offers it
- */
-export const isOffered = (type: string): type is SessionType => (
-  SESSION_TYPES.includes(type as SessionType)
-);
-
-/**
- * Encodes what a weather menu entry stands for as a Select item value.
- * @param choice What the entry answers
- * @returns The item's value
- */
-export const weatherValue = (choice: WeatherChoice): string => {
-  if (choice.kind === 'dynamic') return `${WEATHER_VALUE.dynamic}${choice.controller}`;
-  if (choice.kind === 'type') return `${WEATHER_VALUE.type}${choice.type}`;
-  if (choice.kind === 'preset') return `${WEATHER_VALUE.preset}${choice.preset}`;
-
-  return NOT_SET;
-};
-
-/**
- * Reads a Select item value back into what it stands for.
- * @param value The item's value
- * @returns What the entry answers
- */
-export const weatherChoice = (value: string): WeatherChoice => {
-  if (value.startsWith(WEATHER_VALUE.dynamic)) {
-    return { kind: 'dynamic', controller: value.slice(WEATHER_VALUE.dynamic.length) };
-  }
-  if (value.startsWith(WEATHER_VALUE.type)) {
-    return { kind: 'type', type: Number(value.slice(WEATHER_VALUE.type.length)) };
-  }
-  if (value.startsWith(WEATHER_VALUE.preset)) {
-    return { kind: 'preset', preset: value.slice(WEATHER_VALUE.preset.length) };
-  }
-
-  return { kind: 'none' };
-};
-
-/**
- * Works out which menu entry the race's conditions currently name.
- * @param conditions The race's conditions
- * @param controllers Every installed controller, to tell dynamic from static
- * @returns What the menu should show as chosen
- */
-export const chosenWeather = (
-  conditions: Conditions,
-  controllers: WeatherController[],
-): WeatherChoice => {
-  // Dynamic weather ignores everything else, so it is read first: a leftover
-  // preset beside it would otherwise win and misreport what will happen.
-  const controller = controllers.find((entry) => entry.id === conditions.weatherController);
-  if (controller?.follows.weather === 'no') {
-    return { kind: 'dynamic', controller: controller.id };
-  }
-
-  if (conditions.weatherType != null) return { kind: 'type', type: conditions.weatherType };
-  if (conditions.weather) return { kind: 'preset', preset: conditions.weather };
-
-  return { kind: 'none' };
-};
-
-/**
- * Applies a menu choice to the race's conditions.
+ * Applies a weather choice to a set of conditions.
  *
  * Each kind clears what the others set, so the definition can never name a type
  * and a preset at once, and picking static weather never leaves a dynamic
@@ -267,20 +168,6 @@ export const withWeather = (
 };
 
 /**
- * The CSP weather types an installed preset actually declares.
- *
- * Offering a type nothing stands for would be offering a race that cannot be
- * built: `[WEATHER] NAME` needs a folder.
- * @param weather Every installed preset
- * @returns The offerable types, in menu order
- */
-export const availableTypes = (weather: Weather[]): WeatherType[] => {
-  const declared = new Set(weather.map((preset) => preset.type));
-
-  return WEATHER_TYPE_ORDER.filter((type) => declared.has(type));
-};
-
-/**
  * Applies the conditions a session or a round answers for itself, dropping the
  * block entirely when it overrides nothing.
  *
@@ -305,42 +192,6 @@ export const withSessionConditions = <T extends { conditions?: Conditions }>(
 };
 
 /**
- * Sets or clears one field of a session's overrides.
- * @param session The session to change
- * @param key Which field
- * @param value The value, or undefined to go back to inheriting it
- * @returns The session to put in its place
- */
-export const withSessionCondition = <K extends keyof Conditions>(
-  session: SessionDefinition,
-  key: K,
-  value: Conditions[K],
-): SessionDefinition => {
-  const conditions: Conditions = { ...session.conditions };
-  if (value === undefined) delete conditions[key];
-  else conditions[key] = value;
-
-  return withSessionConditions(session, conditions);
-};
-
-/**
- * How many conditions a session or a round answers for itself.
- *
- * Shown on the row so an override is visible without opening the dialog - the
- * whole risk of an inherited value is that nobody looks. Takes the conditions
- * rather than what holds them, since a championship's round states its own the
- * same way a session does.
- * @param conditions The conditions to count
- * @param except Fields not to count, such as those a forecast wrote
- * @returns How many fields are set
- */
-export const overrideCount = (conditions: Conditions, except: Conditions = {}): number => (
-  Object.entries(conditions)
-    .filter(([key, value]) => value !== undefined && !(key in except))
-    .length
-);
-
-/**
  * The weather types this install, this system and the user's settings allow -
  * offerableTypes over the installed presets, the same answer generated weather
  * is drawn over.
@@ -356,29 +207,6 @@ export const offeredTypes = (
   rainFx: boolean,
   allowed: readonly WeatherType[] = WEATHER_TYPE_ORDER,
 ): WeatherType[] => offerableTypes(weather.map((preset) => preset.type), allowed, system, rainFx);
-
-/**
- * Whether a session still runs the weather its round's forecast gave it.
- *
- * Every field generation wrote has to be there unchanged. A session edited since
- * - its weather swapped by hand, its temperature nudged - is no longer running
- * the forecast, and neither is one whose forecast has moved under it because the
- * user's settings or the installed weather changed after the round was set up.
- * @param session The session as the race now holds it
- * @param forecast What its round's forecast says for it, if anything
- * @returns True when the session carries exactly what was generated
- */
-export const isForecast = (
-  session: SessionDefinition,
-  forecast: SessionForecast | undefined,
-): forecast is SessionForecast => {
-  if (!forecast?.generated) return false;
-
-  const own = session.conditions ?? {};
-  return Object.entries(forecast.conditions).every(([key, value]) => (
-    JSON.stringify(own[key as keyof Conditions]) === JSON.stringify(value)
-  ));
-};
 
 /**
  * The types on offer, plus any the conditions already name.
@@ -465,23 +293,17 @@ export const addWeatherSlot = (
 };
 
 /**
- * Changes one slot, or the static choice behind them.
+ * Changes one slot of a weather plan.
  * @param conditions The conditions to change
- * @param index Which slot, or -1 for the static picker
+ * @param index Which slot
  * @param patch What to change about it
- * @param choice What the static picker chose, when it was the static picker
- * @param controllers Every installed controller, for the static picker
  * @returns The conditions to apply
  */
 export const setWeatherSlot = (
   conditions: Conditions,
   index: number,
   patch: Partial<WeatherStep>,
-  choice?: WeatherChoice,
-  controllers: WeatherController[] = [],
 ): Conditions => {
-  if (choice) return withWeather(conditions, choice, controllers);
-
   const steps = (conditions.weatherSteps ?? []).map((step, at) => (
     at === index ? { ...step, ...patch } : step
   ));
@@ -541,4 +363,16 @@ export const conditionsSummary = (conditions: Conditions): ConditionsSummary => 
     ambient: conditions.ambient ?? null,
     trackState: conditions.trackState ?? null,
   };
+};
+
+/**
+ * How far the state a race weekend's page was opened with says the weekend has
+ * got.
+ * @param state The location's state, whatever pushed it
+ * @returns The phase a `RaceWeekendState` names, and setup for anything else
+ */
+export const phaseOf = (state: unknown): QuickRacePhase => {
+  const phase = typeof state === 'object' && state !== null && 'phase' in state ? state.phase : null;
+
+  return phase === 'running' || phase === 'finished' ? phase : 'setup';
 };

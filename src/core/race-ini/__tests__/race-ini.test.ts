@@ -124,6 +124,10 @@ describe('core/race-ini', () => {
       expect(build({ ...makeRace(), penalties: false }).RACE?.PENALTIES).toBe('0');
     });
 
+    it('never locks a car to a fixed setup', () => {
+      expect(build().RACE?.FIXED_SETUP).toBe('0');
+    });
+
     it('keeps AC\'s per-track track limits default by writing -1', () => {
       expect(build().LAP_INVALIDATOR?.ALLOWED_TYRES_OUT).toBe('-1');
     });

@@ -1,11 +1,11 @@
-import { PaintbrushIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { PaintbrushIcon, UserIcon } from 'lucide-react';
 
 import type { Skin } from '../../../../shared/types';
-import { ContentImage } from '@/components/content-image/index.ts';
+import { CARD_LINK } from '@/components/browser/index.ts';
+import { carPictureSources, ContentImage } from '@/components/content-image/index.ts';
+import { LiveryPlate } from '@/components/LiveryPlate.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { cn } from '@/lib/utils.ts';
-import { skinImageSources } from '@/screens/car-detail';
 
 interface SkinTileProps {
   /**
@@ -26,34 +26,32 @@ interface SkinTileProps {
   onPick: () => void;
 }
 
+/**
+ * One livery to pick: its photo with the racing number on a plate, as the car
+ * page's carousel shows it, then its name and whoever the author credited.
+ */
 export const SkinTile = ({
   carId, skin, selected, onPick,
 }: SkinTileProps) => {
-  const { t } = useTranslation();
-
-  // Whoever the author named, in the order a car is identified on track. Most
-  // of the base game names none of them, so the folder stands in.
-  const figures = [
-    skin.number === null ? null : t('cars.detail.number', { value: skin.number }),
-    skin.team,
-    skin.driver,
-  ].filter((figure): figure is string => figure !== null);
+  // Most of the base game credits nobody, so the line is left out rather than
+  // filled with the folder name.
+  const credit = [skin.driver, skin.team].filter((part): part is string => part !== null).join(' · ');
 
   return (
     <button
       type="button"
       onClick={onPick}
-      className="block w-full rounded-xl text-left focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+      className={CARD_LINK}
     >
       <Card className={cn(
-        'h-full gap-0 overflow-hidden py-0 transition-[box-shadow,border-color]',
-        'hover:border-primary hover:shadow-[0_0_20px_2px] hover:shadow-primary/55',
-        selected && 'border-primary shadow-[0_0_20px_2px] shadow-primary/55',
+        'hover-outline h-full gap-0 overflow-hidden py-0',
+        '[contain-intrinsic-size:auto_14rem] [content-visibility:auto]',
+        selected && '[--outline-rest:var(--color-primary)]',
       )}
       >
-        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-muted">
+        <div className="relative aspect-video w-full shrink-0 overflow-hidden bg-muted">
           <ContentImage
-            sources={skinImageSources(carId, skin)}
+            sources={carPictureSources(carId, skin.id)}
             alt={skin.name}
             className="object-cover"
             fallback={(
@@ -62,13 +60,17 @@ export const SkinTile = ({
               </div>
             )}
           />
+          {skin.number === null ? null : <LiveryPlate number={skin.number} className="absolute top-2 left-2" />}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-0.5 p-3">
-          <span className="truncate text-sm font-medium" title={skin.name}>{skin.name}</span>
-          <span className="truncate text-xs text-muted-foreground">
-            {figures.length > 0 ? figures.join(' - ') : skin.id}
-          </span>
+        <div className="flex min-w-0 flex-col gap-0.5 px-3 py-2.5">
+          <span className="truncate text-sm font-semibold" title={skin.name}>{skin.name}</span>
+          {credit === '' ? null : (
+            <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground" title={credit}>
+              <UserIcon className="size-3 shrink-0" />
+              <span className="truncate">{credit}</span>
+            </span>
+          )}
         </div>
       </Card>
     </button>

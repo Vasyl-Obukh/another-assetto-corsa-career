@@ -33,6 +33,8 @@ export const makeCar = ({ performance, ...car }: CarOverrides): Car => ({
   tags: [],
   skins: [],
   carClass: null,
+  description: null,
+  curves: null,
   year: null,
   country: null,
   ...car,

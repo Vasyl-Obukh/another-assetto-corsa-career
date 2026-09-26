@@ -20,16 +20,18 @@ import {
   trackOutline,
   trackPreview,
 } from '../content.ts';
-import { listDirs, readJsonFile } from '../utils.ts';
+import { listDirs, listFiles, readJsonFile } from '../utils.ts';
 
 jest.mock('node:fs/promises');
 jest.mock('../utils.ts', () => ({
   ...jest.requireActual<typeof import('../utils.ts')>('../utils.ts'),
   listDirs: jest.fn(),
+  listFiles: jest.fn(),
   readJsonFile: jest.fn(),
 }));
 
 const listDirsMock = jest.mocked(listDirs);
+const listFilesMock = jest.mocked(listFiles);
 const readJsonFileMock = jest.mocked(readJsonFile);
 const readFileMock = jest.mocked(readFile);
 const statMock = jest.mocked(stat);
@@ -59,6 +61,7 @@ const parsed = (value: unknown) => ({ value, salvaged: false, error: null });
 describe('core/content', () => {
   beforeEach(() => {
     listDirsMock.mockResolvedValue([]);
+    listFilesMock.mockResolvedValue([]);
     readJsonFileMock.mockResolvedValue(MISSING);
     // Fingerprinting stats every file it would have read; nothing here is there.
     statMock.mockRejectedValue(new Error('ENOENT'));
@@ -101,6 +104,23 @@ describe('core/content', () => {
         weightKg: 1200,
         topSpeedKph: 300,
         powerToWeight: 560 / 1.2,
+      });
+    });
+
+    it('reads the description as plain text and the power and torque curves', async () => {
+      listDirsMock.mockImplementation(async (dir) => (dir.endsWith('cars') ? ['car_a'] : ['red']));
+      readJsonFileMock.mockResolvedValue(parsed({
+        name: 'Car A',
+        description: 'Light<br>and quick',
+        powerCurve: [['1000', '50'], ['6000', '300']],
+        torqueCurve: [[1000, 200], [6000, 350]],
+      }));
+
+      const [car] = (await scanCars('content')).entries;
+      expect(car.description).toBe('Light\nand quick');
+      expect(car.curves).toEqual({
+        power: [[1000, 50], [6000, 300]],
+        torque: [[1000, 200], [6000, 350]],
       });
     });
 
@@ -292,6 +312,22 @@ describe('core/content', () => {
         .toEqual(['spa', 'spa/2022', 'spa/2022_lfm_standing']);
     });
 
+
+    it('lists the photographs and logo in each layout\'s own ui folder', async () => {
+      listDirsMock.mockImplementation(async (dir) => (dir.endsWith('tracks') ? ['multi'] : ['gp', 'club']));
+      listFilesMock.mockImplementation(async (dir) => (
+        /gp$/.test(dir) ? ['ui_track.json', 'bgr00.jpg', 'logo.png'] : ['ui_track.json']
+      ));
+      readJsonFileMock.mockImplementation(jsonFor((file) => (
+        /ui[\\/]ui_track\.json$/.test(file) ? MISSING : parsed({ name: 'Layout' })
+      )));
+
+      const { entries } = await scanTracks('content');
+      const byKey = new Map(entries.map((track) => [track.key, track]));
+
+      expect(byKey.get('multi/gp')).toMatchObject({ photos: ['bgr00'], logo: true });
+      expect(byKey.get('multi/club')).toMatchObject({ photos: [], logo: false });
+    });
 
     it('skips a layout whose ui_track.json cannot be read, and says so', async () => {
       listDirsMock.mockImplementation(async (dir) => (dir.endsWith('tracks') ? ['multi'] : ['broken']));
@@ -608,6 +644,14 @@ describe('core/content', () => {
         .toBe('D:\\ac\\content\\tracks\\t\\ui\\preview.png');
       expect(contentPath(dir, { kind: 'trackOutline', trackId: 't', layout: 'gp' }))
         .toBe('D:\\ac\\content\\tracks\\t\\ui\\gp\\outline.png');
+      expect(contentPath(dir, { kind: 'carLivery', carId: 'a', skinId: 'red' }))
+        .toBe('D:\\ac\\content\\cars\\a\\skins\\red\\livery.png');
+      expect(contentPath(dir, { kind: 'trackPhoto', trackId: 't', layout: 'gp', photo: 'bgr03' }))
+        .toBe('D:\\ac\\content\\tracks\\t\\ui\\gp\\bgr03.jpg');
+      expect(contentPath(dir, { kind: 'trackLogo', trackId: 't', layout: '' }))
+        .toBe('D:\\ac\\content\\tracks\\t\\ui\\logo.png');
+      expect(contentPath(dir, { kind: 'nationFlag', code: 'ITA' }))
+        .toBe('D:\\ac\\content\\gui\\NationFlags\\ITA.png');
     });
   });
 

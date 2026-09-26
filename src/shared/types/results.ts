@@ -193,6 +193,17 @@ export interface Standing {
    * Sum of valid lap times in milliseconds.
    */
   totalTime: number;
+  /**
+   * Which car of the launch this was, by its place in the [CAR_n] list - what
+   * joins a row back to the weekend's grid, through the launch's own order.
+   */
+  slot?: number;
+  /**
+   * Set on the player's own row - the first car of the launch, which is how
+   * the player is known, since Content Manager writes its own profile name over
+   * theirs.
+   */
+  player?: boolean;
 }
 
 /**

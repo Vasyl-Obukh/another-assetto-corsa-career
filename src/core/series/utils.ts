@@ -2,7 +2,8 @@
 // composing the field a round is raced against.
 
 import {
-  AI_RANGE, DEFAULT_MIN_MODELS, MAX_GRID_OFFSET, MAX_WEEKEND_DAYS, MIN_REVERSED,
+  DEFAULT_MIN_MODELS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_GRID_OFFSET, MAX_WEEKEND_DAYS,
+  MIN_REVERSED,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
@@ -10,6 +11,7 @@ import { ContentSource, Hemisphere } from '../../shared/types/index.ts';
 import type {
   BopEntry,
   Car,
+  CarEntry,
   Championship,
   ClassCatalogue,
   ClassEntry,
@@ -36,9 +38,37 @@ import type {
 import { specCars } from '../../shared/utils/car-classes/index.ts';
 import { poolHolds } from '../../shared/utils/content-sources/index.ts';
 import { carsOf } from '../../shared/utils/eligibility/index.ts';
+import { nationName } from '../../shared/utils/nations/index.ts';
+import { formatOf } from '../../shared/utils/weekend-format/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
 import type { RoundSpan } from '../season-calendar/index.ts';
-import { shuffle } from '../seeded-random/index.ts';
+import { randomFrom, seedFrom, shuffle } from '../seeded-random/index.ts';
+
+/**
+ * One seat's own offsets for a season: what drawField freezes into a career's
+ * field, and what a simulated round races a seat on when there is no field.
+ *
+ * One function so the two cannot disagree - a round simulated before the
+ * championship was entered has to have been raced by the same drivers the
+ * field then freezes.
+ * @param series The championship
+ * @param seat The seat
+ * @param salt What makes this season's draw its own, empty outside a career
+ * @returns The seat's strength and aggression offsets
+ */
+export const seatDraw = (
+  series: Championship,
+  seat: Seat,
+  salt: string,
+): { strength: number; aggression: number } => {
+  const random = randomFrom(seedFrom(`${seat.id}\u0000${series.id}\u0000${salt}\u0000driver`));
+  // Both drawn whether or not the seat states its own, so stating one does not
+  // change the other.
+  const strength = Math.round((random() * 2 - 1) * DRIVER_STRENGTH_SPREAD);
+  const aggression = Math.round((random() * 2 - 1) * DRIVER_AGGRESSION_SPREAD);
+
+  return { strength: seat.strength ?? strength, aggression: seat.aggression ?? aggression };
+};
 
 /**
  * The id the race a round lowers into carries.
@@ -155,17 +185,6 @@ export const classOffset = (
 };
 
 /**
- * Turns a base figure and the offsets on it into what Assetto Corsa is sent.
- * @param base The absolute figure from settings
- * @param offsets Every offset laid over it
- * @returns The sum, rounded and clamped to the range AC accepts
- */
-export const aiFigure = (base: number, ...offsets: number[]): number => Math.min(
-  AI_RANGE.max,
-  Math.max(AI_RANGE.min, Math.round(offsets.reduce((sum, offset) => sum + offset, base))),
-);
-
-/**
  * Checks that every AI offset in a championship stays within reach.
  * @param series The championship
  * @returns One problem per offset out of range
@@ -205,6 +224,25 @@ export const validateOffsets = (series: Championship): AppErrorInfo[] => {
 export const aiSeats = (entry: ClassEntry, playerEntry: string): readonly Seat[] => (
   entry.id === playerEntry ? entry.seats.slice(0, -1) : entry.seats
 );
+
+/**
+ * The nation a seat's driver races under, as race.ini wants it.
+ *
+ * Their own, or else their team's; the nationality is that code's English
+ * name, since the file carries no language of its own.
+ * @param series The championship, for the seat's team
+ * @param seat The seat
+ * @returns The code and its name, or neither when nobody names a nation
+ */
+export const nationOf = (
+  series: Championship,
+  seat: Seat,
+): Pick<CarEntry, 'nationality' | 'nationCode'> => {
+  const code = seat.driver?.nationCode
+    ?? series.teams?.find((team) => team.id === seat.team)?.nationCode;
+
+  return code === undefined ? {} : { nationality: nationName(code), nationCode: code };
+};
 
 /**
  * How many cars a championship puts on the grid.
@@ -264,27 +302,6 @@ export const climateOf = (series: Championship, round: Round): Climate | null =>
 export const hemisphereOf = (series: Championship, round: Round): Hemisphere => (
   round.hemisphere ?? series.generatedWeather?.hemisphere ?? Hemisphere.NORTH
 );
-
-/**
- * Reads the weekend format a round is run over.
- *
- * Null rather than a fallback to the first format when the id resolves to
- * nothing: an unresolvable id is an authoring mistake, validateSeries reports
- * it as one, and racing whichever format happened to be written first is
- * exactly the silent wrong answer this project prefers to fail on.
- * @param series The championship
- * @param round The round being raced
- * @returns The format the round names, the championship's default otherwise,
- * or null when neither id resolves
- */
-export const formatOf = (
-  series: Championship,
-  round: Round,
-): WeekendFormat | null => {
-  const wanted = round.weekendFormat ?? series.defaultWeekendFormat;
-
-  return series.weekendFormats.find((format) => format.id === wanted) ?? null;
-};
 
 /**
  * How long each round's weekend runs, for dating a season.
@@ -716,7 +733,7 @@ export const missingTrack = (round: Round): RoundAvailability['track'] => {
  * Works out what owning a championship's content amounts to.
  * @param series The championship
  * @param catalogue The class catalogue a spec resolves against
- * @returns The sources, packs and mod makers its cars need, where its rounds'
+ * @returns The sources, packs, mod makers and redistributors its cars need, where its rounds'
  * circuits come from, and what only widens its field
  */
 export const requirementsOf = (series: Championship, catalogue: ClassCatalogue): SeriesRequirements => {
@@ -725,8 +742,10 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
   const sources = new Set<ContentSource>([ContentSource.BASE]);
   const packs = new Set<DLCPack>();
   const makers = new Set<ModMaker>();
+  const distributors = new Set<ModDistributor>();
   const reachedPacks = new Set<DLCPack>();
   const reachedMakers = new Set<ModMaker>();
+  const reachedDistributors = new Set<ModDistributor>();
   const roundPacks = new Set<DLCPack>();
   const roundMakers = new Set<ModMaker>();
   const roundDistributors = new Set<ModDistributor>();
@@ -736,6 +755,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     sources.add(provenance.source);
     if (provenance.pack) packs.add(provenance.pack);
     if (provenance.maker) makers.add(provenance.maker);
+    if (provenance.distributor) distributors.add(provenance.distributor);
   };
 
   // A car list needs every car it names; a spec needs only enough of its grid,
@@ -747,10 +767,11 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     }
 
     const cars = specCars(eligibility.spec, catalogue).map((car) => {
-      const { pack, maker } = carProvenance(car);
+      const { pack, maker, distributor } = carProvenance(car);
       if (pack) reachedPacks.add(pack);
       if (maker) reachedMakers.add(maker);
-      return { pack, maker };
+      if (distributor) reachedDistributors.add(distributor);
+      return { pack, maker, distributor };
     });
     pools.push({ minModels: minModelsOf(eligibility, catalogue), cars });
   };
@@ -768,13 +789,17 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
 
   // A source a spec cannot keep its floor without is needed after all - a mod
   // chassis in twenty liveries is a spec only that mod can fill.
-  pools.forEach((pool) => pool.cars.forEach(({ pack, maker }) => {
-    if (pack && !poolHolds(pool, { packs: [pack], makers: [] })) {
+  pools.forEach((pool) => pool.cars.forEach(({ pack, maker, distributor }) => {
+    if (pack && !poolHolds(pool, { packs: [pack], makers: [], distributors: [] })) {
       packs.add(pack);
       sources.add(ContentSource.DLC);
     }
-    if (maker && !poolHolds(pool, { packs: [], makers: [maker] })) {
+    if (maker && !poolHolds(pool, { packs: [], makers: [maker], distributors: [] })) {
       makers.add(maker);
+      sources.add(ContentSource.MOD);
+    }
+    if (distributor && !poolHolds(pool, { packs: [], makers: [], distributors: [distributor] })) {
+      distributors.add(distributor);
       sources.add(ContentSource.MOD);
     }
   }));
@@ -783,6 +808,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     sources: [...sources],
     packs: [...packs],
     makers: [...makers],
+    distributors: [...distributors],
     pools,
     rounds: {
       packs: [...roundPacks],
@@ -792,6 +818,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     widenedBy: {
       packs: [...reachedPacks].filter((pack) => !packs.has(pack)),
       makers: [...reachedMakers].filter((maker) => !makers.has(maker)),
+      distributors: [...reachedDistributors].filter((distributor) => !distributors.has(distributor)),
     },
   };
 };

@@ -1,42 +1,65 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { SERIES_FORMAT_VERSION } from '../../../../../shared/constants';
+import {
+  AI_RANGE, MAX_GRID_OFFSET, SERIES_FORMAT_VERSION, WeatherType,
+} from '../../../../../shared/constants';
 import { Discipline } from '../../../../../shared/types';
 import type {
-  Championship, ClassEntry, Round, SeriesSession, WeekendFormat,
+  Championship, ClassEntry, Round, SeriesAvailability, SeriesSession, Weather, WeekendFormat,
 } from '../../../../../shared/types';
 import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
-import { DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_TIER } from '../constants.ts';
 import {
-  bopScope,
+  DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER, PURSE_SHAPES,
+} from '../constants.ts';
+import {
+  changedTabs,
+  coeffOf,
+  daysOf,
   emptySeries,
   freeId,
+  generatePurse,
+  groupSet,
+  groupsSet,
   lengthUnit,
+  minutesOf,
   namedCars,
+  namesIn,
+  nationsIn,
   nextEntry,
   nextFormat,
   nextPoints,
   nextRound,
   nextSeat,
   nextTeam,
+  offsetBounds,
   optionalText,
+  paysInAll,
+  problemTab,
+  problemTabs,
+  racesPaying,
+  recipeOf,
   roundsRunning,
-  seatScope,
-  sessionScope,
+  seatRuns,
   sessionSource,
   sessionSources,
+  startingSeats,
+  startKindOf,
+  withBop,
   withDefaultFormat,
   withEntry,
   withEntryEligibility,
   withEntryPrizes,
   withFormat,
   withLengthUnit,
+  withoutDay,
   withoutEntry,
   withoutFormat,
+  withoutGroup,
   withoutPoints,
   withoutRound,
   withoutSession,
   withoutTeam,
+  withPlace,
   withPoints,
   withPrizes,
   withRaceIds,
@@ -45,6 +68,8 @@ import {
   withRoundLength,
   withRoundLengthsPruned,
   withSession,
+  withSessionConditionsOf,
+  withSessionMoved,
   withTeam,
 } from '../utils.ts';
 
@@ -106,6 +131,57 @@ const entry = (id: string, cars: string[], overrides: Partial<ClassEntry> = {}):
  * @returns The format
  */
 const format = (sessions: SeriesSession[]): WeekendFormat => ({ id: 'standard', name: 'Standard', sessions });
+
+/**
+ * A draft checked against the install, with nothing wrong unless a test says.
+ * @param overrides What the check found
+ * @returns The availability
+ */
+const checked = (overrides: Partial<SeriesAvailability> = {}): SeriesAvailability => ({
+  series: 'sunday-cup',
+  available: true,
+  problems: [],
+  entries: [],
+  rounds: [],
+  requires: {
+    sources: [],
+    packs: [],
+    makers: [],
+    distributors: [],
+    pools: [],
+    rounds: { packs: [], makers: [], distributors: [] },
+    widenedBy: { packs: [], makers: [], distributors: [] },
+  },
+  ...overrides,
+});
+
+/**
+ * One installed weather preset.
+ * @param id Its folder name
+ * @param type The CSP weather type it declares, or null
+ * @param temperatureCoeff How far the sun warms the road under it
+ * @returns The preset
+ */
+const preset = (id: string, type: WeatherType | null, temperatureCoeff: number): Weather => ({
+  id,
+  name: id,
+  type,
+  temperatureCoeff,
+  author: null,
+  timeDiapason: null,
+  cloudCover: 0,
+  rain: null,
+  forceHeadlights: false,
+});
+
+/**
+ * Whether a table never pays a place more than the one above it.
+ * @param values The table, the winner first
+ * @returns Whether it falls away or holds
+ */
+const nonIncreasing = (values: readonly number[]): boolean => (
+  values.every((value, place) => place === 0 || value <= values[place - 1])
+);
 
 describe('renderer/screens/championship-editor/utils', () => {
   describe('freeId', () => {
@@ -486,27 +562,6 @@ describe('renderer/screens/championship-editor/utils', () => {
       });
 
       expect(namedCars(championship, SHIPPED_CATALOGUE).sort()).toEqual(['a_car', 'b_car', 'oval_car']);
-    });
-  });
-
-  describe('seatScope', () => {
-    it('scopes seats by their class entry', () => {
-      expect(seatScope('pro')).toBe('seats-pro');
-    });
-  });
-
-  describe('bopScope', () => {
-    // Separate from seatScope so a seat and a BoP row of one class can never
-    // share a key, whatever their ids.
-    it('scopes balance of performance apart from seats of the same class', () => {
-      expect(bopScope('pro')).toBe('bop-pro');
-      expect(bopScope('pro')).not.toBe(seatScope('pro'));
-    });
-  });
-
-  describe('sessionScope', () => {
-    it('scopes sessions by their format', () => {
-      expect(sessionScope('sprint')).toBe('sessions-sprint');
     });
   });
 
@@ -906,6 +961,411 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('drops the prize block when neither table pays anything', () => {
       expect(withPrizes(series([], { prizes: { positions: [1] } }), { positions: [], standings: [] }).prizes)
         .toBeUndefined();
+    });
+  });
+
+  describe('changedTabs', () => {
+    it('marks nothing on a championship that has never been written', () => {
+      expect(changedTabs(series([]), undefined)).toEqual(new Set());
+    });
+
+    it('marks the tabs whose fields differ from what is written, and no others', () => {
+      const saved = series([]);
+      const draft = { ...saved, name: 'Monday Cup', rounds: [round('a')] };
+
+      expect(changedTabs(draft, saved)).toEqual(new Set(['overview', 'calendar']));
+    });
+
+    it('marks nothing when the draft matches what is written', () => {
+      expect(changedTabs(series([round('a')]), series([round('a')]))).toEqual(new Set());
+    });
+  });
+
+  describe('problemTab', () => {
+    it('sends a problem to the tab its subject is edited on', () => {
+      expect(problemTab('series.round.notFound')).toBe('calendar');
+      expect(problemTab('series.seat.teamUnknown')).toBe('classes');
+      expect(problemTab('series.points.unknown')).toBe('scoring');
+      expect(problemTab('series.formats.empty')).toBe('weekends');
+    });
+
+    it('sends anything it does not list to the overview', () => {
+      expect(problemTab('series.version.unsupported')).toBe('overview');
+      expect(problemTab('nonsense')).toBe('overview');
+    });
+  });
+
+  describe('problemTabs', () => {
+    it('marks nothing before the draft has been checked', () => {
+      expect(problemTabs(null)).toEqual(new Set());
+    });
+
+    it('marks the tab of every problem', () => {
+      const result = checked({
+        problems: [
+          { code: 'series.round.notFound', params: {}, message: '' },
+          { code: 'series.points.unknown', params: {}, message: '' },
+        ],
+      });
+
+      expect(problemTabs(result)).toEqual(new Set(['calendar', 'scoring']));
+    });
+
+    it('marks what the install cannot race as well as what the document gets wrong', () => {
+      const result = checked({
+        rounds: [{
+          round: 'a', track: null, pitboxes: { needed: 20, available: 12 }, entries: [], races: [],
+        }],
+        entries: [{
+          entry: 'main', eligible: [], missing: [], enough: false,
+        }],
+      });
+
+      expect(problemTabs(result)).toEqual(new Set(['calendar', 'classes']));
+    });
+  });
+
+  describe('seatRuns', () => {
+    it('splits the seats into runs of one team, keeping the grid order', () => {
+      const runs = seatRuns([
+        { id: 'a', team: 'red' }, { id: 'b', team: 'red' }, { id: 'c', team: 'blue' },
+        { id: 'd', team: 'red' }, { id: 'e' },
+      ]);
+
+      expect(runs.map((run) => [run.team, run.seats.map(({ seat, index }) => `${seat.id}${index}`)])).toEqual([
+        ['red', ['a0', 'b1']],
+        ['blue', ['c2']],
+        ['red', ['d3']],
+        [undefined, ['e4']],
+      ]);
+    });
+
+    it('has no runs for a class with no seats', () => {
+      expect(seatRuns([])).toEqual([]);
+    });
+  });
+
+  describe('withPlace', () => {
+    it('changes the one place and leaves the rest of the table alone', () => {
+      expect(withPlace([25, 18, 15], 1, 20)).toEqual([25, 20, 15]);
+    });
+  });
+
+  describe('paysInAll', () => {
+    it('adds up every place', () => {
+      expect(paysInAll([25, 18, 15])).toBe(58);
+    });
+
+    it('pays nothing for no table at all', () => {
+      expect(paysInAll(undefined)).toBe(0);
+      expect(paysInAll([])).toBe(0);
+    });
+  });
+
+  describe('withBop', () => {
+    it('adds a row for a car not balanced yet, at the end', () => {
+      expect(withBop([{ car: 'a', ballast: 10 }], 'b', { restrictor: 5 }))
+        .toEqual([{ car: 'a', ballast: 10 }, { car: 'b', restrictor: 5 }]);
+    });
+
+    it('changes a balanced car where it stands', () => {
+      expect(withBop([{ car: 'a', ballast: 10 }, { car: 'b', ballast: 5 }], 'a', { restrictor: 3 }))
+        .toEqual([{ car: 'a', ballast: 10, restrictor: 3 }, { car: 'b', ballast: 5 }]);
+    });
+
+    it('takes a car off once nothing balances it', () => {
+      expect(withBop([{ car: 'a', ballast: 10 }, { car: 'b', ballast: 5 }], 'a', { ballast: 0 }))
+        .toEqual([{ car: 'b', ballast: 5 }]);
+    });
+
+    it('writes no row for a car given nothing', () => {
+      expect(withBop([], 'a', { ballast: undefined })).toEqual([]);
+    });
+  });
+
+  describe('generatePurse', () => {
+    it('pays nothing from an empty pot or across no places', () => {
+      expect(generatePurse({ pot: 0, places: 10, shape: 'steep', round: 100 })).toEqual([]);
+      expect(generatePurse({ pot: 10000, places: 0, shape: 'steep', round: 100 })).toEqual([]);
+    });
+
+    it('rounds every place to the step and gives what is left short of one to the winner', () => {
+      expect(generatePurse({ pot: 1050, places: 2, shape: 'linear', round: 100 })).toEqual([750, 300]);
+    });
+
+    // Fixed bug: the rounding residue all went to the winner, so rounding the
+    // places below up could leave first paid less than second - this recipe
+    // came out as [1100, 1200, 1100, ...].
+    it('never pays a place more than the one above it', () => {
+      expect(generatePurse({ pot: 10000, places: 15, shape: 'linear', round: 100 }))
+        .toEqual([1300, 1200, 1100, 1000, 900, 800, 700, 700, 600, 500, 400, 300, 200, 200, 100]);
+    });
+
+    it('adds up to the pot and falls away, whatever the shape, length and rounding', () => {
+      PURSE_SHAPES.forEach((shape) => {
+        [1, 50, 100, 500, 1000].forEach((step) => {
+          [1, 3, 10, 15, 40].forEach((places) => {
+            [100, 2500, 10000, 123456].forEach((pot) => {
+              const purse = generatePurse({
+                pot, places, shape, round: step,
+              });
+
+              expect(paysInAll(purse)).toBe(pot);
+              expect(nonIncreasing(purse)).toBe(true);
+              expect(purse.every((value) => value >= 0)).toBe(true);
+            });
+          });
+        });
+      });
+    });
+  });
+
+  describe('recipeOf', () => {
+    it('reads the total, the length and the coarsest step every place fits', () => {
+      expect(recipeOf([5000, 3000, 2000])).toEqual({
+        pot: 10000, places: 3, shape: 'steep', round: 1000,
+      });
+      expect(recipeOf([1050, 500]).round).toBe(50);
+      expect(recipeOf([1001, 500]).round).toBe(1);
+    });
+
+    it('starts an empty purse at the default length', () => {
+      expect(recipeOf([])).toMatchObject({ pot: 0, places: DEFAULT_PURSE_PLACES });
+    });
+  });
+
+  describe('startingSeats', () => {
+    it('numbers the seats after the class, each fielded by the team at its place', () => {
+      expect(startingSeats(series([]), 'gt', 3, ['red', undefined]))
+        .toEqual([{ id: 'gt-1', team: 'red' }, { id: 'gt-2' }, { id: 'gt-3' }]);
+    });
+
+    it('steps round a seat id another class already spends', () => {
+      expect(startingSeats(series([]), 'main', 2, []).map((seat) => seat.id)).toEqual(['main-1-2', 'main-2']);
+    });
+  });
+
+  describe('groupSet', () => {
+    it('reads a group as set once any of its fields is', () => {
+      expect(groupSet({ windMax: 10 }, 'wind')).toBe(true);
+      expect(groupSet({ timeOfDay: '14:00' }, 'wind')).toBe(false);
+      expect(groupSet({ ambient: undefined }, 'temperature')).toBe(false);
+    });
+  });
+
+  describe('groupsSet', () => {
+    it('lists the groups that are set, in the order an editor lists them', () => {
+      expect(groupsSet({ windMin: 0, timeOfDay: '14:00', weatherType: WeatherType.RAIN }))
+        .toEqual(['weather', 'time', 'wind']);
+    });
+
+    it('lists nothing for conditions that set nothing', () => {
+      expect(groupsSet({})).toEqual([]);
+    });
+  });
+
+  describe('withoutGroup', () => {
+    it('drops every field of the group and nothing else', () => {
+      expect(withoutGroup({ ambient: 20, road: 30, timeOfDay: '14:00' }, 'temperature'))
+        .toEqual({ timeOfDay: '14:00' });
+    });
+  });
+
+  describe('minutesOf', () => {
+    it('reads a clock and decimal hours alike', () => {
+      expect(minutesOf('14:30')).toBe(870);
+      expect(minutesOf(13.5)).toBe(810);
+    });
+
+    it('reads nothing out of a missing or unreadable time', () => {
+      expect(minutesOf(undefined)).toBeUndefined();
+      expect(minutesOf('2pm')).toBeUndefined();
+    });
+  });
+
+  describe('daysOf', () => {
+    it('spans as many days as its latest session', () => {
+      expect(daysOf(format([{ type: 'practice', minutes: 30 }, { type: 'race', laps: 5, day: 2 }]))).toBe(3);
+    });
+
+    it('spans one day when nothing names one, sessions or none', () => {
+      expect(daysOf(format([{ type: 'race', laps: 5 }]))).toBe(1);
+      expect(daysOf(format([]))).toBe(1);
+    });
+  });
+
+  describe('withSessionMoved', () => {
+    const weekend = format([
+      { type: 'practice', minutes: 30, name: 'P' },
+      { type: 'qualify', minutes: 15, name: 'Q' },
+      { type: 'race', laps: 5, name: 'R', day: 1 },
+    ]);
+
+    /**
+     * Reads a format back as its sessions' names and days.
+     * @param moved The format
+     * @returns Each session as its name and its day
+     */
+    const order = (moved: WeekendFormat): string[] => moved.sessions.map((one) => `${one.name}${one.day ?? 0}`);
+
+    it('moves a session in front of another, onto the day that one is on', () => {
+      expect(order(withSessionMoved(weekend, 2, 0, 0))).toEqual(['R0', 'P0', 'Q0']);
+    });
+
+    it('moves a session to the end of another day', () => {
+      expect(order(withSessionMoved(weekend, 0, null, 1))).toEqual(['Q0', 'R1', 'P1']);
+    });
+
+    it('drops a session onto a day the weekend did not reach yet', () => {
+      expect(order(withSessionMoved(weekend, 0, null, 2))).toEqual(['Q0', 'R1', 'P2']);
+    });
+
+    // Fixed bug: a session dropped in front of itself was moved to the end of
+    // its day, because it was looked for among the sessions it had left.
+    it('leaves a session dropped in front of itself where it was', () => {
+      expect(order(withSessionMoved(weekend, 0, 0, 0))).toEqual(['P0', 'Q0', 'R1']);
+      expect(order(withSessionMoved(weekend, 1, 1, 0))).toEqual(['P0', 'Q0', 'R1']);
+    });
+
+    it('writes the first day as no day at all', () => {
+      expect(withSessionMoved(weekend, 2, 0, 0).sessions[0].day).toBeUndefined();
+    });
+  });
+
+  describe('withoutDay', () => {
+    const weekend = format([
+      { type: 'practice', minutes: 30, name: 'A' },
+      { type: 'qualify', minutes: 15, name: 'B', day: 1 },
+      { type: 'race', laps: 5, name: 'C', day: 2 },
+    ]);
+
+    it('moves the sessions of a day onto the day before, and every later day one earlier', () => {
+      expect(withoutDay(weekend, 1).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
+    });
+
+    it('moves the sessions of the first day onto the day after', () => {
+      expect(withoutDay(weekend, 0).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
+    });
+  });
+
+  describe('withSessionConditionsOf', () => {
+    const weekend = format([{ type: 'race', laps: 5 }, { type: 'race', laps: 10 }]);
+
+    it('puts the conditions on the one session', () => {
+      const next = withSessionConditionsOf(weekend, 1, { ambient: 25 });
+
+      expect(next.sessions[1].conditions).toEqual({ ambient: 25 });
+      expect(next.sessions[0].conditions).toBeUndefined();
+    });
+
+    it('leaves conditions that set nothing off the document', () => {
+      expect(withSessionConditionsOf(weekend, 0, { ambient: undefined }).sessions[0].conditions).toBeUndefined();
+    });
+  });
+
+  describe('namesIn', () => {
+    it('gathers every driver named in every class, and only those', () => {
+      const championship = series([], {
+        entries: [
+          entry('pro', ['a_car'], { seats: [{ id: 'pro-1', driver: { name: 'Ann' } }, { id: 'pro-2' }] }),
+          entry('am', ['a_car'], { seats: [{ id: 'am-1', driver: { name: 'Bob' } }] }),
+        ],
+      });
+
+      expect(namesIn(championship)).toEqual(new Set(['Ann', 'Bob']));
+    });
+  });
+
+  describe('nationsIn', () => {
+    it('counts the nations of teams and drivers, most used first and ties by code', () => {
+      const championship = series([], {
+        teams: [{ id: 'red', name: 'Red', nationCode: 'ITA' }, { id: 'blue', name: 'Blue', nationCode: 'GBR' }],
+        entries: [entry('pro', ['a_car'], {
+          seats: [
+            { id: 'pro-1', driver: { name: 'Ann', nationCode: 'ITA' } },
+            { id: 'pro-2', driver: { name: 'Bob', nationCode: 'FRA' } },
+            { id: 'pro-3', driver: { name: 'Cy' } },
+          ],
+        })],
+      });
+
+      expect(nationsIn(championship)).toEqual([['ITA', 2], ['FRA', 1], ['GBR', 1]]);
+    });
+  });
+
+  describe('offsetBounds', () => {
+    it('reaches the full step either way in the middle of the range', () => {
+      expect(offsetBounds(50)).toEqual({ min: -MAX_GRID_OFFSET, max: MAX_GRID_OFFSET });
+    });
+
+    it('stops where the sum would leave the range', () => {
+      expect(offsetBounds(AI_RANGE.max - 5)).toEqual({ min: -MAX_GRID_OFFSET, max: 5 });
+      expect(offsetBounds(AI_RANGE.min + 10)).toEqual({ min: -10, max: MAX_GRID_OFFSET });
+    });
+
+    it('only steps back down from layers already stacked past the top', () => {
+      expect(offsetBounds(AI_RANGE.max + 20)).toEqual({ min: -MAX_GRID_OFFSET, max: -20 });
+    });
+
+    it('never offers a range that runs backwards', () => {
+      const bounds = offsetBounds(AI_RANGE.min - 2 * MAX_GRID_OFFSET);
+
+      expect(bounds.max).toBeGreaterThanOrEqual(bounds.min);
+    });
+  });
+
+  describe('startKindOf', () => {
+    it('reads a slot as a position and nothing as last', () => {
+      expect(startKindOf(3)).toBe('position');
+      expect(startKindOf(undefined)).toBe('last');
+    });
+
+    it('reads the named starts as themselves', () => {
+      expect(startKindOf('pole')).toBe('pole');
+      expect(startKindOf('random')).toBe('random');
+      expect(startKindOf('last')).toBe('last');
+    });
+  });
+
+  describe('coeffOf', () => {
+    const presets = [preset('sunny', WeatherType.CLEAR, 0.5), preset('wet', WeatherType.RAIN, 1.2)];
+
+    it('takes the preset the conditions name over one declaring their type', () => {
+      expect(coeffOf({ weather: 'sunny', weatherType: WeatherType.RAIN }, presets)).toBe(0.5);
+    });
+
+    it('finds the preset declaring the type where none is named', () => {
+      expect(coeffOf({ weatherType: WeatherType.RAIN }, presets)).toBe(1.2);
+    });
+
+    it('has nothing to say where the conditions name no weather', () => {
+      expect(coeffOf({}, presets)).toBeUndefined();
+    });
+  });
+
+  describe('racesPaying', () => {
+    const championship = series([], {
+      weekendFormats: [
+        {
+          id: 'sprint',
+          name: 'Sprint',
+          sessions: [
+            { type: 'qualify', minutes: 10, pointsSystem: 'race' },
+            { type: 'race', laps: 5 },
+            { type: 'race', laps: 5, pointsSystem: 'feature' },
+          ],
+        },
+        { id: 'long', name: 'Long', sessions: [{ type: 'race', laps: 50 }] },
+      ],
+    });
+
+    it('counts every race of every format, the default paying those that name nothing', () => {
+      expect(racesPaying(championship, 'race')).toBe(2);
+      expect(racesPaying(championship, 'feature')).toBe(1);
+    });
+
+    it('counts nothing for a system no race pays', () => {
+      expect(racesPaying(championship, 'unused')).toBe(0);
     });
   });
 });

@@ -23,3 +23,9 @@ export interface BrowserMemory<C> {
    */
   scroll: number;
 }
+
+/**
+ * How a content browser lays out what it found: a grid of cards, or a table
+ * to compare across.
+ */
+export type BrowserView = 'cards' | 'list';

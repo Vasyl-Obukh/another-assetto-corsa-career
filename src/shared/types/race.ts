@@ -22,6 +22,12 @@ export type SessionType =
 export type TrackStateName = 'green' | 'fast' | 'optimum';
 
 /**
+ * Where the player lines up when no session before a race sets its grid: a
+ * named place, or a grid slot counting from one.
+ */
+export type GridStart = 'last' | 'pole' | 'random' | number;
+
+/**
  * Where a session takes its field and its order from.
  *
  * One shape for what reads as two rules, because they are the same rule. On a
@@ -110,6 +116,14 @@ export interface SessionDefinition {
    * race, which is what every weekend did before links existed.
    */
   inherit?: SessionInheritance;
+  /**
+   * Where the player lines up on a race nothing before it sets the grid of:
+   * last, on pole, at a slot counting from one, or at a slot drawn once for the
+   * weekend. Unset is last, which is what a grid with no result behind it has
+   * always given the player. Ignored behind an inherited order, since there
+   * the player starts where that session put them.
+   */
+  start?: GridStart;
   /**
    * What this session overrides of the weekend's own conditions.
    *
@@ -427,10 +441,6 @@ export interface RaceDefinition {
    * Driving aids and regulations.
    */
   assists?: Assists;
-  /**
-   * Force every entry onto the same setup.
-   */
-  fixedSetup?: boolean;
   /**
    * Enforce track limits and pit lane rules. Defaults to true.
    */

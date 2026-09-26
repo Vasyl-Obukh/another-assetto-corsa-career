@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content browsers mockup</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --secondary: oklch(0.935 0.012 252);
+  --secondary-foreground: oklch(0.28 0.03 258);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+
+  --provenance-base: oklch(0.93 0.05 155); --provenance-base-fg: oklch(0.34 0.09 155);
+  --provenance-dlc: oklch(0.93 0.06 75); --provenance-dlc-fg: oklch(0.38 0.1 62);
+  --provenance-mod: oklch(0.93 0.05 295); --provenance-mod-fg: oklch(0.38 0.13 295);
+  --provenance-dist: oklch(0.93 0.05 235); --provenance-dist-fg: oklch(0.38 0.12 250);
+
+  --d-single-seater: oklch(0.925 0.06 212); --d-single-seater-fg: oklch(0.36 0.11 215);
+  --d-sportscar: oklch(0.925 0.06 112); --d-sportscar-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --secondary: oklch(0.27 0.014 265);
+  --secondary-foreground: oklch(0.94 0.005 260);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+
+  --provenance-base: oklch(0.32 0.06 155); --provenance-base-fg: oklch(0.86 0.11 155);
+  --provenance-dlc: oklch(0.33 0.06 70); --provenance-dlc-fg: oklch(0.87 0.11 80);
+  --provenance-mod: oklch(0.33 0.07 295); --provenance-mod-fg: oklch(0.86 0.1 295);
+  --provenance-dist: oklch(0.33 0.07 245); --provenance-dist-fg: oklch(0.86 0.09 240);
+
+  --d-single-seater: oklch(0.32 0.07 212); --d-single-seater-fg: oklch(0.86 0.1 212);
+  --d-sportscar: oklch(0.32 0.07 112); --d-sportscar-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Mockup chrome (not part of the app) ---------- */
+.picker {
+  position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  padding: 10px 16px; background: var(--foreground); color: var(--background);
+}
+.picker .grp { display: flex; align-items: center; gap: 6px; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt {
+  border: 1px solid color-mix(in oklch, var(--background) 30%, transparent);
+  background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px;
+}
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 88ch; margin: 18px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); font-weight: 600; }
+.rationale ul { margin: 6px 0 0; padding-left: 18px; }
+.rationale li { margin: 2px 0; }
+
+.window {
+  max-width: 1320px; margin: 16px auto 48px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35);
+}
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; margin: 0; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { padding: 5px 10px; border-radius: 6px; font-size: 13.5px; font-weight: 500; }
+.nav a.on { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); }
+
+.screen { padding: 26px 32px 40px; }
+.title-row { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.title-row h2 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.015em; }
+.title-row p { margin: 2px 0 0; color: var(--muted-foreground); }
+
+/* ---------- Chips ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; line-height: 1;
+  padding: 4px 7px; border-radius: 6px; white-space: nowrap;
+}
+.chip.neutral { background: var(--secondary); color: var(--secondary-foreground); }
+.p-base { background: var(--provenance-base); color: var(--provenance-base-fg); }
+.p-dlc { background: var(--provenance-dlc); color: var(--provenance-dlc-fg); }
+.p-mod { background: var(--provenance-mod); color: var(--provenance-mod-fg); }
+.p-dist { background: var(--provenance-dist); color: var(--provenance-dist-fg); }
+.d-single-seater { background: var(--d-single-seater); color: var(--d-single-seater-fg); }
+.d-sportscar { background: var(--d-sportscar); color: var(--d-sportscar-fg); }
+.d-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.d-road { background: var(--d-road); color: var(--d-road-fg); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dot.d-single-seater { background: var(--d-single-seater-fg); }
+.dot.d-sportscar { background: var(--d-sportscar-fg); }
+.dot.d-touring { background: var(--d-touring-fg); }
+.dot.d-road { background: var(--d-road-fg); }
+.dot.p-base { background: var(--provenance-base-fg); }
+.dot.p-dlc { background: var(--provenance-dlc-fg); }
+.dot.p-mod { background: var(--provenance-mod-fg); }
+.dot.p-dist { background: var(--provenance-dist-fg); }
+.flag { width: 20px; height: 14px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px var(--border); }
+.flag.none { box-shadow: none; border: 1px dashed var(--border); }
+
+/* ---------- Toolbar (bar mode) ---------- */
+.toolbar { position: relative; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 20px 0 10px; }
+.search {
+  display: flex; align-items: center; gap: 8px; flex: 1 1 260px; max-width: 340px;
+  border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 7px 10px; color: var(--muted-foreground);
+}
+.facet {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px dashed var(--border); background: transparent; border-radius: 8px; padding: 6px 10px; font-size: 13px;
+}
+.facet.solid { border-style: solid; background: var(--card); }
+.facet.on { border-style: solid; border-color: color-mix(in oklch, var(--primary) 45%, var(--border)); background: color-mix(in oklch, var(--primary) 7%, var(--card)); }
+.facet .n { background: var(--primary); color: var(--primary-foreground); border-radius: 999px; font-size: 11px; padding: 1px 6px; font-weight: 600; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 6px 9px; display: grid; place-items: center; color: var(--muted-foreground); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--foreground); }
+.push { margin-left: auto; }
+.active-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 16px; font-size: 13px; color: var(--muted-foreground); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 6px 3px 10px;
+  background: color-mix(in oklch, var(--primary) 9%, var(--card)); color: var(--foreground); border: 1px solid color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+.pill b { font-weight: 600; }
+.pill .x { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: none; border: 0; color: var(--muted-foreground); padding: 0; }
+.linkish { background: none; border: 0; color: var(--primary); padding: 2px 4px; font-size: 13px; }
+
+/* "More filters" popover */
+.pop {
+  position: absolute; z-index: 30; top: 44px; right: 0; width: 560px; padding: 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 16px 40px -16px oklch(0.2 0.02 260 / .4);
+  display: none; grid-template-columns: 1fr 1fr; gap: 14px 18px;
+}
+.pop.open { display: grid; }
+
+/* ---------- Rail mode ---------- */
+.with-rail { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; margin-top: 20px; align-items: start; }
+.rail {
+  position: sticky; top: 64px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 6px 0; max-height: calc(100vh - 90px); overflow: auto;
+}
+.rail .sec { padding: 10px 14px; border-top: 1px solid var(--border); }
+.rail .sec:first-child { border-top: 0; }
+.rail h4, .pop h4 { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.rail h4 small, .pop h4 small { font-weight: 400; color: var(--muted-foreground); }
+.opt-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; }
+.opt-row .box { width: 15px; height: 15px; border: 1px solid color-mix(in oklch, var(--foreground) 30%, transparent); border-radius: 4px; flex: none; display: grid; place-items: center; }
+.opt-row.on .box { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.opt-row .c { margin-left: auto; color: var(--muted-foreground); font-size: 12px; }
+.opt-row .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.range { display: flex; gap: 6px; align-items: center; }
+.range span.in { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12.5px; color: var(--muted-foreground); background: var(--background); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; }
+.sw { width: 30px; height: 17px; border-radius: 999px; background: var(--muted); position: relative; flex: none; border: 1px solid var(--border); }
+.sw::after { content: ""; position: absolute; top: 1px; left: 1px; width: 13px; height: 13px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.sw.on { background: var(--primary); border-color: var(--primary); }
+.sw.on::after { left: 14px; }
+.rail-top { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.rail-top .search { max-width: none; }
+.count { color: var(--muted-foreground); font-size: 13px; }
+
+/* ---------- Cards ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s;
+}
+.card:hover { border-color: var(--primary); box-shadow: 0 0 20px 2px color-mix(in oklch, var(--primary) 30%, transparent); }
+.shot { position: relative; aspect-ratio: 16 / 9; background: var(--muted); overflow: hidden; }
+.shot > img.photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.shot .over-tl { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.shot .over-tl .chip { box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.shot .over-br {
+  position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 5px;
+  background: oklch(0.15 0.01 260 / .62); color: oklch(0.97 0 0); backdrop-filter: blur(6px);
+  border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 500;
+}
+.shot .outline-over {
+  position: absolute; right: 8px; bottom: 8px; width: 34%; aspect-ratio: 4 / 3; border-radius: 8px;
+  background: oklch(0.15 0.01 260 / .55); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 6px;
+}
+/* Outlines ship white, black or both, so they are flattened to one colour first. */
+.shot .outline-over img { max-width: 100%; max-height: 100%; filter: brightness(0) invert(1) drop-shadow(0 0 1px oklch(0 0 0 / .5)); }
+.body { padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.maker { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted-foreground); min-width: 0; }
+.maker .logo { width: 20px; height: 20px; object-fit: contain; flex: none; }
+.maker .yr { margin-left: auto; font-variant-numeric: tabular-nums; }
+.maker .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.name { font-weight: 600; font-size: 15px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.stats div { padding: 6px 8px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.stats div + div { border-left: 1px solid var(--border); }
+.stats b { font-size: 14.5px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stats small { font-size: 11px; color: var(--muted-foreground); }
+.stats .na { color: var(--muted-foreground); font-weight: 400; }
+.foot { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted-foreground); padding-top: 9px; border-top: 1px solid var(--border); margin-top: auto; }
+.foot b { color: var(--foreground); font-weight: 600; }
+.layouts { display: flex; gap: 5px; }
+.layouts span {
+  width: 42px; height: 32px; border-radius: 6px; background: var(--muted); display: grid; place-items: center; padding: 3px;
+  font-size: 11.5px; color: var(--muted-foreground); font-weight: 600;
+}
+.layouts img { max-width: 100%; max-height: 100%; filter: brightness(0); opacity: .7; }
+.thumb.outline img { filter: brightness(0); opacity: .75; }
+:root[data-theme="dark"] .layouts img, :root[data-theme="dark"] .thumb.outline img { filter: brightness(0) invert(1); opacity: .85; }
+
+/* ---------- List ---------- */
+.table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.table table { width: 100%; border-collapse: collapse; }
+.table th {
+  text-align: left; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground);
+  padding: 10px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; user-select: none;
+}
+.table th.s { cursor: pointer; }
+.table th.s:hover { color: var(--foreground); }
+.table th.on { color: var(--foreground); font-weight: 600; }
+.table th.r, .table td.r { text-align: right; }
+.table td { padding: 8px 10px; border-top: 1px solid var(--border); vertical-align: middle; font-size: 13.5px; }
+.table tr:first-child td { border-top: 0; }
+.table tbody tr:hover { background: color-mix(in oklch, var(--accent) 55%, transparent); cursor: pointer; }
+.thumb { width: 92px; height: 52px; border-radius: 6px; overflow: hidden; background: var(--muted); display: grid; place-items: center; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb.outline { padding: 5px; }
+.thumb.outline img { object-fit: contain; }
+.tn { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tn b { font-weight: 600; }
+.tn span { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 12.5px; }
+.tn .logo { width: 16px; height: 16px; object-fit: contain; }
+.bar { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.bar i { display: block; width: 54px; height: 5px; border-radius: 3px; background: var(--muted); overflow: hidden; }
+.bar i::before { content: ""; display: block; height: 100%; width: var(--w); background: var(--primary); opacity: .7; border-radius: 3px; }
+.muted { color: var(--muted-foreground); }
+.dots { display: inline-flex; align-items: center; gap: 4px; }
+
+@media (max-width: 900px) {
+  .with-rail { grid-template-columns: 1fr; }
+  .rail { position: static; max-height: none; }
+  .screen, .app-header { padding-left: 16px; padding-right: 16px; }
+  .table { overflow-x: auto; }
+  .pop { width: min(560px, 92vw); grid-template-columns: 1fr; }
+}
+
+/* ---------- Rail, interactive ---------- */
+.with-rail { position: relative; }
+.rail { padding: 0; top: 12px; }
+.rail-h { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.rail .sec { padding: 0; }
+.rail .sec.plain { padding: 8px 14px; }
+.sec-h { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 10px 14px; font-size: 12.5px; font-weight: 600; text-align: left; }
+.sec-h:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.sec-h .n, .fly-h .n { background: var(--primary); color: var(--primary-foreground); border-radius: 999px; font-size: 11px; padding: 0 6px; font-weight: 600; }
+.sec-h .push { flex: 1; }
+.sec-h svg { color: var(--muted-foreground); }
+.sec-b { padding: 0 14px 12px; }
+.sum { padding: 0 14px 10px; margin-top: -4px; font-size: 12.5px; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opt-row { padding: 0; gap: 2px; }
+.opt-row .pick { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; border: 0; background: none; padding: 4px 4px; border-radius: 5px; text-align: left; font-size: 13px; }
+.opt-row .pick:hover { background: var(--accent); }
+.opt-row.part .box { background: color-mix(in oklch, var(--primary) 20%, transparent); border-color: var(--primary); color: var(--primary); }
+.tw { border: 0; background: none; width: 18px; height: 22px; padding: 0; display: grid; place-items: center; color: var(--muted-foreground); border-radius: 4px; margin-left: -4px; }
+.tw:hover { background: var(--accent); color: var(--foreground); }
+.mini-search { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; margin-bottom: 6px; background: var(--background); color: var(--muted-foreground); }
+.mini-search input { border: 0; outline: 0; background: transparent; font: inherit; font-size: 12.5px; color: var(--foreground); min-width: 0; flex: 1; }
+.mini-search.grow { flex: 1; margin: 0; }
+.pinned { border-bottom: 1px dashed var(--border); padding-bottom: 4px; margin-bottom: 4px; }
+.scroll { max-height: 220px; overflow: auto; margin-right: -8px; padding-right: 8px; }
+.scroll.tall { max-height: 300px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding-top: 2px; }
+.az { position: sticky; top: 0; background: var(--card); font-size: 11px; font-weight: 700; color: var(--muted-foreground); padding: 6px 4px 2px; z-index: 1; }
+.none { color: var(--muted-foreground); font-size: 12.5px; text-align: center; margin: 10px 0; }
+.more-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px; border: 1px solid var(--border); background: var(--background); border-radius: 6px; padding: 5px 8px; font-size: 12.5px; }
+.more-btn:hover { border-color: var(--primary); color: var(--primary); }
+button.switch-row { width: 100%; border: 0; background: none; padding: 5px 0; text-align: left; }
+.switch-row .c { color: var(--muted-foreground); font-size: 12px; margin-left: 4px; }
+.hist { display: flex; align-items: flex-end; gap: 1px; height: 34px; margin: 2px 0 0; }
+.hist i { flex: 1; background: var(--muted); border-radius: 2px 2px 0 0; }
+.hist i.in { background: color-mix(in oklch, var(--primary) 55%, transparent); }
+.dual { position: relative; height: 18px; margin-bottom: 6px; }
+.dual input { position: absolute; inset: 0; width: 100%; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.dual input::-webkit-slider-runnable-track { height: 3px; background: transparent; }
+.dual::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 3px; border-radius: 2px; background: var(--border); }
+.dual input::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 15px; height: 15px; margin-top: -6px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); cursor: grab; position: relative; z-index: 2; }
+.range .unit { font-size: 12px; color: var(--muted-foreground); }
+.grid.three { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.empty { padding: 60px 0; text-align: center; color: var(--muted-foreground); }
+.flyout {
+  position: absolute; z-index: 40; left: 262px; top: 0; width: min(640px, calc(100% - 262px)); max-height: min(78vh, 640px);
+  display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 24px 60px -20px oklch(0.2 0.02 260 / .45);
+}
+.fly-h { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.icon-btn { border: 0; background: none; width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: var(--muted-foreground); }
+.icon-btn:hover { background: var(--accent); color: var(--foreground); }
+.letters { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 12px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; }
+.letters a, .letters span { width: 20px; text-align: center; padding: 2px 0; border-radius: 4px; text-decoration: none; }
+.letters a { color: var(--primary); }
+.letters a:hover { background: var(--accent); }
+.letters span { color: color-mix(in oklch, var(--muted-foreground) 45%, transparent); }
+.fly-b { overflow: auto; padding: 4px 14px 10px; columns: 3 170px; column-gap: 18px; }
+.fly-g { break-inside: avoid-column; }
+.fly-g .az { position: static; background: none; }
+.fly-f { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
+.primary { background: var(--primary); color: var(--primary-foreground); border: 0; border-radius: 7px; padding: 6px 14px; font-weight: 500; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="picker" role="toolbar" aria-label="Mockup options">
+  <div class="grp"><strong>Page</strong>
+    <button class="opt" data-k="page" data-v="cars">Cars</button>
+    <button class="opt" data-k="page" data-v="tracks">Tracks</button>
+  </div>
+  <div class="grp"><strong>Long lists</strong>
+    <button class="opt" data-k="long" data-v="inline">1 - Inline</button>
+    <button class="opt" data-k="long" data-v="flyout">2 - Flyout</button>
+  </div>
+  <div class="grp"><strong>View</strong>
+    <button class="opt" data-k="view" data-v="cards">Cards</button>
+    <button class="opt" data-k="view" data-v="list">List</button>
+  </div>
+  <span class="spacer"></span>
+  <button class="opt" id="theme" aria-pressed="false">Dark</button>
+</div>
+
+<div class="rationale" id="why"></div>
+
+<div class="window">
+  <header class="app-header">
+    <h1>AC Career</h1>
+    <nav class="nav"><a>Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a id="nav-cars">Cars</a><a id="nav-tracks">Tracks</a><a>Settings</a></nav>
+  </header>
+  <div class="screen" id="screen"></div>
+</div>
+
+<script>
+const DATA = {"cars": [{"id": "ks_ferrari_488_gt3", "name": "Ferrari 488 GT3", "brand": "Ferrari", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 500, "kg": 1270, "pw": 393.7, "skins": 22, "prov": {"source": "dlc", "pack": "red-pack", "maker": null, "distributor": null}, "specs": ["GT3 (2010s)"], "classes": ["GT3"], "series": 3, "disciplines": {"sportscar": 3}, "tiers": [3, 3], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_ferrari_488_gt3/skins/00_rosso_scuderia/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_ferrari_488_gt3/ui/badge.png", "countryCode": null}, {"id": "porsche_992_gt3_r_2023", "name": "Porsche 992 GT3 R 2023", "brand": "Porsche", "year": 2023, "country": "Germany", "flag": {"code": "DEU", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/DEU.png"}, "bhp": 535, "kg": 1345, "pw": 397.8, "skins": 17, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "specs": ["GT3 (LFM)", "DTM 2025 (LFM)"], "classes": ["GT3", "DTM"], "series": 10, "disciplines": {"sportscar": 9, "touring": 1}, "tiers": [2, 3], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/porsche_992_gt3_r_2023/skins/2023 AO Racing 80 Rexy/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/porsche_992_gt3_r_2023/ui/badge.png", "countryCode": "DEU"}, {"id": "ferrari_499p_2023", "name": "Ferrari 499P LMH 2023", "brand": "Ferrari", "year": 2023, "country": "Italy", "flag": {"code": "ITA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/ITA.png"}, "bhp": 800, "kg": 1110, "pw": 720.7, "skins": 10, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "specs": ["Hypercar (LFM)"], "classes": ["Le Mans Hypercar"], "series": 2, "disciplines": {"sportscar": 2}, "tiers": [1, 1], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ferrari_499p_2023/skins/Skin00/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ferrari_499p_2023/ui/badge.png", "countryCode": "ITA"}, {"id": "ks_corvette_c7r", "name": "Chevrolet Corvette C7R", "brand": "Chevrolet", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 495, "kg": 1320, "pw": 375, "skins": 18, "prov": {"source": "dlc", "pack": "dream-pack-1", "maker": null, "distributor": null}, "specs": ["GTE (2017)"], "classes": ["GTE"], "series": 5, "disciplines": {"sportscar": 5}, "tiers": [2, 2], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_corvette_c7r/skins/0_racing_3/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_corvette_c7r/ui/badge.png", "countryCode": null}, {"id": "yzd_oreca_07_2017", "name": "2017 Oreca 07 LMP2", "brand": "Oreca", "year": 2017, "country": "France", "flag": {"code": "FRA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/FRA.png"}, "bhp": 603, "kg": 930, "pw": 648.4, "skins": 76, "prov": {"source": "mod", "pack": null, "maker": "yezhrod", "distributor": null}, "specs": ["LMP2 (2017)"], "classes": ["LMP2"], "series": 2, "disciplines": {"sportscar": 2}, "tiers": [1, 2], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/yzd_oreca_07_2017/skins/1 Oreca Showcar/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/yzd_oreca_07_2017/ui/badge.png", "countryCode": "FRA"}, {"id": "rss_formula_hybrid_2021", "name": "Formula Hybrid 2021", "brand": "Race Sim Studio", "year": 2021, "country": "Great Britain", "flag": {"code": "GBR", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/GBR.png"}, "bhp": 1000, "kg": 752, "pw": 1329.8, "skins": 53, "prov": {"source": "mod", "pack": null, "maker": "rss", "distributor": null}, "specs": ["Formula 1 2021"], "classes": ["Formula 1"], "series": 1, "disciplines": {"single-seater": 1}, "tiers": [1, 1], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_formula_hybrid_2021/skins/-_001_icon_44/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_formula_hybrid_2021/ui/badge.png", "countryCode": "GBR"}, {"id": "ks_lotus_72d", "name": "Lotus 72D", "brand": "Lotus Classic Cars", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 440, "kg": 550, "pw": 800.0, "skins": 16, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "specs": ["Formula 1 1971"], "classes": ["Formula 1"], "series": 2, "disciplines": {"single-seater": 2}, "tiers": [1, 2], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_lotus_72d/skins/classic_lotus_5/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_lotus_72d/ui/badge.png", "countryCode": null}, {"id": "vrc_1991_jordan_191", "name": "Jordan-Ford 191", "brand": "F1 VRC OWC", "year": 1991, "country": null, "flag": {"code": null, "url": null}, "bhp": 660, "kg": 505, "pw": 1306.9, "skins": 7, "prov": {"source": "mod", "pack": null, "maker": "vrc", "distributor": null}, "specs": ["Formula 1 1991"], "classes": ["Formula 1"], "series": 1, "disciplines": {"single-seater": 1}, "tiers": [1, 1], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/vrc_1991_jordan_191/skins/191_shakedown/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/vrc_1991_jordan_191/ui/badge.png", "countryCode": null}, {"id": "rss_formula_rss_4", "name": "Formula RSS 4", "brand": "Race Sim Studio", "year": 2017, "country": "Spain", "flag": {"code": "ESP", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/ESP.png"}, "bhp": 160, "kg": 620, "pw": 258.1, "skins": 20, "prov": {"source": "mod", "pack": null, "maker": "rss", "distributor": null}, "specs": ["Formula 4"], "classes": ["Formula 4"], "series": 1, "disciplines": {"single-seater": 1}, "tiers": [5, 5], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_formula_rss_4/skins/01_Team_RSS/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_formula_rss_4/ui/badge.png", "countryCode": "ESP"}, {"id": "bmw_m3_e30_dtm", "name": "BMW M3 E30 Gr.A 92", "brand": "BMW", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 350, "kg": 945, "pw": 370.4, "skins": 4, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "specs": ["DTM 1993"], "classes": ["DTM"], "series": 1, "disciplines": {"touring": 1}, "tiers": [2, 2], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/bmw_m3_e30_dtm/skins/0_fina_7/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/bmw_m3_e30_dtm/ui/badge.png", "countryCode": null}, {"id": "gt4_bmw_m4", "name": "BMW M4 GT4", "brand": "BMW", "year": 2018, "country": "Germany", "flag": {"code": "DEU", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/DEU.png"}, "bhp": 445, "kg": 1430, "pw": 311.2, "skins": 28, "prov": {"source": "mod", "pack": null, "maker": "guerilla", "distributor": null}, "specs": ["GT4"], "classes": ["GT4"], "series": 1, "disciplines": {"sportscar": 1}, "tiers": [4, 4], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/gt4_bmw_m4/skins/13_Castrol_GT4/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/gt4_bmw_m4/ui/badge.png", "countryCode": "DEU"}, {"id": "fw_cupra_tcr_2024", "name": "Cupra Leon Competición 2024", "brand": "Cupra", "year": 2020, "country": "Spain", "flag": {"code": "ESP", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/ESP.png"}, "bhp": 340, "kg": 1190, "pw": 285.7, "skins": 40, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "specs": ["TCR"], "classes": ["TCR"], "series": 1, "disciplines": {"touring": 1}, "tiers": [3, 3], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/fw_cupra_tcr_2024/skins/14_cizin_2023/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/fw_cupra_tcr_2024/ui/badge.png", "countryCode": "ESP"}, {"id": "ks_ford_gt40", "name": "Ford GT40", "brand": "Ford", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 430, "kg": 1025, "pw": 419.5, "skins": 17, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "specs": ["Sports Prototype (60s)"], "classes": ["Sports Prototype"], "series": 1, "disciplines": {"sportscar": 1}, "tiers": [1, 1], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_ford_gt40/skins/0_blue_stripes/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_ford_gt40/ui/badge.png", "countryCode": null}, {"id": "ks_abarth500_assetto_corse", "name": "Abarth 500 Assetto Corse", "brand": "Abarth", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 195, "kg": 930, "pw": 209.7, "skins": 17, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "specs": [], "classes": [], "series": 1, "disciplines": {"touring": 1}, "tiers": [5, 5], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_abarth500_assetto_corse/skins/0_official/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_abarth500_assetto_corse/ui/badge.png", "countryCode": null}, {"id": "ks_alfa_giulia_qv", "name": "Alfa Romeo Giulia Quadrifoglio", "brand": "Alfa Romeo", "year": null, "country": null, "flag": {"code": null, "url": null}, "bhp": 510, "kg": 1595, "pw": 319.7, "skins": 7, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "specs": [], "classes": [], "series": 1, "disciplines": {"road": 1}, "tiers": [3, 3], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_alfa_giulia_qv/skins/00_Rosso_Competizione/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/ks_alfa_giulia_qv/ui/badge.png", "countryCode": null}, {"id": "rss_gtm_mercer_v8", "name": "GT-M Mercer V8", "brand": "Race Sim Studio", "year": 2024, "country": "Germany", "flag": {"code": "DEU", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/DEU.png"}, "bhp": 500, "kg": 1390, "pw": 359.7, "skins": 5, "prov": {"source": "mod", "pack": null, "maker": "rss", "distributor": null}, "specs": ["GT3 (RSS)", "DTM 2021 (RSS)", "DTM 2025 (RSS)"], "classes": ["GT3", "DTM"], "series": 3, "disciplines": {"sportscar": 1, "touring": 2}, "tiers": [2, 3], "img": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_gtm_mercer_v8/skins/01_rss_performance_86/preview.jpg", "badge": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/cars/rss_gtm_mercer_v8/ui/badge.png", "countryCode": "DEU"}], "tracks": [{"id": "spa", "name": "Spa", "country": "Belgium", "flag": {"code": "BEL", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/BEL.png"}, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "", "name": "Spa", "len": 7004, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/preview.png"}, {"layout": "spa_fa_2026", "name": "Spa - FA 2026", "len": 7004, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/spa_fa_2026/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/spa_fa_2026/preview.png"}, {"layout": "2022", "name": "Spa 2022", "len": 7004, "pits": 47, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022/preview.png"}, {"layout": "2022_lfm_rolling", "name": "Spa 2022 - LFM (Short Rolling Start)", "len": 7004, "pits": 47, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022_lfm_rolling/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022_lfm_rolling/preview.png"}, {"layout": "2022_lfm_standing", "name": "Spa 2022 - LFM (Standing Start)", "len": 7004, "pits": 47, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022_lfm_standing/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/spa/ui/2022_lfm_standing/preview.png"}], "len": [7004, 7004], "pits": [24, 47], "located": false, "series": 81, "disciplines": {"single-seater": 38, "sportscar": 32, "road": 8, "touring": 4}, "countryCode": "BEL"}, {"id": "ks_silverstone", "name": "Silverstone - International", "country": "Great Britain", "flag": {"code": "GBR", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/GBR.png"}, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "international", "name": "Silverstone - International", "len": 3619, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/international/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/international/preview.png"}, {"layout": "national", "name": "Silverstone - National", "len": 2638, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/national/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/national/preview.png"}, {"layout": "national_osrw", "name": "Silverstone - National OSRW", "len": 2638, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/national_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/national_osrw/preview.png"}, {"layout": "gp", "name": "Silverstone GP", "len": 5901, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/gp/preview.png"}, {"layout": "gp_fa_2026", "name": "Silverstone GP - FA 2026", "len": 5901, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/gp_fa_2026/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_silverstone/ui/gp_fa_2026/preview.png"}], "len": [2638, 5901], "pits": [24, 32], "located": false, "series": 62, "disciplines": {"single-seater": 33, "sportscar": 20, "road": 7, "touring": 3}, "countryCode": "GBR"}, {"id": "ks_red_bull_ring", "name": "Red Bull Ring GP", "country": "Austria", "flag": {"code": "AUT", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/AUT.png"}, "prov": {"source": "dlc", "pack": "red-pack", "maker": null, "distributor": null}, "layouts": [{"layout": "layout_gp", "name": "Red Bull Ring GP", "len": 4326, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp/preview.png"}, {"layout": "layout_gp_fa_2026", "name": "Red Bull Ring GP - FA 2026", "len": 4326, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp_fa_2026/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp_fa_2026/preview.png"}, {"layout": "layout_gp_lfm", "name": "Red Bull Ring GP - LFM", "len": 4326, "pits": 48, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp_lfm/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_gp_lfm/preview.png"}, {"layout": "layout_national", "name": "Red Bull Ring National", "len": 2336, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_national/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_red_bull_ring/ui/layout_national/preview.png"}], "len": [2336, 4326], "pits": [24, 48], "located": false, "series": 37, "disciplines": {"single-seater": 28, "sportscar": 6, "touring": 3}, "countryCode": "AUT"}, {"id": "ks_brands_hatch", "name": "Brands Hatch - GP", "country": "Great Britain", "flag": {"code": "GBR", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/GBR.png"}, "prov": {"source": "dlc", "pack": "dream-pack-3", "maker": null, "distributor": null}, "layouts": [{"layout": "gp", "name": "Brands Hatch - GP", "len": 3908, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/gp/preview.png"}, {"layout": "gp_osrw", "name": "Brands Hatch - GP OSRW", "len": 3908, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/gp_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/gp_osrw/preview.png"}, {"layout": "indy", "name": "Brands Hatch - Indy", "len": 1929, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/indy/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/indy/preview.png"}, {"layout": "indy_osrw", "name": "Brands Hatch - Indy OSRW", "len": 1929, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/indy_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_brands_hatch/ui/indy_osrw/preview.png"}], "len": [1929, 3908], "pits": [24, 32], "located": false, "series": 15, "disciplines": {"single-seater": 4, "sportscar": 8, "road": 2, "touring": 2}, "countryCode": "GBR"}, {"id": "sx_lemans_lfm", "name": "ACF Le Mans 24h", "country": "France", "flag": {"code": "FRA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/FRA.png"}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "layouts": [{"layout": "acf_chicane_24h", "name": "ACF Le Mans 24h", "len": 13626, "pits": 45, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/acf_chicane_24h/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/acf_chicane_24h/preview.png"}, {"layout": "chicane", "name": "Le Mans", "len": 13626, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane/preview.png"}, {"layout": "chicane_24h_race", "name": "Le Mans - 24h race start special", "len": 13626, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_24h_race/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_24h_race/preview.png"}, {"layout": "chicane_lfm_shortrolling_v4", "name": "Le Mans - LFM (Short Rolling Start)", "len": 13626, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_lfm_shortrolling_v4/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_lfm_shortrolling_v4/preview.png"}, {"layout": "chicane_lfm_standing_v4", "name": "Le Mans - LFM (Standing Start)", "len": 13626, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_lfm_standing_v4/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicane_lfm_standing_v4/preview.png"}, {"layout": "nochicaneperf", "name": "Le Mans - no chicane performance", "len": 13100, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/nochicaneperf/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/nochicaneperf/preview.png"}, {"layout": "chicaneperf", "name": "Le Mans - performance", "len": 13626, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicaneperf/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/chicaneperf/preview.png"}, {"layout": "nochicane", "name": "Le Mans no chicane", "len": 13100, "pits": 70, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/nochicane/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/sx_lemans_lfm/ui/nochicane/preview.png"}], "len": [13100, 13626], "pits": [45, 70], "located": true, "series": 11, "disciplines": {"sportscar": 11}, "countryCode": "FRA"}, {"id": "rt_bathurst", "name": "Bathurst (Mount Panorama)", "country": "Australia", "flag": {"code": "AUS", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/AUS.png"}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "layouts": [{"layout": "", "name": "Bathurst (Mount Panorama)", "len": 6213, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_bathurst/ui/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_bathurst/ui/preview.png"}], "len": [6213, 6213], "pits": [36, 36], "located": true, "series": 3, "disciplines": {"sportscar": 1, "road": 1, "touring": 1}, "countryCode": "AUS"}, {"id": "ks_vallelunga", "name": "Vallelunga", "country": "Italy", "flag": {"code": "ITA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/ITA.png"}, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "extended_circuit", "name": "Vallelunga", "len": 4085, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/extended_circuit/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/extended_circuit/preview.png"}, {"layout": "classic_circuit", "name": "Vallelunga - Classic", "len": 3222, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/classic_circuit/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/classic_circuit/preview.png"}, {"layout": "classic_circuit_osrw", "name": "Vallelunga - Classic OSRW", "len": 3222, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/classic_circuit_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/classic_circuit_osrw/preview.png"}, {"layout": "club_circuit", "name": "Vallelunga - Club", "len": 1746, "pits": 24, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/club_circuit/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/club_circuit/preview.png"}, {"layout": "club_circuit_osrw", "name": "Vallelunga - Club OSRW", "len": 1746, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/club_circuit_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/club_circuit_osrw/preview.png"}, {"layout": "extended_circuit_osrw", "name": "Vallelunga OSRW", "len": 4085, "pits": 32, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/extended_circuit_osrw/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/ks_vallelunga/ui/extended_circuit_osrw/preview.png"}], "len": [1746, 4085], "pits": [24, 32], "located": false, "series": 9, "disciplines": {"single-seater": 4, "touring": 2, "road": 2, "sportscar": 1}, "countryCode": "ITA"}, {"id": "vhe_interlagos", "name": "ACF Interlagos - GP", "country": "Brazil", "flag": {"code": "BRA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/BRA.png"}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "layouts": [{"layout": "acf_gp", "name": "ACF Interlagos - GP", "len": 4309, "pits": 43, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/acf_gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/acf_gp/preview.png"}, {"layout": "acf_gp_lfm", "name": "ACF Interlagos - GP - LFM v2", "len": 4309, "pits": 43, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/acf_gp_lfm/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/acf_gp_lfm/preview.png"}, {"layout": "", "name": "GP Endurance - Interlagos", "len": 4309, "pits": 26, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/preview.png"}, {"layout": "gp", "name": "GP Endurance - Interlagos - GP", "len": 4309, "pits": 30, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/gp/preview.png"}, {"layout": "norm", "name": "GP Endurance - Interlagos - National", "len": 4309, "pits": 30, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/norm/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/norm/preview.png"}, {"layout": "kart", "name": "Kartdromo Interlagos", "len": 996, "pits": 16, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/kart/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/vhe_interlagos/ui/kart/preview.png"}], "len": [996, 4309], "pits": [16, 43], "located": true, "series": 33, "disciplines": {"single-seater": 27, "sportscar": 6}, "countryCode": "BRA"}, {"id": "rt_fuji_speedway", "name": "Fuji Speedway GP", "country": "Japan", "flag": {"code": "JPN", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/JPN.png"}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": "lfm"}, "layouts": [{"layout": "layout_gp", "name": "Fuji Speedway GP", "len": 4549, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp/preview.png"}, {"layout": "layout_gp_lfmv2", "name": "Fuji Speedway GP - LFM", "len": 4549, "pits": 72, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp_lfmv2/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp_lfmv2/preview.png"}, {"layout": "layout_gp_lfm_nodrs", "name": "Fuji Speedway GP - LFM", "len": 4549, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp_lfm_nodrs/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gp_lfm_nodrs/preview.png"}, {"layout": "layout_gpshort", "name": "Fuji Speedway GP Short", "len": 4526, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort/preview.png"}, {"layout": "layout_gpshort_lfmv2", "name": "Fuji Speedway GP Short - LFM", "len": 4526, "pits": 72, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort_lfmv2/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort_lfmv2/preview.png"}, {"layout": "layout_gpshort_lfm_nodrs", "name": "Fuji Speedway GP Short - LFM", "len": 4526, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort_lfm_nodrs/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_fuji_speedway/ui/layout_gpshort_lfm_nodrs/preview.png"}], "len": [4526, 4549], "pits": [36, 72], "located": true, "series": 16, "disciplines": {"single-seater": 3, "sportscar": 8, "road": 4, "touring": 1}, "countryCode": "JPN"}, {"id": "rt_suzuka", "name": "Suzuka International Circuit East", "country": "Japan", "flag": {"code": "JPN", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/JPN.png"}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "suzukaeast", "name": "Suzuka International Circuit East", "len": 2243, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukaeast/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukaeast/preview.png"}, {"layout": "suzukagp", "name": "Suzuka International Circuit GP", "len": 5807, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukagp/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukagp/preview.png"}, {"layout": "suzukawest", "name": "Suzuka International Circuit West", "len": 3466, "pits": 16, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukawest/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/rt_suzuka/ui/suzukawest/preview.png"}], "len": [2243, 5807], "pits": [16, 36], "located": true, "series": 0, "disciplines": {}, "countryCode": "JPN"}, {"id": "trento-bondone", "name": "Trento-Bondone", "country": "Italy", "flag": {"code": "ITA", "url": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/ITA.png"}, "prov": {"source": "base", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "", "name": "Trento-Bondone", "len": 17619, "pits": 4, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/trento-bondone/ui/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/trento-bondone/ui/preview.png"}], "len": [17619, 17619], "pits": [4, 4], "located": false, "series": 0, "disciplines": {}, "countryCode": "ITA"}, {"id": "00_pascani_motorpark", "name": "Pascani Motorpark A", "country": null, "flag": {"code": null, "url": null}, "prov": {"source": "mod", "pack": null, "maker": null, "distributor": null}, "layouts": [{"layout": "a1", "name": "Pascani Motorpark A", "len": 4451, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/a1/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/a1/preview.png"}, {"layout": "b1", "name": "Pascani Motorpark B", "len": 3113, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/b1/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/b1/preview.png"}, {"layout": "o1", "name": "Pascani Motorpark O", "len": 3081, "pits": 36, "outline": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/o1/outline.png", "preview": "file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/tracks/00_pascani_motorpark/ui/o1/preview.png"}], "len": [3081, 4451], "pits": [36, 36], "located": true, "series": 0, "disciplines": {}, "countryCode": null}], "facets": {"cars": {"classes": [["Formula 1", 52, [["Formula 1 1988", 4], ["Formula 1 1967", 2], ["Formula 1 2013", 2], ["Formula 1 1997", 2], ["Formula 1 2015", 2], ["Formula 1 2017", 2], ["Formula 1 2018", 2], ["Formula 1 2022 (RSS)", 2], ["Formula 1 1970", 2], ["Formula 1 1986", 2], ["Formula 1 1990", 2], ["Formula 1 2005", 2], ["Formula 1 2007", 2], ["Formula 1 2009", 2], ["Formula 1 1975", 1], ["Formula 1 2004", 1], ["Formula 1 2019", 1], ["Formula 1 2020", 1], ["Formula 1 2021", 1], ["Formula 1 2023 (RSS)", 1], ["Formula 1 2024 (RSS)", 1], ["Formula 1 2025 (RSS)", 1], ["Formula 1 2026 (RSS)", 1], ["Formula 1 1979", 1], ["Formula 1 2000", 1], ["Formula 1 2010", 1], ["Formula 1 1991", 1], ["Formula 1 1971", 1], ["Formula 1 1962", 1], ["Formula 1 1957", 1], ["Formula 1 1954", 1], ["Formula 1 2022 (VRC)", 1], ["Formula 1 2023 (VRC)", 1], ["Formula 1 2024 (VRC)", 1], ["Formula 1 2025 (VRC)", 1], ["Formula 1 2026 (VRC)", 1]]], ["GT3", 43, [["GT3 (RSS)", 16], ["GT3 (LFM)", 14], ["GT3 (2010s)", 8], ["GT3 (2010s, unrestricted)", 3], ["E1-XP2", 1], ["SPX", 1]]], ["DTM", 23, [["DTM 2025 (LFM)", 9], ["DTM 2025 (RSS)", 9], ["DTM 1993", 3], ["DTM 2021 (RSS)", 3]]], ["GTE", 21, [["GTE (2020s)", 9], ["GTE (2017)", 8], ["GTE (2011)", 2], ["Lotus Evora GTE", 2]]], ["Le Mans Hypercar", 19, [["Hypercar (LFM)", 8], ["Hypercar (VRC)", 5], ["Hypercar (RSS)", 4], ["Hypercar (Yezhrod)", 2]]], ["GT4", 19, [["GT4", 19]]], ["GT1", 13, [["GT1 (2000s)", 8], ["GT1 (1990s)", 5]]], ["GT2", 11, [["GT2", 11]]], ["IndyCar", 10, [["IndyCar 2020 (road)", 1], ["IndyCar 2020 (oval)", 1], ["IndyCar 2012 (oval kit)", 1], ["IndyCar 2012 (road kit)", 1], ["IndyCar 2018 (oval kit)", 1], ["IndyCar 2018 (road kit)", 1], ["IndyCar 2018 (short oval kit)", 1], ["IndyCar 2021 (oval kit)", 1], ["IndyCar 2021 (road kit)", 1], ["IndyCar 2021 (short oval kit)", 1]]], ["Super Touring", 9, [["Super Touring (1990s)", 9]]], ["LMP2", 7, [["LMP2 (2021)", 4], ["LMP2 (2017)", 3]]], ["LMP1", 5, [["LMP1 Hybrid 2014", 2], ["LMP1 Hybrid 2016", 2], ["LMP1 Hybrid 2012", 1]]], ["Porsche Cup", 4, [["Porsche Cup 992 (LFM)", 1], ["Porsche Cup 992 (URD)", 1], ["Porsche Cup 991", 1], ["Porsche Cup 992 (GUERILLA)", 1]]], ["Sports Prototype", 4, [["Sports Prototype (60s)", 4]]], ["Formula 2", 4, [["Formula 2 2017", 1], ["Formula 2 2020", 1], ["Formula 2 2024", 1], ["Formula 2 2024 (VRC)", 1]]], ["Group C", 4, [["Group C", 4]]], ["TCR", 3, [["TCR", 3]]], ["N-GT", 3, [["N-GT", 3]]], ["Trans-Am", 3, [["Trans-Am TA2", 3]]], ["Formula 3", 2, [["Formula 3", 2]]], ["Formula 4", 2, [["Formula 4", 2]]], ["Super Formula", 2, [["Super Formula 2019", 1], ["Super Formula 2023", 1]]], ["Formula E", 2, [["Formula E Gen 2", 1], ["Formula E Gen 3", 1]]]], "unclassified": 377, "brands": [["Race Sim Studio", 72], ["VRC", 61], ["Porsche", 50], ["Ferrari", 37], ["BMW", 36], ["Lamborghini", 24], ["Toyota", 21], ["Mercedes-Benz", 20], ["Audi", 20], ["Ford", 20], ["Lotus", 20], ["Nissan", 17], ["AC-Friends", 15], ["Chevrolet", 14], ["McLaren", 13], ["United Racing Design", 11], ["Aston Martin", 10], ["Alfa Romeo", 10], ["Maserati", 10], ["F1 VRC OWC", 9], ["Mazda", 8], ["Ligier", 7], ["Abarth", 6], ["Ginetta", 6], ["KTM", 6], ["Oreca", 5], ["Honda", 4], ["Dodge", 4], ["Caterham", 4], ["URD_FC", 4], ["Lotus Classic Cars", 4], ["Pagani", 4], ["RUF", 4], ["Alpine", 3], ["Renault", 3], ["Jaguar", 3], ["Subaru", 2], ["Cadillac", 2], ["Acura", 2], ["Dallara", 2], ["Opel", 2], ["Volvo", 2], ["Cupra", 2], ["Tatuus", 2], ["URD", 2], ["Hyundai", 2], ["Unknown", 2], ["Liana", 2], ["Scuderia Glickenhaus", 2], ["Praga", 2], ["Radical", 2], ["RedBull", 2], ["Bugatti", 1], ["forceful", 1], ["Vanwall", 1], ["Bentley", 1], ["Lexus", 1], ["Peugeot", 1], ["Apollo", 1], ["Brabham", 1], ["Btcc", 1], ["Mitsubishi", 1], ["The Rollovers Endurance Pack", 1], ["De Tomaso", 1], ["MARC CARS", 1], ["FirstStudioRacing", 1], ["Holden", 1], ["Go Kart", 1], ["MG", 1], ["Panoz", 1], ["2005", 1], ["Saleen", 1], ["Scania", 1], ["Shelby", 1], ["SIN Cars", 1], ["Brabus", 1], ["Vauxhall", 1]], "countries": [["DEU", "Germany", 95], ["ITA", "Italy", 65], ["GBR", "Great Britain", 63], ["USA", "USA", 61], ["JPN", "Japan", 46], ["FRA", "France", 31], ["ESP", "Spain", 13], ["BRA", "Brazil", 12], ["ENG", "England", 9], ["AUT", "Austria", 4], ["AUS", "Australia", 4], ["SWE", "Sweden", 3], ["KOR", "South Korea", 2], ["BGR", "Bulgaria", 1]], "countryUnknown": 213, "sources": {"base": 105, "dlc": 73, "mod": 444, "packs": [["japanese-pack", "Japanese Pack", 12], ["dream-pack-1", "Dream Pack 1", 10], ["ready-to-race", "Ready To Race", 10], ["porsche-pack-2", "Porsche Pack 2", 8], ["porsche-pack-1", "Porsche Pack 1", 8], ["porsche-pack-3", "Porsche Pack 3", 8], ["ferrari-70th", "Ferrari 70th", 7], ["red-pack", "Red Pack", 7], ["tripl3-pack", "Tripl3 Pack", 3]], "makers": [["rss", "Race Sim Studio", 72], ["vrc", "Virtual Racing Cars", 70], ["guerilla", "GUERILLA Mods", 35], ["yezhrod", "Yezhrod", 20], ["urd", "United Racing Design", 14]], "dists": [["lfm", "Low Fuel Motorsport", 30]]}, "year": {"lo": 1950, "hi": 2026, "bins": [0, 0, 0, 0, 0, 1, 3, 0, 1, 3, 2, 2, 7, 4, 14, 23, 3, 7, 12, 19, 24, 81, 73, 119]}, "power": {"lo": 0, "hi": 1200, "bins": [3, 1, 7, 15, 22, 14, 45, 42, 51, 56, 94, 52, 64, 39, 28, 19, 15, 5, 7, 12, 13, 2, 1, 3]}, "raced": 359, "skinned": 620, "total": 622}, "tracks": {"countries": [["USA", "USA", 13], ["ITA", "Italy", 10], ["GBR", "Great Britain", 8], ["FRA", "France", 7], ["DEU", "Germany", 7], ["JPN", "Japan", 6], ["ESP", "Spain", 5], ["CAN", "Canada", 3], ["CHN", "China", 3], ["NLD", "Netherlands", 3], ["BRA", "Brazil", 2], ["PRT", "Portugal", 2], ["BHR", "Bahrain", 2], ["AUS", "Australia", 2], ["BEL", "Belgium", 2], ["SCT", "Scotland", 2], ["HUN", "Hungary", 2], ["TUR", "Turkey", 2], ["AUT", "Austria", 2], ["ARE", "United Arab Emirates", 2], ["CZE", "Czech Republic", 1], ["AZE", "Azerbaijan", 1], ["ENG", "England", 1], ["THA", "Thailand", 1], ["HRV", "Croatia", 1], ["DNK", "Denmark", 1], ["RUS", "Russia", 1], ["MEX", "Mexico", 1], ["MCO", "Monaco", 1], ["MYS", "Malaysia", 1], ["SVK", "Slovakia", 1]], "countryUnknown": 1, "sources": {"base": 17, "dlc": 4, "mod": 76, "packs": [["dream-pack-2", "Dream Pack 2", 1], ["dream-pack-3", "Dream Pack 3", 1], ["dream-pack-1", "Dream Pack 1", 1], ["red-pack", "Red Pack", 1]], "makers": [["vrc", "Virtual Racing Cars", 1]], "dists": [["lfm", "Low Fuel Motorsport", 39]]}, "length": {"lo": 0, "hi": 26000, "bins": [9, 22, 47, 105, 63, 40, 11, 2, 0, 1, 1, 1, 12, 0, 0, 0, 1, 1, 0, 2, 0, 0, 2, 3]}, "pits": {"lo": 0, "hi": 120, "bins": [6, 2, 7, 6, 44, 36, 78, 51, 48, 10, 11, 8, 4, 0, 9, 0, 0, 0, 0, 0, 0, 3, 0, 0]}, "raced": 58, "located": 64, "total": 97}}};
+
+const state = { page: 'cars', long: 'inline', view: 'cards', sort: 'name' };
+
+const ICON = {
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  chev: '<path d="m6 9 6 6 6-6"/>',
+  chevr: '<path d="m9 18 6-6-6-6"/>',
+  minus: '<path d="M5 12h14"/>',
+  sort: '<path d="m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  palette: '<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2a10 10 0 0 0 0 20c.9 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16a6 6 0 0 0 6-6c0-4.9-4.5-8.4-10-8.4Z"/>',
+  pin: '<path d="M20 10c0 5-8 12-8 12s-8-7-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+};
+const icon = (n, s) => `<svg class="i" viewBox="0 0 24 24"${s ? ` style="width:${s}px;height:${s}px"` : ''}>${ICON[n]}</svg>`;
+const fmt = (n) => (n == null ? null : n.toLocaleString('en-GB'));
+const km = (m) => (m / 1000).toLocaleString('en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const DISC = { 'single-seater': 'Single-seater', sportscar: 'Sportscar', touring: 'Touring', road: 'Road' };
+const PACK = { 'dream-pack-1': 'Dream Pack 1', 'dream-pack-2': 'Dream Pack 2', 'dream-pack-3': 'Dream Pack 3', 'red-pack': 'Red Pack', 'ready-to-race': 'Ready To Race', 'ferrari-70th': 'Ferrari 70th' };
+const MAKER = { rss: 'RSS', vrc: 'VRC', guerilla: 'GUERILLA', yezhrod: 'YEZHROD', urd: 'URD' };
+const DIST = { lfm: 'LFM' };
+
+// The provenance chips exactly as ProvenanceBadges draws them today.
+const prov = (p) => {
+  let label = { base: 'Base', dlc: 'DLC', mod: 'Mod' }[p.source];
+  if (p.pack) label = `DLC - ${PACK[p.pack] ?? p.pack}`;
+  else if (p.maker) label = MAKER[p.maker] ?? p.maker;
+  return `<span class="chip p-${p.source}">${label}</span>${p.distributor ? `<span class="chip p-dist">${DIST[p.distributor]}</span>` : ''}`;
+};
+const flag = (f, title, keep) => (f.url ? `<img class="flag" src="${f.url}" alt="" title="${esc(title)}">` : (keep ? '<span class="flag none"></span>' : ''));
+
+// A car's or a circuit's place in the ladder: which disciplines race it, coloured, and how many championships.
+const raced = (item, compact) => {
+  const d = Object.keys(item.disciplines);
+  if (item.series === 0) return `<span class="muted">${compact ? '-' : 'No championship races it yet'}</span>`;
+  if (compact) {
+    return `<span class="dots">${d.map((x) => `<i class="dot d-${x}" title="${DISC[x]}"></i>`).join('')}<b class="num" style="margin-left:4px">${item.series}</b></span>`;
+  }
+  return `<span style="margin-right:4px"><b class="num">${item.series}</b> championship${item.series === 1 ? '' : 's'}</span>${d.map((x) => `<span class="chip d-${x}" style="font-size:11px;padding:3px 6px">${DISC[x]}</span>`).join('')}`;
+};
+
+/* ---------------- Cars ---------------- */
+const CAR_FACETS = {
+  primary: [['Class', 0], ['Brand', 0], ['Country', 0], ['Source', 1]],
+  more: ['Spec', 'Pack', 'Maker', 'Redistributor', 'Year', 'Power', 'Raced in'],
+};
+const carCard = (c) => `
+  <article class="card">
+    <div class="shot">
+      ${c.img ? `<img class="photo" src="${c.img}" alt="">` : `<div style="position:absolute;inset:0;display:grid;place-items:center;color:var(--muted-foreground)">${icon('car', 40)}</div>`}
+      <div class="over-tl">${prov(c.prov)}</div>
+      <span class="over-br">${icon('palette', 13)} ${c.skins}</span>
+    </div>
+    <div class="body">
+      <div class="maker">
+        ${c.badge ? `<img class="logo" src="${c.badge}" alt="">` : ''}
+        <span class="txt">${esc(c.brand ?? 'Unknown')}</span>
+        ${flag(c.flag, c.country)}
+        ${c.year ? `<span class="yr">${c.year}</span>` : ''}
+      </div>
+      <div class="name" title="${esc(c.name)}">${esc(c.name)}</div>
+      <div class="tags">${c.specs.length ? c.specs.map((s) => `<span class="chip neutral">${esc(s)}</span>`).join('') : '<span class="chip neutral" style="opacity:.7">Unclassified</span>'}</div>
+      <div class="stats">
+        <div><b>${c.bhp ? fmt(c.bhp) : '<span class="na">-</span>'}</b><small>bhp</small></div>
+        <div><b>${c.kg ? fmt(c.kg) : '<span class="na">-</span>'}</b><small>kg</small></div>
+        <div><b>${c.pw ? fmt(Math.round(c.pw)) : '<span class="na">-</span>'}</b><small>bhp/t</small></div>
+      </div>
+      <div class="foot">${icon('trophy', 13)} ${raced(c)}</div>
+    </div>
+  </article>`;
+
+const carSorts = { name: (a, b) => a.name.localeCompare(b.name), year: (a, b) => (b.year ?? 0) - (a.year ?? 0), bhp: (a, b) => (b.bhp ?? 0) - (a.bhp ?? 0), kg: (a, b) => (a.kg ?? 1e9) - (b.kg ?? 1e9), pw: (a, b) => (b.pw ?? 0) - (a.pw ?? 0), skins: (a, b) => b.skins - a.skins, series: (a, b) => b.series - a.series };
+const carList = (cars) => {
+  const max = Math.max(...cars.map((c) => c.pw ?? 0));
+  const th = (k, label, r) => `<th class="s${r ? ' r' : ''}${state.sort === k ? ' on' : ''}" data-sort="${k}">${label}${state.sort === k ? ' ↓' : ''}</th>`;
+  return `<div class="table"><table>
+    <thead><tr><th></th>${th('name', 'Car')}<th>Class</th>${th('year', 'Year', 1)}${th('bhp', 'Power', 1)}${th('kg', 'Weight', 1)}${th('pw', 'Power to weight', 1)}${th('skins', 'Liveries', 1)}${th('series', 'Championships')}<th>Source</th></tr></thead>
+    <tbody>${cars.map((c) => `<tr>
+      <td style="width:108px"><div class="thumb">${c.img ? `<img src="${c.img}" alt="">` : icon('car', 22)}</div></td>
+      <td><div class="tn"><b>${esc(c.name)}</b><span>${c.badge ? `<img class="logo" src="${c.badge}" alt="">` : ''}${esc(c.brand ?? 'Unknown')} ${flag(c.flag, c.country)}</span></div></td>
+      <td><div class="tags">${c.specs.length ? c.specs.map((s) => `<span class="chip neutral">${esc(s)}</span>`).join('') : '<span class="muted">-</span>'}</div></td>
+      <td class="r num">${c.year ?? '<span class="muted">-</span>'}</td>
+      <td class="r num">${c.bhp ? `${fmt(c.bhp)} <span class="muted">bhp</span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num">${c.kg ? `${fmt(c.kg)} <span class="muted">kg</span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num">${c.pw ? `<span class="bar">${fmt(Math.round(c.pw))}<i style="--w:${Math.round((c.pw / max) * 100)}%"></i></span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num">${c.skins}</td>
+      <td>${raced(c, true)}</td>
+      <td><div class="tags">${prov(c.prov)}</div></td>
+    </tr>`).join('')}</tbody></table></div>`;
+};
+
+/* ---------------- Tracks ---------------- */
+const lenLabel = (t) => (t.len ? (t.len[0] === t.len[1] ? `${km(t.len[0])}` : `${km(t.len[0])}-${km(t.len[1])}`) : null);
+const pitLabel = (t) => (t.pits ? (t.pits[0] === t.pits[1] ? `${t.pits[0]}` : `${t.pits[0]}-${t.pits[1]}`) : null);
+const trackCard = (t) => {
+  const first = t.layouts[0];
+  const shown = t.layouts.slice(0, t.layouts.length > 5 ? 4 : 5);
+  return `
+  <article class="card">
+    <div class="shot">
+      ${first.preview ? `<img class="photo" src="${first.preview}" alt="">` : ''}
+      <div class="over-tl">${prov(t.prov)}</div>
+      ${first.outline ? `<div class="outline-over"><img src="${first.outline}" alt=""></div>` : ''}
+    </div>
+    <div class="body">
+      <div class="maker">${flag(t.flag, t.country, 1)}<span class="txt">${esc(t.country ?? 'Unknown country')}</span>
+        ${t.located ? `<span class="yr" title="Located - the sun and weather follow its real position">${icon('pin', 13)}</span>` : ''}</div>
+      <div class="name" title="${esc(t.name)}">${esc(t.name)}</div>
+      <div class="stats">
+        <div><b>${lenLabel(t) ?? '<span class="na">-</span>'}</b><small>km</small></div>
+        <div><b>${pitLabel(t) ?? '<span class="na">-</span>'}</b><small>pit boxes</small></div>
+        <div><b>${t.layouts.length}</b><small>layout${t.layouts.length === 1 ? '' : 's'}</small></div>
+      </div>
+      ${t.layouts.length > 1 ? `<div class="layouts">${shown.map((l) => `<span title="${esc(l.name)}">${l.outline ? `<img src="${l.outline}" alt="">` : ''}</span>`).join('')}${t.layouts.length > shown.length ? `<span>+${t.layouts.length - shown.length}</span>` : ''}</div>` : ''}
+      <div class="foot">${icon('trophy', 13)} ${raced(t)}</div>
+    </div>
+  </article>`;
+};
+const trackSorts = { name: (a, b) => a.name.localeCompare(b.name), country: (a, b) => (a.country ?? 'zz').localeCompare(b.country ?? 'zz'), len: (a, b) => (b.len?.[1] ?? 0) - (a.len?.[1] ?? 0), pits: (a, b) => (b.pits?.[1] ?? 0) - (a.pits?.[1] ?? 0), layouts: (a, b) => b.layouts.length - a.layouts.length, series: (a, b) => b.series - a.series };
+const trackList = (tracks) => {
+  const th = (k, label, r) => `<th class="s${r ? ' r' : ''}${state.sort === k ? ' on' : ''}" data-sort="${k}">${label}${state.sort === k ? ' ↓' : ''}</th>`;
+  return `<div class="table"><table>
+    <thead><tr><th></th>${th('name', 'Circuit')}${th('country', 'Country')}${th('layouts', 'Layouts', 1)}${th('len', 'Length', 1)}${th('pits', 'Pit boxes', 1)}<th>Located</th>${th('series', 'Championships')}<th>Source</th></tr></thead>
+    <tbody>${tracks.map((t) => `<tr>
+      <td style="width:108px"><div class="thumb outline">${t.layouts[0].outline ? `<img src="${t.layouts[0].outline}" alt="">` : ''}</div></td>
+      <td><div class="tn"><b>${esc(t.name)}</b></div></td>
+      <td><span class="tn"><span>${flag(t.flag, t.country, 1)} ${esc(t.country ?? '-')}</span></span></td>
+      <td class="r num">${t.layouts.length}</td>
+      <td class="r num">${lenLabel(t) ? `${lenLabel(t)} <span class="muted">km</span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num">${pitLabel(t) ?? '<span class="muted">-</span>'}</td>
+      <td>${t.located ? icon('pin', 14) : '<span class="muted">-</span>'}</td>
+      <td>${raced(t, true)}</td>
+      <td><div class="tags">${prov(t.prov)}</div></td>
+    </tr>`).join('')}</tbody></table></div>`;
+};
+
+/* ---------------- Filter rail ---------------- */
+const FLAGS = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/gui/NationFlags/';
+const fl = (code) => (code ? `<img class="flag" src="${FLAGS}${code}.png" alt="">` : '<span class="flag none"></span>');
+const F = DATA.facets;
+const TOP = 5;
+
+// What is picked, per page. Sets of values; ranges as [from, to] or null.
+const blank = () => ({
+  source: new Set(), klass: new Set(), spec: new Set(), brand: new Set(), country: new Set(),
+  raced: false, skins: false, located: false, year: null, power: null, length: null, pits: null,
+});
+const sel = { cars: blank(), tracks: blank() };
+const ui = { closed: new Set(), tree: new Set(), all: new Set(), q: {}, flyout: null, flyQ: '', focus: null };
+
+const S = () => sel[state.page];
+const toggleIn = (set, v) => (set.has(v) ? set.delete(v) : set.add(v));
+
+const row = ({ key, value, label, count, lead = '', indent = 0, tree = null, partial = false }) => {
+  const on = S()[key].has(value);
+  return `<div class="opt-row${on ? ' on' : ''}${partial && !on ? ' part' : ''}" style="padding-left:${indent * 18}px">
+    ${tree === null ? '' : `<button class="tw" data-tree="${esc(tree)}" aria-label="Expand">${icon(ui.tree.has(tree) ? 'chev' : 'chevr', 13)}</button>`}
+    <button class="pick" data-key="${key}" data-value="${esc(value)}"><span class="box">${on ? icon('check', 11) : (partial ? icon('minus', 11) : '')}</span>${lead}<span class="lbl">${esc(label)}</span><span class="c num">${fmt(count)}</span></button>
+  </div>`;
+};
+
+const section = (id, title, body, picked = []) => {
+  const closed = ui.closed.has(id);
+  return `<div class="sec${closed ? ' closed' : ''}">
+    <button class="sec-h" data-sec="${id}"><span>${title}</span>
+      ${picked.length ? `<span class="n">${picked.length}</span>` : ''}
+      <span class="push"></span>${icon(closed ? 'chevr' : 'chev', 14)}</button>
+    ${closed ? (picked.length ? `<div class="sum">${esc(picked.slice(0, 2).join(', '))}${picked.length > 2 ? ` +${picked.length - 2}` : ''}</div>` : '') : `<div class="sec-b">${body}</div>`}
+  </div>`;
+};
+
+// A long list: what is picked pinned first, then the biggest few, then a way into the rest.
+const longList = (id, key, items, noun, lead) => {
+  const s = S()[key];
+  const q = (ui.q[id] ?? '').trim().toLowerCase();
+  const search = `<label class="mini-search">${icon('search', 13)}<input id="q-${id}" data-q="${id}" placeholder="Find a ${noun}" value="${esc(ui.q[id] ?? '')}"></label>`;
+  const asRow = ([value, label, count]) => row({ key, value, label, count, lead: lead ? lead(value) : '' });
+
+  if (q) {
+    const hits = items.filter(([v, l]) => l.toLowerCase().includes(q) || String(v).toLowerCase().includes(q));
+    return `${search}<div class="scroll">${hits.length ? hits.map(asRow).join('') : `<p class="none">No ${noun} matches</p>`}</div>`;
+  }
+
+  const pinned = items.filter(([v]) => s.has(v));
+  if (state.long === 'inline' && ui.all.has(id)) {
+    // Everything, A to Z, in a box of its own height, so the rail never grows past it.
+    const az = [...items].sort((a, b) => a[1].localeCompare(b[1]));
+    let letter = '';
+    const body = az.map((it) => {
+      const l = it[1][0].toUpperCase();
+      const head = l !== letter ? `<div class="az">${(letter = l)}</div>` : '';
+      return head + asRow(it);
+    }).join('');
+    return `${search}${pinned.length ? `<div class="pinned">${pinned.map(asRow).join('')}</div>` : ''}<div class="scroll tall">${body}</div>
+      <button class="linkish" data-all="${id}">Show fewer</button>`;
+  }
+  const top = items.filter(([v]) => !s.has(v)).slice(0, TOP);
+  const more = items.length - pinned.length - top.length;
+  return `${items.length > 8 ? search : ''}
+    ${pinned.length ? `<div class="pinned">${pinned.map(asRow).join('')}</div>` : ''}
+    ${top.map(asRow).join('')}
+    ${more > 0 ? (state.long === 'inline'
+    ? `<button class="linkish" data-all="${id}">Show all ${items.length}</button>`
+    : `<button class="more-btn" data-fly="${id}">All ${items.length} ${noun === 'brand' ? 'brands' : `${noun === 'country' ? 'countries' : 'classes'}`} ${icon('chevr', 13)}</button>`) : ''}`;
+};
+
+// A range with the library's own spread drawn under it, so you can see where the cars are before you drag.
+const range = (id, title, unit, h, key, step, show = (v) => fmt(v)) => {
+  const [from, to] = S()[key] ?? [h.lo, h.hi];
+  const max = Math.max(...h.bins);
+  const w = (h.hi - h.lo) / h.bins.length;
+  const bars = h.bins.map((n, i) => {
+    const inside = h.lo + (i + 1) * w > from && h.lo + i * w < to;
+    return `<i class="${inside ? 'in' : ''}" style="height:${Math.max(4, (n / max) * 100)}%"></i>`;
+  }).join('');
+  const body = `<div class="hist" id="h-${id}">${bars}</div>
+    <div class="dual" data-range="${key}" data-lo="${h.lo}" data-hi="${h.hi}">
+      <input type="range" min="${h.lo}" max="${h.hi}" step="${step}" value="${from}" aria-label="${title} from">
+      <input type="range" min="${h.lo}" max="${h.hi}" step="${step}" value="${to}" aria-label="${title} to">
+    </div>
+    <div class="range"><span class="in num" id="f-${id}">${show(from)}</span>-<span class="in num" id="t-${id}">${show(to)}</span><span class="unit">${unit}</span></div>`;
+  return section(id, title, body, S()[key] ? [`${show(from)}-${show(to)} ${unit}`] : []);
+};
+
+const sw = (key, label, count) => `<button class="switch-row" data-sw="${key}"><span>${label} <span class="c num">${fmt(count)}</span></span><span class="sw${S()[key] ? ' on' : ''}"></span></button>`;
+
+// Source as a tree: a pack is a kind of DLC and a maker a kind of mod, so they live under it rather than in a section of their own.
+const sourceTree = (src) => {
+  const s = S().source;
+  const parent = (value, label, count, kids) => {
+    const partial = kids.some(([v]) => s.has(v));
+    return `${row({ key: 'source', value, label, count, lead: `<i class="dot p-${value}"></i>`, tree: kids.length ? `src-${value}` : null, partial })}
+      ${ui.tree.has(`src-${value}`) ? kids.map(([v, l, n]) => row({ key: 'source', value: v, label: l, count: n, indent: 1 })).join('') : ''}`;
+  };
+  const mods = [...src.makers, ...src.dists.map(([v, l, n]) => [v, `via ${l}`, n])];
+  const body = `${parent('base', 'Base game', src.base, [])}${parent('dlc', 'DLC', src.dlc, src.packs)}${parent('mod', 'Mod', src.mod, mods)}`;
+  const names = { base: 'Base game', dlc: 'DLC', mod: 'Mod' };
+  [...src.packs, ...mods].forEach(([v, l]) => { names[v] = l; });
+  return section('source', 'Source', body, [...s].map((v) => names[v]));
+};
+
+// Class as a tree over its specs, so picking a grid never means scrolling a list of ninety.
+const classTree = () => {
+  const s = S();
+  const q = (ui.q.klass ?? '').trim().toLowerCase();
+  const node = ([name, count, specs]) => {
+    const partial = specs.some(([sp]) => s.spec.has(sp));
+    const kids = ui.tree.has(`cls-${name}`) || q ? specs.filter(([sp]) => !q || sp.toLowerCase().includes(q) || name.toLowerCase().includes(q)) : [];
+    return row({ key: 'klass', value: name, label: name, count, tree: specs.length > 1 ? `cls-${name}` : null, partial })
+      + kids.map(([sp, n]) => row({ key: 'spec', value: sp, label: sp, count: n, indent: 1 })).join('');
+  };
+  const all = F.cars.classes;
+  let list;
+  if (q) list = all.filter(([n, , specs]) => n.toLowerCase().includes(q) || specs.some(([sp]) => sp.toLowerCase().includes(q)));
+  else if (ui.all.has('klass') || state.long === 'flyout') list = ui.all.has('klass') ? all : all.slice(0, 6);
+  else list = all.filter(([n, , specs]) => s.klass.has(n) || specs.some(([sp]) => s.spec.has(sp)) || all.indexOf(all.find((x) => x[0] === n)) < 6);
+  const body = `<label class="mini-search">${icon('search', 13)}<input id="q-klass" data-q="klass" placeholder="Find a class or spec" value="${esc(ui.q.klass ?? '')}"></label>
+    <div class="${ui.all.has('klass') ? 'scroll tall' : ''}">${list.map(node).join('')}
+    ${!q && (ui.all.has('klass') || list.length === all.length) ? row({ key: 'klass', value: '-', label: 'Unclassified', count: F.cars.unclassified }) : ''}</div>
+    ${q ? '' : `<button class="linkish" data-all="klass">${ui.all.has('klass') ? 'Show fewer' : `Show all ${all.length}`}</button>`}`;
+  return section('klass', 'Class', body, [...s.klass, ...s.spec]);
+};
+
+const railCars = () => {
+  const s = S();
+  const brands = F.cars.brands.map(([b, n]) => [b, b, n]);
+  const countries = [...F.cars.countries.map(([c, name, n]) => [c, name, n]), ['-', 'Unknown', F.cars.countryUnknown]];
+  return `
+    <div class="sec plain">${sw('raced', 'Raced in a championship', F.cars.raced)}${sw('skins', 'Has liveries', F.cars.skinned)}</div>
+    ${classTree()}
+    ${sourceTree(F.cars.sources)}
+    ${section('brand', 'Brand', longList('brand', 'brand', brands, 'brand'), [...s.brand])}
+    ${section('country', 'Country', longList('country', 'country', countries, 'country', (v) => fl(v === '-' ? null : v)), [...s.country].map((c) => countries.find((x) => x[0] === c)?.[1]))}
+    ${range('year', 'Year', '', F.cars.year, 'year', 1, (v) => String(v))}
+    ${range('power', 'Power', 'bhp', F.cars.power, 'power', 10)}`;
+};
+const railTracks = () => {
+  const s = S();
+  const countries = [...F.tracks.countries.map(([c, name, n]) => [c, name, n]), ['-', 'Unknown', F.tracks.countryUnknown]];
+  return `
+    <div class="sec plain">${sw('raced', 'Raced in a championship', F.tracks.raced)}${sw('located', 'Located', F.tracks.located)}</div>
+    ${sourceTree(F.tracks.sources)}
+    ${section('country', 'Country', longList('country', 'country', countries, 'country', (v) => fl(v === '-' ? null : v)), [...s.country].map((c) => countries.find((x) => x[0] === c)?.[1]))}
+    ${range('length', 'Length', 'km', F.tracks.length, 'length', 100, (v) => km(v))}
+    ${range('pits', 'Pit boxes', '', F.tracks.pits, 'pits', 1)}`;
+};
+
+// The flyout: the whole of one long list laid out beside the rail, A to Z in columns.
+const flyout = () => {
+  const id = ui.flyout;
+  if (!id) return '';
+  const cars = state.page === 'cars';
+  let items; let lead = () => ''; let key = id; let noun;
+  if (id === 'brand') { items = F.cars.brands.map(([b, n]) => [b, b, n]); noun = 'brands'; }
+  if (id === 'country') {
+    const f = cars ? F.cars : F.tracks;
+    items = [...f.countries, ['-', 'Unknown', f.countryUnknown]]; lead = (v) => fl(v === '-' ? null : v); noun = 'countries';
+  }
+  if (id === 'klass') { items = F.cars.classes.map(([n, c]) => [n, n, c]); key = 'klass'; noun = 'classes'; }
+  const q = ui.flyQ.trim().toLowerCase();
+  const az = items.filter(([v, l]) => !q || l.toLowerCase().includes(q)).sort((a, b) => a[1].localeCompare(b[1]));
+  const groups = {};
+  az.forEach((it) => { (groups[it[1][0].toUpperCase()] ??= []).push(it); });
+  const letters = Object.keys(groups);
+  const picked = S()[key].size;
+  return `<div class="flyout" id="flyout">
+    <div class="fly-h"><b>All ${items.length} ${noun}</b>
+      <label class="mini-search grow">${icon('search', 13)}<input id="q-fly" data-flyq placeholder="Find" value="${esc(ui.flyQ)}"></label>
+      <button class="icon-btn" data-fly-close aria-label="Close">${icon('x', 15)}</button></div>
+    <div class="letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((l) => (groups[l] ? `<a href="#fl-${l}" data-letter="${l}">${l}</a>` : `<span>${l}</span>`)).join('')}</div>
+    <div class="fly-b">${letters.map((l) => `<div class="fly-g" id="fl-${l}"><div class="az">${l}</div>${groups[l].map(([v, label, n]) => row({ key, value: v, label, count: n, lead: lead(v) })).join('')}</div>`).join('') || '<p class="none">Nothing matches</p>'}</div>
+    <div class="fly-f"><span class="count">${picked ? `${picked} picked` : 'Nothing picked'}</span>
+      ${picked ? `<button class="linkish" data-fly-clear>Clear</button>` : ''}<span class="push"></span><button class="primary" data-fly-close>Done</button></div>
+  </div>`;
+};
+
+/* ---------------- Applying the picks to the sample ---------------- */
+const passes = (item) => {
+  const s = S();
+  const cars = state.page === 'cars';
+  const p = item.prov;
+  if (s.source.size && ![p.source, p.pack, p.maker, p.distributor].some((v) => v && s.source.has(v))) return false;
+  if (cars && (s.klass.size || s.spec.size)) {
+    const cls = item.classes.length ? item.classes : ['-'];
+    if (!cls.some((c) => s.klass.has(c)) && !item.specs.some((sp) => s.spec.has(sp))) return false;
+  }
+  if (s.brand.size && !s.brand.has(item.brand)) return false;
+  if (s.country.size && !s.country.has(item.countryCode ?? '-')) return false;
+  if (s.raced && !item.series) return false;
+  if (s.skins && !item.skins) return false;
+  if (s.located && !item.located) return false;
+  const inRange = (r, v) => !r || (v != null && v >= r[0] && v <= r[1]);
+  if (cars && (!inRange(s.year, item.year) || !inRange(s.power, item.bhp))) return false;
+  if (!cars && s.length && !(item.len && item.len[1] >= s.length[0] && item.len[0] <= s.length[1])) return false;
+  if (!cars && s.pits && !(item.pits && item.pits[1] >= s.pits[0] && item.pits[0] <= s.pits[1])) return false;
+  return true;
+};
+
+const pills = () => {
+  const s = S();
+  const out = [];
+  const names = (v) => v;
+  [['source', 'Source'], ['klass', 'Class'], ['spec', 'Spec'], ['brand', 'Brand'], ['country', 'Country']].forEach(([k, t]) => {
+    s[k].forEach((v) => {
+      let label = names(v);
+      if (k === 'country') label = (state.page === 'cars' ? F.cars : F.tracks).countries.find((c) => c[0] === v)?.[1] ?? 'Unknown';
+      if (k === 'source') label = { base: 'Base game', dlc: 'DLC', mod: 'Mod' }[v] ?? [...F.cars.sources.packs, ...F.cars.sources.makers, ...F.tracks.sources.packs, ...F.cars.sources.dists].find((x) => x[0] === v)?.[1] ?? v;
+      if (k === 'klass' && v === '-') label = 'Unclassified';
+      out.push(`<span class="pill">${t}: <b>${esc(label)}</b><button class="x" data-unpick="${k}" data-value="${esc(v)}">${icon('x', 12)}</button></span>`);
+    });
+  });
+  [['raced', 'Raced in a championship'], ['skins', 'Has liveries'], ['located', 'Located']].forEach(([k, t]) => {
+    if (s[k]) out.push(`<span class="pill"><b>${t}</b><button class="x" data-sw="${k}">${icon('x', 12)}</button></span>`);
+  });
+  [['year', 'Year', String], ['power', 'Power', (v) => `${fmt(v)} bhp`], ['length', 'Length', (v) => `${km(v)} km`], ['pits', 'Pit boxes', fmt]].forEach(([k, t, f]) => {
+    if (s[k]) out.push(`<span class="pill">${t}: <b>${f(s[k][0])}-${f(s[k][1])}</b><button class="x" data-unrange="${k}">${icon('x', 12)}</button></span>`);
+  });
+  return out;
+};
+
+const viewToggle = () => `<button data-k="view" data-v="cards" aria-pressed="${state.view === 'cards'}" title="Cards">${icon('grid')}</button><button data-k="view" data-v="list" aria-pressed="${state.view === 'list'}" title="List">${icon('list')}</button>`;
+const SORT_NAMES = { name: 'Name', year: 'Year', bhp: 'Power', kg: 'Weight', pw: 'Power to weight', skins: 'Liveries', series: 'Championships', country: 'Country', len: 'Length', pits: 'Pit boxes', layouts: 'Layouts' };
+const sortName = () => `Sort: ${SORT_NAMES[state.sort]}`;
+
+/* ---------------- Rationale ---------------- */
+const WHY = {
+  rail: `<b>The rail.</b> Every section folds. A folded section with something picked still says what, under its heading. Whatever you pick in a long list is pinned to its top, so it never scrolls out of sight. The two lists that are really one level below another become trees: <b>Source</b> holds DLC packs, mod makers and LFM, and <b>Class</b> holds its specs. That removes the separate Spec, Pack, Maker and Redistributor filters, which were six of today's ten buttons. Year, power, length and pit boxes become sliders drawn over the library's own spread, so you can see where the cars actually are.`,
+  inline: `<b>1 - Inline.</b> A long list (Brand's 77, Class's 23, Country) shows its five biggest values and a search box. <b>Show all</b> turns the section into a box of its own fixed height, sorted A to Z with letter headings, that scrolls inside the rail. The rail never grows past one screen's worth of a single list. Typing searches the whole list straight away.`,
+  flyout: `<b>2 - Flyout.</b> A long list shows its five biggest values, then <b>All 77 brands</b>. That opens a wide panel beside the rail with the whole list in A to Z columns, a letter index to jump with, a search box and Done. The rail itself never changes height. It suits Brand best, since 77 names fit on one screen across three columns.`,
+  cards: `<b>Cards.</b> The photo carries the source chips and the livery count. Below it are the maker's logo, a flag, the specs, three figures in a fixed strip, and which disciplines race the car in how many championships.`,
+  cardsT: `<b>Cards.</b> The first layout's outline is laid over the photo, each layout gets a small outline, and the footer says which disciplines hold rounds there.`,
+  list: `<b>List.</b> A spec sheet for comparing. Sort by clicking a column heading.`,
+  listT: `<b>List.</b> One row per circuit, with its outline as the thumbnail. Sort by clicking a column heading.`,
+};
+
+const render = () => {
+  document.querySelectorAll('.picker .opt[data-k]').forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+  document.getElementById('nav-cars').className = state.page === 'cars' ? 'on' : '';
+  document.getElementById('nav-tracks').className = state.page === 'tracks' ? 'on' : '';
+  const cars = state.page === 'cars';
+  const items = [...(cars ? DATA.cars : DATA.tracks)].filter(passes).sort((cars ? carSorts : trackSorts)[state.sort] ?? (() => 0));
+  let content = state.view === 'cards'
+    ? `<div class="grid three">${items.map(cars ? carCard : trackCard).join('')}</div>`
+    : (cars ? carList(items) : trackList(items));
+  if (!items.length) content = '<div class="empty">None of the sample matches. The counts in the rail are the whole library\'s.</div>';
+  const p = pills();
+
+  const title = `<div class="title-row"><div><h2>${cars ? 'Cars' : 'Tracks'}</h2><p>${cars ? '622 cars in your library' : '97 circuits and 323 layouts in your library'}</p></div></div>`;
+  document.getElementById('screen').innerHTML = `${title}<div class="with-rail">
+    <aside class="rail" id="rail"><div class="rail-h"><b>Filters</b>${p.length ? '<button class="linkish" data-clear>Clear all</button>' : ''}</div>${cars ? railCars() : railTracks()}</aside>
+    ${flyout()}
+    <div>
+      <div class="rail-top"><div class="search">${icon('search')} ${cars ? 'Search cars by name, brand, folder or tag' : 'Search circuits by name, country or folder'}</div>
+        <button class="facet solid">${icon('sort', 13)} ${sortName()}</button><div class="seg">${viewToggle()}</div></div>
+      <div class="active-row">${p.join('')}<span class="num" style="margin-left:${p.length ? 8 : 0}px">Showing ${items.length} of the ${cars ? 16 : 12} in this mockup</span></div>
+      ${content}</div></div>`;
+
+  const view = state.view === 'cards' ? (cars ? WHY.cards : WHY.cardsT) : (cars ? WHY.list : WHY.listT);
+  document.getElementById('why').innerHTML = `<ul><li>${WHY.rail}</li><li>${WHY[state.long]}</li><li>${view}</li>
+    <li><b>Try it:</b> the rail works on the sample. Counts are the whole library's, and the grid narrows over the 16 cars and 12 circuits drawn here.</li></ul>`;
+
+  bind();
+  if (ui.focus) {
+    const el = document.getElementById(ui.focus);
+    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
+};
+
+const bind = () => {
+  const on = (sel_, ev, fn) => document.querySelectorAll(sel_).forEach((el) => el.addEventListener(ev, fn));
+  on('#screen [data-k]', 'click', (e) => { state[e.currentTarget.dataset.k] = e.currentTarget.dataset.v; render(); });
+  on('th[data-sort]', 'click', (e) => { state.sort = e.currentTarget.dataset.sort; render(); });
+  on('[data-key]', 'click', (e) => { const { key, value } = e.currentTarget.dataset; toggleIn(S()[key], value); render(); });
+  on('[data-tree]', 'click', (e) => { toggleIn(ui.tree, e.currentTarget.dataset.tree); render(); });
+  on('[data-sec]', 'click', (e) => { toggleIn(ui.closed, e.currentTarget.dataset.sec); render(); });
+  on('[data-all]', 'click', (e) => { toggleIn(ui.all, e.currentTarget.dataset.all); render(); });
+  on('[data-sw]', 'click', (e) => { const k = e.currentTarget.dataset.sw; S()[k] = !S()[k]; render(); });
+  on('[data-unpick]', 'click', (e) => { S()[e.currentTarget.dataset.unpick].delete(e.currentTarget.dataset.value); render(); });
+  on('[data-unrange]', 'click', (e) => { S()[e.currentTarget.dataset.unrange] = null; render(); });
+  on('[data-clear]', 'click', () => { sel[state.page] = blank(); render(); });
+  on('[data-q]', 'input', (e) => { ui.q[e.target.dataset.q] = e.target.value; ui.focus = e.target.id; render(); });
+  on('[data-q]', 'blur', () => { ui.focus = null; });
+  on('[data-fly]', 'click', (e) => { e.stopPropagation(); ui.flyout = e.currentTarget.dataset.fly; ui.flyQ = ''; render(); });
+  on('[data-fly-close]', 'click', () => { ui.flyout = null; render(); });
+  on('[data-fly-clear]', 'click', () => { S()[ui.flyout].clear(); render(); });
+  on('[data-flyq]', 'input', (e) => { ui.flyQ = e.target.value; ui.focus = 'q-fly'; render(); });
+  on('[data-letter]', 'click', (e) => { e.preventDefault(); document.getElementById(`fl-${e.currentTarget.dataset.letter}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+  document.querySelectorAll('.dual').forEach((d) => {
+    const key = d.dataset.range;
+    const [a, b] = d.querySelectorAll('input');
+    const id = { year: 'year', power: 'power', length: 'length', pits: 'pits' }[key];
+    const show = key === 'length' ? km : (key === 'year' ? String : fmt);
+    const live = () => {
+      let lo = +a.value; let hi = +b.value;
+      if (lo > hi) [lo, hi] = [hi, lo];
+      document.getElementById(`f-${id}`).textContent = show(lo);
+      document.getElementById(`t-${id}`).textContent = show(hi);
+      const bins = document.querySelectorAll(`#h-${id} i`);
+      const w = (+d.dataset.hi - +d.dataset.lo) / bins.length;
+      bins.forEach((bin, i) => bin.classList.toggle('in', +d.dataset.lo + (i + 1) * w > lo && +d.dataset.lo + i * w < hi));
+      return [lo, hi];
+    };
+    [a, b].forEach((inp) => {
+      inp.addEventListener('input', live);
+      inp.addEventListener('change', () => {
+        const [lo, hi] = live();
+        S()[key] = lo === +d.dataset.lo && hi === +d.dataset.hi ? null : [lo, hi];
+        render();
+      });
+    });
+  });
+};
+document.addEventListener('click', (e) => {
+  const f = document.getElementById('flyout');
+  if (f && !f.contains(e.target) && !e.target.closest('[data-fly]') && document.contains(e.target)) { ui.flyout = null; render(); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && ui.flyout) { ui.flyout = null; render(); } });
+document.querySelectorAll('.picker .opt[data-k]').forEach((b) => b.addEventListener('click', () => {
+  state[b.dataset.k] = b.dataset.v;
+  if (b.dataset.k === 'page') { state.sort = 'name'; ui.flyout = null; ui.q = {}; ui.all.clear(); }
+  render();
+}));
+document.getElementById('theme').addEventListener('click', (e) => {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  e.currentTarget.setAttribute('aria-pressed', String(dark));
+});
+render();
+</script>
+</body>
+</html>

@@ -8,13 +8,10 @@
 // is no series-aware code anywhere in src/core/weekend, src/core/race-ini or
 // src/main/race-store, and there should never be.
 //
-// Points are carried and not applied. Standings, the calendar and prize money
-// are Phase 5; nothing here reads PointsSystem or PrizeMoney.
+// Points are carried and not applied: scoring a round is src/core/season-scoring's.
 
-import { DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD } from './constants.ts';
 import type { RoundRaceRequest } from './types.ts';
 import {
-  aiFigure,
   aiSeats,
   availabilityOf,
   bopFor,
@@ -26,14 +23,15 @@ import {
   entryOf,
   fieldSize,
   findLayout,
-  formatOf,
   missingTrack,
+  nationOf,
   pickModels,
   raceLengths,
   requirementsOf,
   roundOf,
   roundRaceId,
   roundSessions,
+  seatDraw,
   seatSkin,
   validateFormat,
   validateLength,
@@ -59,8 +57,10 @@ import type {
   SeriesAvailability,
   WeatherOffer,
 } from '../../shared/types/index.ts';
+import { aiFigure } from '../../shared/utils/ai-figure/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
+import { formatOf } from '../../shared/utils/weekend-format/index.ts';
 import { nextSkin, skinKey } from '../race-ini/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import {
@@ -71,8 +71,10 @@ import {
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
-  climateOf, eligibleCars, formatOf, hemisphereOf, roundRaceId, roundSessions, roundSpans,
+  classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, roundOf, roundRaceId, roundSessions,
+  roundSpans, seatDraw,
 } from './utils.ts';
+export { formatOf } from '../../shared/utils/weekend-format/index.ts';
 
 /**
  * Checks a championship against the schema's own rules.
@@ -390,17 +392,11 @@ export const drawField = (
 
     return seats.map((seat, index) => {
       const pinned = seat.car?.model;
-      const random = randomFrom(seedFrom(`${seat.id}\u0000${series.id}\u0000${salt}\u0000driver`));
-      // Both drawn whether or not the seat states its own, so stating one does
-      // not change the other.
-      const strength = Math.round((random() * 2 - 1) * DRIVER_STRENGTH_SPREAD);
-      const aggression = Math.round((random() * 2 - 1) * DRIVER_AGGRESSION_SPREAD);
 
       return {
         seat,
         model: pinned !== undefined && models.includes(pinned) ? pinned : drawn[index],
-        strength: seat.strength ?? strength,
-        aggression: seat.aggression ?? aggression,
+        ...seatDraw(series, seat, salt),
       };
     });
   });
@@ -514,8 +510,7 @@ export const roundRace = (
         model,
         skin: kept === undefined ? undefined : seatSkin(content, model, own?.skin),
         driver: seat.driver?.name,
-        nationality: seat.driver?.nationality,
-        nationCode: seat.driver?.nationCode,
+        ...nationOf(series, seat),
         // Carried so the result can be scored. Nothing between here and the
         // launch reads them - see the note on CarEntry.seat.
         seat: seat.id,
@@ -573,7 +568,6 @@ export const roundRace = (
         : forecastRound(series.id, round, format, climate, offer)),
     conditions: round.conditions,
     assists: series.regulations?.assists,
-    fixedSetup: series.regulations?.fixedSetup,
     penalties: series.regulations?.penalties,
     jumpStartPenalty: series.regulations?.jumpStartPenalty,
     allowedTyresOut: series.regulations?.allowedTyresOut,

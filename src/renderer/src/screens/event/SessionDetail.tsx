@@ -5,12 +5,12 @@ import { LaunchArea } from './LaunchArea.tsx';
 import { SessionBriefing } from './SessionBriefing.tsx';
 import { SessionResult } from './SessionResult.tsx';
 import { dotted } from './utils.ts';
-import type { CareerEventView, EventSession } from '../../../../shared/types';
+import type { CareerEventView, Championship, EventSession } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
 import { EVENT_ACCENT, SESSION_ACCENT } from '@/lib/accents';
-import { SESSION_TYPE_LABEL } from '@/screens/race';
+import { SESSION_TYPE_LABEL, sessionName } from '@/lib/session-labels';
 
 interface SessionDetailProps {
   /**
@@ -22,6 +22,10 @@ interface SessionDetailProps {
    */
   session: EventSession;
   /**
+   * The championship the round belongs to, for flags and teams, once read.
+   */
+  series: Championship | null;
+  /**
    * Whether a command is in flight.
    */
   busy: boolean;
@@ -29,14 +33,10 @@ interface SessionDetailProps {
    * Called to run the next session.
    */
   onLaunch: () => void;
-  /**
-   * Called to start a weekend changed on the Race screen again.
-   */
-  onRestart: () => void;
 }
 
 export const SessionDetail = ({
-  view, session, busy, onLaunch, onRestart,
+  view, session, series, busy, onLaunch,
 }: SessionDetailProps) => {
   const { t } = useTranslation();
   const { formatDay } = useFormat();
@@ -50,7 +50,7 @@ export const SessionDetail = ({
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={SESSION_ACCENT[session.type]}>{t(SESSION_TYPE_LABEL[session.type])}</Badge>
             <h2 className="text-lg font-semibold">
-              {session.name ?? t(SESSION_TYPE_LABEL[session.type])}
+              {sessionName(session, t)}
             </h2>
             {session.status === 'done' ? (
               <Badge className={EVENT_ACCENT.raced}>{t('event.status.done')}</Badge>
@@ -61,7 +61,9 @@ export const SessionDetail = ({
           </span>
         </div>
 
-        {session.record ? <SessionResult session={session} record={session.record} /> : (
+        {session.record ? (
+          <SessionResult view={view} session={session} record={session.record} series={series} />
+        ) : (
           <SessionBriefing session={session} />
         )}
 
@@ -71,14 +73,13 @@ export const SessionDetail = ({
             session={session}
             busy={busy}
             onLaunch={onLaunch}
-            onRestart={onRestart}
           />
         ) : null}
 
         {session.status === 'later' && view.entered && view.status === 'scheduled' && before ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <LockIcon className="size-4" />
-            {t('event.waits', { name: before.name ?? t(SESSION_TYPE_LABEL[before.type]) })}
+            {t('event.waits', { name: sessionName(before, t) })}
           </p>
         ) : null}
       </CardContent>

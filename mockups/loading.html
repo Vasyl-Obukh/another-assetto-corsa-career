@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loading skeletons</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250); --foreground: oklch(0.16 0.01 260); --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262); --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252); --muted-foreground: oklch(0.53 0.012 258); --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255); --input: oklch(0.885 0.01 255);
+  --sk: oklch(0.925 0.018 255); --sk-hi: oklch(0.965 0.01 255); --sk-deep: oklch(0.88 0.02 255);
+  --d-ss: oklch(0.925 0.06 212); --d-ss-fg: oklch(0.36 0.11 215);
+  --d-sp: oklch(0.925 0.06 112); --d-sp-fg: oklch(0.36 0.1 118);
+  --d-to: oklch(0.925 0.055 175); --d-to-fg: oklch(0.35 0.09 178);
+  --d-ro: oklch(0.925 0.06 270); --d-ro-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+  --base: oklch(0.55 0.13 155); --dlc: oklch(0.5 0.12 75); --mod: oklch(0.5 0.15 295);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265); --foreground: oklch(0.94 0.005 260); --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258); --muted: oklch(0.27 0.014 265); --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265); --border: oklch(1 0 0 / 12%); --input: oklch(1 0 0 / 16%);
+  --sk: oklch(0.3 0.016 265); --sk-hi: oklch(0.345 0.016 265); --sk-deep: oklch(0.27 0.016 265);
+  --d-ss: oklch(0.32 0.07 212); --d-ss-fg: oklch(0.86 0.1 212);
+  --d-sp: oklch(0.32 0.07 112); --d-sp-fg: oklch(0.86 0.1 112);
+  --d-to: oklch(0.32 0.065 175); --d-to-fg: oklch(0.86 0.09 175);
+  --d-ro: oklch(0.32 0.07 270); --d-ro-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255);
+  --base: oklch(0.7 0.15 158); --dlc: oklch(0.72 0.12 75); --mod: oklch(0.7 0.14 295);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--background); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+.muted { color: var(--muted-foreground); } .xs { font-size: 11.5px; } .sm { font-size: 13px; }
+.caps { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; }
+.row { display: flex; align-items: center; gap: 8px; } .col { display: flex; flex-direction: column; }
+.grow { flex: 1; min-width: 0; } .end { margin-left: auto; }
+
+/* The mockup's own controls. */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 16px; background: var(--foreground); color: var(--background); font-size: 12.5px; }
+.picker strong { margin-right: 6px; }
+.picker button { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 3px 9px; }
+.picker button.on { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; height: 20px; background: color-mix(in oklch, var(--background) 30%, transparent); margin: 0 4px; }
+.note { padding: 8px 32px; font-size: 12.5px; background: color-mix(in oklch, var(--primary) 10%, var(--background)); border-bottom: 1px solid var(--border); }
+.note b { font-weight: 600; }
+
+/* App chrome. */
+.nav { height: 64px; display: flex; align-items: center; gap: 22px; padding: 0 32px; border-bottom: 1px solid var(--border); }
+.nav .brand { font-size: 17px; font-weight: 500; margin-right: 6px; }
+.nav span { font-size: 14px; padding: 6px 10px; border-radius: 8px; }
+.nav span.on { background: color-mix(in oklch, var(--primary) 12%, transparent); color: var(--primary); }
+.page { padding: 28px 32px 40px; max-width: 1600px; }
+.shot { display: none; width: 100%; }
+body.loaded .page, body.loaded .nav { display: none; } body.loaded .shot.on { display: block; }
+.screen { display: none; } .screen.on { display: block; }
+
+/* Real controls drawn as they render before the data arrives. */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 2px oklch(0 0 0 / 5%); }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 14px; white-space: nowrap; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.dim { opacity: .5; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.input { height: 36px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--muted-foreground); }
+.chip { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+.dot { width: 7px; height: 7px; border-radius: 99px; display: inline-block; }
+.cb { width: 15px; height: 15px; border: 1px solid var(--input); border-radius: 4px; background: var(--card); flex: none; }
+.back { color: var(--muted-foreground); font-size: 14px; display: flex; gap: 8px; align-items: center; padding: 6px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; padding: 2px; background: var(--card); }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 13px; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.seg span.on { background: var(--primary); color: var(--primary-foreground); }
+.tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--border); }
+.tabs span { padding: 8px 0 10px; color: var(--muted-foreground); font-size: 15px; display: inline-flex; gap: 6px; align-items: center; }
+.tabs span.on { color: var(--foreground); box-shadow: inset 0 -2px 0 var(--primary); font-weight: 500; }
+.sw { width: 34px; height: 18px; border-radius: 99px; background: var(--input); flex: none; }
+.th { font-size: 12px; color: var(--muted-foreground); }
+
+/* Skeleton primitives: a block, a line the height of the text it stands for. */
+.sk { background: var(--sk); border-radius: 6px; flex: none; }
+.sk.round { border-radius: 99px; }
+.sk.hi { background: var(--sk-hi); }
+.sk.deep { background: var(--sk-deep); }
+.l11 { height: 9px; margin: 3px 0; } .l13 { height: 10px; margin: 4px 0; } .l14 { height: 11px; margin: 4px 0; }
+.l16 { height: 13px; margin: 5px 0; } .l20 { height: 16px; margin: 6px 0; } .l24 { height: 20px; margin: 6px 0; } .l40 { height: 32px; margin: 4px 0; }
+body.pulse .sk { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+/* The sweep: one light band crossing the whole page, so every block shimmers in step. */
+body.sweep .sk { background-image: linear-gradient(100deg, transparent 0 40%, var(--sk-hi) 50%, transparent 60% 100%); background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+body.still .sk { animation: none; }
+
+/* Layout helpers shared by several screens. */
+.browser { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 24px; align-items: start; }
+.rail { padding: 0; overflow: hidden; }
+.rail h4 { margin: 0; padding: 14px 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border); }
+.rail .grp { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 9px; }
+.rail .grp:last-child { border-bottom: 0; }
+.rail .gt { font-size: 12.5px; font-weight: 600; display: flex; justify-content: space-between; }
+.rail .it { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.rail .it .n { margin-left: auto; }
+.toolbar { display: flex; gap: 10px; align-items: center; }
+.toolbar .input { flex: 1; }
+.count { margin: 14px 4px 14px; }
+.h1 { font-size: 24px; font-weight: 600; }
+.sub { color: var(--muted-foreground); margin: 4px 0 18px; font-size: 14px; }
+</style>
+</head>
+<body class="sweep">
+<div class="picker" id="picker"></div>
+<div class="note" id="note"></div>
+<div id="shots"></div>
+<div class="nav" id="nav"></div>
+<div class="page" id="page"></div>
+
+<script>
+// ---------- Building blocks ----------
+const sk = (w, h, cls = '') => `<div class="sk ${cls}" style="width:${typeof w === 'number' ? w + 'px' : w};height:${h}px"></div>`;
+const ln = (w, size = 14, cls = '') => `<div class="sk l${size} ${cls}" style="width:${typeof w === 'number' ? w + 'px' : w}"></div>`;
+const chip = (w = 56) => sk(w, 22);
+const rep = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join('');
+const pick = (i, list) => list[i % list.length];
+const DISC = [['Single-seater', 'ss'], ['Sportscar', 'sp'], ['Touring', 'to'], ['Road', 'ro']];
+const TIERS = [[5, 'Steel'], [4, 'Bronze'], [3, 'Silver'], [2, 'Gold'], [1, 'Platinum']];
+const tierBadge = (n) => `<span class="chip" style="width:22px;height:22px;padding:0;justify-content:center;border-radius:99px;background:var(--t${n});color:var(--t${n}-fg)">${n}</span>`;
+const icon = (d) => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const I = {
+  search: icon('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  sort: icon('<path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"/>'),
+  back: icon('<path d="M19 12H5M12 19l-7-7 7-7"/>'),
+  arrow: icon('<path d="M5 12h14M12 5l7 7-7 7"/>'),
+  chevL: icon('<path d="m15 18-6-6 6-6"/>'), chevR: icon('<path d="m9 18 6-6-6-6"/>'), chevD: icon('<path d="m6 9 6 6 6-6"/>'),
+  grid: icon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'),
+  list: icon('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+  cal: icon('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  plus: icon('<path d="M12 5v14M5 12h14"/>'), up: icon('<path d="M12 19V5M5 12l7-7 7 7"/>'),
+};
+const railItem = (label, dot) => `<div class="it"><span class="cb"></span>${dot ? `<span class="dot" style="background:${dot}"></span>` : ''}<span>${label}</span><span class="n">${ln(16, 11)}</span></div>`;
+const railSk = (n, w = [96, 60, 80, 70, 110, 64]) => rep(n, (i) => `<div class="it"><span class="cb"></span>${ln(pick(i, w), 13)}<span class="n">${ln(16, 11)}</span></div>`);
+const group = (title, body) => `<div class="grp"><div class="gt">${title}<span class="muted">${I.chevD}</span></div>${body}</div>`;
+const discRail = () => group('Discipline', DISC.map(([n, k]) => railItem(n, `var(--d-${k}-fg)`)).join(''));
+const tierRail = () => group('Tier', [1, 2, 3, 4, 5].map((n) => `<div class="it"><span class="cb"></span>${tierBadge(n)}<span>Tier ${n}</span><span class="n">${ln(16, 11)}</span></div>`).join(''));
+const sourceRail = () => group('Content', railItem('Base game', 'var(--base)') + railItem('DLC', 'var(--dlc)') + railItem('Mod', 'var(--mod)'));
+const switchRow = (label) => `<div class="grp"><div class="it" style="justify-content:space-between">${label}<span class="sw"></span></div></div>`;
+const toolbar = (placeholder, extra = '') => `<div class="toolbar"><div class="input">${I.search}${placeholder}</div><span class="btn">${I.sort}Sort: Name ${I.up}</span>${extra}</div>`;
+const viewToggle = (list) => `<span class="seg"><span class="${list ? '' : 'on'}">${I.grid}</span><span class="${list ? 'on' : ''}">${I.list}</span></span>`;
+const header = (title, subtitle) => `<div class="h1">${title}</div><div class="sub">${subtitle}</div>`;
+const back = (label) => `<div class="back">${I.back}${label}</div>`;
+const sessions = (n) => `<span class="row" style="gap:3px">${rep(n, () => sk(18, 18))}</span>`;
+
+// ---------- Screens ----------
+const HOME = () => `
+<div class="row" style="align-items:flex-end;margin-bottom:18px">
+  <div class="col">${ln(56, 11)}${ln(170, 24)}</div>
+  <span class="btn end">Open the calendar ${I.arrow}</span>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px">
+  <div class="card" style="display:grid;grid-template-columns:minmax(0,1fr) 240px;overflow:hidden;min-height:368px">
+    <div class="col" style="padding:20px;gap:6px">
+      <span class="caps" style="color:var(--primary)">Your next weekend</span>
+      <div class="row" style="gap:12px;margin-top:6px">${sk(38, 34)}${ln(220, 16)}</div>
+      ${ln(250, 20)}${ln(160, 16)}
+      <div class="row" style="margin:6px 0">${chip(70)}${chip(52)}${chip(56)}${chip(130)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin-top:2px">
+        ${rep(3, (i) => `<div class="row">${ln(22, 11)}${chip(pick(i, [86, 72, 50]))}${ln(70, 11)}</div>`)}
+      </div>
+      <div class="row" style="margin-top:auto;padding-top:20px">${sk(122, 36)}${sk(168, 36)}</div>
+    </div>
+    <div style="background:var(--muted);display:flex;align-items:center;justify-content:center">${sk(130, 80, 'deep')}</div>
+  </div>
+  <div class="card col" style="padding:20px 20px 14px">
+    <div class="row" style="margin-bottom:14px"><span class="caps">Your championships</span><span class="end">${ln(60, 11)}</span></div>
+    ${rep(3, (i) => `
+      <div class="row" style="gap:14px;align-items:stretch;margin-bottom:22px">
+        ${sk(3, 62, 'round')}
+        <div class="col grow" style="gap:6px">
+          <div class="row">${ln(pick(i, [170, 160, 90]), 16)}${chip(48)}</div>
+          <div class="row" style="gap:3px">${rep(pick(i, [5, 6, 8]), () => `<div class="sk grow" style="height:5px;flex:1"></div>`)}</div>
+          ${ln(130, 13)}
+        </div>
+        <div class="col" style="align-items:flex-end;gap:6px;justify-content:center">${ln(30, 13)}${ln(34, 13)}</div>
+      </div>`)}
+    <div class="row xs muted" style="margin-top:auto;border-top:1px solid var(--border);padding-top:12px;gap:14px">
+      <span class="row" style="gap:5px"><span class="dot" style="background:var(--base)"></span>Raced</span>
+      <span class="row" style="gap:5px"><span class="dot" style="background:oklch(0.62 0.06 15)"></span>Missed</span>
+      <span class="row" style="gap:5px"><span class="dot" style="background:var(--primary)"></span>Next</span>
+      <span class="row" style="gap:5px"><span class="dot" style="background:var(--border)"></span>To come</span>
+    </div>
+  </div>
+</div>`;
+
+const calHead = (days) => `
+<div class="row" style="margin-bottom:16px">
+  ${ln(190, 24)}
+  <span class="btn dim" style="width:34px;padding:0;justify-content:center;margin-left:8px">${I.chevL}</span>
+  <span class="btn dim" style="width:34px;padding:0;justify-content:center">${I.chevR}</span>
+  <span class="btn dim">Today</span>
+  <div class="card end row" style="gap:0;overflow:hidden;height:48px;border-radius:10px">
+    <div class="col" style="padding:4px 14px;border-right:1px solid var(--border)"><span class="caps">Today</span>${ln(84, 14)}</div>
+    <div class="col" style="padding:4px 14px"><span class="caps">Next for you</span>${ln(260, 14)}</div>
+    ${sk(150, 48)}
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin-bottom:12px">
+  ${rep(12, (i) => `<div class="card col" style="height:36px;align-items:center;justify-content:center;gap:5px;border-radius:8px">${ln(26, 11)}<div class="row" style="gap:2px">${rep(pick(i, [3, 2, 4, 3, 2]), () => sk(5, 4, 'round'))}</div></div>`)}
+</div>
+<div class="row" style="gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px">
+  <span class="caps">Status</span>
+  <span class="seg"><span class="on">All ${sk(14, 9, 'hi')}</span><span>Available ${ln(14, 11)}</span><span>Entered ${ln(14, 11)}</span><span>Locked ${ln(14, 11)}</span></span>
+  <span class="caps" style="margin-left:14px">Discipline</span>
+  ${DISC.map(([n, k]) => `<span class="btn" style="height:30px;font-size:13px"><span class="dot" style="background:var(--d-${k}-fg)"></span>${n}</span>`).join('')}
+  <span class="seg end"><span class="${days ? 'on' : ''}">${I.list}Days</span><span class="${days ? '' : 'on'}">${I.cal}Month</span></span>
+</div>`;
+
+const eventCard = (i) => `
+<div class="card col" style="padding:12px 14px;gap:4px;border-left:3px solid var(--sk);min-width:0">
+  <div class="row" style="align-items:flex-start">
+    <div class="col grow" style="gap:2px">
+      <div class="row" style="gap:6px">${ln(14, 11)}${chip(pick(i, [64, 52, 44]))}${chip(42)}</div>
+      ${ln(pick(i, [200, 230, 170]), 16)}${ln(pick(i, [240, 150, 200]), 13)}
+    </div>
+    ${sk(64, 40, 'deep')}
+  </div>
+  <div class="row" style="border-top:1px solid var(--border);padding-top:9px;margin-top:6px">${ln(64, 16)}${ln(70, 13)}<span class="end">${ln(42, 13)}</span></div>
+</div>`;
+
+const CAL_MONTH = () => {
+  const cells = rep(42, (i) => {
+    const bars = [0, 6, 13, 20, 27, 34].includes(i) ? (i % 3) + 1 : 0;
+    return `<div style="border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:5px;min-height:0">${ln(14, 13)}${rep(bars, (b) => sk(`${pick(b, [92, 80, 70])}%`, 18))}</div>`;
+  });
+  return `${calHead(false)}
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;height:600px">
+  <div class="card" style="display:grid;grid-template-rows:auto 1fr;overflow:hidden">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => `<span class="caps" style="padding:8px">${d}</span>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,1fr)">${cells}</div>
+  </div>
+  <div class="col" style="gap:10px">
+    <div class="row"><div class="col">${ln(110, 16)}${ln(56, 11)}</div><span class="end">${sk(170, 34)}</span></div>
+    ${rep(3, eventCard)}
+  </div>
+</div>`;
+};
+
+const CAL_DAYS = () => `${calHead(true)}
+<div class="row" style="padding:4px 0 14px;border-bottom:1px solid var(--border)"><span class="caps" style="color:var(--primary);width:96px;text-align:right;padding-right:16px">Today</span><div class="grow" style="height:2px;background:var(--primary)"></div>${ln(70, 13)}</div>
+${[[3], [2, 'month'], [1], [1]].map(([n, m], d) => `
+  ${m ? `<div class="row" style="padding:22px 0 12px;border-bottom:1px solid var(--border)">${ln(130, 20)}${ln(90, 13)}</div>` : ''}
+  <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+    <div class="col" style="align-items:flex-end;gap:2px;padding-right:4px">${ln(26, 11)}${sk(28, 26)}${ln(26, 11)}${ln(44, 11)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">${rep(n, (i) => eventCard(i + d))}</div>
+  </div>`).join('')}`;
+
+const CHAMPIONSHIPS = () => `${header('Championships', 'The championships you can race today.')}
+<div class="browser">
+  <div class="card rail"><h4>Filters</h4>${discRail()}${tierRail()}${sourceRail()}${group('Origin', `<div class="it"><span class="cb"></span>The app's own<span class="n">${ln(16, 11)}</span></div><div class="it"><span class="cb"></span>Custom<span class="n">${ln(16, 11)}</span></div>`)}</div>
+  <div>
+    ${toolbar('Search championships')}
+    <div class="count">${ln(54, 11)}</div>
+    <div class="card" style="overflow:hidden">
+      <div style="display:grid;grid-template-columns:150px repeat(5,minmax(0,1fr));border-bottom:1px solid var(--border)">
+        <span></span>${TIERS.map(([n, name]) => `<div class="row" style="padding:12px 14px;gap:10px;border-left:1px solid var(--border)">${tierBadge(n).replace('width:22px;height:22px', 'width:30px;height:30px')}<span style="font-size:15px;font-weight:500">${name}</span></div>`).join('')}
+      </div>
+      ${DISC.slice(0, 2).map(([name, k], d) => `
+        <div style="display:grid;grid-template-columns:150px repeat(5,minmax(0,1fr));border-bottom:1px solid var(--border)">
+          <div style="background:var(--d-${k});color:var(--d-${k}-fg);padding:16px 14px"><div style="font-size:16px;font-weight:500">${name}</div>${ln(90, 11)}</div>
+          ${rep(5, (c) => `<div class="col" style="padding:10px;gap:10px;border-left:1px solid var(--border)">${rep(pick(c + d, [3, 1, 2, 3, 2]), (r) => `
+            <div class="col" style="border:1px solid var(--border);border-left:3px solid var(--sk);border-radius:10px;padding:12px 14px;gap:6px">
+              ${ln(pick(r + c, [140, 110, 160]), 16)}${chip(pick(r, [40, 46]))}
+              <div class="row">${ln(56, 13)}<span class="end">${sessions(pick(c, [4, 5, 4, 4]))}</span></div>
+            </div>`)}</div>`)}
+        </div>`).join('')}
+    </div>
+  </div>
+</div>`;
+
+const roundRow = (i, you) => `
+<div class="row" style="padding:12px 16px;gap:0;border-top:1px solid var(--border);min-height:62px">
+  <span style="width:26px">${ln(10, 14)}</span>
+  ${sk(64, 40, 'deep')}
+  <div class="col" style="width:${you ? 230 : 320}px;padding-left:16px">${ln(pick(i, [80, 100, 70, 110]), 16)}${ln(pick(i, [60, 150, 70, 140]), 11)}</div>
+  ${you ? `<span style="width:126px">${ln(80, 14)}</span>` : ''}
+  <div class="row" style="width:${you ? 294 : 330}px">${sessions(pick(i, [6, 6, 3]))}${ln(66, 11)}</div>
+  <span style="width:${you ? 170 : 290}px">${ln(110, 14)}</span>
+  ${you ? `<span style="width:80px">${i === 0 ? chip(56) : ''}</span>` : ''}
+  <span class="btn dim end">Open ${I.arrow}</span>
+</div>`;
+
+const summaryCard = (entered) => `
+<div class="card col" style="padding:18px 16px;gap:8px">
+  ${sk('100%', 6, 'round')}
+  ${ln(200, 20)}
+  <div class="row">${chip(84)}${chip(46)}</div>
+  ${ln('96%', 14)}${ln('90%', 14)}${ln('60%', 14)}
+  ${['Weekend', 'Weather', 'Grid', 'Entry fee'].map((l, i) => `<div class="row" style="justify-content:space-between"><span class="muted">${l}</span>${i === 0 ? sessions(6) : ln(pick(i, [0, 90, 96, 50]), 14)}</div>`).join('')}
+  ${entered ? `<div class="row" style="justify-content:space-between"><span class="muted">You race</span>${ln(150, 14)}</div>${sk('100%', 132)}` : ''}
+</div>`;
+
+const classesBlock = () => `
+<div style="font-size:16px;font-weight:500;margin:24px 0 10px">Classes</div>
+<div class="card" style="display:grid;grid-template-columns:210px minmax(0,1fr) minmax(0,1.3fr);min-height:280px">
+  <div class="col" style="padding:16px;gap:6px">${sk(32, 32, 'round')}${ln(110, 20)}${ln(90, 13)}<div class="row">${chip(70)}${chip(100)}</div></div>
+  <div class="col" style="padding:16px;gap:8px;border-left:1px solid var(--border)"><span class="xs muted">Cars</span><div class="row">${rep(2, () => `<div class="col" style="width:125px;border:1px solid var(--border);border-radius:8px;overflow:hidden">${sk('100%', 70, 'deep')}<div style="padding:6px 8px">${ln(90, 13)}</div></div>`)}</div></div>
+  <div class="col" style="padding:16px;gap:4px;border-left:1px solid var(--border)"><span class="xs muted" style="margin-bottom:4px">Entry list</span>${rep(4, (i) => `<div class="row" style="border-top:1px solid var(--border);padding:8px 0"><div class="col grow">${ln(pick(i, [140, 120, 100]), 16)}${ln(pick(i, [260, 230, 280]), 13)}</div>${chip(76)}</div>`)}</div>
+</div>`;
+
+const CHAMP = (entered) => () => `${back('All championships')}
+<div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px;align-items:start">
+  <div class="col" style="gap:16px">${summaryCard(entered)}${entered ? `<div class="card col" style="padding:16px;gap:8px">${ln(90, 20)}${ln(170, 14)}</div>` : `<div class="card col" style="padding:16px;gap:8px;border-style:dashed">${ln(200, 16)}${ln('95%', 14)}${ln('80%', 14)}<div class="row" style="margin-top:8px">${ln(110, 14)}<span class="end">${sk(86, 34)}</span></div>${sk('100%', 38)}</div>`}</div>
+  <div>
+    <div class="card" style="overflow:hidden">
+      <div class="row th" style="padding:10px 16px;gap:0">
+        <span style="width:106px">Rd</span><span style="width:${entered ? 230 : 320}px">Round</span>${entered ? '<span style="width:126px">Date</span>' : ''}<span style="width:${entered ? 294 : 330}px">Weekend</span><span style="width:${entered ? 170 : 290}px">Race</span>${entered ? '<span>You</span>' : ''}
+      </div>
+      ${rep(5, (i) => roundRow(i, entered))}
+    </div>
+    ${classesBlock()}
+  </div>
+</div>`;
+
+const EVENT = () => `${back('Calendar')}
+<div class="row" style="align-items:flex-start;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px">
+  <div class="col" style="gap:4px">
+    <div class="row">${ln(80, 13)}${chip(84)}${chip(46)}${chip(96)}</div>
+    ${ln(130, 24)}
+    <div class="row" style="gap:16px">${sk(200, 26, 'round')}${ln(140, 14)}${ln(50, 14)}${ln(80, 14)}</div>
+  </div>
+  <span class="end">${sk(144, 80, 'deep')}</span>
+</div>
+<div style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start">
+  <div class="col" style="gap:16px">
+    <div class="card col" style="padding:12px;gap:6px">${ln(80, 11)}${sk('100%', 154, 'deep')}${ln(130, 16)}${ln(150, 11)}${ln(170, 11)}</div>
+    <div class="card" style="overflow:hidden"><div class="caps" style="padding:12px">Weekend</div>${rep(6, (i) => `<div class="row" style="gap:12px;padding:10px 12px;border-top:1px solid var(--border)">${sk(20, 20, 'round')}<div class="col grow">${ln(pick(i, [70, 90, 90, 56, 56, 56]), 16)}${ln(pick(i, [120, 120, 120, 140]), 11)}</div>${sk(16, 16, 'round')}</div>`)}</div>
+  </div>
+  <div class="card col" style="padding:16px;gap:14px">
+    <div class="row">${chip(62)}${ln(90, 20)}<span class="end">${ln(70, 14)}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${rep(4, (i) => `<div class="col" style="border:1px solid var(--border);border-radius:8px;padding:12px;gap:4px;height:88px">${ln(50, 11)}${ln(pick(i, [100, 70, 110, 80]), 20)}${i === 1 ? ln(36, 11) : ''}</div>`)}</div>
+    ${ln(220, 14)}
+  </div>
+</div>`;
+
+const carRail = () => `<div class="card rail"><h4>Filters</h4>${switchRow('Raced in a championship')}
+  ${group('Class', `<div class="input" style="height:30px;font-size:13px">${I.search}Find a class or spec</div>${railSk(6)}`)}
+  ${group('Source', railItem('Base game', 'var(--base)') + railItem('DLC', 'var(--dlc)') + railItem('Mod', 'var(--mod)'))}
+  ${group('Brand', `<div class="input" style="height:30px;font-size:13px">${I.search}Find a brand</div>${railSk(5)}`)}</div>`;
+
+const posterCard = (i, tracks) => `
+<div class="card" style="overflow:hidden">
+  <div style="aspect-ratio:4/3;position:relative" class="sk deep">
+    <div style="position:absolute;left:12px;top:10px">${sk(64, 22, 'hi')}</div>
+    ${tracks ? `<div style="position:absolute;right:10px;top:10px">${sk(90, 68, 'hi')}</div>` : ''}
+    <div style="position:absolute;left:12px;bottom:12px" class="col">${ln(80, 11, 'hi')}${ln(pick(i, [210, 160, 230, 190]), 16, 'hi')}</div>
+  </div>
+  <div class="col" style="padding:12px 14px;gap:8px">
+    ${tracks ? `${ln(210, 14)}<div class="row">${rep(pick(i, [1, 5, 3, 3]), () => sk(46, 32))}</div>` : `<div class="row">${chip(pick(i, [110, 70, 80]))}</div>${ln(170, 14)}`}
+    <div class="row">${ln(110, 13)}${chip(64)}</div>
+  </div>
+</div>`;
+
+const CARS = (list) => () => `${header('Cars', 'Every car in your library, and which championships race it.')}
+<div class="browser">${carRail()}
+  <div>
+    ${toolbar('Search cars by name, brand, folder or tag', viewToggle(list))}
+    <div class="count">${ln(54, 11)}</div>
+    ${list ? `<div class="card" style="overflow:hidden">
+      <div class="row th" style="padding:12px 10px;gap:0"><span style="width:120px"></span><span style="width:320px">Car</span><span style="width:220px">Class</span><span style="width:60px">Year</span><span style="width:60px">Power</span><span style="width:70px">Weight</span><span style="width:110px">Power to weight</span><span style="width:60px">Liveries</span><span style="width:110px">Championships</span><span>Source</span></div>
+      ${rep(10, (i) => `<div class="row" style="padding:8px 10px;gap:0;border-top:1px solid var(--border);height:65px"><span style="width:120px">${sk(96, 52, 'deep')}</span><div class="col" style="width:320px">${ln(pick(i, [190, 140, 230, 260]), 16)}${ln(70, 13)}</div><span style="width:220px">${chip(pick(i, [110, 80, 90]))}</span><span style="width:60px">${ln(34, 14)}</span><span style="width:60px">${ln(28, 14)}</span><span style="width:70px">${ln(36, 14)}</span><span style="width:110px" class="row">${ln(28, 14)}${sk(48, 5, 'round')}</span><span style="width:60px">${ln(18, 14)}</span><span style="width:110px">${ln(22, 14)}</span>${chip(70)}</div>`)}
+    </div>` : `<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">${rep(8, (i) => posterCard(i, false))}</div>`}
+  </div>
+</div>`;
+
+const TRACKS = () => `${header('Tracks', 'Every circuit in your library, and which championships race there.')}
+<div class="browser">
+  <div class="card rail"><h4>Filters</h4><div class="grp">${['Raced in a championship', 'Has coordinates'].map((l) => `<div class="it" style="justify-content:space-between">${l}<span class="sw"></span></div>`).join('')}</div>
+    ${group('Source', railItem('Base game', 'var(--base)') + railItem('DLC', 'var(--dlc)') + railItem('Mod', 'var(--mod)'))}
+    ${group('Country', `<div class="input" style="height:30px;font-size:13px">${I.search}Find a country</div>${railSk(5)}`)}
+    ${['Length', 'Pit boxes'].map((t) => group(t, `<div class="row" style="align-items:flex-end;gap:2px;height:36px">${rep(26, (i) => `<div class="sk" style="flex:1;height:${pick(i, [4, 8, 14, 22, 30, 18, 10, 6, 3, 5, 3])}px;border-radius:1px"></div>`)}</div>${sk('100%', 4, 'round')}<div class="row">${sk('46%', 28)}<span class="grow"></span>${sk('46%', 28)}</div>`)).join('')}
+  </div>
+  <div>
+    ${toolbar('Search tracks by name, folder or country', viewToggle(false))}
+    <div class="count">${ln(54, 11)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">${rep(8, (i) => posterCard(i, true))}</div>
+  </div>
+</div>`;
+
+const CAR = () => `${back('All cars')}
+<div class="card" style="overflow:hidden">
+  <div class="sk deep" style="aspect-ratio:21/8;position:relative;border-radius:0">
+    <div class="col" style="position:absolute;left:20px;bottom:22px;gap:4px">${ln(130, 14, 'hi')}${ln(380, 40, 'hi')}<div class="row">${rep(3, (i) => sk(pick(i, [74, 108, 90]), 22, 'hi'))}</div></div>
+    <div style="position:absolute;right:20px;bottom:30px" class="col">${ln(230, 14, 'hi')}${ln(330, 11, 'hi')}</div>
+  </div>
+  <div class="row" style="padding:6px 6px 6px">${rep(2, () => sk(108, 60, 'deep'))}</div>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 352px;gap:16px;margin-top:16px;align-items:start">
+  <div class="col" style="gap:16px">
+    <div class="card" style="display:grid;grid-template-columns:repeat(6,1fr)">${['Power', 'Torque', 'Weight', 'Power to weight', 'Top speed', '0-100 km/h'].map((l, i) => `<div class="col" style="padding:12px 16px;${i ? 'border-left:1px solid var(--border)' : ''}">${ln(pick(i, [62, 30, 60, 72, 30, 30]), 20)}<span class="sm muted">${l}</span></div>`).join('')}</div>
+    <div class="card col" style="padding:16px;gap:4px"><span style="font-weight:500;margin-bottom:6px">About</span>${ln('98%', 16)}${ln('95%', 16)}${ln('97%', 16)}${ln('60%', 16)}</div>
+  </div>
+  <div class="col" style="gap:16px">
+    <div class="card col" style="padding:16px;gap:10px"><span class="row" style="font-weight:500">Raced in ${ln(10, 14)}</span><div class="row" style="gap:12px">${sk(3, 46, 'round')}<div class="col grow">${ln(220, 16)}<div class="row">${chip(70)}${chip(44)}${chip(44)}</div></div></div></div>
+    <div class="card col" style="padding:16px;gap:10px"><span style="font-weight:500">Classification</span><div class="row">${chip(110)}${chip(90)}</div></div>
+  </div>
+</div>`;
+
+const settingsHead = (tab) => `<div class="h1" style="margin-bottom:12px">Settings</div>
+<div class="tabs" style="margin-bottom:20px">${['General', 'Diagnostics', 'Content sources', 'Classes', 'Championships', 'Your content'].map((t) => `<span class="${t === tab ? 'on' : ''}">${t}</span>`).join('')}</div>`;
+
+const LIBRARY = () => `${settingsHead('Championships')}
+<div class="browser">
+  <div class="card rail"><h4>Filters</h4>${switchRow('Switched on only')}${discRail()}${tierRail()}${sourceRail()}${group('Origin', `<div class="it"><span class="cb"></span>The app's own<span class="n">${ln(16, 11)}</span></div><div class="it"><span class="cb"></span>Custom<span class="n">${ln(16, 11)}</span></div>`)}</div>
+  <div>
+    ${toolbar('Search championships', `<span class="btn">${I.plus}New</span><span class="btn">Import</span>`)}
+    <div class="count">${ln(60, 11)}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">${rep(6, (i) => `
+      <div class="card" style="overflow:hidden">
+        <div class="row" style="padding:12px 16px;height:44px;background:var(--muted)">${ln(70, 13)}<span class="end row">${sk(24, 24, 'round')}${sk(4, 16)}</span></div>
+        <div class="col" style="padding:14px 16px;gap:6px;min-height:200px">
+          <div class="row">${ln(pick(i, [160, 220, 180]), 20)}<span class="end">${sk(34, 18, 'round')}</span></div>
+          ${ln('96%', 14)}${ln('80%', 14)}
+          <div class="row" style="margin-top:6px">${ln(36, 13)}${chip(46)}${chip(40)}${ln(90, 13)}${chip(40)}</div>
+          <div class="col" style="margin-top:auto;border-top:1px solid var(--border);padding-top:12px;gap:8px"><div class="row">${ln(54, 13)}<span class="end">${sessions(pick(i, [5, 3, 4]))}</span></div><div class="row" style="gap:3px">${rep(pick(i, [4, 5, 4]), () => `<div class="sk" style="flex:1;height:5px"></div>`)}</div></div>
+        </div>
+      </div>`)}</div>
+  </div>
+</div>`;
+
+const field = (label, w = '100%', hint) => `<div class="col" style="gap:6px;width:${w}"><span style="font-weight:500">${label}</span><div class="input">${ln('40%', 14)}</div>${hint ? `<span class="xs muted">${hint}</span>` : ''}</div>`;
+const EDITOR = () => `${back('Back to championships settings')}
+<div class="row" style="margin-bottom:12px">${ln(330, 24)}${chip(60)}<span class="btn dim end">Discard changes</span><span class="btn primary dim">Save</span></div>
+<div class="tabs" style="margin-bottom:16px">${['Overview', 'Teams', 'Classes', 'Calendar', 'Weekends', 'Points & money'].map((t, i) => `<span class="${i ? '' : 'on'}" style="padding-left:${i ? 0 : 16}px;padding-right:${i ? 0 : 16}px">${t}${i && i < 5 ? sk(16, 16) : ''}</span>`).join('')}</div>
+<div class="card" style="display:grid;grid-template-columns:1.2fr 1fr">
+  <div class="col" style="padding:24px;gap:16px"><span class="caps">Identity</span>${field('Name')}<div class="col" style="gap:6px"><span style="font-weight:500">Description</span><div class="input" style="height:112px;align-items:flex-start;flex-direction:column;padding-top:12px;gap:4px">${ln('92%', 14)}${ln('30%', 14)}</div></div></div>
+  <div class="col" style="padding:24px;gap:16px;border-left:1px solid var(--border)"><span class="caps">Season</span>
+    <div class="row" style="gap:16px;align-items:flex-start">${field('Entry fee', '50%', 'Per round, unless a round says otherwise.')}${field('Season length', '50%', 'How much of a career\'s year it fills')}</div>
+    <div class="row"><div class="col grow"><span style="font-weight:500">Generated weather</span><span class="xs muted">Drawn from a climate; a round or a session may still set its own</span></div>${sk(34, 18, 'round')}</div>
+    <div class="col" style="gap:6px"><span style="font-weight:500">Climate</span><span class="seg" style="width:max-content"><span>Arid</span><span>Mediterranean</span><span>Temperate</span><span>Oceanic</span></span></div>
+    <div class="col" style="gap:6px"><span style="font-weight:500">Hemisphere</span><span class="seg" style="width:max-content"><span>Northern</span><span>Southern</span></span></div>
+  </div>
+</div>
+<div class="card" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px">
+  <div class="col" style="padding:24px;gap:12px"><span class="caps">AI field</span><span class="xs muted">How much stronger or weaker this field is than the difficulty in settings.</span><div class="row" style="gap:16px">${field('AI strength', '50%')}${field('AI aggression', '50%')}</div></div>
+  <div class="col" style="padding:24px;gap:12px;border-left:1px solid var(--border)"><span class="caps">Regulations</span><span class="xs muted">What the series allows, and what it does when the rules are broken.</span><div class="row" style="gap:16px">${field('Damage', '50%')}${field('Fuel use', '50%')}</div><div class="row" style="gap:16px">${field('Tyre wear', '50%')}${field('Slipstream', '50%')}</div></div>
+  <div class="col" style="padding:24px;gap:12px;border-left:1px solid var(--border)"><span class="caps">Race control</span><div class="row" style="gap:16px">${field('Jump start penalty', '50%')}${field('Wheels allowed off', '50%')}</div>${['Penalties', 'Fixed setup'].map((l) => `<div class="row" style="justify-content:space-between;font-weight:500">${l}${sk(34, 18, 'round')}</div>`).join('')}</div>
+</div>`;
+
+const PIECES = () => `
+<p class="sm muted" style="margin-bottom:16px;max-width:760px">Parts of a page that load on their own after the page itself is up. Each one keeps the size of what it stands for.</p>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start">
+  <div class="card col" style="padding:16px;gap:10px"><span class="caps">Home · weekend sessions</span><span class="xs muted">Today: one 56px bar. Proposed: a row per session, in the same two columns.</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">${rep(3, (i) => `<div class="row">${ln(22, 11)}${chip(pick(i, [86, 72, 50]))}${ln(70, 11)}</div>`)}</div></div>
+  <div class="card col" style="padding:16px;gap:10px"><span class="caps">Settings · Content Manager flags</span><span class="xs muted">The two flags are fixed, so their tiles render for real and only the switches wait.</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${[['Skip the results screen', 'Content Manager shows its own results screen after every session. Without it you come back here sooner.'], ['Hide the cancel button', 'Puts a cancelled race more than one misclick away.']].map(([l, h]) => `<div class="row" style="border:1px solid var(--border);border-radius:10px;padding:12px;align-items:flex-start"><div class="col grow"><span style="font-weight:500">${l}</span><span class="xs muted">${h}</span></div>${sk(34, 18, 'round')}</div>`).join('')}</div></div>
+  <div class="card col" style="padding:16px;gap:10px"><span class="caps">Round page · session result</span><span class="xs muted">Today: one 192px bar. Proposed: the results table's header and a row per car.</span>
+    <div class="row th" style="gap:0;border-bottom:1px solid var(--border);padding-bottom:6px"><span style="width:44px">Pos</span><span style="width:220px">Driver</span><span style="width:170px">Car</span><span style="width:60px">Laps</span><span style="width:90px">Best</span><span>Gap</span></div>
+    ${rep(6, (i) => `<div class="row" style="gap:0;height:30px"><span style="width:44px">${ln(14, 13)}</span><span style="width:220px">${ln(pick(i, [140, 120, 160]), 13)}</span><span style="width:170px">${ln(110, 13)}</span><span style="width:60px">${ln(18, 13)}</span><span style="width:90px">${ln(62, 13)}</span>${ln(50, 13)}</div>`)}</div>
+  <div class="card col" style="padding:16px;gap:10px;border-style:dashed"><span class="caps">Championship · enter card</span><span class="xs muted">Today: one 192px bar. Proposed: the Enter panel's own shape, while its round is read.</span>
+    <span style="font-weight:600">Enter the championship</span>${ln('95%', 14)}${ln('70%', 14)}<div class="row" style="margin-top:6px">${ln(110, 14)}<span class="end">${sk(86, 34)}</span></div>${sk('100%', 38)}</div>
+</div>`;
+
+// ---------- Registry ----------
+const SCREENS = [
+  ['home', 'Home', 'home', HOME, 'home',
+    '<b>Real:</b> "Your next weekend", "Your championships", the legend and Open the calendar. <b>Waiting:</b> the season, the date, the weekend and each championship row - three rows, the common case.'],
+  ['cal-month', 'Calendar · Month', 'calendar', CAL_MONTH, 'calendar',
+    '<b>Real:</b> the arrows, Today, the filter labels with the remembered status and disciplines, the remembered Days/Month view, and the weekday row. <b>Waiting:</b> the month title, the clock widget, the counts, and the grid. The grid fills the window height, just as the loaded one does.'],
+  ['cal-days', 'Calendar · Days', 'calendar', CAL_DAYS, 'calendar-days',
+    '<b>Real:</b> the same head as Month, and the Today rule. <b>Waiting:</b> race days, as rows of event cards the size of the real ones.'],
+  ['champs', 'Championships', 'championships', CHAMPIONSHIPS, 'championships',
+    '<b>Real:</b> the title, search, sort, the filter groups (disciplines, tiers and sources are fixed sets) and the ladder\'s tier header and discipline bands, in their colours. <b>Waiting:</b> the counts and the championship cards.'],
+  ['champ-in', 'Championship · entered', 'championships', CHAMP(true), 'champ-entered',
+    '<b>Real:</b> Back, the round table\'s header, the summary labels and Classes. <b>Waiting:</b> everything the championship says.'],
+  ['champ-out', 'Championship · not entered', 'championships', CHAMP(false), 'champ-open',
+    'The same skeleton without the Date and You columns, and with the Enter card\'s shape below the summary. Which shape is right is known only once the career is read. Where the career is already in memory the skeleton picks the right one; otherwise it uses this one.'],
+  ['event', 'Round page', 'calendar', EVENT, 'event',
+    '<b>Real:</b> Back and "Weekend". <b>Waiting:</b> the round\'s header, the entry card, a row per session and the session detail with its four tiles.'],
+  ['cars', 'Cars · cards', 'cars', CARS(false), 'cars',
+    '<b>Real:</b> the title, search, sort, the view switch, the rail\'s group names and the fixed Source list. <b>Waiting:</b> the classes, the brands, the counts, and eight poster cards with their image, chips and stats. Today those are eight plain 320px bars.'],
+  ['cars-list', 'Cars · list', 'cars', CARS(true), 'cars-list',
+    'The list view keeps its table header real. Each row has a thumbnail, a name, a class chip and the figures.'],
+  ['tracks', 'Tracks', 'tracks', TRACKS, 'tracks',
+    'The same browser with the track rail: the two switches, Source, Country and the two range filters with their histograms. Cards add a row of layout thumbnails.'],
+  ['car', 'Car detail', 'cars', CAR, 'car',
+    '<b>Real:</b> Back, the six figure labels, About, "Raced in" and Classification. <b>Waiting:</b> the hero, with the name and chips where they will land, the livery strip, the values and the text.'],
+  ['library', 'Settings · Championships', 'settings', LIBRARY, 'library',
+    '<b>Real:</b> the tabs, the rail, search, sort, New and Import. <b>Waiting:</b> the counts and the season cards, each with its band, switch, description, needs row and round bar.'],
+  ['editor', 'Championship editor', 'settings', EDITOR, 'editor',
+    '<b>Real:</b> the whole form, from its tabs and section names to its labels, hints and segmented controls. Only the values wait, so nothing moves when they arrive.'],
+  ['pieces', 'Pieces', 'home', PIECES, null,
+    'Skeletons inside a loaded page.'],
+];
+const NAV = ['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings'];
+
+const state = { screen: 'home', loaded: false, theme: 'light', motion: 'sweep' };
+const render = () => {
+  const [id, , nav, build, shot, note] = SCREENS.find((s) => s[0] === state.screen);
+  document.documentElement.dataset.theme = state.theme;
+  document.body.className = `${state.motion}${state.loaded && shot ? ' loaded' : ''}`;
+  document.getElementById('nav').innerHTML = `<span class="brand">Assetto Corsa Career</span>${NAV.map((n) => `<span class="${n.toLowerCase() === nav ? 'on' : ''}">${n}</span>`).join('')}`;
+  document.getElementById('page').innerHTML = build();
+  document.getElementById('note').innerHTML = note;
+  document.querySelectorAll('.shot').forEach((img) => img.classList.toggle('on', img.dataset.id === id));
+  const b = (label, on, act) => `<button class="${on ? 'on' : ''}" data-act="${act}">${label}</button>`;
+  document.getElementById('picker').innerHTML = `<strong>Loading</strong>${SCREENS.map(([sid, label]) => b(label, sid === state.screen, `screen:${sid}`)).join('')}
+    <span class="sep"></span>${b('Skeleton', !state.loaded, 'loaded:0')}${b('Loaded (screenshot)', state.loaded, 'loaded:1')}
+    <span class="sep"></span>${b('Sweep', state.motion === 'sweep', 'motion:sweep')}${b('Pulse', state.motion === 'pulse', 'motion:pulse')}${b('Still', state.motion === 'still', 'motion:still')}
+    <span class="sep"></span>${b('Light', state.theme === 'light', 'theme:light')}${b('Dark', state.theme === 'dark', 'theme:dark')}`;
+};
+document.getElementById('shots').innerHTML = SCREENS.filter((s) => s[4]).map(([id, , , , shot]) => `<img class="shot" data-id="${id}" src="loading-shots/${shot}.png" alt="">`).join('');
+document.getElementById('picker').addEventListener('click', (e) => {
+  const act = e.target.closest('button')?.dataset.act; if (!act) return;
+  const [key, value] = act.split(':');
+  state[key] = key === 'loaded' ? value === '1' : value;
+  render();
+});
+const hash = location.hash.slice(1).split(',');
+if (hash[0]) state.screen = hash[0];
+if (hash.includes('dark')) state.theme = 'dark';
+if (hash.includes('still')) state.motion = 'still';
+render();
+</script>
+</body>
+</html>

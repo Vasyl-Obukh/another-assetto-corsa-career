@@ -12,8 +12,10 @@
 // importing it would put this module and its dependents out of reach of the
 // suite. The type-only import in types.ts is erased before either sees it.
 
-import { OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE } from './constants.ts';
-import type { RouteParams } from './types.ts';
+import {
+  NAV, OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE, TRACK_LAYOUT_PARAM,
+} from './constants.ts';
+import type { NavId, RouteId, RouteParams } from './types.ts';
 
 /**
  * Encodes one path segment the way a URL wants it.
@@ -52,6 +54,41 @@ export const buildPath = <P extends string>(pattern: P, params: RouteParams<P>):
 );
 
 /**
+ * How many placeholders a route pattern carries.
+ * @param pattern The pattern
+ * @returns Its `:name` count
+ */
+const placeholders = (pattern: string): number => pattern.match(PARAM_PLACEHOLDER)?.length ?? 0;
+
+/**
+ * Which destination a URL path is, the reverse of `path`.
+ *
+ * Patterns with fewer placeholders are tried first, so a literal such as
+ * `/settings/championships/new` is never read as one championship's page.
+ * @param pathname The path, as `useLocation` reports it
+ * @returns The route's ID, or null for a path no route matches
+ */
+export const routeOf = (pathname: string): RouteId | null => {
+  const ids = (Object.keys(ROUTE) as RouteId[])
+    .sort((a, b) => placeholders(ROUTE[a]) - placeholders(ROUTE[b]));
+
+  return ids.find((id) => new RegExp(`^${ROUTE[id].replace(PARAM_PLACEHOLDER, '[^/]+')}/?$`).test(pathname))
+    ?? null;
+};
+
+/**
+ * The section a page's router state says navigation should light.
+ * @param state The location's state, whatever pushed it
+ * @returns The section a `NavState` names, or null for any other state
+ */
+export const sectionOf = (state: unknown): NavId | null => {
+  if (typeof state !== 'object' || state === null || !('section' in state)) return null;
+  const { section } = state;
+
+  return NAV.find((entry) => entry.id === section)?.id ?? null;
+};
+
+/**
  * The URL for every destination, keyed by route ID.
  *
  * Always a call, even where a destination takes no parameters, so there is one
@@ -59,10 +96,23 @@ export const buildPath = <P extends string>(pattern: P, params: RouteParams<P>):
  */
 export const path = {
   /**
-   * The race setup screen.
+   * The career's home page, where the app opens.
+   * @returns Its URL
+   */
+  home: (): string => ROUTE.home,
+  /**
+   * Every race weekend of the player's own.
    * @returns Its URL
    */
   race: (): string => ROUTE.race,
+  /**
+   * One race weekend of the player's own, where it is set up and run.
+   * @param params The race's id
+   * @returns Its URL, with the id encoded
+   */
+  raceWeekend: (
+    params: RouteParams<typeof ROUTE.raceWeekend>,
+  ): string => buildPath(ROUTE.raceWeekend, params),
   /**
    * The career's calendar.
    * @returns Its URL
@@ -169,6 +219,14 @@ export const path = {
    * @returns Its URL
    */
   tracks: (): string => ROUTE.tracks,
+  /**
+   * One circuit's page.
+   * @param params The circuit's folder name
+   * @param layout A layout to open it on, rather than on the whole circuit
+   * @returns Its URL, with the folder name encoded
+   */
+  track: (params: RouteParams<typeof ROUTE.track>, layout?: string): string => buildPath(ROUTE.track, params)
+    + (layout ? `?${TRACK_LAYOUT_PARAM}=${encodeURIComponent(layout)}` : ''),
   /**
    * The settings screen's Diagnostics tab: where Assetto Corsa lives and what
    * the content scan found.

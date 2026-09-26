@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Championship detail mockup v2</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.005 60);
+
+  --provenance-base: oklch(0.93 0.05 155); --provenance-base-fg: oklch(0.34 0.09 155);
+  --provenance-dlc: oklch(0.93 0.06 75);   --provenance-dlc-fg: oklch(0.38 0.1 62);
+  --provenance-mod: oklch(0.93 0.05 295);  --provenance-mod-fg: oklch(0.38 0.13 295);
+  --provenance-dist: oklch(0.93 0.05 235); --provenance-dist-fg: oklch(0.38 0.12 250);
+  --session-practice: oklch(0.93 0.045 250); --session-practice-fg: oklch(0.4 0.13 258);
+  --session-qualify: oklch(0.93 0.05 310);   --session-qualify-fg: oklch(0.4 0.15 310);
+  --session-race: oklch(0.89 0.085 150);     --session-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88);     --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52);   --bronze-fg: oklch(0.41 0.09 48);
+  --sportscar: oklch(0.925 0.06 112); --sportscar-fg: oklch(0.36 0.1 118);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88);    --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255);  --t3-fg: oklch(0.42 0.015 260);
+  --works: oklch(0.91 0.075 320); --works-fg: oklch(0.38 0.15 320);
+  --independent: oklch(0.92 0.06 18); --independent-fg: oklch(0.42 0.13 22);
+  --privateer: oklch(0.93 0.055 132); --privateer-fg: oklch(0.4 0.09 135);
+  --temperate: oklch(0.925 0.03 150); --temperate-fg: oklch(0.4 0.05 150);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.16 0.02 30);
+
+  --provenance-base: oklch(0.32 0.06 155); --provenance-base-fg: oklch(0.86 0.11 155);
+  --provenance-dlc: oklch(0.33 0.06 70);   --provenance-dlc-fg: oklch(0.87 0.11 80);
+  --provenance-mod: oklch(0.33 0.07 295);  --provenance-mod-fg: oklch(0.86 0.1 295);
+  --provenance-dist: oklch(0.33 0.07 245); --provenance-dist-fg: oklch(0.86 0.09 240);
+  --session-practice: oklch(0.32 0.06 250); --session-practice-fg: oklch(0.86 0.09 255);
+  --session-qualify: oklch(0.33 0.07 310);  --session-qualify-fg: oklch(0.87 0.1 310);
+  --session-race: oklch(0.35 0.09 150);     --session-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88);     --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50);   --bronze-fg: oklch(0.85 0.09 55);
+  --sportscar: oklch(0.32 0.07 112); --sportscar-fg: oklch(0.86 0.1 112);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88);   --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --works: oklch(0.34 0.085 320); --works-fg: oklch(0.87 0.11 320);
+  --independent: oklch(0.33 0.07 18); --independent-fg: oklch(0.86 0.09 22);
+  --privateer: oklch(0.32 0.06 132); --privateer-fg: oklch(0.86 0.08 135);
+  --temperate: oklch(0.32 0.03 150); --temperate-fg: oklch(0.85 0.05 150);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.small { font-size: 12px; }
+h1, h2, h3, h4 { margin: 0; }
+p { margin: 0; }
+
+/* Mockup chrome */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker strong { font-weight: 600; margin-right: 8px; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 5px 12px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; align-self: stretch; background: color-mix(in oklch, var(--background) 30%, transparent); margin: 0 6px; }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 84ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); font-weight: 600; }
+.window { max-width: 1440px; margin: 16px auto 48px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); }
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { padding: 5px 10px; border-radius: 6px; font-size: 13.5px; font-weight: 500; }
+.nav a.on { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); }
+.screen { padding: 20px 32px 40px; }
+.back { color: var(--muted-foreground); font-size: 13px; margin-bottom: 14px; display: inline-block; }
+
+/* Shared pieces */
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; line-height: 1; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+.chip.outline { border: 1px solid var(--border); padding: 3px 7px; }
+.chip.filled { background: var(--primary); color: var(--primary-foreground); }
+.c-sportscar { background: var(--sportscar); color: var(--sportscar-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); }
+.c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); }
+.c-mod { background: var(--provenance-mod); color: var(--provenance-mod-fg); }
+.c-dist { background: var(--provenance-dist); color: var(--provenance-dist-fg); }
+.c-works { background: var(--works); color: var(--works-fg); }
+.c-independent { background: var(--independent); color: var(--independent-fg); }
+.c-privateer { background: var(--privateer); color: var(--privateer-fg); }
+.c-temperate { background: var(--temperate); color: var(--temperate-fg); }
+.c-success { background: var(--success); color: var(--success-foreground); }
+.c-warning { background: var(--warning); color: var(--warning-foreground); }
+.c-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.p1 { background: var(--gold); color: var(--gold-fg); }
+.p2 { background: var(--silver); color: var(--silver-fg); }
+.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.fmt { display: inline-flex; gap: 2px; }
+.fmt span { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+.s-practice { background: var(--session-practice); color: var(--session-practice-fg); }
+.s-qualify { background: var(--session-qualify); color: var(--session-qualify-fg); }
+.s-race { background: var(--session-race); color: var(--session-race-fg); }
+.medal { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.medal.sm { width: 24px; height: 24px; font-size: 12px; box-shadow: 0 0 0 2px var(--card); }
+.medals { display: flex; }
+.medals .medal + .medal { margin-left: -4px; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 12px; font-weight: 500; font-size: 13px; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.kebab { border: 0; background: none; width: 32px; height: 32px; border-radius: 6px; font-size: 18px; line-height: 1; color: inherit; }
+.switch { width: 36px; height: 20px; border-radius: 10px; background: var(--success); position: relative; flex-shrink: 0; border: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--card); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.card-h { padding: 14px 18px 10px; display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.card-h h3 { font-size: 15px; font-weight: 600; }
+.card-b { padding: 0 18px 16px; }
+.map { width: 64px; height: 40px; border-radius: 6px; background: var(--muted); display: grid; place-items: center; flex-shrink: 0; }
+.map svg { width: 50px; height: 30px; }
+.map path, .big-map path { fill: none; stroke: var(--foreground); stroke-width: 2.4; stroke-linejoin: round; opacity: .75; }
+.shot { border-radius: 8px; overflow: hidden; background: var(--muted); display: flex; flex-direction: column; }
+.shot .img { aspect-ratio: 16 / 9; display: grid; place-items: center; background: linear-gradient(180deg, color-mix(in oklch, var(--muted) 60%, var(--card)), var(--muted)); }
+.shot .img svg { width: 62%; }
+.shot .img path { fill: color-mix(in oklch, var(--foreground) 55%, transparent); }
+.shot .cap { font-size: 11.5px; padding: 5px 7px; background: var(--card); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 8px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+table { border-collapse: collapse; width: 100%; }
+td, th { text-align: left; padding: 6px 8px; font-weight: 400; }
+th { color: var(--muted-foreground); font-size: 12px; }
+tbody tr { border-top: 1px solid var(--border); }
+.you { background: color-mix(in oklch, var(--primary) 8%, transparent); }
+.cell-res { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 4px; border-radius: 5px; font-weight: 600; font-size: 12px; }
+.r { text-align: right; }
+details > summary { color: var(--primary); font-size: 13px; padding: 8px 0 0; list-style: none; }
+details[open] > summary { margin-bottom: 8px; }
+.teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.team { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; background: var(--card); }
+.team .th { display: flex; align-items: center; gap: 8px; }
+.team .th b { flex: 1; min-width: 0; font-size: 13.5px; }
+.team .drv { display: flex; justify-content: space-between; font-size: 13px; }
+.team .drv.me span:first-child { font-weight: 600; color: var(--primary); }
+.needs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted-foreground); }
+
+/* ============ A ============ */
+.hero { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--card); }
+.hero-band { background: var(--sportscar); color: var(--sportscar-fg); padding: 16px 22px; display: flex; align-items: center; gap: 14px; }
+.hero-band h2 { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; color: var(--foreground); }
+.hero-band .sub { font-size: 13px; font-weight: 500; }
+.hero-band .end { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.facts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--border); }
+.fact { padding: 12px 18px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.fact:first-child { border-left: 0; }
+.fact .k { font-size: 12px; color: var(--muted-foreground); }
+.fact .v { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hero-foot { padding: 12px 22px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.hero-foot p { max-width: 95ch; color: var(--muted-foreground); }
+.cols { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.round { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.round:first-child { border-top: 0; }
+.round .no { width: 54px; flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); display: flex; flex-direction: column; }
+.round .no b { font-size: 17px; color: var(--foreground); font-weight: 600; }
+.round .name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.round .name > span:first-child { font-weight: 600; }
+.round .tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 55%; }
+.round.next { background: color-mix(in oklch, var(--primary) 6%, transparent); margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+.round.off .name, .round.off .map { opacity: .55; }
+.cls { padding: 14px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.cls:first-child { border-top: 0; padding-top: 0; }
+.cls-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cls-h b { font-size: 15px; }
+.prize-matrix td, .prize-matrix th { padding: 5px 6px; }
+.prize-matrix td { font-size: 12.5px; }
+.fmt-list .f { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+.fmt-list .f:first-child { border-top: 0; }
+.fmt-list .f .n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ============ B ============ */
+.b-head { display: flex; gap: 16px; align-items: center; }
+.b-head .titles { flex: 1; min-width: 0; }
+.b-head h2 { font-size: 26px; font-weight: 650; letter-spacing: -0.015em; }
+.b-sub { display: flex; gap: 18px; align-items: flex-start; margin-top: 10px; }
+.b-sub p { color: var(--muted-foreground); max-width: 90ch; flex: 1; }
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); margin: 18px 0 16px; }
+.tabs button { border: 0; background: none; padding: 8px 0 10px; color: var(--muted-foreground); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.tabs .n { font-size: 11.5px; margin-left: 4px; }
+.pane { display: none; }
+.pane.on { display: block; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tl { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.tl.next { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.tl.off { opacity: .7; }
+.tl .top { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 12px; color: var(--muted-foreground); }
+.tl .big-map { height: 86px; background: var(--muted); display: grid; place-items: center; }
+.tl .big-map svg { width: 110px; height: 66px; }
+.tl .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tl .body b { font-size: 14.5px; line-height: 1.25; }
+.tl .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-top: 4px; }
+.class-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.class-tabs button { border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 10px; display: inline-flex; gap: 8px; align-items: center; font-weight: 500; }
+.class-tabs button.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.b-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+
+/* ============ C ============ */
+.c-wrap { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start; }
+.side { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 14px; }
+.side .card { padding: 16px; }
+.side h2 { font-size: 21px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; }
+.side .band { height: 6px; border-radius: 3px; background: var(--sportscar-fg); margin-bottom: 12px; }
+.side .rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 13px; }
+.side .rows > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.side .rows > div > span:first-child { color: var(--muted-foreground); }
+.sheet { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.sheet table th { padding: 9px 10px; background: color-mix(in oklch, var(--muted) 60%, transparent); }
+.sheet table td { padding: 9px 10px; vertical-align: middle; }
+.section-title { font-size: 15px; font-weight: 600; margin: 24px 0 10px; display: flex; gap: 8px; align-items: center; }
+.class-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.class-col { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.class-col .hd { padding: 10px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.class-col .hd b { flex: 1; font-size: 15px; }
+.class-col .bd { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.class-col .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.class-col .tm { font-size: 12.5px; display: flex; flex-direction: column; gap: 1px; padding-top: 6px; border-top: 1px solid var(--border); }
+.std-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 8px; background: var(--muted); margin-bottom: 8px; }
+.std-tabs button { border: 0; background: none; border-radius: 6px; padding: 5px 4px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+.std-tabs button.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0.2 0.02 260 / 0.15); }
+.std-tabs .me-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.class-col .tm .t { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; gap: 6px; }
+
+@media (max-width: 1100px) {
+  .cols, .c-wrap, .b-grid2 { grid-template-columns: 1fr; }
+  .side { position: static; }
+  .facts { grid-template-columns: repeat(2, 1fr); }
+  .class-cols { grid-template-columns: repeat(2, 1fr); }
+  .screen, .app-header { padding-left: 16px; padding-right: 16px; }
+}
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.panel.mine { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.panel .hd { padding: 10px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.panel .hd b { font-size: 15px; }
+.panel .bd { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+.team-grid { display: grid; gap: 0 18px; }
+.tm { font-size: 12.5px; display: flex; flex-direction: column; gap: 1px; padding: 7px 0; border-top: 1px solid var(--border); }
+.tm .t { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; gap: 6px; }
+.label { font-size: 12px; color: var(--muted-foreground); font-weight: 500; }
+.crow { display: grid; grid-template-columns: 200px minmax(0, 1.1fr) minmax(0, 1.4fr); }
+.crow > div { padding: 12px 14px; }
+.crow > div + div { border-left: 1px solid var(--border); }
+.crow .id { display: flex; flex-direction: column; gap: 6px; background: color-mix(in oklch, var(--muted) 45%, transparent); }
+.crow .id b { font-size: 15px; }
+.seg { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 9px; background: var(--muted); }
+.seg button { border: 0; background: none; border-radius: 7px; padding: 6px 10px; font-weight: 500; display: inline-flex; gap: 6px; align-items: center; color: var(--muted-foreground); }
+.seg button.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0.2 0.02 260 / 0.15); }
+.seg .me { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.v3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 16px; align-items: start; }
+.wide-shots .shots { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.two .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.three .shots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mini-table td { padding: 8px 10px; }
+/* class table (variant 4) */
+.ctable td { padding: 10px; vertical-align: middle; }
+.ctable tr.mine td { background: color-mix(in oklch, var(--primary) 6%, transparent); }
+.thumbs { display: flex; gap: 4px; }
+.thumbs .t { width: 52px; height: 30px; border-radius: 5px; background: var(--muted); display: grid; place-items: center; }
+.thumbs .t svg { width: 40px; }
+.thumbs .t path { fill: color-mix(in oklch, var(--foreground) 55%, transparent); }
+.thumbs .more { font-size: 11.5px; color: var(--muted-foreground); align-self: center; padding-left: 4px; white-space: nowrap; }
+.expand td { background: color-mix(in oklch, var(--muted) 35%, transparent); padding: 12px 14px 14px !important; }
+.chev { border: 0; background: none; color: var(--muted-foreground); font-size: 14px; width: 28px; height: 28px; border-radius: 6px; }
+/* rules area */
+.rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: 16px; align-items: start; }
+.rules .span { grid-column: 1 / -1; }
+.rules .card-h { padding: 12px 16px 8px; }
+.pts td, .pts th { padding: 6px 10px; }
+.pts td.r, .pts th.r { text-align: right; }
+.fmt-row { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.fmt-row:first-child { border-top: 0; padding-top: 0; }
+/* Never more than three sessions across: a Grand Prix weekend's seven blocks
+   would otherwise push the format's name halfway across its column. */
+.fmt.wrap3 { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 2px; align-self: flex-start; flex-shrink: 0; }
+/* Laid out as columns, every format starts at the top of its own column. */
+.card-b[style*="grid"] .fmt-row { border-top: 0; padding-top: 0; }
+</style>
+</head>
+<body>
+<div class="picker" role="toolbar" aria-label="Mockup options">
+  <strong>Detail v2</strong>
+  <button class="opt" data-opt="1" aria-pressed="true">1 - Columns</button>
+  <button class="opt" data-opt="2" aria-pressed="false">2 - Rows</button>
+  <button class="opt" data-opt="3" aria-pressed="false">3 - Switch</button>
+  <button class="opt" data-opt="4" aria-pressed="false">4 - Class table</button>
+  <span class="sep"></span>
+  <button class="opt" data-set="dtm" aria-pressed="true">1 class</button>
+  <button class="opt" data-set="wec" aria-pressed="false">2 classes</button>
+  <button class="opt" data-set="imsa" aria-pressed="false">4 classes</button>
+  <button class="opt" data-set="nls" aria-pressed="false">9 classes</button>
+  <span class="spacer"></span>
+  <button class="opt" id="theme">Dark mode</button>
+</div>
+<p class="rationale" id="why"></p>
+<div class="window">
+  <header class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Race</a><a>Calendar</a><a class="on">Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></header>
+  <div class="screen"><span class="back">&larr; All championships</span><div id="view"></div></div>
+</div>
+<script>
+const CAR = '<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M6 30 C6 24 12 22 22 21 L40 12 C46 9 56 8 66 9 L84 11 C94 13 102 18 108 22 C114 23 116 26 116 30 L106 30 A8 8 0 0 0 90 30 L36 30 A8 8 0 0 0 20 30 Z M28 36 A6 6 0 1 1 28.1 36 Z M98 36 A6 6 0 1 1 98.1 36 Z"/></svg>';
+const MAP = 'M6 14 C6 7 12 4 20 5 L44 7 C51 8 52 14 48 18 L36 28 C32 31 26 30 24 26 L20 20 C18 17 14 18 12 21 C10 25 6 22 6 18 Z';
+const BUDGET = { works: 'Works', independent: 'Independent', privateer: 'Privateer' };
+const GT3 = ['Aston Martin Vantage', 'Audi R8 LMS', 'Bentley Continental', 'BMW M4 GT3', 'Corvette Z06', 'Ferrari 296 GT3', 'Ford Mustang GT3', 'Lamborghini Huracán', 'Lexus RC F', 'McLaren 720S', 'Mercedes-AMG GT3', 'Porsche 911 GT3 R'];
+const GT4 = ['Aston Martin GT4', 'BMW M4 GT4', 'Ginetta G55', 'KTM X-Bow GT4', 'Maserati MC GT4', 'Mercedes-AMG GT4', 'Porsche Cayman GT4'];
+const T = (name, b, drivers) => [name, b, drivers];
+const money = (list, cur) => list.map((n) => `${cur}${n.toLocaleString('en-US')}`);
+
+const SETS = {
+  dtm: {
+    name: 'DTM 2021', disc: [['Touring', 'c-touring']], fee: '€12,000', grid: '20 cars, 10 teams', my: 'dtm', cur: '€',
+    rounds: [['Monza', 'monza', 'Sat 16 May', '2 × 150 km, 26 laps'], ['Zolder', 'rt_zolder', 'Sat 13 Jun', '2 × 150 km, 38 laps'], ['Nurburgring', 'ks_nurburgring/layout_sprint_b', 'Sat 11 Jul', '2 × 150 km, 42 laps'], ['Red Bull Ring', 'ks_red_bull_ring/layout_gp', 'Sat 15 Aug', '2 × 150 km, 35 laps'], ['Assen', 'ne_ttassen/autosport', 'Sat 19 Sep', '2 × 150 km, 39 laps']],
+    points: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], quali: '3, 2 and 1',
+    purses: [{ classes: [], race: [45000, 31500, 22500, 17100, 13050, 9900, 7200, 5400, 3600, 2250], season: [360000, 225000, 144000, 94500, 58500] }],
+    formats: [['Two races', true, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 45 minutes', 'Day 2 Qualifying 1 - 20 minutes, Race 1 - 150 km', 'Day 3 Qualifying 2 - 20 minutes, Race 2 - 150 km'], 'All rounds']],
+    classes: [{
+      id: 'dtm', name: 'DTM', tier: 2, spec: 'DTM 2021 (RSS)', inst: 3, cars: ['GT-M Bayer V8', 'GT-M Lanzo V10', 'GT-M Mercer V8'],
+      teams: [T('Lausitz Racing', 'works', 'Jonas Riedel, Malte Oberhuber'), T('Frankenland Motorsport', 'works', 'Felix Gerstner, Leon Wachter'), T('Bodensee Racing', 'independent', 'Nico Brandauer, You'), T('Allgäu Racing', 'independent', 'Tobias Kessel, Lukas Ammann'), T('Team Tirol', 'independent', 'Simon Hofer, Elias Pichler'), T('Limburg Racing', 'independent', 'Daan Verhoek, Ruben Smeets'), T('Ruhrpott Racing', 'privateer', 'Kevin Szymanski, Marco Lindner'), T('Zürichsee Motorsport', 'privateer', 'Reto Gubler, Nils Baumann'), T('Mosel Racing', 'privateer', 'Timo Endres, Jan Kröber'), T('Nordsee Motorsport', 'privateer', 'Hauke Petersen, Finn Jaspers')],
+    }],
+  },
+  wec: {
+    name: 'World Endurance Championship 2025', disc: [['Sportscar', 'c-sportscar']], fee: '€22,000', grid: '30 cars, 15 teams', my: 'lmgt3', cur: '€',
+    rounds: [['6 Hours of Imola', 'imola', 'Sat 18 Apr', '212 laps'], ['6 Hours of Spa', 'spa', 'Sat 9 May', '145 laps'], ['24 Hours of Le Mans', 'ks_le_mans/circuit', 'Sat 13 Jun', '387 laps'], ['6 Hours of Sao Paulo', 'interlagos', 'Sat 11 Jul', '237 laps'], ['Lone Star Le Mans', 'cota/gp', 'Sat 5 Sep', '176 laps'], ['6 Hours of Fuji', 'fuji/gp', 'Sat 26 Sep', '212 laps'], ['8 Hours of Bahrain', 'bahrain/gp', 'Sat 7 Nov', '237 laps']],
+    points: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], quali: '1 point for pole',
+    purses: [
+      { classes: ['Hypercar'], race: [80000, 56000, 40000, 30400, 23200, 17600, 12800, 9600, 6400, 4000], season: [640000, 400000, 256000, 168000, 104000] },
+      { classes: ['LMGT3'], race: [28800, 20150, 14400, 10950, 8350, 6350, 4600, 3450, 2300, 1450], season: [230500, 144000, 92000, 60500, 37500] },
+    ],
+    formats: [
+      ['Six hours', true, [['practice', 'P'], ['qualify', 'Q'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 90 minutes', 'Day 2 Qualifying - 12 minutes, Hyperpole - 10 minutes', 'Day 3 6 Hours - 202 laps'], '6 Hours of Imola, Spa, Sao Paulo, Lone Star Le Mans, Fuji'],
+      ['Eight hours', false, [['practice', 'P'], ['qualify', 'Q'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 90 minutes', 'Day 2 Qualifying - 12 minutes, Hyperpole - 10 minutes', 'Day 3 8 Hours - 237 laps'], '8 Hours of Bahrain'],
+      ['Twenty-four hours', false, [['practice', 'P'], ['qualify', 'Q'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 180 minutes', 'Day 2 Qualifying - 60 minutes, Hyperpole - 10 minutes', 'Day 3 24 Hours - 387 laps'], '24 Hours of Le Mans'],
+    ],
+    classes: [
+      { id: 'hypercar', name: 'Hypercar', tier: 1, spec: 'Hypercar (RSS)', inst: 4, cars: ['Bayer Hybrid V8', 'Callahan V8', 'Lanzo V8 Evo', 'Protech P96 V8'], teams: [T('Stellaris Endurance', 'works', 'Alessio Ferrante, Dario Conti'), T('Cotswold Hypercar', 'works', 'Oliver Hartley, James Pemberton'), T('Isar Hybrid Racing', 'works', 'Lukas Brenner, Felix Aigner'), T('Bretagne Endurance', 'works', 'Yann Le Goff, Mathieu Kerlan'), T('Great Lakes Endurance', 'works', 'Tyler Brandt, Cody Marsh'), T('Chubu Hybrid Racing', 'works', 'Haruto Saeki, Ren Kobayashi')] },
+      { id: 'lmgt3', name: 'LMGT3', tier: 3, spec: 'GT3 (LFM)', inst: 12, cars: GT3, teams: [T('Ardenne Endurance', 'independent', 'Thibault Maes, Arne Peeters'), T('Atlântico Endurance', 'independent', 'Rui Macedo, Tiago Faria'), T('Rennsport Eifel', 'independent', 'Jan Hoffmann, You'), T('Scuderia Lario', 'independent', 'Paolo Brambilla, Luca Sironi'), T('Garage Lumière', 'independent', 'Hugo Delorme, Bastien Roux'), T('Albion Endurance', 'independent', 'George Whitfield, Henry Ashcombe'), T('Lone Oak Racing', 'privateer', 'Wyatt Coleman, Grady Hollis'), T('Dune Racing', 'privateer', 'Omar Al Mansoori, Khalid Rahman'), T('Sakura GT', 'privateer', 'Sota Nakamura, Daiki Ishida')] },
+    ],
+  },
+  imsa: {
+    name: 'IMSA SportsCar Championship 2025', disc: [['Sportscar', 'c-sportscar']], fee: '$18,000', grid: '32 cars, 16 teams', my: 'gtd-pro', cur: '$',
+    rounds: [['Rolex 24 at Daytona', 'rt_daytona/sportscar_m4x', 'Sat 24 Jan', '781 laps'], ['12 Hours of Sebring', 'mx_sebring/raceday_standing', 'Sat 14 Mar', '353 laps'], ['Laguna Seca', 'ks_laguna_seca', 'Sat 9 May', '480 km, 134 laps'], ['Watkins Glen 6 Hours', 'lilski_watkins_glen/boot', 'Sat 20 Jun', '200 laps'], ['Road America', 'lilski_road_america', 'Sat 1 Aug', '480 km, 74 laps'], ['VIR', 'vir/full course', 'Sat 22 Aug', '480 km, 92 laps'], ['Petit Le Mans', 'road_atlanta2018/grandprix', 'Sat 10 Oct', '436 laps']],
+    points: [350, 320, 300, 280, 260, 250, 240, 230, 220, 210, 200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], quali: null,
+    purses: [
+      { classes: ['GTP'], race: [70000, 49000, 35000, 26600, 20300, 15400, 11200, 8400, 5600, 3500], season: [560000, 350000, 224000, 147000, 91000] },
+      { classes: ['LMP2'], race: [42000, 29400, 21000, 15950, 12200, 9250, 6700, 5050, 3350, 2100], season: [336000, 210000, 134500, 88000, 54500] },
+      { classes: ['GTD Pro'], race: [25200, 17650, 12600, 9600, 7300, 5550, 4050, 3000, 2000, 1250], season: [201500, 126000, 80500, 53000, 33000] },
+      { classes: ['GTD'], race: [18900, 13250, 9450, 7200, 5500, 4150, 3000, 2250, 1500, 950], season: [151000, 94500, 60500, 39500, 24500] },
+    ],
+    formats: [
+      ['Two hours forty', true, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 60 minutes', 'Day 2 Qualifying - 20 minutes', 'Day 3 2 Hours 40 - 480 km'], 'Laguna Seca, Road America, VIR'],
+      ['Six hours', false, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 90 minutes', 'Day 2 Qualifying - 20 minutes', 'Day 3 6 Hours - 200 laps'], 'Watkins Glen 6 Hours'],
+      ['Ten hours', false, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 120 minutes', 'Day 2 Qualifying - 20 minutes', 'Day 3 Petit Le Mans - 436 laps'], 'Petit Le Mans'],
+      ['Twelve hours', false, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 120 minutes', 'Day 2 Qualifying - 20 minutes', 'Day 3 12 Hours - 353 laps'], '12 Hours of Sebring'],
+      ['Twenty-four hours', false, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice - 240 minutes', 'Day 2 Qualifying - 20 minutes', 'Day 3 Rolex 24 - 781 laps'], 'Rolex 24 at Daytona'],
+      ['Grand Prix weekend (example)', false, [['practice', 'P'], ['practice', 'P'], ['practice', 'P'], ['qualify', 'Q'], ['qualify', 'Q'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Free practice 1 - 60 minutes, Free practice 2 - 60 minutes', 'Day 2 Free practice 3 - 60 minutes, Q1 - 18 minutes, Q2 - 15 minutes, Q3 - 12 minutes', 'Day 3 Grand Prix - 305 km'], 'None - added to show a long weekend'],
+    ],
+    classes: [
+      { id: 'gtp', name: 'GTP', tier: 1, spec: 'Hypercar (LFM)', inst: 8, cars: ['Alpine A424', 'BMW M Hybrid V8', 'Cadillac V-Series.R', 'Ferrari 499P', 'Lamborghini SC63', 'Peugeot 9X8', 'Porsche 963', 'Toyota GR010'], teams: [T('Dixie Prototypes', 'works', 'Beau Ledbetter, Travis Oakhurst'), T('Sunshine State Racing', 'works', 'Marco Villafane, Derek Hollings'), T('Hudson Valley Racing', 'independent', 'Ryan Voorhees, Evan Tappan'), T('Saint-Laurent Racing', 'independent', 'Mathis Gendreau, Félix Rioux'), T('Baja Endurance', 'privateer', 'Rodrigo Villaseñor, Emilio Treviño')] },
+      { id: 'lmp2', name: 'LMP2', tier: 2, spec: 'LMP2 (2021)', inst: 4, cars: ['Oreca 07', 'Loire 07', 'Oreca 07 (2021)', 'Oreca 07 (2022)'], teams: [T('Bluebonnet Racing', 'independent', 'Colby Renner, Shane Delvecchio'), T('Florida Keys Racing', 'privateer', 'Dalton Merritt, Kyle Ashburn'), T('Cascadia Endurance', 'privateer', 'Noah Charbonneau, Liam Ouellette')] },
+      { id: 'gtd-pro', name: 'GTD Pro', tier: 3, spec: 'GT3 (LFM)', inst: 12, cars: GT3, teams: [T('Arrowhead Endurance', 'works', 'Edward Halsbury, Samuel Crowther'), T('Donau Racing', 'works', 'Maximilian Straubinger, You'), T('Scuderia Rubicone', 'works', 'Giulio Santarcangeli, Nicola Verucchi'), T('Route Sixty-Six Racing', 'works', 'Hunter Blankenship, Mason Tedrick')] },
+      { id: 'gtd', name: 'GTD', tier: 3, spec: 'GT3 (LFM)', inst: 12, cars: GT3, teams: [T('Neckar Motorsport', 'independent', 'Jonas Eisenlohr, Pascal Wohlfahrt'), T('Loire Endurance', 'independent', 'Victor Aubineau, Rémi Pelletan'), T('Pacific Rim Racing', 'independent', 'Kai Ashford, Dylan Ybarra'), T('Laurentian Racing', 'privateer', 'Olivier Bergevin, Samuel Pouliot')] },
+    ],
+  },
+  nls: {
+    name: 'Nurburgring Langstrecken-Serie', disc: [['Sportscar', 'c-sportscar'], ['Touring', 'c-touring']], fee: '€4,500', grid: '46 cars, 23 teams', my: 'cup-3', cur: '€',
+    rounds: [['NLS 1', 'ks_nordschleife/endurance_cup', 'Sat 21 Mar', '27 laps'], ['NLS 2', 'ks_nordschleife/endurance_cup', 'Sat 4 Apr', '27 laps'], ['NLS 3', 'ks_nordschleife/endurance_cup', 'Sat 25 Apr', '27 laps'], ['Nurburgring 24 Hours', 'ks_nordschleife/endurance', 'Sat 23 May', '159 laps'], ['NLS 4', 'ks_nordschleife/endurance_cup', 'Sat 27 Jun', '27 laps'], ['NLS 6 Hours', 'ks_nordschleife/endurance_cup', 'Sat 8 Aug', '35 laps'], ['NLS 5', 'ks_nordschleife/endurance_cup', 'Sat 12 Sep', '27 laps']],
+    points: [20, 17, 15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], quali: null,
+    purses: [
+      { classes: ['SP9', 'SP-X'], race: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500], season: [240000, 150000, 96000, 63000, 39000] },
+      { classes: ['SP10', 'Cup 2', 'Cup 3', 'SP7'], race: [12000, 8400, 6000, 4550, 3500, 2650, 1900, 1450, 950, 600], season: [96000, 60000, 38500, 25000, 15500] },
+      { classes: ['BMW Cup', 'SP3T', 'V6'], race: [7200, 5050, 3600, 2750, 2100, 1600, 1150, 850, 600, 350], season: [57500, 36000, 23000, 15000, 9500] },
+    ],
+    formats: [
+      ['Four hours', true, [['qualify', 'Q'], ['race', 'R']], ['Day 1 Qualifying - 90 minutes, 4 Hours - 27 laps'], 'NLS 1, NLS 2, NLS 3, NLS 4, NLS 5'],
+      ['Six hours', false, [['qualify', 'Q'], ['race', 'R']], ['Day 1 Qualifying - 90 minutes, 6 Hours - 35 laps'], 'NLS 6 Hours'],
+      ['Twenty-four hours', false, [['practice', 'P'], ['qualify', 'Q'], ['race', 'R']], ['Day 1 Practice - 120 minutes', 'Day 2 Qualifying - 120 minutes', 'Day 3 24 Hours - 159 laps'], 'Nurburgring 24 Hours'],
+    ],
+    classes: [
+      { id: 'sp9', name: 'SP9', tier: 3, spec: 'GT3 (2010s)', inst: 12, cars: GT3, teams: [T('Eifel Racing', 'works', 'Markus Hellwig, Sven Lohmann'), T('Hohe Acht Motorsport', 'works', 'Dennis Fuchs, Thomas Kerner'), T('Brünnchen Racing', 'independent', 'Julian Sauer, Patrick Welz')] },
+      { id: 'sp-x', name: 'SP-X', tier: 3, spec: 'Named cars', inst: 3, cars: ['Glickenhaus SCG 004C', 'Porsche 935', 'Toyota GR Supra GT4 Evo'], teams: [T('Pflanzgarten Team', 'works', 'Oliver Brand, Sebastian Graf')] },
+      { id: 'sp10', name: 'SP10', tier: 4, spec: 'GT4', inst: 7, cars: GT4, teams: [T('Adenau Motorsport', 'independent', 'Kai Neumann, Florian Hess'), T('Mosel GT', 'privateer', 'Ralf Becker, Uwe Stein')] },
+      { id: 'cup-2', name: 'Cup 2', tier: 4, spec: 'Porsche Cup', inst: 2, cars: ['Porsche 911 GT3 Cup (991)', 'Porsche 911 GT3 Cup (992)'], teams: [T('Schwalbenschwanz Racing', 'independent', 'Maik Ahrens, Tim Kolb'), T('Döttinger Höhe', 'privateer', 'Jan Wirth, Lars Otto')] },
+      { id: 'cup-3', name: 'Cup 3', tier: 4, spec: 'Cayman GT4 Clubsport', inst: 1, cars: ['Porsche Cayman GT4 Clubsport'], teams: [T('Hatzenbach Racing', 'independent', 'Nils Kramer, You'), T('Kesselchen Team', 'privateer', 'Leon Fritz, Moritz Roth')] },
+      { id: 'sp7', name: 'SP7', tier: 4, spec: 'Porsche GT3 (road)', inst: 2, cars: ['Porsche 911 GT3 RS', 'Porsche 911 GT3 (991)'], teams: [T('Flugplatz Racing', 'privateer', 'Heiko Lang, Dirk Sommer')] },
+      { id: 'bmw-cup', name: 'BMW Cup', tier: 5, spec: 'BMW M240i Racing', inst: 1, cars: ['BMW M240i Racing'], teams: [T('Wippermann Racing', 'independent', 'Paul Engel, Nico Busch'), T('Galgenkopf Team', 'privateer', 'Jonas Pohl, Erik Seidel')] },
+      { id: 'sp3t', name: 'SP3T', tier: 5, spec: 'TCR', inst: 5, cars: ['Audi RS3 LMS', 'Cupra León TCR', 'Honda Civic Type R TCR', 'Hyundai i30 N TCR', 'VW Golf GTI TCR'], teams: [T('Breidscheid Racing', 'independent', 'Tobias Arndt, Felix Rausch'), T('Aremberg Motorsport', 'privateer', 'Marcel Ott, Kevin Brandt')] },
+      { id: 'v6', name: 'V6', tier: 5, spec: 'Production (V6)', inst: 4, cars: ['BMW 335i', 'Nissan 370Z', 'Porsche Cayman S', 'Toyota Supra'], teams: [T('Bergwerk Racing', 'privateer', 'Rainer Voss, Holger Meier')] },
+    ],
+  },
+};
+let OPT = '1';
+let SET = 'dtm';
+let PICK = null;
+let OPEN = null;
+// The class rows opened past their caps, by class id.
+const EXPANDED = new Set();
+const CARS_SHOWN = 3;
+const TEAMS_SHOWN = 4;
+
+const shots = (cars, n = 99) => `<div class="shots">${cars.slice(0, n).map((x) => `<div class="shot"><div class="img">${CAR}</div><div class="cap" title="${x}">${x}</div></div>`).join('')}</div>`;
+const more = (cars, n) => (cars.length > n ? `<span class="small" style="color:var(--primary)">${cars.length - n} more cars</span>` : '');
+const medal = (t, sm) => `<span class="medal ${sm ? 'sm' : ''} c-t${Math.min(t, 3) === t ? t : 't'}" style="${t > 3 ? `background:var(--${t === 4 ? 'bronze' : 'muted'});color:var(--${t === 4 ? 'bronze-fg' : 'muted-foreground'})` : ''}">${t}</span>`;
+const tierChip = (c) => (c.tier <= 3 ? `c-t${c.tier}` : '');
+const tierStyle = (c) => (c.tier === 4 ? 'background:var(--bronze);color:var(--bronze-fg)' : c.tier >= 5 ? 'background:var(--muted);color:var(--muted-foreground)' : '');
+const classChip = (c) => `<span class="chip ${tierChip(c)}" style="${tierStyle(c)}">${c.name}</span>`;
+const you = (d) => d.replace('You', '<b style="color:var(--primary)">You</b>');
+const teamItems = (c) => c.teams.map(([n, b, d]) => `<div class="tm"><div class="t"><span>${n}</span><span class="chip c-${b}">${BUDGET[b]}</span></div><span class="muted">${you(d)}</span></div>`).join('');
+const inst = (c) => `<span class="chip c-success">${c.inst} installed</span>`;
+const chips = (c) => `<span class="chip outline">${c.spec}</span>${inst(c)}`;
+const seats = (c) => `${c.teams.length * 2} cars`;
+const mine = (s, c) => (c.id === s.my ? 'mine' : '');
+const fmtStrip = (f, wrap) => `<span class="fmt ${wrap ? 'wrap3' : ''}">${f.map(([k, l]) => `<span class="s-${k}">${l}</span>`).join('')}</span>`;
+const pod = (i) => (i < 3 ? `p${i + 1}` : '');
+
+// ---------- classes: 1 columns ----------
+const v1 = (s) => {
+  if (s.classes.length === 1) {
+    const c = s.classes[0];
+    return `<div class="panel ${mine(s, c)}"><div class="hd">${medal(c.tier, true)}<b>${c.name}</b><span class="muted small">${seats(c)}</span><span style="margin-left:auto" class="row">${chips(c)}</span></div>
+      <div class="bd" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px">
+        <div style="display:flex;flex-direction:column;gap:8px" class="wide-shots"><span class="label">Cars</span>${shots(c.cars)}</div>
+        <div style="display:flex;flex-direction:column;gap:4px"><span class="label">Entry list</span><div class="team-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">${teamItems(c)}</div></div>
+      </div></div>`;
+  }
+  // Never more than four across: a ninth class starts a new row rather than
+  // squeezing every column narrower.
+  return `<div style="display:grid;grid-template-columns:repeat(${Math.min(s.classes.length, 4)},minmax(0,1fr));gap:12px;align-items:start">${s.classes.map((c) => `
+    <div class="panel ${mine(s, c)}"><div class="hd">${medal(c.tier, true)}<b>${c.name}</b><span class="muted small" style="margin-left:auto">${seats(c)}</span></div>
+      <div class="bd"><div class="row">${chips(c)}</div><div class="two">${shots(c.cars, 4)}</div>${more(c.cars, 4)}<div>${teamItems(c)}</div></div></div>`).join('')}</div>`;
+};
+
+// ---------- classes: 2 rows ----------
+// Each row is capped at one line of cars and two lines of teams, so a
+// nine-class grid stays readable; a class's own button opens it in full.
+const v2 = (s) => s.classes.map((c) => {
+  const open = EXPANDED.has(c.id);
+  const hiddenCars = Math.max(0, c.cars.length - CARS_SHOWN);
+  const hiddenTeams = Math.max(0, c.teams.length - TEAMS_SHOWN);
+  const capped = hiddenCars + hiddenTeams > 0;
+  const shown = { ...c, teams: open ? c.teams : c.teams.slice(0, TEAMS_SHOWN) };
+  const what = [hiddenCars ? `${hiddenCars} more car${hiddenCars > 1 ? 's' : ''}` : null, hiddenTeams ? `${hiddenTeams} more team${hiddenTeams > 1 ? 's' : ''}` : null].filter(Boolean).join(' and ');
+  return `
+  <div class="panel ${mine(s, c)}" style="margin-bottom:10px"><div class="crow">
+    <div class="id">${medal(c.tier)}<b>${c.name}</b><span class="muted small">${seats(c)}, ${c.teams.length} teams</span><div class="row">${chips(c)}</div>
+      ${capped ? `<button class="btn" data-expand="${c.id}" style="margin-top:auto;align-self:flex-start">${open ? 'Show less' : `Show all <span class="muted small" style="margin-left:4px">${what}</span>`}</button>` : ''}</div>
+    <div style="display:flex;flex-direction:column;gap:8px" class="three"><span class="label">Cars</span>${shots(c.cars, open ? 99 : CARS_SHOWN)}</div>
+    <div style="display:flex;flex-direction:column;gap:4px"><span class="label">Entry list</span><div class="team-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">${teamItems(shown)}</div></div>
+  </div></div>`;
+}).join('');
+
+// ---------- classes: 3 switch ----------
+const v3 = (s) => {
+  const c = s.classes.find((x) => x.id === (PICK ?? s.my)) ?? s.classes[0];
+  const sw = s.classes.length > 1 ? `<div style="margin-bottom:12px"><div class="seg" role="tablist">${s.classes.map((x) => `<button data-pick="${x.id}" class="${x.id === c.id ? 'on' : ''}">${medal(x.tier, true)}${x.name}${x.id === s.my ? '<span class="me" title="Your class"></span>' : ''}</button>`).join('')}</div></div>` : '';
+  return `${sw}
+    <div class="v3">
+      <div class="panel ${mine(s, c)}"><div class="hd">${medal(c.tier, true)}<b>${c.name}</b><span class="muted small">${seats(c)}</span><span style="margin-left:auto" class="row">${chips(c)}</span></div><div class="bd wide-shots">${shots(c.cars, 9)}${more(c.cars, 9)}</div></div>
+      <div class="panel"><div class="hd"><b>Entry list</b><span class="muted small">${c.teams.length} teams</span></div><div class="bd" style="padding-top:4px"><div class="team-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">${teamItems(c)}</div></div></div>
+    </div>`;
+};
+
+// ---------- classes: 4 class table ----------
+// One compact row per class; a row opens to its cars and entry list. A single
+// class simply starts open, so it looks like variant 1.
+const v4 = (s) => {
+  const open = OPEN ?? (s.classes.length === 1 ? s.classes[0].id : s.my);
+  return `<div class="sheet"><table class="ctable"><thead><tr><th style="width:40px"></th><th>Class</th><th>Cars</th><th>Installed</th><th>Grid</th><th></th></tr></thead><tbody>
+    ${s.classes.map((c) => `
+      <tr class="${c.id === s.my ? 'mine' : ''}" data-open="${c.id}" style="cursor:pointer">
+        <td>${medal(c.tier, true)}</td>
+        <td><div style="font-weight:600">${c.name}${c.id === s.my ? ' <span class="chip filled" style="margin-left:4px">Your class</span>' : ''}</div><div class="muted small">${c.spec}</div></td>
+        <td><div class="thumbs">${c.cars.slice(0, 4).map(() => `<span class="t">${CAR}</span>`).join('')}${c.cars.length > 4 ? `<span class="more">+${c.cars.length - 4}</span>` : ''}</div></td>
+        <td>${inst(c)}</td>
+        <td class="num">${seats(c)}, ${c.teams.length} teams</td>
+        <td class="r"><button class="chev" aria-label="Show ${c.name}">${open === c.id ? '&#9650;' : '&#9660;'}</button></td>
+      </tr>
+      ${open === c.id ? `<tr class="expand"><td colspan="6"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:20px">
+        <div style="display:flex;flex-direction:column;gap:8px" class="wide-shots"><span class="label">Cars</span>${shots(c.cars, 6)}${more(c.cars, 6)}</div>
+        <div style="display:flex;flex-direction:column;gap:4px"><span class="label">Entry list</span><div class="team-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">${teamItems(c)}</div></div>
+      </div></td></tr>` : ''}`).join('')}
+  </tbody></table></div>`;
+};
+
+// ---------- rules: points, prize money, formats ----------
+// Cards on a grid that fills the width rather than tables that stretch across
+// it. What a race pays takes as many columns as the grid is paid ways, and
+// spans the row only once there are more than two purses to show.
+const rules = (s) => {
+  const multi = s.purses.length > 1;
+  const wide = s.purses.length > 2;
+  const rows = Math.min(10, s.points.length);
+  const pays = `<section class="card ${wide ? 'span' : ''}"><div class="card-h"><h3>What a race pays</h3>${s.points.length > 10 ? `<span class="small" style="color:var(--primary)">All ${s.points.length} places</span>` : ''}</div><div class="card-b">
+    <table class="pts"><thead><tr><th></th><th class="r">Points</th>${s.purses.map((p) => `<th class="r">${multi ? `<span class="row" style="justify-content:flex-end">${p.classes.map((n) => classChip(s.classes.find((c) => c.name === n))).join('')}</span>` : 'Prize money'}</th>`).join('')}</tr></thead><tbody>
+    ${Array.from({ length: rows }, (_, i) => `<tr><td><span class="cell-res ${pod(i)}">P${i + 1}</span></td><td class="num r">${s.points[i]}</td>${s.purses.map((p) => `<td class="num r muted">${p.race[i] === undefined ? '' : `${s.cur}${p.race[i].toLocaleString('en-US')}`}</td>`).join('')}</tr>`).join('')}
+    </tbody></table>
+    ${s.quali ? `<p class="muted small" style="margin-top:10px">Qualifying pays ${s.quali}.</p>` : ''}
+  </div></section>`;
+  const season = `<section class="card ${wide ? 'span' : ''}"><div class="card-h"><h3>What the season pays</h3></div><div class="card-b">
+    <table class="pts"><thead><tr><th></th>${s.purses.map((p) => `<th class="r">${multi ? `<span class="row" style="justify-content:flex-end">${p.classes.map((n) => classChip(s.classes.find((c) => c.name === n))).join('')}</span>` : 'Prize money'}</th>`).join('')}</tr></thead><tbody>
+    ${[0, 1, 2, 3, 4].map((i) => `<tr><td><span class="cell-res ${pod(i)}">P${i + 1}</span></td>${s.purses.map((p) => `<td class="num r">${s.cur}${p.season[i].toLocaleString('en-US')}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div></section>`;
+  const several = s.formats.length > 1;
+  const formats = `<section class="card ${several ? 'span' : ''}"><div class="card-h"><h3>Weekend formats</h3></div><div class="card-b" style="${several ? 'display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:18px 32px' : ''}">
+    ${s.formats.map(([name, def, strip, days, rounds]) => `<div class="fmt-row">${fmtStrip(strip, true)}<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:600;font-size:13.5px">${name} ${def && s.formats.length > 1 ? '<span class="chip filled" style="margin-left:4px">Default</span>' : ''}</span>${days.map((d) => `<span class="muted small">${d}</span>`).join('')}<span class="muted small">Raced at ${rounds}</span></div></div>`).join('')}
+  </div></section>`;
+  // Up to two purses the race table and the season table sit side by side,
+  // and a lone format stacks under the season table, which is the shorter.
+  if (!wide) {
+    return `<div class="rules" style="grid-template-columns:repeat(2,minmax(0,1fr))">${pays}<div style="display:flex;flex-direction:column;gap:16px">${season}${several ? '' : formats}</div>${several ? formats : ''}</div>`;
+  }
+  return `<div class="rules">${pays}${season}${formats}</div>`;
+};
+
+const page = (s, classes) => `
+  <div class="c-wrap">
+    <aside class="side"><div class="card">
+      <div class="band" style="display:flex;overflow:hidden;background:none">${s.disc.map(([, cls]) => `<span style="flex:1;background:var(--${cls.slice(2)}-fg)"></span>`).join('')}</div>
+      <div style="display:flex;gap:8px;align-items:flex-start"><h2 style="flex:1">${s.name}</h2><button class="kebab" aria-label="Actions">&#8942;</button></div>
+      <div class="row" style="margin-top:8px">${s.disc.map(([n, c]) => `<span class="chip ${c}">${n}</span>`).join('')}${s.classes.length > 1 ? s.classes.map(classChip).join('') : `<span class="chip c-t${s.classes[0].tier}">Tier ${s.classes[0].tier}</span>`}</div>
+      <div class="rows"><div><span>Grid</span><span>${s.grid}</span></div><div><span>Entry fee</span><span>${s.fee}</span></div></div>
+      <button class="btn primary" style="width:100%;margin-top:14px">Race ${s.rounds[2][0]}</button>
+    </div></aside>
+    <main>
+      <div class="sheet"><table class="mini-table"><thead><tr><th>Rd</th><th></th><th>Round</th><th>Date</th><th>Race</th><th></th></tr></thead><tbody>
+        ${s.rounds.map((r, i) => `<tr class="${i === 2 ? 'you' : ''}"><td style="font-weight:600">${i + 1}</td><td style="width:76px"><div class="map"><svg viewBox="0 0 56 34"><path d="${MAP}"/></svg></div></td><td><div style="font-weight:600">${r[0]}</div><div class="muted small">${r[1]}</div></td><td class="muted">${r[2]}</td><td>${r[3]}</td><td class="r"><button class="btn ${i === 2 ? 'primary' : ''}">Race</button></td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="section-title">Classes ${s.classes.length > 1 ? `<span class="muted small" style="font-weight:400">${s.classes.length} classes on one grid, scored separately</span>` : ''}</div>
+      ${classes}
+      <div class="section-title">Points, prize money and weekends</div>
+      ${rules(s)}
+    </main>
+  </div>`;
+
+const WHY = {
+  1: '<b>Columns.</b> One class takes the full width; two to four split the row; five or more wrap into rows of four, so nine classes are three rows of columns rather than nine thin ones.',
+  2: '<b>Rows.</b> A full-width row per class whatever the count, capped at one line of cars (three) and two lines of teams (four). A class with more carries a Show all button saying what is hidden - "9 more cars and 1 more team" - which opens that row alone in full.',
+  3: '<b>Switch.</b> One class at a time, picked with a switch that wraps onto a second line past about six classes. The page length never changes.',
+  4: '<b>Class table.</b> One compact row per class: tier, name, spec, a strip of car thumbnails, installed count and grid. Click a row to open its cars and entry list underneath; your class starts open, and a single-class championship starts open with no rows to pick from. Nine classes take about as much room as the rounds table.',
+};
+const NOTE = ' <b>Below the classes:</b> cards on a grid rather than full-width tables. One or two ways of paying keep the two prize tables side by side; three or more give each a full row. One weekend format stacks under the season table; several take a row of their own, one column per format.';
+const render = () => {
+  const s = SETS[SET];
+  document.getElementById('view').innerHTML = page(s, { 1: v1, 2: v2, 3: v3, 4: v4 }[OPT](s));
+  document.getElementById('why').innerHTML = WHY[OPT] + NOTE;
+  document.querySelectorAll('.opt[data-opt]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.opt === OPT)));
+  document.querySelectorAll('.opt[data-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.set === SET)));
+};
+document.querySelectorAll('.opt[data-opt]').forEach((b) => b.addEventListener('click', () => { OPT = b.dataset.opt; render(); }));
+document.querySelectorAll('.opt[data-set]').forEach((b) => b.addEventListener('click', () => { SET = b.dataset.set; PICK = null; OPEN = null; render(); }));
+document.addEventListener('click', (ev) => {
+  const p = ev.target.closest('[data-pick]');
+  if (p) { PICK = p.dataset.pick; render(); return; }
+  const x = ev.target.closest('[data-expand]');
+  if (x) { if (EXPANDED.has(x.dataset.expand)) EXPANDED.delete(x.dataset.expand); else EXPANDED.add(x.dataset.expand); render(); return; }
+  const o = ev.target.closest('[data-open]');
+  if (o) { OPEN = OPEN === o.dataset.open ? '' : o.dataset.open; render(); }
+});
+const root = document.documentElement;
+if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+const themeBtn = document.getElementById('theme');
+const syncTheme = () => { themeBtn.textContent = root.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode'; };
+themeBtn.addEventListener('click', () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; syncTheme(); });
+syncTheme();
+render();
+</script>
+</body>
+</html>

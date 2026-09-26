@@ -73,10 +73,6 @@ export interface Regulations {
    */
   assists?: RegulatedAssists;
   /**
-   * Force every entry onto the same setup.
-   */
-  fixedSetup?: boolean;
-  /**
    * Enforce track limits and pit lane rules.
    */
   penalties?: boolean;
@@ -277,11 +273,8 @@ export interface Team {
    */
   name: string;
   /**
-   * Full nationality name.
-   */
-  nationality?: string;
-  /**
-   * Three-letter nation code, for example "GBR".
+   * The nation it races under, one of NATION_CODES - which is also what a seat
+   * of it with no nation of its own races under.
    */
   nationCode?: string;
   /**
@@ -293,9 +286,9 @@ export interface Team {
 /**
  * Who sits in a seat.
  *
- * The same three fields CarEntry carries, because that is where they end up:
- * Assetto Corsa's [CAR_n] has a driver name, a nationality and a nation code
- * and nothing else about a person.
+ * What Assetto Corsa's [CAR_n] says about a person, less what follows from the
+ * rest: its nationality is the name of its nation code, looked up when a round
+ * is lowered.
  */
 export interface SeatDriver {
   /**
@@ -303,11 +296,8 @@ export interface SeatDriver {
    */
   name: string;
   /**
-   * Full nationality name.
-   */
-  nationality?: string;
-  /**
-   * Three-letter nation code, for example "ITA".
+   * The nation they race under, one of NATION_CODES, or undefined to race
+   * under their team's.
    */
   nationCode?: string;
 }
@@ -956,7 +946,7 @@ export interface RequirementPool {
   /**
    * Where each car of the spec comes from, one per car.
    */
-  cars: readonly Pick<ContentProvenance, 'pack' | 'maker'>[];
+  cars: readonly Pick<ContentProvenance, 'pack' | 'maker' | 'distributor'>[];
 }
 
 /**
@@ -988,6 +978,11 @@ export interface SeriesRequirements {
    */
   makers: readonly ModMaker[];
   /**
+   * Redistributors - LFM - whose cars it needs outright, on the same terms as
+   * `packs`. A car of theirs credits no mod team, so this is the only trace of it.
+   */
+  distributors: readonly ModDistributor[];
+  /**
    * One per spec rule, on a class entry or on a round overriding one, for
    * switching several sources off at once - two packs neither of which a spec
    * needs alone may still leave it short together.
@@ -1012,8 +1007,8 @@ export interface SeriesRequirements {
     distributors: readonly ModDistributor[];
   };
   /**
-   * DLC packs and mod teams reached only through a spec: they widen the field
-   * rather than being needed.
+   * DLC packs, mod teams and redistributors reached only through a spec: they
+   * widen the field rather than being needed.
    */
   widenedBy: {
     /**
@@ -1024,6 +1019,10 @@ export interface SeriesRequirements {
      * Mod teams only a spec reaches.
      */
     makers: readonly ModMaker[];
+    /**
+     * Redistributors only a spec reaches.
+     */
+    distributors: readonly ModDistributor[];
   };
 }
 

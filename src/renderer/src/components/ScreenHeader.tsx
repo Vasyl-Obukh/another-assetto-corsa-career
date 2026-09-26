@@ -26,6 +26,11 @@ interface ScreenHeaderProps {
     label: string;
   };
   /**
+   * What sits at the right of Back's row, kept in reach while the page
+   * scrolls - a page-wide switch, say.
+   */
+  aside?: ReactNode;
+  /**
    * The title row, once the screen has something to title - Back is shown
    * without it, so a screen that is loading or found nothing still has a way
    * out.
@@ -39,9 +44,14 @@ interface ScreenHeaderProps {
  * First child of a `ScreenBody` with no top padding, so it starts flush with
  * the top of the scroller the way the browsers' toolbar does.
  */
-export const ScreenHeader = ({ back, children }: ScreenHeaderProps) => (
+export const ScreenHeader = ({ back, aside, children }: ScreenHeaderProps) => (
   <header className={SCREEN_HEADER}>
-    <BackLink to={back.to} label={back.label} />
+    {aside === undefined ? <BackLink to={back.to} label={back.label} /> : (
+      <div className="flex items-center justify-between gap-3">
+        <BackLink to={back.to} label={back.label} />
+        {aside}
+      </div>
+    )}
     {children}
   </header>
 );

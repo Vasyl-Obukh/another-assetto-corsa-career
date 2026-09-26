@@ -46,18 +46,13 @@ export interface NavEntry {
 export type NavId = (typeof NAV)[number]['id'];
 
 /**
- * The navigation state a screen with a Back of its own is opened with, when
- * it can be reached from more than one place and Back should lead to the one
- * the user came from - the championship editor, say, opened from a card or
- * from a championship's own page.
+ * The router state a link carries when the page it opens belongs, for
+ * navigation's purposes, to the section it was opened from rather than its own -
+ * a car opened from Settings keeps Settings lit.
  */
-export interface ReturnState {
+export interface NavState {
   /**
-   * The URL Back leads to.
+   * The destination navigation lights while the page is open.
    */
-  to: string;
-  /**
-   * The catalogue key for Back's label.
-   */
-  label: ParseKeys;
+  section: NavId;
 }

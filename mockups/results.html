@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Results mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --secondary: oklch(0.935 0.012 252);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --warning: oklch(0.79 0.15 80); --warning-fg: oklch(0.28 0.06 70);
+  --warning-soft: oklch(0.965 0.035 85); --warning-soft-fg: oklch(0.4 0.1 70);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --secondary: oklch(0.27 0.014 265);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --warning: oklch(0.8 0.14 82); --warning-fg: oklch(0.2 0.04 70);
+  --warning-soft: oklch(0.27 0.045 78); --warning-soft-fg: oklch(0.88 0.11 85);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .grp[hidden] { display: none; }
+.why { max-width: 1280px; margin: 14px auto 0; padding: 0 24px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+
+/* ---------- App frame ---------- */
+.frame { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; }
+.app-nav { display: flex; gap: 18px; align-items: center; height: 44px; font-size: 13px; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
+.app-nav .brand { color: var(--foreground); font-weight: 600; margin-right: 8px; }
+.app-nav .on { color: var(--primary); font-weight: 600; background: color-mix(in oklch, var(--primary) 10%, transparent); padding: 4px 8px; border-radius: 6px; }
+.hdr { display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Shared ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.c-you { background: var(--primary); color: var(--primary-foreground); }
+.pos { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.p1 { background: var(--gold); color: var(--gold-fg); }
+.p2 { background: var(--silver); color: var(--silver-fg); }
+.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.pn { color: var(--foreground); }
+.muted { color: var(--muted-foreground); }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.swatch { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex: none; background: var(--muted); }
+
+/* ---------- List: header and toolbar ---------- */
+.title { display: flex; flex-direction: column; gap: 2px; padding: 26px 0 16px; }
+.title h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; }
+.toolbar { position: sticky; top: 49px; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 0 12px; background: var(--background); }
+.search { display: flex; align-items: center; gap: 8px; width: 300px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); font-size: 13px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg .dot { width: 7px; height: 7px; border-radius: 50%; }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; }
+.count { margin-left: auto; font-size: 12.5px; color: var(--muted-foreground); }
+
+/* ---------- List A: a timeline of sessions ---------- */
+.day { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--border); }
+.day:first-of-type { border-top: 0; }
+.day .when { display: flex; flex-direction: column; padding-top: 6px; }
+.day .when b { font-size: 22px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; }
+.day .when span { font-size: 12px; color: var(--muted-foreground); }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row { display: grid; grid-template-columns: 132px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px 14px 8px 8px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; transition: box-shadow .15s, border-color .15s; }
+.row:hover { border-color: color-mix(in oklch, var(--primary) 50%, var(--border)); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 12%, transparent); }
+.thumb { position: relative; height: 74px; border-radius: 8px; overflow: hidden; background: var(--scrim); }
+.thumb img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to left, oklch(0.14 0.012 265 / .7), transparent 70%); }
+.thumb img.ol { position: absolute; right: 6px; top: 8px; bottom: 8px; width: 46%; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; opacity: .95; }
+.meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.meta .top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.meta .name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta .sub { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); min-width: 0; white-space: nowrap; }
+.meta .sub .sep { opacity: .5; }
+.you { display: grid; grid-template-columns: 72px 84px 52px; gap: 0 22px; align-items: end; text-align: right; }
+.you .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.you .v { font-size: 16px; font-weight: 650; font-variant-numeric: tabular-nums; display: flex; justify-content: flex-end; align-items: baseline; gap: 4px; }
+.you .v small { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.you .pts { color: var(--s-race-fg); }
+
+/* ---------- List B: weekends ---------- */
+.weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+.wk { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.wk .ph { position: relative; height: 120px; background: var(--scrim); }
+.wk .ph img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.wk .ph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .88), transparent 70%); }
+.wk .ph img.ol { position: absolute; right: 12px; top: 12px; height: 62px; width: 90px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.wk .ph .cap { position: absolute; left: 14px; right: 14px; bottom: 10px; z-index: 1; color: var(--on-scrim); display: flex; flex-direction: column; gap: 2px; }
+.wk .ph .cap b { font-size: 17px; font-weight: 650; }
+.wk .ph .cap span { font-size: 12.5px; opacity: .85; }
+.wk .ph .date { position: absolute; left: 14px; top: 12px; z-index: 1; font-size: 12px; color: var(--on-scrim); background: oklch(0.14 0.012 265 / .55); padding: 3px 8px; border-radius: 99px; }
+.wk .car { display: flex; align-items: center; gap: 8px; padding: 10px 14px 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.sess { display: flex; flex-direction: column; padding: 4px 8px 10px; }
+.sess a { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 7px 6px; border-radius: 8px; }
+.sess a:hover { background: var(--muted); }
+.sess a + a { border-top: 1px solid var(--border); }
+.sess .best { font-size: 13px; }
+.sess a > .chip { justify-self: start; }
+
+/* ---------- Detail ---------- */
+.hero { position: relative; border-radius: 14px; overflow: hidden; background: var(--scrim); height: 210px; }
+.hero img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .9), oklch(0.14 0.012 265 / .25) 70%); }
+.hero .cap { position: absolute; left: 22px; bottom: 18px; right: 300px; z-index: 1; color: var(--on-scrim); display: flex; flex-direction: column; gap: 8px; }
+.hero .over { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.hero .over a { opacity: .9; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: oklch(1 0 0 / .35); }
+.hero h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1; }
+.hero .line { font-size: 13px; opacity: .85; display: flex; gap: 8px; align-items: center; }
+.hero img.ol { position: absolute; right: 26px; top: 22px; bottom: 22px; width: 220px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; opacity: .9; }
+
+.figs { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 14px; }
+.figs > div { padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
+.figs > div:not(:first-child) { border-left: 1px solid var(--border); }
+.figs .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.figs b { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
+.figs b small { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.figs .pos { height: 28px; min-width: 40px; font-size: 16px; }
+
+.body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; margin-top: 14px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 14px; }
+
+.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 14px 14px; }
+.pod { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--muted); }
+.pod img { display: block; width: 100%; aspect-ratio: 16 / 8; object-fit: cover; }
+.pod .pos { position: absolute; left: 8px; top: 8px; }
+.pod .t { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 1px; background: var(--card); }
+.pod .t b { font-size: 13.5px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.pod .t span { font-size: 12px; color: var(--muted-foreground); display: flex; justify-content: space-between; gap: 8px; }
+
+table.cls { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cls th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.cls td { padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.cls tr:last-child td { border-bottom: 0; }
+.cls .r { text-align: right; }
+.cls tr.me td { background: color-mix(in oklch, var(--primary) 9%, transparent); font-weight: 600; }
+.cls tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+.cls .drv { display: flex; align-items: center; gap: 8px; }
+.cls .carc { display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); }
+.cls .fl { color: var(--primary); font-weight: 650; display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end; }
+.cls .gap { color: var(--muted-foreground); }
+.cls .lapped { color: var(--warning-soft-fg); }
+.foot { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.foot .ok { color: var(--success); }
+.foot .inf { color: var(--warning-soft-fg); }
+
+.wknd a { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 8px; margin: 0 -8px; border-radius: 8px; font-size: 13px; }
+.wknd a > .chip { justify-self: start; }
+.wknd a:hover { background: var(--muted); }
+.wknd a.cur { background: color-mix(in oklch, var(--primary) 9%, transparent); }
+.wknd a.todo { color: var(--muted-foreground); }
+.lnk { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 13px; }
+.lnk + .lnk { border-top: 1px solid var(--border); }
+.lnk img.car { width: 64px; height: 36px; object-fit: cover; border-radius: 6px; }
+.lnk .t { display: flex; flex-direction: column; min-width: 0; }
+.lnk .t span { font-size: 12px; color: var(--muted-foreground); }
+.lnk .go { margin-left: auto; color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="grp"><strong>Screen</strong>
+    <button class="opt" data-k="screen" data-v="list">Results list</button>
+    <button class="opt" data-k="screen" data-v="detail">Result page</button>
+  </div>
+  <div class="grp" data-for="list"><strong>List</strong>
+    <button class="opt" data-k="list" data-v="a">A - Timeline of sessions</button>
+    <button class="opt" data-k="list" data-v="b">B - Weekends</button>
+  </div>
+  <div class="grp" data-for="detail"><strong>Session</strong>
+    <button class="opt" data-k="sess" data-v="practice">Practice</button>
+    <button class="opt" data-k="sess" data-v="qualify">Qualifying</button>
+    <button class="opt" data-k="sess" data-v="race">Race</button>
+  </div>
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-k="th" data-v="light">Light</button>
+    <button class="opt" data-k="th" data-v="dark">Dark</button>
+  </div>
+</div>
+<div class="why" id="why"></div>
+<div class="frame" id="app"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const I = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+  timer: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="12" cy="14" r="7"/><path d="M12 10v4M10 3h4"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  info: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>',
+  trophy: '<svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+  flag: '<svg class="i" viewBox="0 0 24 24"><path d="M4 22V4M4 4h13l-2 4 2 4H4"/></svg>',
+  cal: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+};
+
+// ---------- Content ----------
+const TRACK = {
+  imola: { name: 'Imola', layout: null, country: 'Italy', img: `${AC}tracks/imola/ui/preview.png`, ol: `${AC}tracks/imola/ui/outline.png` },
+  mugello: { name: 'Mugello', layout: null, country: 'Italy', img: `${AC}tracks/mugello/ui/preview.png`, ol: `${AC}tracks/mugello/ui/outline.png` },
+  monza: { name: 'Monza', layout: null, country: 'Italy', img: `${AC}tracks/monza/ui/preview.png`, ol: `${AC}tracks/monza/ui/outline.png` },
+  donington: { name: 'Donington Park', layout: 'National', country: 'Great Britain', img: `${AC}tracks/rj_doningtonpark2023/ui/national/preview.png`, ol: `${AC}tracks/rj_doningtonpark2023/ui/national/outline.png` },
+};
+const F4_SKINS = ['01_project_one_yellow_17', '02_project_one_orange_18', '03_NGA_red_4', '04_NGA_green_5', '05_NGA_blue_6', '06_veldfield_purple_20', '07_veldfield_cyan_21', '08_carbon'];
+const CAR = {
+  f4: { name: 'Formula RSS 4 2024', skin: (n) => `${AC}cars/rss_formula_rss_4_2024/skins/${F4_SKINS[n % 8]}` },
+  fa: { name: 'Tatuus FA01', skin: (n) => `${AC}cars/tatuusfa1/skins/scheme_${n % 5}` },
+  hx: { name: 'Formula Hybrid X 2026', skin: () => `${AC}cars/rss_formula_hybrid_x_2026/skins/00_gsi_rss_26` },
+  z4: { name: 'BMW Z4 GT3', skin: () => `${AC}cars/bmw_z4_gt3/skins/0_bmw_motorsport_2013_black` },
+};
+const KIND = { practice: ['Practice', 'c-practice'], qualify: ['Qualifying', 'c-qualify'], race: ['Race', 'c-race'] };
+
+// One archive is one session now that a launch runs one session.
+const RESULTS = [
+  { id: 'imola-r', day: '2026-09-27', time: '15:40', kind: 'race', name: 'Race 1', champ: 'Italian F4 Championship', round: 'Imola', track: 'imola', car: 'f4', pos: 3, of: 24, best: '1:51.902', pts: 15, wk: 'imola' },
+  { id: 'imola-q', day: '2026-09-27', time: '11:05', kind: 'qualify', name: 'Qualifying', champ: 'Italian F4 Championship', round: 'Imola', track: 'imola', car: 'f4', pos: 4, of: 24, best: '1:51.488', wk: 'imola' },
+  { id: 'imola-p', day: '2026-09-26', time: '09:46', kind: 'practice', name: 'Practice', champ: 'Italian F4 Championship', round: 'Imola', track: 'imola', car: 'f4', pos: 7, of: 24, best: '1:52.384', wk: 'imola' },
+  { id: 'fa-r', day: '2026-09-20', time: '07:19', kind: 'race', name: 'Race', champ: null, round: 'Formula Abarth - Mugello', track: 'mugello', car: 'fa', pos: 1, of: 10, best: '1:58.811', wk: 'fa' },
+  { id: 'fa-p', day: '2026-09-20', time: '07:06', kind: 'practice', name: 'Practice', champ: null, round: 'Formula Abarth - Mugello', track: 'mugello', car: 'fa', pos: 2, of: 10, best: '1:59.640', wk: 'fa' },
+  { id: 'mz-p', day: '2026-09-01', time: '20:14', kind: 'practice', name: 'Practice', champ: null, round: 'Quick race', track: 'monza', car: 'hx', pos: 2, of: 8, best: '1:21.077', wk: 'mz' },
+  { id: 'dn-r', day: '2026-08-30', time: '10:02', kind: 'race', name: 'Race', champ: null, round: 'Quick race', track: 'donington', car: 'z4', pos: 5, of: 8, best: '1:10.552', wk: 'dn' },
+  { id: 'dn-q', day: '2026-08-30', time: '10:01', kind: 'qualify', name: 'Qualifying', champ: null, round: 'Quick race', track: 'donington', car: 'z4', pos: 6, of: 8, best: '1:10.903', wk: 'dn' },
+];
+
+const dayOf = (iso) => new Date(`${iso}T12:00:00`);
+const fmtDay = (iso) => dayOf(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fmtShort = (iso) => dayOf(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const posChip = (p) => `<span class="pos ${p <= 3 ? `p${p}` : 'pn'}">P${p}</span>`;
+const kindChip = (k) => `<span class="chip ${KIND[k][1]}">${KIND[k][0]}</span>`;
+const champChip = (r) => (r.champ ? `<span class="chip c-single">${r.champ}</span>` : '');
+const trackLine = (t) => `${TRACK[t].name}${TRACK[t].layout ? ` · ${TRACK[t].layout}` : ''}`;
+
+const state = { screen: 'list', list: 'a', sess: 'race', th: 'light' };
+
+// ---------- List ----------
+const toolbar = () => `
+  <div class="toolbar">
+    <div class="search">${I.search} Search a track, car or championship</div>
+    <div class="seg">
+      <span class="on">All</span>
+      <span><i class="dot" style="background:var(--s-practice-fg)"></i>Practice</span>
+      <span><i class="dot" style="background:var(--s-qualify-fg)"></i>Qualifying</span>
+      <span><i class="dot" style="background:var(--s-race-fg)"></i>Race</span>
+    </div>
+    <div class="select">All championships ${I.down}</div>
+    <span class="count">8 sessions</span>
+  </div>`;
+
+const row = (r) => `
+  <a class="row" href="#" data-open="${r.kind}">
+    <div class="thumb"><img class="bg" src="${TRACK[r.track].img}"><img class="ol" src="${TRACK[r.track].ol}"></div>
+    <div class="meta">
+      <div class="top">${kindChip(r.kind)}<span class="name">${r.champ ? `${r.round} · ${r.name}` : `${r.round} · ${r.name}`}</span>${champChip(r)}</div>
+      <div class="sub">${trackLine(r.track)}<span class="sep">|</span><img class="swatch" src="${CAR[r.car].skin(0)}/livery.png">${CAR[r.car].name}<span class="sep">|</span>${r.time}</div>
+    </div>
+    <div class="you">
+      <span class="k">You</span><span class="k">Best lap</span><span class="k">${r.pts !== undefined ? 'Points' : ''}</span>
+      <span class="v">${posChip(r.pos)}<small>/ ${r.of}</small></span>
+      <span class="v">${r.best}</span>
+      <span class="v pts">${r.pts !== undefined ? `+${r.pts}` : ''}</span>
+    </div>
+  </a>`;
+
+const listA = () => {
+  const days = [...new Set(RESULTS.map((r) => r.day))];
+  return days.map((d) => {
+    const date = dayOf(d);
+    return `<section class="day">
+      <div class="when"><b>${date.getDate()}</b><span>${date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span><span>${date.toLocaleDateString('en-GB', { weekday: 'long' })}</span></div>
+      <div class="rows">${RESULTS.filter((r) => r.day === d).map(row).join('')}</div>
+    </section>`;
+  }).join('');
+};
+
+const listB = () => {
+  const weeks = [...new Set(RESULTS.map((r) => r.wk))];
+  return `<div class="weeks">${weeks.map((w) => {
+    const rs = RESULTS.filter((r) => r.wk === w);
+    const r0 = rs[0];
+    const first = rs[rs.length - 1];
+    const span = first.day === r0.day ? fmtShort(r0.day) : `${dayOf(first.day).getDate()} - ${fmtShort(r0.day)}`;
+    return `<article class="wk">
+      <div class="ph"><img class="bg" src="${TRACK[r0.track].img}"><img class="ol" src="${TRACK[r0.track].ol}">
+        <span class="date">${span}</span>
+        <div class="cap"><b>${r0.champ ? `${r0.champ}` : r0.round}</b><span>${r0.champ ? `${r0.round} · ` : ''}${trackLine(r0.track)}</span></div>
+      </div>
+      <div class="car"><img class="swatch" src="${CAR[r0.car].skin(0)}/livery.png">${CAR[r0.car].name}<span style="margin-left:auto">${r0.of} cars</span></div>
+      <div class="sess">${[...rs].reverse().map((r) => `
+        <a href="#" data-open="${r.kind}">${kindChip(r.kind)}<span class="best num muted">${r.name !== KIND[r.kind][0] ? `${r.name} · ` : ''}${r.best}</span>
+          <span class="num" style="font-size:13px;font-weight:600;color:var(--s-race-fg)">${r.pts !== undefined ? `+${r.pts} pts` : ''}</span>${posChip(r.pos)}</a>`).join('')}
+      </div>
+    </article>`;
+  }).join('')}</div>`;
+};
+
+const list = () => `
+  <div class="title"><h1>Results</h1><span class="muted">Every session you have driven, newest first.</span></div>
+  ${toolbar()}
+  ${state.list === 'a' ? listA() : listB()}`;
+
+// ---------- Detail ----------
+const NAMES = ['Eterry', 'Gioele Bortolussi', 'Mattia Zamperlin', 'Kevin Piovesana', 'Samuele Fabbrucci', 'Denis Montanari', 'Christian Ricciotti', 'Francesco Pallottelli', 'Brando Cardarelli', 'Giacomo Anselmetti', 'Nicola Tschurtschenthaler', 'Jonas Pircher', 'Luca Gufler', 'Nico Bachofner', 'Levin Zürcher', 'Yanis Chappuis', 'Rashid Al Mansoori', 'Hamdan Al Suwaidi', 'Omar Al Falasi', 'Szymon Wroblewicz', 'Kacper Dziedzic', 'Igor Stachurski', 'Pablo Estellés', 'Marc Ferrús'];
+const POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+const ms = (t) => { const m = Math.floor(t / 60000); const s = (t % 60000) / 1000; return `${m}:${s.toFixed(3).padStart(6, '0')}`; };
+const delta = (d) => (d >= 60000 ? `+${ms(d)}` : `+${(d / 1000).toFixed(3)}`);
+
+const field = (kind) => {
+  const me = { practice: 7, qualify: 4, race: 3 }[kind];
+  let seed = { practice: 7, qualify: 11, race: 23 }[kind];
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const others = NAMES.slice(1).map((n, i) => ({ n, skin: i + 1 }));
+  others.sort(() => rnd() - 0.5);
+  const order = [...others.slice(0, me - 1), { n: 'Eterry', skin: 0 }, ...others.slice(me - 1)];
+  let best = { practice: 111620, qualify: 111140, race: 111591 }[kind];
+  let total = 1601337;
+  const fastest = kind === 'race' ? 1 : 0;
+  return order.map((d, i) => {
+    best += i === 0 ? 0 : Math.round(60 + rnd() * 260);
+    total += i === 0 ? 0 : Math.round(300 + rnd() * 2600);
+    const laps = kind === 'race' ? (i >= 22 ? 13 : 14) : Math.round(8 + rnd() * 9);
+    const cuts = rnd() < 0.25 ? Math.ceil(rnd() * 3) : 0;
+    return { pos: i + 1, ...d, laps, cuts, best: kind === 'race' && i === fastest ? 111302 : best + (kind === 'race' ? 300 : 0), total, me: d.n === 'Eterry' };
+  });
+};
+
+// The list quotes the same best laps the result page computes.
+RESULTS.filter((r) => r.wk === 'imola').forEach((r) => { r.best = ms(field(r.kind).find((x) => x.me).best); });
+
+const detail = () => {
+  const kind = state.sess;
+  const r = RESULTS.find((x) => x.wk === 'imola' && x.kind === kind);
+  const rows = field(kind);
+  const race = kind === 'race';
+  const lead = rows[0];
+  const fastestT = Math.min(...rows.map((x) => x.best));
+  const me = rows.find((x) => x.me);
+  const gap = (x) => {
+    if (x.pos === 1) return race ? ms(x.total).replace(/^/, '') : ms(x.best);
+    if (race && x.laps < lead.laps) return `<span class="lapped">+${lead.laps - x.laps} lap</span>`;
+    return race ? delta(x.total - lead.total) : delta(x.best - lead.best);
+  };
+  const top = rows.slice(0, 3);
+  const wk = RESULTS.filter((x) => x.wk === 'imola').reverse();
+
+  return `
+  <div class="hdr"><a class="back" href="#" data-back>${I.back} Results</a></div>
+  <section class="hero">
+    <img class="bg" src="${TRACK.imola.img}"><img class="ol" src="${TRACK.imola.ol}">
+    <div class="cap">
+      <div class="over">${kindChip(kind)}<a href="#">${r.champ}</a><span style="opacity:.5">/</span><a href="#">Round 1 · Imola</a></div>
+      <h1>${r.round} · ${r.name}</h1>
+      <div class="line">${I.flag} ${trackLine('imola')}, Italy <span style="opacity:.5">|</span> ${I.cal} ${fmtDay(r.day)} at ${r.time}</div>
+    </div>
+  </section>
+
+  <section class="panel figs">
+    <div><span class="k">You finished</span><b>${posChip(me.pos)}<small>of ${rows.length}</small></b></div>
+    <div><span class="k">Your best lap</span><b>${ms(me.best)}<small>${me.best === fastestT ? 'fastest' : `${delta(me.best - fastestT)} to fastest`}</small></b></div>
+    <div><span class="k">${race ? 'Gap to winner' : 'Gap to first'}</span><b>${race ? delta(me.total - lead.total) : delta(me.best - lead.best)}</b></div>
+    <div><span class="k">Laps</span><b>${me.laps}<small>${race ? 'of 14' : `${me.cuts} cut${me.cuts === 1 ? '' : 's'}`}</small></b></div>
+    <div><span class="k">${race ? 'Points' : 'Field'}</span><b>${race ? `<span style="color:var(--s-race-fg)">+${POINTS[me.pos - 1]}</span><small>3rd in standings</small>` : `${rows.length}<small>cars</small>`}</b></div>
+  </section>
+
+  <div class="body">
+    <div class="col">
+      <section class="panel">
+        <h3>${I.trophy} ${race ? 'Podium' : 'Top three'}</h3>
+        <div class="podium">${top.map((x) => `
+          <div class="pod"><img src="${CAR.f4.skin(x.skin)}/preview.jpg">${posChip(x.pos)}
+            <div class="t"><b>${x.n}${x.me ? '<span class="chip c-you">You</span>' : ''}</b>
+            <span><span>${CAR.f4.name}</span><span class="num">${gap(x)}</span></span></div></div>`).join('')}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Classification <span class="muted" style="font-weight:400">${rows.length} cars · ${race ? '14 laps' : '30 minutes'}</span></h3>
+        <div style="padding:6px 4px 0">
+        <table class="cls">
+          <thead><tr>
+            <th style="width:56px">Pos</th><th>Driver</th><th>Car</th><th class="r">Laps</th><th class="r">Best lap</th>
+            <th class="r">${race ? 'Time / gap' : 'Gap'}</th><th class="r">Cuts</th>${race ? '<th class="r">Points</th>' : ''}
+          </tr></thead>
+          <tbody>${rows.map((x) => `
+            <tr class="${x.me ? 'me' : ''}">
+              <td>${posChip(x.pos)}</td>
+              <td><span class="drv">${x.n}${x.me ? '<span class="chip c-you">You</span>' : ''}</span></td>
+              <td><span class="carc"><img class="swatch" src="${CAR.f4.skin(x.skin)}/livery.png">${CAR.f4.name}</span></td>
+              <td class="r num">${x.laps}</td>
+              <td class="r num">${x.best === fastestT ? `<span class="fl">${I.timer}${ms(x.best)}</span>` : ms(x.best)}</td>
+              <td class="r num gap">${gap(x)}</td>
+              <td class="r num">${x.cuts ? `<span class="chip c-warn">${x.cuts}</span>` : '<span class="muted">-</span>'}</td>
+              ${race ? `<td class="r num" style="font-weight:600">${POINTS[x.pos - 1] ? POINTS[x.pos - 1] : '<span class="muted">-</span>'}</td>` : ''}
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+        <div class="foot">${race
+    ? `<span class="ok">${I.check}</span> Finishing order is Assetto Corsa's own classification.`
+    : `<span class="inf">${I.info}</span> Ordered by best valid lap - Assetto Corsa classifies races only.`}</div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel">
+        <h3>This weekend</h3>
+        <div class="pb wknd">${wk.map((x) => `
+          <a href="#" data-open="${x.kind}" class="${x.kind === kind ? 'cur' : ''}">${kindChip(x.kind)}<span class="num muted">${x.best}</span>${posChip(x.pos)}</a>`).join('')}
+          <a class="todo" href="#"><span class="chip c-race" style="opacity:.55">Race</span><span>Race 2 · Sunday 16:30</span><span></span></a>
+        </div>
+      </section>
+      <section class="panel">
+        <h3>Raced with</h3>
+        <div class="pb" style="padding-top:4px">
+          <a class="lnk" href="#"><img class="car" src="${CAR.f4.skin(0)}/preview.jpg"><span class="t">${CAR.f4.name}<span>Project One Yellow #17</span></span><span class="go">${I.chev}</span></a>
+          <a class="lnk" href="#"><img class="car" src="${TRACK.imola.img}"><span class="t">Imola<span>Italy · 4.9 km</span></span><span class="go">${I.chev}</span></a>
+          <a class="lnk" href="#"><span class="t" style="padding-left:2px">Round 1 · Imola<span>Italian F4 Championship</span></span><span class="go">${I.chev}</span></a>
+        </div>
+      </section>
+    </div>
+  </div>`;
+};
+
+// ---------- Notes ----------
+const WHY = {
+  list: {
+    a: `<b>A - a timeline of sessions.</b> One row per archive, grouped under the day it was driven like the calendar's Days view. Each row leads with the
+      session kind in its colour, then the round and championship, the track's photo and outline, the car with its livery, and your own
+      finish on the right: position (podium metals for the top three), best lap and, for a championship race, the points. Search, a
+      Practice / Qualifying / Race filter and a championship filter sit in a sticky toolbar, remembered like the browsers' filters.`,
+    b: `<b>B - weekends.</b> The sessions of one round are gathered into a card: the track's photo, the championship and round, the car,
+      then every session you drove there with your position and best lap, each opening its own result. A quick race or a standalone race
+      is a card of its own. Grouping is by the round the archive was raced for, so this needs the round's id on the record, which it
+      already carries as <code>raceId</code>.`,
+  },
+  detail: `<b>Result page.</b> A hero with the track's photo and outline, the session kind, and links back to the championship and the round.
+    Under it a strip of what you did, then the podium (or the top three outside a race) with each car's livery, and the full classification:
+    real car names with livery swatches, your row picked out, the session's fastest lap marked, a gap column (to the winner in a race,
+    lapped cars in amber; to the best lap otherwise), cuts in amber where there are any and points for a championship race. The note on
+    where the order came from moves from two badges to one line under the table. The sidebar lists the rest of the weekend and what
+    was raced. Switch Session above to see Practice and Qualifying.
+    <ul>
+      <li><b>Data this needs:</b> which standing is the player's (car 0 in <code>race_out.json</code>, which <code>summarise</code> sees but
+        drops), car and track display names and liveries looked up over the installed content, and the round off <code>raceId</code>.</li>
+      <li><b>A race gap is only as good as <code>totalTime</code></b>, which skips invalidated laps (a known gap) - a car with a cut lap
+        reads too close. Showing laps down only, or no race gap at all, is the safe alternative.</li>
+      <li>The event page uses the same classification table, so it would pick up the names, gaps and your row too.</li>
+    </ul>`,
+};
+
+const render = () => {
+  document.documentElement.dataset.theme = state.th;
+  document.querySelectorAll('.opt').forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+  document.querySelectorAll('.grp[data-for]').forEach((g) => { g.hidden = g.dataset.for !== state.screen; });
+  document.getElementById('why').innerHTML = state.screen === 'list' ? WHY.list[state.list] : WHY.detail;
+  document.getElementById('app').innerHTML = `
+    <div class="app-nav"><span class="brand">Assetto Corsa Career</span><span>Home</span><span>Race</span><span>Calendar</span><span>Championships</span><span class="on">Results</span><span>Cars</span><span>Tracks</span><span>Settings</span></div>
+    ${state.screen === 'list' ? list() : detail()}`;
+};
+
+document.addEventListener('click', (e) => {
+  const opt = e.target.closest('.opt');
+  if (opt) { state[opt.dataset.k] = opt.dataset.v; render(); return; }
+  const open = e.target.closest('[data-open]');
+  if (open) { e.preventDefault(); state.screen = 'detail'; state.sess = open.dataset.open; render(); window.scrollTo(0, 0); return; }
+  if (e.target.closest('[data-back]')) { e.preventDefault(); state.screen = 'list'; render(); }
+});
+render();
+</script>
+</body>
+</html>

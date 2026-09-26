@@ -3,7 +3,7 @@
 //
 // An entry list is a table, and these keep each row to a line: written out as
 // object literals, twenty drivers are a hundred and forty lines nobody can scan
-// for a missing nationality.
+// for a missing nation.
 
 import {
   FILLER_AI_STEP, FILLER_MONEY_GROWTH, FILLER_MONEY_ROUNDING, FILLER_RACE_GROWTH,
@@ -17,19 +17,17 @@ import type {
  * Builds one team of a shipped championship.
  * @param id Stable identifier, unique within the championship
  * @param name Display name
- * @param nationality Full nationality name
- * @param nationCode Three-letter nation code
+ * @param nationCode The nation it races under, one of NATION_CODES
  * @param budget How well funded the team is
  * @returns The team
  */
 export const team = (
   id: string,
   name: string,
-  nationality: string,
   nationCode: string,
   budget: TeamBudget = TeamBudget.INDEPENDENT,
 ): Team => ({
-  id, name, nationality, nationCode, budget,
+  id, name, nationCode, budget,
 });
 
 /**
@@ -41,8 +39,7 @@ export const team = (
  * @param id Stable identifier, unique across the championship
  * @param teamId Which team fields it
  * @param name Driver name
- * @param nationality Full nationality name
- * @param nationCode Three-letter nation code
+ * @param nationCode The nation they race under, one of NATION_CODES
  * @param strength AI skill as an offset over the class, for a driver the
  * season's small spread would get wrong
  * @returns The seat
@@ -51,13 +48,12 @@ export const seat = (
   id: string,
   teamId: string,
   name: string,
-  nationality: string,
   nationCode: string,
   strength?: number,
 ): Seat => ({
   id,
   team: teamId,
-  driver: { name, nationality, nationCode },
+  driver: { name, nationCode },
   ...(strength === undefined ? {} : { strength }),
 });
 

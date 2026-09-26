@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next';
 
 import type { EventSession, LaunchRecord } from '../../../../shared/types';
-import { carBadgeUrl, carSkinUrl, isSafeSegment } from '../../../../shared/utils/content-url';
+import { raceLength } from '@/lib/session-labels';
 
 /**
  * Which session the page opens on.
@@ -36,23 +36,6 @@ export const playerPosition = (record: LaunchRecord | null): number | null => {
 };
 
 /**
- * Preview URLs for the car a season is raced in, best first.
- *
- * The livery the season was entered with where there is one, the car's badge
- * behind it; a folder name the URL grammar would refuse is dropped rather than
- * requested and failed.
- * @param model Car folder ID
- * @param skin Skin folder ID, when one was picked
- * @returns Zero or more accontent:// URLs
- */
-export const entryImageSources = (model: string, skin?: string): string[] => {
-  if (!isSafeSegment(model)) return [];
-  if (skin === undefined || !isSafeSegment(skin)) return [carBadgeUrl(model)];
-
-  return [carSkinUrl(model, skin), carBadgeUrl(model)];
-};
-
-/**
  * How long a session runs, in the words a championship's round row uses: laps,
  * minutes, or a race's distance beside the laps it comes to on this track.
  * @param session The session
@@ -65,19 +48,11 @@ export const sessionLength = (
   t: TFunction,
   formatNumber: (value: number) => string,
 ): string | null => {
-  if (session.laps === undefined) {
-    return session.minutes === undefined
-      ? null
-      : t('championships.format.minutes', { count: session.minutes });
-  }
+  if (session.laps !== undefined) return raceLength(session, t, formatNumber);
 
-  const laps = t('championships.format.laps', { count: session.laps });
-  if (session.distance === undefined) return laps;
-
-  return t('championships.calendar.raceDistance', {
-    distance: t('championships.format.distance', { value: formatNumber(session.distance) }),
-    laps,
-  });
+  return session.minutes === undefined
+    ? null
+    : t('championships.format.minutes', { count: session.minutes });
 };
 
 /**

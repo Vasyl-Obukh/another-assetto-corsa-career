@@ -16,6 +16,7 @@ import {
   gripAfter,
   lastSessionOf,
   materialiseRace,
+  placePlayer,
   playerFirst,
   reverseFront,
   sessionRain,
@@ -38,7 +39,7 @@ import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts
 import { finishingOrder } from '../results/index.ts';
 
 export {
-  bestLapTimes, chainOf, composeOrder, dayOf, lastSessionOf, runsToClock,
+  bestLapTimes, chainOf, composeOrder, dayOf, fieldFor, lastSessionOf, reverseFront, runsToClock,
 } from './utils.ts';
 
 /**
@@ -142,8 +143,9 @@ export const startingGrid = (
   // weekend authored before links existed gets.
   const inherited = composeOrder(chainOf(plan, index), state.completed, plan.grid.length);
   // With no qualifying anywhere behind it, the field lines up on skill and the
-  // player starts last, having earned nothing.
-  const lined = inherited ?? defaultOrder(plan.grid, `${plan.raceId}:${index}`);
+  // session says where in their class the player starts.
+  const seed = `${plan.raceId}:${index}`;
+  const lined = inherited ?? placePlayer(defaultOrder(plan.grid, seed), plan.grid, launch.session.start, seed);
   // Only an inherited order is reversed: a grid lined up on skill has no
   // result behind it to turn round.
   const reverse = launch.session.inherit?.reverse;

@@ -1,12 +1,12 @@
-import { LayersIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ClassDialog } from './ClassDialog.tsx';
+import { ClassListItem } from './ClassListItem.tsx';
+import { ClassPanel } from './ClassPanel.tsx';
 import { ROW_SCOPE } from './constants.ts';
-import { EditorSection } from './EditorSection.tsx';
-import { EntryDialog } from './EntryDialog.tsx';
-import { EntryEditor } from './EntryEditor.tsx';
-import type { SetAside } from './types.ts';
+import type { ClassSection, SetAside } from './types.ts';
 import {
   nextEntry, withEntry, withEntryEligibility, withoutEntry,
 } from './utils.ts';
@@ -28,6 +28,24 @@ interface EntriesCardProps {
    */
   checked: SeriesAvailability | null;
   /**
+   * Which class is open, or null for the first.
+   */
+  picked: string | null;
+  /**
+   * Which part of the open class is shown.
+   */
+  section: ClassSection;
+  /**
+   * Called to open another class.
+   * @param id The class entry's id
+   */
+  onPick: (id: string) => void;
+  /**
+   * Called to show another part of the open class.
+   * @param next The part
+   */
+  onSection: (next: ClassSection) => void;
+  /**
    * Which row of the editor has its form open.
    */
   rows: RowEditState;
@@ -48,42 +66,67 @@ interface EntriesCardProps {
   onChange: (next: Championship) => void;
 }
 
+/**
+ * The classes as a list down the side and the one picked opened beside it,
+ * since a class holds far too much - its cars, a grid of seats, its field and
+ * its purse - for every one of them to be open on one page.
+ */
 export const EntriesCard = ({
-  series, checked, rows, locked, nameOf, onChange,
+  series, checked, picked, section, onPick, onSection, rows, locked, nameOf, onChange,
 }: EntriesCardProps) => {
   const { t } = useTranslation();
   const { catalogue } = useClasses();
   // What eligibility changes took off each class, so changing back restores it.
   const [aside, setAside] = useState<SetAside>({});
-  const seats = series.entries.reduce((total, entry) => total + entry.seats.length, 0);
   const editing = series.entries.find((entry) => rows.editing(ROW_SCOPE.ENTRIES, entry.id));
-  // Two keys joined, because i18next pluralises on a single number.
-  const summary = [
-    t('editor.entries.count', { count: series.entries.length }),
-    t('editor.entries.seatCount', { count: seats }),
-  ].join(' · ');
+  // The first class until another is picked, and again once the picked one goes.
+  const index = Math.max(0, series.entries.findIndex((entry) => entry.id === picked));
+  const entry = series.entries[index];
 
   return (
-    <EditorSection
-      icon={<LayersIcon />}
-      title={t('editor.entries.title')}
-      hint={t('editor.entries.hint')}
-      summary={summary}
-      className="flex flex-col gap-4"
-    >
-      {series.entries.map((entry, index) => (
-        <EntryEditor
+    <div className="grid items-start gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
+      <div className="flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-44 lg:flex-col lg:overflow-visible lg:pb-0">
+        {series.entries.map((one) => (
+          <ClassListItem
+            key={one.id}
+            entry={one}
+            availability={checked?.entries.find((own) => own.entry === one.id)}
+            selected={one.id === entry?.id}
+            disabled={!rows.editable}
+            onSelect={() => onPick(one.id)}
+          />
+        ))}
+
+        {/* A tile as tall as the cards while they run across, a line under
+            them once they stack. */}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-auto shrink-0 rounded-lg border-dashed px-5 text-muted-foreground lg:h-8 lg:shrink lg:justify-start lg:rounded-md lg:px-3 lg:text-foreground"
+          disabled={locked || !rows.editable}
+          onClick={() => rows.add(ROW_SCOPE.ENTRIES)}
+        >
+          <PlusIcon />
+          {t('editor.entries.add')}
+        </Button>
+      </div>
+
+      {entry === undefined ? null : (
+        <ClassPanel
           key={entry.id}
           series={series}
           entry={entry}
-          number={index + 1}
+          index={index}
           count={series.entries.length}
           availability={checked?.entries.find((one) => one.entry === entry.id)}
           teams={series.teams ?? []}
           fieldable={[...fieldableCars(series, entry, catalogue)]}
-          locked={locked}
           rows={rows}
+          locked={locked}
+          section={section}
           nameOf={nameOf}
+          onSection={onSection}
           onChange={(next) => onChange(withEntry(series, entry.id, next))}
           onEligibility={(next) => {
             const narrowed = withEntryEligibility(series, entry.id, next, catalogue, aside);
@@ -102,25 +145,14 @@ export const EntriesCard = ({
             onChange(withoutEntry(series, entry.id));
           }}
         />
-      ))}
-
-      <div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={locked || !rows.editable}
-          onClick={() => rows.add(ROW_SCOPE.ENTRIES)}
-        >
-          <PlusIcon />
-          {t('editor.entries.add')}
-        </Button>
-      </div>
+      )}
 
       {/* Mounted only while open, so its draft seeds itself every time. */}
       {editing === undefined ? null : (
-        <EntryDialog
+        <ClassDialog
+          series={series}
           entry={editing}
+          adding={false}
           locked={locked}
           onConfirm={(next) => {
             onChange(withEntry(series, editing.id, next));
@@ -131,16 +163,20 @@ export const EntriesCard = ({
       )}
 
       {rows.adding(ROW_SCOPE.ENTRIES) ? (
-        <EntryDialog
+        <ClassDialog
+          series={series}
           entry={nextEntry(series)}
+          adding
           locked={locked}
           onConfirm={(next) => {
             onChange({ ...series, entries: [...series.entries, next] });
+            // The class just added is the one worth looking at.
+            onPick(next.id);
             rows.close();
           }}
           onCancel={rows.close}
         />
       ) : null}
-    </EditorSection>
+    </div>
   );
 };

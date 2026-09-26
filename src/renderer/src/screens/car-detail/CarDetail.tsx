@@ -1,91 +1,58 @@
-import { CarIcon, TagsIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
-import { ClassifyDialog } from './ClassifyDialog.tsx';
-import { SKIN_GRID, SKIN_SKELETON_COUNT } from './constants.ts';
-import { SkinCard } from './SkinCard.tsx';
-import { carBadgeUrl, isSafeSegment } from '../../../../shared/utils/content-url';
+import { CarAbout } from './CarAbout.tsx';
+import { CarChampionships } from './CarChampionships.tsx';
+import { CarClassification } from './CarClassification.tsx';
+import { CarCurves } from './CarCurves.tsx';
+import { CarDetailSkeleton } from './CarDetailSkeleton.tsx';
+import { CarFigures } from './CarFigures.tsx';
+import { CarSource } from './CarSource.tsx';
+import { CarStage } from './CarStage.tsx';
+import { carChampionships } from './utils.ts';
+import { isCatalogued } from '../../../../shared/utils/library';
+import { useClasses, useSettings } from '@/app';
 import {
-  ContentImage, ErrorCard, ProvenanceBadges, ScreenBody, ScreenHeader, SpecBadge,
+  ErrorCard, LibrarySwitch, ScreenBody, ScreenHeader,
 } from '@/components';
-import { SearchField } from '@/components/browser';
-import { Badge } from '@/components/ui/badge.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useCarDetail } from '@/hooks';
-import { useFormat } from '@/i18n';
+import { useCarDetail, useChampionships, usePageName } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
+import { isListed } from '@/screens/championships';
 
 export const CarDetail = () => {
   const { t } = useTranslation();
-  const { formatNumber, formatYear } = useFormat();
   const { id = '' } = useParams<PathParam<typeof ROUTE.car>>();
   const detail = useCarDetail(id);
-  const [classifying, setClassifying] = useState(false);
+  const { listings, loading } = useChampionships();
+  const { catalogue } = useClasses();
+  const { settings } = useSettings();
+  // Keyed on the car, so moving to another car starts on its first livery.
+  const [shown, setShown] = useState({ id, index: 0 });
+  const index = shown.id === id ? shown.index : 0;
 
-  const { car, skins } = detail;
+  const { car } = detail;
+  usePageName(car?.name ?? null);
+  // The championships the Championships page lists, as the browser's cards count them.
+  const championships = useMemo(
+    () => (loading ? null : carChampionships(id, listings.filter((listing) => isListed(listing, settings)), catalogue)),
+    [id, listings, loading, settings, catalogue],
+  );
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={{ to: path.cars(), label: t('cars.detail.back') }}>
-        {car !== null ? (
-          <div className="flex items-center gap-4">
-            <div className="relative size-16 shrink-0">
-              <ContentImage
-                sources={isSafeSegment(car.id) ? [carBadgeUrl(car.id)] : []}
-                alt={car.name}
-                className="object-contain"
-                fallback={(
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <CarIcon className="size-8 text-muted-foreground/40" />
-                  </div>
-                )}
-              />
-            </div>
-
-            <div className="flex min-w-0 flex-col gap-1">
-              <h1 className="truncate text-2xl font-semibold" title={car.name}>{car.name}</h1>
-              <div className="flex flex-wrap items-center gap-1">
-                <span className="mr-1 text-sm text-muted-foreground">
-                  {car.brand ?? t('browse.unknown')}
-                </span>
-                {car.year !== null ? (
-                  <Badge variant="outline">{formatYear(car.year)}</Badge>
-                ) : null}
-                <ProvenanceBadges provenance={car.provenance} carId={car.id} />
-                <SpecBadge carId={car.id} showUnclassified />
-              </div>
-            </div>
-
-            <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={() => setClassifying(true)}>
-              <TagsIcon />
-              {t('cars.classify.open')}
-            </Button>
-          </div>
-        ) : null}
-      </ScreenHeader>
-
-      {car !== null && classifying ? (
-        <ClassifyDialog carId={car.id} carName={car.name} onClose={() => setClassifying(false)} />
-      ) : null}
+      <ScreenHeader
+        back={{ to: path.cars(), label: t('back.cars') }}
+        // Only a mod the catalogue does not know can be left out of the library.
+        aside={car === null || isCatalogued(car.provenance) ? undefined : <LibrarySwitch kind="cars" id={car.id} />}
+      />
 
       {detail.error !== null ? (
         <ErrorCard error={detail.error} onDismiss={detail.dismissError} />
       ) : null}
 
-      {detail.loading ? (
-        <>
-          <Skeleton className="h-16 w-80" />
-          <div className={SKIN_GRID}>
-            {Array.from({ length: SKIN_SKELETON_COUNT }, (unused, index) => index).map((key) => (
-              <Skeleton key={key} className="h-64" />
-            ))}
-          </div>
-        </>
-      ) : null}
+      {detail.loading ? <CarDetailSkeleton /> : null}
 
       {detail.missing ? (
         <p className="py-12 text-center text-muted-foreground">
@@ -95,40 +62,21 @@ export const CarDetail = () => {
 
       {car !== null ? (
         <>
+          <CarStage car={car} index={index} onIndex={(next) => setShown({ id, index: next })} />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">
-              {car.skins.length === 0
-                ? t('cars.noSkins')
-                : t('browse.showing', {
-                  shown: formatNumber(skins.length),
-                  total: formatNumber(car.skins.length),
-                })}
-            </span>
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="flex min-w-0 flex-col gap-4">
+              <CarFigures performance={car.performance} />
+              {car.description === null ? null : <CarAbout description={car.description} />}
+              {car.curves === null ? null : <CarCurves curves={car.curves} />}
+            </div>
 
-            {car.skins.length > 0 ? (
-              <SearchField
-                value={detail.search}
-                placeholder={t('cars.detail.searchPlaceholder')}
-                onChange={detail.setSearch}
-              />
-            ) : null}
+            <div className="flex min-w-0 flex-col gap-4">
+              <CarChampionships championships={championships} />
+              <CarClassification carId={car.id} />
+              <CarSource car={car} />
+            </div>
           </div>
-
-          {skins.length > 0 ? (
-            <div className={SKIN_GRID}>
-              {skins.map((skin) => <SkinCard key={skin.id} carId={car.id} skin={skin} />)}
-            </div>
-          ) : null}
-
-          {car.skins.length > 0 && skins.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <p className="text-muted-foreground">{t('cars.detail.noMatch')}</p>
-              <Button variant="outline" size="sm" onClick={detail.clear}>
-                {t('browse.clearSearch')}
-              </Button>
-            </div>
-          ) : null}
         </>
       ) : null}
     </ScreenBody>

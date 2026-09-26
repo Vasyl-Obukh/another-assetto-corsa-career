@@ -1,18 +1,34 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import { ChampionshipMenu } from './ChampionshipMenu.tsx';
+import { ChampionshipMenuItems } from './ChampionshipMenuItems.tsx';
+import type { MenuParts } from './types.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { ConfirmDialog, NameDialog } from '@/components';
+import {
+  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
+} from '@/components/ui/context-menu.tsx';
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu.tsx';
 import type { SeriesCommandsState } from '@/hooks';
 import { path } from '@/lib/routes';
-import type { ReturnState } from '@/lib/routes';
 
 /**
  * Which destructive action is being confirmed, or null for none.
  */
 type Confirming = 'revert' | 'delete' | null;
+
+/**
+ * The menu button's items, drawn by the dropdown.
+ */
+const DROPDOWN_PARTS: MenuParts = { Item: DropdownMenuItem, Separator: DropdownMenuSeparator };
+
+/**
+ * The right-click menu's items, drawn by the context menu.
+ */
+const CONTEXT_PARTS: MenuParts = { Item: ContextMenuItem, Separator: ContextMenuSeparator };
 
 interface ChampionshipActionsProps {
   /**
@@ -29,18 +45,38 @@ interface ChampionshipActionsProps {
    */
   manage: boolean;
   /**
-   * Where the editor's Back leads, which is wherever Edit was chosen.
-   */
-  returnTo: ReturnState;
-  /**
    * Called once the championship has been deleted, for a screen that was
    * showing it and now has nothing to show.
    */
   onDeleted?: () => void;
+  /**
+   * Called to open the championship's page, which adds Open to the menu.
+   */
+  onOpen?: () => void;
+  /**
+   * Whether the championship is switched on, for the menu's own switch.
+   */
+  active?: boolean;
+  /**
+   * Called to switch the championship on or off, which adds that to the menu.
+   */
+  onToggle?: () => void;
+  /**
+   * Classes for the menu button, for one sitting on a coloured band.
+   */
+  triggerClassName?: string;
+  /**
+   * Draws whatever a right-click should open the same menu over, handed the
+   * menu button to place inside it. Left out, the button is all there is.
+   * @param menu The menu button
+   * @returns The element the right-click menu is attached to
+   */
+  children?: (menu: ReactNode) => ReactNode;
 }
 
 export const ChampionshipActions = ({
-  listing, commands, manage, returnTo, onDeleted,
+  listing, commands, manage, onDeleted, onOpen, active, onToggle, triggerClassName,
+  children,
 }: ChampionshipActionsProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -59,27 +95,50 @@ export const ChampionshipActions = ({
   const customise = (): void => {
     commands.customise(id).then((ok) => {
       setCopying(false);
-      if (ok) navigate(editor, { state: returnTo });
+      if (ok) navigate(editor);
     }, () => setCopying(false));
   };
 
+  /**
+   * The menu's items, drawn with one menu primitive's parts.
+   * @param parts The primitive's item and separator
+   * @returns The items
+   */
+  const items = (parts: MenuParts): ReactNode => (
+    <ChampionshipMenuItems
+      listing={listing}
+      manage={manage}
+      parts={parts}
+      onOpen={onOpen}
+      active={active}
+      onToggle={onToggle}
+      onEdit={() => {
+        // The app's own is replaced until it is reverted, which is worth
+        // saying out loud rather than discovering.
+        if (listing.origin === 'shipped') setCopying(true);
+        else navigate(editor);
+      }}
+      onDuplicate={() => setDuplicating(true)}
+      onRevert={() => setConfirming('revert')}
+      onDelete={() => setConfirming('delete')}
+      onExport={() => { void commands.exportSeries(id); }}
+    />
+  );
+
+  const menu = (
+    <ChampionshipMenu name={name} busy={commands.busy} triggerClassName={triggerClassName}>
+      {items(DROPDOWN_PARTS)}
+    </ChampionshipMenu>
+  );
+
   return (
     <>
-      <ChampionshipMenu
-        listing={listing}
-        manage={manage}
-        busy={commands.busy}
-        onEdit={() => {
-          // The app's own is replaced until it is reverted, which is worth
-          // saying out loud rather than discovering.
-          if (listing.origin === 'shipped') setCopying(true);
-          else navigate(editor, { state: returnTo });
-        }}
-        onDuplicate={() => setDuplicating(true)}
-        onRevert={() => setConfirming('revert')}
-        onDelete={() => setConfirming('delete')}
-        onExport={() => { void commands.exportSeries(id); }}
-      />
+      {children ? (
+        <ContextMenu>
+          <ContextMenuTrigger asChild disabled={commands.busy}>{children(menu)}</ContextMenuTrigger>
+          <ContextMenuContent>{items(CONTEXT_PARTS)}</ContextMenuContent>
+        </ContextMenu>
+      ) : menu}
 
       <ConfirmDialog
         open={copying}

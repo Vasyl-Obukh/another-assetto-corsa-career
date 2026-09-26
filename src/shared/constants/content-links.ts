@@ -12,8 +12,8 @@
 // Not in src/core/content-catalogue/ although it is provenance-shaped, because
 // the renderer is the only caller and may not import core - the same reason
 // isCatalogued sits in src/shared/utils/library/. Nothing here is baked into a
-// scanned Car or Track either, so it bumps no CONTENT_CATALOGUE_VERSION; it is
-// looked up at render time, the way the class catalogue is.
+// scanned Car or Track either, so amending it leaves the content cache alone; it
+// is looked up at render time, the way the class catalogue is.
 //
 // The Steam app ids were read from Kunos' own content/cars/<id>/ui/dlc_ui_car.json
 // markers, cross-checked against the catalogue's own pack assignments and then

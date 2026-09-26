@@ -10,7 +10,7 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
-  ClassificationOrigin, Climate, Discipline, EventStatus, SessionType,
+  ClassificationOrigin, Climate, Discipline, EventStatus, SessionType, TeamBudget,
 } from '../../../shared/types';
 
 /**
@@ -46,6 +46,24 @@ export const PODIUM_ACCENT: readonly string[] = [
 ];
 
 /**
+ * The colour a finish wears when it scored but missed the podium. Everything
+ * below the points stays plain, so a results grid reads as metals, then green,
+ * then nothing.
+ */
+export const POINTS_ACCENT = 'border-transparent bg-result-points text-result-points-foreground';
+
+/**
+ * The colour a finish wears: its podium metal, or green for any other that
+ * scored.
+ * @param position Where it finished, counting from one
+ * @param scored Whether it scored
+ * @returns Its classes, or undefined for a finish that stays plain
+ */
+export const resultAccent = (position: number, scored: boolean): string | undefined => (
+  PODIUM_ACCENT[position - 1] ?? (scored ? POINTS_ACCENT : undefined)
+);
+
+/**
  * The colour each discipline is chipped in.
  *
  * A record over the enum rather than a lookup by string, so adding a discipline
@@ -61,6 +79,17 @@ export const DISCIPLINE_ACCENT = {
   sportscar: 'border-transparent bg-discipline-sportscar text-discipline-sportscar-foreground',
   touring: 'border-transparent bg-discipline-touring text-discipline-touring-foreground',
   road: 'border-transparent bg-discipline-road text-discipline-road-foreground',
+} as const satisfies Record<Discipline, string>;
+
+/**
+ * The dot a discipline wears in a filter list, in its chip's own foreground -
+ * the pale fill is too faint at dot size.
+ */
+export const DISCIPLINE_DOT = {
+  'single-seater': 'bg-discipline-single-seater-foreground',
+  sportscar: 'bg-discipline-sportscar-foreground',
+  touring: 'bg-discipline-touring-foreground',
+  road: 'bg-discipline-road-foreground',
 } as const satisfies Record<Discipline, string>;
 
 /**
@@ -130,3 +159,76 @@ export const EVENT_ACCENT = {
   raced: 'border-transparent bg-success text-success-foreground',
   missed: 'border-transparent bg-event-missed text-event-missed-foreground',
 } as const satisfies Record<EventStatus, string>;
+
+/**
+ * Amber, for something that stops the player without anything being broken: a
+ * weekend that clashes with another they entered, or a class above their level
+ * when they try to enter it. A traffic light rather than a category, so the two
+ * share it.
+ *
+ * Read by the calendar's event cards and the round page's enter panel.
+ */
+export const CAUTION_ACCENT = 'border-transparent bg-warning text-warning-foreground';
+
+/**
+ * The colour each budget is chipped in.
+ *
+ * A hue each, with chroma stepping down from works to privateer. It was one
+ * hue at three depths once, and the three were indistinguishable at chip size.
+ * Read by the editor's team rows and a championship's entry list.
+ */
+export const TEAM_BUDGET_ACCENT = {
+  works: 'border-transparent bg-budget-works text-budget-works-foreground',
+  independent: 'border-transparent bg-budget-independent text-budget-independent-foreground',
+  privateer: 'border-transparent bg-budget-privateer text-budget-privateer-foreground',
+} as const satisfies Record<TeamBudget, string>;
+
+/**
+ * The colour each class of a race wears, by its place among the race's
+ * classes: a chip's tint, and the solid colour its stripe and dot are drawn in.
+ *
+ * Read by a race weekend's classes and every multi-class result list, which is
+ * what makes a GT4 the same colour on the setup and on the classification.
+ * Cycles past the fourth with `classAccent`.
+ */
+export const RACE_CLASS_ACCENT: readonly { chip: string; mark: string }[] = [
+  { chip: 'border-transparent bg-race-class-1 text-race-class-1-foreground', mark: 'bg-race-class-1-foreground' },
+  { chip: 'border-transparent bg-race-class-2 text-race-class-2-foreground', mark: 'bg-race-class-2-foreground' },
+  { chip: 'border-transparent bg-race-class-3 text-race-class-3-foreground', mark: 'bg-race-class-3-foreground' },
+  { chip: 'border-transparent bg-race-class-4 text-race-class-4-foreground', mark: 'bg-race-class-4-foreground' },
+];
+
+/**
+ * The colour of a race's class.
+ * @param slot Where the class sits among the race's classes, counting from zero
+ * @returns Its chip and mark classes
+ */
+export const classAccent = (slot: number): { chip: string; mark: string } => (
+  RACE_CLASS_ACCENT[((slot % RACE_CLASS_ACCENT.length) + RACE_CLASS_ACCENT.length) % RACE_CLASS_ACCENT.length]
+);
+
+/**
+ * The colour a settings section's icon well takes, which is what lets a long
+ * settings page be scanned by section rather than read.
+ *
+ * Each says which part of the app a section is about, so it is a closed set like
+ * any other here, and the three content sources keep the hues their badges
+ * already wear. The rest borrow families that never share a screen with them:
+ * no settings tab shows a team's budget or a tier, which is what frees the
+ * works magenta and the gold for the AI and for Content Manager.
+ */
+export const SECTION_ACCENT = {
+  you: 'bg-primary/12 text-primary',
+  opponents: 'bg-budget-works text-budget-works-foreground',
+  weather: 'bg-weather-wet text-weather-wet-foreground',
+  look: 'bg-tier-steel text-tier-steel-foreground',
+  tools: 'bg-tier-gold text-tier-gold-foreground',
+  base: 'bg-provenance-base text-provenance-base-foreground',
+  dlc: 'bg-provenance-dlc text-provenance-dlc-foreground',
+  mod: 'bg-provenance-mod text-provenance-mod-foreground',
+} as const;
+
+/**
+ * What a settings section is about, which picks its colour.
+ */
+export type SectionTone = keyof typeof SECTION_ACCENT;

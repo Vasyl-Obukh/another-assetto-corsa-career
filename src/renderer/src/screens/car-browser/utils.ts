@@ -19,13 +19,3 @@ export const carImageSources = (car: Car): string[] => {
     ? [carBadgeUrl(car.id)]
     : [carSkinUrl(car.id, skin.id), carBadgeUrl(car.id)];
 };
-
-/**
- * Rounds a power-to-weight ratio to something readable.
- *
- * formatNumber takes no options, and 312.4571 bhp/t is noise rather than
- * precision - the underlying figures are parsed out of free text.
- * @param ratio The derived ratio
- * @returns The ratio to one decimal place
- */
-export const roundRatio = (ratio: number): number => Math.round(ratio * 10) / 10;

@@ -1,4 +1,4 @@
-import type { Career, CareerCalendar } from '../../../../shared/types';
+import type { Career, CareerCalendar, SkippedRound } from '../../../../shared/types';
 import type { toDisplayableError } from '@/lib/ipc';
 
 /**
@@ -51,7 +51,15 @@ export interface CareerState {
   /**
    * Moves the clock forward.
    * @param date The ISO date to advance towards
+   * @param skip Whether to go all the way, past rounds of the career's the
+   * player confirmed losing, rather than stopping at the first of them
    * @returns Resolves once the clock has moved
    */
-  advanceTo: (date: string) => Promise<void>;
+  advanceTo: (date: string, skip?: boolean) => Promise<void>;
+  /**
+   * What moving the clock to a date would cost, for the player to confirm.
+   * @param date The ISO date the clock would move to
+   * @returns Every round of the career's it would leave unraced
+   */
+  skipsTo: (date: string) => Promise<SkippedRound[]>;
 }

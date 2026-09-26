@@ -1,5 +1,6 @@
+import type { LaunchResult } from '../../core/season-scoring/index.ts';
 import type {
-  AcPaths, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
+  AcPaths, LaunchRecord, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
 } from '../../shared/types/index.ts';
 
 /**
@@ -64,16 +65,18 @@ export interface RaceStore {
    */
   get(): Promise<RaceSetup>;
   /**
-   * Replaces the race being set up.
+   * Puts a weekend in the slot together with whatever of it has already run,
+   * so it carries on from there whichever weekend held the slot before.
    *
-   * Weekend progress survives only while the new definition still plans the
-   * same launches; anything else discards it, because a half-run weekend
-   * cannot be carried onto a different one.
-   * @param definition The race to set up
+   * This is what lets several weekends share the one slot: each keeps its own
+   * launches and hands them back on its next turn, rather than finding them
+   * thrown away because another weekend was raced in between.
+   * @param definition The weekend's race
+   * @param completed Every launch of it already run, in order
    * @returns The setup after the change
    * @throws AppError when a launch is in flight
    */
-  set(definition: RaceDefinition): Promise<RaceSetup>;
+  load(definition: RaceDefinition, completed: readonly LaunchRecord[]): Promise<RaceSetup>;
   /**
    * Launches the next launch that has not been run.
    *
@@ -126,6 +129,14 @@ export interface RaceStore {
    * @throws AppError when there is no archive under that name
    */
   result(file: string): Promise<ResultRecord>;
+  /**
+   * The raw race_out.json of every launch whose archive can be read, which is
+   * what scoring needs: a summary names a driver, and scoring joins a result
+   * back to its seat by car index.
+   * @param records The launches
+   * @returns One result per readable launch
+   */
+  launchResults(records: readonly LaunchRecord[]): Promise<LaunchResult[]>;
   /**
    * Subscribes to the setup changing, including a launch finishing.
    * @param listener Called with the whole setup whenever any of it changes

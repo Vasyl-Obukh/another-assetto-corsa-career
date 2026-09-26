@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   DEFAULT_ALLOWED_WEATHER, DEFAULT_OPPONENTS, DEFAULT_SETTINGS, WeatherType,
 } from '../../../constants/index.ts';
-import { DLCPack, ModMaker } from '../../../types/index.ts';
+import { DLCPack, ModDistributor, ModMaker } from '../../../types/index.ts';
 import {
   applyPatch,
   cleanString,
@@ -105,9 +105,11 @@ describe('shared/utils/settings', () => {
   });
 
   describe('readHiddenContentSources', () => {
-    it('reads both lists through', () => {
-      expect(readHiddenContentSources({ packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC] })).toEqual({
-        packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC],
+    it('reads every list through', () => {
+      expect(readHiddenContentSources({
+        packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC], distributors: [ModDistributor.LFM],
+      })).toEqual({
+        packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC], distributors: [ModDistributor.LFM],
       });
     });
 
@@ -115,7 +117,7 @@ describe('shared/utils/settings', () => {
       expect(readHiddenContentSources({
         packs: [DLCPack.RED_PACK, 'no-such-pack', DLCPack.RED_PACK, 7],
         makers: 'vrc',
-      })).toEqual({ packs: [DLCPack.RED_PACK], makers: [] });
+      })).toEqual({ packs: [DLCPack.RED_PACK], makers: [], distributors: [] });
     });
 
     it('puts them in catalogue order, whatever order the file holds them in', () => {
@@ -125,8 +127,8 @@ describe('shared/utils/settings', () => {
 
     // Hiding nothing offers every championship, which is the safe way round.
     it('hides nothing for anything that is not an object', () => {
-      expect(readHiddenContentSources(undefined)).toEqual({ packs: [], makers: [] });
-      expect(readHiddenContentSources([DLCPack.RED_PACK])).toEqual({ packs: [], makers: [] });
+      expect(readHiddenContentSources(undefined)).toEqual({ packs: [], makers: [], distributors: [] });
+      expect(readHiddenContentSources([DLCPack.RED_PACK])).toEqual({ packs: [], makers: [], distributors: [] });
     });
   });
 
@@ -307,7 +309,7 @@ describe('shared/utils/settings', () => {
         drivingAids: { abs: 2, idealLine: true },
         opponents: { strength: 95, aggression: 40 },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
-        hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'] },
+        hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,
         paths: { acRoot: 'D:\\ac' },

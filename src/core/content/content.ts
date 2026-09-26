@@ -12,6 +12,7 @@ import {
   EXTENSION_DIR,
   HIDDEN_FOLDER_PREFIX,
   MANIFEST_INI,
+  NATION_FLAGS_DIR,
   SCAN_CONCURRENCY,
   SKIN_CONCURRENCY,
   SKINS_DIR,
@@ -31,22 +32,31 @@ import {
   fingerprintCar,
   fingerprintTrack,
   listDirs,
+  listFiles,
   makeTrack,
   mapLimit,
   parseFollows,
   parseRain,
+  plainDescription,
   readJsonFile,
   skinNumber,
   trimmed,
 } from './utils.ts';
 import {
-  CAR_BADGE_FILE, SKIN_PREVIEW_FILE, TRACK_OUTLINE_FILE, TRACK_PREVIEW_FILE,
+  CAR_BADGE_FILE,
+  FLAG_FILE_EXTENSION,
+  SKIN_LIVERY_FILE,
+  SKIN_PREVIEW_FILE,
+  TRACK_LOGO_FILE,
+  TRACK_OUTLINE_FILE,
+  TRACK_PHOTO_EXTENSION,
+  TRACK_PREVIEW_FILE,
 } from '../../shared/constants/index.ts';
 import type {
   Car, Content, ContentIssue, Skin, Track, Weather, WeatherController,
 } from '../../shared/types/index.ts';
 import type { ContentUrlTarget } from '../../shared/utils/content-url/index.ts';
-import { parseCarPerformance, parseYear } from '../car-performance/index.ts';
+import { parseCarCurves, parseCarPerformance, parseYear } from '../car-performance/index.ts';
 import { carProvenance } from '../content-catalogue/index.ts';
 import { parseIni } from '../ini/index.ts';
 import type { IniData } from '../ini/index.ts';
@@ -165,6 +175,8 @@ const readCar = async (
       year: parseYear(ui.value?.year),
       country: typeof ui.value?.country === 'string' ? ui.value.country : null,
       performance: parseCarPerformance(ui.value?.specs),
+      description: plainDescription(ui.value?.description),
+      curves: parseCarCurves(ui.value?.powerCurve, ui.value?.torqueCurve),
       provenance: carProvenance(id),
     },
     issues,
@@ -236,7 +248,7 @@ const readTrack = async (
   const rootTrack: Track[] = [];
   if (root.value !== null) {
     if (root.salvaged) issues.push({ kind: 'track', id, reason: 'uiSalvaged', detail: null });
-    rootTrack.push(makeTrack(id, '', root.value));
+    rootTrack.push(makeTrack(id, '', root.value, await listFiles(uiDir)));
   } else if (root.error === null) {
     // The file was there but nothing survived the parse, which is a different
     // thing from a track that legitimately has no root ui_track.json.
@@ -259,7 +271,7 @@ const readTrack = async (
     }
 
     if (ui.salvaged) issues.push({ kind: 'track', id: key, reason: 'uiSalvaged', detail: null });
-    return makeTrack(id, layout, ui.value);
+    return makeTrack(id, layout, ui.value, await listFiles(path.join(uiDir, layout)));
   }));
 
   const tracks = [...rootTrack, ...resolved.filter((track): track is Track => track !== null)];
@@ -544,8 +556,14 @@ export const trackOutline = (contentDir: string, trackId: string, layout: string
 export const contentPath = (contentDir: string, target: ContentUrlTarget): string => {
   switch (target.kind) {
     case 'carSkin': return skinPreview(contentDir, target.carId, target.skinId);
+    case 'carLivery': return path.join(contentDir, CARS_DIR, target.carId, SKINS_DIR, target.skinId, SKIN_LIVERY_FILE);
     case 'carBadge': return carBadge(contentDir, target.carId);
     case 'trackPreview': return trackPreview(contentDir, target.trackId, target.layout);
+    case 'trackPhoto': return path.join(
+      contentDir, TRACKS_DIR, target.trackId, UI_DIR, target.layout, `${target.photo}${TRACK_PHOTO_EXTENSION}`,
+    );
+    case 'trackLogo': return path.join(contentDir, TRACKS_DIR, target.trackId, UI_DIR, target.layout, TRACK_LOGO_FILE);
+    case 'nationFlag': return path.join(contentDir, ...NATION_FLAGS_DIR, `${target.code}${FLAG_FILE_EXTENSION}`);
     default: return trackOutline(contentDir, target.trackId, target.layout);
   }
 };

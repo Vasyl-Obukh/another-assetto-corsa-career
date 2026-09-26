@@ -1,15 +1,23 @@
 import { CarFrontIcon, CloudSunIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { CountBadge } from './CountBadge.tsx';
+import { ROUND_COLUMN } from './constants.ts';
 import { ListRow } from './ListRow.tsx';
+import { OverrideButton } from './OverrideButton.tsx';
 import { SwapSummary } from './SwapSummary.tsx';
-import type { Championship, Round, RoundAvailability } from '../../../../shared/types';
+import { groupsSet } from './utils.ts';
+import type {
+  Championship, Round, RoundAvailability, RoundRaceLength,
+} from '../../../../shared/types';
+import { formatOf } from '../../../../shared/utils/weekend-format';
 import { ClimateBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
-import { trackKeyOf } from '@/screens/championships';
-import { ConditionsSummaryLine, overrideCount } from '@/screens/race';
+import { useFormat } from '@/i18n';
+import { cn } from '@/lib/utils.ts';
+import { FormatStrip, trackKeyOf } from '@/screens/championships';
+import { ConditionsSummaryLine } from '@/screens/race';
+import { LayoutMap } from '@/screens/track-browser';
 
 interface RoundRowProps {
   /**
@@ -40,11 +48,6 @@ interface RoundRowProps {
    * Whether a weekend is under way, in which case nothing may change.
    */
   locked: boolean;
-  /**
-   * Whether the row may be acted on, which it may not while any row in the
-   * editor has its form open.
-   */
-  editable: boolean;
   /**
    * The calendar's drag state.
    */
@@ -79,38 +82,48 @@ interface RoundRowProps {
 }
 
 /**
- * One event on the calendar, read-only.
+ * One event on the calendar, read-only, as a line of the calendar's table.
  *
- * The chips are the point: a twenty-round season is scanned for what is unusual
- * about a round - a circuit that is not installed, a field the track cannot
- * hold, weather of its own, a class running different cars - rather than read
- * field by field.
+ * The columns are the point: a twenty-round season is scanned down them for
+ * what is unusual about a round - a circuit that is not installed, a weekend
+ * of its own, weather of its own, a class running different cars - rather than
+ * read field by field.
  */
 export const RoundRow = ({
-  series, round, index, count, availability, locked, editable, drag, nameOf,
+  series, round, index, count, availability, locked, drag, nameOf,
   onEdit, onConditions, onCars, onMove, onRemove,
 }: RoundRowProps) => {
   const { t } = useTranslation();
+  const { formatMoney, formatNumber } = useFormat();
 
   const trackKey = trackKeyOf(round);
-  const overrides = overrideCount(round.conditions ?? {});
+  // Counted a group at a time, as the round's dialog sets them.
+  const overrides = groupsSet(round.conditions ?? {}).length;
   const swapped = round.eligibility?.length ?? 0;
-  // Only a format the round names itself, and only when it resolves: a missing
-  // reference is validateSeries' to report, not a chip's.
-  const format = round.weekendFormat === undefined
-    ? undefined
-    : series.weekendFormats.find((one) => one.id === round.weekendFormat);
+  const format = formatOf(series, round);
+
+  /**
+   * Says how long one race runs at this round's track.
+   * @param race The race's length
+   * @returns The length, already translated
+   */
+  const lengthOf = (race: RoundRaceLength): string => (race.distance === undefined
+    ? t('championships.format.laps', { count: race.laps ?? 0 })
+    : t('championships.format.distance', { value: formatNumber(race.distance) }));
+  const lengths = availability?.races.map(lengthOf) ?? [];
+  // A weekend of identical races says so once rather than repeating itself.
+  const races = lengths.length > 1 && lengths.every((length) => length === lengths[0])
+    ? t('championships.detail.raceTimes', { count: lengths.length, length: lengths[0] })
+    : lengths.join(', ');
 
   return (
     <ListRow
       index={index}
-      number={index + 1}
       name={round.name}
+      detail={trackKey === '' ? t('editor.calendar.noTrack') : trackKey}
       label={round.name}
-      first={index === 0}
-      last={index === count - 1}
+      count={count}
       locked={locked}
-      editable={editable}
       drag={drag}
       onEdit={onEdit}
       extra={[
@@ -129,47 +142,15 @@ export const RoundRow = ({
       ]}
       onMove={onMove}
       onRemove={onRemove}
-    >
-      {/* Only a round that names its own format. Neutral: a name, not one of a
-          closed set. */}
-      {format === undefined ? null : (
-        <Badge variant="secondary" className="max-w-40 shrink-0 truncate">{format.name}</Badge>
+      lead={(
+        <div className={cn('relative aspect-[16/10] overflow-hidden rounded-md bg-muted', ROUND_COLUMN.MAP)}>
+          <LayoutMap track={round.track} alt={round.name} className="p-1" />
+        </div>
       )}
-
-      {/* Only a round that runs a race of its own length. Neutral for the same
-          reason: what it says is a number, stated in the form. */}
-      {round.sessionLengths?.length ? (
-        <Badge variant="outline" className="shrink-0">{t('editor.calendar.ownLength')}</Badge>
-      ) : null}
-
-      {/* Only a round that expects weather of its own, and only while the
-          championship generates it - a climate is ignored otherwise. */}
-      {series.generatedWeather && round.climate ? <ClimateBadge climate={round.climate} /> : null}
-
-      <CountBadge
-        icon={<CloudSunIcon />}
-        count={overrides}
-        label={t('editor.calendar.conditions')}
-        disabled={locked || !editable}
-        onClick={onConditions}
-      >
-        <ConditionsSummaryLine conditions={round.conditions ?? {}} className="text-xs text-background" />
-      </CountBadge>
-
-      <CountBadge
-        icon={<CarFrontIcon />}
-        count={swapped}
-        label={t('editor.calendar.cars')}
-        disabled={locked || !editable}
-        onClick={onCars}
-      >
-        <SwapSummary series={series} round={round} nameOf={nameOf} />
-      </CountBadge>
-
+    >
+      {/* What this install cannot race, right where the eye is reading. */}
       {availability?.track ? (
-        <Badge variant="destructive" className="shrink-0">
-          {t('editor.calendar.missingTrack')}
-        </Badge>
+        <Badge variant="destructive" className="shrink-0">{t('editor.calendar.missingTrack')}</Badge>
       ) : null}
 
       {availability?.pitboxes ? (
@@ -181,8 +162,54 @@ export const RoundRow = ({
         </Badge>
       ) : null}
 
-      <span className="hidden w-56 shrink-0 truncate text-xs text-muted-foreground sm:block">
-        {trackKey === '' ? t('editor.calendar.noTrack') : trackKey}
+      <span className={cn('min-w-0 items-center gap-2', ROUND_COLUMN.WEEKEND)}>
+        {format ? <FormatStrip sessions={format.sessions} /> : null}
+        {/* Muted when it is only the default, which is what most rounds run. */}
+        <span className={cn('truncate text-xs', round.weekendFormat === undefined ? 'text-muted-foreground' : 'font-medium')}>
+          {format?.name ?? ''}
+        </span>
+      </span>
+
+      <span className={cn('truncate text-xs tabular-nums', ROUND_COLUMN.RACES)}>
+        {races}
+        {round.sessionLengths?.length ? (
+          <span className="block text-muted-foreground">{t('editor.calendar.ownLength')}</span>
+        ) : null}
+      </span>
+
+      <span className={ROUND_COLUMN.OWN}>
+        {/* Only a round that expects weather of its own, and only while the
+            championship generates it - a climate is ignored otherwise. */}
+        {series.generatedWeather && round.climate ? <ClimateBadge climate={round.climate} /> : null}
+
+        <OverrideButton
+          icon={<CloudSunIcon />}
+          label={overrides > 0
+            ? t('editor.calendar.conditionsSet', { count: overrides })
+            : t('editor.calendar.conditions')}
+          active={overrides > 0}
+          disabled={locked}
+          onClick={onConditions}
+        >
+          {overrides > 0
+            ? <ConditionsSummaryLine conditions={round.conditions ?? {}} className="text-xs text-background" />
+            : undefined}
+        </OverrideButton>
+
+        <OverrideButton
+          icon={<CarFrontIcon />}
+          label={swapped > 0 ? t('editor.calendar.carsSet', { count: swapped }) : t('editor.calendar.cars')}
+          active={swapped > 0}
+          disabled={locked}
+          onClick={onCars}
+        >
+          {swapped > 0 ? <SwapSummary series={series} round={round} nameOf={nameOf} /> : undefined}
+        </OverrideButton>
+      </span>
+
+      {/* Muted when it is the championship's own. */}
+      <span className={cn('text-xs tabular-nums', ROUND_COLUMN.FEE, round.entryFee === undefined && 'text-muted-foreground')}>
+        {round.entryFee === undefined ? t('editor.calendar.defaultFee') : formatMoney(round.entryFee)}
       </span>
     </ListRow>
   );

@@ -1,5 +1,11 @@
-import type { AgendaDay, CalendarCriteria } from './types.ts';
+import { CALENDAR_STATUSES, CALENDAR_VIEWS, DEFAULT_CRITERIA } from './constants.ts';
+import type {
+  AgendaDay, CalendarCriteria, CalendarStatus, CalendarView, MonthTick, SeasonMonth,
+} from './types.ts';
+import { DAYS_PER_WEEK, DISCIPLINES } from '../../../../shared/constants';
 import type { CalendarEntry, Discipline } from '../../../../shared/types';
+import { addDays } from '../../../../shared/utils/calendar-days';
+import { isRecord, memberOf } from '../../../../shared/utils/coerce';
 
 /**
  * Whether one event passes the filters.
@@ -59,7 +65,29 @@ export const offeredDisciplines = (
 ): Discipline[] => [...new Set(events.map((event) => event.ladder.discipline))];
 
 /**
- * Groups events into the days the agenda lists them under.
+ * A key telling one event apart from every other on the calendar: a round of
+ * a championship, for one of its class entries.
+ * @param event The event
+ * @returns Its key
+ */
+export const eventKey = (event: CalendarEntry): string => `${event.series}-${event.entry}-${event.round}`;
+
+/**
+ * How far down a day's list an event goes: the career's own weekends first,
+ * then what it could enter, then everything else.
+ * @param event The event
+ * @returns Its rank, lowest first
+ */
+export const eventRank = (event: CalendarEntry): number => {
+  if (event.enrolled) return 0;
+  if (event.eligible && event.raceable) return 1;
+
+  return 2;
+};
+
+/**
+ * Groups events into the days the agenda lists them under, each day's own
+ * ranked by `eventRank` and otherwise left in the order it was given.
  * @param events The events to group, earliest first
  * @returns One group per race day that has anything on it
  */
@@ -77,18 +105,156 @@ export const agendaDays = (events: readonly CalendarEntry[]): AgendaDay[] => {
     days.set(event.raceDay, [event]);
   });
 
-  return [...days].map(([date, own]) => ({ date, events: own }));
+  return [...days].map(([date, own]) => ({
+    date,
+    events: own.toSorted((a, b) => eventRank(a) - eventRank(b)),
+  }));
 };
 
 /**
- * How many weekends of a season the career is entered in, and how many of them
- * collide with another.
- * @param events Every event of the season, unfiltered
- * @returns The two counts
+ * How many events each status filter would leave, under the disciplines already
+ * picked - which is what the status buttons count.
+ * @param events The events the filters choose from
+ * @param criteria What the calendar is filtered to
+ * @returns The count for every status
  */
-export const commitments = (
+export const statusCounts = (
   events: readonly CalendarEntry[],
-): { enrolled: number; clashes: number } => ({
-  enrolled: events.filter((event) => event.enrolled).length,
-  clashes: events.filter((event) => event.enrolled && event.clash).length,
-});
+  criteria: CalendarCriteria,
+): Record<CalendarStatus, number> => Object.fromEntries(CALENDAR_STATUSES.map((status) => [
+  status,
+  events.filter((event) => passesFilter(event, { ...criteria, status })).length,
+])) as Record<CalendarStatus, number>;
+
+/**
+ * The weekend the clock should move to next: the next one the career is entered
+ * in, or failing that the next one at all.
+ * @param events Every event of the season, earliest first
+ * @param clock The ISO date the career's clock stands at
+ * @returns The event, or null once nothing is left to come
+ */
+export const nextEvent = (events: readonly CalendarEntry[], clock: string): CalendarEntry | null => (
+  events.find((event) => event.enrolled && event.firstDay > clock)
+  ?? events.find((event) => event.firstDay > clock)
+  ?? null
+);
+
+/**
+ * The first day of the month a date falls in.
+ * @param date The ISO date
+ * @returns The ISO date of that month's first day
+ */
+export const monthOf = (date: string): string => `${date.slice(0, 7)}-01`;
+
+/**
+ * Moves a month's first day by whole months.
+ * @param month The ISO date of a month's first day
+ * @param months How many months to move it, back when negative
+ * @returns The ISO date of that month's first day
+ */
+export const shiftMonth = (month: string, months: number): string => {
+  const moved = new Date(`${month}T00:00:00Z`);
+  moved.setUTCMonth(moved.getUTCMonth() + months);
+
+  return moved.toISOString().slice(0, 10);
+};
+
+/**
+ * Every month a season touches, each with a tick per race day in it.
+ *
+ * A race day the career is entered in reads as its own, or as a clash where one
+ * of its weekends collides - so the strip doubles as a map of the season.
+ * @param from The season's opening day, as an ISO date
+ * @param to The season's closing day, as an ISO date
+ * @param events Every event of the season
+ * @returns The months, in order
+ */
+export const seasonMonths = (
+  from: string,
+  to: string,
+  events: readonly CalendarEntry[],
+): SeasonMonth[] => {
+  const months: SeasonMonth[] = [];
+
+  for (let month = monthOf(from); month <= to; month = shiftMonth(month, 1)) {
+    const next = shiftMonth(month, 1);
+    const ticks = agendaDays(events.filter((event) => event.raceDay >= month && event.raceDay < next))
+      .map((day): MonthTick => {
+        const yours = day.events.filter((event) => event.enrolled);
+        if (yours.some((event) => event.clash)) return 'clash';
+
+        return yours.length > 0 ? 'yours' : 'other';
+      });
+
+    months.push({ start: month, ticks });
+  }
+
+  return months;
+};
+
+/**
+ * The days the month grid draws: whole weeks from the Monday on or before the
+ * month's first day to the Sunday on or after its last.
+ * @param month The ISO date of the month's first day
+ * @returns Every day of the grid, as ISO dates
+ */
+export const monthGrid = (month: string): string[] => {
+  // getUTCDay counts from Sunday; the grid's weeks start on a Monday.
+  const lead = (new Date(`${month}T00:00:00Z`).getUTCDay() + DAYS_PER_WEEK - 1) % DAYS_PER_WEEK;
+  const start = addDays(month, -lead);
+  const last = addDays(shiftMonth(month, 1), -1);
+  const days: string[] = [];
+
+  for (let day = start; day <= last || days.length % DAYS_PER_WEEK !== 0; day = addDays(day, 1)) {
+    days.push(day);
+  }
+
+  return days;
+};
+
+/**
+ * The day the month view lists on arrival: its first race day still to come, or
+ * failing that its first race day at all, or failing both its first day.
+ * @param events The events the filters leave
+ * @param month The ISO date of the month's first day
+ * @param today The ISO date the career's clock stands at
+ * @returns The ISO date to list
+ */
+export const defaultDay = (
+  events: readonly CalendarEntry[],
+  month: string,
+  today: string,
+): string => {
+  const inMonth = events
+    .map((event) => event.raceDay)
+    .filter((day) => monthOf(day) === month)
+    .toSorted();
+
+  return inMonth.find((day) => day >= today) ?? inMonth[0] ?? month;
+};
+
+/**
+ * Reads the filters the calendar was saved with, keeping what is still valid
+ * and falling back to the default for the rest.
+ * @param stored Whatever the saved preference held
+ * @returns The filters to open on
+ */
+export const readCriteria = (stored: unknown): CalendarCriteria => {
+  if (!isRecord(stored)) return DEFAULT_CRITERIA;
+
+  const disciplines = Array.isArray(stored.disciplines)
+    ? stored.disciplines.flatMap((one) => memberOf(one, DISCIPLINES) ?? [])
+    : [];
+
+  return {
+    status: memberOf(stored.status, CALENDAR_STATUSES) ?? DEFAULT_CRITERIA.status,
+    disciplines: [...new Set(disciplines)],
+  };
+};
+
+/**
+ * Reads the layout the calendar was saved with.
+ * @param stored Whatever the saved preference held
+ * @returns The layout to open on, the timeline unless another was saved
+ */
+export const readView = (stored: unknown): CalendarView => memberOf(stored, CALENDAR_VIEWS) ?? 'days';

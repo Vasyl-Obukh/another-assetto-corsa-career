@@ -1,4 +1,4 @@
-import type { Car, Skin } from '../../../../shared/types';
+import type { Car } from '../../../../shared/types';
 import type { DisplayableError } from '@/lib/ipc';
 
 /**
@@ -23,8 +23,7 @@ export interface CarState {
 }
 
 /**
- * Everything the car detail screen needs: the car, its liveries and the search
- * narrowing them.
+ * Everything the car detail screen needs: the car and how loading it went.
  */
 export interface CarDetail {
   /**
@@ -44,23 +43,6 @@ export interface CarDetail {
    * Why the lookup failed, or null when it did not.
    */
   error: DisplayableError | null;
-  /**
-   * What the user has typed into the livery search.
-   */
-  search: string;
-  /**
-   * The liveries matching that search, in the car's own order.
-   */
-  skins: Skin[];
-  /**
-   * Replaces the livery search.
-   * @param next What the user typed
-   */
-  setSearch(next: string): void;
-  /**
-   * Clears the livery search.
-   */
-  clear(): void;
   /**
    * Dismisses the error card.
    */

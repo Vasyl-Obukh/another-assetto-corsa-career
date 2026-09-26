@@ -1,12 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import { REGULATION_FLAGS, REGULATIONS } from './constants.ts';
-import { Field } from './Field.tsx';
-import { fromNumber, toNumber } from './utils.ts';
+import { RegulationSlider } from './RegulationSlider.tsx';
 import { DEFAULT_ASSISTS } from '../../../../shared/constants';
 import type { Assists } from '../../../../shared/types';
-import { ToggleButton } from '@/components';
-import { Input } from '@/components/ui/input.tsx';
+import { Switch } from '@/components/ui/switch.tsx';
 
 interface RegulationsInputsProps {
   /**
@@ -26,42 +24,36 @@ interface RegulationsInputsProps {
 }
 
 /**
- * The rules themselves, without a card around them.
- *
- * Its own component so the series editor can put them in one section with the
- * championship's other rules.
+ * The rules themselves, without a card around them: each measured one on a
+ * slider bounded to what Assetto Corsa takes, and the allowed-or-not ones as
+ * switches.
  */
 export const RegulationsInputs = ({ assists, locked, onChange }: RegulationsInputsProps) => {
   const { t } = useTranslation();
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {REGULATIONS.map(({ key, id }) => (
-        <Field key={key} id={id} label={t(`race.regulations.${key}`)}>
-          <Input
-            id={id}
-            type="number"
-            min={0}
-            placeholder={String(DEFAULT_ASSISTS[key])}
-            value={fromNumber(assists[key])}
-            disabled={locked}
-            onChange={(event) => onChange({ ...assists, [key]: toNumber(event.target.value) })}
-          />
-        </Field>
+    <div className="flex flex-col gap-4">
+      {REGULATIONS.map((spec) => (
+        <RegulationSlider
+          key={spec.key}
+          spec={spec}
+          value={assists[spec.key]}
+          real={DEFAULT_ASSISTS[spec.key]}
+          disabled={locked}
+          onChange={(next) => onChange({ ...assists, [spec.key]: next })}
+        />
       ))}
 
-      {/* In the same grid as the numbers rather than a settings-style row
-          beneath them: it is one more rule of the same set, and the on/off
-          control is the one the settings screen uses. */}
       {REGULATION_FLAGS.map(({ key, id }) => (
-        <Field key={key} id={id} label={t(`race.regulations.${key}`)}>
-          <ToggleButton
+        <div key={key} className="flex items-center justify-between gap-3">
+          <label htmlFor={id} className="text-sm font-medium">{t(`race.regulations.${key}`)}</label>
+          <Switch
             id={id}
-            value={assists[key] ?? DEFAULT_ASSISTS[key]}
+            checked={assists[key] ?? DEFAULT_ASSISTS[key]}
             disabled={locked}
-            onChange={(next) => onChange({ ...assists, [key]: next })}
+            onCheckedChange={(next) => onChange({ ...assists, [key]: next })}
           />
-        </Field>
+        </div>
       ))}
     </div>
   );

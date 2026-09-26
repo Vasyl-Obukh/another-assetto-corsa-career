@@ -205,5 +205,31 @@ describe('main/class-store', () => {
       expect(usersOf).toHaveBeenCalledWith(spec ?? '');
       expect(store.layer()).toMatchObject({ classes: [], specs: [] });
     });
+
+    it('makes a spec and its cars in one write, answering with its id', async () => {
+      const store = await createClassStore('D:\\userData');
+      const { id: carClass } = await store.saveClass({ name: 'Hillclimb' });
+      writeFileMock.mockClear();
+
+      const { id } = await store.saveSpecCars({ name: 'Hillclimb (2020s)', class: carClass ?? '' }, ['my_mod']);
+
+      expect(writeFileMock).toHaveBeenCalledTimes(1);
+      expect(store.catalogue().specById.get(id ?? '')).toMatchObject({ name: 'Hillclimb (2020s)', origin: 'user' });
+      expect(store.catalogue().carsBySpec.get(id ?? '')).toEqual(['my_mod']);
+    });
+
+    it('restates the cars of a spec the app ships without renaming it', async () => {
+      const store = await createClassStore('D:\\userData');
+      const carClass = SHIPPED_CATALOGUE.classes[0];
+      const [spec] = carClass.specs;
+      const shipped = SHIPPED_CATALOGUE.carsBySpec.get(spec) ?? [];
+
+      const { id } = await store.saveSpecCars({ id: spec, name: 'Renamed', class: carClass.id }, [...shipped, 'my_mod']);
+
+      expect(id).toBe(spec);
+      expect(store.catalogue().specById.get(spec)?.name).toBe(SHIPPED_CATALOGUE.specById.get(spec)?.name);
+      expect(store.catalogue().carsBySpec.get(spec)).toContain('my_mod');
+      expect(store.layer().specs).toEqual([]);
+    });
   });
 });

@@ -7,6 +7,7 @@ import { registerContentScheme, serveContent } from './content-protocol/index.ts
 import { MIN_REVALIDATE_MS } from './content-store/constants.ts';
 import { createContentStore } from './content-store/index.ts';
 import { registerHandlers, send } from './ipc/index.ts';
+import { createQuickRaceStore } from './quick-race-store/index.ts';
 import { createRaceStore } from './race-store/index.ts';
 import { createSeriesStore } from './series-store/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
@@ -49,8 +50,9 @@ if (!app.requestSingleInstanceLock()) {
     // here: deciding that a weekend has finished means reading the plan, the
     // progress and the phase together, which is a career rule and not wiring.
     const career = await createCareerStore(app.getPath('userData'), series, race, content);
+    const quick = await createQuickRaceStore(app.getPath('userData'), content, classes, series, settings, race);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race, series, classes, career);
+    registerHandlers(settings, content, race, series, classes, career, quick);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
@@ -90,6 +92,10 @@ if (!app.requestSingleInstanceLock()) {
       });
     });
 
+    quick.onChange((next) => {
+      if (mainWindow) send(mainWindow, 'quick:changed', next);
+    });
+
     career.onChange((next) => {
       if (mainWindow) send(mainWindow, 'career:changed', next);
     });
@@ -113,6 +119,7 @@ if (!app.requestSingleInstanceLock()) {
       void content.flush();
       void race.flush();
       void career.flush();
+      void quick.flush();
       content.dispose();
     });
   }, (error: unknown) => {

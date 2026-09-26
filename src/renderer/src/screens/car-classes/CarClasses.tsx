@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ClassItem } from './ClassItem.tsx';
 import { MoveSpecDialog } from './MoveSpecDialog.tsx';
-import type { ClassDeleting, ClassDialog } from './types.ts';
+import { SpecSheet } from './SpecSheet.tsx';
+import type { ClassDeleting, ClassDialog, SpecSheetTarget } from './types.ts';
 import { useClasses } from '@/app';
 import { ConfirmDialog, NameDialog, ScreenBody } from '@/components';
 import { Accordion } from '@/components/ui/accordion.tsx';
@@ -19,6 +20,7 @@ export const CarClasses = () => {
 
   const [dialog, setDialog] = useState<ClassDialog | null>(null);
   const [deleting, setDeleting] = useState<ClassDeleting | null>(null);
+  const [sheet, setSheet] = useState<SpecSheetTarget | null>(null);
   // Collapsed to start with: the app ships over twenty classes and a hundred
   // specs, and one opened at a time is how anyone reads them.
   const [open, setOpen] = useState<string[]>([]);
@@ -111,34 +113,6 @@ export const CarClasses = () => {
             onConfirm={(name) => runDialog(() => commands.copyClass(current.carClass.id, name), (id) => id)}
           />
         );
-      case 'add-spec':
-        return (
-          <NameDialog
-            {...shared}
-            title={t('carClasses.addSpecTitle', { name: current.carClass.name })}
-            label={t('carClasses.specName')}
-            initial=""
-            confirmLabel={t('carClasses.add')}
-            onConfirm={(name) => runDialog(
-              () => commands.saveSpec({ name, class: current.carClass.id }),
-              () => current.carClass.id,
-            )}
-          />
-        );
-      case 'rename-spec':
-        return (
-          <NameDialog
-            {...shared}
-            title={t('carClasses.renameTitle', { name: current.spec.name })}
-            label={t('carClasses.specName')}
-            initial={current.spec.name}
-            confirmLabel={t('carClasses.save')}
-            onConfirm={(name) => runDialog(
-              () => commands.saveSpec({ id: current.spec.id, name, class: current.spec.class }),
-              () => current.spec.class,
-            )}
-          />
-        );
       default:
         return (
           <MoveSpecDialog
@@ -179,6 +153,10 @@ export const CarClasses = () => {
                   dismissError();
                   setDeleting(next);
                 }}
+                onSheet={(target) => {
+                  dismissError();
+                  setSheet(target);
+                }}
                 onDismissError={dismissError}
               />
             ))}
@@ -189,6 +167,16 @@ export const CarClasses = () => {
       {/* Mounted only while open, so each one starts from what it was opened on
           rather than from whatever the last one was left holding. */}
       {dialog !== null ? renderDialog(dialog) : null}
+
+      {sheet !== null ? (
+        <SpecSheet
+          target={sheet}
+          onClose={(saved) => {
+            setSheet(null);
+            if (saved !== null) reveal(saved);
+          }}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={deleting !== null}

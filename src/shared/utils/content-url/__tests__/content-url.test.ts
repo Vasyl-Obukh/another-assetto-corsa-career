@@ -2,10 +2,15 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   carBadgeUrl,
+  carLiveryUrl,
   carSkinUrl,
   isSafeSegment,
+  isServableLayout,
+  nationFlagUrl,
   parseContentUrl,
+  trackLogoUrl,
   trackOutlineUrl,
+  trackPhotoUrl,
   trackPreviewUrl,
 } from '../content-url.ts';
 
@@ -35,6 +40,22 @@ describe('shared/utils/content-url', () => {
     });
   });
 
+  describe('isServableLayout', () => {
+    it('serves a circuit and its layout when both names are plain folders', () => {
+      expect(isServableLayout('spa', 'gp')).toBe(true);
+    });
+
+    it('serves a circuit with no layouts, whose layout name is empty', () => {
+      expect(isServableLayout('magione', '')).toBe(true);
+    });
+
+    it('refuses a circuit or a layout a path could be smuggled through', () => {
+      expect(isServableLayout('..', 'gp')).toBe(false);
+      expect(isServableLayout('spa', 'gp/../..')).toBe(false);
+      expect(isServableLayout('', '')).toBe(false);
+    });
+  });
+
   describe('carSkinUrl', () => {
     it('builds a livery URL', () => {
       expect(carSkinUrl('ks_mazda_787b', '00_racing'))
@@ -44,6 +65,13 @@ describe('shared/utils/content-url', () => {
     it('escapes the spaces and brackets mod folders use', () => {
       expect(carSkinUrl('Porsche 911 (992)', 'red skin'))
         .toBe('accontent://car/Porsche%20911%20(992)/skin/red%20skin');
+    });
+  });
+
+  describe('carLiveryUrl', () => {
+    it('builds a livery swatch URL', () => {
+      expect(carLiveryUrl('Porsche 911 (992)', 'red skin'))
+        .toBe('accontent://car/Porsche%20911%20(992)/livery/red%20skin');
     });
   });
 
@@ -70,6 +98,26 @@ describe('shared/utils/content-url', () => {
     });
   });
 
+  describe('trackPhotoUrl', () => {
+    it('names the photograph before the layout, with or without one', () => {
+      expect(trackPhotoUrl('spa', '', 'bgr00')).toBe('accontent://track/spa/bgr00');
+      expect(trackPhotoUrl('multi', 'gp', 'bgr03')).toBe('accontent://track/multi/bgr03/gp');
+    });
+  });
+
+  describe('trackLogoUrl', () => {
+    it('builds a logo URL, with or without a layout', () => {
+      expect(trackLogoUrl('spa', '')).toBe('accontent://track/spa/logo');
+      expect(trackLogoUrl('multi', 'gp')).toBe('accontent://track/multi/logo/gp');
+    });
+  });
+
+  describe('nationFlagUrl', () => {
+    it('names the flag by its code alone', () => {
+      expect(nationFlagUrl('ITA')).toBe('accontent://flag/ITA');
+    });
+  });
+
   describe('parseContentUrl', () => {
     it('round-trips every kind of target', () => {
       expect(parseContentUrl(carSkinUrl('car_a', 'red')))
@@ -80,6 +128,35 @@ describe('shared/utils/content-url', () => {
         .toEqual({ kind: 'trackPreview', trackId: 'spa', layout: '' });
       expect(parseContentUrl(trackOutlineUrl('multi', 'gp')))
         .toEqual({ kind: 'trackOutline', trackId: 'multi', layout: 'gp' });
+      expect(parseContentUrl(carLiveryUrl('car_a', 'red')))
+        .toEqual({ kind: 'carLivery', carId: 'car_a', skinId: 'red' });
+      expect(parseContentUrl(trackLogoUrl('multi', 'gp')))
+        .toEqual({ kind: 'trackLogo', trackId: 'multi', layout: 'gp' });
+      expect(parseContentUrl(trackPhotoUrl('multi', 'gp', 'bgr01')))
+        .toEqual({
+          kind: 'trackPhoto', trackId: 'multi', layout: 'gp', photo: 'bgr01',
+        });
+      expect(parseContentUrl(trackPhotoUrl('spa', '', 'bgr00')))
+        .toEqual({
+          kind: 'trackPhoto', trackId: 'spa', layout: '', photo: 'bgr00',
+        });
+      expect(parseContentUrl(nationFlagUrl('GBR'))).toEqual({ kind: 'nationFlag', code: 'GBR' });
+      expect(parseContentUrl(nationFlagUrl('SCT'))).toEqual({ kind: 'nationFlag', code: 'SCT' });
+    });
+
+    // The photograph's name is the segment itself, so only AC's own numbered
+    // pattern may select a file there.
+    it('refuses a photograph AC would not have named', () => {
+      expect(parseContentUrl('accontent://track/spa/bgr1')).toBeNull();
+      expect(parseContentUrl('accontent://track/spa/bgr001')).toBeNull();
+      expect(parseContentUrl('accontent://track/spa/preview.png')).toBeNull();
+    });
+
+    it('refuses a flag AC does not ship, or anything more than a code', () => {
+      expect(parseContentUrl('accontent://flag/XYZ')).toBeNull();
+      expect(parseContentUrl('accontent://flag/ita')).toBeNull();
+      expect(parseContentUrl('accontent://flag/ITA/extra')).toBeNull();
+      expect(parseContentUrl('accontent://flag')).toBeNull();
     });
 
     it('round-trips ids carrying spaces and brackets', () => {
@@ -119,6 +196,7 @@ describe('shared/utils/content-url', () => {
       expect(parseContentUrl('accontent://car/car_a/nonsense')).toBeNull();
       expect(parseContentUrl('accontent://car/car_a/badge/extra')).toBeNull();
       expect(parseContentUrl('accontent://car/car_a/skin')).toBeNull();
+      expect(parseContentUrl('accontent://car/car_a/livery')).toBeNull();
       expect(parseContentUrl('accontent://track/spa/preview/gp/extra')).toBeNull();
     });
 

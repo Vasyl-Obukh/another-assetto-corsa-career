@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ClassMenu } from './ClassMenu.tsx';
 import { SpecCard } from './SpecCard.tsx';
-import type { ClassDeleting, ClassDialog } from './types.ts';
+import type { ClassDeleting, ClassDialog, SpecSheetTarget } from './types.ts';
 import type { CatalogueClass } from '../../../../shared/types';
 import { useClasses } from '@/app';
 import { ErrorCard } from '@/components';
@@ -38,13 +38,18 @@ interface ClassItemProps {
    */
   onDelete: (deleting: ClassDeleting) => void;
   /**
+   * Opens the spec sheet, on a spec or on a new one in this class.
+   * @param target What the sheet edits
+   */
+  onSheet: (target: SpecSheetTarget) => void;
+  /**
    * Clears the error.
    */
   onDismissError: () => void;
 }
 
 export const ClassItem = ({
-  carClass, error, busy, onDialog, onDelete, onDismissError,
+  carClass, error, busy, onDialog, onDelete, onSheet, onDismissError,
 }: ClassItemProps) => {
   const { t } = useTranslation();
   const { catalogue } = useClasses();
@@ -77,7 +82,9 @@ export const ClassItem = ({
         />
       </div>
 
-      <AccordionContent className="flex flex-col gap-3">
+      {/* A hair of room inside the accordion, which clips its content, so a
+          card's hover outline at the edge is not cut off. */}
+      <AccordionContent className="flex flex-col gap-3 px-0.5 pt-0.5">
         {error !== null ? <ErrorCard error={error} onDismiss={onDismissError} /> : null}
 
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-3">
@@ -90,7 +97,7 @@ export const ClassItem = ({
                 key={id}
                 spec={spec}
                 busy={busy}
-                onRename={() => onDialog({ kind: 'rename-spec', spec })}
+                onOpen={() => onSheet({ kind: 'edit', spec })}
                 onMove={() => onDialog({ kind: 'move-spec', spec })}
                 onDelete={() => onDelete({
                   kind: 'spec', id, name: spec.name, carClass: carClass.id,
@@ -106,7 +113,7 @@ export const ClassItem = ({
               type="button"
               disabled={busy}
               className="flex size-full min-h-20 items-center justify-center gap-2 rounded-lg border border-dashed text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-accent-foreground disabled:opacity-50 [&_svg]:size-4"
-              onClick={() => onDialog({ kind: 'add-spec', carClass })}
+              onClick={() => onSheet({ kind: 'new', carClass })}
             >
               <PlusIcon />
               {t('carClasses.addSpec')}

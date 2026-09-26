@@ -16,6 +16,32 @@ export const CAR_SORT_ITEMS = [
 ] as const satisfies readonly { key: CarSortKey; label: ParseKeys }[];
 
 /**
- * The sort menu's items, widened to what SortSelect takes.
+ * The sort menu's items, widened to what SortMenu takes.
  */
 export const CAR_SORTS: readonly SortItem<CarSortKey>[] = CAR_SORT_ITEMS;
+
+/**
+ * The power to weight a table's bar is drawn against, in bhp per tonne. Fixed
+ * rather than the page's own best, so a bar means the same on every page; past
+ * it, which only a few modern single-seaters reach, the bar is simply full.
+ */
+export const POWER_TO_WEIGHT_SCALE = 1000;
+
+/**
+ * How many classes the rail lists before the rest wait behind Show all.
+ */
+export const CLASS_TOP = 6;
+
+/**
+ * Where the car table shows each column it can do without, by the table's own
+ * width: what matters least goes first. Below the last, class and source move
+ * under the car's name rather than going, so only year, weight and liveries are
+ * ever lost.
+ */
+export const CAR_COLUMN = {
+  weight: 'hidden @[44rem]:table-cell',
+  year: 'hidden @[50rem]:table-cell',
+  liveries: 'hidden @[56rem]:table-cell',
+  wide: 'hidden @[64rem]:table-cell',
+  inline: '@[64rem]:hidden',
+} as const;

@@ -3,7 +3,7 @@ import {
 } from '@jest/globals';
 import path from 'node:path';
 
-import { DEFAULT_MIN_MODELS } from '../../../shared/constants/index.ts';
+import { DEFAULT_MIN_MODELS, NATION_CODES } from '../../../shared/constants/index.ts';
 import { isAppError } from '../../../shared/errors/index.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
@@ -147,6 +147,20 @@ describe('core/series-library', () => {
       'ships %s with nothing structurally wrong with it',
       (unused, series) => {
         expect(validateSeries(series)).toEqual([]);
+      },
+    );
+
+    // The shipped half never passes through the file reader that refuses a code
+    // AC has no flag for, and a sports code - GER, NED, RSA - races flagless.
+    it.each(SHIPPED_SERIES.map((series) => [series.id, series] as const))(
+      'flies every driver and team of %s under a nation Assetto Corsa has a flag for',
+      (unused, series) => {
+        const codes = [
+          ...(series.teams ?? []).map((team) => team.nationCode),
+          ...series.entries.flatMap((entry) => entry.seats.map((seat) => seat.driver?.nationCode)),
+        ].filter((code): code is string => code !== undefined);
+
+        expect(codes.filter((code) => !NATION_CODES.includes(code))).toEqual([]);
       },
     );
 

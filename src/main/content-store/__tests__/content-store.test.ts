@@ -434,6 +434,33 @@ describe('main/content-store', () => {
 
       await expect(store.car('never_installed')).resolves.toBeNull();
     });
+
+    // The car page opens mods from Your content that the library does not hold.
+    it('finds a car outside the library when asked to look over everything installed', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.car('my_mod', true)).resolves.toMatchObject({ id: 'my_mod' });
+    });
+
+    it('finds a circuit over everything installed, the library or not', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent([], ['spa', 'my_track'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.circuit('spa')).resolves.toMatchObject({ id: 'spa', layouts: [{ id: 'spa' }] });
+      await expect(store.circuit('my_track')).resolves.toMatchObject({ id: 'my_track' });
+    });
+
+    it('answers null for a circuit that is not installed', async () => {
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.circuit('never_installed')).resolves.toBeNull();
+    });
   });
 
   describe('revalidate', () => {

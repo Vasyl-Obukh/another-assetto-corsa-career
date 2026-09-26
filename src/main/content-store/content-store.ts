@@ -24,7 +24,7 @@ import { contentWatchDirs, rescanContent } from '../../core/content/index.ts';
 import type { ContentScan } from '../../core/content/index.ts';
 import { CONTENT_CATALOGUE_VERSION } from '../../core/content-catalogue/index.ts';
 import {
-  carFacets, queryCars, queryTracks, trackFacets,
+  carFacets, circuitOf, queryCars, queryTracks, trackFacets,
 } from '../../core/content-query/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
@@ -251,9 +251,12 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       return queryCars(collection((await current()).content, query).cars, query, catalogue);
     },
 
-    async car(id) {
+    async car(id, installed = false) {
       // A lookup by primary key, so there is nothing for content-query to do.
-      return libraryOf((await current()).content, added).cars.find((entry) => entry.id === id) ?? null;
+      const { content } = await current();
+      const cars = installed ? content.cars : libraryOf(content, added).cars;
+
+      return cars.find((entry) => entry.id === id) ?? null;
     },
 
     async content() {
@@ -267,6 +270,10 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     async track(key) {
       // A lookup by primary key, like car() above.
       return libraryOf((await current()).content, added).tracks.find((entry) => entry.key === key) ?? null;
+    },
+
+    async circuit(id) {
+      return circuitOf((await current()).content.tracks, id);
     },
 
     async carFacets(query) {

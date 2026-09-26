@@ -18,6 +18,11 @@ interface TrackPickerProps {
    */
   selectedKey?: string;
   /**
+   * How many cars the race puts on the grid, so a layout with too few pit
+   * boxes for them can say so. Left out where nobody knows yet.
+   */
+  gridSize?: number;
+  /**
    * Called when the dialog opens or closes itself - Escape, the close button,
    * or a click outside.
    * @param open Whether it should now be showing
@@ -31,7 +36,7 @@ interface TrackPickerProps {
 }
 
 export const TrackPicker = ({
-  open, selectedKey, onOpenChange, onPick,
+  open, selectedKey, gridSize, onOpenChange, onPick,
 }: TrackPickerProps) => {
   const { t } = useTranslation();
 
@@ -56,7 +61,9 @@ export const TrackPicker = ({
         <DialogHeader className="px-6">
           <DialogTitle>{chosen ? t('race.pick.layout') : t('race.pick.track')}</DialogTitle>
           <DialogDescription>
-            {chosen ? t('race.pick.layoutHint') : t('race.pick.trackHint')}
+            {chosen
+              ? t('race.pick.layoutHint', { count: chosen.layouts.length, circuit: chosen.name })
+              : t('race.pick.trackHint')}
           </DialogDescription>
         </DialogHeader>
 
@@ -84,6 +91,7 @@ export const TrackPicker = ({
               <LayoutStep
                 group={chosen}
                 selectedKey={selectedKey}
+                gridSize={gridSize}
                 onBack={() => setChosen(null)}
                 onPick={pick}
               />

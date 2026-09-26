@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import type { Car } from '../../../../shared/types';
 import { ContentImage } from '@/components';
 import { path } from '@/lib/routes';
+import { cn } from '@/lib/utils.ts';
 import { carImageSources } from '@/screens/car-browser';
 
 interface EntryCarsProps {
@@ -11,17 +12,21 @@ interface EntryCarsProps {
    * The installed cars a class may field, in the order to show them.
    */
   cars: readonly Car[];
+  /**
+   * The grid's columns, for a caller narrower than the default's fill.
+   */
+  className?: string;
 }
 
-export const EntryCars = ({ cars }: EntryCarsProps) => (
+export const EntryCars = ({ cars, className }: EntryCarsProps) => (
   // A picture and a name and nothing else: this answers "what would I be
   // driving", and each card opens the car's own page for anything more.
-  <ul className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
+  <ul className={cn('grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2', className)}>
     {cars.map((car) => (
       <li key={car.id}>
         <Link
           to={path.car({ id: car.id })}
-          className="group flex flex-col overflow-hidden rounded-md border bg-card transition-colors hover:bg-accent/60"
+          className="group flex flex-col overflow-hidden rounded-md border bg-card hover-outline"
         >
           <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
             <ContentImage

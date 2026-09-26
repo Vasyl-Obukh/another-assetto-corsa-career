@@ -10,7 +10,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
-  CONTENT_TYPES, STATUS_BAD_REQUEST, STATUS_NOT_FOUND, STATUS_UNAVAILABLE,
+  CONTENT_TYPES, FLAG_TYPE, PHOTO_TYPE, STATUS_BAD_REQUEST, STATUS_NOT_FOUND, STATUS_UNAVAILABLE,
 } from './constants.ts';
 import { contentPath, isInsideContentDir } from '../../core/content/index.ts';
 import { CONTENT_SCHEME } from '../../shared/constants/index.ts';
@@ -59,7 +59,10 @@ export const serveContent = (contentDir: () => string | null): void => {
       return new Response(null, { status: STATUS_BAD_REQUEST });
     }
 
-    const type = CONTENT_TYPES[path.basename(file)];
+    // A flag's name is its code and a photograph's is numbered, so both are
+    // typed by their kind rather than by name.
+    const type = target.kind === 'nationFlag' ? FLAG_TYPE
+      : target.kind === 'trackPhoto' ? PHOTO_TYPE : CONTENT_TYPES[path.basename(file)];
     if (type === undefined) return new Response(null, { status: STATUS_BAD_REQUEST });
 
     try {

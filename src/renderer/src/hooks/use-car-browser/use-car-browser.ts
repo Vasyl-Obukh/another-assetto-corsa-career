@@ -21,9 +21,14 @@ export type { CarBrowser, CarCriteria } from './types.ts';
  * @param base A query every request is narrowed by, for a picker with a
  *   restricted set of cars to offer
  * @param memoryId Which browser this is, for one that comes back where it was
+ * @param raced Every car a championship races, or undefined until that is known
  * @returns The current state and the actions the screen binds to
  */
-export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser => {
+export const useCarBrowser = (
+  base?: CarQuery,
+  memoryId?: string,
+  raced?: readonly string[],
+): CarBrowser => {
   // Read once, at mount: the store keeps being written while the screen is
   // open, and reading it again would answer with what the user is looking at
   // rather than what they were.
@@ -47,9 +52,9 @@ export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser =>
   // base query object on every render and the identity would never settle.
   const baseKey = useMemo(() => JSON.stringify(base ?? null), [base]);
   const query = useMemo(
-    () => toCarQuery(criteria, settled, base),
+    () => toCarQuery(criteria, settled, base, raced),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
-    [criteria, settled, baseKey],
+    [criteria, settled, baseKey, raced],
   );
   const key = useMemo(() => carQueryKey(query), [query]);
 
@@ -121,9 +126,10 @@ export const useCarBrowser = (base?: CarQuery, memoryId?: string): CarBrowser =>
     filtered: isCarFiltered(criteria, search),
     setSearch,
     setCriteria,
+    // The layout is a way of looking rather than a filter, so it survives.
     clear: () => {
       setSearch('');
-      setCriteria(EMPTY_CRITERIA);
+      setCriteria({ ...EMPTY_CRITERIA, view: criteria.view });
     },
     refresh,
   };

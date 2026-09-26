@@ -1,23 +1,68 @@
 // What the settings screen offers, and in what order. The aid lists themselves
-// are shared, since the settings migration reads the same fields.
+// are shared, since the settings reader coerces the same fields.
+
+import {
+  ActivityIcon, BotIcon, CarIcon, CloudIcon, GaugeIcon, LayersIcon, MonitorIcon, PackageIcon, SettingsIcon,
+  TerminalIcon, TrophyIcon, UserIcon,
+} from 'lucide-react';
 
 import type {
-  AidMode, SettingsCmFlag, SettingsTab, WeatherGroup,
+  AidMode, SectionLink, SettingsCmFlag, SettingsTab, WeatherCapability,
 } from './types.ts';
-import { WeatherType } from '../../../../shared/constants';
 import { path } from '@/lib/routes';
 
 /**
  * The settings screen's tabs, in the order they are shown.
  */
 export const SETTINGS_TABS: readonly SettingsTab[] = [
-  { to: path.settings(), label: 'settings.tabs.general', end: true },
-  { to: path.diagnostics(), label: 'settings.tabs.diagnostics', end: false },
-  { to: path.settingsSources(), label: 'settings.tabs.sources', end: false },
-  { to: path.settingsClasses(), label: 'settings.tabs.classes', end: false },
-  { to: path.settingsChampionships(), label: 'settings.tabs.championships', end: false },
-  { to: path.settingsContent(), label: 'settings.tabs.content', end: false },
+  {
+    to: path.settings(), label: 'settings.tabs.general', icon: SettingsIcon, end: true,
+  },
+  {
+    to: path.diagnostics(), label: 'settings.tabs.diagnostics', icon: ActivityIcon, end: false,
+  },
+  {
+    to: path.settingsSources(), label: 'settings.tabs.sources', icon: PackageIcon, end: false,
+  },
+  {
+    to: path.settingsClasses(), label: 'settings.tabs.classes', icon: LayersIcon, end: false,
+  },
+  {
+    to: path.settingsChampionships(), label: 'settings.tabs.championships', icon: TrophyIcon, end: false,
+  },
+  {
+    to: path.settingsContent(), label: 'settings.tabs.content', icon: CarIcon, end: false,
+  },
 ];
+
+/**
+ * The General tab's sections, in page order, for the index beside them.
+ */
+export const GENERAL_SECTIONS: readonly SectionLink[] = [
+  { id: 'appearance', label: 'settings.appearance', icon: MonitorIcon },
+  { id: 'driver', label: 'settings.driver', icon: UserIcon },
+  { id: 'aids', label: 'settings.drivingAids', icon: GaugeIcon },
+  { id: 'opponents', label: 'settings.opponents', icon: BotIcon },
+  { id: 'weather', label: 'settings.weather', icon: CloudIcon },
+  { id: 'content-manager', label: 'settings.contentManager', icon: TerminalIcon },
+];
+
+/**
+ * How far below the top of the view a section's heading has to pass for the
+ * index to call it the one being read - a little past the top, so a section
+ * scrolled to by the index counts as reached.
+ */
+export const INDEX_OFFSET = 24;
+
+/**
+ * The grid both groups of driving aids are laid out in.
+ */
+export const AID_TILES = 'grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-2.5';
+
+/**
+ * What a weather system card says it can and cannot do, in order.
+ */
+export const WEATHER_CAPABILITIES: readonly WeatherCapability[] = ['rain', 'dynamic', 'exactRain'];
 
 /**
  * The aids Assetto Corsa gives three settings rather than two.
@@ -43,70 +88,4 @@ export const MAX_STABILITY_CONTROL = 100;
 export const SETTINGS_CM_FLAGS: readonly SettingsCmFlag[] = [
   '--skip-all-results',
   '--hide-race-cancel-button',
-];
-
-/**
- * The allowed weather list, grouped so thirty-three switches read as six
- * questions rather than one long column.
- */
-export const WEATHER_GROUPS: readonly WeatherGroup[] = [
-  {
-    label: 'settings.weatherGroup.skies',
-    types: [
-      WeatherType.CLEAR,
-      WeatherType.FEW_CLOUDS,
-      WeatherType.SCATTERED_CLOUDS,
-      WeatherType.BROKEN_CLOUDS,
-      WeatherType.OVERCAST_CLOUDS,
-    ],
-  },
-  {
-    label: 'settings.weatherGroup.visibility',
-    types: [
-      WeatherType.HAZE,
-      WeatherType.MIST,
-      WeatherType.FOG,
-      WeatherType.SMOKE,
-      WeatherType.DUST,
-      WeatherType.SAND,
-    ],
-  },
-  {
-    label: 'settings.weatherGroup.rain',
-    types: [
-      WeatherType.LIGHT_DRIZZLE,
-      WeatherType.DRIZZLE,
-      WeatherType.HEAVY_DRIZZLE,
-      WeatherType.LIGHT_RAIN,
-      WeatherType.RAIN,
-      WeatherType.HEAVY_RAIN,
-    ],
-  },
-  {
-    label: 'settings.weatherGroup.storms',
-    types: [
-      WeatherType.LIGHT_THUNDERSTORM,
-      WeatherType.THUNDERSTORM,
-      WeatherType.HEAVY_THUNDERSTORM,
-      WeatherType.SQUALLS,
-      WeatherType.HAIL,
-      WeatherType.TORNADO,
-      WeatherType.HURRICANE,
-    ],
-  },
-  {
-    label: 'settings.weatherGroup.winter',
-    types: [
-      WeatherType.LIGHT_SNOW,
-      WeatherType.SNOW,
-      WeatherType.HEAVY_SNOW,
-      WeatherType.LIGHT_SLEET,
-      WeatherType.SLEET,
-      WeatherType.HEAVY_SLEET,
-    ],
-  },
-  {
-    label: 'settings.weatherGroup.effects',
-    types: [WeatherType.COLD, WeatherType.HOT, WeatherType.WINDY],
-  },
 ];

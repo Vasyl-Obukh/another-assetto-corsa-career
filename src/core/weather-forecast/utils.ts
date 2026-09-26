@@ -22,14 +22,14 @@ import {
 import type {
   ClimateProfile, DayWeather, Span, WeatherWeights,
 } from './types.ts';
-import { RAIN_INTENSITY, WET_WEATHER_TYPES } from '../../shared/constants/index.ts';
+import { DEFAULT_TIME_OF_DAY, RAIN_INTENSITY, WET_WEATHER_TYPES } from '../../shared/constants/index.ts';
 import type { WeatherType } from '../../shared/constants/index.ts';
 import { Hemisphere } from '../../shared/types/index.ts';
 import type {
   Conditions, DrawnStep, ForecastStep, SessionDefinition, WeatherOffer, WeatherStep,
 } from '../../shared/types/index.ts';
+import { parseClock } from '../../shared/utils/road-temperature/index.ts';
 import { nearestOffered } from '../../shared/utils/weather-types/index.ts';
-import { DEFAULT_TIME_OF_DAY, parseClock } from '../race-ini/index.ts';
 import { toDayNumber } from '../season-calendar/index.ts';
 import { runsToClock } from '../weekend/index.ts';
 

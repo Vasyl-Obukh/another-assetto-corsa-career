@@ -31,7 +31,9 @@ export const usePagedContent = <T>(
   const [nonce, setNonce] = useState(0);
   const stateKey = `${nonce}:${key}`;
 
-  const [state, setState] = useState<PagedState<T>>(() => emptyState<T>(stateKey));
+  // Keyed to nothing at first, so the list reads as loading until its first
+  // page lands - keyed to the current query it would read as an empty library.
+  const [state, setState] = useState<PagedState<T>>(() => emptyState<T>(''));
   // Guards against the observer firing again before the state that would have
   // stopped it has been committed. Written only from effects and callbacks.
   const inFlight = useRef(false);

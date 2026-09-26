@@ -1,76 +1,73 @@
-import type { ClassPicks } from './types.ts';
+import { CHART_DIVISIONS, NICE_STEPS, RPM_LABEL_STEP } from './constants.ts';
+import type { CarChampionship, ChartAxis } from './types.ts';
 import type {
-  ClassCatalogue, ClassId, Skin, SpecId,
+  ClassCatalogue, CurvePoint, SeriesListing,
 } from '../../../../shared/types';
-import { carSpecsOf, classOfSpec } from '../../../../shared/utils/car-classes';
-import { carBadgeUrl, carSkinUrl, isSafeSegment } from '../../../../shared/utils/content-url';
+import { fieldableCars } from '../../../../shared/utils/eligibility';
 
 /**
- * What the classify form opens on: the car's specs as they stand.
+ * Every championship that races a car, with the classes of it the car may
+ * enter.
  * @param carId Folder name of the car
- * @param catalogue The catalogue to read it from
- * @returns Its classes and the spec it holds in each
+ * @param listings The championships to look through, in the order to list them
+ * @param catalogue The class catalogue a spec's cars are read from
+ * @returns One entry per championship fielding the car
  */
-export const seedPicks = (carId: string, catalogue: ClassCatalogue): ClassPicks => {
-  const specs: Partial<Record<ClassId, SpecId>> = {};
-  carSpecsOf(carId, catalogue).forEach((spec) => {
-    const carClass = classOfSpec(spec, catalogue);
-    if (carClass !== null) specs[carClass] = spec;
-  });
+export const carChampionships = (
+  carId: string,
+  listings: readonly SeriesListing[],
+  catalogue: ClassCatalogue,
+): CarChampionship[] => listings.flatMap(({ series }) => {
+  const entries = series.entries.filter((entry) => fieldableCars(series, entry, catalogue).has(carId));
 
-  return { classes: catalogue.classes.map((one) => one.id).filter((id) => id in specs), specs };
-};
+  return entries.length === 0 ? [] : [{ id: series.id, name: series.name, entries }];
+});
 
 /**
- * Ticks or unticks one class, keeping the list in catalogue order.
- *
- * A class with a single spec has it chosen at once, since the second step would
- * otherwise ask a question with one answer.
- * @param picks What the form holds
- * @param carClass The class to switch
- * @param catalogue The catalogue the classes come from
- * @returns What the form holds after
+ * An axis for a curve, topped at the next round figure above its peak.
+ * @param points The curve
+ * @returns Its axis, or null for an empty curve
  */
-export const togglePick = (picks: ClassPicks, carClass: ClassId, catalogue: ClassCatalogue): ClassPicks => {
-  const on = !picks.classes.includes(carClass);
-  const wanted = new Set(picks.classes);
-  if (on) wanted.add(carClass);
-  else wanted.delete(carClass);
+export const curveAxis = (points: readonly CurvePoint[]): ChartAxis | null => {
+  const peak = Math.max(0, ...points.map(([, value]) => value));
+  if (peak === 0) return null;
 
-  const specs = catalogue.classById.get(carClass)?.specs ?? [];
+  const scale = 10 ** Math.floor(Math.log10(peak / CHART_DIVISIONS));
+  const step = (NICE_STEPS.find((nice) => nice * scale * CHART_DIVISIONS >= peak) ?? NICE_STEPS[NICE_STEPS.length - 1])
+    * scale;
 
   return {
-    classes: catalogue.classes.map((one) => one.id).filter((id) => wanted.has(id)),
-    specs: on && specs.length === 1 && picks.specs[carClass] === undefined
-      ? { ...picks.specs, [carClass]: specs[0] }
-      : picks.specs,
+    max: step * CHART_DIVISIONS,
+    ticks: Array.from({ length: CHART_DIVISIONS + 1 }, (unused, index) => step * index),
   };
 };
 
 /**
- * The specs the form would save.
- * @param picks What the form holds
- * @returns One spec per chosen class, or null while any chosen class lacks one
+ * The engine speeds the chart labels, every thousand rpm across the range.
+ * @param from The lowest engine speed drawn
+ * @param to The highest
+ * @returns The labelled speeds, in order
  */
-export const pickedSpecs = (picks: ClassPicks): SpecId[] | null => {
-  const specs = picks.classes.map((carClass) => picks.specs[carClass]);
+export const rpmTicks = (from: number, to: number): number[] => {
+  const ticks: number[] = [];
+  for (let rpm = Math.ceil(from / RPM_LABEL_STEP) * RPM_LABEL_STEP; rpm <= to; rpm += RPM_LABEL_STEP) {
+    ticks.push(rpm);
+  }
 
-  return specs.every((spec) => spec !== undefined) ? specs : null;
+  return ticks;
 };
 
 /**
- * Preview URLs for one livery, best first.
- *
- * The URL grammar rejects folder names carrying a path separator and the other
- * characters a path could be smuggled through, so a candidate that could only
- * ever answer 400 is dropped here rather than being requested and failing.
- * @param carId Folder name of the car the livery belongs to
- * @param skin The livery to illustrate
- * @returns Zero or more accontent:// URLs, in the order they should be tried
+ * The SVG path through a curve.
+ * @param points The curve
+ * @param x Where an engine speed lands across the chart
+ * @param y Where a value lands down it
+ * @returns The path's `d` attribute
  */
-export const skinImageSources = (carId: string, skin: Skin): string[] => {
-  if (!isSafeSegment(carId)) return [];
-  if (!isSafeSegment(skin.id)) return [carBadgeUrl(carId)];
-
-  return [carSkinUrl(carId, skin.id), carBadgeUrl(carId)];
-};
+export const curvePath = (
+  points: readonly CurvePoint[],
+  x: (rpm: number) => number,
+  y: (value: number) => number,
+): string => points
+  .map(([rpm, value], index) => `${index === 0 ? 'M' : 'L'}${x(rpm).toFixed(1)},${y(value).toFixed(1)}`)
+  .join('');

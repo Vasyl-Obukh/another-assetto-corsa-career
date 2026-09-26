@@ -1,24 +1,35 @@
 import type { ParseKeys } from 'i18next';
 
+import {
+  CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
+} from './constants.ts';
+import type {
+  AvailabilityState, ContentList, Purse, Rung, StandingsLayout, TeamGroup,
+} from './types.ts';
 import type {
   Championship,
   ClassEntry,
   Discipline,
   EntryAvailability,
+  Facet,
   PointsSystem,
   PrizeMoney,
   Round,
+  Seat,
   SeriesAvailability,
   SeriesListing,
   SeriesSession,
   SessionDefinition,
   Settings,
-  WeekendFormat,
+  Team,
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { roundAvailability } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
+import type { ProvenancePicks } from '@/components';
+import type { ChampionshipCriteria } from '@/hooks';
 import { TIER_ACCENT } from '@/lib/accents';
+import { readPreference } from '@/lib/stored-preference';
 
 /**
  * The label for each discipline.
@@ -84,30 +95,10 @@ export const trackKeyOf = (round: Round): string => (
 );
 
 /**
- * The weekend format a round is run over.
- *
- * A copy of the one in src/core/series/ rather than an import of it: the
- * renderer may not reach into core, and resolving a format is two lines the
- * calendar needs on every row.
- * @param series The championship
- * @param round The round
- * @returns The format the round names, the championship's default otherwise,
- * or null when neither id resolves - which validateSeries reports as a problem
- */
-export const formatOf = (
-  series: Championship,
-  round: Round,
-): WeekendFormat | null => {
-  const wanted = round.weekendFormat ?? series.defaultWeekendFormat;
-
-  return series.weekendFormats.find((format) => format.id === wanted) ?? null;
-};
-
-/**
  * The points system a session pays.
  *
- * A copy of the resolution the core does, for the same reason formatOf is one:
- * the renderer may not reach into core.
+ * A copy of the resolution src/core/season-scoring does: the renderer may not
+ * reach into core.
  * @param series The championship
  * @param session The session being described
  * @returns The system the session names, the championship's default otherwise,
@@ -135,8 +126,8 @@ export const pointsOf = (
 export const pursesOf = (
   prizes: PrizeMoney | undefined,
   entries: readonly ClassEntry[],
-): { prizes: PrizeMoney | undefined; classes: string[] }[] => {
-  const purses = new Map<string, { prizes: PrizeMoney | undefined; classes: string[] }>();
+): Purse[] => {
+  const purses = new Map<string, Purse>();
 
   entries.forEach((entry) => {
     const paid = entry.prizes && {
@@ -198,16 +189,7 @@ export const sessionsByDay = <T extends SessionDefinition>(
 };
 
 /**
- * Which of three things a championship's availability is actually saying.
- *
- * Two states were not enough: `validateSeries` problems force `available` to
- * false, so a broken file read as "Unavailable" - the same word as "you do not
- * own this mod", which points at a fix that does not exist.
- */
-export type AvailabilityState = 'available' | 'misconfigured' | 'unavailable';
-
-/**
- * Reads an availability as one of those three.
+ * Reads an availability as one of its three states.
  *
  * Problems win over missing content: a championship that does not validate
  * cannot be raced whatever is installed, and its `entries` and `rounds` are
@@ -243,15 +225,178 @@ export const isListed = (
 );
 
 /**
- * The colour a tier is chipped in.
+ * Where a tier falls on a ramp of metals.
  *
- * Its own helper rather than an index at each call site, because a tier is
- * 1-based and unbounded: everything from the last metal down wears that metal,
- * and a tier below 1 cannot happen but must not reach past the front of the
- * ramp if a file claims one.
+ * A tier is 1-based and unbounded: everything from the last metal down wears
+ * that metal, and a tier below 1 cannot happen but must not reach past the
+ * front of the ramp if a file claims one.
+ * @param tier Which rung, 1 being the top
+ * @param length How many metals the ramp has
+ * @returns The index into the ramp
+ */
+const metalIndex = (tier: number, length: number): number => Math.min(Math.max(tier, 1), length) - 1;
+
+/**
+ * The colour a tier is chipped in.
  * @param tier Which rung, 1 being the top
  * @returns The accent classes for it
  */
-export const tierAccent = (tier: number): string => (
-  TIER_ACCENT[Math.min(Math.max(tier, 1), TIER_ACCENT.length) - 1]
+export const tierAccent = (tier: number): string => TIER_ACCENT[metalIndex(tier, TIER_ACCENT.length)];
+
+/**
+ * Names the metal a tier is chipped in.
+ * @param tier Which rung, 1 being the top
+ * @returns Its translation key
+ */
+export const tierMetalKey = (tier: number): ParseKeys => (
+  TIER_METAL_KEYS[metalIndex(tier, TIER_METAL_KEYS.length)]
 );
+
+/**
+ * How many rungs the ladder runs to: the lowest tier any class enters at.
+ * @param listings The championships on the ladder
+ * @returns The deepest tier, and never less than 1
+ */
+export const ladderDepth = (listings: readonly SeriesListing[]): number => Math.max(
+  1,
+  ...listings.flatMap((listing) => listing.series.entries.map((entry) => entry.ladder.tier)),
+);
+
+/**
+ * Every way in at one rung of the ladder, in the order the list is sorted.
+ *
+ * A championship with two classes at the same rung - ELMS runs LMP2 and LMP2
+ * Pro/Am both at tier 2 - stands there once per class, since each is a
+ * different way in.
+ * @param listings The championships, already filtered and sorted
+ * @param discipline The rung's discipline
+ * @param tier The rung's tier
+ * @returns The championships at that rung, each with the class that puts it there
+ */
+export const rungsAt = (
+  listings: readonly SeriesListing[],
+  discipline: Discipline,
+  tier: number,
+): Rung[] => listings.flatMap((listing) => listing.series.entries
+  .filter((entry) => entry.ladder.discipline === discipline && entry.ladder.tier === tier)
+  .map((entry) => ({ listing, entry })));
+
+/**
+ * A class's entry list as a paddock reads it: grouped by team, in the order
+ * each team first appears, with the seats naming no team - or a team the
+ * championship does not field - gathered last.
+ * @param seats The class's seats, in entry-list order
+ * @param teams Every team the championship fields
+ * @returns One group per team, the unteamed seats last
+ */
+export const teamGroups = (seats: readonly Seat[], teams: readonly Team[]): TeamGroup[] => {
+  const named = new Map(teams.map((team) => [team.id, team]));
+  const groups = new Map<string | null, TeamGroup>();
+
+  seats.forEach((seat) => {
+    const team = seat.team === undefined ? undefined : named.get(seat.team);
+    const key = team?.id ?? null;
+    const group = groups.get(key) ?? { team: team ?? null, seats: [] };
+    group.seats.push(seat);
+    groups.set(key, group);
+  });
+
+  return [...groups.values()].sort((left, right) => Number(left.team === null) - Number(right.team === null));
+};
+
+// The content filter is the browsers' source tree over what each championship
+// needs. Its four lists are one filter, OR'd, as in the browsers - so they travel
+// through the championship browser as one dimension, each value prefixed with
+// the list it belongs to.
+
+/**
+ * Prefixes the source tree's lists into one list of content values.
+ * @param lists What a championship needs, or what the tree has picked
+ * @returns Its sources, packs, mod teams and redistributors, each prefixed
+ */
+export const contentValues = (lists: Partial<Record<ContentList, readonly string[]>>): string[] => (
+  CONTENT_LISTS.flatMap((list) => (lists[list] ?? []).map((value) => `${list}:${value}`))
+);
+
+/**
+ * Splits a prefixed value back into its list and its value.
+ * @param value The prefixed value
+ * @returns Its list and the value, or null for one carrying no known list
+ */
+const split = (value: string): { list: ContentList; value: string } | null => {
+  const at = value.indexOf(':');
+  const list = value.slice(0, at) as ContentList;
+
+  return at > 0 && CONTENT_LISTS.includes(list) ? { list, value: value.slice(at + 1) } : null;
+};
+
+/**
+ * Sorts prefixed items into the source tree's four lists, unprefixed.
+ * @param items The items, each carrying a prefixed value
+ * @param valueOf Reads an item's prefixed value
+ * @param unprefixed The item again, carrying its value without the prefix
+ * @returns The items a list each; one carrying no known list is dropped
+ */
+const intoLists = <T>(
+  items: readonly T[],
+  valueOf: (item: T) => string,
+  unprefixed: (item: T, value: string) => T,
+): Record<ContentList, T[]> => {
+  const lists: Record<ContentList, T[]> = {
+    sources: [], packs: [], makers: [], distributors: [],
+  };
+  items.forEach((item) => {
+    const parts = split(valueOf(item));
+    if (parts) lists[parts.list].push(unprefixed(item, parts.value));
+  });
+
+  return lists;
+};
+
+/**
+ * Reads picked content values as the source tree's picks.
+ * @param values The prefixed values picked
+ * @returns The same picks, a list each
+ */
+export const contentPicks = (values: readonly string[]): ProvenancePicks => (
+  intoLists(values, (value) => value, (_, value) => value) as ProvenancePicks
+);
+
+/**
+ * Splits the content dimension's counts into the source tree's four lists.
+ * @param facets The counts, keyed on prefixed values
+ * @returns The counts a list each, unprefixed
+ */
+export const contentFacets = (facets: readonly Facet[]): Record<ContentList, Facet[]> => (
+  intoLists(facets, (facet) => facet.value, (facet, value) => ({ ...facet, value }))
+);
+
+/**
+ * A browser's criteria with one dimension's picks replaced.
+ * @param criteria The criteria as they stand
+ * @param key The dimension's key
+ * @param next The values now picked in it
+ * @returns The criteria with those picks
+ */
+export const withPicked = (
+  criteria: ChampionshipCriteria,
+  key: string,
+  next: readonly string[],
+): ChampionshipCriteria => ({ ...criteria, picked: { ...criteria.picked, [key]: next } });
+
+/**
+ * How the standings section was last laid out, or how it opens the first time.
+ *
+ * Narrowed field by field, since what is stored may predate the section.
+ * @returns The layout
+ */
+export const readStandingsLayout = (): StandingsLayout => {
+  const held = readPreference(STANDINGS_PREFERENCE);
+  const stored = typeof held === 'object' && held !== null ? held as Partial<StandingsLayout> : {};
+
+  return {
+    who: stored.who === 'teams' ? 'teams' : DEFAULT_STANDINGS.who,
+    shape: stored.shape === 'table' ? 'table' : DEFAULT_STANDINGS.shape,
+    view: stored.view === 'positions' ? 'positions' : DEFAULT_STANDINGS.view,
+  };
+};

@@ -12,9 +12,9 @@ import path from 'node:path';
 
 import { SERIES_DIR } from './constants.ts';
 import type { SeriesStore } from './types.ts';
-import { isEditable, roundOfRace, weekendOf } from './utils.ts';
+import { isEditable, weekendOf } from './utils.ts';
 import {
-  drawField, roundRace, seriesAvailability, seriesForecast, validateSeries,
+  drawField, roundRace, seriesAvailability, validateSeries,
 } from '../../core/series/index.ts';
 import { parseSeries, readSeries, writeSeries } from '../../core/series-file/index.ts';
 import {
@@ -66,7 +66,7 @@ const warnProblems = (loaded: LoadedLibrary): void => {
  * Loads the championship library and returns a store over it.
  * @param userDataDir Folder the user's own championships live under
  * @param content The content store, for what is installed
- * @param race The race store, which takes a lowered round
+ * @param race The race store, for the weekend under way and CSP's RainFX setting
  * @param classes The class store, whose catalogue every spec resolves against
  * @param settings The settings store, for the weather generation may use
  * @returns A store holding the loaded library
@@ -289,39 +289,12 @@ export const createSeriesStore = async (
       return drawField(series, entry, car, await content.content(), classes.catalogue(), salt);
     },
 
-    async setupRound(request) {
-      const found = seriesById(library, request.series);
-      if (!found) throw new AppError('series.notFound', { series: request.series });
-
-      return race.set(await lowerRound(found.series, {
-        entry: request.entry,
-        round: request.round,
-        car: request.car,
-        draw: request.draw,
-        field: request.field,
-      }));
-    },
-
     async offer() {
       return offer(await content.content());
     },
 
     async validate(series) {
       return seriesAvailability(series, await content.content(), classes.catalogue());
-    },
-
-    async forecast(id) {
-      const { series } = held(id);
-
-      return seriesForecast(series, await offer(await content.content()));
-    },
-
-    async raceForecast(raceId) {
-      const found = roundOfRace(library.series.map((one) => one.series), raceId);
-      if (!found) return null;
-
-      const forecasts = seriesForecast(found.series, await offer(await content.content()));
-      return forecasts.find((one) => one.round === found.round) ?? null;
     },
 
     async save(id, series) {

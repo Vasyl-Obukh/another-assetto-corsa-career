@@ -1,9 +1,10 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 
-import { SWITCH_TRACK } from './constants.ts';
+import { CARD_LINK, SWITCH_TRACK } from './constants.ts';
 import { Switch } from '@/components/ui/switch.tsx';
-import { cn } from '@/lib/utils.ts';
+import type { NavId, NavState } from '@/lib/routes';
 
 interface ToggleCardProps {
   /**
@@ -21,42 +22,53 @@ interface ToggleCardProps {
    */
   onChange(next: boolean): void;
   /**
+   * The URL of the entry's own page.
+   */
+  to: string;
+  /**
+   * The section navigation keeps lit on that page, when the rest of the card
+   * opens it; unset, the whole card flips the switch.
+   */
+  section: NavId | undefined;
+  /**
    * The card itself.
    */
   children: ReactNode;
 }
 
 /**
- * A browser card with a switch in its corner, where clicking anywhere on the
- * card flips it.
+ * A browser card with a switch in its corner. Given a section, the switch alone
+ * flips and the rest of the card opens the entry's page, as any other browser
+ * card does; without one, clicking anywhere on the card flips it.
  *
- * A label rather than a button around the card, so the switch stays the one
- * control and nothing interactive is nested inside another.
+ * The switch sits beside the link rather than inside it, and the flipping card
+ * is a label rather than a button, so nothing interactive is nested inside
+ * another.
  */
 export const ToggleCard = ({
-  checked, label, onChange, children,
+  checked, label, onChange, to, section, children,
 }: ToggleCardProps) => {
   const id = useId();
 
   return (
-    <label
-      htmlFor={id}
-      className={cn(
-        'relative block w-full rounded-xl text-left',
-        'has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50',
+    <div className="relative h-full">
+      {section === undefined ? (
+        <label htmlFor={id} className="block h-full w-full rounded-xl text-left has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50">
+          {children}
+        </label>
+      ) : (
+        <Link
+          to={to}
+          state={{ section } satisfies NavState}
+          className={CARD_LINK}
+        >
+          {children}
+        </Link>
       )}
-    >
-      {children}
       {/* A backing of its own, so it reads over any picture. */}
       <span className="absolute top-3 right-3 flex rounded-full bg-background/90 p-1 shadow-sm">
-        <Switch
-          id={id}
-          checked={checked}
-          aria-label={label}
-          className={SWITCH_TRACK}
-          onCheckedChange={onChange}
-        />
+        <Switch id={id} checked={checked} aria-label={label} className={SWITCH_TRACK} onCheckedChange={onChange} />
       </span>
-    </label>
+    </div>
   );
 };

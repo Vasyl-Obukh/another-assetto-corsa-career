@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button.tsx';
 import { useOffscreenDirection } from '@/hooks';
-import { BACK_TO_TOP_POSITION } from '@/lib/layout';
-import { cn } from '@/lib/utils';
+import { WIDE_BACK_TO_TOP_POSITION } from '@/lib/layout';
+import { cn } from '@/lib/utils.ts';
 
 interface ToTodayProps {
   /**
@@ -45,7 +45,7 @@ export const ToToday = ({
       type="button"
       size="icon"
       variant="outline"
-      className={cn(BACK_TO_TOP_POSITION, 'z-30 rounded-full shadow-md')}
+      className={cn(WIDE_BACK_TO_TOP_POSITION, 'z-30 rounded-full shadow-md')}
       aria-label={t('calendar.toToday')}
       title={t('calendar.toToday')}
       onClick={onJump}

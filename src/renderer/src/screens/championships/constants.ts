@@ -1,25 +1,14 @@
 import type { VariantProps } from 'class-variance-authority';
 import type { ParseKeys } from 'i18next';
 
-import type { AvailabilityState } from './utils.ts';
+import type {
+  AvailabilityState, ContentList, DetailTab, StandingsLayout,
+} from './types.ts';
+import { DISCIPLINES } from '../../../../shared/constants';
+import type { Discipline, SessionType, TeamBudget } from '../../../../shared/types';
 import type { SortItem } from '@/components';
 import type { badgeVariants } from '@/components/ui/badge.tsx';
 import type { ChampionshipSortKey } from '@/hooks';
-
-/**
- * The entry list laid out as columns read downwards.
- *
- * CSS multi-column rather than a grid, which is the whole point: a grid flows
- * left to right, so a twenty-car field would read 1, 2 across the first row.
- * Columns flow down then across, so the left column is the front half of the
- * field and the right is the back, which is how an entry list is printed.
- *
- * The cap and the wide gutter are FIELD_GRID's, and for its reason: a seat puts
- * the driver at one end of its row and the team at the other, so given the
- * whole card they drift too far apart to read across. Same arithmetic too -
- * 56rem less the 8rem gutter leaves each column 24rem.
- */
-export const SEAT_COLUMNS = 'columns-1 max-w-4xl gap-x-32 sm:columns-2';
 
 /**
  * The badge each availability state wears.
@@ -64,3 +53,184 @@ export const CHAMPIONSHIP_MEMORY = {
   championships: 'championships',
   library: 'championship-library',
 } as const;
+
+/**
+ * How many championships a rung of the ladder shows before the rest fold away
+ * behind a count. Formula 1 alone has more than twenty seasons at tier 1.
+ */
+export const RUNGS_SHOWN = 3;
+
+/**
+ * The name of each rung's metal, the top rung first - the same ramp TIER_ACCENT
+ * colours, and read through `tierMetalKey`, which does the same clamping.
+ */
+export const TIER_METAL_KEYS: readonly ParseKeys[] = [
+  'championships.metal.platinum',
+  'championships.metal.gold',
+  'championships.metal.silver',
+  'championships.metal.bronze',
+  'championships.metal.steel',
+];
+
+/**
+ * A session type as one or two letters, for a weekend drawn as a strip of
+ * blocks. A record over the type, so a new one fails to compile until it has
+ * an abbreviation.
+ */
+export const SESSION_SHORT_KEYS = {
+  practice: 'championships.sessionShort.practice',
+  qualify: 'championships.sessionShort.qualify',
+  race: 'championships.sessionShort.race',
+  hotlap: 'championships.sessionShort.hotlap',
+  timeAttack: 'championships.sessionShort.timeAttack',
+  drift: 'championships.sessionShort.drift',
+  drag: 'championships.sessionShort.drag',
+} as const satisfies Record<SessionType, ParseKeys>;
+
+/**
+ * The left edge a rung's card wears, in its discipline's colour - the column
+ * already says the discipline, so the edge is the only fill it needs.
+ */
+export const RUNG_EDGE = {
+  'single-seater': 'border-l-discipline-single-seater-foreground',
+  sportscar: 'border-l-discipline-sportscar-foreground',
+  touring: 'border-l-discipline-touring-foreground',
+  road: 'border-l-discipline-road-foreground',
+} as const satisfies Record<Discipline, string>;
+
+/**
+ * The label for each budget.
+ *
+ * A record over the enum rather than a lookup by string, so adding a budget
+ * fails to compile until it has been named.
+ */
+export const TEAM_BUDGET_LABEL = {
+  works: 'editor.teams.budget.works',
+  independent: 'editor.teams.budget.independent',
+  privateer: 'editor.teams.budget.privateer',
+} as const satisfies Record<TeamBudget, ParseKeys>;
+
+/**
+ * How many of a class's cars its row pictures before the row is opened: one
+ * line of them, which is what keeps a nine-class grid readable.
+ */
+export const CLASS_CARS_SHOWN = 3;
+
+/**
+ * How many of a class's teams its row lists before the row is opened, one to
+ * a line.
+ */
+export const CLASS_TEAMS_SHOWN = 4;
+
+/**
+ * How many places the prize table lists before the rest fold away. Ten, which
+ * is where most prize money stops; a points table running to thirtieth is still
+ * one click from whole.
+ */
+export const PRIZE_ROWS_SHOWN = 10;
+
+/**
+ * The stripe heading a championship's summary, in its discipline's colour: the
+ * chip's own foreground, which is the saturated half of the family.
+ */
+export const DISCIPLINE_STRIPE = {
+  'single-seater': 'bg-discipline-single-seater-foreground',
+  sportscar: 'bg-discipline-sportscar-foreground',
+  touring: 'bg-discipline-touring-foreground',
+  road: 'bg-discipline-road-foreground',
+} as const satisfies Record<Discipline, string>;
+
+/**
+ * The source tree's lists, in the order the tree shows them.
+ */
+export const CONTENT_LISTS: readonly ContentList[] = ['sources', 'packs', 'makers', 'distributors'];
+
+/**
+ * The championship browser's dimension keys, as the filter column reads them.
+ */
+export const RAIL_KEY = {
+  disciplines: 'disciplines',
+  tiers: 'tiers',
+  content: 'content',
+  origins: 'origins',
+  switched: 'switched',
+  availability: 'availability',
+} as const;
+
+/**
+ * The order each closed list in the filter column is shown in. Tiers are
+ * numbers and sort as such, so they are not here.
+ */
+export const LIST_ORDER: Readonly<Record<string, readonly string[]>> = {
+  [RAIL_KEY.disciplines]: DISCIPLINES,
+  [RAIL_KEY.origins]: ['shipped', 'adjusted', 'user'],
+  [RAIL_KEY.availability]: ['available', 'misconfigured', 'unavailable'],
+};
+
+/**
+ * Every tier there is, the bottom rung first - what the ladder's skeleton and
+ * the tier filter show while the library is read.
+ */
+export const ALL_TIERS: readonly number[] = TIER_METAL_KEYS.map((key, at) => TIER_METAL_KEYS.length - at);
+
+/**
+ * How many championship cards each rung of the ladder's skeleton holds,
+ * discipline by discipline and the bottom rung first.
+ */
+export const LADDER_SKELETON: readonly (readonly number[])[] = [
+  [3, 1, 2, 3, 2],
+  [1, 2, 2, 2, 2],
+];
+
+/**
+ * How many session blocks a weekend's strip holds in a skeleton - practice,
+ * qualifying and a race or two.
+ */
+export const FORMAT_SKELETON_BLOCKS = 4;
+
+/**
+ * How many season cards the settings library's skeleton holds - two rows of a
+ * wide window's three.
+ */
+export const SEASON_SKELETON = 6;
+
+/**
+ * How many rounds a skeleton's season holds, for its round ticks and table.
+ */
+export const ROUND_SKELETON = 5;
+
+/**
+ * How many seats and how many cars the class row of a championship's skeleton
+ * holds.
+ */
+export const CLASS_SKELETON = { seats: 4, cars: 2 } as const;
+
+/**
+ * Where the standings section's layout is remembered.
+ */
+export const STANDINGS_PREFERENCE = 'championships.standings';
+
+/**
+ * How the standings open the first time: the season grid, on points.
+ */
+export const DEFAULT_STANDINGS: StandingsLayout = { who: 'drivers', shape: 'grid', view: 'points' };
+
+/**
+ * The parts of a championship's page, in the order its tabs list them.
+ */
+export const DETAIL_TABS: readonly DetailTab[] = ['rounds', 'standings', 'classes', 'rules'];
+
+/**
+ * A tab underlined when open, which the championship's page, the editor's tabs
+ * and a round's dialog all wear, so they read as one family: everything but its
+ * padding, which each sets for itself.
+ */
+export const UNDERLINE_TAB = 'h-auto flex-none rounded-none border-0 border-b-2 border-transparent '
+  + '-mb-px text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent '
+  + 'data-[state=active]:text-foreground data-[state=active]:shadow-none dark:text-muted-foreground '
+  + 'dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent';
+
+/**
+ * How many rows the sidebar's standings hold while the page loads.
+ */
+export const STANDINGS_SKELETON = 5;

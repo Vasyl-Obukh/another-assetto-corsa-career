@@ -2,32 +2,25 @@ import { describe, expect, it } from '@jest/globals';
 
 import { WEATHER_TYPE_ORDER, WeatherType } from '../../../../../shared/constants';
 import type {
-  Conditions, SessionDefinition, SessionForecast, Weather, WeatherController, WeatherFollow,
+  Conditions, SessionDefinition, Weather, WeatherController, WeatherFollow,
 } from '../../../../../shared/types';
-import { DEFAULT_SLOT_MINUTES, NOT_SET } from '../constants.ts';
+import { DEFAULT_SLOT_MINUTES } from '../constants.ts';
 import {
   addWeatherSlot,
-  availableTypes,
-  chosenWeather,
   conditionsSummary,
   countsLaps,
   fromNumber,
-  isForecast,
-  isOffered,
   moveAt,
   moveTo,
   nextSession,
   offeredTypes,
-  overrideCount,
+  phaseOf,
   removeWeatherSlot,
   seedType,
   sessionLength,
   setWeatherSlot,
   toNumber,
-  weatherChoice,
-  weatherValue,
   withChosenTypes,
-  withSessionCondition,
   withSessionConditions,
   withWeather,
 } from '../utils.ts';
@@ -63,24 +56,6 @@ const controller = (id: string, weather: WeatherFollow): WeatherController => ({
   description: null,
   version: null,
   follows: { weather, temperature: weather, wind: weather },
-});
-
-/**
- * Builds a session's forecast carrying the conditions generation wrote.
- * @param conditions What generation wrote onto the session
- * @param generated Whether the weather was generated
- * @returns A complete SessionForecast
- */
-const forecastOf = (conditions: Conditions, generated = true): SessionForecast => ({
-  index: 0,
-  day: 0,
-  type: 'race',
-  generated,
-  steps: [],
-  ambient: 20,
-  windMin: null,
-  windMax: null,
-  conditions,
 });
 
 const installed = [
@@ -214,74 +189,6 @@ describe('renderer/screens/race/utils', () => {
     });
   });
 
-  describe('isOffered', () => {
-    it('accepts the types the menu lists', () => {
-      expect(isOffered('practice')).toBe(true);
-      expect(isOffered('race')).toBe(true);
-    });
-
-    // Hotlap and the rest are expressible in race.ini and have never been
-    // driven through this path, so the menu does not offer them.
-    it('rejects a session type the menu does not list', () => {
-      expect(isOffered('hotlap')).toBe(false);
-      expect(isOffered('nonsense')).toBe(false);
-    });
-  });
-
-  describe('weatherValue', () => {
-    it('tags each kind so the menu can tell them apart', () => {
-      expect(weatherValue({ kind: 'dynamic', controller: 'pureCtrl' })).toBe('dynamic:pureCtrl');
-      expect(weatherValue({ kind: 'type', type: WeatherType.RAIN })).toBe(`type:${WeatherType.RAIN}`);
-      expect(weatherValue({ kind: 'preset', preset: 'career_rain' })).toBe('preset:career_rain');
-      expect(weatherValue({ kind: 'none' })).toBe(NOT_SET);
-    });
-  });
-
-  describe('weatherChoice', () => {
-    it('reads each tagged value back into what it stands for', () => {
-      expect(weatherChoice('dynamic:pureCtrl')).toEqual({ kind: 'dynamic', controller: 'pureCtrl' });
-      expect(weatherChoice('type:7')).toEqual({ kind: 'type', type: 7 });
-      expect(weatherChoice('preset:career_rain')).toEqual({ kind: 'preset', preset: 'career_rain' });
-      expect(weatherChoice(NOT_SET)).toEqual({ kind: 'none' });
-    });
-
-    // A controller folder may contain spaces - "pureCtrl static" is one - so
-    // the tag is stripped by length rather than by splitting on a separator.
-    it('keeps a controller id that contains spaces', () => {
-      expect(weatherChoice('dynamic:pureCtrl static'))
-        .toEqual({ kind: 'dynamic', controller: 'pureCtrl static' });
-    });
-  });
-
-  describe('chosenWeather', () => {
-    // A dynamic controller ignores the preset beside it, so reading the preset
-    // first would report weather that will never run.
-    it('reads a dynamic controller ahead of a preset left beside it', () => {
-      const chosen = chosenWeather({ weather: 'clear', weatherController: 'pureCtrl' }, controllers);
-
-      expect(chosen).toEqual({ kind: 'dynamic', controller: 'pureCtrl' });
-    });
-
-    it('reads a static controller as no weather choice of its own', () => {
-      expect(chosenWeather({ weatherController: 'sol' }, controllers)).toEqual({ kind: 'none' });
-    });
-
-    it('prefers a chosen type over a named preset', () => {
-      const chosen = chosenWeather({ weather: 'clear', weatherType: WeatherType.RAIN }, controllers);
-
-      expect(chosen).toEqual({ kind: 'type', type: WeatherType.RAIN });
-    });
-
-    it('reads a named preset when nothing else answers', () => {
-      expect(chosenWeather({ weather: 'clear' }, controllers))
-        .toEqual({ kind: 'preset', preset: 'clear' });
-    });
-
-    it('has no answer for conditions naming no weather at all', () => {
-      expect(chosenWeather({}, controllers)).toEqual({ kind: 'none' });
-    });
-  });
-
   describe('withWeather', () => {
     it('clears the preset and the type when dynamic weather is picked', () => {
       const next = withWeather(
@@ -334,19 +241,6 @@ describe('renderer/screens/race/utils', () => {
     });
   });
 
-  describe('availableTypes', () => {
-    // Menu order rather than the order the library was read in, so the list
-    // reads the same whatever a scan happens to return.
-    it('offers only the types an installed preset declares, in menu order', () => {
-      expect(availableTypes(installed))
-        .toEqual([WeatherType.CLEAR, WeatherType.RAIN, WeatherType.COLD]);
-    });
-
-    it('offers nothing when nothing is installed', () => {
-      expect(availableTypes([])).toEqual([]);
-    });
-  });
-
   describe('withSessionConditions', () => {
     it('carries the overrides onto the session', () => {
       const next = withSessionConditions<SessionDefinition>({ type: 'race' }, { ambient: 18 });
@@ -371,59 +265,6 @@ describe('renderer/screens/race/utils', () => {
       );
 
       expect(next).toEqual({ id: 'magione', name: 'Magione', track: { id: 'magione' } });
-    });
-  });
-
-  describe('withSessionCondition', () => {
-    it('sets one field without touching the others', () => {
-      const next = withSessionCondition(
-        { type: 'race', conditions: { ambient: 18 } },
-        'trackState',
-        'green',
-      );
-
-      expect(next.conditions).toEqual({ ambient: 18, trackState: 'green' });
-    });
-
-    it('goes back to inheriting a field cleared to undefined', () => {
-      const next = withSessionCondition(
-        { type: 'race', conditions: { ambient: 18, trackState: 'green' } },
-        'ambient',
-        undefined,
-      );
-
-      expect(next.conditions).toEqual({ trackState: 'green' });
-    });
-
-    it('drops the block when the last override is cleared', () => {
-      const next = withSessionCondition({ type: 'race', conditions: { ambient: 18 } }, 'ambient', undefined);
-
-      expect(next).not.toHaveProperty('conditions');
-    });
-  });
-
-  describe('overrideCount', () => {
-    it('counts the fields a session answers for itself', () => {
-      expect(overrideCount({ ambient: 18, trackState: 'green' })).toBe(2);
-    });
-
-    it('counts nothing for a session that inherits everything', () => {
-      expect(overrideCount({})).toBe(0);
-    });
-
-    // A field explicitly set to undefined is inherited, not overridden, so it
-    // must not put a badge on a row that answers nothing.
-    it('does not count a field cleared back to inheriting', () => {
-      expect(overrideCount({ ambient: undefined })).toBe(0);
-    });
-
-    // A forecast session used to hide its count entirely, taking a format's own
-    // time of day or track state out of sight along with the forecast.
-    it('leaves out only the fields a forecast wrote', () => {
-      expect(overrideCount(
-        { ambient: 18, weatherType: 1, timeOfDay: '14:00' },
-        { ambient: 18, weatherType: 1 },
-      )).toBe(1);
     });
   });
 
@@ -463,70 +304,6 @@ describe('renderer/screens/race/utils', () => {
 
       expect(offeredTypes(installed, 'sol', false, allowed)).toEqual([WeatherType.CLEAR, WeatherType.COLD]);
       expect(offeredTypes(installed, 'pure', true, allowed)).toEqual([WeatherType.CLEAR, WeatherType.RAIN]);
-    });
-  });
-
-  describe('isForecast', () => {
-    const generated: Conditions = {
-      weatherType: WeatherType.CLEAR,
-      ambient: 21,
-      weatherSteps: [
-        { weather: WeatherType.CLEAR, minutes: 10 },
-        { weather: WeatherType.RAIN },
-      ],
-    };
-
-    it('says no when there is no forecast for the session', () => {
-      expect(isForecast({ type: 'race', conditions: generated }, undefined)).toBe(false);
-    });
-
-    // Authored weather is in the forecast too, but running it is not running a
-    // forecast, so the marker belongs only on what was generated.
-    it('says no for a session whose weather was authored rather than generated', () => {
-      expect(isForecast({ type: 'race', conditions: generated }, forecastOf(generated, false))).toBe(false);
-    });
-
-    it('recognises a session carrying exactly what was generated, plan steps included', () => {
-      const session: SessionDefinition = {
-        type: 'race',
-        conditions: {
-          ...generated,
-          weatherSteps: generated.weatherSteps?.map((step) => ({ ...step })),
-        },
-      };
-
-      expect(isForecast(session, forecastOf(generated))).toBe(true);
-    });
-
-    it('stops recognising a session once any generated field is edited', () => {
-      const ambient = { type: 'race' as const, conditions: { ...generated, ambient: 22 } };
-      const steps = {
-        type: 'race' as const,
-        conditions: {
-          ...generated,
-          weatherSteps: [{ weather: WeatherType.CLEAR, minutes: 12 }, { weather: WeatherType.RAIN }],
-        },
-      };
-      const cleared = { type: 'race' as const, conditions: { ...generated, weatherType: undefined } };
-
-      expect(isForecast(ambient, forecastOf(generated))).toBe(false);
-      expect(isForecast(steps, forecastOf(generated))).toBe(false);
-      expect(isForecast(cleared, forecastOf(generated))).toBe(false);
-    });
-
-    it('says no for a session with no conditions of its own when something was generated', () => {
-      expect(isForecast({ type: 'race' }, forecastOf(generated))).toBe(false);
-    });
-
-    // Generation owns only the fields it wrote; the rest of the session's
-    // conditions are the user's and do not take it off the forecast.
-    it('ignores conditions the session sets that generation never wrote', () => {
-      const session: SessionDefinition = {
-        type: 'race',
-        conditions: { ...generated, timeOfDay: '15:00', trackState: 'green' },
-      };
-
-      expect(isForecast(session, forecastOf(generated))).toBe(true);
     });
   });
 
@@ -693,6 +470,24 @@ describe('renderer/screens/race/utils', () => {
 
     it('has nothing to say about conditions that set nothing', () => {
       expect(Object.values(conditionsSummary({})).every((part) => part === null)).toBe(true);
+    });
+  });
+
+  describe('phaseOf', () => {
+    it('reads the phase the card said the weekend is in', () => {
+      expect(phaseOf({ phase: 'running' })).toBe('running');
+      expect(phaseOf({ phase: 'finished' })).toBe('finished');
+      expect(phaseOf({ phase: 'setup' })).toBe('setup');
+    });
+
+    // A page opened from anywhere but its card carries no state, or someone
+    // else's, and falls back to the setup shape.
+    it('reads any other state as setup', () => {
+      expect(phaseOf(null)).toBe('setup');
+      expect(phaseOf(undefined)).toBe('setup');
+      expect(phaseOf({ phase: 'done' })).toBe('setup');
+      expect(phaseOf({ started: true })).toBe('setup');
+      expect(phaseOf({ from: '/race' })).toBe('setup');
     });
   });
 });

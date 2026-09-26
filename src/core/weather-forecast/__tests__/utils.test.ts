@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { RAIN_INTENSITY, WeatherType } from '../../../shared/constants/index.ts';
+import { DEFAULT_TIME_OF_DAY, RAIN_INTENSITY, WeatherType } from '../../../shared/constants/index.ts';
 import { Hemisphere } from '../../../shared/types/index.ts';
 import type { SessionDefinition, WeatherOffer } from '../../../shared/types/index.ts';
-import { DEFAULT_TIME_OF_DAY, parseClock } from '../../race-ini/index.ts';
+import { parseClock } from '../../../shared/utils/road-temperature/index.ts';
 import { randomFrom } from '../../seeded-random/index.ts';
 import {
   BREAK_WEATHER,

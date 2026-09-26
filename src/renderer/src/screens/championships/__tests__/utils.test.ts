@@ -1,12 +1,35 @@
-import { describe, expect, it } from '@jest/globals';
+import {
+  beforeEach, describe, expect, it, jest,
+} from '@jest/globals';
 
 import { appErrorInfo } from '../../../../../shared/errors';
-import { DLCPack } from '../../../../../shared/types';
-import type { ClassEntry, SeriesAvailability, SeriesListing } from '../../../../../shared/types';
 import {
-  availabilityState, isListed, pursesOf, raceLabels, tierAccent,
+  ContentSource, Discipline, DLCPack, ModMaker,
+} from '../../../../../shared/types';
+import type {
+  Championship, ClassEntry, Seat, SeriesAvailability, SeriesListing, Team,
+} from '../../../../../shared/types';
+import { DEFAULT_STANDINGS, TIER_METAL_KEYS } from '../constants.ts';
+import {
+  availabilityState,
+  contentFacets,
+  contentPicks,
+  contentValues,
+  isListed,
+  ladderDepth,
+  pursesOf,
+  raceLabels,
+  readStandingsLayout,
+  rungsAt,
+  teamGroups,
+  tierAccent,
+  tierMetalKey,
+  withPicked,
 } from '../utils.ts';
 import { TIER_ACCENT } from '@/lib/accents';
+import { readPreference } from '@/lib/stored-preference';
+
+jest.mock('@/lib/stored-preference', () => ({ readPreference: jest.fn() }));
 
 /**
  * An availability with nothing wrong with it, for a test to spoil one field of.
@@ -27,9 +50,10 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
     sources: [],
     packs: [],
     makers: [],
+    distributors: [],
     pools: [],
     rounds: { packs: [], makers: [], distributors: [] },
-    widenedBy: { packs: [], makers: [] },
+    widenedBy: { packs: [], makers: [], distributors: [] },
   },
   ...overrides,
 });
@@ -83,7 +107,7 @@ describe('renderer/screens/championships/utils', () => {
 
   describe('isListed', () => {
     const everything = {
-      seriesActive: {}, showFillerSeries: true, hiddenContentSources: { packs: [], makers: [] },
+      seriesActive: {}, showFillerSeries: true, hiddenContentSources: { packs: [], makers: [], distributors: [] },
     };
 
     it('lists a championship that is switched on, offered and available', () => {
@@ -115,15 +139,18 @@ describe('renderer/screens/championships/utils', () => {
             sources: [],
             packs: [DLCPack.RED_PACK],
             makers: [],
+            distributors: [],
             pools: [],
             rounds: { packs: [], makers: [], distributors: [] },
-            widenedBy: { packs: [], makers: [] },
+            widenedBy: { packs: [], makers: [], distributors: [] },
           },
         }),
         origin: 'shipped',
       };
 
-      expect(isListed(shipped, { ...everything, hiddenContentSources: { packs: [DLCPack.RED_PACK], makers: [] } }))
+      expect(isListed(shipped, { ...everything, hiddenContentSources: {
+        packs: [DLCPack.RED_PACK], makers: [], distributors: [],
+      } }))
         .toBe(false);
     });
 
@@ -197,6 +224,184 @@ describe('renderer/screens/championships/utils', () => {
     it('reads a tier above the top as the top rather than reaching past the ramp', () => {
       expect(tierAccent(0)).toBe(TIER_ACCENT[0]);
       expect(tierAccent(-2)).toBe(TIER_ACCENT[0]);
+    });
+  });
+
+  describe('tierMetalKey', () => {
+    it('names each of the top rungs by its own metal, platinum first', () => {
+      expect([1, 2, 3, 4, 5].map(tierMetalKey)).toEqual(TIER_METAL_KEYS);
+    });
+
+    it('clamps as tierAccent does, so a rung is named for the metal it wears', () => {
+      expect(tierMetalKey(9)).toBe(TIER_METAL_KEYS[TIER_METAL_KEYS.length - 1]);
+      expect(tierMetalKey(0)).toBe(TIER_METAL_KEYS[0]);
+    });
+  });
+
+  /**
+   * A listing whose classes enter at the rungs given, all else left out.
+   * @param id The championship's id
+   * @param rungs Each class's id, discipline and tier
+   * @returns The listing
+   */
+  const laddered = (
+    id: string,
+    rungs: readonly { entry: string; discipline: Discipline; tier: number }[],
+  ): SeriesListing => ({
+    ...listing(),
+    series: {
+      id,
+      entries: rungs.map(({ entry, discipline, tier }) => ({ id: entry, ladder: { discipline, tier } })),
+    } as unknown as Championship,
+  });
+
+  describe('ladderDepth', () => {
+    it('runs to the lowest rung any class enters at', () => {
+      expect(ladderDepth([
+        laddered('gt3', [{ entry: 'pro', discipline: Discipline.SPORTSCAR, tier: 2 }]),
+        laddered('cup', [
+          { entry: 'main', discipline: Discipline.TOURING, tier: 3 },
+          { entry: 'am', discipline: Discipline.TOURING, tier: 5 },
+        ]),
+      ])).toBe(5);
+    });
+
+    it('is a single rung for an empty ladder', () => {
+      expect(ladderDepth([])).toBe(1);
+    });
+  });
+
+  describe('rungsAt', () => {
+    it('stands a championship on a rung once per class entering there, in list order', () => {
+      const elms = laddered('elms', [
+        { entry: 'lmp2', discipline: Discipline.SPORTSCAR, tier: 2 },
+        { entry: 'lmp2-pro-am', discipline: Discipline.SPORTSCAR, tier: 2 },
+        { entry: 'lmp3', discipline: Discipline.SPORTSCAR, tier: 3 },
+      ]);
+      const imsa = laddered('imsa', [{ entry: 'gtd', discipline: Discipline.SPORTSCAR, tier: 2 }]);
+
+      expect(rungsAt([elms, imsa], Discipline.SPORTSCAR, 2).map((rung) => [rung.listing.series.id, rung.entry.id]))
+        .toEqual([['elms', 'lmp2'], ['elms', 'lmp2-pro-am'], ['imsa', 'gtd']]);
+    });
+
+    it('leaves out a class at the same tier in another discipline', () => {
+      const mixed = laddered('mixed', [{ entry: 'gt', discipline: Discipline.SPORTSCAR, tier: 2 }]);
+
+      expect(rungsAt([mixed], Discipline.TOURING, 2)).toEqual([]);
+    });
+  });
+
+  describe('teamGroups', () => {
+    const teams = [
+      { id: 'red', name: 'Red' },
+      { id: 'blue', name: 'Blue' },
+    ] as Team[];
+    /**
+     * A seat in a team, or in none.
+     * @param id The seat's id
+     * @param team The team it names
+     * @returns The seat
+     */
+    const seat = (id: string, team?: string): Seat => ({ id, team });
+
+    it('groups seats by team in the order each team first appears', () => {
+      const groups = teamGroups([seat('a', 'blue'), seat('b', 'red'), seat('c', 'blue')], teams);
+
+      expect(groups.map((group) => [group.team?.id, group.seats.map((one) => one.id)]))
+        .toEqual([['blue', ['a', 'c']], ['red', ['b']]]);
+    });
+
+    it('gathers the seats naming no team, or a team not fielded, last and together', () => {
+      const groups = teamGroups([seat('a'), seat('b', 'red'), seat('c', 'gone')], teams);
+
+      expect(groups.map((group) => [group.team?.id ?? null, group.seats.map((one) => one.id)]))
+        .toEqual([['red', ['b']], [null, ['a', 'c']]]);
+    });
+  });
+
+  describe('contentValues', () => {
+    it('prefixes each list\'s values with the list, in the source tree\'s order', () => {
+      expect(contentValues({
+        makers: [ModMaker.RSS],
+        sources: [ContentSource.MOD],
+        packs: [DLCPack.RED_PACK],
+      })).toEqual([`sources:${ContentSource.MOD}`, `packs:${DLCPack.RED_PACK}`, `makers:${ModMaker.RSS}`]);
+    });
+
+    it('reads a championship\'s requirements, ignoring what is not one of the tree\'s lists', () => {
+      expect(contentValues(availability().requires)).toEqual([]);
+    });
+  });
+
+  describe('contentPicks', () => {
+    it('reads prefixed values back into the tree\'s lists, round-tripping contentValues', () => {
+      const picks = {
+        sources: [ContentSource.MOD], packs: [DLCPack.RED_PACK], makers: [ModMaker.RSS], distributors: [],
+      };
+
+      expect(contentPicks(contentValues(picks))).toEqual(picks);
+    });
+
+    it('drops a value carrying no list it knows', () => {
+      expect(contentPicks(['nothing', 'tracks:spa', ':mod'])).toEqual({
+        sources: [], packs: [], makers: [], distributors: [],
+      });
+    });
+  });
+
+  describe('contentFacets', () => {
+    it('splits the counts into the tree\'s lists, unprefixed', () => {
+      expect(contentFacets([
+        { value: 'sources:base', count: 12 },
+        { value: 'makers:rss', count: 3 },
+        { value: 'bogus', count: 1 },
+      ])).toEqual({
+        sources: [{ value: 'base', count: 12 }],
+        packs: [],
+        makers: [{ value: 'rss', count: 3 }],
+        distributors: [],
+      });
+    });
+  });
+
+  describe('withPicked', () => {
+    it('replaces one dimension\'s picks and keeps the rest of the criteria', () => {
+      const criteria = {
+        picked: { tiers: ['1'], origins: ['user'] }, sort: 'name' as const, direction: 'asc' as const,
+      };
+
+      expect(withPicked(criteria, 'tiers', ['2', '3'])).toEqual({
+        picked: { tiers: ['2', '3'], origins: ['user'] }, sort: 'name', direction: 'asc',
+      });
+      expect(criteria.picked.tiers).toEqual(['1']);
+    });
+  });
+
+  describe('readStandingsLayout', () => {
+    const read = jest.mocked(readPreference);
+
+    beforeEach(() => {
+      read.mockReset();
+    });
+
+    it('opens on the default layout when nothing was saved', () => {
+      read.mockReturnValue(undefined);
+
+      expect(readStandingsLayout()).toEqual(DEFAULT_STANDINGS);
+    });
+
+    it('restores a layout saved before', () => {
+      read.mockReturnValue({ who: 'teams', shape: 'table', view: 'positions' });
+
+      expect(readStandingsLayout()).toEqual({ who: 'teams', shape: 'table', view: 'positions' });
+    });
+
+    it('narrows field by field, so only what is stale or broken falls back', () => {
+      read.mockReturnValue({ who: 'teams', shape: 'carousel', view: 7 });
+      expect(readStandingsLayout()).toEqual({ ...DEFAULT_STANDINGS, who: 'teams' });
+
+      read.mockReturnValue('not an object');
+      expect(readStandingsLayout()).toEqual(DEFAULT_STANDINGS);
     });
   });
 });

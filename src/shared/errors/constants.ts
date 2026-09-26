@@ -98,7 +98,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'career.event.otherInProgress': '{{event}} is part-way through. Finish its weekend before starting another',
   'career.event.inProgress': 'The calendar cannot move on while {{event}} is part-way through',
   'career.event.complete': 'Every session of {{round}} has been run',
-  'career.event.disturbed': '{{event}} was changed on the Race screen part-way through. Restart the weekend to race it',
   'series.sessions.empty': 'Weekend format {{format}} of {{series}} has no sessions',
   'series.formats.empty': 'Championship {{series}} declares no weekend formats',
   'series.format.unknown':
@@ -201,6 +200,13 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'run.result.notFound': 'No archived result named {{file}}.',
   'run.result.notRecorded':
     'The session finished, but its result could not be recorded: {{reason}}',
+
+  'quick.track.none': 'Pick a track to race on.',
+  'quick.car.none': 'Pick a car to drive.',
+  'quick.class.noCars': '{{class}} has no cars yet. Pick a grid for it, or add cars to it.',
+  'quick.car.notInClass': '{{car}} is not in {{class}}.',
+  'quick.notFound': 'There is no race weekend with the id {{race}}.',
+  'quick.started': '{{race}} has started. Start it over to change it.',
 
   'ipc.noWindow': 'No window to attach the folder picker to.',
   'ipc.pathsNotLocated': 'Cannot scan content until the Assetto Corsa install has been located.',

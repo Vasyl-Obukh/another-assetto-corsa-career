@@ -82,6 +82,11 @@ export const useClassCommands = (): ClassCommandsState => {
       [run],
     ),
 
+    saveSpecCars: useCallback(
+      async (spec, cars) => (await run('classes:saveSpecCars', { spec, cars }))?.id ?? null,
+      [run],
+    ),
+
     deleteSpec: useCallback(
       async (id) => (await run('classes:deleteSpec', { id })) !== null,
       [run],

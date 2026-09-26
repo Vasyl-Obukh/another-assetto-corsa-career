@@ -51,8 +51,8 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Weather system                  | **One choice in settings: PURE, Sol, or none.** Not a per-race question - it decides who renders, which is a look rather than a simulation. "None" is CSP's own `base` controller: **it still rains** - RainFX is core CSP - but the strength comes from the weather type rather than a preset's `[RAINFX]`, and weather cannot change mid-session. |
 | Dynamic weather                 | **Generated plans handed to PURE Planner or Sol Planner.** Both read plan files we can write, and both have a "CM" slot meaning "take it from `race.ini`", so an authored plan can start from the session's own weather and evolve. |
 | Live weather                    | **Dropped.** A career should not depend on the internet, so the `base-live` controller is not offered.                                                                                                                       |
-| Grid when qualifying is skipped | **Player starts last.** AI ordered by rating with slight randomness so skipped sessions don't produce identical grids.                                                                                                                    |
-| Simulating rounds               | **Never.** Skip practice or qualifying and you are last on the timing sheet; skip the race and it is a DNS.                                                                                                                               |
+| Grid when qualifying is skipped | **The race says where the player starts** - last unless it names pole, a slot or a seeded random one, always among their own class. The AI stand on pace class by class with slight seeded randomness, so skipped sessions don't produce identical grids. |
+| Simulating rounds               | **Every round nobody drove.** A missed round, one run before the player entered and every round of a championship they are not in are raced by the field off each driver's pace and a seeded draw, with a stand-in in the player's seat. A weekend left part-way keeps what was driven and simulates the rest. |
 | DNS                             | Entry fee lost, no points, **rating untouched**.                                                                                                                                                                                          |
 | Car pricing                     | **Curated for Kunos + DLC, derived for everything else.** Real-world-ish values for official content; specs-derived suggestions for mods; user override on any car.                                                                       |
 | Running out of money            | **Forced down the ladder.** Recoverable, never a hard fail.                                                                                                                                                                               |
@@ -599,8 +599,9 @@ Two questions this leaves open, to settle in Phase 6:
 
 - **Save-scumming.** Continuous writes do not prevent reloading an autosave after
   a bad race; only the save-slot policy does. Given that skipping a race is a DNS
-  and rounds are never simulated, one-way autosaves or a recorded rollback would
-  be more consistent - the way a progression-speed change is recorded.
+  for the player - the field races it without them - one-way autosaves or a
+  recorded rollback would be more consistent - the way a progression-speed change
+  is recorded.
 - **What loading an autosave costs.** It discards contracts and purchases made
   since that session boundary. Correct, but it belongs in the confirmation dialog
   rather than being discovered.
@@ -2384,7 +2385,8 @@ proof that no layer below learned what a series is.
       `series.season.tooManyRounds` rather than crowding two rounds onto one
       weekend
 - [x] **Advance to date**, stopping at the first weekend you are entered in
-      rather than skipping past it
+      rather than skipping past it - or going past it, once the rounds that
+      costs are confirmed
 - [ ] Fire dated events on arrival: offer deadlines, transfer windows, sponsors.
       **Waits on Phases 9 to 11**, which is what would have anything to fire
 - [x] **Clash detection** - overlapping weekends rather than a shared race day,
@@ -2395,6 +2397,33 @@ proof that no layer below learned what a series is.
       not built** - a career runs one season and there is no rollover into a
       second, which is where prize money for a final standing and the ladder
       moving would land
+- [x] **Rounds nobody drove are simulated** - `src/core/round-simulation/`.
+      A round the player missed, one run before they entered the championship,
+      and every round of a championship they are not in is raced by the field
+      off each driver's pace and a seeded draw, then scored by `scoreRound`, so
+      qualifying points, fastest laps and reverse grids pay exactly as a driven
+      round does. **Calculated where it is needed and stored once it matters**:
+      a championship the career is not in is simulated on every read and
+      nothing is kept, since the same round always comes out the same; entering
+      one mid-season stores its rounds already behind the clock, and a missed
+      round of the career's is stored once its race day passes - so a later edit
+      to the championship cannot rewrite a round that has been run. **The draw
+      is seeded per seat**, which is what makes a round stored on entering the
+      one shown the day before. **The player's seat is raced by the driver it
+      names** whenever the player is not in it - one stand-in, the same driver
+      every time - whose places are marked `substitute` and stand in a row of
+      their own, while the team keeps every point either way. A weekend left
+      part-way keeps what was driven and simulates the rest: **a stand-in put
+      in after the player qualified starts from the back**, having set no time,
+      and any qualifying points stay with the player as a `bonusOnly` place -
+      points of theirs that count as no race
+- [x] **Results and standings screens** - the championship page in tabs, with
+      the standings as a table or as a grid of every race of the season, on
+      points with what qualifying and the fastest lap added, or on positions;
+      a round's results on its own page; the Results page as one card per
+      weekend; a result page with its podium and the championship after it.
+      One set of pieces under `src/renderer/src/components/results/` draws all
+      of them, so a P3 looks the same wherever it is listed
 - [x] DNS handling: no points, and the entry fee **recorded rather than
       debited**, because there is no money anywhere until Phase 7. Rating is
       untouched because there is no rating until Phase 8
@@ -2418,8 +2447,10 @@ proof that no layer below learned what a series is.
       and a race's points reach the standings mid-weekend. Racing a weekend
       ahead of the clock moves the clock to it, allowed only once nothing
       entered before it is unraced; the calendar cannot move on while a weekend
-      is part-way; and a weekend changed on the Race screen part-way is flagged
-      and can only be run again from the start
+      is part-way. A weekend is put back in the race store's slot together
+      with the launches the event holds, so a race weekend of the player's own
+      raced in between costs a round nothing - which is what retired the old
+      flag for a weekend changed on the Race screen part-way
 - [x] **Persistent AI field** - a driver is the same driver all season: the
       same car, the same livery and the same pace against the rest. Before this
       the car a seat drove was drawn afresh every round, so in a multi-car class
@@ -2537,6 +2568,33 @@ proof that no layer below learned what a series is.
       are none - every race is laps or a distance
 - [ ] Adaptive difficulty, recording the level actually raced against
 - [ ] Season summary and history
+- [x] **Race weekends of your own, as many as you like.** The Race tab lists
+      every weekend set up outside a championship, each kept with its own
+      sessions, progress and results, so starting another means adding one
+      rather than resetting the last. Opening one shows it the way a round's
+      page shows a round - built from the event page's and the championship
+      editor's own pieces. Only one launch is ever in flight across all of
+      them and the career, since Assetto Corsa runs one game at a time: the
+      race store became a slot that a weekend is `load`ed into with what of it
+      has run. **A field is one class or several**, each a catalogued grid or
+      a list of cars with its own count and AI offsets, laid over the race's
+      own offset from the player's difficulty - the step a championship
+      states. A quick race is lowered as a one-round championship, so all of
+      that is `roundRace`'s. **Picking a car with no classes makes a one-make
+      class of it**, which follows the car until the player edits it; with
+      several, the car is picked from the player's class and one that stops
+      fitting is flagged, never swapped. **A driven session reads back as a
+      round's does** - strip, podium, classification - and a multi-class one
+      is filtered and placed by class, which multi-class championships get
+      too
+- [ ] Link a quick race's archives on the Results page back to its weekend,
+      as a round's link back to its round
+- [x] **A race with nothing to line it up says where you start.** Behind a
+      qualifying or an earlier race a race session follows it, as a
+      championship's does - which session, how many carry over, how many of
+      the front are reversed. With nothing before it, `SessionDefinition.start`
+      says the player's grid slot - last, pole, a given place or a seeded
+      random one - and the championship editor offers it too
 
 ## Phase 6 - Career saves
 
@@ -2564,6 +2622,13 @@ proof that no layer below learned what a series is.
       the app is released an out-of-date save is deleted rather than carried
       forward. See *No schema migrations before the first release* in CLAUDE.md
 - [ ] Multiple concurrent careers
+- [ ] **A start screen, and racing without a career.** The app opens on
+      Continue career, New career, Load career, Race, Championships, Settings
+      and Exit. Race and Championships are for anyone who likes how quickly the
+      app sets a weekend or a season up but does not want the career around it:
+      a quick race weekend, or a championship run on its own, with no economy
+      and no ladder to climb. Waits on saves, since a standalone championship
+      needs somewhere to keep its season that is not a career's
 - [ ] Backup and restore
 - [ ] Archived results linked to career, season and round
 
@@ -2613,6 +2678,11 @@ proof that no layer below learned what a series is.
       the second: a pay driver's season would carry a car per event and rounds
       marked not entered, over the same copy of the championship
 - [ ] Team budgets shaping offers
+- [ ] **Which seat the player takes comes from their contract.** Today it is
+      always the last seat of the class they enter, which is what the driver it
+      names gives up - and who stands in for the player in a round they miss.
+      A contract with a team should name the seat instead, and with it which
+      driver the player replaces
 
 ## Phase 10 - Sponsors
 

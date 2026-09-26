@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
 import { Climate, Discipline, Hemisphere } from '../../../shared/types/index.ts';
@@ -14,6 +14,7 @@ import type {
   SessionForecast,
 } from '../../../shared/types/index.ts';
 import {
+  advanceSkips,
   advanceStop,
   calendarEntry,
   clockTime,
@@ -26,11 +27,15 @@ import {
   issueForecast,
   issueForecasts,
   launchBlock,
+  launchSkips,
+  markMissed,
   materialiseEvents,
   readCareer,
   scheduledEvents,
   seasonEndDate,
   seasonSalt,
+  simulatedEvent,
+  skippedRound,
   withSeason,
 } from '../utils.ts';
 import {
@@ -508,90 +513,185 @@ describe('main/career-store/utils', () => {
     };
 
     it('allows the next session of a weekend nothing stands in the way of', () => {
-      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
+      const { entry } = seasonOf([makeEvent('one', '2026-03-01')]);
 
-      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toBeNull();
+      expect(launchBlock({ entry, event: entry.events[0] }, true)).toBeNull();
     });
 
     it('refuses a weekend that has already been raced or passed', () => {
-      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01', { status: 'missed' })]);
+      const { entry } = seasonOf([makeEvent('one', '2026-03-01', { status: 'missed' })]);
 
-      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)?.code)
+      expect(launchBlock({ entry, event: entry.events[0] }, true)?.code)
         .toBe('career.event.closed');
     });
 
-    it('refuses a weekend changed on the Race screen part-way through', () => {
-      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
-
-      expect(launchBlock(season, { entry, event: entry.events[0] }, true, true)?.code)
-        .toBe('career.event.disturbed');
-    });
-
     it('refuses a round the installed content cannot race', () => {
-      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
+      const { entry } = seasonOf([makeEvent('one', '2026-03-01')]);
 
-      expect(launchBlock(season, { entry, event: entry.events[0] }, false, false)?.code)
+      expect(launchBlock({ entry, event: entry.events[0] }, false)?.code)
         .toBe('series.round.unavailable');
     });
 
-    it('refuses a weekend with an earlier one of its own still unraced', () => {
-      const { entry, season } = seasonOf([
-        makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03'),
-      ]);
-
-      const blocked = launchBlock(season, { entry, event: entry.events[1] }, true, false);
-
-      expect(blocked?.code).toBe('career.event.earlierPending');
-      expect(blocked?.params).toEqual({ event: 'Test Cup - Round one' });
-    });
-
-    it('refuses a weekend while another championship is part-way through one', () => {
-      const started = makeEntry({
-        series: 'other-cup',
-        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
-        events: [makeEvent('one', '2026-05-03', { sessions: [makeRecord(0)] })],
-      });
-      const entry = makeEntry({ events: [makeEvent('two', '2026-03-01')] });
-      const season = makeSeason({ entries: [started, entry] });
-
-      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)?.code)
-        .toBe('career.event.otherInProgress');
-    });
-
     it('allows the weekend that is itself part-way through', () => {
-      const { entry, season } = seasonOf([
+      const { entry } = seasonOf([
         makeEvent('one', '2026-03-01', { sessions: [makeRecord(0)] }),
       ]);
 
-      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toBeNull();
+      expect(launchBlock({ entry, event: entry.events[0] }, true)).toBeNull();
     });
 
     // The checks are ordered so the button and the command always agree on
     // which refusal to say first.
     it('says a weekend is over before it says anything else about it', () => {
-      const { entry, season } = seasonOf([
+      const { entry } = seasonOf([
         makeEvent('one', '2026-03-01'),
         makeEvent('two', '2026-05-03', { status: 'raced' }),
       ]);
 
-      expect(launchBlock(season, { entry, event: entry.events[1] }, false, true)?.code)
+      expect(launchBlock({ entry, event: entry.events[1] }, false)?.code)
         .toBe('career.event.closed');
     });
+  });
 
-    it('says a weekend was disturbed before it says the content cannot race it', () => {
-      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
+  describe('skippedRound', () => {
+    it('names and numbers the round, dated as the season holds it', () => {
+      const event = makeEvent('two', '2026-05-03');
 
-      expect(launchBlock(season, { entry, event: entry.events[0] }, false, true)?.code)
-        .toBe('career.event.disturbed');
+      expect(skippedRound(makeChampionship(), 'main', event, 'skipped')).toEqual({
+        series: 'test-cup',
+        seriesName: 'Test Cup',
+        round: 'two',
+        roundName: 'Round two',
+        number: 2,
+        ladder: { discipline: Discipline.ROAD, tier: 4 },
+        firstDay: '2026-05-03',
+        lastDay: event.lastDay,
+        reason: 'skipped',
+      });
     });
 
-    it('says the content cannot race a round before it points at an earlier weekend', () => {
-      const { entry, season } = seasonOf([
-        makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03'),
-      ]);
+    it('wears the ladder of the class the career is in', () => {
+      const series = makeChampionship({
+        entries: [
+          makeClassEntry(),
+          makeClassEntry({ id: 'pro', ladder: { discipline: Discipline.SPORTSCAR, tier: 2 } }),
+        ],
+      });
 
-      expect(launchBlock(season, { entry, event: entry.events[1] }, false, false)?.code)
-        .toBe('series.round.unavailable');
+      expect(skippedRound(series, 'pro', makeEvent('one', '2026-03-01'), 'behind').ladder)
+        .toEqual({ discipline: Discipline.SPORTSCAR, tier: 2 });
+    });
+
+    it('falls back to the round id for a round the championship no longer runs', () => {
+      const lost = skippedRound(makeChampionship(), 'main', makeEvent('bygone', '2026-03-01'), 'clash');
+
+      expect(lost.roundName).toBe('bygone');
+      expect(lost.number).toBe(0);
+    });
+  });
+
+  describe('advanceSkips', () => {
+    const entry = makeEntry({
+      events: [
+        makeEvent('one', '2026-03-01'),
+        makeEvent('two', '2026-05-03', { sessions: [makeRecord(0)] }),
+      ],
+    });
+    const season = makeSeason({ entries: [entry] });
+
+    it('lists every weekend of the career\'s over by the date', () => {
+      expect(advanceSkips(season, '2026-06-01').map((one) => [one.round, one.reason]))
+        .toEqual([['one', 'skipped'], ['two', 'partway']]);
+    });
+
+    it('costs nothing for a weekend the date falls inside', () => {
+      expect(advanceSkips(season, '2026-03-02')).toEqual([]);
+    });
+
+    it('leaves out what is already raced and what was given up', () => {
+      const withdrawn = makeEntry({ withdrawn: true, events: [makeEvent('one', '2026-03-01')] });
+      const raced = makeEntry({ events: [makeEvent('one', '2026-03-01', { status: 'raced' })] });
+
+      expect(advanceSkips(makeSeason({ entries: [withdrawn, raced] }), '2026-06-01')).toEqual([]);
+    });
+  });
+
+  describe('launchSkips', () => {
+    it('loses every earlier weekend still unraced', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(launchSkips(season, { entry, event: entry.events[1] }).map((one) => [one.round, one.reason]))
+        .toEqual([['one', 'skipped']]);
+    });
+
+    it('loses a weekend left part-way, even one later than this', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03', { sessions: [makeRecord(0)] })],
+      });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(launchSkips(season, { entry, event: entry.events[0] }).map((one) => [one.round, one.reason]))
+        .toEqual([['two', 'partway']]);
+    });
+
+    it('lists a weekend opening during this one as a clash rather than lost', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const other = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-02')],
+      });
+      const season = makeSeason({ entries: [entry, other] });
+
+      expect(launchSkips(season, { entry, event: entry.events[0] }).map((one) => [one.series, one.reason]))
+        .toEqual([['other-cup', 'clash']]);
+    });
+
+    it('costs nothing for a weekend raced in its turn', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+
+      expect(launchSkips(makeSeason({ entries: [entry] }), { entry, event: entry.events[0] })).toEqual([]);
+    });
+  });
+
+  describe('markMissed', () => {
+    it('marks the rounds listed as non-starts and leaves the rest', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+      const season = makeSeason({ entries: [entry] });
+      const marked = markMissed(season, [skippedRound(entry.championship, 'main', entry.events[0], 'skipped')]);
+
+      expect(marked.entries[0].events.map((one) => one.status)).toEqual(['missed', 'scheduled']);
+    });
+
+    it('touches only scheduled rounds, never one already raced', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01', { status: 'raced' })] });
+      const season = makeSeason({ entries: [entry] });
+      const marked = markMissed(season, [skippedRound(entry.championship, 'main', entry.events[0], 'skipped')]);
+
+      expect(marked.entries[0].events[0].status).toBe('raced');
+    });
+
+    it('leaves a withdrawn entry as it is', () => {
+      const entry = makeEntry({ withdrawn: true, events: [makeEvent('one', '2026-03-01')] });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(markMissed(season, [skippedRound(entry.championship, 'main', entry.events[0], 'skipped')]).entries[0])
+        .toBe(entry);
+    });
+
+    it('matches on the championship as well as the round', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const season = makeSeason({ entries: [entry] });
+      const elsewhere = { ...skippedRound(entry.championship, 'main', entry.events[0], 'skipped'), series: 'other-cup' };
+
+      expect(markMissed(season, [elsewhere]).entries[0].events[0].status).toBe('scheduled');
     });
   });
 
@@ -615,6 +715,10 @@ describe('main/career-store/utils', () => {
     it('pads an hour before ten to two digits', () => {
       expect(clockTime(9.25)).toBe('09:15');
       expect(clockTime(0)).toBe('00:00');
+    });
+
+    it('wraps midnight round to the start of the day', () => {
+      expect(clockTime(24)).toBe('00:00');
     });
   });
 
@@ -761,6 +865,61 @@ describe('main/career-store/utils', () => {
       expect(sessions[2].points).toEqual([{ position: 1, points: 25 }, { position: 3, points: 15 }]);
       expect(sessions[0].place).toBeNull();
       expect(sessions[0].points).toEqual([]);
+    });
+
+    it('hands the race\'s score to the race and nothing to any other session', () => {
+      const score: RoundScore = {
+        round: 'one',
+        recordedAt: '2026-03-08T16:00:00.000Z',
+        races: [{
+          launch: 2, session: null, name: 'Race', pointsSystem: 'standard', places: [],
+        }],
+      };
+      const sessions = sessionsOf([makeRecord(0), makeRecord(1), makeRecord(2)], true, score);
+
+      expect(sessions[2].score).toBe(score.races[0]);
+      expect(sessions[1].score).toBeNull();
+    });
+
+    it('never calls a place the player\'s when the driver their seat names took it', () => {
+      const score: RoundScore = {
+        round: 'one',
+        recordedAt: '2026-03-08T16:00:00.000Z',
+        races: [{
+          launch: 2,
+          session: null,
+          name: 'Race',
+          pointsSystem: 'standard',
+          places: [{
+            seat: 'seat-2', position: 1, points: 25, substitute: true,
+          } as RacePlace],
+        }],
+      };
+      const sessions = sessionsOf([makeRecord(0), makeRecord(1), makeRecord(2)], true, score);
+
+      expect(sessions[2].place).toBeNull();
+      expect(sessions[2].points).toEqual([{ position: 1, points: 25 }]);
+    });
+
+    it('starts a driven race in the order its qualifying set', () => {
+      const sessions = sessionsOf([makeRecord(0), makeRecord(1, [1, 2, 3, 0]), makeRecord(2, [1, 2, 3, 0])]);
+
+      expect(sessions[2].startOrder).toEqual([1, 2, 3, 0]);
+    });
+
+    // A simulated launch's car order is its grid already: no [CAR_n] list put
+    // the player first.
+    it('starts a simulated race in the order it records', () => {
+      const simulated = { ...makeRecord(2, [3, 2, 1, 0]), gridOrder: [3, 1, 2, 0], skipped: true };
+      const sessions = sessionsOf([makeRecord(0), makeRecord(1, [1, 2, 3, 0]), simulated]);
+
+      expect(sessions[2].startOrder).toEqual([3, 1, 2, 0]);
+    });
+
+    it('gives no start order to anything but a race that has run', () => {
+      const sessions = sessionsOf([makeRecord(0), makeRecord(1, [1, 2, 3, 0])]);
+
+      expect(sessions.map((one) => one.startOrder)).toEqual([null, null, null]);
     });
   });
 
@@ -1044,6 +1203,46 @@ describe('main/career-store/utils', () => {
       );
 
       expect(calendar.events).toEqual([]);
+    });
+  });
+
+  describe('simulatedEvent', () => {
+    const missed = makeEvent('one', '2026-03-01', { status: 'missed' });
+
+    it('races a round behind the clock and pays it', () => {
+      const event = simulatedEvent(makeChampionship(), missed, 'salt');
+
+      expect(event.simulated).toBe(true);
+      expect(event.sessions).toHaveLength(3);
+      expect(event.score?.races[0].places.map((place) => place.seat).sort()).toEqual(['seat-1', 'seat-2']);
+    });
+
+    // Nobody is the player in a championship the career is not in, so no seat
+    // is raced by a stand-in.
+    it('marks no place as a substitute\'s', () => {
+      const event = simulatedEvent(makeChampionship(), missed, 'salt');
+
+      expect(event.score?.races.flatMap((race) => race.places).some((place) => place.substitute)).toBe(false);
+    });
+
+    it('comes out the same every time it is asked', () => {
+      const once = simulatedEvent(makeChampionship(), missed, 'salt');
+      const again = simulatedEvent(makeChampionship(), missed, 'salt');
+
+      expect(again.sessions.map((one) => one.classification)).toEqual(once.sessions.map((one) => one.classification));
+    });
+
+    it('leaves a round still to come as it is', () => {
+      const scheduled = makeEvent('one', '2026-03-01');
+
+      expect(simulatedEvent(makeChampionship(), scheduled, 'salt')).toBe(scheduled);
+    });
+
+    it('leaves a round it cannot simulate as a plain non-start', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const unknown = makeEvent('bygone', '2026-03-01', { status: 'missed' });
+
+      expect(simulatedEvent(makeChampionship(), unknown, 'salt')).toBe(unknown);
     });
   });
 });

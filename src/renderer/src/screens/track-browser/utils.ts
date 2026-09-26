@@ -1,22 +1,18 @@
+import { M_PER_KM } from '../../../../shared/constants';
 import type { Track, TrackGroup } from '../../../../shared/types';
-import { isSafeSegment, trackOutlineUrl, trackPreviewUrl } from '../../../../shared/utils/content-url';
+import { isServableLayout, trackOutlineUrl, trackPreviewUrl } from '../../../../shared/utils/content-url';
 
 /**
  * Preview URLs for one layout, best first.
- *
- * The URL grammar rejects folder names containing spaces and anything else a
- * path could be smuggled through, so a candidate that could only ever answer
- * 400 is dropped here rather than being requested and failing.
  * @param track The layout to illustrate - only its folder and layout are read,
  * so a round naming one serves as well as a scanned layout
  * @returns Zero or more accontent:// URLs, in the order they should be tried
  */
-export const layoutImageSources = (track: Pick<Track, 'id' | 'layout'>): string[] => {
-  if (!isSafeSegment(track.id)) return [];
-  if (track.layout !== '' && !isSafeSegment(track.layout)) return [];
-
-  return [trackPreviewUrl(track.id, track.layout), trackOutlineUrl(track.id, track.layout)];
-};
+export const layoutImageSources = (track: Pick<Track, 'id' | 'layout'>): string[] => (
+  isServableLayout(track.id, track.layout)
+    ? [trackPreviewUrl(track.id, track.layout), trackOutlineUrl(track.id, track.layout)]
+    : []
+);
 
 /**
  * Map URLs for one layout, outline first.
@@ -48,48 +44,95 @@ export const trackImageSources = (group: TrackGroup): string[] => {
 };
 
 /**
- * Whether a track's real-world position is known, which is what CSP places the
- * sun and the weather against.
+ * Where a circuit is, from the first layout that knows both coordinates.
  *
  * Any located layout locates the circuit: they are the same place, and mods fill
  * the geotags in per layout, so one of them knowing is enough.
+ * @param layouts The layouts to look through
+ * @returns Its coordinates, or null when none is located
+ */
+export const coordinatesOf = (layouts: readonly Pick<Track, 'geotags'>[]): { lat: number; lon: number } | null => {
+  for (const { geotags: { lat, lon } } of layouts) {
+    if (lat !== null && lon !== null) return { lat, lon };
+  }
+
+  return null;
+};
+
+/**
+ * Whether a track's real-world position is known, which is what CSP places the
+ * sun and the weather against.
  * @param group The track to check
  * @returns True when some layout knows both coordinates
  */
-export const isLocated = (group: TrackGroup): boolean => group.layouts.some(
-  (track) => track.geotags.lat !== null && track.geotags.lon !== null,
+export const isLocated = (group: TrackGroup): boolean => coordinatesOf(group.layouts) !== null;
+
+/**
+ * The smallest and largest of the figures a set of layouts states for one
+ * field.
+ *
+ * A span rather than one figure because the Nordschleife ships a 3.8 km sprint
+ * and a 25.4 km endurance layout under one folder, and picking either of them
+ * to stand for the circuit would be a lie.
+ * @param layouts The layouts to measure
+ * @param read Reads the figure off one layout
+ * @returns The span, or null when none states it
+ */
+export const spanOf = (
+  layouts: readonly Track[],
+  read: (layout: Track) => number | null,
+): { from: number; to: number } | null => {
+  const known = layouts.map(read).filter((value): value is number => value !== null);
+
+  return known.length === 0 ? null : { from: Math.min(...known), to: Math.max(...known) };
+};
+
+/**
+ * Where a layout's outline is served from.
+ * @param track The layout to draw
+ * @returns The outline's accontent:// URL, or null when its folder names could
+ * only ever answer 400
+ */
+export const layoutOutline = (track: Pick<Track, 'id' | 'layout'>): string | null => (
+  isServableLayout(track.id, track.layout) ? trackOutlineUrl(track.id, track.layout) : null
 );
 
 /**
- * The range of grid sizes a track's layouts allow.
- * @param group The track to measure
- * @returns The smallest and largest stated pit box counts, or null when none is
+ * Writes a span of figures out, as one figure when both ends read the same.
+ * @param span The smallest and largest, or null when nothing is stated
+ * @param format Writes one figure out
+ * @returns The span as text, or null when there is none
  */
-export const pitboxRange = (group: TrackGroup): { from: number; to: number } | null => {
-  const known = group.layouts
-    .map((track) => track.pitboxes)
-    .filter((pitboxes): pitboxes is number => pitboxes !== null);
+export const spanText = (
+  span: { from: number; to: number } | null,
+  format: (figure: number) => string,
+): string | null => {
+  if (span === null) return null;
 
-  if (known.length === 0) return null;
+  // Compared as written, so two lengths that round to the same figure read as one.
+  const [from, to] = [format(span.from), format(span.to)];
 
-  return { from: Math.min(...known), to: Math.max(...known) };
+  return from === to ? from : `${from}-${to}`;
 };
 
 /**
- * The range of lap lengths a track's layouts cover, in metres.
- *
- * A range rather than one figure for the same reason pit boxes are: the
- * Nordschleife ships a 3.8 km sprint and a 25.4 km endurance layout under one
- * folder, and picking either of them to stand for the circuit would be a lie.
- * @param group The track to measure
- * @returns The shortest and longest stated lengths, or null when none is stated
+ * Writes metres out as kilometres to one decimal place, without a unit, for a
+ * figure whose unit is written beside it.
+ * @param metres The distance
+ * @param formatNumber The locale's number formatter
+ * @returns The kilometres as text
  */
-export const lengthRange = (group: TrackGroup): { from: number; to: number } | null => {
-  const known = group.layouts
-    .map((track) => track.lengthM)
-    .filter((length): length is number => length !== null);
+export const kilometres = (metres: number, formatNumber: (value: number) => string): string => (
+  formatNumber(Math.round((metres / M_PER_KM) * 10) / 10)
+);
 
-  if (known.length === 0) return null;
-
-  return { from: Math.min(...known), to: Math.max(...known) };
-};
+/**
+ * A set of layouts' lap lengths in kilometres, without a unit: one figure, or
+ * the span from the shortest to the longest.
+ * @param layouts The layouts
+ * @param formatNumber The locale's number formatter
+ * @returns The lengths as text, or null when none is stated
+ */
+export const lengthText = (layouts: readonly Track[], formatNumber: (value: number) => string): string | null => (
+  spanText(spanOf(layouts, (layout) => layout.lengthM), (metres) => kilometres(metres, formatNumber))
+);

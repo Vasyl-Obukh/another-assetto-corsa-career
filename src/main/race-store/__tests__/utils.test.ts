@@ -3,9 +3,11 @@ import {
 } from '@jest/globals';
 import { readFile, rename, writeFile } from 'node:fs/promises';
 
-import type { RaceOut, WeekendState } from '../../../shared/types/index.ts';
+import type {
+  RaceOut, RaceSetup, ResultRecord, Track, WeekendState,
+} from '../../../shared/types/index.ts';
 import {
-  isArchiveName, progressOf, readJson, readRecord, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, slotHolds, withLayout, writeJson,
 } from '../utils.ts';
 
 jest.mock('node:fs/promises');
@@ -215,6 +217,79 @@ describe('main/race-store/utils', () => {
       readFileMock.mockRejectedValue(enoent());
 
       await expect(readRecord(name, `D:\\results\\${name}`)).resolves.toBeNull();
+    });
+  });
+
+  describe('withLayout', () => {
+    /**
+     * An archived result of a race run at a track AC names as given.
+     * @param track The track as race_out.json writes it
+     * @returns The record
+     */
+    const ranAt = (track: string): ResultRecord => ({
+      file: '2026-09-11T18-00-00-000Z.json',
+      recordedAt: '2026-09-11T18:00:00.000Z',
+      summary: { track, sessions: [] },
+    });
+
+    /**
+     * An installed layout.
+     * @param id Track folder name
+     * @param folder Layout folder name, empty for a single-layout track
+     * @param name What it is called
+     * @returns As much of a Track as the lookup reads
+     */
+    const layout = (id: string, folder: string, name: string): Track => ({ id, layout: folder, name }) as Track;
+
+    it('names the layout a result ran on, which AC joins to its folder by a hyphen', () => {
+      const tracks = [layout('ks_nordschleife', 'endurance', 'Nordschleife - Endurance')];
+
+      expect(withLayout(ranAt('ks_nordschleife-endurance'), tracks).layout)
+        .toEqual({ id: 'ks_nordschleife', layout: 'endurance', name: 'Nordschleife - Endurance' });
+    });
+
+    it('names a single-layout track by its folder alone', () => {
+      expect(withLayout(ranAt('magione'), [layout('magione', '', 'Magione')]).layout)
+        .toEqual({ id: 'magione', layout: '', name: 'Magione' });
+    });
+
+    it('leaves a result whose track is no longer installed as it was', () => {
+      const record = ranAt('gone-gp');
+
+      expect(withLayout(record, [layout('monza', '', 'Monza')])).toBe(record);
+    });
+  });
+
+  describe('slotHolds', () => {
+    /**
+     * The race store holding a race some way through.
+     * @param id The race in the slot
+     * @param completed How many of its launches have run, or null for no state
+     * @returns As much of a setup as the check reads
+     */
+    const holding = (id: string, completed: number | null): RaceSetup => ({
+      definition: { id },
+      state: completed === null ? null : { completed: Array.from({ length: completed }) },
+    }) as unknown as RaceSetup;
+
+    it('carries on when the slot holds the weekend exactly as far as it has run', () => {
+      expect(slotHolds(holding('lotus-cup/monza', 2), 'lotus-cup/monza', 2)).toBe(true);
+    });
+
+    it('puts the weekend back when the slot holds another race', () => {
+      expect(slotHolds(holding('quick/race', 2), 'lotus-cup/monza', 2)).toBe(false);
+    });
+
+    it('puts the weekend back when the slot holds it at another point', () => {
+      expect(slotHolds(holding('lotus-cup/monza', 1), 'lotus-cup/monza', 2)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 2)).toBe(false);
+    });
+
+    // Whatever set the slot up may since have been edited or had its forecast
+    // issued, so the first launch always races what the weekend says now.
+    it('always puts a weekend back before its first launch', () => {
+      expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0)).toBe(false);
     });
   });
 });

@@ -11,12 +11,14 @@
 // a handful of spans rather than with a document.
 
 import type { DatedRound, DateSpan, RoundSpan } from './types.ts';
-import { addDays, raceDayOnOrAfter, toDayNumber } from './utils.ts';
+import { raceDayOnOrAfter } from './utils.ts';
 import { DAYS_PER_WEEK, SEASON_WEEKS } from '../../shared/constants/index.ts';
 import type { SeasonLength } from '../../shared/types/index.ts';
+import { addDays, toDayNumber } from '../../shared/utils/calendar-days/index.ts';
 
 export type { DatedRound, DateSpan, RoundSpan } from './types.ts';
-export { addDays, raceDayOnOrAfter, toDayNumber } from './utils.ts';
+export { raceDayOnOrAfter } from './utils.ts';
+export { addDays, toDayNumber } from '../../shared/utils/calendar-days/index.ts';
 
 /**
  * Dates every round of a season, spread evenly across the weeks it runs over.

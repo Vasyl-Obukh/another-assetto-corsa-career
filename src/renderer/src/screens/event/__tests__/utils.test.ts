@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next';
 
 import type { EventSession, EventSessionStatus, LaunchRecord } from '../../../../../shared/types';
 import {
-  defaultSession, dotted, entryImageSources, playerPosition, sessionLength,
+  defaultSession, dotted, playerPosition, sessionLength,
 } from '../utils.ts';
 
 /**
@@ -25,6 +25,8 @@ const session = (overrides: Partial<EventSession> = {}): EventSession => ({
   startSlot: null,
   place: null,
   points: [],
+  startOrder: null,
+  score: null,
   ...overrides,
 });
 
@@ -108,29 +110,6 @@ describe('renderer/screens/event/utils', () => {
     });
   });
 
-  describe('entryImageSources', () => {
-    it('offers the livery first and the badge behind it when a livery was picked', () => {
-      expect(entryImageSources('ks_mazda_mx5_cup', 'red_01')).toEqual([
-        'accontent://car/ks_mazda_mx5_cup/skin/red_01',
-        'accontent://car/ks_mazda_mx5_cup/badge',
-      ]);
-    });
-
-    it('offers the badge alone when no livery was picked', () => {
-      expect(entryImageSources('ks_mazda_mx5_cup'))
-        .toEqual(['accontent://car/ks_mazda_mx5_cup/badge']);
-    });
-
-    it('offers nothing for a car folder the URL grammar would refuse', () => {
-      expect(entryImageSources('../secrets', 'red_01')).toEqual([]);
-    });
-
-    it('falls back to the badge when the livery folder is the unsafe one', () => {
-      expect(entryImageSources('ks_mazda_mx5_cup', '../secrets'))
-        .toEqual(['accontent://car/ks_mazda_mx5_cup/badge']);
-    });
-  });
-
   describe('sessionLength', () => {
     it('states a session measured in laps as laps', () => {
       expect(sessionLength(session({ laps: 12 }), translate, formatNumber))
@@ -150,7 +129,7 @@ describe('renderer/screens/event/utils', () => {
 
     it('shows a race\'s distance beside the laps it comes to', () => {
       expect(sessionLength(session({ type: 'race', laps: 44, distance: 305 }), translate, formatNumber))
-        .toBe('championships.calendar.raceDistance('
+        .toBe('championships.detail.lengthDistance('
           + 'distance=championships.format.distance(value=#305),'
           + 'laps=championships.format.laps(count=44))');
     });

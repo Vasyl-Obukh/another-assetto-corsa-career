@@ -1,22 +1,24 @@
-import { FileTextIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { ChoiceChips } from './ChoiceChips.tsx';
 import {
   CLIMATES, DEFAULT_CLIMATE, DEFAULT_HEMISPHERE, HEMISPHERES, MIN_MONEY, SEASON_LENGTHS,
 } from './constants.ts';
-import { EditorSection } from './EditorSection.tsx';
 import { NumberField } from './NumberField.tsx';
+import { PaneHeading } from './PaneHeading.tsx';
+import { SwitchLine } from './SwitchLine.tsx';
 import { optionalText } from './utils.ts';
 import { DEFAULT_SEASON_LENGTH } from '../../../../shared/constants';
 import type {
   Championship, Climate, Hemisphere, SeasonLength,
 } from '../../../../shared/types';
-import { FieldGrid, ToggleButton } from '@/components';
+import { Card } from '@/components/ui/card.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
+import { CLIMATE_ACCENT } from '@/lib/accents';
 import { Field } from '@/screens/race';
 
 interface DetailsCardProps {
@@ -37,15 +39,16 @@ interface DetailsCardProps {
 
 export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
   const { t } = useTranslation();
+  const weather = series.generatedWeather;
 
   return (
-    <EditorSection
-      icon={<FileTextIcon />}
-      title={t('editor.details.title')}
-      className="flex flex-col gap-4"
-    >
-      {/* No id field on purpose: it is minted, never read, and never changes. */}
-      <FieldGrid>
+    // Two panes rather than one form: what the championship is called, and how
+    // its season runs, are two different questions.
+    <Card className="grid gap-0 py-0 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="flex flex-col gap-4 p-6">
+        <PaneHeading>{t('editor.details.identity')}</PaneHeading>
+
+        {/* No id field on purpose: it is minted, never read, and never changes. */}
         <Field id="editor-name" label={t('editor.details.name')}>
           <Input
             id="editor-name"
@@ -55,121 +58,111 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
           />
         </Field>
 
-        <NumberField
-          id="editor-entry-fee"
-          label={t('editor.details.entryFee')}
-          hint={t('editor.details.entryFeeHint')}
-          value={series.entryFee}
-          min={MIN_MONEY}
-          disabled={locked}
-          onChange={(entryFee) => onChange({ ...series, entryFee })}
-        />
-
-        <Field
-          id="editor-season-length"
-          label={t('editor.details.seasonLength')}
-          hint={t('editor.details.seasonLengthHint')}
-        >
-          <Select
-            value={series.seasonLength ?? DEFAULT_SEASON_LENGTH}
+        <Field id="editor-description" label={t('editor.details.description')}>
+          <Textarea
+            id="editor-description"
+            className="min-h-28"
+            value={series.description ?? ''}
             disabled={locked}
-            onValueChange={(value) => onChange({
+            onChange={(event) => onChange({
               ...series,
-              seasonLength: value as SeasonLength,
-            })}
-          >
-            <SelectTrigger id="editor-season-length" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SEASON_LENGTHS.map((length) => (
-                <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field
-          id="editor-generated-weather"
-          label={t('editor.details.generatedWeather')}
-          hint={t('editor.details.generatedWeatherHint')}
-        >
-          <ToggleButton
-            id="editor-generated-weather"
-            value={series.generatedWeather !== undefined}
-            disabled={locked}
-            // Switched on at the middle climate, since on means "from a climate"
-            // and there is no way to say which without picking one.
-            onChange={(on) => onChange({
-              ...series,
-              generatedWeather: on ? { climate: DEFAULT_CLIMATE } : undefined,
+              description: optionalText(event.target.value),
             })}
           />
         </Field>
+      </div>
 
-        {series.generatedWeather ? (
-          <Field id="editor-climate" label={t('editor.details.climate')}>
+      <div className="flex flex-col gap-4 border-t p-6 lg:border-t-0 lg:border-l">
+        <PaneHeading>{t('editor.details.season')}</PaneHeading>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NumberField
+            id="editor-entry-fee"
+            label={t('editor.details.entryFee')}
+            hint={t('editor.details.entryFeeShort')}
+            value={series.entryFee}
+            min={MIN_MONEY}
+            disabled={locked}
+            onChange={(entryFee) => onChange({ ...series, entryFee })}
+          />
+
+          <Field
+            id="editor-season-length"
+            label={t('editor.details.seasonLength')}
+            hint={t('editor.details.seasonLengthShort')}
+          >
             <Select
-              value={series.generatedWeather.climate}
+              value={series.seasonLength ?? DEFAULT_SEASON_LENGTH}
               disabled={locked}
               onValueChange={(value) => onChange({
                 ...series,
-                generatedWeather: { ...series.generatedWeather, climate: value as Climate },
+                seasonLength: value as SeasonLength,
               })}
             >
-              <SelectTrigger id="editor-climate" className="w-full">
+              <SelectTrigger id="editor-season-length" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CLIMATES.map((climate) => (
-                  <SelectItem key={climate} value={climate}>{t(`climate.${climate}`)}</SelectItem>
+                {SEASON_LENGTHS.map((length) => (
+                  <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
-        ) : null}
+        </div>
 
-        {series.generatedWeather ? (
-          <Field id="editor-hemisphere" label={t('editor.details.hemisphere')}>
-            <Select
-              value={series.generatedWeather.hemisphere ?? DEFAULT_HEMISPHERE}
-              disabled={locked}
-              onValueChange={(value) => onChange({
-                ...series,
-                generatedWeather: {
-                  ...series.generatedWeather,
-                  climate: series.generatedWeather?.climate ?? DEFAULT_CLIMATE,
-                  hemisphere: value as Hemisphere,
-                },
-              })}
-            >
-              <SelectTrigger id="editor-hemisphere" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HEMISPHERES.map((hemisphere) => (
-                  <SelectItem key={hemisphere} value={hemisphere}>
-                    {t(`hemisphere.${hemisphere}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        ) : null}
-      </FieldGrid>
-
-      <Field id="editor-description" label={t('editor.details.description')}>
-        <Textarea
-          id="editor-description"
-          className="max-w-4xl"
-          value={series.description ?? ''}
+        <SwitchLine
+          id="editor-generated-weather"
+          label={t('editor.details.generatedWeather')}
+          hint={t('editor.details.generatedWeatherShort')}
+          value={weather !== undefined}
           disabled={locked}
-          onChange={(event) => onChange({
+          // Switched on at the middle climate, since on means "from a climate"
+          // and there is no way to say which without picking one.
+          onChange={(on) => onChange({
             ...series,
-            description: optionalText(event.target.value),
+            generatedWeather: on ? { climate: DEFAULT_CLIMATE } : undefined,
           })}
         />
-      </Field>
-    </EditorSection>
+
+        {weather ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t('editor.details.climate')}</span>
+            {/* In the climate's own colour, as its badge is everywhere else. */}
+            <ChoiceChips<Climate>
+              label={t('editor.details.climate')}
+              options={CLIMATES}
+              value={weather.climate}
+              labelOf={(climate) => t(`climate.${climate}`)}
+              accentOf={(climate) => CLIMATE_ACCENT[climate]}
+              disabled={locked}
+              onChange={(climate) => onChange({
+                ...series,
+                generatedWeather: { ...weather, climate },
+              })}
+            />
+          </div>
+        ) : null}
+
+        {weather ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t('editor.details.hemisphere')}</span>
+            {/* Neutral on purpose: which half of the world is a setting, not
+                something any other screen shows as a chip to match. */}
+            <ChoiceChips<Hemisphere>
+              label={t('editor.details.hemisphere')}
+              options={HEMISPHERES}
+              value={weather.hemisphere ?? DEFAULT_HEMISPHERE}
+              labelOf={(hemisphere) => t(`hemisphere.${hemisphere}`)}
+              disabled={locked}
+              onChange={(hemisphere) => onChange({
+                ...series,
+                generatedWeather: { ...weather, hemisphere },
+              })}
+            />
+          </div>
+        ) : null}
+      </div>
+    </Card>
   );
 };

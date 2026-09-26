@@ -25,19 +25,9 @@ export type ClassDialog =
   }
   | {
     /**
-     * A new spec in a class.
+     * Moving a spec to another class.
      */
-    kind: 'add-spec';
-    /**
-     * The class it goes in.
-     */
-    carClass: CatalogueClass;
-  }
-  | {
-    /**
-     * Renaming a spec, or moving it to another class.
-     */
-    kind: 'rename-spec' | 'move-spec';
+    kind: 'move-spec';
     /**
      * The spec acted on.
      */
@@ -65,3 +55,28 @@ export interface ClassDeleting {
    */
   carClass: string;
 }
+
+/**
+ * What the spec sheet is open on: a spec to edit, or a class to make one in.
+ */
+export type SpecSheetTarget =
+  | {
+    /**
+     * An existing spec, its name and cars.
+     */
+    kind: 'edit';
+    /**
+     * The spec.
+     */
+    spec: CatalogueSpec;
+  }
+  | {
+    /**
+     * A spec not made yet.
+     */
+    kind: 'new';
+    /**
+     * The class it goes in.
+     */
+    carClass: CatalogueClass;
+  };

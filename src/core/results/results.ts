@@ -164,6 +164,9 @@ export const summarise = (raceOut: RaceOut): RaceSummary => {
         cuts: own.reduce((sum, lap) => sum + (lap.cuts ?? 0), 0),
         bestLap: valid.length ? Math.min(...valid.map((lap) => lap.time)) : null,
         totalTime: valid.reduce((sum, lap) => sum + lap.time, 0),
+        slot: index,
+        // [CAR_0] is always the player, whatever name Content Manager wrote.
+        ...(index === 0 ? { player: true } : {}),
       };
     });
 

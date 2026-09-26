@@ -1,122 +1,156 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { makeSkin } from './fixtures.ts';
-import type { ClassCatalogue } from '../../../../../shared/types';
-import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
+import { Discipline } from '../../../../../shared/types';
+import type {
+  Championship, ClassEntry, Eligibility, Round, SeriesListing, SpecId,
+} from '../../../../../shared/types';
+import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import {
-  pickedSpecs, seedPicks, skinImageSources, togglePick,
+  carChampionships, curveAxis, curvePath, rpmTicks,
 } from '../utils.ts';
 
 /**
- * A catalogue holding a class with one spec and a class with two, both the
- * user's, so no test depends on how the shipped tables are laid out.
+ * A class entry racing to one rule, which is all carChampionships reads off it.
+ * @param id The entry's id
+ * @param eligibility The cars it may field
+ * @returns The entry
  */
-const CATALOGUE: ClassCatalogue = resolveCatalogue({
-  version: 1,
-  classes: [{ id: 'single', name: 'Single' }, { id: 'double', name: 'Double' }],
-  specs: [
-    { id: 'single-a', name: 'Single A', class: 'single' },
-    { id: 'double-a', name: 'Double A', class: 'double' },
-    { id: 'double-b', name: 'Double B', class: 'double' },
-  ],
-  cars: { my_mod: ['double-b', 'single-a'] },
-});
+const entry = (id: string, eligibility: Eligibility): ClassEntry => (({
+  id,
+  name: id,
+  ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
+  seats: [],
+  eligibility,
+}));
+
+/**
+ * A listing of one championship, built from what carChampionships reads.
+ * @param id The championship's id
+ * @param entries Its class entries
+ * @param rounds Its rounds, where one overrides an entry's cars
+ * @returns The listing
+ */
+const listing = (
+  id: string,
+  entries: readonly ClassEntry[],
+  rounds: readonly Partial<Round>[] = [],
+): SeriesListing => ({
+  series: {
+    id, name: `${id} name`, entries, rounds,
+  } as unknown as Championship,
+} as SeriesListing);
 
 describe('renderer/screens/car-detail/utils', () => {
-  describe('seedPicks', () => {
-    it('opens on the car as it stands, classes in catalogue order', () => {
-      expect(seedPicks('my_mod', CATALOGUE)).toEqual({
-        classes: ['single', 'double'],
-        specs: { single: 'single-a', double: 'double-b' },
+  describe('carChampionships', () => {
+    const cars = (...ids: string[]): Eligibility => ({ kind: 'cars', cars: ids });
+
+    it('lists each championship fielding the car, with the classes that may field it', () => {
+      const gt3 = entry('gt3', cars('ks_audi_r8', 'ks_ferrari_488'));
+      const gt4 = entry('gt4', cars('ks_maserati_gt4'));
+      const both = entry('pro-am', cars('ks_audi_r8'));
+
+      expect(carChampionships('ks_audi_r8', [listing('gtwc', [gt3, gt4, both])], SHIPPED_CATALOGUE)).toEqual([
+        { id: 'gtwc', name: 'gtwc name', entries: [gt3, both] },
+      ]);
+    });
+
+    it('leaves out a championship that never fields the car', () => {
+      const listings = [
+        listing('mx5', [entry('mx5', cars('ks_mazda_mx5_cup'))]),
+        listing('gtwc', [entry('gt3', cars('ks_audi_r8'))]),
+      ];
+
+      expect(carChampionships('ks_audi_r8', listings, SHIPPED_CATALOGUE).map((one) => one.id)).toEqual(['gtwc']);
+    });
+
+    it('keeps the order the championships are listed in', () => {
+      const listings = ['b', 'a', 'c'].map((id) => listing(id, [entry('main', cars('ks_audi_r8'))]));
+
+      expect(carChampionships('ks_audi_r8', listings, SHIPPED_CATALOGUE).map((one) => one.id))
+        .toEqual(['b', 'a', 'c']);
+    });
+
+    // An IndyCar-shaped calendar runs a road kit at three rounds only, and the
+    // car still races in the championship.
+    it('counts a car a round fields in place of the class rule', () => {
+      const oval = entry('indycar', cars('indycar_oval'));
+      const series = listing('indycar', [oval], [{
+        eligibility: [{ entry: 'indycar', eligibility: cars('indycar_road') }],
+      }]);
+
+      expect(carChampionships('indycar_road', [series], SHIPPED_CATALOGUE)).toEqual([
+        { id: 'indycar', name: 'indycar name', entries: [oval] },
+      ]);
+    });
+
+    it('reads a spec rule through the catalogue', () => {
+      const [spec, specCars] = [...SHIPPED_CATALOGUE.carsBySpec].find(([, ids]) => ids.length > 0) as [
+        SpecId, readonly string[],
+      ];
+      const ruled = entry('spec', { kind: 'spec', spec });
+
+      expect(carChampionships(specCars[0], [listing('spec-cup', [ruled])], SHIPPED_CATALOGUE)).toEqual([
+        { id: 'spec-cup', name: 'spec-cup name', entries: [ruled] },
+      ]);
+    });
+
+    it('is empty when nothing races the car', () => {
+      expect(carChampionships('ks_audi_r8', [], SHIPPED_CATALOGUE)).toEqual([]);
+    });
+  });
+
+  describe('curveAxis', () => {
+    // 511 bhp would otherwise top out at an unlabelled 511.
+    it('tops the axis at the next round figure above the peak', () => {
+      expect(curveAxis([[1000, 120], [6000, 511], [8000, 480]])).toEqual({
+        max: 600, ticks: [0, 150, 300, 450, 600],
       });
     });
 
-    it('opens empty for a car on no grid', () => {
-      expect(seedPicks('unknown_mod', SHIPPED_CATALOGUE)).toEqual({ classes: [], specs: {} });
+    it('keeps a peak that is already a round figure as the top', () => {
+      expect(curveAxis([[1000, 400]])).toEqual({ max: 400, ticks: [0, 100, 200, 300, 400] });
+    });
+
+    it('rounds the step between gridlines, whatever power of ten the peak falls in', () => {
+      expect(curveAxis([[1000, 47]])?.ticks).toEqual([0, 12, 24, 36, 48]);
+      expect(curveAxis([[1000, 1180]])?.ticks).toEqual([0, 300, 600, 900, 1200]);
+    });
+
+    it('has no axis for an empty curve', () => {
+      expect(curveAxis([])).toBeNull();
+    });
+
+    it('has no axis for a curve that never leaves zero', () => {
+      expect(curveAxis([[1000, 0], [2000, 0]])).toBeNull();
     });
   });
 
-  describe('togglePick', () => {
-    it('ticks a class into catalogue order, whatever order it was ticked in', () => {
-      const picks = togglePick({ classes: ['double'], specs: {} }, 'single', CATALOGUE);
-
-      expect(picks.classes).toEqual(['single', 'double']);
+  describe('rpmTicks', () => {
+    it('labels every thousand rpm across the range', () => {
+      expect(rpmTicks(1000, 4000)).toEqual([1000, 2000, 3000, 4000]);
     });
 
-    it('chooses the spec of a class that has only one', () => {
-      expect(togglePick({ classes: [], specs: {} }, 'single', CATALOGUE).specs).toEqual({ single: 'single-a' });
+    it('starts at the first thousand inside the range', () => {
+      expect(rpmTicks(850, 3200)).toEqual([1000, 2000, 3000]);
     });
 
-    it('leaves the spec of a class with several for the second step', () => {
-      expect(togglePick({ classes: [], specs: {} }, 'double', CATALOGUE).specs).toEqual({});
-    });
-
-    // Kept rather than cleared, so unticking a class by mistake and ticking it
-    // again does not lose the spec picked for it.
-    it('unticks a class and remembers the spec it held', () => {
-      const picks = togglePick({ classes: ['double'], specs: { double: 'double-b' } }, 'double', CATALOGUE);
-
-      expect(picks).toEqual({ classes: [], specs: { double: 'double-b' } });
+    it('is empty when no thousand falls inside the range', () => {
+      expect(rpmTicks(1100, 1900)).toEqual([]);
     });
   });
 
-  describe('pickedSpecs', () => {
-    it('reads one spec per chosen class', () => {
-      expect(pickedSpecs({ classes: ['single', 'double'], specs: { single: 'single-a', double: 'double-a' } }))
-        .toEqual(['single-a', 'double-a']);
+  describe('curvePath', () => {
+    it('moves to the first point and draws a line through the rest', () => {
+      expect(curvePath([[1000, 10], [2000, 20], [3000, 15]], (rpm) => rpm / 100, (value) => 100 - value))
+        .toBe('M10.0,90.0L20.0,80.0L30.0,85.0');
     });
 
-    it('ignores a spec remembered for a class no longer chosen', () => {
-      expect(pickedSpecs({ classes: ['single'], specs: { single: 'single-a', double: 'double-a' } }))
-        .toEqual(['single-a']);
+    it('writes each coordinate to one decimal place', () => {
+      expect(curvePath([[1, 1]], () => 1 / 3, () => 2 / 3)).toBe('M0.3,0.7');
     });
 
-    it('holds nothing to save while a chosen class lacks a spec', () => {
-      expect(pickedSpecs({ classes: ['single', 'double'], specs: { single: 'single-a' } })).toBeNull();
-    });
-
-    it('saves no specs at all when no class is chosen', () => {
-      expect(pickedSpecs({ classes: [], specs: {} })).toEqual([]);
-    });
-  });
-
-  describe('skinImageSources', () => {
-    it('prefers the livery photo, with the car badge behind it', () => {
-      expect(skinImageSources('ks_ferrari_488_gt3', makeSkin('00_rosso_scuderia'))).toEqual([
-        'accontent://car/ks_ferrari_488_gt3/skin/00_rosso_scuderia',
-        'accontent://car/ks_ferrari_488_gt3/badge',
-      ]);
-    });
-
-    // Mod liveries are routinely named "2024_WEC_27_Heart Of Racing". Spaces are
-    // legal in a segment and must not cost the livery its photo.
-    it('serves a livery whose folder name contains spaces', () => {
-      expect(skinImageSources('yzd_oreca_07_2017', makeSkin('1 Oreca Showcar'))).toEqual([
-        'accontent://car/yzd_oreca_07_2017/skin/1%20Oreca%20Showcar',
-        'accontent://car/yzd_oreca_07_2017/badge',
-      ]);
-    });
-
-    it('falls back to the badge when the livery folder could never be served', () => {
-      expect(skinImageSources('yzd_oreca_07_2017', makeSkin('bad/name')))
-        .toEqual(['accontent://car/yzd_oreca_07_2017/badge']);
-    });
-
-    it('offers nothing at all when the car folder itself cannot be served', () => {
-      expect(skinImageSources('a/b', makeSkin('plain'))).toEqual([]);
-    });
-
-    it('percent-encodes an id rather than letting it break the URL', () => {
-      expect(skinImageSources('car#1', makeSkin('skin#2'))).toEqual([
-        'accontent://car/car%231/skin/skin%232',
-        'accontent://car/car%231/badge',
-      ]);
-    });
-
-    it('reads the folder name, not the display name', () => {
-      const skin = makeSkin('00_rosso_scuderia', { name: 'Rosso Scuderia' });
-      expect(skinImageSources('ks_ferrari_488_gt3', skin)[0])
-        .toBe('accontent://car/ks_ferrari_488_gt3/skin/00_rosso_scuderia');
+    it('is empty for an empty curve', () => {
+      expect(curvePath([], (rpm) => rpm, (value) => value)).toBe('');
     });
   });
 });

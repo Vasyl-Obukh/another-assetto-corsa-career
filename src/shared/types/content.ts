@@ -244,9 +244,39 @@ export interface Car {
    */
   performance: CarPerformance;
   /**
+   * The author's own description from ui_car.json as plain text, line breaks
+   * kept, or null when there is none.
+   */
+  description: string | null;
+  /**
+   * The power and torque curves from ui_car.json, or null when the author
+   * shipped neither.
+   */
+  curves: CarCurves | null;
+  /**
    * Base game, DLC or mod, and who made or redistributed it.
    */
   provenance: ContentProvenance;
+}
+
+/**
+ * One point of a curve: engine speed in rpm, and the value there.
+ */
+export type CurvePoint = readonly [rpm: number, value: number];
+
+/**
+ * A car's power and torque across its rev range, as ui_car.json states them.
+ * Either may be empty when the author shipped only the other.
+ */
+export interface CarCurves {
+  /**
+   * Power in bhp, in rising rpm order.
+   */
+  power: CurvePoint[];
+  /**
+   * Torque in Nm, in rising rpm order.
+   */
+  torque: CurvePoint[];
 }
 
 /**
@@ -262,6 +292,11 @@ export interface Geotags {
    */
   lon: number | null;
 }
+
+/**
+ * Which way round a layout is driven.
+ */
+export type TrackRun = 'clockwise' | 'anticlockwise';
 
 /**
  * One track layout. A track with several layouts produces one entry per layout.
@@ -307,6 +342,44 @@ export interface Track {
    * Real-world position, for CSP.
    */
   geotags: Geotags;
+  /**
+   * Town or region from ui_track.json, or null when the mod omits it.
+   */
+  city: string | null;
+  /**
+   * Which way round it is driven, or null when ui_track.json does not say in
+   * words this reads.
+   */
+  run: TrackRun | null;
+  /**
+   * The author's description from ui_track.json as plain text, or null.
+   */
+  description: string | null;
+  /**
+   * Free-text tags from ui_track.json.
+   */
+  tags: string[];
+  /**
+   * Who made it, as ui_track.json says, or null.
+   */
+  author: string | null;
+  /**
+   * The mod's own version string, or null.
+   */
+  version: string | null;
+  /**
+   * Year from ui_track.json, or null when absent or implausible.
+   */
+  year: number | null;
+  /**
+   * The loading-screen photographs in the layout's ui folder, by name without
+   * the extension - `bgr00` and on - sorted. Empty for most mods.
+   */
+  photos: string[];
+  /**
+   * Whether the layout's ui folder ships a logo.
+   */
+  logo: boolean;
   /**
    * Base game, DLC or mod, and who made or redistributed it. Per layout, since
    * a redistributor can add layouts to a track it did not ship.

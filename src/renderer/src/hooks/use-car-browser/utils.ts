@@ -1,5 +1,6 @@
 import type { CarCriteria } from './types.ts';
 import type { CarQuery, ClassCatalogue } from '../../../../shared/types';
+import { racedIds } from '@/lib/racing-index';
 
 /**
  * Drops any class or spec the catalogue no longer has from the filters.
@@ -28,17 +29,26 @@ export const withKnownClasses = (criteria: CarCriteria, catalogue: ClassCatalogu
  * @param criteria The filters and sort currently applied
  * @param search The search text, once it has stopped changing
  * @param base A query every request is narrowed by, or undefined
+ * @param raced Everything a championship races, or undefined until that is
+ *   known - in which case the raced switch waits rather than emptying the list
  * @returns The query to send, with empty search omitted rather than sent blank
  */
 export const toCarQuery = (
   criteria: CarCriteria,
   search: string,
   base?: CarQuery,
-): CarQuery => ({
-  ...criteria,
-  ...(search.trim() === '' ? {} : { search: search.trim() }),
-  ...base,
-});
+  raced?: readonly string[],
+): CarQuery => {
+  const { raced: onlyRaced, view, ...rest } = criteria;
+  const ids = onlyRaced === true && raced !== undefined ? racedIds(base?.ids, raced) : base?.ids;
+
+  return {
+    ...rest,
+    ...(search.trim() === '' ? {} : { search: search.trim() }),
+    ...base,
+    ...(ids === undefined ? {} : { ids }),
+  };
+};
 
 /**
  * A stable identity for a query, so that changing it starts the list over.
@@ -56,7 +66,7 @@ export const carQueryKey = (query: CarQuery): string => JSON.stringify(query);
 export const isCarFiltered = (criteria: CarCriteria, search: string): boolean => (
   search.trim() !== ''
   || Object.entries(criteria).some(([key, value]) => {
-    if (key === 'sort' || key === 'direction') return false;
+    if (key === 'sort' || key === 'direction' || key === 'view') return false;
 
     return Array.isArray(value) ? value.length > 0 : value !== undefined;
   })

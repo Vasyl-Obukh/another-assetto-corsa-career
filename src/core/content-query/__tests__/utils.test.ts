@@ -1,16 +1,24 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { makeTrackEntry } from './fixtures.ts';
-import { ContentSource, ModDistributor } from '../../../shared/types/index.ts';
-import type { Track, TrackGroup } from '../../../shared/types/index.ts';
 import {
+  ContentSource, DLCPack, ModDistributor, ModMaker,
+} from '../../../shared/types/index.ts';
+import type { Track, TrackGroup } from '../../../shared/types/index.ts';
+import { SPREAD_BINS } from '../constants.ts';
+import {
+  anyOfLists,
   countValues,
+  fromAnyOf,
+  groupLength,
   groupPitboxes,
   groupTracks,
+  hasAnyOf,
   inBounds,
   isOneOf,
   paginate,
   sortBy,
+  spreadOf,
 } from '../utils.ts';
 
 /**
@@ -341,4 +349,129 @@ describe('core/content-query/utils', () => {
     });
   });
 
+  describe('hasAnyOf', () => {
+    it('accepts everything when the filter is unset or empty', () => {
+      expect(hasAnyOf(['gt3'], undefined)).toBe(true);
+      expect(hasAnyOf([], [])).toBe(true);
+    });
+
+    it('accepts an entry when any one of its values was picked', () => {
+      expect(hasAnyOf(['gt3', 'gt3-cup'], ['gt3-cup'])).toBe(true);
+      expect(hasAnyOf(['gt3', 'gt3-cup'], ['gt4'])).toBe(false);
+    });
+
+    it('never matches a value that is nothing', () => {
+      expect(hasAnyOf([null], ['gt3'])).toBe(false);
+    });
+  });
+
+  describe('anyOfLists', () => {
+    it('accepts everything when nothing was picked from any list', () => {
+      expect(anyOfLists([[['gt3'], undefined], [['gt3-2016'], []]])).toBe(true);
+    });
+
+    // One tree in the browser: a class ticked beside a spec of another class
+    // means either of them, not a car that is both.
+    it('accepts an entry that is in any list something was picked from', () => {
+      /**
+       * A GT3 car's class and spec, against what was picked from each.
+       * @param picked The classes, then the specs, picked
+       * @returns The lists
+       */
+      const lists = (picked: [string[], string[]]) => [
+        [['gt3'], picked[0]],
+        [['gt3-2016'], picked[1]],
+      ] as const;
+
+      expect(anyOfLists(lists([['gt3'], ['gt4-2010']]))).toBe(true);
+      expect(anyOfLists(lists([['gt4'], ['gt3-2016']]))).toBe(true);
+      expect(anyOfLists(lists([['gt4'], ['gt4-2010']]))).toBe(false);
+    });
+
+    it('lets a list nothing was picked from take no part', () => {
+      expect(anyOfLists([[['gt3'], ['gt4']], [['gt3-2016'], undefined]])).toBe(false);
+    });
+  });
+
+  describe('fromAnyOf', () => {
+    const kunosGt3 = {
+      source: ContentSource.DLC, pack: DLCPack.READY_TO_RACE, maker: null, distributor: null,
+    };
+
+    it('accepts everything when no provenance was picked', () => {
+      expect(fromAnyOf(kunosGt3, {})).toBe(true);
+      expect(fromAnyOf(kunosGt3, { sources: [], packs: [] })).toBe(true);
+    });
+
+    it('accepts an entry matching any of the four lists', () => {
+      expect(fromAnyOf(kunosGt3, { sources: [ContentSource.BASE], packs: [DLCPack.READY_TO_RACE] })).toBe(true);
+      expect(fromAnyOf(kunosGt3, { sources: [ContentSource.DLC], makers: [ModMaker.RSS] })).toBe(true);
+    });
+
+    it('refuses an entry matching none of what was picked', () => {
+      expect(fromAnyOf(kunosGt3, { sources: [ContentSource.MOD], distributors: [ModDistributor.LFM] }))
+        .toBe(false);
+    });
+
+    it('never matches a pack the entry does not have', () => {
+      expect(fromAnyOf({ ...kunosGt3, pack: null }, { packs: [DLCPack.READY_TO_RACE] })).toBe(false);
+    });
+  });
+
+  describe('groupLength', () => {
+    /**
+     * Builds a group whose layouts state the given lengths.
+     * @param lengths One length in metres per layout, null where unstated
+     * @returns The group
+     */
+    const withLengths = (lengths: (number | null)[]): TrackGroup => {
+      const layouts = lengths.map((lengthM, index) => makeTrackEntry({
+        id: 'x', layout: `l${index}`, name: `X ${index}`, lengthM,
+      }));
+
+      return groupTracks(layouts, layouts)[0];
+    };
+
+    it('takes the longest lap any layout runs', () => {
+      expect(groupLength(withLengths([3200, 5800, 4100]))).toBe(5800);
+    });
+
+    it('ignores the layouts that state nothing', () => {
+      expect(groupLength(withLengths([null, 4100]))).toBe(4100);
+    });
+
+    it('is null when no layout states a length', () => {
+      expect(groupLength(withLengths([null, null]))).toBeNull();
+    });
+  });
+
+  describe('spreadOf', () => {
+    it('takes its bounds from everything installed and its counts from what matched', () => {
+      const spread = spreadOf([0, 24, 48], [24, 48], (value) => value);
+
+      expect(spread).toMatchObject({ min: 0, max: 48 });
+      expect(spread?.counts).toHaveLength(SPREAD_BINS);
+      expect(spread?.counts.reduce((sum, count) => sum + count, 0)).toBe(2);
+      expect(spread?.counts[0]).toBe(0);
+    });
+
+    it('puts the highest value in the last bar rather than past it', () => {
+      expect(spreadOf([0, 100], [100], (value) => value)?.counts.at(-1)).toBe(1);
+    });
+
+    it('counts everything in the first bar when every value is the same', () => {
+      expect(spreadOf([7, 7], [7, 7], (value) => value)?.counts[0]).toBe(2);
+    });
+
+    it('leaves out the entries with no value', () => {
+      const spread = spreadOf([1, null, 9], [1, null, 9], (value) => value);
+
+      expect(spread).toMatchObject({ min: 1, max: 9 });
+      expect(spread?.counts.reduce((sum, count) => sum + count, 0)).toBe(2);
+    });
+
+    it('is null when nothing installed has a value', () => {
+      expect(spreadOf([null, null], [null], (value) => value)).toBeNull();
+    });
+  });
 });

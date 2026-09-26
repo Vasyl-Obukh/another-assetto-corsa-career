@@ -20,14 +20,12 @@
 import { DLCPack, ModDistributor, ModMaker } from '../../shared/types/index.ts';
 
 /**
- * Bumped whenever anything in this file changes.
+ * The catalogue revision the content cache was built against. Stays 1 until the
+ * app is released, like CONTENT_CACHE_VERSION.
  *
  * The content cache stores whole Car and Track objects, provenance included, so
- * amending the catalogue has to invalidate it the same way a shape change does.
- * Keeping the switch here means a data edit never needs main to know.
- *
- * Climbs for the same reason CONTENT_CACHE_VERSION does: what it invalidates is
- * a cache, not a document.
+ * amending the catalogue means deleting content-cache.json, exactly as a shape
+ * change does.
  */
 export const CONTENT_CATALOGUE_VERSION = 1;
 

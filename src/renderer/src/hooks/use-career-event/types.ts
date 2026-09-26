@@ -34,12 +34,9 @@ export interface CareerEventState {
   enter: (entry: string, car: { model: string; skin?: string }) => Promise<void>;
   /**
    * Runs the next session of the round.
+   * @param skip Whether the player confirmed losing the rounds the view's
+   * `skips` lists, which main otherwise refuses to
    * @returns Resolves once Content Manager has been handed it
    */
-  launch: () => Promise<void>;
-  /**
-   * Starts a weekend changed on the Race screen again from its first session.
-   * @returns Resolves once it has been reset
-   */
-  restart: () => Promise<void>;
+  launch: (skip?: boolean) => Promise<void>;
 }

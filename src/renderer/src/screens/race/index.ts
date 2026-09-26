@@ -1,37 +1,35 @@
-// The screen, plus the editing surface the series editor reuses. A weekend
-// format's sessions, a round's conditions and a championship's regulations are
-// the same controls as a race's, so they are exported rather than copied - the
-// same way the car and track browsers export a body for the pickers to mount.
+// The Race tab's two screens - the race weekends and one of them - plus the
+// small editing pieces the championship editor shares with them, exported
+// rather than copied.
 
 export { Race } from './Race.tsx';
+export { RaceWeekend } from './RaceWeekend.tsx';
 
-export { ConditionsDialog } from './ConditionsDialog.tsx';
 export { ConditionsSummaryLine } from './ConditionsSummaryLine.tsx';
 export { Field } from './Field.tsx';
-export { RegulationsFields } from './RegulationsFields.tsx';
 export { RegulationsInputs } from './RegulationsInputs.tsx';
 
 export {
-  INHERIT,
-  MAX_AI,
-  MIN_AI,
   NOT_SET,
-  SESSION_TYPE_LABEL,
-  SESSION_TYPES,
+  REGULATION_FLAGS,
+  REGULATIONS,
+  TRACK_STATE_LABEL,
+  TRACK_STATES,
 } from './constants.ts';
 
 export {
+  addWeatherSlot,
   countsLaps,
   fromNumber,
-  isOffered,
-  measuredInLaps,
   moveAt,
   moveTo,
   nextSession,
-  overrideCount,
+  offeredTypes,
+  removeWeatherSlot,
   sessionLength,
+  setWeatherSlot,
   toNumber,
-  withSessionCondition,
   withSessionConditions,
-  withSessionLength,
+  withChosenTypes,
+  withWeather,
 } from './utils.ts';

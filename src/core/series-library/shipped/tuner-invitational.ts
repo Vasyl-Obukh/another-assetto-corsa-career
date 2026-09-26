@@ -25,11 +25,11 @@ export const TUNER_INVITATIONAL: Championship = {
   description: 'Invented: the base game\'s stage-tuned road cars and the Japanese Pack\'s tuners, raced in'
     + ' three classes by pace. It needs the Japanese Pack.',
   teams: [
-    team('tuner-tokyo', 'Daikoku Tuning', 'Japan', 'JPN', TeamBudget.INDEPENDENT),
-    team('tuner-uk', 'Stage Three Motorsport', 'Great Britain', 'GBR', TeamBudget.PRIVATEER),
-    team('tuner-de', 'Tuningwerk Süd', 'Germany', 'GER', TeamBudget.PRIVATEER),
-    team('tuner-it', 'Officina Elaborazioni', 'Italy', 'ITA', TeamBudget.PRIVATEER),
-    team('tuner-us', 'Boost Society', 'United States', 'USA', TeamBudget.PRIVATEER),
+    team('tuner-tokyo', 'Daikoku Tuning', 'JPN', TeamBudget.INDEPENDENT),
+    team('tuner-uk', 'Stage Three Motorsport', 'GBR', TeamBudget.PRIVATEER),
+    team('tuner-de', 'Tuningwerk Süd', 'DEU', TeamBudget.PRIVATEER),
+    team('tuner-it', 'Officina Elaborazioni', 'ITA', TeamBudget.PRIVATEER),
+    team('tuner-us', 'Boost Society', 'USA', TeamBudget.PRIVATEER),
   ],
   entries: [
     {
@@ -37,10 +37,10 @@ export const TUNER_INVITATIONAL: Championship = {
       name: 'Unlimited',
       ladder: { discipline: Discipline.ROAD, tier: 2 },
       seats: [
-        seat('unl-tok-1', 'tuner-tokyo', 'Kazuya Moriguchi', 'Japan', 'JPN'),
-        seat('unl-it-1', 'tuner-it', 'Marco Lanfredi', 'Italy', 'ITA'),
-        seat('unl-it-2', 'tuner-it', 'Stefano Agnelotti', 'Italy', 'ITA'),
-        seat('unl-us-1', 'tuner-us', 'Brent Kowalski', 'United States', 'USA'),
+        seat('unl-tok-1', 'tuner-tokyo', 'Kazuya Moriguchi', 'JPN'),
+        seat('unl-it-1', 'tuner-it', 'Marco Lanfredi', 'ITA'),
+        seat('unl-it-2', 'tuner-it', 'Stefano Agnelotti', 'ITA'),
+        seat('unl-us-1', 'tuner-us', 'Brent Kowalski', 'USA'),
       ],
       eligibility: { kind: 'cars', cars: ['ferrari_f40_s3', 'ferrari_458_s3', 'ks_toyota_supra_mkiv_tuned'] },
       grid: { strength: 3 },
@@ -50,12 +50,12 @@ export const TUNER_INVITATIONAL: Championship = {
       name: 'Street',
       ladder: { discipline: Discipline.ROAD, tier: 3 },
       seats: [
-        seat('str-tok-1', 'tuner-tokyo', 'Shinji Arakawa', 'Japan', 'JPN'),
-        seat('str-uk-1', 'tuner-uk', 'Craig Mottershead', 'Great Britain', 'GBR'),
-        seat('str-uk-2', 'tuner-uk', 'Lee Ashbridge', 'Great Britain', 'GBR'),
-        seat('str-de-1', 'tuner-de', 'Andreas Kerschbaum', 'Germany', 'GER'),
-        seat('str-de-2', 'tuner-de', 'Nico Pfeuffer', 'Germany', 'GER'),
-        seat('str-us-1', 'tuner-us', 'Tyson Whitaker', 'United States', 'USA'),
+        seat('str-tok-1', 'tuner-tokyo', 'Shinji Arakawa', 'JPN'),
+        seat('str-uk-1', 'tuner-uk', 'Craig Mottershead', 'GBR'),
+        seat('str-uk-2', 'tuner-uk', 'Lee Ashbridge', 'GBR'),
+        seat('str-de-1', 'tuner-de', 'Andreas Kerschbaum', 'DEU'),
+        seat('str-de-2', 'tuner-de', 'Nico Pfeuffer', 'DEU'),
+        seat('str-us-1', 'tuner-us', 'Tyson Whitaker', 'USA'),
       ],
       eligibility: {
         kind: 'cars',
@@ -79,11 +79,11 @@ export const TUNER_INVITATIONAL: Championship = {
       name: 'Club',
       ladder: { discipline: Discipline.ROAD, tier: 4 },
       seats: [
-        seat('clb-tok-1', 'tuner-tokyo', 'Yuji Hasegawa', 'Japan', 'JPN'),
-        seat('clb-uk-1', 'tuner-uk', 'Danny Fairclough', 'Great Britain', 'GBR'),
-        seat('clb-de-1', 'tuner-de', 'Kevin Brunnhuber', 'Germany', 'GER'),
-        seat('clb-it-1', 'tuner-it', 'Simone Vacchetti', 'Italy', 'ITA'),
-        seat('clb-it-2', 'tuner-it', 'Luca Barbieri-Conti', 'Italy', 'ITA'),
+        seat('clb-tok-1', 'tuner-tokyo', 'Yuji Hasegawa', 'JPN'),
+        seat('clb-uk-1', 'tuner-uk', 'Danny Fairclough', 'GBR'),
+        seat('clb-de-1', 'tuner-de', 'Kevin Brunnhuber', 'DEU'),
+        seat('clb-it-1', 'tuner-it', 'Simone Vacchetti', 'ITA'),
+        seat('clb-it-2', 'tuner-it', 'Luca Barbieri-Conti', 'ITA'),
       ],
       eligibility: {
         kind: 'cars',

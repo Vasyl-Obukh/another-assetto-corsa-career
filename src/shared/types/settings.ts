@@ -1,6 +1,6 @@
 // App settings, as persisted to settings.json in the user data folder.
 
-import type { DLCPack, ModMaker } from './content.ts';
+import type { DLCPack, ModDistributor, ModMaker } from './content.ts';
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
 import type { AiBase } from './series.ts';
@@ -126,6 +126,11 @@ export interface HiddenContentSources {
    * Mod teams whose championships are not offered.
    */
   makers: ModMaker[];
+  /**
+   * Redistributors whose championships are not offered - those whose cars a
+   * championship needs. A round at one of their circuits is only skipped.
+   */
+  distributors: ModDistributor[];
 }
 
 /**

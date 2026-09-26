@@ -30,6 +30,8 @@ const makeCar = (id: string, skins: string[]): Car => ({
   provenance: carProvenance(id),
   tags: [],
   carClass: null,
+  description: null,
+  curves: null,
   year: null,
   country: null,
   performance: {
@@ -62,6 +64,15 @@ const makeTrack = (id: string, pitboxes: number): Track => ({
   lengthM: null,
   widthM: null,
   geotags: { lat: null, lon: null },
+  city: null,
+  run: null,
+  description: null,
+  tags: [],
+  author: null,
+  version: null,
+  year: null,
+  photos: [],
+  logo: false,
   provenance: trackProvenance(id, ''),
 });
 

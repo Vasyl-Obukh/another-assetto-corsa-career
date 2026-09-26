@@ -3,6 +3,7 @@
 
 import { CAREER_SEASON_WEEKS, CAREER_VERSION, FORECAST_LEAD_DAYS } from './constants.ts';
 import type { EnteredEvent } from './types.ts';
+import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
 import {
@@ -31,10 +32,13 @@ import type {
   SeriesAvailability,
   SeriesListing,
   SeriesSession,
+  SkippedRound,
+  SkipReason,
   WeekendPlan,
   WeekendState,
 } from '../../shared/types/index.ts';
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
+import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 
 /**
@@ -277,9 +281,8 @@ export const enteredEvent = (
 /**
  * The weekend the career is part-way through, if it is part-way through one.
  *
- * At most one: a weekend is set up only while no other is under way, since the
- * race store holds a single weekend's progress and setting another up throws it
- * away.
+ * At most one, since launching another weekend gives up whichever was part-way
+ * through.
  * @param season The season to look in
  * @returns The entry and its event, or null
  */
@@ -302,43 +305,130 @@ export const eventName = ({ entry, event }: EnteredEvent): string => {
  * Why the next session of an event cannot be launched.
  *
  * One function for the page's answer and the launch command's refusal, so the
- * button is never offered for something the command would refuse. Earlier
- * weekends come first on purpose: running a later weekend ahead of the clock is
- * allowed only once nothing entered before it is left unraced.
- * @param season The season it belongs to
+ * button is never offered for something the command would refuse. What a
+ * launch would cost the rest of the season is not a reason here: that is
+ * `launchSkips`, which the player confirms rather than being refused.
  * @param held The entry and the event
  * @param raceable Whether the install can run the round
- * @param disturbed Whether its weekend was changed on the Race screen part-way
  * @returns The reason, or null when the next session can run
  */
 export const launchBlock = (
-  season: CareerSeason,
   held: EnteredEvent,
   raceable: boolean,
-  disturbed: boolean,
 ): AppErrorInfo | null => {
   const { event } = held;
   const name = eventName(held);
 
   if (event.status !== 'scheduled') return appErrorInfo('career.event.closed', { round: name });
-  if (disturbed) return appErrorInfo('career.event.disturbed', { event: name });
   if (!raceable) {
     return appErrorInfo('series.round.unavailable', {
       series: held.entry.championship.name, round: event.round,
     });
   }
 
-  const earlier = scheduledEvents(season).find((one) => (
-    one.event !== event && one.event.firstDay < event.firstDay
-  ));
-  if (earlier) return appErrorInfo('career.event.earlierPending', { event: eventName(earlier) });
-
-  const busy = inProgressEvent(season);
-  if (busy && busy.event !== event) {
-    return appErrorInfo('career.event.otherInProgress', { event: eventName(busy) });
-  }
-
   return null;
+};
+
+/**
+ * One round of a championship as a confirmation lists it.
+ * @param championship The championship, as the career holds it
+ * @param entry The class the career is in, or would enter, by its id
+ * @param event The round, dated
+ * @param reason What moving on does to it
+ * @returns The round, named and dated
+ */
+export const skippedRound = (
+  championship: Championship,
+  entry: string,
+  event: SeasonEvent,
+  reason: SkipReason,
+): SkippedRound => {
+  const at = championship.rounds.findIndex((one) => one.id === event.round);
+  const held = championship.entries.find((one) => one.id === entry) ?? championship.entries[0];
+
+  return {
+    series: championship.id,
+    seriesName: championship.name,
+    round: event.round,
+    roundName: championship.rounds[at]?.name ?? event.round,
+    number: at + 1,
+    ladder: held?.ladder ?? null,
+    firstDay: event.firstDay,
+    lastDay: event.lastDay,
+    reason,
+  };
+};
+
+/**
+ * One of the career's rounds a move would lose: passed by unraced, or left with
+ * sessions still to run.
+ * @param held The entry and the event
+ * @returns The round, with which of the two it is
+ */
+const lost = (held: EnteredEvent): SkippedRound => skippedRound(
+  held.entry.championship,
+  held.entry.entry,
+  held.event,
+  held.event.sessions.length > 0 ? 'partway' : 'skipped',
+);
+
+/**
+ * What moving the clock to a date would cost: every round of the career's
+ * whose weekend is over by then and has not been raced. A weekend the date
+ * falls inside is still there to be raced, so it costs nothing.
+ * @param season The season being advanced through
+ * @param to The ISO date the clock would move to
+ * @returns The rounds lost, earliest first
+ */
+export const advanceSkips = (season: CareerSeason, to: string): SkippedRound[] => (
+  scheduledEvents(season).filter(({ event }) => event.lastDay < to).map(lost)
+);
+
+/**
+ * What launching a weekend would cost the rest of the season.
+ *
+ * Every earlier round still unraced is lost, since the clock moves to this
+ * weekend's opening day, and so is a weekend left part-way wherever it falls,
+ * since the career races one weekend at a time. A weekend that opens during
+ * this one is not lost yet, but it cannot be driven as well, so it is listed as
+ * a clash.
+ * @param season The season it belongs to
+ * @param held The entry and the event being launched
+ * @returns The rounds, earliest first
+ */
+export const launchSkips = (season: CareerSeason, held: EnteredEvent): SkippedRound[] => (
+  scheduledEvents(season)
+    .filter(({ event }) => event !== held.event)
+    .flatMap((other) => {
+      if (other.event.firstDay < held.event.firstDay || other.event.sessions.length > 0) return [lost(other)];
+      if (other.event.firstDay <= held.event.lastDay) {
+        return [skippedRound(other.entry.championship, other.entry.entry, other.event, 'clash')];
+      }
+
+      return [];
+    })
+);
+
+/**
+ * A season with some of its rounds marked as non-starts.
+ * @param season The season
+ * @param rounds The rounds to mark, of which only the scheduled are touched
+ * @returns The season
+ */
+export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]): CareerSeason => {
+  const marked = new Set(rounds.map((one) => `${one.series}\u0000${one.round}`));
+
+  return {
+    ...season,
+    entries: season.entries.map((entry) => (entry.withdrawn ? entry : {
+      ...entry,
+      events: entry.events.map((event) => (
+        event.status === 'scheduled' && marked.has(`${entry.series}\u0000${event.round}`)
+          ? { ...event, status: 'missed' as const }
+          : event
+      )),
+    })),
+  };
 };
 
 /**
@@ -350,11 +440,7 @@ export const clockTime = (time: string | number | undefined): string | null => {
   if (time === undefined) return null;
   if (typeof time === 'string') return time;
 
-  const minutes = Math.round(time * MINUTES_PER_HOUR);
-  const hh = String(Math.floor(minutes / MINUTES_PER_HOUR)).padStart(2, '0');
-  const mm = String(minutes % MINUTES_PER_HOUR).padStart(2, '0');
-
-  return `${hh}:${mm}`;
+  return clockOf(Math.round(time * MINUTES_PER_HOUR));
 };
 
 /**
@@ -422,8 +508,15 @@ export const eventSessions = (
       status,
       record,
       startSlot: status === 'next' ? startingGrid(plan, state, index)?.playerSlot ?? null : null,
-      place: scored?.places.find((one) => one.seat === playerSeat) ?? null,
+      // Not a substitute's: the player's seat raced without them is not their result.
+      place: scored?.places.find((one) => one.seat === playerSeat && !one.substitute) ?? null,
       points: scored?.places.map((one) => ({ position: one.position, points: one.points })) ?? [],
+      // A simulated race's own order is its start; a driven one's [CAR_n] order
+      // puts the player first, so its start is composed again the way it was.
+      startOrder: record && session.type === 'race'
+        ? (record.skipped ? record.gridOrder : startingGrid(plan, state, index)?.order ?? null)
+        : null,
+      score: scored ?? null,
     };
   });
 };
@@ -551,4 +644,47 @@ export const composeCalendar = (
         || left.seriesName.localeCompare(right.seriesName)
       )),
   };
+};
+
+/**
+ * A round of a championship the career is not in, as the field raced it.
+ *
+ * Simulated through the first class's last seat, which is where the event page
+ * plans a not-entered round from, so the launches index the same grid the page
+ * reads them against. That seat is simply its own driver's here, so nothing is
+ * marked as a substitute.
+ * @param series The championship, as the library holds it
+ * @param event The round as the season dates it
+ * @param salt The career and season, which seed the draw
+ * @returns The round, simulated when it is behind the clock and as given otherwise
+ */
+export const simulatedEvent = (
+  series: Championship,
+  event: SeasonEvent,
+  salt: string,
+): SeasonEvent => {
+  const entry = series.entries[0];
+  if (event.status !== 'missed' || !entry) return event;
+
+  try {
+    const simulated = simulateRound({
+      series,
+      round: event.round,
+      salt,
+      recordedAt: new Date().toISOString(),
+      player: { entry: entry.id },
+    });
+    const races = simulated.score.races.map((race) => ({
+      ...race,
+      places: race.places.map(({ substitute: unused, ...place }) => place),
+    }));
+
+    return {
+      ...event, sessions: simulated.sessions, score: { ...simulated.score, races }, simulated: true,
+    };
+  } catch (error) {
+    console.warn(`Could not simulate ${series.name} - ${event.round}.`, error);
+
+    return event;
+  }
 };

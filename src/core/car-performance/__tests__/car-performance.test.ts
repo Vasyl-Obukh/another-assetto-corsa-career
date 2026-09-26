@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { parseCarPerformance, parseYear } from '../car-performance.ts';
+import { parseCarCurves, parseCarPerformance, parseYear } from '../car-performance.ts';
 
 describe('core/car-performance', () => {
   describe('parseCarPerformance', () => {
@@ -107,6 +107,46 @@ describe('core/car-performance', () => {
       expect(parseYear(undefined)).toBeNull();
       expect(parseYear('')).toBeNull();
       expect(parseYear('N/A')).toBeNull();
+    });
+  });
+
+  describe('parseCarCurves', () => {
+    it('reads pairs written as strings or as numbers', () => {
+      expect(parseCarCurves([['1000', '50'], [6000, 300]], [[1000, '200'], ['6000', 350]])).toEqual({
+        power: [[1000, 50], [6000, 300]],
+        torque: [[1000, 200], [6000, 350]],
+      });
+    });
+
+    it('puts the points in rpm order, keeping the first of a repeated engine speed', () => {
+      const { power } = parseCarCurves([[6000, 300], [1000, 50], [3000, 150], [3000, 999]], undefined) ?? {};
+
+      expect(power).toEqual([[1000, 50], [3000, 150], [6000, 300]]);
+    });
+
+    it('drops a pair that does not read, or reads as nothing an engine makes', () => {
+      const { power } = parseCarCurves([
+        [1000, 50], ['idle', 10], [2000], 'flat', [99999, 100], [4000, 99999], [5000, 250],
+      ], undefined) ?? {};
+
+      expect(power).toEqual([[1000, 50], [5000, 250]]);
+    });
+
+    // A fixed bug: the loose reader skips a minus sign, so -5 came back as a
+    // plausible 5 and put a spike in the curve.
+    it('drops a negative point rather than reading it as a positive one', () => {
+      const { power } = parseCarCurves([[1000, 50], [3000, -5], ['4000', '-40'], [5000, 250]], undefined) ?? {};
+
+      expect(power).toEqual([[1000, 50], [5000, 250]]);
+    });
+
+    it('leaves a curve empty when fewer than two points survive', () => {
+      expect(parseCarCurves([[1000, 50]], [[1000, 200], [6000, 350]])?.power).toEqual([]);
+    });
+
+    it('is null when neither curve reads', () => {
+      expect(parseCarCurves(undefined, 'n/a')).toBeNull();
+      expect(parseCarCurves([[1000, 50]], [])).toBeNull();
     });
   });
 });

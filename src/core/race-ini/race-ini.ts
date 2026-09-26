@@ -10,7 +10,6 @@ import {
   CM_FEATURE_SET,
   DEFAULT_AI_LEVEL,
   DEFAULT_ALLOWED_TYRES_OUT,
-  DEFAULT_AMBIENT,
   DEFAULT_RACE_LAPS,
   DEFAULT_WEATHER_ID,
   GROOVE,
@@ -26,6 +25,7 @@ import {
   resolveWeather,
   roadTemperature,
 } from './utils.ts';
+import { DEFAULT_AMBIENT } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo, isAppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { Content, RaceDefinition, SessionDefinition } from '../../shared/types/index.ts';
@@ -33,10 +33,10 @@ import { writeIni } from '../ini/index.ts';
 import type { IniWritable } from '../ini/index.ts';
 
 export {
-  DEFAULT_RACE_LAPS, DEFAULT_TIME_OF_DAY, SESSION_TYPE, TRACK_STATE,
+  DEFAULT_RACE_LAPS, SESSION_TYPE, TRACK_STATE,
 } from './constants.ts';
 export {
-  buildGrid, nextSkin, parseClock, skinKey, sunAngleFromTime,
+  buildGrid, nextSkin, skinKey, sunAngleFromTime,
 } from './utils.ts';
 
 /**
@@ -77,7 +77,8 @@ export const buildRaceIni = (race: RaceDefinition, content: Content): string => 
       CARS: grid.length,
       AI_LEVEL: race.grid?.aiLevel ?? DEFAULT_AI_LEVEL,
       DRIFT_MODE: 0,
-      FIXED_SETUP: race.fixedSetup ? 1 : 0,
+      // The car's own setup is never locked: AC's flag is written off.
+      FIXED_SETUP: 0,
       PENALTIES: race.penalties === false ? 0 : 1,
       JUMP_START_PENALTY: race.jumpStartPenalty ?? 0,
       RACE_LAPS: raceSession?.laps ?? 0,

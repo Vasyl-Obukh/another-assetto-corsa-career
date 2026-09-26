@@ -1,14 +1,16 @@
-import { MapIcon } from 'lucide-react';
+import { ArrowRightIcon, LockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { CalendarEntry } from '../../../../shared/types';
-import { ContentImage } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { DISCIPLINE_ACCENT, EVENT_ACCENT } from '@/lib/accents';
+import {
+  CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_DOT, EVENT_ACCENT,
+} from '@/lib/accents';
+import { raceLength } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { raceLabels, tierAccent } from '@/screens/championships';
-import { layoutMapSources } from '@/screens/track-browser';
+import { LayoutMap } from '@/screens/track-browser';
 
 interface EventCardProps {
   /**
@@ -26,40 +28,43 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
   const { t } = useTranslation();
   const { formatMoney, formatNumber } = useFormat();
 
-  // The same wording a championship's own round row uses, so one round does
-  // not read two ways depending on which screen is showing it.
   const labels = raceLabels(event.races.map((race) => race.name), t('calendar.raceFallback'));
   const lengths = event.races.map((race, at) => {
-    const laps = t('championships.format.laps', { count: race.laps ?? 0 });
-    const length = race.distance === undefined
-      ? laps
-      : t('championships.calendar.raceDistance', {
-        distance: t('championships.format.distance', { value: formatNumber(race.distance) }),
-        laps,
-      });
+    const length = raceLength(race, t, formatNumber);
 
     return event.races.length > 1
       ? t('championships.format.session', { name: labels[at], length })
       : length;
   });
 
+  const open = !event.enrolled && event.eligible && event.raceable;
+  const yours = event.enrolled && event.status === 'scheduled';
+
   return (
-    // The whole card is the way in: entering a championship and running its
-    // sessions both happen on the event page, so there is nothing to do here
-    // that is not "open it".
+    // The whole card opens the event page; the corner only says what it offers.
     <button
       type="button"
       onClick={onOpen}
       className={cn(
-        'relative flex w-full flex-col gap-2 overflow-hidden rounded-md border bg-card p-3 text-left',
-        'transition-colors hover:bg-accent/40',
-        // The one thing that has to read across a wall of cards: a weekend you
-        // are in. A left edge rather than a fill, so the card stays legible.
-        event.enrolled ? 'border-l-4 border-l-primary' : '',
+        'relative flex w-full flex-col gap-2 overflow-hidden rounded-lg border bg-card py-2.5 pr-3 pl-4 text-left',
+        'hover-outline',
+        // A ring rather than a fill for a weekend you are in, so it stays legible.
+        event.enrolled ? 'border-primary/60 ring-1 ring-primary/60' : '',
+        // A rung not reached yet is shown, just without a card's full weight.
+        event.eligible ? '' : 'border-dashed bg-transparent',
       )}
     >
-      <div className="flex items-start gap-2">
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <span
+        aria-hidden
+        className={cn(
+          'absolute inset-y-0 left-0 w-1',
+          DISCIPLINE_DOT[event.ladder.discipline],
+          event.eligible ? '' : 'opacity-40',
+        )}
+      />
+
+      <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-mono text-[0.65rem] text-muted-foreground">
               {t('calendar.round', { number: event.number })}
@@ -70,6 +75,8 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
             <Badge className={cn('px-1.5 py-0 text-[0.65rem]', tierAccent(event.ladder.tier))}>
               {t('championships.tier', { tier: event.ladder.tier })}
             </Badge>
+            {/* Neutral on purpose: sharing a calendar with another class is a
+                footnote about the grid, not one of a set worth a colour. */}
             {event.multiClass ? (
               <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">
                 {t('calendar.multiClass')}
@@ -77,59 +84,56 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
             ) : null}
           </div>
 
-          <h3 className="truncate text-sm font-semibold">{event.seriesName}</h3>
+          <h3 className={cn('truncate text-sm', event.eligible ? 'font-semibold' : 'font-medium')}>
+            {event.seriesName}
+          </h3>
 
           <p className="truncate text-xs text-muted-foreground">
             {[event.roundName, ...lengths, t('calendar.grid', { count: event.gridSize })].join(' · ')}
           </p>
         </div>
 
-        {/* The layout's shape rather than its photo, as the round rows show it:
-            one layout of a circuit photographs like any other, and which one is
-            being raced is what the card has to say. */}
-        <div className="relative aspect-[16/9] w-20 shrink-0 overflow-hidden rounded-sm bg-muted">
-          <ContentImage
-            sources={layoutMapSources({ id: event.track.id, layout: event.track.layout ?? '' })}
-            alt={event.roundName}
-            className="object-contain p-1 [&[src*='/outline']]:invert dark:[&[src*='/outline']]:invert-0"
-            fallback={(
-              <div className="absolute inset-0 flex items-center justify-center">
-                <MapIcon className="size-4 text-muted-foreground/40" />
-              </div>
-            )}
-          />
+        <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+          <LayoutMap track={event.track} alt={event.roundName} className="p-1" />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5 border-t pt-2">
         {event.prize === null ? null : (
-          <Badge variant="outline" className="px-1.5 py-0 font-mono text-[0.65rem]">
-            {t('calendar.prize', { amount: formatMoney(event.prize) })}
-          </Badge>
+          <>
+            <span className="text-sm font-semibold tabular-nums">{formatMoney(event.prize)}</span>
+            <span className="text-xs text-muted-foreground">{t('calendar.toWinner')}</span>
+          </>
         )}
-        {event.enrolled ? (
-          <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">
-            {t('calendar.enrolled')}
-          </Badge>
-        ) : null}
-        {/* Only on a weekend the career is in. Every championship is dated, so
-            an un-entered one has rounds behind the clock too - and they were
-            not missed, since missing something means having entered it. */}
+
+        {/* Only on a weekend the career is in: an un-entered round behind the
+            clock was not missed. */}
         {event.enrolled && event.status !== 'scheduled' ? (
           <Badge className={cn('px-1.5 py-0 text-[0.65rem]', EVENT_ACCENT[event.status])}>
             {t(`calendar.status.${event.status}`)}
           </Badge>
         ) : null}
+        {/* Neutral on purpose: the card's ring already carries primary for a
+            weekend you are in, and primary is kept off chips so the two cannot
+            be confused. */}
+        {yours && !event.clash ? (
+          <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">
+            {t('calendar.enrolled')}
+          </Badge>
+        ) : null}
         {event.clash ? (
-          <Badge
-            className="border-transparent bg-warning px-1.5 py-0 text-[0.65rem] text-warning-foreground"
-            title={t('calendar.clashHint')}
-          >
+          <Badge className={cn('px-1.5 py-0 text-[0.65rem]', CAUTION_ACCENT)} title={t('calendar.clashHint')}>
             {t('calendar.clash')}
           </Badge>
         ) : null}
+        {/* Neutral on purpose: most of a calendar is above the player's level -
+            772 of 981 events in a first season - so amber here would be on
+            nearly every card and drown the clash beside it, which is the amber
+            worth noticing. The round page's enter panel, where it blocks the
+            Enter button, does colour it. */}
         {event.eligible ? null : (
-          <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem] text-muted-foreground">
+          <Badge variant="outline" className="gap-1 px-1.5 py-0 text-[0.65rem] text-muted-foreground">
+            <LockIcon className="size-2.5" />
             {t('calendar.locked')}
           </Badge>
         )}
@@ -137,6 +141,13 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
           <Badge variant="destructive" className="px-1.5 py-0 text-[0.65rem]">
             {t('calendar.unraceable')}
           </Badge>
+        ) : null}
+
+        {open || yours ? (
+          <span className="ml-auto flex items-center gap-1 text-xs font-medium text-primary">
+            {t(open ? 'calendar.enter' : 'calendar.open')}
+            <ArrowRightIcon className="size-3" />
+          </span>
         ) : null}
       </div>
     </button>

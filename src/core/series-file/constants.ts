@@ -2,15 +2,10 @@
 
 import { WeatherType } from '../../shared/constants/index.ts';
 import {
-  Climate, Discipline, Hemisphere, SeasonLength, TeamBudget,
+  Climate, Hemisphere, SeasonLength, TeamBudget,
 } from '../../shared/types/index.ts';
-import type { SessionType, TrackStateName } from '../../shared/types/index.ts';
+import type { GridStart, SessionType, TrackStateName } from '../../shared/types/index.ts';
 import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/index.ts';
-
-/**
- * Every discipline, for checking one read off disk.
- */
-export const DISCIPLINES: readonly Discipline[] = stringEnumValues(Discipline);
 
 /**
  * Every team budget tier, for checking one read off disk.
@@ -48,6 +43,11 @@ export const WEATHER_TYPES: readonly number[] = numericEnumValues(WeatherType);
 export const SESSION_TYPES: readonly SessionType[] = [
   'practice', 'qualify', 'race', 'hotlap', 'timeAttack', 'drift', 'drag',
 ];
+
+/**
+ * Every place a race may start the player at by name, beside a slot number.
+ */
+export const GRID_START_PLACES: readonly GridStart[] = ['last', 'pole', 'random'];
 
 /**
  * Every track state, for the same reason.

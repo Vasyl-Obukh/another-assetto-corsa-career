@@ -17,97 +17,69 @@ interface ListRowProps {
    */
   index: number;
   /**
-   * The position shown, counting from one. Left out by a list whose order means
-   * nothing.
-   */
-  number?: number;
-  /**
    * The row's primary text, which is also what opens it for editing.
    */
   name: string;
   /**
-   * Whether the name is a placeholder rather than something the author wrote -
-   * a seat nobody is named in - and so reads grey rather than medium.
+   * A second line under the name, such as the circuit a round runs at.
    */
-  muted?: boolean;
+  detail?: string;
   /**
-   * What the row's menu is announced as. Distinct from `name`, because an
-   * unnamed seat's name is a placeholder.
+   * What sits between the number and the name, such as a round's map.
+   */
+  lead?: ReactNode;
+  /**
+   * What the row's menu is announced as.
    */
   label: string;
   /**
-   * Whether this is the first row, which greys out Move earlier.
+   * How many rows the list holds, which greys out the last Move later.
    */
-  first?: boolean;
-  /**
-   * Whether this is the last row, which greys out Move later.
-   */
-  last?: boolean;
+  count: number;
   /**
    * Whether a weekend is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
-   * Whether the row may be dropped at all. Defaults to true.
-   */
-  removable?: boolean;
-  /**
-   * Whether the row may be opened for editing. False while any row in the
-   * editor already has its form open.
-   */
-  editable: boolean;
-  /**
    * Anything else this row's menu offers.
    */
   extra?: readonly RowMenuItem[];
   /**
-   * Called to make this row the one used when nothing names another. Left out
-   * on the row that already is, which then offers no such item.
+   * The list's drag state.
    */
-  onMakeDefault?: () => void;
+  drag: RowDrag;
   /**
-   * The list's drag state, or undefined for a list that does not reorder.
-   */
-  drag?: RowDrag;
-  /**
-   * Called to open the row's form.
+   * Called to open the row for editing.
    */
   onEdit: () => void;
   /**
-   * Called to move the row along its list. Left out by a list whose order means
-   * nothing.
+   * Called to move the row along its list.
    * @param by How far, positive being later
    */
-  onMove?: (by: number) => void;
+  onMove: (by: number) => void;
   /**
    * Called to drop the row from its list.
    */
   onRemove: () => void;
   /**
-   * What follows the name: the badges, then the fixed columns, in the order
-   * ROW_LIST states.
+   * What follows the name: the badges, then the fixed columns.
    */
   children: ReactNode;
 }
 
 /**
- * One read-only row of a list, with its grip, its menu, and the click that
- * opens it for editing.
- *
- * Not also the chrome for edit mode - `RowForm` is that, rendered at the same
- * key. The name is a stretched trigger whose `after:inset-0` covers this whole
- * row, so a form rendered in here would sit under that overlay; the grip and
- * the menu are lifted above it with `z-10`.
+ * One read-only row of a list, numbered, with its grip, its menu, and the
+ * click that opens it for editing. The name is a stretched trigger whose
+ * `after:inset-0` covers the whole row, so the grip and the menu are lifted
+ * above it with `z-10`.
  */
 export const ListRow = ({
-  index, number, name, muted, label, first, last, locked, removable, editable,
-  extra, drag, onEdit, onMakeDefault, onMove, onRemove, children,
+  index, name, detail, lead, label, count, locked, extra, drag, onEdit, onMove, onRemove, children,
 }: ListRowProps) => {
   const { t } = useTranslation();
   // The drag ghost would otherwise be a snapshot of the grip alone.
   const row = useRef<HTMLDivElement>(null);
-  const edge = drag?.edgeOf(index) ?? null;
-  const openable = editable && !locked;
+  const edge = drag.edgeOf(index);
 
   return (
     <div
@@ -115,11 +87,11 @@ export const ListRow = ({
       className={cn(
         'relative -mx-2 flex items-center rounded-md border-b px-2 py-1 last:border-b-0',
         ROW_GAP,
-        openable && 'hover:bg-accent/50 focus-within:bg-accent/50',
-        drag?.dragging === index && 'opacity-50',
+        !locked && 'hover:bg-accent/50 focus-within:bg-accent/50',
+        drag.dragging === index && 'opacity-50',
       )}
-      onDragOver={drag && ((event) => drag.onRowDragOver(index, event))}
-      onDrop={drag && ((event) => drag.onRowDrop(index, event))}
+      onDragOver={(event) => drag.onRowDragOver(index, event)}
+      onDrop={(event) => drag.onRowDrop(index, event)}
     >
       {/* A bar rather than a thicker border, which `last:border-b-0` would
           take back off the last row. */}
@@ -132,48 +104,46 @@ export const ListRow = ({
         />
       )}
 
-      {/* The slot stays while the grip goes, so the row's contents do not jump
-          sideways when a form opens. */}
-      {drag === undefined ? null : (
-        <div className={ROW_GRIP}>
-          {drag.enabled ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="relative z-10 text-muted-foreground"
-              aria-label={t('editor.rows.drag', { label })}
-              draggable
-              disabled={locked}
-              onDragStart={(event) => {
-                if (row.current !== null) {
-                  event.dataTransfer.setDragImage(row.current, 0, row.current.offsetHeight / 2);
-                }
-                drag.onRowDragStart(index, event);
-              }}
-              onDragEnd={drag.onRowDragEnd}
-            >
-              <GripVerticalIcon />
-            </Button>
-          ) : null}
-        </div>
-      )}
+      <div className={ROW_GRIP}>
+        {drag.enabled ? (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="relative z-10 text-muted-foreground"
+            aria-label={t('editor.rows.drag', { label })}
+            draggable
+            disabled={locked}
+            onDragStart={(event) => {
+              if (row.current !== null) {
+                event.dataTransfer.setDragImage(row.current, 0, row.current.offsetHeight / 2);
+              }
+              drag.onRowDragStart(index, event);
+            }}
+            onDragEnd={drag.onRowDragEnd}
+          >
+            <GripVerticalIcon />
+          </Button>
+        ) : null}
+      </div>
 
-      {number === undefined ? null : (
-        <span className={ROW_NUMBER}>{number}</span>
-      )}
+      <span className={ROW_NUMBER}>{index + 1}</span>
+
+      {lead}
 
       <button
         type="button"
         className={cn(
-          'min-w-0 flex-1 truncate text-left after:absolute after:inset-0 after:rounded-md',
-          'focus-visible:outline-none disabled:cursor-not-allowed',
-          muted ? 'text-muted-foreground' : 'font-medium',
+          'flex min-w-0 flex-1 flex-col text-left after:absolute after:inset-0 after:rounded-md',
+          'font-medium focus-visible:outline-none disabled:cursor-not-allowed',
         )}
-        disabled={!openable}
+        disabled={locked}
         onClick={onEdit}
       >
-        {name}
+        <span className="truncate">{name}</span>
+        {detail === undefined ? null : (
+          <span className="truncate text-xs font-normal text-muted-foreground">{detail}</span>
+        )}
       </button>
 
       {children}
@@ -181,14 +151,11 @@ export const ListRow = ({
       <div className="relative z-10">
         <RowActions
           label={label}
-          first={first}
-          last={last}
+          first={index === 0}
+          last={index === count - 1}
           locked={locked}
-          removable={removable}
-          editable={editable}
           onEdit={onEdit}
           extra={extra}
-          onMakeDefault={onMakeDefault}
           onMove={onMove}
           onRemove={onRemove}
         />

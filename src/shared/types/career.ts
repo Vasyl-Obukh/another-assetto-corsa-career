@@ -13,11 +13,13 @@
 
 import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
-import type { SessionType } from './race.ts';
+import type { GridEntry, SessionType } from './race.ts';
 import type {
   Championship, Climate, FieldSeat, RoundRaceLength,
 } from './series.ts';
-import type { RacePlace, RoundScore, SeasonStandings } from './standings.ts';
+import type {
+  RacePlace, RaceScore, RoundScore, SeasonStandings,
+} from './standings.ts';
 import type { LaunchRecord } from './weekend.ts';
 import type { AppErrorInfo } from '../errors/types.ts';
 
@@ -85,6 +87,12 @@ export interface SeasonEvent {
    * What it paid, once it has been raced.
    */
   score?: RoundScore;
+  /**
+   * Set once a missed round has been simulated - the whole of it, or whatever
+   * of it the player left undriven - so it is simulated exactly once. Set too
+   * on one that could not be, which stays a plain non-start.
+   */
+  simulated?: boolean;
 }
 
 /**
@@ -476,6 +484,15 @@ export interface EventSession {
    * The points every finishing position took, for a race that has been scored.
    */
   points: readonly PositionPoints[];
+  /**
+   * The order a race that has run started in, as car indices into the event's
+   * grid - what says how many places each car gained. Null for anything else.
+   */
+  startOrder: readonly number[] | null;
+  /**
+   * The race's score, for a race that has been scored.
+   */
+  score: RaceScore | null;
 }
 
 /**
@@ -633,18 +650,138 @@ export interface CareerEventView {
    */
   sessions: readonly EventSession[];
   /**
+   * The weekend's entry list, which every car index of its sessions indexes
+   * into - the player's seat first. Empty when the weekend could not be planned.
+   */
+  grid: readonly GridEntry[];
+  /**
+   * Whether the player's seat was raced without them: a round passed by, or
+   * entered too late. A simulated session's first car is then the driver the
+   * seat names rather than the player.
+   */
+  substituted: boolean;
+  /**
    * Why the next session cannot be launched, or null when it can.
    */
   blocked: AppErrorInfo | null;
+  /**
+   * What launching the next session would cost the rest of the season: the
+   * rounds it leaves unraced, and the weekend it shares that can no longer be
+   * driven. Empty for a round the career has not entered.
+   */
+  skips: readonly SkippedRound[];
+  /**
+   * The rounds already behind the clock, which entering the championship now
+   * would count as non-starts. Empty once it has been entered.
+   */
+  behind: readonly SkippedRound[];
   /**
    * Whether the race being run is this weekend, which is when its launching and
    * waiting states belong on this page.
    */
   live: boolean;
+}
+
+/**
+ * Why a round of the career's is lost, or put out of reach, by moving on.
+ *
+ * "skipped" is a round passed by unraced, "partway" a weekend left with
+ * sessions still to run, "behind" a round already gone by when its championship
+ * is entered, and "clash" a weekend sharing days with the one being raced -
+ * not lost yet, but one that cannot be driven as well.
+ */
+export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash';
+
+/**
+ * One round that moving on would cost, as the confirmation lists it.
+ */
+export interface SkippedRound {
   /**
-   * Whether the weekend was changed on the Race screen part-way through, so the
-   * race's progress no longer matches what the career recorded. It can only be
-   * run again from the start.
+   * Which championship, by its id.
    */
-  disturbed: boolean;
+  series: string;
+  /**
+   * Its display name.
+   */
+  seriesName: string;
+  /**
+   * Which round, by its id.
+   */
+  round: string;
+  /**
+   * The round's display name.
+   */
+  roundName: string;
+  /**
+   * Which round of the season this is, counting from one.
+   */
+  number: number;
+  /**
+   * Which discipline and rung the career's class sits at, for the colour its
+   * row wears.
+   */
+  ladder: LadderPosition | null;
+  /**
+   * The weekend's opening day, as an ISO date.
+   */
+  firstDay: string;
+  /**
+   * The weekend's closing day, as an ISO date.
+   */
+  lastDay: string;
+  /**
+   * What moving on does to it.
+   */
+  reason: SkipReason;
+}
+
+/**
+ * One round of a championship and what it left, as the results screens read it.
+ */
+export interface RoundResult {
+  /**
+   * Which round, by its id.
+   */
+  round: string;
+  /**
+   * The weekend's race day this season, as an ISO date.
+   */
+  raceDay: string;
+  /**
+   * What became of it.
+   */
+  status: EventStatus;
+  /**
+   * What it paid, or null when nothing of it has been raced or simulated.
+   */
+  score: RoundScore | null;
+  /**
+   * Every launch of it that has run or been simulated, which is where a
+   * practice or qualifying order lives.
+   */
+  sessions: readonly LaunchRecord[];
+}
+
+/**
+ * A championship's season so far, for any championship - the career's own, or
+ * one it is not in, whose rounds behind the clock are simulated on the spot.
+ */
+export interface ChampionshipResults {
+  /**
+   * The championship the scores are of: the season's own copy when the career
+   * is in it, the library's otherwise.
+   */
+  championship: Championship;
+  /**
+   * Every round, in calendar order.
+   */
+  rounds: readonly RoundResult[];
+  /**
+   * The seat the player races, or null when the career is not in it.
+   */
+  playerSeat: string | null;
+  /**
+   * The class entry the player races in, or null when the career is not in it.
+   */
+  playerEntry: string | null;
 }

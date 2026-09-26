@@ -1,5 +1,5 @@
 import {
-  ChevronDownIcon, ChevronUpIcon, MoreVerticalIcon, PencilIcon, StarIcon, Trash2Icon,
+  ChevronDownIcon, ChevronUpIcon, MoreVerticalIcon, PencilIcon, Trash2Icon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -52,18 +52,12 @@ interface RowActionsProps {
    */
   onEdit?: () => void;
   /**
-   * Anything else this row's menu offers, between Edit and Remove.
+   * Anything else this row's menu offers, between Edit and moving it.
    */
   extra?: readonly RowMenuItem[];
   /**
-   * Called to make this row the one used when nothing names another. Left out
-   * on the row that already is, which then offers no such item.
-   */
-  onMakeDefault?: () => void;
-  /**
    * Called to move the row along its list. Left out by a list whose order means
-   * nothing - a balance-of-performance table is keyed by car - which then gets
-   * no reorder buttons.
+   * nothing, which then gets no Move items.
    * @param by How far, positive being later
    */
   onMove?: (by: number) => void;
@@ -74,47 +68,19 @@ interface RowActionsProps {
 }
 
 /**
- * Reorder inline, everything else behind a menu.
- *
- * Reordering stays one click because it is the action a user repeats, and the
- * buttons are the keyboard's only way to reorder, since a row cannot be dragged
- * from one.
+ * A row's menu: Edit, whatever else the row offers, moving it along its list
+ * - the keyboard's way to reorder, since a row drags only by pointer - and
+ * Remove.
  */
 export const RowActions = ({
   label, first, last, locked, removable = true, editable = true,
-  onEdit, extra, onMakeDefault, onMove, onRemove,
+  onEdit, extra, onMove, onRemove,
 }: RowActionsProps) => {
   const { t } = useTranslation();
   const quiet = locked || !editable;
 
   return (
     <div className="ml-auto flex shrink-0 items-center">
-      {onMove === undefined ? null : (
-        <>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            aria-label={t('editor.rows.moveUp', { label })}
-            disabled={quiet || first}
-            onClick={() => onMove(-1)}
-          >
-            <ChevronUpIcon />
-          </Button>
-
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            aria-label={t('editor.rows.moveDown', { label })}
-            disabled={quiet || last}
-            onClick={() => onMove(1)}
-          >
-            <ChevronDownIcon />
-          </Button>
-        </>
-      )}
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -146,11 +112,17 @@ export const RowActions = ({
             </DropdownMenuItem>
           ))}
 
-          {onMakeDefault === undefined ? null : (
-            <DropdownMenuItem disabled={quiet} onSelect={onMakeDefault}>
-              <StarIcon />
-              {t('editor.rows.makeDefault')}
-            </DropdownMenuItem>
+          {onMove === undefined ? null : (
+            <>
+              <DropdownMenuItem disabled={quiet || first} onSelect={() => onMove(-1)}>
+                <ChevronUpIcon />
+                {t('editor.rows.moveEarlier')}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={quiet || last} onSelect={() => onMove(1)}>
+                <ChevronDownIcon />
+                {t('editor.rows.moveLater')}
+              </DropdownMenuItem>
+            </>
           )}
 
           <DropdownMenuSeparator />

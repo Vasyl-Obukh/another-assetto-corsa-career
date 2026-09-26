@@ -26,6 +26,28 @@ describe('renderer/hooks/use-car-browser/utils', () => {
       });
     });
 
+    it('sends neither the raced switch nor the layout to main', () => {
+      expect(toCarQuery({ raced: false, view: 'list' }, '')).toEqual({});
+    });
+
+    it('narrows to what a championship races while the raced switch is on', () => {
+      expect(toCarQuery({ raced: true }, '', undefined, ['a', 'b'])).toEqual({ ids: ['a', 'b'] });
+    });
+
+    it('narrows a restricted picker further, to what a championship also races', () => {
+      expect(toCarQuery({ raced: true }, '', { ids: ['a', 'c'] }, ['a', 'b'])).toEqual({ ids: ['a'] });
+    });
+
+    // An empty id list is no filter at all to main, so a switch that leaves
+    // nothing must still ask for nothing.
+    it('asks for nothing at all when nothing raced is left', () => {
+      expect(toCarQuery({ raced: true }, '', { ids: ['c'] }, ['a'])).toEqual({ ids: ['/'] });
+    });
+
+    it('waits on the racing index rather than emptying the list', () => {
+      expect(toCarQuery({ raced: true }, '')).toEqual({});
+    });
+
     it('does not mutate the criteria it was given', () => {
       const criteria = { brands: ['Ferrari'] };
       toCarQuery(criteria, 'f40');
@@ -49,11 +71,15 @@ describe('renderer/hooks/use-car-browser/utils', () => {
     });
 
     it('separates an empty query from a filtered one', () => {
-      expect(carQueryKey({})).not.toBe(carQueryKey({ hasSkins: true }));
+      expect(carQueryKey({})).not.toBe(carQueryKey({ bhpFrom: 400 }));
     });
   });
 
   describe('isCarFiltered', () => {
+    it('does not count the layout as a filter', () => {
+      expect(isCarFiltered({ view: 'list' }, '')).toBe(false);
+    });
+
     it('is false for the criteria the browser opens on', () => {
       expect(isCarFiltered(EMPTY_CRITERIA, '')).toBe(false);
     });
@@ -86,12 +112,12 @@ describe('renderer/hooks/use-car-browser/utils', () => {
       expect(isCarFiltered({ yearTo: 1999 }, '')).toBe(true);
     });
 
-    it('is true when the liveries toggle is on', () => {
-      expect(isCarFiltered({ hasSkins: true }, '')).toBe(true);
+    it('is true when the raced switch is on', () => {
+      expect(isCarFiltered({ raced: true }, '')).toBe(true);
     });
 
-    it('is false once the toggle has been turned off again', () => {
-      expect(isCarFiltered({ hasSkins: undefined }, '')).toBe(false);
+    it('is false once the switch has been turned off again', () => {
+      expect(isCarFiltered({ raced: undefined }, '')).toBe(false);
     });
   });
 

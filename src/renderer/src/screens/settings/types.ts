@@ -1,23 +1,29 @@
-// Which Content Manager flags the screen is allowed to offer, and which aids
-// get a select rather than a switch.
-
 import type { ParseKeys } from 'i18next';
+import type { LucideIcon } from 'lucide-react';
 
-import type { WeatherType } from '../../../../shared/constants';
 import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
 
 /**
- * A heading on the allowed weather list, and the types under it.
+ * Something a weather system can or cannot do, as its card lists them.
  */
-export interface WeatherGroup {
+export type WeatherCapability = 'rain' | 'dynamic' | 'exactRain';
+
+/**
+ * One entry of the index beside the General tab's sections.
+ */
+export interface SectionLink {
   /**
-   * The catalogue key for its heading.
+   * The section's element id.
+   */
+  id: string;
+  /**
+   * The catalogue key for its name.
    */
   label: ParseKeys;
   /**
-   * The types it holds, in the order they are listed.
+   * The icon beside its name, the one its section wears.
    */
-  types: readonly WeatherType[];
+  icon: LucideIcon;
 }
 
 /**
@@ -32,6 +38,10 @@ export interface SettingsTab {
    * The catalogue key for its label.
    */
   label: ParseKeys;
+  /**
+   * The icon beside its label.
+   */
+  icon: LucideIcon;
   /**
    * Whether it is active only on exactly its own URL, rather than on anything
    * under it - true for the tab sitting at the settings root.

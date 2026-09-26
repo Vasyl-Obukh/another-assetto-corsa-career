@@ -27,13 +27,9 @@ import {
 } from './utils.ts';
 import type {
   Championship,
-  ClassStandings,
-  DriverStanding,
   RacePlace,
   RaceScore,
   RoundScore,
-  SeasonStandings,
-  TeamStanding,
   WeekendPlan,
   WeekendState,
 } from '../../shared/types/index.ts';
@@ -43,11 +39,8 @@ import {
 } from '../weekend/index.ts';
 
 export type { LaunchResult } from './types.ts';
-
-/**
- * How many places count as a podium.
- */
-const PODIUM = 3;
+// Built from scores rather than from a weekend, and read by the renderer too.
+export { buildStandings } from '../../shared/utils/standings/index.ts';
 
 /**
  * Each car's best valid lap, in weekend-grid order.
@@ -177,100 +170,4 @@ export const scoreRound = (
   });
 
   return { round, recordedAt, races };
-};
-
-/**
- * Orders a class's driver rows and numbers them.
- * @param rows The rows in any order
- * @param seatOrder Where each seat sits in the championship's own entry list
- * @returns The rows, best placed first, each carrying its position
- */
-const placeDrivers = (
-  rows: readonly Omit<DriverStanding, 'position'>[],
-  seatOrder: ReadonlyMap<string, number>,
-): DriverStanding[] => [...rows]
-  // Points, then wins, then podiums, then the best finish anyone managed, with
-  // the entry list's own order last so the sort is total. Deliberately no
-  // countback by round: a season that really settles ties that way says so in
-  // its own rules, and guessing is worse than a stable order.
-  //
-  // The best-finish term must stay ahead of the entry-list one. Two drivers who
-  // have both scored nothing give Infinity - Infinity, and it is only because
-  // NaN is falsy that the chain falls through to the order that settles it;
-  // last in the chain it would be the answer, and the sort would not be total.
-  .sort((left, right) => (
-    right.points - left.points
-    || right.wins - left.wins
-    || right.podiums - left.podiums
-    || (left.bestFinish ?? Infinity) - (right.bestFinish ?? Infinity)
-    || (seatOrder.get(left.seat) ?? 0) - (seatOrder.get(right.seat) ?? 0)
-  ))
-  .map((row, at) => ({ ...row, position: at + 1 }));
-
-/**
- * Builds a season's tables from the rounds scored so far.
- *
- * Every seat of every class starts in its table on nothing, so a table is the
- * field rather than only the drivers who have scored: a championship shows who
- * is in it from the first round, and a driver on zero is a fact about them
- * rather than an absence.
- * Every row carries the name the championship's own document gives that seat,
- * the player's included. Which seat is the player's, and what to call them, is
- * the career's and settings' to say where the table is shown - so renaming
- * yourself renames every table rather than the ones written after it.
- * @param series The championship
- * @param scores Every round of it scored so far, in any order
- * @param updatedAt When this was built, as an ISO timestamp
- * @returns One table per class entry
- */
-export const buildStandings = (
-  series: Championship,
-  scores: readonly RoundScore[],
-  updatedAt: string,
-): SeasonStandings => {
-  const teamName = new Map((series.teams ?? []).map((team) => [team.id, team.name]));
-  const places = scores.flatMap((score) => score.races.flatMap((race) => race.places));
-
-  const classes = series.entries.map((entry): ClassStandings => {
-    const seatOrder = new Map(entry.seats.map((seat, at) => [seat.id, at]));
-
-    const drivers = entry.seats.map((seat) => {
-      const own = places.filter((place) => place.entry === entry.id && place.seat === seat.id);
-      const finishes = own.map((place) => place.classPosition);
-
-      return {
-        seat: seat.id,
-        driver: seat.driver?.name ?? '',
-        team: seat.team ?? null,
-        points: own.reduce((sum, place) => sum + place.points, 0),
-        wins: finishes.filter((position) => position === 1).length,
-        podiums: finishes.filter((position) => position <= PODIUM).length,
-        bestFinish: finishes.length ? Math.min(...finishes) : null,
-        races: own.length,
-      };
-    });
-
-    const placed = placeDrivers(drivers, seatOrder);
-    const teamIds = [...new Set(placed.map((row) => row.team).filter((id) => id !== null))];
-
-    const teams = teamIds
-      .map((id): Omit<TeamStanding, 'position'> => {
-        const own = placed.filter((row) => row.team === id);
-
-        return {
-          team: id,
-          name: teamName.get(id) ?? id,
-          points: own.reduce((sum, row) => sum + row.points, 0),
-          wins: own.reduce((sum, row) => sum + row.wins, 0),
-        };
-      })
-      .sort((left, right) => right.points - left.points || right.wins - left.wins)
-      .map((row, at) => ({ ...row, position: at + 1 }));
-
-    return {
-      entry: entry.id, name: entry.name, drivers: placed, teams,
-    };
-  });
-
-  return { classes, updatedAt };
 };

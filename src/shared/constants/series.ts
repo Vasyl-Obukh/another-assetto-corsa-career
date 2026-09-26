@@ -2,7 +2,14 @@
 // because both the validator in src/core/series/ and the series editor in the
 // renderer measure against them - and the renderer may not import core.
 
+import { Discipline } from '../types/ladder.ts';
 import { SeasonLength } from '../types/series.ts';
+
+/**
+ * Every discipline, in the order the enum declares them - the ladder's rows,
+ * and the order anything listing disciplines reads in.
+ */
+export const DISCIPLINES: readonly Discipline[] = Object.values(Discipline);
 
 /**
  * How many days a race weekend may run over.
@@ -76,6 +83,21 @@ export const SEASON_WEEKS: Record<SeasonLength, number> = {
  * that a typo of 90 for 9 is reported rather than raced.
  */
 export const MAX_GRID_OFFSET = 30;
+
+/**
+ * How far one driver's skill may sit either side of their class, drawn once a
+ * season.
+ *
+ * Small on purpose: the class is what says how fast a field is, and this only
+ * keeps twenty drivers from being twenty copies of one. Two points of AI_LEVEL
+ * is roughly a few tenths a lap.
+ */
+export const DRIVER_STRENGTH_SPREAD = 2;
+
+/**
+ * How far one driver's aggression may sit either side of their class.
+ */
+export const DRIVER_AGGRESSION_SPREAD = 5;
 
 /**
  * The lowest and highest AI_LEVEL and AI_AGGRESSION Assetto Corsa is sent.

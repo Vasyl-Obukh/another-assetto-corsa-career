@@ -64,6 +64,22 @@ describe('core/results', () => {
       expect(summary.sessions[0].standings).toHaveLength(3);
     });
 
+    // Classified rows are joined back to seats by place, never by name.
+    it('says which [CAR_n] slot each standing raced in, whatever order it finished', () => {
+      const summary = summarise(makeRaceOut([lap(0, 90000), lap(1, 80000)]));
+
+      expect(summary.sessions[0].standings.map((entry) => [entry.driver, entry.slot]))
+        .toEqual([['Driver 1', 1], ['Driver 0', 0]]);
+    });
+
+    // Content Manager writes its own profile name over CAR_0's, so the slot is
+    // the only thing that says which row is the player.
+    it('marks the CAR_0 standing as the player, and only that one', () => {
+      const { standings } = summarise(makeRaceOut([], 3)).sessions[0];
+
+      expect(standings.filter((entry) => entry.player).map((entry) => entry.slot)).toEqual([0]);
+    });
+
     it('orders a race by laps completed first', () => {
       const summary = summarise(makeRaceOut([
         lap(0, 90000), lap(1, 80000), lap(1, 80000),

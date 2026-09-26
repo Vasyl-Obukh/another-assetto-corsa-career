@@ -4,7 +4,7 @@
 
 import {
   CLIMATES,
-  DISCIPLINES,
+  GRID_START_PLACES,
   HEMISPHERES,
   SESSION_TYPES,
   TEAM_BUDGETS,
@@ -12,6 +12,7 @@ import {
   WEATHER_TYPES,
 } from './constants.ts';
 import type { Reporter } from './types.ts';
+import { DISCIPLINES, NATION_CODES } from '../../shared/constants/index.ts';
 import { appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { isRecord, memberOf } from '../../shared/utils/coerce/index.ts';
@@ -136,8 +137,13 @@ export const readFormat = (value: unknown, field: string, report: Reporter): boo
     if (!isRecord(session)) return report.bad(where, session);
 
     const type = report.closedSet(session.type, SESSION_TYPES, `${where}.type`);
+    // Any slot number reads, since placePlayer holds it inside the class; a name
+    // it does not know would quietly start the player last.
+    const start = session.start === undefined
+      || typeof session.start === 'number'
+      || report.closedSet(session.start, GRID_START_PLACES, `${where}.start`);
 
-    return readConditions(session.conditions, `${where}.conditions`, report) && type;
+    return readConditions(session.conditions, `${where}.conditions`, report) && type && start;
   }).every(Boolean);
 
   return id && sessions;
@@ -168,6 +174,26 @@ export const readPoints = (value: unknown, field: string, report: Reporter): boo
 };
 
 /**
+ * Checks the nation a driver or a team races under.
+ *
+ * Only a code Assetto Corsa has a flag for, since any other races flagless with
+ * nothing said. A written-out nationality is refused rather than ignored: it is
+ * looked up from the code now, and one left in the file would round-trip
+ * straight back out.
+ * @param value The driver or the team
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+const readNation = (value: Record<string, unknown>, field: string, report: Reporter): boolean => {
+  const code = value.nationCode === undefined
+    || report.closedSet(value.nationCode, NATION_CODES, `${field}.nationCode`);
+  const name = value.nationality === undefined || report.bad(`${field}.nationality`, value.nationality);
+
+  return code && name;
+};
+
+/**
  * Checks one seat's id and whoever is in it.
  *
  * Shallow, like the rest of this module: a team id and a car folder name index
@@ -192,8 +218,7 @@ export const readSeat = (value: unknown, field: string, report: Reporter): boole
   // Corsa reads as garbage with nothing said anywhere.
   const driver = value.driver === undefined
     || ((isRecord(value.driver) && typeof value.driver.name === 'string' && value.driver.name !== ''
-      && readOptionalString(value.driver.nationality, `${field}.driver.nationality`, report)
-      && readOptionalString(value.driver.nationCode, `${field}.driver.nationCode`, report))
+      && readNation(value.driver, `${field}.driver`, report))
       || report.bad(`${field}.driver`, value.driver));
   const car = value.car === undefined
     || ((isRecord(value.car)
@@ -212,7 +237,7 @@ export const readSeat = (value: unknown, field: string, report: Reporter): boole
 };
 
 /**
- * Checks one team's id, name and budget tier.
+ * Checks one team's id, name, budget tier and nation.
  * @param value The team value
  * @param field Dotted path to it
  * @param report Where to record what is wrong
@@ -226,8 +251,9 @@ export const readTeam = (value: unknown, field: string, report: Reporter): boole
   const name = typeof value.name === 'string' || report.bad(`${field}.name`, value.name);
   const budget = value.budget === undefined
     || report.closedSet(value.budget, TEAM_BUDGETS, `${field}.budget`);
+  const nation = readNation(value, field, report);
 
-  return id && name && budget;
+  return id && name && budget && nation;
 };
 
 /**

@@ -1,11 +1,8 @@
 import type {
   Championship,
   FieldSeat,
-  IpcRequest,
   RaceDefinition,
-  RaceSetup,
   RoundDraw,
-  RoundForecast,
   SeriesAvailability,
   SeriesCommandResult,
   SeriesImportResult,
@@ -29,6 +26,34 @@ export interface CareerDraws {
 }
 
 /**
+ * Which round of a championship to lower into a race, and what the player
+ * races it in.
+ */
+export interface RoundRequest {
+  /**
+   * The class the player races in, by its class entry id.
+   */
+  entry: string;
+  /**
+   * The round, by its id.
+   */
+  round: string;
+  /**
+   * The player's car.
+   */
+  car: {
+    /**
+     * Car folder ID.
+     */
+    model: string;
+    /**
+     * Skin folder ID, when one was picked.
+     */
+    skin?: string;
+  };
+}
+
+/**
  * The championship library, and what can be asked of it.
  */
 export interface SeriesStore {
@@ -43,21 +68,6 @@ export interface SeriesStore {
    * @returns The listing, or null when the library holds no such championship
    */
   get: (id: string) => Promise<SeriesListing | null>;
-  /**
-   * Sets one round up as the race being prepared.
-   *
-   * The round becomes an ordinary race definition and goes to the race store,
-   * which validates and plans it exactly as it would a hand-authored weekend.
-   * The store refuses while a launch is in flight, and that refusal is left to
-   * travel rather than being pre-empted here: it is the same answer the race
-   * screen already renders.
-   * @param request Which round of which championship, the player's car, and
-   * the weather and the field a career has already drawn for it
-   * @returns The race setup, ready for the race screen
-   */
-  setupRound: (
-    request: IpcRequest<'series:setupRound'> & CareerDraws,
-  ) => Promise<RaceSetup>;
   /**
    * Lowers one round of a championship the caller holds into a race, without
    * setting it up.
@@ -74,7 +84,7 @@ export interface SeriesStore {
    */
   lowerRound: (
     series: Championship,
-    request: Omit<IpcRequest<'series:setupRound'>, 'series'> & CareerDraws,
+    request: RoundRequest & CareerDraws,
   ) => Promise<RaceDefinition>;
   /**
    * Draws a season's AI field over the installed content: every seat's car,
@@ -88,7 +98,7 @@ export interface SeriesStore {
   drawField: (
     series: Championship,
     entry: string,
-    car: IpcRequest<'series:setupRound'>['car'],
+    car: RoundRequest['car'],
     salt: string,
   ) => Promise<FieldSeat[]>;
   /**
@@ -110,22 +120,6 @@ export interface SeriesStore {
    * @returns Everything wrong with it, and what it needs that is not installed
    */
   validate: (series: Championship) => Promise<SeriesAvailability>;
-  /**
-   * Every round's generated weather.
-   *
-   * Drawn over what the install can render and what the user allows, the same
-   * offer a round is set up with, so the calendar shows what the race runs.
-   * @param id The championship's id
-   * @returns One forecast per round, empty when its weather is authored
-   * @throws When the library holds no such championship
-   */
-  forecast: (id: string) => Promise<RoundForecast[]>;
-  /**
-   * The forecast of the round a race was set up from.
-   * @param raceId The race definition's id
-   * @returns The round's forecast, or null when the race is no generated round
-   */
-  raceForecast: (raceId: string) => Promise<RoundForecast | null>;
   /**
    * Writes a championship the user owns back over its own file.
    *

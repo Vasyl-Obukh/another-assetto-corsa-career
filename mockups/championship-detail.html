@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Championship detail mockup</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.005 60);
+
+  --provenance-base: oklch(0.93 0.05 155); --provenance-base-fg: oklch(0.34 0.09 155);
+  --provenance-dlc: oklch(0.93 0.06 75);   --provenance-dlc-fg: oklch(0.38 0.1 62);
+  --provenance-mod: oklch(0.93 0.05 295);  --provenance-mod-fg: oklch(0.38 0.13 295);
+  --provenance-dist: oklch(0.93 0.05 235); --provenance-dist-fg: oklch(0.38 0.12 250);
+  --session-practice: oklch(0.93 0.045 250); --session-practice-fg: oklch(0.4 0.13 258);
+  --session-qualify: oklch(0.93 0.05 310);   --session-qualify-fg: oklch(0.4 0.15 310);
+  --session-race: oklch(0.89 0.085 150);     --session-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88);     --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52);   --bronze-fg: oklch(0.41 0.09 48);
+  --sportscar: oklch(0.925 0.06 112); --sportscar-fg: oklch(0.36 0.1 118);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88);    --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255);  --t3-fg: oklch(0.42 0.015 260);
+  --works: oklch(0.91 0.075 320); --works-fg: oklch(0.38 0.15 320);
+  --independent: oklch(0.92 0.06 18); --independent-fg: oklch(0.42 0.13 22);
+  --privateer: oklch(0.93 0.055 132); --privateer-fg: oklch(0.4 0.09 135);
+  --temperate: oklch(0.925 0.03 150); --temperate-fg: oklch(0.4 0.05 150);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.16 0.02 30);
+
+  --provenance-base: oklch(0.32 0.06 155); --provenance-base-fg: oklch(0.86 0.11 155);
+  --provenance-dlc: oklch(0.33 0.06 70);   --provenance-dlc-fg: oklch(0.87 0.11 80);
+  --provenance-mod: oklch(0.33 0.07 295);  --provenance-mod-fg: oklch(0.86 0.1 295);
+  --provenance-dist: oklch(0.33 0.07 245); --provenance-dist-fg: oklch(0.86 0.09 240);
+  --session-practice: oklch(0.32 0.06 250); --session-practice-fg: oklch(0.86 0.09 255);
+  --session-qualify: oklch(0.33 0.07 310);  --session-qualify-fg: oklch(0.87 0.1 310);
+  --session-race: oklch(0.35 0.09 150);     --session-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88);     --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50);   --bronze-fg: oklch(0.85 0.09 55);
+  --sportscar: oklch(0.32 0.07 112); --sportscar-fg: oklch(0.86 0.1 112);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88);   --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --works: oklch(0.34 0.085 320); --works-fg: oklch(0.87 0.11 320);
+  --independent: oklch(0.33 0.07 18); --independent-fg: oklch(0.86 0.09 22);
+  --privateer: oklch(0.32 0.06 132); --privateer-fg: oklch(0.86 0.08 135);
+  --temperate: oklch(0.32 0.03 150); --temperate-fg: oklch(0.85 0.05 150);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.small { font-size: 12px; }
+h1, h2, h3, h4 { margin: 0; }
+p { margin: 0; }
+
+/* Mockup chrome */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker strong { font-weight: 600; margin-right: 8px; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 5px 12px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; align-self: stretch; background: color-mix(in oklch, var(--background) 30%, transparent); margin: 0 6px; }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 84ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); font-weight: 600; }
+.window { max-width: 1440px; margin: 16px auto 48px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); }
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { padding: 5px 10px; border-radius: 6px; font-size: 13.5px; font-weight: 500; }
+.nav a.on { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); }
+.screen { padding: 20px 32px 40px; }
+.back { color: var(--muted-foreground); font-size: 13px; margin-bottom: 14px; display: inline-block; }
+
+/* Shared pieces */
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; line-height: 1; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+.chip.outline { border: 1px solid var(--border); padding: 3px 7px; }
+.chip.filled { background: var(--primary); color: var(--primary-foreground); }
+.c-sportscar { background: var(--sportscar); color: var(--sportscar-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); }
+.c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); }
+.c-mod { background: var(--provenance-mod); color: var(--provenance-mod-fg); }
+.c-dist { background: var(--provenance-dist); color: var(--provenance-dist-fg); }
+.c-works { background: var(--works); color: var(--works-fg); }
+.c-independent { background: var(--independent); color: var(--independent-fg); }
+.c-privateer { background: var(--privateer); color: var(--privateer-fg); }
+.c-temperate { background: var(--temperate); color: var(--temperate-fg); }
+.c-success { background: var(--success); color: var(--success-foreground); }
+.c-warning { background: var(--warning); color: var(--warning-foreground); }
+.c-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.p1 { background: var(--gold); color: var(--gold-fg); }
+.p2 { background: var(--silver); color: var(--silver-fg); }
+.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.fmt { display: inline-flex; gap: 2px; }
+.fmt span { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+.s-practice { background: var(--session-practice); color: var(--session-practice-fg); }
+.s-qualify { background: var(--session-qualify); color: var(--session-qualify-fg); }
+.s-race { background: var(--session-race); color: var(--session-race-fg); }
+.medal { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.medal.sm { width: 24px; height: 24px; font-size: 12px; box-shadow: 0 0 0 2px var(--card); }
+.medals { display: flex; }
+.medals .medal + .medal { margin-left: -4px; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 12px; font-weight: 500; font-size: 13px; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.kebab { border: 0; background: none; width: 32px; height: 32px; border-radius: 6px; font-size: 18px; line-height: 1; color: inherit; }
+.switch { width: 36px; height: 20px; border-radius: 10px; background: var(--success); position: relative; flex-shrink: 0; border: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--card); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.card-h { padding: 14px 18px 10px; display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.card-h h3 { font-size: 15px; font-weight: 600; }
+.card-b { padding: 0 18px 16px; }
+.map { width: 64px; height: 40px; border-radius: 6px; background: var(--muted); display: grid; place-items: center; flex-shrink: 0; }
+.map svg { width: 50px; height: 30px; }
+.map path, .big-map path { fill: none; stroke: var(--foreground); stroke-width: 2.4; stroke-linejoin: round; opacity: .75; }
+.shot { border-radius: 8px; overflow: hidden; background: var(--muted); display: flex; flex-direction: column; }
+.shot .img { aspect-ratio: 16 / 9; display: grid; place-items: center; background: linear-gradient(180deg, color-mix(in oklch, var(--muted) 60%, var(--card)), var(--muted)); }
+.shot .img svg { width: 62%; }
+.shot .img path { fill: color-mix(in oklch, var(--foreground) 55%, transparent); }
+.shot .cap { font-size: 11.5px; padding: 5px 7px; background: var(--card); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 8px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+table { border-collapse: collapse; width: 100%; }
+td, th { text-align: left; padding: 6px 8px; font-weight: 400; }
+th { color: var(--muted-foreground); font-size: 12px; }
+tbody tr { border-top: 1px solid var(--border); }
+.you { background: color-mix(in oklch, var(--primary) 8%, transparent); }
+.cell-res { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 4px; border-radius: 5px; font-weight: 600; font-size: 12px; }
+.r { text-align: right; }
+details > summary { color: var(--primary); font-size: 13px; padding: 8px 0 0; list-style: none; }
+details[open] > summary { margin-bottom: 8px; }
+.teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.team { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; background: var(--card); }
+.team .th { display: flex; align-items: center; gap: 8px; }
+.team .th b { flex: 1; min-width: 0; font-size: 13.5px; }
+.team .drv { display: flex; justify-content: space-between; font-size: 13px; }
+.team .drv.me span:first-child { font-weight: 600; color: var(--primary); }
+.needs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted-foreground); }
+
+/* ============ A ============ */
+.hero { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--card); }
+.hero-band { background: var(--sportscar); color: var(--sportscar-fg); padding: 16px 22px; display: flex; align-items: center; gap: 14px; }
+.hero-band h2 { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; color: var(--foreground); }
+.hero-band .sub { font-size: 13px; font-weight: 500; }
+.hero-band .end { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.facts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--border); }
+.fact { padding: 12px 18px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.fact:first-child { border-left: 0; }
+.fact .k { font-size: 12px; color: var(--muted-foreground); }
+.fact .v { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hero-foot { padding: 12px 22px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.hero-foot p { max-width: 95ch; color: var(--muted-foreground); }
+.cols { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.round { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.round:first-child { border-top: 0; }
+.round .no { width: 54px; flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); display: flex; flex-direction: column; }
+.round .no b { font-size: 17px; color: var(--foreground); font-weight: 600; }
+.round .name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.round .name > span:first-child { font-weight: 600; }
+.round .tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 55%; }
+.round.next { background: color-mix(in oklch, var(--primary) 6%, transparent); margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+.round.off .name, .round.off .map { opacity: .55; }
+.cls { padding: 14px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.cls:first-child { border-top: 0; padding-top: 0; }
+.cls-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cls-h b { font-size: 15px; }
+.prize-matrix td, .prize-matrix th { padding: 5px 6px; }
+.prize-matrix td { font-size: 12.5px; }
+.fmt-list .f { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+.fmt-list .f:first-child { border-top: 0; }
+.fmt-list .f .n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ============ B ============ */
+.b-head { display: flex; gap: 16px; align-items: center; }
+.b-head .titles { flex: 1; min-width: 0; }
+.b-head h2 { font-size: 26px; font-weight: 650; letter-spacing: -0.015em; }
+.b-sub { display: flex; gap: 18px; align-items: flex-start; margin-top: 10px; }
+.b-sub p { color: var(--muted-foreground); max-width: 90ch; flex: 1; }
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); margin: 18px 0 16px; }
+.tabs button { border: 0; background: none; padding: 8px 0 10px; color: var(--muted-foreground); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.tabs .n { font-size: 11.5px; margin-left: 4px; }
+.pane { display: none; }
+.pane.on { display: block; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tl { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.tl.next { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.tl.off { opacity: .7; }
+.tl .top { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 12px; color: var(--muted-foreground); }
+.tl .big-map { height: 86px; background: var(--muted); display: grid; place-items: center; }
+.tl .big-map svg { width: 110px; height: 66px; }
+.tl .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tl .body b { font-size: 14.5px; line-height: 1.25; }
+.tl .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-top: 4px; }
+.class-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.class-tabs button { border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 10px; display: inline-flex; gap: 8px; align-items: center; font-weight: 500; }
+.class-tabs button.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.b-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+
+/* ============ C ============ */
+.c-wrap { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start; }
+.side { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 14px; }
+.side .card { padding: 16px; }
+.side h2 { font-size: 21px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; }
+.side .band { height: 6px; border-radius: 3px; background: var(--sportscar-fg); margin-bottom: 12px; }
+.side .rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 13px; }
+.side .rows > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.side .rows > div > span:first-child { color: var(--muted-foreground); }
+.sheet { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.sheet table th { padding: 9px 10px; background: color-mix(in oklch, var(--muted) 60%, transparent); }
+.sheet table td { padding: 9px 10px; vertical-align: middle; }
+.section-title { font-size: 15px; font-weight: 600; margin: 24px 0 10px; display: flex; gap: 8px; align-items: center; }
+.class-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.class-col { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.class-col .hd { padding: 10px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.class-col .hd b { flex: 1; font-size: 15px; }
+.class-col .bd { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.class-col .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.class-col .tm { font-size: 12.5px; display: flex; flex-direction: column; gap: 1px; padding-top: 6px; border-top: 1px solid var(--border); }
+.std-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 8px; background: var(--muted); margin-bottom: 8px; }
+.std-tabs button { border: 0; background: none; border-radius: 6px; padding: 5px 4px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+.std-tabs button.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0.2 0.02 260 / 0.15); }
+.std-tabs .me-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.class-col .tm .t { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; gap: 6px; }
+
+@media (max-width: 1100px) {
+  .cols, .c-wrap, .b-grid2 { grid-template-columns: 1fr; }
+  .side { position: static; }
+  .facts { grid-template-columns: repeat(2, 1fr); }
+  .class-cols { grid-template-columns: repeat(2, 1fr); }
+  .screen, .app-header { padding-left: 16px; padding-right: 16px; }
+}
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="picker" role="toolbar" aria-label="Mockup options">
+  <strong>Championship detail</strong>
+  <button class="opt" data-opt="a" aria-pressed="true">A - Overview</button>
+  <button class="opt" data-opt="b" aria-pressed="false">B - Tabs</button>
+  <button class="opt" data-opt="c" aria-pressed="false">C - Season sheet</button>
+  <span class="sep"></span>
+  <button class="opt" data-mode="career" aria-pressed="true">In a career</button>
+  <button class="opt" data-mode="library" aria-pressed="false">From settings</button>
+  <span class="spacer"></span>
+  <button class="opt" id="theme">Dark mode</button>
+</div>
+<p class="rationale" id="why"></p>
+<div class="window">
+  <header class="app-header">
+    <h1>Assetto Corsa Career</h1>
+    <nav class="nav" id="nav"></nav>
+  </header>
+  <div class="screen">
+    <span class="back" id="back"></span>
+    <div id="view"></div>
+  </div>
+</div>
+
+<script>
+// IMSA 2025 as shipped: four classes, five weekend formats, seven rounds. The
+// career has entered GTD Pro with Donau Racing and raced two rounds.
+const S = {
+  name: 'IMSA SportsCar Championship 2025',
+  desc: 'America\'s sports car championship of 2025 on LFM\'s GTP cars and GT3s and the Oreca 07: four classes, seven rounds from the Rolex 24 to Petit Le Mans.',
+  fee: '$18,000',
+  myClass: 'gtd-pro',
+  points: [350, 320, 300, 280, 260, 250, 240, 230, 220, 210, 200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+  formats: [
+    { id: 'sprint', name: 'Two hours forty', def: true, s: [['practice', 'Free practice', '60 min', 1], ['qualify', 'Qualifying', '20 min', 2], ['race', '2 Hours 40', '480 km', 3]] },
+    { id: 'six', name: 'Six hours', s: [['practice', 'Free practice', '90 min', 1], ['qualify', 'Qualifying', '20 min', 2], ['race', '6 Hours', '200 laps', 3]] },
+    { id: 'ten', name: 'Ten hours', s: [['practice', 'Free practice', '120 min', 1], ['qualify', 'Qualifying', '20 min', 2], ['race', 'Petit Le Mans', '436 laps', 3]] },
+    { id: 'twelve', name: 'Twelve hours', s: [['practice', 'Free practice', '120 min', 1], ['qualify', 'Qualifying', '20 min', 2], ['race', '12 Hours', '353 laps', 3]] },
+    { id: 'daytona', name: 'Twenty-four hours', s: [['practice', 'Free practice', '240 min', 1], ['qualify', 'Qualifying', '20 min', 2], ['race', 'Rolex 24', '781 laps', 3]] },
+  ],
+  rounds: [
+    { name: 'Rolex 24 at Daytona', track: 'rt_daytona/sportscar_m4x', date: 'Sat 24 Jan', fmt: 'daytona', race: '781 laps', status: 'raced', res: 3 },
+    { name: '12 Hours of Sebring', track: 'mx_sebring/raceday_standing', date: 'Sat 14 Mar', fmt: 'twelve', race: '353 laps', status: 'raced', res: 6 },
+    { name: 'Laguna Seca', track: 'ks_laguna_seca/laguna_seca_osrw', date: 'Sat 9 May', fmt: 'sprint', race: '480 km, 134 laps', status: 'next' },
+    { name: 'Watkins Glen 6 Hours', track: 'lilski_watkins_glen/boot', date: 'Sat 20 Jun', fmt: 'six', race: '200 laps', status: 'missing' },
+    { name: 'Road America', track: 'lilski_road_america', date: 'Sat 1 Aug', fmt: 'sprint', race: '480 km, 74 laps', status: 'scheduled' },
+    { name: 'Virginia International Raceway', track: 'vir/full course', date: 'Sat 22 Aug', fmt: 'sprint', race: '480 km, 92 laps', status: 'scheduled' },
+    { name: 'Petit Le Mans', track: 'road_atlanta2018/grandprix', date: 'Sat 10 Oct', fmt: 'ten', race: '436 laps', status: 'scheduled' },
+  ],
+  classes: [
+    {
+      id: 'gtp', name: 'GTP', tier: 1, spec: 'Hypercar (LFM)', installed: 6, eligible: 8,
+      cars: ['Alpine A424', 'BMW M Hybrid V8', 'Cadillac V-Series.R', 'Ferrari 499P', 'Lamborghini SC63', 'Porsche 963'],
+      prizes: ['$70,000', '$49,000', '$35,000', '$26,600', '$20,300'], champion: '$560,000',
+      teams: [['Dixie Prototypes', 'works', ['Wade Callahan', 'Beau Tillman']], ['Sunshine State Racing', 'works', ['Marco Esteves', 'Dean Whitaker']], ['Hudson Valley Racing', 'independent', ['Cole Brennan', 'Ian Mercer']], ['Saint-Laurent Racing', 'independent', ['Julien Tremblay', 'Olivier Gagné']], ['Baja Endurance', 'privateer', ['Diego Salcedo', 'Andrés Robles']]],
+    },
+    {
+      id: 'lmp2', name: 'LMP2', tier: 2, spec: 'LMP2 (2021)', installed: 4, eligible: 4,
+      cars: ['Oreca 07', 'Loire 07', 'Oreca 07 (2021)', 'Oreca 07 (2022)'],
+      prizes: ['$42,000', '$29,400', '$21,000', '$15,950', '$12,200'], champion: '$336,000',
+      teams: [['Bluebonnet Racing', 'independent', ['Travis Holt', 'Ramon Ochoa']], ['Florida Keys Racing', 'privateer', ['Grant Lowry', 'Seth Albright']], ['Cascadia Endurance', 'privateer', ['Ryan Kowalski', 'Mathis Leroux']]],
+    },
+    {
+      id: 'gtd-pro', name: 'GTD Pro', tier: 3, spec: 'GT3 (LFM)', installed: 9, eligible: 11,
+      cars: ['Aston Martin Vantage', 'BMW M4 GT3', 'Corvette Z06 GT3.R', 'Ferrari 296 GT3', 'Ford Mustang GT3', 'Lamborghini Huracán', 'Lexus RC F GT3', 'Mercedes-AMG GT3', 'Porsche 911 GT3 R'],
+      prizes: ['$25,200', '$17,650', '$12,600', '$9,600', '$7,300'], champion: '$201,500',
+      teams: [['Arrowhead Endurance', 'works', ['Oliver Pembroke', 'James Ashdown']], ['Donau Racing', 'works', ['Stefan Mayr', 'You']], ['Scuderia Rubicone', 'works', ['Luca Ferretti', 'Matteo Galli']], ['Route Sixty-Six Racing', 'works', ['Chase Donnelly', 'Kyle Maddox']]],
+    },
+    {
+      id: 'gtd', name: 'GTD', tier: 3, spec: 'GT3 (LFM)', installed: 9, eligible: 11, bop: 'Porsche 911 GT3 R: 15 kg ballast',
+      cars: ['Aston Martin Vantage', 'BMW M4 GT3', 'Corvette Z06 GT3.R', 'Ferrari 296 GT3', 'Ford Mustang GT3', 'Lamborghini Huracán', 'Lexus RC F GT3', 'Mercedes-AMG GT3', 'Porsche 911 GT3 R'],
+      prizes: ['$18,900', '$13,250', '$9,450', '$7,200', '$5,500'], champion: '$151,000',
+      teams: [['Neckar Motorsport', 'independent', ['Jan Köhler', 'Tim Eberle']], ['Loire Endurance', 'independent', ['Hugo Marchal', 'Paul Vidal']], ['Pacific Rim Racing', 'independent', ['Kenji Arai', 'Evan Lindqvist']], ['Laurentian Racing', 'privateer', ['Samuel Côté', 'Noah Pelletier']]],
+    },
+  ],
+  standingsBy: {
+    gtp: [['Wade Callahan', 'Dixie Prototypes', 670], ['Marco Esteves', 'Sunshine State Racing', 640], ['Julien Tremblay', 'Saint-Laurent Racing', 580], ['Beau Tillman', 'Dixie Prototypes', 560], ['Cole Brennan', 'Hudson Valley Racing', 530]],
+    lmp2: [['Travis Holt', 'Bluebonnet Racing', 670], ['Mathis Leroux', 'Cascadia Endurance', 620], ['Grant Lowry', 'Florida Keys Racing', 600], ['Ramon Ochoa', 'Bluebonnet Racing', 560], ['Seth Albright', 'Florida Keys Racing', 520]],
+    gtd: [['Hugo Marchal', 'Loire Endurance', 650], ['Kenji Arai', 'Pacific Rim Racing', 630], ['Jan Köhler', 'Neckar Motorsport', 580], ['Samuel Côté', 'Laurentian Racing', 550], ['Tim Eberle', 'Neckar Motorsport', 520]],
+  },
+  standings: [['Luca Ferretti', 'Scuderia Rubicone', 620], ['Oliver Pembroke', 'Arrowhead Endurance', 600], ['You', 'Donau Racing', 550], ['Chase Donnelly', 'Route Sixty-Six Racing', 540], ['Stefan Mayr', 'Donau Racing', 510], ['Matteo Galli', 'Scuderia Rubicone', 490]],
+};
+const BUDGET = { works: 'Works', independent: 'Independent', privateer: 'Privateer' };
+const MAPS = [
+  'M4 22 C4 8 12 4 26 4 C40 4 48 8 48 16 C48 24 40 27 26 27 L10 27 C6 27 4 25 4 22Z',
+  'M5 25 L5 10 L18 4 L30 10 L44 6 L48 14 L36 20 L42 26 Z',
+  'M6 14 C6 6 14 4 20 7 L28 12 C32 14 36 12 38 8 C41 3 49 5 48 12 L44 24 C42 28 36 28 32 26 L12 24 C8 23 6 20 6 14Z',
+  'M4 24 L44 28 C50 29 51 23 47 20 L38 12 C35 9 31 10 29 13 L22 18 C19 20 15 18 14 14 L11 6 C9 2 3 4 4 9 Z',
+  'M6 26 L6 6 L46 6 L46 14 L30 14 L30 20 L46 20 L46 26 Z',
+  'M6 14 C6 7 12 4 20 5 L44 7 C51 8 52 14 48 18 L36 28 C32 31 26 30 24 26 L20 20 C18 17 14 18 12 21 C10 25 6 22 6 18 Z',
+  'M5 20 C5 8 16 5 26 7 C36 9 42 4 50 8 C54 11 52 17 46 18 L30 20 C24 21 26 28 18 29 C10 30 5 27 5 20Z',
+];
+const CAR = '<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M6 30 C6 24 12 22 22 21 L40 12 C46 9 56 8 66 9 L84 11 C94 13 102 18 108 22 C114 23 116 26 116 30 L106 30 A8 8 0 0 0 90 30 L36 30 A8 8 0 0 0 20 30 Z M28 36 A6 6 0 1 1 28.1 36 Z M98 36 A6 6 0 1 1 98.1 36 Z"/></svg>';
+
+let OPT = 'a';
+let MODE = 'career';
+// Which class the sidebar's standings show; your own until another is picked.
+let STD = 'gtd-pro';
+const career = () => MODE === 'career';
+const fmtOf = (id) => S.formats.find((f) => f.id === id);
+const strip = (f) => `<span class="fmt" title="${f.name}: ${f.s.map((x) => x[1]).join(', ')}">${f.s.map((x) => `<span class="s-${x[0]}" title="${x[1]}, ${x[2]}">${x[0][0].toUpperCase()}</span>`).join('')}</span>`;
+const pod = (i) => (i < 3 ? `p${i + 1}` : '');
+const place = (n) => `<span class="cell-res ${pod(n - 1)}">P${n}</span>`;
+const map = (i, cls = 'map', w = 56, h = 34) => `<div class="${cls}"><svg viewBox="0 0 56 34" aria-hidden="true"><path d="${MAPS[i]}"/></svg></div>`;
+const medal = (t, sm) => `<span class="medal ${sm ? 'sm' : ''} c-t${t}" title="Tier ${t}">${t}</span>`;
+const medals = (sm) => `<span class="medals">${[1, 2, 3].map((t) => medal(t, sm)).join('')}</span>`;
+const classChip = (c) => `<span class="chip c-t${c.tier}">${c.name}</span>`;
+const shots = (c, n = 99) => `<div class="shots">${c.cars.slice(0, n).map((x) => `<div class="shot"><div class="img">${CAR}</div><div class="cap" title="${x}">${x}</div></div>`).join('')}</div>`;
+const teamCards = (c) => `<div class="teams">${c.teams.map(([n, b, d]) => `<div class="team"><div class="th"><b>${n}</b><span class="chip c-${b}">${BUDGET[b]}</span></div>${d.map((x) => `<div class="drv ${x === 'You' ? 'me' : ''}"><span>${x}</span><span class="muted small">USA</span></div>`).join('')}</div>`).join('')}</div>`;
+const needs = () => '<div class="needs">Needs <span class="chip c-mod">Mod</span><span class="chip c-dist">LFM</span><span style="margin-left:6px">Some rounds need</span><span class="chip c-mod">Mod</span></div>';
+const roundTags = (r, opts = {}) => {
+  const f = fmtOf(r.fmt);
+  const t = [];
+  if (!f.def) t.push(`<span class="chip outline">${f.name}</span>`);
+  if (r.status === 'missing') t.push('<span class="chip c-destructive">Track not installed</span>');
+  else t.push(`<span class="chip outline num">${r.race}</span>`);
+  if (career() && r.res) t.push(place(r.res));
+  if (career() && r.status === 'raced' && !opts.noRaced) t.push('<span class="chip c-success">Raced</span>');
+  return t.join('');
+};
+const raceBtn = (r) => (career() && r.status === 'next' ? '<button class="btn primary">Race</button>' : '');
+const headerActions = () => (career()
+  ? '<button class="kebab" aria-label="Actions">&#8942;</button>'
+  : '<button class="switch" aria-label="On the Championships page"></button><button class="kebab" aria-label="Actions">&#8942;</button>');
+const standings = (rows = S.standings) => `
+  <table><thead><tr><th></th><th>Driver</th><th>Team</th><th class="r">Pts</th></tr></thead><tbody>
+  ${rows.map(([d, tm, p], i) => `<tr class="${d === 'You' ? 'you' : ''}"><td><span class="cell-res ${pod(i)}">${i + 1}</span></td><td style="${d === 'You' ? 'font-weight:600' : ''}">${d}</td><td class="muted">${tm}</td><td class="num r" style="font-weight:600">${p}</td></tr>`).join('')}
+  </tbody></table>`;
+const prizeMatrix = () => `
+  <table class="prize-matrix"><thead><tr><th></th><th class="r">Points</th>${S.classes.map((c) => `<th class="r">${classChip(c)}</th>`).join('')}</tr></thead><tbody>
+  ${[0, 1, 2, 3, 4].map((i) => `<tr><td><span class="cell-res ${pod(i)}">P${i + 1}</span></td><td class="num r">${S.points[i]}</td>${S.classes.map((c) => `<td class="num r">${c.prizes[i]}</td>`).join('')}</tr>`).join('')}
+  <tr><td class="muted small" colspan="2">Champion</td>${S.classes.map((c) => `<td class="num r" style="font-weight:600">${c.champion}</td>`).join('')}</tr>
+  </tbody></table>`;
+const formatsList = () => `<div class="fmt-list">${S.formats.map((f) => {
+  const used = S.rounds.filter((r) => r.fmt === f.id).map((r) => r.name.replace(/ (at|of) .*/, '').replace('Virginia International Raceway', 'VIR'));
+  return `<div class="f">${strip(f)}<div class="n"><span style="font-weight:600">${f.name} ${f.def ? '<span class="chip filled" style="margin-left:4px">Default</span>' : ''}</span><span class="muted small">${f.s.map((x) => `${x[1]} ${x[2]}`).join(', ')}</span><span class="muted small">${used.join(', ')}</span></div></div>`;
+}).join('')}</div>`;
+
+// ---------- A ----------
+const renderA = () => `
+  <section class="hero">
+    <div class="hero-band">
+      ${medals()}
+      <div><h2>${S.name}</h2><div class="sub">Sportscar, four classes</div></div>
+      <div class="end">${career() ? '' : '<span class="chip c-success">Available</span>'}${headerActions()}</div>
+    </div>
+    <div class="facts">
+      ${career()
+    ? `<div class="fact"><span class="k">Season</span><span class="v num">2 of 7 rounds</span></div>
+         <div class="fact"><span class="k">Your class</span><span class="v">${classChip(S.classes[2])} Donau Racing</span></div>
+         <div class="fact"><span class="k">Next round</span><span class="v">Laguna Seca</span></div>`
+    : `<div class="fact"><span class="k">Calendar</span><span class="v num">7 rounds, 6 raceable</span></div>
+         <div class="fact"><span class="k">Classes</span><span class="v">${S.classes.map(classChip).join('')}</span></div>
+         <div class="fact"><span class="k">Weekend formats</span><span class="v num">5</span></div>`}
+      <div class="fact"><span class="k">Grid</span><span class="v num">32 cars, 16 teams</span></div>
+      <div class="fact"><span class="k">Entry fee</span><span class="v num">${S.fee}</span></div>
+    </div>
+    <div class="hero-foot"><p>${S.desc}</p>${career() ? '' : needs()}</div>
+  </section>
+  <div class="cols">
+    <div class="stack">
+      <section class="card">
+        <div class="card-h"><h3>Calendar</h3><span class="chip c-temperate">Temperate</span></div>
+        <div class="card-b">
+          ${S.rounds.map((r, i) => `
+            <div class="round ${career() && r.status === 'next' ? 'next' : ''} ${r.status === 'missing' ? 'off' : ''}">
+              <div class="no"><b class="num">${i + 1}</b>${career() ? r.date : ''}</div>
+              ${map(i)}
+              <div class="name"><span>${r.name}</span><span class="muted small">${r.track}</span></div>
+              <div class="tags">${roundTags(r)}${raceBtn(r)}</div>
+            </div>`).join('')}
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h3>Classes</h3><span class="muted small">32 cars on one grid, scored separately</span></div>
+        <div class="card-b">
+          ${S.classes.map((c) => `
+            <div class="cls">
+              <div class="cls-h">${medal(c.tier)}<b>${c.name}</b>${career() && c.id === S.myClass ? '<span class="chip filled">Your class</span>' : ''}<span class="muted small">${c.teams.length * 2} cars</span>
+                <span style="margin-left:auto" class="row"><span class="chip outline">${c.spec}</span><span class="chip ${c.installed === c.eligible ? 'c-success' : 'c-warning'}">${c.installed} of ${c.eligible} installed</span></span></div>
+              ${shots(c, 6)}
+              ${c.bop ? `<span class="small muted">Balance of performance: ${c.bop}</span>` : ''}
+              <details ${career() && c.id === S.myClass ? 'open' : ''}><summary>Entry list: ${c.teams.length} teams, ${c.teams.length * 2} drivers</summary>${teamCards(c)}</details>
+            </div>`).join('')}
+        </div>
+      </section>
+    </div>
+    <div class="stack">
+      ${career() ? `<section class="card"><div class="card-h"><h3>Standings</h3><span class="row">${S.classes.map((c) => `<span class="chip ${c.id === S.myClass ? `c-t${c.tier}` : 'outline'}">${c.name}</span>`).join('')}</span></div><div class="card-b">${standings()}</div></section>` : ''}
+      <section class="card"><div class="card-h"><h3>Weekend formats</h3></div><div class="card-b">${formatsList()}</div></section>
+      <section class="card"><div class="card-h"><h3>What a race pays</h3></div><div class="card-b">${prizeMatrix()}
+        <details><summary>Points to P30 and prize money to P10</summary></details></div></section>
+    </div>
+  </div>`;
+
+// ---------- B ----------
+const renderB = () => `
+  <div class="b-head">
+    ${medals()}
+    <div class="titles">
+      <h2>${S.name}</h2>
+      <div class="row" style="margin-top:6px"><span class="chip c-sportscar">Sportscar</span>${S.classes.map(classChip).join('')}<span class="chip c-temperate">Temperate</span>${career() ? '' : '<span class="chip c-success">Available</span>'}</div>
+    </div>
+    ${headerActions()}
+  </div>
+  <div class="b-sub"><p>${S.desc}</p>${career() ? '' : needs()}</div>
+  <div class="tabs" role="tablist">
+    <button class="on" data-tab="cal">Calendar<span class="n muted">7</span></button>
+    <button data-tab="cls">Classes and entries<span class="n muted">32</span></button>
+    ${career() ? '<button data-tab="std">Standings</button>' : ''}
+    <button data-tab="fmt">Weekends<span class="n muted">5</span></button>
+    <button data-tab="pay">Points and money</button>
+  </div>
+  <div class="pane on" data-pane="cal">
+    <div class="timeline">
+      ${S.rounds.map((r, i) => `
+        <article class="tl ${career() && r.status === 'next' ? 'next' : ''} ${r.status === 'missing' ? 'off' : ''}">
+          <div class="top"><span>Round ${i + 1}</span><span>${career() ? r.date : ''}</span></div>
+          ${map(i, 'big-map')}
+          <div class="body"><b>${r.name}</b><span class="muted small">${r.track}</span>
+            <div class="row">${strip(fmtOf(r.fmt))}</div>
+            <div class="row">${roundTags(r, { noRaced: true })}</div>
+            <div class="foot">${career() && r.status === 'raced' ? '<span class="chip c-success">Raced</span>' : '<span></span>'}${raceBtn(r)}</div>
+          </div>
+        </article>`).join('')}
+    </div>
+  </div>
+  <div class="pane" data-pane="cls">
+    <div class="class-tabs">${S.classes.map((c, i) => `<button class="${i === (career() ? 2 : 0) ? 'on' : ''}">${medal(c.tier, true)}${c.name}<span class="muted small">${c.teams.length * 2}</span></button>`).join('')}</div>
+    ${(() => { const c = S.classes[career() ? 2 : 0]; return `
+      <div class="b-grid2">
+        <section class="card"><div class="card-h"><h3>Cars</h3><span class="row"><span class="chip outline">${c.spec}</span><span class="chip c-warning">${c.installed} of ${c.eligible} installed</span></span></div><div class="card-b">${shots(c)}</div></section>
+        <section class="card"><div class="card-h"><h3>Entry list</h3><span class="muted small">${c.teams.length} teams</span></div><div class="card-b">${teamCards(c)}</div></section>
+      </div>`; })()}
+  </div>
+  <div class="pane" data-pane="std"><section class="card"><div class="card-h"><h3>GTD Pro standings</h3></div><div class="card-b">${standings()}</div></section></div>
+  <div class="pane" data-pane="fmt"><section class="card"><div class="card-b" style="padding-top:12px">${formatsList()}</div></section></div>
+  <div class="pane" data-pane="pay"><section class="card"><div class="card-b" style="padding-top:12px">${prizeMatrix()}</div></section></div>`;
+
+// ---------- C ----------
+const renderC = () => `
+  <div class="c-wrap">
+    <aside class="side">
+      <div class="card">
+        <div class="band"></div>
+        <div style="display:flex;gap:8px;align-items:flex-start"><h2 style="flex:1">${S.name}</h2>${career() ? '' : '<button class="switch" aria-label="On the Championships page"></button>'}</div>
+        <div class="row" style="margin-top:8px"><span class="chip c-sportscar">Sportscar</span>${S.classes.map(classChip).join('')}${career() ? '' : '<span class="chip c-success">Available</span>'}</div>
+        <p class="muted" style="font-size:13px;margin-top:12px">${S.desc}</p>
+        <div class="rows">
+          <div><span>Weekend</span>${strip(S.formats[0])}</div>
+          <div><span>Weather</span><span class="chip c-temperate">Temperate</span></div>
+          <div><span>Grid</span><span class="num">32 cars, 16 teams</span></div>
+          <div><span>Entry fee</span><span class="num">${S.fee}</span></div>
+          ${career() ? `<div><span>You race</span><span>${classChip(S.classes[2])} Donau Racing</span></div>` : ''}
+        </div>
+        ${career() ? '' : `<div style="margin-top:12px">${needs()}</div>`}
+        <div style="display:flex;gap:8px;margin-top:14px">${career() ? '<button class="btn primary" style="flex:1">Race Laguna Seca</button>' : '<button class="btn" style="flex:1">Edit</button>'}<button class="kebab" aria-label="Actions">&#8942;</button></div>
+      </div>
+      ${career() ? `<div class="card">
+        <div style="font-weight:600;margin-bottom:8px">Standings</div>
+        <div class="std-tabs" role="tablist" aria-label="Standings by class">${S.classes.map((c) => `<button role="tab" aria-selected="${c.id === STD}" data-std="${c.id}" class="${c.id === STD ? 'on' : ''}">${c.name}${c.id === S.myClass ? '<span class="me-dot" title="Your class"></span>' : ''}</button>`).join('')}</div>
+        ${standings((STD === S.myClass ? S.standings : S.standingsBy[STD]).slice(0, 5)).replace('<th>Team</th>', '').replace(/<td class="muted">[^<]*<\/td>/g, '')}
+        <a class="small" style="color:var(--primary);display:inline-block;margin-top:8px">Full ${S.classes.find((c) => c.id === STD).name} standings</a>
+      </div>` : ''}
+    </aside>
+    <main>
+      <div class="sheet"><table>
+        <thead><tr><th style="width:36px">Rd</th><th></th><th>Round</th>${career() ? '<th>Date</th>' : ''}<th>Weekend</th><th>Race</th>${career() ? '<th>You</th>' : ''}<th></th></tr></thead>
+        <tbody>
+        ${S.rounds.map((r, i) => {
+    const f = fmtOf(r.fmt);
+    return `<tr class="${career() && r.status === 'next' ? 'you' : ''}">
+            <td class="num" style="font-weight:600">${i + 1}</td>
+            <td style="width:76px">${map(i)}</td>
+            <td><div style="font-weight:600">${r.name}</div><div class="muted small">${r.track}</div></td>
+            ${career() ? `<td class="muted">${r.date}</td>` : ''}
+            <td><div class="row">${strip(f)}<span class="small ${f.def ? 'muted' : ''}">${f.name}</span></div></td>
+            <td class="num">${r.status === 'missing' ? '<span class="chip c-destructive">Track not installed</span>' : r.race}</td>
+            ${career() ? `<td>${r.res ? place(r.res) : '<span class="muted">-</span>'}</td>` : ''}
+            <td class="r">${raceBtn(r)}</td>
+          </tr>`;
+  }).join('')}
+        </tbody></table></div>
+
+      <div class="section-title">Classes <span class="muted small" style="font-weight:400">one grid, scored separately</span></div>
+      <div class="class-cols">
+        ${S.classes.map((c) => `
+          <div class="class-col" style="${career() && c.id === S.myClass ? 'border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)' : ''}">
+            <div class="hd">${medal(c.tier, true)}<b>${c.name}</b><span class="muted small">${c.teams.length * 2} cars</span></div>
+            <div class="bd">
+              <div class="row"><span class="chip outline">${c.spec}</span><span class="chip ${c.installed === c.eligible ? 'c-success' : 'c-warning'}">${c.installed} of ${c.eligible}</span></div>
+              ${shots(c, 4)}
+              ${c.cars.length > 4 ? `<span class="small" style="color:var(--primary)">${c.cars.length - 4} more cars</span>` : ''}
+              ${c.bop ? `<span class="small muted">${c.bop}</span>` : ''}
+              ${c.teams.map(([n, b, d]) => `<div class="tm"><div class="t"><span>${n}</span><span class="chip c-${b}">${BUDGET[b]}</span></div><span class="muted">${d.map((x) => (x === 'You' ? '<b style="color:var(--primary)">You</b>' : x)).join(', ')}</span></div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div class="section-title">What a race pays</div>
+      <div class="sheet" style="padding:6px 8px">${prizeMatrix()}</div>
+
+      <div class="section-title">Weekend formats</div>
+      <div class="sheet" style="padding:4px 14px">${formatsList()}</div>
+    </main>
+  </div>`;
+
+const WHY = {
+  a: '<b>Overview.</b> A band in the discipline\'s colour carries the name, the tier medals and a row of key facts. Left column: the calendar (non-default weekends named, the missing track called out), then every class stacked with its car previews and a foldable entry list by team. Right column: standings with a class switch, the weekend formats with the rounds that use each, and one table of what a race pays across all four classes.',
+  b: '<b>Tabs.</b> A short header with the chips, then Calendar, Classes and entries, Standings (career only), Weekends, and Points and money. Classes are one at a time behind a switch, so four classes never make the page longer - the cars gallery and the entry list for the chosen class sit side by side.',
+  c: '<b>Season sheet.</b> A sticky sidebar holds identity, key facts, the one action (Race, or Edit from settings) and the standings, with a switch across the four classes that opens on yours (the dot). The main column is a season table with each round\'s weekend format and race length, then the four classes side by side as columns - cars, spec and teams read across like an entry list - then the prize table and the formats.',
+};
+const MODE_NOTE = {
+  career: ' <b>In a career:</b> dates, your result per round, the next round\'s Race button, your class highlighted and the standings.',
+  library: ' <b>From settings:</b> no dates, results or standings; the switch, availability and what the championship needs take their place, and the Watkins Glen round shows its track is missing.',
+};
+
+const render = () => {
+  document.getElementById('view').innerHTML = { a: renderA, b: renderB, c: renderC }[OPT]();
+  document.getElementById('why').innerHTML = WHY[OPT] + MODE_NOTE[MODE];
+  document.getElementById('back').innerHTML = career() ? '&larr; All championships' : '&larr; Championship library';
+  document.getElementById('nav').innerHTML = ['Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings']
+    .map((n) => `<a class="${(career() ? n === 'Championships' : n === 'Settings') ? 'on' : ''}">${n}</a>`).join('');
+  document.querySelectorAll('.opt[data-opt]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.opt === OPT)));
+  document.querySelectorAll('.opt[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === MODE)));
+};
+document.querySelectorAll('.opt[data-opt]').forEach((b) => b.addEventListener('click', () => { OPT = b.dataset.opt; render(); }));
+document.querySelectorAll('.opt[data-mode]').forEach((b) => b.addEventListener('click', () => { MODE = b.dataset.mode; render(); }));
+document.addEventListener('click', (ev) => {
+  const tab = ev.target.closest('[data-tab]');
+  if (tab) {
+    document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b === tab));
+    document.querySelectorAll('[data-pane]').forEach((p) => p.classList.toggle('on', p.dataset.pane === tab.dataset.tab));
+  }
+  const std = ev.target.closest('[data-std]');
+  if (std) { STD = std.dataset.std; render(); return; }
+  const ct = ev.target.closest('.class-tabs button');
+  if (ct) document.querySelectorAll('.class-tabs button').forEach((b) => b.classList.toggle('on', b === ct));
+});
+
+const root = document.documentElement;
+if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+const themeBtn = document.getElementById('theme');
+const syncTheme = () => { themeBtn.textContent = root.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode'; };
+themeBtn.addEventListener('click', () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; syncTheme(); });
+syncTheme();
+render();
+</script>
+</body>
+</html>

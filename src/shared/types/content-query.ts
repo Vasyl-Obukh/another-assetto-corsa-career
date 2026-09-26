@@ -49,6 +49,26 @@ export interface Facet {
 }
 
 /**
+ * How a number is spread across the library, for the bars a range filter draws
+ * under its slider.
+ */
+export interface Spread {
+  /**
+   * The lowest value anything installed has, which is where the slider starts.
+   */
+  min: number;
+  /**
+   * The highest value anything installed has, which is where the slider ends.
+   */
+  max: number;
+  /**
+   * How many entries fall in each of SPREAD_BINS equal slices of min to max,
+   * counted against every other filter but the range's own.
+   */
+  counts: number[];
+}
+
+/**
  * What a car list can be sorted by.
  */
 export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerToWeight';
@@ -56,7 +76,10 @@ export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerTo
 /**
  * A filtered, searched, sorted and paged request for cars.
  *
- * Values within one filter are OR'd; separate filters are AND'd. Every field is
+ * Values within one filter are OR'd; separate filters are AND'd. The four
+ * provenance lists - sources, packs, makers, distributors - count as one filter
+ * between them, and so do classes and specs, since the browser shows each set
+ * as one tree. Every field is
  * optional, so an empty object means "everything, default sort, first page".
  */
 export interface CarQuery {
@@ -91,7 +114,9 @@ export interface CarQuery {
    */
   brands?: string[];
   /**
-   * Keep only cars from these countries of origin.
+   * Keep only cars from these countries of origin, as nation codes - the
+   * country a mod writes is free text, so it is read through nationOfCountry
+   * and a car whose country names no nation matches none of them.
    */
   countries?: string[];
   /**
@@ -137,10 +162,6 @@ export interface CarQuery {
    */
   distributors?: ModDistributor[];
   /**
-   * Keep only cars that have at least one livery installed.
-   */
-  hasSkins?: boolean;
-  /**
    * What to sort by. Defaults to name.
    */
   sort?: CarSortKey;
@@ -161,7 +182,7 @@ export interface CarQuery {
 /**
  * What a track list can be sorted by.
  */
-export type TrackSortKey = 'name' | 'country' | 'pitboxes';
+export type TrackSortKey = 'name' | 'country' | 'length' | 'pitboxes';
 
 /**
  * A filtered, searched, sorted and paged request for tracks.
@@ -182,9 +203,25 @@ export interface TrackQuery {
    */
   search?: string;
   /**
-   * Keep only tracks in these countries.
+   * Keep only these tracks, by folder ID. An empty array is not a filter, as
+   * with CarQuery's.
+   */
+  ids?: string[];
+  /**
+   * Keep only tracks in these countries, as nation codes read the way
+   * CarQuery's are.
    */
   countries?: string[];
+  /**
+   * Shortest lap, in metres, inclusive. Layouts with no stated length are
+   * excluded when set.
+   */
+  lengthFrom?: number;
+  /**
+   * Longest lap, in metres, inclusive. Layouts with no stated length are
+   * excluded when set.
+   */
+  lengthTo?: number;
   /**
    * Minimum grid capacity, inclusive. Tracks with no pitbox count are excluded
    * when set.
@@ -247,7 +284,7 @@ export interface CarFacets {
    */
   brands: Facet[];
   /**
-   * Countries of origin, by descending count then name.
+   * Countries of origin as nation codes, by descending count then code.
    */
   countries: Facet[];
   /**
@@ -277,9 +314,13 @@ export interface CarFacets {
    */
   distributors: Facet[];
   /**
-   * Model years, most recent first.
+   * How model years are spread, or null when no car states one.
    */
-  years: Facet[];
+  years: Spread | null;
+  /**
+   * How power in bhp is spread, or null when no car states it.
+   */
+  power: Spread | null;
 }
 
 /**
@@ -287,7 +328,7 @@ export interface CarFacets {
  */
 export interface TrackFacets {
   /**
-   * Countries, by descending count then name.
+   * Countries as nation codes, by descending count then code.
    */
   countries: Facet[];
   /**
@@ -307,4 +348,13 @@ export interface TrackFacets {
    * Redistributors, by descending count then name.
    */
   distributors: Facet[];
+  /**
+   * How lap lengths in metres are spread over layouts, or null when none
+   * states one.
+   */
+  length: Spread | null;
+  /**
+   * How pit box counts are spread over layouts, or null when none states one.
+   */
+  pitboxes: Spread | null;
 }

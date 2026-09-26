@@ -21,6 +21,20 @@ export type ContentUrlTarget =
   }
   | {
     /**
+     * A livery's colour swatch.
+     */
+    kind: 'carLivery';
+    /**
+     * Car folder name.
+     */
+    carId: string;
+    /**
+     * Skin folder name.
+     */
+    skinId: string;
+  }
+  | {
+    /**
      * A car's manufacturer badge.
      */
     kind: 'carBadge';
@@ -56,4 +70,46 @@ export type ContentUrlTarget =
      * Layout folder name, or an empty string for a single-layout track.
      */
     layout: string;
+  }
+  | {
+    /**
+     * One of a track layout's loading-screen photographs.
+     */
+    kind: 'trackPhoto';
+    /**
+     * Track folder name.
+     */
+    trackId: string;
+    /**
+     * Layout folder name, or an empty string for a single-layout track.
+     */
+    layout: string;
+    /**
+     * The photograph's name, matching TRACK_PHOTO_NAME.
+     */
+    photo: string;
+  }
+  | {
+    /**
+     * A track layout's logo.
+     */
+    kind: 'trackLogo';
+    /**
+     * Track folder name.
+     */
+    trackId: string;
+    /**
+     * Layout folder name, or an empty string for a single-layout track.
+     */
+    layout: string;
+  }
+  | {
+    /**
+     * A nation's flag.
+     */
+    kind: 'nationFlag';
+    /**
+     * The nation's code, one of NATION_CODES.
+     */
+    code: string;
   };

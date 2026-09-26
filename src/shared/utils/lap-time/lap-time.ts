@@ -22,3 +22,11 @@ export const formatLapTime = (ms: number | null): string => {
   return `${minutes}:${String(seconds).padStart(SECONDS_DIGITS, '0')}`
     + `.${String(millis).padStart(MILLIS_DIGITS, '0')}`;
 };
+
+/**
+ * Renders a gap the way a timing screen would: a lap time's form, with the
+ * minutes dropped while there are none.
+ * @param ms The gap in milliseconds
+ * @returns The gap as ss.mmm, or m:ss.mmm from a minute up
+ */
+export const formatGap = (ms: number): string => formatLapTime(ms).replace(/^0:/, '');

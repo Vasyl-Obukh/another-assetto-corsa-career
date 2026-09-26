@@ -141,10 +141,12 @@ export interface ContentStore {
   /**
    * One car by folder ID.
    * @param id The car's folder name
+   * @param installed True to look over everything installed rather than the
+   * library alone
    * @returns The car, or null when nothing is installed under that ID
    * @throws AppError when no install has been located
    */
-  car(id: string): Promise<Car | null>;
+  car(id: string, installed?: boolean): Promise<Car | null>;
   /**
    * The whole scan.
    *
@@ -174,6 +176,14 @@ export interface ContentStore {
    * @throws AppError when no install has been located
    */
   track(key: string): Promise<Track | null>;
+  /**
+   * One circuit by folder ID, every layout of it gathered, looked up over
+   * everything installed rather than the library alone.
+   * @param id The track's folder name
+   * @returns The circuit, or null when nothing is installed under that ID
+   * @throws AppError when no install has been located
+   */
+  circuit(id: string): Promise<TrackGroup | null>;
   /**
    * Counts behind the car browser's filter lists.
    * @param query The filters currently applied

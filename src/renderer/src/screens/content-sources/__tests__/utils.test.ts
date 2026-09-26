@@ -19,6 +19,12 @@ describe('renderer/screens/content-sources/utils', () => {
     it('keeps the fixed order whatever order the values were switched in', () => {
       expect(toggled(['c'], 'a', order)).toEqual(['a', 'c']);
     });
+
+    // The allowed weather list is CSP's numbered weather types, kept in menu order.
+    it('switches numbers as readily as names', () => {
+      expect(toggled([7, 3], 0, [0, 3, 7])).toEqual([0, 3, 7]);
+      expect(toggled([0, 3, 7], 3, [0, 3, 7])).toEqual([0, 7]);
+    });
   });
 
   describe('hostOf', () => {

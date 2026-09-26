@@ -6,7 +6,7 @@
 // minutes or hours later, so the wait is detached and reaches the renderer as a
 // push.
 
-import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -24,11 +24,12 @@ import {
 } from './constants.ts';
 import type { CspSetup, RaceStore } from './types.ts';
 import {
-  isArchiveName, progressOf, readJson, readRecord, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, withLayout, writeJson,
 } from './utils.ts';
 import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
-import { buildRaceIni, parseClock, validateRace } from '../../core/race-ini/index.ts';
+import { buildRaceIni, validateRace } from '../../core/race-ini/index.ts';
 import { archiveResults, waitForResults } from '../../core/results/index.ts';
+import type { LaunchResult } from '../../core/season-scoring/index.ts';
 import { readWeatherFx, readWeatherFxController } from '../../core/weather/index.ts';
 import { installPlan, removePlans } from '../../core/weather-plan/index.ts';
 import {
@@ -46,13 +47,16 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   AcPaths,
   RaceDefinition,
+  RaceOut,
   RaceSetup,
   RaceStatus,
   ResultRecord,
+  Track,
   WeekendPlan,
   WeekendState,
 } from '../../shared/types/index.ts';
 import { defined } from '../../shared/utils/defined/index.ts';
+import { parseClock } from '../../shared/utils/road-temperature/index.ts';
 import {
   controllerFor, isDynamic, plannerFor, supportsDynamic,
 } from '../../shared/utils/weather-system/index.ts';
@@ -60,9 +64,11 @@ import type { ContentStore } from '../content-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 
 export type { RaceProgress, RaceStore } from './types.ts';
-// Re-exported because the career store reads the same archives back: a result's
-// raw race_out.json is what scoring needs, and results() answers summaries.
-export { RACE_DIR, RESULTS_DIR } from './constants.ts';
+// Re-exported because the quick-race store keeps its races beside the race
+// store's own files, written the same tolerant way, and it and the career both
+// put a weekend back in the slot only when the slot does not already hold it.
+export { RACE_DIR } from './constants.ts';
+export { readJson, slotHolds, writeJson } from './utils.ts';
 
 /**
  * Loads the race being set up and returns a store over it.
@@ -180,6 +186,23 @@ export const createRaceStore = async (
     );
 
     return csp;
+  };
+
+  /**
+   * Every installed layout, for naming the one a result ran on.
+   *
+   * Best-effort: the archives are ours and readable with no install located,
+   * so a scan that cannot run leaves a result unnamed rather than unlisted.
+   * @returns The layouts, or none when the scan cannot be read
+   */
+  const installedTracks = async (): Promise<readonly Track[]> => {
+    try {
+      return (await content.content()).tracks;
+    } catch (error) {
+      if (!isAppError(error)) console.warn('Could not read the installed tracks.', error);
+
+      return [];
+    }
   };
 
   const describe = async (): Promise<RaceSetup> => {
@@ -408,15 +431,21 @@ export const createRaceStore = async (
 
     weatherFx: async () => (await cspSetup()).weatherFx,
 
-    async set(next) {
+    async load(next, completed) {
       if (status.phase !== 'idle') throw new AppError('run.inFlight');
 
-      // Editing a weekend that has already started restarts it: a launch
-      // inherits its grid from the one before, which means nothing once the
-      // sessions it came from have changed.
-      if (state && state.completed.length > 0) state = null;
-
       definition = next;
+      state = null;
+      if (completed.length > 0) {
+        // The launch count is the plan's, which is what a saved state is
+        // matched against; a weekend that no longer plans starts over.
+        try {
+          const plan = planWeekend(definition, await content.content());
+          state = { raceId: plan.raceId, launchCount: plan.launches.length, completed: [...completed] };
+        } catch (error) {
+          if (!isAppError(error)) throw error;
+        }
+      }
       schedule();
 
       return describe();
@@ -514,8 +543,11 @@ export const createRaceStore = async (
       const records = await Promise.all(
         newest.map((name) => readRecord(name, path.join(resultsDir, name))),
       );
+      const tracks = await installedTracks();
 
-      return records.filter((record): record is ResultRecord => record !== null);
+      return records
+        .filter((record): record is ResultRecord => record !== null)
+        .map((record) => withLayout(record, tracks));
     },
 
     async result(file) {
@@ -524,7 +556,26 @@ export const createRaceStore = async (
       const record = await readRecord(file, path.join(resultsDir, file));
       if (!record) throw new AppError('run.result.notFound', { file });
 
-      return record;
+      return withLayout(record, await installedTracks());
+    },
+
+    async launchResults(records) {
+      const results = await Promise.all(records.map(async (record): Promise<LaunchResult | null> => {
+        if (!record.archive || !isArchiveName(record.archive)) return null;
+
+        try {
+          const text = await readFile(path.join(resultsDir, record.archive), 'utf8');
+          const raceOut = (JSON.parse(text) as { result?: RaceOut }).result;
+
+          return raceOut ? { launch: record.index, raceOut } : null;
+        } catch (error) {
+          console.warn(`Could not read the archived result ${record.archive}.`, error);
+
+          return null;
+        }
+      }));
+
+      return results.filter((one) => one !== null);
     },
 
     onChange(listener) {

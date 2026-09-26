@@ -19,6 +19,7 @@ import {
   lastSessionOf,
   launchOf,
   materialiseRace,
+  placePlayer,
   playerFirst,
   reverseFront,
   runsToClock,
@@ -44,6 +45,14 @@ const entry = (driver: string, aiLevel?: number): GridEntry => ({
   restrictor: 0,
   ...(aiLevel == null ? {} : { aiLevel, aiAggression: 30 }),
 });
+
+/**
+ * Puts a grid entry in a class.
+ * @param one The entry
+ * @param id The class entry's id
+ * @returns The entry, in that class
+ */
+const inClass = (one: GridEntry, id: string): GridEntry => ({ ...one, entry: id });
 
 /**
  * A field of the given size, the player first and the AI slowing steadily.
@@ -266,6 +275,88 @@ describe('core/weekend/utils', () => {
 
     it('copes with a field of nothing but the player', () => {
       expect(defaultOrder([entry('Player')], 'test:1')).toEqual([0]);
+    });
+
+    it('lines a multi-class field up class by class, the player at the back of their own', () => {
+      const grid = [
+        inClass(entry('Player'), 'gt3'),
+        inClass(entry('GT3 slow', 60), 'gt3'),
+        inClass(entry('GT4 quick', 99), 'gt4'),
+        inClass(entry('GT3 quick', 99), 'gt3'),
+      ];
+
+      expect(defaultOrder(grid, 'test:1')).toEqual([3, 1, 0, 2]);
+    });
+
+    // A fixed bug: the player leads every grid, so taking the class order off
+    // the grid put the player's class at the front whatever class they raced in.
+    it('keeps the entry list\'s class order when the player races in a later class', () => {
+      const grid = [
+        inClass(entry('Player'), 'gt4'),
+        inClass(entry('GT3', 80), 'gt3'),
+        inClass(entry('GT4', 90), 'gt4'),
+      ];
+
+      expect(defaultOrder(grid, 'test:1')).toEqual([1, 2, 0]);
+    });
+
+    it('lines a class only the player races in up last', () => {
+      const grid = [inClass(entry('Player'), 'solo'), inClass(entry('GT3', 80), 'gt3')];
+
+      expect(defaultOrder(grid, 'test:1')).toEqual([1, 0]);
+    });
+  });
+
+  describe('placePlayer', () => {
+    // Two classes, the player's first: 1 and 2 are their classmates, 3 and 4 not.
+    const grid = [
+      inClass(entry('Player'), 'gt3'),
+      inClass(entry('GT3 a', 90), 'gt3'),
+      inClass(entry('GT3 b', 85), 'gt3'),
+      inClass(entry('GT4 a', 90), 'gt4'),
+      inClass(entry('GT4 b', 85), 'gt4'),
+    ];
+    const lined = [1, 2, 0, 3, 4];
+
+    it('leaves the player at the back of their class when the session says last or nothing', () => {
+      expect(placePlayer(lined, grid, undefined, 'test:1')).toEqual(lined);
+      expect(placePlayer(lined, grid, 'last', 'test:1')).toEqual(lined);
+    });
+
+    it('puts the player on pole of their class', () => {
+      expect(placePlayer(lined, grid, 'pole', 'test:1')).toEqual([0, 1, 2, 3, 4]);
+    });
+
+    it('counts a slot among the player\'s classmates, never overall', () => {
+      expect(placePlayer(lined, grid, 2, 'test:1')).toEqual([1, 0, 2, 3, 4]);
+      expect(placePlayer(lined, grid, 3, 'test:1')).toEqual([1, 2, 0, 3, 4]);
+    });
+
+    it('holds a slot past either end of the class inside it', () => {
+      expect(placePlayer(lined, grid, 0, 'test:1')).toEqual([0, 1, 2, 3, 4]);
+      expect(placePlayer(lined, grid, 9, 'test:1')).toEqual([1, 2, 0, 3, 4]);
+    });
+
+    it('works the same for a class that does not lead the grid', () => {
+      const later = [
+        inClass(entry('Player'), 'gt4'), grid[1], grid[2], inClass(entry('GT4 a', 90), 'gt4'),
+      ];
+
+      expect(placePlayer([1, 2, 3, 0], later, 'pole', 'test:1')).toEqual([1, 2, 0, 3]);
+    });
+
+    it('draws a random slot inside the class, the same one every time for a launch', () => {
+      const once = placePlayer(lined, grid, 'random', 'test:1');
+
+      expect(placePlayer(lined, grid, 'random', 'test:1')).toEqual(once);
+      expect(once.slice(3)).toEqual([3, 4]);
+      expect([...once].sort()).toEqual([0, 1, 2, 3, 4]);
+    });
+
+    it('leaves a player with no classmates where they are', () => {
+      const alone = [inClass(entry('Player'), 'solo'), grid[1]];
+
+      expect(placePlayer([1, 0], alone, 'pole', 'test:1')).toEqual([1, 0]);
     });
   });
 

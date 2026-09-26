@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { NavLink, useMatch } from 'react-router';
+import { NavLink, useLocation, useMatch } from 'react-router';
 
 import { Button } from '@/components/ui/button.tsx';
-import { path, ROUTE } from '@/lib/routes';
+import { path, ROUTE, sectionOf } from '@/lib/routes';
 import type { NavId } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
@@ -27,8 +27,11 @@ export const NavItem = ({ id, label, icon }: NavItemProps) => {
   // cannot end up matching one thing and linking to another.
   //
   // Not an exact match: a section stays lit while one of its own pages is open,
-  // so opening a car from the browser does not darken the Cars tab.
-  const active = useMatch({ path: ROUTE[id], end: false }) !== null;
+  // so opening a car from the browser does not darken the Cars tab. A page
+  // opened as part of another section says so in its state, and that wins.
+  const matched = useMatch({ path: ROUTE[id], end: false }) !== null;
+  const section = sectionOf(useLocation().state);
+  const active = section === null ? matched : section === id;
 
   // Tinted with the app's own accent rather than the grey a secondary button
   // wears: the header is the one thing on screen at all times, and "which

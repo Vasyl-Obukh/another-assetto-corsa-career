@@ -38,7 +38,7 @@ export interface RaceStatus {
   /**
    * Why the last launch attempt gave up, or null when it did not.
    *
-   * Needed because the wait outlives the call that started it: race:launch
+   * Needed because the wait outlives the call that started it: a launch
    * resolves as soon as Content Manager has the URI, so a result that never
    * arrives has no call left to reject. It is cleared when the next launch
    * starts.
@@ -126,4 +126,22 @@ export interface ResultRecord {
    * One classification per session that ran.
    */
   summary: RaceSummary;
+  /**
+   * The layout it ran on, as installed - which AC's own record names only as
+   * folder and layout run together - or absent when it is no longer installed.
+   */
+  layout?: {
+    /**
+     * Track folder ID.
+     */
+    id: string;
+    /**
+     * Layout folder ID, or an empty string for a single-layout track.
+     */
+    layout: string;
+    /**
+     * The layout's display name.
+     */
+    name: string;
+  };
 }

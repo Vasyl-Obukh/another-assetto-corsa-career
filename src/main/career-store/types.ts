@@ -2,12 +2,11 @@ import type {
   Career,
   CareerCalendar,
   CareerEventView,
-  FieldSeat,
+  ChampionshipResults,
   RaceSetup,
-  RoundDraw,
-  RoundForecast,
   SeasonEntry,
   SeasonEvent,
+  SkippedRound,
 } from '../../shared/types/index.ts';
 
 /**
@@ -106,50 +105,22 @@ export interface CareerStore {
    */
   withdraw(request: { series: string; entry: string }): Promise<Career>;
   /**
-   * Moves the clock forward, stopping at the first enrolled weekend on the way.
+   * Moves the clock forward, stopping at the first enrolled weekend on the way
+   * - or, once the player has confirmed what it costs, all the way.
    * @param date The ISO date to advance towards
+   * @param skip Whether to go all the way, marking every round of the career's
+   * passed on the way, and a weekend left part-way, as non-starts
    * @returns The career, with the clock wherever it stopped
-   * @throws When the date is behind the clock
+   * @throws When the date is behind the clock, or a weekend is part-way through
+   * and the move was not confirmed
    */
-  advanceTo(date: string): Promise<Career>;
+  advanceTo(date: string, skip?: boolean): Promise<Career>;
   /**
-   * The weather this career already drew for the round a race was set up from.
-   *
-   * The race screen asks before the library does: a career round races the draw
-   * stored on its event, salted with the career and the season, and the library
-   * would answer with a different one - which the screen would read as a
-   * forecast that had moved under the race and stop marking its sessions.
-   * @param raceId The race definition's id
-   * @returns The forecast, or null when no event of this career holds that race
+   * What moving the clock to a date would cost, for the player to confirm.
+   * @param date The ISO date the clock would move to
+   * @returns Every round of the career's it would leave unraced
    */
-  raceForecast(raceId: string): Promise<RoundForecast | null>;
-  /**
-   * The weather this career drew for a round it is in, for a race set up from
-   * the championship page to race the same draw as one set up from the career.
-   * @param series The championship's id
-   * @param round The round's id
-   * @returns The draw, or undefined when the career is not in that round or its
-   * weekend is still further out than the forecast lead
-   */
-  draw(series: string, round: string): Promise<RoundDraw | undefined>;
-  /**
-   * The AI field this career froze for a championship, for a race set up from
-   * the championship page to field the same drivers as one set up from the
-   * career.
-   * @param series The championship's id
-   * @param entry The class the race is set up in, by its id
-   * @returns The field, or undefined when the career is not in that class of
-   * that championship - a field frozen around another class leaves the wrong
-   * seat to the player
-   */
-  field(series: string, entry: string): Promise<readonly FieldSeat[] | undefined>;
-  /**
-   * The same draw, swapped for what this install can race.
-   * @param series The championship's id
-   * @param round The round's id
-   * @returns The forecast, or null wherever `draw` has none
-   */
-  forecast(series: string, round: string): Promise<RoundForecast | null>;
+  skips(date: string): Promise<SkippedRound[]>;
   /**
    * One round as the event page shows it.
    * @param request Which championship and round
@@ -158,25 +129,27 @@ export interface CareerStore {
    */
   event(request: EventRequest): Promise<CareerEventView>;
   /**
+   * A championship's season so far.
+   *
+   * The career's own rounds when it is in the championship. Otherwise every
+   * round behind the clock is simulated on the spot and nothing is stored -
+   * the same round always simulates the same, so there is nothing to keep.
+   * @param series The championship, by its id
+   * @returns Every round and what it left
+   * @throws When neither the career nor the library holds the championship
+   */
+  results(series: string): Promise<ChampionshipResults>;
+  /**
    * Runs the next session of a round the career is in.
    *
    * Sets the round up first when the race being run is some other weekend, and
    * moves the clock to the weekend when it is still ahead.
-   * @param request Which championship and round
+   * @param request Which championship and round, and whether the player
+   * confirmed losing the rounds `skips` on its event view lists
    * @returns The race as it stands once the launch has started
    * @throws When the round cannot be raced now, saying why
    */
-  launch(request: EventRequest): Promise<RaceSetup>;
-  /**
-   * Throws away what has run of a weekend and starts it again.
-   *
-   * For the one case that needs it: the weekend was changed on the Race screen
-   * part-way through, so its progress there no longer matches the career's.
-   * @param request Which championship and round
-   * @returns The career
-   * @throws When the round has already been raced or passed
-   */
-  restartEvent(request: EventRequest): Promise<Career>;
+  launch(request: EventRequest & { skip?: boolean }): Promise<RaceSetup>;
   /**
    * Forces any pending write to complete. Call before quitting.
    * @returns Resolves once nothing is left to write

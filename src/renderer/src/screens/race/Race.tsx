@@ -1,108 +1,77 @@
+import { PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 
-import { CarField } from './CarField.tsx';
-import { ConditionsFields } from './ConditionsFields.tsx';
-import { GridFields } from './GridFields.tsx';
-import { LaunchPanel } from './LaunchPanel.tsx';
-import { RegulationsFields } from './RegulationsFields.tsx';
-import { SessionList } from './SessionList.tsx';
-import { TrackField } from './TrackField.tsx';
-import { useSettings } from '@/app';
-import { ErrorCard, ScreenBody } from '@/components';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useRaceContent, useRaceForecast, useRaceSetup } from '@/hooks';
+import { WEEKEND_SKELETON } from './constants.ts';
+import { NewWeekendTile } from './NewWeekendTile.tsx';
+import { RaceWeekendCard } from './RaceWeekendCard.tsx';
+import { RaceWeekendCardSkeleton } from './RaceWeekendCardSkeleton.tsx';
+import {
+  ConfirmDialog, ErrorCard, Loading, ScreenBody,
+} from '@/components';
+import { Button } from '@/components/ui/button.tsx';
+import { useQuickRaces } from '@/hooks';
+import { path } from '@/lib/routes';
+import { slots } from '@/lib/slots.ts';
 
 export const Race = () => {
   const { t } = useTranslation();
-  const race = useRaceSetup();
-  // Read live rather than off RaceSetup: the race store only re-describes
-  // itself when the race changes, so a weather system picked in settings would
-  // not reach this screen until something else happened to it.
-  const { settings } = useSettings();
-  const content = useRaceContent(race.setup?.definition ?? null);
-  const forecast = useRaceForecast(race.setup?.definition.id);
+  const navigate = useNavigate();
+  const quick = useQuickRaces();
+  // The weekend being asked about deleting, by its id.
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const target = quick.races?.find((one) => one.race.id === deleting);
 
-  const { setup } = race;
+  const create = async (): Promise<void> => {
+    const id = await quick.create();
+    if (id) void navigate(path.raceWeekend({ id }));
+  };
 
   return (
     <ScreenBody className="flex flex-col gap-6 py-8" backToTop>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{t('race.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('race.subtitle')}</p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">{t('race.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('race.subtitle')}</p>
+        </div>
+        <Button type="button" disabled={quick.busy} onClick={() => { void create(); }}>
+          <PlusIcon />
+          {t('race.new')}
+        </Button>
       </header>
 
-      {race.error ? (
-        <ErrorCard error={race.error} onDismiss={race.dismissError} />
-      ) : null}
+      {quick.error ? <ErrorCard error={quick.error} onDismiss={quick.dismissError} /> : null}
 
-      {race.loading ? (
-        <div className="flex flex-col gap-6">
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      ) : null}
-
-      {setup ? (
-        <>
-          <TrackField
-            track={content.track}
-            locked={race.locked}
-            onPick={race.setTrack}
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <NewWeekendTile busy={quick.busy} onCreate={() => { void create(); }} />
+        {quick.races === null ? (
+          slots(WEEKEND_SKELETON).map((at) => (
+            <Loading key={at}><RaceWeekendCardSkeleton /></Loading>
+          ))
+        ) : quick.races.map((view) => (
+          <RaceWeekendCard
+            key={view.race.id}
+            view={view}
+            busy={quick.busy}
+            onDuplicate={() => { void quick.duplicate(view.race.id); }}
+            onRemove={() => setDeleting(view.race.id)}
           />
+        ))}
+      </div>
 
-          <CarField
-            car={content.car}
-            skinId={setup.definition.playerCar.skin}
-            locked={race.locked}
-            onPick={(car, skin) => race.setCar(car.id, skin?.id)}
-          />
-
-          <GridFields
-            grid={setup.definition.grid ?? {}}
-            locked={race.locked}
-            onChange={race.setGrid}
-          />
-
-          <ConditionsFields
-            conditions={setup.definition.conditions ?? {}}
-            weather={content.weather}
-            controllers={content.controllers}
-            system={settings.weatherSystem}
-            rainFx={setup.weatherFx.rainFx}
-            locked={race.locked}
-            onChange={race.setConditions}
-          />
-
-          <RegulationsFields
-            assists={setup.definition.assists ?? {}}
-            locked={race.locked}
-            onChange={race.setAssists}
-          />
-
-          <SessionList
-            sessions={setup.definition.sessions ?? []}
-            conditions={setup.definition.conditions ?? {}}
-            weather={content.weather}
-            controllers={content.controllers}
-            system={settings.weatherSystem}
-            rainFx={setup.weatherFx.rainFx}
-            records={setup.state?.completed ?? []}
-            forecast={forecast}
-            locked={race.locked}
-            onChange={race.setSessions}
-          />
-
-          <LaunchPanel
-            setup={setup}
-            runnable={race.runnable}
-            busy={race.busy}
-            onLaunch={race.launch}
-            onCancel={race.cancel}
-            onReset={race.reset}
-          />
-        </>
-      ) : null}
+      <ConfirmDialog
+        open={target !== undefined}
+        title={t('race.deleteTitle', { name: target?.title || t('race.untitled') })}
+        description={t('race.deleteHint')}
+        confirmLabel={t('race.card.delete')}
+        busy={quick.busy}
+        onConfirm={() => {
+          if (deleting) void quick.remove(deleting);
+          setDeleting(null);
+        }}
+        onClose={() => setDeleting(null)}
+      />
     </ScreenBody>
   );
 };

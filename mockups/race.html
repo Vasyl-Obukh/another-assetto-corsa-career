@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race setup</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --primary-soft: oklch(0.93 0.04 262);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-fg: oklch(0.38 0.1 155);
+  --warning: oklch(0.79 0.15 80); --warning-foreground: oklch(0.28 0.06 70);
+  --destructive: oklch(0.58 0.2 27);
+  --s-p: oklch(0.93 0.045 250); --s-p-fg: oklch(0.4 0.13 258);
+  --s-q: oklch(0.93 0.05 310);  --s-q-fg: oklch(0.4 0.15 310);
+  --s-r: oklch(0.89 0.085 150); --s-r-fg: oklch(0.33 0.1 152);
+  --base: oklch(0.93 0.05 155); --base-fg: oklch(0.38 0.1 155);
+  --dlc: oklch(0.93 0.06 75); --dlc-fg: oklch(0.42 0.09 70);
+  --opp: oklch(0.93 0.05 330); --opp-fg: oklch(0.42 0.14 330);
+  --night: oklch(0.27 0.06 265); --dusk: oklch(0.7 0.13 50); --day: oklch(0.86 0.09 220);
+  --tag-reuse: oklch(0.55 0.13 155); --tag-adapt: oklch(0.62 0.14 70); --tag-new: oklch(0.5 0.17 300);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --primary-soft: oklch(0.3 0.07 262);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --success-soft: oklch(0.33 0.06 155); --success-fg: oklch(0.86 0.1 155);
+  --s-p: oklch(0.32 0.06 250); --s-p-fg: oklch(0.86 0.09 255);
+  --s-q: oklch(0.33 0.07 310); --s-q-fg: oklch(0.87 0.1 310);
+  --s-r: oklch(0.35 0.09 150); --s-r-fg: oklch(0.88 0.13 150);
+  --base: oklch(0.33 0.06 155); --base-fg: oklch(0.86 0.1 155);
+  --dlc: oklch(0.33 0.06 75); --dlc-fg: oklch(0.86 0.1 75);
+  --opp: oklch(0.33 0.07 330); --opp-fg: oklch(0.87 0.1 330);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--background); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+.muted { color: var(--muted-foreground); }
+.xs { font-size: 12px; } .sm { font-size: 13px; }
+.caps { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.grow { flex: 1; min-width: 0; }
+
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker strong { margin-right: 8px; }
+.picker .opt { border: 1px solid oklch(1 0 0 / .3); background: transparent; border-radius: 6px; padding: 5px 12px; color: inherit; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 104ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); }
+.rationale ul { margin: 6px 0 0; padding-left: 18px; }
+.rationale code { font-size: 12.5px; color: var(--foreground); }
+.legend { display: flex; gap: 14px; margin-top: 8px; font-size: 12.5px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+.window { position: relative; max-width: 1440px; margin: 16px auto 40px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); }
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 5px 10px; border-radius: 6px; }
+.nav a.on { background: var(--accent); color: var(--primary); font-weight: 500; }
+.page { padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+.screen { display: none; } .screen.on { display: block; }
+
+/* Component labels: what each block is built from. */
+[data-c] { position: relative; }
+body.label [data-c] { outline: 1.5px dashed var(--tc, var(--tag-reuse)); outline-offset: 2px; }
+body.label [data-c]::before { content: attr(data-c); position: absolute; z-index: 5; top: -9px; right: 6px; background: var(--tc, var(--tag-reuse)); color: white; font: 600 10.5px/1 ui-monospace, Consolas, monospace; padding: 3px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none; }
+[data-k="adapt"] { --tc: var(--tag-adapt); } [data-k="new"] { --tc: var(--tag-new); }
+
+/* Badge, Button, Input, Card as vendored shadcn draws them */
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; padding: 1px 8px; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.badge.outline { border-color: var(--border); }
+.badge.primary { background: var(--primary); color: var(--primary-foreground); }
+.badge.success { background: var(--success-soft); color: var(--success-fg); }
+.badge.warning { background: var(--warning); color: var(--warning-foreground); }
+.s-p { background: var(--s-p); color: var(--s-p-fg); } .s-q { background: var(--s-q); color: var(--s-q-fg); } .s-r { background: var(--s-r); color: var(--s-r-fg); }
+.p-base { background: var(--base); color: var(--base-fg); } .p-dlc { background: var(--dlc); color: var(--dlc-fg); }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 12px; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.primary[disabled] { opacity: .5; cursor: not-allowed; }
+.btn.lg { padding: 9px 22px; font-size: 14px; }
+.btn.sm { padding: 4px 10px; font-size: 12.5px; }
+.btn.ghost { border-color: transparent; background: transparent; box-shadow: none; }
+.btn.dashed { border-style: dashed; box-shadow: none; background: transparent; color: var(--muted-foreground); width: 100%; justify-content: center; }
+.btn.danger { color: var(--destructive); }
+.input { border: 1px solid var(--input); border-radius: 8px; background: var(--card); padding: 6px 10px; font-size: 13.5px; min-width: 0; width: 100%; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 2px oklch(0 0 0 / .04); }
+.label { font-size: 13.5px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.toggle { width: 36px; height: 20px; border-radius: 10px; background: var(--success); position: relative; flex: none; }
+.toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: white; }
+.toggle.off { background: var(--input); } .toggle.off::after { right: auto; left: 2px; }
+
+/* Event page header, as Event.tsx draws it */
+.ev-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.ev-head h1 { font-size: 24px; font-weight: 600; }
+.ev-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13.5px; color: var(--muted-foreground); align-items: center; }
+.mapbox { width: 144px; aspect-ratio: 16/9; border-radius: 6px; background: var(--muted); display: grid; place-items: center; flex: none; }
+.mapbox path, .lt-map path { fill: none; stroke: var(--foreground); stroke-width: 2.4; stroke-linejoin: round; }
+.ev-body { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+
+.pickcard { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.pickrow2 { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: center; }
+.thumb { aspect-ratio: 16/9; border-radius: 6px; background: var(--muted); position: relative; overflow: hidden; display: grid; place-items: center; }
+.thumb path { fill: none; stroke: var(--foreground); stroke-width: 3; stroke-linejoin: round; }
+.thumb .inset { position: absolute; right: 4px; bottom: 4px; width: 38%; aspect-ratio: 16/9; border-radius: 3px; background: linear-gradient(160deg, oklch(0.62 0.07 230), oklch(0.5 0.06 160) 55%, oklch(0.42 0.04 120)); }
+.thumb .plate { top: 4px; left: 4px; font-size: 11px; padding: 0 5px; }
+.pickdiv { border-top: 1px solid var(--border); }
+/* EntryPanel */
+.entry { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.pic { aspect-ratio: 16/9; border-radius: 6px; background: var(--muted); position: relative; overflow: hidden; }
+.livery { background: radial-gradient(ellipse at 50% 72%, oklch(0.55 0.2 27) 0 20%, transparent 21%), linear-gradient(180deg, oklch(0.9 0.01 250), oklch(0.8 0.01 250)); }
+:root[data-theme="dark"] .livery { background: radial-gradient(ellipse at 50% 72%, oklch(0.55 0.2 27) 0 20%, transparent 21%), linear-gradient(180deg, oklch(0.34 0.01 260), oklch(0.27 0.01 260)); }
+.plate { position: absolute; top: 8px; left: 8px; background: oklch(0 0 0 / .62); color: white; font-weight: 700; font-size: 13px; padding: 1px 7px; border-radius: 5px; }
+.empty { display: grid; place-items: center; color: var(--muted-foreground); font-size: 26px; opacity: .55; }
+
+/* WeekendList / WeekendItem / SessionStatusDot */
+.wl-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--border); }
+.wl-item.sel { background: var(--accent); }
+.dot { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--muted-foreground); flex: none; opacity: .7; }
+.dot.next { border: 2px solid var(--primary); opacity: 1; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 9px var(--primary); }
+.dot.done { border: 0; background: var(--success); opacity: 1; display: grid; place-items: center; }
+.dot.done::after { content: ""; width: 7px; height: 4px; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(1px, -1px); }
+
+/* Editor SessionList / SessionBlock */
+.daylist { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.dayhead { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); margin-top: 4px; }
+.dayhead::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
+.block { display: flex; align-items: flex-start; gap: 8px; border-radius: 8px; padding: 8px 10px; border: 2px solid transparent; }
+.block .grip { opacity: .5; font-size: 12px; letter-spacing: -2px; }
+.block b { font-size: 13.5px; }
+.block .len { margin-left: auto; font-size: 12px; }
+.block .from { font-size: 12px; opacity: .85; }
+.block.sel { border-color: var(--primary); }
+.block.weekend { background: var(--muted); color: var(--foreground); }
+
+/* Editor SessionPage */
+.spage { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+.part { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.part::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
+.chips { display: inline-flex; gap: 2px; border: 1px solid var(--border); border-radius: 9px; padding: 2px; width: fit-content; }
+.chips span { padding: 4px 12px; border-radius: 7px; font-size: 13.5px; color: var(--muted-foreground); }
+.chips span.on { color: var(--foreground); background: var(--card); box-shadow: 0 0 0 1px var(--border); }
+.chips span.on.s-p, .chips span.on.s-q, .chips span.on.s-r { box-shadow: none; }
+.chips span.on.s-p { color: var(--s-p-fg); } .chips span.on.s-q { color: var(--s-q-fg); } .chips span.on.s-r { color: var(--s-r-fg); }
+
+/* ConditionsEditor */
+.cond { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.cond-row { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.cond-row:first-child { border-top: 0; }
+.cond-row .h { display: flex; align-items: center; gap: 16px; }
+.cond-row .h b { width: 7.5rem; font-weight: 600; font-size: 13.5px; }
+.sky { position: relative; height: 34px; border-radius: 8px; background: linear-gradient(90deg, var(--night) 0 20%, var(--dusk) 26%, var(--day) 34% 70%, var(--dusk) 76%, var(--night) 82%); margin-top: 18px; }
+.sky .hand { position: absolute; top: -4px; bottom: -4px; width: 3px; border-radius: 2px; background: var(--foreground); }
+.sky .hand span { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: var(--foreground); color: var(--background); font-size: 11.5px; font-weight: 700; padding: 1px 6px; border-radius: 5px; }
+.wtiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.wtiles span { border: 1px solid var(--border); border-radius: 8px; padding: 7px 4px; text-align: center; font-size: 12px; }
+.wtiles span.on { border: 2px solid var(--primary); }
+.slider { position: relative; height: 6px; border-radius: 3px; background: var(--muted); margin: 10px 0 4px; }
+.slider .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--primary); }
+.slider .thumb { position: absolute; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); transform: translateX(-50%); }
+
+/* BriefTile / LaunchArea */
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.brief { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+.brief .v { font-size: 17px; font-weight: 600; }
+.launch { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+.running { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--foreground); border-right-color: transparent; display: inline-block; vertical-align: -3px; margin-right: 8px; }
+.problems { border: 1px solid color-mix(in srgb, var(--destructive) 50%, transparent); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.problems b { color: var(--destructive); font-size: 13.5px; font-weight: 500; }
+.problems ul { margin: 0; padding-left: 20px; color: var(--muted-foreground); font-size: 13.5px; }
+.lock { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted-foreground); }
+
+/* RulesCard: three panes */
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pane { padding: 20px; display: flex; flex-direction: column; gap: 12px; border-left: 1px solid var(--border); }
+.pane:first-child { border-left: 0; }
+.pane .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stepper { display: grid; grid-template-columns: 34px 1fr 34px; border: 1px solid var(--input); border-radius: 8px; height: 36px; align-items: center; text-align: center; background: var(--card); }
+.stepper span:first-child, .stepper span:last-child { color: var(--muted-foreground); }
+.stepper.up b { color: var(--success); }
+.switchline { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 500; }
+
+/* SettingsSection (opponents) */
+.ss-head { display: flex; gap: 14px; padding: 18px 20px 0; }
+.well { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--opp); color: var(--opp-fg); font-size: 18px; }
+
+/* LayoutTile / SkinTile */
+.pickrow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.lt { border-radius: 12px; overflow: hidden; }
+.lt-map { aspect-ratio: 16/7; background: var(--muted); position: relative; display: grid; place-items: center; }
+.lt-photo { position: absolute; right: 8px; bottom: 8px; width: 30%; aspect-ratio: 16/9; border-radius: 6px; background: linear-gradient(160deg, oklch(0.62 0.07 230), oklch(0.5 0.06 160) 55%, oklch(0.42 0.04 120)); box-shadow: 0 4px 10px oklch(0 0 0 / .25); }
+.lt-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.figs { font-size: 12.5px; color: var(--muted-foreground); display: flex; gap: 12px; flex-wrap: wrap; }
+.figs b { color: var(--foreground); font-weight: 600; }
+.b-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 16px; align-items: start; }
+.split { display: grid; grid-template-columns: 17rem minmax(0, 1fr); }
+.split > :first-child { border-right: 1px solid var(--border); }
+.rail { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; }
+.rail .card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Race weekends list: the Results page's WeekendCard */
+.wk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.wk { display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); background: var(--card); }
+.wk-head { position: relative; height: 120px; background: linear-gradient(160deg, oklch(0.62 0.07 230), oklch(0.5 0.06 160) 55%, oklch(0.42 0.04 120)); color: white; }
+.wk-head.b { background: linear-gradient(160deg, oklch(0.6 0.05 60), oklch(0.5 0.07 40) 55%, oklch(0.38 0.04 30)); }
+.wk-head.c { background: linear-gradient(160deg, oklch(0.58 0.06 200), oklch(0.46 0.05 250) 55%, oklch(0.35 0.04 260)); }
+.wk-head::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, oklch(0.18 0.01 260 / .85), transparent); }
+.wk-head > * { position: relative; z-index: 1; }
+.wk-pill { position: absolute; top: 12px; left: 12px; border-radius: 999px; background: oklch(0.18 0.01 260 / .55); font-size: 12px; padding: 2px 8px; }
+.wk-out { position: absolute; top: 10px; right: 12px; }
+.wk-out path { fill: none; stroke: white; stroke-width: 2.6; }
+.wk-title { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; }
+.wk-title b { font-size: 16px; font-weight: 600; }
+.wk-title span { font-size: 12px; opacity: .85; }
+.wk-car { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; font-size: 12px; color: var(--muted-foreground); }
+.wk-car i { width: 18px; height: 18px; border-radius: 4px; background: radial-gradient(circle at 50% 70%, oklch(0.55 0.2 27) 0 35%, var(--muted) 36%); }
+.wk-rows { padding: 4px 16px 8px; display: flex; flex-direction: column; }
+.wk-row { display: flex; align-items: center; gap: 8px; height: 36px; border-top: 1px solid var(--border); font-size: 13px; }
+.wk-row:first-child { border-top: 0; }
+.cell { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 24px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.cell.pts { background: var(--success-soft); color: var(--success-fg); }
+.cell.plain { box-shadow: inset 0 0 0 1px var(--border); }
+.wk-foot { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.status-run { background: var(--primary); color: var(--primary-foreground); }
+.status-done { background: var(--success); color: white; }
+.wk-new { border: 1.5px dashed var(--border); border-radius: 12px; display: grid; place-items: center; color: var(--muted-foreground); min-height: 200px; text-align: center; gap: 8px; }
+.wk-new .plus { width: 44px; height: 44px; border-radius: 50%; background: var(--muted); display: grid; place-items: center; font-size: 22px; margin: 0 auto 8px; }
+.backline { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 14px; }
+
+/* The grid a race lines up on */
+.gridline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13.5px; }
+.selbox { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--input); border-radius: 8px; padding: 5px 10px; min-width: 13rem; background: var(--card); }
+.sinput { border: 1px solid var(--input); border-radius: 8px; padding: 5px 10px; width: 5rem; text-align: right; background: var(--card); }
+.places { display: flex; flex-wrap: wrap; gap: 3px; }
+.places span { width: 26px; height: 22px; border-radius: 5px; display: grid; place-items: center; font-size: 11.5px; font-weight: 600; background: var(--muted); color: var(--muted-foreground); }
+.places span.rev { background: var(--s-q); color: var(--s-q-fg); }
+.places span.you { background: var(--primary); color: var(--primary-foreground); }
+.diagram { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-foreground); }
+.startgrid { display: grid; grid-template-columns: repeat(2, 64px); gap: 6px 14px; padding: 10px 14px; border-radius: 10px; background: var(--muted); width: fit-content; }
+.startgrid span { height: 26px; border-radius: 5px; border: 1.5px solid var(--border); background: var(--card); font-size: 11.5px; font-weight: 600; display: grid; place-items: center; color: var(--muted-foreground); }
+.startgrid span:nth-child(even) { transform: translateY(14px); }
+.startgrid span.you { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+/* A race's classes: a colour per slot, on hues no results screen spends */
+:root { --k1: oklch(0.92 0.06 212); --k1-fg: oklch(0.38 0.1 215); --k2: oklch(0.92 0.06 18); --k2-fg: oklch(0.45 0.14 22);
+        --k3: oklch(0.92 0.06 340); --k3-fg: oklch(0.42 0.14 340); --k4: oklch(0.92 0.06 112); --k4-fg: oklch(0.38 0.09 118);
+        --gold: oklch(0.9 0.09 88); --gold-fg: oklch(0.42 0.1 75); --silver: oklch(0.9 0.02 250); --silver-fg: oklch(0.4 0.03 255);
+        --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48); --player-row: oklch(0.96 0.03 262); }
+:root[data-theme="dark"] { --k1: oklch(0.33 0.07 212); --k1-fg: oklch(0.86 0.1 212); --k2: oklch(0.33 0.07 18); --k2-fg: oklch(0.86 0.1 18);
+        --k3: oklch(0.33 0.07 340); --k3-fg: oklch(0.86 0.1 340); --k4: oklch(0.33 0.07 112); --k4-fg: oklch(0.86 0.1 112);
+        --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.9 0.1 88); --silver: oklch(0.33 0.02 250); --silver-fg: oklch(0.86 0.03 255);
+        --bronze: oklch(0.34 0.06 52); --bronze-fg: oklch(0.86 0.09 55); --player-row: oklch(0.27 0.04 262); }
+.k1 { background: var(--k1); color: var(--k1-fg); } .k2 { background: var(--k2); color: var(--k2-fg); }
+.k3 { background: var(--k3); color: var(--k3-fg); } .k4 { background: var(--k4); color: var(--k4-fg); }
+.kbar1 { background: var(--k1-fg); } .kbar2 { background: var(--k2-fg); }
+.m1 { background: var(--gold); color: var(--gold-fg); } .m2 { background: var(--silver); color: var(--silver-fg); } .m3 { background: var(--bronze); color: var(--bronze-fg); }
+.entries { display: grid; grid-template-columns: 19rem minmax(0, 1fr); gap: 16px; align-items: start; }
+.cli { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); position: relative; overflow: hidden; }
+.cli.sel { border: 2px solid var(--primary); }
+.cli .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.cli .count { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; flex: none; }
+.cpanel-head { display: flex; align-items: center; gap: 8px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tabsrow { display: flex; gap: 4px; padding: 10px 20px 0; }
+.tabsrow span { padding: 5px 12px; border-radius: 8px; font-size: 13.5px; color: var(--muted-foreground); }
+.tabsrow span.on { background: var(--primary-soft); color: var(--primary); }
+.shots { display: flex; gap: 10px; flex-wrap: wrap; }
+.shot { width: 150px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 600; }
+.shot i { display: block; height: 76px; background: radial-gradient(ellipse at 50% 70%, var(--c, oklch(0.55 0.2 27)) 0 22%, transparent 23%), oklch(0.2 0.01 260); }
+.shot span { display: block; padding: 6px 8px; }
+.totalbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; }
+.totalbar span { display: block; }
+
+/* Results */
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.strip > div { padding: 12px 16px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.strip > div:first-child { border-left: 0; }
+.strip .big { font-size: 22px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; }
+.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pcard { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.pcard i { display: block; height: 84px; position: relative; background: radial-gradient(ellipse at 50% 70%, var(--c) 0 22%, transparent 23%), oklch(0.18 0.01 260); }
+.pcard i b { position: absolute; top: 8px; left: 8px; font-style: normal; font-size: 12px; padding: 1px 7px; border-radius: 5px; }
+.pcard div { padding: 8px 10px; display: flex; justify-content: space-between; font-size: 12.5px; }
+.ctable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ctable th { text-align: left; font-size: 12px; font-weight: 400; color: var(--muted-foreground); padding: 8px 10px; }
+.ctable td { padding: 6px 10px; border-top: 1px solid var(--border); }
+.ctable td.r, .ctable th.r { text-align: right; }
+.ctable tr.me td { background: var(--player-row); }
+.ctable tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+.ctable tr.dim td { opacity: .45; }
+.pos { display: inline-grid; place-items: center; width: 28px; height: 24px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+.up { color: var(--success); font-size: 12px; } .down { color: var(--destructive); font-size: 12px; }
+.you { background: var(--primary); color: var(--primary-foreground); font-size: 11px; padding: 0 6px; border-radius: 5px; margin-left: 4px; }
+.segs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--muted); }
+.segs span { padding: 4px 12px; border-radius: 7px; font-size: 13px; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.segs span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .1); }
+.segs .n { font-size: 11.5px; opacity: .7; }
+.winners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.wrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.wrow:first-of-type { border-top: 0; }
+
+/* Setup steps: the editor's NumberedStep, one card per step */
+.step { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: 12px; padding: 18px 20px; }
+.step .n { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.step.off .n { background: var(--muted); color: var(--muted-foreground); }
+.step h4 { margin: 0; font-size: 15px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; }
+.step h4 small { font-size: 12.5px; font-weight: 400; color: var(--muted-foreground); }
+.step-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step.off .step-body > :not(.why) { opacity: .45; pointer-events: none; }
+.why { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted-foreground); padding: 8px 12px; border-radius: 8px; background: var(--muted); width: fit-content; }
+.trackrow { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.trackrow .thumb { aspect-ratio: 16/8; }
+.carrow { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.carrow .thumb { aspect-ratio: 16/8; }
+.cli .mini { display: grid; grid-template-columns: 26px 34px 26px; height: 28px; border: 1px solid var(--input); border-radius: 7px; align-items: center; text-align: center; font-size: 13px; background: var(--card); flex: none; }
+.cli .mini span { color: var(--muted-foreground); }
+.cli .dotk { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+.head-launch { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+/* Setup: pickers pinned on the left, what they race against on the right */
+.setup { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; align-items: start; }
+.setup > aside { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; }
+.setup > main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.picker-card { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.picker-card .big { aspect-ratio: 16/9; border-radius: 8px; background: var(--muted); position: relative; overflow: hidden; display: grid; place-items: center; }
+.picker-card .big path { fill: none; stroke: var(--foreground); stroke-width: 2.4; stroke-linejoin: round; }
+.picker-card .big .inset { position: absolute; right: 6px; bottom: 6px; width: 34%; aspect-ratio: 16/9; border-radius: 4px; background: linear-gradient(160deg, oklch(0.62 0.07 230), oklch(0.5 0.06 160) 55%, oklch(0.42 0.04 120)); }
+.picker-card .big.livery { background: radial-gradient(ellipse at 50% 72%, oklch(0.55 0.2 27) 0 20%, transparent 21%), linear-gradient(180deg, oklch(0.9 0.01 250), oklch(0.8 0.01 250)); }
+:root[data-theme="dark"] .picker-card .big.livery { background: radial-gradient(ellipse at 50% 72%, oklch(0.55 0.2 27) 0 20%, transparent 21%), linear-gradient(180deg, oklch(0.34 0.01 260), oklch(0.27 0.01 260)); }
+.picker-card.warn { border-color: color-mix(in oklch, var(--warning) 80%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--warning) 80%, transparent); }
+.misfit { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 8px; background: color-mix(in oklch, var(--warning) 22%, var(--card)); font-size: 13px; }
+.misfit b { display: flex; gap: 6px; align-items: center; }
+.sec { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.sec h3 { margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; }
+.sec h3 small { font-size: 12.5px; font-weight: 400; color: var(--muted-foreground); }
+.empty-classes { border: 1.5px dashed var(--border); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--muted-foreground); font-size: 13.5px; }
+.suggest { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--primary-soft); font-size: 13px; }
+.cli.warn .mini { border-color: var(--warning); }
+.warnmark { color: oklch(0.6 0.15 70); font-size: 13px; }
+</style>
+</head>
+<body class="label">
+<div class="picker">
+  <strong>Race mockup</strong>
+  <button class="opt" data-screen="list" aria-pressed="false">Race weekends</button>
+  <button class="opt" data-screen="a-empty" aria-pressed="false">A - New weekend</button>
+  <button class="opt" data-screen="a-single" aria-pressed="false">A - One car picked</button>
+  <button class="opt" data-screen="a" aria-pressed="true">A - Multiclass</button>
+  <button class="opt" data-screen="a-misfit" aria-pressed="false">A - Car doesn't fit</button>
+  <button class="opt" data-screen="grid" aria-pressed="false">Race grid</button>
+  <button class="opt" data-screen="result" aria-pressed="false">Race result</button>
+  <button class="opt" data-screen="summary" aria-pressed="false">Weekend results</button>
+  <button class="opt" data-screen="a-live" aria-pressed="false">A - Mid-weekend</button>
+  <span class="spacer"></span>
+  <button class="opt" id="labels" aria-pressed="true">Component labels</button>
+  <button class="opt" id="theme" aria-pressed="false">Dark</button>
+</div>
+
+<!-- ======================= Race weekends ======================= -->
+<section class="screen" id="screen-list">
+  <div class="rationale">
+    <b>Race weekends.</b> The Race tab is now a list of weekends you set up yourself, each kept with its own sessions, progress and results. Starting another one never means resetting the last.
+    <ul>
+      <li><b>Each card is the Results page's <code>WeekendCard</code></b>: the same photograph, layout outline, title and car line. Its rows list the sessions instead of results, each with its <code>SessionStatusDot</code>. A driven session shows its <code>ResultCell</code>, and one still to run shows its length.</li>
+      <li><b>The pill shows the weekend's state</b>: Set up, In progress (primary), Finished (success). These three are a closed set, so they get colours. Set up is the neutral one on purpose: nothing has happened yet.</li>
+      <li><b>The footer</b> has <b>Continue</b> on a weekend in progress and <b>Open</b> otherwise. The ⋯ menu holds Duplicate, Rename and Delete, and Duplicate copies the setup without the results. <b>New race weekend</b> creates one with today's defaults and opens it.</li>
+      <li>In-progress weekends sort first, then the most recently changed.</li>
+      <li>Only one launch can run at a time, across every weekend and the career. Launch is disabled elsewhere while one is waiting, and says which weekend has it.</li>
+    </ul>
+  </div>
+  <div class="window">
+    <div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div>
+    <div class="page">
+      <div class="row">
+        <div class="col grow" style="gap:2px"><h1 style="font-size:24px;font-weight:600">Race</h1><p class="muted">Weekends of your own, outside any championship.</p></div>
+        <button class="btn primary">＋ New race weekend</button>
+      </div>
+      <div class="wk-grid">
+        <button class="wk-new" data-c="new tile" data-k="new"><div><div class="plus">＋</div><b style="color:var(--foreground)">New race weekend</b><div class="xs">Pick a track and a car, then the sessions</div></div></button>
+        <article class="wk" data-c="WeekendCard head + car line" data-k="adapt">
+          <div class="wk-head">
+            <span class="wk-pill status-run">In progress · 1 of 3</span>
+            <svg class="wk-out" viewBox="0 0 120 60" width="90" height="46"><path d="M12 44 L30 14 L88 10 Q104 10 104 22 L98 44 Q96 50 86 50 L22 52 Q10 52 12 44 Z"/></svg>
+            <div class="wk-title"><b>Monza · GP</b><span>Last raced 5 Oct 2026</span></div>
+          </div>
+          <div class="wk-car"><i></i>Ferrari 488 GT3 · Scuderia Corsa #71</div>
+          <div class="wk-rows" data-c="session rows">
+            <div class="wk-row"><span class="dot done"></span><span class="badge s-p">Practice</span><span class="grow">Practice</span><span class="cell plain">P3</span></div>
+            <div class="wk-row"><span class="dot next"></span><span class="badge s-q">Qualifying</span><span class="grow">Qualifying</span><span class="xs muted">15 min</span></div>
+            <div class="wk-row"><span class="dot"></span><span class="badge s-r">Race</span><span class="grow">Feature race</span><span class="xs muted">20 laps</span></div>
+          </div>
+          <div class="wk-foot"><span class="xs muted grow">12 cars · AI +2</span><button class="btn ghost sm">⋯</button><button class="btn primary sm">Continue</button></div>
+        </article>
+        <article class="wk">
+          <div class="wk-head b">
+            <span class="wk-pill">Set up</span>
+            <svg class="wk-out" viewBox="0 0 120 60" width="90" height="46"><path d="M10 30 Q20 8 50 12 L96 10 Q110 14 104 32 L80 50 Q60 54 40 48 Z"/></svg>
+            <div class="wk-title"><b>Spa · GP</b><span>Created 3 Oct 2026</span></div>
+          </div>
+          <div class="wk-car"><i></i>Porsche 911 GT3 Cup (992)</div>
+          <div class="wk-rows">
+            <div class="wk-row"><span class="dot"></span><span class="badge s-r">Race</span><span class="grow">Race</span><span class="xs muted">12 laps</span></div>
+          </div>
+          <div class="wk-foot"><span class="xs muted grow">20 cars · AI 0 · you start 10th</span><button class="btn ghost sm">⋯</button><button class="btn sm">Open</button></div>
+        </article>
+        <article class="wk">
+          <div class="wk-head c">
+            <span class="wk-pill status-done">Finished</span>
+            <svg class="wk-out" viewBox="0 0 120 60" width="90" height="46"><path d="M14 40 L24 16 Q34 8 50 16 L70 30 L96 14 Q108 16 104 34 L90 50 L30 52 Z"/></svg>
+            <div class="wk-title"><b>Brands Hatch · Indy</b><span>Raced 28 Sep 2026</span></div>
+          </div>
+          <div class="wk-car"><i></i>Formula RSS 4 · #6</div>
+          <div class="wk-rows">
+            <div class="wk-row"><span class="dot done"></span><span class="badge s-q">Qualifying</span><span class="grow">Qualifying</span><span class="cell" style="background:oklch(0.9 0.09 88);color:oklch(0.42 0.1 75)">P1</span></div>
+            <div class="wk-row"><span class="dot done"></span><span class="badge s-r">Race</span><span class="grow">Race 1</span><span class="cell" style="background:oklch(0.9 0.02 250);color:oklch(0.4 0.03 255)">P2</span></div>
+            <div class="wk-row"><span class="dot done"></span><span class="badge s-r">Race</span><span class="grow">Race 2 · reversed</span><span class="cell plain">P7</span></div>
+          </div>
+          <div class="wk-foot"><span class="xs muted grow">16 cars · AI −1</span><button class="btn ghost sm">⋯</button><button class="btn sm">Open</button></div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Race grid ======================= -->
+<section class="screen" id="screen-grid">
+  <div class="rationale">
+    <b>Where a race starts from.</b> The open race session gets a <b>Grid</b> part between Length and Conditions, as it has in the championship editor. What it offers depends on what runs before it.
+    <ul>
+      <li><b>Behind a qualifying, or an earlier race</b>: the editor's own controls. <b>Starts from</b> picks the session, <b>keeps</b> how many carry over (empty means all), and <b>reverses top</b> how many of the front start in reverse. The editor's <code>ReverseDiagram</code> draws the result. You start wherever that session put you.</li>
+      <li><b>Nothing before it</b> (a race on its own, or only practice before it, since practice sets no grid): <b>You start</b> is <code>ChoiceChips</code> with Last, Pole, Position and Random. Position adds a number box, and Random is seeded, so reloading doesn't move you. The AI line up on pace, as today.</li>
+      <li>Picking <b>Not from a session</b> in the Starts from menu gives the second set of controls even when a qualifying exists. That covers a practice-and-race weekend where the qualifying is only for show.</li>
+      <li>This uses <code>startingPosition</code>, which a race session already has and race.ini already writes. Today the weekend overwrites it with "last". The new part is only the grid choice that feeds it.</li>
+    </ul>
+  </div>
+  <div class="window">
+    <div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div>
+    <div class="page">
+      <div class="backline">← Race</div>
+      <div class="card split">
+        <div class="daylist">
+          <div class="block weekend"><b>Whole weekend</b><span class="len muted">Clear · 22°C</span></div>
+          <div class="dayhead">Day 1</div>
+          <div class="block s-q"><span class="grip">⋮⋮</span><b>Qualifying</b><span class="len num">15 min</span></div>
+          <div class="block s-r"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 1</b><span class="from">↳ from Qualifying</span></div><span class="len num">12 laps</span></div>
+          <div class="dayhead">Day 2</div>
+          <div class="block s-r sel"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 2</b><span class="from">↳ from Race 1, top 6 reversed</span></div><span class="len num">12 laps</span></div>
+          <button class="btn dashed sm">＋ Add a session</button>
+        </div>
+        <div class="spage">
+          <div class="row"><span class="badge s-r">Race</span><h3 style="font-size:16px;font-weight:600">Race 2</h3><span class="xs muted">Day 2</span><span class="grow"></span><span class="badge outline">Behind a race</span></div>
+          <div class="col" style="gap:6px"><span class="label">Length</span><div class="row"><input class="input num" value="12" style="width:6rem;text-align:right"><span class="sm muted">laps</span></div></div>
+          <div class="part">Grid</div>
+          <div class="gridline" data-c="SessionPage grid part">
+            <span>Starts from</span><span class="selbox">Race 1 <span class="muted">▾</span></span>
+            <span>keeps</span><span class="sinput muted">All</span>
+            <span>reverses top</span><span class="sinput">6</span>
+          </div>
+          <div class="diagram" data-c="ReverseDiagram">
+            <span>Race 1 finish</span><span class="places"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></span>
+            <span>→</span>
+            <span class="places"><span class="rev">6</span><span class="rev">5</span><span class="rev">4</span><span class="rev">3</span><span class="rev">2</span><span class="rev">1</span><span>7</span><span>8</span></span>
+          </div>
+          <span class="hint">You start where Race 1 put you, with its top six turned round.</span>
+          <div class="part">Conditions</div>
+          <div class="cond"><div class="cond-row"><div class="h"><b>Weather</b><span class="muted grow">The weekend's · Clear</span><button class="btn sm">Set for this session</button></div></div></div>
+        </div>
+      </div>
+
+      <div class="card split">
+        <div class="daylist">
+          <div class="block weekend"><b>Whole weekend</b><span class="len muted">14:00 · 22°C</span></div>
+          <div class="dayhead">Day 1</div>
+          <div class="block s-p"><span class="grip">⋮⋮</span><b>Practice</b><span class="len num">20 min</span></div>
+          <div class="block s-r sel"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race</b><span class="from">↳ you start 5th</span></div><span class="len num">12 laps</span></div>
+          <button class="btn dashed sm">＋ Add a session</button>
+        </div>
+        <div class="spage">
+          <div class="row"><span class="badge s-r">Race</span><h3 style="font-size:16px;font-weight:600">Race</h3><span class="xs muted">Day 1</span><span class="grow"></span><span class="badge outline">Nothing to line it up</span></div>
+          <div class="col" style="gap:6px"><span class="label">Length</span><div class="row"><input class="input num" value="12" style="width:6rem;text-align:right"><span class="sm muted">laps</span></div></div>
+          <div class="part">Grid</div>
+          <span class="hint">No qualifying or race runs before this one, so the AI line up on pace, the fastest at the front.</span>
+          <div>
+            <div class="col" style="gap:10px">
+              <span class="label">You start</span>
+              <div class="row" data-c="ChoiceChips + NumberField">
+                <div class="chips"><span>Last</span><span>Pole</span><span class="on">Position</span><span>Random</span></div>
+                <input class="input num" value="5" style="width:5rem;text-align:right">
+                <span class="sm muted">of 12</span>
+              </div>
+              <span class="hint">Random is drawn once per weekend, so reloading never moves you.</span>
+            </div>
+          </div>
+          <div class="part">Conditions</div>
+          <div class="cond"><div class="cond-row"><div class="h"><b>Weather</b><span class="muted grow">The weekend's · Clear</span><button class="btn sm">Set for this session</button></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Multiclass field ======================= -->
+
+<!-- ======================= Race result ======================= -->
+<section class="screen" id="screen-result">
+  <div class="rationale">
+    <b>A driven race, on the weekend's page.</b> The open session is the round page's <code>SessionResult</code>: <code>ResultStrip</code>, <code>Podium</code> and <code>ClassificationTable</code>, read off the archive the same way. The Result page of the Results tab opens this race the same way.
+    <ul>
+      <li><b>What changes for classes</b>:
+        <ul>
+          <li><code>ResultStrip</code> leads with your class position and puts the overall one beside it.</li>
+          <li><code>Podium</code> shows your class's top three.</li>
+          <li><code>ClassificationTable</code> gains a class column (the class chip and the class position) and a filter above it. The filter uses the calendar's <code>Segments</code>: Overall, then each class.</li>
+          <li>Filtering to a class greys nothing. It lists that class with its own gaps.</li>
+          <li>A single-class race shows none of this: no filter, no column, exactly the table it is today.</li>
+        </ul>
+      </li>
+      <li><b>No points</b>: a quick race scores none, so the table has no points column. <code>ClassificationTable</code> already leaves out every column a session has nothing for.</li>
+      <li>The same change reaches multi-class championships such as WEC and IMSA. Their round pages show one undivided table today.</li>
+      <li>The left column is the round page's <code>WeekendList</code>, headed by <b>Weekend results</b> once anything has run, as <b>Round results</b> heads a round.</li>
+    </ul>
+  </div>
+  <div class="window">
+    <div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div>
+    <div class="page">
+      <div class="backline">← Race</div>
+      <div class="ev-head"><div class="col" style="gap:6px">
+        <div class="row"><span class="badge p-base">Base game</span><span class="badge outline num">7.0 km</span><span class="badge outline num">40 pit boxes</span></div>
+        <h1>Spa · GP</h1>
+        <div class="ev-meta"><span>Your own race</span><span>Grid 30 · 2 classes</span><span>Finished 5 Oct 2026</span></div>
+      </div><span class="badge status-done">Finished</span></div>
+      <div class="ev-body">
+        <aside class="col" style="gap:16px">
+          <div class="card pickcard"><div class="row"><span class="caps grow">Track</span></div><div class="pickrow2"><div class="thumb"><svg viewBox="0 0 120 60" width="84" height="42"><path d="M10 30 Q20 8 50 12 L96 10 Q110 14 104 32 L80 50 Q60 54 40 48 Z"/></svg><span class="inset"></span></div><div class="col" style="gap:1px"><span style="font-weight:500">Spa · GP</span><span class="xs muted">7.0 km · 40 pit boxes</span></div></div><div class="pickdiv"></div><div class="row"><span class="caps grow">Your car</span></div><div class="pickrow2"><div class="thumb livery"><span class="plate">71</span></div><div class="col" style="gap:1px"><span style="font-weight:500">Ferrari 296 GT3</span><span class="xs muted">GT3 · Scuderia Corsa #71</span></div></div></div>
+          <div class="card" style="overflow:hidden" data-c="WeekendList" data-k="adapt">
+            <div style="padding:12px 14px" class="caps">Weekend</div>
+            <div class="wl-item"><span style="width:18px;text-align:center">🏆</span><div class="grow"><div class="sm" style="font-weight:500">Weekend results</div><div class="xs muted">Finished · 2 races</div></div></div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Qualifying</div><div class="xs muted">Day 1 · 15 minutes</div></div><span class="cell plain">P4</span></div>
+            <div class="wl-item sel"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Race 1</div><div class="xs muted">Day 1 · 20 laps</div></div><span class="cell m2">P2</span></div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Race 2</div><div class="xs muted">Day 2 · 20 laps</div></div><span class="cell plain">P6</span></div>
+          </div>
+        </aside>
+        <div class="card" data-c="SessionResult" data-k="adapt"><div class="spage">
+          <div class="row"><span class="badge s-r">Race</span><h3 style="font-size:16px;font-weight:600">Race 1</h3><span class="badge status-done">Done</span><span class="grow"></span><span class="sm muted">Day 1 · 15:00</span></div>
+          <div class="strip" data-c="ResultStrip" data-k="adapt">
+            <div><span class="caps">You finished</span><span class="big"><span class="pos m2">P2</span><span class="xs muted" style="font-weight:400">in GT3 · 2nd of 30 overall</span></span></div>
+            <div><span class="caps">Started</span><span class="big">P4 <span class="xs up" style="font-weight:400">▲ 2 places</span></span></div>
+            <div><span class="caps">Best lap</span><span class="big">2:18.402 <span class="xs muted" style="font-weight:400">+0.210 in class</span></span></div>
+            <div><span class="caps">Gap to class winner</span><span class="big">+3.914</span></div>
+          </div>
+          <div class="col" style="gap:8px" data-c="Podium" data-k="adapt">
+            <div class="row"><b class="sm">🏆 Podium</b><span class="badge k1">GT3</span></div>
+            <div class="podium">
+              <div class="pcard"><i style="--c:oklch(0.6 0.15 250)"><b class="m1">P1</b></i><div><span><b>L. Vanthoor</b><br><span class="muted">BMW M4 GT3</span></span><span class="muted">41:12.880</span></div></div>
+              <div class="pcard"><i style="--c:oklch(0.55 0.2 27)"><b class="m2">P2</b></i><div><span><b>You</b> <span class="you">You</span><br><span class="muted">Ferrari 296 GT3</span></span><span class="muted">+3.914</span></div></div>
+              <div class="pcard"><i style="--c:oklch(0.85 0.15 95)"><b class="m3">P3</b></i><div><span><b>K. Estre</b><br><span class="muted">Porsche 911 GT3 R</span></span><span class="muted">+5.270</span></div></div>
+            </div>
+          </div>
+          <div class="card" style="overflow:hidden" data-c="ClassificationTable + class column" data-k="adapt">
+            <div class="row" style="padding:12px 14px"><b class="sm">Classification</b><span class="xs muted">30 cars · 20 laps</span><span class="grow"></span>
+              <div class="segs" data-c="Segments"><span class="on">Overall <span class="n">30</span></span><span><span class="badge k1" style="padding:0 6px">GT3</span><span class="n">18</span></span><span><span class="badge k2" style="padding:0 6px">GT4</span><span class="n">12</span></span></div></div>
+            <table class="ctable">
+              <thead><tr><th>Pos</th><th></th><th>Driver</th><th>Class</th><th>Car</th><th class="r">Laps</th><th class="r">Best lap</th><th class="r">Time / gap</th></tr></thead>
+              <tbody>
+                <tr><td><span class="pos m1">1</span></td><td class="up">▲1</td><td>L. Vanthoor</td><td><span class="badge k1">GT3</span> <span class="xs muted">1</span></td><td>BMW M4 GT3</td><td class="r">20</td><td class="r">2:18.192</td><td class="r">41:12.880</td></tr>
+                <tr class="me"><td><span class="pos m2">2</span></td><td class="up">▲2</td><td>You <span class="you">You</span></td><td><span class="badge k1">GT3</span> <span class="xs muted">2</span></td><td>Ferrari 296 GT3</td><td class="r">20</td><td class="r">2:18.402</td><td class="r">+3.914</td></tr>
+                <tr><td><span class="pos m3">3</span></td><td class="down">▼1</td><td>K. Estre</td><td><span class="badge k1">GT3</span> <span class="xs muted">3</span></td><td>Porsche 911 GT3 R</td><td class="r">20</td><td class="r">2:18.551</td><td class="r">+5.270</td></tr>
+                <tr><td><span class="pos plain cell">4</span></td><td class="muted">-</td><td>R. Marciello</td><td><span class="badge k1">GT3</span> <span class="xs muted">4</span></td><td>Mercedes-AMG GT3</td><td class="r">20</td><td class="r">2:18.733</td><td class="r">+8.102</td></tr>
+                <tr><td class="muted" colspan="8" style="text-align:center;font-size:12px">⋯ 14 more GT3 ⋯</td></tr>
+                <tr><td><span class="pos plain cell">19</span></td><td class="up">▲3</td><td>T. Kujala</td><td><span class="badge k2">GT4</span> <span class="xs" style="font-weight:600">1</span></td><td>Aston Martin Vantage GT4</td><td class="r">18</td><td class="r">2:31.006</td><td class="r">+2 laps</td></tr>
+                <tr><td><span class="pos plain cell">20</span></td><td class="down">▼1</td><td>M. Kirchhöfer</td><td><span class="badge k2">GT4</span> <span class="xs muted">2</span></td><td>BMW M4 GT4</td><td class="r">18</td><td class="r">2:31.220</td><td class="r">+2 laps</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Weekend results ======================= -->
+<section class="screen" id="screen-summary">
+  <div class="rationale">
+    <b>Weekend results</b>, the item heading the weekend list: the round page's <code>RoundSummary</code>, with what only a championship has removed.
+    <ul>
+      <li><b>Kept</b>:
+        <ul>
+          <li>Your finish in every session, as <code>ResultCell</code>s with the pole and fastest-lap dots.</li>
+          <li>Each race's winners, now one per class, each in its class chip.</li>
+          <li>Each row opens that session.</li>
+        </ul>
+      </li>
+      <li><b>Removed</b>: points and "where it left the championship", since a race of your own scores nothing.</li>
+      <li><b>Run it again</b> duplicates the weekend: same setup, no results. It's the same as Duplicate in the list's ⋯ menu.</li>
+    </ul>
+  </div>
+  <div class="window">
+    <div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div>
+    <div class="page">
+      <div class="backline">← Race</div>
+      <div class="ev-head"><div class="col" style="gap:6px">
+        <div class="row"><span class="badge p-base">Base game</span><span class="badge outline num">7.0 km</span><span class="badge outline num">40 pit boxes</span></div>
+        <h1>Spa · GP</h1>
+        <div class="ev-meta"><span>Your own race</span><span>Grid 30 · 2 classes</span><span>Finished 5 Oct 2026</span></div>
+      </div><span class="badge status-done">Finished</span></div>
+      <div class="ev-body">
+        <aside class="col" style="gap:16px">
+          <div class="card" style="overflow:hidden">
+            <div style="padding:12px 14px" class="caps">Weekend</div>
+            <div class="wl-item sel"><span style="width:18px;text-align:center">🏆</span><div class="grow"><div class="sm" style="font-weight:500">Weekend results</div><div class="xs muted">Finished · 2 races</div></div></div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Qualifying</div><div class="xs muted">Day 1 · 15 minutes</div></div><span class="cell plain">P4</span></div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Race 1</div><div class="xs muted">Day 1 · 20 laps</div></div><span class="cell m2">P2</span></div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Race 2</div><div class="xs muted">Day 2 · 20 laps</div></div><span class="cell plain">P6</span></div>
+          </div>
+        </aside>
+        <div class="card" data-c="RoundSummary" data-k="adapt"><div class="spage">
+          <div class="row"><h3 style="font-size:18px;font-weight:600" class="grow">Weekend results</h3><button class="btn sm">↻ Run it again</button></div>
+          <div class="strip" style="grid-template-columns:repeat(3,1fr)" data-c="ResultStrip">
+            <div><span class="caps">Qualifying</span><span class="big"><span class="pos plain cell">P4</span><span class="xs muted" style="font-weight:400">in GT3</span></span></div>
+            <div><span class="caps">Race 1</span><span class="big"><span class="pos m2">P2</span><span class="xs muted" style="font-weight:400">in GT3 · ▲2</span></span></div>
+            <div><span class="caps">Race 2</span><span class="big"><span class="pos plain cell">P6</span><span class="xs muted" style="font-weight:400">in GT3 · ▼3, reversed grid</span></span></div>
+          </div>
+          <div class="winners">
+            <div class="card" style="padding:12px 14px">
+              <div class="row" style="margin-bottom:4px"><span class="badge s-r">Race</span><b class="sm">Race 1 winners</b></div>
+              <div class="wrow"><span class="badge k1">GT3</span><span class="pos m1">1</span><span class="grow">L. Vanthoor · BMW M4 GT3</span><span class="xs muted">41:12.880</span></div>
+              <div class="wrow"><span class="badge k2">GT4</span><span class="pos m1">1</span><span class="grow">T. Kujala · Aston Martin Vantage GT4</span><span class="xs muted">+2 laps</span></div>
+            </div>
+            <div class="card" style="padding:12px 14px">
+              <div class="row" style="margin-bottom:4px"><span class="badge s-r">Race</span><b class="sm">Race 2 winners</b></div>
+              <div class="wrow"><span class="badge k1">GT3</span><span class="pos m1">1</span><span class="grow">R. Marciello · Mercedes-AMG GT3</span><span class="xs muted">41:40.115</span></div>
+              <div class="wrow"><span class="badge k2">GT4</span><span class="pos m1">1</span><span class="grow">M. Kirchhöfer · BMW M4 GT4</span><span class="xs muted">+2 laps</span></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= A ======================= -->
+<section class="screen on" id="screen-a">
+  <div class="rationale"><b>A - a multiclass race, the whole page.</b>
+    <div class="legend"><span style="--c:var(--tag-reuse)">used as it is</span><span style="--c:var(--tag-adapt)">small change (a prop, or a type generalised)</span><span style="--c:var(--tag-new)">new</span></div>
+    <ul>
+      <li><b>Left, pinned</b>:
+        <ul>
+          <li><b>Track</b>: the layout's shape with its photograph, as <code>LayoutTile</code> draws it, and Change.</li>
+          <li><b>Your car</b>: the livery, as <code>EntryPanel</code> draws it, and Change.</li>
+          <li>Once there are two classes, the car card gains <b>You race in</b>, as <code>ChoiceChips</code> in the class colours. <b>Change</b> then opens <code>CarPicker</code> narrowed to that class's cars.</li>
+        </ul>
+      </li>
+      <li><b>Right</b>: Classes (the editor's <code>EntriesCard</code>, with each class's car count in its row), then Weekend, then Rules. Launch is in the pinned header.</li>
+      <li><b>Yours</b> on a class row and <b>You race in</b> on the car card are the same setting, so either one changes it.</li>
+      <li>Your car takes one of its class's places, so GT3's 18 includes you.</li>
+    </ul></div>
+  <div class="window"><div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div><div class="page"><div class="col" style="gap:12px" data-c="ScreenHeader + RoundHeader" data-k="adapt"><div class="backline">← Race</div><div class="ev-head"><div class="col" style="gap:6px"><div class="row"><span class="badge k1">GT3 · 18</span><span class="badge k2">GT4 · 12</span></div><h1>Spa-Francorchamps · GP</h1><div class="ev-meta"><span>Your own race</span><span>Grid 30 · 2 classes</span><span>3 sessions over 2 days</span></div></div><div class="head-launch" data-c="LaunchArea, in the pinned header" data-k="adapt"><button class="btn primary lg">Launch Qualifying</button><span class="xs muted">Then Race 1 and Race 2</span></div></div></div><div class="setup"><aside><div class="card picker-card" data-c="TrackPicker trigger · LayoutTile look" data-k="adapt"><div class="row"><span class="caps grow">Track</span><button class="btn sm">Change</button></div><div class="big"><svg viewBox="0 0 120 60" width="150" height="75"><path d="M10 30 Q20 8 50 12 L96 10 Q110 14 104 32 L80 50 Q60 54 40 48 Z"/></svg><span class="inset"></span></div><div class="col" style="gap:4px"><b>Spa-Francorchamps · GP</b><div class="row"><span class="badge p-base">Base game</span><span class="xs muted">7.0 km · 40 pit boxes</span></div></div></div><div class="card picker-card" data-c="CarPicker trigger · EntryPanel look" data-k="adapt"><div class="row"><span class="caps grow">Your car</span><button class="btn sm">Change</button></div><div class="col" style="gap:6px" data-c="ChoiceChips" data-k="reuse"><span class="label">You race in</span><div class="chips"><span class="on" style="background:var(--k1);color:var(--k1-fg)">GT3</span><span>GT4</span></div></div><div class="big livery"><span class="plate">71</span></div><div class="col" style="gap:1px"><b>Ferrari 296 GT3</b><span class="xs muted">Scuderia Corsa #71</span></div><span class="hint">Change lists GT3's cars only. Switching class here keeps your car if it fits the new one.</span></div></aside><main><div class="card sec"><h3>Classes <small>What races, and how many of each</small></h3><div class="entries" data-c="EntriesCard" data-k="adapt"><div class="col" style="gap:8px"><div class="cli sel"><span class="stripe kbar1"></span><span class="dotk kbar1"></span><div class="col grow" style="gap:0"><div class="row"><b>GT3</b><span class="badge primary" style="padding:0 6px;font-size:11px">Yours</span></div><span class="xs muted">GT3 2020s · 9 models</span></div><div class="mini"><span>−</span><b>18</b><span>＋</span></div></div><div class="cli"><span class="stripe kbar2"></span><span class="dotk kbar2"></span><div class="col grow" style="gap:0"><div class="row"><b>GT4</b></div><span class="xs muted">GT4 2010s · 6 models</span></div><div class="mini"><span>−</span><b>12</b><span>＋</span></div></div><button class="btn dashed sm">＋ Add a class</button><div class="col" style="gap:6px;margin-top:4px"><div class="totalbar"><span class="kbar1" style="flex:18"></span><span class="kbar2" style="flex:12"></span><span style="flex:10;background:var(--muted)"></span></div><span class="xs muted">30 cars, you included · 40 pit boxes</span></div></div><div class="card" style="overflow:hidden" data-c="ClassPanel" data-k="adapt"><div class="cpanel-head"><span class="badge k1">GT3</span><b style="font-size:16px">GT3</b><span class="grow"></span><button class="btn ghost sm">⋮</button></div><div class="tabsrow"><span class="on">Cars</span><span>AI</span></div><div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px"><div style="display:grid;grid-template-columns:auto 1fr;gap:16px" data-c="EligibilityField"><div class="col" style="gap:6px"><span class="label">Written as</span><div class="chips"><span class="on">A catalogued grid</span><span>A list of cars</span></div></div><div class="col" style="gap:6px"><span class="label">Grid</span><span class="selbox" style="width:100%">GT3 2020s <span class="muted">▾</span></span></div></div><div class="shots" data-c="CarShots"><div class="shot"><i></i><span>Ferrari 296 GT3</span></div><div class="shot"><i style="--c:oklch(0.6 0.15 250)"></i><span>BMW M4 GT3</span></div><div class="shot"><i style="--c:oklch(0.85 0.15 95)"></i><span>Porsche 911 GT3 R</span></div><div class="shot"><i style="--c:oklch(0.55 0.15 150)"></i><span>Mercedes-AMG GT3</span></div></div></div></div></div></div><div class="card sec"><h3>Weekend <small>Each session is a launch of its own</small></h3><div class="card split" data-c="SessionList + SessionPage" data-k="adapt"><div class="daylist"><div class="block weekend"><b>Whole weekend</b><span class="len muted">13:00 · Clear · 18°C</span></div><div class="dayhead">Day 1</div><div class="block s-q sel"><span class="grip">⋮⋮</span><b>Qualifying</b><span class="len num">20 min</span></div><div class="dayhead">Day 2</div><div class="block s-r"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 1</b><span class="from">↳ from Qualifying</span></div><span class="len num">20 laps</span></div><div class="block s-r"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 2</b><span class="from">↳ from Race 1, top 6 reversed</span></div><span class="len num">20 laps</span></div><button class="btn dashed sm">＋ Add a session</button></div><div class="spage"><div class="row"><span class="badge s-q">Qualifying</span><h3 style="font-size:16px;font-weight:600">Qualifying</h3><span class="xs muted">Day 1</span><span class="grow"></span><button class="btn ghost sm danger">🗑 Remove</button></div><div class="col" style="gap:6px"><span class="label">Length</span><div class="row"><input class="input num" value="20" style="width:6rem;text-align:right"><span class="sm muted">minutes</span></div></div><span class="hint">Every class qualifies together and lines up by class: GT3 ahead, then GT4.</span><div class="part">Conditions</div><div class="cond"><div class="cond-row"><div class="h"><b>Weather</b><span class="muted grow">The weekend's · Clear</span><button class="btn sm">Set for this session</button></div></div></div></div></div></div><div class="card sec"><h3>Rules <small>For the whole race</small></h3><div class="card rules" data-c="RulesCard"><div class="pane"><span class="caps">AI field</span><span class="hint">Over your difficulty in settings. A class may move its own further.</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">AI strength</span><div class="stepper up"><span>−</span><b>+2</b><span>＋</span></div></div><div class="col" style="gap:6px"><span class="label">AI aggression</span><div class="stepper"><span>−</span><b>0</b><span>＋</span></div></div></div></div><div class="pane"><span class="caps">Regulations</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">Damage</span><input class="input" placeholder="100"></div><div class="col" style="gap:6px"><span class="label">Fuel use</span><input class="input" value="2"></div></div><div class="switchline">Tyre blankets <span class="toggle"></span></div></div><div class="pane"><span class="caps">Race control</span><div class="switchline">Penalties <span class="toggle"></span></div><div class="switchline">Fixed setup <span class="toggle off"></span></div></div></div></div></main></div></div></div>
+</section>
+<section class="screen" id="screen-a-single">
+  <div class="rationale"><b>A - after picking a car with no classes.</b> The pick made a one-make class: a list of cars holding that car alone, 12 strong, and yours. A quick race needs nothing more.
+    <ul>
+      <li><b>One class follows your car.</b> While it is the only class and was made from your car, changing your car changes it too. Changing the class yourself stops that.</li>
+            <li>Nothing asks which class you race in until there is a second one.</li>
+    </ul></div>
+  <div class="window"><div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div><div class="page"><div class="col" style="gap:12px" data-c="ScreenHeader + RoundHeader" data-k="adapt"><div class="backline">← Race</div><div class="ev-head"><div class="col" style="gap:6px"><div class="row"><span class="badge k1">Ferrari 296 GT3 · 12</span></div><h1>Spa-Francorchamps · GP</h1><div class="ev-meta"><span>Your own race</span><span>Grid 12 · one make</span><span>1 session</span></div></div><div class="head-launch"><button class="btn primary lg">Launch Race</button><span class="xs muted">A race of 5 laps</span></div></div></div><div class="setup"><aside><div class="card picker-card" data-c="TrackPicker trigger · LayoutTile look" data-k="adapt"><div class="row"><span class="caps grow">Track</span><button class="btn sm">Change</button></div><div class="big"><svg viewBox="0 0 120 60" width="150" height="75"><path d="M10 30 Q20 8 50 12 L96 10 Q110 14 104 32 L80 50 Q60 54 40 48 Z"/></svg><span class="inset"></span></div><div class="col" style="gap:4px"><b>Spa-Francorchamps · GP</b><div class="row"><span class="badge p-base">Base game</span><span class="xs muted">7.0 km · 40 pit boxes</span></div></div></div><div class="card picker-card" data-c="CarPicker trigger · EntryPanel look" data-k="adapt"><div class="row"><span class="caps grow">Your car</span><button class="btn sm">Change</button></div><div class="big livery"><span class="plate">71</span></div><div class="col" style="gap:1px"><b>Ferrari 296 GT3</b><span class="xs muted">Scuderia Corsa #71</span></div><span class="hint">With one class, Change opens every installed car and the class follows your pick.</span></div></aside><main><div class="card sec"><h3>Classes <small>What races, and how many of each</small></h3><div class="entries" data-c="EntriesCard" data-k="adapt"><div class="col" style="gap:8px"><div class="cli sel"><span class="stripe kbar1"></span><span class="dotk kbar1"></span><div class="col grow" style="gap:0"><div class="row"><b>Ferrari 296 GT3</b><span class="badge primary" style="padding:0 6px;font-size:11px">Yours</span></div><span class="xs muted">One make · made from your car</span></div><div class="mini"><span>−</span><b>12</b><span>＋</span></div></div><button class="btn dashed sm">＋ Add a class</button></div><div class="card" style="overflow:hidden" data-c="ClassPanel" data-k="adapt"><div class="cpanel-head"><span class="badge k1">Ferrari 296 GT3</span><b style="font-size:16px">Ferrari 296 GT3</b><span class="grow"></span><button class="btn ghost sm">⋮</button></div><div class="tabsrow"><span class="on">Cars</span><span>AI</span></div><div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px"><div style="display:grid;grid-template-columns:auto 1fr;gap:16px" data-c="EligibilityField"><div class="col" style="gap:6px"><span class="label">Written as</span><div class="chips"><span>A catalogued grid</span><span class="on">A list of cars</span></div></div><div class="col" style="gap:6px"><span class="label">Cars</span><div class="row"><button class="btn sm">＋ Add cars</button><span class="hint">Every car on the list may race</span></div></div></div><div class="shots" data-c="CarShots"><div class="shot"><i></i><span>Ferrari 296 GT3</span></div></div></div></div></div></div><div class="card sec"><h3>Weekend <small>Each session is a launch of its own</small></h3><div class="card split" data-c="SessionList + SessionPage" data-k="adapt"><div class="daylist"><div class="block weekend"><b>Whole weekend</b><span class="len muted">14:00 · Clear · 22°C</span></div><div class="dayhead">Day 1</div><div class="block s-r sel"><span class="grip">⋮⋮</span><b>Race</b><span class="len num">5 laps</span></div><button class="btn dashed sm">＋ Add a session</button></div><div class="spage"><div class="row"><span class="badge s-r">Race</span><h3 style="font-size:16px;font-weight:600">Race</h3><span class="xs muted">Day 1</span></div><div class="col" style="gap:6px"><span class="label">Length</span><div class="row"><input class="input num" value="5" style="width:6rem;text-align:right"><span class="sm muted">laps</span></div></div><div class="part">Grid</div><div class="col" style="gap:6px"><span class="label">You start</span><div class="row"><div class="chips"><span class="on">Last</span><span>Pole</span><span>Position</span><span>Random</span></div></div></div></div></div></div><div class="card sec"><h3>Rules <small>For the whole race</small></h3><div class="card rules" data-c="RulesCard"><div class="pane"><span class="caps">AI field</span><span class="hint">Over your difficulty in settings. A class may move its own further.</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">AI strength</span><div class="stepper up"><span>−</span><b>+2</b><span>＋</span></div></div><div class="col" style="gap:6px"><span class="label">AI aggression</span><div class="stepper"><span>−</span><b>0</b><span>＋</span></div></div></div></div><div class="pane"><span class="caps">Regulations</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">Damage</span><input class="input" placeholder="100"></div><div class="col" style="gap:6px"><span class="label">Fuel use</span><input class="input" value="2"></div></div><div class="switchline">Tyre blankets <span class="toggle"></span></div></div><div class="pane"><span class="caps">Race control</span><div class="switchline">Penalties <span class="toggle"></span></div><div class="switchline">Fixed setup <span class="toggle off"></span></div></div></div></div></main></div></div></div>
+</section>
+<section class="screen" id="screen-a-misfit">
+  <div class="rationale"><b>A - your car no longer fits.</b> Here the player switched <b>You race in</b> to GT4 while driving a GT3 car. Changing a class's grid or list, or deleting the class you were in, ends the same way.
+    <ul>
+      <li><b>Nothing is changed for you.</b> Your car stays, so the mismatch is visible instead of being silently fixed.</li>
+      <li><b>The car card turns amber</b> and says only that: your car is not in the class you picked. <b>Change car</b> opens the picker narrowed to that class.</li>
+      <li><b>The class row</b> gets the same warning mark beside Yours. <b>Launch</b> is disabled, and its line names the problem.</li>
+      <li>If the class you were in is deleted, you move to the first class left, and the warning appears if the car doesn't fit it.</li>
+      <li>Amber, not red: the setup is merely unfinished, and nothing is broken. That is the <code>warning</code> token's own meaning.</li>
+    </ul></div>
+  <div class="window"><div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div><div class="page"><div class="col" style="gap:12px" data-c="ScreenHeader + RoundHeader" data-k="adapt"><div class="backline">← Race</div><div class="ev-head"><div class="col" style="gap:6px"><div class="row"><span class="badge k1">GT3 · 18</span><span class="badge k2">GT4 · 12</span></div><h1>Spa-Francorchamps · GP</h1><div class="ev-meta"><span>Your own race</span><span>Grid 30 · 2 classes</span><span>3 sessions over 2 days</span></div></div><div class="head-launch"><button class="btn primary lg" disabled>Launch Qualifying</button><span class="xs warnmark">⚠ Your car is not in GT4</span></div></div></div><div class="setup"><aside><div class="card picker-card" data-c="TrackPicker trigger · LayoutTile look" data-k="adapt"><div class="row"><span class="caps grow">Track</span><button class="btn sm">Change</button></div><div class="big"><svg viewBox="0 0 120 60" width="150" height="75"><path d="M10 30 Q20 8 50 12 L96 10 Q110 14 104 32 L80 50 Q60 54 40 48 Z"/></svg><span class="inset"></span></div><div class="col" style="gap:4px"><b>Spa-Francorchamps · GP</b><div class="row"><span class="badge p-base">Base game</span><span class="xs muted">7.0 km · 40 pit boxes</span></div></div></div><div class="card picker-card warn" data-c="CarPicker trigger + misfit note" data-k="new"><div class="row"><span class="caps grow">Your car</span><button class="btn sm">Change</button></div><div class="col" style="gap:6px" data-c="ChoiceChips" data-k="reuse"><span class="label">You race in</span><div class="chips"><span>GT3</span><span class="on" style="background:var(--k2);color:var(--k2-fg)">GT4</span></div></div><div class="big livery"><span class="plate">71</span></div><div class="col" style="gap:1px"><b>Ferrari 296 GT3</b><span class="xs muted">Scuderia Corsa #71</span></div><div class="misfit"><b><span class="warnmark">⚠</span>Ferrari 296 GT3 is not in GT4</b><div class="row"><button class="btn primary sm">Change car</button></div></div></div></aside><main><div class="card sec"><h3>Classes <small>What races, and how many of each</small></h3><div class="entries" data-c="EntriesCard" data-k="adapt"><div class="col" style="gap:8px"><div class="cli"><span class="stripe kbar1"></span><span class="dotk kbar1"></span><div class="col grow" style="gap:0"><div class="row"><b>GT3</b></div><span class="xs muted">GT3 2020s · 9 models</span></div><div class="mini"><span>−</span><b>18</b><span>＋</span></div></div><div class="cli sel warn"><span class="stripe kbar2"></span><span class="dotk kbar2"></span><div class="col grow" style="gap:0"><div class="row"><b>GT4</b><span class="badge primary" style="padding:0 6px;font-size:11px">Yours</span><span class="warnmark" title="Your car is not one of its cars">⚠</span></div><span class="xs muted">GT4 2010s · 6 models</span></div><div class="mini"><span>−</span><b>12</b><span>＋</span></div></div><button class="btn dashed sm">＋ Add a class</button><div class="col" style="gap:6px;margin-top:4px"><div class="totalbar"><span class="kbar1" style="flex:18"></span><span class="kbar2" style="flex:12"></span><span style="flex:10;background:var(--muted)"></span></div><span class="xs muted">30 cars, you included · 40 pit boxes</span></div></div><div class="card" style="overflow:hidden" data-c="ClassPanel" data-k="adapt"><div class="cpanel-head"><span class="badge k2">GT4</span><b style="font-size:16px">GT4</b><span class="grow"></span><button class="btn ghost sm">⋮</button></div><div class="tabsrow"><span class="on">Cars</span><span>AI</span></div><div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px"><div style="display:grid;grid-template-columns:auto 1fr;gap:16px" data-c="EligibilityField"><div class="col" style="gap:6px"><span class="label">Written as</span><div class="chips"><span class="on">A catalogued grid</span><span>A list of cars</span></div></div><div class="col" style="gap:6px"><span class="label">Grid</span><span class="selbox" style="width:100%">GT4 2010s <span class="muted">▾</span></span></div></div><div class="shots" data-c="CarShots"><div class="shot"><i style="--c:oklch(0.55 0.12 160)"></i><span>Aston Martin Vantage GT4</span></div><div class="shot"><i style="--c:oklch(0.6 0.15 250)"></i><span>BMW M4 GT4</span></div><div class="shot"><i style="--c:oklch(0.85 0.15 95)"></i><span>Porsche 718 GT4</span></div><div class="shot"><i style="--c:oklch(0.7 0.12 50)"></i><span>McLaren 570S GT4</span></div></div></div></div></div></div><div class="card sec"><h3>Weekend <small>Each session is a launch of its own</small></h3><div class="card split" data-c="SessionList + SessionPage" data-k="adapt"><div class="daylist"><div class="block weekend"><b>Whole weekend</b><span class="len muted">13:00 · Clear · 18°C</span></div><div class="dayhead">Day 1</div><div class="block s-q sel"><span class="grip">⋮⋮</span><b>Qualifying</b><span class="len num">20 min</span></div><div class="dayhead">Day 2</div><div class="block s-r"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 1</b><span class="from">↳ from Qualifying</span></div><span class="len num">20 laps</span></div><div class="block s-r"><span class="grip">⋮⋮</span><div class="col" style="gap:1px"><b>Race 2</b><span class="from">↳ from Race 1, top 6 reversed</span></div><span class="len num">20 laps</span></div><button class="btn dashed sm">＋ Add a session</button></div><div class="spage"><div class="row"><span class="badge s-q">Qualifying</span><h3 style="font-size:16px;font-weight:600">Qualifying</h3><span class="xs muted">Day 1</span><span class="grow"></span><button class="btn ghost sm danger">🗑 Remove</button></div><div class="col" style="gap:6px"><span class="label">Length</span><div class="row"><input class="input num" value="20" style="width:6rem;text-align:right"><span class="sm muted">minutes</span></div></div><span class="hint">Every class qualifies together and lines up by class: GT3 ahead, then GT4.</span><div class="part">Conditions</div><div class="cond"><div class="cond-row"><div class="h"><b>Weather</b><span class="muted grow">The weekend's · Clear</span><button class="btn sm">Set for this session</button></div></div></div></div></div></div><div class="card sec"><h3>Rules <small>For the whole race</small></h3><div class="card rules" data-c="RulesCard"><div class="pane"><span class="caps">AI field</span><span class="hint">Over your difficulty in settings. A class may move its own further.</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">AI strength</span><div class="stepper up"><span>−</span><b>+2</b><span>＋</span></div></div><div class="col" style="gap:6px"><span class="label">AI aggression</span><div class="stepper"><span>−</span><b>0</b><span>＋</span></div></div></div></div><div class="pane"><span class="caps">Regulations</span><div class="grid2"><div class="col" style="gap:6px"><span class="label">Damage</span><input class="input" placeholder="100"></div><div class="col" style="gap:6px"><span class="label">Fuel use</span><input class="input" value="2"></div></div><div class="switchline">Tyre blankets <span class="toggle"></span></div></div><div class="pane"><span class="caps">Race control</span><div class="switchline">Penalties <span class="toggle"></span></div><div class="switchline">Fixed setup <span class="toggle off"></span></div></div></div></div></main></div></div></div>
+</section>
+
+
+<section class="screen" id="screen-a-empty">
+  <div class="rationale"><b>A - a new race weekend.</b> The two pickers sit on the left, pinned while the page scrolls. What they race against is on the right.
+    <ul>
+      <li><b>Nothing is locked.</b> With no classes yet, Pick a car opens every installed car, as <code>CarPicker</code> does today.</li>
+      <li>The Classes card says what happens next: the car you pick becomes the first class. Or add a class first and pick your car from it.</li>
+      <li>The weekend and rules sit further down with their defaults, cut from this view.</li>
+    </ul></div>
+  <div class="window"><div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div><div class="page"><div class="col" style="gap:12px" data-c="ScreenHeader + RoundHeader" data-k="adapt"><div class="backline">← Race</div><div class="ev-head"><div class="col" style="gap:6px"><h1 class="muted">New race weekend</h1><div class="ev-meta"><span>Pick a track and a car to start. Everything else has defaults.</span></div></div><div class="head-launch"><button class="btn primary lg" disabled>Launch Race</button><span class="xs" style="color:var(--destructive)">Needs a track and your car</span></div></div></div><div class="setup"><aside><div class="card picker-card" data-c="TrackPicker trigger" data-k="adapt"><div class="row"><span class="caps grow">Track</span></div><div class="big empty">⛰</div><span class="sm muted">No track yet.</span><button class="btn primary" style="justify-content:center">Pick a track</button></div><div class="card picker-card" data-c="CarPicker trigger · EntryPanel look" data-k="adapt"><div class="row"><span class="caps grow">Your car</span></div><div class="big empty">🚗</div><span class="sm muted">Any installed car. Its make becomes the field until you add classes.</span><button class="btn primary" style="justify-content:center">Pick a car</button></div></aside><main><div class="card sec"><h3>Classes <small>What races, and how many of each</small></h3><div class="empty-classes" data-c="new empty state" data-k="new"><b style="color:var(--foreground)">No classes yet</b><span>Pick your car and it becomes the first class: a field of that car alone.<br>Or set up the field first and pick your car from it.</span><button class="btn sm">＋ Add a class</button></div></div></main></div></div></div>
+</section>
+
+<section class="screen" id="screen-a-live">
+  <div class="rationale">
+    <b>A - part-way through.</b> Once the first launch has run, the left column becomes the event page's own <code>WeekendList</code>: <code>SessionStatusDot</code>s, a <b>Results</b> item at the top, and each session's date and length. The open session shows the event page's <code>SessionBriefing</code> tiles, and a driven one shows <code>SessionResult</code>. Launching and waiting use <code>LaunchArea</code>'s running row. Only the lock line and <b>Start over</b> are this page's own.
+  </div>
+  <div class="window">
+    <div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav"><a>Home</a><a class="on">Race</a><a>Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav></div>
+    <div class="page">
+      <div class="backline">← Race</div>
+      <div class="ev-head">
+        <div class="col" style="gap:6px">
+          <div class="row"><span class="badge p-base">Base game</span><span class="badge outline num">5.79 km</span><span class="badge outline num">30 pit boxes</span></div>
+          <h1>Monza · GP</h1>
+          <div class="ev-meta"><span>Your own race</span><span>Grid 12</span><span>14:00 · Clear · 22°C</span></div>
+        </div>
+        <div class="row" style="gap:12px"><span class="lock" data-c="new" data-k="new">🔒 Fixed until the weekend ends</span><button class="btn sm">↺ Start over</button></div>
+      </div>
+      <div class="ev-body">
+        <aside class="col" style="gap:16px">
+          <div class="card pickcard" data-c="TrackAndCar" data-k="adapt"><div class="row"><span class="caps grow">Track</span></div><div class="pickrow2"><div class="thumb"><svg viewBox="0 0 120 60" width="84" height="42"><path d="M12 44 L30 14 L88 10 Q104 10 104 22 L98 44 Q96 50 86 50 L22 52 Q10 52 12 44 Z"/></svg><span class="inset"></span></div><div class="col" style="gap:1px"><span style="font-weight:500">Monza · GP</span><span class="xs muted">5.79 km · 30 pit boxes</span></div></div><div class="pickdiv"></div><div class="row"><span class="caps grow">Your car</span></div><div class="pickrow2"><div class="thumb livery"><span class="plate">71</span></div><div class="col" style="gap:1px"><span style="font-weight:500">Ferrari 488 GT3</span><span class="xs muted">Scuderia Corsa #71</span></div></div></div>
+          <div class="card" style="overflow:hidden" data-c="WeekendList · WeekendItem" data-k="adapt">
+            <div style="padding:12px 14px" class="caps">Weekend</div>
+            <div class="wl-item"><span class="dot done"></span><div class="grow"><div class="sm" style="font-weight:500">Practice</div><div class="xs muted">Day 1 · 30 minutes</div></div><span class="badge success">P3</span></div>
+            <div class="wl-item sel"><span class="dot next"></span><div class="grow"><div class="sm" style="font-weight:500">Qualifying</div><div class="xs muted">Day 1 · 15 minutes</div></div><span class="badge outline">Next</span></div>
+            <div class="wl-item"><span class="dot"></span><div class="grow"><div class="sm" style="font-weight:500">Feature race</div><div class="xs muted">Day 2 · 20 laps</div></div></div>
+          </div>
+        </aside>
+        <div class="card" data-c="SessionDetail" data-k="adapt"><div class="spage">
+          <div class="row"><span class="badge s-q">Qualifying</span><h3 style="font-size:16px;font-weight:600">Qualifying</h3><span class="grow"></span><span class="sm muted">Day 1 · 16:00</span></div>
+          <div class="tiles" data-c="SessionBriefing · BriefTile">
+            <div class="brief"><span class="caps">Length</span><span class="v">15 minutes</span></div>
+            <div class="brief"><span class="caps">Weather</span><span class="v">☀ 22°C</span><span class="xs muted">Clear</span></div>
+            <div class="brief"><span class="caps">Wind</span><span class="v">Calm</span></div>
+            <div class="brief"><span class="caps">You start</span><span class="v">Pit lane</span></div>
+          </div>
+          <span class="sm muted">Everyone starts from the pit lane.</span>
+          <div class="running" data-c="LaunchArea"><span class="sm"><span class="spin"></span>Waiting for Assetto Corsa to finish the session</span><button class="btn sm">Stop waiting</button></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= B ======================= -->
+
+<script>
+const state = { s: 'list', th: 'light', label: true };
+const render = () => {
+  document.querySelectorAll('.screen').forEach((el) => el.classList.toggle('on', el.id === `screen-${state.s}`));
+  document.querySelectorAll('[data-screen]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === state.s)));
+  document.documentElement.dataset.theme = state.th;
+  document.body.classList.toggle('label', state.label);
+  document.getElementById('theme').setAttribute('aria-pressed', String(state.th === 'dark'));
+  document.getElementById('labels').setAttribute('aria-pressed', String(state.label));
+};
+document.querySelectorAll('[data-screen]').forEach((b) => b.addEventListener('click', () => { state.s = b.dataset.screen; render(); }));
+document.getElementById('theme').addEventListener('click', () => { state.th = state.th === 'dark' ? 'light' : 'dark'; render(); });
+document.getElementById('labels').addEventListener('click', () => { state.label = !state.label; render(); });
+const m = location.hash.match(/#([\w-]+)(?:\|(\w+))?/);
+if (m) { state.s = m[1]; state.th = m[2] || 'light'; }
+render();
+</script>
+</body>
+</html>

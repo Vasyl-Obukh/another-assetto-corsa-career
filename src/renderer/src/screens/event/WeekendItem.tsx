@@ -3,12 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { SessionStatusDot } from './SessionStatusDot.tsx';
 import { dotted, playerPosition, sessionLength } from './utils.ts';
 import type { EventSession } from '../../../../shared/types';
-import { WeatherStepIcons } from '@/components';
+import { ResultCell, WeatherStepIcons } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { PODIUM_ACCENT } from '@/lib/accents';
+import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
-import { SESSION_TYPE_LABEL } from '@/screens/race';
 
 interface WeekendItemProps {
   /**
@@ -20,18 +19,34 @@ interface WeekendItemProps {
    */
   selected: boolean;
   /**
+   * Whether the player's seat was raced without them.
+   */
+  substituted: boolean;
+  /**
    * Called to show it.
    */
   onSelect: () => void;
+  /**
+   * Whether its date goes unsaid - a weekend of the player's own, which is on
+   * no calendar.
+   */
+  undated?: boolean;
 }
 
-export const WeekendItem = ({ session, selected, onSelect }: WeekendItemProps) => {
+export const WeekendItem = ({
+  session, selected, substituted, onSelect, undated = false,
+}: WeekendItemProps) => {
   const { t } = useTranslation();
   const { formatDay, formatNumber } = useFormat();
 
-  const position = playerPosition(session.record);
+  // A race says what it paid; anything else where the player's car finished,
+  // which is someone else's place in a round raced without them.
+  const raced = session.place && !session.place.bonusOnly ? session.place : null;
+  const position = raced?.classPosition ?? (substituted ? null : playerPosition(session.record));
   const when = dotted([
-    formatDay(session.date), session.startsAt, sessionLength(session, t, formatNumber),
+    undated ? null : formatDay(session.date),
+    session.startsAt,
+    sessionLength(session, t, formatNumber),
   ]);
 
   return (
@@ -48,7 +63,7 @@ export const WeekendItem = ({ session, selected, onSelect }: WeekendItemProps) =
 
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-sm font-medium">
-          {session.name ?? t(SESSION_TYPE_LABEL[session.type])}
+          {sessionName(session, t)}
         </span>
         <span className="truncate text-xs text-muted-foreground">{when}</span>
       </span>
@@ -75,13 +90,15 @@ export const WeekendItem = ({ session, selected, onSelect }: WeekendItemProps) =
         {session.record?.skipped ? (
           <Badge variant="outline">{t('event.status.simulated')}</Badge>
         ) : null}
-        {position !== null && !session.record?.skipped ? (
-          <Badge
-            variant="outline"
-            className={cn('tabular-nums', PODIUM_ACCENT[position - 1])}
-          >
-            {t('event.position', { position })}
-          </Badge>
+        {position !== null ? (
+          <ResultCell
+            position={position}
+            scored={(raced?.finishPoints ?? 0) > 0}
+            pole={raced?.qualifyingPosition === 1}
+            fastestLap={raced?.fastestLap}
+            quiet={session.type !== 'race'}
+            prefixed
+          />
         ) : null}
       </span>
     </button>

@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings and setup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.005 60);
+
+  --provenance-base: oklch(0.93 0.05 155); --provenance-base-fg: oklch(0.34 0.09 155);
+  --provenance-dlc: oklch(0.93 0.06 75);   --provenance-dlc-fg: oklch(0.38 0.1 62);
+  --provenance-mod: oklch(0.93 0.05 295);  --provenance-mod-fg: oklch(0.38 0.13 295);
+  --provenance-dist: oklch(0.93 0.05 235); --provenance-dist-fg: oklch(0.38 0.12 250);
+  --session-practice: oklch(0.93 0.045 250); --session-practice-fg: oklch(0.4 0.13 258);
+  --session-qualify: oklch(0.93 0.05 310);   --session-qualify-fg: oklch(0.4 0.15 310);
+  --session-race: oklch(0.89 0.085 150);     --session-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88);     --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52);   --bronze-fg: oklch(0.41 0.09 48);
+  --sportscar: oklch(0.925 0.06 112); --sportscar-fg: oklch(0.36 0.1 118);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88);    --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255);  --t3-fg: oklch(0.42 0.015 260);
+  --works: oklch(0.91 0.075 320); --works-fg: oklch(0.38 0.15 320);
+  --independent: oklch(0.92 0.06 18); --independent-fg: oklch(0.42 0.13 22);
+  --privateer: oklch(0.93 0.055 132); --privateer-fg: oklch(0.4 0.09 135);
+  --temperate: oklch(0.925 0.03 150); --temperate-fg: oklch(0.4 0.05 150);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.16 0.02 30);
+
+  --provenance-base: oklch(0.32 0.06 155); --provenance-base-fg: oklch(0.86 0.11 155);
+  --provenance-dlc: oklch(0.33 0.06 70);   --provenance-dlc-fg: oklch(0.87 0.11 80);
+  --provenance-mod: oklch(0.33 0.07 295);  --provenance-mod-fg: oklch(0.86 0.1 295);
+  --provenance-dist: oklch(0.33 0.07 245); --provenance-dist-fg: oklch(0.86 0.09 240);
+  --session-practice: oklch(0.32 0.06 250); --session-practice-fg: oklch(0.86 0.09 255);
+  --session-qualify: oklch(0.33 0.07 310);  --session-qualify-fg: oklch(0.87 0.1 310);
+  --session-race: oklch(0.35 0.09 150);     --session-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88);     --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50);   --bronze-fg: oklch(0.85 0.09 55);
+  --sportscar: oklch(0.32 0.07 112); --sportscar-fg: oklch(0.86 0.1 112);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88);   --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --works: oklch(0.34 0.085 320); --works-fg: oklch(0.87 0.11 320);
+  --independent: oklch(0.33 0.07 18); --independent-fg: oklch(0.86 0.09 22);
+  --privateer: oklch(0.32 0.06 132); --privateer-fg: oklch(0.86 0.08 135);
+  --temperate: oklch(0.32 0.03 150); --temperate-fg: oklch(0.85 0.05 150);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.small { font-size: 12px; }
+h1, h2, h3, h4 { margin: 0; }
+p { margin: 0; }
+
+/* Mockup chrome */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker strong { font-weight: 600; margin-right: 8px; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 5px 12px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; align-self: stretch; background: color-mix(in oklch, var(--background) 30%, transparent); margin: 0 6px; }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 84ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); font-weight: 600; }
+.window { max-width: 1440px; margin: 16px auto 48px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); }
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { padding: 5px 10px; border-radius: 6px; font-size: 13.5px; font-weight: 500; }
+.nav a.on { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); }
+.screen { padding: 20px 32px 40px; }
+.back { color: var(--muted-foreground); font-size: 13px; margin-bottom: 14px; display: inline-block; }
+
+/* Shared pieces */
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; line-height: 1; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+.chip.outline { border: 1px solid var(--border); padding: 3px 7px; }
+.chip.filled { background: var(--primary); color: var(--primary-foreground); }
+.c-sportscar { background: var(--sportscar); color: var(--sportscar-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); }
+.c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); }
+.c-mod { background: var(--provenance-mod); color: var(--provenance-mod-fg); }
+.c-dist { background: var(--provenance-dist); color: var(--provenance-dist-fg); }
+.c-works { background: var(--works); color: var(--works-fg); }
+.c-independent { background: var(--independent); color: var(--independent-fg); }
+.c-privateer { background: var(--privateer); color: var(--privateer-fg); }
+.c-temperate { background: var(--temperate); color: var(--temperate-fg); }
+.c-success { background: var(--success); color: var(--success-foreground); }
+.c-warning { background: var(--warning); color: var(--warning-foreground); }
+.c-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.p1 { background: var(--gold); color: var(--gold-fg); }
+.p2 { background: var(--silver); color: var(--silver-fg); }
+.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.fmt { display: inline-flex; gap: 2px; }
+.fmt span { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+.s-practice { background: var(--session-practice); color: var(--session-practice-fg); }
+.s-qualify { background: var(--session-qualify); color: var(--session-qualify-fg); }
+.s-race { background: var(--session-race); color: var(--session-race-fg); }
+.medal { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.medal.sm { width: 24px; height: 24px; font-size: 12px; box-shadow: 0 0 0 2px var(--card); }
+.medals { display: flex; }
+.medals .medal + .medal { margin-left: -4px; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 12px; font-weight: 500; font-size: 13px; white-space: nowrap; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.kebab { border: 0; background: none; width: 32px; height: 32px; border-radius: 6px; font-size: 18px; line-height: 1; color: inherit; }
+.switch { width: 36px; height: 20px; border-radius: 10px; background: var(--success); position: relative; flex-shrink: 0; border: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--card); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.card-h { padding: 14px 18px 10px; display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.card-h h3 { font-size: 15px; font-weight: 600; }
+.card-b { padding: 0 18px 16px; }
+.map { width: 64px; height: 40px; border-radius: 6px; background: var(--muted); display: grid; place-items: center; flex-shrink: 0; }
+.map svg { width: 50px; height: 30px; }
+.map path, .big-map path { fill: none; stroke: var(--foreground); stroke-width: 2.4; stroke-linejoin: round; opacity: .75; }
+.shot { border-radius: 8px; overflow: hidden; background: var(--muted); display: flex; flex-direction: column; }
+.shot .img { aspect-ratio: 16 / 9; display: grid; place-items: center; background: linear-gradient(180deg, color-mix(in oklch, var(--muted) 60%, var(--card)), var(--muted)); }
+.shot .img svg { width: 62%; }
+.shot .img path { fill: color-mix(in oklch, var(--foreground) 55%, transparent); }
+.shot .cap { font-size: 11.5px; padding: 5px 7px; background: var(--card); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 8px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+table { border-collapse: collapse; width: 100%; }
+td, th { text-align: left; padding: 6px 8px; font-weight: 400; }
+th { color: var(--muted-foreground); font-size: 12px; }
+tbody tr { border-top: 1px solid var(--border); }
+.you { background: color-mix(in oklch, var(--primary) 8%, transparent); }
+.cell-res { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 4px; border-radius: 5px; font-weight: 600; font-size: 12px; }
+.r { text-align: right; }
+details > summary { color: var(--primary); font-size: 13px; padding: 8px 0 0; list-style: none; }
+details[open] > summary { margin-bottom: 8px; }
+.teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.team { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; background: var(--card); }
+.team .th { display: flex; align-items: center; gap: 8px; }
+.team .th b { flex: 1; min-width: 0; font-size: 13.5px; }
+.team .drv { display: flex; justify-content: space-between; font-size: 13px; }
+.team .drv.me span:first-child { font-weight: 600; color: var(--primary); }
+.needs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted-foreground); }
+
+
+:root {
+  --single: oklch(0.925 0.06 212); --single-fg: oklch(0.36 0.11 215);
+  --custom: oklch(0.93 0.05 340); --custom-fg: oklch(0.38 0.12 340);
+  --mediterranean: oklch(0.93 0.035 108); --mediterranean-fg: oklch(0.41 0.055 110);
+  --arid: oklch(0.93 0.04 70); --arid-fg: oklch(0.42 0.06 65);
+  --oceanic: oklch(0.925 0.03 232); --oceanic-fg: oklch(0.4 0.05 235);
+  --steel: oklch(0.875 0.022 250); --steel-fg: oklch(0.36 0.035 255);
+  --input: oklch(0.885 0.01 255);
+}
+:root[data-theme="dark"] {
+  --single: oklch(0.32 0.07 212); --single-fg: oklch(0.86 0.1 212);
+  --custom: oklch(0.33 0.07 340); --custom-fg: oklch(0.86 0.1 340);
+  --mediterranean: oklch(0.32 0.03 108); --mediterranean-fg: oklch(0.86 0.055 110);
+  --arid: oklch(0.33 0.035 70); --arid-fg: oklch(0.86 0.06 75);
+  --oceanic: oklch(0.32 0.03 232); --oceanic-fg: oklch(0.85 0.045 235);
+  --steel: oklch(0.315 0.028 250); --steel-fg: oklch(0.82 0.035 255);
+  --input: oklch(1 0 0 / 15%);
+}
+.c-single { background: var(--single); color: var(--single-fg); }
+.c-custom { background: var(--custom); color: var(--custom-fg); }
+.c-mediterranean { background: var(--mediterranean); color: var(--mediterranean-fg); }
+.c-arid { background: var(--arid); color: var(--arid-fg); }
+.c-oceanic { background: var(--oceanic); color: var(--oceanic-fg); }
+.c-t4 { background: var(--bronze); color: var(--bronze-fg); }
+.c-t5 { background: var(--steel); color: var(--steel-fg); }
+.c-warning { background: var(--warning); color: var(--warning-foreground); }
+
+/* Form bits */
+.in { border: 1px solid var(--input); background: transparent; border-radius: 7px; height: 34px; padding: 0 10px; font: inherit; color: inherit; width: 100%; min-width: 0; display: flex; align-items: center; }
+.in.sm { height: 28px; padding: 0 8px; font-size: 13px; border-radius: 6px; }
+.in.sel { justify-content: space-between; }
+.in.sel::after { content: "⌄"; opacity: .5; margin-left: 6px; transform: translateY(-3px); }
+.in.num { justify-content: flex-end; font-variant-numeric: tabular-nums; }
+textarea.in { height: auto; padding: 8px 10px; resize: none; line-height: 1.45; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label { font-size: 13px; font-weight: 500; }
+.field .hint { font-size: 12px; color: var(--muted-foreground); }
+.fields { display: grid; gap: 14px 16px; }
+.seg { display: inline-flex; border: 1px solid var(--input); border-radius: 8px; padding: 2px; gap: 2px; flex-wrap: wrap; }
+:where(.seg) button { border: 0; background: none; border-radius: 6px; padding: 4px 10px; font-size: 12.5px; font-weight: 500; }
+.seg:not(.chips) button.on { background: var(--card); box-shadow: 0 0 0 1px var(--border), 0 1px 2px oklch(0 0 0 / .08); }
+.seg.chips button.on { box-shadow: none; }
+.sw { width: 34px; height: 19px; border-radius: 10px; background: var(--input); position: relative; flex-shrink: 0; border: 0; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .2); }
+.sw.on { background: var(--success); }
+.sw.on::after { left: auto; right: 2px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.toggle-row:first-child { border-top: 0; }
+.stepper { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; border: 1px solid var(--input); border-radius: 7px; height: 34px; overflow: hidden; }
+.stepper button { border: 0; background: none; height: 100%; color: var(--muted-foreground); }
+.stepper span { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+.stepper span.pos { color: var(--success); }
+.stepper span.neg { color: var(--destructive); }
+.ghost { border: 0; background: none; border-radius: 6px; padding: 5px 8px; color: var(--muted-foreground); font-size: 13px; }
+.ghost:hover { background: var(--accent); color: var(--foreground); }
+.add { border: 1px dashed var(--border); border-radius: 8px; background: transparent; color: var(--muted-foreground); padding: 7px 12px; font-size: 13px; font-weight: 500; text-align: left; }
+.add:hover { border-color: var(--primary); color: var(--primary); }
+.grip { color: var(--muted-foreground); opacity: .5; cursor: grab; width: 14px; flex-shrink: 0; font-size: 13px; letter-spacing: -2px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot.err { background: var(--destructive); }
+.dot.dirty { background: var(--warning); }
+.pencil { opacity: 0; color: var(--muted-foreground); font-size: 13px; }
+.editable:hover .pencil { opacity: 1; }
+.editable { cursor: pointer; }
+.editable:hover { background: color-mix(in oklch, var(--accent) 55%, transparent); }
+
+/* Editor header */
+.ed-head { position: sticky; top: 49px; z-index: 30; background: var(--background); padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ed-head h2 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+.ed-head .end { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.problems { border: 1px solid color-mix(in oklch, var(--destructive) 40%, var(--border)); background: color-mix(in oklch, var(--destructive) 6%, var(--card)); border-radius: 10px; padding: 9px 14px; display: flex; gap: 10px; align-items: center; margin-bottom: 16px; font-size: 13px; flex-wrap: wrap; }
+.problems b { color: var(--destructive); }
+.problems a { color: var(--primary); }
+
+
+/* ---------- Settings mockup ---------- */
+.ico { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; vertical-align: middle; }
+.ico.lg { width: 20px; height: 20px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.sm { padding: 4px 10px; font-size: 12.5px; }
+.sw { width: 34px; height: 19px; border-radius: 10px; background: var(--input); position: relative; flex-shrink: 0; border: 0; transition: background .15s; }
+.sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: white; transition: left .15s; box-shadow: 0 1px 2px oklch(0 0 0 / .25); }
+.sw[aria-checked="true"] { background: var(--success); }
+.sw[aria-checked="true"]::after { left: 17px; }
+.seg { display: inline-flex; border: 1px solid var(--input); border-radius: 8px; padding: 2px; gap: 2px; background: var(--card); }
+.seg button { border: 0; background: none; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: var(--muted-foreground); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.in { border: 1px solid var(--input); background: var(--card); border-radius: 7px; height: 34px; padding: 0 10px; font: inherit; color: inherit; width: 100%; }
+.sel { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--input); background: var(--card); border-radius: 7px; height: 34px; padding: 0 10px; font-size: 13.5px; min-width: 11rem; }
+
+/* Shell: settings header with tabs (A) */
+.s-head { padding: 26px 32px 0; display: flex; flex-direction: column; gap: 14px; }
+.s-title { font-size: 24px; font-weight: 600; }
+.s-tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); }
+.s-tabs a { display: inline-flex; align-items: center; gap: 7px; padding: 0 0 9px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; }
+.s-tabs a.on { border-color: var(--primary); color: var(--foreground); }
+.s-tabs a.on .ico { color: var(--primary); }
+.s-body { padding: 22px 32px 40px; }
+
+/* Shell: sidebar (B) */
+.b-shell { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); min-height: 900px; }
+.b-side { border-right: 1px solid var(--border); padding: 24px 12px; display: flex; flex-direction: column; gap: 2px; background: color-mix(in srgb, var(--card) 45%, var(--background)); }
+.b-side h2 { font-size: 20px; font-weight: 600; padding: 0 10px 12px; }
+.b-group { font-size: 11px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); padding: 14px 10px 6px; }
+.b-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.b-item:hover { background: var(--accent); }
+.b-item.on { background: color-mix(in srgb, var(--primary) 11%, transparent); }
+.b-item.on .b-name, .b-item.on .ico { color: var(--primary); }
+.b-name { font-size: 13.5px; font-weight: 550; }
+.b-sub { font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.b-item .ico { margin-top: 2px; color: var(--muted-foreground); }
+.b-main { padding: 26px 32px 40px; min-width: 0; }
+.b-page-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.b-page-h h3 { font-size: 20px; font-weight: 600; }
+
+/* Section layout inside a page */
+.page { display: flex; flex-direction: column; gap: 18px; max-width: 1100px; }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.sect-h { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px 4px; }
+.sect-ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+.sect-h h4 { font-size: 15px; font-weight: 600; }
+.sect-h p { font-size: 12.5px; color: var(--muted-foreground); max-width: 78ch; }
+.sect-b { padding: 14px 18px 18px; }
+.sect-f { padding: 10px 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); display: flex; gap: 8px; align-items: center; }
+/* Section icon wells: one hue per section so the long page has landmarks */
+.w-driver { background: color-mix(in srgb, var(--primary) 13%, var(--card)); color: var(--primary); }
+.w-ai { background: var(--works); color: var(--works-fg); }
+.w-weather { background: var(--single); color: var(--single-fg); }
+.w-app { background: var(--steel); color: var(--steel-fg); }
+.w-cm { background: var(--provenance-dlc); color: var(--provenance-dlc-fg); }
+
+/* Rail inside General (shell A) */
+.gen { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 28px; align-items: start; }
+.gen-rail { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.gen-rail a { padding: 6px 10px; border-radius: 6px; color: var(--muted-foreground); display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.gen-rail a.on { color: var(--foreground); background: var(--accent); font-weight: 550; }
+
+/* Driver */
+.driver { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 24px; align-items: center; }
+.tower { border-radius: 10px; overflow: hidden; background: oklch(0.2 0.02 265); color: oklch(0.95 0 0); font-size: 13px; font-variant-numeric: tabular-nums; max-width: 22rem; }
+.tower div { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; padding: 5px 10px; border-top: 1px solid oklch(1 0 0 / .07); }
+.tower .me { background: color-mix(in srgb, var(--primary) 55%, oklch(0.2 0.02 265)); font-weight: 600; }
+.tower .p { color: oklch(0.75 0.01 260); }
+
+/* Aids */
+.aids { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 10px; }
+.aid { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); }
+.aid-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13.5px; font-weight: 550; }
+.aid.flag { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.flag.on { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); background: color-mix(in srgb, var(--success) 6%, var(--card)); }
+.aid .hint { font-size: 11.5px; color: var(--muted-foreground); font-weight: 400; }
+.range { display: flex; align-items: center; gap: 10px; }
+.range input { flex: 1; accent-color: var(--primary); }
+.range .val { min-width: 3.2rem; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.subhead { font-size: 11.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); margin: 2px 0 8px; }
+
+/* AI */
+.ai { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; }
+.ai-f { display: flex; flex-direction: column; gap: 6px; }
+.ai-f .lab { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 550; }
+.ai-f .big { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.ai-f .scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.ai-f input { accent-color: var(--primary); width: 100%; }
+.ai-word { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
+
+/* Weather */
+.ws { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.wsc { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); cursor: pointer; text-align: left; }
+.wsc.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+.wsc .t { display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+.radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--input); display: grid; place-items: center; }
+.wsc.on .radio { border-color: var(--primary); }
+.wsc.on .radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.cap { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.cap span { display: flex; align-items: center; gap: 6px; }
+.cap .yes { color: var(--success); }
+.cap .no { color: var(--muted-foreground); }
+.note { font-size: 12px; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--warning) 16%, var(--card)); border: 1px solid color-mix(in srgb, var(--warning) 40%, var(--border)); display: flex; gap: 8px; align-items: flex-start; }
+.wgroups { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 10px; }
+.wg { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.wg-h { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.wg-h .c { font-size: 11.5px; font-weight: 500; color: var(--muted-foreground); }
+.wchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.wchip { font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px dashed var(--input); color: var(--muted-foreground); background: transparent; }
+.wchip.on { border: 1px solid transparent; }
+.dry .wchip.on { background: var(--arid); color: var(--arid-fg); }
+.vis .wchip.on { background: var(--steel); color: var(--steel-fg); }
+.wet .wchip.on { background: var(--oceanic); color: var(--oceanic-fg); }
+.storm .wchip.on { background: var(--qual, var(--session-qualify)); color: var(--session-qualify-fg); }
+.snow .wchip.on { background: var(--t1); color: var(--t1-fg); }
+.fx .wchip.on { background: var(--mediterranean); color: var(--mediterranean-fg); }
+
+/* Appearance */
+.themes { display: flex; gap: 10px; flex-wrap: wrap; }
+.th { border: 1px solid var(--border); border-radius: 10px; padding: 6px; width: 9.5rem; display: flex; flex-direction: column; gap: 6px; background: var(--card); cursor: pointer; }
+.th.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+.th .pv { height: 58px; border-radius: 6px; display: grid; grid-template-rows: 12px 1fr; overflow: hidden; border: 1px solid var(--border); }
+.th .pv i { display: block; }
+.th .lbl { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 550; padding: 0 4px 2px; }
+.pv-light { background: oklch(0.965 0.007 250); } .pv-light i:first-child { background: white; }
+.pv-dark { background: oklch(0.165 0.012 265); } .pv-dark i:first-child { background: oklch(0.225 0.015 265); }
+.pv-sys { background: linear-gradient(90deg, oklch(0.965 0.007 250) 50%, oklch(0.165 0.012 265) 50%); } .pv-sys i:first-child { background: linear-gradient(90deg, white 50%, oklch(0.225 0.015 265) 50%); }
+.pv i:last-child { margin: 6px; border-radius: 3px; background: oklch(0.48 0.2 262 / .7); width: 40%; height: 6px; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; }
+
+/* CM flags */
+.flags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.flagc { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+.flagc b { font-weight: 550; font-size: 13.5px; }
+.flagc span { font-size: 12px; color: var(--muted-foreground); grid-column: 1; }
+.flagc .sw { grid-row: 1 / 3; grid-column: 2; align-self: center; }
+.mono { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12.5px; }
+
+/* Diagnostics */
+.health { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--success) 40%, var(--border)); background: color-mix(in srgb, var(--success) 7%, var(--card)); }
+.health .big-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--success); color: var(--success-foreground); display: grid; place-items: center; }
+.health b { font-size: 15px; }
+.paths { display: flex; flex-direction: column; }
+.prow { display: grid; grid-template-columns: 28px 10rem minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--border); }
+.prow:first-child { border-top: 0; }
+.dotok { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--provenance-base); color: var(--provenance-base-fg); }
+.dotbad { background: var(--warning); color: var(--warning-foreground); }
+.prow .pname { font-weight: 550; font-size: 13.5px; }
+.prow .ppath { display: flex; flex-direction: column; min-width: 0; }
+.prow .ppath .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.origin { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; background: var(--muted); color: var(--muted-foreground); width: fit-content; margin-top: 2px; }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.stat .n { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat .l { font-size: 12px; color: var(--muted-foreground); display: flex; align-items: center; gap: 6px; }
+.stat.bad { border-color: color-mix(in srgb, var(--destructive) 45%, var(--border)); background: color-mix(in srgb, var(--destructive) 6%, var(--card)); cursor: pointer; }
+.stat.bad .n { color: var(--destructive); }
+.stat .sub { font-size: 11.5px; color: var(--muted-foreground); }
+.callout { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--muted); font-size: 13px; margin-top: 12px; }
+.callout .grow { flex: 1; }
+.link { color: var(--primary); font-weight: 550; cursor: pointer; }
+
+/* Content sources */
+.src-sum { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.srcs { display: flex; flex-direction: column; }
+.src { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 9rem 13rem 44px; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.src:first-child { border-top: 0; }
+.src > .chip, .src > .row { justify-self: start; }
+.src.off .sname { color: var(--muted-foreground); }
+.src .hides { font-size: 12px; color: var(--muted-foreground); }
+.src.off .hides { color: var(--warning-foreground); }
+.src .ext { font-size: 12.5px; color: var(--muted-foreground); display: inline-flex; gap: 5px; align-items: center; justify-self: end; }
+.src .ext:hover { color: var(--primary); }
+.c-dlc { background: var(--provenance-dlc); color: var(--provenance-dlc-fg); }
+.c-base { background: var(--provenance-base); color: var(--provenance-base-fg); }
+.grp-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.grp-h .grow { flex: 1; }
+.always { font-size: 12px; color: var(--muted-foreground); justify-self: end; }
+
+/* Shell-only pages */
+.ghost-page { border: 1px dashed var(--border); border-radius: 12px; padding: 28px; color: var(--muted-foreground); font-size: 13.5px; display: flex; flex-direction: column; gap: 10px; }
+.mini-shot { border-radius: 10px; border: 1px solid var(--border); background: var(--card); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.mini-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.mini-row:first-child { border-top: 0; }
+
+/* Appearance tiles */
+.look { display: flex; gap: 28px; flex-wrap: wrap; }
+.pv-lang { display: flex !important; flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; background: var(--background); text-align: left; }
+.pv-lang b { font-size: 13px; font-weight: 650; }
+.pv-lang span { font-size: 11px; color: var(--muted-foreground); }
+.code { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; padding: 1px 4px; border-radius: 4px; background: var(--muted); color: var(--muted-foreground); }
+
+/* Championship library */
+.window.wide { max-width: 1600px; }
+.lib { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); gap: 24px; align-items: start; }
+.rail { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: sticky; top: 16px; }
+.rail-h { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.rsw { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rsec { border-bottom: 1px solid var(--border); }
+.rsec-h { display: flex; justify-content: space-between; padding: 10px 14px 4px; font-size: 12.5px; font-weight: 600; }
+.rsec-b { padding: 2px 14px 10px; }
+.ropt { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+.ropt input { margin: 0; }
+.ropt .grow { flex: 1; }
+.caret { width: 10px; color: var(--muted-foreground); }
+.medal.sm { width: 18px; height: 18px; font-size: 10.5px; }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); } .c-t3 { background: var(--t3); color: var(--t3-fg); }
+.c-bronze { background: var(--bronze); color: var(--bronze-fg); } .c-steel { background: var(--steel); color: var(--steel-fg); }
+.c-adjusted { background: oklch(0.93 0.045 195); color: oklch(0.4 0.08 200); }
+.lib-main { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.tb { display: flex; gap: 8px; align-items: center; }
+.tb-search { flex: 1; gap: 8px; color: var(--muted-foreground); }
+.tb-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
+.active { display: flex; gap: 8px; align-items: center; }
+.achip { font-size: 12px; padding: 3px 8px; border-radius: 6px; background: var(--sportscar); color: var(--sportscar-fg); }
+.seasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 16px; }
+.season { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.season.off { opacity: .6; }
+.season-band { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px 8px 16px; font-size: 13px; font-weight: 550; }
+.season-band .medal { width: 26px; height: 26px; font-size: 12.5px; border: 1.5px solid var(--card); }
+.season-b { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.season-t { font-size: 15.5px; font-weight: 600; }
+.season-d { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.season-f { border-top: 1px solid var(--border); padding: 10px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ticks { display: flex; gap: 3px; }
+.ticks i { flex: 1; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--success) 70%, var(--card)); }
+.c-touring { background: oklch(0.925 0.05 175); color: oklch(0.38 0.08 178); }
+:root[data-theme="dark"] .c-touring { background: oklch(0.33 0.06 175); color: oklch(0.86 0.08 175); }
+:root[data-theme="dark"] .c-adjusted { background: oklch(0.33 0.06 195); color: oklch(0.86 0.08 195); }
+
+/* Setup */
+.setup { max-width: 860px; margin: 0 auto; padding: 36px 24px 48px; display: flex; flex-direction: column; gap: 18px; }
+.hero { display: flex; gap: 18px; align-items: center; }
+.logo { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), oklch(0.55 0.2 300)); color: white; display: grid; place-items: center; }
+.hero h1 { font-size: 26px; font-weight: 650; }
+.steps { display: flex; flex-direction: column; gap: 12px; }
+.step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+.step-n { padding: 16px 0 0 16px; }
+.num-dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 650; background: var(--muted); color: var(--muted-foreground); }
+.step.done .num-dot { background: var(--success); color: var(--success-foreground); }
+.step.cur .num-dot { background: var(--primary); color: var(--primary-foreground); }
+.step-b { padding: 16px 18px 16px 4px; display: flex; flex-direction: column; gap: 10px; }
+.step-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.step-h h4 { font-size: 15px; font-weight: 600; }
+.step.later { opacity: .55; }
+.finish { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); }
+.setup-top { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px 0; }
+.wizard { display: grid; grid-template-columns: 15rem minmax(0, 1fr); min-height: 640px; }
+.wz-side { background: linear-gradient(170deg, var(--primary), oklch(0.4 0.18 290)); color: white; padding: 28px 22px; display: flex; flex-direction: column; gap: 22px; }
+.wz-side .wz-step { display: flex; gap: 12px; align-items: flex-start; opacity: .65; }
+.wz-side .wz-step.on, .wz-side .wz-step.done { opacity: 1; }
+.wz-side .num-dot { background: oklch(1 0 0 / .18); color: white; }
+.wz-side .wz-step.on .num-dot { background: white; color: var(--primary); }
+.wz-side .wz-step.done .num-dot { background: oklch(0.75 0.15 155); color: oklch(0.2 0.05 155); }
+.wz-main { padding: 32px 36px; display: flex; flex-direction: column; gap: 18px; }
+.wz-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="rationale" id="why"></div>
+<div class="window" id="win"></div>
+
+<script>
+const I = {
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  wheel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7M10 12H3M14 12h7"/>',
+  bot: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 13v2M15 13v2"/>',
+  cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9z"/>',
+  rain: '<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2M16 14v6M8 14v6M12 16v6"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  pulse: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  pkg: '<path d="m7.5 4.3 9 5.2M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.5 2 2 2 3.8M18 2H6v7a6 6 0 0 0 12 0z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  alert: '<path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3zM12 9v4M12 17h.01"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M8 16H3v5"/>',
+  ext: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  car: '<path d="M19 17h2v-4l-2.5-5h-13L3 13v4h2M5 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0M9 17h6"/>',
+  road: '<path d="M4 21 8 3M20 21 16 3M12 4v2M12 10v3M12 17v3"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
+  laptop: '<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9M2 20h20"/>',
+  terminal: '<path d="m4 17 6-6-6-6M12 19h8"/>',
+  spark: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+  arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>',
+};
+const ic = (n, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24">${I[n]}</svg>`;
+
+const state = { shell: 'a', page: 'general', theme: 'light', setup: 'steps' };
+const PAGES = [
+  ['general', 'General', 'gear', 'Driver, aids, AI, weather, look'],
+  ['diagnostics', 'Diagnostics', 'pulse', 'Install paths and scanned content'],
+  ['sources', 'Content sources', 'pkg', 'Which packs and mods you race'],
+  ['classes', 'Classes', 'layers', 'Grids of cars that race together'],
+  ['championships', 'Championships', 'trophy', 'The championship library'],
+  ['content', 'Your content', 'car', 'Mods the catalogue leaves out'],
+];
+
+const WHY = {
+  a: `<b>A - tabs with icons.</b> The tab strip stays where it is, with an icon per tab. General keeps everything on one page but gains a sticky section index on the left, and each section has a coloured icon well so the long page has landmarks.`,
+  b: `<b>B - sidebar.</b> The tab strip becomes a left-hand settings nav with a one-line description under each entry, grouped into <i>You</i>, <i>Install</i> and <i>Library</i>. General is split into Driving, Weather and App, so no page scrolls far. The library pages (Classes, Championships, Your content) get the full width minus the sidebar.`,
+};
+
+const sw = (on) => `<button class="sw" role="switch" aria-checked="${on}" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true')"></button>`;
+const seg = (opts, on) => `<div class="seg">${opts.map((o) => `<button aria-pressed="${o === on}" onclick="[...this.parentNode.children].forEach(b=>b.setAttribute('aria-pressed', b===this))">${o}</button>`).join('')}</div>`;
+const sect = (id, icon, well, title, hint, body, foot = '') => `
+  <section class="sect" id="s-${id}">
+    <div class="sect-h"><div class="sect-ico ${well}">${ic(icon, 'lg')}</div><div><h4>${title}</h4><p>${hint}</p></div></div>
+    <div class="sect-b">${body}</div>
+    ${foot ? `<div class="sect-f">${foot}</div>` : ''}
+  </section>`;
+
+// ---------- General sections ----------
+const driverSect = () => sect('driver', 'user', 'w-driver', 'Driver',
+  'Who you are on the timing screen. Set once and used by every session you launch.',
+  `<div class="ai-f" style="max-width:22rem"><span class="lab">Your name</span><input class="in" value="Vasyl Obukh"><span class="small muted">Leave empty to race under whatever name Assetto Corsa picks.</span></div>`);
+
+const aidsSect = () => sect('aids', 'wheel', 'w-driver', 'Driving aids',
+  'The aids you drive with. A race or a championship may still ask for something stricter, and what it names wins.',
+  `<div class="subhead">Electronics</div>
+   <div class="aids">
+     <div class="aid"><div class="aid-top">ABS</div>${seg(['Off', 'Factory', 'On'], 'Factory')}</div>
+     <div class="aid"><div class="aid-top">Traction control</div>${seg(['Off', 'Factory', 'On'], 'Factory')}</div>
+     <div class="aid"><div class="aid-top">Stability control <span class="hint">0 is off</span></div><div class="range"><input type="range" min="0" max="100" value="0" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="val">0%</span></div></div>
+   </div>
+   <div class="subhead" style="margin-top:16px">Helpers</div>
+   <div class="aids">
+     ${[['Ideal line', false], ['Auto blip', true], ['Auto brake', false], ['Auto shifter', false], ['Auto clutch', true], ['Visual damage', true]]
+    .map(([n, on]) => `<div class="aid flag ${on ? 'on' : ''}"><span class="aid-top">${n}</span>${sw(on)}</div>`).join('')}
+   </div>`);
+
+const aiSect = () => sect('ai', 'bot', 'w-ai', 'AI opponents',
+  'Your difficulty. Every championship states its field as a step up or down from these, and each driver sits a little either side of their class.',
+  `<div class="ai">
+     <div class="ai-f"><span class="lab">AI strength <span class="big">88</span></span><input type="range" min="0" max="100" value="88"><span class="scale"><span>0</span><span>50</span><span>100</span></span></div>
+     <div class="ai-f"><span class="lab">AI aggression <span class="big">30</span></span><input type="range" min="0" max="100" value="30"><span class="scale"><span>0 - clean</span><span>50</span><span>100 - ruthless</span></span></div>
+   </div>`,
+  `${ic('alert')} A change reaches every weekend set up after it; a weekend part-way through keeps the field it started with.`);
+
+const WGROUPS = [
+  ['Skies', 'dry', ['Clear', 'Few clouds', 'Scattered clouds', 'Broken clouds', 'Overcast'], 5],
+  ['Haze and fog', 'vis', ['Haze', 'Mist', 'Fog', 'Smoke', 'Dust', 'Sand'], 3],
+  ['Rain', 'wet', ['Light drizzle', 'Drizzle', 'Heavy drizzle', 'Light rain', 'Rain', 'Heavy rain'], 5],
+  ['Storms', 'storm', ['Light thunderstorm', 'Thunderstorm', 'Heavy thunderstorm', 'Squalls', 'Hail', 'Tornado', 'Hurricane'], 2],
+  ['Snow and sleet', 'snow', ['Light snow', 'Snow', 'Heavy snow', 'Light sleet', 'Sleet', 'Heavy sleet'], 0],
+  ['Effects', 'fx', ['Cold', 'Hot', 'Windy'], 2],
+];
+const weatherSect = () => sect('weather', 'cloud', 'w-weather', 'Weather',
+  'Which mod renders the weather, and which weather championships may generate. A property of your install, chosen once.',
+  `<div class="subhead">Weather system</div>
+   <div class="ws">
+     ${[['Custom Shaders Patch only', false, false, false], ['PURE', true, true, true], ['Sol', false, true, true]].map(([n, on, dyn, exact]) => `
+       <button class="wsc ${on ? 'on' : ''}" onclick="[...this.parentNode.children].forEach(b=>b.classList.toggle('on', b===this))">
+         <span class="t">${n}<span class="radio"></span></span>
+         <span class="cap">
+           <span class="${'yes'}">${ic('check')} Rain and wet roads</span>
+           <span class="${dyn ? 'yes' : 'no'}">${ic(dyn ? 'check' : 'x')} Weather changes mid-session</span>
+           <span class="${exact ? 'yes' : 'no'}">${ic(exact ? 'check' : 'x')} Exact rain from the preset</span>
+         </span>
+       </button>`).join('')}
+   </div>
+   <div class="note" style="margin-top:10px">${ic('alert')}<span>A session whose weather changes needs PURE Planner running. It saves the last plan it ran over its own, so a plan you had loaded there will be replaced.</span></div>
+   <div class="grp-h" style="margin-top:18px"><div class="subhead" style="margin:0">Weather in the sim</div><span class="small muted">17 of 33 allowed</span><span class="grow"></span><button class="btn sm">Reset to defaults</button></div>
+   <p class="small muted" style="margin-bottom:10px">Anything left out is swapped for the nearest allowed weather, so a wet round stays wet.</p>
+   <div class="wgroups">
+     ${WGROUPS.map(([g, cls, types, n]) => `<div class="wg ${cls}"><div class="wg-h">${g}<span class="c">${n} of ${types.length}</span></div><div class="wchips">${types.map((tp, i) => `<button class="wchip ${i < n ? 'on' : ''}" onclick="this.classList.toggle('on')">${tp}</button>`).join('')}</div></div>`).join('')}
+   </div>`);
+
+const appSect = () => sect('app', 'monitor', 'w-app', 'Appearance',
+  'How the app looks.',
+  `<div class="look">
+     <div class="look-g"><div class="subhead">Theme</div><div class="themes">
+       ${[['Light', 'sun', 'pv-light', true], ['Dark', 'moon', 'pv-dark', false], ['System', 'laptop', 'pv-sys', false]].map(([n, i, pv, on]) => `<button class="th ${on ? 'on' : ''}" onclick="[...this.parentNode.children].forEach(b=>b.classList.toggle('on', b===this))"><span class="pv ${pv}"><i></i><i></i></span><span class="lbl">${ic(i)} ${n}</span></button>`).join('')}
+     </div></div>
+     <div class="look-g"><div class="subhead">Language</div><div class="themes">
+       ${[['English', 'EN', 'Championships', 'Next round', true], ['Українська', 'UK', 'Чемпіонати', 'Наступний етап', false]].map(([n, code, a, b, on]) => `<button class="th ${on ? 'on' : ''}" onclick="[...this.parentNode.children].forEach(b=>b.classList.toggle('on', b===this))"><span class="pv pv-lang"><b>${a}</b><span>${b}</span></span><span class="lbl"><span class="code">${code}</span> ${n}</span></button>`).join('')}
+     </div></div>
+   </div>`);
+
+const cmSect = () => sect('cm', 'terminal', 'w-cm', 'Content Manager',
+  'Flags Content Manager reads when it starts, kept in its own Arguments.txt beside anything you put there by hand.',
+  `<div class="flags">
+     <div class="flagc"><b>Skip the results screen</b>${sw(true)}<span>Without Content Manager's own results screen you come back here sooner.</span></div>
+     <div class="flagc"><b>Hide the cancel button</b>${sw(false)}<span>Puts a cancelled race more than one misclick away.</span></div>
+   </div>`,
+  `${ic('refresh')} Content Manager reads these the next time it starts. <span class="grow"></span><span class="mono">%LOCALAPPDATA%\\AcTools Content Manager\\Arguments.txt</span>`);
+
+const general = () => {
+  const index = [['app', 'Appearance', 'monitor'], ['driver', 'Driver', 'user'], ['aids', 'Driving aids', 'wheel'], ['ai', 'AI opponents', 'bot'], ['weather', 'Weather', 'cloud'], ['cm', 'Content Manager', 'terminal']];
+  return `<div class="gen">
+    <nav class="gen-rail">${index.map(([id, n, i], k) => `<a class="${k === 0 ? 'on' : ''}" onclick="document.getElementById('s-${id}').scrollIntoView({behavior:'smooth'});[...this.parentNode.children].forEach(a=>a.classList.toggle('on', a===this))">${ic(i)} ${n}</a>`).join('')}</nav>
+    <div class="page">${appSect()}${driverSect()}${aidsSect()}${aiSect()}${weatherSect()}${cmSect()}</div>
+  </div>`;
+};
+
+// ---------- Diagnostics ----------
+const PATHS = [
+  ['Content Manager', 'D:\\SteamLibrary\\steamapps\\common\\assettocorsa\\Content Manager.exe', 'registry', true],
+  ['Assetto Corsa', 'D:\\SteamLibrary\\steamapps\\common\\assettocorsa', 'registry', true],
+  ['Documents', 'C:\\Users\\Gpuld\\Documents\\Assetto Corsa', 'set by you', true],
+];
+const pathsSect = (compact) => sect('paths', 'folder', 'w-app', 'Where things are',
+  'Where the app found Content Manager and Assetto Corsa. Correct anything it got wrong.',
+  `<div class="paths">${PATHS.map(([n, p, o, ok]) => `
+    <div class="prow"><span class="dotok ${ok ? '' : 'dotbad'}">${ic(ok ? 'check' : 'alert')}</span><span class="pname">${n}</span>
+      <span class="ppath"><span class="mono" title="${p}">${p}</span><span class="origin" ${o === 'set by you' ? 'style="background:var(--custom);color:var(--custom-fg)"' : ''}>${o}</span></span>
+      <span class="row"><button class="btn sm">${ic('folder')} Change</button>${o === 'set by you' ? `<button class="btn sm" title="Forget your folder and detect it again">${ic('refresh')} Use detected</button>` : ''}</span></div>`).join('')}</div>`,
+  compact ? '' : `<button class="btn sm">${ic('refresh')} Re-check</button><span>Checked a moment ago</span>`);
+
+const stats = () => `<div class="stats">
+  <div class="stat"><span class="l">${ic('car')} Cars</span><span class="n">622</span><span class="sub">418 in your library</span></div>
+  <div class="stat"><span class="l">${ic('road')} Track layouts</span><span class="n">323</span><span class="sub">231 in your library</span></div>
+  <div class="stat"><span class="l">${ic('cloud')} Weathers</span><span class="n">45</span><span class="sub">6 career presets</span></div>
+  <div class="stat"><span class="l">${ic('spark')} Controllers</span><span class="n">8</span><span class="sub">PURE, Sol, base</span></div>
+  <div class="stat bad"><span class="l">${ic('alert')} Broken</span><span class="n">4</span><span class="sub link">See what and why</span></div>
+</div>`;
+
+const contentSect = () => sect('scan', 'layers', 'w-weather', 'Installed content',
+  'Folder names are IDs, so mods count exactly like official content.',
+  `${stats()}
+   <div class="callout">${ic('pkg')}<span class="grow"><b>204 cars and 92 track layouts</b> are anonymous mods our catalogue does not know, so the libraries leave them out until you add them.</span><a class="link">Add your own ${ic('arrow')}</a></div>`,
+  `<button class="btn sm primary">${ic('refresh')} Rescan</button><span>Scanned 2 Oct 2026, 20:45 in 230 ms</span>`);
+
+const diagnostics = () => `<div class="page">
+  <div class="health"><span class="big-ico">${ic('check', 'lg')}</span><div><b>Ready to race</b><div class="small muted">Content Manager, Assetto Corsa and the Documents folder are all found, and the library was scanned today.</div></div></div>
+  ${pathsSect()}${contentSect()}</div>`;
+
+// ---------- Content sources ----------
+const PACKS = [['Dream Pack 1', 4, true], ['Dream Pack 2', 3, true], ['Dream Pack 3', 5, true], ['Red Pack', 6, true], ['Tripl3 Pack', 2, true], ['Porsche Pack 1', 3, true], ['Porsche Pack 2', 4, true], ['Porsche Pack 3', 3, false], ['Japanese Pack', 2, true], ['Ready To Race', 3, true], ['Ferrari 70th Anniversary', 2, true]];
+const MAKERS = [['Race Sim Studio', 'RSS', 32, true, 'store.racesimstudio.com'], ['Virtual Racing Cars', 'VRC', 20, true, 'www.virtual-racing-cars.com'], ['United Racing Design', 'URD', 3, true, 'shop.unitedracingdesign.com'], ['GUERILLA Mods', 'GUERILLA', 9, true, 'www.patreon.com'], ['Yezhrod', 'YEZHROD', 5, true, 'www.patreon.com']];
+const srcRow = (chip, name, hides, on, host, toggle = true) => `
+  <div class="src ${on ? '' : 'off'}">${chip}<span class="sname">${name}</span>
+    <span class="hides">${toggle ? (on ? `${hides} championships` : `${hides} hidden`) : 'Only adds rounds'}</span>
+    <a class="ext">${host} ${ic('ext')}</a>
+    ${toggle ? sw(on) : '<span></span>'}</div>`;
+const sources = () => `<div class="page">
+  <div class="src-sum"><span>Championships offered: <b>131 of 134</b>.</span><span class="muted">Switching a source off hides the championships that need it; your cars and tracks stay in the library either way.</span></div>
+  ${sect('base', 'flag', 'w-cm', 'Kunos', 'The base game and its DLC packs.',
+    `<div class="srcs">
+       <div class="src"><span class="chip c-base">Base</span><span class="sname">Assetto Corsa</span><span class="hides">Always offered</span><span></span><span></span></div>
+       ${PACKS.map(([n, h, on]) => srcRow('<span class="chip c-dlc">DLC</span>', n, h, on, 'store.steampowered.com')).join('')}
+     </div>`, `<button class="btn sm">Offer every pack</button><span>A championship that only races a spec stays offered while enough of its grid is left.</span>`)}
+  ${sect('mods', 'pkg', 'w-ai', 'Mod teams and redistributors', 'Third-party cars and tracks the catalogue recognises.',
+    `<div class="srcs">
+       ${MAKERS.map(([n, tag, h, on, host]) => srcRow(`<span class="chip c-mod">${tag}</span>`, n, h, on, host)).join('')}
+       ${srcRow('<span class="row"><span class="chip c-mod">Mod</span><span class="chip c-dist">LFM</span></span>', 'Low Fuel Motorsport', 2, true, 'lowfuelmotorsport.com')}
+     </div>`, `${ic('alert')} A source switched off hides the championships whose cars need it. Rounds at its circuits are only skipped - the season still runs without them.`)}
+  ${sect('filler', 'layers', 'w-app', 'Filler championships', 'Where a ladder rung is empty, the rung below repeats there with longer races, marked + and ++.',
+    `<div class="flags"><div class="flagc"><b>Offer filler championships</b>${sw(true)}<span>Switching this off hides 2 championships.</span></div></div>`)}
+</div>`;
+
+// ---------- Shell-only pages ----------
+const classes = () => `<div class="page"><div class="ghost-page">Classes keeps its current design (spec cards and the spec sheet from the car detail pass). Only the shell around it changes; it is shown here so the shell can be judged with a long list in it.</div>
+  <div class="mini-shot">${['Formula 1 · 36 specs', 'Super Formula · 2 specs', 'Formula 2 · 4 specs', 'GT3 · 5 specs', 'Touring · 9 specs'].map((r) => `<div class="mini-row">${ic('layers')} ${r}</div>`).join('')}</div></div>`;
+const SEASONS = [
+  ['ADAC GT Masters', 'Sportscar', 'c-sportscar', 3, true, "Germany's GT3 championship on LFM's GT3 cars: two 55-minute races a weekend at Zandvoort, the Nurburgring...", [['Base', 'c-base']], [['DLC', 'c-dlc'], ['Mod', 'c-mod'], ['LFM', 'c-dist']], 4, 'Shipped'],
+  ['American Le Mans Series 2001', 'Sportscar', 'c-sportscar', 2, false, "The American Le Mans Series of 2001 on RSS's and Guerilla's cars: the 333 SP in LMP900, the GTS class, and...", [['RSS', 'c-mod'], ['GUERILLA', 'c-mod']], [['Mod', 'c-mod']], 5, 'Shipped'],
+  ['Audi Sport TT Cup 2016', 'Touring', 'c-touring', 4, true, "The DTM's one-make support series on the Audi TT Cup: two thirty-minute races a meeting, four of the 2016...", [['DLC', 'c-dlc']], [['Mod', 'c-mod'], ['LFM', 'c-dist']], 4, 'Shipped'],
+  ['Blancpain Endurance Series 2013', 'Sportscar', 'c-sportscar', 3, true, 'GT3 endurance racing at its real length: three three-hour races, the Spa 24 Hours and the Nurburgring 1000 km, on...', [['Base', 'c-base']], [], 5, 'Adjusted'],
+  ['BMW M2 CS Racing Cup Italy', 'Touring', 'c-touring', 4, true, "BMW's Italian one-make series on Guerilla's M2 CS Racing: two races a weekend at Vallelunga, Imola, Mugello and...", [['GUERILLA', 'c-mod']], [], 5, 'Shipped'],
+  ['BOSS GP Open', 'Single-seater', 'c-single', 2, true, 'The Open class of the series for privately owned big single-seaters, run by the Lotus Exos 125 and its Stage 1 upgrade...', [['Base', 'c-base']], [['DLC', 'c-dlc'], ['Mod', 'c-mod']], 6, 'Shipped'],
+  ['My club GT4 season', 'Sportscar', 'c-sportscar', 5, true, 'A short GT4 season on the base-game circuits, written for a Sunday league.', [['Base', 'c-base']], [], 6, 'Yours'],
+  ['Formula RSS 4 Italia', 'Single-seater', 'c-single', 5, true, 'Italian F4 on the Formula RSS 4: three races a weekend across seven Italian rounds.', [['RSS', 'c-mod']], [], 7, 'Shipped'],
+  ['Porsche Carrera Cup 2019', 'Sportscar', 'c-sportscar', 3, true, "Porsche's national one-make championship on the 911 GT3 Cup: two races a weekend, sprint length.", [['DLC', 'c-dlc']], [], 8, 'Shipped'],
+];
+const TIER_C = { 1: 'c-t1', 2: 'c-t2', 3: 'c-t3', 4: 'c-bronze', 5: 'c-steel' };
+const seasonCard = ([name, disc, dc, tier, on, desc, needs, some, rounds, origin]) => `
+  <div class="season ${on ? '' : 'off'}">
+    <div class="season-band ${dc}"><span>${disc}</span><span class="row">${origin === 'Shipped' ? '' : `<span class="chip ${origin === 'Yours' ? 'c-custom' : 'c-adjusted'}">${origin}</span>`}<span class="medal ${TIER_C[tier]}">${tier}</span><span class="kb">&#8942;</span></span></div>
+    <div class="season-b">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><b class="season-t">${name}</b>${sw(on)}</div>
+      <p class="small muted season-d">${desc}</p>
+      <div class="needs">Needs ${needs.map(([n, c]) => `<span class="chip ${c}">${n}</span>`).join('')}${some.length ? ` Some rounds need ${some.map(([n, c]) => `<span class="chip ${c}">${n}</span>`).join('')}` : ''}</div>
+    </div>
+    <div class="season-f"><span class="row" style="justify-content:space-between"><span class="small muted">${rounds} rounds</span><span class="fmt"><span class="chip s-practice">P</span><span class="chip s-qualify">Q</span><span class="chip s-race">R</span></span></span>
+      <span class="ticks">${Array.from({ length: rounds }, () => '<i></i>').join('')}</span></div>
+  </div>`;
+const railSec = (title, body, open = true) => `<div class="rsec"><div class="rsec-h">${title}<span class="muted">${open ? '&#8964;' : '&#8250;'}</span></div>${open ? `<div class="rsec-b">${body}</div>` : ''}</div>`;
+const opt2 = (label, n, on = false, dot = '', caret = false) => `<label class="ropt">${caret ? '<span class="caret">&#8250;</span>' : '<span class="caret"></span>'}<input type="checkbox" ${on ? 'checked' : ''}>${dot ? `<span class="dot" style="background:${dot}"></span>` : ''}<span class="grow">${label}</span><span class="muted small num">${n}</span></label>`;
+const championships = () => `
+  <div class="lib">
+    <aside class="rail">
+      <div class="rail-h"><b>Filters</b><a class="link small">Clear all</a></div>
+      <div class="rsw"><span>Switched on only</span>${sw(false)}</div>
+      <div class="rsw"><span>Raceable with my content</span>${sw(false)}</div>
+      ${railSec('Discipline', opt2('Single-seater', 38, false, 'oklch(0.6 0.12 212)') + opt2('Sportscar', 47, true, 'oklch(0.6 0.12 112)') + opt2('Touring', 31, false, 'oklch(0.6 0.1 175)') + opt2('Road', 18, false, 'oklch(0.6 0.12 270)'))}
+      ${railSec('Tier', [['Platinum', 9, 'c-t1'], ['Gold', 21, 'c-t2'], ['Silver', 34, 'c-t3'], ['Bronze', 41, 'c-bronze'], ['Steel', 29, 'c-steel']].map(([n, c, cls], k) => `<label class="ropt"><span class="caret"></span><input type="checkbox"><span class="medal sm ${cls}">${k + 1}</span><span class="grow">${n}</span><span class="muted small num">${c}</span></label>`).join(''))}
+      ${railSec('Content', opt2('Base game', 58, false, 'oklch(0.6 0.12 155)', true) + opt2('DLC', 41, false, 'oklch(0.6 0.12 70)', true) + opt2('Mod', 77, false, 'oklch(0.55 0.13 295)', true) + '<div class="small muted" style="padding:4px 0 0 18px">Packs and mod teams open under each branch, as in the car browser.</div>')}
+      ${railSec('Origin', opt2("The app's own", 121) + opt2('Adjusted', 9) + opt2('Yours', 4))}
+      ${railSec('Availability', '', false)}
+    </aside>
+    <div class="lib-main">
+      <div class="tb">
+        <div class="in tb-search">${ic('spark')}<span class="muted">Search championships</span></div>
+        <span class="sel" style="min-width:9rem">Name</span><button class="btn sm" title="Direction">&#8645;</button>
+        <span class="tb-sep"></span>
+        <button class="btn">${ic('plus')} New</button><button class="btn">Import</button>
+      </div>
+      <div class="active"><span class="small muted">47 of 134</span><span class="achip">Sportscar <b>&#215;</b></span><a class="link small">Clear all</a></div>
+      <div class="seasons">${SEASONS.map(seasonCard).join('')}</div>
+    </div>
+  </div>`;
+
+const content = () => `<div class="page"><div class="ghost-page">Your content is the car and track browser with a switch on every card, already redesigned with the browsers. Only the shell changes.</div></div>`;
+
+// ---------- Shells ----------
+const PAGE_FN = { general, diagnostics, sources, classes, championships, content };
+const shellA = () => `
+  <div class="s-head"><div class="s-title">Settings</div>
+    <nav class="s-tabs">${PAGES.map(([id, n, i]) => `<a class="${state.page === id ? 'on' : ''}" onclick="go('${id}')">${ic(i)} ${n}</a>`).join('')}</nav></div>
+  <div class="s-body">${PAGE_FN[state.page]()}</div>`;
+
+// B splits General into three pages.
+const B_PAGES = [
+  ['You', [['driving', 'Driving', 'wheel', 'Name, aids and AI'], ['weather', 'Weather', 'cloud', 'System and allowed weather'], ['app', 'App', 'monitor', 'Look and Content Manager']]],
+  ['Install', [['diagnostics', 'Diagnostics', 'pulse', 'Paths and scanned content'], ['sources', 'Content sources', 'pkg', 'Packs and mods you race'], ['content', 'Your content', 'car', 'Mods the catalogue misses']]],
+  ['Library', [['classes', 'Classes', 'layers', 'Grids that race together'], ['championships', 'Championships', 'trophy', 'Every championship']]],
+];
+const B_FN = {
+  driving: () => `<div class="page">${driverSect()}${aidsSect()}${aiSect()}</div>`,
+  weather: () => `<div class="page">${weatherSect()}</div>`,
+  app: () => `<div class="page">${appSect()}${cmSect()}</div>`,
+  ...PAGE_FN,
+};
+const shellB = () => {
+  const page = B_FN[state.page] ? state.page : 'driving';
+  const meta = B_PAGES.flatMap(([, items]) => items).find(([id]) => id === page);
+  return `<div class="b-shell">
+    <aside class="b-side"><h2>Settings</h2>
+      ${B_PAGES.map(([g, items]) => `<div class="b-group">${g}</div>${items.map(([id, n, i, sub]) => `<a class="b-item ${page === id ? 'on' : ''}" onclick="go('${id}')">${ic(i)}<span><span class="b-name">${n}</span><br><span class="b-sub">${sub}</span></span></a>`).join('')}`).join('')}
+    </aside>
+    <main class="b-main"><div class="b-page-h"><div><h3>${meta[1]}</h3><p class="small muted">${meta[3]}</p></div></div>${B_FN[page]()}</main>
+  </div>`;
+};
+
+// ---------- Setup ----------
+const setupSteps = () => `<div class="setup">
+  <div class="hero"><div class="logo">${ic('flag', 'lg')}</div><div><h1>Welcome to Assetto Corsa Career</h1><p class="muted">Three quick checks and you are on the grid.</p></div><span style="flex:1"></span><span class="sel" style="min-width:7rem">English</span></div>
+  <div class="steps">
+    <div class="step done"><div class="step-n"><span class="num-dot">${ic('check')}</span></div><div class="step-b">
+      <div class="step-h"><h4>Find Assetto Corsa</h4><span class="chip c-success">All three found</span></div>
+      <div class="paths">${PATHS.map(([n, p, , ok]) => `<div class="prow" style="grid-template-columns:28px 9rem minmax(0,1fr) auto;padding:7px 0"><span class="dotok">${ic('check')}</span><span class="pname">${n}</span><span class="ppath"><span class="mono">${p}</span></span><button class="btn sm">${ic('folder')} Change</button></div>`).join('')}</div>
+    </div></div>
+    <div class="step cur"><div class="step-n"><span class="num-dot">2</span></div><div class="step-b">
+      <div class="step-h"><h4>Scan your content</h4><button class="btn sm primary">${ic('refresh')} Scan now</button></div>
+      <p class="small muted">Reads every car, track and weather you have installed, mods included. Takes a few seconds the first time.</p>
+      ${stats()}
+    </div></div>
+    <div class="step later"><div class="step-n"><span class="num-dot">3</span></div><div class="step-b">
+      <div class="step-h"><h4>Make it yours</h4><span class="small muted">Everything here can be changed later in Settings</span></div>
+      <div class="ai" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+        <div class="ai-f"><span class="lab">Your name</span><input class="in" placeholder="Player"></div>
+        <div class="ai-f"><span class="lab">AI strength <span class="big">88</span></span><input type="range" min="0" max="100" value="88"></div>
+      </div>
+      <div class="themes">${[['Light', 'sun', 'pv-light', true], ['Dark', 'moon', 'pv-dark', false], ['System', 'laptop', 'pv-sys', false]].map(([n, i, pv, on]) => `<button class="th ${on ? 'on' : ''}"><span class="pv ${pv}"><i></i><i></i></span><span class="lbl">${ic(i)} ${n}</span></button>`).join('')}</div>
+    </div></div>
+  </div>
+  <div class="finish"><span class="small muted">Scan your content to continue.</span><button class="btn primary" disabled style="opacity:.5">Start my career ${ic('arrow')}</button></div>
+</div>`;
+
+const setupWizard = () => `<div class="wizard">
+  <aside class="wz-side"><div class="logo" style="background:oklch(1 0 0 / .18)">${ic('flag', 'lg')}</div>
+    <div style="font-size:18px;font-weight:650">Assetto Corsa Career</div>
+    ${[['Find Assetto Corsa', 'Three folders', 'done'], ['Scan your content', 'Cars, tracks, weather', 'on'], ['Make it yours', 'Name, difficulty, look', '']].map(([n, s, c], k) => `<div class="wz-step ${c}"><span class="num-dot">${c === 'done' ? ic('check') : k + 1}</span><div><b>${n}</b><div class="small" style="opacity:.8">${s}</div></div></div>`).join('')}
+  </aside>
+  <main class="wz-main">
+    <div><div class="small muted">Step 2 of 3</div><h3 style="font-size:22px;font-weight:650">Scan your content</h3><p class="muted">Reads every car, track and weather you have installed, mods included. Folder names are IDs, so mods count exactly like official content.</p></div>
+    ${stats()}
+    <div class="callout">${ic('pkg')}<span class="grow"><b>204 cars and 92 layouts</b> are mods our catalogue does not know. You can add them to your library later from Settings.</span></div>
+    <div class="wz-foot"><button class="btn">Back</button><span class="row"><span class="small muted">Scanned in 230 ms</span><button class="btn primary">Continue ${ic('arrow')}</button></span></div>
+  </main>
+</div>`;
+
+// ---------- Chrome ----------
+const go = (p) => { state.page = p; render(); };
+const opt = (key, val, label) => `<button class="opt" aria-pressed="${state[key] === val}" onclick="state.${key}='${val}';render()">${label}</button>`;
+const render = () => {
+  document.documentElement.dataset.theme = state.theme;
+  const isSetup = state.page === 'setup';
+  document.getElementById('picker').innerHTML = `<strong>Settings + Setup</strong>
+    <button class="opt" aria-pressed="${!isSetup && state.shell === 'a'}" onclick="state.shell='a';if(state.page==='setup')state.page='general';render()">A - tabs</button><button class="opt" aria-pressed="${!isSetup && state.shell === 'b'}" onclick="state.shell='b';if(state.page==='setup')state.page='driving';render()">B - sidebar</button><span class="sep"></span>
+    ${opt('page', 'setup', 'First-run setup')}${isSetup ? opt('setup', 'steps', 'Setup: one page') + opt('setup', 'wizard', 'Setup: wizard') : ''}
+    <span class="spacer"></span>${opt('theme', 'light', 'Light')}${opt('theme', 'dark', 'Dark')}`;
+  document.getElementById('why').innerHTML = isSetup
+    ? (state.setup === 'steps'
+      ? '<b>Setup - one page.</b> The three things first run needs, as numbered steps on one page: each ticks green as it is done, and the button at the bottom says what is still missing. Step 3 is new: name, difficulty and theme, the settings people otherwise go looking for after their first race.'
+      : '<b>Setup - wizard.</b> The same three steps, one at a time, with a coloured rail showing where you are. More of a welcome, at the cost of a Back and Continue per step.')
+    : WHY[state.shell] + ' Pick a page from the tabs or sidebar inside the window.';
+  const nav = ['Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings'];
+  document.getElementById('win').className = 'window' + (!isSetup && state.page === 'championships' ? ' wide' : '');
+  document.getElementById('win').innerHTML = isSetup
+    ? (state.setup === 'steps' ? setupSteps() : setupWizard())
+    : `<div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav">${nav.map((n) => `<a class="${n === 'Settings' ? 'on' : ''}">${n}</a>`).join('')}</nav></div>${state.shell === 'a' ? shellA() : shellB()}`;
+  if (!isSetup && state.shell === 'a' && !PAGE_FN[state.page]) { state.page = 'general'; render(); }
+};
+window.go = go;
+render();
+</script>
+</body>
+</html>

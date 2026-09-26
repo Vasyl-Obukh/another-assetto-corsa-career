@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { ChampionshipLoad, ChampionshipState } from './types.ts';
 import type { DisplayableError } from '@/lib/ipc';
@@ -7,20 +7,15 @@ import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 export type { ChampionshipState } from './types.ts';
 
 /**
- * Loads one championship, and sets one of its rounds up to be raced.
- *
- * Entering a round is a command rather than a patch: main lowers the round into
- * a race definition and hands it to the race store, which validates it and
- * refuses while a launch is in flight. That refusal travels back here and is
- * rendered like any other, rather than being second-guessed before it is sent.
+ * Loads one championship, and keeps it current as the library and the install
+ * move.
  * @param id The championship's id, from the route
- * @returns The listing, what is stopping it loading, and the enter action
+ * @returns The listing, and what is stopping it loading
  */
 export const useChampionship = (id: string): ChampionshipState => {
   const [nonce, setNonce] = useState(0);
   const [load, setLoad] = useState<ChampionshipLoad>({ key: '', listing: null });
   const [error, setError] = useState<DisplayableError | null>(null);
-  const [busy, setBusy] = useState(false);
 
   const key = `${nonce}:${id}`;
 
@@ -44,33 +39,10 @@ export const useChampionship = (id: string): ChampionshipState => {
   useEffect(() => subscribe('content:changed', () => setNonce((prev) => prev + 1)), []);
   useEffect(() => subscribe('series:changed', () => setNonce((prev) => prev + 1)), []);
 
-  const enterRound = useCallback(
-    async (entry: string, round: string, car: string, skin?: string): Promise<boolean> => {
-      setBusy(true);
-      try {
-        await invoke('series:setupRound', {
-          series: id, entry, round, car: { model: car, skin },
-        });
-        setError(null);
-
-        return true;
-      } catch (thrown: unknown) {
-        setError(toDisplayableError(thrown));
-
-        return false;
-      } finally {
-        setBusy(false);
-      }
-    },
-    [id],
-  );
-
   return {
     listing: load.listing,
     loading: load.key !== key,
-    busy,
     error,
     dismissError: () => setError(null),
-    enterRound,
   };
 };

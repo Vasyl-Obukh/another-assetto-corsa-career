@@ -22,10 +22,10 @@ export const XX_PROGRAMME: Championship = {
   description: 'Invented: the track-only specials of Ferrari\'s XX Programme and McLaren\'s P1 GTR, raced '
     + 'against each other, by invitation.',
   teams: [
-    team('xx-maranello', 'Corse Clienti Privati', 'Italy', 'ITA', TeamBudget.WORKS),
-    team('xx-woking', 'Surrey Track Collection', 'Great Britain', 'GBR', TeamBudget.WORKS),
-    team('xx-dubai', 'Emirates Track Club', 'United Arab Emirates', 'UAE', TeamBudget.INDEPENDENT),
-    team('xx-geneva', 'Collection Genevoise', 'Switzerland', 'SUI', TeamBudget.INDEPENDENT),
+    team('xx-maranello', 'Corse Clienti Privati', 'ITA', TeamBudget.WORKS),
+    team('xx-woking', 'Surrey Track Collection', 'GBR', TeamBudget.WORKS),
+    team('xx-dubai', 'Emirates Track Club', 'ARE', TeamBudget.INDEPENDENT),
+    team('xx-geneva', 'Collection Genevoise', 'CHE', TeamBudget.INDEPENDENT),
   ],
   entries: [
     {
@@ -33,16 +33,16 @@ export const XX_PROGRAMME: Championship = {
       name: 'XX',
       ladder: { discipline: Discipline.ROAD, tier: 1 },
       seats: [
-        seat('mar-1', 'xx-maranello', 'Federico Castiglioni', 'Italy', 'ITA'),
-        seat('mar-2', 'xx-maranello', 'Alessandra Moretti-Venn', 'Italy', 'ITA'),
-        seat('mar-3', 'xx-maranello', 'Lorenzo Zampieri', 'Italy', 'ITA'),
-        seat('sur-1', 'xx-woking', 'Rupert Kingsbury', 'Great Britain', 'GBR'),
-        seat('sur-2', 'xx-woking', 'Nathaniel Ormerod', 'Great Britain', 'GBR'),
-        seat('sur-3', 'xx-woking', 'Imogen Tresilian', 'Great Britain', 'GBR'),
-        seat('emi-1', 'xx-dubai', 'Khalid Al Nuaimi', 'United Arab Emirates', 'UAE'),
-        seat('emi-2', 'xx-dubai', 'Saeed Al Marri', 'United Arab Emirates', 'UAE'),
-        seat('gen-1', 'xx-geneva', 'Laurent Favre-Bulle', 'Switzerland', 'SUI'),
-        seat('gen-2', 'xx-geneva', 'Céline Dufaux', 'Switzerland', 'SUI'),
+        seat('mar-1', 'xx-maranello', 'Federico Castiglioni', 'ITA'),
+        seat('mar-2', 'xx-maranello', 'Alessandra Moretti-Venn', 'ITA'),
+        seat('mar-3', 'xx-maranello', 'Lorenzo Zampieri', 'ITA'),
+        seat('sur-1', 'xx-woking', 'Rupert Kingsbury', 'GBR'),
+        seat('sur-2', 'xx-woking', 'Nathaniel Ormerod', 'GBR'),
+        seat('sur-3', 'xx-woking', 'Imogen Tresilian', 'GBR'),
+        seat('emi-1', 'xx-dubai', 'Khalid Al Nuaimi', 'ARE'),
+        seat('emi-2', 'xx-dubai', 'Saeed Al Marri', 'ARE'),
+        seat('gen-1', 'xx-geneva', 'Laurent Favre-Bulle', 'CHE'),
+        seat('gen-2', 'xx-geneva', 'Céline Dufaux', 'CHE'),
       ],
       eligibility: { kind: 'cars', cars: ['ferrari_599xxevo', 'ks_ferrari_fxx_k', 'ks_mclaren_p1_gtr'] },
       // Both newer cars are brought back to the 599XX Evo.

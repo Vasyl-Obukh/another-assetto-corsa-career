@@ -1,18 +1,19 @@
-import { CalendarDaysIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ROW_SCOPE } from './constants.ts';
-import { EditorConditionsDialog } from './EditorConditionsDialog.tsx';
 import { EditorSection } from './EditorSection.tsx';
-import { RoundEligibilityDialog } from './RoundEligibilityDialog.tsx';
-import { RoundForm } from './RoundForm.tsx';
+import { RoundDialog } from './RoundDialog.tsx';
+import { RoundHeading } from './RoundHeading.tsx';
 import { RoundRow } from './RoundRow.tsx';
-import { RowList } from './RowList.tsx';
-import { nextRound, withoutRound, withRound } from './utils.ts';
-import type { Championship, Round, SeriesAvailability, Weather, WeatherController, WeatherSystem } from '../../../../shared/types';
-import type { RowEditState } from '@/hooks';
-import { withSessionConditions } from '@/screens/race';
+import type { RoundTab } from './types.ts';
+import { nextRound, withoutRound } from './utils.ts';
+import type {
+  Championship, SeriesAvailability, Weather, WeatherController, WeatherSystem,
+} from '../../../../shared/types';
+import { Button } from '@/components/ui/button.tsx';
+import { useRowDrag } from '@/hooks';
+import { moveAt, moveTo } from '@/screens/race';
 
 interface CalendarCardProps {
   /**
@@ -37,10 +38,6 @@ interface CalendarCardProps {
    */
   system: WeatherSystem;
   /**
-   * Which row of the editor has its form open.
-   */
-  rows: RowEditState;
-  /**
    * Whether a weekend is under way, in which case nothing may change.
    */
   locked: boolean;
@@ -57,93 +54,111 @@ interface CalendarCardProps {
   onChange: (next: Championship) => void;
 }
 
+/**
+ * Which round of the calendar is open in its dialog, and on which tab - with
+ * the championship the dialog starts from when the round is being added.
+ */
+interface OpenRound {
+  /**
+   * The round's id.
+   */
+  round: string;
+  /**
+   * Which tab the dialog opens on.
+   */
+  tab: RoundTab;
+  /**
+   * The championship with the new round on the end, when it is being added.
+   */
+  adding: Championship | null;
+}
+
+/**
+ * The calendar as a table of rounds. A round opens in its dialog; dragging a
+ * row reorders the season.
+ */
 export const CalendarCard = ({
-  series, checked, weather, controllers, system, rows, locked, nameOf, onChange,
+  series, checked, weather, controllers, system, locked, nameOf, onChange,
 }: CalendarCardProps) => {
   const { t } = useTranslation();
-  // Kept out of useRowEdit: neither dialog is a row form, and a modal already
-  // makes the page behind it unreachable.
-  const [conditions, setConditions] = useState<string | null>(null);
-  const [cars, setCars] = useState<{ round: string; value: Championship } | null>(null);
-  const conditionsOf = series.rounds.find((one) => one.id === conditions);
+  const [open, setOpen] = useState<OpenRound | null>(null);
+  const { rounds } = series;
 
-  /**
-   * Puts the calendar back on the championship.
-   * @param next The rounds, in order
-   */
-  const apply = (next: readonly Round[]): void => onChange({ ...series, rounds: next });
+  const drag = useRowDrag({
+    count: rounds.length,
+    locked,
+    onMove: (from, to) => onChange({ ...series, rounds: moveTo([...rounds], from, to) }),
+  });
 
   return (
     <EditorSection
-      icon={<CalendarDaysIcon />}
       title={t('editor.calendar.title')}
-      summary={t('editor.calendar.count', { count: series.rounds.length })}
-      className="flex flex-col gap-3"
+      hint={t('editor.calendar.hintShort')}
+      summary={t('editor.calendar.count', { count: rounds.length })}
+      className="flex flex-col gap-2"
     >
-      <RowList
-        items={series.rounds}
-        scope={ROW_SCOPE.ROUNDS}
-        rows={rows}
-        locked={locked}
-        idOf={(round) => round.id}
-        empty={t('editor.calendar.empty')}
-        addLabel={t('editor.calendar.add')}
-        onReorder={apply}
-        renderRow={(round, controls) => (
-          <RoundRow
-            {...controls}
-            series={series}
-            round={round}
-            availability={checked?.rounds.find((one) => one.round === round.id)}
-            nameOf={nameOf}
-            onConditions={() => setConditions(round.id)}
-            onCars={() => setCars({ round: round.id, value: series })}
-            onRemove={() => onChange(withoutRound(series, round.id))}
-          />
-        )}
-        renderForm={(round) => (
-          <RoundForm
-            series={series}
-            round={round ?? nextRound(series)}
-            locked={locked}
-            onConfirm={(next) => {
-              onChange(round
-                ? withRound(series, round.id, next)
-                : { ...series, rounds: [...series.rounds, next] });
-              rows.close();
-            }}
-            onCancel={rows.close}
-          />
-        )}
-      />
+      {rounds.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('editor.calendar.empty')}</p>
+      ) : (
+        <div className="-mx-2 overflow-x-auto px-2">
+          <div className="min-w-[46rem]">
+            <RoundHeading />
+            <div className="flex flex-col">
+              {rounds.map((round, index) => (
+                <RoundRow
+                  key={round.id}
+                  series={series}
+                  round={round}
+                  index={index}
+                  count={rounds.length}
+                  availability={checked?.rounds.find((one) => one.round === round.id)}
+                  locked={locked}
+                  drag={drag}
+                  nameOf={nameOf}
+                  onEdit={() => setOpen({ round: round.id, tab: 'basics', adding: null })}
+                  onConditions={() => setOpen({ round: round.id, tab: 'conditions', adding: null })}
+                  onCars={() => setOpen({ round: round.id, tab: 'cars', adding: null })}
+                  onMove={(by) => onChange({ ...series, rounds: moveAt([...rounds], index, by) })}
+                  onRemove={() => onChange(withoutRound(series, round.id))}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {conditionsOf === undefined ? null : (
-        <EditorConditionsDialog
-          title={conditionsOf.name}
-          description={t('editor.calendar.conditionsHint')}
-          conditions={conditionsOf.conditions ?? {}}
+      <div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="border-dashed"
+          disabled={locked}
+          onClick={() => {
+            const round = nextRound(series);
+            setOpen({ round: round.id, tab: 'basics', adding: { ...series, rounds: [...rounds, round] } });
+          }}
+        >
+          <PlusIcon />
+          {t('editor.calendar.add')}
+        </Button>
+      </div>
+
+      {/* Mounted only while open, so its copy of the championship seeds afresh. */}
+      {open === null ? null : (
+        <RoundDialog
+          series={open.adding ?? series}
+          round={open.round}
+          adding={open.adding !== null}
+          tab={open.tab}
+          availability={checked?.rounds.find((one) => one.round === open.round)}
           weather={weather}
           controllers={controllers}
           system={system}
-          idPrefix={`round-${conditionsOf.id}`}
-          locked={locked}
-          onConfirm={(value) => {
-            onChange(withRound(series, conditionsOf.id, withSessionConditions(conditionsOf, value)));
-            setConditions(null);
-          }}
-          onCancel={() => setConditions(null)}
-        />
-      )}
-
-      {cars === null ? null : (
-        <RoundEligibilityDialog
-          series={cars.value}
-          round={cars.value.rounds.find((one) => one.id === cars.round) ?? series.rounds[0]}
           locked={locked}
           nameOf={nameOf}
-          onChange={(value) => setCars({ ...cars, value })}
-          onConfirm={() => { onChange(cars.value); setCars(null); }}
-          onCancel={() => setCars(null)}
+          onConfirm={(next) => { onChange(next); setOpen(null); }}
+          onCancel={() => setOpen(null)}
         />
       )}
     </EditorSection>

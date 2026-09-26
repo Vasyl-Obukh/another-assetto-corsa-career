@@ -72,7 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   drivingAids: {},
   opponents: { ...DEFAULT_OPPONENTS },
   addedContent: { cars: [], tracks: [] },
-  hiddenContentSources: { packs: [], makers: [] },
+  hiddenContentSources: { packs: [], makers: [], distributors: [] },
   seriesActive: {},
   showFillerSeries: true,
   paths: {},

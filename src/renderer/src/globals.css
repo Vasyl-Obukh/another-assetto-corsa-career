@@ -39,7 +39,8 @@
   --success-foreground: oklch(0.985 0.005 155);
   /* Amber sits between "fine" and "broken", which several states genuinely
      are: a championship whose file does not validate, a qualifying segment
-     nobody drove. Dark text on it, because an amber light enough to read as a
+     nobody drove, a weekend that clashes with another, a championship above
+     the player's level. Dark text on it, because an amber light enough to read as a
      warning cannot carry white. */
   --warning: oklch(0.79 0.15 80);
   --warning-foreground: oklch(0.28 0.06 70);
@@ -94,6 +95,13 @@
   --podium-bronze: oklch(0.89 0.07 52);
   --podium-bronze-foreground: oklch(0.41 0.09 48);
 
+  /* A finish that scored but missed the podium - the fourth to tenth of a
+     results grid. Success's own hue, since scoring is one, at chip strength.
+     Shares 155 with base-game provenance on purpose: no results table shows
+     where content came from, and the two never meet. */
+  --result-points: oklch(0.93 0.05 155);
+  --result-points-foreground: oklch(0.34 0.09 155);
+
   /* Which kind of racing a class entry is - the axis the career ladder is
      organised on. Four hues, `road` included: it is a rung of the ladder, not
      the bucket the other three leave over.
@@ -122,15 +130,40 @@
      They spend the last two gaps on the wheel. Works at 320 sits 10 off the
      qualifying chip (310), independent at 18 sits 9 off destructive (27), and
      privateer at 132 sits 18 clear of the race chip (150) and 20 of sportscar
-     (112). All three are survivable only because a team chip appears on the
-     teams card alone, where none of those neighbours do - destructive included,
-     which only fills a menu item. */
+     (112). A team chip appears on the editor's teams card and in a
+     championship's entry list. The first has none of those neighbours; the
+     second can put a round's destructive badge - a missing track - on the same
+     page as independent, and that pair is told apart by weight rather than
+     hue: destructive is a solid mid-lightness fill with light text, a budget
+     chip a pale tint with dark text. The race chip does share the entry list's
+     page, as the weekend strip, where privateer's 18 degrees hold. */
   --budget-works: oklch(0.91 0.075 320);
   --budget-works-foreground: oklch(0.38 0.15 320);
   --budget-independent: oklch(0.92 0.06 18);
   --budget-independent-foreground: oklch(0.42 0.13 22);
   --budget-privateer: oklch(0.93 0.055 132);
   --budget-privateer-foreground: oklch(0.4 0.09 135);
+
+  /* Which class of a race a car is in, as a race weekend of the player's own
+     and a multi-class result list them: a colour per slot - the first class,
+     the second - since a race's classes are whatever the player made, and the
+     slot is the only thing every race's classes share. Cycles past the fourth.
+
+     On hues no results screen spends. The podium metals (52, 88), the points
+     green (155), the three session chips (250, 310, 150) and primary (262) all
+     share a result page with these, and so does a round's discipline chip on
+     the round page above a multi-class classification - single-seater 212 and
+     sportscar 112 most often. So: 195 (modified origin, which no result shows),
+     18 (independent budget, likewise), 340 (custom origin) and 128, between
+     sportscar 112 and the points green 155 and 16 clear of the first. */
+  --race-class-1: oklch(0.92 0.055 195);
+  --race-class-1-foreground: oklch(0.38 0.09 200);
+  --race-class-2: oklch(0.92 0.06 18);
+  --race-class-2-foreground: oklch(0.42 0.13 22);
+  --race-class-3: oklch(0.92 0.06 340);
+  --race-class-3-foreground: oklch(0.4 0.13 340);
+  --race-class-4: oklch(0.93 0.06 128);
+  --race-class-4-foreground: oklch(0.4 0.1 130);
 
   /* How far up its discipline a class entry sits. Metals rather than hues,
      because a tier is an order with no fixed length and a ramp of named
@@ -178,6 +211,54 @@
   --climate-oceanic: oklch(0.925 0.03 232);
   --climate-oceanic-foreground: oklch(0.4 0.05 235);
 
+  /* A weather's colour, by the kind the weather picker files it under -
+     WEATHER_KINDS, read by the picker, the settings' allowed weather, a plan's
+     bar and a session's weather chip alike, so one weather wears one colour
+     everywhere. A hue per kind rather than per type, since thirty-three types
+     would be decoration; the icon names the weather itself. Sun gold, haze
+     slate and rain blue sit on the podium gold, the oceanic slate and the
+     practice blue, which no weather control shows beside them. */
+  --weather-dry: oklch(0.92 0.07 88);
+  --weather-dry-foreground: oklch(0.42 0.1 75);
+  --weather-cloudy: oklch(0.9 0.02 250);
+  --weather-cloudy-foreground: oklch(0.4 0.03 255);
+  --weather-wet: oklch(0.86 0.06 240);
+  --weather-wet-foreground: oklch(0.36 0.1 250);
+
+  /* The other three kinds. Storm violet sits on the qualifying hue and snow on
+     the platinum tier, told apart from them by chroma; the effects - cold, hot,
+     windy - borrow the Mediterranean olive, which no weather control shows
+     beside a climate. A storm chip on a qualifying session's block keeps the
+     block's own fill and takes only the storm's text colour, so the two
+     violets never sit fill on fill. */
+  --weather-storm: oklch(0.92 0.05 300);
+  --weather-storm-foreground: oklch(0.4 0.13 300);
+  --weather-snow: oklch(0.95 0.02 210);
+  --weather-snow-foreground: oklch(0.4 0.05 215);
+
+  /* The theme picker's previews: a light and a dark page drawn as what they
+     are, so they stay the same whichever theme is showing them. */
+  --preview-light-page: oklch(0.965 0.007 250);
+  --preview-light-card: oklch(1 0 0);
+  --preview-dark-page: oklch(0.165 0.012 265);
+  --preview-dark-card: oklch(0.26 0.015 265);
+  --preview-accent: oklch(0.55 0.19 262);
+
+  /* First-run setup's rail: the primary blue leaning into violet, the one
+     place the app greets rather than works. Both themes share it, since white
+     text over it reads either way. */
+  --welcome-from: oklch(0.5 0.2 262);
+  --welcome-to: oklch(0.4 0.18 290);
+  --welcome-foreground: oklch(0.98 0.005 260);
+
+  /* The time-of-day bar: the sky across a whole day, night to night through
+     dawn, day and dusk. A picture of the sky rather than a category, so these
+     are the one set here chosen for looking like what they are. */
+  --sky-night: oklch(0.28 0.06 265);
+  --sky-dawn: oklch(0.72 0.12 50);
+  --sky-day: oklch(0.88 0.08 228);
+  --sky-dusk: oklch(0.68 0.13 40);
+
   /* A round of a career's calendar the clock went past without it being raced.
      One token rather than a family of three, because the other two states
      already have a colour that means them: a raced round is `success`, and a
@@ -197,6 +278,31 @@
      a screen with this. */
   --event-missed: oklch(0.925 0.035 8);
   --event-missed-foreground: oklch(0.42 0.09 12);
+
+  /* What is laid over a photograph - the fade under a card's name, the
+     backing behind a livery count or a circuit's outline - and the text on it.
+     The same in both themes on purpose: it sits on a picture, not on the page,
+     and a photograph is no lighter in the light theme. A blue-black near the
+     page's own dark rather than pure black, and an off-white, so neither is a
+     pure value. */
+  --scrim: oklch(0.14 0.012 265);
+  --on-scrim: oklch(0.98 0.004 260);
+
+  /* A car's power and torque curves, drawn as two lines on one chart. Lines
+     rather than chips, so these are saturated mid-tones rather than a tinted
+     pair. Power takes the primary hue (262), since it is the figure the page
+     leads with; torque sits at 45, warm and well clear of it, and clear of the
+     destructive red at 27 by enough lightness that a curve never reads as an
+     error. Nothing else on the car page is drawn in either. */
+  --curve-power: oklch(0.52 0.19 262);
+  --curve-torque: oklch(0.6 0.15 45);
+
+  /* What a loading page is drawn in. The block is the accent neutral, the
+     shine a step lighter that sweeps across it; a deeper block stands for an
+     image, so a poster reads as a picture still to come rather than as text. */
+  --skeleton: oklch(0.925 0.018 255);
+  --skeleton-shine: oklch(0.965 0.01 255);
+  --skeleton-deep: oklch(0.885 0.02 255);
 }
 
 [data-theme="dark"] {
@@ -256,6 +362,9 @@
   --podium-bronze: oklch(0.33 0.06 50);
   --podium-bronze-foreground: oklch(0.85 0.09 55);
 
+  --result-points: oklch(0.32 0.06 155);
+  --result-points-foreground: oklch(0.86 0.11 155);
+
   --discipline-single-seater: oklch(0.32 0.07 212);
   --discipline-single-seater-foreground: oklch(0.86 0.1 212);
   --discipline-sportscar: oklch(0.32 0.07 112);
@@ -271,6 +380,15 @@
   --budget-independent-foreground: oklch(0.86 0.09 22);
   --budget-privateer: oklch(0.32 0.06 132);
   --budget-privateer-foreground: oklch(0.86 0.08 135);
+
+  --race-class-1: oklch(0.33 0.06 195);
+  --race-class-1-foreground: oklch(0.86 0.09 195);
+  --race-class-2: oklch(0.33 0.07 18);
+  --race-class-2-foreground: oklch(0.86 0.09 22);
+  --race-class-3: oklch(0.33 0.07 340);
+  --race-class-3-foreground: oklch(0.86 0.1 340);
+  --race-class-4: oklch(0.32 0.065 128);
+  --race-class-4-foreground: oklch(0.86 0.09 130);
 
   --tier-platinum: oklch(0.34 0.025 210);
   --tier-platinum-foreground: oklch(0.9 0.03 210);
@@ -292,8 +410,30 @@
   --climate-oceanic: oklch(0.32 0.03 232);
   --climate-oceanic-foreground: oklch(0.85 0.045 235);
 
+  --weather-dry: oklch(0.38 0.07 88);
+  --weather-dry-foreground: oklch(0.9 0.1 92);
+  --weather-cloudy: oklch(0.36 0.02 255);
+  --weather-cloudy-foreground: oklch(0.88 0.02 255);
+  --weather-wet: oklch(0.36 0.07 245);
+  --weather-wet-foreground: oklch(0.88 0.07 240);
+  --weather-storm: oklch(0.34 0.07 300);
+  --weather-storm-foreground: oklch(0.87 0.1 300);
+  --weather-snow: oklch(0.36 0.025 210);
+  --weather-snow-foreground: oklch(0.9 0.03 210);
+
+  --sky-night: oklch(0.22 0.05 265);
+  --sky-dawn: oklch(0.6 0.12 50);
+  --sky-day: oklch(0.7 0.08 228);
+  --sky-dusk: oklch(0.56 0.13 40);
+
   --event-missed: oklch(0.32 0.035 8);
   --event-missed-foreground: oklch(0.86 0.075 12);
+  --curve-power: oklch(0.7 0.16 262);
+  --curve-torque: oklch(0.76 0.13 50);
+
+  --skeleton: oklch(0.3 0.016 265);
+  --skeleton-shine: oklch(0.345 0.016 265);
+  --skeleton-deep: oklch(0.27 0.016 265);
 }
 
 @theme inline {
@@ -343,6 +483,12 @@
   --color-podium-silver-foreground: var(--podium-silver-foreground);
   --color-podium-bronze: var(--podium-bronze);
   --color-podium-bronze-foreground: var(--podium-bronze-foreground);
+  --color-result-points: var(--result-points);
+  --color-result-points-foreground: var(--result-points-foreground);
+  /* The player's own row of a results table: primary over the card, mixed
+     rather than layered so a cell pinned while the table scrolls sideways is
+     still opaque. */
+  --color-player-row: color-mix(in srgb, var(--primary) 8%, var(--card));
   --color-discipline-single-seater: var(--discipline-single-seater);
   --color-discipline-single-seater-foreground: var(--discipline-single-seater-foreground);
   --color-discipline-sportscar: var(--discipline-sportscar);
@@ -357,6 +503,14 @@
   --color-budget-independent-foreground: var(--budget-independent-foreground);
   --color-budget-privateer: var(--budget-privateer);
   --color-budget-privateer-foreground: var(--budget-privateer-foreground);
+  --color-race-class-1: var(--race-class-1);
+  --color-race-class-1-foreground: var(--race-class-1-foreground);
+  --color-race-class-2: var(--race-class-2);
+  --color-race-class-2-foreground: var(--race-class-2-foreground);
+  --color-race-class-3: var(--race-class-3);
+  --color-race-class-3-foreground: var(--race-class-3-foreground);
+  --color-race-class-4: var(--race-class-4);
+  --color-race-class-4-foreground: var(--race-class-4-foreground);
   --color-tier-platinum: var(--tier-platinum);
   --color-tier-platinum-foreground: var(--tier-platinum-foreground);
   --color-tier-gold: var(--tier-gold);
@@ -375,8 +529,34 @@
   --color-climate-temperate-foreground: var(--climate-temperate-foreground);
   --color-climate-oceanic: var(--climate-oceanic);
   --color-climate-oceanic-foreground: var(--climate-oceanic-foreground);
+  --color-weather-dry: var(--weather-dry);
+  --color-weather-dry-foreground: var(--weather-dry-foreground);
+  --color-weather-cloudy: var(--weather-cloudy);
+  --color-weather-cloudy-foreground: var(--weather-cloudy-foreground);
+  --color-weather-wet: var(--weather-wet);
+  --color-weather-wet-foreground: var(--weather-wet-foreground);
+  --color-weather-storm: var(--weather-storm);
+  --color-weather-storm-foreground: var(--weather-storm-foreground);
+  --color-weather-snow: var(--weather-snow);
+  --color-weather-snow-foreground: var(--weather-snow-foreground);
+  --color-preview-light-page: var(--preview-light-page);
+  --color-preview-light-card: var(--preview-light-card);
+  --color-preview-dark-page: var(--preview-dark-page);
+  --color-preview-dark-card: var(--preview-dark-card);
+  --color-preview-accent: var(--preview-accent);
+  --color-welcome-from: var(--welcome-from);
+  --color-welcome-to: var(--welcome-to);
+  --color-welcome-foreground: var(--welcome-foreground);
+  --color-sky-night: var(--sky-night);
+  --color-sky-dawn: var(--sky-dawn);
+  --color-sky-day: var(--sky-day);
+  --color-sky-dusk: var(--sky-dusk);
   --color-event-missed: var(--event-missed);
   --color-event-missed-foreground: var(--event-missed-foreground);
+  --color-scrim: var(--scrim);
+  --color-on-scrim: var(--on-scrim);
+  --color-curve-power: var(--curve-power);
+  --color-curve-torque: var(--curve-torque);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -395,6 +575,14 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /* Every scroller in the app, the page's own included: a thin thumb and no
+     track, so a scrollbar marks that something scrolls without outweighing
+     what it scrolls. On every element, since the width is not inherited. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-muted-foreground) 45%, transparent) transparent;
   }
 
   html,
@@ -449,4 +637,52 @@ summary,
 
 [draggable="true"]:not(:disabled):active {
   cursor: grabbing;
+}
+
+/*
+ * What anything clicked as a whole wears under the pointer - a car, a track, a
+ * layout, a livery, a championship, a round, a race weekend, a tile picked in a
+ * picker or in settings: a primary line around it. One utility so its weight is
+ * decided in one place. A picked one keeps the line for good by setting
+ * --outline-rest, rather than a colour class that would race this one for the
+ * same property. Fields, chips, the dashed add tiles and rows that light their
+ * background are not cards and keep their own hover.
+ */
+@utility hover-outline {
+  outline: 2px solid var(--outline-rest, transparent);
+  transition: outline-color 150ms ease;
+
+  &:hover {
+    outline-color: var(--color-primary);
+  }
+}
+
+/*
+ * A loading placeholder. One band of light crosses the whole window, and every
+ * block shows its own slice of it - the gradient is sized to the viewport and
+ * fixed to it - so a page full of them shimmers as one rather than as a field of
+ * blinking boxes. Blocks fade in after a moment, so a page that loads at once
+ * never flashes them at all.
+ */
+@utility shimmer {
+  background-color: var(--shimmer-fill, var(--skeleton));
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%;
+  background-attachment: fixed;
+  border-radius: calc(var(--radius) - 4px);
+  animation: shimmer-sweep 1.8s linear infinite, shimmer-in 0.2s ease-out 150ms both;
+
+  @media (prefers-reduced-motion: reduce) {
+    background-image: none;
+    animation: shimmer-in 0.2s ease-out 150ms both;
+  }
+}
+
+@keyframes shimmer-sweep {
+  from { background-position: 100vw 0; }
+  to { background-position: -100vw 0; }
+}
+
+@keyframes shimmer-in {
+  from { opacity: 0; }
 }

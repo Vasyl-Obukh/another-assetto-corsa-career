@@ -1,5 +1,5 @@
 import {
-  CalendarDaysIcon, CarIcon, FlagIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
+  CalendarDaysIcon, CarIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ import type { NavId } from '@/lib/routes';
  * destination without an icon does not compile.
  */
 const NAV_ICONS: Record<NavId, ReactNode> = {
+  home: <HouseIcon />,
   race: <FlagIcon />,
   calendar: <CalendarDaysIcon />,
   championships: <MedalIcon />,

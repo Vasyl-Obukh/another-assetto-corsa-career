@@ -33,10 +33,6 @@ export interface ChampionshipState {
    */
   loading: boolean;
   /**
-   * Whether a round is being set up right now.
-   */
-  busy: boolean;
-  /**
    * Why something failed, or null.
    */
   error: DisplayableError | null;
@@ -44,13 +40,4 @@ export interface ChampionshipState {
    * Clears the error.
    */
   dismissError(): void;
-  /**
-   * Sets one round up as the race being prepared.
-   * @param entry Which class entry to race in
-   * @param round Which round to race
-   * @param car The car the player is driving
-   * @param skin The livery it races in, or undefined when the car ships none
-   * @returns True when the race screen now holds this round
-   */
-  enterRound(entry: string, round: string, car: string, skin?: string): Promise<boolean>;
 }

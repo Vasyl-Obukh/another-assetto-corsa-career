@@ -4,18 +4,12 @@
 export const CACHE_FILE = 'content-cache.json';
 
 /**
- * The shape of the cached scan.
- *
- * Bump this whenever Car, Track, Weather, WeatherController or the fingerprint
- * encoding changes - and whenever a scan starts finding content it used to miss,
- * since an unchanged folder keeps its fingerprint and would otherwise be served
- * from the cache exactly as it was read before. That is the whole migration
- * story: an older file is thrown away and the library is scanned again, which is
- * cheap and can never feed a stale shape into anything downstream.
- *
- * Which is why this one keeps climbing where the series format does not - the
- * cache is derived data nobody authored, so discarding it costs a rescan rather
- * than someone's work.
+ * The shape of the cached scan. Stays 1 until the app is released, like every
+ * other format here: when Car, Track, Weather, WeatherController or the
+ * fingerprint encoding changes, or a scan starts finding content it used to
+ * miss, the answer is to delete content-cache.json so the library is scanned
+ * again - an unchanged folder keeps its fingerprint and would otherwise be
+ * served from the cache exactly as it was read before.
  */
 export const CONTENT_CACHE_VERSION = 1;
 

@@ -98,9 +98,11 @@ const printDetail = (
   const forecasts = seriesForecast(series, offer);
 
   const { requires } = availability;
-  const needed: string[] = [...requires.packs, ...requires.makers];
-  if (requires.sources.includes(ContentSource.MOD) && !requires.makers.length) needed.push('uncredited mods');
-  const widened = [...requires.widenedBy.packs, ...requires.widenedBy.makers];
+  const needed: string[] = [...requires.packs, ...requires.makers, ...requires.distributors];
+  if (requires.sources.includes(ContentSource.MOD) && !requires.makers.length && !requires.distributors.length) {
+    needed.push('uncredited mods');
+  }
+  const widened = [...requires.widenedBy.packs, ...requires.widenedBy.makers, ...requires.widenedBy.distributors];
   console.log(`  Needs     ${needed.length ? needed.join(', ') : 'base only'}`);
   if (widened.length) console.log(`  Widened   ${widened.join(', ')}`);
   const rounds = [...requires.rounds.packs, ...requires.rounds.makers, ...requires.rounds.distributors];

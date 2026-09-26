@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Results and standings mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.95 0.035 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --destructive: oklch(0.58 0.22 27);
+  --warning-soft: oklch(0.965 0.035 85); --warning-soft-fg: oklch(0.4 0.1 70);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --tier: oklch(0.875 0.022 250); --tier-fg: oklch(0.36 0.035 255);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.27 0.045 158); --success-soft-fg: oklch(0.86 0.11 155);
+  --destructive: oklch(0.66 0.2 25);
+  --warning-soft: oklch(0.27 0.045 78); --warning-soft-fg: oklch(0.88 0.11 85);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --tier: oklch(0.3 0.02 250); --tier-fg: oklch(0.84 0.03 250);
+  --map-filter: invert(1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 1280px; margin: 14px auto 0; padding: 0 24px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+
+/* Shared pieces, outlined on request so the reuse is visible. */
+.show-pieces [data-piece] { position: relative; outline: 2px dashed oklch(0.62 0.2 340); outline-offset: 3px; }
+.show-pieces [data-piece]::before { content: attr(data-piece); position: absolute; z-index: 30; top: -12px; right: 8px; background: oklch(0.62 0.2 340); color: white; font: 600 11px/1 "Segoe UI", sans-serif; padding: 3px 6px; border-radius: 4px; }
+
+/* ---------- App frame ---------- */
+.frame { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; }
+.app-nav { display: flex; gap: 18px; align-items: center; height: 44px; font-size: 13px; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
+.app-nav .brand { color: var(--foreground); font-weight: 600; margin-right: 8px; }
+.app-nav .on { color: var(--primary); font-weight: 600; background: color-mix(in oklch, var(--primary) 10%, transparent); padding: 4px 8px; border-radius: 6px; }
+.hdr { display: flex; align-items: center; gap: 12px; min-height: 48px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-tier { background: var(--tier); color: var(--tier-fg); }
+.c-you { background: var(--primary); color: var(--primary-foreground); font-size: 10.5px; padding: 3px 5px; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .1); }
+.swatch { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex: none; background: var(--muted); }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+
+/* The result cell - one place in one race. Shared by the matrix, a form
+   guide, the round table and a weekend list, so a P3 looks the same everywhere. */
+.rc { position: relative; display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 5px; border-radius: 6px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rc.p1 { background: var(--gold); color: var(--gold-fg); }
+.rc.p2 { background: var(--silver); color: var(--silver-fg); }
+.rc.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.rc.pts { background: var(--success-soft); color: var(--success-soft-fg); }
+.rc.out { color: var(--foreground); font-weight: 500; }
+.rc.none { color: var(--muted-foreground); font-weight: 400; }
+.rc .pole, .rc .fl { position: absolute; top: 2px; width: 5px; height: 5px; border-radius: 50%; }
+.rc .pole { left: 2px; background: var(--s-qualify-fg); }
+.rc .fl { right: 2px; background: var(--primary); }
+.rc.lg { min-width: 40px; height: 30px; font-size: 15px; }
+.mv { display: inline-flex; align-items: center; gap: 1px; font-size: 11px; font-weight: 600; min-width: 26px; font-variant-numeric: tabular-nums; }
+.mv.up { color: var(--success); }
+.mv.down { color: var(--destructive); }
+.mv.same { color: var(--muted-foreground); font-weight: 400; }
+
+/* Bonus points: qualifying in its session's violet, the fastest lap in primary, the same as their dots. */
+sup.bq, sup.bf { font-size: 9.5px; font-weight: 700; line-height: 1; margin-left: 1px; }
+sup.bq, .bq-t { color: var(--s-qualify-fg); }
+sup.bf, .bf-t { color: var(--primary); }
+.bq-t, .bf-t { font-weight: 600; }
+.rc.rcw { display: inline-flex; align-items: center; justify-content: center; gap: 0; }
+.rc.rcw sup { align-self: flex-start; margin-top: 2px; }
+.legend sup { margin-right: 2px; }
+
+/* ---------- Championship tabs ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.tabs .tabn { font-size: 12px; font-weight: 400; color: var(--muted-foreground); }
+
+/* ---------- Standings table ---------- */
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t tbody tr:last-child td { border-bottom: 0; }
+.t .r { text-align: right; }
+.t tr.me td { background: color-mix(in srgb, var(--primary) 9%, var(--card)); font-weight: 600; }
+.t tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+.t tr.gapr td { padding: 2px 8px; color: var(--muted-foreground); text-align: center; font-size: 12px; }
+.drv { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.drv .nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.drv .nm small { font-size: 11.5px; color: var(--muted-foreground); font-weight: 400; }
+.pts-big { font-weight: 650; font-size: 13.5px; }
+.form { display: inline-flex; gap: 3px; }
+.form .rc { min-width: 24px; height: 20px; font-size: 11px; padding: 0 3px; }
+
+/* ---------- Standings matrix ---------- */
+.mx-wrap { overflow-x: auto; border-top: 1px solid var(--border); }
+table.mx { border-collapse: separate; border-spacing: 0; font-size: 12.5px; min-width: 100%; }
+.mx th, .mx td { padding: 3px 3px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--card); }
+.mx thead th { font-weight: 500; font-size: 11.5px; color: var(--muted-foreground); text-align: center; }
+.mx thead tr.rounds th { border-bottom: 0; padding-top: 8px; }
+.mx thead tr.rounds th.rd { border-left: 1px solid var(--border); cursor: pointer; }
+.mx .rdh { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; color: var(--foreground); font-weight: 600; font-size: 12px; }
+.mx .rdh img { width: 16px; height: 11px; border-radius: 2px; object-fit: cover; }
+.mx .rdh span { font-weight: 400; color: var(--muted-foreground); font-size: 11px; }
+.mx td.cell { text-align: center; width: 38px; }
+.mx td.first, .mx th.first { border-left: 1px solid var(--border); }
+.mx .stick { position: sticky; left: 0; z-index: 2; text-align: left; padding-left: 12px; }
+.mx .stick2 { position: sticky; left: 46px; z-index: 2; text-align: left; box-shadow: 1px 0 0 var(--border); padding-right: 12px; }
+.mx .tot { position: sticky; right: 0; z-index: 2; text-align: right; padding: 3px 14px 3px 12px; box-shadow: -1px 0 0 var(--border); font-weight: 650; font-size: 13.5px; }
+.mx tr.me td { background: color-mix(in srgb, var(--primary) 9%, var(--card)); }
+.mx tr.me td.stick { box-shadow: inset 3px 0 0 var(--primary); }
+.mx tr.me .drv { font-weight: 600; }
+.mx .future { background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.mx tbody tr:last-child td { border-bottom: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); }
+.legend .it { display: inline-flex; align-items: center; gap: 6px; }
+.legend .rc { min-width: 22px; height: 18px; font-size: 10.5px; }
+.legend .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.st-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; }
+.st-head h2 { margin: 0; font-size: 15px; font-weight: 600; margin-right: auto; display: flex; align-items: baseline; gap: 8px; }
+.st-head h2 small { font-size: 12.5px; font-weight: 400; color: var(--muted-foreground); }
+
+/* ---------- Championship page ---------- */
+.cp { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+.cp aside { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 64px; }
+.cp main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.sum { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.sum .bar { height: 5px; border-radius: 99px; background: linear-gradient(90deg, oklch(0.4 0.09 215), oklch(0.55 0.1 200)); }
+.sum h2 { margin: 0; font-size: 19px; font-weight: 650; }
+.kv { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.kv span:first-child { color: var(--muted-foreground); }
+.you-season { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 14px 4px; }
+.you-season > div { display: flex; flex-direction: column; }
+.you-season .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.you-season b { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
+.you-season b small { font-size: 11.5px; font-weight: 500; color: var(--muted-foreground); }
+.more { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 8px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--primary); font-weight: 500; }
+
+table.rt { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rt th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 10px 10px; border-bottom: 1px solid var(--border); }
+.rt td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.rt tr:last-child td { border-bottom: 0; }
+.rt tr.nx td { background: color-mix(in srgb, var(--primary) 6%, var(--card)); }
+.rt .map { width: 64px; height: 40px; border-radius: 8px; background: var(--muted); display: grid; place-items: center; }
+.rt .map img { max-width: 52px; max-height: 30px; filter: var(--map-filter, none); opacity: .75; }
+.rt .nm { display: flex; flex-direction: column; } .rt .nm small { color: var(--muted-foreground); font-size: 12px; }
+.wkchips { display: inline-flex; gap: 3px; } .wkchips .chip { padding: 3px 5px; font-size: 10.5px; }
+.res3 { display: inline-flex; gap: 4px; align-items: center; }
+.res3 .rc { min-width: 28px; height: 22px; font-size: 11.5px; }
+.res3 .p { margin-left: 6px; font-weight: 600; color: var(--success-soft-fg); font-size: 12.5px; }
+.winner { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 16px; color: var(--muted-foreground); font-size: 13px; text-align: center; }
+
+/* ---------- Round page ---------- */
+.ev-head { display: flex; align-items: flex-end; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.ev-head .t { display: flex; flex-direction: column; gap: 6px; }
+.ev-head .t .over { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted-foreground); }
+.ev-head h1 { margin: 0; font-size: 26px; font-weight: 650; }
+.ev-head .evmeta { display: flex; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
+.ev-head .ol { margin-left: auto; width: 160px; height: 84px; border-radius: 10px; background: var(--muted); display: grid; place-items: center; }
+.ev-head .ol img { max-width: 130px; max-height: 64px; filter: var(--map-filter, none); }
+.ev { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+.wl h4 { margin: 0; padding: 12px 14px 6px; font-size: 11px; font-weight: 600; letter-spacing: .05em; color: var(--muted-foreground); }
+.wl a { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--border); }
+.wl a.cur { background: color-mix(in srgb, var(--primary) 9%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.wl .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); flex: none; display: grid; place-items: center; }
+.wl .dot.done { background: var(--success); border-color: var(--success); color: white; }
+.wl .dot.done svg { width: 10px; height: 10px; stroke-width: 3; }
+.wl .tx { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; flex: 1; }
+.wl .tx small { color: var(--muted-foreground); font-size: 12px; font-weight: 400; }
+.wl .sumrow { font-weight: 600; }
+.wl .ic { width: 16px; display: grid; place-items: center; }
+.wl .rpts { font-size: 12px; font-weight: 600; color: var(--success-soft-fg); }
+
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.strip > div { padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.strip > div:not(:first-child) { border-left: 1px solid var(--border); }
+.strip .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.strip b { font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
+.strip b small { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.green { color: var(--success-soft-fg); }
+
+.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 14px 14px; }
+.pod { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.pod img.car { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; background: var(--scrim); }
+.pod > .rc { position: absolute; left: 8px; top: 8px; }
+.pod .tx { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 1px; }
+.pod .tx b { font-size: 13.5px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.pod .tx span { font-size: 12px; color: var(--muted-foreground); display: flex; justify-content: space-between; gap: 8px; }
+.racewin { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 14px 14px; }
+.racewin > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.racewin .h { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.racewin .h .you-at { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--muted-foreground); }
+.racewin .ln { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.racewin .ln .rc { min-width: 24px; height: 20px; font-size: 11px; }
+
+.cls .gap { color: var(--muted-foreground); }
+.cls .fast { color: var(--primary); font-weight: 650; display: inline-flex; align-items: center; gap: 4px; }
+.cls .lapped { color: var(--warning-soft-fg); }
+.foot { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.foot .ok { color: var(--success); }
+
+/* ---------- Results list ---------- */
+.title { display: flex; flex-direction: column; gap: 2px; padding: 22px 0 10px; }
+.title h1 { margin: 0; font-size: 24px; font-weight: 650; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 6px 0 12px; }
+.search { display: flex; align-items: center; gap: 8px; width: 300px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); font-size: 13px; }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; }
+
+/* ---------- Results list: weekends ---------- */
+.weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; align-items: start; }
+.wk { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.wk .ph { position: relative; height: 120px; background: var(--scrim); }
+.wk .ph img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.wk .ph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .88), transparent 70%); }
+.wk .ph img.ol { position: absolute; right: 12px; top: 12px; height: 62px; width: 90px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.wk .ph .cap { position: absolute; left: 14px; right: 14px; bottom: 10px; z-index: 1; color: var(--on-scrim); display: flex; flex-direction: column; gap: 2px; }
+.wk .ph .cap b { font-size: 17px; font-weight: 650; }
+.wk .ph .cap span { font-size: 12.5px; opacity: .85; }
+.wk .ph .date { position: absolute; left: 14px; top: 12px; z-index: 1; font-size: 12px; color: var(--on-scrim); background: oklch(0.14 0.012 265 / .55); padding: 3px 8px; border-radius: 99px; }
+.wk .car { display: flex; align-items: center; gap: 8px; padding: 10px 14px 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.sess { display: flex; flex-direction: column; padding: 2px 8px 8px; }
+.sess a { display: grid; grid-template-columns: 104px minmax(0, 1fr) auto 40px; align-items: center; gap: 12px; padding: 6px 6px; border-radius: 8px; }
+.sess a > .chip { justify-self: start; }
+.sess a > .rc { justify-self: end; }
+.sess a:hover { background: var(--muted); }
+.sess a + a { border-top: 1px solid var(--border); }
+.sess .best { font-size: 13px; }
+.rc.sm { min-width: 34px; height: 22px; font-size: 11.5px; }
+.wkfoot { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12.5px; margin-top: auto; }
+.wkfoot:hover { background: var(--muted); }
+.wkfoot .go { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; color: var(--primary); font-weight: 500; }
+
+/* ---------- Result page ---------- */
+.hero { position: relative; border-radius: 14px; overflow: hidden; background: var(--scrim); height: 190px; }
+.hero img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .9), oklch(0.14 0.012 265 / .25) 70%); }
+.hero .cap { position: absolute; left: 22px; bottom: 18px; z-index: 1; color: var(--on-scrim); display: flex; flex-direction: column; gap: 8px; }
+.hero .over { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.hero .over a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: oklch(1 0 0 / .35); }
+.hero h1 { margin: 0; font-size: 28px; font-weight: 650; }
+.hero .line { font-size: 13px; opacity: .85; }
+.hero img.ol { position: absolute; right: 26px; top: 20px; bottom: 20px; width: 200px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; opacity: .9; }
+.rp { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; margin-top: 14px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="grp"><strong>Page</strong>
+    <button class="opt" data-k="page" data-v="champ">Championship</button>
+    <button class="opt" data-k="page" data-v="round">Round</button>
+    <button class="opt" data-k="page" data-v="list">Results list</button>
+    <button class="opt" data-k="page" data-v="result">Result</button>
+  </div>
+  <div class="grp" data-for="champ"><strong>Standings</strong>
+    <button class="opt" data-k="view" data-v="table">Table</button>
+    <button class="opt" data-k="view" data-v="matrix">By round</button>
+    <button class="opt" data-k="who" data-v="drivers">Drivers</button>
+    <button class="opt" data-k="who" data-v="teams">Teams</button>
+  </div>
+  <div class="grp" data-for="champ"><strong>Layout</strong>
+    <button class="opt" data-k="layout" data-v="section">Section</button>
+    <button class="opt" data-k="layout" data-v="tabs">Tabs</button>
+  </div>
+  <div class="grp" data-for="round"><strong>Showing</strong>
+    <button class="opt" data-k="rview" data-v="summary">Round results</button>
+    <button class="opt" data-k="rview" data-v="race">Race 1</button>
+  </div>
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-k="th" data-v="light">Light</button>
+    <button class="opt" data-k="th" data-v="dark">Dark</button>
+  </div>
+  <div class="grp"><button class="opt" data-k="pieces" data-v="on">Outline shared pieces</button></div>
+</div>
+<div class="why" id="why"></div>
+<div class="frame" id="app"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const FLAG = (c) => `${AC}gui/NationFlags/${c}.png`;
+const I = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+  up: '<svg class="i" viewBox="0 0 24 24" style="width:11px;height:11px"><path d="m6 15 6-6 6 6"/></svg>',
+  dn: '<svg class="i" viewBox="0 0 24 24" style="width:11px;height:11px"><path d="m6 9 6 6 6-6"/></svg>',
+  timer: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="12" cy="14" r="7"/><path d="M12 10v4M10 3h4"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  trophy: '<svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+};
+
+// ---------- The season ----------
+const PLAYER = 'Eterry';
+const TEAMS = [
+  ['adria', 'Adria Junior Team', [['Gioele Bortolussi', 'ITA'], ['Mattia Zamperlin', 'ITA'], ['Kevin Piovesana', 'ITA']]],
+  ['romagna', 'Romagna Corse', [['Samuele Fabbrucci', 'ITA'], ['Denis Montanari', 'ITA'], ['Christian Ricciotti', 'ITA']]],
+  ['tuscia', 'Tuscia Racing', [['Francesco Pallottelli', 'ITA'], ['Brando Cardarelli', 'ITA'], ['Giacomo Anselmetti', 'ITA']]],
+  ['stelvio', 'Stelvio Motorsport', [['Nicola Tschurtschenthaler', 'ITA'], ['Jonas Pircher', 'ITA'], ['Luca Gufler', 'ITA']]],
+  ['levante', 'Levante Racing', [[PLAYER, 'GBR'], ['Pablo Estellés', 'ESP'], ['Marc Ferrús', 'ESP']]],
+  ['helvetia', 'Helvetia Junior', [['Nico Bachofner', 'CHE'], ['Levin Zürcher', 'CHE'], ['Yanis Chappuis', 'CHE']]],
+  ['falcons', 'Gulf Falcons', [['Rashid Al Mansoori', 'ARE'], ['Hamdan Al Suwaidi', 'ARE'], ['Omar Al Falasi', 'ARE']]],
+  ['vistula', 'Vistula Racing', [['Szymon Wroblewicz', 'POL'], ['Kacper Dziedzic', 'POL'], ['Igor Stachurski', 'POL']]],
+];
+const F4 = ['01_project_one_yellow_17', '02_project_one_orange_18', '03_NGA_red_4', '04_NGA_green_5', '05_NGA_blue_6', '06_veldfield_purple_20', '07_veldfield_cyan_21', '08_carbon'];
+const SEATS = TEAMS.flatMap(([team, teamName, ds], t) => ds.map(([name, nat], i) => ({
+  id: `${team}-${i}`, name, nat, team, teamName, me: name === PLAYER, skin: `${AC}cars/rss_formula_rss_4_2024/skins/${F4[(t + i * 3) % 8]}`,
+})));
+const ROUNDS = [
+  { name: 'Imola', code: 'IMO', nat: 'ITA', date: '4 Jan 2026', laps: 14, img: `${AC}tracks/imola/ui/preview.png`, ol: `${AC}tracks/imola/ui/outline.png` },
+  { name: 'Vallelunga', code: 'VAL', nat: 'ITA', date: '15 Mar 2026', laps: 16, img: `${AC}tracks/ks_vallelunga/ui/extended_circuit/preview.png`, ol: `${AC}tracks/ks_vallelunga/ui/extended_circuit/outline.png` },
+  { name: 'Mugello', code: 'MUG', nat: 'ITA', date: '24 May 2026', laps: 13, img: `${AC}tracks/mugello/ui/preview.png`, ol: `${AC}tracks/mugello/ui/outline.png` },
+  { name: 'Red Bull Ring', code: 'RBR', nat: 'AUT', date: '26 Jul 2026', laps: 16, img: '', ol: `${AC}tracks/ks_red_bull_ring/ui/layout_gp/outline.png` },
+  { name: 'Monza', code: 'MNZ', nat: 'ITA', date: '4 Oct 2026', laps: 12, img: `${AC}tracks/monza/ui/preview.png`, ol: `${AC}tracks/monza/ui/outline.png` },
+];
+const RACED = 3; // rounds raced so far
+const RACES = ['R1', 'R2', 'R3'];
+const POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+// The championship's bonuses: qualifying pays its top three, the fastest lap pays one if it finishes in the top ten.
+const QUALI_POINTS = [3, 2, 1];
+const FL_POINTS = 1;
+const FL_TOP = 10;
+
+let seed = 42;
+const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+const skill = new Map(SEATS.map((s) => [s.id, s.me ? 0.83 : rnd()]));
+// results[round][race] is that race's finishing order.
+const results = ROUNDS.slice(0, RACED).map(() => RACES.map((_, ri) => {
+  const order = SEATS.map((s) => ({ s, k: skill.get(s.id) + rnd() * 0.55 })).sort((a, b) => b.k - a.k);
+  const grid = SEATS.map((s) => ({ s, k: skill.get(s.id) + rnd() * 0.5 })).sort((a, b) => b.k - a.k).map((x) => x.s.id);
+  const fl = order[Math.floor(rnd() * 5)].s.id;
+  return order.map((x, i) => {
+    const g = grid.indexOf(x.s.id) + 1;
+    // Race 2 runs a reversed grid, so only races 1 and 3 pay for qualifying.
+    const qp = ri !== 1 ? QUALI_POINTS[g - 1] ?? 0 : 0;
+    const flp = fl === x.s.id && i < FL_TOP ? FL_POINTS : 0;
+    return { seat: x.s.id, pos: i + 1, grid: g, pole: ri !== 1 && g === 1, fl: fl === x.s.id, qp, flp };
+  });
+}));
+const placeOf = (rd, ri, seat) => results[rd][ri].find((p) => p.seat === seat);
+const pointsFor = (pos) => POINTS[pos - 1] ?? 0;
+const scoreOf = (p) => pointsFor(p.pos) + p.qp + p.flp;
+// The bonuses a race paid on top of the finish, as superscripts in their own colours.
+const bonus = (p) => `${p.qp ? `<sup class="bq">+${p.qp}</sup>` : ''}${p.flp ? `<sup class="bf">+${p.flp}</sup>` : ''}`;
+// Finish points with the bonuses beside them - the way every points figure in the mockup reads.
+const scored = (p) => `${pointsFor(p.pos) || (p.qp || p.flp ? '0' : '<span class="muted">-</span>')}${bonus(p)}`;
+
+const standingsAfter = (n) => {
+  const rows = SEATS.map((s) => {
+    let pts = 0; let wins = 0; let pods = 0; let best = 99; let qp = 0; let flp = 0;
+    for (let r = 0; r < n; r += 1) for (let ri = 0; ri < 3; ri += 1) {
+      const p = placeOf(r, ri, s.id); pts += scoreOf(p); qp += p.qp; flp += p.flp;
+      if (p.pos === 1) wins += 1; if (p.pos <= 3) pods += 1; best = Math.min(best, p.pos);
+    }
+    return { ...s, pts, wins, pods, best, qp, flp };
+  });
+  rows.sort((a, b) => b.pts - a.pts || b.wins - a.wins || a.best - b.best);
+  rows.forEach((r, i) => { r.pos = i + 1; });
+  return rows;
+};
+const withMoves = (n) => {
+  const now = standingsAfter(n);
+  const before = standingsAfter(n - 1);
+  now.forEach((r) => { r.move = before.find((b) => b.id === r.id).pos - r.pos; });
+  return now;
+};
+const NOW = withMoves(RACED);
+const ME = NOW.find((r) => r.me);
+const teamStandings = (n) => {
+  const rows = TEAMS.map(([id, name]) => {
+    const seats = SEATS.filter((s) => s.team === id);
+    const per = []; let wins = 0;
+    for (let r = 0; r < ROUNDS.length; r += 1) for (let ri = 0; ri < 3; ri += 1) {
+      if (r >= n) { per.push(null); continue; }
+      per.push(seats.reduce((sum, s) => sum + scoreOf(placeOf(r, ri, s.id)), 0));
+      wins += seats.filter((s) => placeOf(r, ri, s.id).pos === 1).length;
+    }
+    return { id, name, nat: seats[0].nat, me: seats.some((s) => s.me), per, pts: per.reduce((a, b) => a + (b ?? 0), 0), wins };
+  });
+  rows.sort((a, b) => b.pts - a.pts);
+  rows.forEach((r, i) => { r.pos = i + 1; });
+  return rows;
+};
+
+// ---------- Atoms ----------
+const rcClass = (pos) => (pos <= 3 ? `p${pos}` : pos <= 10 ? 'pts' : 'out');
+const rc = (pos, extra = '', marks = {}) => `<span class="rc ${rcClass(pos)} ${extra}">${marks.pole ? '<i class="pole"></i>' : ''}${pos}${marks.fl ? '<i class="fl"></i>' : ''}</span>`;
+const rcP = (pos, extra = '') => `<span class="rc ${rcClass(pos)} ${extra}">P${pos}</span>`;
+const mv = (m) => (m > 0 ? `<span class="mv up">${I.up}${m}</span>` : m < 0 ? `<span class="mv down">${I.dn}${-m}</span>` : '<span class="mv same">-</span>');
+const you = '<span class="chip c-you">You</span>';
+const drv = (s, sub = true) => `<span class="drv"><img class="flag" src="${FLAG(s.nat)}"><span class="nm"><span>${s.name} ${s.me ? you : ''}</span>${sub ? `<small>${s.teamName}</small>` : ''}</span></span>`;
+const KIND = { practice: ['Practice', 'c-practice'], qualify: ['Qualifying', 'c-qualify'], race: ['Race', 'c-race'] };
+const kchip = (k, label) => `<span class="chip ${KIND[k][1]}">${label ?? KIND[k][0]}</span>`;
+
+const state = { page: 'champ', view: 'matrix', who: 'drivers', cells: 'pts', layout: 'section', tab: 'standings', rview: 'summary', th: 'light', pieces: 'off' };
+
+// ---------- Shared pieces ----------
+// StandingsTable - full, or compact for a sidebar: the top five, then you and either side of you.
+const standingsTable = (rows, { compact = false } = {}) => {
+  const lead = rows[0].pts;
+  let shown = rows;
+  if (compact) {
+    const me = rows.findIndex((r) => r.me);
+    const keep = new Set([0, 1, 2, 3, 4, me - 1, me, me + 1]);
+    shown = rows.filter((_, i) => keep.has(i));
+  }
+  const body = [];
+  shown.forEach((r, i) => {
+    if (i > 0 && r.pos - shown[i - 1].pos > 1) body.push('<tr class="gapr"><td colspan="9">···</td></tr>');
+    const form = [];
+    for (let rd = 0; rd < RACED; rd += 1) for (let ri = 0; ri < 3; ri += 1) form.push(placeOf(rd, ri, r.id));
+    body.push(`<tr class="${r.me ? 'me' : ''}">
+      <td style="width:40px">${rc(r.pos)}</td>
+      <td style="width:30px">${mv(r.move)}</td>
+      <td>${drv(r, !compact)}</td>
+      ${compact ? '' : `<td><span class="form">${form.slice(-5).map((p) => rc(p.pos, '', p)).join('')}</span></td>
+      <td class="r num">${r.wins || '<span class="muted">-</span>'}</td><td class="r num">${r.pods || '<span class="muted">-</span>'}</td>
+      <td class="r num">${r.qp ? `<span class="bq-t">+${r.qp}</span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num">${r.flp ? `<span class="bf-t">+${r.flp}</span>` : '<span class="muted">-</span>'}</td>
+      <td class="r num muted">${r.pos === 1 ? '' : `-${lead - r.pts}`}</td>`}
+      <td class="r num pts-big">${r.pts}</td></tr>`);
+  });
+  return `<table class="t" data-piece="StandingsTable${compact ? ' compact' : ''}">
+    ${compact ? '' : '<thead><tr><th>Pos</th><th></th><th>Driver</th><th>Last 5 races</th><th class="r">Wins</th><th class="r">Podiums</th><th class="r">Qualifying</th><th class="r">Fastest lap</th><th class="r">Gap</th><th class="r">Points</th></tr></thead>'}
+    <tbody>${body.join('')}</tbody></table>`;
+};
+
+const teamTable = (rows) => `<table class="t" data-piece="StandingsTable">
+  <thead><tr><th>Pos</th><th>Team</th><th class="r">Wins</th><th class="r">Gap</th><th class="r">Points</th></tr></thead>
+  <tbody>${rows.map((r) => `<tr class="${r.me ? 'me' : ''}"><td style="width:40px">${rc(r.pos)}</td>
+    <td><span class="drv"><img class="flag" src="${FLAG(r.nat)}"><span>${r.name} ${r.me ? '<span class="chip c-you">Yours</span>' : ''}</span></span></td>
+    <td class="r num">${r.wins || '<span class="muted">-</span>'}</td><td class="r num muted">${r.pos === 1 ? '' : `-${rows[0].pts - r.pts}`}</td>
+    <td class="r num pts-big">${r.pts}</td></tr>`).join('')}</tbody></table>`;
+
+// StandingsMatrix - rows down, rounds across with a column per race, the total pinned last.
+const matrix = (rows, { rounds = ROUNDS.map((_, i) => i), teams = false, total = 'Points' } = {}) => {
+  const head1 = rounds.map((r) => `<th class="rd" colspan="3" title="Open ${ROUNDS[r].name}"><span class="rdh"><img src="${FLAG(ROUNDS[r].nat)}">${ROUNDS[r].code}<span>Rd ${r + 1}</span></span></th>`).join('');
+  const head2 = rounds.map(() => RACES.map((x, i) => `<th class="${i === 0 ? 'first' : ''}">${x}</th>`).join('')).join('');
+  const body = rows.map((r) => {
+    const cells = rounds.map((rd) => RACES.map((_, ri) => {
+      const first = ri === 0 ? 'first' : '';
+      if (rd >= RACED) return `<td class="cell ${first} future"></td>`;
+      if (teams) {
+        const v = r.per[rd * 3 + ri];
+        return `<td class="cell ${first} num">${v || '<span class="muted">·</span>'}</td>`;
+      }
+      const p = placeOf(rd, ri, r.id);
+      if (state.cells === 'pts') {
+        const finish = pointsFor(p.pos);
+        return `<td class="cell ${first}"><span class="rc rcw ${scoreOf(p) ? rcClass(p.pos) : 'none'}">${finish || (p.qp || p.flp ? '0' : '·')}${bonus(p)}</span></td>`;
+      }
+      return `<td class="cell ${first}"><span class="rc ${rcClass(p.pos)}">${p.pole ? '<i class="pole"></i>' : ''}${p.pos}${p.fl ? '<i class="fl"></i>' : ''}</span></td>`;
+    }).join('')).join('');
+    const name = `<span class="drv"><img class="flag" src="${FLAG(r.nat)}">${r.name} ${r.me ? (teams ? '<span class="chip c-you">Yours</span>' : you) : ''}</span>`;
+    return `<tr class="${r.me ? 'me' : ''}"><td class="stick">${rc(r.pos)}</td><td class="stick2">${name}</td>${cells}<td class="tot num">${r.ptsShown ?? r.pts}</td></tr>`;
+  }).join('');
+  return `<div class="mx-wrap"><table class="mx" data-piece="StandingsMatrix">
+    <thead><tr class="rounds"><th class="stick" style="width:46px"></th><th class="stick2"></th>${head1}<th class="tot"></th></tr>
+    <tr><th class="stick"></th><th class="stick2" style="text-align:left">${teams ? 'Team' : 'Driver'}</th>${head2}<th class="tot" style="font-size:11.5px;font-weight:500">${total}</th></tr></thead>
+    <tbody>${body}</tbody></table></div>
+    ${teams ? '<div class="legend">Each race shows what all of a team\'s cars took from it.</div>' : `<div class="legend">
+      <span class="it">${rc(1)} ${rc(2)} ${rc(3)} Podium</span><span class="it">${rc(6)} Points</span><span class="it">${rc(14)} No points</span>
+      ${state.cells === 'pts'
+    ? '<span class="it"><sup class="bq">+3</sup>Qualifying - the top three score 3, 2 and 1</span><span class="it"><sup class="bf">+1</sup>Fastest lap - 1 point, inside the top ten</span>'
+    : '<span class="it"><i class="dot" style="background:var(--s-qualify-fg)"></i>Pole</span><span class="it"><i class="dot" style="background:var(--primary)"></i>Fastest lap</span>'}
+      ${rounds.length > 1 ? '<span class="it" style="margin-left:auto">A round\'s heading opens its results</span>' : ''}</div>`}`;
+};
+
+// ClassificationTable - one session. The career's columns (team, places gained, points) come with its data.
+const classification = (rd, ri) => {
+  const rows = results[rd][ri];
+  let gap = 0;
+  return `<table class="t cls" data-piece="ClassificationTable">
+    <thead><tr><th>Pos</th><th></th><th>Driver</th><th>Car</th><th class="r">Laps</th><th class="r">Best lap</th><th class="r">Time / gap</th><th class="r">Points</th></tr></thead>
+    <tbody>${rows.map((p, i) => {
+    const s = SEATS.find((x) => x.id === p.seat);
+    gap += i === 0 ? 0 : 400 + ((i * 7919) % 2300);
+    const lapped = i >= 22;
+    const best = p.fl ? '1:31.472' : `1:3${2 + Math.floor(i / 8)}.${String(100 + ((i * 337) % 850)).padStart(3, '0')}`;
+    return `<tr class="${s.me ? 'me' : ''}">
+      <td style="width:44px">${rc(p.pos)}</td>
+      <td style="width:34px">${mv(p.grid - p.pos)}</td>
+      <td>${drv(s)}</td>
+      <td><span class="drv muted"><img class="swatch" src="${s.skin}/livery.png">Formula RSS 4 2024</span></td>
+      <td class="r num">${lapped ? 15 : 16}</td>
+      <td class="r num">${p.fl ? `<span class="fast">${I.timer}${best}</span>` : best}</td>
+      <td class="r num gap">${i === 0 ? '25:02.118' : lapped ? '<span class="lapped">+1 lap</span>' : `+${(gap / 1000).toFixed(3)}`}</td>
+      <td class="r num pts-big">${scored(p)}</td></tr>`;
+  }).join('')}</tbody></table>
+  <div class="foot"><span class="ok">${I.check}</span> Finishing order is Assetto Corsa's own classification. Arrows are places gained or lost from the grid.</div>`;
+};
+
+// ResultStrip - what you did, as figures.
+const strip = (cells) => `<section class="panel strip" data-piece="ResultStrip">${cells.map(([k, v]) => `<div><span class="k">${k}</span><b>${v}</b></div>`).join('')}</section>`;
+
+// Podium - the top three with their liveries.
+const podium = (rd, ri) => `<div class="podium" data-piece="Podium">${results[rd][ri].slice(0, 3).map((p, i) => {
+  const s = SEATS.find((x) => x.id === p.seat);
+  return `<div class="pod"><img class="car" src="${s.skin}/preview.jpg">${rcP(p.pos)}
+    <div class="tx"><b><img class="flag" src="${FLAG(s.nat)}">${s.name} ${s.me ? you : ''}</b><span><span>${s.teamName}</span><span class="num">${i === 0 ? '25:02.118' : `+${(i * 1.4 + 0.6).toFixed(3)}`}</span></span></div></div>`;
+}).join('')}</div>`;
+
+// ---------- Pages ----------
+const nav = (on) => `<div class="app-nav"><span class="brand">Assetto Corsa Career</span>${['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</div>`;
+
+const champ = () => {
+  const roundRows = ROUNDS.map((r, i) => {
+    const raced = i < RACED;
+    const mine = raced ? [0, 1, 2].map((ri) => placeOf(i, ri, ME.id)) : [];
+    const win = raced ? SEATS.find((s) => s.id === results[i][0][0].seat) : null;
+    return `<tr class="${i === RACED ? 'nx' : ''}">
+      <td class="num" style="width:30px">${i + 1}</td>
+      <td style="width:76px"><div class="map"><img src="${r.ol}"></div></td>
+      <td><div class="nm"><b style="font-weight:600">${r.name}</b><small>${r.date}</small></div></td>
+      <td><span class="wkchips">${kchip('practice', 'P')}${kchip('qualify', 'Q')}${kchip('qualify', 'Q')}${kchip('race', 'R')}${kchip('race', 'R')}${kchip('race', 'R')}</span></td>
+      <td>${raced ? `<span class="winner">${I.trophy}<img class="flag" src="${FLAG(win.nat)}">${win.name}</span>` : `<span class="muted">3 × 65 km, ${r.laps} laps</span>`}</td>
+      <td>${raced ? `<span class="res3" data-piece="ResultCell">${mine.map((p) => rc(p.pos, '', p)).join('')}<span class="p">+${mine.reduce((a, p) => a + scoreOf(p), 0)}</span></span>` : ''}</td>
+      <td style="width:90px;text-align:right">${raced ? '<a class="btn" data-set="page=round">Results</a>' : i === RACED ? '<a class="btn pri">Race</a>' : '<a class="btn">Open</a>'}</td></tr>`;
+  }).join('');
+
+  const teams = state.who === 'teams';
+  const body = state.view === 'table'
+    ? `<div style="padding:0 6px 6px">${teams ? teamTable(teamStandings(RACED)) : standingsTable(NOW)}</div>`
+    : matrix(teams ? teamStandings(RACED) : NOW, { teams });
+
+  const roundsPanel = `<section class="panel" style="overflow:hidden">
+        <table class="rt"><thead><tr><th>Rd</th><th></th><th>Round</th><th>Weekend</th><th>Winner / race</th><th>You</th><th></th></tr></thead>
+        <tbody>${roundRows}</tbody></table>
+      </section>`;
+  const segs = [
+    `<span class="seg"><span data-set="who=drivers" class="${!teams ? 'on' : ''}">Drivers</span><span data-set="who=teams" class="${teams ? 'on' : ''}">Teams</span></span>`,
+    `<span class="seg"><span data-set="view=table" class="${state.view === 'table' ? 'on' : ''}">Table</span><span data-set="view=matrix" class="${state.view === 'matrix' ? 'on' : ''}">By round</span></span>`,
+    state.view === 'matrix' && !teams
+      ? `<span class="seg"><span data-set="cells=pts" class="${state.cells === 'pts' ? 'on' : ''}">Points</span><span data-set="cells=pos" class="${state.cells === 'pos' ? 'on' : ''}">Positions</span></span>`
+      : '',
+  ].join('');
+  const standingsPanel = `<section class="panel" id="standings" style="overflow:hidden">
+        <div class="st-head"><h2>${state.layout === 'tabs' ? '' : 'Standings '}<small>after round ${RACED} of ${ROUNDS.length}</small></h2>${segs}</div>
+        ${body}
+      </section>`;
+  const TABS = [
+    ['rounds', 'Rounds', `<span class="tabn">${RACED} of ${ROUNDS.length} raced</span>`],
+    ['standings', 'Standings', rcP(ME.pos, 'sm')],
+    ['classes', 'Classes', ''],
+    ['rules', 'Points, prizes and weekends', ''],
+  ];
+  const PANES = {
+    rounds: roundsPanel,
+    standings: standingsPanel,
+    classes: '<div class="placeholder">The Classes section as it is today.</div>',
+    rules: '<div class="placeholder">Points, prize money and weekends as they are today.</div>',
+  };
+  const main = state.layout === 'section'
+    ? `${roundsPanel}${standingsPanel}<div class="placeholder">Classes, and Points, prize money and weekends, follow as they do today.</div>`
+    : `<nav class="tabs" data-piece="ChampionshipTabs">${TABS.map(([id, label, extra]) => `<a class="${state.tab === id ? 'on' : ''}" data-set="tab=${id}">${label}${extra}</a>`).join('')}</nav>${PANES[state.tab]}`;
+
+  return `${nav('Championships')}
+  <div class="hdr"><a class="back">${I.back} All championships</a></div>
+  <div class="cp">
+    <aside>
+      <section class="panel sum">
+        <div class="bar"></div>
+        <h2>Italian F4 Championship</h2>
+        <div style="display:flex;gap:4px"><span class="chip c-single">Single-seater</span><span class="chip c-tier">Tier 5</span></div>
+        <div class="kv"><span>Grid</span><span>24 cars, 8 teams</span></div>
+        <div class="kv"><span>You race</span><span>Levante Racing</span></div>
+        <a class="btn pri" style="height:38px">Race ${ROUNDS[RACED].name}</a>
+      </section>
+      <section class="panel" data-piece="SeasonSummary">
+        <h3>Your season</h3>
+        <div class="you-season">
+          <div><span class="k">Position</span><b>${rcP(ME.pos, 'lg')}${mv(ME.move)}</b></div>
+          <div><span class="k">Points</span><b>${ME.pts}<small>${ME.pos === 1 ? 'leading' : `-${NOW[0].pts - ME.pts}`}</small></b></div>
+          <div><span class="k">Wins</span><b>${ME.wins}<small>${ME.pods} podiums</small></b></div>
+        </div>
+        <div class="pb" style="padding-top:8px">${standingsTable(NOW, { compact: true })}</div>
+        <a class="more" data-go="standings">Full standings ${state.layout === 'section' ? I.down : I.chev}</a>
+      </section>
+    </aside>
+    <main>
+      ${main}
+    </main>
+  </div>`;
+};
+
+const round = () => {
+  const rd = 1;
+  const r = ROUNDS[rd];
+  const mine = [0, 1, 2].map((ri) => placeOf(rd, ri, ME.id));
+  const after = withMoves(rd + 1);
+  const meAfter = after.find((x) => x.me);
+  const weekend = [
+    ['practice', 'Practice', '13 Mar · 30 minutes', 7], ['qualify', 'Qualifying 1', '13 Mar · 15 minutes', 4], ['qualify', 'Qualifying 2', '13 Mar · 15 minutes', 5],
+    ['race', 'Race 1', '14 Mar · 16 laps', mine[0].pos], ['race', 'Race 2', '15 Mar · 16 laps', mine[1].pos], ['race', 'Race 3', '15 Mar · 16 laps', mine[2].pos],
+  ];
+  const roundPts = mine.reduce((a, p) => a + scoreOf(p), 0);
+
+  const right = state.rview === 'summary' ? `
+    ${strip([['Your races', `<span style="display:flex;gap:4px">${mine.map((p) => rc(p.pos, 'lg', p)).join('')}</span>`], ['Points this round', `<span class="green">+${roundPts}</span>`], ['Championship', `${rcP(meAfter.pos, 'lg')}${mv(meAfter.move)}<small>${meAfter.pts} pts</small>`]])}
+    <section class="panel"><h3>${I.trophy} Race winners</h3>
+      <div class="racewin">${[0, 1, 2].map((ri) => `<div><span class="h">${kchip('race', `Race ${ri + 1}`)}<span class="you-at">You ${rc(mine[ri].pos, '', mine[ri])}</span></span>
+        ${results[rd][ri].slice(0, 3).map((p) => { const s = SEATS.find((x) => x.id === p.seat); return `<span class="ln">${rc(p.pos)}<img class="flag" src="${FLAG(s.nat)}">${s.name} ${s.me ? you : ''}</span>`; }).join('')}</div>`).join('')}</div>
+    </section>
+    <section class="panel"><div class="st-head"><h2>Championship after round ${rd + 1}</h2><a class="btn" style="height:28px">Full standings</a></div>
+      <div style="padding:0 6px 6px">${standingsTable(after, { compact: true })}</div></section>`
+    : `
+    ${strip([['You finished', `${rcP(mine[0].pos, 'lg')}<small>of 24</small>`], ['Started', `P${mine[0].grid}<small>${mine[0].grid - mine[0].pos >= 0 ? '+' : ''}${mine[0].grid - mine[0].pos} places</small>`], ['Best lap', '1:31.882<small>+0.410 to fastest</small>'], ['Points', `<span class="green">+${scoreOf(mine[0])}</span><small>${scored(mine[0])}</small>`]])}
+    <section class="panel"><h3>${I.trophy} Podium</h3>${podium(rd, 0)}</section>
+    <section class="panel" style="overflow:hidden"><h3>Classification <span class="muted" style="font-weight:400">24 cars · 16 laps</span></h3><div style="padding:6px 6px 0">${classification(rd, 0)}</div></section>`;
+
+  return `${nav('Calendar')}
+  <div class="hdr"><a class="back">${I.back} Italian F4 Championship</a></div>
+  <div class="ev-head"><div class="t"><span class="over">Round 2 of 5 <span class="chip c-single">Single-seater</span><span class="chip c-tier">Tier 5</span></span>
+    <h1>Vallelunga</h1><span class="evmeta"><span>Italian F4 Championship</span><span>13 - 15 Mar 2026</span><span>Grid 24</span><span>Prize $8,000</span></span></div>
+    <div class="ol"><img src="${r.ol}"></div></div>
+  <div class="ev">
+    <aside class="col">
+      <section class="panel wl" data-piece="WeekendList"><h4>WEEKEND</h4>
+        <a class="${state.rview === 'summary' ? 'cur' : ''}" data-set="rview=summary"><span class="ic" style="color:var(--gold-fg)">${I.trophy}</span><span class="tx sumrow">Round results<small>Complete · 3 races</small></span><span class="rpts">+${roundPts}</span></a>
+        ${weekend.map(([k, n, d, p], i) => `<a class="${state.rview === 'race' && i === 3 ? 'cur' : ''}" ${i === 3 ? 'data-set="rview=race"' : ''}><span class="dot done">${I.check}</span><span class="tx">${n}<small>${d}</small></span>${k === 'race' ? rc(p) : `<span class="rc none">P${p}</span>`}</a>`).join('')}
+      </section>
+    </aside>
+    <main class="col">${right}</main>
+  </div>`;
+};
+
+// One card per weekend: the round's sessions together, newest weekend first.
+const WEEKENDS = [
+  { rd: 2, days: '22 - 24 May 2026' },
+  { rd: 1, days: '13 - 15 March 2026' },
+  { quick: true, days: '1 March 2026' },
+  { rd: 0, days: '2 - 4 January 2026' },
+];
+const SESSIONS = [['practice', 'Practice', 7], ['qualify', 'Qualifying 1', 4], ['qualify', 'Qualifying 2', 5], ['race', 'Race 1', 0], ['race', 'Race 2', 1], ['race', 'Race 3', 2]];
+const lapOf = (rd, i) => `1:${[31, 32, 30][rd]}.${String(180 + ((rd * 7 + i) * 173) % 800).padStart(3, '0')}`;
+const weekendCard = (w) => {
+  if (w.quick) {
+    return `<article class="wk" data-piece="WeekendCard">
+      <div class="ph"><img class="bg" src="${AC}tracks/monza/ui/preview.png"><img class="ol" src="${AC}tracks/monza/ui/outline.png">
+        <span class="date">${w.days}</span><div class="cap"><b>Quick race</b><span>Monza</span></div></div>
+      <div class="car"><img class="swatch" src="${AC}cars/rss_formula_hybrid_x_2026/skins/00_gsi_rss_26/livery.png">Formula Hybrid X 2026<span style="margin-left:auto">8 cars</span></div>
+      <div class="sess"><a data-set="page=result" data-piece="SessionRow">${kchip('practice')}<span class="best num muted">1:21.077</span><span></span>${rcP(2, 'sm')}</a></div>
+    </article>`;
+  }
+  const r = ROUNDS[w.rd];
+  const races = [0, 1, 2].map((ri) => placeOf(w.rd, ri, ME.id));
+  const pts = races.reduce((sum, p) => sum + scoreOf(p), 0);
+  const after = withMoves(w.rd + 1).find((x) => x.me);
+  return `<article class="wk" data-piece="WeekendCard">
+    <div class="ph"><img class="bg" src="${r.img}"><img class="ol" src="${r.ol}">
+      <span class="date">${w.days}</span><div class="cap"><b>Italian F4 Championship</b><span>Round ${w.rd + 1} · ${r.name}</span></div></div>
+    <div class="car"><img class="swatch" src="${ME.skin}/livery.png">Formula RSS 4 2024<span style="margin-left:auto">24 cars</span></div>
+    <div class="sess">${SESSIONS.map(([k, n, x], i) => {
+    const race = k === 'race';
+    const pos = race ? races[x].pos : x;
+    return `<a data-set="page=result" data-piece="SessionRow">${kchip(k, n)}<span class="best num muted">${lapOf(w.rd, i)}</span>
+      <span class="num green" style="font-size:12.5px;font-weight:600">${race && scoreOf(races[x]) ? `+${scoreOf(races[x])}` : ''}</span>${race ? rcP(pos, 'sm') : `<span class="rc none sm">P${pos}</span>`}</a>`;
+  }).join('')}</div>
+    <a class="wkfoot" data-set="page=round"><span>Round <b class="green">+${pts}</b></span><span class="muted">·</span>
+      <span style="display:inline-flex;align-items:center;gap:4px">${rcP(after.pos, 'sm')}${w.rd === 0 ? '' : mv(after.move)} in the championship</span>
+      <span class="go">Round results ${I.chev}</span></a>
+  </article>`;
+};
+const list = () => `${nav('Results')}
+  <div class="title"><h1>Results</h1><span class="muted">Every weekend you have driven, newest first.</span></div>
+  <div class="toolbar"><div class="search">${I.search} Search a track, car or championship</div>
+    <span class="seg"><span class="on">All</span><span>Practice</span><span>Qualifying</span><span>Race</span></span>
+    <div class="select">All championships ${I.down}</div></div>
+  <div class="weeks">${WEEKENDS.map(weekendCard).join('')}</div>`;
+
+const result = () => {
+  const rd = 1; const r = ROUNDS[rd]; const p = placeOf(rd, 0, ME.id);
+  const after = withMoves(rd + 1);
+  return `${nav('Results')}
+  <div class="hdr"><a class="back">${I.back} Results</a></div>
+  <section class="hero"><img class="bg" src="${r.img}"><img class="ol" src="${r.ol}">
+    <div class="cap"><div class="over">${kchip('race')}<a>Italian F4 Championship</a><span style="opacity:.5">/</span><a data-set="page=round">Round 2 · Vallelunga</a></div>
+    <h1>Vallelunga · Race 1</h1><div class="line">Vallelunga · Extended circuit, Italy  |  Saturday 14 March 2026 at 15:00</div></div></section>
+  <div style="margin-top:14px">${strip([['You finished', `${rcP(p.pos, 'lg')}<small>of 24</small>`], ['Started', `P${p.grid}<small>${p.grid - p.pos >= 0 ? '+' : ''}${p.grid - p.pos} places</small>`], ['Best lap', '1:31.882<small>+0.410 to fastest</small>'], [p.pos === 1 ? 'Winning margin' : 'Gap to winner', p.pos === 1 ? '1.419' : '+4.212'], ['Points', `<span class="green">+${scoreOf(p)}</span><small>${scored(p)}</small>`]])}</div>
+  <div class="rp">
+    <div class="col">
+      <section class="panel"><h3>${I.trophy} Podium</h3>${podium(rd, 0)}</section>
+      <section class="panel" style="overflow:hidden"><h3>Classification <span class="muted" style="font-weight:400">24 cars · 16 laps</span></h3><div style="padding:6px 6px 0">${classification(rd, 0)}</div></section>
+    </div>
+    <div class="col">
+      <section class="panel"><h3>Championship after this race</h3><div class="pb" style="padding-top:6px">${standingsTable(after, { compact: true })}</div><a class="more" data-set="page=champ">Full standings ${I.chev}</a></section>
+      <section class="panel"><h3>The rest of the weekend</h3><div class="pb" style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        ${[['practice', 'Practice', 7], ['qualify', 'Qualifying 1', 4], ['qualify', 'Qualifying 2', 5], ['race', 'Race 1', p.pos], ['race', 'Race 2', placeOf(rd, 1, ME.id).pos], ['race', 'Race 3', placeOf(rd, 2, ME.id).pos]]
+    .map(([k, n, x]) => `<span style="display:flex;align-items:center;gap:8px">${kchip(k, n)}<span style="margin-left:auto">${k === 'race' ? rcP(x) : `<span class="rc none">P${x}</span>`}</span></span>`).join('')}
+      </div></section>
+    </div>
+  </div>`;
+};
+
+// ---------- Notes ----------
+const WHY = {
+  champ: `<b>Championship page.</b> The round table's last columns become what each raced round left: its winner, your three results and
+    the points they made, with Results opening the round page. A new <b>Standings</b> section switches between Drivers and Teams and between
+    a <b>Table</b> (position, movement since the last round, team, your last five races, wins, podiums, gap and points) and <b>By round</b>:
+    drivers down, rounds across with a column per race, upcoming rounds shaded, and the total pinned at the end, so the names and totals stay put
+    while a long season scrolls sideways. By round opens on the points each race paid, with what qualifying and the fastest lap added
+    beside them in small violet and blue figures; the legend states the championship's own bonus rules and leaves out one it does not pay.
+    Positions keeps the pole and fastest-lap dots. The Table gives each bonus a column. The sidebar's standings card becomes
+    <b>Your season</b>. Switch <i>Layout</i> between a <b>Section</b> under the rounds and <b>Tabs</b> across the main column.`,
+  round: `<b>Round page.</b> Only the results half changes. Once anything has run, the weekend list gains <b>Round results</b> at its head
+    and each run session shows where you finished. Round results is your three races, what the round paid and where it left you, each race's
+    top three, and the championship after the round. A run session shows the same strip, podium and
+    classification as the Result page. Switch <i>Showing</i> to Race 1.`,
+  list: `<b>Results list.</b> Option B, a card per weekend: the track, the championship and round, the car, then every session driven
+    there with your best lap, what it paid and where you finished (the shared result cell, solid for races and quiet for practice and
+    qualifying). A championship weekend ends in a footer with the round's points and where it left you in the championship, opening
+    the round page; each session row opens its Result page. A quick race is a card of its own. Grouping is by the round the
+    archive was raced for, which each archive already records as <code>raceId</code>.`,
+  result: `<b>Result page.</b> One session, now with the career's data where there is some: flags, team under the driver, places gained from
+    the grid, points, and the championship after this race in the sidebar - the same compact standings as the championship's sidebar. A quick
+    race has none of that, and its table drops those columns.`,
+};
+const NOTES = `<ul>
+  <li><b>Shared pieces</b> (tick <i>Outline shared pieces</i>): <code>ResultCell</code>, <code>StandingsTable</code> and its compact form,
+    <code>StandingsMatrix</code> (a season, or one round), <code>ClassificationTable</code>, <code>ResultStrip</code>, <code>Podium</code>,
+    <code>SessionRow</code>, <code>WeekendCard</code>.</li>
+  <li><b>The result cell</b> is one place in one race, the same everywhere: podium metals, green for a points finish, plain otherwise, with a
+    violet dot for pole and a blue one for fastest lap. Movement is green up and red down. Every colour is an existing token.</li>
+</ul>`;
+
+const render = () => {
+  document.documentElement.dataset.theme = state.th;
+  document.body.classList.toggle('show-pieces', state.pieces === 'on');
+  document.querySelectorAll('.opt').forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+  document.querySelectorAll('.grp[data-for]').forEach((g) => { g.hidden = g.dataset.for !== state.page; });
+  document.getElementById('why').innerHTML = WHY[state.page] + NOTES;
+  document.getElementById('app').innerHTML = { champ, round, list, result }[state.page]();
+};
+document.addEventListener('click', (e) => {
+  const opt = e.target.closest('.opt');
+  if (opt) { state[opt.dataset.k] = opt.dataset.k === 'pieces' && state.pieces === 'on' ? 'off' : opt.dataset.v; render(); return; }
+  const set = e.target.closest('[data-set]');
+  if (set) { const [k, v] = set.dataset.set.split('='); state[k] = v; render(); if (k === 'page') window.scrollTo(0, 0); return; }
+  if (e.target.closest('[data-go]')) {
+    if (state.layout === 'tabs') { state.tab = 'standings'; render(); }
+    document.getElementById('standings').scrollIntoView({ behavior: 'smooth' });
+  }
+});
+render();
+</script>
+</body>
+</html>

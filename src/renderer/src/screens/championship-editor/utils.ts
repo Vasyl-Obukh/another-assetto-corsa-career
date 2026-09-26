@@ -1,31 +1,45 @@
-// Minting ids, and the deletions and narrowings that would otherwise leave a
-// document pointing at something that is gone. All pure, and deliberately here
-// rather than inline in a component: a round removed from under a weekend
-// format that named it, or a seat still pinned to a car its class no longer
-// fields, is the kind of thing worth being able to read in one place.
+// Minting ids, every edit the editor makes to a draft, and the deletions and
+// narrowings that would otherwise leave a document pointing at something that
+// is gone. All pure, and deliberately here rather than inline in a component:
+// a round removed from under a weekend format that named it, or a seat still
+// pinned to a car its class no longer fields, is the kind of thing worth being
+// able to read in one place.
 
-import { DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_TIER } from './constants.ts';
+import {
+  CONDITION_GROUP_ORDER, CONDITION_GROUPS, DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER,
+  EDITOR_TABS, PROBLEM_TAB, PURSE_ROUNDING, PURSE_WEIGHT, TAB_FIELDS,
+} from './constants.ts';
 import type {
-  LengthUnit, Narrowed, SessionEdit, SetAside,
+  ConditionGroup, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit, SetAside,
+  StartKind,
 } from './types.ts';
-import { SERIES_FORMAT_VERSION } from '../../../../shared/constants';
+import {
+  AI_RANGE, MAX_GRID_OFFSET, MINUTES_PER_HOUR, SERIES_FORMAT_VERSION,
+} from '../../../../shared/constants';
 import { Discipline } from '../../../../shared/types';
 import type {
+  BopEntry,
   Championship,
   ClassCatalogue,
   ClassEntry,
+  Conditions,
   Eligibility,
+  GridStart,
   PointsSystem,
   PrizeMoney,
   Round,
   RoundSessionLength,
   Seat,
   SeatCar,
+  SeriesAvailability,
   SeriesSession,
   Team,
+  Weather,
   WeekendFormat,
 } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
+import { parseClock } from '../../../../shared/utils/road-temperature';
+import { formatOf } from '../../../../shared/utils/weekend-format';
 
 /**
  * The ids a list spends.
@@ -411,20 +425,6 @@ export const namedCars = (series: Championship, catalogue: ClassCatalogue): stri
 )];
 
 /**
- * The scope one class entry's seats are edited under.
- * @param entry The class entry's id
- * @returns The scope
- */
-export const seatScope = (entry: string): string => `seats-${entry}`;
-
-/**
- * The scope one class entry's balance of performance is edited under.
- * @param entry The class entry's id
- * @returns The scope
- */
-export const bopScope = (entry: string): string => `bop-${entry}`;
-
-/**
  * Every session id one weekend format already spends.
  *
  * Per format rather than per championship: a session id is only ever read by
@@ -479,9 +479,7 @@ export const withRaceIds = (sessions: readonly SeriesSession[]): SeriesSession[]
 export const withRoundLengthsPruned = (series: Championship, round: Round): Round => {
   if (!round.sessionLengths) return round;
 
-  const wanted = round.weekendFormat ?? series.defaultWeekendFormat;
-  const format = series.weekendFormats.find((one) => one.id === wanted);
-  const ids = new Set(format?.sessions.map((session) => session.id));
+  const ids = new Set(formatOf(series, round)?.sessions.map((session) => session.id));
   const kept = round.sessionLengths.filter((length) => ids.has(length.session));
   if (kept.length === round.sessionLengths.length) return round;
 
@@ -758,6 +756,18 @@ export const roundsRunning = (series: Championship, format: string): number => s
 ).length;
 
 /**
+ * How many races, across every weekend format, one points system pays - the
+ * default counting every race that names none.
+ * @param series The championship
+ * @param system The points system's id
+ * @returns How many races pay it
+ */
+export const racesPaying = (series: Championship, system: string): number => series.weekendFormats
+  .flatMap((format) => format.sessions)
+  .filter((session) => session.type === 'race' && (session.pointsSystem ?? series.defaultPointsSystem) === system)
+  .length;
+
+/**
  * Which unit a session's length is stated in.
  *
  * A distance first, since a race carrying one runs to it whatever else is
@@ -775,8 +785,9 @@ export const lengthUnit = (session: Pick<SeriesSession, 'type' | 'laps' | 'minut
 /**
  * Measures a session in another unit.
  *
- * The other two are cleared rather than kept, for the reason withSessionLength
- * gives: a stale lap count left beside a duration still makes a lap race.
+ * The other two are cleared rather than kept: a stale lap count left beside a
+ * duration is still written into RACE_LAPS, and AC runs a lap race whenever it
+ * is above zero.
  * @param session The session
  * @param unit The unit it should be measured in
  * @returns The session, with the unit's own value or a default
@@ -850,8 +861,378 @@ export const withEntryPrizes = (
 ): ClassEntry => ({ ...entry, prizes: toPrizes(prizes) });
 
 /**
- * The scope one weekend format's sessions are edited under.
- * @param format The format's id
- * @returns The scope
+ * Which tabs hold something the draft changed since it was last written.
+ * @param draft The championship as edited
+ * @param saved The championship as written, or undefined for one never written
+ * @returns The tabs with a change in them, none at all for a new championship
  */
-export const sessionScope = (format: string): string => `sessions-${format}`;
+export const changedTabs = (draft: Championship, saved: Championship | undefined): Set<EditorTab> => {
+  if (saved === undefined) return new Set();
+  /**
+   * Whether one field differs from what is written.
+   * @param field The field
+   * @returns Whether it does
+   */
+  const differs = (field: keyof Championship): boolean => (
+    JSON.stringify(draft[field]) !== JSON.stringify(saved[field])
+  );
+
+  return new Set(EDITOR_TABS.filter((tab) => TAB_FIELDS[tab].some(differs)));
+};
+
+/**
+ * Which tab a problem is fixed on, by the subject its code names.
+ * @param code The problem's code
+ * @returns The tab, the overview for anything unlisted
+ */
+export const problemTab = (code: string): EditorTab => PROBLEM_TAB[code.split('.')[1] ?? ''] ?? 'overview';
+
+/**
+ * Which tabs a checked draft has something wrong on: its problems, by the
+ * subject each names, and what the install cannot race.
+ * @param checked The draft checked against what is installed, or null
+ * @returns The tabs with a problem on them
+ */
+export const problemTabs = (checked: SeriesAvailability | null): Set<EditorTab> => {
+  const tabs = new Set<EditorTab>();
+  if (checked === null) return tabs;
+
+  checked.problems.forEach((problem) => tabs.add(problemTab(problem.code)));
+  if (checked.rounds.some((round) => round.track !== null || round.pitboxes !== null)) tabs.add('calendar');
+  if (checked.entries.some((entry) => !entry.enough)) tabs.add('classes');
+
+  return tabs;
+};
+
+/**
+ * Splits a class's seats into runs fielded by one team, in grid order.
+ *
+ * Runs rather than groups, because order is the grid's own - the player takes
+ * the last seat - and gathering a team's seats together would show an order
+ * the document does not have.
+ * @param seats The class's seats, in order
+ * @returns Each run of consecutive seats sharing a team
+ */
+export const seatRuns = (seats: readonly Seat[]): SeatRun[] => seats.reduce<SeatRun[]>(
+  (runs, seat, index) => {
+    const last = runs.at(-1);
+    if (last !== undefined && last.team === seat.team) {
+      return [...runs.slice(0, -1), { ...last, seats: [...last.seats, { seat, index }] }];
+    }
+
+    return [...runs, { team: seat.team, seats: [{ seat, index }] }];
+  },
+  [],
+);
+
+/**
+ * Sets one place of a table of points or money.
+ * @param values The table, the winner first
+ * @param index Which place, counting from zero
+ * @param value What it pays
+ * @returns The table, changed
+ */
+export const withPlace = (values: readonly number[], index: number, value: number): number[] => (
+  values.map((own, at) => (at === index ? value : own))
+);
+
+/**
+ * What a table of points or money pays in all.
+ * @param values What each place pays, or undefined for no table
+ * @returns The total
+ */
+export const paysInAll = (values: readonly number[] | undefined): number => (
+  (values ?? []).reduce((total, value) => total + value, 0)
+);
+
+/**
+ * Balances one car, or takes its balance off.
+ *
+ * A car balanced by nothing - no ballast, no restriction - drops out of the
+ * list rather than being written as a row that says nothing.
+ * @param bop The class's balance of performance
+ * @param car The car's folder ID
+ * @param patch What changes about its balance
+ * @returns The list, with that car's row changed, added or gone
+ */
+export const withBop = (
+  bop: readonly BopEntry[],
+  car: string,
+  patch: Omit<BopEntry, 'car'>,
+): BopEntry[] => {
+  const at = bop.findIndex((one) => one.car === car);
+  const next = { ...(bop[at] ?? { car }), ...patch };
+  if (!next.ballast && !next.restrictor) return bop.filter((one) => one.car !== car);
+
+  return at < 0 ? [...bop, next] : bop.map((one, index) => (index === at ? next : one));
+};
+
+/**
+ * Generates a purse from what it pays in all, how many places it pays and the
+ * shape of the curve.
+ *
+ * Every place is rounded down to the step, and what that cut goes back a step
+ * at a time to the places it cut deepest - an earlier place first on a tie, so
+ * no place ever pays more than one above it. What is left short of a step goes
+ * to the winner, so the places always add up to the pot.
+ * @param recipe What to generate it from
+ * @returns What each place pays, the winner first - nothing for an empty pot
+ */
+export const generatePurse = (recipe: PurseRecipe): number[] => {
+  if (recipe.pot <= 0 || recipe.places <= 0) return [];
+  const weights = Array.from({ length: recipe.places }, (_, place) => PURSE_WEIGHT[recipe.shape](place, recipe.places));
+  const total = paysInAll(weights);
+  const shares = weights.map((weight) => (recipe.pot * weight) / total);
+  const values = shares.map((share) => Math.floor(share / recipe.round) * recipe.round);
+  const steps = Math.floor((recipe.pot - paysInAll(values)) / recipe.round);
+  shares
+    .map((share, place) => ({ place, cut: share - values[place] }))
+    .sort((left, right) => right.cut - left.cut || left.place - right.place)
+    .slice(0, steps)
+    .forEach(({ place }) => { values[place] += recipe.round; });
+  values[0] += recipe.pot - paysInAll(values);
+
+  return values;
+};
+
+/**
+ * What a purse already written could have been generated from - its total,
+ * its length, and the coarsest rounding every place fits.
+ * @param values What each place pays
+ * @returns The recipe to start its controls from
+ */
+export const recipeOf = (values: readonly number[]): PurseRecipe => ({
+  pot: paysInAll(values),
+  places: values.length || DEFAULT_PURSE_PLACES,
+  shape: 'steep',
+  round: [...PURSE_ROUNDING].reverse().find((step) => values.every((value) => value % step === 0)) ?? 1,
+});
+
+/**
+ * The seats a new class starts with: so many, each fielded by the team the
+ * matching seat of another class is, and every driver drawn.
+ * @param series The championship, for the seat ids it already spends
+ * @param entry The new class's id
+ * @param count How many seats
+ * @param teams Which team fields each seat, by position - shorter than the
+ * seats, and the rest go without one
+ * @returns The seats
+ */
+export const startingSeats = (
+  series: Championship,
+  entry: string,
+  count: number,
+  teams: readonly (string | undefined)[],
+): Seat[] => {
+  const taken = seatIds(series);
+
+  return Array.from({ length: count }, (_, index) => {
+    const id = freeId(`${entry}-${index + 1}`, taken);
+    taken.add(id);
+    const team = teams[index];
+
+    return team === undefined ? { id } : { id, team };
+  });
+};
+
+/**
+ * Whether a group of conditions is set, which it is when any of its fields is.
+ * @param conditions The conditions
+ * @param group Which group
+ * @returns Whether it is
+ */
+export const groupSet = (conditions: Conditions, group: ConditionGroup): boolean => (
+  CONDITION_GROUPS[group].some((key) => conditions[key] !== undefined)
+);
+
+/**
+ * Every group of conditions that is set, in the order an editor lists them.
+ * @param conditions The conditions
+ * @returns The groups
+ */
+export const groupsSet = (conditions: Conditions): ConditionGroup[] => (
+  CONDITION_GROUP_ORDER.filter((group) => groupSet(conditions, group))
+);
+
+/**
+ * Leaves a group of conditions to whatever is behind it.
+ * @param conditions The conditions
+ * @param group Which group
+ * @returns The conditions, without that group's fields
+ */
+export const withoutGroup = (conditions: Conditions, group: ConditionGroup): Conditions => (
+  Object.fromEntries(Object.entries(conditions).filter(([key]) => (
+    !CONDITION_GROUPS[group].includes(key as keyof Conditions)
+  )))
+);
+
+/**
+ * Reads a time of day as minutes after midnight.
+ * @param clock The time, as HH:MM or as decimal hours
+ * @returns Minutes after midnight, or undefined for anything unreadable
+ */
+export const minutesOf = (clock: string | number | undefined): number | undefined => {
+  if (clock === undefined) return undefined;
+  try {
+    return Math.round(parseClock(clock) * MINUTES_PER_HOUR);
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * How many days a format's weekend spans.
+ * @param format The format
+ * @returns Its days, at least one
+ */
+export const daysOf = (format: WeekendFormat): number => Math.max(
+  1,
+  ...format.sessions.map((session) => (session.day ?? 0) + 1),
+);
+
+/**
+ * Moves one session, within its day or onto another.
+ *
+ * The sessions stay in day order - a weekend runs its days one after another -
+ * so a session dropped among another day's is placed where it was dropped
+ * within that day.
+ * @param format The format
+ * @param from Where the session sits, counting from zero
+ * @param before Which session it is dropped in front of, or null for the end
+ * of the day
+ * @param day The day it lands on, counting from zero
+ * @returns The format, with the session moved
+ */
+export const withSessionMoved = (
+  format: WeekendFormat,
+  from: number,
+  before: number | null,
+  day: number,
+): WeekendFormat => {
+  const moving = { ...format.sessions[from], day: day === 0 ? undefined : day };
+  const rest = format.sessions.filter((_, at) => at !== from);
+  // Dropped in front of itself, it lands in front of whatever followed it.
+  const anchor = before === null ? -1 : rest.indexOf(format.sessions[before === from ? from + 1 : before]);
+  let at = anchor;
+  if (at < 0) {
+    // The end of the day: after its last session, or before the first of a later one.
+    const later = rest.findIndex((session) => (session.day ?? 0) > day);
+    at = later < 0 ? rest.length : later;
+  }
+  const sessions = [...rest.slice(0, at), moving, ...rest.slice(at)];
+
+  return {
+    ...format,
+    sessions: sessions
+      .map((session, order) => ({ session, order }))
+      .sort((left, right) => (left.session.day ?? 0) - (right.session.day ?? 0) || left.order - right.order)
+      .map(({ session }) => session),
+  };
+};
+
+/**
+ * Takes a day off a weekend, moving its sessions onto the day before - or onto
+ * the day after, for the first day - and every later day one earlier.
+ * @param format The format
+ * @param day Which day, counting from zero
+ * @returns The format, a day shorter
+ */
+export const withoutDay = (format: WeekendFormat, day: number): WeekendFormat => ({
+  ...format,
+  sessions: format.sessions.map((session) => {
+    const own = session.day ?? 0;
+    const next = own > day || (own === day && day > 0) ? own - 1 : own;
+
+    return { ...session, day: next === 0 ? undefined : next };
+  }),
+});
+
+/**
+ * Puts one session's own conditions back on its format, leaving none at all
+ * off the document rather than written as an empty set.
+ * @param format The format
+ * @param index Where the session sits
+ * @param conditions Its conditions
+ * @returns The format
+ */
+export const withSessionConditionsOf = (
+  format: WeekendFormat,
+  index: number,
+  conditions: Conditions,
+): WeekendFormat => ({
+  ...format,
+  sessions: format.sessions.map((session, at) => (at !== index ? session : {
+    ...session,
+    conditions: Object.values(conditions).some((value) => value !== undefined) ? conditions : undefined,
+  })),
+});
+
+/**
+ * Every driver named anywhere in the championship.
+ * @param series The championship
+ * @returns Their names
+ */
+export const namesIn = (series: Championship): Set<string> => new Set(
+  series.entries.flatMap((entry) => entry.seats.flatMap((seat) => seat.driver?.name ?? [])),
+);
+
+/**
+ * Every nation the championship races under, most used first - each team's,
+ * and each driver's who names one of their own.
+ * @param series The championship
+ * @returns Each nation's code, with how many teams and seats name it
+ */
+export const nationsIn = (series: Championship): [string, number][] => {
+  const counts = new Map<string, number>();
+  const codes = [
+    ...(series.teams ?? []).map((team) => team.nationCode),
+    ...series.entries.flatMap((entry) => entry.seats.map((seat) => seat.driver?.nationCode)),
+  ];
+  codes.forEach((code) => {
+    if (code !== undefined) counts.set(code, (counts.get(code) ?? 0) + 1);
+  });
+
+  return [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+};
+
+/**
+ * How far an offset laid over an AI figure may step: never past
+ * MAX_GRID_OFFSET either way, and never so far that the sum leaves 0-100,
+ * where anything further would be clamped away unseen.
+ * @param under What the offset is laid over - the player's own difficulty and
+ * every layer above this one
+ * @returns The least and the most the offset may be
+ */
+export const offsetBounds = (under: number): { min: number; max: number } => {
+  const min = Math.max(-MAX_GRID_OFFSET, AI_RANGE.min - under);
+
+  return { min, max: Math.max(min, Math.min(MAX_GRID_OFFSET, AI_RANGE.max - under)) };
+};
+
+/**
+ * Which kind of start a race session states.
+ * @param start What it states, nothing being last
+ * @returns The kind
+ */
+export const startKindOf = (start: GridStart | undefined): StartKind => {
+  if (typeof start === 'number') return 'position';
+
+  return start ?? 'last';
+};
+
+/**
+ * The temperature coefficient of the weather a set of conditions names - the
+ * preset itself, or the one declaring its type - which decides how far the sun
+ * warms the road.
+ * @param conditions The conditions
+ * @param weather Every installed weather preset
+ * @returns The coefficient, or undefined where the conditions name no weather
+ */
+export const coeffOf = (conditions: Conditions, weather: readonly Weather[]): number | undefined => {
+  const named = conditions.weather === undefined ? undefined : weather.find((one) => one.id === conditions.weather);
+  const typed = conditions.weatherType === undefined
+    ? undefined
+    : weather.find((one) => one.type === conditions.weatherType);
+
+  return (named ?? typed)?.temperatureCoeff;
+};

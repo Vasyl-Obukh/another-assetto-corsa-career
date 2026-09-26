@@ -6,15 +6,12 @@ import {
   buildLighting,
   buildSessionSection,
   capitalise,
-  clamp,
   findTrack,
   findWeather,
   firstSkin,
   nextSkin,
-  parseClock,
   presetForType,
   resolveWeather,
-  roadTempCurve,
   roadTemperature,
   skinKey,
   spreadAiLevel,
@@ -23,29 +20,6 @@ import {
 import { makeContent, makeRace } from './fixtures.ts';
 
 describe('core/race-ini/utils', () => {
-  describe('parseClock', () => {
-    it('reads HH:MM into decimal hours', () => {
-      expect(parseClock('15:30')).toBe(15.5);
-      expect(parseClock('00:00')).toBe(0);
-      expect(parseClock('9:15')).toBe(9.25);
-    });
-
-    it('passes a number through untouched', () => {
-      expect(parseClock(13.75)).toBe(13.75);
-    });
-
-    it('throws on anything that is not HH:MM', () => {
-      expect(() => parseClock('half past two')).toThrow('Invalid time of day');
-      expect(() => parseClock('9:5')).toThrow('Invalid time of day');
-    });
-
-    // A cleared time input reads as '', which survives ?? and arrives here.
-    // The setup screen has to send undefined instead, and this is why.
-    it('rejects an empty string rather than reading it as midnight', () => {
-      expect(() => parseClock('')).toThrow('Invalid time of day');
-    });
-  });
-
   describe('sunAngleFromTime', () => {
     it('is zero at 13:00, where AC puts the sun overhead', () => {
       // Negative zero, which toFixed(2) still renders as "0.00".
@@ -445,64 +419,6 @@ describe('core/race-ini/utils', () => {
     it('throws on a session type AC does not know', () => {
       expect(() => buildSessionSection({ type: 'rallycross' } as never))
         .toThrow('Unknown session type');
-    });
-  });
-
-  describe('clamp', () => {
-    it('returns the value when it is already between the bounds', () => {
-      expect(clamp(2, 0, 3)).toBe(2);
-    });
-
-    it('returns the bound the value passed', () => {
-      expect(clamp(5, 0, 3)).toBe(3);
-      expect(clamp(-1, 0, 3)).toBe(0);
-    });
-
-    it('keeps the bounds themselves', () => {
-      expect(clamp(0, 0, 3)).toBe(0);
-      expect(clamp(3, 0, 3)).toBe(3);
-    });
-  });
-
-  describe('roadTempCurve', () => {
-    // Kunos' curve, checked against CSP's restatement of it hour by hour. These
-    // are the figures that decide what reaches [TEMPERATURE] ROAD, so they are
-    // pinned rather than merely bounded.
-    it('follows Kunos through the middle of the day', () => {
-      expect(roadTempCurve(12, 20, 1)).toBeCloseTo(28.2149, 4);
-      expect(roadTempCurve(14, 20, 1)).toBeCloseTo(28.2541, 4);
-      expect(roadTempCurve(18, 20, 1)).toBeCloseTo(26.3559, 4);
-    });
-
-    // Raw Kunos returns 214C here, because their launcher only ever exposed an
-    // 08:00 to 18:00 slider. Our clock offers the whole day, so the phase is
-    // capped and the curve stays bounded.
-    it('leaves the road at ambient before dawn and at midnight', () => {
-      expect(roadTempCurve(0, 20, 1)).toBe(20);
-      expect(roadTempCurve(6, 20, 1)).toBe(20);
-      expect(roadTempCurve(7, 20, 1)).toBe(20);
-      expect(roadTempCurve(24, 20, 1)).toBe(20);
-    });
-
-    it('cools the road under a negative coefficient', () => {
-      expect(roadTempCurve(14, 20, -1)).toBeCloseTo(11.7459, 4);
-    });
-
-    it('leaves the road at ambient when the coefficient is zero', () => {
-      expect(roadTempCurve(14, 20, 0)).toBe(20);
-    });
-
-    // Recorded rather than fixed: winding the phase back down walks back over
-    // the curve's own afternoon peak, so the evening is not monotone. It is
-    // CSP's behaviour, and it is bounded.
-    it('reads warmer at 20:00 than at 18:00, which is CSP\'s fade, not a bug', () => {
-      expect(roadTempCurve(20, 20, 1)).toBeGreaterThan(roadTempCurve(18, 20, 1));
-      expect(roadTempCurve(20, 20, 1)).toBeLessThan(roadTempCurve(14, 20, 1));
-    });
-
-    it('scales with ambient, since the whole curve is a multiple of it', () => {
-      expect(roadTempCurve(14, 0, 1)).toBe(0);
-      expect(roadTempCurve(14, 30, 1)).toBeCloseTo(roadTempCurve(14, 10, 1) * 3, 10);
     });
   });
 

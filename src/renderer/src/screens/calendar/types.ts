@@ -32,3 +32,28 @@ export interface AgendaDay {
    */
   events: readonly CalendarEntry[];
 }
+
+/**
+ * How the calendar lays its events out: a timeline of race days, or a month at
+ * a time as a grid.
+ */
+export type CalendarView = 'days' | 'month';
+
+/**
+ * How one race day reads in the month strip's row of ticks.
+ */
+export type MonthTick = 'clash' | 'yours' | 'other';
+
+/**
+ * One month of a season, as the strip of month buttons shows it.
+ */
+export interface SeasonMonth {
+  /**
+   * Its first day, as an ISO date.
+   */
+  start: string;
+  /**
+   * One tick per race day in it, in date order.
+   */
+  ticks: readonly MonthTick[];
+}

@@ -2,10 +2,11 @@ import { Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { CareerEventView, EventSession } from '../../../../shared/types';
+import { lostCount, SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
-import { useRaceSetup } from '@/hooks';
+import { useRaceStatus } from '@/hooks';
 import { useAppError } from '@/i18n';
-import { SESSION_TYPE_LABEL } from '@/screens/race';
+import { sessionName } from '@/lib/session-labels';
 
 interface LaunchAreaProps {
   /**
@@ -24,30 +25,27 @@ interface LaunchAreaProps {
    * Called to run it.
    */
   onLaunch: () => void;
-  /**
-   * Called to start a weekend changed on the Race screen again.
-   */
-  onRestart: () => void;
 }
 
 /**
  * Where the next session is started, and where it says why it cannot be.
  *
- * The page's own rather than the Race screen's LaunchPanel, whose Reset and
- * "locked" belong to a race set up by hand. The launching and waiting states are
+ * The launching and waiting states are
  * the race store's, read only while it holds this weekend - another weekend's
  * launch has nothing to say here.
  */
 export const LaunchArea = ({
-  view, session, busy, onLaunch, onRestart,
+  view, session, busy, onLaunch,
 }: LaunchAreaProps) => {
   const { t } = useTranslation();
   const describe = useAppError();
-  const race = useRaceSetup();
+  const race = useRaceStatus();
 
   const status = view.live ? race.setup?.status : undefined;
   const running = status !== undefined && status.phase !== 'idle';
-  const name = session.name ?? t(SESSION_TYPE_LABEL[session.type]);
+  const name = sessionName(session, t);
+  const lost = lostCount(view.skips);
+  const partway = view.skips.some((one) => one.reason === 'partway');
 
   if (running) {
     return (
@@ -71,13 +69,16 @@ export const LaunchArea = ({
       {view.blocked ? (
         <p className="text-sm text-muted-foreground">{describe(view.blocked)}</p>
       ) : null}
+      {/* The launch is offered regardless, and asks before it goes - this says
+          what it will ask about before it is pressed. */}
+      {view.blocked === null && lost > 0 ? (
+        <SkipNote
+          title={t(partway ? 'skip.launchNotePartway' : 'skip.launchNote', { count: lost })}
+          hint={t('skip.launchNoteHint')}
+        />
+      ) : null}
 
       <div className="flex flex-wrap justify-end gap-2">
-        {view.disturbed ? (
-          <Button type="button" variant="outline" disabled={busy} onClick={onRestart}>
-            {t('event.launch.restart')}
-          </Button>
-        ) : null}
         <Button type="button" size="lg" disabled={busy || view.blocked !== null} onClick={onLaunch}>
           {t('race.launch.actionNamed', { name })}
         </Button>

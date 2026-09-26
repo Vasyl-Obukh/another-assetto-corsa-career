@@ -1,44 +1,69 @@
-import { MapIcon } from 'lucide-react';
+import { ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
+import { SUMMARY } from './constants.ts';
 import { EnterPanel } from './EnterPanel.tsx';
 import { EntryPanel } from './EntryPanel.tsx';
+import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
+import { EventSkeleton } from './EventSkeleton.tsx';
+import { RoundSummary } from './RoundSummary.tsx';
+import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
 import { defaultSession } from './utils.ts';
 import { WeekendList } from './WeekendList.tsx';
-import {
-  ClimateBadge, ContentImage, ErrorCard, ScreenBody, ScreenHeader,
-} from '@/components';
+import { ClimateBadge, ErrorCard, lostCount, ScreenBody, ScreenHeader, SkipDialog } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useCareerEvent } from '@/hooks';
-import { useFormat } from '@/i18n';
-import { DISCIPLINE_ACCENT } from '@/lib/accents';
+import { Card, CardContent } from '@/components/ui/card.tsx';
+import {
+  useCareerEvent, useChampionshipResults, usePageName, usePlayerName,
+} from '@/hooks';
+import { formatDayRange, useFormat } from '@/i18n';
+import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
 import { path, ROUTE } from '@/lib/routes';
+import { sessionName } from '@/lib/session-labels';
+import { cn } from '@/lib/utils.ts';
 import { disciplineKey, tierAccent } from '@/screens/championships';
-import { layoutMapSources } from '@/screens/track-browser';
+import { LayoutMap } from '@/screens/track-browser';
 
 export const Event = () => {
   const { t } = useTranslation();
-  const { formatDay, formatMoney } = useFormat();
+  const { formatDay, formatDayShort, formatMoney } = useFormat();
   const { series = '', round = '' } = useParams<PathParam<typeof ROUTE.event>>();
   const event = useCareerEvent(series, round);
+  const results = useChampionshipResults(series);
+  const navigate = useNavigate();
   // Null until the player picks one, so the page follows the weekend on its own
   // - opening on the next session, and moving on to the one after once it has
   // run - until they choose to look at something else.
   const [picked, setPicked] = useState<number | null>(null);
+  // Whether the next launch is waiting on the player to confirm what it costs.
+  const [confirming, setConfirming] = useState(false);
 
   const { view } = event;
-  const selected = picked ?? (view ? defaultSession(view.sessions) : 0);
+  usePageName(view ? t('back.round', { round: view.roundName, series: view.seriesName }) : null);
+  // The round's own results head the weekend once anything of it has run, and
+  // a weekend over and done opens on them.
+  const raced = view?.sessions.some((one) => one.record !== null) ?? false;
+  const summary = view && raced ? {
+    points: view.entered && !view.substituted
+      ? view.sessions.reduce((sum, one) => sum + (one.place?.points ?? 0), 0)
+      : null,
+    complete: view.status !== 'scheduled',
+  } : null;
+  const selected = picked ?? (summary?.complete ? SUMMARY : view ? defaultSession(view.sessions) : 0);
   const session = view?.sessions.find((one) => one.index === selected) ?? view?.sessions[0];
+  const playerName = usePlayerName();
+  const openStandings = (): void => {
+    void navigate({ pathname: path.championship({ id: series }), search: '?tab=standings' });
+  };
   const ladder = view?.entered?.ladder ?? view?.classes[0]?.ladder;
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={{ to: path.calendar(), label: t('event.back') }}>
+      <ScreenHeader back={{ to: path.calendar(), label: t('back.calendar') }}>
         {view ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 flex-col gap-1.5">
@@ -59,12 +84,18 @@ export const Event = () => {
                 {view.climate ? <ClimateBadge climate={view.climate} /> : null}
               </div>
               <h1 className="text-2xl font-semibold" data-selectable>{view.roundName}</h1>
-              <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <span>{view.seriesName}</span>
+              <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                {/* The championship this round belongs to, in its discipline's colour. */}
+                <Link
+                  to={path.championship({ id: view.series })}
+                  className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2 pl-2.5 font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                >
+                  {ladder ? <span className={cn('size-2 rounded-full', DISCIPLINE_DOT[ladder.discipline])} /> : null}
+                  {view.seriesName}
+                  <ChevronRightIcon className="size-3.5" />
+                </Link>
                 <span>
-                  {view.firstDay === view.lastDay
-                    ? formatDay(view.firstDay)
-                    : t('event.dates', { from: formatDay(view.firstDay), to: formatDay(view.lastDay) })}
+                  {formatDayRange(t, formatDay, view.firstDay, view.lastDay)}
                 </span>
                 <span>{t('calendar.grid', { count: view.gridSize })}</span>
                 {view.prize === null ? null : (
@@ -73,26 +104,20 @@ export const Event = () => {
               </p>
             </div>
 
-            {/* The layout's shape, as every round row draws it, and inverted the
-                same way so it reads on both themes. */}
-            <div className="relative aspect-[16/9] w-36 shrink-0 overflow-hidden rounded-md bg-muted">
-              <ContentImage
-                sources={layoutMapSources({ id: view.track.id, layout: view.track.layout ?? '' })}
-                alt={view.roundName}
-                className="object-contain p-1.5 [&[src*='/outline']]:invert dark:[&[src*='/outline']]:invert-0"
-                fallback={(
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <MapIcon className="size-6 text-muted-foreground/40" />
-                  </div>
-                )}
-              />
-            </div>
+            <Link
+              to={path.track({ id: view.track.id }, view.track.layout)}
+              title={t('championships.calendar.openTrack')}
+              className="relative block aspect-[16/9] w-36 shrink-0 overflow-hidden rounded-md bg-muted hover-outline"
+            >
+              <LayoutMap track={view.track} alt={view.roundName} className="p-1.5" iconClassName="size-6" />
+            </Link>
           </div>
         ) : null}
+        {!view && event.loading ? <EventHeadSkeleton /> : null}
       </ScreenHeader>
 
       {event.error ? <ErrorCard error={event.error} onDismiss={event.dismissError} /> : null}
-      {event.loading ? <Skeleton className="h-96 w-full" /> : null}
+      {event.loading ? <EventSkeleton /> : null}
 
       {view ? (
         <div className="grid items-start gap-4 lg:grid-cols-[300px_1fr]">
@@ -104,21 +129,82 @@ export const Event = () => {
                 onEnter={(entry, car) => { void event.enter(entry, car); }}
               />
             )}
-            <WeekendList sessions={view.sessions} selected={selected} onSelect={setPicked} />
+            <WeekendList
+              sessions={view.sessions}
+              selected={selected}
+              summary={summary}
+              substituted={view.substituted}
+              onSelect={setPicked}
+            />
           </aside>
 
-          {session ? (
+          {selected === SUMMARY && summary ? (
+            <Card className="py-4">
+              <CardContent className="flex flex-col gap-4 px-4">
+                <h2 className="text-lg font-semibold">{t('event.summary.title')}</h2>
+                {results.results ? (
+                  <RoundSummary
+                    view={view}
+                    results={results.results}
+                    playerName={playerName}
+                    onFull={openStandings}
+                  />
+                ) : null}
+                {results.loading ? (
+                  <RoundSummarySkeleton
+                    entered={view.entered !== null}
+                    races={view.sessions.filter((one) => one.type === 'race').length}
+                    round={view.number}
+                  />
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+          {selected !== SUMMARY && session ? (
             <SessionDetail
               view={view}
               session={session}
+              series={results.results?.championship ?? null}
               busy={event.busy}
-              onLaunch={() => { setPicked(null); void event.launch(); }}
-              onRestart={() => { setPicked(null); void event.restart(); }}
+              onLaunch={() => {
+                if (lostCount(view.skips) > 0) {
+                  setConfirming(true);
+
+                  return;
+                }
+
+                setPicked(null);
+                void event.launch();
+              }}
             />
-          ) : (
+          ) : null}
+          {selected !== SUMMARY && !session ? (
             <p className="text-sm text-muted-foreground">{t('event.noSessions')}</p>
-          )}
+          ) : null}
         </div>
+      ) : null}
+
+      {view && session ? (
+        <SkipDialog
+          open={confirming}
+          title={t('skip.launchTitle', { count: lostCount(view.skips) })}
+          description={t(
+            view.skips.some((one) => one.reason === 'partway') ? 'skip.launchHintPartway' : 'skip.launchHint',
+            { round: view.roundName, day: formatDayShort(view.firstDay) },
+          )}
+          rounds={view.skips}
+          confirmLabel={t('skip.launchConfirm', {
+            count: lostCount(view.skips),
+            name: sessionName(session, t),
+          })}
+          busy={event.busy}
+          onConfirm={() => {
+            setConfirming(false);
+            setPicked(null);
+            void event.launch(true);
+          }}
+          onClose={() => setConfirming(false)}
+        />
       ) : null}
     </ScreenBody>
   );

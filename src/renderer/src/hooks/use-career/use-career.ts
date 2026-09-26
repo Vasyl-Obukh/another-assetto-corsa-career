@@ -87,6 +87,12 @@ export const useCareer = (): CareerState => {
     dismissError: () => setError(null),
     enrol: (series, entry, car) => run(() => invoke('career:enrol', { series, entry, car })),
     withdraw: (series, entry) => run(() => invoke('career:withdraw', { series, entry })),
-    advanceTo: (date) => run(() => invoke('career:advance', { date })),
+    advanceTo: (date, skip) => run(() => invoke('career:advance', { date, skip })),
+    // An error is shown as any command's is, and still rejects: a move whose
+    // cost could not be read must not go ahead as though it cost nothing.
+    skipsTo: (date) => invoke('career:skips', { date }).catch((thrown: unknown) => {
+      setError(toDisplayableError(thrown));
+      throw thrown;
+    }),
   };
 };

@@ -1,9 +1,9 @@
 import { CarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { dotted, entryImageSources } from './utils.ts';
+import { dotted } from './utils.ts';
 import type { EventEntry } from '../../../../shared/types';
-import { ContentImage } from '@/components';
+import { carPictureSources, ContentImage } from '@/components';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
@@ -30,7 +30,7 @@ export const EntryPanel = ({ entry }: EntryPanelProps) => {
       <CardContent className="flex flex-col gap-3 px-3">
         <div className="relative aspect-[16/9] w-full overflow-hidden rounded-md bg-muted">
           <ContentImage
-            sources={entryImageSources(entry.car.model, entry.car.skin)}
+            sources={carPictureSources(entry.car.model, entry.car.skin)}
             alt={carName(entry.car.model)}
             className="object-cover"
             fallback={(

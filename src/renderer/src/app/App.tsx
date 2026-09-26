@@ -4,6 +4,7 @@ import { useSettings } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
+import { useNavHistory } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { Calendar } from '@/screens/calendar';
 import { CarBrowser } from '@/screens/car-browser';
@@ -15,11 +16,13 @@ import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
-import { Race } from '@/screens/race';
+import { Home } from '@/screens/home';
+import { Race, RaceWeekend } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
 import { Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
 import { TrackBrowser } from '@/screens/track-browser';
+import { TrackDetail } from '@/screens/track-detail';
 import { YourContent } from '@/screens/your-content';
 
 interface AppProps {
@@ -31,6 +34,8 @@ interface AppProps {
 
 export const App = ({ initialReport }: AppProps) => {
   const { settings } = useSettings();
+  // Keeps the window's history for every Back to name the page it returns to.
+  useNavHistory();
 
   return settings.setupCompletedAt ? (
     // One provider for the app: Radix wants a Provider above every Tooltip, and
@@ -41,7 +46,9 @@ export const App = ({ initialReport }: AppProps) => {
 
         <main className="min-h-0 flex-1">
           <Routes>
+            <Route path={ROUTE.home} element={<Home />} />
             <Route path={ROUTE.race} element={<Race />} />
+            <Route path={ROUTE.raceWeekend} element={<RaceWeekend />} />
             <Route path={ROUTE.calendar} element={<Calendar />} />
             <Route path={ROUTE.event} element={<Event />} />
             <Route path={ROUTE.championships} element={<Championships />} />
@@ -51,6 +58,7 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.cars} element={<CarBrowser />} />
             <Route path={ROUTE.car} element={<CarDetail />} />
             <Route path={ROUTE.tracks} element={<TrackBrowser />} />
+            <Route path={ROUTE.track} element={<TrackDetail />} />
             <Route path={ROUTE.settings} element={<SettingsLayout />}>
               <Route index element={<Settings />} />
               <Route
@@ -65,7 +73,7 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />
             <Route path={ROUTE.championshipNew} element={<ChampionshipEditor />} />
             <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
-            <Route path="*" element={<Navigate to={path.race()} replace />} />
+            <Route path="*" element={<Navigate to={path.home()} replace />} />
           </Routes>
         </main>
       </div>

@@ -1,3 +1,6 @@
+import type { ProvenancePicks } from './types.ts';
+import { ContentSource } from '../../../../shared/types';
+
 /**
  * How many skeleton cards stand in for the first page while it loads.
  */
@@ -16,6 +19,58 @@ export const SKELETON_COUNT = 8;
 export const SWITCH_TRACK = 'data-[state=checked]:bg-success data-[state=unchecked]:bg-muted-foreground/35 dark:data-[state=unchecked]:bg-muted-foreground/35';
 
 /**
- * How tall a facet list may grow before it scrolls inside the popover.
+ * How many of a long list's values the rail shows, biggest first, before the
+ * rest move into the flyout.
  */
-export const FACET_LIST_HEIGHT = 'max-h-72';
+export const RAIL_TOP = 5;
+
+/**
+ * How long a list may get before only its biggest values stay in the rail.
+ */
+export const RAIL_LONG = 8;
+
+/**
+ * The letters a flyout's index offers, whether or not anything starts with them.
+ */
+export const RAIL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+/**
+ * The dot beside each source in the rail, in the colour its chip wears on a card.
+ */
+export const SOURCE_DOT = {
+  [ContentSource.BASE]: 'bg-provenance-base-foreground',
+  [ContentSource.DLC]: 'bg-provenance-dlc-foreground',
+  [ContentSource.MOD]: 'bg-provenance-mod-foreground',
+} as const satisfies Record<ContentSource, string>;
+
+/**
+ * A card that is a link or a button as a whole: the card's own corners, with
+ * the focus ring drawn round them. Full height, so the card inside stretches
+ * to the tallest in its grid row however much it holds itself.
+ */
+export const CARD_LINK = 'block h-full w-full rounded-xl text-left focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none';
+
+/**
+ * The search box of a browser with a filter rail, matched to the sort button
+ * and the layout switch beside it: card-coloured, as tall and as round.
+ */
+export const TOOLBAR_SEARCH = 'h-9 rounded-lg bg-card shadow-xs dark:bg-card';
+
+/**
+ * The label widths a rail list's skeleton cycles through, so its rows read as
+ * names of different lengths rather than as one bar repeated.
+ */
+export const RAIL_SKELETON_WIDTHS = ['w-24', 'w-16', 'w-20', 'w-14', 'w-28'] as const;
+
+/**
+ * How many bars a range filter's skeleton draws for its histogram.
+ */
+export const RANGE_SKELETON_BINS = 24;
+
+/**
+ * The four provenance lists a query carries, in the order the source tree
+ * lists them.
+ */
+export const PROVENANCE_LISTS = ['sources', 'packs', 'makers', 'distributors'] as const satisfies readonly (
+  keyof ProvenancePicks
+)[];

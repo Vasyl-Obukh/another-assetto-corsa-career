@@ -337,6 +337,23 @@ describe('core/weekend', () => {
       expect(grid?.playerSlot).toBe(6);
       expect(grid?.order[5]).toBe(0);
     });
+
+    it('starts the player where a race nothing lines up says', () => {
+      const weekend = makeWeekend();
+      weekend.sessions = [{ type: 'race', name: 'Race', start: 'pole' }];
+      const weekendPlan = plan(weekend);
+
+      expect(startingGrid(weekendPlan, initWeekendState(weekendPlan), 0)?.playerSlot).toBe(1);
+    });
+
+    it('ignores where the session says to start behind a qualifying', () => {
+      const weekend = makeWeekend();
+      weekend.sessions = [{ type: 'qualify', name: 'Q', minutes: 10 }, { type: 'race', name: 'Race', start: 'pole' }];
+      const weekendPlan = plan(weekend);
+      const state = complete(weekendPlan, initWeekendState(weekendPlan), [makeQualifying([1, 2, 0, 3, 4, 5])]);
+
+      expect(startingGrid(weekendPlan, state, 1)?.playerSlot).toBe(3);
+    });
   });
 
   describe('appliedOrder', () => {

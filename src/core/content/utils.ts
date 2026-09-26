@@ -22,8 +22,13 @@ import {
   UI_TRACK_FILE,
 } from './constants.ts';
 import type { JsonRead, LooseJson, UiTrack } from './types.ts';
-import { M_PER_KM, M_PER_MILE } from '../../shared/constants/index.ts';
-import type { Track, WeatherFollow, WeatherRain } from '../../shared/types/index.ts';
+import {
+  M_PER_KM, M_PER_MILE, TRACK_LOGO_FILE, TRACK_PHOTO_EXTENSION, TRACK_PHOTO_NAME,
+} from '../../shared/constants/index.ts';
+import type {
+  Track, TrackRun, WeatherFollow, WeatherRain,
+} from '../../shared/types/index.ts';
+import { parseYear } from '../car-performance/index.ts';
 import { trackProvenance } from '../content-catalogue/index.ts';
 import type { IniSection } from '../ini/index.ts';
 import {
@@ -130,6 +135,35 @@ export const listDirs = async (dir: string): Promise<string[]> => {
 };
 
 /**
+ * Lists the files in a directory.
+ * @param dir Absolute path to the directory
+ * @returns File names, or an empty list when the directory cannot be read
+ */
+export const listFiles = async (dir: string): Promise<string[]> => {
+  try {
+    const entries = await readdir(dir, { withFileTypes: true });
+    return entries.filter((entry) => entry.isFile()).map((entry) => entry.name);
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Reads which way round a layout is driven, out of whatever the author wrote.
+ * @param raw ui_track.json's run field
+ * @returns The direction, or null when the words are not one this knows
+ */
+export const parseRun = (raw: unknown): TrackRun | null => {
+  if (typeof raw !== 'string') return null;
+  const words = raw.toLowerCase().replace(/[\s_-]/g, '');
+
+  if (words === 'clockwise' || words === 'cw') return 'clockwise';
+  if (words === 'anticlockwise' || words === 'counterclockwise' || words === 'ccw') return 'anticlockwise';
+
+  return null;
+};
+
+/**
  * Runs an async function over every item, a bounded number at a time.
  *
  * Order is preserved, so callers can keep sorting the result as they did with
@@ -229,10 +263,12 @@ export const fingerprintCar = async (
  * Fingerprints one track and all of its layouts.
  *
  * The ui folder's own stamp covers layouts appearing and disappearing, so an
- * unmoved one means the layout list cannot have changed. Layouts are sorted
- * first: a fresh scan finds them in readdir order and a revalidation in display
- * order, and encoding those differently made every multi-layout track look
- * changed on every scan.
+ * unmoved one means the layout list cannot have changed - and covers a
+ * single-layout track's photographs and logo, which sit in it. A layout's own
+ * folder is stamped beside its ui_track.json for the same reason. Layouts are
+ * sorted first: a fresh scan finds them in readdir order and a revalidation in
+ * display order, and encoding those differently made every multi-layout track
+ * look changed on every scan.
  * @param contentDir The AC content directory
  * @param id Track folder name
  * @param layouts The layout folder names this track is known to have
@@ -249,7 +285,14 @@ export const fingerprintTrack = async (
   const [dir, root, ...nested] = await Promise.all([
     dirStamp(uiDir),
     fileStamp(path.join(uiDir, UI_TRACK_FILE)),
-    ...ordered.map((layout) => fileStamp(path.join(uiDir, layout, UI_TRACK_FILE))),
+    ...ordered.map(async (layout) => {
+      const [folder, file] = await Promise.all([
+        dirStamp(path.join(uiDir, layout)),
+        fileStamp(path.join(uiDir, layout, UI_TRACK_FILE)),
+      ]);
+
+      return `${folder},${file}`;
+    }),
   ]);
 
   const parts = ordered.map((layout, index) => `${layout}=${nested[index]}`);
@@ -268,6 +311,37 @@ export const fingerprintTrack = async (
 export const trimmed = (value: unknown): string | null => {
   if (typeof value !== 'string') return null;
   const text = value.trim();
+
+  return text === '' ? null : text;
+};
+
+/**
+ * Reads a car's description as plain text.
+ *
+ * Kunos write it as HTML-flavoured text - `<br>` for a line break, the odd
+ * `&amp;` - and mods copy them, so the breaks become newlines, any other tag is
+ * dropped and the handful of entities authors actually use are decoded. Runs of
+ * blank lines collapse to one, which is how a `<br><br>` paragraph reads.
+ * @param value The raw description field
+ * @returns The text, or null when nothing is left of it
+ */
+export const plainDescription = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+
+  const text = value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 
   return text === '' ? null : text;
 };
@@ -356,11 +430,20 @@ export const parseTrackWidth = (value: unknown): number | null => (
  * @param id Track folder name
  * @param layout Layout folder name, or an empty string for single-layout tracks
  * @param ui The parsed ui_track.json
+ * @param files The files beside it in its ui folder, for its photographs and logo
  * @returns The track, with anything unreadable left null
  */
-export const makeTrack = (id: string, layout: string, ui: UiTrack): Track => {
+export const makeTrack = (id: string, layout: string, ui: UiTrack, files: readonly string[] = []): Track => {
   const [lat, lon] = Array.isArray(ui.geotags) ? ui.geotags : [];
   const pitboxes = parseInt(String(ui.pitboxes), 10);
+  const version = typeof ui.version === 'number' ? String(ui.version) : trimmed(ui.version);
+  // Lower-cased, since Windows serves `BGR00.JPG` for a request for `bgr00.jpg`.
+  const named = files.map((file) => file.toLowerCase());
+  const photos = named
+    .filter((file) => file.endsWith(TRACK_PHOTO_EXTENSION))
+    .map((file) => file.slice(0, -TRACK_PHOTO_EXTENSION.length))
+    .filter((name) => TRACK_PHOTO_NAME.test(name))
+    .sort();
 
   return {
     id,
@@ -372,6 +455,15 @@ export const makeTrack = (id: string, layout: string, ui: UiTrack): Track => {
     lengthM: parseTrackLength(ui.length),
     widthM: parseTrackWidth(ui.width),
     geotags: { lat: parseGeotag(lat), lon: parseGeotag(lon) },
+    city: trimmed(ui.city),
+    run: parseRun(ui.run),
+    description: plainDescription(ui.description),
+    tags: Array.isArray(ui.tags) ? ui.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+    author: trimmed(ui.author),
+    version,
+    year: parseYear(ui.year),
+    photos,
+    logo: named.includes(TRACK_LOGO_FILE),
     provenance: trackProvenance(id, layout),
   };
 };

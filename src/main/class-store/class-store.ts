@@ -22,6 +22,7 @@ import {
   withoutCarSpecs,
   withoutUserClass,
   withoutUserSpec,
+  withSpecCars,
   withUserClass,
   withUserSpec,
 } from '../../shared/utils/class-layer/index.ts';
@@ -122,6 +123,16 @@ export const createClassStore = async (userDataDir: string): Promise<ClassStore>
     copyClass: (id, name) => commit((current) => withClassCopy(current, catalogue, id, name, randomUUID)),
 
     saveSpec: (draft) => commit((current) => withUserSpec(current, catalogue, draft, randomUUID())),
+
+    saveSpecCars: (spec, cars) => commit((current) => {
+      // A spec the app ships keeps its name, so only its cars are restated.
+      const { id } = spec;
+      const named = id !== undefined && catalogue.specById.get(id)?.origin === 'shipped'
+        ? { layer: current, id }
+        : withUserSpec(current, catalogue, spec, randomUUID());
+
+      return { layer: withSpecCars(named.layer, resolveCatalogue(named.layer), named.id, cars), id: named.id };
+    }),
 
     deleteSpec: (id, users) => commit((current) => ({
       layer: withoutUserSpec(current, catalogue, id, users), id: null,

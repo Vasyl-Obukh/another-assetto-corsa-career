@@ -1,10 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { makeCars, makeTrackEntry, makeTracks } from './fixtures.ts';
-import { CarClass } from '../../../shared/types/index.ts';
+import { CarClass, ContentSource, DLCPack } from '../../../shared/types/index.ts';
+import type { Track } from '../../../shared/types/index.ts';
 import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
 import {
-  carFacets, queryCars, queryTracks, trackFacets,
+  carFacets, circuitOf, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
 
 const USER_CLASS = 'user-class';
@@ -74,11 +75,6 @@ describe('core/content-query', () => {
         .toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016']);
     });
 
-    it('keeps only cars that have a livery when asked', () => {
-      expect(ids(queryCars(makeCars(), { hasSkins: true }))).not.toContain('nameless_mod');
-      expect(ids(queryCars(makeCars(), { hasSkins: false }))).toContain('nameless_mod');
-    });
-
     it('sorts by any of its keys, in either direction', () => {
       expect(ids(queryCars(makeCars(), { sort: 'bhp', direction: 'desc' })).slice(0, 3))
         .toEqual(['ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016', 'ferrari_f40']);
@@ -111,6 +107,31 @@ describe('core/content-query', () => {
       expect(ids(queryCars(makeCars(), { specs: [USER_SPEC] }, USER_CATALOGUE))).toEqual(['nameless_mod']);
       expect(ids(queryCars(makeCars(), { classes: [CarClass.GT3] }, USER_CATALOGUE))).toEqual([]);
     });
+
+    // The browser shows class and spec as one tree, so a class ticked beside a
+    // spec of another means either rather than a car that is both.
+    it('ors a class with a spec of another class', () => {
+      const page = queryCars(makeCars(), { classes: [CarClass.GT3], specs: [USER_SPEC] }, USER_CATALOGUE);
+
+      expect(ids(page)).toEqual(['nameless_mod']);
+      expect(ids(queryCars(makeCars(), { classes: [CarClass.GT3], specs: [USER_SPEC] })))
+        .toEqual(['ks_porsche_911_gt3_r_2016']);
+    });
+
+    it('ors the provenance lists, so a source beside a pack means either', () => {
+      const page = queryCars(makeCars(), { sources: [ContentSource.BASE], packs: [DLCPack.PORSCHE_PACK_3] });
+
+      expect(ids(page)).toEqual(['ferrari_f40', 'ks_porsche_911_gt3_r_2016']);
+    });
+
+    it('filters by the nation a free-text country names', () => {
+      expect(ids(queryCars(makeCars(), { countries: ['DEU', 'FRA'] })))
+        .toEqual(['citroen_ds3', 'ks_porsche_911_gt3_r_2016']);
+    });
+
+    it('keeps only the cars it is asked for by id', () => {
+      expect(ids(queryCars(makeCars(), { ids: ['ferrari_f40', 'not_installed'] }))).toEqual(['ferrari_f40']);
+    });
   });
 
   describe('queryTracks', () => {
@@ -124,7 +145,7 @@ describe('core/content-query', () => {
     });
 
     it('filters by country and by grid capacity', () => {
-      expect(ids(queryTracks(makeTracks(), { countries: ['Italy'] }))).toEqual(['imola', 'monza']);
+      expect(ids(queryTracks(makeTracks(), { countries: ['ITA'] }))).toEqual(['imola', 'monza']);
       expect(ids(queryTracks(makeTracks(), { pitboxesFrom: 24 }))).toEqual(['monza', 'spa']);
       expect(ids(queryTracks(makeTracks(), { pitboxesTo: 24 }))).toEqual(['imola', 'spa']);
     });
@@ -136,6 +157,25 @@ describe('core/content-query', () => {
     it('sorts by grid capacity, with unknown capacities last', () => {
       expect(ids(queryTracks(makeTracks(), { sort: 'pitboxes', direction: 'desc' })))
         .toEqual(['monza', 'spa', 'imola', 'mod_track']);
+    });
+
+    it('filters and sorts by lap length, with unknown lengths last', () => {
+      const tracks = makeTracks().map((track): Track => ({
+        ...track, lengthM: ({ spa: 7004, monza: 5793, imola: 4909 } as Record<string, number>)[track.id] ?? null,
+      }));
+
+      expect(ids(queryTracks(tracks, { lengthFrom: 5000 }))).toEqual(['monza', 'spa']);
+      expect(ids(queryTracks(tracks, { lengthTo: 6000 }))).toEqual(['imola', 'monza']);
+      expect(ids(queryTracks(tracks, { sort: 'length' }))).toEqual(['imola', 'monza', 'spa', 'mod_track']);
+    });
+
+    it('keeps only the circuits it is asked for by id', () => {
+      expect(ids(queryTracks(makeTracks(), { ids: ['spa', 'imola'] }))).toEqual(['imola', 'spa']);
+    });
+
+    it('ors the provenance lists, as the car browser does', () => {
+      expect(ids(queryTracks(makeTracks(), { sources: [ContentSource.MOD], packs: [DLCPack.PORSCHE_PACK_3] })))
+        .toEqual(['mod_track']);
     });
 
     // Everything above uses single-layout fixtures, where a track and a layout
@@ -212,11 +252,12 @@ describe('core/content-query', () => {
       expect(facets.countries).toHaveLength(3);
     });
 
-    it('lists years most recent first, not commonest first', () => {
-      expect(carFacets(makeCars()).years).toEqual([
-        { value: '2018', count: 2 },
-        { value: '1987', count: 1 },
-      ]);
+    it('spreads years across the range installed', () => {
+      const { years } = carFacets(makeCars());
+
+      expect(years).toMatchObject({ min: 1987, max: 2018 });
+      expect(years?.counts[0]).toBe(1);
+      expect(years?.counts.at(-1)).toBe(2);
     });
 
     // Ticking one brand must leave the others pickable, or the filter list
@@ -231,7 +272,7 @@ describe('core/content-query', () => {
     it('does narrow every other dimension to the current filter', () => {
       const picked = carFacets(makeCars(), { brands: ['Ferrari'] });
 
-      expect(picked.countries).toEqual([{ value: 'Italy', count: 2 }]);
+      expect(picked.countries).toEqual([{ value: 'ITA', count: 2 }]);
     });
 
     it('narrows on a search as well as on a filter', () => {
@@ -245,24 +286,49 @@ describe('core/content-query', () => {
       expect(facets.classes).toEqual([{ value: USER_CLASS, count: 1 }]);
       expect(facets.specs).toEqual([{ value: USER_SPEC, count: 1 }]);
     });
+
+    // One tree in the browser, so picking a class must leave every spec
+    // pickable, and the other way round.
+    it('counts classes and specs against neither of their own filters', () => {
+      const all = carFacets(makeCars(), {}, USER_CATALOGUE);
+      const picked = carFacets(makeCars(), { specs: [USER_SPEC] }, USER_CATALOGUE);
+
+      expect(picked.classes).toEqual(all.classes);
+      expect(picked.specs).toEqual(all.specs);
+    });
+
+    it('counts the provenance lists against none of the four', () => {
+      const all = carFacets(makeCars());
+      const picked = carFacets(makeCars(), { packs: [DLCPack.PORSCHE_PACK_3] });
+
+      expect(picked.sources).toEqual(all.sources);
+      expect(picked.makers).toEqual(all.makers);
+    });
+
+    it('spreads power over every car installed, counting what the other filters leave', () => {
+      const { power } = carFacets(makeCars(), { brands: ['Ferrari'], bhpFrom: 590 });
+
+      expect(power).toMatchObject({ min: 471, max: 600 });
+      expect(power?.counts.reduce((sum, count) => sum + count, 0)).toBe(2);
+    });
   });
 
   describe('trackFacets', () => {
     it('counts countries', () => {
       expect(trackFacets(makeTracks()).countries).toEqual([
-        { value: 'Italy', count: 2 },
-        { value: 'Belgium', count: 1 },
+        { value: 'ITA', count: 2 },
+        { value: 'BEL', count: 1 },
       ]);
     });
 
     it('does not count countries against the country filter', () => {
-      expect(trackFacets(makeTracks(), { countries: ['Italy'] }).countries)
+      expect(trackFacets(makeTracks(), { countries: ['ITA'] }).countries)
         .toEqual(trackFacets(makeTracks()).countries);
     });
 
     it('narrows on a search', () => {
       expect(trackFacets(makeTracks(), { search: 'monza' }).countries)
-        .toEqual([{ value: 'Italy', count: 1 }]);
+        .toEqual([{ value: 'ITA', count: 1 }]);
     });
 
     // The numbers have to match the cards: a Nordschleife with three layouts is
@@ -275,11 +341,37 @@ describe('core/content-query', () => {
       );
 
       expect(trackFacets([...makeTracks(), ...nordschleife]).countries).toEqual([
-        { value: 'Italy', count: 2 },
-        { value: 'Belgium', count: 1 },
-        { value: 'Germany', count: 1 },
+        { value: 'ITA', count: 2 },
+        { value: 'BEL', count: 1 },
+        { value: 'DEU', count: 1 },
       ]);
     });
 
+    it('spreads pit boxes over layouts, counting what the other filters leave', () => {
+      const { pitboxes } = trackFacets(makeTracks(), { countries: ['ITA'], pitboxesFrom: 30 });
+
+      expect(pitboxes).toMatchObject({ min: 12, max: 30 });
+      expect(pitboxes?.counts.reduce((sum, count) => sum + count, 0)).toBe(2);
+    });
+
+    it('has no length spread when no layout states one', () => {
+      expect(trackFacets(makeTracks()).length).toBeNull();
+    });
+  });
+
+  describe('circuitOf', () => {
+    it('gathers every layout installed under a circuit', () => {
+      const layouts = ['gp', 'club'].map((layout) => makeTrackEntry({
+        id: 'multi', layout, name: `Multi ${layout}`, country: 'Italy',
+      }));
+      const circuit = circuitOf([...makeTracks(), ...layouts], 'multi');
+
+      expect(circuit?.id).toBe('multi');
+      expect(circuit?.layouts.map((track) => track.layout).sort()).toEqual(['club', 'gp']);
+    });
+
+    it('is null for a circuit that is not installed', () => {
+      expect(circuitOf(makeTracks(), 'nowhere')).toBeNull();
+    });
   });
 });

@@ -7,7 +7,6 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
-  AI_RANGE,
   DEFAULT_ALLOWED_WEATHER,
   DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,
@@ -19,10 +18,11 @@ import {
   WEATHER_TYPE_ORDER,
 } from '../../constants/index.ts';
 import type { WeatherType } from '../../constants/index.ts';
-import { DLCPack, ModMaker } from '../../types/index.ts';
+import { DLCPack, ModDistributor, ModMaker } from '../../types/index.ts';
 import type {
   AddedContent, AiBase, DrivingAids, HiddenContentSources, PathOverrides, Settings, WindowState,
 } from '../../types/index.ts';
+import { aiFigure } from '../ai-figure/index.ts';
 import { isRecord, memberOf, stringEnumValues } from '../coerce/index.ts';
 
 /**
@@ -133,14 +133,15 @@ const readMembers = <T extends string | number>(raw: unknown, members: readonly 
  * Anything unreadable falls back to nothing hidden, which offers every
  * championship - the safe way round, since hiding one says nothing about why.
  * @param raw The value read from disk
- * @returns Both lists, empty where nothing usable was there
+ * @returns Every list, empty where nothing usable was there
  */
 export const readHiddenContentSources = (raw: unknown): HiddenContentSources => {
-  if (!isRecord(raw)) return { packs: [], makers: [] };
+  if (!isRecord(raw)) return { packs: [], makers: [], distributors: [] };
 
   return {
     packs: readMembers(raw.packs, stringEnumValues(DLCPack)),
     makers: readMembers(raw.makers, stringEnumValues(ModMaker)),
+    distributors: readMembers(raw.distributors, stringEnumValues(ModDistributor)),
   };
 };
 
@@ -200,9 +201,7 @@ export const readDrivingAids = (raw: unknown): DrivingAids => {
  */
 const readAiFigure = (value: unknown, fallback: number): number => {
   const read = finiteNumber(value);
-  if (read === undefined) return fallback;
-
-  return Math.min(AI_RANGE.max, Math.max(AI_RANGE.min, Math.round(read)));
+  return read === undefined ? fallback : aiFigure(read);
 };
 
 /**

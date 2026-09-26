@@ -1,9 +1,11 @@
+import { CarIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { dotted } from './utils.ts';
 import type { Car, CareerEventView, Skin } from '../../../../shared/types';
-import { CarPicker } from '@/components';
+import {
+  CarPicker, carPictureSources, ContentImage, SkipDialog, SkipNote,
+} from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -12,6 +14,9 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useFormat } from '@/i18n';
+import { CAUTION_ACCENT } from '@/lib/accents';
+import { cn } from '@/lib/utils.ts';
 import { Field } from '@/screens/race';
 
 interface EnterPanelProps {
@@ -24,15 +29,24 @@ interface EnterPanelProps {
    */
   busy: boolean;
   /**
-   * Called with the class, car and livery chosen.
+   * Whether to say which round entering starts from, for a page that is not
+   * already that round's own.
+   */
+  showFirstRound?: boolean;
+  /**
+   * Called with the class, car and livery chosen, once the player has
+   * confirmed whatever entering now costs.
    * @param entry The class entry's id
    * @param car The car and livery to race all season
    */
   onEnter: (entry: string, car: { model: string; skin?: string }) => void;
 }
 
-export const EnterPanel = ({ view, busy, onEnter }: EnterPanelProps) => {
+export const EnterPanel = ({
+  view, busy, showFirstRound = false, onEnter,
+}: EnterPanelProps) => {
   const { t } = useTranslation();
+  const { formatDayShort } = useFormat();
   // The first class the career may enter, not merely the first listed: a
   // multi-class championship's top class is usually the one out of reach.
   const [entry, setEntry] = useState(
@@ -41,6 +55,9 @@ export const EnterPanel = ({ view, busy, onEnter }: EnterPanelProps) => {
   const [car, setCar] = useState<Car | null>(null);
   const [skin, setSkin] = useState<Skin | null>(null);
   const [picking, setPicking] = useState(false);
+  // Entering a championship already rounds in asks first, here rather than in
+  // each page that shows the panel.
+  const [confirming, setConfirming] = useState(false);
 
   const chosen = view.classes.find((one) => one.id === entry);
   const ready = !!chosen?.eligible && view.raceable && car !== null && !busy;
@@ -71,7 +88,10 @@ export const EnterPanel = ({ view, busy, onEnter }: EnterPanelProps) => {
         ) : null}
 
         {chosen && !chosen.eligible ? (
-          <Badge variant="outline" className="self-start">{t('calendar.locked')}</Badge>
+          <Badge className={cn('gap-1 self-start', CAUTION_ACCENT)}>
+            <LockIcon className="size-3" />
+            {t('calendar.locked')}
+          </Badge>
         ) : null}
         {!view.raceable ? (
           <p className="text-sm text-destructive">{t('event.enter.unraceable')}</p>
@@ -80,11 +100,29 @@ export const EnterPanel = ({ view, busy, onEnter }: EnterPanelProps) => {
           <p className="text-sm text-muted-foreground">{t('event.enter.noCars')}</p>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm">
-            {car
-              ? dotted([car.name, skin?.name])
-              : <span className="text-muted-foreground">{t('event.enter.noCar')}</span>}
+        <div className="flex items-center gap-3">
+          {/* The car as it will look all season, once there is one. */}
+          {car ? (
+            <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+              <ContentImage
+                sources={carPictureSources(car.id, skin?.id)}
+                alt={car.name}
+                className="object-cover"
+                fallback={(
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <CarIcon className="size-4 text-muted-foreground/40" />
+                  </div>
+                )}
+              />
+            </div>
+          ) : null}
+          <span className="flex min-w-0 flex-1 flex-col text-sm">
+            {car ? (
+              <>
+                <span className="truncate font-medium">{car.name}</span>
+                {skin ? <span className="truncate text-xs text-muted-foreground">{skin.name}</span> : null}
+              </>
+            ) : <span className="text-muted-foreground">{t('event.enter.noCar')}</span>}
           </span>
           <Button
             type="button"
@@ -97,14 +135,53 @@ export const EnterPanel = ({ view, busy, onEnter }: EnterPanelProps) => {
           </Button>
         </div>
 
+        {/* Said before Enter is pressed as well as asked after, so what
+            entering now costs is never a surprise. */}
+        {view.behind.length > 0 ? (
+          <SkipNote
+            title={t('skip.behindNote', { count: view.behind.length })}
+            hint={t('skip.behindNoteHint')}
+          />
+        ) : null}
+
         <Button
           type="button"
           disabled={!ready}
-          onClick={() => car && onEnter(entry, { model: car.id, skin: skin?.id })}
+          onClick={() => {
+            if (!car) return;
+            if (view.behind.length > 0) setConfirming(true);
+            else onEnter(entry, { model: car.id, skin: skin?.id });
+          }}
         >
           {t('event.enter.action')}
         </Button>
+
+        {showFirstRound ? (
+          <p className="flex items-baseline justify-between gap-2 border-t pt-2.5 text-xs">
+            <span className="text-muted-foreground">{t('event.enter.firstRound')}</span>
+            <span className="text-right">
+              <span className="font-semibold">
+                {t('championships.detail.roundAt', { number: view.number, round: view.roundName })}
+              </span>
+              <span className="text-muted-foreground">{t('event.enter.firstRoundDay', { day: formatDayShort(view.firstDay) })}</span>
+            </span>
+          </p>
+        ) : null}
       </CardContent>
+
+      <SkipDialog
+        open={confirming}
+        title={t('skip.enterTitle')}
+        description={t('skip.enterHint', { series: view.seriesName, count: view.behind.length })}
+        rounds={view.behind}
+        confirmLabel={t('skip.enterConfirm', { number: view.behind.length + 1 })}
+        busy={busy}
+        onConfirm={() => {
+          setConfirming(false);
+          if (car) onEnter(entry, { model: car.id, skin: skin?.id });
+        }}
+        onClose={() => setConfirming(false)}
+      />
 
       <CarPicker
         open={picking}

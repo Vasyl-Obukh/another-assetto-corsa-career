@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race editor fixes</title>
+<style>
+:root {
+  --background: oklch(0.965 0.007 250); --foreground: oklch(0.16 0.01 260); --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262); --primary-foreground: oklch(0.985 0.005 260); --primary-soft: oklch(0.93 0.04 262);
+  --muted: oklch(0.94 0.01 252); --muted-foreground: oklch(0.53 0.012 258); --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255); --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155); --success-soft: oklch(0.93 0.05 155); --success-fg: oklch(0.38 0.1 155);
+  --warning: oklch(0.79 0.15 80); --warning-foreground: oklch(0.28 0.06 70); --destructive: oklch(0.58 0.2 27);
+  --s-q: oklch(0.93 0.05 310); --s-q-fg: oklch(0.4 0.15 310); --s-r: oklch(0.89 0.085 150); --s-r-fg: oklch(0.33 0.1 152);
+  --s-p: oklch(0.93 0.045 250); --s-p-fg: oklch(0.4 0.13 258);
+  --k1: oklch(0.92 0.055 195); --k1-fg: oklch(0.38 0.09 200); --k2: oklch(0.92 0.06 18); --k2-fg: oklch(0.42 0.13 22);
+  --dry: oklch(0.92 0.07 88); --dry-fg: oklch(0.42 0.1 75); --cloudy: oklch(0.9 0.02 250); --cloudy-fg: oklch(0.4 0.03 255);
+  --wet: oklch(0.86 0.06 240); --wet-fg: oklch(0.36 0.1 250); --storm: oklch(0.92 0.05 300); --storm-fg: oklch(0.4 0.13 300);
+  --snow: oklch(0.95 0.02 210); --snow-fg: oklch(0.4 0.05 215);
+  --base: oklch(0.93 0.05 155); --base-fg: oklch(0.38 0.1 155); --dlc: oklch(0.93 0.06 75); --dlc-fg: oklch(0.42 0.09 70);
+  --mod: oklch(0.93 0.05 295); --mod-fg: oklch(0.4 0.13 295);
+  --tag-reuse: oklch(0.55 0.13 155); --tag-adapt: oklch(0.62 0.14 70); --tag-new: oklch(0.5 0.17 300);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265); --foreground: oklch(0.94 0.005 260); --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258); --primary-soft: oklch(0.3 0.07 262); --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260); --accent: oklch(0.3 0.016 265); --border: oklch(1 0 0 / 12%); --input: oklch(1 0 0 / 15%);
+  --success-soft: oklch(0.33 0.06 155); --success-fg: oklch(0.86 0.1 155);
+  --s-q: oklch(0.33 0.07 310); --s-q-fg: oklch(0.87 0.1 310); --s-r: oklch(0.35 0.09 150); --s-r-fg: oklch(0.88 0.13 150);
+  --s-p: oklch(0.32 0.06 250); --s-p-fg: oklch(0.86 0.09 255);
+  --k1: oklch(0.33 0.06 195); --k1-fg: oklch(0.86 0.09 195); --k2: oklch(0.33 0.07 18); --k2-fg: oklch(0.86 0.09 22);
+  --dry: oklch(0.36 0.07 88); --dry-fg: oklch(0.9 0.1 88); --cloudy: oklch(0.33 0.02 250); --cloudy-fg: oklch(0.86 0.03 255);
+  --wet: oklch(0.34 0.06 240); --wet-fg: oklch(0.86 0.08 240); --storm: oklch(0.34 0.06 300); --storm-fg: oklch(0.87 0.1 300);
+  --snow: oklch(0.34 0.02 210); --snow-fg: oklch(0.88 0.04 210);
+  --base: oklch(0.33 0.06 155); --base-fg: oklch(0.86 0.1 155); --dlc: oklch(0.33 0.06 75); --dlc-fg: oklch(0.86 0.1 75);
+  --mod: oklch(0.33 0.07 295); --mod-fg: oklch(0.86 0.1 295);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--background); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, h4, p { margin: 0; }
+.muted { color: var(--muted-foreground); } .xs { font-size: 12px; } .sm { font-size: 13px; }
+.caps { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; gap: 8px; } .col { display: flex; flex-direction: column; gap: 8px; } .grow { flex: 1; min-width: 0; }
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker strong { margin-right: 8px; }
+.picker .opt { border: 1px solid oklch(1 0 0 / .3); background: transparent; border-radius: 6px; padding: 5px 12px; color: inherit; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 104ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); } .rationale ul { margin: 6px 0 0; padding-left: 18px; } .rationale code { color: var(--foreground); font-size: 12.5px; }
+.stage { max-width: 1200px; margin: 16px auto 48px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px; }
+.screen { display: none; } .screen.on { display: block; }
+.label-row { display: flex; gap: 12px; align-items: baseline; }
+.label-row h3 { font-size: 13px; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 2px oklch(0 0 0 / .04); }
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; padding: 1px 8px; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.badge.outline { border-color: var(--border); } .badge.success { background: var(--success-soft); color: var(--success-fg); }
+.badge.primary { background: var(--primary); color: var(--primary-foreground); }
+.s-q { background: var(--s-q); color: var(--s-q-fg); } .s-r { background: var(--s-r); color: var(--s-r-fg); } .s-p { background: var(--s-p); color: var(--s-p-fg); }
+.k1 { background: var(--k1); color: var(--k1-fg); } .k2 { background: var(--k2); color: var(--k2-fg); }
+.p-base { background: var(--base); color: var(--base-fg); } .p-dlc { background: var(--dlc); color: var(--dlc-fg); } .p-mod { background: var(--mod); color: var(--mod-fg); }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 12px; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.sm { padding: 4px 10px; font-size: 12.5px; } .btn.ghost { border-color: transparent; background: transparent; }
+.btn.icon { padding: 4px 8px; }
+.input { border: 1px solid var(--input); border-radius: 8px; background: var(--card); padding: 6px 10px; font-size: 13.5px; width: 100%; }
+.label { font-size: 13.5px; font-weight: 500; } .hint { font-size: 12px; color: var(--muted-foreground); }
+.chips { display: inline-flex; gap: 2px; border: 1px solid var(--border); border-radius: 9px; padding: 2px; width: fit-content; }
+.chips span { padding: 4px 12px; border-radius: 7px; font-size: 13.5px; color: var(--muted-foreground); }
+.chips span.on { color: var(--foreground); background: var(--card); box-shadow: 0 0 0 1px var(--border); }
+.chips span.on.s-r { color: var(--s-r-fg); background: var(--s-r); box-shadow: none; }
+
+/* 1. Card */
+.cards { display: grid; grid-template-columns: repeat(2, 360px); gap: 20px; }
+.wk { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+.wk:hover, .wk.hover { border-color: var(--primary); box-shadow: 0 0 18px 1px color-mix(in oklch, var(--primary) 35%, transparent); }
+.wk-head { position: relative; height: 120px; background: linear-gradient(160deg, oklch(0.62 0.07 230), oklch(0.5 0.06 160) 55%, oklch(0.42 0.04 120)); color: white; }
+.wk-head::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, oklch(0.18 0.01 260 / .85), transparent); }
+.wk-head > * { position: absolute; z-index: 1; }
+.pill { top: 12px; left: 12px; border-radius: 999px; background: var(--primary); font-size: 12px; padding: 2px 8px; }
+.menu { top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 8px; background: oklch(0.18 0.01 260 / .55); color: white; border: 0; display: grid; place-items: center; font-size: 16px; }
+.wk-out { top: 44px; right: 14px; } .wk-out path { fill: none; stroke: white; stroke-width: 2.6; }
+.wk-title { left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; } .wk-title b { font-size: 16px; } .wk-title span { font-size: 12px; opacity: .85; }
+.wk-row { display: flex; align-items: center; gap: 8px; height: 36px; border-top: 1px solid var(--border); font-size: 13px; margin: 0 16px; }
+.wk-row:first-of-type { border-top: 0; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted-foreground); flex: none; opacity: .7; }
+.dot.done { border: 0; background: var(--success); opacity: 1; } .dot.next { border: 2px solid var(--primary); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 8px var(--primary); opacity: 1; }
+.wk-foot { margin-top: auto; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); display: flex; }
+.dropdown { position: absolute; z-index: 3; top: 42px; right: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px -10px oklch(0 0 0 / .35); padding: 4px; min-width: 150px; }
+.dropdown div { padding: 6px 10px; border-radius: 6px; font-size: 13px; } .dropdown div:hover { background: var(--accent); }
+.dropdown .danger { color: var(--destructive); }
+
+/* 2. Class panel */
+.panel { overflow: hidden; }
+.panel-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.panel-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.part { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.part::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
+.spec-trigger { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--input); border-radius: 10px; background: var(--card); cursor: pointer; }
+.spec-trigger:hover { border-color: var(--primary); }
+.thumbs { display: flex; } .thumbs i { width: 46px; height: 28px; border-radius: 5px; border: 2px solid var(--card); margin-left: -10px; background: radial-gradient(ellipse at 50% 70%, var(--c) 0 26%, transparent 27%), oklch(0.22 0.01 260); }
+.thumbs i:first-child { margin-left: 0; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.shot { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 600; }
+.shot i { display: block; height: 64px; background: radial-gradient(ellipse at 50% 70%, var(--c, oklch(0.55 0.2 27)) 0 24%, transparent 25%), oklch(0.2 0.01 260); }
+.shot span { display: block; padding: 5px 8px; }
+.ai { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ai-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.stepper { display: grid; grid-template-columns: 34px 52px 34px; border: 1px solid var(--input); border-radius: 8px; height: 34px; align-items: center; text-align: center; background: var(--card); }
+.stepper span { color: var(--muted-foreground); } .stepper span.off { opacity: .3; } .stepper b.up { color: var(--success); } .stepper b.down { color: var(--destructive); }
+.result { font-size: 26px; font-weight: 700; line-height: 1; }
+.scale { position: relative; height: 26px; }
+.scale .track { position: absolute; left: 0; right: 0; top: 10px; height: 6px; border-radius: 3px; background: var(--muted); }
+.scale .spread { position: absolute; top: 8px; height: 10px; border-radius: 5px; background: color-mix(in oklch, var(--primary) 35%, transparent); }
+.scale .mark { position: absolute; top: 4px; width: 3px; height: 18px; border-radius: 2px; background: var(--primary); }
+.scale .base { position: absolute; top: 6px; width: 2px; height: 14px; background: var(--muted-foreground); opacity: .6; }
+.chain { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted-foreground); }
+.chain b { color: var(--foreground); font-weight: 600; }
+.variants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.variant { border: 1px dashed var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.variant .tag { font-size: 11px; font-weight: 700; color: var(--primary); }
+
+.spec-field { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); cursor: pointer; }
+.spec-field:hover { border-color: var(--primary); }
+.shot.add { border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted-foreground); min-height: 91px; cursor: pointer; }
+.shot.add:hover { border-color: var(--primary); color: var(--primary); }
+.shot.add b { font-size: 20px; line-height: 1; font-weight: 400; }
+.shot { position: relative; }
+.shot .x { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 5px; background: oklch(1 0 0 / .85); color: oklch(0.2 0.01 260); display: grid; place-items: center; font-size: 11px; }
+.search.short { width: 280px; }
+.switch-line { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted-foreground); white-space: nowrap; }
+/* 3. Spec picker */
+.dialog { width: 100%; max-width: 980px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 30px 60px -20px oklch(0 0 0 / .45); overflow: hidden; }
+.dialog-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.dialog-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 460px; }
+.rail { border-right: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 2px; background: color-mix(in oklch, var(--muted) 50%, var(--card)); }
+.rail div { display: flex; justify-content: space-between; padding: 6px 10px; border-radius: 7px; font-size: 13px; }
+.rail div.on { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.rail .group { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); padding: 10px 10px 4px; }
+.specs { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.spec-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.spec { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+.spec:hover { border-color: var(--primary); }
+.spec.sel { border: 2px solid var(--primary); }
+.spec.dim { opacity: .5; }
+.spec .bar { height: 4px; border-radius: 2px; background: var(--muted); overflow: hidden; } .spec .bar i { display: block; height: 100%; background: var(--success); }
+.search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--input); border-radius: 8px; padding: 6px 10px; }
+.toggle { width: 34px; height: 20px; border-radius: 10px; background: var(--success); position: relative; flex: none; }
+.toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: white; }
+
+/* 4. Weather */
+.wx { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.kinds { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.kind { border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: 12.5px; font-weight: 500; }
+.kind .ic { font-size: 20px; line-height: 1; }
+.kind.on { border: 2px solid var(--primary); }
+.kind.k-dry .ic { color: var(--dry-fg); } .kind.k-cloud .ic { color: var(--cloudy-fg); } .kind.k-wet .ic { color: var(--wet-fg); }
+.kind.k-storm .ic { color: var(--storm-fg); } .kind.k-snow .ic { color: var(--snow-fg); }
+.kind small { font-size: 11px; color: var(--muted-foreground); font-weight: 400; }
+.steps { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.steps span { flex: 1; text-align: center; padding: 8px 4px; font-size: 12.5px; border-left: 1px solid var(--border); position: relative; }
+.steps span:first-child { border-left: 0; }
+.steps span.on { background: var(--wet); color: var(--wet-fg); font-weight: 600; }
+.steps span.off { color: var(--muted-foreground); opacity: .5; text-decoration: line-through; }
+.steps span i { display: block; height: 4px; margin: 4px auto 0; border-radius: 2px; background: currentColor; opacity: .5; }
+.now { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: var(--wet); color: var(--wet-fg); }
+.now .ic { font-size: 26px; }
+.narrow { width: 380px; }
+.narrow .kinds { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.narrow .steps { flex-wrap: wrap; } .narrow .steps span { flex: 1 1 33%; border-top: 1px solid var(--border); }
+
+/* 5. Sessions */
+.split { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
+.split > :first-child { border-right: 1px solid var(--border); background: color-mix(in oklch, var(--muted) 30%, var(--card)); }
+.list { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.block { display: flex; align-items: center; gap: 8px; border-radius: 8px; padding: 8px 10px; border: 2px solid transparent; font-size: 13.5px; font-weight: 600; }
+.block .len { margin-left: auto; font-size: 12px; font-weight: 400; }
+.block.sel { border-color: var(--primary); } .block.weekend { background: var(--muted); }
+.grip { opacity: .4; letter-spacing: -2px; font-size: 12px; }
+.dashed { border: 1.5px dashed var(--border); border-radius: 8px; padding: 6px; text-align: center; font-size: 13px; color: var(--muted-foreground); }
+
+/* 6. Position */
+.pos { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.slider { position: relative; height: 36px; margin: 0 10px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 14px; height: 6px; border-radius: 3px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 14px; height: 6px; border-radius: 3px; background: var(--primary); }
+.slider .thumb { position: absolute; top: 7px; width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); transform: translateX(-50%); }
+.ticks { display: flex; justify-content: space-between; margin: 0 10px; font-size: 11.5px; color: var(--muted-foreground); }
+.ticks span.on { color: var(--primary); font-weight: 700; }
+.big { font-size: 20px; font-weight: 700; }
+.pos-box { max-width: 420px; display: flex; flex-direction: column; gap: 6px; }
+.pos-box .slider { height: 24px; margin: 0 8px; } .pos-box .slider .track, .pos-box .slider .fill { top: 10px; height: 4px; }
+.pos-box .slider .thumb { top: 4px; width: 16px; height: 16px; } .pos-box .ticks { margin: 0 8px; font-size: 11px; }
+.slots { display: flex; gap: 4px; flex-wrap: wrap; }
+.slots span { width: 34px; height: 30px; border-radius: 7px; border: 1px solid var(--border); display: grid; place-items: center; font-size: 12.5px; font-weight: 600; color: var(--muted-foreground); cursor: pointer; }
+.slots span.on { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.slots span.k1b { background: color-mix(in oklch, var(--k1) 60%, var(--card)); }
+</style>
+</head>
+<body>
+<div class="picker">
+  <strong>Race editor</strong>
+  <button class="opt" data-screen="card" aria-pressed="true">1 Card</button>
+  <button class="opt" data-screen="class" aria-pressed="false">2.1 Class</button>
+  <button class="opt" data-screen="spec" aria-pressed="false">2.1.3 Spec picker</button>
+  <button class="opt" data-screen="weather" aria-pressed="false">2.2.2 Weather</button>
+  <button class="opt" data-screen="sessions" aria-pressed="false">2.2.1 + 2.2.3 Sessions</button>
+  <span class="spacer"></span>
+  <button class="opt" id="theme" aria-pressed="false">Dark</button>
+</div>
+
+<!-- ============ 1 Card ============ -->
+<section class="screen on" id="screen-card">
+  <div class="rationale">
+    <b>1. Race card.</b>
+    <ul>
+      <li><b>The whole card opens the weekend.</b> Hovering lights its border in primary, the way the browsers' cards do. Open and Continue are gone.</li>
+      <li><b>⋯ sits in the top-right corner of the photograph</b>, on the same scrim as the phase pill, so it reads over any track. It holds Duplicate and Delete. The layout outline moves down below it to make room.</li>
+      <li>The footer keeps only the grid line.</li>
+    </ul>
+  </div>
+  <div class="stage">
+    <div class="cards">
+      <article class="wk hover">
+        <div class="wk-head">
+          <span class="pill">In progress · 1 of 3</span>
+          <button class="menu">⋯</button>
+          <svg class="wk-out" viewBox="0 0 120 60" width="84" height="42"><path d="M12 44 L30 14 L88 10 Q104 10 104 22 L98 44 Q96 50 86 50 L22 52 Q10 52 12 44 Z"/></svg>
+          <div class="wk-title"><b>Monza · GP</b><span>Last raced 5 Oct 2026</span></div>
+        </div>
+        <div class="row xs muted" style="padding:12px 16px 4px">Ferrari 488 GT3</div>
+        <div class="wk-row"><span class="dot done"></span><span class="badge s-p">Practice</span><span class="grow">Practice</span><span class="badge outline">P3</span></div>
+        <div class="wk-row"><span class="dot next"></span><span class="badge s-q">Qualifying</span><span class="grow">Qualifying</span><span class="xs muted">15 min</span></div>
+        <div class="wk-row"><span class="dot"></span><span class="badge s-r">Race</span><span class="grow">Feature race</span><span class="xs muted">20 laps</span></div>
+        <div class="wk-foot">12 cars on the grid</div>
+      </article>
+      <article class="wk">
+        <div class="wk-head" style="background:linear-gradient(160deg, oklch(0.6 0.05 60), oklch(0.5 0.07 40) 55%, oklch(0.38 0.04 30))">
+          <span class="pill" style="background:oklch(0.18 0.01 260 / .55)">Set up</span>
+          <button class="menu">⋯</button>
+          <div class="dropdown"><div>Duplicate</div><div class="danger">Delete</div></div>
+          <div class="wk-title"><b>Spa · GP</b><span>Made 3 Oct 2026</span></div>
+        </div>
+        <div class="row xs muted" style="padding:12px 16px 4px">Porsche 911 GT3 Cup (992)</div>
+        <div class="wk-row"><span class="dot"></span><span class="badge s-r">Race</span><span class="grow">Race</span><span class="xs muted">12 laps</span></div>
+        <div class="wk-foot">20 cars on the grid</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2.1 Class ============ -->
+<section class="screen" id="screen-class">
+  <div class="rationale">
+    <b>2.1 One class, one panel.</b> The Cars and AI tabs are gone, and everything is in one column: name, cars, then drivers.
+    <ul>
+      <li><b>2.1.2 The two ways of naming cars</b> are now <b>Spec</b> and <b>List</b>, under the label <b>Cars from</b>. The field beside them is labelled <b>Spec</b>.</li>
+      <li><b>2.1.3 The spec field</b> is the height of any other field: the spec's name, its class and how many of its cars are installed, with a chevron. Clicking it opens the spec picker. The cars show once, below it.</li>
+      <li><b>From a list</b>, "Add a car" is a dashed tile the size of a car, first in the same grid, and each car has its ✕ on the picture.</li>
+      <li><b>2.1.4 AI strength and aggression</b>:
+        <ul>
+          <li>Each shows the figure the field actually races at, large, with the sum that makes it: your difficulty, then the race's step, then the class's step.</li>
+          <li>A bar from 0 to 100 marks that figure and the band the drivers spread across. Each driver sits up to 2 either side of the class.</li>
+          <li><b>The stepper stops where the figure would leave 0-100</b>: <b>+</b> is disabled once the result reaches 100.</li>
+          <li>The "How much stronger…" hint is gone.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="stage" style="max-width:860px">
+    <div class="card panel">
+      <div class="panel-head"><span class="badge k1">GT3</span><span class="badge success">9 cars installed</span><span class="grow"></span><button class="btn ghost icon">↑</button><button class="btn ghost icon">↓</button><button class="btn ghost sm" style="color:var(--destructive)">🗑 Remove</button></div>
+      <div class="panel-body">
+        <div class="col" style="gap:6px"><span class="label">Name</span><input class="input" value="GT3"></div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:end">
+          <div class="col" style="gap:6px"><span class="label">Cars from</span><div class="chips"><span class="on">Spec</span><span>List</span></div></div>
+          <div class="col" style="gap:6px"><span class="label">Spec</span>
+            <div class="spec-field"><b class="grow">GT3 (2010s)</b><span class="xs muted">GT3 · 9 of 12 installed</span><span class="muted">▾</span></div>
+          </div>
+        </div>
+        <div class="shots">
+          <div class="shot"><i></i><span>Ferrari 488 GT3</span></div><div class="shot"><i style="--c:oklch(0.6 0.15 250)"></i><span>BMW Z4 GT3</span></div>
+          <div class="shot"><i style="--c:oklch(0.85 0.15 95)"></i><span>Porsche 911 GT3 R</span></div><div class="shot"><i style="--c:oklch(0.55 0.15 150)"></i><span>Mercedes-AMG GT3</span></div>
+          <div class="shot"><i style="--c:oklch(0.7 0.12 50)"></i><span>McLaren 650S GT3</span></div>
+        </div>
+        <div class="part">Drivers</div>
+        <div class="ai">
+          <div class="ai-box">
+            <div class="row"><span class="label grow">AI strength</span><div class="stepper"><span>−</span><b class="up">+3</b><span>＋</span></div></div>
+            <div class="row" style="align-items:baseline;gap:10px"><span class="result num">93</span><span class="chain">your <b>88</b> · race <b>+2</b> · class <b>+3</b></span></div>
+            <div class="scale"><div class="track"></div><div class="spread" style="left:91%;width:4%"></div><div class="base" style="left:88%"></div><div class="mark" style="left:93%"></div></div>
+            <div class="row xs muted"><span class="grow">0</span><span>drivers 91-95</span><span class="grow" style="text-align:right">100</span></div>
+          </div>
+          <div class="ai-box">
+            <div class="row"><span class="label grow">AI aggression</span><div class="stepper"><span>−</span><b>0</b><span>＋</span></div></div>
+            <div class="row" style="align-items:baseline;gap:10px"><span class="result num">30</span><span class="chain">your <b>30</b> · race <b>0</b> · class <b>0</b></span></div>
+            <div class="scale"><div class="track"></div><div class="spread" style="left:25%;width:10%"></div><div class="mark" style="left:30%"></div></div>
+            <div class="row xs muted"><span class="grow">Clean</span><span>drivers 25-35</span><span class="grow" style="text-align:right">Ruthless</span></div>
+          </div>
+        </div>
+        <div class="ai-box" style="max-width:50%">
+          <div class="row"><span class="label grow">AI strength, at the top</span><div class="stepper"><span>−</span><b class="up">+12</b><span class="off">＋</span></div></div>
+          <div class="row" style="align-items:baseline;gap:10px"><span class="result num">100</span><span class="chain">your <b>88</b> · race <b>0</b> · class <b>+12</b></span></div>
+          <span class="xs muted">＋ is off: the field already races at the most Assetto Corsa allows.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="label-row"><h3>The same panel, cars from a list</h3></div>
+    <div class="card panel">
+      <div class="panel-body">
+        <div class="row" style="gap:16px;align-items:end">
+          <div class="col" style="gap:6px"><span class="label">Cars from</span><div class="chips"><span>Spec</span><span class="on">List</span></div></div>
+          <span class="hint" style="padding-bottom:8px">Every car on the list may race in this class.</span>
+        </div>
+        <div class="shots">
+          <div class="shot add"><b>＋</b><span style="padding:0">Add a car</span></div>
+          <div class="shot"><i></i><span>Ferrari 488 GT3</span><span class="x">✕</span></div>
+          <div class="shot"><i style="--c:oklch(0.6 0.15 250)"></i><span>BMW M4 GT3</span><span class="x">✕</span></div>
+          <div class="shot"><i style="--c:oklch(0.85 0.15 95)"></i><span>Porsche 911 GT3 R</span><span class="x">✕</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 2.1.3 Spec picker ============ -->
+<section class="screen" id="screen-spec">
+  <div class="rationale">
+    <b>2.1.3 A spec picker you can search.</b> It replaces the one long select of 100+ specs with a dialog shaped like the car browser.
+    <ul>
+      <li><b>Search</b> matches spec names <b>and the cars in them</b>, so typing "488" finds every spec the Ferrari 488 races in.</li>
+      <li><b>The rail</b> lists the classes (Formula 4, GT3, LMP2…) grouped by discipline, each with how many of its specs you can race. "Recently used" sits at the top.</li>
+      <li><b>Each spec is a card</b>: its name, three of its cars, and how many of them are installed, as a count and a bar. A spec with nothing installed is dimmed and sorts last.</li>
+      <li><b>"Installed only"</b> is a switch beside a shorter search box, on by default, so specs with no installed cars are hidden.</li>
+      <li>The championship editor's spec field would switch to the same dialog.</li>
+    </ul>
+  </div>
+  <div class="stage" style="align-items:center">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div class="row"><b style="font-size:17px" class="grow">Pick a spec</b><button class="btn ghost icon">✕</button></div>
+        <div class="row" style="gap:16px">
+          <div class="search short"><span class="muted">⌕</span><span class="grow">gt3</span></div>
+          <label class="switch-line"><span class="toggle"></span>Installed only</label>
+          <span class="grow"></span><span class="xs muted">14 specs</span>
+        </div>
+      </div>
+      <div class="dialog-body">
+        <div class="rail">
+          <div class="group">Recently used</div>
+          <div>GT3 (2010s) <span class="muted">9</span></div>
+          <div class="group">Sportscar</div>
+          <div class="on">GT3 <span>6</span></div>
+          <div>GT4 <span class="muted">2</span></div>
+          <div>LMP2 <span class="muted">1</span></div>
+          <div>Le Mans Hypercar <span class="muted">0</span></div>
+          <div class="group">Single-seater</div>
+          <div>Formula 4 <span class="muted">1</span></div>
+          <div>Formula 3 <span class="muted">0</span></div>
+          <div class="group">Touring</div>
+          <div>TCR <span class="muted">1</span></div>
+        </div>
+        <div class="specs">
+          <div class="spec-grid">
+            <div class="spec sel"><div class="thumbs"><i style="--c:oklch(0.55 0.2 27)"></i><i style="--c:oklch(0.6 0.15 250)"></i><i style="--c:oklch(0.85 0.15 95)"></i></div><b>GT3 (2010s)</b><div class="bar"><i style="width:75%"></i></div><span class="xs muted">9 of 12 installed</span></div>
+            <div class="spec"><div class="thumbs"><i style="--c:oklch(0.55 0.15 150)"></i><i style="--c:oklch(0.7 0.12 50)"></i><i style="--c:oklch(0.6 0.15 250)"></i></div><b>GT3 (2010s, later evos)</b><div class="bar"><i style="width:60%"></i></div><span class="xs muted">6 of 10 installed</span></div>
+            <div class="spec"><div class="thumbs"><i style="--c:oklch(0.5 0.15 300)"></i><i style="--c:oklch(0.85 0.15 95)"></i><i style="--c:oklch(0.55 0.2 27)"></i></div><b>GT3 (2020s)</b><div class="bar"><i style="width:40%"></i></div><span class="xs muted">4 of 10 installed</span></div>
+            <div class="spec"><div class="thumbs"><i style="--c:oklch(0.6 0.15 250)"></i><i style="--c:oklch(0.55 0.2 27)"></i></div><b>GT3 · LFM</b><div class="bar"><i style="width:100%"></i></div><span class="xs muted">8 of 8 installed</span></div>
+            <div class="spec"><div class="thumbs"><i style="--c:oklch(0.7 0.12 50)"></i></div><b>GT3 · RSS</b><div class="bar"><i style="width:50%"></i></div><span class="xs muted">2 of 4 installed</span></div>
+            <div class="spec dim"><div class="thumbs"><i style="--c:oklch(0.5 0.02 250)"></i></div><b>GT3 (2000s)</b><div class="bar"><i style="width:0"></i></div><span class="xs muted">0 of 7 installed</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2.2.2 Weather ============ -->
+<section class="screen" id="screen-weather">
+  <div class="rationale">
+    <b>2.2.2 Weather in two steps: what kind, then how much.</b> The shared weather control is used by the race weekend and by the championship editor, so this redesigns both.
+    <ul>
+      <li><b>Six kinds</b>, always visible with an icon and a name, in the weather colours the Settings allow-list already uses: Clear &amp; clouds, Haze &amp; fog, Rain, Storm, Snow &amp; sleet, Other. On a narrow window they wrap to three a row and keep their labels.</li>
+      <li><b>Then that kind's types as one ordered strip</b>, lightest to heaviest, with a bar under each showing how heavy it is. Rain is no longer hidden behind "More weathers", which is gone.</li>
+      <li>Types your Settings switch off stay in the strip, struck through, so you can see why they can't be picked.</li>
+      <li><b>A line on top says what is picked</b>, in that kind's colour: "Light rain - wet track, RainFX". It is the clear confirmation the old menu never gave.</li>
+      <li>"Changes as it runs" keeps its own slot list. Each slot uses this same two-step picker in a popover.</li>
+    </ul>
+  </div>
+  <div class="stage">
+    <div class="label-row"><h3>Wide</h3></div>
+    <div class="card wx">
+      <div class="row"><b class="grow">Weather</b><div class="chips"><span class="on">Holds all session</span><span>Changes as it runs</span></div></div>
+      <div class="now"><span class="ic">🌧</span><div class="col" style="gap:0"><b>Light rain</b><span class="xs">Wet track · drawn by RainFX</span></div></div>
+      <div class="kinds">
+        <div class="kind k-dry"><span class="ic">☀</span>Clear &amp; clouds<small>5</small></div>
+        <div class="kind k-cloud"><span class="ic">🌫</span>Haze &amp; fog<small>3</small></div>
+        <div class="kind k-wet on"><span class="ic">🌧</span>Rain<small>6</small></div>
+        <div class="kind k-storm"><span class="ic">⛈</span>Storm<small>3</small></div>
+        <div class="kind k-snow"><span class="ic">❄</span>Snow &amp; sleet<small>0</small></div>
+        <div class="kind"><span class="ic">🌡</span>Other<small>0</small></div>
+      </div>
+      <div class="steps">
+        <span>Light drizzle<i style="width:14%"></i></span><span>Drizzle<i style="width:28%"></i></span><span>Heavy drizzle<i style="width:42%"></i></span>
+        <span class="on">Light rain<i style="width:56%"></i></span><span>Rain<i style="width:76%"></i></span><span class="off">Heavy rain<i style="width:100%"></i></span>
+      </div>
+      <span class="hint">Heavy rain is switched off in Settings › Weather.</span>
+    </div>
+    <div class="label-row"><h3>Narrow</h3></div>
+    <div class="card wx narrow">
+      <div class="now"><span class="ic">🌧</span><div class="col" style="gap:0"><b>Light rain</b><span class="xs">Wet track · drawn by RainFX</span></div></div>
+      <div class="kinds">
+        <div class="kind k-dry"><span class="ic">☀</span>Clear &amp; clouds</div>
+        <div class="kind k-cloud"><span class="ic">🌫</span>Haze &amp; fog</div>
+        <div class="kind k-wet on"><span class="ic">🌧</span>Rain</div>
+        <div class="kind k-storm"><span class="ic">⛈</span>Storm</div>
+        <div class="kind k-snow"><span class="ic">❄</span>Snow &amp; sleet</div>
+        <div class="kind"><span class="ic">🌡</span>Other</div>
+      </div>
+      <div class="steps">
+        <span>Light drizzle</span><span>Drizzle</span><span>Heavy drizzle</span>
+        <span class="on">Light rain</span><span>Rain</span><span class="off">Heavy rain</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2.2.1 + 2.2.3 Sessions ============ -->
+<section class="screen" id="screen-sessions">
+  <div class="rationale">
+    <b>2.2.1 A race weekend has sessions, not days.</b> The Day headings and "Add day 2" are gone from the race weekend's list. Sessions are one list, dragged to reorder, with "Add a session" under them. The championship editor keeps its days.
+    <ul>
+      <li><b>2.2.3 Position</b> is a compact slider bounded by your class: from P1 to the number of cars in it, so it can't go past them. The big figure says "P5 in GT3", and − and ＋ nudge it by one.</li>
+      <li>The position counts within your class, the way you think about it, so P5 means fifth GT3 car on the grid. Overall the whole field still lines up on pace, class by class.</li>
+      <li>The slider is compact: a small figure and thumb, kept to the width of the controls above it.</li>
+    </ul>
+  </div>
+  <div class="stage">
+    <div class="card split">
+      <div class="list">
+        <div class="block weekend">Whole weekend<span class="len muted">14:00 · Clear · 22°C</span></div>
+        <div class="block s-p"><span class="grip">⋮⋮</span>Practice<span class="len">20 min</span></div>
+        <div class="block s-q"><span class="grip">⋮⋮</span>Qualifying<span class="len">15 min</span></div>
+        <div class="block s-r sel"><span class="grip">⋮⋮</span>Race<span class="len">12 laps</span></div>
+        <div class="dashed">＋ Add a session</div>
+      </div>
+      <div class="pos">
+        <div class="row"><span class="badge s-r">Race</span><b style="font-size:16px">Race</b></div>
+        <div class="col" style="gap:6px"><span class="label">You start</span><div class="chips"><span>Last</span><span>Pole</span><span class="on">Position</span><span>Random</span></div></div>
+        <div class="pos-box">
+          <div class="row" style="align-items:center;gap:10px"><span class="big num">P5</span><span class="sm muted">in <span class="badge k1">GT3</span> · of 8 cars</span><span class="grow"></span><button class="btn sm icon">−</button><button class="btn sm icon">＋</button></div>
+          <div class="slider"><div class="track"></div><div class="fill" style="width:57%"></div><div class="thumb" style="left:57%"></div></div>
+          <div class="ticks num"><span>1</span><span>2</span><span>3</span><span>4</span><span class="on">5</span><span>6</span><span>7</span><span>8</span></div>
+        </div>
+        <span class="hint">Nothing before this race sets its grid, so the field lines up on pace, class by class.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const state = { s: 'card', th: 'light' };
+const render = () => {
+  document.querySelectorAll('.screen').forEach((el) => el.classList.toggle('on', el.id === `screen-${state.s}`));
+  document.querySelectorAll('[data-screen]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === state.s)));
+  document.documentElement.dataset.theme = state.th;
+  document.getElementById('theme').setAttribute('aria-pressed', String(state.th === 'dark'));
+};
+document.querySelectorAll('[data-screen]').forEach((b) => b.addEventListener('click', () => { state.s = b.dataset.screen; render(); }));
+document.getElementById('theme').addEventListener('click', () => { state.th = state.th === 'dark' ? 'light' : 'dark'; render(); });
+const m = location.hash.match(/#([\w-]+)(?:\|(\w+))?/);
+if (m) { state.s = m[1]; state.th = m[2] || 'light'; }
+render();
+</script>
+</body>
+</html>

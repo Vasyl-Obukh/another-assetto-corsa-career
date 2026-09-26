@@ -6,12 +6,20 @@ export {
   CAR_BADGE_FILE,
   CAR_HOST,
   CONTENT_SCHEME,
+  FLAG_FILE_EXTENSION,
+  FLAG_HOST,
+  LIVERY_SEGMENT,
+  LOGO_SEGMENT,
   OUTLINE_SEGMENT,
   PREVIEW_SEGMENT,
+  SKIN_LIVERY_FILE,
   SKIN_PREVIEW_FILE,
   SKIN_SEGMENT,
   TRACK_HOST,
+  TRACK_LOGO_FILE,
   TRACK_OUTLINE_FILE,
+  TRACK_PHOTO_EXTENSION,
+  TRACK_PHOTO_NAME,
   TRACK_PREVIEW_FILE,
 } from './content.ts';
 
@@ -26,6 +34,10 @@ export { CONTENT_ISSUE_REASONS } from './content-issues.ts';
 export { DISTRIBUTOR_PAGES, MAKER_PAGES, PACK_PAGES } from './content-links.ts';
 
 export { M_PER_KM, M_PER_MILE } from './distance.ts';
+
+export {
+  COUNTRY_ALIASES, HOME_NATIONS, NATION_CODES, NATION_REGIONS,
+} from './nations.ts';
 
 // A value, not a type: WeatherType.RAIN is the whole point of it, and the
 // number it carries is what __CM_WEATHER_TYPE wants.
@@ -51,10 +63,14 @@ export {
 export {
   AI_RANGE,
   DEFAULT_MIN_MODELS,
+  DRIVER_AGGRESSION_SPREAD,
+  DRIVER_STRENGTH_SPREAD,
   DEFAULT_SEASON_LENGTH,
+  DISCIPLINES,
   MAX_GRID_OFFSET,
   MAX_WEEKEND_DAYS,
   MIN_REVERSED,
   SEASON_WEEKS,
   SERIES_FORMAT_VERSION,
 } from './series.ts';
+export { DEFAULT_AMBIENT, DEFAULT_TIME_OF_DAY } from './conditions.ts';

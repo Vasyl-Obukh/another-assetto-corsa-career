@@ -4,11 +4,14 @@
 
 import type { TFunction } from 'i18next';
 
-import { DEFAULT_CURRENCY, FALLBACK_LANGUAGE, LOCALES } from './constants.ts';
+import {
+  DEFAULT_CURRENCY, FALLBACK_LANGUAGE, HOME_NATION_NAMES, LOCALES,
+} from './constants.ts';
 import type { Formatters } from './types.ts';
 import { CONTENT_ISSUE_REASONS, M_PER_KM, MS_PER_SECOND } from '../../../shared/constants';
 import type { AppErrorInfo } from '../../../shared/errors';
 import type { ContentIssueReason, Language } from '../../../shared/types';
+import { nationName } from '../../../shared/utils/nations';
 
 /**
  * Renders an error in the active language.
@@ -44,6 +47,26 @@ export const formatContentIssueReason = (t: TFunction, reason: ContentIssueReaso
 );
 
 /**
+ * Writes the days a weekend runs: one day alone, or the first and last.
+ * @param t The translator from useTranslation
+ * @param formatDay How to write one day, such as formatDay or formatDayShort
+ * @param first Its first day, ISO YYYY-MM-DD
+ * @param last Its last day, ISO YYYY-MM-DD
+ * @returns The days, formatted
+ */
+export const formatDayRange = (
+  t: TFunction,
+  formatDay: (value: string) => string,
+  first: string,
+  last: string,
+): string => {
+  const from = formatDay(first);
+  const to = formatDay(last);
+
+  return from === to ? from : t('event.dates', { from, to });
+};
+
+/**
  * Intl formatters are expensive to build and are reused constantly.
  */
 const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator>();
@@ -68,6 +91,25 @@ const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collato
 };
 
 /**
+ * Formats an ISO calendar date, read back in UTC so the day stays the day -
+ * see `formatDay` for why.
+ * @param locale The locale to format in
+ * @param key What the options are called in the cache
+ * @param options How to write it
+ * @param value An ISO YYYY-MM-DD date
+ * @returns The date, formatted
+ */
+const formatIsoDay = (
+  locale: string,
+  key: string,
+  options: Intl.DateTimeFormatOptions,
+  value: string,
+): string => cached(
+  `${key}:${locale}`,
+  () => new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }),
+).format(new Date(`${value}T00:00:00Z`));
+
+/**
  * Builds the formatters for one language.
  * @param language The language to bind to
  * @returns Formatters for dates, numbers, money, durations and sorting
@@ -83,10 +125,13 @@ export const formattersFor = (language: Language): Formatters => {
       () => new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }),
     ).format(new Date(value)),
 
-    formatDay: (value) => cached(
-      `day:${locale}`,
-      () => new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }),
-    ).format(new Date(`${value}T00:00:00Z`)),
+    formatDay: (value) => formatIsoDay(locale, 'day', { dateStyle: 'medium' }, value),
+    formatDayShort: (value) => formatIsoDay(locale, 'dayShort', {
+      weekday: 'short', day: 'numeric', month: 'short',
+    }, value),
+    formatWeekday: (value) => formatIsoDay(locale, 'weekday', { weekday: 'short' }, value),
+    formatMonth: (value) => formatIsoDay(locale, 'month', { month: 'long', year: 'numeric' }, value),
+    formatMonthShort: (value) => formatIsoDay(locale, 'monthShort', { month: 'short' }, value),
 
     formatDateTime: (value) => cached(
       `dt:${locale}`,
@@ -154,5 +199,7 @@ export const formattersFor = (language: Language): Formatters => {
       `c:${locale}`,
       () => new Intl.Collator(locale, { sensitivity: 'base', numeric: true }),
     ).compare(a, b),
+
+    formatNation: (code) => HOME_NATION_NAMES[language]?.[code] ?? nationName(code, locale),
   };
 };

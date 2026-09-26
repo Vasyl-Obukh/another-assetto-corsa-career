@@ -1,14 +1,17 @@
 import { Loader2Icon } from 'lucide-react';
+import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { SKELETON_COUNT } from './constants.ts';
 import { ErrorCard } from '@/components/ErrorCard.tsx';
+import { Loading } from '@/components/Loading.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
 import type { PagedList } from '@/hooks';
+import type { BrowserView } from '@/lib/browser-memory';
 import { path } from '@/lib/routes';
+import { slots } from '@/lib/slots.ts';
 
 interface BrowserGridProps<T> {
   /**
@@ -20,9 +23,19 @@ interface BrowserGridProps<T> {
    */
   filtered: boolean;
   /**
-   * The cards themselves, already rendered by the screen.
+   * The cards themselves, or the table, already rendered by the screen.
    */
   children: ReactNode;
+  /**
+   * Whether the screen hands over cards to lay out or a table of its own.
+   */
+  view: BrowserView;
+  /**
+   * One card as it looks while the library is read, repeated to fill the
+   * grid. A table draws its own skeleton rows, so it is handed in as the
+   * children as usual.
+   */
+  cardSkeleton: ReactNode;
   /**
    * Ref for the marker that asks for the next page when it scrolls into view.
    * @param node The element, or null as it unmounts
@@ -36,13 +49,17 @@ interface BrowserGridProps<T> {
 
 /**
  * The one grid definition, shared so skeletons land exactly where cards will.
+ * As many columns as fit rather than a count per breakpoint, since the filter
+ * rail takes its share of the width.
  */
-const GRID = 'grid grid-cols-1 gap-4 py-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4';
+const GRID = 'grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4';
 
 export const BrowserGrid = <T, >({
   list,
   filtered,
   children,
+  view,
+  cardSkeleton,
   sentinelRef,
   onClear,
 }: BrowserGridProps<T>) => {
@@ -61,19 +78,17 @@ export const BrowserGrid = <T, >({
   }
 
   if (list.loading) {
-    return (
-      <div className={GRID}>
-        {Array.from({ length: SKELETON_COUNT }, (unused, index) => index).map((index) => (
-          <Skeleton key={index} className="h-64 w-full" />
-        ))}
-      </div>
-    );
+    return view === 'cards' ? (
+      <Loading className={GRID}>
+        {slots(SKELETON_COUNT).map((at) => <Fragment key={at}>{cardSkeleton}</Fragment>)}
+      </Loading>
+    ) : <Loading>{children}</Loading>;
   }
 
   return (
     <>
       {list.error ? (
-        <div className="pt-4">
+        <div className="pb-4">
           <ErrorCard error={list.error} onDismiss={list.dismissError} />
         </div>
       ) : null}
@@ -88,20 +103,20 @@ export const BrowserGrid = <T, >({
           ) : null}
         </div>
       ) : (
-        <div className={GRID}>{children}</div>
+        <div className={view === 'cards' ? GRID : undefined}>{children}</div>
       )}
 
       <div ref={sentinelRef} aria-hidden />
 
       {list.loadingMore ? (
-        <div className="flex items-center justify-center gap-2 pb-8 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
           <Loader2Icon className="size-4 animate-spin" />
           {t('browse.loading')}
         </div>
       ) : null}
 
       {list.exhausted && list.total > 0 ? (
-        <p className="pb-8 text-center text-xs text-muted-foreground">{t('browse.end')}</p>
+        <p className="py-6 text-center text-xs text-muted-foreground">{t('browse.end')}</p>
       ) : null}
     </>
   );

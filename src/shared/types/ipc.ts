@@ -5,7 +5,9 @@
 import type {
   ClassCommandResult, ClassId, ClassLayer, SpecId,
 } from './car-classes.ts';
-import type { Career, CareerCalendar, CareerEventView } from './career.ts';
+import type {
+  Career, CareerCalendar, CareerEventView, ChampionshipResults, SkippedRound,
+} from './career.ts';
 import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
   CarFacets, CarQuery, Page, TrackFacets, TrackQuery,
@@ -20,10 +22,9 @@ import type {
   Weather,
   WeatherController,
 } from './content.ts';
-import type { RoundForecast } from './forecast.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
+import type { QuickRace, QuickRaceView } from './quick-race.ts';
 import type { RaceSetup, ResultRecord } from './race-run.ts';
-import type { RaceDefinition } from './race.ts';
 import type {
   Championship,
   SeriesAvailability,
@@ -74,8 +75,12 @@ export interface IpcContract {
    * Null rather than an error: content:cars searches name, brand, folder ID and
    * tags alike, so it cannot resolve a single car, and a car uninstalled while
    * its page is open is an ordinary outcome rather than a failure.
+   *
+   * Answered over the library unless `installed` is set, which looks over
+   * everything installed - the car page, since Your content opens mods the
+   * library does not hold yet.
    */
-  'content:car': { req: { id: string }; res: Car | null };
+  'content:car': { req: { id: string; installed?: boolean }; res: Car | null };
   /**
    * Counts behind the car browser's filter lists, for the filters now applied.
    */
@@ -94,6 +99,13 @@ export interface IpcContract {
    */
   'content:track': { req: { key: string }; res: Track | null };
   /**
+   * One circuit by folder ID, with every layout installed under it, or null
+   * when nothing is installed under that ID - for the track page. Answered over
+   * everything installed rather than the library alone, since Your content opens
+   * circuits the library does not hold yet.
+   */
+  'content:circuit': { req: { id: string }; res: TrackGroup | null };
+  /**
    * Every installed weather preset and CSP weather controller.
    *
    * Not paged or filtered: a large library holds thousands of cars and a few
@@ -111,28 +123,9 @@ export interface IpcContract {
    */
   'race:get': { req: void; res: RaceSetup };
   /**
-   * Replace the race being set up, re-plan it and re-validate it.
-   *
-   * The renderer sends the whole definition rather than a patch: main owns the
-   * value, and a patch would mean the rules living in two places. Weekend
-   * progress is discarded when the new definition no longer plans the same
-   * launches, since a half-run weekend cannot be carried onto a different one.
-   */
-  'race:set': { req: RaceDefinition; res: RaceSetup };
-  /**
-   * Launch the next launch that has not been run, and start watching for its
-   * result. Resolves as soon as Content Manager has been handed the URI; the
-   * result arrives later as a race:changed push.
-   */
-  'race:launch': { req: void; res: RaceSetup };
-  /**
    * Stop waiting for a result, without advancing the weekend.
    */
   'race:cancel': { req: void; res: RaceSetup };
-  /**
-   * Forget weekend progress so the race starts again from its first launch.
-   */
-  'race:reset': { req: void; res: RaceSetup };
   /**
    * Every result the app has archived, newest first.
    */
@@ -141,6 +134,41 @@ export interface IpcContract {
    * One archived result by file name.
    */
   'race:result': { req: { file: string }; res: ResultRecord };
+  /**
+   * Every race weekend of the player's own, the ones part-way first.
+   */
+  'quick:list': { req: void; res: QuickRaceView[] };
+  /**
+   * One race weekend of the player's own.
+   */
+  'quick:get': { req: { id: string }; res: QuickRaceView };
+  /**
+   * Make a new race weekend, with nothing picked yet.
+   */
+  'quick:create': { req: void; res: QuickRaceView };
+  /**
+   * Replace a race weekend that has not started. The whole race rather than a
+   * patch, as with every other document main owns.
+   */
+  'quick:save': { req: QuickRace; res: QuickRaceView };
+  /**
+   * Copy a race weekend, leaving its results behind.
+   */
+  'quick:duplicate': { req: { id: string }; res: QuickRaceView };
+  /**
+   * Delete a race weekend. Its archived results stay with every other result.
+   */
+  'quick:remove': { req: { id: string }; res: void };
+  /**
+   * Launch the next session of a race weekend. The result arrives later, as a
+   * quick:changed push.
+   */
+  'quick:launch': { req: { id: string }; res: QuickRaceView };
+  /**
+   * Throw away what has run of a race weekend, so it can be changed and run
+   * again.
+   */
+  'quick:restart': { req: { id: string }; res: QuickRaceView };
   /**
    * Every championship the app knows, each with whether it can be raced.
    *
@@ -159,23 +187,6 @@ export interface IpcContract {
    */
   'series:get': { req: { id: string }; res: SeriesListing | null };
   /**
-   * Set up one round of a championship as the race being prepared.
-   *
-   * Lowers the round into an ordinary race definition and hands it to the race
-   * store, so a championship round runs through exactly the path a
-   * hand-authored weekend does. Resolves the setup the race screen renders, so
-   * the renderer's next move is to navigate there.
-   */
-  'series:setupRound': {
-    req: {
-      series: string;
-      entry: string;
-      round: string;
-      car: { model: string; skin?: string };
-    };
-    res: RaceSetup;
-  };
-  /**
    * What is wrong with a championship as it currently stands, without writing
    * anything.
    *
@@ -184,22 +195,6 @@ export interface IpcContract {
    * and main has the content scan in hand.
    */
   'series:validate': { req: { series: Championship }; res: SeriesAvailability };
-  /**
-   * Every round's generated weather, for a championship that generates it.
-   *
-   * Worked out against the install and the user's settings as they stand, so
-   * it is asked again when either changes. Empty for a championship whose
-   * weather is authored.
-   */
-  'series:forecast': { req: { series: string }; res: RoundForecast[] };
-  /**
-   * The forecast of the round a race was set up from, or null when the race
-   * came from no championship round that generates its weather.
-   *
-   * Main matches the id, so the renderer never learns how a round's race id is
-   * composed.
-   */
-  'series:raceForecast': { req: { race: string }; res: RoundForecast | null };
   /**
    * Write a championship the user owns back over its own file.
    *
@@ -297,6 +292,15 @@ export interface IpcContract {
     res: ClassCommandResult;
   };
   /**
+   * Save a spec and the cars in it as one edit: a new spec or a rename of one
+   * of the user's, then its cars restated. A spec the app ships keeps its name
+   * and has only its cars restated. Resolves the spec's id.
+   */
+  'classes:saveSpecCars': {
+    req: { spec: { id?: SpecId; name: string; class: ClassId }; cars: string[] };
+    res: ClassCommandResult;
+  };
+  /**
    * Delete a spec of the user's, once no championship races in it.
    */
   'classes:deleteSpec': { req: { id: SpecId }; res: ClassCommandResult };
@@ -327,24 +331,32 @@ export interface IpcContract {
    */
   'career:withdraw': { req: { series: string; entry: string }; res: Career };
   /**
-   * Move the clock forward, stopping at the first enrolled weekend on the way.
+   * Move the clock forward, stopping at the first enrolled weekend on the way -
+   * or, with `skip`, all the way to the date, marking every round of the
+   * career's it passes a non-start. `skip` is what the player confirmed after
+   * `career:skips` listed them.
    */
-  'career:advance': { req: { date: string }; res: Career };
+  'career:advance': { req: { date: string; skip?: boolean }; res: Career };
+  /**
+   * The rounds of the career's that moving the clock to a date would cost.
+   */
+  'career:skips': { req: { date: string }; res: SkippedRound[] };
   /**
    * One round as the event page shows it: its sessions, what has run of them,
    * and what the career can do next.
    */
   'career:event': { req: { series: string; round: string }; res: CareerEventView };
   /**
-   * Run the next session of a round the career is in, setting the round up
-   * first when the race being run is another weekend.
+   * A championship's season so far: the career's own rounds when it is in the
+   * championship, and otherwise every round behind the clock simulated.
    */
-  'career:launch': { req: { series: string; round: string }; res: RaceSetup };
+  'career:results': { req: { series: string }; res: ChampionshipResults };
   /**
-   * Throw away what has run of a weekend changed on the Race screen part-way,
-   * so it can be run again from the start.
+   * Run the next session of a round the career is in, setting the round up
+   * first when the race being run is another weekend. A round that would leave
+   * others unraced is refused unless `skip` says the player confirmed it.
    */
-  'career:restartEvent': { req: { series: string; round: string }; res: Career };
+  'career:launch': { req: { series: string; round: string; skip?: boolean }; res: RaceSetup };
   /**
    * What Content Manager's Arguments.txt holds.
    *
@@ -412,6 +424,11 @@ export interface IpcEvents {
    */
   'race:changed': RaceSetup;
   /**
+   * A race weekend of the player's own changed, or a launch of one moved on.
+   * Carries every one of them, which is what quick:list answers.
+   */
+  'quick:changed': QuickRaceView[];
+  /**
    * The championship library changed, because a command wrote or deleted one of
    * the user's files.
    *
@@ -424,8 +441,8 @@ export interface IpcEvents {
   /**
    * The user's class layer changed, because a command wrote it.
    *
-   * Pushed for the same reason series:changed is: the car page classifying a
-   * car has to reach the browser and the championship editor behind it.
+   * Pushed for the same reason series:changed is: a spec's cars restated in
+   * settings has to reach the browser and the championship editor behind it.
    */
   'classes:changed': ClassLayer;
   /**

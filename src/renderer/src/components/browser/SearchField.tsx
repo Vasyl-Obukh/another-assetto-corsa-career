@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { cn } from '@/lib/utils.ts';
 
 interface SearchFieldProps {
   /**
@@ -18,9 +19,15 @@ interface SearchFieldProps {
    * @param next What the user has typed
    */
   onChange(next: string): void;
+  /**
+   * Classes for the box itself, for a toolbar whose controls share a look.
+   */
+  inputClassName?: string;
 }
 
-export const SearchField = ({ value, placeholder, onChange }: SearchFieldProps) => {
+export const SearchField = ({
+  value, placeholder, onChange, inputClassName,
+}: SearchFieldProps) => {
   const { t } = useTranslation();
 
   return (
@@ -30,7 +37,7 @@ export const SearchField = ({ value, placeholder, onChange }: SearchFieldProps) 
         value={value}
         placeholder={placeholder}
         aria-label={t('browse.search')}
-        className="pr-9 pl-9"
+        className={cn('pr-9 pl-9', inputClassName)}
         onChange={(event) => onChange(event.target.value)}
       />
       {value === '' ? null : (

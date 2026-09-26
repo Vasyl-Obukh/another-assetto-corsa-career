@@ -62,6 +62,20 @@ export interface RacePlace {
    * The three above, summed.
    */
   points: number;
+  /**
+   * Set when the player's seat was raced by the driver it names rather than by
+   * the player: a round before the career entered the championship, or one the
+   * player missed. Those points are that driver's and not the player's, so the
+   * standings give them a row of their own; the team keeps them either way.
+   */
+  substitute?: boolean;
+  /**
+   * Set on a place that is no finish at all: the qualifying points the player
+   * earned for a race the driver their seat names then raced in their place.
+   * The player set the time, so the points are theirs - and nothing else about
+   * the race is, so it counts toward their total and never as a race of theirs.
+   */
+  bonusOnly?: boolean;
 }
 
 /**
@@ -85,6 +99,11 @@ export interface RaceScore {
    * Which points system paid it, by its id.
    */
   pointsSystem: string;
+  /**
+   * Set when the race was simulated rather than driven - every race of a round
+   * the player was not there for.
+   */
+  simulated?: boolean;
   /**
    * What every car took from it, by class entry and then in finishing order.
    *
@@ -157,6 +176,12 @@ export interface DriverStanding {
    * How many races this row has been classified in.
    */
   races: number;
+  /**
+   * Set on the row of the driver who raced the player's seat when the player
+   * did not. Shares the seat id with the player's own row, so the pair is told
+   * apart by this alone.
+   */
+  substitute?: boolean;
 }
 
 /**

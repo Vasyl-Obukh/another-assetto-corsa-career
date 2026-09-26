@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next';
 
 import { CONTENT_ISSUE_REASONS } from '../../../../shared/constants';
 import type { ContentIssueReason } from '../../../../shared/types';
-import { formatContentIssueReason, formattersFor } from '../utils.ts';
+import { formatContentIssueReason, formatDayRange, formattersFor } from '../utils.ts';
 
 /**
  * A translator standing in for i18next.
@@ -124,6 +124,38 @@ describe('renderer/i18n/utils', () => {
       expect(formattersFor('en').formatDistance(7004))
         .not.toBe(formattersFor('uk').formatDistance(7004));
     });
+
+    // A bare date parses as UTC midnight, which a local zone west of Greenwich
+    // would show as the day before; every day format reads it back in UTC.
+    it('keeps a calendar day the day it names', () => {
+      const format = formattersFor('en');
+
+      expect(format.formatDay('2026-01-24')).toBe('24 Jan 2026');
+      expect(format.formatDayShort('2026-01-24')).toBe('Sat 24 Jan');
+      expect(format.formatWeekday('2026-01-24')).toBe('Sat');
+    });
+
+    it('names a day\'s month with its year, or short and alone', () => {
+      const format = formattersFor('en');
+
+      expect(format.formatMonth('2026-01-24')).toBe('January 2026');
+      expect(format.formatMonthShort('2026-01-24')).toBe('Jan');
+    });
+
+    it('writes the same day in each language\'s own words', () => {
+      expect(formattersFor('uk').formatMonth('2026-01-24')).not.toBe(formattersFor('en').formatMonth('2026-01-24'));
+    });
+
+    it('names a nation in the active language', () => {
+      expect(formattersFor('en').formatNation('ITA')).toBe('Italy');
+      expect(formattersFor('uk').formatNation('ITA')).not.toBe('Italy');
+    });
+
+    // Intl names regions and not the home nations, so those are translated here.
+    it('names the four home nations itself', () => {
+      expect(formattersFor('uk').formatNation('SCT')).toBe('Шотландія');
+      expect(formattersFor('en').formatNation('SCT')).toBe('Scotland');
+    });
   });
   describe('formatContentIssueReason', () => {
     it('renders the reason from the active catalogue', () => {
@@ -146,6 +178,26 @@ describe('renderer/i18n/utils', () => {
       for (const reason of Object.keys(CONTENT_ISSUE_REASONS) as ContentIssueReason[]) {
         expect(formatContentIssueReason(t, reason)).toBe(CONTENT_ISSUE_REASONS[reason]);
       }
+    });
+  });
+
+  describe('formatDayRange', () => {
+    const t = ((key: string, params?: { from?: string; to?: string }) => (
+      key === 'event.dates' ? `${params?.from} to ${params?.to}` : key
+    )) as unknown as TFunction;
+
+    it('writes a one-day weekend as that day alone', () => {
+      expect(formatDayRange(t, formattersFor('en').formatDay, '2026-03-07', '2026-03-07')).toBe('7 Mar 2026');
+    });
+
+    it('writes a longer weekend as its first and last days', () => {
+      expect(formatDayRange(t, formattersFor('en').formatDay, '2026-03-06', '2026-03-08'))
+        .toBe('6 Mar 2026 to 8 Mar 2026');
+    });
+
+    it('writes each day the way it is handed', () => {
+      expect(formatDayRange(t, (day) => `<${day}>`, '2026-03-06', '2026-03-08'))
+        .toBe('<2026-03-06> to <2026-03-08>');
     });
   });
 });

@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { ROUTE } from '../constants.ts';
-import { buildPath, path } from '../routes.ts';
+import {
+  buildPath, path, routeOf, sectionOf,
+} from '../routes.ts';
 import type { RouteId } from '../types.ts';
 
 describe('renderer/lib/routes/routes', () => {
@@ -104,6 +106,58 @@ describe('renderer/lib/routes/routes', () => {
     // pattern and linking to a literal ":id".
     it('gives every destination a builder', () => {
       expect(Object.keys(path).sort()).toEqual((Object.keys(ROUTE) as RouteId[]).sort());
+    });
+
+    it('builds the home page and one race weekend of the player\'s own', () => {
+      expect(path.home()).toBe(ROUTE.home);
+      expect(path.raceWeekend({ id: 'abc' })).toBe('/race/abc');
+    });
+
+    it('builds a circuit\'s page, on a layout when given one', () => {
+      expect(path.track({ id: 'spa' })).toBe('/tracks/spa');
+      expect(path.track({ id: 'spa' }, 'gp 2022')).toBe('/tracks/spa?layout=gp%202022');
+    });
+  });
+
+  describe('routeOf', () => {
+    it('finds the destination a path is', () => {
+      expect(routeOf('/cars')).toBe('cars');
+      expect(routeOf('/cars/ks_audi_r8')).toBe('car');
+      expect(routeOf('/calendar/lotus-cup/r1')).toBe('event');
+    });
+
+    it('allows a trailing slash', () => {
+      expect(routeOf('/tracks/')).toBe('tracks');
+    });
+
+    // `/settings/championships/new` also fits `/settings/championships/:id`;
+    // the literal has to win or the new championship reads as one called "new".
+    it('prefers a literal route over a pattern the same path fits', () => {
+      expect(routeOf('/settings/championships/new')).toBe('championshipNew');
+      expect(routeOf('/settings/championships/lotus-cup')).toBe('settingsChampionship');
+    });
+
+    it('finds nothing for a path no route matches', () => {
+      expect(routeOf('/nowhere/at/all')).toBeNull();
+    });
+
+    it('finds every route from its own built path', () => {
+      (Object.keys(ROUTE) as RouteId[]).forEach((id) => {
+        expect(routeOf(ROUTE[id].replaceAll(/:[a-z]+/gi, 'x'))).toBe(id);
+      });
+    });
+  });
+
+  describe('sectionOf', () => {
+    it('reads the section a link\'s state names', () => {
+      expect(sectionOf({ section: 'settings' })).toBe('settings');
+    });
+
+    it('reads nothing from state that names no section navigation offers', () => {
+      expect(sectionOf({ section: 'car' })).toBeNull();
+      expect(sectionOf({ other: true })).toBeNull();
+      expect(sectionOf(null)).toBeNull();
+      expect(sectionOf('settings')).toBeNull();
     });
   });
 });

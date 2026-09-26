@@ -18,9 +18,14 @@ export type { TrackBrowser, TrackCriteria } from './types.ts';
  * @param base A query every request is narrowed by, for a browser with a
  *   restricted set of tracks to offer
  * @param memoryId Which browser this is, for one that comes back where it was
+ * @param raced Every track a championship races, or undefined until that is known
  * @returns The current state and the actions the screen binds to
  */
-export const useTrackBrowser = (base?: TrackQuery, memoryId?: string): TrackBrowser => {
+export const useTrackBrowser = (
+  base?: TrackQuery,
+  memoryId?: string,
+  raced?: readonly string[],
+): TrackBrowser => {
   // Read once, at mount: the store keeps being written while the screen is
   // open, and reading it again would answer with what the user is looking at
   // rather than what they were.
@@ -36,9 +41,9 @@ export const useTrackBrowser = (base?: TrackQuery, memoryId?: string): TrackBrow
   // a caller rebuilding its base query each render would never settle.
   const baseKey = useMemo(() => JSON.stringify(base ?? null), [base]);
   const query = useMemo(
-    () => toTrackQuery(criteria, settled, base),
+    () => toTrackQuery(criteria, settled, base, raced),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
-    [criteria, settled, baseKey],
+    [criteria, settled, baseKey, raced],
   );
   const key = useMemo(() => trackQueryKey(query), [query]);
 
@@ -92,9 +97,10 @@ export const useTrackBrowser = (base?: TrackQuery, memoryId?: string): TrackBrow
     filtered: isTrackFiltered(criteria, search),
     setSearch,
     setCriteria,
+    // The layout is a way of looking rather than a filter, so it survives.
     clear: () => {
       setSearch('');
-      setCriteria(EMPTY_CRITERIA);
+      setCriteria({ ...EMPTY_CRITERIA, view: criteria.view });
     },
     refresh,
   };

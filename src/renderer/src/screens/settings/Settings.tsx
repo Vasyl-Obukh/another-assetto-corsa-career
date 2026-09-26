@@ -1,98 +1,34 @@
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 
-import { AllowedWeatherField } from './AllowedWeatherField.tsx';
-import { ContentManagerField } from './ContentManagerField.tsx';
-import { DriverField } from './DriverField.tsx';
-import { DrivingAidsField } from './DrivingAidsField.tsx';
-import { OpponentsField } from './OpponentsField.tsx';
-import { WeatherSystemField } from './WeatherSystemField.tsx';
-import {
-  FieldGrid, FieldRow, LanguageSelect, ScreenBody, ThemeSelect,
-} from '@/components';
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-} from '@/components/ui/card.tsx';
+import { AppearanceSection } from './AppearanceSection.tsx';
+import { GENERAL_SECTIONS } from './constants.ts';
+import { ContentManagerSection } from './ContentManagerSection.tsx';
+import { DriverSection } from './DriverSection.tsx';
+import { DrivingAidsSection } from './DrivingAidsSection.tsx';
+import { OpponentsSection } from './OpponentsSection.tsx';
+import { SectionIndex } from './SectionIndex.tsx';
+import { WeatherSection } from './WeatherSection.tsx';
+import { ScreenBody } from '@/components';
 
 export const Settings = () => {
-  const { t } = useTranslation();
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
 
   return (
-    <ScreenBody className="flex flex-col gap-6 py-6" backToTop>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.appearance')}</CardTitle>
-        </CardHeader>
+    <ScreenBody className="py-6" scrollRef={setScroller} backToTop>
+      {/* Capped, unlike the browsers: these are forms, whose controls drift
+          apart on the whole width. */}
+      <div className="grid max-w-7xl grid-cols-[12rem_minmax(0,1fr)] gap-7">
+        <SectionIndex sections={GENERAL_SECTIONS} scroller={scroller} />
 
-        <CardContent>
-          <FieldGrid>
-            <FieldRow label={t('settings.theme')}>
-              <ThemeSelect />
-            </FieldRow>
-
-            <FieldRow label={t('settings.language')}>
-              <LanguageSelect />
-            </FieldRow>
-          </FieldGrid>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.driver')}</CardTitle>
-          <CardDescription>{t('settings.driverHint')}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <DriverField />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.drivingAids')}</CardTitle>
-          <CardDescription>{t('settings.drivingAidsHint')}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <DrivingAidsField />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.opponents')}</CardTitle>
-          <CardDescription>{t('settings.opponentsHint')}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <OpponentsField />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.weather')}</CardTitle>
-          <CardDescription>{t('settings.weatherHint')}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-col gap-6">
-            <WeatherSystemField />
-            <AllowedWeatherField />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.contentManager')}</CardTitle>
-          <CardDescription>{t('settings.contentManagerHint')}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <ContentManagerField />
-        </CardContent>
-      </Card>
+        <div className="flex min-w-0 flex-col gap-5">
+          <AppearanceSection />
+          <DriverSection />
+          <DrivingAidsSection />
+          <OpponentsSection />
+          <WeatherSection />
+          <ContentManagerSection />
+        </div>
+      </div>
     </ScreenBody>
   );
 };

@@ -42,6 +42,15 @@ const codesFor = (value: unknown): string[] => (
   parseSeries(value, 'test.json').problems.map((problem) => problem.code)
 );
 
+/**
+ * The fields parsing a value reported as invalid.
+ * @param value The value to parse
+ * @returns One dotted path per problem that names one
+ */
+const fieldsFor = (value: unknown): string[] => parseSeries(value, 'test.json').problems
+  .map((problem) => (problem.params as { field?: string }).field)
+  .filter((field): field is string => field !== undefined);
+
 describe('core/series-file', () => {
   describe('parseSeries', () => {
     it('reads a well-formed championship', () => {
@@ -328,6 +337,77 @@ describe('core/series-file', () => {
       const value = raw({ teams: [{ id: 'works', name: 'Works', budget: 'enormous' }] });
 
       expect(codesFor(value)).toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('reads a nation Assetto Corsa has a flag for, on a driver and on a team', () => {
+      const value = raw({
+        teams: [{ id: 'privateer', name: 'Privateer', nationCode: 'SCT' }],
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          seats: [{ id: 'main-1', driver: { name: 'Ada Marchetti', nationCode: 'ITA' } }],
+        }],
+      });
+
+      expect(codesFor(value)).toEqual([]);
+    });
+
+    // A sports code is not one of AC's flags, and races flagless with nothing said.
+    it('rejects a nation Assetto Corsa has no flag for', () => {
+      const value = raw({
+        teams: [{ id: 'privateer', name: 'Privateer', nationCode: 'GER' }],
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          seats: [{ id: 'main-1', driver: { name: 'Ada Marchetti', nationCode: 'NED' } }],
+        }],
+      });
+
+      expect(fieldsFor(value)).toEqual(expect.arrayContaining([
+        'teams[0].nationCode', 'entries[0].seats[0].driver.nationCode',
+      ]));
+    });
+
+    // Looked up from the code now, so one left in a file would round-trip
+    // straight back out of writeSeries.
+    it('rejects a nationality written out, on a driver and on a team', () => {
+      const value = raw({
+        teams: [{ id: 'privateer', name: 'Privateer', nationality: 'Italy' }],
+        entries: [{
+          ...(raw().entries as Record<string, unknown>[])[0],
+          seats: [{ id: 'main-1', driver: { name: 'Ada Marchetti', nationality: 'Italy' } }],
+        }],
+      });
+
+      expect(fieldsFor(value)).toEqual(expect.arrayContaining([
+        'teams[0].nationality', 'entries[0].seats[0].driver.nationality',
+      ]));
+    });
+
+    // A fixed bug: the nation was only checked once everything before it read.
+    it('names a team\'s bad nation beside its other faults', () => {
+      const value = raw({ teams: [{ id: '', name: 'Privateer', nationCode: 'GER' }] });
+
+      expect(fieldsFor(value)).toEqual(['teams[0].id', 'teams[0].nationCode']);
+    });
+
+    it('reads where a race starts the player, by name or by slot', () => {
+      /**
+       * The fixture with its race starting the player where it says.
+       * @param start Where the race starts the player
+       * @returns The value JSON.parse would have returned
+       */
+      const withStart = (start: unknown): Record<string, unknown> => raw({
+        weekendFormats: [{
+          id: 'standard',
+          name: 'Race weekend',
+          sessions: [{
+            type: 'race', name: 'Race', laps: 8, day: 0, start,
+          }],
+        }],
+      });
+
+      ['last', 'pole', 'random', 3].forEach((start) => expect(codesFor(withStart(start))).toEqual([]));
+      expect(fieldsFor(withStart('front'))).toEqual(['weekendFormats[0].sessions[0].start']);
+      expect(fieldsFor(withStart(true))).toEqual(['weekendFormats[0].sessions[0].start']);
     });
 
     it('accepts a championship that names no teams at all', () => {

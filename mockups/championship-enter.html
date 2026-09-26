@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enter from championship</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250); --foreground: oklch(0.16 0.01 260); --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262); --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252); --muted-foreground: oklch(0.53 0.012 258); --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255); --warning: oklch(0.79 0.15 80); --warning-foreground: oklch(0.28 0.06 70);
+  --warning-soft: oklch(0.96 0.05 85); --destructive: oklch(0.58 0.22 27);
+  --d-ss: oklch(0.925 0.06 212); --d-ss-fg: oklch(0.36 0.11 215);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --clim: oklch(0.93 0.05 88); --clim-fg: oklch(0.42 0.08 80);
+  --s-p: oklch(0.93 0.045 250); --s-p-fg: oklch(0.4 0.13 258); --s-q: oklch(0.93 0.05 310); --s-q-fg: oklch(0.4 0.15 310);
+  --s-r: oklch(0.89 0.085 150); --s-r-fg: oklch(0.33 0.1 152);
+  --ind: oklch(0.92 0.06 18); --ind-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265); --foreground: oklch(0.94 0.005 260); --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258); --muted: oklch(0.27 0.014 265); --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265); --border: oklch(1 0 0 / 12%); --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70); --warning-soft: oklch(0.3 0.05 80); --destructive: oklch(0.66 0.2 25);
+  --d-ss: oklch(0.32 0.07 212); --d-ss-fg: oklch(0.86 0.1 212);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255); --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --clim: oklch(0.36 0.06 88); --clim-fg: oklch(0.88 0.09 90);
+  --s-p: oklch(0.32 0.06 250); --s-p-fg: oklch(0.86 0.09 255); --s-q: oklch(0.33 0.07 310); --s-q-fg: oklch(0.87 0.1 310);
+  --s-r: oklch(0.35 0.09 150); --s-r-fg: oklch(0.88 0.13 150);
+  --ind: oklch(0.33 0.07 18); --ind-fg: oklch(0.86 0.09 22);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--background); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+.muted { color: var(--muted-foreground); } .xs { font-size: 11.5px; } .sm { font-size: 13px; }
+.caps { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; }
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker strong { margin-right: 6px; }
+.picker .opt { border: 1px solid color-mix(in srgb, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 5px 12px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; align-self: stretch; background: color-mix(in srgb, var(--background) 30%, transparent); margin: 0 6px; }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 92ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); } .rationale ul { margin: 6px 0 0; padding-left: 18px; }
+.window { max-width: 1440px; margin: 16px auto 40px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); }
+.page { padding: 20px 32px 32px; }
+.back { color: var(--muted-foreground); padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.grid { display: grid; grid-template-columns: 20rem minmax(0, 1fr); gap: 20px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.summary { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.stripe { height: 6px; border-radius: 3px; background: var(--d-ss-fg); }
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 5px; padding: 1px 7px; font-size: 11.5px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.chip.outline { border-color: var(--border); }
+.d-ss { background: var(--d-ss); color: var(--d-ss-fg); } .t5 { background: var(--t5); color: var(--t5-fg); } .t3 { background: var(--t3); color: var(--t3-fg); }
+.clim { background: var(--clim); color: var(--clim-fg); }
+.fact { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 12px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.primary[disabled] { opacity: .5; cursor: default; }
+.btn.sm { padding: 3px 10px; font-size: 12px; }
+.btn.wide { width: 100%; }
+.select { border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; display: flex; justify-content: space-between; background: var(--card); font-size: 13px; }
+.enter { border: 1.5px dashed var(--primary); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--card); }
+.enter.inline { border-radius: 10px; background: color-mix(in srgb, var(--primary) 4%, var(--card)); }
+.carrow { display: flex; gap: 10px; align-items: center; }
+.car-thumb { width: 64px; height: 38px; border-radius: 6px; background: linear-gradient(135deg, oklch(0.3 0.02 260), oklch(0.5 0.15 25)); flex: none; }
+.note { display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: 9px; background: var(--warning-soft); font-size: 12.5px; }
+.note svg { flex: none; margin-top: 2px; color: oklch(0.6 0.15 70); }
+.enter.inline .first { flex-direction: column; gap: 2px; }
+.first { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 9px; }
+.next-box { border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border)); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.table { padding: 0; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted-foreground); padding: 12px 14px; background: color-mix(in srgb, var(--muted) 60%, transparent); }
+td { padding: 11px 14px; border-top: 1px solid var(--border); }
+tr.past td { opacity: .5; }
+.map { width: 60px; height: 36px; border-radius: 6px; background: var(--muted); display: grid; place-items: center; }
+.map svg { width: 48px; height: 26px; } .map path { fill: none; stroke: var(--foreground); stroke-width: 2.2; opacity: .75; }
+.bubble { display: inline-flex; gap: 3px; } .bubble span { width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; }
+.s-p { background: var(--s-p); color: var(--s-p-fg); } .s-q { background: var(--s-q); color: var(--s-q-fg); } .s-r { background: var(--s-r); color: var(--s-r-fg); }
+.lockline { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted-foreground); }
+.rowlabel { display: flex; justify-content: space-between; align-items: baseline; }
+</style>
+</head>
+<body>
+<div class="picker">
+  <strong>Layout</strong>
+  <button class="opt" data-layout="a" aria-pressed="true">A - Inside the card</button>
+  <button class="opt" data-layout="b" aria-pressed="false">B - Its own card</button>
+  <span class="sep"></span>
+  <strong>State</strong>
+  <button class="opt" data-state="fresh" aria-pressed="true">Not entered</button>
+  <button class="opt" data-state="picked" aria-pressed="false">Car picked</button>
+  <button class="opt" data-state="behind" aria-pressed="false">Season under way</button>
+  <button class="opt" data-state="locked" aria-pressed="false">Above your level</button>
+  <button class="opt" data-state="entered" aria-pressed="false">Entered</button>
+  <span class="spacer"></span>
+  <button class="opt" id="theme" aria-pressed="false">Dark</button>
+</div>
+
+<div class="rationale">
+  <b>Entering from the championship page.</b> Until you've entered, the sidebar asks you to enter, using the round page's own Enter panel and its rules unchanged. Once you've entered, the panel goes and the Next round box from the last change takes its place.
+  <ul>
+    <li><b>Same panel as the round page:</b> class (only when there is more than one), the car and livery picker, the "already behind the clock" note, and Enter championship. It confirms through the same dialog when rounds are already behind.</li>
+    <li><b>What's new here:</b> a "Your first round" line under the button saying which round you would start from and when. On the round page you're already looking at that round; here you aren't.</li>
+    <li><b>Locked, or not raceable:</b> the panel says why and offers no Enter, the way the round page does.</li>
+    <li><b>A</b> puts the panel inside the championship card, under the facts, where the Open button sits once you've entered. <b>B</b> gives it its own dashed card under the summary, exactly as the round page shows it. B reuses the component as it is, while A needs it to be able to drop its own card frame.</li>
+  </ul>
+</div>
+
+<div class="window">
+  <div class="page">
+    <div class="back">← All championships</div>
+    <div class="grid">
+      <aside class="side" id="side"></aside>
+      <div class="card table">
+        <table>
+          <thead><tr><th>Rd</th><th></th><th>Round</th><th>Date</th><th>Weekend</th><th>Race</th><th></th></tr></thead>
+          <tbody id="rounds"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WARN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>';
+const LOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const SH = ['M4 16 C8 4 18 4 22 12 C26 20 34 6 44 10 L42 20 L6 22 Z', 'M5 13 C5 5 20 5 24 9 C28 13 40 4 44 12 C46 20 30 22 22 18 C14 14 5 22 5 13 Z', 'M6 18 L14 6 L20 10 L30 4 L42 8 L36 14 L44 20 L10 22 Z', 'M4 12 C10 2 40 2 44 10 C46 18 34 22 26 16 L18 20 C10 24 2 20 4 12 Z', 'M8 20 L6 8 L16 4 L24 12 L34 6 L42 14 L30 22 Z'];
+const bubbles = '<span class="bubble"><span class="s-p">P</span><span class="s-q">Q</span><span class="s-q">Q</span><span class="s-r">R</span><span class="s-r">R</span><span class="s-r">R</span></span>';
+const ROUNDS = [['Imola', '4 Jan 2026'], ['Vallelunga', '15 Mar 2026'], ['Mugello', '24 May 2026'], ['Red Bull Ring', '26 Jul 2026'], ['Monza', '4 Oct 2026']];
+let layout = 'a';
+let state = 'fresh';
+
+const enterPanel = (inline) => {
+  const behind = state === 'behind';
+  const locked = state === 'locked';
+  const picked = state === 'picked' || behind;
+  const first = behind ? ['Round 3 · Mugello', 'Fri 22 May'] : ['Round 1 · Imola', 'Fri 2 Jan'];
+  return `
+  <div class="enter ${inline ? 'inline' : ''}">
+    <div>${inline ? '<span class="caps" style="color:var(--primary)">Enter this season</span>' : '<h3 style="font-size:16px">Enter Italian F4 Championship</h3>'}
+      <p class="xs muted" style="margin-top:3px">You take the last seat of the class for the whole season, and every round goes onto your calendar.</p></div>
+    ${locked ? `<div class="lockline">${LOCK}<span><b style="color:var(--foreground)">Above your level.</b> Race Tier 5 single-seaters to reach Tier 3.</span></div>` : `
+    <div class="rowlabel"><span class="sm">Car</span>${picked ? '<button class="btn sm">Change</button>' : '<button class="btn sm">Pick a car</button>'}</div>
+    ${picked ? '<div class="carrow"><span class="car-thumb"></span><div><b class="sm">Formula RSS 4</b><div class="xs muted">Prema Racing livery</div></div></div>' : '<span class="sm muted">No car picked yet</span>'}
+    ${behind ? `<div class="note">${WARN}<span><b>2 rounds are already behind the clock.</b> Entering now counts them as non-starts.</span></div>` : ''}
+    <button class="btn primary wide" ${picked ? '' : 'disabled'}>Enter championship</button>
+    <div class="first"><span class="muted">Your first round</span><span><b>${first[0]}</b> <span class="muted">· ${first[1]}</span></span></div>`}
+  </div>`;
+};
+
+const nextBox = () => `
+  <div class="next-box">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="caps" style="color:var(--primary)">Next round</span><span class="xs muted">in 1 day</span></div>
+    <div><b>Round 1 · Imola</b><div class="xs muted">Fri 2 Jan - Sun 4 Jan</div></div>
+    <button class="btn primary wide">Open round 1 · Imola ${ARROW}</button>
+  </div>`;
+
+const render = () => {
+  const entered = state === 'entered';
+  const facts = `
+    <div class="stripe"></div>
+    <h2 style="font-size:21px">${state === 'locked' ? 'Formula Abarth ++' : 'Italian F4 Championship'}</h2>
+    <div style="display:flex;gap:6px"><span class="chip d-ss">Single-seater</span><span class="chip ${state === 'locked' ? 't3' : 't5'}">Tier ${state === 'locked' ? 3 : 5}</span></div>
+    <p class="sm muted">The Italian Formula 4 championship on RSS's Formula RSS 4: three races a weekend, one of them from a reversed grid.</p>
+    <div class="fact"><span class="muted">Weekend</span>${bubbles}</div>
+    <div class="fact"><span class="muted">Weather</span><span class="chip clim">Mediterranean</span></div>
+    <div class="fact"><span class="muted">Grid</span><span>24 cars, 8 teams</span></div>
+    <div class="fact"><span class="muted">Entry fee</span><span>$1,500</span></div>
+    ${entered ? '<div class="fact"><span class="muted">You race</span><span><span class="chip t5">Formula 4</span> Levante Racing</span></div>' : ''}`;
+  let side;
+  if (entered) side = `<div class="card summary">${facts}${nextBox()}</div><div class="card summary"><b>Standings</b><span class="muted">Nothing has been raced yet</span></div>`;
+  else if (layout === 'a') side = `<div class="card summary">${facts}${enterPanel(true)}</div>`;
+  else side = `<div class="card summary">${facts}</div>${enterPanel(false)}`;
+  document.getElementById('side').innerHTML = side;
+  const behind = state === 'behind';
+  document.getElementById('rounds').innerHTML = ROUNDS.map(([n, d], i) => `
+    <tr class="${behind && i < 2 ? 'past' : ''}"><td>${i + 1}</td><td><div class="map"><svg viewBox="0 0 48 26"><path d="${SH[i]}"/></svg></div></td><td><b>${n}</b></td><td class="muted">${d}</td><td>${bubbles}</td><td>3 × 65 km</td>
+    <td style="text-align:right"><button class="btn sm ${(behind ? i === 2 : i === 0) ? 'primary' : ''}">Open ${ARROW}</button></td></tr>`).join('');
+};
+
+const press = (attr, value) => document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === value)));
+document.querySelectorAll('[data-layout]').forEach((b) => b.addEventListener('click', () => { layout = b.dataset.layout; press('layout', layout); render(); }));
+document.querySelectorAll('[data-state]').forEach((b) => b.addEventListener('click', () => { state = b.dataset.state; press('state', state); render(); }));
+document.getElementById('theme').addEventListener('click', (ev) => {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  ev.currentTarget.setAttribute('aria-pressed', String(dark));
+});
+render();
+</script>
+</body>
+</html>

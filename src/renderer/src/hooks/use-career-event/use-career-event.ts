@@ -13,7 +13,7 @@ export type { CareerEventState } from './types.ts';
  * session, the race store moving between launching and waiting, the library or
  * the install changing what the round can run. None of them carry the view, so
  * each is only a signal to ask again.
- * @param series The championship's id
+ * @param series The championship's id, or an empty string to load nothing
  * @param round The round's id
  * @returns The round and the commands the page runs on it
  */
@@ -24,8 +24,9 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
   const [error, setError] = useState<ReturnType<typeof toDisplayableError> | null>(null);
 
   const load = useCallback((): (() => void) => {
-    let live = true;
+    if (series === '') return () => undefined;
 
+    let live = true;
     invoke('career:event', { series, round }).then(
       (next) => { if (live) { setView(next); setLoading(false); } },
       (thrown: unknown) => {
@@ -69,7 +70,6 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
     error,
     dismissError: () => setError(null),
     enter: (entry, car) => run(() => invoke('career:enrol', { series, entry, car })),
-    launch: () => run(() => invoke('career:launch', { series, round })),
-    restart: () => run(() => invoke('career:restartEvent', { series, round })),
+    launch: (skip) => run(() => invoke('career:launch', { series, round, skip })),
   };
 };

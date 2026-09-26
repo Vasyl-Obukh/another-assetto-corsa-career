@@ -5,7 +5,7 @@ import {
 } from './fixtures.ts';
 import { CLASS_LAYER_VERSION } from '../../../constants/index.ts';
 import type { ClassLayer } from '../../../types/index.ts';
-import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../car-classes/index.ts';
+import { resolveCatalogue, SHIPPED_CATALOGUE, specCars } from '../../car-classes/index.ts';
 import {
   readClassLayer,
   withCarSpecs,
@@ -13,6 +13,7 @@ import {
   withoutCarSpecs,
   withoutUserClass,
   withoutUserSpec,
+  withSpecCars,
   withUserClass,
   withUserSpec,
 } from '../class-layer.ts';
@@ -125,6 +126,56 @@ describe('shared/utils/class-layer', () => {
       const layer = makeLayer({ cars: { one: [], two: [USER_SPEC.id] } });
 
       expect(withoutCarSpecs(layer, 'one').cars).toEqual({ two: [USER_SPEC.id] });
+    });
+  });
+
+  describe('withSpecCars', () => {
+    /**
+     * A second spec of the user's class, beside USER_SPEC.
+     */
+    const SIBLING = { id: 'user-spec-2', name: 'Hillclimb (2010s)', class: USER_CLASS.id };
+
+    it('puts every car named in the spec', () => {
+      const { layer, catalogue } = withOwn();
+
+      expect(withSpecCars(layer, catalogue, USER_SPEC.id, ['one', 'two']).cars)
+        .toEqual({ one: [USER_SPEC.id], two: [USER_SPEC.id] });
+    });
+
+    it('takes a car left out of the spec off it, keeping its specs in other classes', () => {
+      const shipped = SHIPPED_CATALOGUE.classes[0].specs[0];
+      const { layer, catalogue } = withOwn({ cars: { my_mod: [USER_SPEC.id, shipped] } });
+
+      expect(withSpecCars(layer, catalogue, USER_SPEC.id, []).cars).toEqual({ my_mod: [shipped] });
+    });
+
+    // A car races in one spec per class, so joining one is leaving its sibling.
+    it('moves a car joining the spec out of the one it held in the same class', () => {
+      const { layer, catalogue } = withOwn({ specs: [USER_SPEC, SIBLING], cars: { my_mod: [SIBLING.id] } });
+
+      expect(withSpecCars(layer, catalogue, USER_SPEC.id, ['my_mod']).cars).toEqual({ my_mod: [USER_SPEC.id] });
+    });
+
+    it('leaves alone a car that stays where it was', () => {
+      const { layer, catalogue } = withOwn({ cars: { kept: [USER_SPEC.id] } });
+
+      expect(withSpecCars(layer, catalogue, USER_SPEC.id, ['kept', 'added']).cars)
+        .toEqual({ kept: [USER_SPEC.id], added: [USER_SPEC.id] });
+    });
+
+    it('drops the override of a shipped car put back where the app has it', () => {
+      const found = [...SHIPPED_CATALOGUE.specsByCar].find(([, specs]) => specs.length === 1);
+      if (!found) throw new Error('the catalogue has no car in exactly one spec');
+      const [car, [spec]] = found;
+      const layer = makeLayer({ cars: { [car]: [] } });
+      const catalogue = resolveCatalogue(layer);
+
+      expect(withSpecCars(layer, catalogue, spec, [...specCars(spec, catalogue), car]).cars).toEqual({});
+    });
+
+    it('refuses a spec the catalogue lacks', () => {
+      expect(() => withSpecCars(makeLayer(), SHIPPED_CATALOGUE, 'ghost', ['my_mod']))
+        .toThrow(expect.objectContaining({ code: 'classes.spec.notFound' }));
     });
   });
 

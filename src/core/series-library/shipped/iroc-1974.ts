@@ -27,7 +27,7 @@ export const IROC_1974: Championship = {
   description: 'Twelve champions in identical Porsche Carrera RSRs: the first IROC, with Laguna Seca '
     + 'standing in for Riverside and each race lined up in reverse of the one before.',
   teams: [
-    team('iroc', 'International Race of Champions', 'United States', 'USA', TeamBudget.WORKS),
+    team('iroc', 'International Race of Champions', 'USA', TeamBudget.WORKS),
   ],
   entries: [
     {
@@ -37,18 +37,18 @@ export const IROC_1974: Championship = {
       // The real field, in the order the series finished; the player takes the
       // last seat.
       seats: [
-        seat('donohue', 'iroc', 'Mark Donohue', 'United States', 'USA'),
-        seat('follmer', 'iroc', 'George Follmer', 'United States', 'USA'),
-        seat('revson', 'iroc', 'Peter Revson', 'United States', 'USA'),
-        seat('unser', 'iroc', 'Bobby Unser', 'United States', 'USA'),
-        seat('foyt', 'iroc', 'A. J. Foyt', 'United States', 'USA'),
-        seat('hulme', 'iroc', 'Denny Hulme', 'New Zealand', 'NZL'),
-        seat('fittipaldi', 'iroc', 'Emerson Fittipaldi', 'Brazil', 'BRA'),
-        seat('pearson', 'iroc', 'David Pearson', 'United States', 'USA'),
-        seat('petty', 'iroc', 'Richard Petty', 'United States', 'USA'),
-        seat('johncock', 'iroc', 'Gordon Johncock', 'United States', 'USA'),
-        seat('mccluskey', 'iroc', 'Roger McCluskey', 'United States', 'USA'),
-        seat('allison', 'iroc', 'Bobby Allison', 'United States', 'USA'),
+        seat('donohue', 'iroc', 'Mark Donohue', 'USA'),
+        seat('follmer', 'iroc', 'George Follmer', 'USA'),
+        seat('revson', 'iroc', 'Peter Revson', 'USA'),
+        seat('unser', 'iroc', 'Bobby Unser', 'USA'),
+        seat('foyt', 'iroc', 'A. J. Foyt', 'USA'),
+        seat('hulme', 'iroc', 'Denny Hulme', 'NZL'),
+        seat('fittipaldi', 'iroc', 'Emerson Fittipaldi', 'BRA'),
+        seat('pearson', 'iroc', 'David Pearson', 'USA'),
+        seat('petty', 'iroc', 'Richard Petty', 'USA'),
+        seat('johncock', 'iroc', 'Gordon Johncock', 'USA'),
+        seat('mccluskey', 'iroc', 'Roger McCluskey', 'USA'),
+        seat('allison', 'iroc', 'Bobby Allison', 'USA'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_carrera_rsr'] },
     },

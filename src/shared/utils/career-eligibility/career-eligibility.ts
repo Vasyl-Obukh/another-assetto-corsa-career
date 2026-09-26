@@ -9,8 +9,8 @@
 // something that reads a rating - and isEligible and every caller of it stay
 // exactly as they are.
 
-import { Discipline } from '../../types/index.ts';
-import type { LadderPosition, SeriesListing } from '../../types/index.ts';
+import { DISCIPLINES } from '../../constants/index.ts';
+import type { Discipline, LadderPosition, SeriesListing } from '../../types/index.ts';
 
 /**
  * How many rungs of each discipline a new career may enter at.
@@ -60,7 +60,7 @@ export const startingLevels = (listings: readonly SeriesListing[]): DisciplineLe
   const lowest = ladders.reduce((deepest, one) => Math.max(deepest, one.tier), 1);
 
   const levels = Object.fromEntries(
-    Object.values(Discipline).map((discipline) => {
+    DISCIPLINES.map((discipline) => {
       const own = ladders.filter((one) => one.discipline === discipline);
       // The fallback is for a discipline with nothing in it, so it stands in
       // for an empty list rather than seeding one that is not: seeded with it, a

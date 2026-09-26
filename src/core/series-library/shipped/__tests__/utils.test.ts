@@ -98,16 +98,16 @@ describe('core/series-library/shipped/utils', () => {
 
   describe('seat', () => {
     it('seats a named driver with a team', () => {
-      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED')).toEqual({
+      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'NLD')).toEqual({
         id: 'rbr-1',
         team: 'red-bull',
-        driver: { name: 'Max Verstappen', nationality: 'Netherlands', nationCode: 'NED' },
+        driver: { name: 'Max Verstappen', nationCode: 'NLD' },
       });
     });
 
     it('gives the driver an offset of their own only when one is stated', () => {
-      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'Netherlands', 'NED', 4).strength).toBe(4);
-      expect(seat('rbr-2', 'red-bull', 'Sergio Perez', 'Mexico', 'MEX')).not.toHaveProperty('strength');
+      expect(seat('rbr-1', 'red-bull', 'Max Verstappen', 'NLD', 4).strength).toBe(4);
+      expect(seat('rbr-2', 'red-bull', 'Sergio Perez', 'MEX')).not.toHaveProperty('strength');
     });
   });
 });

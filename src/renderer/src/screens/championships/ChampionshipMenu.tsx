@@ -1,62 +1,37 @@
-import {
-  CopyIcon, MoreVerticalIcon, PencilIcon, Trash2Icon, UndoIcon, UploadIcon,
-} from 'lucide-react';
+import { MoreVerticalIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { SeriesListing } from '../../../../shared/types';
 import { Button } from '@/components/ui/button.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 
 interface ChampionshipMenuProps {
   /**
-   * The championship the menu acts on.
+   * The championship's name, for the button's label.
    */
-  listing: SeriesListing;
+  name: string;
   /**
-   * Whether the menu offers everything that manages the library, or only Edit.
-   * Only the settings tab and the pages it opens manage it.
-   */
-  manage: boolean;
-  /**
-   * Whether a command is already running, which disables every item.
+   * Whether a command is already running, which disables the button.
    */
   busy: boolean;
   /**
-   * Called to open the championship in the editor.
+   * Classes for the button, for one sitting on a coloured band.
    */
-  onEdit: () => void;
+  triggerClassName?: string;
   /**
-   * Called to copy this championship into a separate one.
+   * The items, drawn with the dropdown's own parts.
    */
-  onDuplicate: () => void;
-  /**
-   * Called to delete the user's version and put the app's own back.
-   */
-  onRevert: () => void;
-  /**
-   * Called to delete one of the user's own championships.
-   */
-  onDelete: () => void;
-  /**
-   * Called to write this championship out as a file.
-   */
-  onExport: () => void;
+  children: ReactNode;
 }
 
 export const ChampionshipMenu = ({
-  listing, manage, busy, onEdit, onDuplicate, onRevert, onDelete, onExport,
+  name, busy, triggerClassName, children,
 }: ChampionshipMenuProps) => {
   const { t } = useTranslation();
-  const { origin } = listing;
-  // A weekend under way is raced against the championship as it stood, so it
-  // may not change until that weekend is over.
-  const locked = listing.weekend !== null;
 
   return (
     <DropdownMenu>
@@ -65,52 +40,14 @@ export const ChampionshipMenu = ({
           variant="ghost"
           size="icon"
           disabled={busy}
-          aria-label={t('championships.actions.menu', { name: listing.series.name })}
+          className={triggerClassName}
+          aria-label={t('championships.actions.menu', { name })}
         >
           <MoreVerticalIcon />
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          disabled={locked}
-          title={locked ? t('championships.actions.editLocked') : undefined}
-          onSelect={onEdit}
-        >
-          <PencilIcon />
-          {t('championships.actions.edit')}
-        </DropdownMenuItem>
-
-        {manage ? (
-          <>
-            <DropdownMenuItem onSelect={onDuplicate}>
-              <CopyIcon />
-              {t('championships.actions.duplicate')}
-            </DropdownMenuItem>
-
-            <DropdownMenuItem onSelect={onExport}>
-              <UploadIcon />
-              {t('championships.actions.export')}
-            </DropdownMenuItem>
-
-            {origin === 'shipped' ? null : <DropdownMenuSeparator />}
-
-            {origin === 'adjusted' ? (
-              <DropdownMenuItem variant="destructive" onSelect={onRevert}>
-                <UndoIcon />
-                {t('championships.actions.revert')}
-              </DropdownMenuItem>
-            ) : null}
-
-            {origin === 'user' ? (
-              <DropdownMenuItem variant="destructive" onSelect={onDelete}>
-                <Trash2Icon />
-                {t('championships.actions.delete')}
-              </DropdownMenuItem>
-            ) : null}
-          </>
-        ) : null}
-      </DropdownMenuContent>
+      <DropdownMenuContent align="end">{children}</DropdownMenuContent>
     </DropdownMenu>
   );
 };

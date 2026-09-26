@@ -1,15 +1,12 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { RowActions } from './RowActions.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { moveAt } from '@/screens/race';
+import { useRowDrag } from '@/hooks';
+import { cn } from '@/lib/utils.ts';
+import { moveTo } from '@/screens/race';
 
 interface CarListFieldProps {
-  /**
-   * What makes these controls' ids unique on the page.
-   */
-  idPrefix: string;
   /**
    * The cars named, in the order the field draws from them.
    */
@@ -40,14 +37,19 @@ interface CarListFieldProps {
  * The cars a one-make series names, listed in the order the field draws from
  * them.
  *
- * Order is data rather than presentation, which is why these reorder: nextSkin
+ * Order is data rather than presentation, which is why the chips drag: nextSkin
  * walks this list to fill a grid, so the first car named is the one most of the
  * field ends up in.
  */
 export const CarListField = ({
-  idPrefix, cars, locked, onChange, onAdd, nameOf,
+  cars, locked, onChange, onAdd, nameOf,
 }: CarListFieldProps) => {
   const { t } = useTranslation();
+  const drag = useRowDrag({
+    count: cars.length,
+    locked,
+    onMove: (from, to) => onChange(moveTo([...cars], from, to)),
+  });
 
   return (
     <div className="flex flex-col gap-2">
@@ -55,39 +57,49 @@ export const CarListField = ({
         <p className="text-sm text-muted-foreground">{t('editor.eligibility.noCars')}</p>
       ) : null}
 
-      <ol className="flex flex-col">
-        {cars.map((car, index) => (
-          <li key={car} className="flex items-center gap-3 border-b py-1 last:border-b-0">
-            <span className="w-6 shrink-0 text-right text-xs text-muted-foreground">
-              {index + 1}
-            </span>
-            <span className="min-w-0 truncate text-sm">{nameOf(car)}</span>
+      <ol className="flex flex-wrap gap-1.5">
+        {cars.map((car, index) => {
+          const edge = drag.edgeOf(index);
 
-            <RowActions
-              label={nameOf(car)}
-              first={index === 0}
-              last={index === cars.length - 1}
-              locked={locked}
-              onMove={(by) => onChange(moveAt([...cars], index, by))}
-              onRemove={() => onChange(cars.filter((one) => one !== car))}
-            />
-          </li>
-        ))}
+          return (
+            <li
+              key={car}
+              draggable={drag.enabled}
+              className={cn(
+                'flex cursor-grab items-center gap-1.5 rounded-md border bg-card py-0.5 pr-0.5 pl-2 text-sm',
+                drag.dragging === index && 'opacity-50',
+                edge === 'before' && 'shadow-[inset_2px_0_0_0_var(--color-primary)]',
+                edge === 'after' && 'shadow-[inset_-2px_0_0_0_var(--color-primary)]',
+              )}
+              onDragStart={(event) => drag.onRowDragStart(index, event)}
+              onDragOver={(event) => drag.onRowDragOver(index, event)}
+              onDrop={(event) => drag.onRowDrop(index, event)}
+              onDragEnd={drag.onRowDragEnd}
+            >
+              {/* The order is the one the field draws from, so it is shown. */}
+              <span className="text-xs text-muted-foreground tabular-nums">{index + 1}</span>
+              <span className="max-w-64 truncate">{nameOf(car)}</span>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-6 text-muted-foreground"
+                aria-label={t('editor.eligibility.removeCar', { car: nameOf(car) })}
+                disabled={locked}
+                onClick={() => onChange(cars.filter((one) => one !== car))}
+              >
+                <XIcon />
+              </Button>
+            </li>
+          );
+        })}
+        <li>
+          <Button type="button" size="sm" variant="outline" disabled={locked} onClick={onAdd}>
+            <PlusIcon />
+            {t('editor.eligibility.addCar')}
+          </Button>
+        </li>
       </ol>
-
-      <div>
-        <Button
-          id={`${idPrefix}-add-car`}
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={locked}
-          onClick={onAdd}
-        >
-          <PlusIcon />
-          {t('editor.eligibility.addCar')}
-        </Button>
-      </div>
     </div>
   );
 };

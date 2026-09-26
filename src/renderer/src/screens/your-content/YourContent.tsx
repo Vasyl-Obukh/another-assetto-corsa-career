@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { withId } from './utils.ts';
 import type { AddedContent } from '../../../../shared/types';
 import { useSettings } from '@/app';
-import { ScreenStrip } from '@/components';
+import { ScreenStrip, withId } from '@/components';
 import type { BrowserToggle } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { CarBrowserBody } from '@/screens/car-browser';
@@ -22,6 +21,7 @@ export const YourContent = () => {
   const { addedContent } = settings;
   const toggles = useMemo((): Record<keyof AddedContent, BrowserToggle> => {
     const toggleFor = (key: keyof AddedContent): BrowserToggle => ({
+      section: 'settings',
       isOn: (id) => addedContent[key].includes(id),
       onToggle: (id, on) => patch({
         addedContent: { ...addedContent, [key]: withId(addedContent[key], id, on) },

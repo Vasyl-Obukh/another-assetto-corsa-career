@@ -1,19 +1,14 @@
-import { CalendarClockIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ROW_SCOPE } from './constants.ts';
-import { EditorSection } from './EditorSection.tsx';
-import { FormatDialog } from './FormatDialog.tsx';
-import { FormatPanel } from './FormatPanel.tsx';
-import {
-  nextFormat, withDefaultFormat, withFormat, withoutFormat,
-} from './utils.ts';
+import { FormatPage } from './FormatPage.tsx';
+import { nextFormat, roundsRunning } from './utils.ts';
 import type {
   Championship, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
-import { Button } from '@/components/ui/button.tsx';
-import type { RowEditState } from '@/hooks';
-import { moveAt, nextSession } from '@/screens/race';
+import { cn } from '@/lib/utils.ts';
+import { nextSession } from '@/screens/race';
 
 interface FormatsCardProps {
   /**
@@ -33,85 +28,92 @@ interface FormatsCardProps {
    */
   system: WeatherSystem;
   /**
-   * Which row of the editor has its form open.
-   */
-  rows: RowEditState;
-  /**
    * Whether a weekend is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
-   * Called with the whole championship whenever the formats change.
+   * Called with the whole championship whenever a format changes.
    * @param next The championship to apply
    */
   onChange: (next: Championship) => void;
 }
 
+/**
+ * The weekend formats as tabs across the top, each saying how many rounds run
+ * it, and the one picked opened below.
+ */
 export const FormatsCard = ({
-  series, weather, controllers, system, rows, locked, onChange,
+  series, weather, controllers, system, locked, onChange,
 }: FormatsCardProps) => {
   const { t } = useTranslation();
+  const [picked, setPicked] = useState<string | null>(null);
   const formats = series.weekendFormats;
-  const adding = rows.adding(ROW_SCOPE.FORMATS);
+  const format = formats.find((one) => one.id === picked) ?? formats[0];
 
   return (
-    <EditorSection
-      icon={<CalendarClockIcon />}
-      title={t('editor.formats.title')}
-      hint={t('editor.formats.hint')}
-      summary={t('editor.formats.count', { count: formats.length })}
-      className="flex flex-col gap-3"
-    >
-      {/* No empty line: the last format cannot be removed. */}
-      {formats.map((format, index) => (
-        <FormatPanel
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <h2 className="text-base font-semibold">{t('editor.formats.title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('editor.formats.hintShort')}</p>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {formats.map((one) => {
+          const running = roundsRunning(series, one.id);
+
+          return (
+            <button
+              key={one.id}
+              type="button"
+              aria-pressed={one.id === format?.id}
+              className={cn(
+                'flex items-baseline gap-2 rounded-lg border bg-card px-3 py-1.5 text-sm font-medium',
+                one.id === format?.id ? 'border-primary ring-1 ring-primary' : 'hover:bg-accent/50',
+              )}
+              onClick={() => setPicked(one.id)}
+            >
+              {one.name}
+              <span className="text-xs font-normal text-muted-foreground">
+                {series.defaultWeekendFormat === one.id
+                  ? t('editor.formats.tabDefault', { count: running })
+                  : t('editor.formats.rounds', { count: running })}
+              </span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className="flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={locked}
+          onClick={() => {
+            // A new format starts as one day with one race, edited from there.
+            const next = nextFormat(series, [nextSession([])]);
+            onChange({ ...series, weekendFormats: [...formats, next] });
+            setPicked(next.id);
+          }}
+        >
+          <PlusIcon className="size-4" />
+          {t('editor.formats.add')}
+        </button>
+      </div>
+
+      {format === undefined ? null : (
+        <FormatPage
           key={format.id}
           series={series}
           format={format}
-          number={index + 1}
-          count={formats.length}
           weather={weather}
           controllers={controllers}
           system={system}
-          rows={rows}
           locked={locked}
-          editing={rows.editing(ROW_SCOPE.FORMATS, format.id)}
-          onChange={(next) => onChange(withFormat(series, format.id, next))}
-          onEdit={() => rows.edit(ROW_SCOPE.FORMATS, format.id)}
-          onDefault={() => onChange(withDefaultFormat(series, format.id))}
-          onMove={(by) => onChange({
-            ...series,
-            weekendFormats: moveAt([...formats], index, by),
-          })}
-          onRemove={() => onChange(withoutFormat(series, format.id))}
-        />
-      ))}
-
-      {/* Named first: the format lands with one race, edited in its panel. */}
-      {adding ? (
-        <FormatDialog
-          format={nextFormat(series, [nextSession([])])}
-          locked={locked}
-          onConfirm={(next) => {
-            onChange({ ...series, weekendFormats: [...formats, next] });
-            rows.close();
+          onChange={onChange}
+          onDuplicate={() => {
+            const copy = { ...nextFormat(series, format.sessions), name: t('editor.formats.copyName', { name: format.name }) };
+            onChange({ ...series, weekendFormats: [...formats, copy] });
+            setPicked(copy.id);
           }}
-          onCancel={rows.close}
         />
-      ) : null}
-
-      <div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={locked || !rows.editable}
-          onClick={() => rows.add(ROW_SCOPE.FORMATS)}
-        >
-          <PlusIcon />
-          {t('editor.formats.add')}
-        </Button>
-      </div>
-    </EditorSection>
+      )}
+    </div>
   );
 };

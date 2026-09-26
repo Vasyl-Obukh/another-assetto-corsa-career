@@ -4,8 +4,8 @@ import path from 'node:path';
 import { scanContent } from '../../core/content/index.ts';
 import { assistsPresetJson, buildAssistsIni, buildRaceUri } from '../../core/launch/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
-import { DEFAULT_TIME_OF_DAY } from '../../core/race-ini/constants.ts';
 import { buildRaceIni, sunAngleFromTime } from '../../core/race-ini/index.ts';
+import { DEFAULT_TIME_OF_DAY } from '../../shared/constants/index.ts';
 import { OUT_DIR, PROJECT_ROOT } from '../constants.ts';
 import { assertRunnable, loadRace } from '../utils.ts';
 

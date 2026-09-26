@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import { DistributorBadge } from './DistributorBadge.tsx';
+import { DlcBadge } from './DlcBadge.tsx';
 import {
   CUSTOM_TAG_CLASS,
-  DISTRIBUTOR_TAG_CLASS,
-  distributorTagKey,
   makerTagKey,
   PACK_TAG_KEY,
   packNameKey,
@@ -31,9 +31,16 @@ interface ProvenanceBadgesProps {
    * where that says nothing, as `carId` is.
    */
   trackId?: string;
+  /**
+   * Whether a pack reads as a bare DLC chip that names it on hover, as it does
+   * wherever a championship lists what it needs.
+   */
+  compact?: boolean;
 }
 
-export const ProvenanceBadges = ({ provenance, carId, trackId }: ProvenanceBadgesProps) => {
+export const ProvenanceBadges = ({
+  provenance, carId, trackId, compact = false,
+}: ProvenanceBadgesProps) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const {
@@ -53,12 +60,12 @@ export const ProvenanceBadges = ({ provenance, carId, trackId }: ProvenanceBadge
   else if (maker !== null) label = t(makerTagKey(maker));
   else if (custom) label = t('content.customTag');
 
+  if (compact && pack !== null) return <DlcBadge packs={[pack]} />;
+
   return (
     <>
       <Badge className={custom ? CUSTOM_TAG_CLASS : SOURCE_TAG_CLASS[source]}>{label}</Badge>
-      {distributor === null ? null : (
-        <Badge className={DISTRIBUTOR_TAG_CLASS}>{t(distributorTagKey(distributor))}</Badge>
-      )}
+      {distributor === null ? null : <DistributorBadge distributor={distributor} />}
     </>
   );
 };

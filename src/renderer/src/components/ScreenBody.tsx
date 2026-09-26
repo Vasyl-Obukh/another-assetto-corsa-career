@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { BackToTop } from './BackToTop.tsx';
-import { SCREEN_WIDTH } from '@/lib/layout';
+import { SCREEN_WIDTH, WIDE_SCREEN_WIDTH } from '@/lib/layout';
 import { cn } from '@/lib/utils';
 
 interface ScreenBodyProps {
@@ -27,10 +27,14 @@ interface ScreenBodyProps {
    * long way. For a long page with no pinned header of its own.
    */
   backToTop?: boolean;
+  /**
+   * Whether the column takes the whole window rather than the capped width.
+   */
+  wide?: boolean;
 }
 
 export const ScreenBody = ({
-  children, className, scrollRef, backToTop = false,
+  children, className, scrollRef, backToTop = false, wide = false,
 }: ScreenBodyProps) => {
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
 
@@ -46,11 +50,11 @@ export const ScreenBody = ({
     // and the Back link at its top - sits in the same place on a short page
     // as on a long one, and does not jump once content loads.
     <div ref={attach} className="h-full overflow-y-auto [scrollbar-gutter:stable]">
-      <div className={cn(SCREEN_WIDTH, className)}>
+      <div className={cn(wide ? WIDE_SCREEN_WIDTH : SCREEN_WIDTH, className)}>
         {children}
       </div>
 
-      {backToTop ? <BackToTop target={scroller} /> : null}
+      {backToTop ? <BackToTop target={scroller} wide={wide} /> : null}
     </div>
   );
 };

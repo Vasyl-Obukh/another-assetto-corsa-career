@@ -1,5 +1,6 @@
 import type { TrackCriteria } from './types.ts';
 import type { TrackQuery } from '../../../../shared/types';
+import { racedIds } from '@/lib/racing-index';
 
 /**
  * Folds the criteria, the settled search text and any base query into one.
@@ -9,17 +10,26 @@ import type { TrackQuery } from '../../../../shared/types';
  * @param criteria The filters and sort currently applied
  * @param search The search text, once it has stopped changing
  * @param base A query every request is narrowed by, or undefined
+ * @param raced Everything a championship races, or undefined until that is
+ *   known - in which case the raced switch waits rather than emptying the list
  * @returns The query to send, with empty search omitted rather than sent blank
  */
 export const toTrackQuery = (
   criteria: TrackCriteria,
   search: string,
   base?: TrackQuery,
-): TrackQuery => ({
-  ...criteria,
-  ...(search.trim() === '' ? {} : { search: search.trim() }),
-  ...base,
-});
+  raced?: readonly string[],
+): TrackQuery => {
+  const { raced: onlyRaced, view, ...rest } = criteria;
+  const ids = onlyRaced === true && raced !== undefined ? racedIds(base?.ids, raced) : base?.ids;
+
+  return {
+    ...rest,
+    ...(search.trim() === '' ? {} : { search: search.trim() }),
+    ...base,
+    ...(ids === undefined ? {} : { ids }),
+  };
+};
 
 /**
  * A stable identity for a query, so that changing it starts the list over.
@@ -37,7 +47,7 @@ export const trackQueryKey = (query: TrackQuery): string => JSON.stringify(query
 export const isTrackFiltered = (criteria: TrackCriteria, search: string): boolean => (
   search.trim() !== ''
   || Object.entries(criteria).some(([key, value]) => {
-    if (key === 'sort' || key === 'direction') return false;
+    if (key === 'sort' || key === 'direction' || key === 'view') return false;
 
     return Array.isArray(value) ? value.length > 0 : value !== undefined;
   })

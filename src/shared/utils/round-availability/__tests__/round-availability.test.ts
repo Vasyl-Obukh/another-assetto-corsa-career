@@ -25,9 +25,10 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
     sources: [],
     packs: [],
     makers: [],
+    distributors: [],
     pools: [],
     rounds: { packs: [], makers: [], distributors: [] },
-    widenedBy: { packs: [], makers: [] },
+    widenedBy: { packs: [], makers: [], distributors: [] },
   },
   ...overrides,
 });

@@ -5,20 +5,18 @@ import type {
   GridEntry,
   LaunchRecord,
   RaceDefinition,
-  RacePlace,
-  RoundScore,
   SeriesSession,
   SessionDefinition,
   WeekendPlan,
   WeekendState,
 } from '../../../shared/types/index.ts';
-import { buildStandings, scoreRound } from '../season-scoring.ts';
+import { scoreRound } from '../season-scoring.ts';
 import type { LaunchResult } from '../types.ts';
 import { gridRow, makeGrid, makeSeries } from './fixtures.ts';
 
 /**
- * When a round was scored, and when a table was built. Fixed so a test can
- * assert either is carried through unchanged.
+ * When a round was scored. Fixed so a test can assert it is carried through
+ * unchanged.
  */
 const AT = '2026-01-01T12:00:00.000Z';
 
@@ -94,41 +92,6 @@ const raceOf = (
       })),
     }],
   },
-});
-
-/**
- * Builds one race place, defaulting everything a standings test does not read.
- * @param seat Which seat took it away
- * @param classPosition Where it finished in its class
- * @param points What it scored
- * @returns A complete RacePlace
- */
-const place = (seat: string, classPosition: number, points: number): RacePlace => ({
-  seat,
-  entry: 'main',
-  team: null,
-  driver: seat,
-  position: classPosition,
-  classPosition,
-  qualifyingPosition: null,
-  fastestLap: false,
-  finishPoints: points,
-  fastestLapPoints: 0,
-  qualifyingPoints: 0,
-  points,
-});
-
-/**
- * Builds a round holding one race, which paid the given places.
- * @param places What that race paid
- * @returns The round score
- */
-const roundOf = (places: RacePlace[]): RoundScore => ({
-  round: 'magione',
-  recordedAt: AT,
-  races: [{
-    launch: 0, session: null, name: 'Race', pointsSystem: 'race', places,
-  }],
 });
 
 describe('core/season-scoring/season-scoring', () => {
@@ -301,114 +264,6 @@ describe('core/season-scoring/season-scoring', () => {
 
       expect(places.map((one) => one.qualifyingPosition)).toEqual([null, null, null, null]);
       expect(places.map((one) => one.qualifyingPoints)).toEqual([0, 0, 0, 0]);
-    });
-  });
-
-  describe('buildStandings', () => {
-    it('lists every seat of the class from the start, a driver on nothing included', () => {
-      const { classes, updatedAt } = buildStandings(makeSeries(), [], AT);
-
-      expect(updatedAt).toBe(AT);
-      expect(classes).toHaveLength(1);
-      expect(classes[0].entry).toBe('main');
-      expect(classes[0].name).toBe('Main');
-      expect(classes[0].drivers.map((row) => row.seat))
-        .toEqual(['main-1', 'main-2', 'main-3', 'main-4']);
-      expect(classes[0].drivers.map((row) => row.driver)).toEqual(['Ada', 'Bo', 'Cy', 'Di']);
-      expect(classes[0].drivers.map((row) => row.position)).toEqual([1, 2, 3, 4]);
-      expect(classes[0].drivers[0]).toMatchObject({
-        points: 0, wins: 0, podiums: 0, bestFinish: null, races: 0,
-      });
-    });
-
-    it('puts the most points first', () => {
-      const scores = [roundOf([place('main-1', 3, 6), place('main-3', 1, 20)])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers.map((row) => row.seat))
-        .toEqual(['main-3', 'main-1', 'main-2', 'main-4']);
-      expect(table.drivers[0]).toMatchObject({
-        points: 20, wins: 1, podiums: 1, bestFinish: 1, races: 1,
-      });
-    });
-
-    it('puts a win ahead of the same points scored without one', () => {
-      const scores = [roundOf([place('main-1', 4, 10), place('main-2', 1, 10)])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers.map((row) => row.seat))
-        .toEqual(['main-2', 'main-1', 'main-3', 'main-4']);
-    });
-
-    it('puts a podium ahead when points and wins are level', () => {
-      const scores = [roundOf([place('main-1', 5, 10), place('main-3', 3, 10)])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers.map((row) => row.seat))
-        .toEqual(['main-3', 'main-1', 'main-2', 'main-4']);
-    });
-
-    it('puts the better finish ahead when points, wins and podiums are level', () => {
-      const scores = [roundOf([place('main-1', 6, 10), place('main-4', 4, 10)])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers.map((row) => row.seat))
-        .toEqual(['main-4', 'main-1', 'main-2', 'main-3']);
-    });
-
-    it('falls back to the championship\'s own entry order when nothing separates two seats', () => {
-      const scores = [roundOf([place('main-3', 4, 10), place('main-1', 4, 10)])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers.map((row) => row.seat))
-        .toEqual(['main-1', 'main-3', 'main-2', 'main-4']);
-    });
-
-    it('counts a class top three as a podium and nothing below it', () => {
-      const scores = [
-        roundOf([place('main-1', 1, 10)]),
-        roundOf([place('main-1', 3, 6)]),
-        roundOf([place('main-1', 4, 0)]),
-      ];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.drivers[0]).toMatchObject({
-        seat: 'main-1', points: 16, wins: 1, podiums: 2, bestFinish: 1, races: 3,
-      });
-    });
-
-    it('sums a team row out of the drivers it fields', () => {
-      const scores = [roundOf([
-        place('main-1', 1, 10),
-        place('main-2', 2, 8),
-        place('main-3', 3, 6),
-      ])];
-
-      const [table] = buildStandings(makeSeries(), scores, AT).classes;
-
-      expect(table.teams).toEqual([
-        {
-          team: 'alpha', name: 'Alpha Racing', position: 1, points: 18, wins: 1,
-        },
-        {
-          team: 'beta', name: 'Beta Racing', position: 2, points: 6, wins: 0,
-        },
-      ]);
-    });
-
-    it('falls back to a team id when the championship never names the team', () => {
-      const series = makeSeries({ teams: undefined });
-      const scores = [roundOf([place('main-1', 1, 10)])];
-
-      const [table] = buildStandings(series, scores, AT).classes;
-
-      expect(table.teams.map((row) => row.name)).toEqual(['alpha', 'beta']);
     });
   });
 });

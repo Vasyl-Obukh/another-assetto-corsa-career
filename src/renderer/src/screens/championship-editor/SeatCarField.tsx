@@ -9,6 +9,11 @@ import { Field } from '@/screens/race';
 
 interface SeatCarFieldProps {
   /**
+   * Whether it goes without its label, for a table whose column heading says
+   * what it is.
+   */
+  bare?: boolean;
+  /**
    * The control's id, which is what ties the label to it.
    */
   id: string;
@@ -49,7 +54,7 @@ interface SeatCarFieldProps {
  * is not there.
  */
 export const SeatCarField = ({
-  id, car, fieldable, locked, nameOf, onChange,
+  id, car, fieldable, locked, nameOf, onChange, bare = false,
 }: SeatCarFieldProps) => {
   const { t } = useTranslation();
   const [picking, setPicking] = useState(false);
@@ -75,8 +80,8 @@ export const SeatCarField = ({
     return t('editor.seats.pinned', { car: nameOf(model), skin: skinName });
   };
 
-  return (
-    <Field id={id} label={t('editor.seats.car')}>
+  const control = (
+    <>
       <div className="flex items-center gap-1">
         {/* Disabled when the class names no cars: an empty `ids` is no filter at
             all, so the picker would open onto the whole library. */}
@@ -84,7 +89,9 @@ export const SeatCarField = ({
           id={id}
           type="button"
           variant="outline"
-          className="min-w-0 flex-1 justify-start font-normal"
+          className="min-w-0 flex-1 shrink justify-start font-normal"
+          // The whole pin on hover, for when a long livery name is cut short.
+          title={label()}
           disabled={locked || fieldable.length === 0}
           onClick={() => setPicking(true)}
         >
@@ -118,6 +125,10 @@ export const SeatCarField = ({
           }}
         />
       )}
-    </Field>
+    </>
+  );
+
+  return bare ? control : (
+    <Field id={id} label={t('editor.seats.car')}>{control}</Field>
   );
 };

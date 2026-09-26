@@ -35,7 +35,7 @@ export const MissingContent = ({ listing }: MissingContentProps) => {
           {unique.map((car) => (
             <div key={car.id} className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-sm">{car.id}</span>
-              <ProvenanceBadges provenance={car.provenance} />
+              <ProvenanceBadges provenance={car.provenance} compact />
             </div>
           ))}
         </div>
@@ -47,7 +47,7 @@ export const MissingContent = ({ listing }: MissingContentProps) => {
           {tracks.map((track) => (
             <div key={track.key} className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-sm">{track.key}</span>
-              <ProvenanceBadges provenance={track.provenance} />
+              <ProvenanceBadges provenance={track.provenance} compact />
             </div>
           ))}
         </div>

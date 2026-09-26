@@ -9,18 +9,19 @@ import type {
 /**
  * Whether content is still switched on.
  *
- * Base content has no switch, and neither has a mod nobody is credited with,
- * so both are always on.
- * @param provenance The pack and mod team it comes from
+ * Base content has no switch, and neither has a mod nobody is credited with
+ * or redistributes, so both are always on.
+ * @param provenance The pack, mod team and redistributor it comes from
  * @param hidden The sources the user switched off
- * @returns True unless its pack or its mod team is switched off
+ * @returns True unless any of the three is switched off
  */
 const isOn = (
-  provenance: Pick<ContentProvenance, 'pack' | 'maker'>,
+  provenance: Pick<ContentProvenance, 'pack' | 'maker' | 'distributor'>,
   hidden: HiddenContentSources,
 ): boolean => (
   (provenance.pack === null || !hidden.packs.includes(provenance.pack))
   && (provenance.maker === null || !hidden.makers.includes(provenance.maker))
+  && (provenance.distributor === null || !hidden.distributors.includes(provenance.distributor))
 );
 
 /**
@@ -46,6 +47,7 @@ export const poolHolds = (pool: RequirementPool, hidden: HiddenContentSources): 
 export const isOffered = (requires: SeriesRequirements, hidden: HiddenContentSources): boolean => (
   requires.packs.every((pack) => !hidden.packs.includes(pack))
   && requires.makers.every((maker) => !hidden.makers.includes(maker))
+  && requires.distributors.every((distributor) => !hidden.distributors.includes(distributor))
   && requires.pools.every((pool) => poolHolds(pool, hidden))
 );
 

@@ -1,13 +1,17 @@
-// What the editor's own controls are bounded by, and the sentinel a select needs
-// where "not set" means "whatever the championship says".
+// What the editor's own controls are bounded by and start from, the sentinel a
+// select needs where "not set" means "whatever the championship says", and the
+// layout classes more than one of its components share.
 
 import type { ParseKeys } from 'i18next';
 
-import type { LengthUnit } from './types.ts';
+import type {
+  ClassSection, ConditionGroup, EditorTab, LengthUnit, PointsTemplate, PurseShape, RoadKind, RoundTab, StartKind,
+} from './types.ts';
 import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
 import {
-  Climate, Discipline, Hemisphere, SeasonLength, TeamBudget,
+  Climate, Hemisphere, SeasonLength, TeamBudget,
 } from '../../../../shared/types';
+import type { Championship, Conditions } from '../../../../shared/types';
 
 /**
  * The value a select carries when the answer is the championship's default.
@@ -45,16 +49,9 @@ export const MIN_TIER = 1;
 export const DEFAULT_TIER = 5;
 
 /**
- * How many laps or minutes anything may be given.
- */
-export const MIN_LENGTH = 0;
-
-/**
- * The shortest a session may be asked to run for.
- *
- * Zero is MIN_LENGTH's answer because a championship saying nothing about a
- * length is a real thing to say, but a session that *is* given one and given
- * zero runs for no time at all.
+ * The shortest a session may be asked to run for. Saying nothing about a
+ * length is a real thing to say, but a session given zero runs for no time at
+ * all.
  */
 export const MIN_SESSION_LENGTH = 1;
 
@@ -68,11 +65,6 @@ export const DEFAULT_LENGTH: Readonly<Record<LengthUnit, number>> = {
   minutes: 15,
   distance: 100,
 };
-
-/**
- * The first day of a weekend, counting from zero.
- */
-export const MIN_DAY = 0;
 
 /**
  * The last day a session may be put on.
@@ -114,6 +106,22 @@ export const DEFAULT_POINTS: readonly number[] = [25, 18, 15, 12, 10, 8, 6, 4, 2
 export const MIN_BOP = 0;
 
 /**
+ * The most ballast a car's card steps up to, in kilograms. A ceiling for the
+ * buttons rather than a rule: AC takes whatever it is given.
+ */
+export const MAX_BALLAST = 200;
+
+/**
+ * The most intake restriction a car's card steps up to, as a percentage.
+ */
+export const MAX_RESTRICTOR = 100;
+
+/**
+ * How far one press of a card's ballast buttons moves it, in kilograms.
+ */
+export const BALLAST_STEP = 5;
+
+/**
  * How few distinct models a spec may be asked to have installed.
  *
  * One is a grid of clones and the whole reason DEFAULT_MIN_MODELS exists, but
@@ -122,20 +130,6 @@ export const MIN_BOP = 0;
  * error.
  */
 export const MIN_MODELS = 1;
-
-/**
- * How long a nation code is. Three letters, as Assetto Corsa wants them.
- */
-export const NATION_CODE_LENGTH = 3;
-
-/**
- * The disciplines a class entry may be put in, in ladder order.
- *
- * Off the enum rather than written out, so a new discipline is offered without
- * a second list to remember - disciplineKey is what fails to compile when one
- * has no name yet.
- */
-export const DISCIPLINES: readonly Discipline[] = Object.values(Discipline);
 
 /**
  * How well funded a team may be, from the best off down.
@@ -171,99 +165,31 @@ export const DEFAULT_CLIMATE = Climate.MEDITERRANEAN;
 export const DEFAULT_HEMISPHERE = Hemisphere.NORTH;
 
 /**
- * The label for each budget.
- *
- * A record over the enum rather than a lookup by string, so adding a budget
- * fails to compile until it has been named.
- */
-export const TEAM_BUDGET_LABEL = {
-  works: 'editor.teams.budget.works',
-  independent: 'editor.teams.budget.independent',
-  privateer: 'editor.teams.budget.privateer',
-} as const satisfies Record<TeamBudget, ParseKeys>;
-
-/**
- * How a list of rows is laid out.
- *
- * The whole width of its card. It was capped short of it once, to keep a name
- * and the columns at the far end of its row within reading distance, and that
- * left a quarter of every card empty and the forms opened from those rows too
- * narrow for three fields to a line.
- *
- * The row order it implies is load-bearing. Only the name flexes, so a column's
- * position is fixed by the widths of everything to its right - which is why
- * every row puts its badges *before* its fixed columns. Badges after them would
- * shift the team or the circuit left on whichever rows happen to carry one, and
- * a column that only lines up on some rows is worse than no column.
- */
-export const ROW_LIST = 'flex flex-col';
-
-/**
- * The grip's column in a row, reserved whether or not a grip is in it.
- *
- * The grip goes while a row of the list is being edited, and a column that came
- * and went would drag every row's contents sideways with it.
+ * The grip's column in a calendar row, reserved whether or not a grip is in
+ * it, so the columns stay put when a locked calendar drops its grips.
  */
 export const ROW_GRIP = 'size-9 shrink-0';
 
 /**
- * The position number's column in a row.
+ * The position number's column in a calendar row.
  */
 export const ROW_NUMBER = 'w-6 shrink-0 text-right text-xs text-muted-foreground';
 
 /**
- * How many fields a row's form puts on one line on a wide window.
- *
- * Written out per count rather than built from the number, because Tailwind
- * only generates a class it can find spelled whole in the source. Three by
- * default, so a qualifying session's six fields are two lines; four for a form
- * of four short fields, which then opens as one.
- */
-export const ROW_FORM_COLUMNS = {
-  3: 'lg:grid-cols-3',
-  4: 'lg:grid-cols-4',
-} as const;
-
-/**
- * The gap between a row's columns.
- *
- * Named because a form has to reproduce the grip and number columns to line its
- * first field up with the name beside them, and doing that means knowing what
- * separates them.
+ * The gap between a calendar row's columns, which its heading repeats to line
+ * up with them.
  */
 export const ROW_GAP = 'gap-3';
 
 /**
- * Which list a row being edited belongs to.
- *
- * Rows are addressed by scope and id together, because the edit state is one
- * value for the whole editor - see useRowEdit. Seats and balance-of-performance
- * rows belong to a class entry rather than to the championship, so their scopes
- * are built per entry by `seatScope` and `bopScope`.
+ * Which list the open dialog edits a row of. Rows are addressed by scope and
+ * id together, because the edit state is one value for the whole editor - see
+ * useRowEdit.
  */
 export const ROW_SCOPE = {
   TEAMS: 'teams',
   ENTRIES: 'entries',
-  ROUNDS: 'rounds',
-  FORMATS: 'formats',
-  POINTS: 'points',
 } as const;
-
-/**
- * The colour each budget is chipped in.
- *
- * Kept here rather than in `accents.ts` because the editor is the only screen
- * that shows a team's funding - the rule that file states is that a colour map
- * moves there once a second screen reads it.
- *
- * A hue each, with chroma stepping down from works to privateer. It was one
- * hue at three depths once, and the three were indistinguishable at chip size.
- */
-export const TEAM_BUDGET_ACCENT = {
-  works: 'border-transparent bg-budget-works text-budget-works-foreground',
-  independent: 'border-transparent bg-budget-independent text-budget-independent-foreground',
-  privateer: 'border-transparent bg-budget-privateer text-budget-privateer-foreground',
-} as const satisfies Record<TeamBudget, string>;
 
 /**
  * Every unit a race may be measured in, in the order the select offers them.
@@ -282,3 +208,303 @@ export const LENGTH_LABEL = {
   minutes: 'editor.sessions.minutes',
   distance: 'editor.sessions.distance',
 } as const satisfies Record<LengthUnit, ParseKeys>;
+
+/**
+ * The editor's tabs, in the order they are offered.
+ */
+export const EDITOR_TABS: readonly EditorTab[] = [
+  'overview', 'teams', 'classes', 'calendar', 'weekends', 'scoring',
+];
+
+/**
+ * The tabs that list things and so carry a count beside their name - what the
+ * header's skeleton holds a count's place on.
+ */
+export const COUNTED_TABS: readonly EditorTab[] = ['teams', 'classes', 'calendar', 'weekends'];
+
+/**
+ * Which of a championship's fields each tab edits, so a tab can say it holds
+ * something unsaved.
+ */
+export const TAB_FIELDS: Readonly<Record<EditorTab, readonly (keyof Championship)[]>> = {
+  overview: ['name', 'description', 'entryFee', 'seasonLength', 'generatedWeather', 'grid', 'regulations'],
+  teams: ['teams'],
+  classes: ['entries'],
+  calendar: ['rounds'],
+  weekends: ['weekendFormats', 'defaultWeekendFormat'],
+  scoring: ['pointsSystems', 'defaultPointsSystem', 'prizes'],
+};
+
+/**
+ * Which tab a problem is fixed on, by the subject its code names - the
+ * segment after `series.`. Anything unlisted is the overview's.
+ */
+export const PROBLEM_TAB: Readonly<Record<string, EditorTab>> = {
+  team: 'teams',
+  entries: 'classes',
+  entry: 'classes',
+  tier: 'classes',
+  seats: 'classes',
+  seat: 'classes',
+  car: 'classes',
+  bop: 'classes',
+  spec: 'classes',
+  rounds: 'calendar',
+  round: 'calendar',
+  season: 'calendar',
+  formats: 'weekends',
+  format: 'weekends',
+  sessions: 'weekends',
+  days: 'weekends',
+  inherit: 'weekends',
+  race: 'weekends',
+  length: 'weekends',
+  distance: 'weekends',
+  startingPosition: 'weekends',
+  points: 'scoring',
+  prizes: 'scoring',
+};
+
+/**
+ * The parts of a class entry, in the order its panel offers them.
+ */
+export const CLASS_SECTIONS: readonly ClassSection[] = ['cars', 'seats', 'performance', 'prizes'];
+
+/**
+ * The fixed columns of a calendar row, shared with the heading above them so
+ * the two line up. Only the round's name flexes, so a row's badges go before
+ * these, or a column would shift on whichever rows carry one.
+ */
+export const ROUND_COLUMN = {
+  MAP: 'w-16 shrink-0',
+  WEEKEND: 'hidden w-60 shrink-0 xl:flex',
+  RACES: 'hidden w-36 shrink-0 lg:block',
+  OWN: 'flex w-80 shrink-0 flex-wrap gap-1',
+  FEE: 'w-20 shrink-0 text-right',
+  // Room for a row's menu.
+  ACTIONS: 'w-9 shrink-0',
+} as const;
+
+/**
+ * The shapes a purse may be generated along, steepest first.
+ */
+export const PURSE_SHAPES: readonly PurseShape[] = ['steep', 'gentle', 'linear', 'winner'];
+
+/**
+ * How a shape's icon draws it: five bars, tallest ten.
+ */
+export const PURSE_SHAPE_BARS: Readonly<Record<PurseShape, readonly number[]>> = {
+  steep: [10, 7, 5, 3.5, 2.5],
+  gentle: [10, 8.7, 7.6, 6.6, 5.7],
+  linear: [10, 8, 6, 4, 2],
+  winner: [10, 2.5, 2, 1.6, 1.3],
+};
+
+/**
+ * How much of a pot each place of a shape takes, before it is scaled to the pot.
+ */
+export const PURSE_WEIGHT: Readonly<Record<PurseShape, (place: number, places: number) => number>> = {
+  steep: (place) => 0.72 ** place,
+  gentle: (place) => 0.87 ** place,
+  linear: (place, places) => places - place,
+  // The winner takes about a third of a ten-place purse, the rest falling away.
+  winner: (place) => (place === 0 ? 3.2 : 0.8 ** place),
+};
+
+/**
+ * What a generated place may be rounded to.
+ */
+export const PURSE_ROUNDING: readonly number[] = [1, 50, 100, 500, 1000];
+
+/**
+ * How many places a purse pays when it is generated from nothing.
+ */
+export const DEFAULT_PURSE_PLACES = 10;
+
+/**
+ * The most places a purse may pay, which is where the places buttons stop.
+ */
+export const MAX_PURSE_PLACES = 40;
+
+/**
+ * What a class starting a purse of its own may scale the championship's by.
+ */
+export const PURSE_SCALES: readonly number[] = [0.5, 1, 1.5, 2];
+
+/**
+ * The rungs a class's dialog offers as medals, bottom rung first, the order
+ * the Championships page lays the ladder out in. Deeper ones are typed.
+ */
+export const RUNGS_OFFERED: readonly number[] = [5, 4, 3, 2, 1];
+
+/**
+ * How many seats a new class starts with.
+ */
+export const DEFAULT_CLASS_SEATS = 10;
+
+/**
+ * The most seats a new class may start with, which is where its buttons stop.
+ */
+export const MAX_CLASS_SEATS = 60;
+
+/**
+ * Real championships' tables a points system may start from, each as the
+ * series itself pays it. Lead-lap and most-laps-led bonuses are left out,
+ * since nothing here scores them.
+ */
+export const POINTS_TEMPLATES: readonly PointsTemplate[] = [
+  { id: 'f1', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 1 },
+  {
+    id: 'indycar',
+    positions: [
+      50, 40, 35, 32, 30, 28, 26, 24, 22, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6,
+      5, 5, 5, 5, 5, 5, 5, 5, 5,
+    ],
+    qualifying: [1],
+  },
+  {
+    id: 'imsa',
+    positions: [
+      350, 320, 300, 280, 260, 250, 240, 230, 220, 210, 200, 190, 180, 170, 160,
+      150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10,
+    ],
+  },
+  { id: 'motogp', positions: [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+  { id: 'dtm', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [3, 2, 1] },
+  { id: 'btcc', positions: [20, 17, 15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], qualifying: [1], fastestLap: 1 },
+  { id: 'sprint', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
+  { id: 'blank', positions: [] },
+];
+
+/**
+ * How many places a strip of points shows before the rest is folded away.
+ */
+export const POINTS_SHOWN = 15;
+
+/**
+ * The most a fastest lap may be worth, which is where its buttons stop.
+ */
+export const MAX_BONUS_POINTS = 100;
+
+/**
+ * The groups conditions are set in, in the order they are offered, each with
+ * the fields it owns. A group is set or left as a whole: weather is one answer
+ * of three fields, and half a wind is no wind.
+ */
+export const CONDITION_GROUPS: Readonly<Record<ConditionGroup, readonly (keyof Conditions)[]>> = {
+  weather: ['weather', 'weatherType', 'weatherController', 'weatherSteps'],
+  time: ['timeOfDay'],
+  temperature: ['ambient', 'road'],
+  track: ['trackState'],
+  wind: ['windMin', 'windMax', 'windDirection'],
+};
+
+/**
+ * The groups, in the order a conditions editor lists them.
+ */
+export const CONDITION_GROUP_ORDER: readonly ConditionGroup[] = ['weather', 'time', 'temperature', 'track', 'wind'];
+
+/**
+ * What a group starts at when it is switched on, before anything is chosen.
+ * Weather starts from the first type on offer instead, which is not a constant.
+ */
+export const CONDITION_SEEDS: Readonly<Record<Exclude<ConditionGroup, 'weather'>, Conditions>> = {
+  time: { timeOfDay: '14:00' },
+  temperature: { ambient: 20 },
+  track: { trackState: 'fast' },
+  wind: { windMin: 0, windMax: 10, windDirection: 0 },
+};
+
+/**
+ * The span of the air temperature slider, in degrees Celsius.
+ */
+export const AMBIENT_RANGE = { min: -5, max: 45 } as const;
+
+/**
+ * The span of the road temperature slider, in degrees Celsius - wider than the
+ * air's at the top, since a sunny track runs well above it.
+ */
+export const ROAD_RANGE = { min: -5, max: 60 } as const;
+
+/**
+ * The two ways a road temperature is stated, in the order they are offered.
+ */
+export const ROAD_KINDS: readonly RoadKind[] = ['follows', 'set'];
+
+/**
+ * The most wind a round or a session may ask for, in kilometres an hour.
+ */
+export const MAX_WIND = 60;
+
+/**
+ * Where the time-of-day bar's jump buttons land, as a clock.
+ */
+export const TIME_PRESETS = {
+  dawn: '06:30',
+  morning: '09:30',
+  midday: '12:30',
+  afternoon: '15:30',
+  dusk: '19:30',
+  night: '22:00',
+} as const;
+
+/**
+ * How many minutes a time-of-day bar moves in one step.
+ */
+export const TIME_STEP_MINUTES = 5;
+
+/**
+ * A round dialog's tabs, in the order it offers them.
+ */
+export const ROUND_TABS: readonly RoundTab[] = ['basics', 'conditions', 'cars'];
+
+/**
+ * Where a player can start a race with nothing to line it up, in the order
+ * they are offered.
+ */
+export const START_KINDS: readonly StartKind[] = ['last', 'pole', 'position', 'random'];
+
+/**
+ * What each start is called.
+ */
+export const START_LABEL = {
+  last: 'editor.sessions.start.last',
+  pole: 'editor.sessions.start.pole',
+  position: 'editor.sessions.start.position',
+  random: 'editor.sessions.start.random',
+} as const satisfies Record<StartKind, ParseKeys>;
+
+/**
+ * A panel's own tabs as a row of pills under its head, rather than the page's
+ * underlined tabs: the list's classes.
+ */
+export const PILL_TAB_LIST = 'h-auto w-full flex-wrap justify-start gap-1 rounded-none border-b bg-transparent px-3 py-2 sm:px-4';
+
+/**
+ * One of those pills.
+ */
+export const PILL_TAB = 'h-auto flex-none rounded-full px-3 py-1 text-muted-foreground shadow-none data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-primary/15 dark:data-[state=active]:text-primary';
+
+/**
+ * The most slots a start slider numbers under itself before it numbers only
+ * its ends.
+ */
+export const TICKED_SLOTS = 16;
+
+/**
+ * What the track-limits allowance is when it leaves Assetto Corsa's own
+ * per-track answer alone.
+ */
+export const TRACK_DEFAULT = -1;
+
+/**
+ * The track-limits allowances offered: the track's own, or how many wheels
+ * may leave it.
+ */
+export const TYRES_OUT_CHOICES: readonly number[] = [TRACK_DEFAULT, 1, 2, 3];
+
+/**
+ * The jump start penalties offered, in seconds of drive-through - none, and
+ * the lengths the shipped championships use and either side of them.
+ */
+export const JUMP_START_CHOICES: readonly number[] = [0, 5, 10, 15, 30];

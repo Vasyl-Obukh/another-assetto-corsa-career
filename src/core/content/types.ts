@@ -36,6 +36,18 @@ export interface UiCar {
    * Performance figures, in whatever shape the author shipped them.
    */
   specs?: unknown;
+  /**
+   * The author's description, HTML line breaks and all.
+   */
+  description?: unknown;
+  /**
+   * Power across the rev range, as pairs of rpm and bhp written as strings or numbers.
+   */
+  powerCurve?: unknown;
+  /**
+   * Torque across the rev range, as pairs of rpm and Nm written as strings or numbers.
+   */
+  torqueCurve?: unknown;
 }
 
 /**
@@ -93,6 +105,35 @@ export interface UiTrack {
    * Latitude then longitude, as degrees-minutes-seconds or decimal strings.
    */
   geotags?: string[];
+  /**
+   * Town or region.
+   */
+  city?: unknown;
+  /**
+   * Which way round it is driven - "clockwise", "anticlockwise", or anything else
+   * an author wrote.
+   */
+  run?: unknown;
+  /**
+   * The author's description, HTML line breaks and all.
+   */
+  description?: unknown;
+  /**
+   * Free-text tags.
+   */
+  tags?: unknown;
+  /**
+   * Who made it.
+   */
+  author?: unknown;
+  /**
+   * The mod's version, written as a string or a number.
+   */
+  version?: unknown;
+  /**
+   * The year, written as a string or a number.
+   */
+  year?: unknown;
 }
 
 /**

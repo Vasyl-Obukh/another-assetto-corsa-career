@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home and calendar</title>
+<style>
+/* Tokens copied from src/renderer/src/globals.css. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --primary-soft: oklch(0.93 0.04 262);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --missed: oklch(0.925 0.035 8); --missed-fg: oklch(0.42 0.09 12);
+  --overlay: oklch(0.2 0.02 260 / 0.35);
+
+  --d-ss: oklch(0.925 0.06 212);  --d-ss-fg: oklch(0.36 0.11 215);
+  --d-sc: oklch(0.925 0.06 112);  --d-sc-fg: oklch(0.36 0.1 118);
+  --d-to: oklch(0.925 0.055 175); --d-to-fg: oklch(0.35 0.09 178);
+  --d-ro: oklch(0.925 0.06 270);  --d-ro-fg: oklch(0.37 0.12 270);
+
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88);    --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255);  --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52);    --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310);   --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150);     --s-race-fg: oklch(0.33 0.1 152);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --primary-soft: oklch(0.3 0.07 262);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
+  --missed: oklch(0.32 0.035 8); --missed-fg: oklch(0.86 0.075 12);
+  --overlay: oklch(0 0 0 / 0.5);
+
+  --d-ss: oklch(0.32 0.07 212);  --d-ss-fg: oklch(0.86 0.1 212);
+  --d-sc: oklch(0.32 0.07 112);  --d-sc-fg: oklch(0.86 0.1 112);
+  --d-to: oklch(0.32 0.065 175); --d-to-fg: oklch(0.86 0.09 175);
+  --d-ro: oklch(0.32 0.07 270);  --d-ro-fg: oklch(0.86 0.1 270);
+
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88);   --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50);   --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255);
+
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310);  --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150);     --s-race-fg: oklch(0.88 0.13 150);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, h4, p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.xs { font-size: 11.5px; }
+.sm { font-size: 13px; }
+.caps { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; }
+
+/* Mockup chrome */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker strong { font-weight: 600; margin-right: 8px; }
+.picker .opt { border: 1px solid color-mix(in srgb, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 5px 12px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker .sep { width: 1px; align-self: stretch; background: color-mix(in srgb, var(--background) 30%, transparent); margin: 0 6px; }
+.picker .spacer { flex: 1; }
+.rationale { max-width: 92ch; margin: 20px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.rationale b { color: var(--foreground); font-weight: 600; }
+.rationale ul { margin: 6px 0 0; padding-left: 18px; }
+.window { position: relative; max-width: 1600px; margin: 16px auto 48px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--background); box-shadow: 0 20px 50px -30px oklch(0.2 0.02 260 / 0.35); transition: max-width .2s; }
+.window.narrow { max-width: 1180px; }
+.app-header { display: flex; align-items: center; gap: 24px; padding: 14px 32px; border-bottom: 1px solid var(--border); }
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 5px 10px; border-radius: 6px; color: var(--foreground); text-decoration: none; cursor: pointer; }
+.nav a.on { background: var(--accent); color: var(--primary); font-weight: 500; }
+.screen { display: none; }
+.screen.on { display: block; }
+.page { padding: 28px 32px 40px; }
+
+/* Atoms */
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 5px; padding: 1px 7px; font-size: 11.5px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.chip.outline { border-color: var(--border); }
+.d-ss { background: var(--d-ss); color: var(--d-ss-fg); } .bar-ss { background: var(--d-ss-fg); }
+.d-sc { background: var(--d-sc); color: var(--d-sc-fg); } .bar-sc { background: var(--d-sc-fg); }
+.d-to { background: var(--d-to); color: var(--d-to-fg); } .bar-to { background: var(--d-to-fg); }
+.d-ro { background: var(--d-ro); color: var(--d-ro-fg); } .bar-ro { background: var(--d-ro-fg); }
+.t1 { background: var(--t1); color: var(--t1-fg); } .t2 { background: var(--t2); color: var(--t2-fg); }
+.t3 { background: var(--t3); color: var(--t3-fg); } .t4 { background: var(--t4); color: var(--t4-fg); }
+.t5 { background: var(--t5); color: var(--t5-fg); }
+.s-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.s-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.s-race { background: var(--s-race); color: var(--s-race-fg); }
+.st-raced { background: var(--success); color: var(--success-foreground); }
+.st-missed { background: var(--missed); color: var(--missed-fg); }
+.st-clash { background: var(--warning); color: var(--warning-foreground); }
+.st-entered { background: var(--primary-soft); color: var(--primary); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 12px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.icon { padding: 5px 8px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+.outline-map { width: 64px; height: 40px; flex: none; border-radius: 6px; background: var(--muted); display: grid; place-items: center; }
+.outline-map svg { width: 52px; height: 30px; }
+.outline-map path, .hero-map path { fill: none; stroke: var(--foreground); stroke-width: 2.2; stroke-linejoin: round; opacity: .75; }
+.lock { width: 13px; height: 13px; flex: none; color: var(--muted-foreground); vertical-align: -2px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; padding: 2px; background: var(--card); gap: 2px; }
+.seg button { border: 0; background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.seg button.on { background: var(--primary); color: var(--primary-foreground); }
+.seg button .n { font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+.togg { border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; font-weight: 500; display: inline-flex; gap: 7px; align-items: center; }
+.togg.on { border-color: color-mix(in srgb, var(--foreground) 45%, var(--border)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 45%, var(--border)); }
+.togg:not(.on) .dot { opacity: .35; }
+
+/* Calendar head: B's two rows */
+.c-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.c-head h2 { font-size: 24px; font-weight: 600; min-width: 11ch; }
+.clock { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.clock .today { padding: 7px 14px; display: flex; flex-direction: column; justify-content: center; }
+.clock .today b { font-size: 15px; }
+.clock .next { padding: 7px 14px; border-left: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+.clock .go { border: 0; border-left: 1px solid var(--border); background: var(--primary); color: var(--primary-foreground); padding: 0 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; margin-top: 16px; }
+.months button { border: 1px solid var(--border); background: var(--card); border-radius: 7px; padding: 6px 0 5px; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.months button.on { border-color: var(--primary); color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px var(--primary); }
+.months button.past { color: var(--muted-foreground); }
+.months .heat { display: flex; gap: 2px; height: 4px; }
+.months .heat i { width: 6px; border-radius: 1px; background: var(--muted-foreground); opacity: .25; }
+.months .heat i.m { background: var(--primary); opacity: 1; }
+.months .heat i.c { background: var(--warning); opacity: 1; }
+.filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.filters .grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.filters .sp { flex: 1; }
+.sticky-head { position: sticky; top: 44px; z-index: 6; background: color-mix(in srgb, var(--background) 94%, transparent); backdrop-filter: blur(6px); padding-top: 24px; margin-top: -24px; }
+
+/* Day view */
+.month-h { display: flex; align-items: baseline; gap: 10px; padding: 18px 0 6px; }
+.month-h h3 { font-size: 17px; font-weight: 600; }
+.weekend { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 18px; padding: 14px 0; border-top: 1px dashed var(--border); }
+.wdate { text-align: right; position: sticky; top: 250px; height: fit-content; }
+.wdate .big { font-size: 26px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.weekend.past .wdate { opacity: .55; }
+.weekend.past .ev { opacity: .6; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: 10px; }
+.ev { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 11px 12px 11px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; text-align: left; }
+.ev:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); }
+.ev .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.ev .top { display: flex; gap: 10px; align-items: flex-start; }
+.ev .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ev .body b { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev .chips { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.ev .line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev .foot { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 2px; }
+.ev .foot .money { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ev .foot .act { margin-left: auto; display: flex; gap: 6px; }
+.ev.entered { border-color: color-mix(in srgb, var(--primary) 60%, var(--border)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 60%, transparent); }
+.ev.locked { background: transparent; border-style: dashed; }
+.ev.locked .stripe { opacity: .4; }
+.ev.locked .body b { font-weight: 500; }
+.today-line { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.today-line .caps { color: var(--primary); width: 5rem; text-align: right; }
+.today-line .rule { height: 2px; flex: 1; background: var(--primary); border-radius: 1px; }
+
+/* Month view */
+.m-body { display: grid; grid-template-columns: minmax(0, 1fr) 25rem; gap: 20px; margin-top: 16px; align-items: start; }
+.window.narrow .m-body { grid-template-columns: minmax(0, 1fr); }
+.window.narrow .m-body > .side { display: none; }
+.grid7 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 1.6fr)); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--border); gap: 1px; }
+.grid7 .dow { background: var(--card); padding: 6px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); font-weight: 600; }
+.cell { background: var(--card); min-height: 122px; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.cell:hover { background: color-mix(in srgb, var(--accent) 50%, var(--card)); }
+.cell.out { background: color-mix(in srgb, var(--card) 50%, var(--background)); }
+.cell.out .dn { opacity: .4; }
+.cell .dn { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cell.today .dn { background: var(--primary); color: var(--primary-foreground); border-radius: 10px; padding: 0 7px; width: fit-content; }
+.cell.sel { box-shadow: inset 0 0 0 2px var(--primary); }
+.cell.past > .pill { opacity: .5; }
+.pill { display: flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 1px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill.mine { background: var(--primary); color: var(--primary-foreground); font-weight: 600; }
+.pill.mine.clash { background: var(--warning); color: var(--warning-foreground); }
+.pill.lockp { background: transparent; color: var(--muted-foreground); padding-left: 4px; }
+.pill.more { color: var(--muted-foreground); background: transparent; font-weight: 500; }
+.side { position: sticky; top: 260px; display: flex; flex-direction: column; gap: 10px; }
+.side .cards { grid-template-columns: 1fr; }
+.side-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.side-head h3 { font-size: 16px; }
+
+/* Sheet: the side panel at narrow widths */
+.scrim { position: absolute; inset: 0; background: var(--overlay); z-index: 40; display: none; }
+.sheet { position: absolute; top: 0; right: 0; bottom: 0; width: 27rem; background: var(--background); border-left: 1px solid var(--border); z-index: 41; padding: 20px; display: none; flex-direction: column; gap: 12px; overflow-y: auto; box-shadow: -20px 0 40px -20px oklch(0.2 0.02 260 / 0.4); }
+.window.sheet-open .scrim { display: block; }
+.window.sheet-open .sheet { display: flex; }
+.sheet .cards { grid-template-columns: 1fr; }
+
+/* Home */
+.home-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.home-head h2 { font-size: 24px; font-weight: 600; }
+.home-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: stretch; }
+.window.narrow .home-grid { grid-template-columns: minmax(0, 1fr); }
+.hero { overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 16rem; }
+.hero .info { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+.hero-map { background: var(--muted); display: grid; place-items: center; position: relative; }
+.hero-map svg { width: 200px; height: 120px; }
+.hero-map path { stroke-width: 3; }
+.hero-map .lbl { position: absolute; bottom: 10px; left: 12px; right: 12px; font-size: 11.5px; color: var(--muted-foreground); }
+.count-big { font-size: 38px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.sessions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+.sess { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.sess .when { width: 2.4rem; color: var(--muted-foreground); font-size: 12px; }
+.warnline { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--warning) 22%, var(--card)); font-size: 12.5px; }
+.champs { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.champ { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 6px; border-radius: 8px; }
+.champ:hover { background: var(--accent); }
+.champ .stripe { align-self: stretch; border-radius: 2px; }
+.prog { display: flex; gap: 2px; margin-top: 6px; }
+.prog i { height: 6px; flex: 1; border-radius: 2px; background: var(--muted); }
+.prog i.r { background: var(--success); } .prog i.m { background: var(--missed-fg); opacity: .6; } .prog i.n { background: var(--primary); }
+.pos { text-align: right; }
+.pos b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.later { margin-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.later div { border: 1.5px dashed var(--border); border-radius: 10px; padding: 18px; color: var(--muted-foreground); font-size: 13px; min-height: 110px; }
+.later b { color: var(--foreground); display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="picker">
+  <strong>Mockup</strong>
+  <button class="opt" data-screen="home" aria-pressed="false">Home</button>
+  <button class="opt" data-screen="calendar" aria-pressed="true">Calendar</button>
+  <span class="sep"></span>
+  <button class="opt" id="width" aria-pressed="false">Narrow window</button>
+  <button class="opt" id="theme" aria-pressed="false">Dark</button>
+</div>
+
+<div class="rationale" id="why-calendar">
+  <b>Calendar.</b> The month header and Next event widget from B, then the filters, then a <b>Days | Month</b> switch.
+  <ul>
+    <li>The filters are the app's own: Status (All, Available, Entered, Locked) and the disciplines, as one row of controls above the view rather than a column beside it.</li>
+    <li><b>Days</b> is A's timeline, with each event as a card so three or four fit side by side. The left date column and the today line stay.</li>
+    <li><b>Month</b> is B's grid. Click a day to list its events beside the grid. With <b>Narrow window</b> on, that list opens as a panel sliding in from the right instead.</li>
+    <li>In Days, the month buttons and the arrows scroll to that month. In Month, they change the month shown.</li>
+  </ul>
+</div>
+<div class="rationale" id="why-home" hidden>
+  <b>Home.</b> A new first tab. For now it holds C's two sections: your next weekend and your championships. The dashed boxes mark where later information could go, and are not part of this pass.
+  <ul>
+    <li>With nothing entered yet, the next-weekend card would point to the Calendar on <b>Available</b>.</li>
+    <li>Each championship row opens that championship's page. The bar shows one segment per round: raced, missed, next and to come.</li>
+  </ul>
+</div>
+
+<div class="window" id="window">
+  <div class="app-header">
+    <h1>Assetto Corsa Career</h1>
+    <nav class="nav"><a data-screen="home">Home</a><a>Race</a><a class="on" data-screen="calendar">Calendar</a><a>Championships</a><a>Results</a><a>Cars</a><a>Tracks</a><a>Settings</a></nav>
+  </div>
+  <div class="screen" id="screen-home"></div>
+  <div class="screen on" id="screen-calendar"></div>
+  <div class="scrim" id="scrim"></div>
+  <aside class="sheet" id="sheet"></aside>
+</div>
+
+<script>
+const SHAPES = [
+  'M4 20 L10 6 L18 14 L26 5 L34 16 L44 18 L40 22 L8 22 Z',
+  'M4 16 C8 4 18 4 22 12 C26 20 34 6 44 10 L42 20 L6 22 Z',
+  'M5 13 C5 5 20 5 24 9 C28 13 40 4 44 12 C46 20 30 22 22 18 C14 14 5 22 5 13 Z',
+  'M6 18 L14 6 L20 10 L30 4 L42 8 L36 14 L44 20 L10 22 Z',
+  'M4 12 C10 2 40 2 44 10 C46 18 34 22 26 16 L18 20 C10 24 2 20 4 12 Z',
+  'M8 20 L6 8 L16 4 L24 12 L34 6 L42 14 L30 22 Z',
+];
+const DISC = { ss: 'Single-seater', sc: 'Sportscar', to: 'Touring', ro: 'Road' };
+const LOCK = '<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const TODAY = '2026-01-18';
+const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MON3 = MONTH.map((m) => m.slice(0, 3));
+
+// [day, series, entry, disc, tier, round#, roundName, races, grid, prize, state, shape, result]
+// state: o open, e entered, r raced, m missed, l locked, c entered + clash
+const RAW = [
+  ['2026-01-04', 'GT86 Cup', 'Toyota GT86', 'ro', 5, 1, 'Brands Hatch Indy', '2 × 12 laps', 18, 2500, 'r', 0, 'P4'],
+  ['2026-01-04', 'Italian F4 Championship', 'Tatuus F4', 'ss', 5, 1, 'Imola', '3 × 65 km · 14 laps', 22, 8000, 'm', 1],
+  ['2026-01-04', 'Hot Hatch Trophy', 'Hot hatches', 'ro', 5, 1, 'Vallelunga Club', '20 laps', 16, 1800, 'o', 2],
+  ['2026-01-04', 'Porsche Supercup 2017', '911 GT3 Cup', 'sc', 4, 1, 'Barcelona', '75 km · 17 laps', 24, 13000, 'l', 3],
+  ['2026-01-04', 'Formula Abarth ++', 'Formula Abarth', 'ss', 3, 1, 'Magione', '2 × 98 km · 40 laps', 14, 8000, 'l', 4],
+  ['2026-01-04', 'Formula 1 2018', 'Formula 1', 'ss', 1, 1, 'Bahrain Grand Prix', '305 km · 57 laps', 20, 100000, 'l', 0],
+  ['2026-01-04', 'Formula 1 2023 (VRC)', 'Formula 1', 'ss', 1, 1, 'Bahrain Grand Prix', '305 km · 57 laps', 20, 100000, 'l', 0],
+  ['2026-01-04', 'Formula 1 2024 (VRC)', 'Formula 1', 'ss', 1, 1, 'Bahrain Grand Prix', '305 km · 57 laps', 20, 100000, 'l', 0],
+  ['2026-01-11', 'Mk1 MX-5 Championship', 'Mazda MX-5 NA', 'ro', 5, 1, 'Silverstone National', '2 × 15 laps', 20, 1500, 'o', 5],
+  ['2026-01-11', 'Trofeo Abarth 500 Italia 2009', 'Abarth 500', 'to', 5, 1, 'Vallelunga', '2 × 18 laps', 18, 2000, 'o', 2],
+  ['2026-01-11', 'DTM 2021', 'DTM', 'sc', 2, 1, 'Monza', '2 × 150 km · 26 laps', 20, 45000, 'l', 1],
+  ['2026-01-11', 'IMSA SportsCar Championship 2017', 'Prototype', 'sc', 1, 1, 'Rolex 24 at Daytona', '659 laps', 10, 60000, 'l', 4],
+  ['2026-01-11', 'IMSA SportsCar Championship 2017', 'GTLM', 'sc', 2, 1, 'Rolex 24 at Daytona', '659 laps', 8, 36000, 'l', 4],
+  ['2026-01-11', 'Formula 1 2019', 'Formula 1', 'ss', 1, 1, 'Bahrain Grand Prix', '305 km · 57 laps', 20, 100000, 'l', 0],
+  ['2026-01-11', 'Lotus Cup', 'Lotus Exige', 'ro', 4, 1, 'Brands Hatch GP', '18 laps', 16, 6000, 'l', 3],
+  ['2026-01-25', 'GT86 Cup', 'Toyota GT86', 'ro', 5, 2, 'Silverstone National', '2 × 14 laps', 18, 2500, 'e', 5],
+  ['2026-01-25', 'Italian F4 Championship', 'Tatuus F4', 'ss', 5, 2, 'Misano', '3 × 65 km · 15 laps', 22, 8000, 'e', 2],
+  ['2026-01-25', 'S-FR Cup', 'Toyota S-FR', 'ro', 5, 1, 'Zandvoort', '20 laps', 16, 1600, 'o', 1],
+  ['2026-01-25', 'Audi Sport TT Cup 2016', 'Audi TT Cup', 'to', 4, 1, 'Hockenheim', '2 × 16 laps', 20, 7000, 'l', 3],
+  ['2026-01-25', 'GT4 European Series', 'GT4', 'sc', 4, 1, 'Monza', '2 × 140 km · 24 laps', 30, 12000, 'l', 1],
+  ['2026-01-25', 'Formula 1 2025 (RSS)', 'Formula 1', 'ss', 1, 2, 'Chinese Grand Prix', 'Sprint 100 km · GP 305 km', 20, 100000, 'l', 0],
+  ['2026-01-25', 'DTM 2021', 'DTM', 'sc', 2, 2, 'Red Bull Ring', '2 × 150 km · 35 laps', 20, 45000, 'l', 5],
+  ['2026-02-08', 'GT86 Cup', 'Toyota GT86', 'ro', 5, 3, 'Donington National', '2 × 14 laps', 18, 2500, 'c', 2],
+  ['2026-02-08', 'Italian F4 Championship', 'Tatuus F4', 'ss', 5, 3, 'Monza', '3 × 65 km · 11 laps', 22, 8000, 'c', 1],
+  ['2026-02-08', 'Roadster Party Race', 'Roadsters', 'ro', 5, 1, 'Magione', '25 laps', 20, 1200, 'o', 4],
+  ['2026-02-08', 'Mazda MX-5 Cup 2024', 'MX-5 ND2', 'to', 4, 1, 'Laguna Seca', '2 × 20 laps', 24, 6500, 'l', 3],
+  ['2026-02-08', 'Porsche Supercup 2017', '911 GT3 Cup', 'sc', 4, 2, 'Monaco', '75 km · 23 laps', 24, 13000, 'l', 0],
+  ['2026-02-15', 'Hot Hatch Trophy', 'Hot hatches', 'ro', 5, 2, 'Brands Hatch Indy', '22 laps', 16, 1800, 'o', 0],
+  ['2026-02-15', 'Mk1 MX-5 Championship', 'Mazda MX-5 NA', 'ro', 5, 2, 'Oulton Park', '2 × 15 laps', 20, 1500, 'o', 3],
+  ['2026-02-15', 'Formula 1 2018', 'Formula 1', 'ss', 1, 2, 'Australian Grand Prix', '307 km · 58 laps', 20, 100000, 'l', 1],
+  ['2026-02-22', 'GT86 Cup', 'Toyota GT86', 'ro', 5, 4, 'Snetterton 300', '2 × 13 laps', 18, 2500, 'e', 4],
+  ['2026-02-22', 'Trofeo Abarth 500 Italia 2009', 'Abarth 500', 'to', 5, 2, 'Mugello', '2 × 14 laps', 18, 2000, 'o', 5],
+  ['2026-02-22', 'GT4 European Series', 'GT4', 'sc', 4, 2, 'Brands Hatch GP', '2 × 140 km · 36 laps', 30, 12000, 'l', 3],
+];
+const EVENTS = RAW.map(([day, series, entry, disc, tier, number, round, races, grid, prize, state, shape, result]) => ({
+  day, series, entry, disc, tier, number, round, races, grid, prize, state, shape, result,
+}));
+const mine = (e) => 'ercm'.includes(e.state);
+const money = (n) => '$' + n.toLocaleString('en-US');
+const date = (iso) => new Date(iso + 'T12:00');
+const dayLabel = (iso) => date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+const map = (shape) => `<div class="outline-map"><svg viewBox="0 0 48 26"><path d="${SHAPES[shape]}"/></svg></div>`;
+const tierChip = (t) => `<span class="chip t${t}">Tier ${t}</span>`;
+const discChip = (e) => `<span class="chip d-${e.disc}">${e.entry}</span>`;
+const statusChip = (e) => ({
+  r: `<span class="chip st-raced">Raced${e.result ? ' · ' + e.result : ''}</span>`,
+  m: '<span class="chip st-missed">Missed</span>',
+  c: '<span class="chip st-clash">Clash</span>',
+  e: '<span class="chip st-entered">Entered</span>',
+  l: `<span class="chip outline muted">${LOCK} Above your level</span>`,
+}[e.state] ?? '');
+const order = (e) => (mine(e) ? 0 : e.state === 'o' ? 1 : 2);
+const byDay = (events) => { const m = new Map(); events.forEach((e) => { if (!m.has(e.day)) m.set(e.day, []); m.get(e.day).push(e); }); return [...m]; };
+
+// The app's own filters.
+const state = { status: 'all', disciplines: [], view: 'days', month: 0, sel: '2026-01-25' };
+const STATUS = [['all', 'All'], ['available', 'Available'], ['entered', 'Entered'], ['locked', 'Locked']];
+const passes = (e) => {
+  if (state.disciplines.length && !state.disciplines.includes(e.disc)) return false;
+  if (state.status === 'entered') return mine(e);
+  if (state.status === 'locked') return e.state === 'l';
+  if (state.status === 'available') return e.state === 'o';
+  return true;
+};
+const shown = () => EVENTS.filter(passes).sort((a, b) => a.day.localeCompare(b.day) || order(a) - order(b));
+
+const card = (e) => {
+  const act = e.state === 'o' ? '<button class="btn sm">Enter</button>'
+    : (e.state === 'e' || e.state === 'c') ? `<button class="btn sm">Open ${ARROW}</button>` : '';
+  return `
+  <div class="ev ${mine(e) ? 'entered' : ''} ${e.state === 'l' ? 'locked' : ''}">
+    <span class="stripe bar-${e.disc}"></span>
+    <div class="top">
+      <div class="body">
+        <div class="chips"><span class="xs muted" style="font-family:ui-monospace,monospace">R${e.number}</span>${discChip(e)}${tierChip(e.tier)}</div>
+        <b>${e.series}</b>
+        <span class="xs muted line">${e.round} · ${e.races} · Grid ${e.grid}</span>
+      </div>
+      ${map(e.shape)}
+    </div>
+    <div class="foot">
+      <span class="sm money">${money(e.prize)}</span><span class="xs muted">to the winner</span>
+      ${statusChip(e)}
+      <span class="act">${act}</span>
+    </div>
+  </div>`;
+};
+
+const clock = () => `
+  <div class="clock">
+    <div class="today"><span class="caps">Today</span><b>Sun 18 Jan 2026</b></div>
+    <div class="next"><span class="caps">Next for you · in 7 days</span><span class="sm"><b>GT86 Cup</b> R2 · Silverstone National</span></div>
+    <button class="go">Go to Sat 24 Jan ${ARROW}</button>
+  </div>`;
+
+const MY_WEEKS = [[1, 1, 0, 1], [1, 0, 1, 0], [1, 1, 0, 1], [0, 1, 1, 0], [1, 0, 1, 1], [0, 1, 0, 1], [1, 0, 2, 0], [0, 0, 0, 0], [1, 1, 0, 1], [0, 1, 1, 0], [1, 0, 0, 1], [0, 0, 0, 0]];
+const months = () => MON3.map((m, i) => `<button class="${i === state.month ? 'on' : ''} ${i < 0 ? 'past' : ''}" data-month="${i}">${m}<span class="heat">${MY_WEEKS[i].map((w) => `<i class="${w === 1 ? 'm' : w === 2 ? 'c' : ''}"></i>`).join('')}</span></button>`).join('');
+
+const filters = () => {
+  const counts = Object.fromEntries(STATUS.map(([k]) => [k, EVENTS.filter((e) => {
+    if (state.disciplines.length && !state.disciplines.includes(e.disc)) return false;
+    return k === 'all' ? true : k === 'entered' ? mine(e) : k === 'locked' ? e.state === 'l' : e.state === 'o';
+  }).length]));
+  return `
+  <div class="filters">
+    <div class="grp"><span class="caps">Status</span>
+      <div class="seg">${STATUS.map(([k, v]) => `<button class="${state.status === k ? 'on' : ''}" data-status="${k}">${v}<span class="n">${counts[k]}</span></button>`).join('')}</div>
+    </div>
+    <div class="grp"><span class="caps" style="margin-left:8px">Discipline</span>
+      ${Object.entries(DISC).map(([k, v]) => `<button class="togg ${state.disciplines.includes(k) ? 'on' : ''}" data-disc="${k}"><span class="dot bar-${k}"></span>${v}</button>`).join('')}
+    </div>
+    <span class="sp"></span>
+    <div class="seg">
+      <button class="${state.view === 'days' ? 'on' : ''}" data-view="days"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Days</button>
+      <button class="${state.view === 'month' ? 'on' : ''}" data-view="month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M9 4v17M15 4v17"/></svg>Month</button>
+    </div>
+  </div>`;
+};
+
+const daysView = () => {
+  const days = byDay(shown());
+  if (!days.length) return '<p class="muted" style="padding:40px;text-align:center">Nothing matches these filters</p>';
+  let out = '';
+  let lastMonth = -1;
+  let todayDone = false;
+  days.forEach(([day, evs]) => {
+    const d = date(day);
+    if (d.getMonth() !== lastMonth) {
+      out += `<div class="month-h"><h3>${MONTH[d.getMonth()]} 2026</h3><span class="xs muted">${EVENTS.filter((e) => date(e.day).getMonth() === d.getMonth() && mine(e)).length} rounds of yours</span></div>`;
+      lastMonth = d.getMonth();
+    }
+    if (!todayDone && day >= TODAY) { out += '<div class="today-line"><span class="caps">Today</span><span class="rule"></span><span class="xs" style="color:var(--primary);font-weight:600">Sun 18 Jan</span></div>'; todayDone = true; }
+    const sat = new Date(d); sat.setDate(d.getDate() - 1);
+    out += `
+    <section class="weekend ${day < TODAY ? 'past' : ''}">
+      <div class="wdate"><div class="caps">${d.toLocaleDateString('en-GB', { weekday: 'short' })}</div><div class="big">${d.getDate()}</div><div class="xs muted">${MON3[d.getMonth()]} · from ${sat.getDate()}</div><div class="xs muted" style="margin-top:6px">${evs.length} events</div></div>
+      <div class="cards">${evs.map(card).join('')}</div>
+    </section>`;
+  });
+  return out;
+};
+
+const sidePanel = (inSheet) => {
+  const sel = shown().filter((e) => e.day === state.sel);
+  return `
+    <div class="side-head"><h3>${dayLabel(state.sel)}</h3><span class="xs muted">${sel.length} events</span>${inSheet ? '<button class="btn icon" id="close-sheet" aria-label="Close">✕</button>' : ''}</div>
+    <div class="cards">${sel.map(card).join('') || '<p class="muted sm">Nothing races on this day.</p>'}</div>`;
+};
+
+const monthView = () => {
+  const first = new Date(2026, state.month, 1, 12);
+  const start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const list = shown();
+  const MAXP = 5;
+  let cells = '';
+  for (let i = 0; i < 35; i += 1) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = iso(d);
+    const evs = list.filter((e) => e.day === key);
+    const pills = evs.slice(0, MAXP).map((e) => {
+      if (mine(e)) return `<div class="pill mine ${e.state === 'c' ? 'clash' : ''}">${e.series} R${e.number}</div>`;
+      if (e.state === 'l') return `<div class="pill lockp">${LOCK}${e.series}</div>`;
+      return `<div class="pill d-${e.disc}">${e.series}</div>`;
+    }).join('');
+    const more = evs.length > MAXP ? `<div class="pill more">+ ${evs.length - MAXP} more</div>` : '';
+    cells += `<div class="cell ${d.getMonth() !== state.month ? 'out' : ''} ${key === TODAY ? 'today' : ''} ${key === state.sel ? 'sel' : ''} ${key < TODAY ? 'past' : ''}" data-day="${key}"><span class="dn">${d.getDate()}</span>${pills}${more}</div>`;
+  }
+  return `
+  <div class="m-body">
+    <div class="grid7">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => `<div class="dow">${d}</div>`).join('')}${cells}</div>
+    <aside class="side">${sidePanel(false)}</aside>
+  </div>`;
+};
+
+const win = document.getElementById('window');
+const renderCalendar = () => {
+  document.getElementById('screen-calendar').innerHTML = `
+  <div class="page">
+    <div class="sticky-head">
+      <div class="c-head">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h2>${MONTH[state.month]} 2026</h2>
+          <button class="btn icon" data-step="-1">‹</button><button class="btn icon" data-step="1">›</button><button class="btn sm">Today</button>
+        </div>
+        ${clock()}
+      </div>
+      <div class="months">${months()}</div>
+      ${filters()}
+    </div>
+    ${state.view === 'days' ? daysView() : monthView()}
+  </div>`;
+  const root = document.getElementById('screen-calendar');
+  root.querySelectorAll('[data-status]').forEach((b) => b.onclick = () => { state.status = b.dataset.status; renderCalendar(); });
+  root.querySelectorAll('[data-disc]').forEach((b) => b.onclick = () => {
+    const k = b.dataset.disc;
+    state.disciplines = state.disciplines.includes(k) ? state.disciplines.filter((x) => x !== k) : [...state.disciplines, k];
+    renderCalendar();
+  });
+  root.querySelectorAll('[data-view]').forEach((b) => b.onclick = () => { state.view = b.dataset.view; renderCalendar(); });
+  root.querySelectorAll('[data-month]').forEach((b) => b.onclick = () => { state.month = Number(b.dataset.month); renderCalendar(); });
+  root.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { state.month = Math.min(11, Math.max(0, state.month + Number(b.dataset.step))); renderCalendar(); });
+  root.querySelectorAll('.cell').forEach((c) => c.onclick = () => {
+    state.sel = c.dataset.day;
+    renderCalendar();
+    if (win.classList.contains('narrow')) openSheet();
+  });
+};
+const openSheet = () => {
+  document.getElementById('sheet').innerHTML = sidePanel(true);
+  win.classList.add('sheet-open');
+  document.getElementById('close-sheet').onclick = () => win.classList.remove('sheet-open');
+};
+document.getElementById('scrim').onclick = () => win.classList.remove('sheet-open');
+
+const renderHome = () => {
+  const champs = [
+    { name: 'GT86 Cup', disc: 'ro', tier: 5, rounds: 'rnlllllll'.split(''), pos: 'P4', of: 18, pts: 12, next: 'R2 · Sat 24 Jan' },
+    { name: 'Italian F4 Championship', disc: 'ss', tier: 5, rounds: 'mnllllll'.split(''), pos: '-', of: 22, pts: 0, next: 'R2 · Sat 24 Jan' },
+  ];
+  document.getElementById('screen-home').innerHTML = `
+  <div class="page">
+    <div class="home-head">
+      <div><span class="caps">Season 1 · 2026</span><h2>Sunday 18 January</h2></div>
+      <button class="btn">Open the calendar ${ARROW}</button>
+    </div>
+    <div class="home-grid">
+      <div class="card hero">
+        <div class="info">
+          <span class="caps" style="color:var(--primary)">Your next weekend</span>
+          <div style="display:flex;align-items:baseline;gap:10px"><span class="count-big">7</span><span class="muted">days to go · Sat 24 - Sun 25 Jan</span></div>
+          <div>
+            <h3 style="font-size:21px">GT86 Cup</h3>
+            <p class="muted">Round 2 of 9 · Silverstone National</p>
+          </div>
+          <div class="chips" style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip d-ro">Toyota GT86</span>${tierChip(5)}<span class="chip outline">Grid 18</span><span class="chip outline">${money(2500)} to the winner</span></div>
+          <div class="sessions">
+            <div class="sess"><span class="when">Sat</span><span class="chip s-practice">Practice</span><span class="muted xs">30 min</span></div>
+            <div class="sess"><span class="when">Sun</span><span class="chip s-race">Race 1</span><span class="muted xs">14 laps</span></div>
+            <div class="sess"><span class="when">Sat</span><span class="chip s-qualify">Qualifying</span><span class="muted xs">15 min</span></div>
+            <div class="sess"><span class="when">Sun</span><span class="chip s-race">Race 2</span><span class="muted xs">14 laps · reverse top 8</span></div>
+          </div>
+          <div class="warnline"><span class="chip st-clash">Clash</span>Italian F4 round 2 is the same weekend. You can only drive one of them.</div>
+          <div style="display:flex;gap:8px;margin-top:2px"><button class="btn primary">Go to event ${ARROW}</button><button class="btn">Advance to Sat 24 Jan</button></div>
+        </div>
+        <div class="hero-map"><svg viewBox="0 0 48 26"><path d="${SHAPES[5]}"/></svg><span class="lbl">Silverstone · National · 2.6 km</span></div>
+      </div>
+      <div class="card champs">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 6px 4px"><span class="caps">Your championships</span><span class="xs muted">2 entered</span></div>
+        ${champs.map((c) => `
+          <div class="champ">
+            <span class="stripe bar-${c.disc}"></span>
+            <div style="min-width:0">
+              <div style="display:flex;gap:6px;align-items:center"><b class="sm">${c.name}</b>${tierChip(c.tier)}</div>
+              <div class="prog">${c.rounds.map((r) => `<i class="${['r', 'm', 'n'].includes(r) ? r : ''}"></i>`).join('')}</div>
+              <div class="xs muted" style="margin-top:4px">Next: ${c.next}</div>
+            </div>
+            <div class="pos"><b>${c.pos}</b><span class="xs muted"> / ${c.of}</span><div class="xs muted">${c.pts} pts</div></div>
+          </div>`).join('')}
+        <div class="xs muted" style="display:flex;gap:12px;border-top:1px solid var(--border);padding:10px 6px 0;margin-top:auto">
+          <span style="display:flex;gap:5px;align-items:center"><span class="dot" style="background:var(--success)"></span>Raced</span>
+          <span style="display:flex;gap:5px;align-items:center"><span class="dot" style="background:var(--missed-fg);opacity:.6"></span>Missed</span>
+          <span style="display:flex;gap:5px;align-items:center"><span class="dot" style="background:var(--primary)"></span>Next</span>
+          <span style="display:flex;gap:5px;align-items:center"><span class="dot" style="background:var(--muted);outline:1px solid var(--border)"></span>To come</span>
+        </div>
+      </div>
+    </div>
+    <div class="later">
+      <div><b>Later</b>Your last result</div>
+      <div><b>Later</b>Money and offers</div>
+      <div><b>Later</b>Your level per discipline</div>
+    </div>
+  </div>`;
+};
+
+const show = (screen) => {
+  document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === `screen-${screen}`));
+  document.querySelectorAll('.picker [data-screen]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === screen)));
+  document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('on', a.dataset.screen === screen));
+  document.getElementById('why-calendar').hidden = screen !== 'calendar';
+  document.getElementById('why-home').hidden = screen !== 'home';
+  win.classList.remove('sheet-open');
+};
+document.querySelectorAll('[data-screen]').forEach((b) => b.addEventListener('click', () => show(b.dataset.screen)));
+document.getElementById('width').addEventListener('click', (ev) => {
+  const narrow = win.classList.toggle('narrow');
+  ev.currentTarget.setAttribute('aria-pressed', String(narrow));
+  win.classList.remove('sheet-open');
+});
+document.getElementById('theme').addEventListener('click', (ev) => {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  ev.currentTarget.setAttribute('aria-pressed', String(dark));
+});
+renderHome(); renderCalendar();
+</script>
+</body>
+</html>

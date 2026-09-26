@@ -1,14 +1,12 @@
 import type { ParseKeys } from 'i18next';
 
 import type { WeatherType } from '../../../../shared/constants';
-import type { TrackStateName } from '../../../../shared/types';
+import type { QuickRacePhase, RegulationNumber, TrackStateName } from '../../../../shared/types';
 
 /**
- * What one entry in the weather menu stands for.
- *
- * Three questions share one menu because the user has one thing in mind, and
- * Content Manager presents them the same way. Which one was answered decides
- * what goes into the race definition.
+ * What a session's weather is set to: a controller deciding it, a CSP weather
+ * type, a named preset, or nothing. Which one decides what goes into the race
+ * definition.
  */
 export type WeatherChoice =
   | {
@@ -93,4 +91,60 @@ export interface SessionLength {
    * How many laps or minutes.
    */
   count: number;
+}
+
+/**
+ * A named point along a regulation's slider, offered as a chip.
+ */
+export interface RegulationStop {
+  /**
+   * The value it sets.
+   */
+  value: number;
+  /**
+   * What it is called, for a stop with a name rather than a figure.
+   */
+  label?: ParseKeys;
+}
+
+/**
+ * One measured regulation as its slider offers it.
+ */
+export interface RegulationSpec {
+  /**
+   * Which regulation.
+   */
+  key: RegulationNumber;
+  /**
+   * The control's id.
+   */
+  id: string;
+  /**
+   * The most it may be; the least is always nothing at all.
+   */
+  max: number;
+  /**
+   * How far one step of the slider moves it.
+   */
+  step: number;
+  /**
+   * Whether it reads as a percentage or as a multiple of real.
+   */
+  unit: 'percent' | 'times';
+  /**
+   * The points offered as chips, in order.
+   */
+  stops: readonly RegulationStop[];
+}
+
+/**
+ * The router state a race weekend's card hands the page it opens: how far the
+ * weekend has got, which decides the shape of the page's skeleton before the
+ * weekend itself is read.
+ */
+export interface RaceWeekendState {
+  /**
+   * Set up, under way, or finished.
+   */
+  phase: QuickRacePhase;
 }

@@ -65,3 +65,13 @@ export const MIN_YEAR = 1885;
  * The latest plausible model year, allowing for concepts dated ahead.
  */
 export const MAX_YEAR = 2100;
+
+/**
+ * Above this, a curve point's engine speed is not an engine speed.
+ */
+export const MAX_RPM = 30000;
+
+/**
+ * Fewer points than this is not a curve anyone could read anything off.
+ */
+export const MIN_CURVE_POINTS = 2;

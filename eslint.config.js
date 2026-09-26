@@ -110,6 +110,10 @@ export default defineConfig([
       // jsx: react-jsx - the runtime is imported automatically.
       'react/react-in-jsx-scope': 'off',
 
+      // The renderer runs in Chromium, not Node: its localStorage is the
+      // browser's, which this rule mistakes for Node's experimental one.
+      'n/no-unsupported-features/node-builtins': 'off',
+
       // Props are typed by React.ComponentProps throughout; prop-types is a
       // JavaScript-era mechanism with nothing to add here.
       'react/require-default-props': 'off',
@@ -143,6 +147,9 @@ export default defineConfig([
       'max-len': 'off',
       'no-use-before-define': 'off',
       '@typescript-eslint/no-use-before-define': 'off',
+      // Upstream's slider names its memoised thumb values `_values`.
+      'no-underscore-dangle': 'off',
+      '@typescript-eslint/naming-convention': 'off',
     },
   },
 ]);

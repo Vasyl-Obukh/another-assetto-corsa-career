@@ -11,7 +11,9 @@ import { ERROR_MESSAGES } from '../../../shared/errors';
 import type { Language } from '../../../shared/types';
 
 export type { Formatters } from './types.ts';
-export { formatAppError, formatContentIssueReason, formattersFor } from './utils.ts';
+export {
+  formatAppError, formatContentIssueReason, formatDayRange, formattersFor,
+} from './utils.ts';
 export { useAppError } from './use-app-error.ts';
 export { useContentIssueReason } from './use-content-issue-reason.ts';
 

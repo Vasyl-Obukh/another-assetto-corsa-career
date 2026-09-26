@@ -67,6 +67,16 @@ export interface ClassStore {
    */
   saveSpec: (draft: IpcRequest<'classes:saveSpec'>) => Promise<ClassCommandResult>;
   /**
+   * Saves a spec and its cars as one edit.
+   * @param spec The spec as the form left it; no id means a new one
+   * @param cars Every car that should race in it
+   * @returns The layer, and the spec's id
+   */
+  saveSpecCars: (
+    spec: IpcRequest<'classes:saveSpecCars'>['spec'],
+    cars: readonly string[],
+  ) => Promise<ClassCommandResult>;
+  /**
    * Deletes a spec of the user's, taking it off every car racing in it.
    * @param id The spec
    * @param users The names of every championship racing in it

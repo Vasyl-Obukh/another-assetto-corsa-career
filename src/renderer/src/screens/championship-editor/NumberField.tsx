@@ -19,14 +19,9 @@ interface NumberFieldProps {
    */
   value: number | undefined;
   /**
-   * The lowest value allowed. Not always zero - allowedTyresOut says -1 for
-   * "leave Assetto Corsa's own per-track default alone".
+   * The lowest value allowed.
    */
   min?: number;
-  /**
-   * The highest value allowed.
-   */
-  max?: number;
   /**
    * What an empty box means, shown in grey - usually the default that applies
    * when the field says nothing.
@@ -51,14 +46,13 @@ interface NumberFieldProps {
  * to enter - so nothing here may fall back with `||`.
  */
 export const NumberField = ({
-  id, label, hint, value, min, max, placeholder, disabled, onChange,
+  id, label, hint, value, min, placeholder, disabled, onChange,
 }: NumberFieldProps) => (
   <Field id={id} label={label} hint={hint}>
     <Input
       id={id}
       type="number"
       min={min}
-      max={max}
       placeholder={placeholder}
       value={fromNumber(value)}
       disabled={disabled}

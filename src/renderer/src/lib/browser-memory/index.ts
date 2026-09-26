@@ -1,2 +1,2 @@
 export { readBrowserMemory, rememberBrowser } from './browser-memory.ts';
-export type { BrowserMemory } from './types.ts';
+export type { BrowserMemory, BrowserView } from './types.ts';

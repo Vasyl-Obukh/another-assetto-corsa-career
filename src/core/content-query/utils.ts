@@ -2,10 +2,11 @@
 // Pure throughout - no fs, no Electron, nothing that needs a running app.
 
 import {
-  COLLATOR, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_SHARED_NAME, NAME_SEPARATORS,
+  COLLATOR, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_SHARED_NAME, NAME_SEPARATORS, SPREAD_BINS,
 } from './constants.ts';
 import type {
-  Facet, Page, SortDirection, Track, TrackGroup,
+  ContentProvenance, ContentSource, DLCPack, Facet, ModDistributor, ModMaker, Page, SortDirection, Spread,
+  Track, TrackGroup,
 } from '../../shared/types/index.ts';
 
 // Text matching lives in shared/, because the renderer filters a car's liveries
@@ -58,18 +59,57 @@ export const isOneOf = (value: string | null, accepted: string[] | undefined): b
  * than one value - the specs it races in, and so the classes it belongs to. An
  * entry matches when any of its values was picked, which is the same OR the
  * single-valued filters use.
- * @param values Everything the entry is
+ * @param values Everything the entry is, null where it is nothing
  * @param accepted What the caller picked, or undefined for no filter
  * @returns Whether the entry passes
  */
 export const hasAnyOf = (
-  values: readonly string[],
-  accepted: string[] | undefined,
+  values: readonly (string | null)[],
+  accepted: readonly string[] | undefined,
 ): boolean => {
   if (accepted === undefined || accepted.length === 0) return true;
 
-  return values.some((value) => accepted.includes(value));
+  return values.some((value) => value !== null && accepted.includes(value));
 };
+
+/**
+ * Tests an entry against several lists that are one filter, OR'd together.
+ *
+ * The browser shows such lists as one tree, so ticking a branch beside a leaf
+ * of another means either, not both. A list nothing was picked from takes no
+ * part.
+ * @param lists Each list as what the entry is in its terms, then what was picked
+ * @returns True when nothing was picked from any of them, or the entry is in one
+ */
+export const anyOfLists = (
+  lists: readonly (readonly [values: readonly (string | null)[], picked: readonly string[] | undefined])[],
+): boolean => {
+  const asked = lists.filter(([, picked]) => picked !== undefined && picked.length > 0);
+
+  return asked.length === 0 || asked.some(([values, picked]) => hasAnyOf(values, picked));
+};
+
+/**
+ * Tests where an entry came from against every provenance list at once - one
+ * tree in the browser, since a pack is a kind of DLC and a maker a kind of mod.
+ * @param provenance Where the entry came from
+ * @param picked The source, pack, maker and distributor lists the query set
+ * @returns True when nothing was picked or any of it matches
+ */
+export const fromAnyOf = (
+  provenance: ContentProvenance,
+  picked: {
+    sources?: ContentSource[];
+    packs?: DLCPack[];
+    makers?: ModMaker[];
+    distributors?: ModDistributor[];
+  },
+): boolean => anyOfLists([
+  [[provenance.source], picked.sources],
+  [[provenance.pack], picked.packs],
+  [[provenance.maker], picked.makers],
+  [[provenance.distributor], picked.distributors],
+]);
 
 /**
  * Compares two sort values, with anything unknown ordered last.
@@ -268,4 +308,48 @@ export const groupPitboxes = (group: TrackGroup): number | null => {
     .filter((pitboxes): pitboxes is number => pitboxes !== null);
 
   return known.length === 0 ? null : Math.max(...known);
+};
+
+/**
+ * The longest lap any of a track's layouts runs.
+ * @param group The track to measure
+ * @returns The greatest stated length in metres, or null when no layout states one
+ */
+export const groupLength = (group: TrackGroup): number | null => {
+  const known = group.layouts
+    .map((layout) => layout.lengthM)
+    .filter((length): length is number => length !== null);
+
+  return known.length === 0 ? null : Math.max(...known);
+};
+
+/**
+ * How a number is spread, for the bars under a range filter.
+ *
+ * The bounds come from everything installed and only the counts from what the
+ * other filters leave, so the slider keeps its scale while the bars move.
+ * @param installed Every entry, for the bounds
+ * @param matched The entries the other filters leave, for the counts
+ * @param read Reads an entry's value, or null when it has none
+ * @returns The bounds and SPREAD_BINS counts, or null when nothing has a value
+ */
+export const spreadOf = <T>(
+  installed: readonly T[],
+  matched: readonly T[],
+  read: (item: T) => number | null,
+): Spread | null => {
+  const values = installed.map(read).filter((value): value is number => value !== null);
+  if (values.length === 0) return null;
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const width = (max - min) / SPREAD_BINS || 1;
+  const counts = new Array<number>(SPREAD_BINS).fill(0);
+
+  for (const item of matched) {
+    const value = read(item);
+    if (value !== null) counts[Math.min(SPREAD_BINS - 1, Math.floor((value - min) / width))] += 1;
+  }
+
+  return { min, max, counts };
 };

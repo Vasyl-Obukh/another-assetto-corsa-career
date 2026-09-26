@@ -17,9 +17,9 @@ interface SpecCardProps {
    */
   busy: boolean;
   /**
-   * Called to rename the spec.
+   * Called to open the spec's sheet, its name and cars.
    */
-  onRename: () => void;
+  onOpen: () => void;
   /**
    * Called to move the spec to another class.
    */
@@ -31,7 +31,7 @@ interface SpecCardProps {
 }
 
 export const SpecCard = ({
-  spec, busy, onRename, onMove, onDelete,
+  spec, busy, onOpen, onMove, onDelete,
 }: SpecCardProps) => {
   const { t } = useTranslation();
   const { catalogue } = useClasses();
@@ -39,18 +39,29 @@ export const SpecCard = ({
   const inShipped = catalogue.classById.get(spec.class)?.origin === 'shipped';
 
   return (
-    <li className="flex min-h-20 flex-col gap-2 rounded-lg border bg-muted/50 p-3">
+    <li className="relative flex min-h-20 flex-col gap-2 rounded-lg border bg-muted/50 p-3 hover-outline">
+      {/* The whole card opens the sheet; the menu sits above this button
+          rather than inside it, since a button may not hold another. */}
+      <button
+        type="button"
+        className="absolute inset-0 rounded-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+        aria-label={t('carClasses.openSpec', { name: spec.name })}
+        onClick={onOpen}
+      />
+
       <div className="flex items-start gap-1">
         <span className="min-w-0 flex-1 font-medium break-words">{spec.name}</span>
 
         {/* The app's own are referenced by the championships it ships, so they
-            are not the user's to rename, move or delete. */}
+            are not the user's to move or delete. */}
         {mine ? (
-          <SpecMenu spec={spec} busy={busy} onRename={onRename} onMove={onMove} onDelete={onDelete} />
+          <div className="relative">
+            <SpecMenu spec={spec} busy={busy} onRename={onOpen} onMove={onMove} onDelete={onDelete} />
+          </div>
         ) : null}
       </div>
 
-      <div className="mt-auto flex flex-wrap gap-1.5">
+      <div className="pointer-events-none mt-auto flex flex-wrap items-center gap-1.5">
         {/* Whose it is, in the hue that already means "yours" - but only in a
             class the app ships, since in one of the user's every spec is. */}
         {mine && inShipped ? <Badge className={ORIGIN_ACCENT.user}>{t('championships.origin.user')}</Badge> : null}

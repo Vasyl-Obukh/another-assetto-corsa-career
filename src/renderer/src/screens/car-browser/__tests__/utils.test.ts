@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { makeCar, makeSkin } from './fixtures.ts';
-import { carImageSources, roundRatio } from '../utils.ts';
+import { carImageSources } from '../utils.ts';
 
 describe('renderer/screens/car-browser/utils', () => {
   describe('carImageSources', () => {
@@ -52,23 +52,6 @@ describe('renderer/screens/car-browser/utils', () => {
     it('percent-encodes an id rather than letting it break the URL', () => {
       expect(carImageSources(makeCar({ id: 'car#1', skins: [] })))
         .toEqual(['accontent://car/car%231/badge']);
-    });
-  });
-
-
-  describe('roundRatio', () => {
-    // The underlying figures are parsed out of free text, so 312.4571 bhp/t is
-    // noise dressed up as precision.
-    it('keeps one decimal place', () => {
-      expect(roundRatio(312.4571)).toBe(312.5);
-    });
-
-    it('rounds down as well as up', () => {
-      expect(roundRatio(312.44)).toBe(312.4);
-    });
-
-    it('leaves a whole number alone', () => {
-      expect(roundRatio(500)).toBe(500);
     });
   });
 });

@@ -1,32 +1,37 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 
-import { ChampionshipActions } from './ChampionshipActions.tsx';
-import { EnterRoundDialog } from './EnterRoundDialog.tsx';
-import { EntryCard } from './EntryCard.tsx';
-import { FormatCard } from './FormatCard.tsx';
-import { MoneyCard } from './MoneyCard.tsx';
-import { OriginBadge } from './OriginBadge.tsx';
-import { PointsCard } from './PointsCard.tsx';
-import { RoundRow } from './RoundRow.tsx';
+import { ClassRow } from './ClassRow.tsx';
+import { DETAIL_TABS, UNDERLINE_TAB } from './constants.ts';
+import { DetailSkeleton } from './DetailSkeleton.tsx';
+import { DetailSummary } from './DetailSummary.tsx';
+import { EnterChampionship } from './EnterChampionship.tsx';
+import { RoundTable } from './RoundTable.tsx';
+import { SeasonRules } from './SeasonRules.tsx';
+import { SeasonSummary } from './SeasonSummary.tsx';
+import { StandingsSection } from './StandingsSection.tsx';
+import type { DetailTab, NextRound } from './types.ts';
 import { entryAvailability } from './utils.ts';
-import type { Round } from '../../../../shared/types';
 import {
-  ClimateBadge, ErrorCard, ScreenBody, ScreenHeader,
+  ErrorCard, ResultCell, ScreenBody, ScreenHeader,
 } from '@/components';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useCareer, useChampionship, useForecast, useSeriesCommands } from '@/hooks';
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from '@/components/ui/tabs.tsx';
+import {
+  useCareer, useChampionship, useChampionshipResults, usePageName, useSeriesCommands,
+} from '@/hooks';
+import { usePlayerName } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
-import { StandingsCard } from '@/screens/calendar';
+import { seasonResults } from '@/lib/season-results';
+import { cn } from '@/lib/utils.ts';
 
 interface ChampionshipDetailProps {
   /**
-   * Whether the page is the settings tab's, which manages the library rather
-   * than racing it: the whole menu, and no round can be raced from it. Left
-   * out, it is the page a career reads, with Edit its only command.
+   * Whether the page manages the championship, as the settings tab opens it:
+   * the whole menu and the switch, and nothing that races a round.
    */
   manage?: boolean;
 }
@@ -37,62 +42,74 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const navigate = useNavigate();
   const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
   const championship = useChampionship(id);
+  const results = useChampionshipResults(id);
   const commands = useSeriesCommands();
-  const [entering, setEntering] = useState<Round | null>(null);
-  // Only while a round is being entered. A forecast belongs to the week before
-  // its weekend, so the calendar below no longer shows one at all - and loading
-  // every round's on mount would be drawing a season's weather to throw away.
-  const forecasts = useForecast(entering && id !== '' ? id : undefined);
+  // The open tab lives in the URL, so Back from a round returns to it.
+  const [search, setSearch] = useSearchParams();
   // The season this championship is being raced in, when the career has entered
-  // it: what dates its rounds and what its standings are.
+  // it: what dates its rounds and what its standings are. The settings tab
+  // manages the library rather than running a season in it, so it never shows.
   const career = useCareer();
 
   const season = career.career?.seasons[career.career.seasons.length - 1];
-  const entered = season?.entries.find((one) => one.series === id && !one.withdrawn) ?? null;
-
-  /**
-   * One round's place on the career's calendar, when it has one.
-   * @param round The round's id
-   * @returns Its dated event, or undefined
-   */
-  const eventOf = (round: string) => entered?.events.find((one) => one.round === round);
-
-  /**
-   * One round's forecast, when the championship generates its weather.
-   * @param round The round's id
-   * @returns Its forecast, or null
-   */
-  const forecastOf = (round: string | undefined) => (
-    forecasts.find((one) => one.round === round) ?? null
-  );
-
+  const entered = manage
+    ? null
+    : season?.entries.find((one) => one.series === id && !one.withdrawn) ?? null;
   const { listing } = championship;
-  // Each back to the list it was opened from: a championship on the settings
-  // tab may be switched off, and then the Championships page does not list it.
+  // In a career, its own next round; otherwise the next one still to come on
+  // the calendar, since that round's page is where the championship is entered.
+  const next = useMemo((): NextRound | undefined => {
+    const rounds = listing?.series.rounds ?? [];
+    const clock = career.calendar?.date;
+    const event = entered
+      ? entered.events.find((one) => one.status === 'scheduled')
+      : career.calendar?.events.find((one) => one.series === id && clock !== undefined && one.lastDay >= clock);
+    const at = rounds.findIndex((round) => round.id === event?.round);
+    if (manage || !event || at < 0) return undefined;
+
+    return {
+      round: rounds[at],
+      number: at + 1,
+      firstDay: event.firstDay,
+      lastDay: event.lastDay,
+      underway: 'sessions' in event && event.sessions.length > 0,
+    };
+  }, [listing, career.calendar, entered, id, manage]);
+  // Back with nowhere earlier to return to leads to the list each is opened
+  // from: a championship on the settings tab may be switched off, and then the
+  // Championships page does not list it.
   const back = manage
-    ? { to: path.settingsChampionships(), label: t('editor.back') }
-    : { to: path.championships(), label: t('championships.back') };
-  const here = manage ? path.settingsChampionship({ id }) : path.championship({ id });
+    ? { to: path.settingsChampionships(), label: t('back.settingsChampionships') }
+    : { to: path.championships(), label: t('back.championships') };
+  usePageName(listing?.series.name ?? null);
   // One card rather than two, as on the settings tab.
   const error = championship.error ?? commands.error;
+  // The table carries the name the championship's document gave the seat, so
+  // the player's own is laid over it wherever they are listed.
+  const playerName = usePlayerName();
+  const openRound = manage
+    ? undefined
+    : (round: string) => { void navigate(path.event({ series: id, round })); };
+
+  // The settings tab manages the library and races nothing, so it has no
+  // standings to show.
+  const tabs = manage ? DETAIL_TABS.filter((one) => one !== 'standings') : DETAIL_TABS;
+  const wanted = search.get('tab');
+  const tab: DetailTab = tabs.find((one) => one === wanted) ?? 'rounds';
+  const openTab = (picked: DetailTab): void => {
+    setSearch(picked === 'rounds' ? {} : { tab: picked }, { replace: true });
+  };
+  const table = useMemo(
+    () => (results.results && !manage ? seasonResults(results.results) : null),
+    [results.results, manage],
+  );
+  const mine = table?.classes.find((one) => one.entry === results.results?.playerEntry) ?? table?.classes[0];
+  const player = mine?.drivers.find((row) => row.player);
+  const mixed = new Set(listing?.series.entries.map((one) => one.ladder.discipline)).size > 1;
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={back}>
-        {listing ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="min-w-0 flex-1 text-2xl font-semibold">{listing.series.name}</h1>
-            <OriginBadge origin={listing.origin} />
-            <ChampionshipActions
-              listing={listing}
-              commands={commands}
-              manage={manage}
-              returnTo={{ to: here, label: 'championships.backToChampionship' }}
-              onDeleted={() => navigate(back.to)}
-            />
-          </div>
-        ) : null}
-      </ScreenHeader>
+      <ScreenHeader back={back} />
 
       {error ? (
         <ErrorCard
@@ -101,113 +118,113 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
         />
       ) : null}
 
-      {championship.loading ? <Skeleton className="h-24 w-full" /> : null}
+      {/* The career is usually read already, from Home, and then the page
+          takes its own shape before the championship arrives; until then it
+          takes a not-entered one. */}
+      {championship.loading ? (
+        <DetailSkeleton entered={entered !== null} enterable={!manage && entered === null} manage={manage} tab={tab} />
+      ) : null}
 
       {!championship.loading && listing === null && !championship.error ? (
         <p className="text-sm text-muted-foreground">{t('championships.notFound')}</p>
       ) : null}
 
       {listing ? (
-        <>
-          {/* Under the pinned header rather than in it, so the bar stays two
-              lines however much the description says. */}
-          {listing.series.description ? (
-            <p className="text-sm text-muted-foreground">{listing.series.description}</p>
-          ) : null}
-          {/* Only ever set by Duplicate, and it is a record of where the copy
-              came from rather than a live link - the original may since have
-              changed, or be gone. */}
-          {listing.series.forkedFrom ? (
-            <p className="text-xs text-muted-foreground">
-              {t('championships.forkedFrom', { series: listing.series.forkedFrom })}
-            </p>
-          ) : null}
+        <div className="grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
+          {/* Stays put while the page scrolls, below the pinned Back, and
+              scrolls itself once a long standings table outgrows the window. */}
+          <aside className="flex flex-col gap-4 lg:sticky lg:top-16 lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto">
+            <DetailSummary
+              listing={listing}
+              manage={manage}
+              commands={commands}
+              onDeleted={() => navigate(back.to, { replace: true })}
+              entered={entered}
+              next={entered ? next : undefined}
+              onOpen={openRound}
+            />
+            {/* Entering comes before anything else this page offers: the
+                round page's own panel, set at the round entering starts from. */}
+            {!manage && !entered && next ? <EnterChampionship series={id} round={next.round.id} /> : null}
+            {table && mine && results.results ? (
+              <SeasonSummary
+                season={mine}
+                series={results.results.championship}
+                counted={table.counted}
+                playerName={playerName}
+                onFull={() => openTab('standings')}
+              />
+            ) : null}
+          </aside>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {t('championships.entries.title', { count: listing.series.entries.length })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+          <Tabs value={tab} onValueChange={(value) => openTab(value as DetailTab)} className="min-w-0 gap-4">
+            <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+              {tabs.map((one) => (
+                <TabsTrigger key={one} value={one} className={cn(UNDERLINE_TAB, 'gap-2 px-4 py-2.5')}>
+                  {t(`championships.tabs.${one}`)}
+                  {one === 'rounds' && table ? (
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {t('championships.tabs.raced', { count: table.counted, rounds: table.rounds.length })}
+                    </span>
+                  ) : null}
+                  {one === 'standings' && player && table?.counted ? (
+                    <ResultCell position={player.position} scored={player.points > 0} prefixed size="sm" />
+                  ) : null}
+                  {one === 'classes' && listing.series.entries.length > 1 ? (
+                    // Neutral on purpose: a count, not one of a closed set.
+                    <span className="rounded-full bg-muted px-1.5 text-xs font-normal tabular-nums">
+                      {listing.series.entries.length}
+                    </span>
+                  ) : null}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="rounds">
+              <RoundTable
+                listing={listing}
+                entered={entered}
+                season={table}
+                playerName={playerName}
+                next={next?.round.id}
+                onOpen={openRound}
+              />
+            </TabsContent>
+
+            {table && results.results ? (
+              <TabsContent value="standings">
+                <StandingsSection
+                  season={table}
+                  series={results.results.championship}
+                  playerEntry={results.results.playerEntry}
+                  playerName={playerName}
+                  onOpenRound={openRound}
+                />
+              </TabsContent>
+            ) : null}
+
+            <TabsContent value="classes" className="flex flex-col gap-3">
+              {listing.series.entries.length > 1 ? (
+                <p className="text-xs text-muted-foreground">{t('championships.detail.classesHint')}</p>
+              ) : null}
               {listing.series.entries.map((entry) => (
-                <EntryCard
+                <ClassRow
                   key={entry.id}
                   entry={entry}
                   availability={entryAvailability(listing, entry.id)}
                   teams={listing.series.teams ?? []}
+                  showDiscipline={mixed}
+                  playerSeat={entered?.entry === entry.id ? entered.playerSeat : undefined}
+                  playerName={playerName}
                 />
               ))}
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <div className="flex flex-wrap items-center gap-2">
-                <CardTitle>{t('championships.calendar.title')}</CardTitle>
-                {/* The climate every round expects unless it names its own, which
-                    is why a round row only badges the ones that do. */}
-                {listing.series.generatedWeather ? (
-                  <ClimateBadge climate={listing.series.generatedWeather.climate} />
-                ) : null}
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col">
-              {listing.series.rounds.map((round, index) => (
-                <RoundRow
-                  key={round.id}
-                  listing={listing}
-                  round={round}
-                  number={index + 1}
-                  busy={championship.busy}
-                  date={eventOf(round.id)?.raceDay}
-                  status={eventOf(round.id)?.status}
-                  onRace={manage ? undefined : () => setEntering(round)}
-                />
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Only on the page a career races from, and only once it is in this
-              championship: the settings tab manages the library rather than
-              running a season in it. */}
-          {!manage && entered ? (
-            <StandingsCard entry={entered} seriesName={listing.series.name} />
-          ) : null}
-
-          <FormatCard series={listing.series} />
-
-          <PointsCard
-            systems={listing.series.pointsSystems}
-            defaultSystem={listing.series.defaultPointsSystem}
-          />
-
-          <MoneyCard
-            entryFee={listing.series.entryFee}
-            prizes={listing.series.prizes}
-            entries={listing.series.entries}
-          />
-
-          {manage ? null : (
-            <EnterRoundDialog
-              key={entering?.id ?? ''}
-              round={entering}
-              listing={listing}
-              forecast={forecastOf(entering?.id)}
-              busy={championship.busy}
-              onClose={() => setEntering(null)}
-              onConfirm={(entry, car, skin) => {
-              if (!entering) return;
-
-              championship.enterRound(entry, entering.id, car, skin).then((ok) => {
-                setEntering(null);
-                if (ok) navigate(path.race());
-              }, () => setEntering(null));
-            }}
-            />
-          )}
-
-        </>
+            <TabsContent value="rules">
+              <SeasonRules series={listing.series} />
+            </TabsContent>
+          </Tabs>
+        </div>
       ) : null}
     </ScreenBody>
   );

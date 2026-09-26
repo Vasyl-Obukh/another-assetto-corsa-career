@@ -50,9 +50,7 @@ describe('main/content-store/utils', () => {
       expect(readContentCache(JSON.parse(JSON.stringify(cache)))).toEqual(cache);
     });
 
-    // Bumping the version is the whole migration story: an older file is thrown
-    // away and the library is scanned again.
-    it('refuses a cache written in an older shape', () => {
+    it('refuses a cache written against another version', () => {
       const cache = { ...makeCache('D:\\ac\\content'), version: CONTENT_CACHE_VERSION - 1 };
       expect(readContentCache(cache)).toBeNull();
     });

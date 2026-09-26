@@ -1,42 +1,19 @@
 import type { ParseKeys } from 'i18next';
 
+import type { RegulationSpec } from './types.ts';
 import type {
-  RegulationFlag, RegulationNumber, SessionType, TrackStateName,
+  QuickRacePhase, RegulationFlag, TrackStateName,
 } from '../../../../shared/types';
 
 /**
- * The session types the setup screen offers.
- *
- * A deliberate subset of SessionType. Practice, qualifying and a race are what
- * the bundler's rules were measured against and what summarise() classifies;
- * hotlap, time attack, drift and drag are expressible in race.ini and have
- * never been driven through this path, so offering them would be a guess.
- */
-export const SESSION_TYPES: SessionType[] = ['practice', 'qualify', 'race'];
-
-/**
- * Race distance a race gets when it is switched onto laps with none set.
+ * How many laps a race added to a weekend starts with.
  */
 export const DEFAULT_SESSION_LAPS = 5;
 
 /**
- * Duration a session gets when it is switched onto the clock with none set.
+ * How many minutes a practice added to a weekend starts with.
  */
 export const DEFAULT_SESSION_MINUTES = 15;
-
-/**
- * The label for every session type, including the ones not offered - a draft
- * written by hand can still name one, and it should read as itself.
- */
-export const SESSION_TYPE_LABEL: Record<SessionType, ParseKeys> = {
-  practice: 'race.sessionType.practice',
-  qualify: 'race.sessionType.qualify',
-  race: 'race.sessionType.race',
-  hotlap: 'race.sessionType.hotlap',
-  timeAttack: 'race.sessionType.timeAttack',
-  drift: 'race.sessionType.drift',
-  drag: 'race.sessionType.drag',
-};
 
 /**
  * How much rubber is down at the start, in the order the menu offers it.
@@ -53,59 +30,13 @@ export const TRACK_STATE_LABEL: Record<TrackStateName, ParseKeys> = {
 };
 
 /**
- * The value a weather menu uses for "whatever Assetto Corsa would pick".
+ * The Select item value for "nothing chosen".
  *
- * An empty string cannot be a Select item value in Radix, and a folder name can
- * be anything, so the sentinel is a string no folder can hold - `/` is not
- * legal in a Windows path segment.
+ * An empty string cannot be a Select item value in Radix, and an id can be
+ * anything, so the sentinel is a string no folder can hold - `/` is not legal
+ * in a Windows path segment.
  */
 export const NOT_SET = '/none';
-
-/**
- * The value a session's own condition uses for "take the weekend's".
- *
- * Distinct from NOT_SET because the two answer different questions: a weekend
- * naming no weather leaves it to Assetto Corsa, while a session naming none
- * inherits one that may well be set.
- */
-export const INHERIT = '/inherit';
-
-/**
- * Smallest grid a race can be run with: the player, alone.
- */
-export const MIN_GRID = 1;
-
-/**
- * Largest grid the setup screen offers.
- *
- * Not a limit AC imposes - the real ceiling is the track's pit boxes, which is
- * checked against the installed track and reported as a problem.
- */
-export const MAX_GRID = 64;
-
-/**
- * The bounds AI skill and aggression are given as percentages.
- */
-export const MIN_AI = 0;
-
-/**
- * The top of that range.
- */
-export const MAX_AI = 100;
-
-/**
- * How a weather option encodes what it stands for.
- *
- * One menu answers three different questions - dynamic weather, a CSP weather
- * type, or a named preset - and a Radix Select item carries a single string, so
- * the kind travels in a prefix. None of the three can collide: a controller
- * folder name cannot hold a colon, and the other two are ours to mint.
- */
-export const WEATHER_VALUE = {
-  dynamic: 'dynamic:',
-  type: 'type:',
-  preset: 'preset:',
-} as const;
 
 /**
  * How many slots make a plan rather than a static weather.
@@ -118,18 +49,62 @@ export const MIN_PLAN_SLOTS = 2;
 export const DEFAULT_SLOT_MINUTES = 10;
 
 /**
- * The regulations the race screen offers, in the order it shows them.
- *
- * Paired with the DOM id rather than deriving one, so the ids stay kebab-case
- * and stable while the key stays the field on `Assists`. Every one of these is
- * a plain positive number with the same bounds, which is why they render from
- * a list where `GridFields` spells its four out - those carry a range each.
+ * The regulations that are measured, each as a slider from nothing up to its
+ * most, with the points worth naming offered as chips. Real is Assetto Corsa's
+ * own figure - 100 % damage, one times the fuel, wear and slipstream.
  */
-export const REGULATIONS: readonly { key: RegulationNumber; id: string }[] = [
-  { key: 'damage', id: 'race-damage' },
-  { key: 'fuelRate', id: 'race-fuel-rate' },
-  { key: 'tyreWear', id: 'race-tyre-wear' },
-  { key: 'slipstream', id: 'race-slipstream' },
+export const REGULATIONS: readonly RegulationSpec[] = [
+  {
+    key: 'damage',
+    id: 'race-damage',
+    max: 100,
+    step: 1,
+    unit: 'percent',
+    stops: [
+      { value: 0, label: 'race.regulations.stop.off' },
+      { value: 50, label: 'race.regulations.stop.half' },
+      { value: 100, label: 'race.regulations.stop.real' },
+    ],
+  },
+  {
+    key: 'fuelRate',
+    id: 'race-fuel-rate',
+    max: 5,
+    step: 0.1,
+    unit: 'times',
+    stops: [
+      { value: 0, label: 'race.regulations.stop.off' },
+      { value: 1, label: 'race.regulations.stop.real' },
+      { value: 2 },
+      { value: 3 },
+    ],
+  },
+  {
+    key: 'tyreWear',
+    id: 'race-tyre-wear',
+    max: 5,
+    step: 0.1,
+    unit: 'times',
+    stops: [
+      { value: 0, label: 'race.regulations.stop.off' },
+      { value: 1, label: 'race.regulations.stop.real' },
+      { value: 2 },
+      { value: 3 },
+    ],
+  },
+  {
+    key: 'slipstream',
+    id: 'race-slipstream',
+    max: 10,
+    step: 0.1,
+    unit: 'times',
+    stops: [
+      { value: 0, label: 'race.regulations.stop.off' },
+      { value: 1, label: 'race.regulations.stop.real' },
+      { value: 3 },
+      { value: 5 },
+    ],
+  },
 ];
 
 /**
@@ -138,3 +113,47 @@ export const REGULATIONS: readonly { key: RegulationNumber; id: string }[] = [
 export const REGULATION_FLAGS: readonly { key: RegulationFlag; id: string }[] = [
   { key: 'tyreBlankets', id: 'race-tyre-blankets' },
 ];
+
+/**
+ * The colour a race weekend's phase pill wears over its photograph. One under
+ * way is primary and one finished is success, which is what those two tokens
+ * mean everywhere; one only set up stays on the photograph's own scrim on
+ * purpose, since nothing about it has happened yet.
+ */
+export const PHASE_PILL = {
+  setup: '',
+  running: 'bg-primary text-primary-foreground',
+  finished: 'bg-success text-success-foreground',
+} as const satisfies Record<QuickRacePhase, string>;
+
+/**
+ * How many weekend cards the list's skeleton holds.
+ */
+export const WEEKEND_SKELETON = 5;
+
+/**
+ * How many session rows a weekend card's skeleton holds.
+ */
+export const SESSION_SKELETON = 2;
+
+/**
+ * How many classes the race page's skeleton lists.
+ */
+export const CLASS_SKELETON = 2;
+
+/**
+ * How many car tiles the open class shows while the page is read.
+ */
+export const CAR_TILE_SKELETON = 5;
+
+/**
+ * How many rows a started weekend's session list shows while it is read: the
+ * results row and two sessions.
+ */
+export const WEEKEND_ROW_SKELETON = 3;
+
+/**
+ * The most cars one class of a race weekend may hold. As a championship's
+ * class: past it a grid outgrows every track's pit lane anyway.
+ */
+export const MAX_CLASS_CARS = 60;

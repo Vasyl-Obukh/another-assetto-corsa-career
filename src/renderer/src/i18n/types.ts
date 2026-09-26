@@ -24,6 +24,30 @@ export interface Formatters {
    */
   formatDay(value: string): string;
   /**
+   * Formats a calendar date as its weekday, day and month, without the year.
+   * @param value An ISO YYYY-MM-DD date
+   * @returns The date as the active locale writes "Sat 24 Jan"
+   */
+  formatDayShort(value: string): string;
+  /**
+   * Formats the weekday a calendar date falls on.
+   * @param value An ISO YYYY-MM-DD date
+   * @returns The weekday's short name in the active locale
+   */
+  formatWeekday(value: string): string;
+  /**
+   * Formats the month a calendar date falls in, with its year.
+   * @param value An ISO YYYY-MM-DD date
+   * @returns The month and year in the active locale
+   */
+  formatMonth(value: string): string;
+  /**
+   * Formats the month a calendar date falls in, abbreviated and without a year.
+   * @param value An ISO YYYY-MM-DD date
+   * @returns The month's short name in the active locale
+   */
+  formatMonthShort(value: string): string;
+  /**
    * Formats a date and time.
    * @param value A Date, or anything the Date constructor accepts
    * @returns The date and time in the active locale's format
@@ -80,4 +104,10 @@ export interface Formatters {
    * @returns Negative, zero or positive, as Array.prototype.sort expects
    */
   compare(a: string, b: string): number;
+  /**
+   * Names a nation in the active language.
+   * @param code The nation's code, one of NATION_CODES
+   * @returns What the nation is called, or the code itself for one AC does not know
+   */
+  formatNation(code: string): string;
 }

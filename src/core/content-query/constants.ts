@@ -38,3 +38,9 @@ export const NAME_SEPARATORS = /[\s\-\u2013\u2014([,:;/]+$/;
  * neither of them, so a short one is discarded in favour of the fallbacks.
  */
 export const MIN_SHARED_NAME = 3;
+
+/**
+ * How many bars a range filter's spread is drawn in - enough to show a shape
+ * across a 250px rail, few enough that each bar still holds something.
+ */
+export const SPREAD_BINS = 24;

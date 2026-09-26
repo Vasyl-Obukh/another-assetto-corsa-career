@@ -12,25 +12,25 @@ export const SettingsLayout = () => {
     <div className="flex h-full flex-col">
       {/* Above the tab's own scroller, so the tabs stay in reach. */}
       <ScreenStrip className="flex flex-col gap-4 pt-8">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">{t('settings.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('settings.subtitle')}</p>
-        </div>
+        <h1 className="text-2xl font-semibold">{t('settings.title')}</h1>
 
         <nav className="flex gap-6 border-b">
-          {SETTINGS_TABS.map((tab) => (
+          {SETTINGS_TABS.map(({
+            to, end, label, icon: Icon,
+          }) => (
             <NavLink
-              key={tab.to}
-              to={tab.to}
-              end={tab.end}
+              key={to}
+              to={to}
+              end={end}
               className={({ isActive }) => cn(
-                '-mb-px border-b-2 pb-2 text-sm font-medium transition-colors',
+                'group -mb-px flex items-center gap-2 border-b-2 pb-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'border-primary text-foreground'
+                  ? 'active border-primary text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground',
               )}
             >
-              {t(tab.label)}
+              <Icon className="size-4 group-[.active]:text-primary" />
+              {t(label)}
             </NavLink>
           ))}
         </nav>

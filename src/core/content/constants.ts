@@ -36,6 +36,11 @@ export const TRACKS_DIR = 'tracks';
 export const WEATHER_DIR = 'weather';
 
 /**
+ * Where AC keeps a flag per nation, under the content folder.
+ */
+export const NATION_FLAGS_DIR: readonly string[] = ['gui', 'NationFlags'];
+
+/**
  * Metadata folder inside a car or track folder.
  */
 export const UI_DIR = 'ui';

@@ -24,6 +24,8 @@ export const makeCar = (id: string): Car => ({
     id: 'default', name: 'Default', driver: null, team: null, number: null, country: null,
   }],
   carClass: null,
+  description: null,
+  curves: null,
   year: null,
   country: null,
   performance: {
@@ -55,6 +57,15 @@ export const makeTrack = (id: string): Track => ({
   lengthM: null,
   widthM: null,
   geotags: { lat: null, lon: null },
+  city: null,
+  run: null,
+  description: null,
+  tags: [],
+  author: null,
+  version: null,
+  year: null,
+  photos: [],
+  logo: false,
 });
 
 /**

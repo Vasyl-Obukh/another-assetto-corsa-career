@@ -1,28 +1,20 @@
 import type { ReactNode } from 'react';
 
 import { Badge } from '@/components/ui/badge.tsx';
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
-} from '@/components/ui/card.tsx';
+import { Card } from '@/components/ui/card.tsx';
+import { cn } from '@/lib/utils.ts';
 
 interface EditorSectionProps {
-  /**
-   * The section's icon, which is what makes it findable while scrolling.
-   */
-  icon: ReactNode;
   /**
    * The already-translated heading.
    */
   title: string;
   /**
-   * An already-translated line under it, for what the heading cannot carry.
+   * An already-translated line beside it, for what the heading cannot carry.
    */
   hint?: string;
   /**
-   * An already-translated count or summary, shown at the end of the heading.
-   *
-   * What lets the page be read at a glance: "6 teams", "2 classes, 16 seats",
-   * "5 rounds". A section with nothing worth counting passes none.
+   * An already-translated count, shown at the end of the heading.
    */
   summary?: string;
   /**
@@ -36,28 +28,22 @@ interface EditorSectionProps {
 }
 
 /**
- * One card of the editor, headed the same way as every other.
- *
- * A component rather than six copies of the same header: the editor is a long
- * page of cards, and an icon and a count in every heading are what make it
- * navigable rather than a wall of identical grey fields.
+ * One card of a tab, headed the same way as every other: the heading, a quiet
+ * line beside it, and a count at the far end.
  */
 export const EditorSection = ({
-  icon, title, hint, summary, className, children,
+  title, hint, summary, className, children,
 }: EditorSectionProps) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <span className="text-muted-foreground [&>svg]:size-4">{icon}</span>
-        <span className="min-w-0 flex-1 truncate">{title}</span>
-        {summary === undefined ? null : (
-          <Badge variant="outline" className="shrink-0 font-normal">{summary}</Badge>
-        )}
-      </CardTitle>
+  <Card className="gap-3 px-4 py-4 sm:px-5">
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <h2 className="text-base font-semibold">{title}</h2>
+      {hint === undefined ? null : <p className="min-w-0 flex-1 text-sm text-muted-foreground">{hint}</p>}
+      {/* Neutral on purpose: a count, not one of a closed set. */}
+      {summary === undefined ? null : (
+        <Badge variant="outline" className="ml-auto shrink-0 font-normal">{summary}</Badge>
+      )}
+    </div>
 
-      {hint === undefined ? null : <CardDescription>{hint}</CardDescription>}
-    </CardHeader>
-
-    <CardContent className={className}>{children}</CardContent>
+    <div className={cn('min-w-0', className)}>{children}</div>
   </Card>
 );

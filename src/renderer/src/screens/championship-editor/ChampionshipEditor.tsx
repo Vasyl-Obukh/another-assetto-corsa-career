@@ -2,35 +2,41 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
 import {
-  useBlocker, useLocation, useNavigate, useParams,
+  useBlocker, useNavigate, useParams,
 } from 'react-router';
 
 import { CalendarCard } from './CalendarCard.tsx';
+import { EDITOR_TABS } from './constants.ts';
 import { DetailsCard } from './DetailsCard.tsx';
 import { EditorHeader } from './EditorHeader.tsx';
+import { EditorHeadSkeleton } from './EditorHeadSkeleton.tsx';
 import { EditorLockNotice } from './EditorLockNotice.tsx';
-import { EditorRegulationsCard } from './EditorRegulationsCard.tsx';
+import { EditorProblems } from './EditorProblems.tsx';
+import { EditorTabTrigger } from './EditorTabTrigger.tsx';
 import { EntriesCard } from './EntriesCard.tsx';
 import { FormatsCard } from './FormatsCard.tsx';
-import { GridCard } from './GridCard.tsx';
-import { PointsCard } from './PointsCard.tsx';
-import { PrizesCard } from './PrizesCard.tsx';
+import { OverviewSkeleton } from './OverviewSkeleton.tsx';
+import { RulesCard } from './RulesCard.tsx';
+import { ScoringTab } from './ScoringTab.tsx';
 import { TeamsCard } from './TeamsCard.tsx';
-import { emptySeries, namedCars } from './utils.ts';
+import type { ClassSection, EditorTab } from './types.ts';
+import {
+  changedTabs, emptySeries, namedCars, problemTabs,
+} from './utils.ts';
 import type { Championship } from '../../../../shared/types';
 import { useClasses, useSettings } from '@/app';
 import {
-  ConfirmDialog, ErrorCard, ProblemList, ScreenBody, ScreenHeader,
+  ConfirmDialog, ErrorCard, ScreenBody, ScreenHeader,
 } from '@/components';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { useCarNames, useRowEdit, useSeriesEditor, useWeatherContent } from '@/hooks';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs.tsx';
+import {
+  useCarNames, usePageName, useRowEdit, useSeriesEditor, useWeatherContent,
+} from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
-import type { ReturnState } from '@/lib/routes';
 
 export const ChampionshipEditor = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   // Absent on the New route, which is the whole difference between the two: a
   // championship that has never been written has no id until it is saved.
   const { id } = useParams<PathParam<typeof ROUTE.championshipEdit>>();
@@ -44,20 +50,31 @@ export const ChampionshipEditor = () => {
   // it decides whether a round may ask for weather that changes mid-session.
   const { settings } = useSettings();
   const { catalogue } = useClasses();
+  const [tab, setTab] = useState<EditorTab>('overview');
+  // Held here rather than on the Classes tab, so another tab can open one
+  // class's part - the prize money a class pays of its own.
+  const [picked, setPicked] = useState<string | null>(null);
+  const [section, setSection] = useState<ClassSection>('seats');
 
   const {
     draft, listing, checked, locked,
   } = editor;
   // One call for every car the draft mentions, rather than one per control.
   const nameOf = useCarNames(draft === null ? [] : namedCars(draft, catalogue));
-  // Back to wherever Edit was chosen, and to where the library is managed when
-  // the editor was reached some other way - New, Duplicate or a deep link.
-  const back: ReturnState = (location.state as ReturnState | null)
-    ?? { to: path.settingsChampionships(), label: 'editor.back' };
   const creating = id === undefined;
+  usePageName(listing?.series.name ?? (creating ? t('back.championshipNew') : null));
   // Reachable by deep link even though no menu offers it: a shipped
   // championship is compiled in, so there is no file of the user's to write.
   const shipped = listing?.origin === 'shipped';
+  const changed = draft === null ? new Set<EditorTab>() : changedTabs(draft, listing?.series);
+  const wrong = problemTabs(checked);
+  // What each tab lists, for the count beside its name.
+  const counts: Partial<Record<EditorTab, number>> = draft === null ? {} : {
+    teams: draft.teams?.length ?? 0,
+    classes: draft.entries.length,
+    calendar: draft.rounds.length,
+    weekends: draft.weekendFormats.length,
+  };
 
   /**
    * Replaces the whole draft, for a card that hands back the championship.
@@ -83,126 +100,136 @@ export const ChampionshipEditor = () => {
   }, [created, editor.dirty, navigate]);
 
   return (
-    <ScreenBody className="flex flex-col gap-4 pb-8">
-      {/* Pinned, so Save and Back are in reach from the bottom of a long form. */}
-      <ScreenHeader back={{ to: back.to, label: t(back.label) }}>
-        {draft && !shipped ? (
-          <EditorHeader
-            name={listing?.series.name ?? blank.name}
-            origin={listing?.origin ?? null}
-            dirty={editor.dirty}
-            busy={editor.busy}
-            editable={rows.editable}
-            onSave={() => {
-              editor.save().then((saved) => {
-                if (saved !== null && creating) setCreated(saved);
-              }, () => undefined);
-            }}
-            onDiscard={() => { rows.close(); editor.discard(); }}
-          />
+    <ScreenBody className="pb-8">
+      <Tabs value={tab} onValueChange={(value) => setTab(value as EditorTab)} className="gap-4">
+        {/* Pinned, so Save, Back and the tabs are in reach from the bottom of a
+            long tab. */}
+        <ScreenHeader back={{ to: path.settingsChampionships(), label: t('back.settingsChampionships') }}>
+          {draft && !shipped ? (
+            <>
+              <EditorHeader
+                name={listing?.series.name ?? blank.name}
+                origin={listing?.origin ?? null}
+                dirty={editor.dirty}
+                busy={editor.busy}
+                editable={rows.editable}
+                onSave={() => {
+                  editor.save().then((saved) => {
+                    if (saved !== null && creating) setCreated(saved);
+                  }, () => undefined);
+                }}
+                onDiscard={() => { rows.close(); editor.discard(); }}
+              />
+
+              <TabsList className="-mb-4 h-auto w-full flex-wrap justify-start rounded-none bg-transparent p-0">
+                {EDITOR_TABS.map((one) => (
+                  <EditorTabTrigger
+                    key={one}
+                    value={one}
+                    label={t(`editor.tabs.${one}`)}
+                    count={counts[one]}
+                    changed={changed.has(one)}
+                    problem={wrong.has(one)}
+                    // An open row form would be thrown away by leaving its tab.
+                    disabled={!rows.editable && one !== tab}
+                  />
+                ))}
+              </TabsList>
+            </>
+          ) : null}
+          {editor.loading ? <EditorHeadSkeleton /> : null}
+        </ScreenHeader>
+
+        {editor.error ? (
+          <ErrorCard error={editor.error} onDismiss={editor.dismissError} />
         ) : null}
-      </ScreenHeader>
 
-      {editor.error ? (
-        <ErrorCard error={editor.error} onDismiss={editor.dismissError} />
-      ) : null}
+        {editor.loading ? <OverviewSkeleton /> : null}
 
-      {editor.loading ? <Skeleton className="h-24 w-full" /> : null}
+        {!editor.loading && !creating && listing === null && !editor.error ? (
+          <p className="text-sm text-muted-foreground">{t('editor.notFound')}</p>
+        ) : null}
 
-      {!editor.loading && !creating && listing === null && !editor.error ? (
-        <p className="text-sm text-muted-foreground">{t('editor.notFound')}</p>
-      ) : null}
+        {shipped ? (
+          <p className="text-sm text-muted-foreground">{t('editor.shipped')}</p>
+        ) : null}
 
-      {shipped ? (
-        <p className="text-sm text-muted-foreground">{t('editor.shipped')}</p>
-      ) : null}
+        {draft && !shipped ? (
+          <>
+            {locked ? <EditorLockNotice /> : null}
 
-      {draft && !shipped ? (
-        <>
-          {locked ? <EditorLockNotice /> : null}
+            {/* Off the checked draft rather than off the listing: the listing
+                describes what is on disk, and what the user wants to see is what
+                they have just typed. */}
+            <EditorProblems problems={checked?.problems ?? []} onGo={setTab} />
 
-          {/* Off the checked draft rather than off the listing: the listing
-              describes what is on disk, and what the user wants to see is what
-              they have just typed. */}
-          <ProblemList
-            problems={checked?.problems ?? []}
-            label={t('editor.problems.label', { count: checked?.problems.length ?? 0 })}
-            hint={t('editor.problems.hint')}
-          />
+            <TabsContent value="overview" className="flex flex-col gap-4">
+              <DetailsCard series={draft} locked={locked} onChange={replace} />
 
-          <DetailsCard
-            series={draft}
-            locked={locked}
-            onChange={replace}
-          />
+              <RulesCard
+                grid={draft.grid ?? {}}
+                own={t('race.ai.championship')}
+                regulations={draft.regulations ?? {}}
+                locked={locked}
+                onGrid={(grid) => editor.edit((from) => ({ ...from, grid }))}
+                onRegulations={(regulations) => editor.edit((from) => ({ ...from, regulations }))}
+              />
+            </TabsContent>
 
-          <GridCard
-            grid={draft.grid ?? {}}
-            idPrefix="editor"
-            locked={locked}
-            onChange={(grid) => editor.edit((from) => ({ ...from, grid }))}
-          />
+            <TabsContent value="teams">
+              <TeamsCard series={draft} rows={rows} locked={locked} onChange={replace} />
+            </TabsContent>
 
-          <EditorRegulationsCard
-            regulations={draft.regulations ?? {}}
-            locked={locked}
-            onChange={(regulations) => editor.edit((from) => ({ ...from, regulations }))}
-          />
+            <TabsContent value="classes">
+              <EntriesCard
+                series={draft}
+                checked={checked}
+                picked={picked}
+                section={section}
+                onPick={setPicked}
+                onSection={setSection}
+                rows={rows}
+                locked={locked}
+                nameOf={nameOf}
+                onChange={replace}
+              />
+            </TabsContent>
 
-          <TeamsCard
-            series={draft}
-            rows={rows}
-            locked={locked}
-            onChange={replace}
-          />
+            <TabsContent value="calendar">
+              <CalendarCard
+                series={draft}
+                checked={checked}
+                weather={weather}
+                controllers={controllers}
+                system={settings.weatherSystem}
+                locked={locked}
+                nameOf={nameOf}
+                onChange={replace}
+              />
+            </TabsContent>
 
-          <EntriesCard
-            series={draft}
-            checked={checked}
-            rows={rows}
-            locked={locked}
-            nameOf={nameOf}
-            onChange={replace}
-          />
+            <TabsContent value="weekends">
+              <FormatsCard
+                series={draft}
+                weather={weather}
+                controllers={controllers}
+                system={settings.weatherSystem}
+                locked={locked}
+                onChange={replace}
+              />
+            </TabsContent>
 
-          <CalendarCard
-            series={draft}
-            checked={checked}
-            weather={weather}
-            controllers={controllers}
-            system={settings.weatherSystem}
-            rows={rows}
-            locked={locked}
-            nameOf={nameOf}
-            onChange={replace}
-          />
-
-          {/* After the calendar, in the read screen's own order. */}
-          <FormatsCard
-            series={draft}
-            weather={weather}
-            controllers={controllers}
-            system={settings.weatherSystem}
-            rows={rows}
-            locked={locked}
-            onChange={replace}
-          />
-
-          <PointsCard
-            series={draft}
-            rows={rows}
-            locked={locked}
-            onChange={replace}
-          />
-
-          <PrizesCard
-            series={draft}
-            rows={rows}
-            locked={locked}
-            onChange={replace}
-          />
-        </>
-      ) : null}
+            <TabsContent value="scoring">
+              <ScoringTab
+                series={draft}
+                locked={locked}
+                onChange={replace}
+                onClassPrizes={(entry) => { setPicked(entry); setSection('prizes'); setTab('classes'); }}
+              />
+            </TabsContent>
+          </>
+        ) : null}
+      </Tabs>
 
       <ConfirmDialog
         open={blocker.state === 'blocked'}

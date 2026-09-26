@@ -1,4 +1,4 @@
-import { ProvenanceBadges } from './provenance-badges/index.ts';
+import { DlcBadge, ProvenanceBadges } from './provenance-badges/index.ts';
 import { ContentSource } from '../../../shared/types';
 import type { DLCPack, ModDistributor, ModMaker } from '../../../shared/types';
 
@@ -19,17 +19,11 @@ interface SourceChipsProps {
 }
 
 // The provenance chips the browsers already wear, so a pack reads in the DLC hue
-// and a mod team in the mod hue here too.
+// and a mod team in the mod hue here too. The packs share one DLC chip that
+// names them on hover, since a list of them is what took the room.
 export const SourceChips = ({ packs, makers, distributors = [] }: SourceChipsProps) => (
   <>
-    {packs.map((pack) => (
-      <ProvenanceBadges
-        key={pack}
-        provenance={{
-          source: ContentSource.DLC, pack, maker: null, distributor: null,
-        }}
-      />
-    ))}
+    <DlcBadge packs={packs} />
     {makers.map((maker) => (
       <ProvenanceBadges
         key={maker}

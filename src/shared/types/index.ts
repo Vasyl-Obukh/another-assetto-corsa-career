@@ -31,6 +31,7 @@ export {
 
 export type {
   Car,
+  CarCurves,
   CarPerformance,
   CarPerformanceRaw,
   Content,
@@ -41,10 +42,12 @@ export type {
   ContentKind,
   ContentProvenance,
   ContentSummary,
+  CurvePoint,
   Geotags,
   HiddenCounts,
   Skin,
   Track,
+  TrackRun,
   TrackGroup,
   Weather,
   WeatherController,
@@ -61,6 +64,7 @@ export type {
   Facet,
   Page,
   SortDirection,
+  Spread,
   TrackFacets,
   TrackQuery,
   TrackSortKey,
@@ -85,6 +89,7 @@ export type {
   Conditions,
   GridDefinition,
   GridEntry,
+  GridStart,
   PlayerCar,
   RaceDefinition,
   SessionDefinition,
@@ -99,6 +104,10 @@ export type {
   RaceStatus,
   ResultRecord,
 } from './race-run.ts';
+
+export type {
+  QuickClass, QuickRace, QuickRacePhase, QuickRaceView,
+} from './quick-race.ts';
 
 export type {
   ArchiveMeta,
@@ -118,14 +127,18 @@ export type {
   CareerCalendar,
   CareerEventView,
   CareerSeason,
+  ChampionshipResults,
   EventClassOption,
   EventEntry,
   EventSession,
   EventSessionStatus,
   EventStatus,
   PositionPoints,
+  RoundResult,
   SeasonEntry,
   SeasonEvent,
+  SkippedRound,
+  SkipReason,
 } from './career.ts';
 
 export type {

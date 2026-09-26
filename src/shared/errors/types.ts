@@ -75,7 +75,6 @@ export type ErrorCode =
   | 'career.event.otherInProgress'
   | 'career.event.inProgress'
   | 'career.event.complete'
-  | 'career.event.disturbed'
   | 'series.sessions.empty'
   | 'series.formats.empty'
   | 'series.format.unknown'
@@ -146,6 +145,14 @@ export type ErrorCode =
   | 'run.resultTimedOut'
   | 'run.result.notFound'
   | 'run.result.notRecorded'
+  // src/core/quick-race
+  | 'quick.track.none'
+  | 'quick.car.none'
+  | 'quick.class.noCars'
+  | 'quick.car.notInClass'
+  // src/main/quick-race-store
+  | 'quick.notFound'
+  | 'quick.started'
   // src/main/ipc
   | 'ipc.noWindow'
   | 'ipc.pathsNotLocated';

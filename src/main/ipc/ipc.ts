@@ -12,6 +12,7 @@ import type { PathsReport } from '../../shared/types/index.ts';
 import type { CareerStore } from '../career-store/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
+import type { QuickRaceStore } from '../quick-race-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
@@ -30,6 +31,7 @@ export { send } from './utils.ts';
  * @param series The store handlers read and write the championship library through
  * @param classes The store handlers read and write the user's class layer through
  * @param career The store handlers read and command the career through
+ * @param quick The store handlers keep and run race weekends of the player's own through
  */
 export const registerHandlers = (
   settings: SettingsStore,
@@ -38,6 +40,7 @@ export const registerHandlers = (
   series: SeriesStore,
   classes: ClassStore,
   career: CareerStore,
+  quick: QuickRaceStore,
 ): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
@@ -70,11 +73,12 @@ export const registerHandlers = (
 
   handle('content:scan', async ({ force }) => content.summary(force));
   handle('content:cars', async (query) => content.cars(query));
-  handle('content:car', async ({ id }) => content.car(id));
+  handle('content:car', async ({ id, installed }) => content.car(id, installed));
   handle('content:tracks', async (query) => content.tracks(query));
   handle('content:carFacets', async ({ query }) => content.carFacets(query));
   handle('content:trackFacets', async ({ query }) => content.trackFacets(query));
   handle('content:track', async ({ key }) => content.track(key));
+  handle('content:circuit', async ({ id }) => content.circuit(id));
   handle('content:weather', async () => {
     const installed = await content.content();
 
@@ -83,31 +87,22 @@ export const registerHandlers = (
   handle('content:issues', async () => content.issues());
 
   handle('race:get', async () => race.get());
-  handle('race:set', async (definition) => race.set(definition));
-  handle('race:launch', async () => race.launch());
   handle('race:cancel', async () => race.cancel());
-  handle('race:reset', async () => race.reset());
   handle('race:results', async () => race.results());
   handle('race:result', async ({ file }) => race.result(file));
 
+  handle('quick:list', async () => quick.list());
+  handle('quick:get', async ({ id }) => quick.get(id));
+  handle('quick:create', async () => quick.create());
+  handle('quick:save', async (next) => quick.save(next));
+  handle('quick:duplicate', async ({ id }) => quick.duplicate(id));
+  handle('quick:remove', async ({ id }) => quick.remove(id));
+  handle('quick:launch', async ({ id }) => quick.launch(id));
+  handle('quick:restart', async ({ id }) => quick.restart(id));
+
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
-  // A round the career is in races the career's draw and field wherever it is
-  // set up.
-  handle('series:setupRound', async (request) => series.setupRound({
-    ...request,
-    draw: await career.draw(request.series, request.round),
-    field: await career.field(request.series, request.entry),
-  }));
   handle('series:validate', async ({ series: draft }) => series.validate(draft));
-  handle('series:forecast', async ({ series: id }) => Promise.all(
-    (await series.forecast(id)).map(async (one) => (await career.forecast(id, one.round)) ?? one),
-  ));
-  // The career is asked first here and above: a round it is in races the draw
-  // stored on its event, and the library would answer with an unsalted one.
-  handle('series:raceForecast', async ({ race: id }) => (
-    await career.raceForecast(id) ?? series.raceForecast(id)
-  ));
   handle('series:save', async ({ id, series: draft }) => series.save(id, draft));
   handle('series:customise', async ({ id }) => series.customise(id));
   handle('series:duplicate', async ({ id, name }) => series.duplicate(id, name));
@@ -151,6 +146,7 @@ export const registerHandlers = (
   handle('classes:saveClass', async (draft) => classes.saveClass(draft));
   handle('classes:copyClass', async ({ id, name }) => classes.copyClass(id, name));
   handle('classes:saveSpec', async (draft) => classes.saveSpec(draft));
+  handle('classes:saveSpecCars', async ({ spec, cars }) => classes.saveSpecCars(spec, cars));
   // Which championships race a spec is the series store's to know, so the class
   // store is told them rather than reaching into the library itself.
   handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, series.usingSpec(id)));
@@ -160,10 +156,11 @@ export const registerHandlers = (
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
   handle('career:withdraw', async (request) => career.withdraw(request));
-  handle('career:advance', async ({ date }) => career.advanceTo(date));
+  handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));
+  handle('career:skips', async ({ date }) => career.skips(date));
   handle('career:event', async (request) => career.event(request));
+  handle('career:results', async ({ series: id }) => career.results(id));
   handle('career:launch', async (request) => career.launch(request));
-  handle('career:restartEvent', async (request) => career.restartEvent(request));
 
   handle('cm:arguments', readCmArguments);
   handle('cm:setArgument', async ({ flag, enabled }) => setCmArgument(flag, enabled));

@@ -19,15 +19,12 @@ export const TodayMarker = ({ today, ref }: TodayMarkerProps) => {
   const { formatDay } = useFormat();
 
   return (
-    // A rule across the timeline rather than a chip on a row: today usually
-    // falls between two race weekends rather than on one, so it is drawn where
-    // it falls. Primary as a line and as text, never as a fill - primary is
-    // kept off chips so it cannot be confused with one.
+    // Primary as a line and as text, never as a fill: primary is kept off chips.
     <div ref={ref} className="flex scroll-mt-4 items-center gap-4 py-3">
-      <span className="w-16 shrink-0 text-right text-[0.65rem] font-semibold tracking-wide text-primary uppercase">
+      <span className="w-[4.5rem] shrink-0 text-right text-[0.65rem] font-semibold tracking-wide text-primary uppercase">
         {t('calendar.today')}
       </span>
-      <span className="h-px flex-1 bg-primary" />
+      <span className="h-0.5 flex-1 rounded-full bg-primary" />
       <span className="text-xs font-medium text-primary">{formatDay(today)}</span>
     </div>
   );

@@ -2,10 +2,9 @@
 // arrays out. It runs in the main process, but nothing about it needs to, which
 // is what keeps it testable without an Electron app around it.
 
-import { COLLATOR } from './constants.ts';
 import {
-  countValues, groupPitboxes, groupTracks, hasAnyOf, inBounds, isOneOf, matchesTerms,
-  paginate, searchTerms, sortBy,
+  anyOfLists, countValues, fromAnyOf, groupLength, groupPitboxes, groupTracks, inBounds, isOneOf, matchesTerms,
+  paginate, searchTerms, sortBy, spreadOf,
 } from './utils.ts';
 import type { SortValue } from './utils.ts';
 import type {
@@ -14,18 +13,15 @@ import type {
   CarQuery,
   CarSortKey,
   ClassCatalogue,
-  ClassId,
   Page,
-  SpecId,
   Track,
   TrackFacets,
   TrackGroup,
   TrackQuery,
   TrackSortKey,
 } from '../../shared/types/index.ts';
-import {
-  carClassesOf, carSpecsOf, classOfSpec, SHIPPED_CATALOGUE,
-} from '../../shared/utils/car-classes/index.ts';
+import { carClassesOf, carSpecsOf, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
+import { nationOfCountry } from '../../shared/utils/nations/index.ts';
 
 /**
  * A named test an entry has to pass, so a facet can leave its own one out.
@@ -47,12 +43,14 @@ const CAR_SORTS: Record<CarSortKey, (car: Car) => SortValue> = {
 /**
  * What each track sort key reads off a track.
  *
- * Pit boxes take the largest of the track's layouts: sorting by grid size is
- * asking what will fit here, and one layout being able to hold it is the answer.
+ * Length and pit boxes take the largest of the track's layouts: sorting by grid
+ * size is asking what will fit here, and one layout being able to hold it is
+ * the answer.
  */
 const TRACK_SORTS: Record<TrackSortKey, (group: TrackGroup) => SortValue> = {
   name: (group) => group.name,
   country: (group) => group.country,
+  length: groupLength,
   pitboxes: groupPitboxes,
 };
 
@@ -69,18 +67,16 @@ const carFilters = (query: CarQuery, catalogue: ClassCatalogue): Filters<Car> =>
     search: (car) => matchesTerms(terms, [car.name, car.brand, car.id]),
     ids: (car) => isOneOf(car.id, query.ids),
     brands: (car) => isOneOf(car.brand, query.brands),
-    countries: (car) => isOneOf(car.country, query.countries),
-    // A car races on as many grids as the catalogue gives it, so these two ask
-    // whether any of its values was picked rather than whether its one value was.
-    classes: (car) => hasAnyOf(carClassesOf(car.id, catalogue), query.classes),
-    specs: (car) => hasAnyOf(carSpecsOf(car.id, catalogue), query.specs),
-    sources: (car) => isOneOf(car.provenance.source, query.sources),
-    packs: (car) => isOneOf(car.provenance.pack, query.packs),
-    makers: (car) => isOneOf(car.provenance.maker, query.makers),
-    distributors: (car) => isOneOf(car.provenance.distributor, query.distributors),
+    countries: (car) => isOneOf(nationOfCountry(car.country), query.countries),
+    // Class and spec are one tree in the browser, so like provenance they are one
+    // filter - and a car races on as many grids as the catalogue gives it.
+    classification: (car) => anyOfLists([
+      [carClassesOf(car.id, catalogue), query.classes],
+      [carSpecsOf(car.id, catalogue), query.specs],
+    ]),
+    provenance: (car) => fromAnyOf(car.provenance, query),
     year: (car) => inBounds(car.year, query.yearFrom, query.yearTo),
     bhp: (car) => inBounds(car.performance.bhp, query.bhpFrom, query.bhpTo),
-    hasSkins: (car) => query.hasSkins !== true || car.skins.length > 0,
   };
 };
 
@@ -94,11 +90,10 @@ const trackFilters = (query: TrackQuery): Filters<Track> => {
 
   return {
     search: (track) => matchesTerms(terms, [track.name, track.id, track.country]),
-    countries: (track) => isOneOf(track.country, query.countries),
-    sources: (track) => isOneOf(track.provenance.source, query.sources),
-    packs: (track) => isOneOf(track.provenance.pack, query.packs),
-    makers: (track) => isOneOf(track.provenance.maker, query.makers),
-    distributors: (track) => isOneOf(track.provenance.distributor, query.distributors),
+    ids: (track) => isOneOf(track.id, query.ids),
+    countries: (track) => isOneOf(nationOfCountry(track.country), query.countries),
+    provenance: (track) => fromAnyOf(track.provenance, query),
+    length: (track) => inBounds(track.lengthM, query.lengthFrom, query.lengthTo),
     pitboxes: (track) => inBounds(track.pitboxes, query.pitboxesFrom, query.pitboxesTo),
     hasGeotags: (track) => query.hasGeotags !== true
       || (track.geotags.lat !== null && track.geotags.lon !== null),
@@ -164,18 +159,29 @@ export const queryTracks = (
 };
 
 /**
+ * One circuit, with every layout installed under it.
+ * @param tracks Every installed track layout
+ * @param id The circuit's folder name
+ * @returns The circuit, or null when nothing is installed under that ID
+ */
+export const circuitOf = (tracks: readonly Track[], id: string): TrackGroup | null => (
+  groupTracks(tracks.filter((track) => track.id === id), tracks)[0] ?? null
+);
+
+/**
  * Counts the values behind a car browser's filter lists.
  *
  * Each dimension is counted against the search and every other filter but not
  * its own, so ticking one brand leaves the rest of the brand list visible and
  * pickable instead of collapsing it to the single choice already made.
  *
- * Class and spec are the exception, because they are a hierarchy rather than two
- * independent dimensions - see below.
+ * Class and spec are counted against neither of the two, since they are one
+ * filter and the browser shows them as one tree.
  * @param cars Every installed car
  * @param query The filters currently applied
  * @param catalogue The class catalogue classes and specs resolve against
- * @returns Counts per brand, country, class, spec, provenance and year
+ * @returns Counts per brand, country, class, spec and provenance, and how year
+ *   and power are spread
  */
 export const carFacets = (
   cars: readonly Car[],
@@ -185,38 +191,17 @@ export const carFacets = (
   const filters = carFilters(query, catalogue);
   const without = (except: string): Car[] => applyFilters(cars, filters, except);
 
-  // Every other facet counts whatever the surviving entries carry, but a car
-  // races on several grids at once: the cars in GT4 also run their own one-make
-  // cups. Counting those would list Alpine A110 Cup under a GT4 selection and
-  // GT4 under an Alpine A110 Cup one, both reading as though the two belonged
-  // together. So the pair narrows each other - pick a class and the spec list is
-  // that class's grids, pick a spec and the class list is the class it sits in.
-  const pickedClasses = query.classes ?? [];
-  const pickedSpecClasses = new Set((query.specs ?? []).map((spec) => classOfSpec(spec, catalogue)));
-
-  const inPickedClass = (spec: SpecId): boolean => {
-    const carClass = classOfSpec(spec, catalogue);
-
-    return pickedClasses.length === 0 || (carClass !== null && pickedClasses.includes(carClass));
-  };
-  const inPickedSpecClass = (carClass: ClassId): boolean => (
-    pickedSpecClasses.size === 0 || pickedSpecClasses.has(carClass)
-  );
-
   return {
     brands: countValues(without('brands'), (car) => [car.brand]),
-    countries: countValues(without('countries'), (car) => [car.country]),
-    classes: countValues(without('classes'), (car) => carClassesOf(car.id, catalogue).filter(inPickedSpecClass)),
-    specs: countValues(without('specs'), (car) => carSpecsOf(car.id, catalogue).filter(inPickedClass)),
-    sources: countValues(without('sources'), (car) => [car.provenance.source]),
-    packs: countValues(without('packs'), (car) => [car.provenance.pack]),
-    makers: countValues(without('makers'), (car) => [car.provenance.maker]),
-    distributors: countValues(without('distributors'), (car) => [car.provenance.distributor]),
-
-    // Years read best newest first rather than commonest first, since a year
-    // list is something you scan for a decade rather than for a popular value.
-    years: countValues(without('year'), (car) => [car.year === null ? null : String(car.year)])
-      .sort((a, b) => COLLATOR.compare(b.value, a.value)),
+    countries: countValues(without('countries'), (car) => [nationOfCountry(car.country)]),
+    classes: countValues(without('classification'), (car) => carClassesOf(car.id, catalogue)),
+    specs: countValues(without('classification'), (car) => carSpecsOf(car.id, catalogue)),
+    sources: countValues(without('provenance'), (car) => [car.provenance.source]),
+    packs: countValues(without('provenance'), (car) => [car.provenance.pack]),
+    makers: countValues(without('provenance'), (car) => [car.provenance.maker]),
+    distributors: countValues(without('provenance'), (car) => [car.provenance.distributor]),
+    years: spreadOf(cars, without('year'), (car) => car.year),
+    power: spreadOf(cars, without('bhp'), (car) => car.performance.bhp),
   };
 };
 
@@ -227,7 +212,8 @@ export const carFacets = (
  * Nordschleife with eight layouts is one German track, not eight.
  * @param tracks Every installed track layout
  * @param query The filters currently applied
- * @returns Counts per country and provenance
+ * @returns Counts per country and provenance, and how length and pit boxes
+ *   are spread over layouts
  */
 export const trackFacets = (
   tracks: readonly Track[],
@@ -238,11 +224,14 @@ export const trackFacets = (
     groupTracks(applyFilters(tracks, filters, except), tracks)
   );
 
+  // The spreads are drawn over layouts, the one level a length belongs to.
   return {
-    countries: countValues(without('countries'), (group) => [group.country]),
-    sources: countValues(without('sources'), (group) => [group.provenance.source]),
-    packs: countValues(without('packs'), (group) => [group.provenance.pack]),
-    makers: countValues(without('makers'), (group) => [group.provenance.maker]),
-    distributors: countValues(without('distributors'), (group) => [group.provenance.distributor]),
+    countries: countValues(without('countries'), (group) => [nationOfCountry(group.country)]),
+    sources: countValues(without('provenance'), (group) => [group.provenance.source]),
+    packs: countValues(without('provenance'), (group) => [group.provenance.pack]),
+    makers: countValues(without('provenance'), (group) => [group.provenance.maker]),
+    distributors: countValues(without('provenance'), (group) => [group.provenance.distributor]),
+    length: spreadOf(tracks, applyFilters(tracks, filters, 'length'), (track) => track.lengthM),
+    pitboxes: spreadOf(tracks, applyFilters(tracks, filters, 'pitboxes'), (track) => track.pitboxes),
   };
 };

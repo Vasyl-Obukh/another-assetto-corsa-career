@@ -1,11 +1,15 @@
-import { FolderOpenIcon, XIcon } from 'lucide-react';
+import {
+  CheckIcon, FolderOpenIcon, RotateCcwIcon, TriangleAlertIcon,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { StatusBadge } from './StatusBadge.tsx';
 import type { PathKind } from './types.ts';
 import type { PathProbe } from '../../../../shared/types';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useAppError } from '@/i18n';
+import { ORIGIN_ACCENT } from '@/lib/accents';
+import { cn } from '@/lib/utils.ts';
 
 interface PathRowProps {
   /**
@@ -30,8 +34,8 @@ interface PathRowProps {
    */
   onPick(kind: PathKind): void;
   /**
-   * Drops the override for this path.
-   * @param kind Which path to clear
+   * Drops the override for this path, going back to detecting it.
+   * @param kind Which path to reset
    */
   onClear(kind: PathKind): void;
 }
@@ -48,22 +52,37 @@ export const PathRow = ({
   const describeError = useAppError();
 
   return (
-    <div className="grid grid-cols-[11rem_1fr_auto] items-start gap-4 py-3">
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium">{t(`paths.${kind}`)}</span>
-        <StatusBadge probe={probe} />
-      </div>
+    <div className="grid grid-cols-[1.5rem_10rem_minmax(0,1fr)_auto] items-center gap-3 border-t py-3 first:border-t-0">
+      {/* Green when found; red for a path that was named and is not there,
+          amber for one nothing has named yet - the first is broken and the
+          second is merely not done. */}
+      <span
+        aria-label={probe.exists ? t('paths.found') : t(probe.value ? 'paths.missing' : 'paths.undetected')}
+        className={cn(
+          'grid size-6 place-items-center rounded-full',
+          probe.exists && 'bg-provenance-base text-provenance-base-foreground',
+          !probe.exists && probe.value && 'bg-destructive text-destructive-foreground',
+          !probe.exists && !probe.value && 'bg-warning text-warning-foreground',
+        )}
+      >
+        {probe.exists ? <CheckIcon className="size-3.5" /> : <TriangleAlertIcon className="size-3.5" />}
+      </span>
 
-      <div className="flex min-w-0 flex-col gap-1 pt-0.5">
+      <span className="text-sm font-medium">{t(`paths.${kind}`)}</span>
+
+      <div className="flex min-w-0 flex-col items-start gap-1">
         <span
           data-selectable
-          className="truncate font-mono text-sm text-muted-foreground"
+          className={cn('max-w-full truncate font-mono text-sm', !probe.value && 'text-muted-foreground')}
           title={probe.value ?? undefined}
         >
           {probe.value ?? t('paths.undetected')}
         </span>
+        {/* Whose answer this is - the user's own in the hue that means "yours". */}
         {probe.origin ? (
-          <span className="text-xs text-muted-foreground/70">{t(`paths.origin.${probe.origin}`)}</span>
+          <Badge variant="secondary" className={cn('font-normal', overridden && ORIGIN_ACCENT.user)}>
+            {t(`paths.origin.${probe.origin}`)}
+          </Badge>
         ) : null}
         {probe.error ? (
           <span className="text-xs text-destructive">{describeError(probe.error)}</span>
@@ -71,22 +90,18 @@ export const PathRow = ({
       </div>
 
       <div className="flex gap-2">
+        {/* Forgetting the user's folder detects it again rather than leaving
+            the path empty, so it says that rather than wearing a cross. */}
+        {overridden ? (
+          <Button variant="ghost" size="sm" disabled={busy} title={t('paths.clearHint')} onClick={() => onClear(kind)}>
+            <RotateCcwIcon />
+            {t('paths.clear')}
+          </Button>
+        ) : null}
         <Button variant="outline" size="sm" disabled={busy} onClick={() => onPick(kind)}>
           <FolderOpenIcon />
           {t('paths.change')}
         </Button>
-        {overridden ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={busy}
-            aria-label={t('paths.clear')}
-            title={t('paths.clear')}
-            onClick={() => onClear(kind)}
-          >
-            <XIcon />
-          </Button>
-        ) : null}
       </div>
     </div>
   );

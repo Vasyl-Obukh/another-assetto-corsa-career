@@ -1,9 +1,10 @@
+import { ClockArrowUpIcon } from 'lucide-react';
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { EventCard } from './EventCard.tsx';
 import { TodayMarker } from './TodayMarker.tsx';
-import { agendaDays } from './utils.ts';
+import { agendaDays, eventKey, monthOf } from './utils.ts';
 import type { CalendarEntry } from '../../../../shared/types';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
@@ -18,10 +19,19 @@ interface CalendarAgendaProps {
    */
   today: string;
   /**
+   * Whether a command is in flight, which holds the clock's buttons.
+   */
+  busy: boolean;
+  /**
    * Called to open one round's event page.
    * @param event Which event
    */
   onOpen: (event: CalendarEntry) => void;
+  /**
+   * Called to move the clock to a day.
+   * @param date Its ISO date
+   */
+  onAdvance: (date: string) => void;
   /**
    * Handed the element today is drawn as, for the calendar to scroll to.
    */
@@ -29,10 +39,10 @@ interface CalendarAgendaProps {
 }
 
 export const CalendarAgenda = ({
-  events, today, onOpen, todayRef,
+  events, today, busy, onOpen, onAdvance, todayRef,
 }: CalendarAgendaProps) => {
   const { t } = useTranslation();
-  const { formatDay } = useFormat();
+  const { formatMonth, formatMonthShort, formatWeekday } = useFormat();
 
   const days = agendaDays(events);
   // Today goes before the first race day still to come, or after the last one
@@ -54,37 +64,74 @@ export const CalendarAgenda = ({
     <div className="flex flex-col">
       {days.map((day, at) => {
         const past = day.date < today;
+        const month = monthOf(day.date);
+        const opensMonth = at === 0 || monthOf(days[at - 1].date) !== month;
+        const yours = opensMonth
+          ? events.filter((event) => event.enrolled && monthOf(event.raceDay) === month).length
+          : 0;
 
         return [
+          opensMonth ? (
+            // What the header's title and month buttons read and scroll to.
+            <header
+              key={`month-${month}`}
+              data-month={month}
+              className="flex items-baseline gap-2.5 pt-6 pb-2 first:pt-2"
+            >
+              <h2 className="text-lg font-semibold first-letter:uppercase">{formatMonth(month)}</h2>
+              {yours > 0 ? (
+                <span className="text-xs text-muted-foreground">{t('calendar.yoursInMonth', { count: yours })}</span>
+              ) : null}
+            </header>
+          ) : null,
           at === markerAt ? marker : null,
           <section
             key={day.date}
             id={`day-${day.date}`}
-            className="flex scroll-mt-4 gap-4 border-t py-5 first:border-t-0 first:pt-0"
+            className="group/day grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 border-t border-dashed py-4"
           >
-            {/* A date rail down the left, so a season reads as a run of
-                weekends rather than as a list that happens to be sorted. */}
             <header
               className={cn(
-                'sticky top-[calc(var(--calendar-head,0px)+0.5rem)] flex h-fit w-16 shrink-0 flex-col items-end text-right',
+                'sticky top-[calc(var(--calendar-head,0px)+0.75rem)] flex h-fit flex-col items-end text-right',
                 past ? 'opacity-50' : '',
               )}
             >
+              <span className="text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
+                {formatWeekday(day.date)}
+              </span>
               <span className="text-2xl leading-none font-semibold tabular-nums">
                 {Number(day.date.slice(-2))}
               </span>
-              <span className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">
-                {formatDay(day.date)}
-              </span>
-              <span className="mt-1 text-[0.65rem] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">{formatMonthShort(day.date)}</span>
+              <span className="mt-1.5 text-[0.65rem] text-muted-foreground">
                 {t('calendar.onThisDay', { count: day.events.length })}
               </span>
+              {/* Only on a day still to come, and only on hover or focus, so a
+                  wall of race days does not read as a wall of buttons. */}
+              {day.date > today ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  title={t('calendar.advanceHere')}
+                  aria-label={t('calendar.advanceHere')}
+                  className="mt-2 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.65rem] font-medium text-primary opacity-0 transition-opacity group-hover/day:opacity-100 hover:bg-primary/10 focus-visible:opacity-100 disabled:opacity-0"
+                  onClick={() => onAdvance(day.date)}
+                >
+                  <ClockArrowUpIcon className="size-3" />
+                  {t('calendar.advanceShort')}
+                </button>
+              ) : null}
             </header>
 
-            <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+            <div
+              className={cn(
+                'grid min-w-0 grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-2.5',
+                past ? 'opacity-60' : '',
+              )}
+            >
               {day.events.map((event) => (
                 <EventCard
-                  key={`${event.series}-${event.entry}-${event.round}`}
+                  key={eventKey(event)}
                   event={event}
                   onOpen={() => onOpen(event)}
                 />

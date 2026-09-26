@@ -6,21 +6,36 @@
 /**
  * The content column every screen centres inside itself.
  *
- * Set by the car and track browsers, which are the widest thing the app shows
- * and therefore the ones that decide what "full width" looks like here.
+ * Set by the browsers, which are the widest thing the app shows: 100rem is what
+ * three championship cards need beside a filter rail. A form inside it keeps to
+ * its own narrower cap, so only grids and boards spread out.
  */
-export const SCREEN_WIDTH = 'mx-auto w-full max-w-7xl px-8';
+export const SCREEN_WIDTH = 'mx-auto w-full max-w-[100rem] px-8';
+
+/**
+ * The content column for a screen that uses the whole window: the same gutter
+ * as SCREEN_WIDTH, and no cap. For content that is a board or a grid of cards,
+ * which only gains from the room - never for a form, whose rows drift apart.
+ */
+export const WIDE_SCREEN_WIDTH = 'w-full px-8';
 
 /**
  * Where the back-to-top button floats: beside the content column rather than
  * in the window's corner, which on a wide window is a long way from anything.
  *
- * Measured off SCREEN_WIDTH's `max-w-7xl` - half the space either side of the
+ * Measured off SCREEN_WIDTH's 100rem cap - half the space either side of the
  * column, less the button's own width and a little, puts it about 48px clear
  * of the content. It never comes closer to the window edge than 24px,
  * which is where it lands once the window is narrower than the column.
  */
-export const BACK_TO_TOP_POSITION = 'fixed bottom-6 right-[max(1.5rem,calc((100vw_-_var(--container-7xl))_/_2_-_2.75rem))]';
+export const BACK_TO_TOP_POSITION = 'fixed bottom-6 right-[max(1.5rem,calc((100vw_-_100rem)_/_2_-_2.75rem))]';
+
+/**
+ * Where the back-to-top button floats on a WIDE_SCREEN_WIDTH screen: that
+ * column runs to the window's edge, so there is nothing beside it to float in
+ * and the button keeps to the corner, over the gutter.
+ */
+export const WIDE_BACK_TO_TOP_POSITION = 'fixed bottom-6 right-6';
 
 /**
  * The width every settings control is given.
@@ -32,22 +47,3 @@ export const BACK_TO_TOP_POSITION = 'fixed bottom-6 right-[max(1.5rem,calc((100v
  * take the width back.
  */
 export const CONTROL_WIDTH = 'w-36 shrink-0';
-
-/**
- * Two columns of label-and-control rows, which is what a settings card holds.
- *
- * Capped well short of the card it sits in, because these rows put the label
- * and its control at opposite ends: given the whole width they drift so far
- * apart that reading across from one to the other stops being easy. One column
- * until there is room for two.
- *
- * The wide column gap does double duty. It separates the two columns so a row
- * reads as one thing rather than four, and because the cap is on the whole
- * grid, widening the gap is what narrows the columns: 56rem less the 8rem gap
- * leaves each column exactly 24rem, which is as far as a label sits from its
- * control.
- *
- * Reach it through `<FieldGrid>` rather than putting these classes on a
- * `CardContent`, which has padding of its own for the cap to land on.
- */
-export const FIELD_GRID = 'grid max-w-4xl gap-4 sm:grid-cols-2 sm:gap-x-32';

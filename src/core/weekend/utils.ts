@@ -16,6 +16,7 @@ import type {
   Conditions,
   Content,
   GridEntry,
+  GridStart,
   LaunchRecord,
   RaceDefinition,
   RaceOut,
@@ -140,25 +141,80 @@ export const sessionRain = (
 /**
  * Orders a grid with no qualifying result to order it.
  *
- * The player starts last, having earned nothing; the AI line up on skill with
- * enough jitter that the order is not simply the entry list every time.
+ * The field lines up class by class, in the order the classes first appear
+ * among the AI - the entry list's, since the player leads every grid whatever
+ * class they race in - and within a class on skill with enough jitter that the
+ * order is not simply the entry list every time. The player starts at the back
+ * of their own class, having earned nothing; a class only the player races in
+ * has no place among the AI and lines up last. A grid that names no classes is
+ * one class, which is every race but a multi-class one.
  * @param grid The weekend's materialised entry list, the player first
  * @param seed Stable label for this launch, so the shuffle is reproducible
  * @returns Car indices in grid order
  */
 export const defaultOrder = (grid: readonly GridEntry[], seed: string): number[] => {
   const random = randomFrom(seedFrom(seed));
+  const classes = [...new Set(grid.slice(1).map((entry) => entry.entry))];
+  const groupOf = (index: number): number => {
+    const at = classes.indexOf(grid[index]?.entry);
+
+    return at < 0 ? classes.length : at;
+  };
   const ai = grid
     .map((entry, index) => ({ index, aiLevel: entry.aiLevel ?? 0 }))
     .slice(1)
     .map(({ index, aiLevel }) => ({
       index,
+      group: groupOf(index),
       rating: aiLevel + (random() * 2 - 1) * AI_ORDER_JITTER,
     }));
 
-  ai.sort((left, right) => right.rating - left.rating);
+  ai.sort((left, right) => left.group - right.group || right.rating - left.rating);
 
-  return [...ai.map((entry) => entry.index), 0];
+  const order = ai.map((entry) => entry.index);
+  // The back of the player's class is wherever the first car of a later one lines up.
+  const own = groupOf(0);
+  const after = ai.findIndex((entry) => entry.group > own);
+
+  return after < 0 ? [...order, 0] : [...order.slice(0, after), 0, ...order.slice(after)];
+};
+
+/**
+ * Moves the player to where a race with no result behind it says they start,
+ * counted within their own class: pole is the front of it, a slot is that
+ * place among its cars, and last is the back of it.
+ *
+ * Everyone else keeps the order they lined up in. A random slot is drawn off
+ * the launch's own seed, so a reload never moves the player.
+ * @param order Car indices in grid order, the player (car 0) among them
+ * @param grid The weekend's entry list, which says each car's class
+ * @param start Where the player starts, or nothing for the back of their class
+ * @param seed Stable label for this launch
+ * @returns The same cars, the player moved
+ */
+export const placePlayer = (
+  order: readonly number[],
+  grid: readonly GridEntry[],
+  start: GridStart | undefined,
+  seed: string,
+): number[] => {
+  if (start === undefined || start === 'last') return [...order];
+
+  const ai = order.filter((car) => car !== 0);
+  const own = grid[0]?.entry;
+  const classmates = ai.filter((car) => grid[car]?.entry === own);
+  if (classmates.length === 0) return [...order];
+
+  let place = classmates.length;
+  if (start === 'pole') place = 0;
+  else if (start === 'random') place = Math.floor(randomFrom(seedFrom(`${seed}:start`))() * (classmates.length + 1));
+  else place = Math.min(Math.max(Math.round(start) - 1, 0), classmates.length);
+
+  const slot = place < classmates.length
+    ? ai.indexOf(classmates[place])
+    : ai.indexOf(classmates[classmates.length - 1]) + 1;
+
+  return [...ai.slice(0, slot), 0, ...ai.slice(slot)];
 };
 
 /**

@@ -10,7 +10,9 @@ import { AppError } from '../../errors/index.ts';
 import type {
   ClassCatalogue, ClassLayer, SpecId, UserCarClass, UserCarSpec,
 } from '../../types/index.ts';
-import { carClassName, carSpecName, SHIPPED_CATALOGUE } from '../car-classes/index.ts';
+import {
+  carClassName, carSpecName, carSpecsOf, SHIPPED_CATALOGUE, specCars,
+} from '../car-classes/index.ts';
 import { isRecord } from '../coerce/index.ts';
 import { cleanString } from '../settings/index.ts';
 
@@ -147,6 +149,47 @@ export const withoutCarSpecs = (layer: ClassLayer, car: string): ClassLayer => {
   const { [car]: dropped, ...cars } = layer.cars;
 
   return { ...layer, cars };
+};
+
+/**
+ * Restates which cars race in one spec - the same edit as withCarSpecs, made
+ * from the spec's side rather than the car's.
+ *
+ * A car joining the spec leaves whichever spec of the same class it held, since
+ * a car races in one spec per class; one leaving it keeps every other spec it
+ * holds. Each car's list settles exactly as withCarSpecs settles it, so putting
+ * a shipped car back where the app has it drops its override again.
+ * @param layer The user's layer
+ * @param catalogue The catalogue resolved from it
+ * @param spec The spec
+ * @param cars Every car that should race in it
+ * @returns The layer with the spec's cars replaced
+ * @throws When the spec does not resolve
+ */
+export const withSpecCars = (
+  layer: ClassLayer,
+  catalogue: ClassCatalogue,
+  spec: SpecId,
+  cars: readonly string[],
+): ClassLayer => {
+  const found = catalogue.specById.get(spec);
+  if (!found) throw new AppError('classes.spec.notFound', { spec: String(spec) });
+
+  const wanted = new Set(cars);
+  const current = new Set(specCars(spec, catalogue));
+  let next = layer.cars;
+
+  [...new Set([...current, ...wanted])].forEach((car) => {
+    if (wanted.has(car) === current.has(car)) return;
+
+    const held = carSpecsOf(car, catalogue);
+    const specs = wanted.has(car)
+      ? [...held.filter((other) => catalogue.specById.get(other)?.class !== found.class), spec]
+      : held.filter((other) => other !== spec);
+    next = settleCar(next, car, specs);
+  });
+
+  return { ...layer, cars: next };
 };
 
 /**
