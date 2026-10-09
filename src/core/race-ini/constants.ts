@@ -43,11 +43,6 @@ export const SUN_DEGREES_PER_HOUR = 16;
 export const SUN_NOON_HOUR = 13;
 
 /**
- * Sun angle beyond which vanilla AC clamps, and CSP needs telling not to.
- */
-export const SUN_ANGLE_CLAMP = 80;
-
-/**
  * AI skill used when a race names none.
  */
 export const DEFAULT_AI_LEVEL = 95;

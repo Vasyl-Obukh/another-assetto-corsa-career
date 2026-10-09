@@ -11,7 +11,6 @@ import {
   PIT_SPAWN_SET,
   PIT_SPAWN_TYPES,
   SESSION_TYPE,
-  SUN_ANGLE_CLAMP,
   SUN_DEGREES_PER_HOUR,
   SUN_NOON_HOUR,
 } from './constants.ts';
@@ -36,13 +35,13 @@ import type { IniValue } from '../ini/index.ts';
  * Converts a time of day into AC's sun angle.
  *
  * AC stores time of day as a sun angle: 16 degrees per hour, zero at 13:00, so
- * 08:00 is +80 and 18:00 is -80. Vanilla clamps to that range; CSP allows
- * beyond it.
+ * 08:00 is -80 and 18:00 is +80 - the mapping Kunos' own launcher slider
+ * declares. Vanilla clamps to that range; CSP allows beyond it.
  * @param time Either "HH:MM" or hours as a number
  * @returns The sun angle in degrees
  */
 export const sunAngleFromTime = (time: string | number): number => (
-  -(parseClock(time) - SUN_NOON_HOUR) * SUN_DEGREES_PER_HOUR
+  (parseClock(time) - SUN_NOON_HOUR) * SUN_DEGREES_PER_HOUR
 );
 
 /**
@@ -418,10 +417,9 @@ export const buildLighting = (
   if (weatherType != null) {
     lighting.__CM_WEATHER_TYPE = weatherType;
   }
-  // Vanilla clamps SUN_ANGLE to +/-80; CSP honours this flag to allow night.
-  if (Math.abs(sunAngle) > SUN_ANGLE_CLAMP) {
-    lighting.__CM_UNCLAMPED_SUN_ANGLE = 1;
-  }
+  // A night angle goes into SUN_ANGLE as it is, which CSP honours. Never write
+  // __CM_UNCLAMPED_SUN_ANGLE: CSP reads it in place of SUN_ANGLE, and CM's own
+  // ConditionProperties strips it for that reason.
 
   return lighting;
 };

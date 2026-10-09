@@ -26,9 +26,11 @@ describe('core/race-ini/utils', () => {
       expect(sunAngleFromTime('13:00')).toBeCloseTo(0);
     });
 
-    it('moves 16 degrees per hour, positive before noon', () => {
-      expect(sunAngleFromTime('08:00')).toBe(80);
-      expect(sunAngleFromTime('18:00')).toBe(-80);
+    // The sign was once inverted, so every race ran at its time mirrored
+    // about 13:00 and a 20:00 practice started at dawn.
+    it('moves 16 degrees per hour, negative before noon as the Kunos launcher has it', () => {
+      expect(sunAngleFromTime('08:00')).toBe(-80);
+      expect(sunAngleFromTime('18:00')).toBe(80);
     });
   });
 
@@ -450,7 +452,7 @@ describe('core/race-ini/utils', () => {
     const unplaced = content.tracks[1];
 
     it('writes the sun angle to two decimals', () => {
-      expect(buildLighting({ timeOfDay: '08:00' }, track, null).SUN_ANGLE).toBe('80.00');
+      expect(buildLighting({ timeOfDay: '08:00' }, track, null).SUN_ANGLE).toBe('-80.00');
     });
 
     it('writes geotags when the track has them', () => {
@@ -478,12 +480,14 @@ describe('core/race-ini/utils', () => {
       expect(buildLighting({}, track, null)).not.toHaveProperty('__CM_WEATHER_TYPE');
     });
 
-    it('unclamps the sun angle past the vanilla limit, so night works', () => {
-      expect(buildLighting({ timeOfDay: '22:00' }, track, null).__CM_UNCLAMPED_SUN_ANGLE).toBe(1);
+    it('writes a night angle past the vanilla limit as it is, as CM does', () => {
+      expect(buildLighting({ timeOfDay: '22:00' }, track, null).SUN_ANGLE).toBe('144.00');
     });
 
-    it('leaves the sun angle clamped inside the vanilla range', () => {
-      expect(buildLighting({ timeOfDay: '14:00' }, track, null))
+    // Night once wrote __CM_UNCLAMPED_SUN_ANGLE=1, which CSP read as the angle
+    // itself, so every race after 18:00 started at 13:04.
+    it('never writes __CM_UNCLAMPED_SUN_ANGLE, which CSP reads in place of the angle', () => {
+      expect(buildLighting({ timeOfDay: '22:00' }, track, null))
         .not.toHaveProperty('__CM_UNCLAMPED_SUN_ANGLE');
     });
   });
