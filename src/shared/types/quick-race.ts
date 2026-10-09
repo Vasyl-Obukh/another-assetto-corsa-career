@@ -42,8 +42,9 @@ export interface QuickClass {
    */
   grid?: SeriesGrid;
   /**
-   * Set on the class picking a car made when there was none, a field of that
-   * car alone. It follows the player's car until the player edits it.
+   * Set while the class is named after the player's car, as one made by
+   * picking a car is. A class following the car is renamed with it until the
+   * player names it themselves.
    */
   fromCar?: boolean;
 }

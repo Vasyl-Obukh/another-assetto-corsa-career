@@ -327,6 +327,7 @@
       "racesIn": "You race in",
       "anyCar": "Any installed car. With no classes yet, it becomes the field: a race of that car alone.",
       "fromClass": "From {{class}}'s cars",
+      "replacesClass": "Any installed car. It takes the place of {{class}}'s car, keeping its size and drivers.",
       "classFirst": "Pick what {{class}} races first. Your car comes from its cars.",
       "notInClass": "{{car}} is not in {{class}}"
     },

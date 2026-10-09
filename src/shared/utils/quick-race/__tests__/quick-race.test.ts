@@ -7,6 +7,7 @@ import {
   addClass,
   carFits,
   classHolds,
+  followingClassOf,
   moveClass,
   newQuickRace,
   playerClassOf,
@@ -111,6 +112,29 @@ describe('shared/utils/quick-race', () => {
     });
   });
 
+  describe('followingClassOf', () => {
+    it('finds the race\'s only class while it races a list of one car', () => {
+      const only = makeClass('a', ['abarth500']);
+
+      expect(followingClassOf(makeRace({ classes: [only] }))).toBe(only);
+    });
+
+    it('finds nothing while there is no class, or more than one', () => {
+      expect(followingClassOf(makeRace())).toBeUndefined();
+      expect(followingClassOf(makeRace({
+        classes: [makeClass('a', ['abarth500']), makeClass('b', ['bmw_m3_e30'])],
+      }))).toBeUndefined();
+    });
+
+    it('finds nothing in a class the player has to pick a car from', () => {
+      const spec = makeClass('a', [], { eligibility: { kind: 'spec', spec: 'user-spec' } });
+
+      expect(followingClassOf(makeRace({ classes: [makeClass('a', [])] }))).toBeUndefined();
+      expect(followingClassOf(makeRace({ classes: [makeClass('a', ['abarth500', 'bmw_m3_e30'])] }))).toBeUndefined();
+      expect(followingClassOf(makeRace({ classes: [spec] }))).toBeUndefined();
+    });
+  });
+
   describe('withCar', () => {
     it('makes a class of the first car picked, the player\'s own', () => {
       const race = withCar(makeRace(), { model: 'abarth500', skin: 'red' }, 'Abarth 500');
@@ -141,8 +165,32 @@ describe('shared/utils/quick-race', () => {
       }]);
     });
 
-    it('leaves a class the player has made their own alone', () => {
-      const own = makeClass('a', ['abarth500']);
+    // The bug this guards: editing the class's size, or anything else, used to
+    // pin it to its car, so the picker narrowed to that car alone.
+    it('keeps a lone class of one car following the car whatever else is edited', () => {
+      const first = withCar(makeRace(), { model: 'abarth500' }, 'Abarth 500');
+      const sized = withClass(first, first.classes[0].id, { cars: 4 });
+      const race = withCar(sized, { model: 'bmw_m3_e30' }, 'BMW M3 E30');
+
+      expect(race.classes).toEqual([{
+        id: first.classes[0].id,
+        name: 'BMW M3 E30',
+        eligibility: { kind: 'cars', cars: ['bmw_m3_e30'] },
+        cars: 4,
+        fromCar: true,
+      }]);
+    });
+
+    it('follows a lone class of one car the player named, keeping their name', () => {
+      const own = makeClass('a', ['abarth500'], { name: 'Sunday Cup' });
+      const race = withCar(makeRace({ classes: [own] }), { model: 'bmw_m3_e30' }, 'BMW M3 E30');
+
+      expect(race.classes).toEqual([makeClass('a', ['bmw_m3_e30'], { name: 'Sunday Cup' })]);
+      expect(race.playerClass).toBe('a');
+    });
+
+    it('leaves a class of several cars alone', () => {
+      const own = makeClass('a', ['abarth500', 'bmw_m3_e30']);
       const race = withCar(makeRace({ classes: [own], playerClass: 'a' }), { model: 'bmw_m3_e30' }, 'BMW M3 E30');
 
       expect(race.car).toEqual({ model: 'bmw_m3_e30' });
@@ -164,10 +212,16 @@ describe('shared/utils/quick-race', () => {
       expect(race.classes.map((one) => one.cars)).toEqual([8, 3]);
     });
 
-    it('makes a class taken from the player\'s car their own', () => {
+    it('makes the name of a class named after the player\'s car their own', () => {
       const race = withClass(makeRace({ classes: [makeClass('a', [], { fromCar: true })] }), 'a', { name: 'Mine' });
 
       expect(race.classes[0]).toEqual(makeClass('a', [], { name: 'Mine' }));
+    });
+
+    it('leaves a class named after the player\'s car named after it through any other edit', () => {
+      const race = withClass(makeRace({ classes: [makeClass('a', [], { fromCar: true })] }), 'a', { grid: { strength: 2 } });
+
+      expect(race.classes[0]).toEqual(makeClass('a', [], { fromCar: true, grid: { strength: 2 } }));
     });
   });
 
@@ -191,10 +245,10 @@ describe('shared/utils/quick-race', () => {
       expect(race.playerClass).toBe(id);
     });
 
-    it('makes a class taken from the player\'s car their own', () => {
+    it('leaves a class named after the player\'s car named after it', () => {
       const { race } = addClass(makeRace({ classes: [makeClass('a', [], { fromCar: true })], playerClass: 'a' }), 'GT4');
 
-      expect(race.classes[0].fromCar).toBeUndefined();
+      expect(race.classes[0].fromCar).toBe(true);
     });
   });
 

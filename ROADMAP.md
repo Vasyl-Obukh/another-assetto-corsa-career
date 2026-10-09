@@ -2581,9 +2581,10 @@ proof that no layer below learned what a series is.
       own offset from the player's difficulty - the step a championship
       states. A quick race is lowered as a one-round championship, so all of
       that is `roundRace`'s. **Picking a car with no classes makes a one-make
-      class of it**, which follows the car until the player edits it; with
-      several, the car is picked from the player's class and one that stops
-      fitting is flagged, never swapped. **A driven session reads back as a
+      class of it**, and while the race's only class races one car it follows
+      whatever car is picked next, its size and strength kept; otherwise the
+      car is picked from the player's class and one that stops fitting is
+      flagged, never swapped. **A driven session reads back as a
       round's does** - strip, podium, classification - and a multi-class one
       is filtered and placed by class, which multi-class championships get
       too

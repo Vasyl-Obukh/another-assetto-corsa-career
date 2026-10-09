@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 
 import type { Car, QuickRace, Skin } from '../../../../shared/types';
 import { carsOf } from '../../../../shared/utils/eligibility';
-import { carFits, playerClassOf, withCar } from '../../../../shared/utils/quick-race';
+import {
+  carFits, followingClassOf, playerClassOf, withCar,
+} from '../../../../shared/utils/quick-race';
 import { useClasses } from '@/app';
 import {
   CarPicker, carPictureSources, ContentImage, LiveryPlate,
@@ -40,11 +42,12 @@ interface CarCardProps {
 /**
  * The player's car, and which class it races in.
  *
- * With no classes yet, any installed car can be picked and its make becomes
- * the field. With classes, the picker offers the player's class's cars alone,
- * and once there are two the card asks which class that is. A car that no
- * longer fits its class - the class was changed under it, or the player moved
- * to another - is kept and said so in amber, never swapped for them.
+ * With no classes yet, or one class of a single car, any installed car can be
+ * picked and becomes the field. Otherwise the picker offers the player's
+ * class's cars alone, and once there are two the card asks which class that
+ * is. A car that no longer fits its class - the class was changed under it, or
+ * the player moved to another - is kept and said so in amber, never swapped
+ * for them.
  */
 export const CarCard = ({
   race, car, locked, onChange,
@@ -54,9 +57,8 @@ export const CarCard = ({
   const [picking, setPicking] = useState(false);
 
   const entry = playerClassOf(race);
-  // A class made from the car follows it, so it narrows nothing.
-  const follows = race.classes.length === 1 && race.classes[0].fromCar === true;
-  const allowed = entry && !follows ? carsOf(entry.eligibility, catalogue) : null;
+  const following = followingClassOf(race);
+  const allowed = entry && !following ? carsOf(entry.eligibility, catalogue) : null;
   const empty = allowed !== null && allowed.length === 0;
   const fits = carFits(race, catalogue);
   const skin = car?.skins.find((one) => one.id === race.car?.skin) ?? null;
@@ -68,6 +70,16 @@ export const CarCard = ({
    */
   const pick = (picked: Car, livery: Skin | null): void => {
     onChange(withCar(race, { model: picked.id, ...(livery ? { skin: livery.id } : {}) }, picked.name));
+  };
+
+  /**
+   * What picking a car will do, said while none is picked.
+   * @returns The hint
+   */
+  const pickHint = (): string => {
+    if (following) return t('race.car.replacesClass', { class: following.name });
+
+    return entry ? t('race.car.fromClass', { class: entry.name }) : t('race.car.anyCar');
   };
   const placeholder = (
     <div className="absolute inset-0 flex items-center justify-center">
@@ -143,7 +155,7 @@ export const CarCard = ({
         <>
           {empty ? null : (
             <span className="text-xs text-muted-foreground">
-              {entry && !follows ? t('race.car.fromClass', { class: entry.name }) : t('race.car.anyCar')}
+              {pickHint()}
             </span>
           )}
           <Button type="button" disabled={locked || empty} onClick={() => setPicking(true)}>{t('race.car.pick')}</Button>

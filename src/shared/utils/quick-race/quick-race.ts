@@ -77,16 +77,31 @@ const nextClassId = (classes: readonly QuickClass[]): string => {
 };
 
 /**
+ * The class that follows the player's car rather than limiting it: the race's
+ * only class, while it races a list of one car. The car picker narrows nothing
+ * for it, since whatever is picked next becomes that one car.
+ * @param race The race
+ * @returns The class, or undefined while the player's car is picked from a class
+ */
+export const followingClassOf = (race: QuickRace): QuickClass | undefined => {
+  if (race.classes.length !== 1) return undefined;
+  const [only] = race.classes;
+
+  return only.eligibility.kind === 'cars' && only.eligibility.cars.length === 1 ? only : undefined;
+};
+
+/**
  * Puts the player in a car.
  *
  * With no classes yet, the car becomes the first: a field of that car alone,
- * the player's own. While that class is still the only one and untouched, it
- * follows the car - so trying a few cars before settling never leaves a field
- * of the first one behind. Any other class is the player's to change, and is
- * left alone.
+ * the player's own. While the race's only class races a single car, it follows
+ * the car, keeping its size and strength - so trying a few cars before settling
+ * never leaves a field of the first one behind. It takes the car's name too,
+ * until the player gives it one of their own. Any other classes are what the
+ * player picks from, and are left alone.
  * @param race The race
  * @param car The car and livery picked
- * @param name What the car is called, which names a class made from it
+ * @param name What the car is called, which names a class following it
  * @returns The race in that car
  */
 export const withCar = (
@@ -94,28 +109,25 @@ export const withCar = (
   car: NonNullable<QuickRace['car']>,
   name: string,
 ): QuickRace => {
-  const only = race.classes.length === 1 ? race.classes[0] : undefined;
-  const made: QuickClass = {
-    id: only?.id ?? nextClassId([]),
-    name,
-    eligibility: { kind: 'cars', cars: [car.model] },
-    cars: only?.cars ?? DEFAULT_CLASS_CARS,
-    ...(only?.grid ? { grid: only.grid } : {}),
-    fromCar: true,
-  };
+  const follows = followingClassOf(race);
+  if (race.classes.length > 0 && !follows) return { ...race, car };
 
-  if (race.classes.length === 0 || only?.fromCar) {
-    return {
-      ...race, car, classes: [made], playerClass: made.id,
+  const eligibility: QuickClass['eligibility'] = { kind: 'cars', cars: [car.model] };
+  const entry: QuickClass = follows
+    ? { ...follows, eligibility, ...(follows.fromCar ? { name } : {}) }
+    : {
+      id: nextClassId([]), name, eligibility, cars: DEFAULT_CLASS_CARS, fromCar: true,
     };
-  }
 
-  return { ...race, car };
+  return {
+    ...race, car, classes: [entry], playerClass: entry.id,
+  };
 };
 
 /**
- * Edits one class. An edited class is the player's own from then on, so one
- * made from their car stops following it.
+ * Edits one class. Naming a class that was named after the player's car makes
+ * the name the player's: a class following the car still takes the next car
+ * picked, but keeps that name.
  * @param race The race
  * @param id The class's id
  * @param patch What changes
@@ -125,7 +137,9 @@ export const withClass = (race: QuickRace, id: string, patch: Partial<Omit<Quick
   ...race,
   classes: race.classes.map((one) => {
     if (one.id !== id) return one;
-    const { fromCar: unused, ...rest } = { ...one, ...patch };
+    const edited = { ...one, ...patch };
+    if (patch.name === undefined) return edited;
+    const { fromCar: unused, ...rest } = edited;
 
     return rest;
   }),
@@ -133,7 +147,7 @@ export const withClass = (race: QuickRace, id: string, patch: Partial<Omit<Quick
 
 /**
  * Adds a class, with no cars yet, after the others. The first class is the
- * player's; adding a second makes a class taken from their car their own.
+ * player's.
  * @param race The race
  * @param name What to call it
  * @returns The race and the new class's id
@@ -143,13 +157,12 @@ export const addClass = (race: QuickRace, name: string): { race: QuickRace; id: 
   const added: QuickClass = {
     id, name, eligibility: { kind: 'cars', cars: [] }, cars: DEFAULT_CLASS_CARS,
   };
-  const classes = race.classes.map(({ fromCar: unused, ...rest }) => rest);
 
   return {
     id,
     race: {
       ...race,
-      classes: [...classes, added],
+      classes: [...race.classes, added],
       playerClass: race.playerClass ?? id,
     },
   };
