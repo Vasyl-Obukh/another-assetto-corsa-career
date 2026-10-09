@@ -287,6 +287,7 @@ export const MOD_CARS: Readonly<Record<string, ModMaker>> = {
   rss_formula_hybrid_2023: ModMaker.RSS,
   rss_formula_hybrid_2024: ModMaker.RSS,
   rss_formula_hybrid_2025_alpine: ModMaker.RSS,
+  rss_formula_hybrid_2026: ModMaker.RSS,
   'rss_formula_hybrid_v12-r': ModMaker.RSS,
   rss_formula_hybrid_x: ModMaker.RSS,
   rss_formula_hybrid_x_2026: ModMaker.RSS,

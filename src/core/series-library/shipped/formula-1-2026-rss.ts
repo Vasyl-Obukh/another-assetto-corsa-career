@@ -96,7 +96,7 @@ const SPRINT: WeekendFormat = {
 /**
  * Formula 1, 2026 - new power units, active aerodynamics, and eleven teams.
  *
- * The entry list as the season started, on RSS's Formula Hybrid X 2026, every
+ * The entry list as the season started, on RSS's Formula Hybrid 2026, every
  * seat in it: twenty-two cars, which the Kunos layouts' boxes hold. The
  * calendar is the one announced for the season, which was under way when this
  * was written, so changes since are not in it. Fourteen of twenty-four rounds
@@ -116,7 +116,7 @@ export const FORMULA_1_2026_RSS: Championship = {
   id: 'formula-1-2026-rss',
   name: 'Formula 1 2026 (RSS)',
   description: 'The 2026 season - new power units, active aerodynamics and Cadillac\'s arrival - with the '
-    + 'entry list on RSS\'s Formula Hybrid X 2026 and fourteen of its grands prix at their real '
+    + 'entry list on RSS\'s Formula Hybrid 2026 and fourteen of its grands prix at their real '
     + 'distances.',
   teams: [
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),

@@ -285,7 +285,7 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'vrc_formula_alpha_2025_csp',
   ],
   [CarSpec.FORMULA_1_2026_RSS]: [
-    'rss_formula_hybrid_x_2026',
+    'rss_formula_hybrid_2026',
   ],
   [CarSpec.FORMULA_1_2026_VRC]: [
     'vrc_formula_alpha_2026_csp',
