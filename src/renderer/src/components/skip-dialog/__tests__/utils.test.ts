@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { SkippedRound, SkipReason } from '../../../../../shared/types';
-import { lostCount, skipGroups } from '../utils.ts';
+import { skipGroups } from '../utils.ts';
 
 /**
  * One round a move would cost.
@@ -17,8 +17,7 @@ const skipped = (series: string, round: string, reason: SkipReason = 'skipped'):
   roundName: round,
   number: 1,
   ladder: null,
-  firstDay: '2026-05-02',
-  lastDay: '2026-05-03',
+  date: '2026-05-03',
   reason,
 });
 
@@ -33,7 +32,7 @@ describe('renderer/components/skip-dialog/utils', () => {
       ]);
     });
 
-    it('gathers the weekends that only clash last, under a heading of their own', () => {
+    it('gathers the events on the same day last, under a heading of their own', () => {
       const groups = skipGroups([skipped('f2', 'r3', 'clash'), skipped('gt3', 'r1'), skipped('tcr', 'r2', 'clash')]);
 
       expect(groups.map((group) => [group.key, group.seriesName, group.rounds.length])).toEqual([
@@ -44,17 +43,6 @@ describe('renderer/components/skip-dialog/utils', () => {
 
     it('lists nothing for a move that costs nothing', () => {
       expect(skipGroups([])).toEqual([]);
-    });
-  });
-
-  describe('lostCount', () => {
-    it('counts the rounds lost and not the ones that only clash', () => {
-      expect(lostCount([
-        skipped('f2', 'r1'),
-        skipped('f2', 'r2', 'partway'),
-        skipped('f2', 'r3', 'behind'),
-        skipped('gt3', 'r1', 'clash'),
-      ])).toBe(3);
     });
   });
 });

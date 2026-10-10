@@ -95,7 +95,7 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'three-hours',
       name: 'Three hours',
@@ -130,14 +130,14 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'three-hours',
+  defaultEventFormat: 'three-hours',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza', layout: 'lfm' } },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
       track: { id: 'spa', layout: '2022_lfm_standing' },
-      weekendFormat: 'spa-24',
+      eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
     {

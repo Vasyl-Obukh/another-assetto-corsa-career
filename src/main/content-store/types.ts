@@ -151,7 +151,7 @@ export interface ContentStore {
    * The whole scan.
    *
    * The only accessor that hands the raw Content out rather than a query over
-   * it, because buildRaceIni, validateRace and planWeekend all take the lot -
+   * it, because buildRaceIni, validateRace and planEvent all take the lot -
    * they resolve a track, a car, its skins and a weather preset against each
    * other, which no page of results can answer.
    *

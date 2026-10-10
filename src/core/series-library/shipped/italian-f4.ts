@@ -11,7 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * RSS's Formula RSS 4 is the car of its first generation and its 2024 version
  * the second; either fields the grid. The calendar is the Italian circuits the
  * championship races, with the Red Bull Ring it visits; Misano and
- * Vallelunga's shorter configurations are not used. Three races a weekend: the
+ * Vallelunga's shorter configurations are not used. Three races a round: the
  * first from the first qualifying session, the second from the first race with
  * the top ten reversed, and the third from the second qualifying session. The
  * real grid runs to thirty-odd cars; the Kunos layouts' twenty-four boxes cap
@@ -28,7 +28,7 @@ export const ITALIAN_F4: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-f4',
   name: 'Italian F4 Championship',
-  description: 'The Italian Formula 4 championship on RSS\'s Formula RSS 4: three races a weekend, one of'
+  description: 'The Italian Formula 4 championship on RSS\'s Formula RSS 4: three races a round, one of'
     + ' them from a reversed grid, on Italian circuits.',
   teams: [
     team('adria', 'Adria Junior Team', 'ITA', TeamBudget.INDEPENDENT),
@@ -74,9 +74,9 @@ export const ITALIAN_F4: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_4, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Three races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
@@ -109,7 +109,7 @@ export const ITALIAN_F4: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     { id: 'vallelunga', name: 'Vallelunga', track: { id: 'ks_vallelunga', layout: 'extended_circuit' } },

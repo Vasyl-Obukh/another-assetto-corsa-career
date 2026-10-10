@@ -26,34 +26,34 @@ import type { CspSetup, RaceStore } from './types.ts';
 import {
   isArchiveName, progressOf, readJson, readRecord, withLayout, writeJson,
 } from './utils.ts';
+import {
+  advanceEvent,
+  assertStateMatches,
+  initEventState,
+  nextLaunch,
+  planEvent,
+  prepareLaunch,
+  skipEliminated,
+} from '../../core/event/index.ts';
 import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
 import { buildRaceIni, validateRace } from '../../core/race-ini/index.ts';
 import { archiveResults, waitForResults } from '../../core/results/index.ts';
 import type { LaunchResult } from '../../core/season-scoring/index.ts';
 import { readWeatherFx, readWeatherFxController } from '../../core/weather/index.ts';
 import { installPlan, removePlans } from '../../core/weather-plan/index.ts';
-import {
-  advanceWeekend,
-  assertStateMatches,
-  initWeekendState,
-  nextLaunch,
-  planWeekend,
-  prepareLaunch,
-  skipEliminated,
-} from '../../core/weekend/index.ts';
 import { MS_PER_HOUR } from '../../shared/constants/index.ts';
 import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   AcPaths,
+  EventPlan,
+  EventState,
   RaceDefinition,
   RaceOut,
   RaceSetup,
   RaceStatus,
   ResultRecord,
   Track,
-  WeekendPlan,
-  WeekendState,
 } from '../../shared/types/index.ts';
 import { defined } from '../../shared/utils/defined/index.ts';
 import { parseClock } from '../../shared/utils/road-temperature/index.ts';
@@ -66,7 +66,7 @@ import type { SettingsStore } from '../settings-store/index.ts';
 export type { RaceProgress, RaceStore } from './types.ts';
 // Re-exported because the quick-race store keeps its races beside the race
 // store's own files, written the same tolerant way, and it and the career both
-// put a weekend back in the slot only when the slot does not already hold it.
+// put an event back in the slot only when the slot does not already hold it.
 export { RACE_DIR } from './constants.ts';
 export { readJson, slotHolds, writeJson } from './utils.ts';
 
@@ -89,7 +89,7 @@ export const createRaceStore = async (
   const resultsDir = path.join(dir, RESULTS_DIR);
 
   let definition = await readJson<RaceDefinition>(draftFile) ?? structuredClone(DEFAULT_DEFINITION);
-  let state = await readJson<WeekendState>(stateFile);
+  let state = await readJson<EventState>(stateFile);
   let paths: AcPaths | null = null;
   let status: RaceStatus = {
     phase: 'idle', launchIndex: null, startedAt: null, failure: null,
@@ -124,11 +124,11 @@ export const createRaceStore = async (
    * @param problems The list to add to
    * @returns The plan, or null when the race cannot be planned
    */
-  const planned = async (problems: AppErrorInfo[]): Promise<WeekendPlan | null> => {
+  const planned = async (problems: AppErrorInfo[]): Promise<EventPlan | null> => {
     if (problems.length > 0) return null;
 
     try {
-      return planWeekend(definition, await content.content());
+      return planEvent(definition, await content.content());
     } catch (error) {
       if (!isAppError(error)) throw error;
       problems.push(error.toInfo());
@@ -140,13 +140,13 @@ export const createRaceStore = async (
   /**
    * Brings the stored progress into line with the plan.
    *
-   * Progress left over from a weekend that no longer exists, or that planned a
+   * Progress left over from an event that no longer exists, or that planned a
    * different number of launches, is worse than none: it would apply one
-   * weekend's grid to another and look like it worked.
+   * event's grid to another and look like it worked.
    * @param plan The plan to match, or null when there is none
    * @returns The progress to report, or null when there is no plan
    */
-  const reconciled = (plan: WeekendPlan | null): WeekendState | null => {
+  const reconciled = (plan: EventPlan | null): EventState | null => {
     if (!plan) return null;
 
     let usable = state;
@@ -161,7 +161,7 @@ export const createRaceStore = async (
     // Skipping happens here rather than at launch: describe() writes back a
     // reconciliation that changed anything, so a knockout that ended the
     // player's qualifying shows on the screen the moment the result lands.
-    return skipEliminated(plan, usable ?? initWeekendState(plan), new Date().toISOString());
+    return skipEliminated(plan, usable ?? initEventState(plan), new Date().toISOString());
   };
 
   /**
@@ -338,7 +338,7 @@ export const createRaceStore = async (
    *
    * Detached from the call that started it, because a race takes as long as it
    * takes. Everything it changes reaches the renderer as a push.
-   * @param plan The weekend being run
+   * @param plan The event being run
    * @param index Which launch is in flight
    * @param file The race_out.json to watch, as it was when the launch started
    * @param since Anything written at or before this is a previous result
@@ -346,7 +346,7 @@ export const createRaceStore = async (
    * @returns Resolves once the result has been archived or given up on
    */
   const awaitResult = async (
-    plan: WeekendPlan,
+    plan: EventPlan,
     index: number,
     file: string,
     since: number,
@@ -375,7 +375,7 @@ export const createRaceStore = async (
         : plan.raceName,
     });
 
-    state = advanceWeekend(plan, state ?? initWeekendState(plan), raceOut, {
+    state = advanceEvent(plan, state ?? initEventState(plan), raceOut, {
       archive: path.basename(archived),
       completedAt: new Date().toISOString(),
     });
@@ -389,7 +389,7 @@ export const createRaceStore = async (
    * Nothing is on a caller's stack by this point, so a failure archiving the
    * result would otherwise be an unhandled rejection and leave the launch
    * reading as still running for ever - with the planner's settings still ours.
-   * @param plan The weekend being run
+   * @param plan The event being run
    * @param index Which launch is in flight
    * @param file The race_out.json to watch, as it was when the launch started
    * @param since Anything written at or before this is a previous result
@@ -397,7 +397,7 @@ export const createRaceStore = async (
    * @returns Resolves once the launch has been settled
    */
   const collect = async (
-    plan: WeekendPlan,
+    plan: EventPlan,
     index: number,
     file: string,
     since: number,
@@ -424,7 +424,7 @@ export const createRaceStore = async (
 
     get: describe,
 
-    // Deliberately off the draft and the weekend state rather than off a plan:
+    // Deliberately off the draft and the event state rather than off a plan:
     // this is asked once per championship listing, and describe() reaches the
     // content scan.
     progress: () => progressOf(state, definition.id, status.phase !== 'idle'),
@@ -438,9 +438,9 @@ export const createRaceStore = async (
       state = null;
       if (completed.length > 0) {
         // The launch count is the plan's, which is what a saved state is
-        // matched against; a weekend that no longer plans starts over.
+        // matched against; an event that no longer plans starts over.
         try {
-          const plan = planWeekend(definition, await content.content());
+          const plan = planEvent(definition, await content.content());
           state = { raceId: plan.raceId, launchCount: plan.launches.length, completed: [...completed] };
         } catch (error) {
           if (!isAppError(error)) throw error;
@@ -460,11 +460,11 @@ export const createRaceStore = async (
       const plan = await planned(problems);
       if (!plan) throw new AppError('run.notPlanned');
 
-      const progress = reconciled(plan) ?? initWeekendState(plan);
+      const progress = reconciled(plan) ?? initEventState(plan);
       state = progress;
 
       const launch = nextLaunch(plan, progress);
-      if (!launch) throw new AppError('weekend.complete', { race: plan.raceName });
+      if (!launch) throw new AppError('event.complete', { race: plan.raceName });
 
       const launched = prepareLaunch(plan, progress, launch.index);
 

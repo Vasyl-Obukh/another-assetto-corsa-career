@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils.ts';
 
 interface FormatStripProps {
   /**
-   * The weekend's sessions, in the order they are run.
+   * The event's sessions, in the order they are run.
    */
   sessions: readonly SeriesSession[];
   /**
-   * Whether to wrap after every third session, for a list where a long weekend
+   * Whether to wrap after every third session, for a list where a long event
    * would otherwise push everything beside the strip across the page.
    */
   wrap?: boolean;
@@ -22,8 +22,8 @@ interface FormatStripProps {
   className?: string;
 }
 
-// A weekend as a row of blocks, one per session in its session colour, so a
-// sprint-and-feature weekend looks different from a Grand Prix before a word of
+// An event as a row of blocks, one per session in its session colour, so a
+// sprint-and-feature event looks different from a Grand Prix before a word of
 // it is read. The full names are the strip's label and each block's tooltip.
 export const FormatStrip = ({ sessions, wrap = false, className }: FormatStripProps) => {
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ export const FormatStrip = ({ sessions, wrap = false, className }: FormatStripPr
   return (
     <span
       role="img"
-      aria-label={t('championships.weekend', { sessions: names.join(', ') })}
+      aria-label={t('championships.event', { sessions: names.join(', ') })}
       className={cn(
         wrap ? 'grid shrink-0 grid-cols-[repeat(3,auto)] gap-0.5 self-start' : 'flex shrink-0 items-center gap-0.5',
         className,

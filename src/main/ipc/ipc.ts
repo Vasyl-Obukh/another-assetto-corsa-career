@@ -31,7 +31,7 @@ export { send } from './utils.ts';
  * @param series The store handlers read and write the championship library through
  * @param classes The store handlers read and write the user's class layer through
  * @param career The store handlers read and command the career through
- * @param quick The store handlers keep and run race weekends of the player's own through
+ * @param quick The store handlers keep and run race events of the player's own through
  */
 export const registerHandlers = (
   settings: SettingsStore,

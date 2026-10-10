@@ -2,16 +2,16 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A weekend of the current format: practice and qualifying on Friday, on
+ * An event of the current format: practice and qualifying on Friday, on
  * Saturday a sprint with qualifying's top ten reversed, and on Sunday the
  * feature race from qualifying as it stood.
  */
-const WEEKEND: WeekendFormat = {
-  id: 'race-weekend',
+const EVENT: EventFormat = {
+  id: 'standard',
   name: 'Sprint and feature',
   sessions: [
     { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
@@ -106,8 +106,8 @@ export const FORMULA_2_2024_VRC: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2024_VRC, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND],
-  defaultWeekendFormat: 'race-weekend',
+  eventFormats: [EVENT],
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },

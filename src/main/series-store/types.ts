@@ -127,7 +127,7 @@ export interface SeriesStore {
    * refused, which is the same stance importing takes: a championship the app
    * will not store is one the user cannot fix. Three things are refused - one
    * the app ships, an id that does not match the document's, and a
-   * championship whose weekend has already begun.
+   * championship whose event has already begun.
    *
    * Written by the file it was loaded from, never by a name derived from the
    * id: the two are allowed to disagree, so `weird.json` may perfectly well
@@ -136,7 +136,7 @@ export interface SeriesStore {
    * @param series The championship to write
    * @returns The listing as it now stands, off the document that was written
    * @throws When it is not the user's to edit, is renamed, or is part-way
-   * through a weekend
+   * through an event
    */
   save: (id: string, series: Championship) => Promise<SeriesListing>;
   /**

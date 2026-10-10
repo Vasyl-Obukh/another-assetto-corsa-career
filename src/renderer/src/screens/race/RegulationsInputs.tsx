@@ -12,7 +12,7 @@ interface RegulationsInputsProps {
    */
   assists: Assists;
   /**
-   * Whether the weekend has started, in which case they cannot change - a
+   * Whether the event has started, in which case they cannot change - a
    * sprint and a feature run under one set of rules or they are not one event.
    */
   locked: boolean;

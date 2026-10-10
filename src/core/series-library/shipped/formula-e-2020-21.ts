@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -80,7 +80,7 @@ export const FORMULA_E_2020_21: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_2, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'e-prix',
       name: 'E-Prix',
@@ -99,7 +99,9 @@ export const FORMULA_E_2020_21: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'e-prix',
+  defaultEventFormat: 'e-prix',
+  // Raced on a Saturday, as the real series is.
+  raceWeekday: Weekday.SATURDAY,
   rounds: [
     { id: 'valencia-1', name: 'Valencia E-Prix, race 1', track: { id: 'fn_valencia', layout: 'gp' } },
     { id: 'valencia-2', name: 'Valencia E-Prix, race 2', track: { id: 'fn_valencia', layout: 'gp' } },

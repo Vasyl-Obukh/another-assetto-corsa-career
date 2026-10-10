@@ -241,6 +241,21 @@ export enum SeasonLength {
 }
 
 /**
+ * A day of the week, which is what a championship races on.
+ *
+ * Monday first, as a calendar week is laid out and as the editor lists them.
+ */
+export enum Weekday {
+  MONDAY = 'monday',
+  TUESDAY = 'tuesday',
+  WEDNESDAY = 'wednesday',
+  THURSDAY = 'thursday',
+  FRIDAY = 'friday',
+  SATURDAY = 'saturday',
+  SUNDAY = 'sunday',
+}
+
+/**
  * A championship asking for its weather to be generated rather than authored.
  */
 export interface GeneratedWeather {
@@ -513,15 +528,15 @@ export interface Round {
     layout?: string;
   };
   /**
-   * Which weekend format this round runs, by its id in `weekendFormats`.
+   * Which event format this round runs, by its id in `eventFormats`.
    *
-   * Omitted, the round runs the championship's `defaultWeekendFormat`. A named
+   * Omitted, the round runs the championship's `defaultEventFormat`. A named
    * reference rather than a session list of its own, so a calendar mixing
-   * sprint and regular weekends says which is which - and so a one-off format
+   * sprint and regular events says which is which - and so a one-off format
    * is authored once and referenced, rather than being an anonymous list that
    * happens to differ from the championship's.
    */
-  weekendFormat?: string;
+  eventFormat?: string;
   /**
    * Session lengths replaced for this round, per session of its format.
    *
@@ -576,7 +591,7 @@ export interface Round {
  * One named way of scoring a race.
  *
  * A list of these rather than one table, for the same reason a championship
- * holds several weekend formats: a sprint weekend is one event scoring twice,
+ * holds several event formats: a sprint event is one event scoring twice,
  * on two scales, and a race that cannot name which scale it pays is not a
  * sprint. Named rather than written out at the session, so the two races of a
  * double-header that score alike say so instead of repeating a table that can
@@ -616,13 +631,13 @@ export interface PointsSystem {
 }
 
 /**
- * A session inside a championship's weekend format.
+ * A session inside a championship's event format.
  *
  * A SessionDefinition plus what only a championship can say about it. Points
- * are kept out of SessionDefinition itself because a hand-authored weekend has
- * no standings for them to feed, and src/core/weekend/ must go on knowing
+ * are kept out of SessionDefinition itself because a hand-authored event has
+ * no standings for them to feed, and src/core/event/ must go on knowing
  * nothing about series - so the extra field rides into RaceDefinition.sessions
- * inert rather than the weekend engine learning to ignore it.
+ * inert rather than the event engine learning to ignore it.
  */
 export interface SeriesSession extends SessionDefinition {
   /**
@@ -630,7 +645,7 @@ export interface SeriesSession extends SessionDefinition {
    *
    * Omitted, the session pays the championship's `defaultPointsSystem`. A named
    * reference rather than a table of its own, the same way a round names a
-   * weekend format: the sprint of every sprint weekend pays one scale, and
+   * event format: the sprint of every sprint event pays one scale, and
    * writing it out per session is how two of them come to disagree.
    *
    * Only meaningful on a race session, which validateFormat enforces.
@@ -649,18 +664,18 @@ export interface SeriesSession extends SessionDefinition {
 }
 
 /**
- * One named way of running a race weekend.
+ * One named way of running a race event.
  *
  * Named rather than a bare session list, because a championship holds several
  * and a round, a card and a picker all have to say which one they mean.
  */
-export interface WeekendFormat {
+export interface EventFormat {
   /**
    * Stable identifier, unique within the championship.
    */
   id: string;
   /**
-   * Display name, for example "Sprint weekend".
+   * Display name, for example "Sprint event".
    */
   name: string;
   /**
@@ -740,14 +755,19 @@ export interface Championship {
    */
   seasonLength?: SeasonLength;
   /**
-   * Every way this championship runs a weekend, in the order they are offered.
+   * Which day of the week its rounds are raced on. Omitted, the tier of its
+   * highest class decides - see raceWeekdayOf.
+   */
+  raceWeekday?: Weekday;
+  /**
+   * Every way this championship runs an event, in the order they are offered.
    *
    * A list rather than one format, because a real championship has more than
-   * one: this year's Formula 1 runs a regular weekend and a sprint weekend, and
+   * one: this year's Formula 1 runs a regular event and a sprint event, and
    * GT World Challenge's sprint rounds carry two qualifyings and two races.
    * Always at least one entry, which validateSeries enforces.
    */
-  weekendFormats: readonly WeekendFormat[];
+  eventFormats: readonly EventFormat[];
   /**
    * Which format a round runs when it names none, by its id.
    *
@@ -755,7 +775,7 @@ export interface Championship {
    * authoring accident, and a championship reordering its formats must not
    * quietly change what every round of it races.
    */
-  defaultWeekendFormat: string;
+  defaultEventFormat: string;
   /**
    * Every way this championship scores a race, in the order it offers them.
    *
@@ -766,7 +786,7 @@ export interface Championship {
    * Which system a race pays when it names none, by its id.
    *
    * Required rather than defaulting to the first entry, for the same reason
-   * `defaultWeekendFormat` is: a list's order is an authoring accident, and
+   * `defaultEventFormat` is: a list's order is an authoring accident, and
    * reordering the tables must not quietly change what a season pays.
    */
   defaultPointsSystem: string;
@@ -1088,7 +1108,7 @@ export interface SeriesLibrary {
 export type SeriesOrigin = 'shipped' | 'user' | 'adjusted';
 
 /**
- * A weekend of this championship that has already begun.
+ * An event of this championship that has already begun.
  *
  * What the editor is gated on. A launch inherits its grid from the one before
  * it, and everything the editor can change - the entry list, the balance of
@@ -1096,7 +1116,7 @@ export type SeriesOrigin = 'shipped' | 'user' | 'adjusted';
  * decides what that grid holds, so the document is locked whole rather than
  * section by section.
  */
-export interface SeriesWeekendState {
+export interface SeriesEventState {
   /**
    * Which round is under way.
    */
@@ -1146,10 +1166,10 @@ export interface SeriesListing {
    */
   filler: boolean;
   /**
-   * The weekend of this championship that is part-way through, or null when
+   * The event of this championship that is part-way through, or null when
    * none is. Non-null is what stops it being edited.
    */
-  weekend: SeriesWeekendState | null;
+  event: SeriesEventState | null;
 }
 
 /**

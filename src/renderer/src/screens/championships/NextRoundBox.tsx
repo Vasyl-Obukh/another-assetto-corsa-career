@@ -5,7 +5,7 @@ import type { NextRound } from './types.ts';
 import { daysBetween } from '../../../../shared/utils/calendar-days';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareer } from '@/hooks';
-import { formatDayRange, useFormat } from '@/i18n';
+import { useFormat } from '@/i18n';
 
 interface NextRoundBoxProps {
   /**
@@ -26,7 +26,7 @@ export const NextRoundBox = ({ next, onOpen }: NextRoundBoxProps) => {
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
   const today = useCareer().calendar?.date;
-  const days = today === undefined ? 0 : daysBetween(today, next.firstDay);
+  const days = today === undefined ? 0 : daysBetween(today, next.date);
 
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-primary/40 bg-primary/5 p-3">
@@ -43,7 +43,7 @@ export const NextRoundBox = ({ next, onOpen }: NextRoundBoxProps) => {
           {t('championships.detail.roundAt', { number: next.number, round: next.round.name })}
         </span>
         <span className="text-xs text-muted-foreground">
-          {formatDayRange(t, formatDayShort, next.firstDay, next.lastDay)}
+          {formatDayShort(next.date)}
         </span>
       </div>
       <Button onClick={onOpen}>

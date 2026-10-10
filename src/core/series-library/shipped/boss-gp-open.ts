@@ -11,7 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * own, which is what the base game can field: the Exos and its Stage 1
  * upgrade, the latter restricted and ballasted to the standard car.
  *
- * The weekend is BOSS GP's shape - two practices, one qualifying, two short
+ * The event is BOSS GP's shape - two practices, one qualifying, two short
  * races, the second lined up on the first's result. The calendar is the 2019
  * season's: the Red Bull Ring, Monza, Assen and Imola as raced, with the
  * Nurburgring - a BOSS GP venue in later seasons - and Mugello standing in for
@@ -63,10 +63,10 @@ export const BOSS_GP_OPEN: Championship = {
       bop: [{ car: 'lotus_exos_125_s1', ballast: 40, restrictor: 12 }],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice 1', minutes: 30, day: 0 },
         { type: 'practice', name: 'Free practice 2', minutes: 30, day: 0 },
@@ -85,7 +85,7 @@ export const BOSS_GP_OPEN: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'hockenheim',

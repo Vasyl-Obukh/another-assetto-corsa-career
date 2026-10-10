@@ -110,7 +110,7 @@ export const ALMS_2001: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'sprint',
       name: 'Two hours forty-five',
@@ -148,13 +148,13 @@ export const ALMS_2001: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'sprint',
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'twelve-hours',
+      eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -167,14 +167,14 @@ export const ALMS_2001: Championship = {
       id: 'road-america',
       name: 'Road America 500',
       track: { id: 'lilski_road_america' },
-      weekendFormat: 'four-hours',
+      eventFormat: 'four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
       track: { id: 'road_atlanta2018', layout: 'grandprix' },
-      weekendFormat: 'ten-hours',
+      eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
     { id: 'laguna-seca', name: 'Grand Prix of Monterey', track: { id: 'ks_laguna_seca' } },

@@ -76,10 +76,10 @@ export const JDM_PRODUCTION: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -87,7 +87,7 @@ export const JDM_PRODUCTION: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'fuji',

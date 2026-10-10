@@ -7,7 +7,7 @@ import type {
  */
 export interface RaceColumn {
   /**
-   * Which launch of the weekend it is, which is what joins it to its score.
+   * Which launch of the event it is, which is what joins it to its score.
    */
   launch: number;
   /**
@@ -33,9 +33,9 @@ export interface RoundColumn {
    */
   number: number;
   /**
-   * Its race day this season, as an ISO date.
+   * The day it is raced on this season, as an ISO date.
    */
-  raceDay: string;
+  date: string;
   /**
    * What became of it.
    */

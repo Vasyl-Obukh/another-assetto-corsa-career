@@ -99,10 +99,10 @@ export const LOTUS_CUP: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 25, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
@@ -110,7 +110,7 @@ export const LOTUS_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },

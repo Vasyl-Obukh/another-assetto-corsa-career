@@ -39,7 +39,7 @@
   --success-foreground: oklch(0.985 0.005 155);
   /* Amber sits between "fine" and "broken", which several states genuinely
      are: a championship whose file does not validate, a qualifying segment
-     nobody drove, a weekend that clashes with another, a championship above
+     nobody drove, an event that clashes with another, a championship above
      the player's level. Dark text on it, because an amber light enough to read as a
      warning cannot carry white. */
   --warning: oklch(0.79 0.15 80);
@@ -68,10 +68,10 @@
   --origin-custom: oklch(0.93 0.05 340);
   --origin-custom-foreground: oklch(0.38 0.12 340);
 
-  /* What kind of session a chip stands for. A weekend format is a row of these
+  /* What kind of session a chip stands for. An event format is a row of these
      and reading it at a glance is the whole point, so practice, qualifying and
      the race get a hue each - and the race is deeper than the other two,
-     because a weekend has one thing in it that counts. The four exotic types
+     because an event has one thing in it that counts. The four exotic types
      share a neutral on purpose: "something else" is not a category worth a
      colour, and giving it one would make a legend necessary. */
   --session-practice: oklch(0.93 0.045 250);
@@ -136,7 +136,7 @@
      page as independent, and that pair is told apart by weight rather than
      hue: destructive is a solid mid-lightness fill with light text, a budget
      chip a pale tint with dark text. The race chip does share the entry list's
-     page, as the weekend strip, where privateer's 18 degrees hold. */
+     page, as the event strip, where privateer's 18 degrees hold. */
   --budget-works: oklch(0.91 0.075 320);
   --budget-works-foreground: oklch(0.38 0.15 320);
   --budget-independent: oklch(0.92 0.06 18);
@@ -144,7 +144,7 @@
   --budget-privateer: oklch(0.93 0.055 132);
   --budget-privateer-foreground: oklch(0.4 0.09 135);
 
-  /* Which class of a race a car is in, as a race weekend of the player's own
+  /* Which class of a race a car is in, as a race event of the player's own
      and a multi-class result list them: a colour per slot - the first class,
      the second - since a race's classes are whatever the player made, and the
      slot is the only thing every race's classes share. Cycles past the fourth.
@@ -262,7 +262,7 @@
   /* A round of a career's calendar the clock went past without it being raced.
      One token rather than a family of three, because the other two states
      already have a colour that means them: a raced round is `success`, and a
-     clash between two entered weekends is `warning` - which is exactly what
+     clash between two entered events is `warning` - which is exactly what
      that token was cut for, something between fine and broken. A round still to
      come stays neutral on purpose, since most of the calendar is that and a
      colour on it would say nothing.
@@ -641,7 +641,7 @@ summary,
 
 /*
  * What anything clicked as a whole wears under the pointer - a car, a track, a
- * layout, a livery, a championship, a round, a race weekend, a tile picked in a
+ * layout, a livery, a championship, a round, a race event, a tile picked in a
  * picker or in settings: a primary line around it. One utility so its weight is
  * decided in one place. A picked one keeps the line for good by setting
  * --outline-rest, rather than a colour class that would race this one for the

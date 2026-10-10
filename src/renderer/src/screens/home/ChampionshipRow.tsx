@@ -59,7 +59,7 @@ export const ChampionshipRow = ({ progress }: ChampionshipRowProps) => {
           {progress.next
             ? t('home.nextRound', {
               number: progress.marks.indexOf('next') + 1,
-              day: formatDayShort(progress.next.firstDay),
+              day: formatDayShort(progress.next.date),
             })
             : t('home.seasonDone')}
         </span>

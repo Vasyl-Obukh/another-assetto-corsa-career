@@ -20,7 +20,7 @@ export const SessionBriefing = ({ session }: SessionBriefingProps) => {
   const { forecast, inherit, pending } = session;
   const race = session.type === 'race';
   // Two ways to have no forecast, and they mean opposite things: a generated
-  // weekend the clock has not reached yet has one coming, an authored one never
+  // event the clock has not reached yet has one coming, an authored one never
   // will.
   const missing = pending ? t('event.brief.pending') : t('event.brief.authored');
 

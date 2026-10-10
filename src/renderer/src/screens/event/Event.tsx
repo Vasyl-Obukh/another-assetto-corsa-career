@@ -8,19 +8,19 @@ import { SUMMARY } from './constants.ts';
 import { EnterPanel } from './EnterPanel.tsx';
 import { EntryPanel } from './EntryPanel.tsx';
 import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
+import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
 import { defaultSession } from './utils.ts';
-import { WeekendList } from './WeekendList.tsx';
-import { ClimateBadge, ErrorCard, lostCount, ScreenBody, ScreenHeader, SkipDialog } from '@/components';
+import { ClimateBadge, ErrorCard, ScreenBody, ScreenHeader, SkipDialog } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import {
   useCareerEvent, useChampionshipResults, usePageName, usePlayerName,
 } from '@/hooks';
-import { formatDayRange, useFormat } from '@/i18n';
+import { useFormat } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
 import { path, ROUTE } from '@/lib/routes';
 import { sessionName } from '@/lib/session-labels';
@@ -35,7 +35,7 @@ export const Event = () => {
   const event = useCareerEvent(series, round);
   const results = useChampionshipResults(series);
   const navigate = useNavigate();
-  // Null until the player picks one, so the page follows the weekend on its own
+  // Null until the player picks one, so the page follows the event on its own
   // - opening on the next session, and moving on to the one after once it has
   // run - until they choose to look at something else.
   const [picked, setPicked] = useState<number | null>(null);
@@ -44,8 +44,8 @@ export const Event = () => {
 
   const { view } = event;
   usePageName(view ? t('back.round', { round: view.roundName, series: view.seriesName }) : null);
-  // The round's own results head the weekend once anything of it has run, and
-  // a weekend over and done opens on them.
+  // The round's own results head the event once anything of it has run, and
+  // an event over and done opens on them.
   const raced = view?.sessions.some((one) => one.record !== null) ?? false;
   const summary = view && raced ? {
     points: view.entered && !view.substituted
@@ -95,7 +95,7 @@ export const Event = () => {
                   <ChevronRightIcon className="size-3.5" />
                 </Link>
                 <span>
-                  {formatDayRange(t, formatDay, view.firstDay, view.lastDay)}
+                  {formatDay(view.date)}
                 </span>
                 <span>{t('calendar.grid', { count: view.gridSize })}</span>
                 {view.prize === null ? null : (
@@ -129,7 +129,7 @@ export const Event = () => {
                 onEnter={(entry, car) => { void event.enter(entry, car); }}
               />
             )}
-            <WeekendList
+            <EventSessionList
               sessions={view.sessions}
               selected={selected}
               summary={summary}
@@ -167,7 +167,7 @@ export const Event = () => {
               series={results.results?.championship ?? null}
               busy={event.busy}
               onLaunch={() => {
-                if (lostCount(view.skips) > 0) {
+                if (view.skips.length > 0) {
                   setConfirming(true);
 
                   return;
@@ -187,14 +187,14 @@ export const Event = () => {
       {view && session ? (
         <SkipDialog
           open={confirming}
-          title={t('skip.launchTitle', { count: lostCount(view.skips) })}
+          title={t('skip.launchTitle', { count: view.skips.length })}
           description={t(
             view.skips.some((one) => one.reason === 'partway') ? 'skip.launchHintPartway' : 'skip.launchHint',
-            { round: view.roundName, day: formatDayShort(view.firstDay) },
+            { round: view.roundName, day: formatDayShort(view.date) },
           )}
           rounds={view.skips}
           confirmLabel={t('skip.launchConfirm', {
-            count: lostCount(view.skips),
+            count: view.skips.length,
             name: sessionName(session, t),
           })}
           busy={event.busy}

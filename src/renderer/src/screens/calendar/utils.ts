@@ -73,7 +73,7 @@ export const offeredDisciplines = (
 export const eventKey = (event: CalendarEntry): string => `${event.series}-${event.entry}-${event.round}`;
 
 /**
- * How far down a day's list an event goes: the career's own weekends first,
+ * How far down a day's list an event goes: the career's own events first,
  * then what it could enter, then everything else.
  * @param event The event
  * @returns Its rank, lowest first
@@ -95,14 +95,14 @@ export const agendaDays = (events: readonly CalendarEntry[]): AgendaDay[] => {
   const days = new Map<string, CalendarEntry[]>();
 
   events.forEach((event) => {
-    const held = days.get(event.raceDay);
+    const held = days.get(event.date);
     if (held) {
       held.push(event);
 
       return;
     }
 
-    days.set(event.raceDay, [event]);
+    days.set(event.date, [event]);
   });
 
   return [...days].map(([date, own]) => ({
@@ -127,15 +127,15 @@ export const statusCounts = (
 ])) as Record<CalendarStatus, number>;
 
 /**
- * The weekend the clock should move to next: the next one the career is entered
+ * The event the clock should move to next: the next one the career is entered
  * in, or failing that the next one at all.
  * @param events Every event of the season, earliest first
  * @param clock The ISO date the career's clock stands at
  * @returns The event, or null once nothing is left to come
  */
 export const nextEvent = (events: readonly CalendarEntry[], clock: string): CalendarEntry | null => (
-  events.find((event) => event.enrolled && event.firstDay > clock)
-  ?? events.find((event) => event.firstDay > clock)
+  events.find((event) => event.enrolled && event.date > clock)
+  ?? events.find((event) => event.date > clock)
   ?? null
 );
 
@@ -163,7 +163,7 @@ export const shiftMonth = (month: string, months: number): string => {
  * Every month a season touches, each with a tick per race day in it.
  *
  * A race day the career is entered in reads as its own, or as a clash where one
- * of its weekends collides - so the strip doubles as a map of the season.
+ * of its events collides - so the strip doubles as a map of the season.
  * @param from The season's opening day, as an ISO date
  * @param to The season's closing day, as an ISO date
  * @param events Every event of the season
@@ -178,7 +178,7 @@ export const seasonMonths = (
 
   for (let month = monthOf(from); month <= to; month = shiftMonth(month, 1)) {
     const next = shiftMonth(month, 1);
-    const ticks = agendaDays(events.filter((event) => event.raceDay >= month && event.raceDay < next))
+    const ticks = agendaDays(events.filter((event) => event.date >= month && event.date < next))
       .map((day): MonthTick => {
         const yours = day.events.filter((event) => event.enrolled);
         if (yours.some((event) => event.clash)) return 'clash';
@@ -226,7 +226,7 @@ export const defaultDay = (
   today: string,
 ): string => {
   const inMonth = events
-    .map((event) => event.raceDay)
+    .map((event) => event.date)
     .filter((day) => monthOf(day) === month)
     .toSorted();
 

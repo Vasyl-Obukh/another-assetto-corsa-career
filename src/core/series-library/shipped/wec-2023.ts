@@ -115,7 +115,7 @@ export const WEC_2023: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -191,14 +191,14 @@ export const WEC_2023: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'sebring',
       name: '1000 Miles of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
       sessionLengths: [{ session: 'race', laps: 239 }],
-      weekendFormat: 'eight-hours',
+      eventFormat: 'eight-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -218,7 +218,7 @@ export const WEC_2023: Championship = {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'chicane' },
-      weekendFormat: 'le-mans',
+      eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {
@@ -238,7 +238,7 @@ export const WEC_2023: Championship = {
       id: 'bahrain',
       name: '8 Hours of Bahrain',
       track: { id: 'fn_bahrain', layout: 'gp_lfm' },
-      weekendFormat: 'eight-hours',
+      eventFormat: 'eight-hours',
       climate: Climate.ARID,
     },
   ],

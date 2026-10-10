@@ -55,7 +55,7 @@ export const GT_MANUFACTURERS_1962: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_ferrari_250_gto'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'three-hours',
       name: 'Three hours',
@@ -102,34 +102,34 @@ export const GT_MANUFACTURERS_1962: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'three-hours',
+  defaultEventFormat: 'three-hours',
   rounds: [
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'twelve-hours',
+      eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '500 km of Spa',
       track: { id: 'spa' },
-      weekendFormat: 'spa-500',
+      eventFormat: 'spa-500',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
       track: { id: 'ks_nordschleife', layout: 'nordschleife' },
-      weekendFormat: 'nurburgring-1000',
+      eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'nochicane' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     { id: 'monza', name: 'Coppa Inter-Europa', track: { id: 'ks_monza66', layout: 'road' } },

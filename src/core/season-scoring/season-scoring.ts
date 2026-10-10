@@ -1,4 +1,4 @@
-// Turning a driven weekend into points, and a season's points into tables.
+// Turning a driven event into points, and a season's points into tables.
 //
 // Pure: the archives are read by whoever owns them and handed in, so nothing
 // here touches a disk.
@@ -27,32 +27,32 @@ import {
 } from './utils.ts';
 import type {
   Championship,
+  EventPlan,
+  EventState,
   RacePlace,
   RaceScore,
   RoundScore,
-  WeekendPlan,
-  WeekendState,
 } from '../../shared/types/index.ts';
-import { SESSION_TYPE } from '../race-ini/index.ts';
 import {
   bestLapTimes, chainOf, composeOrder, lastSessionOf,
-} from '../weekend/index.ts';
+} from '../event/index.ts';
+import { SESSION_TYPE } from '../race-ini/index.ts';
 
 export type { LaunchResult } from './types.ts';
-// Built from scores rather than from a weekend, and read by the renderer too.
+// Built from scores rather than from an event, and read by the renderer too.
 export { buildStandings } from '../../shared/utils/standings/index.ts';
 
 /**
- * Each car's best valid lap, in weekend-grid order.
+ * Each car's best valid lap, in event-grid order.
  *
  * A result's car indices are positions in the launch's own [CAR_n] list, which
- * a knockout segment makes shorter than the weekend's - so the times are read
+ * a knockout segment makes shorter than the event's - so the times are read
  * in that order and mapped back through it. Getting this wrong would attribute
  * a lap to the wrong driver rather than fail.
  * @param result What the launch wrote, or undefined when nothing was archived
- * @param gridOrder The [CAR_n] order the launch ran with, as weekend-grid indices
- * @param size How many cars the weekend fields
- * @returns One time in milliseconds per weekend-grid car, or null
+ * @param gridOrder The [CAR_n] order the launch ran with, as event-grid indices
+ * @param size How many cars the event fields
+ * @returns One time in milliseconds per event-grid car, or null
  */
 const lapTimesByCar = (
   result: LaunchResult | undefined,
@@ -74,14 +74,14 @@ const lapTimesByCar = (
 };
 
 /**
- * Scores one round of a championship from the weekend that ran it.
+ * Scores one round of a championship from the event that ran it.
  *
- * Every race of the weekend pays, so a sprint weekend scores twice and a round
- * is what a season counts. A weekend with no race in it scores nothing and is
+ * Every race of the event pays, so a sprint event scores twice and a round
+ * is what a season counts. An event with no race in it scores nothing and is
  * still a round that happened.
  * @param series The championship being raced
  * @param round Which round of it, by id
- * @param plan The weekend as it was planned
+ * @param plan The event as it was planned
  * @param state How it ran, which carries each launch's order and classification
  * @param results What Assetto Corsa wrote, one per launch that wrote anything
  * @param recordedAt When this was scored, as an ISO timestamp
@@ -90,8 +90,8 @@ const lapTimesByCar = (
 export const scoreRound = (
   series: Championship,
   round: string,
-  plan: WeekendPlan,
-  state: WeekendState,
+  plan: EventPlan,
+  state: EventState,
   results: readonly LaunchResult[],
   recordedAt: string,
 ): RoundScore => {
@@ -107,10 +107,10 @@ export const scoreRound = (
     const system = pointsSystemOf(series, launch.session);
     // A race naming a system the championship does not have is reported by
     // validateSeries. Here it simply pays nothing rather than throwing, because
-    // a weekend already driven has to stay recordable.
+    // an event already driven has to stay recordable.
     if (!system) return [];
 
-    // The order the race started in, composed exactly as the weekend composed
+    // The order the race started in, composed exactly as the event composed
     // it to set STARTING_POSITION - so qualifying points pay the grid that was
     // actually raced, and a knockout comes out right with no second rule. A
     // reverse-grid race pays on the qualifying order rather than on the

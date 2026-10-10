@@ -133,15 +133,11 @@ export interface NextRound {
    */
   number: number;
   /**
-   * The weekend's opening day, as an ISO date.
+   * The day it is raced on, as an ISO date.
    */
-  firstDay: string;
+  date: string;
   /**
-   * The weekend's closing day, as an ISO date.
-   */
-  lastDay: string;
-  /**
-   * Whether the career is part-way through its weekend.
+   * Whether the career is part-way through its event.
    */
   underway: boolean;
 }

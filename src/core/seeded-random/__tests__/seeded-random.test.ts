@@ -5,15 +5,15 @@ import { randomFrom, seedFrom } from '../seeded-random.ts';
 describe('core/seeded-random/seeded-random', () => {
   describe('seedFrom', () => {
     it('gives the same label the same seed', () => {
-      expect(seedFrom('weekend:1')).toBe(seedFrom('weekend:1'));
+      expect(seedFrom('event:1')).toBe(seedFrom('event:1'));
     });
 
     it('gives different labels different seeds', () => {
-      expect(seedFrom('weekend:1')).not.toBe(seedFrom('weekend:2'));
+      expect(seedFrom('event:1')).not.toBe(seedFrom('event:2'));
     });
 
     it('stays inside the generator range, empty string included', () => {
-      [' ', '', 'weekend:0', 'a much longer label than any launch would carry'].forEach((label) => {
+      [' ', '', 'event:0', 'a much longer label than any launch would carry'].forEach((label) => {
         expect(seedFrom(label)).toBeGreaterThanOrEqual(1);
         expect(seedFrom(label)).toBeLessThanOrEqual(2147483646);
       });

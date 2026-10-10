@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * An IndyCar road-course weekend: practice, the knockout to the Fast Six, and
+ * An IndyCar road-course event: practice, the knockout to the Fast Six, and
  * the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'road-course',
   name: 'Road course',
   sessions: [
@@ -96,8 +96,8 @@ export const INDYCAR_2018: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_ROAD, minModels: 1 },
     },
   ],
-  weekendFormats: [
-    WEEKEND,
+  eventFormats: [
+    EVENT,
     {
       id: 'oval',
       name: 'Oval, 200 laps',
@@ -119,7 +119,7 @@ export const INDYCAR_2018: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'road-course',
+  defaultEventFormat: 'road-course',
   rounds: [
     {
       id: 'road-america',
@@ -131,7 +131,7 @@ export const INDYCAR_2018: Championship = {
       id: 'daytona',
       name: 'Daytona International Speedway',
       track: { id: 'rt_daytona', layout: 'tri-oval' },
-      weekendFormat: 'oval',
+      eventFormat: 'oval',
       eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_OVAL, minModels: 1 } }],
       climate: Climate.TEMPERATE,
     },
@@ -139,7 +139,7 @@ export const INDYCAR_2018: Championship = {
       id: 'sonoma',
       name: 'Sonoma',
       track: { id: 'rt_sonoma', layout: 'indy' },
-      weekendFormat: 'sonoma',
+      eventFormat: 'sonoma',
       climate: Climate.TEMPERATE,
     },
   ],

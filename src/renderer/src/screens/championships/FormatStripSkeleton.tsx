@@ -10,7 +10,7 @@ interface FormatStripSkeletonProps {
 }
 
 /**
- * A weekend's strip of session blocks while the championship is read, a block
+ * An event's strip of session blocks while the championship is read, a block
  * the size of each loaded one.
  */
 export const FormatStripSkeleton = ({ blocks = FORMAT_SKELETON_BLOCKS }: FormatStripSkeletonProps) => (

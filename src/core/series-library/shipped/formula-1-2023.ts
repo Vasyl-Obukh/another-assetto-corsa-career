@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2023: three practices, the three-part
+ * A grand prix event of 2023: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -38,12 +38,12 @@ const WEEKEND: WeekendFormat = {
 };
 
 /**
- * A sprint weekend of 2023: Friday's knockout sets the grand prix grid,
+ * A sprint event of 2023: Friday's knockout sets the grand prix grid,
  * and Saturday runs a shootout of its own for the sprint.
  */
-const SPRINT: WeekendFormat = {
+const SPRINT: EventFormat = {
   id: 'sprint',
-  name: 'Sprint weekend',
+  name: 'Sprint',
   sessions: [
     { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
     { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 0 },
@@ -99,7 +99,7 @@ const SPRINT: WeekendFormat = {
  * The real entry list on VRC's Formula Alpha 2023, every seat in it. The 2023
  * season is a championship per spec, so RSS's car of the same year races its
  * own. 13 of 22 rounds at their real distances, four of its six sprint
- * weekends included - the sprint lined up by a shootout of its own, the grand
+ * events included - the sprint lined up by a shootout of its own, the grand
  * prix by Friday's knockout; Barcelona runs the layout without its final
  * chicane, as it did from that year. Yas Marina runs the layout before its
  * 2021 rebuild, so its laps cover the real distance. Jeddah, Melbourne, Baku,
@@ -162,8 +162,8 @@ export const FORMULA_1_2023: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2023_VRC, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND, SPRINT],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT, SPRINT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     {
       id: 'bahrain',
@@ -187,7 +187,7 @@ export const FORMULA_1_2023: Championship = {
       id: 'austria',
       name: 'Austrian Grand Prix',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
@@ -206,7 +206,7 @@ export const FORMULA_1_2023: Championship = {
       id: 'belgium',
       name: 'Belgian Grand Prix',
       track: { id: 'spa' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.OCEANIC,
     },
     {
@@ -225,7 +225,7 @@ export const FORMULA_1_2023: Championship = {
       id: 'united-states',
       name: 'United States Grand Prix',
       track: { id: 'acu_unitedstates' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
@@ -239,7 +239,7 @@ export const FORMULA_1_2023: Championship = {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
       track: { id: 'vhe_interlagos', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },

@@ -61,9 +61,9 @@ export const ChampionshipMenuItems = ({
 }: ChampionshipMenuItemsProps) => {
   const { t } = useTranslation();
   const { origin } = listing;
-  // A weekend under way is raced against the championship as it stood, so it
-  // may not change until that weekend is over.
-  const locked = listing.weekend !== null;
+  // An event under way is raced against the championship as it stood, so it
+  // may not change until that event is over.
+  const locked = listing.event !== null;
 
   return (
     <>

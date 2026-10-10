@@ -27,7 +27,7 @@ interface MonthStripProps {
 
 /**
  * The season a month at a time, each with a tick per race day - so where your
- * weekends fall reads before any month is opened.
+ * events fall reads before any month is opened.
  */
 export const MonthStrip = ({
   months, current, today, onPick,

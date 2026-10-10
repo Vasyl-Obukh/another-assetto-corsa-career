@@ -17,7 +17,7 @@ import {
 } from './utils.ts';
 import { MIN_REVERSED } from '../../../../shared/constants';
 import type {
-  Championship, SeriesSession, SessionType, Weather, WeatherController, WeatherSystem, WeekendFormat,
+  Championship, EventFormat, SeriesSession, SessionType, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -32,7 +32,7 @@ import { countsLaps, Field, fromNumber, NOT_SET, toNumber } from '@/screens/race
 /**
  * The session types a session page offers as chips. The exotic four - hotlap,
  * time attack, drift and drag - are offered only to a session that already is
- * one, since a championship weekend is made of these three.
+ * one, since a championship event is made of these three.
  */
 const MAIN_TYPES: readonly SessionType[] = ['practice', 'qualify', 'race'];
 
@@ -44,7 +44,7 @@ interface SessionPageProps {
   /**
    * The format the session belongs to.
    */
-  format: WeekendFormat;
+  format: EventFormat;
   /**
    * Where the session sits in the format.
    */
@@ -75,19 +75,19 @@ interface SessionPageProps {
    * Called with the format whenever the session changes.
    * @param next The format
    */
-  onChange: (next: WeekendFormat) => void;
+  onChange: (next: EventFormat) => void;
   /**
    * Whether races pay points here, which is what offers a race its points
-   * table. A race weekend of the player's own pays none.
+   * table. A race event of the player's own pays none.
    */
   scoring?: boolean;
   /**
    * What a conditions group left alone falls back on: the round's, or the
-   * weekend's own for a race weekend that is no round.
+   * event's own for a race event that is no round.
    */
-  behind?: 'round' | 'weekend';
+  behind?: 'round' | 'event';
   /**
-   * Whether the weekend runs on no days, so the session's day goes unsaid.
+   * Whether the event runs on no days, so the session's day goes unsaid.
    */
   undated?: boolean;
   /**
@@ -364,7 +364,7 @@ export const SessionPage = ({
         locked={locked}
         onChange={(conditions) => onChange(withSessionConditionsOf(format, index, conditions))}
       />
-      <span className="text-xs text-muted-foreground">{t(behind === 'round' ? 'editor.sessions.conditionsWin' : 'editor.sessions.conditionsWinWeekend')}</span>
+      <span className="text-xs text-muted-foreground">{t(behind === 'round' ? 'editor.sessions.conditionsWin' : 'editor.sessions.conditionsWinEvent')}</span>
     </div>
   );
 };

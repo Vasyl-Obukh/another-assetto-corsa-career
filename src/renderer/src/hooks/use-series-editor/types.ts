@@ -11,7 +11,7 @@ export interface SeriesEditorState {
    */
   draft: Championship | null;
   /**
-   * What the library last told us about it - the origin, the weekend, and the
+   * What the library last told us about it - the origin, the event, and the
    * availability of what is actually on disk. Null on the same terms.
    */
   listing: SeriesListing | null;
@@ -33,7 +33,7 @@ export interface SeriesEditorState {
    */
   busy: boolean;
   /**
-   * Whether a weekend of this championship is part-way through, in which case
+   * Whether an event of this championship is part-way through, in which case
    * nothing may be changed.
    */
   locked: boolean;

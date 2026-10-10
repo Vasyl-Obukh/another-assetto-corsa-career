@@ -11,7 +11,7 @@ import type {
 import { carsOf } from '../eligibility/index.ts';
 
 /**
- * A new race weekend: no track, no car and no classes, one short race.
+ * A new race event: no track, no car and no classes, one short race.
  * @param id Its identifier
  * @param now When it is made, as an ISO timestamp
  * @returns The race

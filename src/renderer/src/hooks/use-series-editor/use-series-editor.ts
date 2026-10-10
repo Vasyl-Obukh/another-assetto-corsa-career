@@ -166,7 +166,7 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
     dirty,
     loading,
     busy,
-    locked: Boolean(listing?.weekend),
+    locked: Boolean(listing?.event),
     error,
     dismissError: () => setError(null),
     edit,

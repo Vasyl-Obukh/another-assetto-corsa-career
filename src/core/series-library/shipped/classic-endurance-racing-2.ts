@@ -63,10 +63,10 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 45, day: 0 },
@@ -74,7 +74,7 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },

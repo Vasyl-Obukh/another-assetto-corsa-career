@@ -14,7 +14,7 @@ export interface RowDragOptions {
    */
   count: number;
   /**
-   * Whether dragging is off - a weekend under way, or a row already open for
+   * Whether dragging is off - an event under way, or a row already open for
    * editing, since renumbering a list under a visible form is bewildering.
    */
   locked: boolean;

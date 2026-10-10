@@ -82,7 +82,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
       grid: { strength: -4 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Invitational',
@@ -93,7 +93,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },

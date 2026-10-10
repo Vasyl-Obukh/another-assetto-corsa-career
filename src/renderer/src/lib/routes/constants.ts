@@ -19,7 +19,7 @@ import type { NavEntry, RouteId } from './types.ts';
 export const ROUTE = {
   home: '/home',
   race: '/race',
-  raceWeekend: '/race/:id',
+  raceEvent: '/race/:id',
   calendar: '/calendar',
   event: '/calendar/:series/:round',
   championships: '/championships',
@@ -76,7 +76,7 @@ export const NAV = [
 export const BACK_LABEL = {
   home: 'back.home',
   race: 'back.race',
-  raceWeekend: 'back.raceWeekend',
+  raceEvent: 'back.raceEvent',
   calendar: 'back.calendar',
   event: 'back.event',
   championships: 'back.championships',

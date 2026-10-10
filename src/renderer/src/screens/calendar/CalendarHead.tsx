@@ -24,7 +24,7 @@ interface CalendarHeadProps {
    */
   today: string;
   /**
-   * The weekend the clock would move to, or null once nothing is left.
+   * The event the clock would move to, or null once nothing is left.
    */
   next: CalendarEntry | null;
   /**
@@ -41,7 +41,7 @@ interface CalendarHeadProps {
    */
   onToday: () => void;
   /**
-   * Called to move the clock to the next weekend.
+   * Called to move the clock to the next event.
    */
   onAdvance: () => void;
 }

@@ -20,7 +20,7 @@ describe('renderer/lib/season-results/season-results', () => {
   });
 
   describe('raceSessionsOf', () => {
-    it('lists only the races of a weekend, by where each runs in it', () => {
+    it('lists only the races of an event, by where each runs in it', () => {
       const series = makeSeries();
 
       expect(raceSessionsOf(series, series.rounds[0])).toEqual([{ launch: 1, name: null }]);
@@ -38,7 +38,7 @@ describe('renderer/lib/season-results/season-results', () => {
     it('lists nothing for a format that does not resolve', () => {
       const series = makeSeries();
 
-      expect(raceSessionsOf(series, { ...series.rounds[0], weekendFormat: 'gone' })).toEqual([]);
+      expect(raceSessionsOf(series, { ...series.rounds[0], eventFormat: 'gone' })).toEqual([]);
     });
   });
 
@@ -46,7 +46,7 @@ describe('renderer/lib/season-results/season-results', () => {
     it('numbers every round and joins each race to what it paid', () => {
       const [first, second] = roundColumns(makeResults());
 
-      expect(first).toMatchObject({ number: 1, raceDay: '2026-05-03', status: 'raced', scored: true });
+      expect(first).toMatchObject({ number: 1, date: '2026-05-03', status: 'raced', scored: true });
       expect(first.races).toHaveLength(1);
       expect(first.races[0].score?.places[0].seat).toBe('main-1');
       expect(second.number).toBe(2);
@@ -57,7 +57,7 @@ describe('renderer/lib/season-results/season-results', () => {
       const results = makeResults();
       const [, second] = roundColumns({ ...results, rounds: results.rounds.slice(0, 1) });
 
-      expect(second).toMatchObject({ raceDay: '', status: 'scheduled', scored: false });
+      expect(second).toMatchObject({ date: '', status: 'scheduled', scored: false });
       expect(second.races.every((one) => one.score === null)).toBe(true);
     });
   });

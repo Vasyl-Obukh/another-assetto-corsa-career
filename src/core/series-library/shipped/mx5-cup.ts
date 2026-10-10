@@ -61,7 +61,7 @@ export const MX5_CUP: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Double header',
@@ -73,7 +73,7 @@ export const MX5_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'daytona',

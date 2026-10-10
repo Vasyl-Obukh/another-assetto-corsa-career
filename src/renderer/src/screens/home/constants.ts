@@ -13,8 +13,8 @@ export const ROUND_MARK = {
 } as const satisfies Record<RoundMark, string>;
 
 /**
- * The badge width of each session row in the weekend's skeleton - three, the
- * shortest weekend a championship runs.
+ * The badge width of each session row in the event's skeleton - three, the
+ * shortest event a championship runs.
  */
 export const SESSION_SKELETON = ['w-24', 'w-20', 'w-14'] as const;
 

@@ -7,9 +7,9 @@ import type { ParseKeys } from 'i18next';
 import type {
   ClassSection, ConditionGroup, EditorTab, LengthUnit, PointsTemplate, PurseShape, RoadKind, RoundTab, StartKind,
 } from './types.ts';
-import { MAX_WEEKEND_DAYS } from '../../../../shared/constants';
+import { MAX_EVENT_DAYS } from '../../../../shared/constants';
 import {
-  Climate, Hemisphere, SeasonLength, TeamBudget,
+  Climate, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../../../shared/types';
 import type { Championship, Conditions } from '../../../../shared/types';
 
@@ -18,8 +18,9 @@ import type { Championship, Conditions } from '../../../../shared/types';
  *
  * Radix cannot hold an empty string, so an unset select needs a value of its
  * own. Distinct from the race screen's NOT_SET, which means *nothing at all*:
- * a round naming no weekend format runs the default one, which is not the same
- * as a seat naming no team.
+ * a round naming no event format runs the default one, which is not the same
+ * as a seat naming no team. A championship naming no race day races on its
+ * tier's, which is the default the same way.
  *
  * Safe as a value because the editor mints every sub-id itself and none may
  * ever be typed, so no round or points system can be called this.
@@ -69,11 +70,11 @@ export const DEFAULT_LENGTH: Readonly<Record<LengthUnit, number>> = {
 /**
  * The last day a session may be put on.
  *
- * One less than MAX_WEEKEND_DAYS, which counts days rather than offsets - and
+ * One less than MAX_EVENT_DAYS, which counts days rather than offsets - and
  * the same ceiling validateFormat reports against, so the field refuses what
  * the document would be told off for.
  */
-export const MAX_DAY = MAX_WEEKEND_DAYS - 1;
+export const MAX_DAY = MAX_EVENT_DAYS - 1;
 
 /**
  * The fewest cars a session may carry over from the qualifying it follows.
@@ -152,6 +153,12 @@ export const HEMISPHERES: readonly Hemisphere[] = Object.values(Hemisphere);
 export const SEASON_LENGTHS: readonly SeasonLength[] = Object.values(SeasonLength);
 
 /**
+ * The days a championship may race on, Monday first.
+ */
+export const WEEKDAYS: readonly Weekday[] = Object.values(Weekday);
+
+
+/**
  * The climate generated weather starts from when it is switched on.
  *
  * The middle of the four, and what most of the shipped calendar races in.
@@ -213,25 +220,27 @@ export const LENGTH_LABEL = {
  * The editor's tabs, in the order they are offered.
  */
 export const EDITOR_TABS: readonly EditorTab[] = [
-  'overview', 'teams', 'classes', 'calendar', 'weekends', 'scoring',
+  'overview', 'teams', 'classes', 'calendar', 'formats', 'scoring',
 ];
 
 /**
  * The tabs that list things and so carry a count beside their name - what the
  * header's skeleton holds a count's place on.
  */
-export const COUNTED_TABS: readonly EditorTab[] = ['teams', 'classes', 'calendar', 'weekends'];
+export const COUNTED_TABS: readonly EditorTab[] = ['teams', 'classes', 'calendar', 'formats'];
 
 /**
  * Which of a championship's fields each tab edits, so a tab can say it holds
  * something unsaved.
  */
 export const TAB_FIELDS: Readonly<Record<EditorTab, readonly (keyof Championship)[]>> = {
-  overview: ['name', 'description', 'entryFee', 'seasonLength', 'generatedWeather', 'grid', 'regulations'],
+  overview: [
+    'name', 'description', 'entryFee', 'seasonLength', 'raceWeekday', 'generatedWeather', 'grid', 'regulations',
+  ],
   teams: ['teams'],
   classes: ['entries'],
   calendar: ['rounds'],
-  weekends: ['weekendFormats', 'defaultWeekendFormat'],
+  formats: ['eventFormats', 'defaultEventFormat'],
   scoring: ['pointsSystems', 'defaultPointsSystem', 'prizes'],
 };
 
@@ -252,15 +261,15 @@ export const PROBLEM_TAB: Readonly<Record<string, EditorTab>> = {
   rounds: 'calendar',
   round: 'calendar',
   season: 'calendar',
-  formats: 'weekends',
-  format: 'weekends',
-  sessions: 'weekends',
-  days: 'weekends',
-  inherit: 'weekends',
-  race: 'weekends',
-  length: 'weekends',
-  distance: 'weekends',
-  startingPosition: 'weekends',
+  formats: 'formats',
+  format: 'formats',
+  sessions: 'formats',
+  days: 'formats',
+  inherit: 'formats',
+  race: 'formats',
+  length: 'formats',
+  distance: 'formats',
+  startingPosition: 'formats',
   points: 'scoring',
   prizes: 'scoring',
 };
@@ -277,7 +286,7 @@ export const CLASS_SECTIONS: readonly ClassSection[] = ['cars', 'seats', 'perfor
  */
 export const ROUND_COLUMN = {
   MAP: 'w-16 shrink-0',
-  WEEKEND: 'hidden w-60 shrink-0 xl:flex',
+  EVENT: 'hidden w-60 shrink-0 xl:flex',
   RACES: 'hidden w-36 shrink-0 lg:block',
   OWN: 'flex w-80 shrink-0 flex-wrap gap-1',
   FEE: 'w-20 shrink-0 text-right',

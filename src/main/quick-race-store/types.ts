@@ -12,18 +12,18 @@ export interface QuickRaceFile {
   race: QuickRace;
   /**
    * Every launch of it run so far, in order - kept here rather than in the
-   * race store's slot, which holds only whichever weekend raced last.
+   * race store's slot, which holds only whichever event raced last.
    */
   completed: readonly LaunchRecord[];
 }
 
 /**
- * Every race weekend of the player's own, and the commands that change them.
+ * Every race event of the player's own, and the commands that change them.
  *
  * The races are run through the race store, one launch at a time: launching
  * one puts it in the store's slot together with what of it has run, and each
  * launch that lands is copied back here. So any number of them can be part-way
- * at once, and a championship weekend raced in between costs none of them
+ * at once, and a championship event raced in between costs none of them
  * anything.
  */
 export interface QuickRaceStore {
@@ -40,7 +40,7 @@ export interface QuickRaceStore {
    */
   get(id: string): Promise<QuickRaceView>;
   /**
-   * Makes a new race weekend, with nothing picked yet.
+   * Makes a new race event, with nothing picked yet.
    * @returns Its view
    */
   create(): Promise<QuickRaceView>;

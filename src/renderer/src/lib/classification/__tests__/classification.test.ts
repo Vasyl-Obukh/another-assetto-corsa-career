@@ -7,7 +7,7 @@ import {
 import { classifiedRows } from '../classification.ts';
 
 /**
- * One car of a weekend's grid.
+ * One car of an event's grid.
  * @param seat The seat it fills
  * @param overrides What else to change
  * @returns The grid entry

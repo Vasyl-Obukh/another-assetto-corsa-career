@@ -28,7 +28,7 @@ interface SeatCarFieldProps {
    */
   fieldable: readonly string[];
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**

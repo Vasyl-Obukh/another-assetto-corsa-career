@@ -69,7 +69,7 @@ export const ILMC_2011_GTE: Championship = {
       ],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -125,27 +125,27 @@ export const ILMC_2011_GTE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'sebring-12',
+      eventFormat: 'sebring-12',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '1000 km of Spa',
       track: { id: 'spa' },
-      weekendFormat: 'spa-1000',
+      eventFormat: 'spa-1000',
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'chicane' },
-      weekendFormat: 'le-mans-24',
+      eventFormat: 'le-mans-24',
       climate: Climate.TEMPERATE,
     },
     { id: 'imola', name: '6 Hours of Imola', track: { id: 'imola' } },
@@ -160,11 +160,11 @@ export const ILMC_2011_GTE: Championship = {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
       track: { id: 'road_atlanta2018', layout: 'grandprix' },
-      weekendFormat: 'petit-le-mans',
+      eventFormat: 'petit-le-mans',
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'zhuhai', name: '1000 km of Monza', track: { id: 'monza' }, weekendFormat: 'monza-1000',
+      id: 'zhuhai', name: '1000 km of Monza', track: { id: 'monza' }, eventFormat: 'monza-1000',
     },
   ],
   pointsSystems: [

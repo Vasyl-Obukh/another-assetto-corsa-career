@@ -98,10 +98,10 @@ export const PORSCHE_CLUB_RACE: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Club weekend',
+      name: 'Club',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -109,7 +109,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'road-atlanta',

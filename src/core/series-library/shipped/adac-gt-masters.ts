@@ -8,7 +8,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 /**
  * ADAC GT Masters - Germany's GT3 championship, on LFM's GT3 cars.
  *
- * Two races a weekend, each an hour less five minutes from a qualifying of its
+ * Two races a round, each an hour less five minutes from a qualifying of its
  * own, with a compulsory stop and driver change that cannot be said yet. The
  * calendar is the circuits the series races that Assetto Corsa has -
  * Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring - rather
@@ -24,7 +24,7 @@ export const ADAC_GT_MASTERS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'adac-gt-masters',
   name: 'ADAC GT Masters',
-  description: 'Germany\'s GT3 championship on LFM\'s GT3 cars: two 55-minute races a weekend at '
+  description: 'Germany\'s GT3 championship on LFM\'s GT3 cars: two 55-minute races a round at '
     + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
   teams: [
     team('hanse', 'Hanse Motorsport', 'DEU', TeamBudget.WORKS),
@@ -74,9 +74,9 @@ export const ADAC_GT_MASTERS: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
@@ -87,7 +87,7 @@ export const ADAC_GT_MASTERS: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'zandvoort',

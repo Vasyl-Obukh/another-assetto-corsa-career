@@ -2,36 +2,35 @@ import type { RoundMark, SeasonProgress } from './types.ts';
 import type { CalendarEntry, Career, CareerCalendar } from '../../../../shared/types';
 
 /**
- * The next weekend the career is entered in, still to be raced - including one
- * the clock is already inside.
+ * The next event the career is entered in, still to be raced - including one
+ * on the day the clock stands at.
  * @param events Every event of the season, earliest first
  * @param clock The ISO date the career's clock stands at
  * @returns The event, or null when nothing entered is left
  */
-export const upcomingWeekend = (
+export const upcomingEvent = (
   events: readonly CalendarEntry[],
   clock: string,
 ): CalendarEntry | null => events.find((event) => (
-  event.enrolled && event.status === 'scheduled' && event.lastDay >= clock
+  event.enrolled && event.status === 'scheduled' && event.date >= clock
 )) ?? null;
 
 /**
- * The other entered weekends that overlap one, which are what its clash is
- * with.
+ * The other entered events on the same day as one and not given up, which are
+ * what its clash is with - none unless the calendar marked it as clashing.
  * @param events Every event of the season
- * @param event The weekend in question
- * @returns The weekends it collides with
+ * @param event The event in question
+ * @returns The events it collides with
  */
 export const clashingWith = (
   events: readonly CalendarEntry[],
   event: CalendarEntry,
-): CalendarEntry[] => events.filter((other) => (
+): CalendarEntry[] => (event.clash ? events.filter((other) => (
   other !== event
   && other.enrolled
-  && other.status === 'scheduled'
-  && other.firstDay <= event.lastDay
-  && other.lastDay >= event.firstDay
-));
+  && other.status !== 'missed'
+  && other.date === event.date
+)) : []);
 
 /**
  * Every championship the career is still in this season, and how far through

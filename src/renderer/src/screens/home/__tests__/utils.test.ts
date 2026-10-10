@@ -4,18 +4,17 @@ import { Discipline } from '../../../../../shared/types';
 import type {
   CalendarEntry, Career, CareerCalendar, Championship, DriverStanding, SeasonEntry, SeasonEvent,
 } from '../../../../../shared/types';
-import { clashingWith, seasonProgress, upcomingWeekend } from '../utils.ts';
+import { clashingWith, seasonProgress, upcomingEvent } from '../utils.ts';
 
 /**
- * A calendar weekend the career is entered in and has still to race.
+ * A calendar event the career is entered in and has still to race.
  * @param overrides What to change about it
- * @returns The weekend
+ * @returns The event
  */
-const weekend = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
+const calendarEvent = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
   series: 'cup',
   round: 'r1',
-  firstDay: '2026-03-06',
-  lastDay: '2026-03-08',
+  date: '2026-03-08',
   status: 'scheduled',
   enrolled: true,
   ...overrides,
@@ -28,7 +27,7 @@ const weekend = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
  * @returns The event
  */
 const event = (round: string, status: SeasonEvent['status']): SeasonEvent => ({
-  round, firstDay: `2026-0${round.slice(1)}-01`, status,
+  round, date: `2026-0${round.slice(1)}-01`, status,
 } as SeasonEvent);
 
 /**
@@ -74,50 +73,64 @@ const careerWith = (...entries: SeasonEntry[]): [Career, CareerCalendar] => [
 ];
 
 describe('renderer/screens/home/utils', () => {
-  describe('upcomingWeekend', () => {
-    it('is the first entered weekend still to race', () => {
-      const later = weekend({ round: 'r2', firstDay: '2026-03-20', lastDay: '2026-03-22' });
+  describe('upcomingEvent', () => {
+    it('is the first entered event still to race', () => {
+      const later = calendarEvent({ round: 'r2', date: '2026-03-22' });
 
-      expect(upcomingWeekend([weekend(), later], '2026-03-01')?.round).toBe('r1');
+      expect(upcomingEvent([calendarEvent(), later], '2026-03-01')?.round).toBe('r1');
     });
 
-    it('includes a weekend the clock is already inside', () => {
-      expect(upcomingWeekend([weekend()], '2026-03-07')?.round).toBe('r1');
+    it('includes an event on the day the clock stands at', () => {
+      expect(upcomingEvent([calendarEvent()], '2026-03-08')?.round).toBe('r1');
     });
 
-    it('passes over weekends not entered, already run, or behind the clock', () => {
+    it('passes over events not entered, already run, or behind the clock', () => {
       const events = [
-        weekend({ round: 'other', enrolled: false }),
-        weekend({ round: 'run', status: 'raced' }),
-        weekend({ round: 'gone', lastDay: '2026-02-28' }),
-        weekend({ round: 'next', firstDay: '2026-04-03', lastDay: '2026-04-05' }),
+        calendarEvent({ round: 'other', enrolled: false }),
+        calendarEvent({ round: 'run', status: 'raced' }),
+        calendarEvent({ round: 'gone', date: '2026-02-28' }),
+        calendarEvent({ round: 'next', date: '2026-04-05' }),
       ];
 
-      expect(upcomingWeekend(events, '2026-03-01')?.round).toBe('next');
+      expect(upcomingEvent(events, '2026-03-01')?.round).toBe('next');
     });
 
     it('is null once nothing entered is left', () => {
-      expect(upcomingWeekend([weekend({ status: 'missed' })], '2026-03-01')).toBeNull();
+      expect(upcomingEvent([calendarEvent({ status: 'missed' })], '2026-03-01')).toBeNull();
     });
   });
 
   describe('clashingWith', () => {
-    it('finds the other entered weekends sharing a day with it, edges included', () => {
-      const held = weekend();
-      const overlapping = weekend({ series: 'gt', firstDay: '2026-03-08', lastDay: '2026-03-10' });
-      const apart = weekend({ series: 'f4', firstDay: '2026-03-09', lastDay: '2026-03-11' });
+    it('finds the other entered events on the same day as it', () => {
+      const held = calendarEvent({ clash: true });
+      const sameDay = calendarEvent({ series: 'gt', clash: true });
+      const apart = calendarEvent({ series: 'f4', date: '2026-03-09' });
 
-      expect(clashingWith([held, overlapping, apart], held)).toEqual([overlapping]);
+      expect(clashingWith([held, sameDay, apart], held)).toEqual([sameDay]);
     });
 
-    it('never clashes a weekend with itself, nor with one not entered or already run', () => {
-      const held = weekend();
+    it('finds nothing for an event the calendar did not mark as clashing', () => {
+      const held = calendarEvent();
+
+      expect(clashingWith([held, calendarEvent({ series: 'gt' })], held)).toEqual([]);
+    });
+
+    it('never clashes an event with itself, nor with one not entered or given up', () => {
+      const held = calendarEvent({ clash: true });
 
       expect(clashingWith([
         held,
-        weekend({ series: 'gt', enrolled: false }),
-        weekend({ series: 'f4', status: 'raced' }),
+        calendarEvent({ series: 'gt', enrolled: false }),
+        calendarEvent({ series: 'f4', status: 'missed' }),
       ], held)).toEqual([]);
+    });
+
+    // The day is already taken by it, which is what keeps this one from being raced.
+    it('counts an event already raced on the same day', () => {
+      const held = calendarEvent({ clash: true });
+      const raced = calendarEvent({ series: 'gt', status: 'raced' });
+
+      expect(clashingWith([held, raced], held)).toEqual([raced]);
     });
   });
 

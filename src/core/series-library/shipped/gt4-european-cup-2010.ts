@@ -83,10 +83,10 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
         { id: 'qualifying-1', type: 'qualify', name: 'Qualifying 1', minutes: 20, day: 0 },
@@ -100,7 +100,7 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'silverstone',

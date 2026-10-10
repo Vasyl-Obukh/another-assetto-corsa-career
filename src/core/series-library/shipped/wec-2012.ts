@@ -98,7 +98,7 @@ export const WEC_2012: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -127,13 +127,13 @@ export const WEC_2012: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'twelve-hours',
+      eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -147,7 +147,7 @@ export const WEC_2012: Championship = {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'chicane' },
-      weekendFormat: 'le-mans',
+      eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {

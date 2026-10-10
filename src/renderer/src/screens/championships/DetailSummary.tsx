@@ -11,8 +11,8 @@ import { SummaryFact } from './SummaryFact.tsx';
 import type { NextRound } from './types.ts';
 import { availabilityState, disciplineKey, tierAccent } from './utils.ts';
 import type { SeasonEntry, SeriesListing } from '../../../../shared/types';
+import { defaultFormatOf } from '../../../../shared/utils/event-format';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
-import { defaultFormatOf } from '../../../../shared/utils/weekend-format';
 import { useSettings } from '@/app';
 import { ClimateBadge, SWITCH_TRACK } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -131,7 +131,7 @@ export const DetailSummary = ({
 
       <div className="flex flex-col gap-2">
         {format ? (
-          <SummaryFact label={t('championships.detail.weekend')}>
+          <SummaryFact label={t('championships.detail.event')}>
             <FormatStrip sessions={format.sessions} />
           </SummaryFact>
         ) : null}

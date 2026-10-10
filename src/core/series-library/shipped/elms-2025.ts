@@ -100,7 +100,7 @@ export const ELMS_2025: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'four-hours',
       name: 'Four hours',
@@ -111,7 +111,7 @@ export const ELMS_2025: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'four-hours',
+  defaultEventFormat: 'four-hours',
   rounds: [
     {
       id: 'barcelona',

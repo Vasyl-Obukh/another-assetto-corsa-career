@@ -9,7 +9,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * DTM, 2021 - the first season on GT3 cars.
  *
  * RSS's GT-M Bayer V8, Lanzo V10 and Mercer V8 stand for the BMW, Lamborghini
- * and Mercedes that raced, and make up the spec. Five of eight weekends, each
+ * and Mercedes that raced, and make up the spec. Five of eight events, each
  * a qualifying and a race on Saturday and again on Sunday: Monza, Zolder, the
  * Nurburgring's sprint circuit, the Red Bull Ring and Assen. The Lausitzring,
  * Hockenheim and the Norisring are not in Assetto Corsa.
@@ -25,7 +25,7 @@ export const DTM_2021: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dtm-2021',
   name: 'DTM 2021',
-  description: 'The DTM\'s first GT3 season on RSS\'s GT-M cars: two qualifyings and two races a weekend '
+  description: 'The DTM\'s first GT3 season on RSS\'s GT-M cars: two qualifyings and two races a round '
     + 'at Monza, Zolder, the Nurburgring, the Red Bull Ring and Assen.',
   teams: [
     team('lausitz', 'Lausitz Racing', 'DEU', TeamBudget.WORKS),
@@ -69,9 +69,9 @@ export const DTM_2021: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.DTM_2021_RSS, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
@@ -82,7 +82,7 @@ export const DTM_2021: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     { id: 'zolder', name: 'Zolder', track: { id: 'rt_zolder' }, climate: Climate.TEMPERATE },

@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2021: three practices, the three-part
+ * A grand prix event of 2021: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -38,12 +38,12 @@ const WEEKEND: WeekendFormat = {
 };
 
 /**
- * A sprint weekend as it was introduced: Friday's knockout lines up a
+ * A sprint event as it was introduced: Friday's knockout lines up a
  * Saturday sprint, and the sprint's result is the grand prix grid.
  */
-const SPRINT: WeekendFormat = {
+const SPRINT: EventFormat = {
   id: 'sprint',
-  name: 'Sprint weekend',
+  name: 'Sprint',
   sessions: [
     { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
     { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 0 },
@@ -88,7 +88,7 @@ const SPRINT: WeekendFormat = {
  * Formula 1, 2021 - Max Verstappen's first title, decided on the last lap.
  *
  * The real entry list on RSS's Formula Hybrid 2021, every seat in it. Sixteen
- * of twenty-two rounds at their real distances, the three sprint weekends of
+ * of twenty-two rounds at their real distances, the three sprint rounds of
  * the first year included: Friday's knockout set the sprint grid, and the
  * sprint set the grand prix's. Yas Marina runs the layout before its 2021
  * rebuild, so its laps cover the real distance. Monaco, Baku, Paul Ricard,
@@ -106,7 +106,7 @@ export const FORMULA_1_2021: Championship = {
   id: 'formula-1-2021',
   name: 'Formula 1 2021',
   description: 'Max Verstappen\'s first title, with the real entry list on RSS\'s Formula Hybrid 2021, '
-    + 'sixteen of its grands prix at their real distances and the first three sprint weekends.',
+    + 'sixteen of its grands prix at their real distances and the first three sprint rounds.',
   teams: [
     team('red-bull', 'Red Bull Racing Honda', 'AUT', TeamBudget.WORKS),
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),
@@ -150,8 +150,8 @@ export const FORMULA_1_2021: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2021, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND, SPRINT],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT, SPRINT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     {
       id: 'bahrain',
@@ -185,7 +185,7 @@ export const FORMULA_1_2021: Championship = {
       id: 'britain',
       name: 'British Grand Prix',
       track: { id: 'ks_silverstone', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.OCEANIC,
     },
     {
@@ -201,7 +201,7 @@ export const FORMULA_1_2021: Championship = {
       track: { id: 'zandvoort2023', layout: '2023' },
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, weekendFormat: 'sprint' },
+    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, eventFormat: 'sprint' },
     {
       id: 'turkey',
       name: 'Turkish Grand Prix',
@@ -225,7 +225,7 @@ export const FORMULA_1_2021: Championship = {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
       track: { id: 'vhe_interlagos', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },

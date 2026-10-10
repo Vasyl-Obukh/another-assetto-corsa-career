@@ -51,9 +51,9 @@ export const LIANA_GT_CUP: Championship = {
       eligibility: { kind: 'cars', cars: ['gue_liana_gt_v6_cup'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
@@ -63,7 +63,7 @@ export const LIANA_GT_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     { id: 'vallelunga', name: 'Vallelunga', track: { id: 'ks_vallelunga', layout: 'extended_circuit' } },

@@ -92,7 +92,7 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'twelve-hours',
       name: 'Twelve hours',
@@ -142,7 +142,7 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'twelve-hours',
+  defaultEventFormat: 'twelve-hours',
   rounds: [
     {
       id: 'bathurst',
@@ -155,7 +155,7 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
       id: 'spa',
       name: 'Spa 24 Hours',
       track: { id: 'spa', layout: '2022_lfm_standing' },
-      weekendFormat: 'spa-24',
+      eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
   ],

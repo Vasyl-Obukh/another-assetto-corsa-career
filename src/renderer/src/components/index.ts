@@ -50,7 +50,7 @@ export { Segments } from './Segments.tsx';
 export { SettingsSection } from './SettingsSection.tsx';
 export { Shimmer } from './Shimmer.tsx';
 export {
-  AdvanceDialog, lostCount, SKIP_ACCENT, SkipDialog, skipGroups, SkipNote,
+  AdvanceDialog, SKIP_ACCENT, SkipDialog, skipGroups, SkipNote,
 } from './skip-dialog/index.ts';
 export type { SkipGroup } from './skip-dialog/index.ts';
 export { SourceChips } from './SourceChips.tsx';
@@ -66,7 +66,7 @@ export {
   WEATHER_TYPE_LABEL,
   WeatherStepIcons,
   WeatherStepsLabel,
-  WeekendForecast,
+  EventForecast,
 } from './weather-forecast/index.ts';
 export { WEATHER_KINDS, WeatherPicker, weatherKindOf } from './weather-picker/index.ts';
 export type { WeatherKind } from './weather-picker/index.ts';

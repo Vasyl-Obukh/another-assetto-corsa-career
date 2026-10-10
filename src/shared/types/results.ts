@@ -37,7 +37,7 @@ export interface RaceOutLap {
  */
 export interface RaceOutSession {
   /**
-   * Always 0 in every capture so far, including weekends where three sessions
+   * Always 0 in every capture so far, including events where three sessions
    * ran, so it is not the session index it looks like. Identify a session by
    * its position in the array, or by type and name.
    */
@@ -124,8 +124,8 @@ export interface RaceOut {
    */
   track: string;
   /**
-   * How many sessions the weekend was *configured* with, which is not how many
-   * ran: a four-session weekend stopped after the third wrote 4 here against
+   * How many sessions the event was *configured* with, which is not how many
+   * ran: a four-session event stopped after the third wrote 4 here against
    * three entries in `sessions`.
    *
    * It only reveals a session that never *started*. One that started and was
@@ -195,7 +195,7 @@ export interface Standing {
   totalTime: number;
   /**
    * Which car of the launch this was, by its place in the [CAR_n] list - what
-   * joins a row back to the weekend's grid, through the launch's own order.
+   * joins a row back to the event's grid, through the launch's own order.
    */
   slot?: number;
   /**
@@ -246,7 +246,7 @@ export interface SessionSummary {
 }
 
 /**
- * A whole weekend, summarised.
+ * A whole event, summarised.
  */
 export interface RaceSummary {
   /**

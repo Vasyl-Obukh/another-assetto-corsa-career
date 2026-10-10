@@ -1,7 +1,7 @@
 export { ChampionshipEditor } from './ChampionshipEditor.tsx';
 
-// The editing surface a race weekend of the player's own reuses: a class's
-// cars, its field's offsets, a weekend's sessions and the rules are the same
+// The editing surface a race event of the player's own reuses: a class's
+// cars, its field's offsets, an event's sessions and the rules are the same
 // questions there as in a championship, so they are exported rather than
 // copied.
 export { ChoiceChips } from './ChoiceChips.tsx';

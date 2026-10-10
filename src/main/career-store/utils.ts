@@ -3,14 +3,14 @@
 
 import { CAREER_SEASON_WEEKS, CAREER_VERSION, FORECAST_LEAD_DAYS } from './constants.ts';
 import type { EnteredEvent } from './types.ts';
+import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
 import {
-  climateOf, formatOf, hemisphereOf, roundRaceId, roundSpans,
+  climateOf, formatOf, hemisphereOf, raceWeekdayOf, roundRaceId,
 } from '../../core/series/index.ts';
 import { drawRound } from '../../core/weather-forecast/index.ts';
-import { chainOf, startingGrid } from '../../core/weekend/index.ts';
 import {
   DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MINUTES_PER_HOUR, SEASON_WEEKS,
 } from '../../shared/constants/index.ts';
@@ -23,7 +23,9 @@ import type {
   CareerSeason,
   Championship,
   ClassEntry,
+  EventPlan,
   EventSession,
+  EventState,
   LaunchRecord,
   RoundForecast,
   RoundScore,
@@ -34,8 +36,6 @@ import type {
   SeriesSession,
   SkippedRound,
   SkipReason,
-  WeekendPlan,
-  WeekendState,
 } from '../../shared/types/index.ts';
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
@@ -49,8 +49,9 @@ import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-a
  * reasonably hand-edit it, while career.json is written by this app alone. One
  * that does not read is quarantined and the career starts empty, rather than
  * being half-understood. Down to each season's own copy of its championship and
- * each event's session records, since a file missing those would fail the first
- * time a round was opened rather than when it was loaded.
+ * its formats, and each event's day and session records, since a file missing
+ * those would fail the first time a round was opened rather than when it was
+ * loaded.
  * @param value Whatever was parsed out of the file
  * @returns The career, or null when it is not one
  */
@@ -69,9 +70,11 @@ export const readCareer = (value: unknown): Career | null => {
       && (season.entries as readonly Partial<SeasonEntry>[]).every((entry) => (
         typeof entry?.championship === 'object'
         && entry.championship !== null
+        && Array.isArray(entry.championship.eventFormats)
         && Array.isArray(entry.events)
         && (entry.events as readonly Partial<SeasonEvent>[]).every((event) => (
-          Array.isArray(event?.sessions)
+          typeof event?.date === 'string'
+          && Array.isArray(event.sessions)
         ))
       ))
     ));
@@ -100,8 +103,8 @@ export const currentSeason = (career: Career): CareerSeason | null => (
 /**
  * Dates a championship's rounds across a season and freezes them as events.
  *
- * Rounds whose weekend has already closed by the time the championship is
- * entered are recorded missed rather than scheduled, which is what entering a
+ * Rounds whose day has already gone by the time the championship is entered
+ * are recorded missed rather than scheduled, which is what entering a
  * championship in June means: the spring rounds happened without you.
  * @param series The championship being entered
  * @param season The season it is entered in
@@ -115,12 +118,13 @@ export const materialiseEvents = (
 ): SeasonEvent[] => {
   const length = series.seasonLength ?? DEFAULT_SEASON_LENGTH;
   const dated = seasonCalendar(
-    roundSpans(series),
+    series.rounds.map((round) => round.id),
     season.startDate,
     length,
+    raceWeekdayOf(series),
     // Off the championship's own id, so its calendar is the same every time it
     // is drawn and no two seasons of it wander. Without this every one of the
-    // library's championships would open on the same Sunday. Held inside the
+    // library's championships would open in the same week. Held inside the
     // weeks its own racing does not fill, so a season always finishes within
     // the career's year.
     seedFrom(series.id) % Math.max(1, CAREER_SEASON_WEEKS - SEASON_WEEKS[length] + 1),
@@ -129,17 +133,15 @@ export const materialiseEvents = (
   return dated.map((round, at) => ({
     round: round.id,
     raceId: roundRaceId(series.id, round.id),
-    firstDay: round.firstDay,
-    raceDay: round.raceDay,
-    lastDay: round.lastDay,
+    date: round.date,
     entryFee: series.rounds[at]?.entryFee ?? series.entryFee,
-    status: round.lastDay < today ? 'missed' : 'scheduled',
+    status: round.date < today ? 'missed' : 'scheduled',
     sessions: [],
   }));
 };
 
 /**
- * Every event of a season that is still to be raced, earliest weekend first.
+ * Every event of a season that is still to be raced, earliest event first.
  * @param season The season to read
  * @returns The events, with the entry each belongs to
  */
@@ -148,15 +150,15 @@ export const scheduledEvents = (season: CareerSeason): EnteredEvent[] => season.
   .flatMap((entry) => entry.events
     .filter((event) => event.status === 'scheduled')
     .map((event) => ({ entry, event })))
-  .sort((left, right) => left.event.firstDay.localeCompare(right.event.firstDay));
+  .sort((left, right) => left.event.date.localeCompare(right.event.date));
 
 /**
  * Where the clock stops when it is asked to move to a date.
  *
- * At the opening day of the first enrolled weekend on the way, rather than past
- * it: skipping an event the career entered would turn it into a non-start
- * without the player ever being asked. An event already under way when the
- * clock is where it is does not stop it again, or the clock could never move.
+ * At the day of the first enrolled event on the way, rather than past it:
+ * skipping an event the career entered would turn it into a non-start without
+ * the player ever being asked. An event on the day the clock already stands at
+ * does not stop it again, or the clock could never move.
  * @param season The season being advanced through, or null when there is none
  * @param from The ISO date the clock stands at
  * @param to The ISO date it was asked to move to
@@ -170,7 +172,7 @@ export const advanceStop = (
   if (!season) return to;
 
   const next = scheduledEvents(season)
-    .map(({ event }) => event.firstDay)
+    .map(({ event }) => event.date)
     .find((day) => day > from && day <= to);
 
   return next ?? to;
@@ -188,20 +190,20 @@ export const advanceStop = (
 export const seasonSalt = (career: Career, season: number): string => `${career.id}\u0000${season}`;
 
 /**
- * Draws one weekend's weather, once the clock has come within a week of it.
+ * Draws one event's weather, once the clock has come within a week of it.
  *
  * A forecast already issued is never redrawn - that is the whole point of
- * storing it - and a weekend still further out than the lead is left alone.
- * A weekend already behind the clock is drawn too, so one passed by shows the
+ * storing it - and an event still further out than the lead is left alone.
+ * An event already behind the clock is drawn too, so one passed by shows the
  * weather it had rather than a forecast still to come. Pure, because the draw
  * is stored rather than the forecast: what an install can race is asked when
- * the weekend is shown or set up.
+ * the event is shown or set up.
  * @param career The career, whose id salts the draw
  * @param season Which season of the career it falls in
  * @param championship The championship it is a round of
- * @param event The weekend
+ * @param event The event
  * @param date The ISO date the clock now stands at
- * @returns The weekend, with a draw when it is close enough to have one
+ * @returns The event, with a draw when it is close enough to have one
  */
 export const issueForecast = (
   career: Career,
@@ -210,7 +212,7 @@ export const issueForecast = (
   event: SeasonEvent,
   date: string,
 ): SeasonEvent => {
-  if (event.forecast || event.firstDay > addDays(date, FORECAST_LEAD_DAYS)) return event;
+  if (event.forecast || event.date > addDays(date, FORECAST_LEAD_DAYS)) return event;
 
   const round = championship.rounds.find((one) => one.id === event.round);
   const climate = round && climateOf(championship, round);
@@ -221,19 +223,19 @@ export const issueForecast = (
     ...event,
     forecast: drawRound(championship.id, round, format, climate, {
       salt: seasonSalt(career, season),
-      raceDay: event.raceDay,
+      raceDay: event.date,
       hemisphere: hemisphereOf(championship, round),
     }),
   };
 };
 
 /**
- * Draws the weather for every weekend of a season the clock has come within a
+ * Draws the weather for every event of a season the clock has come within a
  * week of.
  * @param career The career, whose id salts every draw
  * @param season The season being advanced through
  * @param date The ISO date the clock now stands at
- * @returns The season, with a draw on every weekend close enough to have one
+ * @returns The season, with a draw on every event close enough to have one
  */
 export const issueForecasts = (
   career: Career,
@@ -279,9 +281,9 @@ export const enteredEvent = (
 };
 
 /**
- * The weekend the career is part-way through, if it is part-way through one.
+ * The event the career is part-way through, if it is part-way through one.
  *
- * At most one, since launching another weekend gives up whichever was part-way
+ * At most one, since launching another event gives up whichever was part-way
  * through.
  * @param season The season to look in
  * @returns The entry and its event, or null
@@ -307,19 +309,29 @@ export const eventName = ({ entry, event }: EnteredEvent): string => {
  * One function for the page's answer and the launch command's refusal, so the
  * button is never offered for something the command would refuse. What a
  * launch would cost the rest of the season is not a reason here: that is
- * `launchSkips`, which the player confirms rather than being refused.
+ * `launchSkips`, which the player confirms rather than being refused. An event
+ * on a day the career has already raced is, since nothing is left to give up.
+ * @param season The season it belongs to
  * @param held The entry and the event
  * @param raceable Whether the install can run the round
+ * @param allowSameDay Whether settings allow two events on one day
  * @returns The reason, or null when the next session can run
  */
 export const launchBlock = (
+  season: CareerSeason,
   held: EnteredEvent,
   raceable: boolean,
+  allowSameDay: boolean,
 ): AppErrorInfo | null => {
   const { event } = held;
   const name = eventName(held);
 
   if (event.status !== 'scheduled') return appErrorInfo('career.event.closed', { round: name });
+  const raced = allowSameDay ? undefined : season.entries
+    .filter((entry) => !entry.withdrawn && entry.series !== held.entry.series)
+    .flatMap((entry) => entry.events.map((one) => ({ entry, event: one })))
+    .find((other) => other.event.date === event.date && other.event.status === 'raced');
+  if (raced) return appErrorInfo('career.event.sameDay', { event: eventName(raced) });
   if (!raceable) {
     return appErrorInfo('series.round.unavailable', {
       series: held.entry.championship.name, round: event.round,
@@ -353,8 +365,7 @@ export const skippedRound = (
     roundName: championship.rounds[at]?.name ?? event.round,
     number: at + 1,
     ladder: held?.ladder ?? null,
-    firstDay: event.firstDay,
-    lastDay: event.lastDay,
+    date: event.date,
     reason,
   };
 };
@@ -374,34 +385,38 @@ const lost = (held: EnteredEvent): SkippedRound => skippedRound(
 
 /**
  * What moving the clock to a date would cost: every round of the career's
- * whose weekend is over by then and has not been raced. A weekend the date
- * falls inside is still there to be raced, so it costs nothing.
+ * whose day is behind it by then and has not been raced. An event on the date
+ * itself is still there to be raced, so it costs nothing.
  * @param season The season being advanced through
  * @param to The ISO date the clock would move to
  * @returns The rounds lost, earliest first
  */
 export const advanceSkips = (season: CareerSeason, to: string): SkippedRound[] => (
-  scheduledEvents(season).filter(({ event }) => event.lastDay < to).map(lost)
+  scheduledEvents(season).filter(({ event }) => event.date < to).map(lost)
 );
 
 /**
- * What launching a weekend would cost the rest of the season.
+ * What launching an event would cost the rest of the season.
  *
  * Every earlier round still unraced is lost, since the clock moves to this
- * weekend's opening day, and so is a weekend left part-way wherever it falls,
- * since the career races one weekend at a time. A weekend that opens during
- * this one is not lost yet, but it cannot be driven as well, so it is listed as
- * a clash.
+ * event's day, and so is an event left part-way wherever it falls, since the
+ * career races one event at a time. An event on the same day is lost too, as a
+ * clash, unless settings allow two events on one day.
  * @param season The season it belongs to
  * @param held The entry and the event being launched
+ * @param allowSameDay Whether settings allow two events on one day
  * @returns The rounds, earliest first
  */
-export const launchSkips = (season: CareerSeason, held: EnteredEvent): SkippedRound[] => (
+export const launchSkips = (
+  season: CareerSeason,
+  held: EnteredEvent,
+  allowSameDay: boolean,
+): SkippedRound[] => (
   scheduledEvents(season)
     .filter(({ event }) => event !== held.event)
     .flatMap((other) => {
-      if (other.event.firstDay < held.event.firstDay || other.event.sessions.length > 0) return [lost(other)];
-      if (other.event.firstDay <= held.event.lastDay) {
+      if (other.event.date < held.event.date || other.event.sessions.length > 0) return [lost(other)];
+      if (other.event.date === held.event.date && !allowSameDay) {
         return [skippedRound(other.entry.championship, other.entry.entry, other.event, 'clash')];
       }
 
@@ -434,7 +449,7 @@ export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]
 /**
  * Writes a start time as "HH:MM".
  * @param time "HH:MM" already, or hours as a number, or nothing
- * @returns The clock time, or null when the weekend does not say
+ * @returns The clock time, or null when the event does not say
  */
 export const clockTime = (time: string | number | undefined): string | null => {
   if (time === undefined) return null;
@@ -445,7 +460,7 @@ export const clockTime = (time: string | number | undefined): string | null => {
 
 /**
  * Every session of an event, as the event page shows it.
- * @param plan The weekend planned from the season's own copy of the round
+ * @param plan The event planned from the season's own copy of the round
  * @param stated The format's sessions as the round states them, before a
  * distance was turned into laps - which is the only place the distance survives
  * @param records What has run so far
@@ -453,25 +468,23 @@ export const clockTime = (time: string | number | undefined): string | null => {
  * or has not been forecast yet
  * @param pending Whether its weather is generated but not yet forecast, which
  * is the one thing a null forecast cannot say for itself
- * @param firstDay The ISO date the weekend opens on
- * @param score What the weekend has paid so far
+ * @param score What the event has paid so far
  * @param playerSeat The seat the player took, when the career is entered
- * @param live Whether the career can still run this weekend, which is what
+ * @param live Whether the career can still run this event, which is what
  * makes the first session not yet run "next" rather than merely "later"
  * @returns One per launch, in the order they run
  */
 export const eventSessions = (
-  plan: WeekendPlan,
+  plan: EventPlan,
   stated: readonly SeriesSession[],
   records: readonly LaunchRecord[],
   forecast: RoundForecast | null,
   pending: boolean,
-  firstDay: string,
   score: RoundScore | undefined,
   playerSeat: string | null,
   live: boolean,
 ): EventSession[] => {
-  const state: WeekendState = {
+  const state: EventState = {
     raceId: plan.raceId, launchCount: plan.launches.length, completed: [...records],
   };
 
@@ -482,7 +495,7 @@ export const eventSessions = (
     if (record) status = 'done';
     else if (live && index === records.length) status = 'next';
 
-    // A race follows the chain the weekend composes its grid from, and a
+    // A race follows the chain the event composes its grid from, and a
     // knockout segment the session it names. Anything else starts from the pit
     // lane, which is said by having no source at all.
     const source = session.inherit !== undefined || session.type === 'race'
@@ -494,7 +507,7 @@ export const eventSessions = (
       index,
       type: session.type,
       name: session.name ?? null,
-      date: addDays(firstDay, launch.day),
+      day: launch.day,
       startsAt: clockTime(launch.race.conditions?.timeOfDay),
       laps: session.laps,
       minutes: session.laps === undefined ? session.minutes : undefined,
@@ -564,9 +577,7 @@ export const calendarEntry = (
     prize: prizes?.positions?.[0] ?? null,
     entryFee: event.entryFee,
     multiClass: series.entries.length > 1,
-    firstDay: event.firstDay,
-    raceDay: event.raceDay,
-    lastDay: event.lastDay,
+    date: event.date,
     status: event.status,
     enrolled,
     eligible: isEligible(entry.ladder, career.level),
@@ -586,6 +597,8 @@ export const calendarEntry = (
  * @param season The season to draw
  * @param listings Every championship the library holds
  * @param entered What the install can race of each entered season's own copy
+ * @param allowSameDay Whether settings allow two events on one day, which is
+ * when nothing clashes
  * @returns The merged, dated calendar
  */
 export const composeCalendar = (
@@ -593,6 +606,7 @@ export const composeCalendar = (
   season: CareerSeason,
   listings: readonly SeriesListing[],
   entered: ReadonlyMap<SeasonEntry, SeriesAvailability>,
+  allowSameDay: boolean,
 ): CareerCalendar => {
   const key = (series: string, entry: string): string => `${series}\u0000${entry}`;
   const taken = new Set(season.entries.map((one) => key(one.series, one.entry)));
@@ -623,9 +637,10 @@ export const composeCalendar = (
   });
 
   const events = [...own, ...library];
-  const enrolledSpans = events.filter((event) => event.enrolled);
-  const clashing = clashes(enrolledSpans);
-  const clashed = new Set(enrolledSpans
+  // A pair settled by giving one up has nothing left to choose between.
+  const enrolled = allowSameDay ? [] : events.filter((event) => event.enrolled && event.status !== 'missed');
+  const clashing = clashes(enrolled.map((event) => event.date));
+  const clashed = new Set(enrolled
     .filter((unused, at) => clashing[at])
     .map((event) => `${key(event.series, event.entry)}\u0000${event.round}`));
 
@@ -640,7 +655,7 @@ export const composeCalendar = (
         clash: clashed.has(`${key(event.series, event.entry)}\u0000${event.round}`),
       }))
       .sort((left, right) => (
-        left.firstDay.localeCompare(right.firstDay)
+        left.date.localeCompare(right.date)
         || left.seriesName.localeCompare(right.seriesName)
       )),
   };

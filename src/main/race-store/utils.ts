@@ -4,7 +4,7 @@ import { ARCHIVE_NAME } from './constants.ts';
 import type { RaceProgress } from './types.ts';
 import { summarise } from '../../core/results/index.ts';
 import type {
-  RaceOut, RaceSetup, ResultRecord, Track, WeekendState,
+  EventState, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../shared/types/index.ts';
 
 /**
@@ -85,19 +85,19 @@ export const readRecord = async (file: string, full: string): Promise<ResultReco
 };
 
 /**
- * How far through a weekend the app is, or null when none is under way.
+ * How far through an event the app is, or null when none is under way.
  *
- * The whole of the series editor's lock. A weekend that has run every launch
+ * The whole of the series editor's lock. An event that has run every launch
  * is finished rather than under way, even though its state stays on disk until
  * a reset or a different race replaces it.
- * @param state The weekend's saved progress, or null when there is none
+ * @param state The event's saved progress, or null when there is none
  * @param raceId What to call the race when there is no state to name it
  * @param inFlight Whether a launch is with Content Manager right now
  * @returns The progress, or null when nothing has started, everything has
  * finished, or both
  */
 export const progressOf = (
-  state: WeekendState | null,
+  state: EventState | null,
   raceId: string,
   inFlight: boolean,
 ): RaceProgress | null => {
@@ -109,14 +109,14 @@ export const progressOf = (
 };
 
 /**
- * Whether the slot already holds a weekend exactly as far as it has run, so its
+ * Whether the slot already holds an event exactly as far as it has run, so its
  * next launch can go without putting it back first.
  *
  * Never before its first launch: whatever set the slot up then may since have
  * been edited, or had its forecast issued, and the race has to be the one the
- * weekend now says.
+ * event now says.
  * @param setup The race store as it stands
- * @param raceId The weekend's race id
+ * @param raceId The event's race id
  * @param completed How many of its launches have run
  * @returns True when launching can carry on from the slot as it is
  */

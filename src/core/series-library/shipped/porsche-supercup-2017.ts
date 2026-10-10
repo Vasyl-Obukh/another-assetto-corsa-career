@@ -70,10 +70,10 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_991, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
@@ -91,7 +91,7 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'spain', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
     {
@@ -111,7 +111,7 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
       id: 'belgium',
       name: 'Spa-Francorchamps',
       track: { id: 'spa' },
-      weekendFormat: 'double',
+      eventFormat: 'double',
       climate: Climate.OCEANIC,
     },
     { id: 'italy', name: 'Monza', track: { id: 'monza' } },

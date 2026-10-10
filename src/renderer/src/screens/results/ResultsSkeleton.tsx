@@ -1,17 +1,17 @@
-import { SESSION_SCROLL, SESSION_SKELETON, WEEKEND_SKELETON } from './constants.ts';
+import { EVENT_SKELETON, SESSION_SCROLL, SESSION_SKELETON } from './constants.ts';
 import { Loading, Shimmer } from '@/components';
 import { slots } from '@/lib/slots.ts';
 import { cn } from '@/lib/utils.ts';
 
 /**
- * The Results page while the archives are read: a weekend card's photograph,
+ * The Results page while the archives are read: an event card's photograph,
  * car, and session rows on the card's own grid. No round results footer: a
  * card is three sessions tall or one session and its footer, and both come to
  * the same height, while three sessions and a footer is the rare one.
  */
 export const ResultsSkeleton = () => (
   <Loading className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-    {slots(WEEKEND_SKELETON).map((card) => (
+    {slots(EVENT_SKELETON).map((card) => (
       <div key={card} className="flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
         <Shimmer deep className="h-30 rounded-none" />
         <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs">

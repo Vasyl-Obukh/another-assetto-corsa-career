@@ -23,10 +23,10 @@ export interface CspSetup {
 }
 
 /**
- * How far through a weekend the app is, for whoever needs to know that one is
+ * How far through an event the app is, for whoever needs to know that one is
  * under way without planning it again.
  *
- * The series store is the caller: a championship whose weekend has started
+ * The series store is the caller: a championship whose event has started
  * cannot be edited, because a launch inherits its grid from the one before it
  * and everything the editor can change decides what that grid holds.
  */
@@ -65,13 +65,13 @@ export interface RaceStore {
    */
   get(): Promise<RaceSetup>;
   /**
-   * Puts a weekend in the slot together with whatever of it has already run,
-   * so it carries on from there whichever weekend held the slot before.
+   * Puts an event in the slot together with whatever of it has already run,
+   * so it carries on from there whichever event held the slot before.
    *
-   * This is what lets several weekends share the one slot: each keeps its own
+   * This is what lets several events share the one slot: each keeps its own
    * launches and hands them back on its next turn, rather than finding them
-   * thrown away because another weekend was raced in between.
-   * @param definition The weekend's race
+   * thrown away because another event was raced in between.
+   * @param definition The event's race
    * @param completed Every launch of it already run, in order
    * @returns The setup after the change
    * @throws AppError when a launch is in flight
@@ -87,25 +87,25 @@ export interface RaceStore {
    */
   launch(): Promise<RaceSetup>;
   /**
-   * Stops waiting for a result, without advancing the weekend.
+   * Stops waiting for a result, without advancing the event.
    * @returns The setup, back to idle
    * @throws AppError when nothing is in flight
    */
   cancel(): Promise<RaceSetup>;
   /**
-   * Forgets weekend progress so the race starts again from its first launch.
+   * Forgets event progress so the race starts again from its first launch.
    * @returns The setup, with no launches recorded
    * @throws AppError when a launch is in flight
    */
   reset(): Promise<RaceSetup>;
   /**
-   * How far through the current weekend the app is, or null when nothing has
+   * How far through the current event the app is, or null when nothing has
    * started.
    *
    * Cheap on purpose - it reads what the store already holds, with no content
    * scan and no planning - because the series store asks it for every listing
    * it builds.
-   * @returns The progress, or null when the weekend has not started, has
+   * @returns The progress, or null when the event has not started, has
    * finished every launch it planned, and has none in flight
    */
   progress(): RaceProgress | null;

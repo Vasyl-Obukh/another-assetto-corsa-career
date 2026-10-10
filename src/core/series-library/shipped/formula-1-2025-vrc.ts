@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2025: three practices, the three-part
+ * A grand prix event of 2025: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -38,12 +38,12 @@ const WEEKEND: WeekendFormat = {
 };
 
 /**
- * A sprint weekend: Friday's sprint qualifying lines up Saturday's
+ * A sprint event: Friday's sprint qualifying lines up Saturday's
  * sprint, and Saturday's knockout the grand prix.
  */
-const SPRINT: WeekendFormat = {
+const SPRINT: EventFormat = {
   id: 'sprint',
-  name: 'Sprint weekend',
+  name: 'Sprint',
   sessions: [
     { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
     { id: 'sq1', type: 'qualify', name: 'SQ1', minutes: 12, day: 0 },
@@ -99,7 +99,7 @@ const SPRINT: WeekendFormat = {
  * The real entry list on VRC's Formula Alpha 2025, every seat in it. The 2025
  * season is a championship per spec, so RSS's car of the same year races its
  * own. 15 of 24 rounds at their real distances, four of its six sprint
- * weekends included - sprint qualifying on Friday, the sprint and the grand
+ * events included - sprint qualifying on Friday, the sprint and the grand
  * prix knockout on Saturday. Yas Marina runs the layout before its 2021
  * rebuild, so its laps cover the real distance. Melbourne, Suzuka, Jeddah,
  * Miami, Monaco, Baku, Marina Bay, Las Vegas and Losail are not in Assetto
@@ -163,8 +163,8 @@ export const FORMULA_1_2025_VRC: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2025_VRC, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND, SPRINT],
-  defaultWeekendFormat: 'sprint',
+  eventFormats: [EVENT, SPRINT],
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'china',
@@ -176,34 +176,34 @@ export const FORMULA_1_2025_VRC: Championship = {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
       track: { id: 'fn_bahrain', layout: 'gp' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.ARID,
     },
     {
       id: 'emilia-romagna',
       name: 'Emilia Romagna Grand Prix',
       track: { id: 'imola' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
     },
     {
       id: 'spain',
       name: 'Spanish Grand Prix',
       track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 66 }],
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
       track: { id: 'canada_2021', layout: 'lfm' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 70 }],
       climate: Climate.TEMPERATE,
     },
@@ -211,7 +211,7 @@ export const FORMULA_1_2025_VRC: Championship = {
       id: 'britain',
       name: 'British Grand Prix',
       track: { id: 'ks_silverstone', layout: 'gp' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.OCEANIC,
     },
     { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
@@ -219,17 +219,17 @@ export const FORMULA_1_2025_VRC: Championship = {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
       track: { id: 'rt_hungaroring' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
       track: { id: 'zandvoort2023', layout: '2023' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, weekendFormat: 'grand-prix' },
+    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, eventFormat: 'grand-prix' },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
@@ -240,7 +240,7 @@ export const FORMULA_1_2025_VRC: Championship = {
       id: 'mexico-city',
       name: 'Mexico City Grand Prix',
       track: { id: 'vrc_mexico', layout: 'fa_layout' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
@@ -255,7 +255,7 @@ export const FORMULA_1_2025_VRC: Championship = {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
       track: { id: 'yas_marina_2021', layout: 'gp' },
-      weekendFormat: 'grand-prix',
+      eventFormat: 'grand-prix',
       climate: Climate.ARID,
     },
   ],

@@ -2,16 +2,16 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A Formula 2 weekend of the era: practice and qualifying on Friday, the
+ * A Formula 2 event of the era: practice and qualifying on Friday, the
  * feature race on Saturday, and on Sunday a sprint with the feature race's top
  * eight reversed.
  */
-const WEEKEND: WeekendFormat = {
-  id: 'race-weekend',
+const EVENT: EventFormat = {
+  id: 'standard',
   name: 'Feature and sprint',
   sessions: [
     { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
@@ -100,8 +100,8 @@ export const FORMULA_2_2017: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2017, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND],
-  defaultWeekendFormat: 'race-weekend',
+  eventFormats: [EVENT],
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
     { id: 'barcelona', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },

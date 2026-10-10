@@ -2,13 +2,13 @@ import { describe, expect, it } from '@jest/globals';
 
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
+  EventPlan,
+  EventState,
   GridEntry,
   LaunchRecord,
   RaceDefinition,
   SeriesSession,
   SessionDefinition,
-  WeekendPlan,
-  WeekendState,
 } from '../../../shared/types/index.ts';
 import { scoreRound } from '../season-scoring.ts';
 import type { LaunchResult } from '../types.ts';
@@ -21,17 +21,17 @@ import { gridRow, makeGrid, makeSeries } from './fixtures.ts';
 const AT = '2026-01-01T12:00:00.000Z';
 
 /**
- * Builds a weekend plan over a grid, one launch per session.
+ * Builds an event plan over a grid, one launch per session.
  *
  * The launch's own race is never read by scoring - the plan is consulted for
  * the grid and for the session each launch ran - so it is left empty.
- * @param grid The weekend's entry list
+ * @param grid The event's entry list
  * @param sessions The sessions, in the order they run
  * @returns The plan
  */
-const makePlan = (grid: GridEntry[], sessions: SessionDefinition[]): WeekendPlan => ({
-  raceId: 'test-weekend',
-  raceName: 'Test Weekend',
+const makePlan = (grid: GridEntry[], sessions: SessionDefinition[]): EventPlan => ({
+  raceId: 'test-event',
+  raceName: 'Test Event',
   grid,
   launches: sessions.map((session, index) => ({
     index, day: 0, race: {} as RaceDefinition, session,
@@ -41,7 +41,7 @@ const makePlan = (grid: GridEntry[], sessions: SessionDefinition[]): WeekendPlan
 /**
  * Builds the record one completed launch left behind.
  * @param index Which launch of the plan it was
- * @param classification The order it classified, as weekend-grid car indices
+ * @param classification The order it classified, as event-grid car indices
  * @param gridOrder The [CAR_n] order it ran with, defaulting to the whole grid
  * @returns The record
  */
@@ -54,13 +54,13 @@ const ran = (
 });
 
 /**
- * Builds the weekend state out of the launches that have run.
+ * Builds the event state out of the launches that have run.
  * @param completed One record per launch that ran, in the order they ran
  * @param launchCount How many launches the plan holds
  * @returns The state
  */
-const makeState = (completed: LaunchRecord[], launchCount: number): WeekendState => ({
-  raceId: 'test-weekend', launchCount, completed,
+const makeState = (completed: LaunchRecord[], launchCount: number): EventState => ({
+  raceId: 'test-event', launchCount, completed,
 });
 
 /**
@@ -101,7 +101,7 @@ describe('core/season-scoring/season-scoring', () => {
     const sprint: SessionDefinition = { type: 'race', name: 'Sprint', laps: 2 };
     const feature: SessionDefinition = { type: 'race', name: 'Feature', laps: 6 };
 
-    it('pays every race of the weekend, so a sprint weekend scores twice', () => {
+    it('pays every race of the event, so a sprint event scores twice', () => {
       const plan = makePlan(makeGrid(), [qualify, sprint, feature]);
       const state = makeState(
         [ran(0, [2, 0, 1, 3]), ran(1, [0, 1, 2, 3]), ran(2, [3, 2, 1, 0])],
@@ -134,7 +134,7 @@ describe('core/season-scoring/season-scoring', () => {
       expect(places.map((one) => one.team)).toEqual(['alpha', 'alpha', 'beta', null]);
     });
 
-    it('scores nothing for a weekend that never ran a race', () => {
+    it('scores nothing for an event that never ran a race', () => {
       const plan = makePlan(makeGrid(), [practice, qualify]);
       const state = makeState([ran(0, null), ran(1, [2, 0, 1, 3])], 2);
 

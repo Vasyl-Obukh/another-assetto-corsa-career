@@ -76,10 +76,10 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_992_LFM, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
-      name: 'Race weekend',
+      id: 'standard',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
@@ -87,7 +87,7 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },
     { id: 'barcelona', name: 'Barcelona', track: { id: 'fn_barcelona', layout: 'barcelona_2023' } },

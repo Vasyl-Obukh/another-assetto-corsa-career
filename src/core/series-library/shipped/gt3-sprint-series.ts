@@ -8,7 +8,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 /**
  * A GT3 sprint championship, configured by a spec rather than by a car list.
  *
- * The weekend is the Blancpain Sprint Series' of 2013: one qualifying, then an
+ * The event is the Blancpain Sprint Series' of 2013: one qualifying, then an
  * hour-long qualifying race whose result sets the grid of the hour-long main
  * race. The qualifying race pays the 8-6-4-3-2-1 of the FIA GT1 World
  * Championship it grew out of and the main race 25-18-15; the Sprint Series'
@@ -67,10 +67,10 @@ export const GT3_SPRINT_SERIES: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Sprint weekend',
+      name: 'Sprint',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -93,7 +93,7 @@ export const GT3_SPRINT_SERIES: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     {

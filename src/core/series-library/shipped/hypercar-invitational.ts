@@ -69,7 +69,7 @@ export const HYPERCAR_INVITATIONAL: Championship = {
       ],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Invitational',
@@ -80,7 +80,7 @@ export const HYPERCAR_INVITATIONAL: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     {

@@ -56,10 +56,10 @@ export const GT86_CUP: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_toyota_gt86'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 25, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -77,7 +77,7 @@ export const GT86_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'nurburgring',

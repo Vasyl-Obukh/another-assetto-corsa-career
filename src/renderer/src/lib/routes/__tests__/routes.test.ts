@@ -108,9 +108,9 @@ describe('renderer/lib/routes/routes', () => {
       expect(Object.keys(path).sort()).toEqual((Object.keys(ROUTE) as RouteId[]).sort());
     });
 
-    it('builds the home page and one race weekend of the player\'s own', () => {
+    it('builds the home page and one race event of the player\'s own', () => {
       expect(path.home()).toBe(ROUTE.home);
-      expect(path.raceWeekend({ id: 'abc' })).toBe('/race/abc');
+      expect(path.raceEvent({ id: 'abc' })).toBe('/race/abc');
     });
 
     it('builds a circuit\'s page, on a layout when given one', () => {

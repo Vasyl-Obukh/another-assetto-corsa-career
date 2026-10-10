@@ -11,7 +11,7 @@ import { ConditionsEditor, SessionsSplit } from '@/screens/championship-editor';
 
 interface SessionsCardProps {
   /**
-   * The race weekend.
+   * The race event.
    */
   race: QuickRace;
   /**
@@ -19,11 +19,11 @@ interface SessionsCardProps {
    */
   championship: Championship | null;
   /**
-   * Whether the weekend has started, in which case nothing can change.
+   * Whether the event has started, in which case nothing can change.
    */
   locked: boolean;
   /**
-   * Called with the race whenever a session or the weekend's conditions
+   * Called with the race whenever a session or the event's conditions
    * change.
    * @param next The race
    */
@@ -31,9 +31,9 @@ interface SessionsCardProps {
 }
 
 /**
- * A race weekend's sessions, as the championship editor lays out a weekend
+ * A race event's sessions, as the championship editor lays out an event
  * format: the days down the side, the session picked opened beside them, and
- * the weekend's own conditions at the head of the list, which every session
+ * the event's own conditions at the head of the list, which every session
  * runs in unless it says otherwise.
  */
 export const SessionsCard = ({
@@ -42,7 +42,7 @@ export const SessionsCard = ({
   const { t } = useTranslation();
   const { settings } = useSettings();
   const { weather, controllers } = useWeatherContent();
-  const format = { id: 'weekend', name: '', sessions: race.sessions };
+  const format = { id: 'event', name: '', sessions: race.sessions };
   const yours = playerClassOf(race);
   const startClass = yours
     ? { name: yours.name, count: yours.cars, chip: classAccent(race.classes.indexOf(yours)).chip }
@@ -60,24 +60,24 @@ export const SessionsCard = ({
         system={settings.weatherSystem}
         locked={locked}
         scoring={false}
-        behind="weekend"
+        behind="event"
         flat
         startClass={startClass}
         head={{
-          label: t('race.weekend.whole'),
+          label: t('race.event.whole'),
           detail: <ConditionsSummaryLine conditions={race.conditions} className="truncate text-xs" />,
           page: (
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-baseline gap-2">
-                <h3 className="text-base font-semibold">{t('race.weekend.whole')}</h3>
-                <span className="text-xs text-muted-foreground">{t('race.weekend.wholeHint')}</span>
+                <h3 className="text-base font-semibold">{t('race.event.whole')}</h3>
+                <span className="text-xs text-muted-foreground">{t('race.event.wholeHint')}</span>
               </div>
               <ConditionsEditor
-                idPrefix="weekend"
+                idPrefix="event"
                 conditions={race.conditions}
                 behind="default"
                 layout="rows"
-                scope="weekend"
+                scope="event"
                 weather={weather}
                 controllers={controllers}
                 system={settings.weatherSystem}

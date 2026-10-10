@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { scanContent } from '../../core/content/index.ts';
+import { planEvent } from '../../core/event/index.ts';
 import { resolvePaths } from '../../core/paths/index.ts';
 import { buildRaceIni } from '../../core/race-ini/index.ts';
 import {
@@ -10,7 +11,6 @@ import {
 import { loadSeriesLibrary, seriesById } from '../../core/series-library/index.ts';
 import { readWeatherFx } from '../../core/weather/index.ts';
 import { defaultWeatherOffer } from '../../core/weather-forecast/index.ts';
-import { planWeekend } from '../../core/weekend/index.ts';
 import { WeatherType } from '../../shared/constants/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import { ContentSource } from '../../shared/types/index.ts';
@@ -132,9 +132,9 @@ const printDetail = (
     });
   });
 
-  console.log('\n  Weekend formats');
-  series.weekendFormats.forEach((format) => {
-    const badge = format.id === series.defaultWeekendFormat ? '  (default)' : '';
+  console.log('\n  Event formats');
+  series.eventFormats.forEach((format) => {
+    const badge = format.id === series.defaultEventFormat ? '  (default)' : '';
     console.log(`\n    ${format.name}  (${format.id})${badge}`);
     format.sessions.forEach((session) => {
       const name = (session.name ?? session.type).padEnd(14);
@@ -184,7 +184,7 @@ const printDetail = (
       : (state?.pitboxes ? `  NEEDS ${state.pitboxes.needed} PIT BOXES, HAS ${state.pitboxes.available}` : '');
     // Only a round running something other than the default names its format:
     // the same word down every row would say nothing.
-    const format = round.weekendFormat ? `  [${round.weekendFormat}]` : '';
+    const format = round.eventFormat ? `  [${round.eventFormat}]` : '';
     const fee = round.entryFee !== undefined ? `  fee ${round.entryFee}` : '';
     const climate = round.climate ? `  {${round.climate}}` : '';
     // What each race comes to on this track, which a distance only says here.
@@ -272,7 +272,7 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
   }, content, SHIPPED_CATALOGUE, offer);
   // The whole round as one INI is not what runs - the app plans one launch
   // per session - so the plan is printed beside it rather than left implied.
-  const plan = planWeekend(race, content);
+  const plan = planEvent(race, content);
   const raceIni = buildRaceIni(plan.launches[0].race, content);
 
   await mkdir(OUT_DIR, { recursive: true });

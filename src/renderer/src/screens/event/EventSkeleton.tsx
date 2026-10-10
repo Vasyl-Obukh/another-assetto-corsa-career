@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { BriefTile } from './BriefTile.tsx';
-import { WEEKEND_SKELETON } from './constants.ts';
+import { EVENT_SKELETON } from './constants.ts';
 import { Loading, Shimmer } from '@/components';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -10,7 +10,7 @@ import { slots } from '@/lib/slots.ts';
 
 /**
  * A round's page under its header while it is read: the entry card, the
- * weekend's sessions under their real heading, and the session open beside
+ * event's sessions under their real heading, and the session open beside
  * them with its four briefing tiles.
  */
 export const EventSkeleton = () => {
@@ -34,11 +34,11 @@ export const EventSkeleton = () => {
         <Card className="gap-0 py-0">
           <CardHeader className="px-3 pt-3 pb-2">
             <CardTitle className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {t('event.weekend')}
+              {t('event.listTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0">
-            {slots(WEEKEND_SKELETON).map((at) => (
+            {slots(EVENT_SKELETON).map((at) => (
               <div key={at} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t px-3 py-2.5">
                 <Shimmer className="size-4 rounded-full" />
                 <div className="flex flex-col gap-1.5">

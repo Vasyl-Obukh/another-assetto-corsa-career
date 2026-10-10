@@ -31,11 +31,11 @@ const bySeat = (places: readonly RacePlace[]): Record<string, number> => Object.
 
 /**
  * The fixture championship racing the given sessions instead of its own.
- * @param sessions The weekend's sessions
+ * @param sessions The event's sessions
  * @returns The request
  */
 const racing = (sessions: SeriesSession[]): SimulationRequest => request({
-  series: makeSeries({ weekendFormats: [{ id: 'standard', name: 'Weekend', sessions }] }),
+  series: makeSeries({ eventFormats: [{ id: 'standard', name: 'Event', sessions }] }),
 });
 
 /**
@@ -52,7 +52,7 @@ const DRIVEN_QUALIFYING: LaunchRecord = {
 
 describe('core/round-simulation', () => {
   describe('simulateRound', () => {
-    it('records every launch of the weekend as simulated, with a full classification', () => {
+    it('records every launch of the event as simulated, with a full classification', () => {
       const { sessions } = simulateRound(request());
 
       expect(sessions).toHaveLength(2);
@@ -147,7 +147,7 @@ describe('core/round-simulation', () => {
       expect(seat[1].substitute).toBeUndefined();
     });
 
-    it('gives the stand-in its own qualifying when the player drove none of the weekend', () => {
+    it('gives the stand-in its own qualifying when the player drove none of the event', () => {
       const { places } = simulateRound(request({ player: { entry: 'gt4' } })).score.races[0];
       const seat = places.filter((place) => place.seat === 'gt4-4');
 
@@ -181,8 +181,8 @@ describe('core/round-simulation', () => {
       expect(sessions[1].gridOrder.slice(4)).toEqual(feature.slice(4));
     });
 
-    it('refuses a round whose weekend format the championship does not have', () => {
-      const series = makeSeries({ defaultWeekendFormat: 'missing' });
+    it('refuses a round whose event format the championship does not have', () => {
+      const series = makeSeries({ defaultEventFormat: 'missing' });
 
       expect(() => simulateRound(request({ series }))).toThrow(expect.objectContaining({
         code: 'series.format.unknown',

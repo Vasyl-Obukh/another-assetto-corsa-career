@@ -1,15 +1,15 @@
 // Shared builders for the career-store tests. Deliberately small: one
 // two-round championship with a single class, a season to hang it on, and a
-// three-session weekend plan. Everything the function under test does not read
+// three-session event plan. Everything the function under test does not read
 // is cast rather than written out.
 
-import { addDays } from '../../../core/season-calendar/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
   Career,
   CareerSeason,
   Championship,
   ClassEntry,
+  EventPlan,
   GridEntry,
   RaceDefinition,
   Round,
@@ -19,14 +19,8 @@ import type {
   SeriesListing,
   SeriesRequirements,
   SessionDefinition,
-  WeekendPlan,
 } from '../../../shared/types/index.ts';
 import { CAREER_VERSION } from '../constants.ts';
-
-/**
- * How many days a round of the test championship's weekend covers.
- */
-export const WEEKEND_DAYS = 3;
 
 /**
  * Builds a class entry with two seats and a one-make car list.
@@ -56,7 +50,7 @@ export const makeRound = (id: string, over: Partial<Round> = {}): Round => ({
 });
 
 /**
- * Builds a championship with a three-day weekend and two rounds.
+ * Builds a championship with a three-day event and two rounds.
  * @param over Whatever the test wants said differently
  * @returns The championship
  */
@@ -66,7 +60,7 @@ export const makeChampionship = (over: Partial<Championship> = {}): Championship
   name: 'Test Cup',
   entries: [makeClassEntry()],
   rounds: [makeRound('one'), makeRound('two')],
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
     name: 'Standard',
     sessions: [
@@ -79,29 +73,27 @@ export const makeChampionship = (over: Partial<Championship> = {}): Championship
       },
     ],
   }],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'standard', name: 'Standard', positions: [25, 18, 15] }],
   defaultPointsSystem: 'standard',
   ...over,
 });
 
 /**
- * Builds a dated event, its weekend running from the day it opens.
+ * Builds a dated event, its event running from the day it opens.
  * @param round The round's id
- * @param firstDay The ISO date the weekend opens on
+ * @param date The ISO date it is raced on
  * @param over Whatever the test wants said differently
  * @returns The event
  */
 export const makeEvent = (
   round: string,
-  firstDay: string,
+  date: string,
   over: Partial<SeasonEvent> = {},
 ): SeasonEvent => ({
   round,
   raceId: `test-cup/${round}`,
-  firstDay,
-  raceDay: addDays(firstDay, WEEKEND_DAYS - 1),
-  lastDay: addDays(firstDay, WEEKEND_DAYS - 1),
+  date,
   status: 'scheduled',
   sessions: [],
   ...over,
@@ -201,12 +193,12 @@ export const makeListing = (
   origin: 'shipped',
   activeByDefault: true,
   filler: false,
-  weekend: null,
+  event: null,
   ...over,
 });
 
 /**
- * Builds a weekend plan of one launch per session, each on the day it states.
+ * Builds an event plan of one launch per session, each on the day it states.
  *
  * Only what eventSessions and the grid composition read is real: the launch's
  * own race carries the session and its conditions, and the field is four cars
@@ -217,8 +209,8 @@ export const makeListing = (
  */
 export const makePlan = (
   sessions: readonly SessionDefinition[],
-  over: Partial<WeekendPlan> = {},
-): WeekendPlan => ({
+  over: Partial<EventPlan> = {},
+): EventPlan => ({
   raceId: 'test-cup/one',
   raceName: 'Test Cup - Round one',
   grid: Array.from({ length: 4 }, (unused, at) => (

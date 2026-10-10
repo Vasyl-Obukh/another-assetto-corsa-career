@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils.ts';
 
 interface ClassesCardProps {
   /**
-   * The race weekend.
+   * The race event.
    */
   race: QuickRace;
   /**
@@ -26,7 +26,7 @@ interface ClassesCardProps {
    */
   track: Track | null;
   /**
-   * Whether the weekend has started, in which case nothing can change.
+   * Whether the event has started, in which case nothing can change.
    */
   locked: boolean;
   /**
@@ -37,7 +37,7 @@ interface ClassesCardProps {
 }
 
 /**
- * What a race weekend's field is drawn from: its classes down the side, each
+ * What a race event's field is drawn from: its classes down the side, each
  * with how many cars it holds, and the one picked opened beside them - the
  * championship editor's classes, cut to what a single race asks.
  */

@@ -103,7 +103,7 @@ export const TUNER_INVITATIONAL: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Invitational',
@@ -114,7 +114,7 @@ export const TUNER_INVITATIONAL: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'tsukuba',

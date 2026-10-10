@@ -20,7 +20,7 @@ interface RacesPayingProps {
    */
   system: string;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -32,14 +32,14 @@ interface RacesPayingProps {
 
 /**
  * Every race of every format with the points it pays - the same choice each
- * race's own Pays field makes on the Weekends tab, gathered in one place.
+ * race's own Pays field makes on the Events tab, gathered in one place.
  */
 export const RacesPaying = ({
   series, system, locked, onChange,
 }: RacesPayingProps) => {
   const { t } = useTranslation();
   const defaultName = series.pointsSystems.find((one) => one.id === series.defaultPointsSystem)?.name ?? '';
-  const races = series.weekendFormats.flatMap((format) => format.sessions
+  const races = series.eventFormats.flatMap((format) => format.sessions
     .map((session, index) => ({ format, session, index }))
     .filter(({ session }) => session.type === 'race'));
 
@@ -51,7 +51,7 @@ export const RacesPaying = ({
    */
   const pay = (format: string, index: number, value: string): void => onChange({
     ...series,
-    weekendFormats: series.weekendFormats.map((one) => (one.id !== format ? one : {
+    eventFormats: series.eventFormats.map((one) => (one.id !== format ? one : {
       ...one,
       sessions: one.sessions.map((session, at): SeriesSession => (at !== index ? session : {
         ...session,

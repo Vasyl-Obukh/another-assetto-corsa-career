@@ -47,7 +47,7 @@ interface PurseEditorProps {
    */
   values: readonly number[];
   /**
-   * Whether nothing may change just now - a weekend under way, or a purse
+   * Whether nothing may change just now - an event under way, or a purse
    * shown only to say what a class shares.
    */
   disabled: boolean;

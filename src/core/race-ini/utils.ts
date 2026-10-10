@@ -200,7 +200,7 @@ export const spreadAiLevel = (spec: GridDefinition, index: number, size: number)
  *
  * Spread onto a grid entry rather than assigned, so a hand-authored race - which
  * has no seats at all - writes no keys rather than three undefined ones. That
- * matters because a grid is round-tripped through JSON in weekend.json, where an
+ * matters because a grid is round-tripped through JSON in event.json, where an
  * undefined value and an absent key are not the same thing.
  * @param entry The car entry a grid row is built from
  * @returns The ids it carries, or nothing

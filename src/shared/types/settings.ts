@@ -190,7 +190,7 @@ export interface Settings {
    * The player's difficulty, and the one absolute figure in the chain: every
    * championship states its field as an offset from this, so moving it moves
    * every grid at once - a season already under way included, from the next
-   * weekend set up. A weekend is lowered once, so one part-way through keeps
+   * event set up. An event is lowered once, so one part-way through keeps
    * the field it started with.
    */
   opponents: AiBase;
@@ -223,6 +223,13 @@ export interface Settings {
    * offered at all.
    */
   showFillerSeries: boolean;
+  /**
+   * Whether two of the career's events may fall on one day and both be raced.
+   *
+   * Off, two such events clash: racing one gives the other up. On, nothing
+   * clashes and the career can race as many championships as it likes.
+   */
+  allowSameDayEvents: boolean;
   /**
    * Paths the user has corrected by hand.
    */

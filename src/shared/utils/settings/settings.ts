@@ -276,6 +276,9 @@ export const readSettings = (raw: unknown): Settings => {
     showFillerSeries: typeof raw.showFillerSeries === 'boolean'
       ? raw.showFillerSeries
       : DEFAULT_SETTINGS.showFillerSeries,
+    allowSameDayEvents: typeof raw.allowSameDayEvents === 'boolean'
+      ? raw.allowSameDayEvents
+      : DEFAULT_SETTINGS.allowSameDayEvents,
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

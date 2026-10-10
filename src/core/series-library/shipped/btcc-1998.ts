@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * A BTCC meeting of the Super Touring years: practice, then a qualifying and a
  * race for the sprint, and another of each for the feature race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'race-meeting',
   name: 'Sprint and feature',
   sessions: [
@@ -101,10 +101,10 @@ export const BTCC_1998: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.SUPER_TOURING_1990S, minModels: 3 },
     },
   ],
-  weekendFormats: [
-    WEEKEND,
+  eventFormats: [
+    EVENT,
   ],
-  defaultWeekendFormat: 'race-meeting',
+  defaultEventFormat: 'race-meeting',
   rounds: [
     {
       id: 'thruxton',

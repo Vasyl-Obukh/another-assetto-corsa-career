@@ -8,7 +8,7 @@ import { Climate } from '../../shared/types/index.ts';
 /**
  * What each climate makes likely.
  *
- * Wet-day chances are per day, so a three-day weekend in an oceanic climate is
+ * Wet-day chances are per day, so a three-day event in an oceanic climate is
  * wet on at least one of them rather more often than the figure reads. Only the
  * weather a career races in appears here; the extremes are the user's to allow,
  * never the generator's to reach for.
@@ -141,7 +141,7 @@ export const SESSION_PERSISTENCE = 0.6;
 export const WARM_UP_DRAWS = 4;
 
 /**
- * How far one day of a weekend may stray from the weekend's own weather: air
+ * How far one day of an event may stray from the event's own weather: air
  * temperature in degrees Celsius, wind in kilometres per hour and its direction
  * in degrees, each either way.
  */

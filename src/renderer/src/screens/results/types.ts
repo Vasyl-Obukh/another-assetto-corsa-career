@@ -4,7 +4,7 @@
 export type SessionFilter = 'all' | 'practice' | 'qualify' | 'race';
 
 /**
- * What the Results page narrows its weekends by.
+ * What the Results page narrows its events by.
  */
 export interface ResultsCriteria {
   /**

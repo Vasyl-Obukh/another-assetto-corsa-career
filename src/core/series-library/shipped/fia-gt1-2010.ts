@@ -10,7 +10,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Four of its six makes are in the catalogue and the class names them: the
  * base game's Maserati MC12, Yezhrod's Nissan GT-R of 2010, and RSS's Adonis
  * D9 and Lanzo V12 for the Aston Martin DBR9 and the Lamborghini Murcielago.
- * The Corvette C6.R and the Ford GT are not. The weekend is the qualifying
+ * The Corvette C6.R and the Ford GT are not. The event is the qualifying
  * race and the championship race, each an hour, the second from the first's
  * result, after a three-part qualifying. Six of ten rounds, in the order and
  * on the calendar as understood rather than checked: Abu Dhabi, Silverstone,
@@ -77,9 +77,9 @@ export const FIA_GT1_2010: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'gt1-weekend',
+      id: 'standard',
       name: 'Qualifying race and championship race',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
@@ -105,7 +105,7 @@ export const FIA_GT1_2010: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'gt1-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'abu-dhabi',

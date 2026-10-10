@@ -1,4 +1,4 @@
-// A race weekend of the player's own, outside any championship: the Race tab
+// A race event of the player's own, outside any championship: the Race tab
 // holds as many as they like, each with its own sessions, progress and results.
 //
 // Written as little as possible: a track, a car, the classes the field is drawn
@@ -8,13 +8,13 @@
 // and class positions without any of them being written twice.
 
 import type { EventSession } from './career.ts';
+import type { EventPlan } from './event.ts';
 import type { RaceStatus } from './race-run.ts';
 import type { Conditions, GridEntry, SessionDefinition } from './race.ts';
 import type {
   Championship, Eligibility, Regulations, SeriesGrid,
 } from './series.ts';
 import type { RoundScore } from './standings.ts';
-import type { WeekendPlan } from './weekend.ts';
 import type { AppErrorInfo } from '../errors/index.ts';
 
 /**
@@ -50,7 +50,7 @@ export interface QuickClass {
 }
 
 /**
- * A race weekend of the player's own.
+ * A race event of the player's own.
  */
 export interface QuickRace {
   /**
@@ -153,7 +153,7 @@ export interface QuickRaceView {
   /**
    * Its launches, or null when it cannot be planned yet.
    */
-  plan: WeekendPlan | null;
+  plan: EventPlan | null;
   /**
    * Every session, with what it left behind.
    */

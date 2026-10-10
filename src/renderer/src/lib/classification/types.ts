@@ -22,7 +22,7 @@ export interface ClassificationSource {
    */
   record?: LaunchRecord | null;
   /**
-   * The weekend's entry list, which the record's car indices index into.
+   * The event's entry list, which the record's car indices index into.
    */
   grid?: readonly GridEntry[];
   /**

@@ -49,7 +49,7 @@ export const S_FR_CUP: Championship = {
       eligibility: { kind: 'cars', cars: ['gue_toyota_s-fr_cup'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race day',
@@ -59,7 +59,7 @@ export const S_FR_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'tsukuba',

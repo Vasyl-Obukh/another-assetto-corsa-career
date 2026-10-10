@@ -32,7 +32,7 @@ interface RoundTableProps {
   onOpen?: (round: string) => void;
 }
 
-// The season as a results sheet: one row per round, its weekend and how long
+// The season as a results sheet: one row per round, its event and how long
 // its races run, and in a career the date and where the player finished.
 export const RoundTable = ({
   listing, entered, season, playerName, next, onOpen,

@@ -3,9 +3,9 @@
 //
 // The lowering is the load-bearing part, and what it deliberately does not do
 // matters as much as what it does: roundRace returns an ordinary
-// RaceDefinition, so a championship round runs through planWeekend, buildGrid,
-// prepareLaunch and buildRaceIni exactly as a hand-authored weekend does. There
-// is no series-aware code anywhere in src/core/weekend, src/core/race-ini or
+// RaceDefinition, so a championship round runs through planEvent, buildGrid,
+// prepareLaunch and buildRaceIni exactly as a hand-authored event does. There
+// is no series-aware code anywhere in src/core/event, src/core/race-ini or
 // src/main/race-store, and there should never be.
 //
 // Points are carried and not applied: scoring a round is src/core/season-scoring's.
@@ -60,7 +60,7 @@ import type {
 import { aiFigure } from '../../shared/utils/ai-figure/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
-import { formatOf } from '../../shared/utils/weekend-format/index.ts';
+import { formatOf } from '../../shared/utils/event-format/index.ts';
 import { nextSkin, skinKey } from '../race-ini/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import {
@@ -71,10 +71,10 @@ import {
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
-  classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, roundOf, roundRaceId, roundSessions,
-  roundSpans, seatDraw,
+  classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, roundOf, roundRaceId, roundSessions,
+  seatDraw,
 } from './utils.ts';
-export { formatOf } from '../../shared/utils/weekend-format/index.ts';
+export { formatOf } from '../../shared/utils/event-format/index.ts';
 
 /**
  * Checks a championship against the schema's own rules.
@@ -108,10 +108,9 @@ export const validateSeries = (
   if (series.rounds.length === 0) {
     problems.push(appErrorInfo('series.rounds.empty', { series: series.id }));
   }
-  // A race weekend is a week, so a season has room for as many rounds as it has
-  // weeks. More than that and the selector is saying something the calendar
-  // cannot do, which is worth refusing rather than quietly crowding two rounds
-  // onto one weekend.
+  // A championship races once a week at most, so a season has room for as many
+  // rounds as it has weeks. More than that is something the calendar cannot do,
+  // which is worth refusing rather than quietly crowding two rounds into a week.
   const weeks = SEASON_WEEKS[series.seasonLength ?? DEFAULT_SEASON_LENGTH];
   if (series.rounds.length > weeks) {
     problems.push(appErrorInfo('series.season.tooManyRounds', {
@@ -199,28 +198,28 @@ export const validateSeries = (
     });
   });
 
-  if (series.weekendFormats.length === 0) {
+  if (series.eventFormats.length === 0) {
     problems.push(appErrorInfo('series.formats.empty', { series: series.id }));
   }
-  duplicates(series.weekendFormats.map((format) => format.id)).forEach((id) => {
-    problems.push(appErrorInfo('series.id.duplicate', { series: series.id, kind: 'weekend format', id }));
+  duplicates(series.eventFormats.map((format) => format.id)).forEach((id) => {
+    problems.push(appErrorInfo('series.id.duplicate', { series: series.id, kind: 'event format', id }));
   });
 
-  const formatIds = new Set(series.weekendFormats.map((format) => format.id));
-  if (series.weekendFormats.length > 0 && !formatIds.has(series.defaultWeekendFormat)) {
+  const formatIds = new Set(series.eventFormats.map((format) => format.id));
+  if (series.eventFormats.length > 0 && !formatIds.has(series.defaultEventFormat)) {
     problems.push(appErrorInfo('series.format.defaultUnknown', {
-      series: series.id, format: series.defaultWeekendFormat,
+      series: series.id, format: series.defaultEventFormat,
     }));
   }
   series.rounds.forEach((round) => {
-    if (round.weekendFormat !== undefined && !formatIds.has(round.weekendFormat)) {
+    if (round.eventFormat !== undefined && !formatIds.has(round.eventFormat)) {
       problems.push(appErrorInfo('series.format.unknown', {
-        series: series.id, round: round.id, format: round.weekendFormat,
+        series: series.id, round: round.id, format: round.eventFormat,
       }));
     }
 
     // A length is replaced by session id, so it has to name one the round's
-    // own format runs - an override for a sprint on a regular weekend would
+    // own format runs - an override for a sprint on a regular event would
     // otherwise sit there saying nothing.
     const format = formatOf(series, round);
     round.sessionLengths?.forEach((length) => {
@@ -260,7 +259,7 @@ export const validateSeries = (
 
   // Every format, not only the ones in use: an unused format is still part of
   // the document, and the editor will offer it to a round tomorrow.
-  series.weekendFormats.forEach((format) => {
+  series.eventFormats.forEach((format) => {
     problems.push(...validateFormat(series, format));
   });
 
@@ -442,13 +441,13 @@ export const drawField = (
  * sessions, so the race runs exactly what the round's forecast said.
  *
  * AI strength is resolved here rather than frozen, so the difficulty in
- * settings reaches a season already under way from the next weekend set up.
+ * settings reaches a season already under way from the next event set up.
  * @param request Which round of which championship, and the player's car
  * @param content Installed content to resolve eligibility against
  * @param catalogue The class catalogue specs resolve against
  * @param offer What the install and settings can race in, for generated weather
  * @param base The player's AI difficulty, which every offset is laid over
- * @returns A race definition, ready for validateRace and planWeekend
+ * @returns A race definition, ready for validateRace and planEvent
  * @throws When the round, entry or car cannot be raced
  */
 export const roundRace = (
@@ -467,7 +466,7 @@ export const roundRace = (
     throw new AppError('series.format.unknown', {
       series: series.id,
       round: round.id,
-      format: round.weekendFormat ?? series.defaultWeekendFormat,
+      format: round.eventFormat ?? series.defaultEventFormat,
     });
   }
 

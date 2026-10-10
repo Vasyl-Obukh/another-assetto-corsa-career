@@ -14,7 +14,7 @@ import {
 import type {
   Championship, Climate, Hemisphere, Round, RoundAvailability, Track,
 } from '../../../../shared/types';
-import { formatOf } from '../../../../shared/utils/weekend-format';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { TrackPicker } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -46,7 +46,7 @@ interface RoundBasicsProps {
    */
   availability: RoundAvailability | undefined;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -57,7 +57,7 @@ interface RoundBasicsProps {
 }
 
 /**
- * What a round is: its name and circuit, the weekend it runs and how long its
+ * What a round is: its name and circuit, the event it runs and how long its
  * races are, what it costs, how strong its field is and what weather it
  * expects.
  */
@@ -134,18 +134,18 @@ export const RoundBasics = ({
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Field id={`${idPrefix}-format`} label={t('editor.calendar.format')} hint={t('editor.calendar.formatHint')}>
           <Select
-            value={round.weekendFormat ?? DEFAULT_REF}
+            value={round.eventFormat ?? DEFAULT_REF}
             disabled={locked}
             onValueChange={(value) => onChange(withRoundLengthsPruned(series, {
-              ...round, weekendFormat: value === DEFAULT_REF ? undefined : value,
+              ...round, eventFormat: value === DEFAULT_REF ? undefined : value,
             }))}
           >
             <SelectTrigger id={`${idPrefix}-format`} className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {series.weekendFormats.map((one) => {
-                const value = one.id === series.defaultWeekendFormat ? DEFAULT_REF : one.id;
+              {series.eventFormats.map((one) => {
+                const value = one.id === series.defaultEventFormat ? DEFAULT_REF : one.id;
 
                 return (
                   <SelectItem key={one.id} value={value}>

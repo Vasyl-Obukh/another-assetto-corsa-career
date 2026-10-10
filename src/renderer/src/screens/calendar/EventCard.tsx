@@ -48,7 +48,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
       className={cn(
         'relative flex w-full flex-col gap-2 overflow-hidden rounded-lg border bg-card py-2.5 pr-3 pl-4 text-left',
         'hover-outline',
-        // A ring rather than a fill for a weekend you are in, so it stays legible.
+        // A ring rather than a fill for an event you are in, so it stays legible.
         event.enrolled ? 'border-primary/60 ring-1 ring-primary/60' : '',
         // A rung not reached yet is shown, just without a card's full weight.
         event.eligible ? '' : 'border-dashed bg-transparent',
@@ -106,7 +106,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
           </>
         )}
 
-        {/* Only on a weekend the career is in: an un-entered round behind the
+        {/* Only on an event the career is in: an un-entered round behind the
             clock was not missed. */}
         {event.enrolled && event.status !== 'scheduled' ? (
           <Badge className={cn('px-1.5 py-0 text-[0.65rem]', EVENT_ACCENT[event.status])}>
@@ -114,7 +114,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
           </Badge>
         ) : null}
         {/* Neutral on purpose: the card's ring already carries primary for a
-            weekend you are in, and primary is kept off chips so the two cannot
+            event you are in, and primary is kept off chips so the two cannot
             be confused. */}
         {yours && !event.clash ? (
           <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">

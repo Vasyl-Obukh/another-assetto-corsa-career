@@ -61,7 +61,7 @@ export const DTM_1993: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.DTM_1993, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race meeting',
@@ -77,7 +77,7 @@ export const DTM_1993: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'zolder',

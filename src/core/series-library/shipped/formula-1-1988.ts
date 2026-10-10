@@ -2,15 +2,15 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of the era: practice both days and the hour of
+ * A grand prix event of the era: practice both days and the hour of
  * qualifying on Saturday. Friday's hour, whose best times counted too, is
  * not run.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -90,8 +90,8 @@ export const FORMULA_1_1988: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1988, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     {
       id: 'san-marino',

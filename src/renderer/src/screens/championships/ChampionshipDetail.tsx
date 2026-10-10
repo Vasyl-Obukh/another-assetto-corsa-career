@@ -63,15 +63,14 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
     const clock = career.calendar?.date;
     const event = entered
       ? entered.events.find((one) => one.status === 'scheduled')
-      : career.calendar?.events.find((one) => one.series === id && clock !== undefined && one.lastDay >= clock);
+      : career.calendar?.events.find((one) => one.series === id && clock !== undefined && one.date >= clock);
     const at = rounds.findIndex((round) => round.id === event?.round);
     if (manage || !event || at < 0) return undefined;
 
     return {
       round: rounds[at],
       number: at + 1,
-      firstDay: event.firstDay,
-      lastDay: event.lastDay,
+      date: event.date,
       underway: 'sessions' in event && event.sessions.length > 0,
     };
   }, [listing, career.calendar, entered, id, manage]);

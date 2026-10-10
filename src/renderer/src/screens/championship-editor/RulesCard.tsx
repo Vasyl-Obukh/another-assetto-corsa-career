@@ -19,7 +19,7 @@ interface RulesCardProps {
   grid: SeriesGrid;
   /**
    * What the field's offsets are called in the sum its figures write out -
-   * the championship's, or a race weekend's own.
+   * the championship's, or a race event's own.
    */
   own: string;
   /**
@@ -27,7 +27,7 @@ interface RulesCardProps {
    */
   regulations: Regulations;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**

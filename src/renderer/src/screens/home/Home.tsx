@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
 import { HomeSkeleton } from './HomeSkeleton.tsx';
-import { NextWeekend } from './NextWeekend.tsx';
-import { NoWeekend } from './NoWeekend.tsx';
-import { clashingWith, seasonProgress, upcomingWeekend } from './utils.ts';
+import { NextEvent } from './NextEvent.tsx';
+import { NoEvent } from './NoEvent.tsx';
+import { clashingWith, seasonProgress, upcomingEvent } from './utils.ts';
 import { YourChampionships } from './YourChampionships.tsx';
 import { AdvanceDialog, ErrorCard, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -38,7 +38,7 @@ export const Home = () => {
     );
   }
 
-  const next = upcomingWeekend(calendar.events, calendar.date);
+  const next = upcomingEvent(calendar.events, calendar.date);
 
   /**
    * Opens the calendar on what the career could enter, wherever its filters
@@ -73,14 +73,14 @@ export const Home = () => {
 
       <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {next ? (
-          <NextWeekend
+          <NextEvent
             event={next}
             clashes={clashingWith(calendar.events, next)}
             today={calendar.date}
             busy={career.busy}
-            onAdvance={() => move.moveTo(next.firstDay)}
+            onAdvance={() => move.moveTo(next.date)}
           />
-        ) : <NoWeekend onFind={findChampionship} />}
+        ) : <NoEvent onFind={findChampionship} />}
 
         <YourChampionships rows={rows} />
       </div>

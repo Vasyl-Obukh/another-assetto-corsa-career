@@ -60,7 +60,7 @@ export interface SessionInheritance {
 }
 
 /**
- * One session within a race weekend.
+ * One session within a race event.
  */
 export interface SessionDefinition {
   /**
@@ -68,10 +68,10 @@ export interface SessionDefinition {
    */
   type: SessionType;
   /**
-   * Stable identifier, unique within the weekend, for other sessions to name.
+   * Stable identifier, unique within the event, for other sessions to name.
    *
    * Optional because only a session something links to needs one, and every
-   * weekend authored before links existed has none.
+   * event authored before links existed has none.
    */
   id?: string;
   /**
@@ -101,8 +101,8 @@ export interface SessionDefinition {
    */
   startingPosition?: number;
   /**
-   * Offset in days from the first day of the weekend, so 0 is the opening day
-   * and 2 is race day on a three-day weekend. Defaults to 0.
+   * Offset in days from the first day of the event, so 0 is the opening day
+   * and 2 is race day on a three-day event. Defaults to 0.
    */
   day?: number;
   /**
@@ -112,24 +112,24 @@ export interface SessionDefinition {
    * simply never sets `top`, and nothing has to special-case a session type.
    *
    * A link naming a session that is not there, or that runs later, is ignored
-   * rather than fatal: the weekend falls back to the last qualifying before the
-   * race, which is what every weekend did before links existed.
+   * rather than fatal: the event falls back to the last qualifying before the
+   * race, which is what every event did before links existed.
    */
   inherit?: SessionInheritance;
   /**
    * Where the player lines up on a race nothing before it sets the grid of:
    * last, on pole, at a slot counting from one, or at a slot drawn once for the
-   * weekend. Unset is last, which is what a grid with no result behind it has
+   * event. Unset is last, which is what a grid with no result behind it has
    * always given the player. Ignored behind an inherited order, since there
    * the player starts where that session put them.
    */
   start?: GridStart;
   /**
-   * What this session overrides of the weekend's own conditions.
+   * What this session overrides of the event's own conditions.
    *
    * A session is a whole race.ini, so it carries its own weather, wind,
    * temperature, track state and start time. Unset fields inherit from the
-   * weekend; weather is inherited as a group rather than field by field. Merge
+   * event; weather is inherited as a group rather than field by field. Merge
    * it with resolveConditions() rather than by hand.
    */
   conditions?: Conditions;
@@ -183,7 +183,7 @@ export interface CarEntry {
    * Which championship seat this car is, when a championship put it here.
    *
    * Inert in this layer, exactly as SeriesSession.pointsSystem is: nothing in
-   * src/core/weekend/ or src/core/race-ini/ reads it, and it rides through so
+   * src/core/event/ or src/core/race-ini/ reads it, and it rides through so
    * that scoring can say which seat a classified car was. Without it a result
    * could only be joined back by driver name, which an unnamed field does not
    * have. Absent on a hand-authored race, which has no seats.
@@ -313,8 +313,9 @@ export interface Conditions {
    * Starting grip as a percentage, overriding the track state preset's own.
    *
    * What carries a rubbered-in track across a launch boundary: AC resets grip
-   * to [DYNAMIC_TRACK] SESSION_START every time the game starts, so a Sunday
-   * race would otherwise open on the same green track Friday practice did.
+   * to [DYNAMIC_TRACK] SESSION_START every time the game starts, so a race on
+   * an event's last day would otherwise open on the same green track its first
+   * practice did.
    */
   startGrip?: number;
   /**
@@ -507,7 +508,7 @@ export interface GridEntry {
    * Which championship seat this car is, when a championship put it here.
    *
    * Inert in this layer, exactly as SeriesSession.pointsSystem is: nothing in
-   * src/core/weekend/ or src/core/race-ini/ reads it, and it rides through so
+   * src/core/event/ or src/core/race-ini/ reads it, and it rides through so
    * that scoring can say which seat a classified car was. Without it a result
    * could only be joined back by driver name, which an unnamed field does not
    * have. Absent on a hand-authored race, which has no seats.

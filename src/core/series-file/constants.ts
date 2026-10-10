@@ -2,7 +2,7 @@
 
 import { WeatherType } from '../../shared/constants/index.ts';
 import {
-  Climate, Hemisphere, SeasonLength, TeamBudget,
+  Climate, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../shared/types/index.ts';
 import type { GridStart, SessionType, TrackStateName } from '../../shared/types/index.ts';
 import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/index.ts';
@@ -26,6 +26,11 @@ export const HEMISPHERES: readonly Hemisphere[] = stringEnumValues(Hemisphere);
  * Every season length, for checking one read off disk.
  */
 export const SEASON_LENGTHS: readonly SeasonLength[] = stringEnumValues(SeasonLength);
+
+/**
+ * Every day of the week, for checking a race day read off disk.
+ */
+export const WEEKDAYS: readonly Weekday[] = stringEnumValues(Weekday);
 
 /**
  * Every CSP weather type, without the reverse mapping a numeric enum carries.

@@ -1,8 +1,9 @@
 import { Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { launchNote } from './utils.ts';
 import type { CareerEventView, EventSession } from '../../../../shared/types';
-import { lostCount, SkipNote } from '@/components';
+import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useRaceStatus } from '@/hooks';
 import { useAppError } from '@/i18n';
@@ -31,7 +32,7 @@ interface LaunchAreaProps {
  * Where the next session is started, and where it says why it cannot be.
  *
  * The launching and waiting states are
- * the race store's, read only while it holds this weekend - another weekend's
+ * the race store's, read only while it holds this event - another event's
  * launch has nothing to say here.
  */
 export const LaunchArea = ({
@@ -44,8 +45,7 @@ export const LaunchArea = ({
   const status = view.live ? race.setup?.status : undefined;
   const running = status !== undefined && status.phase !== 'idle';
   const name = sessionName(session, t);
-  const lost = lostCount(view.skips);
-  const partway = view.skips.some((one) => one.reason === 'partway');
+  const lost = view.skips.length;
 
   if (running) {
     return (
@@ -73,7 +73,7 @@ export const LaunchArea = ({
           what it will ask about before it is pressed. */}
       {view.blocked === null && lost > 0 ? (
         <SkipNote
-          title={t(partway ? 'skip.launchNotePartway' : 'skip.launchNote', { count: lost })}
+          title={t(launchNote(view.skips), { count: lost })}
           hint={t('skip.launchNoteHint')}
         />
       ) : null}

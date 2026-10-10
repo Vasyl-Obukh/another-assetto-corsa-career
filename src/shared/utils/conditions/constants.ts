@@ -8,7 +8,7 @@ import type { Conditions } from '../../types/race.ts';
  * at each of the places that reads or clears them.
  *
  * `weatherSteps` belongs with the rest: a session choosing a steady weather
- * while the weekend names a plan has to lose that plan, or the merge keeps
+ * while the event names a plan has to lose that plan, or the merge keeps
  * both and a session that asked for one weather runs a sequence of them.
  */
 export const WEATHER_FIELDS: (keyof Conditions)[] = [

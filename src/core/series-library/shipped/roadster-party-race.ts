@@ -53,7 +53,7 @@ export const ROADSTER_PARTY_RACE: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_nd'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race day',
@@ -63,7 +63,7 @@ export const ROADSTER_PARTY_RACE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'tsukuba',

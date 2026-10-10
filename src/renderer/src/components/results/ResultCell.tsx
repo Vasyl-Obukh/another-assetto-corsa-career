@@ -28,7 +28,7 @@ interface ResultCellProps {
   prefixed?: boolean;
   /**
    * Drawn without its colour, for a place that pays nothing by being one - a
-   * practice or qualifying order beside the races of a weekend.
+   * practice or qualifying order beside the races of an event.
    */
   quiet?: boolean;
   /**
@@ -50,7 +50,7 @@ const SIZE = {
 /**
  * One finish in one race, the same everywhere a finish is listed: the podium in
  * its metals, a points finish green, and the rest plain - so a P3 reads the same
- * on the standings grid, the round table and a weekend's list.
+ * on the standings grid, the round table and an event's list.
  */
 export const ResultCell = ({
   position, scored, pole = false, fastestLap = false, prefixed = false, quiet = false, size = 'md', className,

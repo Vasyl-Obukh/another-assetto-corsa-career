@@ -12,12 +12,13 @@ import { SeasonLength } from '../types/series.ts';
 export const DISCIPLINES: readonly Discipline[] = Object.values(Discipline);
 
 /**
- * How many days a race weekend may run over.
+ * How many days of its own a race event may run over.
  *
- * Friday to Sunday. Anything longer is an authoring mistake rather than a
- * format we cannot express.
+ * Three, as a real meeting does. Anything longer is an authoring mistake
+ * rather than a format we cannot express. They are the event's own days, never
+ * dates: on the calendar an event takes only the day it is raced on.
  */
-export const MAX_WEEKEND_DAYS = 3;
+export const MAX_EVENT_DAYS = 3;
 
 /**
  * The fewest cars a reverse grid may turn round.
@@ -61,7 +62,7 @@ export const DEFAULT_SEASON_LENGTH = SeasonLength.YEAR;
  * How many weeks of racing each season length spreads its rounds over.
  *
  * Forty rather than fifty-two for a full year, because a real season does not
- * race every weekend of one: there is a winter, and the weeks a championship
+ * race every week of one: there is a winter, and the weeks a championship
  * leaves free are what let the career put the rest of the library somewhere
  * other than on top of it. The career's own season is still the whole
  * fifty-two, and a championship is placed somewhere inside it.

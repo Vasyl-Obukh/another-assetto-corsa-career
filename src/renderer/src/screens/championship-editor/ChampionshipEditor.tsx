@@ -73,7 +73,7 @@ export const ChampionshipEditor = () => {
     teams: draft.teams?.length ?? 0,
     classes: draft.entries.length,
     calendar: draft.rounds.length,
-    weekends: draft.weekendFormats.length,
+    formats: draft.eventFormats.length,
   };
 
   /**
@@ -208,7 +208,7 @@ export const ChampionshipEditor = () => {
               />
             </TabsContent>
 
-            <TabsContent value="weekends">
+            <TabsContent value="formats">
               <FormatsCard
                 series={draft}
                 weather={weather}

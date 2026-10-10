@@ -10,7 +10,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * cars.
  *
  * LFM's Audi RS3 LMS, Cupra Leon Competicion and Hyundai Elantra N make up the
- * TCR 2024 spec. Two races a weekend: the first from qualifying, the second
+ * TCR 2024 spec. Two races a round: the first from qualifying, the second
  * with qualifying's top ten reversed. The calendar is the circuits the series
  * races that Assetto Corsa has - Portimao, Spa, Zandvoort, Monza, Barcelona
  * and the Hungaroring - rather than one season's, which was not checked;
@@ -25,7 +25,7 @@ export const TCR_EUROPE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'tcr-europe',
   name: 'TCR Europe',
-  description: 'Europe\'s TCR touring car series on LFM\'s Audi, Cupra and Hyundai: two races a weekend, '
+  description: 'Europe\'s TCR touring car series on LFM\'s Audi, Cupra and Hyundai: two races a round, '
     + 'the second from a reversed grid.',
   teams: [
     team('adriatic', 'Adriatic Touring', 'HRV', TeamBudget.INDEPENDENT),
@@ -75,9 +75,9 @@ export const TCR_EUROPE: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.TCR_2024, minModels: 2 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
@@ -87,7 +87,7 @@ export const TCR_EUROPE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'portimao',

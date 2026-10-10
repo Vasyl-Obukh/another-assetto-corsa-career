@@ -1,4 +1,4 @@
-// The decidable parts of scoring, kept apart from the fold that walks a weekend.
+// The decidable parts of scoring, kept apart from the fold that walks an event.
 
 import type {
   Championship, GridEntry, PointsSystem, SeriesSession, SessionDefinition,
@@ -8,7 +8,7 @@ import type {
  * Which points system a race pays.
  *
  * The cast is the price of the inert field: a session reaches here as a plain
- * SessionDefinition, because src/core/weekend/ knows nothing about series, and
+ * SessionDefinition, because src/core/event/ knows nothing about series, and
  * `pointsSystem` rides on it unread - see the note on SeriesSession. Done once,
  * here, rather than at each call site.
  * @param series The championship being scored
@@ -31,8 +31,8 @@ export const pointsSystemOf = (
  * What turns an overall finishing order into a class one: a multi-class grid
  * runs one race and settles several championships in it, so an LMGT3 car that
  * crossed the line twenty-fifth may still have won what it was racing for.
- * @param order Car indices into the weekend's grid, in classified order
- * @param grid The weekend's entry list
+ * @param order Car indices into the event's grid, in classified order
+ * @param grid The event's entry list
  * @param entry The class entry's id
  * @returns The car indices of that class alone, in the same order
  */

@@ -30,8 +30,8 @@ import type {
 } from '../../shared/types/index.ts';
 import { parseClock } from '../../shared/utils/road-temperature/index.ts';
 import { nearestOffered } from '../../shared/utils/weather-types/index.ts';
+import { runsToClock } from '../event/index.ts';
 import { toDayNumber } from '../season-calendar/index.ts';
-import { runsToClock } from '../weekend/index.ts';
 
 /**
  * A point within a span.
@@ -146,12 +146,12 @@ export const dayIsWet = (before: boolean | null, profile: ClimateProfile, at: nu
 const either = (at: number): number => at * 2 - 1;
 
 /**
- * Draws every day of a weekend, in order.
+ * Draws every day of an event, in order.
  *
- * The weekend's temperature, wind and wind direction are drawn once and each
- * day wanders a little from them, so the days read as one weekend in one place
+ * The event's temperature, wind and wind direction are drawn once and each
+ * day wanders a little from them, so the days read as one event in one place
  * rather than three picked from anywhere in the climate's range.
- * @param count How many days the weekend runs
+ * @param count How many days the event runs
  * @param profile The climate
  * @param random The generator, drawn from three times, then four times per day
  * @returns One entry per day

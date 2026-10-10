@@ -26,7 +26,7 @@ export {
 
 export { Discipline } from './ladder.ts';
 export {
-  Climate, Hemisphere, SeasonLength, TeamBudget,
+  Climate, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from './series.ts';
 
 export type {
@@ -202,9 +202,9 @@ export type {
   SeriesOrigin,
   SeriesRequirements,
   SeriesSession,
-  SeriesWeekendState,
+  SeriesEventState,
   Team,
-  WeekendFormat,
+  EventFormat,
 } from './series.ts';
 
 export type {
@@ -223,10 +223,10 @@ export type {
 export type {
   LaunchRecord,
   StartingGrid,
-  WeekendLaunch,
-  WeekendPlan,
-  WeekendState,
-} from './weekend.ts';
+  EventLaunch,
+  EventPlan,
+  EventState,
+} from './event.ts';
 
 export type {
   IpcChannel,

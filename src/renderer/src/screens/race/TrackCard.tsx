@@ -21,7 +21,7 @@ interface TrackCardProps {
    */
   gridSize: number;
   /**
-   * Whether the weekend has started, in which case the track cannot change.
+   * Whether the event has started, in which case the track cannot change.
    */
   locked: boolean;
   /**
@@ -32,7 +32,7 @@ interface TrackCardProps {
 }
 
 /**
- * Where a race weekend runs: the layout's shape with its photograph inset, as
+ * Where a race event runs: the layout's shape with its photograph inset, as
  * the picker's own tiles draw it, its figures and the way to change it.
  */
 export const TrackCard = ({

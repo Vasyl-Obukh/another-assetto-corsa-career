@@ -170,7 +170,7 @@ export const summarise = (raceOut: RaceOut): RaceSummary => {
       };
     });
 
-    // A race is ordered as the weekend orders it, AC's own raceResult first.
+    // A race is ordered as the event orders it, AC's own raceResult first.
     // Practice and qualifying carry none, so those order by best lap.
     const isRace = session.type === SESSION_TYPE_RACE;
     const official = isRace && isPermutation(session.raceResult, players.length);

@@ -67,7 +67,7 @@ export const CalendarAgenda = ({
         const month = monthOf(day.date);
         const opensMonth = at === 0 || monthOf(days[at - 1].date) !== month;
         const yours = opensMonth
-          ? events.filter((event) => event.enrolled && monthOf(event.raceDay) === month).length
+          ? events.filter((event) => event.enrolled && monthOf(event.date) === month).length
           : 0;
 
         return [

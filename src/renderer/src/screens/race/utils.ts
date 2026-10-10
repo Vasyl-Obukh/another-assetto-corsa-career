@@ -86,7 +86,7 @@ export const nextSession = (sessions: SessionDefinition[]): SessionDefinition =>
  * Moves one item to another position in a list.
  *
  * Generic because everything an editor reorders reorders the same way - the
- * sessions of a weekend, the rounds of a calendar, the seats of a class entry.
+ * sessions of an event, the rounds of a calendar, the seats of a class entry.
  *
  * Note which side of the target the item lands on, because a drop indicator has
  * to say the same thing: taking the item out first shifts everything after it
@@ -366,10 +366,10 @@ export const conditionsSummary = (conditions: Conditions): ConditionsSummary => 
 };
 
 /**
- * How far the state a race weekend's page was opened with says the weekend has
+ * How far the state a race event's page was opened with says the event has
  * got.
  * @param state The location's state, whatever pushed it
- * @returns The phase a `RaceWeekendState` names, and setup for anything else
+ * @returns The phase a `RaceEventState` names, and setup for anything else
  */
 export const phaseOf = (state: unknown): QuickRacePhase => {
   const phase = typeof state === 'object' && state !== null && 'phase' in state ? state.phase : null;

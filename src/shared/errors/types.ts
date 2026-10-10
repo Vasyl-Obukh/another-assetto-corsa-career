@@ -37,11 +37,11 @@ export type ErrorCode =
   // src/core/cm-arguments
   | 'cm.arguments.unknownFlag'
   | 'cm.arguments.noDataDir'
-  // src/core/weekend
-  | 'weekend.complete'
-  | 'weekend.launch.outOfRange'
-  | 'weekend.launch.runnable'
-  | 'weekend.state.stale'
+  // src/core/event
+  | 'event.complete'
+  | 'event.launch.outOfRange'
+  | 'event.launch.runnable'
+  | 'event.state.stale'
   // src/core/series-file
   | 'seriesFile.notAnObject'
   | 'seriesFile.unparseable'
@@ -73,6 +73,7 @@ export type ErrorCode =
   | 'career.event.closed'
   | 'career.event.earlierPending'
   | 'career.event.otherInProgress'
+  | 'career.event.sameDay'
   | 'career.event.inProgress'
   | 'career.event.complete'
   | 'series.sessions.empty'
@@ -109,7 +110,6 @@ export type ErrorCode =
   | 'series.days.gapped'
   | 'series.days.tooMany'
   | 'series.days.outOfOrder'
-  | 'series.race.onOpeningDay'
   | 'series.startingPosition.authored'
   | 'series.bop.notEligible'
   | 'series.prizes.invalid'
@@ -123,7 +123,7 @@ export type ErrorCode =
   | 'series.notDeletable'
   | 'series.notEditable'
   | 'series.id.immutable'
-  | 'series.weekendInProgress'
+  | 'series.eventInProgress'
   | 'series.save.unreadable'
   // src/shared/utils/class-layer and src/main/class-store
   | 'classes.car.specUnknown'

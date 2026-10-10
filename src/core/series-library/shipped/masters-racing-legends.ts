@@ -11,7 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * with the seasons its cars raced. Masters classes its grid by era and scores
  * each class on its own: the Stewart class for cars before 1972 - here the
  * Lotus 49 and the 72D - and the Fittipaldi class for the cars that followed,
- * up to ground effect, which is the Ferrari 312T. The weekend is Masters' own: one
+ * up to ground effect, which is the Ferrari 312T. The event is Masters' own: one
  * qualifying and two 25-minute races.
  *
  * The 2025 calendar, less Paul Ricard and Hockenheim, which are not in Assetto
@@ -29,7 +29,7 @@ export const MASTERS_RACING_LEGENDS: Championship = {
   name: 'Masters Racing Legends',
   description: 'Today\'s historic championship for three-litre Formula 1 cars, classed by era: the '
     + 'Lotus 49 and 72D in the Stewart class, the Ferrari 312T in the Fittipaldi class. One '
-    + 'qualifying and two 25-minute races a weekend.',
+    + 'qualifying and two 25-minute races a round.',
   teams: [
     team('cosworth-heritage', 'DFV Heritage Racing', 'GBR', TeamBudget.INDEPENDENT),
     team('hethel-historic', 'Hethel Historic', 'GBR', TeamBudget.INDEPENDENT),
@@ -74,10 +74,10 @@ export const MASTERS_RACING_LEGENDS: Championship = {
       eligibility: { kind: 'cars', cars: ['ferrari_312t'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
@@ -95,7 +95,7 @@ export const MASTERS_RACING_LEGENDS: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'brands-hatch',

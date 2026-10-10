@@ -3,17 +3,17 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ALL_CHAMPIONSHIPS, NO_CHAMPIONSHIP, SESSION_FILTERS } from './constants.ts';
+import { ResultCard } from './ResultCard.tsx';
 import { ResultsSkeleton } from './ResultsSkeleton.tsx';
 import type { SessionFilter } from './types.ts';
-import { filterWeekends } from './utils.ts';
-import { WeekendCard } from './WeekendCard.tsx';
+import { filterEvents } from './utils.ts';
 import { ErrorCard, ScreenBody, Segments } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useCareer, useResults } from '@/hooks';
-import { archiveOrigins, resultWeekends } from '@/lib/result-weekends';
+import { archiveOrigins, resultEvents } from '@/lib/result-events';
 
 export const Results = () => {
   const { t } = useTranslation();
@@ -23,14 +23,14 @@ export const Results = () => {
   const [kind, setKind] = useState<SessionFilter>('all');
   const [championship, setChampionship] = useState(ALL_CHAMPIONSHIPS);
 
-  const weekends = useMemo(
-    () => resultWeekends(results.records, archiveOrigins(career)),
+  const events = useMemo(
+    () => resultEvents(results.records, archiveOrigins(career)),
     [results.records, career],
   );
-  const championships = useMemo(() => [...new Map(weekends.flatMap((weekend) => (
-    weekend.origin ? [[weekend.origin.entry.series, weekend.origin.entry.championship.name] as const] : []
-  ))).entries()], [weekends]);
-  const shown = filterWeekends(weekends, { search, kind, championship });
+  const championships = useMemo(() => [...new Map(events.flatMap((event) => (
+    event.origin ? [[event.origin.entry.series, event.origin.entry.championship.name] as const] : []
+  ))).entries()], [events]);
+  const shown = filterEvents(events, { search, kind, championship });
 
   return (
     <ScreenBody className="flex flex-col gap-4 py-8" backToTop>
@@ -78,13 +78,13 @@ export const Results = () => {
 
       {!results.loading && shown.length === 0 && !results.error ? (
         <p className="text-sm text-muted-foreground">
-          {weekends.length === 0 ? t('results.empty') : t('results.noneMatch')}
+          {events.length === 0 ? t('results.empty') : t('results.noneMatch')}
         </p>
       ) : null}
 
       {shown.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {shown.map((weekend) => <WeekendCard key={`${weekend.key}@${weekend.to}`} weekend={weekend} />)}
+          {shown.map((event) => <ResultCard key={`${event.key}@${event.to}`} event={event} />)}
         </div>
       ) : null}
     </ScreenBody>

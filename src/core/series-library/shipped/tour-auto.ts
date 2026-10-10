@@ -84,7 +84,7 @@ export const TOUR_AUTO: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Circuit stage',
@@ -95,7 +95,7 @@ export const TOUR_AUTO: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'bugatti',

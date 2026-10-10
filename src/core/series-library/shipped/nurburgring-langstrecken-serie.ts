@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -131,7 +131,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'four-hours',
       name: 'Four hours',
@@ -158,7 +158,9 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'four-hours',
+  defaultEventFormat: 'four-hours',
+  // Raced on a Saturday, as the real series is.
+  raceWeekday: Weekday.SATURDAY,
   rounds: [
     {
       id: 'nls-1',
@@ -182,7 +184,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       id: 'n24',
       name: 'Nurburgring 24 Hours',
       track: { id: 'ks_nordschleife', layout: 'endurance' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -195,7 +197,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       id: 'nls-6h',
       name: 'NLS 6 Hours',
       track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {

@@ -8,7 +8,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * original Miata, on the base game's Mazda Miata NA.
  *
  * The BRSCC runs it as a twenty-minute qualifying and three twenty-minute
- * races a meeting, and that is the weekend here, with the third race lined up
+ * races a meeting, and that is the event here, with the third race lined up
  * on the second's result. Its circuits are the British club tracks it races
  * at: Silverstone in two of its layouts, Brands Hatch Indy, Oulton Park, Croft,
  * Knockhill, Cadwell Park and Thruxton. Snetterton and Donington are not in
@@ -60,7 +60,7 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_mazda_miata'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race meeting',
@@ -83,7 +83,7 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'silverstone-national',

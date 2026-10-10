@@ -7,7 +7,7 @@ import { Discipline } from '../../../shared/types/index.ts';
 import type { Championship, GridEntry } from '../../../shared/types/index.ts';
 
 /**
- * Builds one entry on a weekend's grid, defaulting everything scoring never
+ * Builds one entry on an event's grid, defaulting everything scoring never
  * reads - scoring only cares about the seat, the class, the team and the name.
  * @param row What the test cares about
  * @returns A complete GridEntry
@@ -54,12 +54,12 @@ export const makeSeries = (overrides: Partial<Championship> = {}): Championship 
     { id: 'beta', name: 'Beta Racing' },
   ],
   rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
-    name: 'Race weekend',
+    name: 'Standard',
     sessions: [{ type: 'race', name: 'Race', laps: 8 }],
   }],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
   ...overrides,

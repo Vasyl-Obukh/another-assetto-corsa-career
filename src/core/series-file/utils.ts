@@ -118,7 +118,7 @@ export const readConditions = (
 };
 
 /**
- * Checks one weekend format and every session in it.
+ * Checks one event format and every session in it.
  * @param value The format value
  * @param field Dotted path to it
  * @param report Where to record what is wrong

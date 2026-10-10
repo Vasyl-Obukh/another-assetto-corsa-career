@@ -5,9 +5,9 @@
 // the progress and the archived results all become values that cross a boundary.
 
 import type { WeatherFxState } from './content.ts';
+import type { EventPlan, EventState } from './event.ts';
 import type { RaceDefinition } from './race.ts';
 import type { RaceSummary } from './results.ts';
-import type { WeekendPlan, WeekendState } from './weekend.ts';
 import type { AppErrorInfo } from '../errors/types.ts';
 
 /**
@@ -28,7 +28,7 @@ export interface RaceStatus {
    */
   phase: RacePhase;
   /**
-   * Which launch of the weekend is in flight, or null when none is.
+   * Which launch of the event is in flight, or null when none is.
    */
   launchIndex: number | null;
   /**
@@ -50,7 +50,7 @@ export interface RaceStatus {
  * Everything the race setup screen renders, in one payload.
  *
  * Deliberately one value rather than several channels: a launch finishing
- * changes the status, the weekend state and what the next launch will be, and
+ * changes the status, the event state and what the next launch will be, and
  * pushing those separately would let the screen paint a state that never
  * actually existed.
  */
@@ -63,11 +63,11 @@ export interface RaceSetup {
    * How it splits into the launches AC allows, or null when the definition does
    * not yet name installed content and so cannot be planned.
    */
-  plan: WeekendPlan | null;
+  plan: EventPlan | null;
   /**
    * How far through those launches we are, or null when there is no plan.
    */
-  state: WeekendState | null;
+  state: EventState | null;
   /**
    * What the app is doing about it right now.
    */

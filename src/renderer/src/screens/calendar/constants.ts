@@ -111,9 +111,10 @@ export const MONTH_SKELETON_WEEKS = 6;
 
 /**
  * How many event lines each weekday column of the month skeleton holds, Monday
- * first - race days fall at the weekend, so that is where the lines are.
+ * first - every day carries the lower tiers' races, and Saturday and Sunday the
+ * top two tiers' as well.
  */
-export const MONTH_SKELETON_LINES = [0, 0, 0, 0, 0, 1, 2] as const;
+export const MONTH_SKELETON_LINES = [1, 1, 1, 1, 1, 2, 2] as const;
 
 /**
  * How many event cards the day list beside the month skeleton holds.

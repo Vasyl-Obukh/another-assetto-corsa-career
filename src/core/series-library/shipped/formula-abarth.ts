@@ -9,7 +9,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * A real junior ladder rung, and a single-chassis one with a single car
  * installed, so the series names the car rather than a class or a spec.
  *
- * The 2010 season as it ran: 30-minute qualifying, then two races a weekend of
+ * The 2010 season as it ran: 30-minute qualifying, then two races a round of
  * 28 minutes, the second starting from the first's result with its top eight
  * turned round. Race 1 pays 20-15-12-10-8-6-4-3-2-1 and race 2
  * 13-11-9-8-6-5-4-3-2-1, each with a point for fastest lap, and pole takes a
@@ -28,7 +28,7 @@ export const FORMULA_ABARTH: Championship = {
   id: 'formula-abarth',
   name: 'Formula Abarth',
   description: 'The 2010 season of the Italian single-chassis junior formula: two 28-minute races a '
-    + 'weekend, the second from the first\'s result with the top eight reversed. Misano and Varano '
+    + 'event, the second from the first\'s result with the top eight reversed. Misano and Varano '
     + 'are not in Assetto Corsa, so five of its rounds are raced.',
   teams: [
     team('arcadia', 'Scuderia Arcadia', 'ITA', TeamBudget.INDEPENDENT),
@@ -66,10 +66,10 @@ export const FORMULA_ABARTH: Championship = {
       eligibility: { kind: 'cars', cars: ['tatuusfa1'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 30, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
@@ -92,7 +92,7 @@ export const FORMULA_ABARTH: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },

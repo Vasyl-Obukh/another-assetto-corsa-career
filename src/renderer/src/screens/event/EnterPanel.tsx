@@ -163,7 +163,7 @@ export const EnterPanel = ({
               <span className="font-semibold">
                 {t('championships.detail.roundAt', { number: view.number, round: view.roundName })}
               </span>
-              <span className="text-muted-foreground">{t('event.enter.firstRoundDay', { day: formatDayShort(view.firstDay) })}</span>
+              <span className="text-muted-foreground">{t('event.enter.firstRoundDay', { day: formatDayShort(view.date) })}</span>
             </span>
           </p>
         ) : null}

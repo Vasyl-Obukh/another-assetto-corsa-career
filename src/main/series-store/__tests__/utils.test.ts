@@ -4,7 +4,7 @@ import { SERIES_FORMAT_VERSION } from '../../../core/series/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type { Championship, Round } from '../../../shared/types/index.ts';
 import type { RaceProgress } from '../../race-store/index.ts';
-import { isEditable, weekendOf } from '../utils.ts';
+import { eventOf, isEditable } from '../utils.ts';
 
 /**
  * A championship holding the rounds a test matches against.
@@ -27,8 +27,8 @@ const series = (id: string, rounds = ['magione', 'monza']): Championship => ({
     seats: [{ id: 'main-1' }],
     eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
   }],
-  weekendFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ type: 'race', laps: 5 }] }],
-  defaultWeekendFormat: 'sprint',
+  eventFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ type: 'race', laps: 5 }] }],
+  defaultEventFormat: 'sprint',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10] }],
   defaultPointsSystem: 'race',
 });
@@ -44,32 +44,32 @@ const progress = (raceId: string, overrides: Partial<RaceProgress> = {}): RacePr
 });
 
 describe('main/series-store/utils', () => {
-  describe('weekendOf', () => {
-    it('names the round a live weekend belongs to', () => {
-      expect(weekendOf(series('lotus-cup'), progress('lotus-cup/monza')))
+  describe('eventOf', () => {
+    it('names the round a live event belongs to', () => {
+      expect(eventOf(series('lotus-cup'), progress('lotus-cup/monza')))
         .toEqual({ round: 'monza', completed: 1, inFlight: false });
     });
 
-    it('says nothing when no weekend has started', () => {
-      expect(weekendOf(series('lotus-cup'), null)).toBeNull();
+    it('says nothing when no event has started', () => {
+      expect(eventOf(series('lotus-cup'), null)).toBeNull();
     });
 
-    it('says nothing for a weekend of a different championship', () => {
-      expect(weekendOf(series('lotus-cup'), progress('gt3-sprint-series/monza'))).toBeNull();
+    it('says nothing for an event of a different championship', () => {
+      expect(eventOf(series('lotus-cup'), progress('gt3-sprint-series/monza'))).toBeNull();
     });
 
     it('carries the launch count and the launch in flight through', () => {
-      expect(weekendOf(series('lotus-cup'), progress('lotus-cup/magione', {
+      expect(eventOf(series('lotus-cup'), progress('lotus-cup/magione', {
         completed: 3, inFlight: true,
       }))).toEqual({ round: 'magione', completed: 3, inFlight: true });
     });
 
     // Guards a bug: ids were joined with a hyphen, so series `lotus-cup` round
-    // `2` and a weekend of `lotus-cup-2` read as the same race.
+    // `2` and an event of `lotus-cup-2` read as the same race.
     it('does not mistake a championship whose id starts the same way', () => {
-      expect(weekendOf(series('lotus-cup-2', ['monza']), progress('lotus-cup/2'))).toBeNull();
-      expect(weekendOf(series('lotus-cup', ['2']), progress('lotus-cup-2/monza'))).toBeNull();
-      expect(weekendOf(series('lotus-cup', ['2']), progress('lotus-cup/2'))).toEqual({
+      expect(eventOf(series('lotus-cup-2', ['monza']), progress('lotus-cup/2'))).toBeNull();
+      expect(eventOf(series('lotus-cup', ['2']), progress('lotus-cup-2/monza'))).toBeNull();
+      expect(eventOf(series('lotus-cup', ['2']), progress('lotus-cup/2'))).toEqual({
         round: '2', completed: 1, inFlight: false,
       });
     });
@@ -78,7 +78,7 @@ describe('main/series-store/utils', () => {
     // the same stale state assertStateMatches already discards. Recorded rather
     // than defended against, so nobody reads it as a bug later.
     it('lifts the lock when the round it was running is gone', () => {
-      expect(weekendOf(series('lotus-cup', ['magione']), progress('lotus-cup/monza'))).toBeNull();
+      expect(eventOf(series('lotus-cup', ['magione']), progress('lotus-cup/monza'))).toBeNull();
     });
   });
 

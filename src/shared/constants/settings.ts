@@ -75,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hiddenContentSources: { packs: [], makers: [], distributors: [] },
   seriesActive: {},
   showFillerSeries: true,
+  allowSameDayEvents: false,
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

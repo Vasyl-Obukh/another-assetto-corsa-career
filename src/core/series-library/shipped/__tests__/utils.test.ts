@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { SERIES_FORMAT_VERSION } from '../../../../shared/constants/index.ts';
-import { Discipline } from '../../../../shared/types/index.ts';
+import { Discipline, Weekday } from '../../../../shared/types/index.ts';
 import type { Championship } from '../../../../shared/types/index.ts';
 import { filler, seat } from '../utils.ts';
 
@@ -28,9 +28,9 @@ const BASE: Championship = {
     entryFee: 200,
     sessionLengths: [{ session: 'race', distance: 40 }, { session: 'quali', minutes: 20 }],
   }],
-  weekendFormats: [{
-    id: 'weekend',
-    name: 'Weekend',
+  eventFormats: [{
+    id: 'event',
+    name: 'Event',
     sessions: [
       { id: 'quali', type: 'qualify', minutes: 20 },
       { id: 'race', type: 'race', laps: 20 },
@@ -38,7 +38,7 @@ const BASE: Championship = {
       { id: 'grand-prix', type: 'race', distance: 100 },
     ],
   }],
-  defaultWeekendFormat: 'weekend',
+  defaultEventFormat: 'event',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
   grid: { strength: 3, aggression: 5 },
@@ -58,8 +58,14 @@ describe('core/series-library/shipped/utils', () => {
       expect(filler(BASE, 2, '').id).toBe('junior-cup-plus-plus');
     });
 
+    // Found in review: copied over with the rest of the base, a stated day put
+    // the filler on its base's day rather than on its own rung's.
+    it('races on its own rung\'s day rather than the day its base states', () => {
+      expect(filler({ ...BASE, raceWeekday: Weekday.SATURDAY }, 1, '').raceWeekday).toBeUndefined();
+    });
+
     it('runs every race longer, in whatever it is measured in, and nothing else', () => {
-      expect(plus.weekendFormats[0].sessions).toEqual([
+      expect(plus.eventFormats[0].sessions).toEqual([
         { id: 'quali', type: 'qualify', minutes: 20 },
         { id: 'race', type: 'race', laps: 25 },
         { id: 'endurance', type: 'race', minutes: 50 },

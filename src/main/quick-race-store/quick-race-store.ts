@@ -1,4 +1,4 @@
-// Every race weekend of the player's own. Each is a file of its own under the
+// Every race event of the player's own. Each is a file of its own under the
 // race folder, holding the race and what of it has run.
 //
 // None of them is run here. Launching one puts it in the race store's slot,
@@ -15,16 +15,16 @@ import type { QuickRaceFile, QuickRaceStore } from './types.ts';
 import {
   byRecency, phaseOf, readQuickFile, titleOf,
 } from './utils.ts';
+import { planEvent } from '../../core/event/index.ts';
 import {
   lowerQuickRace, QUICK_ROUND, quickChampionship, quickProblems, quickRaceId,
 } from '../../core/quick-race/index.ts';
 import { validateRace } from '../../core/race-ini/index.ts';
 import { scoreRound } from '../../core/season-scoring/index.ts';
-import { planWeekend } from '../../core/weekend/index.ts';
 import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
-  QuickRace, QuickRaceView, RaceDefinition, RaceSetup, RoundScore, WeekendPlan,
+  EventPlan, QuickRace, QuickRaceView, RaceDefinition, RaceSetup, RoundScore,
 } from '../../shared/types/index.ts';
 import { newQuickRace } from '../../shared/utils/quick-race/index.ts';
 import { eventSessions } from '../career-store/index.ts';
@@ -133,7 +133,7 @@ export const createQuickRaceStore = async (
     quick: QuickRace,
     title: string,
     problems: AppErrorInfo[],
-  ): Promise<{ definition: RaceDefinition | null; plan: WeekendPlan | null }> => {
+  ): Promise<{ definition: RaceDefinition | null; plan: EventPlan | null }> => {
     const installed = await content.content();
     const catalogue = classes.catalogue();
     problems.push(...quickProblems(quick, installed, catalogue));
@@ -151,7 +151,7 @@ export const createQuickRaceStore = async (
       problems.push(...validateRace(definition, installed));
       if (problems.length > 0) return { definition, plan: null };
 
-      return { definition, plan: planWeekend(definition, installed) };
+      return { definition, plan: planEvent(definition, installed) };
     } catch (error) {
       if (!isAppError(error)) throw error;
       problems.push(error.toInfo());
@@ -206,7 +206,6 @@ export const createQuickRaceStore = async (
         completed,
         null,
         false,
-        quick.createdAt.slice(0, 10),
         score ?? undefined,
         plan.grid[0]?.seat ?? null,
         phase !== 'finished',
@@ -241,7 +240,7 @@ export const createQuickRaceStore = async (
       const all = await views();
       for (const listener of listeners) listener(all);
     } catch (error) {
-      console.warn('Could not describe the race weekends.', error);
+      console.warn('Could not describe the race events.', error);
     }
   };
 

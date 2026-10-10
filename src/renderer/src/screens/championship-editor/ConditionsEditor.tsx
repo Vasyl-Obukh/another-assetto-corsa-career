@@ -31,20 +31,20 @@ interface ConditionsEditorProps {
   /**
    * What stands behind a group left alone: a round falls back on the climate
    * when the championship generates its weather and on Assetto Corsa's own
-   * defaults otherwise; a session falls back on its round, or on its weekend
-   * when the weekend is no round.
+   * defaults otherwise; a session falls back on its round, or on its event
+   * when the event is no round.
    */
-  behind: 'climate' | 'default' | 'round' | 'weekend';
+  behind: 'climate' | 'default' | 'round' | 'event';
   /**
    * How it is laid out: a round's groups as rows with their controls beside
    * them, or a session's as a list that opens a group once it is set.
    */
   layout: 'rows' | 'list';
   /**
-   * What a group set in rows is set for: a round, or a race weekend of the
+   * What a group set in rows is set for: a round, or a race event of the
    * player's own, which is no round.
    */
-  scope?: 'round' | 'weekend';
+  scope?: 'round' | 'event';
   /**
    * Every installed weather preset.
    */
@@ -193,7 +193,7 @@ export const ConditionsEditor = ({
                   disabled={locked}
                   onCheckedChange={(on) => (on ? set(group) : onChange(withoutGroup(conditions, group)))}
                 />
-                {own ? t(scope === 'weekend' ? 'editor.conditions.setWeekend' : 'editor.conditions.setRound') : t(`editor.conditions.behind.${behind}`)}
+                {own ? t(scope === 'event' ? 'editor.conditions.setEvent' : 'editor.conditions.setRound') : t(`editor.conditions.behind.${behind}`)}
               </label>
               <span className="text-xs text-muted-foreground">{t(`editor.conditions.hints.${group}`)}</span>
             </div>

@@ -312,6 +312,7 @@ describe('shared/utils/settings', () => {
         hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,
+        allowSameDayEvents: true,
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -334,6 +335,14 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ weatherSystem: 'sol' }).weatherSystem).toBe('sol');
       expect(readSettings({ weatherSystem: 'seasons' }).weatherSystem)
         .toBe(DEFAULT_SETTINGS.weatherSystem);
+    });
+
+    // Two events on one day clash unless the player has said otherwise, which
+    // is the calendar's design rather than a convenience.
+    it('clashes two events on one day unless switched on, and only by a real switch', () => {
+      expect(DEFAULT_SETTINGS.allowSameDayEvents).toBe(false);
+      expect(readSettings({ allowSameDayEvents: true }).allowSameDayEvents).toBe(true);
+      expect(readSettings({ allowSameDayEvents: 'yes' }).allowSameDayEvents).toBe(false);
     });
 
     // An install with neither mod is the only thing we can assume, and plain

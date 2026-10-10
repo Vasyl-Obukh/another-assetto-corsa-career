@@ -9,7 +9,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * GT-M Championship - invented, for RSS's GT-M cars.
  *
  * RSS's GT-M cars are their own GT3s under made-up names, so no real series
- * races them; this one borrows GT World Challenge's sprint weekend - two
+ * races them; this one borrows GT World Challenge's sprint event - two
  * qualifying sessions and two hour-long races, each from its own session - and
  * a European calendar, and says it is made up. The class is the GT3 (RSS)
  * spec, any three of its models to a grid.
@@ -18,7 +18,7 @@ export const GT_M_CHAMPIONSHIP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-m-championship',
   name: 'GT-M Championship',
-  description: 'Invented: RSS\'s GT-M cars in a GT3 sprint series, two one-hour races a weekend at '
+  description: 'Invented: RSS\'s GT-M cars in a GT3 sprint series, two one-hour races a round at '
     + 'European circuits.',
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
@@ -68,10 +68,10 @@ export const GT_M_CHAMPIONSHIP: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_RSS, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'sprint',
-      name: 'Sprint weekend',
+      name: 'Sprint',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
         { id: 'qualifying-1', type: 'qualify', name: 'Qualifying 1', minutes: 15, day: 0 },
@@ -81,7 +81,7 @@ export const GT_M_CHAMPIONSHIP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'sprint',
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'brands-hatch',

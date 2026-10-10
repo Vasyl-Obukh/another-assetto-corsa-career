@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of the era: a day of practice, a day of timed
+ * A grand prix event of the era: a day of practice, a day of timed
  * practice setting the grid, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -83,8 +83,8 @@ export const FORMULA_1_1970: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1970, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
     {

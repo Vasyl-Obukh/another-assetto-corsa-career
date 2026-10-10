@@ -15,7 +15,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * description says so.
  *
  * An invented calendar of British circuits, Silverstone in three of its
- * layouts among them, and a club weekend of one qualifying and two races, the
+ * layouts among them, and a club event of one qualifying and two races, the
  * second with the first's top six reversed. The Stage 1 upgrade is balanced to
  * the standard car, as BOSS GP Open does.
  *
@@ -60,10 +60,10 @@ export const FORMULA_UK: Championship = {
       ],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 30, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
@@ -72,7 +72,7 @@ export const FORMULA_UK: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'brands-hatch',

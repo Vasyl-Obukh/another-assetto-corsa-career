@@ -2,25 +2,25 @@
 // tested without an Electron fake behind them.
 
 import { roundRaceId } from '../../core/series/index.ts';
-import type { Championship, SeriesOrigin, SeriesWeekendState } from '../../shared/types/index.ts';
+import type { Championship, SeriesEventState, SeriesOrigin } from '../../shared/types/index.ts';
 import type { RaceProgress } from '../race-store/index.ts';
 
 /**
- * Which round of a championship a weekend belongs to, if any.
+ * Which round of a championship an event belongs to, if any.
  *
  * Matched exactly against every round's composed id, which roundRaceId keeps
  * unambiguous across championships.
  *
- * A round renamed or deleted since the weekend began stops matching and the
+ * A round renamed or deleted since the event began stops matching and the
  * lock lifts, the same stale state `assertStateMatches` already discards.
  * @param series The championship to test against
- * @param progress How far through a weekend the race store is, or null
- * @returns The weekend, or null when none of this championship is under way
+ * @param progress How far through an event the race store is, or null
+ * @returns The event, or null when none of this championship is under way
  */
-export const weekendOf = (
+export const eventOf = (
   series: Championship,
   progress: RaceProgress | null,
-): SeriesWeekendState | null => {
+): SeriesEventState | null => {
   if (!progress) return null;
 
   const round = series.rounds.find((one) => roundRaceId(series.id, one.id) === progress.raceId);

@@ -4,7 +4,7 @@ import {
 import { readFile, rename, writeFile } from 'node:fs/promises';
 
 import type {
-  RaceOut, RaceSetup, ResultRecord, Track, WeekendState,
+  EventState, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../../shared/types/index.ts';
 import {
   isArchiveName, progressOf, readJson, readRecord, slotHolds, withLayout, writeJson,
@@ -102,12 +102,12 @@ describe('main/race-store/utils', () => {
 
   describe('progressOf', () => {
     /**
-     * Saved weekend progress with a given number of launches run.
+     * Saved event progress with a given number of launches run.
      * @param completed How many have run
      * @param launchCount How many the plan held
      * @returns The state
      */
-    const state = (completed: number, launchCount: number): WeekendState => ({
+    const state = (completed: number, launchCount: number): EventState => ({
       raceId: 'lotus-cup/monza',
       launchCount,
       completed: Array.from({ length: completed }, (unused, at) => ({
@@ -124,17 +124,17 @@ describe('main/race-store/utils', () => {
       expect(progressOf(state(0, 4), 'lotus-cup/monza', false)).toBeNull();
     });
 
-    it('reports a weekend part-way through', () => {
+    it('reports an event part-way through', () => {
       expect(progressOf(state(1, 4), 'lotus-cup/monza', false))
         .toEqual({ raceId: 'lotus-cup/monza', completed: 1, inFlight: false });
     });
 
     // Guards a bug: this returned the progress whatever the launch count, so a
-    // weekend whose every launch had run still read as under way - and since
+    // event whose every launch had run still read as under way - and since
     // the state is only cleared by a reset or by setting up a different race,
     // and is read back off disk on the next start, that locked its
     // championship out of the editor for good.
-    it('says nothing for a weekend that has run every launch it planned', () => {
+    it('says nothing for an event that has run every launch it planned', () => {
       expect(progressOf(state(4, 4), 'lotus-cup/monza', false)).toBeNull();
       expect(progressOf(state(5, 4), 'lotus-cup/monza', false)).toBeNull();
     });
@@ -144,9 +144,9 @@ describe('main/race-store/utils', () => {
         .toEqual({ raceId: 'lotus-cup/monza', completed: 0, inFlight: true });
     });
 
-    // A finished weekend being relaunched is under way again, so the flag has
+    // A finished event being relaunched is under way again, so the flag has
     // to win over the count rather than the other way round.
-    it('reports a finished weekend whose launch is back in flight', () => {
+    it('reports a finished event whose launch is back in flight', () => {
       expect(progressOf(state(4, 4), 'lotus-cup/monza', true))
         .toEqual({ raceId: 'lotus-cup/monza', completed: 4, inFlight: true });
     });
@@ -272,22 +272,22 @@ describe('main/race-store/utils', () => {
       state: completed === null ? null : { completed: Array.from({ length: completed }) },
     }) as unknown as RaceSetup;
 
-    it('carries on when the slot holds the weekend exactly as far as it has run', () => {
+    it('carries on when the slot holds the event exactly as far as it has run', () => {
       expect(slotHolds(holding('lotus-cup/monza', 2), 'lotus-cup/monza', 2)).toBe(true);
     });
 
-    it('puts the weekend back when the slot holds another race', () => {
+    it('puts the event back when the slot holds another race', () => {
       expect(slotHolds(holding('quick/race', 2), 'lotus-cup/monza', 2)).toBe(false);
     });
 
-    it('puts the weekend back when the slot holds it at another point', () => {
+    it('puts the event back when the slot holds it at another point', () => {
       expect(slotHolds(holding('lotus-cup/monza', 1), 'lotus-cup/monza', 2)).toBe(false);
       expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 2)).toBe(false);
     });
 
     // Whatever set the slot up may since have been edited or had its forecast
-    // issued, so the first launch always races what the weekend says now.
-    it('always puts a weekend back before its first launch', () => {
+    // issued, so the first launch always races what the event says now.
+    it('always puts an event back before its first launch', () => {
       expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0)).toBe(false);
       expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0)).toBe(false);
     });

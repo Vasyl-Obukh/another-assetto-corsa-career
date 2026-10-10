@@ -50,7 +50,7 @@ export const RoundRaces = ({
   const names = raceLabels(state?.races.map((race) => race.name) ?? [], t(SESSION_TYPE_LABEL.race));
 
   const lengths = state?.races.map((race) => raceLength(race, t, formatNumber)) ?? [];
-  // A weekend of identical races says so once rather than repeating itself.
+  // An event of identical races says so once rather than repeating itself.
   const same = lengths.length > 1 && lengths.every((length) => length === lengths[0]);
   const winners = column?.scored ? column.races.flatMap((race) => {
     const won = race.score?.places.find((place) => place.entry === entry && place.classPosition === 1);
@@ -86,7 +86,7 @@ export const RoundRaces = ({
       {state?.track || winners.length > 0 ? null : state?.races.map((race, index) => {
         if (race.laps === null) {
           return (
-            // eslint-disable-next-line react/no-array-index-key -- a race is known only by its place in the weekend
+            // eslint-disable-next-line react/no-array-index-key -- a race is known only by its place in the event
             <Badge key={index} variant="destructive">
               {t('championships.calendar.lapUnknown', { name: names[index] })}
             </Badge>
@@ -98,7 +98,7 @@ export const RoundRaces = ({
           : lengths[index];
 
         return (
-          // eslint-disable-next-line react/no-array-index-key -- a race is known only by its place in the weekend
+          // eslint-disable-next-line react/no-array-index-key -- a race is known only by its place in the event
           <span key={index} className="whitespace-nowrap">
             {lengths.length > 1 && !same
               ? t('championships.format.session', { name: names[index], length })

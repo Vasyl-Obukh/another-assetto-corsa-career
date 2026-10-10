@@ -35,13 +35,13 @@ export const makeSeries = (overrides: Partial<Championship> = {}): Championship 
   rounds: [
     { id: 'r1', name: 'Magione', track: { id: 'magione' } },
     {
-      id: 'r2', name: 'Vallelunga', track: { id: 'vallelunga' }, weekendFormat: 'double',
+      id: 'r2', name: 'Vallelunga', track: { id: 'vallelunga' }, eventFormat: 'double',
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [{ type: 'qualify', name: 'Qualifying', minutes: 10 }, { type: 'race', laps: 8 }],
     },
     {
@@ -50,7 +50,7 @@ export const makeSeries = (overrides: Partial<Championship> = {}): Championship 
       sessions: [{ type: 'race', name: 'Race 1', laps: 8 }, { type: 'race', name: 'Race 2', laps: 8 }],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
   ...overrides,
@@ -85,7 +85,7 @@ export const place = (seat: string, position: number, overrides: Partial<RacePla
 
 /**
  * One race's score.
- * @param launch Which launch of the weekend it was
+ * @param launch Which launch of the event it was
  * @param places Its places, in finishing order
  * @returns The score
  */
@@ -114,14 +114,14 @@ export const makeResults = (overrides: Partial<ChampionshipResults> = {}): Champ
   rounds: [
     {
       round: 'r1',
-      raceDay: '2026-05-03',
+      date: '2026-05-03',
       status: 'raced',
       score: roundScore('r1', [race(1, [place('main-1', 1), place('main-2', 2), place('main-3', 3)])]),
       sessions: [],
     },
     {
       round: 'r2',
-      raceDay: '2026-05-17',
+      date: '2026-05-17',
       status: 'raced',
       score: roundScore('r2', [
         race(0, [place('main-3', 1), place('main-2', 2), place('main-1', 3)]),

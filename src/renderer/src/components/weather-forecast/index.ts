@@ -4,4 +4,4 @@ export { ForecastStrip } from './ForecastStrip.tsx';
 export { SessionForecastChip } from './SessionForecastChip.tsx';
 export { WeatherStepIcons } from './WeatherStepIcons.tsx';
 export { WeatherStepsLabel } from './WeatherStepsLabel.tsx';
-export { WeekendForecast } from './WeekendForecast.tsx';
+export { EventForecast } from './EventForecast.tsx';

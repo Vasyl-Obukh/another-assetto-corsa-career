@@ -10,8 +10,8 @@ import type {
 import type {
   Championship, ChampionshipResults, RacePlace, RaceScore, Round,
 } from '../../../../shared/types';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { buildStandings } from '../../../../shared/utils/standings';
-import { formatOf } from '../../../../shared/utils/weekend-format';
 
 /**
  * What identifies a driver's row. A seat, except the player's seat raced by
@@ -24,7 +24,7 @@ export const standingKey = (row: { seat: string; substitute?: boolean }): string
 );
 
 /**
- * The races a round's weekend runs, by their place in it.
+ * The races a round's event runs, by their place in it.
  * @param series The championship
  * @param round The round
  * @returns Each race's launch index and its name, in the order they run
@@ -54,7 +54,7 @@ export const roundColumns = (results: ChampionshipResults): RoundColumn[] => (
     return {
       round,
       number: at + 1,
-      raceDay: result?.raceDay ?? '',
+      date: result?.date ?? '',
       status: result?.status ?? 'scheduled',
       races,
       scored: (result?.score?.races.length ?? 0) > 0,

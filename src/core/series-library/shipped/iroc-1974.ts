@@ -9,11 +9,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The real field in Porsche Pack 1's Carrera RSR 3.0, which is exactly what
  * IROC raced: one car, prepared identically, so that only the drivers differ.
- * The first three races ran on one weekend at Riverside and the fourth at
+ * The first three races ran on one event at Riverside and the fourth at
  * Daytona. Riverside is not in Assetto Corsa, so Laguna Seca - California's
  * other road course - stands in for it; Daytona's road course is raced as it
  * was. IROC started each race in reverse order of the one before, which the
- * Riverside weekend does.
+ * Riverside event does.
  *
  * The race lengths and IROC's own points were not found, so the 9-6-4-3-2-1 of
  * the day and half-hour races stand in.
@@ -53,7 +53,7 @@ export const IROC_1974: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_carrera_rsr'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'riverside',
       name: 'Three races',
@@ -80,14 +80,14 @@ export const IROC_1974: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'riverside',
+  defaultEventFormat: 'riverside',
   rounds: [
     { id: 'riverside', name: 'Riverside', track: { id: 'ks_laguna_seca' } },
     {
       id: 'daytona',
       name: 'Daytona',
       track: { id: 'rt_daytona', layout: 'sportscar' },
-      weekendFormat: 'daytona',
+      eventFormat: 'daytona',
       climate: Climate.TEMPERATE,
     },
   ],

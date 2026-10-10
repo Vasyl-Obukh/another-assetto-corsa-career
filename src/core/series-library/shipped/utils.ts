@@ -89,13 +89,16 @@ export const filler = (base: Championship, step: number, description: string): C
     amount === undefined ? undefined : [amount],
   )?.[0];
   // A round's own length replaces its format's outright, so it grows too.
-  const races = new Set(base.weekendFormats.flatMap((format) => format.sessions
+  const races = new Set(base.eventFormats.flatMap((format) => format.sessions
     .filter((session) => session.type === 'race')
     .map((session) => session.id)));
   const grid = base.grid ?? {};
 
+  // A rung up races on that rung's day, whatever day the base states.
+  const { raceWeekday: unused, ...rest } = base;
+
   return {
-    ...base,
+    ...rest,
     id: `${base.id}${'-plus'.repeat(step)}`,
     name: `${base.name} ${'+'.repeat(step)}`,
     description,
@@ -104,7 +107,7 @@ export const filler = (base: Championship, step: number, description: string): C
       ladder: { ...entry.ladder, tier: entry.ladder.tier - step },
       ...(entry.prizes === undefined ? {} : { prizes: purse(entry.prizes) }),
     })),
-    weekendFormats: base.weekendFormats.map((format) => ({
+    eventFormats: base.eventFormats.map((format) => ({
       ...format,
       sessions: format.sessions.map((session) => (session.type === 'race' ? longer(session) : session)),
     })),

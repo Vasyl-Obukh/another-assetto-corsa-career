@@ -9,7 +9,7 @@ import { SessionBriefing, SessionResult } from '@/screens/event';
 
 interface QuickSessionProps {
   /**
-   * The race weekend.
+   * The race event.
    */
   view: QuickRaceView;
   /**
@@ -19,9 +19,9 @@ interface QuickSessionProps {
 }
 
 /**
- * One session of a race weekend that has started: its briefing until it runs,
+ * One session of a race event that has started: its briefing until it runs,
  * then its result - the round page's own two, since a session is the same
- * thing whatever weekend it belongs to.
+ * thing whatever event it belongs to.
  */
 export const QuickSession = ({ view, session }: QuickSessionProps) => {
   const { t } = useTranslation();

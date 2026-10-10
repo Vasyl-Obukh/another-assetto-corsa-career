@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { DEFAULT_ALLOWED_WEATHER, WeatherType } from '../../../shared/constants/index.ts';
 import { Climate, Hemisphere } from '../../../shared/types/index.ts';
 import type {
-  Conditions, Content, Round, RoundForecast, Weather, WeatherOffer, WeekendFormat,
+  Conditions, Content, EventFormat, Round, RoundForecast, Weather, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import type { DrawOptions } from '../types.ts';
 import {
@@ -50,9 +50,9 @@ const makeRound = (id: string, conditions?: Conditions): Round => ({
 });
 
 /**
- * A three-day weekend: practice, qualifying and a race run to laps.
+ * A three-day event: practice, qualifying and a race run to laps.
  */
-const FORMAT: WeekendFormat = {
+const FORMAT: EventFormat = {
   id: 'standard',
   name: 'Standard',
   sessions: [
@@ -124,7 +124,7 @@ describe('core/weather-forecast/weather-forecast', () => {
   });
 
   describe('drawRound', () => {
-    it('draws the same weekend for the same salt', () => {
+    it('draws the same event for the same salt', () => {
       const draw = (): unknown => drawRound('test-cup', makeRound('monza'), FORMAT, Climate.OCEANIC, { salt: 'a' });
 
       expect(draw()).toEqual(draw());
@@ -208,11 +208,11 @@ describe('core/weather-forecast/weather-forecast', () => {
   });
 
   describe('forecastRound', () => {
-    it('forecasts the same weekend every time it is asked', () => {
+    it('forecasts the same event every time it is asked', () => {
       expect(forecast(makeRound('monza'))).toEqual(forecast(makeRound('monza')));
     });
 
-    it('forecasts different weekends for different rounds', () => {
+    it('forecasts different events for different rounds', () => {
       const distinct = new Set(ROUND_IDS.map((id) => JSON.stringify(forecast(makeRound(id)).sessions)));
 
       expect(distinct.size).toBeGreaterThan(1);
@@ -263,7 +263,7 @@ describe('core/weather-forecast/weather-forecast', () => {
     });
 
     it('generates weather only for the sessions that author none', () => {
-      const format: WeekendFormat = {
+      const format: EventFormat = {
         ...FORMAT,
         sessions: FORMAT.sessions.map((session, at) => (
           at === 1 ? { ...session, conditions: { weatherType: WeatherType.FOG } } : session

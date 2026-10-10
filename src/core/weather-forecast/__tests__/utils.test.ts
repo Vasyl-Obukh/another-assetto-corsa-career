@@ -84,7 +84,7 @@ const makeProfile = (overrides: Partial<ClimateProfile> = {}): ClimateProfile =>
 });
 
 /**
- * A day of a weekend.
+ * A day of an event.
  * @param overrides What to change about it
  * @returns The day
  */
@@ -244,7 +244,7 @@ describe('core/weather-forecast/utils', () => {
   });
 
   describe('drawDays', () => {
-    it('draws one entry per day, three draws for the weekend and four per day', () => {
+    it('draws one entry per day, three draws for the event and four per day', () => {
       const { random, count } = counting(script(0.5));
 
       expect(drawDays(3, makeProfile(), random)).toHaveLength(3);
@@ -257,7 +257,7 @@ describe('core/weather-forecast/utils', () => {
       expect(drawDays(3, profile, randomFrom(42))).toEqual(drawDays(3, profile, randomFrom(42)));
     });
 
-    it('centres every day on the weekend when the wander draws are central', () => {
+    it('centres every day on the event when the wander draws are central', () => {
       const days = drawDays(2, makeProfile(), script(0.5));
 
       expect(days).toEqual([
@@ -271,7 +271,7 @@ describe('core/weather-forecast/utils', () => {
     });
 
     it('runs a wet day cooler than a dry one', () => {
-      // Weekend draws, then a wet opening day, then a dry day after it.
+      // Event draws, then a wet opening day, then a dry day after it.
       const days = drawDays(2, makeProfile(), script(
         0.5, 0.5, 0.5,
         0, 0.5, 0.5, 0.5,
@@ -283,7 +283,7 @@ describe('core/weather-forecast/utils', () => {
       expect(days[1].ambient).toBe(20);
     });
 
-    it('wanders a day either side of the weekend by at most its limits', () => {
+    it('wanders a day either side of the event by at most its limits', () => {
       const [low] = drawDays(1, makeProfile(), script(0.5, 0.5, 0.5, 0.99, 0, 0, 0));
       const [high] = drawDays(1, makeProfile(), script(0.5, 0.5, 0.5, 0.99, 1, 1, 1));
 

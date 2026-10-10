@@ -18,7 +18,7 @@ export const RoundHeading = () => {
       <span className={ROW_NUMBER} />
       <span className={ROUND_COLUMN.MAP} />
       <span className="min-w-0 flex-1">{t('editor.calendar.round')}</span>
-      <span className={ROUND_COLUMN.WEEKEND}>{t('editor.calendar.format')}</span>
+      <span className={ROUND_COLUMN.EVENT}>{t('editor.calendar.format')}</span>
       <span className={ROUND_COLUMN.RACES}>{t('editor.calendar.races')}</span>
       <span className={ROUND_COLUMN.OWN}>{t('editor.calendar.own')}</span>
       <span className={ROUND_COLUMN.FEE}>{t('editor.calendar.entryFee')}</span>

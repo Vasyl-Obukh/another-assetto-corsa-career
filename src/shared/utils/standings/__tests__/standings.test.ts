@@ -26,8 +26,8 @@ const SERIES: Championship = {
     eligibility: { kind: 'cars', cars: ['test_car'] },
   }],
   rounds: [{ id: 'one', name: 'Round one', track: { id: 'track_one' } }],
-  weekendFormats: [{ id: 'standard', name: 'Standard', sessions: [{ type: 'race', laps: 10 }] }],
-  defaultWeekendFormat: 'standard',
+  eventFormats: [{ id: 'standard', name: 'Standard', sessions: [{ type: 'race', laps: 10 }] }],
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'standard', name: 'Standard', positions: [25, 18, 15] }],
   defaultPointsSystem: 'standard',
 };
@@ -106,9 +106,7 @@ const round = (places: RacePlace[]): RoundScore => ({
 const makeEvent = (over: Partial<SeasonEvent> = {}): SeasonEvent => ({
   round: 'one',
   raceId: 'test-cup/one',
-  firstDay: '2026-03-06',
-  raceDay: '2026-03-08',
-  lastDay: '2026-03-08',
+  date: '2026-03-08',
   status: 'scheduled',
   sessions: [],
   ...over,
@@ -274,7 +272,7 @@ describe('shared/utils/standings', () => {
       }];
 
       expect(roundResult(makeEvent({ status: 'raced', score, sessions }))).toEqual({
-        round: 'one', raceDay: '2026-03-08', status: 'raced', score, sessions,
+        round: 'one', date: '2026-03-08', status: 'raced', score, sessions,
       });
     });
 

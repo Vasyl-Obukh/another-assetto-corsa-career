@@ -66,7 +66,7 @@ export const FORMULA_X_INVITATIONAL: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Invitational',
@@ -77,7 +77,7 @@ export const FORMULA_X_INVITATIONAL: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'silverstone',

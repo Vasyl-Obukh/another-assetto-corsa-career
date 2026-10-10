@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
-  CLIMATES, DEFAULT_CLIMATE, DEFAULT_HEMISPHERE, HEMISPHERES, MIN_MONEY, SEASON_LENGTHS,
+  CLIMATES, DEFAULT_CLIMATE, DEFAULT_HEMISPHERE, DEFAULT_REF, HEMISPHERES, MIN_MONEY, SEASON_LENGTHS, WEEKDAYS,
 } from './constants.ts';
 import { NumberField } from './NumberField.tsx';
 import { PaneHeading } from './PaneHeading.tsx';
@@ -10,7 +10,7 @@ import { SwitchLine } from './SwitchLine.tsx';
 import { optionalText } from './utils.ts';
 import { DEFAULT_SEASON_LENGTH } from '../../../../shared/constants';
 import type {
-  Championship, Climate, Hemisphere, SeasonLength,
+  Championship, Climate, Hemisphere, SeasonLength, Weekday,
 } from '../../../../shared/types';
 import { Card } from '@/components/ui/card.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -27,7 +27,7 @@ interface DetailsCardProps {
    */
   series: Championship;
   /**
-   * Whether a weekend of it is under way, in which case nothing may change.
+   * Whether an event of it is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -105,6 +105,31 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
               <SelectContent>
                 {SEASON_LENGTHS.map((length) => (
                   <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field
+            id="editor-race-weekday"
+            label={t('editor.details.raceWeekday')}
+            hint={t('editor.details.raceWeekdayShort')}
+          >
+            <Select
+              value={series.raceWeekday ?? DEFAULT_REF}
+              disabled={locked}
+              onValueChange={(value) => onChange({
+                ...series,
+                raceWeekday: value === DEFAULT_REF ? undefined : value as Weekday,
+              })}
+            >
+              <SelectTrigger id="editor-race-weekday" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={DEFAULT_REF}>{t('weekday.byTier')}</SelectItem>
+                {WEEKDAYS.map((day) => (
+                  <SelectItem key={day} value={day}>{t(`weekday.${day}`)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

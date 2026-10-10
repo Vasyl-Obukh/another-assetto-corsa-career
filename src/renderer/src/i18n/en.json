@@ -197,10 +197,14 @@
       "sources": "Content sources"
     },
     "opponents": "AI opponents",
+    "calendar": "Calendar",
+    "calendarHint": "Every championship races on a day of the week of its own: the top tier on Sunday, the next on Saturday, and the rest on a weekday.",
+    "sameDayEvents": "Race two events on one day",
+    "sameDayEventsHint": "Off, two of your events on the same day clash and racing one gives the other up. On, you can race both.",
     "opponentsHint": "How strong and how aggressive the AI are. This is your difficulty, and every championship states its field as a step up or down from it.",
     "opponentsStrength": "AI strength",
     "opponentsAggression": "AI aggression",
-    "opponentsOffsets": "A championship, a class and a round may each move these, and every driver sits a little either side of their class for the season. A change here reaches every weekend set up after it, a season already under way included; a weekend part-way through keeps the field it started with.",
+    "opponentsOffsets": "A championship, a class and a round may each move these, and every driver sits a little either side of their class for the season. A change here reaches every event set up after it, a season already under way included; an event part-way through keeps the field it started with.",
     "appearanceHint": "How the app looks.",
     "sections": "Sections",
     "aidsElectronics": "Electronics",
@@ -312,7 +316,7 @@
   },
   "race": {
     "title": "Race",
-    "subtitle": "Race weekends of your own, outside any championship.",
+    "subtitle": "Race events of your own, outside any championship.",
     "track": {
       "label": "Track",
       "none": "No track picked yet.",
@@ -446,11 +450,11 @@
       "default": "Default",
       "defaultIs": "Default · {{value}}"
     },
-    "new": "New race weekend",
+    "new": "New race event",
     "newHint": "Pick a track and a car, then the sessions",
-    "untitled": "New race weekend",
+    "untitled": "New race event",
     "deleteTitle": "Delete {{name}}?",
-    "deleteHint": "The weekend and its setup go. Its results stay on the Results page.",
+    "deleteHint": "The event and its setup go. Its results stay on the Results page.",
     "phase": {
       "setup": "Set up",
       "running": "In progress · {{done}} of {{count}}",
@@ -491,10 +495,10 @@
       "totalOfPits_other": "{{count}} cars, you included · {{pits}} pit boxes",
       "drivers": "Drivers"
     },
-    "weekend": {
-      "title": "Weekend",
+    "event": {
+      "title": "Event",
       "hint": "Each session is a launch of its own",
-      "whole": "Whole weekend",
+      "whole": "Whole event",
       "wholeHint": "What every session runs in unless it says otherwise"
     },
     "rules": {
@@ -511,7 +515,7 @@
       "sessions_other": "{{count}} sessions"
     },
     "results": {
-      "title": "Weekend results"
+      "title": "Event results"
     },
     "ai": {
       "yours": "yours",
@@ -527,7 +531,7 @@
   "calendar": {
     "season": "Season {{number}}",
     "today": "Today",
-    "advanceHint": "The clock stops at the first weekend you have entered rather than going past it.",
+    "advanceHint": "The clock stops at the first event you have entered rather than going past it.",
     "nothing": "Nothing on the calendar",
     "nothingHint": "No championship is switched on, or none of them has a round this season.",
     "filters": {
@@ -544,7 +548,7 @@
       "missed": "Missed"
     },
     "clash": "Clash",
-    "clashHint": "Another weekend you have entered overlaps this one. You can only drive one of them.",
+    "clashHint": "Another event you have entered falls on the same day. You can only drive one of them.",
     "unraceable": "Cannot be raced",
     "locked": "Above your level",
     "enrolled": "Entered",
@@ -592,7 +596,7 @@
   "event": {
     "roundOf": "Round {{number}} of {{rounds}}",
     "dates": "{{from}} - {{to}}",
-    "weekend": "Weekend",
+    "listTitle": "Event",
     "weatherTitle": "Forecast weather",
     "noSessions": "This round has no sessions that can be run with what is installed.",
     "position": "P{{position}}",
@@ -626,8 +630,8 @@
       "start": "You start",
       "temperature": "{{value}}°C",
       "windRange": "{{min}}-{{max}} km/h",
-      "authored": "As the weekend sets it",
-      "pending": "Forecast a week before the weekend"
+      "authored": "As the event sets it",
+      "pending": "Forecast a week before the event"
     },
     "source": {
       "from": "The grid is the order {{from}} finished in.",
@@ -710,7 +714,7 @@
       "missingTrack": "Track not installed",
       "tooFewPitboxes": "Only {{available}} pit boxes for a {{needed}}-car field",
       "ownConditions": "Own conditions",
-      "underway": "Weekend under way",
+      "underway": "Event under way",
       "lapUnknown": "{{name}}: lap length unknown",
       "openTrack": "Open the track"
     },
@@ -744,7 +748,7 @@
     "actions": {
       "menu": "Actions for {{name}}",
       "edit": "Edit",
-      "editLocked": "A weekend of this championship is part-way through",
+      "editLocked": "An event of this championship is part-way through",
       "duplicate": "Duplicate",
       "copyName": "{{name}} (copy)",
       "revert": "Revert",
@@ -820,14 +824,14 @@
       "drift": "DR",
       "drag": "DG"
     },
-    "weekend": "Weekend: {{sessions}}",
+    "event": "Event: {{sessions}}",
     "round": "Round {{number}}",
     "roundMissing": "Round {{number}}: needs content that is not installed",
     "entryMetal": "Tier {{tier}}, {{metal}}",
     "teams_one": "{{count}} team",
     "teams_other": "{{count}} teams",
     "detail": {
-      "weekend": "Weekend",
+      "event": "Format",
       "weather": "Weather",
       "grid": "Grid",
       "gridSize": "{{cars}}, {{teams}}",
@@ -848,7 +852,7 @@
       "qualifyingPays": "Qualifying pays {{points}}.",
       "fastestLapPays": "The fastest lap pays {{points}}.",
       "showFewer": "Show fewer",
-      "formats": "Weekend formats",
+      "formats": "Event formats",
       "systemNote": "{{name}}: {{note}}",
       "racedAt": "Raced at {{rounds}}",
       "cars": "Cars",
@@ -861,7 +865,7 @@
       "showAll": "Show all {{count}} places",
       "open": "Open",
       "nextRound": "Next round",
-      "underWay": "Weekend under way",
+      "underWay": "Event under way",
       "inDays_one": "in {{count}} day",
       "inDays_other": "in {{count}} days",
       "roundAt": "Round {{number}} · {{round}}",
@@ -872,7 +876,7 @@
       "rounds": "Rounds",
       "standings": "Standings",
       "classes": "Classes",
-      "rules": "Points, prizes and weekends",
+      "rules": "Points, prizes and formats",
       "raced": "{{count}} of {{rounds}} raced"
     }
   },
@@ -935,7 +939,7 @@
     },
     "locked": {
       "title": "This championship cannot be edited yet",
-      "body": "A weekend of it is part-way through. Everything below decides what the next session's grid holds, so the document is locked until that weekend is finished or reset.",
+      "body": "An event of it is part-way through. Everything below decides what the next session's grid holds, so the document is locked until that event is finished or reset.",
       "race": "Go to the race"
     },
     "details": {
@@ -945,11 +949,13 @@
       "generatedWeather": "Generated weather",
       "climate": "Climate",
       "seasonLength": "Season length",
+      "raceWeekday": "Race day",
       "hemisphere": "Hemisphere",
       "identity": "Identity",
       "season": "Season",
       "entryFeeShort": "Per round, unless a round says otherwise. Zero is free to enter.",
       "seasonLengthShort": "How much of a career's year it fills",
+      "raceWeekdayShort": "By tier, the top tier races on Sunday, the next on Saturday and the rest on a weekday of their own",
       "generatedWeatherShort": "Drawn from a climate; a round or a session may still set its own"
     },
     "grid": {
@@ -1106,7 +1112,7 @@
       "name": "Name",
       "track": "Circuit",
       "noTrack": "No circuit chosen",
-      "format": "Weekend format",
+      "format": "Event format",
       "climate": "Climate",
       "hemisphere": "Hemisphere",
       "defaultHemisphere": "The championship's own ({{hemisphere}})",
@@ -1121,7 +1127,7 @@
       "count_other": "{{count}} rounds",
       "swapLine": "{{entry}}: {{cars}}",
       "raceLength": "{{name}} length",
-      "raceLengthHint": "Empty runs what the weekend format says.",
+      "raceLengthHint": "Empty runs what the event format says.",
       "ownLength": "Own race length",
       "conditionsSet_one": "{{count}} condition",
       "conditionsSet_other": "{{count}} conditions",
@@ -1138,7 +1144,7 @@
       "defaultNamed": "{{name}} (the default)",
       "dialogNote": "Nothing is written until the championship is saved",
       "feeDefault": "{{fee}} - the championship's",
-      "formatHint": "The default unless a round runs a different weekend.",
+      "formatHint": "The default unless a round runs a different format.",
       "hintShort": "Click a round to edit it. Drag to reorder.",
       "lapsHere_one": "{{count}} lap at this track",
       "lapsHere_other": "{{count}} laps at this track",
@@ -1155,14 +1161,14 @@
       "unnamed": "An unnamed round"
     },
     "formats": {
-      "title": "Weekend formats",
+      "title": "Event formats",
       "add": "Add a format",
       "name": "Name",
       "rounds_one": "{{count}} round",
       "rounds_other": "{{count}} rounds",
       "copyName": "{{name}} (copy)",
       "duplicate": "Duplicate",
-      "hintShort": "Every way this championship runs a weekend. A round names one when it differs from the default.",
+      "hintShort": "Every way this championship runs an event. A round names one when it differs from the default.",
       "tabDefault_one": "default · {{count}} round",
       "tabDefault_other": "default · {{count}} rounds",
       "unused": "No round runs it yet"
@@ -1205,7 +1211,7 @@
         "position": "Position",
         "random": "Random"
       },
-      "conditionsWinWeekend": "A group set here wins over the weekend's own.",
+      "conditionsWinEvent": "A group set here wins over the event's own.",
       "slot": "P{{slot}}",
       "slotIn": "in",
       "slotOf_one": "of {{count}} car",
@@ -1254,7 +1260,7 @@
       "fastestLapSwitch": "Pay for the fastest lap of the race",
       "pointsUnit": "points",
       "paidBy": "Which races pay it",
-      "paidByHint": "The same choice each race's own Pays field makes on the Weekends tab, gathered here.",
+      "paidByHint": "The same choice each race's own Pays field makes on the Formats tab, gathered here.",
       "replaceTitle": "Replace {{name}}'s tables with {{template}}'s?",
       "replaceBody": "The finishing places, the qualifying places and the fastest lap are all replaced.",
       "replace": "Replace them",
@@ -1271,7 +1277,7 @@
       "teams": "Teams",
       "classes": "Classes",
       "calendar": "Calendar",
-      "weekends": "Weekends",
+      "formats": "Formats",
       "scoring": "Points & money",
       "changed": "Unsaved changes on this tab",
       "problem": "Something here needs fixing"
@@ -1333,7 +1339,7 @@
         "climate": "From the climate",
         "default": "Assetto Corsa's default",
         "round": "The round's",
-        "weekend": "The weekend's"
+        "event": "The event's"
       },
       "groups": {
         "weather": "Weather",
@@ -1353,13 +1359,13 @@
       "setForSession": "Set for this session",
       "setRound": "Set for this round",
       "setSession": "Set for this session",
-      "setWeekend": "Set for this weekend"
+      "setEvent": "Set for this event"
     },
     "days": {
       "add": "Add day {{number}}",
       "empty": "Nothing runs on this day yet. Drag a session here or click to add one.",
       "menu": "More for day {{number}}",
-      "most": "Three days - the most a weekend spans",
+      "most": "Three days - the most an event spans",
       "remove": "Remove the day, moving its sessions onto the day before",
       "removeFirst": "Remove the day, moving its sessions onto the day after"
     },
@@ -1412,7 +1418,7 @@
   },
   "results": {
     "title": "Results",
-    "subtitle": "Every weekend you have driven, newest first.",
+    "subtitle": "Every event you have driven, newest first.",
     "empty": "No races run yet.",
     "notFound": "That result is no longer there.",
     "order": {
@@ -1458,7 +1464,7 @@
     "championship": "Championship",
     "allChampionships": "All championships",
     "noChampionship": "Outside a championship",
-    "noneMatch": "No weekend matches.",
+    "noneMatch": "No event matches.",
     "sessionOf": "{{round}} · {{session}}",
     "classFilter": "Class",
     "overall": "Overall"
@@ -1656,13 +1662,23 @@
     "north": "Northern",
     "south": "Southern"
   },
+  "weekday": {
+    "byTier": "By tier",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
   "seasonLength": {
     "year": "A year",
     "half-year": "Half a year",
     "quarter": "A quarter"
   },
   "forecast": {
-    "title": "Weekend forecast",
+    "title": "Event forecast",
     "hint": "Generated from the round's climate. The race runs in exactly this weather.",
     "day": "Day {{number}}",
     "ambient": "{{value}}°C",
@@ -1715,13 +1731,13 @@
   "home": {
     "season": "Season {{number}}",
     "openCalendar": "Open the calendar",
-    "nextWeekend": "Your next weekend",
-    "daysToGo_one": "day to go · {{from}} - {{to}}",
-    "daysToGo_other": "days to go · {{from}} - {{to}}",
-    "underWay": "This weekend is under way",
+    "nextEvent": "Your next event",
+    "daysToGo_one": "day to go · {{day}}",
+    "daysToGo_other": "days to go · {{day}}",
+    "underWay": "Race day is today",
     "roundAt": "Round {{number}} · {{round}}",
     "prize": "{{amount}} to the winner",
-    "clashWith": "{{names}} is the same weekend. You can only drive one of them.",
+    "clashWith": "{{names}} is on the same day. You can only drive one of them.",
     "goToEvent": "Go to event",
     "advanceTo": "Advance to {{day}}",
     "yourChampionships": "Your championships",
@@ -1742,8 +1758,8 @@
       "next": "Next",
       "later": "To come"
     },
-    "noWeekend": "No weekend ahead of you",
-    "noWeekendHint": "Enter a championship and its next round shows up here.",
+    "noEvent": "No event ahead of you",
+    "noEventHint": "Enter a championship and its next round shows up here.",
     "findChampionship": "Find a championship to enter",
     "today": "{{weekday}} {{day}}"
   },
@@ -1756,22 +1772,26 @@
       "behind": "Non-start",
       "clash": "Clash"
     },
-    "clashHeading": "Same weekend - you can only drive one",
+    "clashHeading": "Same day - you can only drive one",
     "advanceTitle": "Advance to {{day}}?",
     "advanceHint_one": "The clock passes {{count}} round you entered that has not been raced. It becomes a non-start. Points you have already scored stay.",
     "advanceHint_other": "The clock passes {{count}} rounds you entered that have not been raced. Each becomes a non-start. Points you have already scored stay.",
-    "advanceHintPartway": "Moving on leaves a weekend part-way through. Every round listed becomes a non-start, and sessions not yet run score nothing. Points you have already scored stay.",
+    "advanceHintPartway": "Moving on leaves an event part-way through. Every round listed becomes a non-start, and sessions not yet run score nothing. Points you have already scored stay.",
     "advanceConfirm_one": "Skip {{count}} round and advance",
     "advanceConfirm_other": "Skip {{count}} rounds and advance",
     "launchTitle_one": "Skip {{count}} of your rounds?",
     "launchTitle_other": "Skip {{count}} of your rounds?",
     "launchHint": "Starting {{round}} moves the clock to {{day}}. These rounds you entered have not been raced, and each becomes a non-start. Points you have already scored stay.",
-    "launchHintPartway": "Starting {{round}} leaves a weekend part-way through and moves the clock to {{day}}. Every round listed becomes a non-start, and sessions not yet run score nothing. Points you have already scored stay.",
+    "launchHintPartway": "Starting {{round}} leaves an event part-way through and moves the clock to {{day}}. Every round listed becomes a non-start, and sessions not yet run score nothing. Points you have already scored stay.",
     "launchConfirm_one": "Skip {{count}} round and launch {{name}}",
     "launchConfirm_other": "Skip {{count}} rounds and launch {{name}}",
     "launchNote_one": "{{count}} of your rounds comes before this one and has not been raced.",
     "launchNote_other": "{{count}} of your rounds come before this one and have not been raced.",
-    "launchNotePartway_one": "Another weekend of yours is part-way through.",
+    "launchNoteClash_one": "{{count}} of your rounds is on the same day as this one.",
+    "launchNoteClash_other": "{{count}} of your rounds are on the same day as this one.",
+    "launchNoteMixed_one": "{{count}} of your rounds would be left unraced.",
+    "launchNoteMixed_other": "{{count}} of your rounds would be left unraced, from earlier days and from this one.",
+    "launchNotePartway_one": "Another event of yours is part-way through.",
     "launchNotePartway_other": "{{count}} of your rounds would be left unraced, one of them part-way through.",
     "launchNoteHint": "Launching skips them - they count as non-starts.",
     "behindNote_one": "{{count}} round is already behind the clock.",
@@ -1804,7 +1824,7 @@
     "settingsSources": "Settings · Content sources",
     "championshipNew": "New championship",
     "championshipEdit": "Championship editor",
-    "raceWeekend": "Race weekend"
+    "raceEvent": "Race event"
   },
   "standings": {
     "title": "Standings",

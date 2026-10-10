@@ -36,7 +36,7 @@ interface QuickClassItemProps {
    */
   selected: boolean;
   /**
-   * Whether the weekend has started, in which case nothing can change.
+   * Whether the event has started, in which case nothing can change.
    */
   locked: boolean;
   /**
@@ -51,7 +51,7 @@ interface QuickClassItemProps {
 }
 
 /**
- * One class of a race weekend in the list down the side: its colour, its name,
+ * One class of a race event in the list down the side: its colour, its name,
  * what it races, whether it is the player's, and how many cars it holds - the
  * one number every class is set by, so it is in the row rather than a tab away.
  */

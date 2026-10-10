@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -75,7 +75,7 @@ export const FORMULA_E_2023_24: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_3, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'e-prix',
       name: 'E-Prix',
@@ -110,7 +110,9 @@ export const FORMULA_E_2023_24: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'e-prix',
+  defaultEventFormat: 'e-prix',
+  // Raced on a Saturday, as the real series is.
+  raceWeekday: Weekday.SATURDAY,
   rounds: [
     {
       id: 'mexico-city',

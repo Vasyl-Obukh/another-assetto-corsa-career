@@ -10,7 +10,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The DTM 2025 (RSS) spec is RSS's GT-M cars standing for the nine makes that
  * raced; the same season on LFM's real GT3 cars is a championship of its own.
- * Four of eight weekends, each a qualifying and a race on Saturday and again
+ * Four of eight events, each a qualifying and a race on Saturday and again
  * on Sunday: Zandvoort, the Nurburgring's sprint circuit, the Sachsenring and
  * the Red Bull Ring. Oschersleben, the Norisring, the Lausitzring and
  * Hockenheim are not in Assetto Corsa.
@@ -26,7 +26,7 @@ export const DTM_2025_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dtm-2025-rss',
   name: 'DTM 2025 (RSS)',
-  description: 'The 2025 DTM season on RSS\'s GT-M cars: two qualifyings and two races a weekend at '
+  description: 'The 2025 DTM season on RSS\'s GT-M cars: two qualifyings and two races a round at '
     + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
   teams: [
     team('elbe', 'Elbe Racing', 'DEU', TeamBudget.WORKS),
@@ -76,9 +76,9 @@ export const DTM_2025_RSS: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.DTM_2025_RSS, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
@@ -89,7 +89,7 @@ export const DTM_2025_RSS: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'zandvoort',

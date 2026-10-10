@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2024: three practices, the three-part
+ * A grand prix event of 2024: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -38,12 +38,12 @@ const WEEKEND: WeekendFormat = {
 };
 
 /**
- * A sprint weekend: Friday's sprint qualifying lines up Saturday's
+ * A sprint event: Friday's sprint qualifying lines up Saturday's
  * sprint, and Saturday's knockout the grand prix.
  */
-const SPRINT: WeekendFormat = {
+const SPRINT: EventFormat = {
   id: 'sprint',
-  name: 'Sprint weekend',
+  name: 'Sprint',
   sessions: [
     { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
     { id: 'sq1', type: 'qualify', name: 'SQ1', minutes: 12, day: 0 },
@@ -99,7 +99,7 @@ const SPRINT: WeekendFormat = {
  * The real entry list on RSS's Formula Hybrid 2024, every seat in it. The 2024
  * season is a championship per spec, so VRC's car of the same year races its
  * own. 15 of 24 rounds at their real distances, four of its six sprint
- * weekends included - sprint qualifying on Friday, the sprint and the grand
+ * events included - sprint qualifying on Friday, the sprint and the grand
  * prix knockout on Saturday. Yas Marina runs the layout before its 2021
  * rebuild, so its laps cover the real distance. Jeddah, Melbourne, Suzuka,
  * Miami, Monaco, Baku, Marina Bay, Las Vegas and Losail are not in Assetto
@@ -161,8 +161,8 @@ export const FORMULA_1_2024_RSS: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2024_RSS, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND, SPRINT],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT, SPRINT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     {
       id: 'bahrain',
@@ -174,7 +174,7 @@ export const FORMULA_1_2024_RSS: Championship = {
       id: 'china',
       name: 'Chinese Grand Prix',
       track: { id: 'shanghai_v2', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     { id: 'emilia-romagna', name: 'Emilia Romagna Grand Prix', track: { id: 'imola' } },
@@ -194,7 +194,7 @@ export const FORMULA_1_2024_RSS: Championship = {
       id: 'austria',
       name: 'Austrian Grand Prix',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       sessionLengths: [{ session: 'sprint', laps: 23 }],
       climate: Climate.TEMPERATE,
     },
@@ -222,7 +222,7 @@ export const FORMULA_1_2024_RSS: Championship = {
       id: 'united-states',
       name: 'United States Grand Prix',
       track: { id: 'acu_unitedstates' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
@@ -236,7 +236,7 @@ export const FORMULA_1_2024_RSS: Championship = {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
       track: { id: 'vhe_interlagos', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },

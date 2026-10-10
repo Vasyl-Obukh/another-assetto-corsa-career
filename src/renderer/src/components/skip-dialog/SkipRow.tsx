@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SKIP_ACCENT } from './constants.ts';
 import type { SkippedRound } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
-import { formatDayRange, useFormat } from '@/i18n';
+import { useFormat } from '@/i18n';
 import { DISCIPLINE_DOT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
@@ -35,7 +35,7 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
           {named ? t('skip.named', { series: round.seriesName, round: title }) : title}
         </span>
         <span className="text-xs text-muted-foreground">
-          {formatDayRange(t, formatDayShort, round.firstDay, round.lastDay)}
+          {formatDayShort(round.date)}
         </span>
       </span>
       <Badge className={SKIP_ACCENT[round.reason]}>{t(`skip.reason.${round.reason}`)}</Badge>

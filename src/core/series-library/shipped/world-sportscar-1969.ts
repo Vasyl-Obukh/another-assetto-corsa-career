@@ -69,7 +69,7 @@ export const WORLD_SPORTSCAR_1969: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.SPORTS_PROTOTYPE_60S, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -125,20 +125,20 @@ export const WORLD_SPORTSCAR_1969: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'daytona',
       name: '24 Hours of Daytona',
       track: { id: 'rt_daytona', layout: 'sportscar' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'twelve-hours',
+      eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -146,27 +146,27 @@ export const WORLD_SPORTSCAR_1969: Championship = {
       name: 'BOAC 500',
       track: { id: 'ks_brands_hatch', layout: 'gp' },
       sessionLengths: [{ session: 'race', laps: 248 }],
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.OCEANIC,
     },
     {
       id: 'monza',
       name: '1000 km of Monza',
       track: { id: 'ks_monza66', layout: 'full' },
-      weekendFormat: 'monza-1000',
+      eventFormat: 'monza-1000',
     },
     {
       id: 'spa',
       name: '1000 km of Spa',
       track: { id: 'spa' },
-      weekendFormat: 'spa-1000',
+      eventFormat: 'spa-1000',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
       track: { id: 'ks_nordschleife', layout: 'nordschleife' },
-      weekendFormat: 'nurburgring-1000',
+      eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {
@@ -174,14 +174,14 @@ export const WORLD_SPORTSCAR_1969: Championship = {
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'nochicane' },
       sessionLengths: [{ session: 'race', laps: 382 }],
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen Six Hours',
       track: { id: 'lilski_watkins_glen', layout: 'short_classic' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
   ],

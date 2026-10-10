@@ -53,13 +53,13 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'cm.arguments.noDataDir':
     'Cannot find Content Manager\'s data folder: LOCALAPPDATA is not set.',
 
-  'weekend.complete': 'Every launch of {{race}} has already been run.',
-  'weekend.launch.outOfRange': 'Launch {{index}} does not exist: {{race}} plans {{count}}.',
-  'weekend.launch.runnable':
+  'event.complete': 'Every launch of {{race}} has already been run.',
+  'event.launch.outOfRange': 'Launch {{index}} does not exist: {{race}} plans {{count}}.',
+  'event.launch.runnable':
     'Launch {{index}} of {{race}} is one you take part in, so it has to be driven rather than skipped.',
-  'weekend.state.stale':
+  'event.state.stale':
     'Saved progress for {{race}} covers {{saved}} launches, but it now plans {{planned}}. '
-    + 'Reset the weekend to run it again.',
+    + 'Reset the event to run it again.',
 
   'seriesFile.notAnObject': '{{file}} is not a championship: the file holds no object',
   'seriesFile.unparseable': '{{file}} is not valid JSON: {{reason}}',
@@ -82,7 +82,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.entries.empty': 'Championship {{series}} has no class entries',
   'series.rounds.empty': 'Championship {{series}} has no rounds',
   'series.season.tooManyRounds':
-    'Championship {{series}} runs {{rounds}} rounds, and its season is {{weeks}} weeks long, which has room for {{weeks}} at one a weekend',
+    'Championship {{series}} runs {{rounds}} rounds, and its season is {{weeks}} weeks long, which has room for {{weeks}} at one a week',
   'season.date.invalid': '{{date}} is not a calendar date',
   'career.none': 'No career has been started yet',
   'career.season.notFound': 'The career has no season {{season}}',
@@ -93,17 +93,18 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'career.date.backwards': 'The calendar cannot go back to {{date}} from {{from}}',
   'career.event.notFound': 'Round {{round}} is not on the calendar of {{series}}',
   'career.event.notEntered': 'Enter {{series}} before racing its rounds',
-  'career.event.closed': '{{round}} is over: it has been raced or its weekend has passed',
+  'career.event.closed': '{{round}} is over: it has been raced or its event has passed',
   'career.event.earlierPending': 'Race {{event}} first: it comes earlier in your season and has not been raced',
-  'career.event.otherInProgress': '{{event}} is part-way through. Finish its weekend before starting another',
+  'career.event.otherInProgress': '{{event}} is part-way through. Finish its event before starting another',
+  'career.event.sameDay': '{{event}} is on the same day, and only one of the two can be raced',
   'career.event.inProgress': 'The calendar cannot move on while {{event}} is part-way through',
   'career.event.complete': 'Every session of {{round}} has been run',
-  'series.sessions.empty': 'Weekend format {{format}} of {{series}} has no sessions',
-  'series.formats.empty': 'Championship {{series}} declares no weekend formats',
+  'series.sessions.empty': 'Event format {{format}} of {{series}} has no sessions',
+  'series.formats.empty': 'Championship {{series}} declares no event formats',
   'series.format.unknown':
-    'Round {{round}} of {{series}} runs a weekend format it does not have: {{format}}',
+    'Round {{round}} of {{series}} runs an event format it does not have: {{format}}',
   'series.format.defaultUnknown':
-    'Championship {{series}} defaults to a weekend format it does not have: {{format}}',
+    'Championship {{series}} defaults to an event format it does not have: {{format}}',
   'series.points.onNonRace':
     'Session "{{session}}" of {{format}} in {{series}} names a points system, and only a race scores.',
   'series.points.empty': 'Championship {{series}} declares no points systems',
@@ -134,7 +135,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.distance.unresolved':
     'Round {{round}} of {{series}} runs "{{session}}" over {{distance}} km, but the track does not say how long a lap is',
   'series.round.sessionUnknown':
-    'Round {{round}} of {{series}} sets the length of session "{{session}}", which its weekend format does not have',
+    'Round {{round}} of {{series}} sets the length of session "{{session}}", which its event format does not have',
   'series.round.lengthMissing':
     'Round {{round}} of {{series}} replaces the length of session "{{session}}" without stating one',
   'series.id.duplicate': 'Duplicate {{kind}} id in {{series}}: {{id}}',
@@ -148,13 +149,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'series.seat.teamUnknown': 'Seat {{seat}} is fielded by a team {{series}} does not have: {{team}}',
   'series.seat.carNotEligible': 'Seat {{seat}} is pinned to a car its class cannot field: {{car}}',
   'series.tier.invalid': 'Class entry {{entry}} sits at tier {{tier}}; tier 1 is the top and there is nothing above it',
-  'series.days.gapped': 'Weekend format {{format}} of {{series}} skips day {{day}}',
+  'series.days.gapped': 'Event format {{format}} of {{series}} skips day {{day}}',
   'series.days.tooMany':
-    'Weekend format {{format}} of {{series}} runs over {{days}} days; a weekend is at most {{max}}',
+    'Event format {{format}} of {{series}} runs over {{days}} days; an event is at most {{max}}',
   'series.days.outOfOrder':
-    'Weekend format {{format}} of {{series}} goes back in time at "{{session}}"',
-  'series.race.onOpeningDay':
-    'Weekend format {{format}} of {{series}} runs a race on its opening day. A three-day weekend opens on Friday, and races fall on Saturday or Sunday.',
+    'Event format {{format}} of {{series}} goes back in time at "{{session}}"',
   'series.startingPosition.authored':
     'Session "{{session}}" of {{format}} in {{series}} sets a starting position. The grid comes from qualifying or from the ladder, so an authored one would be silently overwritten.',
   'series.bop.notEligible': 'Class entry {{entry}} balances a car it cannot field: {{car}}',
@@ -173,8 +172,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     'Championship {{series}} is one the app ships. Take your own copy of it before editing.',
   'series.id.immutable':
     'Championship {{series}} cannot be renamed to {{id}}. Duplicate it instead, which gives the copy an id of its own.',
-  'series.weekendInProgress':
-    'Round {{round}} of {{series}} is part-way through. Finish that weekend, or reset it, before editing the championship.',
+  'series.eventInProgress':
+    'Round {{round}} of {{series}} is part-way through. Finish that event, or reset it, before editing the championship.',
   'series.save.unreadable': 'Championship {{series}} could not be saved: {{reason}}',
 
   'classes.car.specUnknown': 'There is no spec {{spec}} to put {{car}} in.',
@@ -205,7 +204,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'quick.car.none': 'Pick a car to drive.',
   'quick.class.noCars': '{{class}} has no cars yet. Pick a grid for it, or add cars to it.',
   'quick.car.notInClass': '{{car}} is not in {{class}}.',
-  'quick.notFound': 'There is no race weekend with the id {{race}}.',
+  'quick.notFound': 'There is no race event with the id {{race}}.',
   'quick.started': '{{race}} has started. Start it over to change it.',
 
   'ipc.noWindow': 'No window to attach the folder picker to.',

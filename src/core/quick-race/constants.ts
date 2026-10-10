@@ -4,9 +4,9 @@
 export const QUICK_ROUND = 'race';
 
 /**
- * The id of the weekend format its sessions are written into.
+ * The id of the event format its sessions are written into.
  */
-export const QUICK_FORMAT = 'weekend';
+export const QUICK_FORMAT = 'event';
 
 /**
  * The id of the points table it scores with, which pays nothing: a quick race

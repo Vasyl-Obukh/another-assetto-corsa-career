@@ -63,7 +63,7 @@ const listing = (origin: SeriesOrigin, requires: SeriesRequirements): SeriesList
   origin,
   activeByDefault: true,
   filler: false,
-  weekend: null,
+  event: null,
 });
 
 describe('shared/utils/content-sources', () => {

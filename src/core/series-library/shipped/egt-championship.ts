@@ -75,7 +75,7 @@ export const EGT_CHAMPIONSHIP: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'sprint',
       name: 'Sprint',
@@ -104,13 +104,13 @@ export const EGT_CHAMPIONSHIP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'sprint',
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'sebring',
       name: '6 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -141,7 +141,7 @@ export const EGT_CHAMPIONSHIP: Championship = {
       name: '6 Hours of Watkins Glen',
       track: { id: 'lilski_watkins_glen', layout: 'boot' },
       sessionLengths: [{ session: 'race', laps: 196 }],
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -195,7 +195,7 @@ export const EGT_CHAMPIONSHIP: Championship = {
       name: '6 Hours of Spa',
       track: { id: 'spa' },
       sessionLengths: [{ session: 'race', laps: 145 }],
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.OCEANIC,
     },
     {
@@ -224,7 +224,7 @@ export const EGT_CHAMPIONSHIP: Championship = {
       id: 'road-atlanta',
       name: '10 Hours of Road Atlanta',
       track: { id: 'road_atlanta2018', layout: 'grandprix' },
-      weekendFormat: 'ten-hours',
+      eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
   ],

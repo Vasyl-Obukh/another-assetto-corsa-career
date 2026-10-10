@@ -55,7 +55,7 @@ export interface ClimateProfile {
   wetDayChance: number;
   /**
    * How strongly a day repeats the day before, from 0 for independent days to
-   * 1 for a weekend that never changes its mind.
+   * 1 for an event that never changes its mind.
    */
   persistence: number;
   /**
@@ -85,7 +85,7 @@ export interface ClimateProfile {
 }
 
 /**
- * What one day of a weekend is like, before any session is drawn in it.
+ * What one day of an event is like, before any session is drawn in it.
  */
 export interface DayWeather {
   /**

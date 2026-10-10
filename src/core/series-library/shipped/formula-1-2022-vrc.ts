@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2022: three practices, the three-part
+ * A grand prix event of 2022: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -38,12 +38,12 @@ const WEEKEND: WeekendFormat = {
 };
 
 /**
- * A sprint weekend as it was introduced: Friday's knockout lines up a
+ * A sprint event as it was introduced: Friday's knockout lines up a
  * Saturday sprint, and the sprint's result is the grand prix grid.
  */
-const SPRINT: WeekendFormat = {
+const SPRINT: EventFormat = {
   id: 'sprint',
-  name: 'Sprint weekend',
+  name: 'Sprint',
   sessions: [
     { type: 'practice', name: 'Free practice 1', minutes: 60, day: 0 },
     { id: 'q1', type: 'qualify', name: 'Q1', minutes: 18, day: 0 },
@@ -89,7 +89,7 @@ const SPRINT: WeekendFormat = {
  *
  * The real entry list on VRC's Formula Alpha 2022, every seat in it. The 2022
  * season is a championship per spec, so RSS's car of the same year races its
- * own. 14 of 22 rounds at their real distances, the three sprint weekends
+ * own. 14 of 22 rounds at their real distances, the three sprint rounds
  * included - Friday's knockout still set the sprint grid, and the sprint the
  * grand prix's; Barcelona runs the layout with its final chicane. Yas Marina
  * runs the layout before its 2021 rebuild, so its laps cover the real
@@ -153,8 +153,8 @@ export const FORMULA_1_2022_VRC: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2022_VRC, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND, SPRINT],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT, SPRINT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     {
       id: 'bahrain',
@@ -166,7 +166,7 @@ export const FORMULA_1_2022_VRC: Championship = {
       id: 'emilia-romagna',
       name: 'Emilia Romagna Grand Prix',
       track: { id: 'imola' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
     },
     { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
     {
@@ -185,7 +185,7 @@ export const FORMULA_1_2022_VRC: Championship = {
       id: 'austria',
       name: 'Austrian Grand Prix',
       track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
@@ -219,7 +219,7 @@ export const FORMULA_1_2022_VRC: Championship = {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
       track: { id: 'vhe_interlagos', layout: 'gp' },
-      weekendFormat: 'sprint',
+      eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },

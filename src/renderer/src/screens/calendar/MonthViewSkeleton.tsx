@@ -19,7 +19,7 @@ interface MonthViewSkeletonProps {
 
 /**
  * The month grid while the calendar is read: six weeks under the real weekday
- * row, lines where weekends race, and the day's list beside it where the
+ * row, lines where events race, and the day's list beside it where the
  * window has room for one.
  */
 export const MonthViewSkeleton = ({ height }: MonthViewSkeletonProps) => {
@@ -31,7 +31,7 @@ export const MonthViewSkeleton = ({ height }: MonthViewSkeletonProps) => {
     <Loading>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_25rem]" style={{ height }}>
         <div
-          className="grid grid-cols-[repeat(5,minmax(0,1fr))_repeat(2,minmax(0,1.6fr))] gap-px overflow-hidden rounded-xl border bg-border"
+          className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border bg-border"
           style={{ gridTemplateRows: `auto repeat(${MONTH_SKELETON_WEEKS}, minmax(0, 1fr))` }}
         >
           {week.map((day) => (

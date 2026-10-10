@@ -7,7 +7,7 @@
 // storing any, and what makes the rounds stored on entering exactly the ones it
 // would have shown the day before.
 //
-// The weekend is walked launch by launch through the same helpers a driven one
+// The event is walked launch by launch through the same helpers a driven one
 // uses - fieldFor for a knockout, composeOrder and reverseFront for a grid - and
 // scored by scoreRound, so a simulated round pays qualifying points, fastest
 // laps and reverse grids exactly as a driven one does. Only the classifications
@@ -20,17 +20,17 @@ import type { SimulatedRound, SimulationRequest } from './types.ts';
 import { rankBy, simulatedGrid, simulatedRaceOut } from './utils.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
-  LaunchRecord, RacePlace, WeekendLaunch, WeekendPlan, WeekendState,
+  EventLaunch, EventPlan, EventState, LaunchRecord, RacePlace,
 } from '../../shared/types/index.ts';
+import {
+  chainOf, composeOrder, dayOf, fieldFor, reverseFront,
+} from '../event/index.ts';
 import { scoreRound } from '../season-scoring/index.ts';
 import type { LaunchResult } from '../season-scoring/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import {
   formatOf, roundOf, roundRaceId, roundSessions,
 } from '../series/index.ts';
-import {
-  chainOf, composeOrder, dayOf, fieldFor, reverseFront,
-} from '../weekend/index.ts';
 
 export type { SimulatedPlayer, SimulatedRound, SimulationRequest } from './types.ts';
 
@@ -66,8 +66,8 @@ const standInPlaces = (place: RacePlace): RacePlace[] => {
 /**
  * Simulates whatever of a round was not driven, and scores the whole of it.
  * @param request Which round, whose field, and what of it was driven
- * @returns Every launch of the weekend, and the round's score
- * @throws When the round or its weekend format is not in the championship
+ * @returns Every launch of the event, and the round's score
+ * @throws When the round or its event format is not in the championship
  */
 export const simulateRound = (request: SimulationRequest): SimulatedRound => {
   const {
@@ -79,7 +79,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
     throw new AppError('series.format.unknown', {
       series: series.id,
       round: round.id,
-      format: round.weekendFormat ?? series.defaultWeekendFormat,
+      format: round.eventFormat ?? series.defaultEventFormat,
     });
   }
 
@@ -88,13 +88,13 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
   const everyone = cars.map((unused, car) => car);
   const raceId = roundRaceId(series.id, round.id);
 
-  // A plan in the shape scoring and the weekend helpers read. Its launches
+  // A plan in the shape scoring and the event helpers read. Its launches
   // carry no race to set up, since nothing here is launched.
-  const plan: WeekendPlan = {
+  const plan: EventPlan = {
     raceId,
     raceName: `${series.name} - ${round.name}`,
     grid: cars.map((one) => one.entry),
-    launches: roundSessions(format, round).map((session, index): WeekendLaunch => ({
+    launches: roundSessions(format, round).map((session, index): EventLaunch => ({
       index,
       day: dayOf(session),
       session,
@@ -114,7 +114,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
 
   for (let index = completed.length; index < plan.launches.length; index += 1) {
     const { session } = plan.launches[index];
-    const state: WeekendState = { raceId, launchCount: plan.launches.length, completed: sessions };
+    const state: EventState = { raceId, launchCount: plan.launches.length, completed: sessions };
     // Drawn per seat rather than per grid slot, so the round comes out the same
     // whether the player's seat leads the grid or sits in entry-list order -
     // which is what makes a round stored on entering the one shown before it.
@@ -174,7 +174,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
     });
   }
 
-  const state: WeekendState = { raceId, launchCount: plan.launches.length, completed: sessions };
+  const state: EventState = { raceId, launchCount: plan.launches.length, completed: sessions };
   const score = scoreRound(series, round.id, plan, state, [...results, ...simulated], recordedAt);
   const playerSeat = standIn ? plan.grid[0]?.seat : undefined;
 

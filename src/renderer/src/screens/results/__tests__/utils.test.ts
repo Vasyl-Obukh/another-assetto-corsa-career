@@ -3,11 +3,11 @@ import { describe, expect, it } from '@jest/globals';
 import type { SeasonEntry, SessionType } from '../../../../../shared/types';
 import { ALL_CHAMPIONSHIPS, NO_CHAMPIONSHIP } from '../constants.ts';
 import type { ResultsCriteria } from '../types.ts';
-import { filterWeekends } from '../utils.ts';
-import type { ResultSession, ResultWeekend } from '@/lib/result-weekends';
+import { filterEvents } from '../utils.ts';
+import type { ResultEvent, ResultSession } from '@/lib/result-events';
 
 /**
- * One archived session of a weekend, at a track.
+ * One archived session of an event, at a track.
  * @param type Which kind of session it was
  * @param track The track AC recorded, and the layout's name
  * @returns The session
@@ -27,11 +27,11 @@ const session = (type: SessionType, track = 'magione'): ResultSession => ({
 });
 
 /**
- * A weekend no championship ran, or a round of one when given its origin.
+ * An event no championship ran, or a round of one when given its origin.
  * @param overrides What to change about it
- * @returns The weekend
+ * @returns The event
  */
-const weekend = (overrides: Partial<ResultWeekend> = {}): ResultWeekend => ({
+const event = (overrides: Partial<ResultEvent> = {}): ResultEvent => ({
   key: 'quick',
   origin: null,
   title: 'Sunday blast',
@@ -48,7 +48,7 @@ const weekend = (overrides: Partial<ResultWeekend> = {}): ResultWeekend => ({
  * @param round The round's id and name
  * @returns The origin
  */
-const origin = (series: string, name: string, round: string): ResultWeekend['origin'] => ({
+const origin = (series: string, name: string, round: string): ResultEvent['origin'] => ({
   season: 0,
   entry: {
     series,
@@ -72,46 +72,46 @@ const criteria = (overrides: Partial<ResultsCriteria> = {}): ResultsCriteria => 
 });
 
 describe('renderer/screens/results/utils', () => {
-  describe('filterWeekends', () => {
-    const quick = weekend();
-    const round = weekend({ key: 'gt3-spa', origin: origin('gt3', 'GT3 Cup', 'Spa'), title: 'GT3 Cup' });
+  describe('filterEvents', () => {
+    const quick = event();
+    const round = event({ key: 'gt3-spa', origin: origin('gt3', 'GT3 Cup', 'Spa'), title: 'GT3 Cup' });
 
-    it('keeps every weekend whole when nothing is narrowed', () => {
-      expect(filterWeekends([quick, round], criteria())).toEqual([quick, round]);
+    it('keeps every event whole when nothing is narrowed', () => {
+      expect(filterEvents([quick, round], criteria())).toEqual([quick, round]);
     });
 
     it('keeps only the sessions of the kind asked for', () => {
-      const [shown] = filterWeekends([quick], criteria({ kind: 'qualify' }));
+      const [shown] = filterEvents([quick], criteria({ kind: 'qualify' }));
 
       expect(shown.sessions.map((one) => one.type)).toEqual(['qualify']);
     });
 
-    it('drops a weekend left with no session of the kind asked for', () => {
-      const practiceOnly = weekend({ sessions: [session('practice')] });
+    it('drops an event left with no session of the kind asked for', () => {
+      const practiceOnly = event({ sessions: [session('practice')] });
 
-      expect(filterWeekends([practiceOnly], criteria({ kind: 'race' }))).toEqual([]);
+      expect(filterEvents([practiceOnly], criteria({ kind: 'race' }))).toEqual([]);
     });
 
     it('keeps the rounds of the championship asked for', () => {
-      expect(filterWeekends([quick, round], criteria({ championship: 'gt3' }))).toEqual([round]);
+      expect(filterEvents([quick, round], criteria({ championship: 'gt3' }))).toEqual([round]);
     });
 
-    it('keeps the weekends no championship ran when asked for those', () => {
-      expect(filterWeekends([quick, round], criteria({ championship: NO_CHAMPIONSHIP }))).toEqual([quick]);
+    it('keeps the events no championship ran when asked for those', () => {
+      expect(filterEvents([quick, round], criteria({ championship: NO_CHAMPIONSHIP }))).toEqual([quick]);
     });
 
     it('matches the search against the championship, the round and the track', () => {
-      expect(filterWeekends([quick, round], criteria({ search: 'cup' }))).toEqual([round]);
-      expect(filterWeekends([quick, round], criteria({ search: 'spa' }))).toEqual([round]);
-      expect(filterWeekends([quick, round], criteria({ search: 'autodromo' }))).toEqual([quick, round]);
+      expect(filterEvents([quick, round], criteria({ search: 'cup' }))).toEqual([round]);
+      expect(filterEvents([quick, round], criteria({ search: 'spa' }))).toEqual([round]);
+      expect(filterEvents([quick, round], criteria({ search: 'autodromo' }))).toEqual([quick, round]);
     });
 
-    it('matches the search against a weekend\'s own title', () => {
-      expect(filterWeekends([quick, round], criteria({ search: 'blast' }))).toEqual([quick]);
+    it('matches the search against an event\'s own title', () => {
+      expect(filterEvents([quick, round], criteria({ search: 'blast' }))).toEqual([quick]);
     });
 
     it('keeps the order it was handed', () => {
-      expect(filterWeekends([round, quick], criteria())).toEqual([round, quick]);
+      expect(filterEvents([round, quick], criteria())).toEqual([round, quick]);
     });
   });
 });

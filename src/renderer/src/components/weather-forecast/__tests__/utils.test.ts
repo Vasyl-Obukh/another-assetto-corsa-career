@@ -4,8 +4,8 @@ import type { SessionForecast } from '../../../../../shared/types';
 import { forecastDays } from '../utils.ts';
 
 /**
- * Builds a session's forecast on one day of the weekend.
- * @param index Its position in the weekend format
+ * Builds a session's forecast on one day of the event.
+ * @param index Its position in the event format
  * @param day Which day it runs on
  * @returns A complete SessionForecast
  */

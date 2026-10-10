@@ -17,7 +17,7 @@ import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
 import { Home } from '@/screens/home';
-import { Race, RaceWeekend } from '@/screens/race';
+import { Race, RaceEvent } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
 import { Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
@@ -48,7 +48,7 @@ export const App = ({ initialReport }: AppProps) => {
           <Routes>
             <Route path={ROUTE.home} element={<Home />} />
             <Route path={ROUTE.race} element={<Race />} />
-            <Route path={ROUTE.raceWeekend} element={<RaceWeekend />} />
+            <Route path={ROUTE.raceEvent} element={<RaceEvent />} />
             <Route path={ROUTE.calendar} element={<Calendar />} />
             <Route path={ROUTE.event} element={<Event />} />
             <Route path={ROUTE.championships} element={<Championships />} />

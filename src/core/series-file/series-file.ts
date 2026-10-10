@@ -14,7 +14,7 @@
 // validateSeries answers "is it a coherent one". A file that fails here never
 // reaches the second, because there is nothing coherent to ask about.
 
-import { SEASON_LENGTHS } from './constants.ts';
+import { SEASON_LENGTHS, WEEKDAYS } from './constants.ts';
 import type { ParsedSeries } from './types.ts';
 import {
   readEntry,
@@ -89,7 +89,7 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     typeof raw.name === 'string' || report.bad('name', raw.name),
     readList(raw.entries, 'entries', (entry, at) => readEntry(entry, at, report)),
     readList(raw.rounds, 'rounds', (round, at) => readRound(round, at, report)),
-    readList(raw.weekendFormats, 'weekendFormats', (format, at) => readFormat(format, at, report)),
+    readList(raw.eventFormats, 'eventFormats', (format, at) => readFormat(format, at, report)),
     readList(raw.pointsSystems, 'pointsSystems', (points, at) => readPoints(points, at, report)),
     raw.teams === undefined
       || readList(raw.teams, 'teams', (team, at) => readTeam(team, at, report)),
@@ -98,6 +98,8 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     readGeneratedWeather(raw.generatedWeather, 'generatedWeather', report),
     raw.seasonLength === undefined
       || report.closedSet(raw.seasonLength, SEASON_LENGTHS, 'seasonLength'),
+    raw.raceWeekday === undefined
+      || report.closedSet(raw.raceWeekday, WEEKDAYS, 'raceWeekday'),
     readOptionalNumber(raw.entryFee, 'entryFee', report),
     readOptionalString(raw.description, 'description', report),
   ].every(Boolean);

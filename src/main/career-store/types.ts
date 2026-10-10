@@ -105,13 +105,13 @@ export interface CareerStore {
    */
   withdraw(request: { series: string; entry: string }): Promise<Career>;
   /**
-   * Moves the clock forward, stopping at the first enrolled weekend on the way
+   * Moves the clock forward, stopping at the first enrolled event on the way
    * - or, once the player has confirmed what it costs, all the way.
    * @param date The ISO date to advance towards
    * @param skip Whether to go all the way, marking every round of the career's
-   * passed on the way, and a weekend left part-way, as non-starts
+   * passed on the way, and an event left part-way, as non-starts
    * @returns The career, with the clock wherever it stopped
-   * @throws When the date is behind the clock, or a weekend is part-way through
+   * @throws When the date is behind the clock, or an event is part-way through
    * and the move was not confirmed
    */
   advanceTo(date: string, skip?: boolean): Promise<Career>;
@@ -142,8 +142,8 @@ export interface CareerStore {
   /**
    * Runs the next session of a round the career is in.
    *
-   * Sets the round up first when the race being run is some other weekend, and
-   * moves the clock to the weekend when it is still ahead.
+   * Sets the round up first when the race being run is some other event, and
+   * moves the clock to the event when it is still ahead.
    * @param request Which championship and round, and whether the player
    * confirmed losing the rounds `skips` on its event view lists
    * @returns The race as it stands once the launch has started

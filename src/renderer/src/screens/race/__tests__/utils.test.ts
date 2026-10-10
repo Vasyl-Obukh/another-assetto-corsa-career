@@ -108,7 +108,7 @@ describe('renderer/screens/race/utils', () => {
   });
 
   describe('nextSession', () => {
-    // A weekend with no race in it plans launches nobody wanted, so the first
+    // An event with no race in it plans launches nobody wanted, so the first
     // session added is the race itself.
     it('adds a race when there is not one yet', () => {
       expect(nextSession([])).toMatchObject({ type: 'race' });
@@ -119,7 +119,7 @@ describe('renderer/screens/race/utils', () => {
       expect(nextSession([{ type: 'race' }])).toMatchObject({ type: 'practice' });
     });
 
-    it('starts on the day the weekend has reached', () => {
+    it('starts on the day the event has reached', () => {
       expect(nextSession([{ type: 'race', day: 2 }]).day).toBe(2);
     });
   });
@@ -249,7 +249,7 @@ describe('renderer/screens/race/utils', () => {
     });
 
     // An empty block left behind reads as a session that differs from the
-    // weekend when it does not, and would be written into the saved draft.
+    // event when it does not, and would be written into the saved draft.
     it('drops the block entirely when it overrides nothing', () => {
       const next = withSessionConditions({ type: 'race', conditions: { ambient: 18 } }, {});
 
@@ -474,7 +474,7 @@ describe('renderer/screens/race/utils', () => {
   });
 
   describe('phaseOf', () => {
-    it('reads the phase the card said the weekend is in', () => {
+    it('reads the phase the card said the event is in', () => {
       expect(phaseOf({ phase: 'running' })).toBe('running');
       expect(phaseOf({ phase: 'finished' })).toBe('finished');
       expect(phaseOf({ phase: 'setup' })).toBe('setup');

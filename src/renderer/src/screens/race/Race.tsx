@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import { WEEKEND_SKELETON } from './constants.ts';
-import { NewWeekendTile } from './NewWeekendTile.tsx';
-import { RaceWeekendCard } from './RaceWeekendCard.tsx';
-import { RaceWeekendCardSkeleton } from './RaceWeekendCardSkeleton.tsx';
+import { EVENT_SKELETON } from './constants.ts';
+import { NewEventTile } from './NewEventTile.tsx';
+import { RaceEventCard } from './RaceEventCard.tsx';
+import { RaceEventCardSkeleton } from './RaceEventCardSkeleton.tsx';
 import {
   ConfirmDialog, ErrorCard, Loading, ScreenBody,
 } from '@/components';
@@ -19,13 +19,13 @@ export const Race = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const quick = useQuickRaces();
-  // The weekend being asked about deleting, by its id.
+  // The event being asked about deleting, by its id.
   const [deleting, setDeleting] = useState<string | null>(null);
   const target = quick.races?.find((one) => one.race.id === deleting);
 
   const create = async (): Promise<void> => {
     const id = await quick.create();
-    if (id) void navigate(path.raceWeekend({ id }));
+    if (id) void navigate(path.raceEvent({ id }));
   };
 
   return (
@@ -44,13 +44,13 @@ export const Race = () => {
       {quick.error ? <ErrorCard error={quick.error} onDismiss={quick.dismissError} /> : null}
 
       <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <NewWeekendTile busy={quick.busy} onCreate={() => { void create(); }} />
+        <NewEventTile busy={quick.busy} onCreate={() => { void create(); }} />
         {quick.races === null ? (
-          slots(WEEKEND_SKELETON).map((at) => (
-            <Loading key={at}><RaceWeekendCardSkeleton /></Loading>
+          slots(EVENT_SKELETON).map((at) => (
+            <Loading key={at}><RaceEventCardSkeleton /></Loading>
           ))
         ) : quick.races.map((view) => (
-          <RaceWeekendCard
+          <RaceEventCard
             key={view.race.id}
             view={view}
             busy={quick.busy}

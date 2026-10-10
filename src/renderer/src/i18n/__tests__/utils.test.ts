@@ -186,11 +186,11 @@ describe('renderer/i18n/utils', () => {
       key === 'event.dates' ? `${params?.from} to ${params?.to}` : key
     )) as unknown as TFunction;
 
-    it('writes a one-day weekend as that day alone', () => {
+    it('writes a one-day event as that day alone', () => {
       expect(formatDayRange(t, formattersFor('en').formatDay, '2026-03-07', '2026-03-07')).toBe('7 Mar 2026');
     });
 
-    it('writes a longer weekend as its first and last days', () => {
+    it('writes a longer event as its first and last days', () => {
       expect(formatDayRange(t, formattersFor('en').formatDay, '2026-03-06', '2026-03-08'))
         .toBe('6 Mar 2026 to 8 Mar 2026');
     });

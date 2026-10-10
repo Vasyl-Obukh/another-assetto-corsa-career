@@ -9,7 +9,7 @@ import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 export type { QuickRaceState } from './types.ts';
 
 /**
- * Loads one race weekend of the player's own and keeps it current.
+ * Loads one race event of the player's own and keeps it current.
  *
  * An edit shows at once and is saved behind it, every keystroke a whole race:
  * only the answer to the latest save is taken, so a slow early one can never

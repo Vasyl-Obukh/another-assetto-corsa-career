@@ -54,7 +54,7 @@ export const AUDI_TT_CUP_2016: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_audi_tt_cup'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race meeting',
@@ -66,7 +66,7 @@ export const AUDI_TT_CUP_2016: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'nurburgring-1',

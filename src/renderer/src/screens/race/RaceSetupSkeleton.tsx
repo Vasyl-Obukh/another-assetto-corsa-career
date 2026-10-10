@@ -9,7 +9,7 @@ import { slots } from '@/lib/slots.ts';
 import { GridFieldsSkeleton, RulesCardSkeleton } from '@/screens/championship-editor';
 
 /**
- * The setup half of a race weekend's page while it is read: the classes with
+ * The setup half of a race event's page while it is read: the classes with
  * one open, the sessions beside the one open, and the rules in their three
  * panes - every heading and label written out, every value still to come.
  */
@@ -73,7 +73,7 @@ export const RaceSetupSkeleton = () => {
         </Card>
       </RaceSection>
 
-      <RaceSection title={t('race.weekend.title')} hint={t('race.weekend.hint')}>
+      <RaceSection title={t('race.event.title')} hint={t('race.event.hint')}>
         <Card className="gap-0 overflow-hidden py-0">
           <div className="grid lg:grid-cols-[19rem_minmax(0,1fr)]">
             <div className="flex flex-col gap-2 border-b bg-muted/30 p-3 lg:border-r lg:border-b-0">

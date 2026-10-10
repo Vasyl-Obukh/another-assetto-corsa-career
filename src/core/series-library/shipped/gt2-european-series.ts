@@ -11,7 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * the 935, the Brabham BT63, the KTM X-Bow, the Maserati MC20, the Huracan ST
  * EVO2 and the AMG - and a few of its own imagining, the BMW M2 GT2, the 488
  * GT2 and the Liana; its Cayman RSR has no series of its own and races here
- * too. The class names all twelve. Two 50-minute races a weekend, each from a
+ * too. The class names all twelve. Two 50-minute races a round, each from a
  * qualifying of its own. The calendar is the circuits the series races that
  * Assetto Corsa has - Monza, Spa, Valencia and Portimao - rather than one
  * season's, which was not checked; Paul Ricard, Misano and Hockenheim are not
@@ -27,7 +27,7 @@ export const GT2_EUROPEAN_SERIES: Championship = {
   id: 'gt2-european-series',
   name: 'GT2 European Series',
   description: 'SRO\'s track-only GT2 class on Guerilla\'s GT2 cars, real and imagined: two 50-minute '
-    + 'races a weekend at Monza, Spa, Valencia and Portimao.',
+    + 'races a round at Monza, Spa, Valencia and Portimao.',
   teams: [
     team('lugano', 'Lugano GT', 'CHE', TeamBudget.INDEPENDENT),
     team('riviera', 'Riviera GT', 'MCO', TeamBudget.INDEPENDENT),
@@ -86,9 +86,9 @@ export const GT2_EUROPEAN_SERIES: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
@@ -99,7 +99,7 @@ export const GT2_EUROPEAN_SERIES: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },

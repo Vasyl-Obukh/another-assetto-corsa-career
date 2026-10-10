@@ -63,7 +63,7 @@ export const FIA_GT_1997: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT1_1990S, minModels: 1 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'four-hours',
       name: 'Four hours',
@@ -83,7 +83,7 @@ export const FIA_GT_1997: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'four-hours',
+  defaultEventFormat: 'four-hours',
   rounds: [
     {
       id: 'silverstone',
@@ -116,10 +116,10 @@ export const FIA_GT_1997: Championship = {
       id: 'sebring',
       name: 'Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'three-hours',
+      eventFormat: 'three-hours',
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, weekendFormat: 'three-hours' },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, eventFormat: 'three-hours' },
     {
       id: 'mugello',
       name: 'Mugello',

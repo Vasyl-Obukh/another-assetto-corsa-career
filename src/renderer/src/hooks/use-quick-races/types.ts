@@ -2,7 +2,7 @@ import type { QuickRaceView } from '../../../../shared/types';
 import type { toDisplayableError } from '@/lib/ipc';
 
 /**
- * Every race weekend of the player's own, and the commands the Race tab runs on
+ * Every race event of the player's own, and the commands the Race tab runs on
  * them.
  */
 export interface QuickRacesState {
@@ -23,18 +23,18 @@ export interface QuickRacesState {
    */
   dismissError: () => void;
   /**
-   * Makes a new race weekend.
+   * Makes a new race event.
    * @returns Its id, or null when it could not be made
    */
   create: () => Promise<string | null>;
   /**
-   * Copies a race weekend, leaving its results behind.
+   * Copies a race event, leaving its results behind.
    * @param id The race to copy
    * @returns Resolves once copied
    */
   duplicate: (id: string) => Promise<void>;
   /**
-   * Deletes a race weekend.
+   * Deletes a race event.
    * @param id The race to delete
    * @returns Resolves once deleted
    */

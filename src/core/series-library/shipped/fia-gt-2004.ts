@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * An FIA GT weekend of 2004: practice and an hour of qualifying on Saturday,
+ * An FIA GT event of 2004: practice and an hour of qualifying on Saturday,
  * and a 500 km race on Sunday.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'five-hundred',
   name: '500 km',
   sessions: [
@@ -100,8 +100,8 @@ export const FIA_GT_2004: Championship = {
       },
     },
   ],
-  weekendFormats: [
-    WEEKEND,
+  eventFormats: [
+    EVENT,
     {
       id: 'spa-24',
       name: 'Twenty-four hours',
@@ -112,7 +112,7 @@ export const FIA_GT_2004: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'five-hundred',
+  defaultEventFormat: 'five-hundred',
   rounds: [
     { id: 'monza', name: 'Monza 500 km', track: { id: 'monza' } },
     { id: 'valencia', name: 'Valencia 500 km', track: { id: 'fn_valencia', layout: 'gp' } },
@@ -126,7 +126,7 @@ export const FIA_GT_2004: Championship = {
       id: 'spa',
       name: 'Spa 24 Hours',
       track: { id: 'spa' },
-      weekendFormat: 'spa-24',
+      eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
     { id: 'imola', name: 'Imola 500 km', track: { id: 'imola' } },

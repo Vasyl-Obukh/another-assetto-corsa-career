@@ -123,7 +123,7 @@ export interface IpcContract {
    */
   'race:get': { req: void; res: RaceSetup };
   /**
-   * Stop waiting for a result, without advancing the weekend.
+   * Stop waiting for a result, without advancing the event.
    */
   'race:cancel': { req: void; res: RaceSetup };
   /**
@@ -135,37 +135,37 @@ export interface IpcContract {
    */
   'race:result': { req: { file: string }; res: ResultRecord };
   /**
-   * Every race weekend of the player's own, the ones part-way first.
+   * Every race event of the player's own, the ones part-way first.
    */
   'quick:list': { req: void; res: QuickRaceView[] };
   /**
-   * One race weekend of the player's own.
+   * One race event of the player's own.
    */
   'quick:get': { req: { id: string }; res: QuickRaceView };
   /**
-   * Make a new race weekend, with nothing picked yet.
+   * Make a new race event, with nothing picked yet.
    */
   'quick:create': { req: void; res: QuickRaceView };
   /**
-   * Replace a race weekend that has not started. The whole race rather than a
+   * Replace a race event that has not started. The whole race rather than a
    * patch, as with every other document main owns.
    */
   'quick:save': { req: QuickRace; res: QuickRaceView };
   /**
-   * Copy a race weekend, leaving its results behind.
+   * Copy a race event, leaving its results behind.
    */
   'quick:duplicate': { req: { id: string }; res: QuickRaceView };
   /**
-   * Delete a race weekend. Its archived results stay with every other result.
+   * Delete a race event. Its archived results stay with every other result.
    */
   'quick:remove': { req: { id: string }; res: void };
   /**
-   * Launch the next session of a race weekend. The result arrives later, as a
+   * Launch the next session of a race event. The result arrives later, as a
    * quick:changed push.
    */
   'quick:launch': { req: { id: string }; res: QuickRaceView };
   /**
-   * Throw away what has run of a race weekend, so it can be changed and run
+   * Throw away what has run of a race event, so it can be changed and run
    * again.
    */
   'quick:restart': { req: { id: string }; res: QuickRaceView };
@@ -331,7 +331,7 @@ export interface IpcContract {
    */
   'career:withdraw': { req: { series: string; entry: string }; res: Career };
   /**
-   * Move the clock forward, stopping at the first enrolled weekend on the way -
+   * Move the clock forward, stopping at the first enrolled event on the way -
    * or, with `skip`, all the way to the date, marking every round of the
    * career's it passes a non-start. `skip` is what the player confirmed after
    * `career:skips` listed them.
@@ -353,7 +353,7 @@ export interface IpcContract {
   'career:results': { req: { series: string }; res: ChampionshipResults };
   /**
    * Run the next session of a round the career is in, setting the round up
-   * first when the race being run is another weekend. A round that would leave
+   * first when the race being run is another event. A round that would leave
    * others unraced is refused unless `skip` says the player confirmed it.
    */
   'career:launch': { req: { series: string; round: string; skip?: boolean }; res: RaceSetup };
@@ -418,13 +418,13 @@ export interface IpcEvents {
    * The race being set up changed, or the launch in flight moved on.
    *
    * One payload rather than several events: a launch finishing changes the
-   * status, the weekend progress and what the next launch will be at the same
+   * status, the event progress and what the next launch will be at the same
    * instant, and pushing those separately would let the screen paint a state
    * that never existed.
    */
   'race:changed': RaceSetup;
   /**
-   * A race weekend of the player's own changed, or a launch of one moved on.
+   * A race event of the player's own changed, or a launch of one moved on.
    * Carries every one of them, which is what quick:list answers.
    */
   'quick:changed': QuickRaceView[];

@@ -44,7 +44,7 @@ const listing = (overrides: Partial<SeriesAvailability> = {}): SeriesListing => 
   origin: 'user',
   activeByDefault: true,
   filler: false,
-  weekend: null,
+  event: null,
 });
 
 describe('shared/utils/round-availability', () => {

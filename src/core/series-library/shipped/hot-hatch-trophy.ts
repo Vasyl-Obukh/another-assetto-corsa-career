@@ -76,10 +76,10 @@ export const HOT_HATCH_TROPHY: Championship = {
       ],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Club weekend',
+      name: 'Club',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 20, day: 0 },
         { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
@@ -101,7 +101,7 @@ export const HOT_HATCH_TROPHY: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'magione', name: 'Magione', track: { id: 'magione' } },
     {

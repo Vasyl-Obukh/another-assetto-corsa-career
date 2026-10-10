@@ -45,10 +45,10 @@ export const PORSCHE_RS60_SPYDER_CUP: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_porsche_718_spyder_rs'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -56,7 +56,7 @@ export const PORSCHE_RS60_SPYDER_CUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'sebring',

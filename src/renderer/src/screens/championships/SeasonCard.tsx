@@ -12,8 +12,8 @@ import { RoundTicks } from './RoundTicks.tsx';
 import { SeasonBand } from './SeasonBand.tsx';
 import { availabilityState, tierAccent } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
+import { defaultFormatOf } from '../../../../shared/utils/event-format';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
-import { defaultFormatOf } from '../../../../shared/utils/weekend-format';
 import { useSettings } from '@/app';
 import { ProblemList, SWITCH_TRACK } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -46,7 +46,7 @@ export const SeasonCard = ({ listing, commands }: SeasonCardProps) => {
 
   const active = isSeriesActive(listing, settings);
   const state = availabilityState(availability);
-  const locked = listing.weekend !== null;
+  const locked = listing.event !== null;
   const page = path.settingsChampionship({ id: series.id });
   const format = defaultFormatOf(series);
   const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];

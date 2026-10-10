@@ -64,7 +64,7 @@ export const MonthView = ({
   const { t } = useTranslation();
   const { formatDayShort, formatWeekday } = useFormat();
   // Beside the grid where there is room for both, in a sheet where there is
-  // not - squeezing the grid to make room would fold every busy Sunday.
+  // not - squeezing the grid to make room would fold every busy day.
   const beside = useMediaQuery(DAY_PANEL_QUERY);
   const [sheet, setSheet] = useState(false);
 
@@ -97,10 +97,8 @@ export const MonthView = ({
     // Exactly the window's height, so the month is one screen with no page
     // scroll - and the day's list scrolls on its own beside it.
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_25rem]" style={{ height }}>
-      {/* The weekend's two columns wider than the weekdays', since that is
-          where nearly every race day falls. */}
       <div
-        className="grid grid-cols-[repeat(5,minmax(0,1fr))_repeat(2,minmax(0,1.6fr))] gap-px overflow-hidden rounded-xl border bg-border"
+        className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border bg-border"
         style={{ gridTemplateRows: `auto repeat(${days.length / DAYS_PER_WEEK}, minmax(0, 1fr))` }}
       >
         {days.slice(0, DAYS_PER_WEEK).map((day) => (

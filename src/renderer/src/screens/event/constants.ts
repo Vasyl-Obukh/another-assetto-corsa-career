@@ -1,11 +1,11 @@
 /**
- * How many sessions the weekend list of a round's skeleton holds - practice,
- * qualifying and two races, a common weekend.
+ * How many sessions the event list of a round's skeleton holds - practice,
+ * qualifying and two races, a common event.
  */
-export const WEEKEND_SKELETON = 4;
+export const EVENT_SKELETON = 4;
 
 /**
- * What the weekend list selects to show the round's own results rather than
+ * What the event list selects to show the round's own results rather than
  * one session's.
  */
 export const SUMMARY = -1;

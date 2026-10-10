@@ -65,9 +65,9 @@ export interface SimulationRequest {
    */
   player?: SimulatedPlayer;
   /**
-   * Launches of the weekend that were actually driven, in the order they ran.
+   * Launches of the event that were actually driven, in the order they ran.
    * Simulation carries on from the first launch these do not cover, so a
-   * weekend abandoned part-way keeps what was raced.
+   * event abandoned part-way keeps what was raced.
    */
   completed?: readonly LaunchRecord[];
   /**
@@ -81,7 +81,7 @@ export interface SimulationRequest {
  */
 export interface SimulatedRound {
   /**
-   * Every launch of the weekend, the driven ones first and as they were handed
+   * Every launch of the event, the driven ones first and as they were handed
    * in. Car indices follow the grid a real lowering builds - the player's seat
    * first, then every other seat in entry-list order - so the event page reads
    * these exactly as it reads driven ones.

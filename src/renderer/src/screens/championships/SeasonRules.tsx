@@ -6,12 +6,12 @@ import type { Championship } from '../../../../shared/types';
 
 interface SeasonRulesProps {
   /**
-   * The championship whose points, prize money and weekends are laid out.
+   * The championship whose points, prize money and events are laid out.
    */
   series: Championship;
 }
 
-// Points, prize money and the weekend formats, as cards laid out to what there
+// Points, prize money and the event formats, as cards laid out to what there
 // is to show rather than tables stretched across the page. Up to two ways of
 // paying fit side by side; a lone format stacks under the season prizes, the
 // shorter of the two; anything wider takes a row of its own.
@@ -21,7 +21,7 @@ export const SeasonRules = ({ series }: SeasonRulesProps) => {
   const season = purses.filter((purse) => purse.prizes?.standings?.length);
   const split = purses.length > 1;
   const wide = Math.max(race.length, season.length) > 2;
-  const several = series.weekendFormats.length > 1;
+  const several = series.eventFormats.length > 1;
 
   const seasonCard = season.length > 0
     ? <SeasonPrizes purses={season} entries={series.entries} split={split} />

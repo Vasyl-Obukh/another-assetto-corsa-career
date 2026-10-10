@@ -6,7 +6,7 @@ import { FormatStrip } from './FormatStrip.tsx';
 import { RoundRaces } from './RoundRaces.tsx';
 import { trackKeyOf } from './utils.ts';
 import type { Round, SeasonEvent, SeriesListing } from '../../../../shared/types';
-import { formatOf } from '../../../../shared/utils/weekend-format';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge, ResultCell } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -75,8 +75,8 @@ export const RoundTableRow = ({
   const { t } = useTranslation();
   const { formatDay, formatMoney, formatNumber } = useFormat();
   const format = formatOf(listing.series, round);
-  const isDefault = format?.id === listing.series.defaultWeekendFormat;
-  const underway = listing.weekend?.round === round.id;
+  const isDefault = format?.id === listing.series.defaultEventFormat;
+  const underway = listing.event?.round === round.id;
 
   // Only weather other than the championship's own: a round restating the
   // sidebar's climate would badge every row with the same word.
@@ -133,7 +133,7 @@ export const RoundTableRow = ({
 
       {career ? (
         <td className="py-2.5 pr-3 align-middle whitespace-nowrap text-muted-foreground">
-          {event ? formatDay(event.raceDay) : null}
+          {event ? formatDay(event.date) : null}
         </td>
       ) : null}
 

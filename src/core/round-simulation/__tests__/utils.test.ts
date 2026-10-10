@@ -104,7 +104,7 @@ describe('core/round-simulation/utils', () => {
       expect(fast.time).toBeLessThan(slow.time);
     });
 
-    it('reads a car\'s pace and luck by its weekend index, not by where it ran', () => {
+    it('reads a car\'s pace and luck by its event index, not by where it ran', () => {
       const pace = [0, 0, 10];
       const [first] = simulatedRaceOut('Race', [2, 0], (car) => pace[car], () => 0).sessions[0].laps;
       const [alone] = simulatedRaceOut('Race', [2], (car) => pace[car], () => 0).sessions[0].laps;

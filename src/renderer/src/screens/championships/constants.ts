@@ -73,7 +73,7 @@ export const TIER_METAL_KEYS: readonly ParseKeys[] = [
 ];
 
 /**
- * A session type as one or two letters, for a weekend drawn as a strip of
+ * A session type as one or two letters, for an event drawn as a strip of
  * blocks. A record over the type, so a new one fails to compile until it has
  * an abbreviation.
  */
@@ -183,7 +183,7 @@ export const LADDER_SKELETON: readonly (readonly number[])[] = [
 ];
 
 /**
- * How many session blocks a weekend's strip holds in a skeleton - practice,
+ * How many session blocks an event's strip holds in a skeleton - practice,
  * qualifying and a race or two.
  */
 export const FORMAT_SKELETON_BLOCKS = 4;

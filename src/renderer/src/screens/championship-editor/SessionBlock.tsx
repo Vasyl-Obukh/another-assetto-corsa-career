@@ -63,7 +63,7 @@ interface SessionBlockProps {
 }
 
 /**
- * One session of a weekend, as a block in its type's colour: what it is
+ * One session of an event, as a block in its type's colour: what it is
  * called, how long it runs, what sets its grid, and any conditions of its own.
  */
 export const SessionBlock = ({

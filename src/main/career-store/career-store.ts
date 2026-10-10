@@ -40,22 +40,23 @@ import {
   skippedRound,
   withSeason,
 } from './utils.ts';
+import { planEvent } from '../../core/event/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { toDayNumber } from '../../core/season-calendar/index.ts';
 import { scoreRound } from '../../core/season-scoring/index.ts';
 import { climateOf, formatOf, roundSessions } from '../../core/series/index.ts';
 import { offerForecast } from '../../core/weather-forecast/index.ts';
-import { planWeekend } from '../../core/weekend/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type {
   Career,
   CareerEventView,
   CareerSeason,
+  EventPlan,
   RaceSetup,
   SeasonEntry,
   SeasonEvent,
   SeriesAvailability,
-  WeekendPlan,
+  SkippedRound,
 } from '../../shared/types/index.ts';
 import { isEligible, startingLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
@@ -64,6 +65,7 @@ import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import { slotHolds } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
+import type { SettingsStore } from '../settings-store/index.ts';
 import { quarantine } from '../settings-store/index.ts';
 
 export type { CareerStore, EnrolRequest, EventRequest } from './types.ts';
@@ -101,12 +103,14 @@ const scheduledHeld = (season: CareerSeason, raceId: string): EnteredEvent | nul
  *
  * Takes the series store because a round is lowered through it - it holds the
  * weather offer and the class catalogue a race is drawn over - the race store
- * because that is what runs a weekend, and the content store because the event
- * page plans a weekend to say what each session is.
+ * because that is what runs an event, the content store because the event
+ * page plans an event to say what each session is, and settings because they
+ * say whether two events on one day clash.
  * @param userDataDir Folder to keep career.json in
  * @param series The championship library
  * @param race The race being set up and run
  * @param content The installed content
+ * @param settings The user's settings
  * @returns A store over the career, or over none when no file loaded
  */
 export const createCareerStore = async (
@@ -114,6 +118,7 @@ export const createCareerStore = async (
   series: SeriesStore,
   race: RaceStore,
   content: ContentStore,
+  settings: SettingsStore,
 ): Promise<CareerStore> => {
   const file = path.join(userDataDir, CAREER_FILE);
   const tmp = `${file}.tmp`;
@@ -140,7 +145,7 @@ export const createCareerStore = async (
   // Every one of them reads the career, awaits something - the library, the
   // installed content, an archived result - and then rebuilds it from what it
   // read, so two overlapping commands would each write over the other's work:
-  // a weekend's score landing while a championship is being entered would lose
+  // an event's score landing while a championship is being entered would lose
   // one or the other. Queued, each reads the career when its turn comes.
   let queue: Promise<unknown> = Promise.resolve();
   // Holds the one in-flight start, so ensure() never runs twice over.
@@ -303,9 +308,9 @@ export const createCareerStore = async (
    *
    * A round entered too late, skipped, or given up on by withdrawing is raced
    * by the field all the same, with the player's seat driven by the driver it
-   * names. Simulated once its race day has come, and stored, so it never
+   * names. Simulated once its day has come, and stored, so it never
    * changes again: a later edit to the championship or to settings cannot
-   * rewrite a round that has been run. Whatever of a weekend the player did
+   * rewrite a round that has been run. Whatever of an event the player did
    * drive before abandoning it stays as it was driven.
    * @param career The career
    * @returns The career, with every such round simulated
@@ -318,7 +323,7 @@ export const createCareerStore = async (
       const salt = seasonSalt(career, season.index);
       const entries = await Promise.all(season.entries.map(async (entry) => {
         const due = entry.events.filter((event) => (
-          event.status === 'missed' && !event.simulated && event.raceDay <= career.date
+          event.status === 'missed' && !event.simulated && event.date <= career.date
         ));
         let updated = entry;
 
@@ -366,11 +371,11 @@ export const createCareerStore = async (
   };
 
   /**
-   * Copies a weekend's progress onto the career after every launch.
+   * Copies an event's progress onto the career after every launch.
    *
    * Every launch rather than only the last, so a practice or qualifying result
    * is on the event the moment it lands, and a race's points reach the
-   * standings before the weekend is over. Idempotent, and that is load-bearing
+   * standings before the event is over. Idempotent, and that is load-bearing
    * rather than tidy: the race store pushes its whole state on every change, so
    * the same progress arrives here again and again, and is only acted on when it
    * holds more than the career already does.
@@ -406,11 +411,11 @@ export const createCareerStore = async (
     };
     replaceEntry(season, held.entry, withEvent(held.entry, event, at));
 
-    // The clock never runs backwards, so a weekend raced early leaves it where
-    // it was rather than pulling it back to the weekend's last day.
-    if (finished && current.date < event.lastDay) {
-      current = { ...current, date: event.lastDay };
-      // Finishing one weekend can bring the next inside the forecast lead, and
+    // The clock never runs backwards, so an event raced early leaves it where
+    // it was rather than pulling it back to the event's day.
+    if (finished && current.date < event.date) {
+      current = { ...current, date: event.date };
+      // Finishing one event can bring the next inside the forecast lead, and
       // take the clock past the race day of a round given up on.
       const now = currentSeason(current);
       if (now) current = withSeason(current, issueForecasts(current, now, current.date));
@@ -434,7 +439,7 @@ export const createCareerStore = async (
     // archives off disk before it writes, and a championship entered meanwhile
     // would be thrown away by whichever of the two rebuilt the career second.
     void commit(() => adopt(setup)).catch((error: unknown) => {
-      console.error('Could not record the weekend against the career.', error);
+      console.error('Could not record the event against the career.', error);
     });
   });
 
@@ -462,7 +467,13 @@ export const createCareerStore = async (
 
       const library = await series.list();
 
-      return composeCalendar(career, held, library.series, await enteredAvailability(held));
+      return composeCalendar(
+        career,
+        held,
+        library.series,
+        await enteredAvailability(held),
+        settings.get().allowSameDayEvents,
+      );
     },
 
     enrol: (request: EnrolRequest) => commit(async () => {
@@ -544,16 +555,16 @@ export const createCareerStore = async (
       if (toDayNumber(date) < toDayNumber(career.date)) {
         throw new AppError('career.date.backwards', { date, from: career.date });
       }
-      // Moving on would turn the rest of a weekend already begun into a
+      // Moving on would turn the rest of an event already begun into a
       // non-start, which is not something to do on the way past - unless the
       // player was shown that and confirmed it.
       const busy = inProgressEvent(season);
       if (busy && !skip) throw new AppError('career.event.inProgress', { event: eventName(busy) });
 
       // Confirmed, the clock goes all the way; otherwise it stops at the first
-      // weekend of the career's on the way rather than pass it unasked.
+      // event of the career's on the way rather than pass it unasked.
       const stop = skip ? date : advanceStop(season, career.date, date);
-      // An enrolled weekend the clock has gone right past was never raced.
+      // An enrolled event the clock has gone right past was never raced.
       const next = issueForecasts(career, markMissed(season, advanceSkips(season, stop)), stop);
       current = withSeason({ ...career, date: stop }, next);
       await catchUp();
@@ -582,7 +593,7 @@ export const createCareerStore = async (
       const dated = held ? [] : materialiseEvents(championship, season, career.date);
       const found = dated.find((one) => one.round === request.round);
       const listed = held?.event ?? (found && simulatedEvent(championship, found, seasonSalt(career, season.index)));
-      // Drawn on read as well as stored as the clock moves, so a weekend inside
+      // Drawn on read as well as stored as the clock moves, so an event inside
       // the lead has its weather whether or not it has been entered yet.
       const event = listed && issueForecast(
         career,
@@ -598,7 +609,7 @@ export const createCareerStore = async (
 
       const availability = held || !listing ? await series.validate(championship) : listing.availability;
       const raceable = roundRaceableIn(availability, request.round);
-      // A career not yet in the championship has no car, so its weekend is
+      // A career not yet in the championship has no car, so its event is
       // planned in the first one the class could field - the sessions, their
       // lengths and their weather do not depend on which.
       const roundAvailable = roundAvailabilityIn(availability, request.round);
@@ -610,13 +621,13 @@ export const createCareerStore = async (
       const firstCar = carsOf(classEntry.id)[0];
       const car = held?.entry.car ?? (firstCar ? { model: firstCar } : null);
 
-      let plan: WeekendPlan | null = null;
+      let plan: EventPlan | null = null;
       if (car && raceable) {
         try {
           const definition = await series.lowerRound(championship, {
             entry: classEntry.id, round: request.round, car, draw: event.forecast, field: held?.entry.field,
           });
-          plan = planWeekend(definition, await content.content());
+          plan = planEvent(definition, await content.content());
         } catch (error) {
           // What the page can show without a plan is the round itself, and it
           // already says the round cannot be raced.
@@ -639,9 +650,7 @@ export const createCareerStore = async (
         number: championship.rounds.indexOf(round) + 1,
         rounds: championship.rounds.length,
         track: round.track,
-        firstDay: event.firstDay,
-        raceDay: event.raceDay,
-        lastDay: event.lastDay,
+        date: event.date,
         climate,
         prize: prizes?.positions?.[0] ?? null,
         gridSize: classEntry.seats.length,
@@ -668,15 +677,16 @@ export const createCareerStore = async (
           event.sessions,
           forecast,
           climate !== null && forecast === null,
-          event.firstDay,
           event.score,
           playerSeat,
           !!held && event.status === 'scheduled',
         ) : [],
         blocked: held
-          ? launchBlock(held, raceable)
+          ? launchBlock(season, held, raceable, settings.get().allowSameDayEvents)
           : appErrorInfo('career.event.notEntered', { series: championship.name }),
-        skips: held && event.status === 'scheduled' ? launchSkips(season, held) : [],
+        skips: held && event.status === 'scheduled'
+          ? launchSkips(season, held, settings.get().allowSameDayEvents)
+          : [],
         // Whatever is already over is a non-start from the moment it is entered.
         behind: dated
           .filter((one) => one.status === 'missed')
@@ -718,30 +728,38 @@ export const createCareerStore = async (
       const setup = await race.get();
 
       const availability = await series.validate(held.entry.championship);
-      const block = launchBlock(held, roundRaceableIn(availability, request.round));
+      const block = launchBlock(
+        season,
+        held,
+        roundRaceableIn(availability, request.round),
+        settings.get().allowSameDayEvents,
+      );
       if (block) throw new AppError(block.code, block.params);
 
-      // What this weekend costs the rest of the season, which the player has to
-      // have been shown and agreed to. A clash is not lost yet, only out of
-      // reach, so it is listed and left alone.
-      const lost = launchSkips(season, held).filter((one) => one.reason !== 'clash');
+      // What this event costs the rest of the season, which the player has to
+      // have been shown and agreed to - an event on the same day included,
+      // unless settings allow two on one day.
+      const lost = launchSkips(season, held, settings.get().allowSameDayEvents);
       if (lost.length > 0 && !request.skip) {
+        const named = (one: SkippedRound): string => `${one.seriesName} - ${one.roundName}`;
         const partway = lost.find((one) => one.reason === 'partway');
-        throw partway
-          ? new AppError('career.event.otherInProgress', { event: `${partway.seriesName} - ${partway.roundName}` })
-          : new AppError('career.event.earlierPending', { event: `${lost[0].seriesName} - ${lost[0].roundName}` });
+        if (partway) throw new AppError('career.event.otherInProgress', { event: named(partway) });
+        const earlier = lost.find((one) => one.reason !== 'clash');
+        throw earlier
+          ? new AppError('career.event.earlierPending', { event: named(earlier) })
+          : new AppError('career.event.sameDay', { event: named(lost[0]) });
       }
 
-      // Racing a weekend still ahead of the clock moves the clock to it, and
+      // Racing an event still ahead of the clock moves the clock to it, and
       // everything confirmed lost on the way becomes a non-start. Forecasts are
-      // issued either way, since a weekend already inside the lead may not have
+      // issued either way, since an event already inside the lead may not have
       // had its own.
-      const date = career.date < held.event.firstDay ? held.event.firstDay : career.date;
+      const date = career.date < held.event.date ? held.event.date : career.date;
       const moved = issueForecasts(career, markMissed(season, lost), date);
       const event = enteredEvent(moved, request.series, request.round)?.event ?? held.event;
 
       // What has run comes from the career's own record, so a quick race raced
-      // in between costs this weekend nothing.
+      // in between costs this event nothing.
       if (!slotHolds(setup, held.event.raceId, event.sessions.length)) {
         await race.load(await series.lowerRound(held.entry.championship, {
           entry: held.entry.entry,

@@ -69,7 +69,7 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_lamborghini_huracan_st'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Double header',
@@ -86,7 +86,7 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     {

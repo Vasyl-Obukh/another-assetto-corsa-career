@@ -2,23 +2,21 @@ import { describe, expect, it } from '@jest/globals';
 
 import { SeasonLength } from '../../../shared/types/index.ts';
 import { clashes, seasonCalendar, toDayNumber } from '../season-calendar.ts';
-import type { RoundSpan } from '../types.ts';
 
 // The Sunday every case below opens on, so a date in an assertion can be read
 // as a number of weeks from the start of the season.
 const SEASON_START = '2026-01-04';
 
+// getUTCDay's Sunday, which the cases race on unless they say otherwise.
+const SUNDAY = 0;
+
 /**
- * Builds a run of rounds with an ordinary Friday-to-Sunday weekend each.
+ * Builds a run of round ids.
  * @param count How many rounds to build
- * @returns The rounds, ided r1 upward, in the order they are run
+ * @returns The ids, r1 upward, in the order they are run
  */
-const roundsOf = (count: number): RoundSpan[] => (
-  Array.from({ length: count }, (unused, at) => ({
-    id: `r${at + 1}`,
-    days: 3,
-    raceDayOffset: 2,
-  }))
+const roundsOf = (count: number): string[] => (
+  Array.from({ length: count }, (unused, at) => `r${at + 1}`)
 );
 
 /**
@@ -29,10 +27,10 @@ const roundsOf = (count: number): RoundSpan[] => (
  * @returns One ISO race day per round, in the same order
  */
 const raceDays = (
-  rounds: readonly RoundSpan[],
+  rounds: readonly string[],
   length: SeasonLength,
   offsetWeeks = 0,
-): string[] => seasonCalendar(rounds, SEASON_START, length, offsetWeeks).map((round) => round.raceDay);
+): string[] => seasonCalendar(rounds, SEASON_START, length, SUNDAY, offsetWeeks).map((round) => round.date);
 
 /**
  * Which weekday a dated race falls on, as getUTCDay numbers it.
@@ -65,7 +63,7 @@ describe('core/season-calendar/season-calendar', () => {
       expect(raceDays(roundsOf(1), SeasonLength.QUARTER)).toEqual(['2026-01-04']);
     });
 
-    it('keeps every race on a Sunday, whatever the length and the count', () => {
+    it('keeps every race on its weekday, whatever the length and the count', () => {
       [SeasonLength.YEAR, SeasonLength.HALF_YEAR, SeasonLength.QUARTER].forEach((length) => {
         [1, 2, 7, 13, 24].forEach((count) => {
           raceDays(roundsOf(count), length).forEach((raceDay) => {
@@ -77,9 +75,17 @@ describe('core/season-calendar/season-calendar', () => {
 
     it('opens on the Sunday that follows a start given midweek', () => {
       // 2026-01-01 is a Thursday.
-      const dated = seasonCalendar(roundsOf(2), '2026-01-01', SeasonLength.QUARTER);
+      const dated = seasonCalendar(roundsOf(2), '2026-01-01', SeasonLength.QUARTER, SUNDAY);
 
-      expect(dated.map((round) => round.raceDay)).toEqual(['2026-01-04', '2026-03-08']);
+      expect(dated.map((round) => round.date)).toEqual(['2026-01-04', '2026-03-08']);
+    });
+
+    it('races every round on the weekday it is given', () => {
+      // Wednesday, the first after the Sunday the season opens on.
+      const dated = seasonCalendar(roundsOf(3), SEASON_START, SeasonLength.QUARTER, 3);
+
+      expect(dated.map((round) => round.date)).toEqual(['2026-01-07', '2026-02-11', '2026-03-11']);
+      dated.forEach((round) => expect(weekdayOf(round.date)).toBe(3));
     });
 
     it('slides the whole championship along without shortening it', () => {
@@ -110,7 +116,7 @@ describe('core/season-calendar/season-calendar', () => {
       ]);
     });
 
-    it('never dates two rounds on one weekend', () => {
+    it('never dates two rounds on one day', () => {
       [11, 14, 30, 52].forEach((count) => {
         const days = raceDays(roundsOf(count), SeasonLength.QUARTER);
 
@@ -118,112 +124,43 @@ describe('core/season-calendar/season-calendar', () => {
       });
     });
 
-    it('places the weekend from its race day, back by the round race day offset', () => {
-      const [round] = seasonCalendar(
-        [{ id: 'r1', days: 3, raceDayOffset: 2 }],
-        SEASON_START,
-        SeasonLength.QUARTER,
-      );
-
-      expect(round).toEqual({
-        id: 'r1',
-        firstDay: '2026-01-02',
-        raceDay: '2026-01-04',
-        lastDay: '2026-01-04',
-      });
-    });
-
-    it('closes the weekend on the day its length runs to, race day or later', () => {
-      const [short, long] = seasonCalendar(
-        [
-          { id: 'one-day', days: 1, raceDayOffset: 0 },
-          { id: 'test-day', days: 4, raceDayOffset: 2 },
-        ],
-        SEASON_START,
-        SeasonLength.QUARTER,
-      );
-
-      expect(short).toEqual({
-        id: 'one-day',
-        firstDay: '2026-01-04',
-        raceDay: '2026-01-04',
-        lastDay: '2026-01-04',
-      });
-      // Four days from the Friday runs a day past the race.
-      expect(long).toEqual({
-        id: 'test-day',
-        firstDay: '2026-03-06',
-        raceDay: '2026-03-08',
-        lastDay: '2026-03-09',
-      });
-    });
-
     it('carries each round id through in the order it was given', () => {
-      const dated = seasonCalendar(roundsOf(4), SEASON_START, SeasonLength.HALF_YEAR);
+      const dated = seasonCalendar(roundsOf(4), SEASON_START, SeasonLength.HALF_YEAR, SUNDAY);
 
       expect(dated.map((round) => round.id)).toEqual(['r1', 'r2', 'r3', 'r4']);
     });
 
     it('dates nothing for a championship with no rounds', () => {
-      expect(seasonCalendar([], SEASON_START, SeasonLength.YEAR)).toEqual([]);
+      expect(seasonCalendar([], SEASON_START, SeasonLength.YEAR, SUNDAY)).toEqual([]);
     });
   });
 
   describe('clashes', () => {
-    it('reports both weekends of an overlapping pair', () => {
-      expect(clashes([
-        { firstDay: '2026-01-02', lastDay: '2026-01-04' },
-        { firstDay: '2026-01-04', lastDay: '2026-01-06' },
-      ])).toEqual([true, true]);
+    it('reports both events of a pair on one day', () => {
+      expect(clashes(['2026-01-04', '2026-01-04'])).toEqual([true, true]);
     });
 
-    it('reports a weekend wholly inside another, and the one around it', () => {
-      expect(clashes([
-        { firstDay: '2026-01-01', lastDay: '2026-01-10' },
-        { firstDay: '2026-01-03', lastDay: '2026-01-04' },
-      ])).toEqual([true, true]);
+    it('leaves events on neighbouring days alone', () => {
+      expect(clashes(['2026-01-03', '2026-01-04', '2026-01-05'])).toEqual([false, false, false]);
     });
 
-    it('leaves weekends that only touch end to end alone', () => {
-      expect(clashes([
-        { firstDay: '2026-01-02', lastDay: '2026-01-04' },
-        { firstDay: '2026-01-05', lastDay: '2026-01-07' },
-      ])).toEqual([false, false]);
-    });
-
-    it('never clashes a weekend with itself', () => {
-      expect(clashes([{ firstDay: '2026-01-02', lastDay: '2026-01-04' }])).toEqual([false]);
+    it('never clashes an event with itself', () => {
+      expect(clashes(['2026-01-04'])).toEqual([false]);
       expect(clashes([])).toEqual([]);
     });
 
-    it('answers in the order it was asked, clashing spans wherever they sit', () => {
-      expect(clashes([
-        { firstDay: '2026-03-06', lastDay: '2026-03-08' },
-        { firstDay: '2026-01-02', lastDay: '2026-01-04' },
-        { firstDay: '2026-03-07', lastDay: '2026-03-09' },
-        { firstDay: '2026-05-01', lastDay: '2026-05-03' },
-      ])).toEqual([true, false, true, false]);
+    it('answers in the order it was asked, clashing days wherever they sit', () => {
+      expect(clashes(['2026-03-08', '2026-01-04', '2026-03-08', '2026-05-03'])).toEqual([true, false, true, false]);
     });
 
-    it('reports every weekend of a pile-up rather than only the first two', () => {
-      expect(clashes([
-        { firstDay: '2026-01-02', lastDay: '2026-01-04' },
-        { firstDay: '2026-01-03', lastDay: '2026-01-05' },
-        { firstDay: '2026-01-04', lastDay: '2026-01-06' },
-      ])).toEqual([true, true, true]);
-    });
-
-    it('clashes two weekends sharing a single day at their edges', () => {
-      expect(clashes([
-        { firstDay: '2026-01-02', lastDay: '2026-01-04' },
-        { firstDay: '2026-01-04', lastDay: '2026-01-04' },
-      ])).toEqual([true, true]);
+    it('reports every event of a pile-up rather than only the first two', () => {
+      expect(clashes(['2026-01-04', '2026-01-04', '2026-01-04'])).toEqual([true, true, true]);
     });
 
     it('finds no clash across a whole season the calendar laid out', () => {
-      const dated = seasonCalendar(roundsOf(5), SEASON_START, SeasonLength.QUARTER);
+      const dated = seasonCalendar(roundsOf(5), SEASON_START, SeasonLength.QUARTER, SUNDAY);
 
-      expect(clashes(dated)).toEqual([false, false, false, false, false]);
+      expect(clashes(dated.map((round) => round.date))).toEqual([false, false, false, false, false]);
     });
   });
 });

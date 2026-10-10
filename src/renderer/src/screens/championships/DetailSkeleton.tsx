@@ -57,7 +57,7 @@ export const DetailSkeleton = ({
             <Shimmer className="h-3 w-3/5" />
           </div>
           <div className="flex flex-col gap-2">
-            <SummaryFact label={t('championships.detail.weekend')}><FormatStripSkeleton /></SummaryFact>
+            <SummaryFact label={t('championships.detail.event')}><FormatStripSkeleton /></SummaryFact>
             <SummaryFact label={t('championships.detail.grid')}><Shimmer className="my-1 h-3 w-24" /></SummaryFact>
             <SummaryFact label={t('championships.money.entryFee')}><Shimmer className="my-1 h-3 w-14" /></SummaryFact>
             {entered ? (

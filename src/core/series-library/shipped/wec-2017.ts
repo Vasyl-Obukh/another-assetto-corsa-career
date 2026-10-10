@@ -105,7 +105,7 @@ export const WEC_2017: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -125,7 +125,7 @@ export const WEC_2017: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'silverstone',
@@ -145,7 +145,7 @@ export const WEC_2017: Championship = {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
       track: { id: 'sx_lemans_lfm', layout: 'chicane' },
-      weekendFormat: 'le-mans',
+      eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {

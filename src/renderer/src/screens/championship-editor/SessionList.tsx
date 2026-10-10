@@ -30,13 +30,13 @@ interface DropTarget {
 
 interface SessionListProps {
   /**
-   * Something listed above the days, which is how a race weekend of the
-   * player's own puts its weekend-wide conditions at the head of its sessions.
+   * Something listed above the days, which is how a race event of the
+   * player's own puts its event-wide conditions at the head of its sessions.
    */
   head?: ReactNode;
   /**
    * Whether the sessions are one list rather than days - a single race
-   * weekend of the player's own, which runs on no calendar.
+   * event of the player's own, which runs on no calendar.
    */
   flat?: boolean;
   /**
@@ -44,7 +44,7 @@ interface SessionListProps {
    */
   sessions: readonly SeriesSession[];
   /**
-   * How many days the weekend spans, an empty day just added included.
+   * How many days the event spans, an empty day just added included.
    */
   days: number;
   /**
@@ -92,20 +92,20 @@ interface SessionListProps {
    */
   onAdd: (day: number) => void;
   /**
-   * Called to add a day at the end of the weekend.
+   * Called to add a day at the end of the event.
    */
   onAddDay: () => void;
   /**
-   * Called to take a day off the weekend.
+   * Called to take a day off the event.
    * @param day Which day
    */
   onRemoveDay: (day: number) => void;
 }
 
 /**
- * A weekend's sessions down the side, headed by day. A session drags within
+ * An event's sessions down the side, headed by day. A session drags within
  * its day and across a day's heading onto another; a day is added under the
- * list, to the three a weekend may span.
+ * list, to the three an event may span.
  */
 export const SessionList = ({
   head, flat = false, sessions, days, selected, locked, nameOf, lengthOf, fromOf,
@@ -165,7 +165,7 @@ export const SessionList = ({
 
         return (
           <div
-            // By position: a day is its place in the weekend.
+            // By position: a day is its place in the event.
             key={day}
             className={cn('flex flex-col gap-1.5 rounded-lg p-0.5', target?.day === day && target.before === null && 'bg-primary/5')}
             onDragOver={(event) => overDay(day, event)}

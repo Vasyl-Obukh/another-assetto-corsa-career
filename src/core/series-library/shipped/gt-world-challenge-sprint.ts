@@ -9,7 +9,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * GT World Challenge Europe Sprint Cup - the GT3 sprint series, on LFM's GT3
  * cars.
  *
- * A weekend of two one-hour races, each from a qualifying of its own, with a
+ * An event of two one-hour races, each from a qualifying of its own, with a
  * compulsory stop and a driver change that cannot be said yet. The calendar is
  * the circuits of the Sprint Cup's recent seasons that Assetto Corsa has -
  * Brands Hatch, Magny-Cours, Zandvoort and Valencia - rather than one
@@ -26,7 +26,7 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-world-challenge-sprint',
   name: 'GT World Challenge Europe Sprint Cup',
-  description: 'Europe\'s GT3 sprint series on LFM\'s GT3 cars: two one-hour races a weekend at Brands '
+  description: 'Europe\'s GT3 sprint series on LFM\'s GT3 cars: two one-hour races a round at Brands '
     + 'Hatch, Magny-Cours, Zandvoort and Valencia.',
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
@@ -76,10 +76,10 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'sprint',
-      name: 'Sprint weekend',
+      name: 'Sprint',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
         { id: 'qualifying-1', type: 'qualify', name: 'Qualifying 1', minutes: 20, day: 0 },
@@ -89,7 +89,7 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'sprint',
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'brands-hatch',

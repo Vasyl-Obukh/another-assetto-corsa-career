@@ -7,7 +7,7 @@ import {
   roundsRunning, withDefaultFormat, withFormat, withoutFormat,
 } from './utils.ts';
 import type {
-  Championship, Weather, WeatherController, WeatherSystem, WeekendFormat,
+  Championship, EventFormat, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -23,7 +23,7 @@ interface FormatPageProps {
   /**
    * The format being edited.
    */
-  format: WeekendFormat;
+  format: EventFormat;
   /**
    * Every installed weather preset.
    */
@@ -37,7 +37,7 @@ interface FormatPageProps {
    */
   system: WeatherSystem;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -52,21 +52,21 @@ interface FormatPageProps {
 }
 
 /**
- * One weekend format: its name and whether it is the default, its sessions
+ * One event format: its name and whether it is the default, its sessions
  * down the side by day, and the session picked opened beside them.
  */
 export const FormatPage = ({
   series, format, weather, controllers, system, locked, onChange, onDuplicate,
 }: FormatPageProps) => {
   const { t } = useTranslation();
-  const isDefault = series.defaultWeekendFormat === format.id;
+  const isDefault = series.defaultEventFormat === format.id;
   const running = roundsRunning(series, format.id);
 
   /**
    * Puts the format back on the championship.
    * @param next The format
    */
-  const apply = (next: WeekendFormat): void => onChange(withFormat(series, format.id, next));
+  const apply = (next: EventFormat): void => onChange(withFormat(series, format.id, next));
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
@@ -98,8 +98,8 @@ export const FormatPage = ({
           <RowActions
             label={format.name}
             locked={locked}
-            // A championship with no weekend formats has no way of running a round.
-            removable={series.weekendFormats.length > 1}
+            // A championship with no event formats has no way of running a round.
+            removable={series.eventFormats.length > 1}
             onRemove={() => onChange(withoutFormat(series, format.id))}
           />
         </div>

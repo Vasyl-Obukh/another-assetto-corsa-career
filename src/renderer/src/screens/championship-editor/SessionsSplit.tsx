@@ -9,7 +9,7 @@ import {
   daysOf, sessionSource, withoutDay, withoutSession, withSessionMoved,
 } from './utils.ts';
 import type {
-  Championship, SeriesSession, Weather, WeatherController, WeatherSystem, WeekendFormat,
+  Championship, EventFormat, SeriesSession, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
@@ -24,7 +24,7 @@ interface SessionsSplitProps {
   /**
    * The format whose sessions these are.
    */
-  format: WeekendFormat;
+  format: EventFormat;
   /**
    * Every installed weather preset.
    */
@@ -48,7 +48,7 @@ interface SessionsSplitProps {
   /**
    * What a session's conditions left alone fall back on.
    */
-  behind?: 'round' | 'weekend';
+  behind?: 'round' | 'event';
   /**
    * Whether the sessions are one list rather than days.
    */
@@ -66,12 +66,12 @@ interface SessionsSplitProps {
    * Called with the format whenever any session changes.
    * @param next The format
    */
-  onChange: (next: WeekendFormat) => void;
+  onChange: (next: EventFormat) => void;
 }
 
 /**
- * A weekend's sessions down the side and the one picked opened beside them -
- * the championship editor's weekend formats and a race weekend of the
+ * An event's sessions down the side and the one picked opened beside them -
+ * the championship editor's event formats and a race event of the
  * player's own alike, since a session is the same thing in both.
  */
 export const SessionsSplit = ({
@@ -94,7 +94,7 @@ export const SessionsSplit = ({
    * The moved one is the only session not carried over as it was.
    * @param next The format
    */
-  const land = (next: WeekendFormat): void => {
+  const land = (next: EventFormat): void => {
     onChange(next);
     setSelected(Math.max(0, next.sessions.findIndex((one) => !format.sessions.includes(one))));
     setExtra(0);

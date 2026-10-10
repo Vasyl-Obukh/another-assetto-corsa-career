@@ -3,8 +3,8 @@ import type { SkippedRound } from '../../../../shared/types';
 
 /**
  * Groups a confirmation's rounds under their championships, in the order each
- * first appears, with the weekends merely clashing gathered last under a
- * heading of their own - they are not lost, and must not read as if they were.
+ * first appears, with the events on the same day gathered last under a heading
+ * of their own - they are lost for a different reason, and say so.
  * @param rounds The rounds, earliest first
  * @returns The groups
  */
@@ -29,13 +29,3 @@ export const skipGroups = (rounds: readonly SkippedRound[]): SkipGroup[] => {
     ...(clashes.length > 0 ? [{ key: 'clash', seriesName: null, rounds: clashes }] : []),
   ];
 };
-
-/**
- * How many of a confirmation's rounds are actually lost, leaving out the
- * weekends that only clash.
- * @param rounds The rounds
- * @returns How many become non-starts
- */
-export const lostCount = (rounds: readonly SkippedRound[]): number => (
-  rounds.filter((round) => round.reason !== 'clash').length
-);

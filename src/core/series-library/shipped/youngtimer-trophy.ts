@@ -71,7 +71,7 @@ export const YOUNGTIMER_TROPHY: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_ford_escort_mk1'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Race meeting',
@@ -91,7 +91,7 @@ export const YOUNGTIMER_TROPHY: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'nurburgring',

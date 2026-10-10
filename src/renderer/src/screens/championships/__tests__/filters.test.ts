@@ -54,7 +54,7 @@ const listing = (
   origin: 'user',
   activeByDefault: true,
   filler: false,
-  weekend: null,
+  event: null,
   ...overrides,
 });
 

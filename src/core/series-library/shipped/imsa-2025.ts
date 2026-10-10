@@ -128,7 +128,7 @@ export const IMSA_2025: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'sprint',
       name: 'Two hours forty',
@@ -175,20 +175,20 @@ export const IMSA_2025: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'sprint',
+  defaultEventFormat: 'sprint',
   rounds: [
     {
       id: 'daytona',
       name: 'Rolex 24 at Daytona',
       track: { id: 'rt_daytona', layout: 'sportscar_m4x' },
-      weekendFormat: 'daytona',
+      eventFormat: 'daytona',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
       track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      weekendFormat: 'twelve-hours',
+      eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca', layout: 'laguna_seca_osrw' } },
@@ -196,7 +196,7 @@ export const IMSA_2025: Championship = {
       id: 'watkins-glen',
       name: 'Watkins Glen 6 Hours',
       track: { id: 'lilski_watkins_glen', layout: 'boot' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -215,7 +215,7 @@ export const IMSA_2025: Championship = {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
       track: { id: 'road_atlanta2018', layout: 'grandprix' },
-      weekendFormat: 'ten-hours',
+      eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
   ],

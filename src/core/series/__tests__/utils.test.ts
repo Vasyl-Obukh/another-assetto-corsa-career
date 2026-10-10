@@ -4,15 +4,15 @@ import {
   DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_GRID_OFFSET, SERIES_FORMAT_VERSION,
 } from '../../../shared/constants/index.ts';
 import {
-  Climate, ContentSource, Discipline, DLCPack, Hemisphere, ModDistributor, ModMaker,
+  Climate, ContentSource, Discipline, DLCPack, Hemisphere, ModDistributor, ModMaker, Weekday,
 } from '../../../shared/types/index.ts';
 import type {
-  Championship, Eligibility, SeriesSession, WeekendFormat,
+  Championship, Eligibility, EventFormat, SeriesSession,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
   aiSeats, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
-  nationOf, raceLengths, requirementsOf, roundRaceId, roundSessions, roundSpans, seatDraw, seatSkin,
+  nationOf, raceLengths, raceWeekdayOf, requirementsOf, roundRaceId, roundSessions, seatDraw, seatSkin,
   validateFormat, validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
@@ -24,8 +24,8 @@ import { makeContent } from './fixtures.ts';
  */
 const withSessions = (
   sessions: SeriesSession[],
-): { series: Championship; format: WeekendFormat } => {
-  const format: WeekendFormat = { id: 'standard', name: 'Race weekend', sessions };
+): { series: Championship; format: EventFormat } => {
+  const format: EventFormat = { id: 'standard', name: 'Standard', sessions };
   const series: Championship = {
     version: SERIES_FORMAT_VERSION,
     id: 'test-cup',
@@ -38,8 +38,8 @@ const withSessions = (
       eligibility: { kind: 'cars', cars: ['test_car'] },
     }],
     rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
-    weekendFormats: [format],
-    defaultWeekendFormat: 'standard',
+    eventFormats: [format],
+    defaultEventFormat: 'standard',
     pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
     defaultPointsSystem: 'race',
   };
@@ -65,7 +65,7 @@ describe('core/series/utils', () => {
     });
 
     // Guards a bug: joined with a hyphen, these two pairs composed one id, so
-    // a weekend of either locked both championships in the editor.
+    // an event of either locked both championships in the editor.
     it('never composes one id for two different pairs', () => {
       expect(roundRaceId('gt3', 'sprint-r1')).not.toBe(roundRaceId('gt3-sprint', 'r1'));
       expect(roundRaceId('a/b', 'c')).not.toBe(roundRaceId('a', 'b/c'));
@@ -124,6 +124,68 @@ describe('core/series/utils', () => {
     });
   });
 
+  describe('raceWeekdayOf', () => {
+    // getUTCDay's numbering, which is what the season calendar dates on.
+    const SUNDAY = 0;
+    const WEDNESDAY = 3;
+    const FRIDAY = 5;
+    const SATURDAY = 6;
+
+    /**
+     * The test championship with its one class at a tier.
+     * @param tier Where its class enters the ladder
+     * @param id The championship's id, which seeds a lower tier's day
+     * @returns The championship
+     */
+    const atTier = (tier: number, id = 'test-cup'): Championship => {
+      const { series } = withSessions([{ type: 'race', laps: 5 }]);
+
+      return {
+        ...series,
+        id,
+        entries: series.entries.map((entry) => ({ ...entry, ladder: { ...entry.ladder, tier } })),
+      };
+    };
+
+    it('races the top tier on a Sunday and the next on a Saturday', () => {
+      expect(raceWeekdayOf(atTier(1))).toBe(SUNDAY);
+      expect(raceWeekdayOf(atTier(2))).toBe(SATURDAY);
+    });
+
+    it('races any lower tier on a weekday', () => {
+      [3, 4, 5, 6].forEach((tier) => {
+        const day = raceWeekdayOf(atTier(tier));
+
+        expect(day).toBeGreaterThanOrEqual(1);
+        expect(day).toBeLessThanOrEqual(FRIDAY);
+      });
+    });
+
+    it('spreads lower-tier championships across the week by their ids', () => {
+      const days = new Set(Array.from({ length: 20 }, (unused, at) => raceWeekdayOf(atTier(4, `cup-${at}`))));
+
+      expect(days.size).toBeGreaterThan(1);
+    });
+
+    it('gives a championship the same day every time it is asked', () => {
+      expect(raceWeekdayOf(atTier(4, 'lotus-cup'))).toBe(raceWeekdayOf(atTier(4, 'lotus-cup')));
+    });
+
+    it('goes by the highest class of a multi-class championship', () => {
+      const series = atTier(3);
+      const multi = {
+        ...series,
+        entries: [...series.entries, { ...series.entries[0], id: 'pro', ladder: { discipline: Discipline.ROAD, tier: 1 } }],
+      };
+
+      expect(raceWeekdayOf(multi)).toBe(SUNDAY);
+    });
+
+    it('takes the day a championship states over its tier', () => {
+      expect(raceWeekdayOf({ ...atTier(1), raceWeekday: Weekday.WEDNESDAY })).toBe(WEDNESDAY);
+    });
+  });
+
   describe('validateFormat', () => {
     it('passes a knockout whose segments each follow the one before', () => {
       expect(codesFor([
@@ -137,6 +199,16 @@ describe('core/series/utils', () => {
         {
           type: 'race', name: 'Race', laps: 25, day: 1, inherit: { from: 'q3' },
         },
+      ])).toEqual([]);
+    });
+
+    // The rule that refused this stood in for "never on a Friday", which means
+    // nothing once a format's days are the event's own rather than dates.
+    it('passes a race on the opening day of a three-day format', () => {
+      expect(codesFor([
+        { type: 'race', name: 'Race 1', laps: 10, day: 0 },
+        { type: 'practice', name: 'Practice', minutes: 30, day: 1 },
+        { type: 'race', name: 'Race 2', laps: 10, day: 2 },
       ])).toEqual([]);
     });
 
@@ -185,7 +257,7 @@ describe('core/series/utils', () => {
 
     it('reports a link to something that classifies nobody', () => {
       // Only a qualifying or a race leaves a classification behind for the next
-      // session to follow; advanceWeekend records one for nothing else.
+      // session to follow; advanceEvent records one for nothing else.
       expect(codesFor([
         { id: 'fp1', type: 'practice', name: 'Practice', minutes: 30 },
         {
@@ -512,9 +584,9 @@ describe('core/series/utils', () => {
   });
 
   describe('roundSessions', () => {
-    const format: WeekendFormat = {
-      id: 'weekend',
-      name: 'Weekend',
+    const format: EventFormat = {
+      id: 'event',
+      name: 'Event',
       sessions: [
         { type: 'qualify', name: 'Qualifying', minutes: 15 },
         { id: 'grand-prix', type: 'race', name: 'Grand Prix', distance: 305 },
@@ -766,72 +838,6 @@ describe('core/series/utils', () => {
     it('says nothing when neither the driver nor a team names a nation', () => {
       expect(nationOf(teamed, { id: 's', driver: { name: 'A' } })).toEqual({});
       expect(nationOf(series, { id: 's', team: 'works' })).toEqual({});
-    });
-  });
-
-  describe('roundSpans', () => {
-    /**
-     * A championship running one round on the format given.
-     * @param sessions The sessions the format runs
-     * @returns The championship
-     */
-    const oneRound = (sessions: SeriesSession[]): Championship => withSessions(sessions).series;
-
-    it('measures a weekend from the last day any session runs on', () => {
-      expect(roundSpans(oneRound([
-        { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 15, day: 1 },
-        { type: 'race', name: 'Race', laps: 20, day: 2 },
-      ]))).toEqual([{ id: 'magione', days: 3, raceDayOffset: 2 }]);
-    });
-
-    it('counts a format stating no days at all as a single day', () => {
-      expect(roundSpans(oneRound([
-        { type: 'qualify', name: 'Qualifying', minutes: 15 },
-        { type: 'race', name: 'Race', laps: 20 },
-      ]))).toEqual([{ id: 'magione', days: 1, raceDayOffset: 0 }]);
-    });
-
-    // The race is what gets anchored to a Sunday, so a sprint weekend counts
-    // back from the later race rather than from the sprint.
-    it('anchors on the last race of a weekend that runs two', () => {
-      expect(roundSpans(oneRound([
-        { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
-        { id: 'sprint', type: 'race', name: 'Sprint', laps: 8, day: 1 },
-        { id: 'feature', type: 'race', name: 'Feature', laps: 20, day: 2 },
-      ]))[0].raceDayOffset).toBe(2);
-    });
-
-    // A test weekend ends where it ends, so with no race to anchor on the last
-    // day of the weekend is what falls on the Sunday.
-    it('anchors a weekend with no race on its own last day', () => {
-      expect(roundSpans(oneRound([
-        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
-        { type: 'practice', name: 'Practice 2', minutes: 60, day: 1 },
-      ]))).toEqual([{ id: 'magione', days: 2, raceDayOffset: 1 }]);
-    });
-
-    it('falls back to a single-day weekend for a round whose format is missing', () => {
-      const series: Championship = {
-        ...oneRound([{ type: 'race', name: 'Race', laps: 20, day: 1 }]),
-        weekendFormats: [],
-      };
-
-      expect(roundSpans(series)).toEqual([{ id: 'magione', days: 1, raceDayOffset: 0 }]);
-    });
-
-    it('answers one span per round, in calendar order', () => {
-      const base = oneRound([{ type: 'race', name: 'Race', laps: 20 }]);
-      const series: Championship = {
-        ...base,
-        rounds: [
-          base.rounds[0],
-          { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-          { id: 'spa', name: 'Spa', track: { id: 'spa' } },
-        ],
-      };
-
-      expect(roundSpans(series).map((span) => span.id)).toEqual(['magione', 'monza', 'spa']);
     });
   });
 });

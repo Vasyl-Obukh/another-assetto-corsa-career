@@ -2,14 +2,14 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A grand prix weekend of 2007: three practices, the three-part
+ * A grand prix event of 2007: three practices, the three-part
  * knockout, and the race.
  */
-const WEEKEND: WeekendFormat = {
+const EVENT: EventFormat = {
   id: 'grand-prix',
   name: 'Grand Prix',
   sessions: [
@@ -104,8 +104,8 @@ export const FORMULA_1_2007: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2007, minModels: 1 },
     },
   ],
-  weekendFormats: [WEEKEND],
-  defaultWeekendFormat: 'grand-prix',
+  eventFormats: [EVENT],
+  defaultEventFormat: 'grand-prix',
   rounds: [
     { id: 'malaysia', name: 'Malaysian Grand Prix', track: { id: 'acu_sepang' }, climate: Climate.TEMPERATE },
     {

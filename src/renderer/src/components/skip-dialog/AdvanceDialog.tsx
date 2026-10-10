@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
 import { SkipDialog } from './SkipDialog.tsx';
-import { lostCount } from './utils.ts';
 import type { PendingMove } from '@/hooks';
 import { useFormat } from '@/i18n';
 
@@ -33,7 +32,7 @@ export const AdvanceDialog = ({
 }: AdvanceDialogProps) => {
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
-  const count = lostCount(pending?.rounds ?? []);
+  const count = pending?.rounds.length ?? 0;
   const partway = pending?.rounds.some((round) => round.reason === 'partway') ?? false;
 
   return (

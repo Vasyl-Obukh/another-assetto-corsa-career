@@ -43,7 +43,7 @@ describe('shared/utils/conditions', () => {
 
     // Weather is one question asked several ways, so a session naming any of
     // them replaces all of them. Merged one at a time, a session asking for a
-    // type would keep the weekend's preset beside it and the two would disagree.
+    // type would keep the event's preset beside it and the two would disagree.
     it('replaces the whole weather group when the session names any of it', () => {
       const resolved = resolveConditions(
         { weather: 'career_rain', ambient: 20 },
@@ -56,9 +56,9 @@ describe('shared/utils/conditions', () => {
     });
 
     // Fixed: weatherSteps was not part of the group, so a session choosing a
-    // steady weather kept the weekend's plan beside it - and a session that
+    // steady weather kept the event's plan beside it - and a session that
     // asked for one weather would have run a sequence of them.
-    it('drops a weekend plan when the session asks for steady weather', () => {
+    it('drops an event plan when the session asks for steady weather', () => {
       const resolved = resolveConditions(
         {
           weatherSteps: [
@@ -73,7 +73,7 @@ describe('shared/utils/conditions', () => {
       expect(resolved.weatherType).toBe(WeatherType.FOG);
     });
 
-    it('lets a session bring a plan where the weekend named one weather', () => {
+    it('lets a session bring a plan where the event named one weather', () => {
       const steps = [{ weather: WeatherType.CLEAR, minutes: 5 }, { weather: WeatherType.RAIN }];
       const resolved = resolveConditions({ weatherType: WeatherType.CLEAR }, { weatherSteps: steps });
 
@@ -81,7 +81,7 @@ describe('shared/utils/conditions', () => {
       expect(resolved.weatherType).toBeUndefined();
     });
 
-    it('keeps the weekend weather when the session says nothing about it', () => {
+    it('keeps the event weather when the session says nothing about it', () => {
       const resolved = resolveConditions({ weatherType: WeatherType.RAIN }, { ambient: 14 });
 
       expect(resolved.weatherType).toBe(WeatherType.RAIN);

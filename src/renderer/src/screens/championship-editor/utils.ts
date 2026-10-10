@@ -1,7 +1,7 @@
 // Minting ids, every edit the editor makes to a draft, and the deletions and
 // narrowings that would otherwise leave a document pointing at something that
 // is gone. All pure, and deliberately here rather than inline in a component:
-// a round removed from under a weekend format that named it, or a seat still
+// a round removed from under an event format that named it, or a seat still
 // pinned to a car its class no longer fields, is the kind of thing worth being
 // able to read in one place.
 
@@ -24,6 +24,7 @@ import type {
   ClassEntry,
   Conditions,
   Eligibility,
+  EventFormat,
   GridStart,
   PointsSystem,
   PrizeMoney,
@@ -35,11 +36,10 @@ import type {
   SeriesSession,
   Team,
   Weather,
-  WeekendFormat,
 } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { parseClock } from '../../../../shared/utils/road-temperature';
-import { formatOf } from '../../../../shared/utils/weekend-format';
 
 /**
  * The ids a list spends.
@@ -105,8 +105,8 @@ export const emptySeries = (name: string): Championship => ({
   name,
   entries: [],
   rounds: [],
-  weekendFormats: [],
-  defaultWeekendFormat: '',
+  eventFormats: [],
+  defaultEventFormat: '',
   pointsSystems: [],
   defaultPointsSystem: '',
 });
@@ -425,7 +425,7 @@ export const namedCars = (series: Championship, catalogue: ClassCatalogue): stri
 )];
 
 /**
- * Every session id one weekend format already spends.
+ * Every session id one event format already spends.
  *
  * Per format rather than per championship: a session id is only ever read by
  * `inherit.from` within the format that holds it, which is why validateFormat
@@ -497,7 +497,7 @@ const withLengthsPruned = (series: Championship): Championship => ({
 });
 
 /**
- * A weekend format to append, numbered after the ones already there.
+ * An event format to append, numbered after the ones already there.
  *
  * The session it starts with is handed in rather than built here: the race
  * screen's `nextSession` knows what a fresh session looks like, but its barrel
@@ -509,18 +509,18 @@ const withLengthsPruned = (series: Championship): Championship => ({
 export const nextFormat = (
   series: Championship,
   sessions: readonly SeriesSession[],
-): WeekendFormat => {
-  const number = series.weekendFormats.length + 1;
+): EventFormat => {
+  const number = series.eventFormats.length + 1;
 
   return {
-    id: freeId(`format-${number}`, idsOf(series.weekendFormats)),
+    id: freeId(`format-${number}`, idsOf(series.eventFormats)),
     name: `Format ${number}`,
     sessions: withRaceIds(sessions),
   };
 };
 
 /**
- * Replaces one weekend format, leaving the rest alone.
+ * Replaces one event format, leaving the rest alone.
  * @param series The championship
  * @param id Which format to replace
  * @param format What to replace it with
@@ -529,14 +529,14 @@ export const nextFormat = (
 export const withFormat = (
   series: Championship,
   id: string,
-  format: WeekendFormat,
+  format: EventFormat,
 ): Championship => withLengthsPruned({
   ...series,
-  weekendFormats: replaced(series.weekendFormats, id, format),
+  eventFormats: replaced(series.eventFormats, id, format),
 });
 
 /**
- * Makes one weekend format the championship's default.
+ * Makes one event format the championship's default.
  *
  * Every round naming no format moves with it, so an override written for the
  * old default's races is dropped where the new one does not run them.
@@ -545,16 +545,16 @@ export const withFormat = (
  * @returns The championship, with that default
  */
 export const withDefaultFormat = (series: Championship, id: string): Championship => (
-  withLengthsPruned({ ...series, defaultWeekendFormat: id })
+  withLengthsPruned({ ...series, defaultEventFormat: id })
 );
 
 /**
- * Drops one weekend format, and whatever named it.
+ * Drops one event format, and whatever named it.
  *
  * Two references go with it. A round that ran this format falls back to the
  * championship's own, which is what a round naming none has always meant; and
  * the championship's default moves to whatever is left, because
- * `defaultWeekendFormat` is required and a dangling one is refused. The list
+ * `defaultEventFormat` is required and a dangling one is refused. The list
  * refuses to drop the last format at all, so there is always something for the
  * default to land on.
  * @param series The championship
@@ -562,16 +562,16 @@ export const withDefaultFormat = (series: Championship, id: string): Championshi
  * @returns The championship, without it
  */
 export const withoutFormat = (series: Championship, id: string): Championship => {
-  const kept = series.weekendFormats.filter((one) => one.id !== id);
+  const kept = series.eventFormats.filter((one) => one.id !== id);
 
   return withLengthsPruned({
     ...series,
-    weekendFormats: kept,
-    defaultWeekendFormat: series.defaultWeekendFormat === id
-      ? kept[0]?.id ?? series.defaultWeekendFormat
-      : series.defaultWeekendFormat,
+    eventFormats: kept,
+    defaultEventFormat: series.defaultEventFormat === id
+      ? kept[0]?.id ?? series.defaultEventFormat
+      : series.defaultEventFormat,
     rounds: series.rounds.map((round) => (
-      round.weekendFormat === id ? { ...round, weekendFormat: undefined } : round
+      round.eventFormat === id ? { ...round, eventFormat: undefined } : round
     )),
   });
 };
@@ -626,7 +626,7 @@ export const withoutPoints = (series: Championship, id: string): Championship =>
     defaultPointsSystem: series.defaultPointsSystem === id
       ? kept[0]?.id ?? series.defaultPointsSystem
       : series.defaultPointsSystem,
-    weekendFormats: series.weekendFormats.map((format) => ({
+    eventFormats: series.eventFormats.map((format) => ({
       ...format,
       sessions: format.sessions.map((session) => (
         session.pointsSystem === id ? { ...session, pointsSystem: undefined } : session
@@ -638,7 +638,7 @@ export const withoutPoints = (series: Championship, id: string): Championship =>
 /**
  * Which sessions one session may take its field from.
  *
- * Only a session earlier in the weekend, and only one that leaves a
+ * Only a session earlier in the event, and only one that leaves a
  * classification behind: a qualifying for anything, and an earlier race for a
  * race, which is how a reverse-grid race follows the one before it. Both are
  * validateFormat's rules rather than ours. Positions rather than ids, because
@@ -646,7 +646,7 @@ export const withoutPoints = (series: Championship, id: string): Championship =>
  * @param sessions The format's sessions
  * @param index Which session is doing the following
  * @param type What kind of session is doing the following
- * @returns The positions it may follow, in weekend order
+ * @returns The positions it may follow, in event order
  */
 export const sessionSources = (
   sessions: readonly SeriesSession[],
@@ -664,7 +664,7 @@ export const sessionSources = (
  * The other direction to `withSession`: a link is stored as an id and a form
  * offers positions, so seeding that form means looking the id back up. A link
  * naming a session that is not there reads as following nothing, which is what
- * the weekend engine does with it too.
+ * the event engine does with it too.
  * @param sessions The format's sessions
  * @param session The session to read
  * @returns Its source's position, or null when it follows nothing
@@ -682,7 +682,7 @@ export const sessionSource = (
 };
 
 /**
- * Puts one session into a weekend format, and wires what it follows.
+ * Puts one session into an event format, and wires what it follows.
  *
  * An index past the last session appends, which is what an add row confirms
  * with. Every race is given an id, so a round can replace its length. The
@@ -695,10 +695,10 @@ export const sessionSource = (
  * @returns The format, with that session in place and its link wired
  */
 export const withSession = (
-  format: WeekendFormat,
+  format: EventFormat,
   index: number,
   edit: SessionEdit,
-): WeekendFormat => {
+): EventFormat => {
   const sessions = [...format.sessions];
   sessions[index] = edit.session;
 
@@ -717,7 +717,7 @@ export const withSession = (
 };
 
 /**
- * Drops one session from a weekend format.
+ * Drops one session from an event format.
  *
  * A link pointing at it goes too. validateFormat reports the dangling one, but
  * the row that explained it is the row that has just been removed - so the
@@ -726,7 +726,7 @@ export const withSession = (
  * @param index Which session to drop
  * @returns The format, without it
  */
-export const withoutSession = (format: WeekendFormat, index: number): WeekendFormat => {
+export const withoutSession = (format: EventFormat, index: number): EventFormat => {
   const gone = format.sessions[index]?.id;
 
   return {
@@ -742,7 +742,7 @@ export const withoutSession = (format: WeekendFormat, index: number): WeekendFor
 };
 
 /**
- * How many rounds run one weekend format.
+ * How many rounds run one event format.
  *
  * The championship's default counts the rounds that name nothing, which is what
  * makes "no rounds run this" a fact worth showing: a format nothing races is
@@ -752,17 +752,17 @@ export const withoutSession = (format: WeekendFormat, index: number): WeekendFor
  * @returns How many rounds run it
  */
 export const roundsRunning = (series: Championship, format: string): number => series.rounds.filter(
-  (round) => (round.weekendFormat ?? series.defaultWeekendFormat) === format,
+  (round) => (round.eventFormat ?? series.defaultEventFormat) === format,
 ).length;
 
 /**
- * How many races, across every weekend format, one points system pays - the
+ * How many races, across every event format, one points system pays - the
  * default counting every race that names none.
  * @param series The championship
  * @param system The points system's id
  * @returns How many races pay it
  */
-export const racesPaying = (series: Championship, system: string): number => series.weekendFormats
+export const racesPaying = (series: Championship, system: string): number => series.eventFormats
   .flatMap((format) => format.sessions)
   .filter((session) => session.type === 'race' && (session.pointsSystem ?? series.defaultPointsSystem) === system)
   .length;
@@ -1081,11 +1081,11 @@ export const minutesOf = (clock: string | number | undefined): number | undefine
 };
 
 /**
- * How many days a format's weekend spans.
+ * How many days a format's event spans.
  * @param format The format
  * @returns Its days, at least one
  */
-export const daysOf = (format: WeekendFormat): number => Math.max(
+export const daysOf = (format: EventFormat): number => Math.max(
   1,
   ...format.sessions.map((session) => (session.day ?? 0) + 1),
 );
@@ -1093,7 +1093,7 @@ export const daysOf = (format: WeekendFormat): number => Math.max(
 /**
  * Moves one session, within its day or onto another.
  *
- * The sessions stay in day order - a weekend runs its days one after another -
+ * The sessions stay in day order - an event runs its days one after another -
  * so a session dropped among another day's is placed where it was dropped
  * within that day.
  * @param format The format
@@ -1104,11 +1104,11 @@ export const daysOf = (format: WeekendFormat): number => Math.max(
  * @returns The format, with the session moved
  */
 export const withSessionMoved = (
-  format: WeekendFormat,
+  format: EventFormat,
   from: number,
   before: number | null,
   day: number,
-): WeekendFormat => {
+): EventFormat => {
   const moving = { ...format.sessions[from], day: day === 0 ? undefined : day };
   const rest = format.sessions.filter((_, at) => at !== from);
   // Dropped in front of itself, it lands in front of whatever followed it.
@@ -1131,13 +1131,13 @@ export const withSessionMoved = (
 };
 
 /**
- * Takes a day off a weekend, moving its sessions onto the day before - or onto
+ * Takes a day off an event, moving its sessions onto the day before - or onto
  * the day after, for the first day - and every later day one earlier.
  * @param format The format
  * @param day Which day, counting from zero
  * @returns The format, a day shorter
  */
-export const withoutDay = (format: WeekendFormat, day: number): WeekendFormat => ({
+export const withoutDay = (format: EventFormat, day: number): EventFormat => ({
   ...format,
   sessions: format.sessions.map((session) => {
     const own = session.day ?? 0;
@@ -1156,10 +1156,10 @@ export const withoutDay = (format: WeekendFormat, day: number): WeekendFormat =>
  * @returns The format
  */
 export const withSessionConditionsOf = (
-  format: WeekendFormat,
+  format: EventFormat,
   index: number,
   conditions: Conditions,
-): WeekendFormat => ({
+): EventFormat => ({
   ...format,
   sessions: format.sessions.map((session, at) => (at !== index ? session : {
     ...session,

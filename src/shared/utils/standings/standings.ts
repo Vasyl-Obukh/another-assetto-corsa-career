@@ -151,7 +151,7 @@ export const buildStandings = (
  */
 export const roundResult = (event: SeasonEvent): RoundResult => ({
   round: event.round,
-  raceDay: event.raceDay,
+  date: event.date,
   status: event.status,
   score: event.score ?? null,
   sessions: event.sessions,

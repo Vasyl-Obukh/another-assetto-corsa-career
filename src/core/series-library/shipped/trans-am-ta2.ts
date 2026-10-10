@@ -74,10 +74,10 @@ export const TRANS_AM_TA2: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.TRANS_AM_TA2, minModels: 2 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
@@ -85,7 +85,7 @@ export const TRANS_AM_TA2: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'sebring',

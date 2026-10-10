@@ -50,6 +50,7 @@ export const OverviewSkeleton = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             {field(t('editor.details.entryFee'), t('editor.details.entryFeeShort'))}
             {field(t('editor.details.seasonLength'), t('editor.details.seasonLengthShort'))}
+            {field(t('editor.details.raceWeekday'), t('editor.details.raceWeekdayShort'))}
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-col gap-0.5">

@@ -17,7 +17,7 @@ export const RoundTableHead = ({ career }: RoundTableHeadProps) => {
         <th className="w-20 py-2.5 pr-3 font-normal" aria-hidden />
         <th className="py-2.5 pr-3 font-normal">{t('championships.detail.round')}</th>
         {career ? <th className="py-2.5 pr-3 font-normal">{t('championships.detail.date')}</th> : null}
-        <th className="py-2.5 pr-3 font-normal">{t('championships.detail.weekend')}</th>
+        <th className="py-2.5 pr-3 font-normal">{t('championships.detail.event')}</th>
         <th className="py-2.5 pr-3 font-normal">{t('championships.detail.raceOrWinners')}</th>
         {career ? <th className="py-2.5 pr-3 font-normal">{t('championships.detail.you')}</th> : null}
         <th className="py-2.5 pr-4 font-normal" aria-hidden />

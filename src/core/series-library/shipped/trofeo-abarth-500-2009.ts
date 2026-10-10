@@ -10,7 +10,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Its first season: six meetings of two races at Monza, Mugello, Imola, Le
  * Castellet, Valencia and Vallelunga. Five are raced as they were; Le Castellet
  * is not in Assetto Corsa, so Magione - the other home of the Italian trophies -
- * stands in, and its eighteen boxes cap the grid. The weekend is the 2010
+ * stands in, and its eighteen boxes cap the grid. The event is the 2010
  * Italia one, two 20-minute qualifyings each setting one race's grid and two
  * 25-minute races, and the points the trophy's 21-18-16 scale over twelve places
  * with a point for fastest lap, as the 2010 season paid them.
@@ -23,7 +23,7 @@ export const TROFEO_ABARTH_500_2009: Championship = {
   id: 'trofeo-abarth-500-2009',
   name: 'Trofeo Abarth 500 Italia 2009',
   description: 'The Abarth 500 Assetto Corse\'s one-make trophy in its first season: two races a '
-    + 'weekend, each from its own qualifying. Magione stands in for Le Castellet.',
+    + 'event, each from its own qualifying. Magione stands in for Le Castellet.',
   teams: [
     team('torino', 'Torino Squadra Corse', 'ITA', TeamBudget.INDEPENDENT),
     team('scorpione', 'Scorpione Racing', 'ITA', TeamBudget.INDEPENDENT),
@@ -60,10 +60,10 @@ export const TROFEO_ABARTH_500_2009: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_abarth500_assetto_corse'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 30, day: 0 },
         { id: 'qualifying-1', type: 'qualify', name: 'Qualifying 1', minutes: 20, day: 0 },
@@ -77,7 +77,7 @@ export const TROFEO_ABARTH_500_2009: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },

@@ -11,7 +11,7 @@ interface ClockWidgetProps {
    */
   today: string;
   /**
-   * The weekend the clock would move to, or null once nothing is left.
+   * The event the clock would move to, or null once nothing is left.
    */
   next: CalendarEntry | null;
   /**
@@ -19,7 +19,7 @@ interface ClockWidgetProps {
    */
   busy: boolean;
   /**
-   * Called to move the clock to the next weekend's opening day.
+   * Called to move the clock to the next event's day.
    */
   onAdvance: () => void;
 }
@@ -48,7 +48,7 @@ export const ClockWidget = ({
           <div className="flex min-w-0 flex-col justify-center border-l px-3.5 py-1.5">
             <span className="text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
               {t(next.enrolled ? 'calendar.nextYours' : 'calendar.nextAny', {
-                count: daysBetween(today, next.firstDay),
+                count: daysBetween(today, next.date),
               })}
             </span>
             <span className="truncate text-sm">
@@ -65,7 +65,7 @@ export const ClockWidget = ({
             className="flex items-center gap-1.5 border-l bg-primary px-4 text-sm font-semibold whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
             onClick={onAdvance}
           >
-            {t('calendar.goTo', { day: formatDayShort(next.firstDay) })}
+            {t('calendar.goTo', { day: formatDayShort(next.date) })}
             <ArrowRightIcon className="size-3.5" />
           </button>
         </>

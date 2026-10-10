@@ -5,9 +5,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * BMW M2 CS Racing Cup Italy - BMW's one-make series on the Italian
- * championship weekends, on Guerilla's M2 CS Racing.
+ * championship events, on Guerilla's M2 CS Racing.
  *
- * Two races a weekend. The calendar is the Italian circuits the series races
+ * Two races a round. The calendar is the Italian circuits the series races
  * that Assetto Corsa has - Vallelunga, Imola, Mugello and Monza - rather than
  * one season's, which was not checked; Misano is not in Assetto Corsa. Both
  * races line up on qualifying, and the 25-minute length and the 25-18-15 scale
@@ -20,7 +20,7 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'bmw-m2-cs-racing-cup-italy',
   name: 'BMW M2 CS Racing Cup Italy',
-  description: 'BMW\'s Italian one-make series on Guerilla\'s M2 CS Racing: two races a weekend at '
+  description: 'BMW\'s Italian one-make series on Guerilla\'s M2 CS Racing: two races a round at '
     + 'Vallelunga, Imola, Mugello and Monza.',
   teams: [
     team('brianza', 'Brianza Motorsport', 'ITA', TeamBudget.INDEPENDENT),
@@ -64,9 +64,9 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
       eligibility: { kind: 'cars', cars: ['gue_bmw_m2_cs'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
@@ -76,7 +76,7 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'vallelunga', name: 'Vallelunga', track: { id: 'ks_vallelunga', layout: 'extended_circuit' } },
     { id: 'imola', name: 'Imola', track: { id: 'imola' } },

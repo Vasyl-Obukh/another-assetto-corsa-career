@@ -52,7 +52,7 @@ export const XX_PROGRAMME: Championship = {
       ],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'Invitational',
@@ -63,7 +63,7 @@ export const XX_PROGRAMME: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },

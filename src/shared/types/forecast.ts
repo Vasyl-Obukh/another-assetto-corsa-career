@@ -3,7 +3,7 @@
 //
 // Two values, and the split is the whole design. A RoundDraw is what the
 // climate drew: stored on the career's event once the calendar comes within a
-// week of the weekend, and never drawn again. A RoundForecast is that draw
+// week of the event, and never drawn again. A RoundForecast is that draw
 // swapped for what this install and these settings can actually race, which is
 // computed afresh every time one is shown or a round is set up - so switching a
 // weather off in settings still takes effect on a forecast already issued,
@@ -43,11 +43,11 @@ export interface DrawnStep {
  */
 export interface SessionDraw {
   /**
-   * The session's position in its weekend format, counting from zero.
+   * The session's position in its event format, counting from zero.
    */
   index: number;
   /**
-   * Which day of the weekend it runs on.
+   * Which day of the event it runs on.
    */
   day: number;
   /**
@@ -103,7 +103,7 @@ export interface SessionDraw {
 }
 
 /**
- * The whole weekend as one round's climate drew it.
+ * The whole event as one round's climate drew it.
  */
 export interface RoundDraw {
   /**
@@ -119,7 +119,7 @@ export interface RoundDraw {
    */
   climate: Climate;
   /**
-   * One entry per session of the round's weekend format, in format order.
+   * One entry per session of the round's event format, in format order.
    */
   sessions: readonly SessionDraw[];
 }
@@ -149,11 +149,11 @@ export interface ForecastStep {
  */
 export interface SessionForecast {
   /**
-   * The session's position in its weekend format, counting from zero.
+   * The session's position in its event format, counting from zero.
    */
   index: number;
   /**
-   * Which day of the weekend it runs on.
+   * Which day of the event it runs on.
    */
   day: number;
   /**
@@ -197,7 +197,7 @@ export interface SessionForecast {
 }
 
 /**
- * The whole weekend's forecast for one round.
+ * The whole event's forecast for one round.
  */
 export interface RoundForecast {
   /**
@@ -213,7 +213,7 @@ export interface RoundForecast {
    */
   climate: Climate;
   /**
-   * One entry per session of the round's weekend format, in format order.
+   * One entry per session of the round's event format, in format order.
    */
   sessions: readonly SessionForecast[];
 }

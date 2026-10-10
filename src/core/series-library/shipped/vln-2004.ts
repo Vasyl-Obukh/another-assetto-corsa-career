@@ -1,6 +1,6 @@
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, TeamBudget,
+  CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -110,7 +110,7 @@ export const VLN_2004: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'four-hours',
       name: 'Four hours',
@@ -137,7 +137,9 @@ export const VLN_2004: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'four-hours',
+  defaultEventFormat: 'four-hours',
+  // Raced on a Saturday, as the real series is.
+  raceWeekday: Weekday.SATURDAY,
   rounds: [
     {
       id: 'vln-1',
@@ -163,7 +165,7 @@ export const VLN_2004: Championship = {
       id: 'n24',
       name: 'Nurburgring 24 Hours',
       track: { id: 'ks_nordschleife', layout: 'endurance' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -189,7 +191,7 @@ export const VLN_2004: Championship = {
       id: 'vln-7',
       name: 'VLN 6 Hours',
       track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {

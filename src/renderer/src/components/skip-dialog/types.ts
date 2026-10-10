@@ -5,7 +5,7 @@ import type { SkippedRound } from '../../../../shared/types';
  */
 export interface SkipGroup {
   /**
-   * What the rows share: a championship's id, or "clash" for the weekends
+   * What the rows share: a championship's id, or "clash" for the events
    * sharing days with the one being raced.
    */
   key: string;

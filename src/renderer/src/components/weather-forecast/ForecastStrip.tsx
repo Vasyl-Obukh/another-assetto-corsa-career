@@ -11,7 +11,7 @@ interface ForecastStripProps {
 }
 
 /**
- * A round's whole weekend in one line: every session's weather, a rule between
+ * A round's whole event in one line: every session's weather, a rule between
  * the days.
  */
 export const ForecastStrip = ({ forecast }: ForecastStripProps) => (

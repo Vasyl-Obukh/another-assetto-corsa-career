@@ -24,7 +24,7 @@ export const CAREER_VERSION = 1;
 export const CAREER_SEASON_WEEKS = 52;
 
 /**
- * How far ahead of a weekend its weather is forecast, in days.
+ * How far ahead of an event its weather is forecast, in days.
  *
  * A week, because that is roughly as far as a real forecast reaches and because
  * a season's worth of weather shown on day one is not a forecast at all - it is

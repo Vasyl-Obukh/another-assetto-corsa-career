@@ -28,7 +28,7 @@ interface FormatsCardProps {
    */
   system: WeatherSystem;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -39,7 +39,7 @@ interface FormatsCardProps {
 }
 
 /**
- * The weekend formats as tabs across the top, each saying how many rounds run
+ * The event formats as tabs across the top, each saying how many rounds run
  * it, and the one picked opened below.
  */
 export const FormatsCard = ({
@@ -47,7 +47,7 @@ export const FormatsCard = ({
 }: FormatsCardProps) => {
   const { t } = useTranslation();
   const [picked, setPicked] = useState<string | null>(null);
-  const formats = series.weekendFormats;
+  const formats = series.eventFormats;
   const format = formats.find((one) => one.id === picked) ?? formats[0];
 
   return (
@@ -74,7 +74,7 @@ export const FormatsCard = ({
             >
               {one.name}
               <span className="text-xs font-normal text-muted-foreground">
-                {series.defaultWeekendFormat === one.id
+                {series.defaultEventFormat === one.id
                   ? t('editor.formats.tabDefault', { count: running })
                   : t('editor.formats.rounds', { count: running })}
               </span>
@@ -88,7 +88,7 @@ export const FormatsCard = ({
           onClick={() => {
             // A new format starts as one day with one race, edited from there.
             const next = nextFormat(series, [nextSession([])]);
-            onChange({ ...series, weekendFormats: [...formats, next] });
+            onChange({ ...series, eventFormats: [...formats, next] });
             setPicked(next.id);
           }}
         >
@@ -109,7 +109,7 @@ export const FormatsCard = ({
           onChange={onChange}
           onDuplicate={() => {
             const copy = { ...nextFormat(series, format.sessions), name: t('editor.formats.copyName', { name: format.name }) };
-            onChange({ ...series, weekendFormats: [...formats, copy] });
+            onChange({ ...series, eventFormats: [...formats, copy] });
             setPicked(copy.id);
           }}
         />

@@ -17,7 +17,7 @@
     "race": "node --experimental-transform-types spike.ts run",
     "watch": "node --experimental-transform-types spike.ts watch",
     "results": "node --experimental-transform-types spike.ts results",
-    "weekend": "node --experimental-transform-types spike.ts weekend",
+    "event": "node --experimental-transform-types spike.ts event",
     "series": "node --experimental-transform-types spike.ts series",
     "weather": "node --experimental-transform-types spike.ts weather",
     "testmode": "node --experimental-transform-types spike.ts testmode",

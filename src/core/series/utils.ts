@@ -1,8 +1,9 @@
 // Helpers behind reading a championship: resolving what overrides what, and
 // composing the field a round is raced against.
 
+import { TIER_WEEKDAY, WEEKDAY_NUMBER, WORKDAYS } from './constants.ts';
 import {
-  DEFAULT_MIN_MODELS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_GRID_OFFSET, MAX_WEEKEND_DAYS,
+  DEFAULT_MIN_MODELS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_EVENT_DAYS, MAX_GRID_OFFSET,
   MIN_REVERSED,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
@@ -21,6 +22,7 @@ import type {
   DLCPack,
   Eligibility,
   EntryAvailability,
+  EventFormat,
   ModDistributor,
   ModMaker,
   RequirementPool,
@@ -33,15 +35,12 @@ import type {
   SeriesRequirements,
   SeriesSession,
   Track,
-  WeekendFormat,
 } from '../../shared/types/index.ts';
 import { specCars } from '../../shared/utils/car-classes/index.ts';
 import { poolHolds } from '../../shared/utils/content-sources/index.ts';
 import { carsOf } from '../../shared/utils/eligibility/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
-import { formatOf } from '../../shared/utils/weekend-format/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
-import type { RoundSpan } from '../season-calendar/index.ts';
 import { randomFrom, seedFrom, shuffle } from '../seeded-random/index.ts';
 
 /**
@@ -74,7 +73,7 @@ export const seatDraw = (
  * The id the race a round lowers into carries.
  *
  * One function because `roundRace` stamps it and the series store matches it
- * back to find a live weekend's championship - composed differently, the
+ * back to find a live event's championship - composed differently, the
  * editor's lock would silently stop catching. Each half is URI-encoded around
  * a `/`, so no two pairs compose the same id: joined with a hyphen, series
  * `gt3` round `sprint-r1` and series `gt3-sprint` round `r1` were one string.
@@ -304,30 +303,25 @@ export const hemisphereOf = (series: Championship, round: Round): Hemisphere => 
 );
 
 /**
- * How long each round's weekend runs, for dating a season.
+ * Which day of the week a championship's rounds are raced on.
  *
- * The adapter between a championship and src/core/season-calendar/, which is
- * deliberately three numbers per round rather than a document: the race is what
- * gets anchored to a Sunday, so a weekend's opening day is found by counting
- * back from it. A round whose format cannot be resolved falls back to a
- * single-day weekend, because validateSeries reports the missing format and a
- * calendar still has to be drawable.
+ * The day it states, where it states one. Otherwise its highest class decides,
+ * the way real meetings share a weekend: the top tier races on a Sunday, the
+ * next on a Saturday, and anything lower on a weekday seeded off the
+ * championship's id - so the lower rungs a career climbs through spread
+ * across the week rather than queueing for the same day.
  * @param series The championship
- * @returns One span per round, in calendar order
+ * @returns The day, as getUTCDay numbers it
  */
-export const roundSpans = (series: Championship): RoundSpan[] => series.rounds.map((round) => {
-  const format = formatOf(series, round);
-  const sessions = format?.sessions ?? [];
-  const days = sessions.reduce((most, session) => Math.max(most, session.day ?? 0), 0) + 1;
-  // The last race of the weekend is the one that ends it, so that is what falls
-  // on the Sunday: a sprint weekend's Saturday sprint counts back from it.
-  const races = sessions.filter((session) => session.type === 'race');
-  const raceDayOffset = races.length
-    ? races.reduce((last, session) => Math.max(last, session.day ?? 0), 0)
-    : days - 1;
+export const raceWeekdayOf = (series: Championship): number => {
+  if (series.raceWeekday) return WEEKDAY_NUMBER[series.raceWeekday];
 
-  return { id: round.id, days, raceDayOffset };
-});
+  const tier = Math.min(...series.entries.map((entry) => entry.ladder.tier));
+  const weekday = TIER_WEEKDAY[tier]
+    ?? WORKDAYS[seedFrom(`${series.id}\u0000weekday`) % WORKDAYS.length];
+
+  return WEEKDAY_NUMBER[weekday];
+};
 
 /**
  * Which of laps, minutes and distance a session or a round's override states.
@@ -388,7 +382,7 @@ export const validateLength = (
  * @param round The round
  * @returns The sessions it runs, still carrying any distance
  */
-export const roundSessions = (format: WeekendFormat, round: Round): SeriesSession[] => (
+export const roundSessions = (format: EventFormat, round: Round): SeriesSession[] => (
   format.sessions.map((session) => {
     const own = round.sessionLengths?.find((one) => one.session === session.id);
     if (!own) return session;
@@ -437,7 +431,7 @@ export const withDistancesInLaps = (
  * How long each race of a round runs, for the calendar to say.
  * @param sessions The round's sessions
  * @param lap The track's lap length in metres, or null when it is not known
- * @returns One per race measured in laps or distance, in weekend order
+ * @returns One per race measured in laps or distance, in event order
  */
 export const raceLengths = (
   sessions: readonly SeriesSession[],
@@ -512,23 +506,19 @@ export const duplicates = (ids: readonly string[]): string[] => [...new Set(
 )];
 
 /**
- * Checks one weekend format's day offsets and sessions.
- *
- * The day-of-week rule is an approximation until Phase 5 gives a round a date:
- * a three-day weekend opens on Friday by convention, so a race on its first day
- * is the "never Friday" rule as far as it can be expressed here.
+ * Checks one event format's day offsets and sessions.
  * @param series The championship the format belongs to, for the message
- * @param format The weekend format to check
+ * @param format The event format to check
  * @returns One entry per rule broken
  */
 export const validateFormat = (
   series: Championship,
-  format: WeekendFormat,
+  format: EventFormat,
 ): AppErrorInfo[] => {
   const problems: AppErrorInfo[] = [];
   const { sessions } = format;
   // Every message names the format as well as the series: a championship holds
-  // several, so "the weekend format of gt3-sprint-series" identifies nothing.
+  // several, so "the event format of gt3-sprint-series" identifies nothing.
   const where = { series: series.id, format: format.id };
 
   if (sessions.length === 0) {
@@ -540,9 +530,9 @@ export const validateFormat = (
   const days = sessions.map((session) => session.day ?? 0);
   const span = Math.max(...days) + 1;
 
-  if (span > MAX_WEEKEND_DAYS) {
+  if (span > MAX_EVENT_DAYS) {
     problems.push(appErrorInfo('series.days.tooMany', {
-      ...where, days: span, max: MAX_WEEKEND_DAYS,
+      ...where, days: span, max: MAX_EVENT_DAYS,
     }));
   }
   for (let day = 0; day < span; day += 1) {
@@ -563,9 +553,6 @@ export const validateFormat = (
     if (index > 0 && days[index] < days[index - 1]) {
       problems.push(appErrorInfo('series.days.outOfOrder', { ...where, session: name }));
     }
-    if (session.type === 'race' && days[index] === 0 && span === MAX_WEEKEND_DAYS) {
-      problems.push(appErrorInfo('series.race.onOpeningDay', where));
-    }
     // The grid comes from qualifying or from the ladder, and prepareLaunch
     // writes it - so an authored one is overwritten with nothing said.
     if (session.startingPosition !== undefined) {
@@ -581,7 +568,7 @@ export const validateFormat = (
       } else if (source >= index) {
         problems.push(appErrorInfo('series.inherit.notEarlier', { ...where, session: name, from }));
       } else if (!(sessions[source].type === 'qualify' || (isRace && sessions[source].type === 'race'))) {
-        // advanceWeekend classifies qualifying and races and nothing else, and a
+        // advanceEvent classifies qualifying and races and nothing else, and a
         // race's finishing order means nothing to a qualifying session.
         problems.push(appErrorInfo('series.inherit.notQualifying', {
           ...where, session: name, from,

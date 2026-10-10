@@ -20,7 +20,7 @@ import { ChoiceChips } from '@/screens/championship-editor';
 
 interface CarCardProps {
   /**
-   * The race weekend.
+   * The race event.
    */
   race: QuickRace;
   /**
@@ -29,7 +29,7 @@ interface CarCardProps {
    */
   car: Car | null;
   /**
-   * Whether the weekend has started, in which case nothing here can change.
+   * Whether the event has started, in which case nothing here can change.
    */
   locked: boolean;
   /**

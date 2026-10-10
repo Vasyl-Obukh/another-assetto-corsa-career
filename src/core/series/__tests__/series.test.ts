@@ -77,9 +77,9 @@ const USER_CATALOGUE = resolveCatalogue(USER_CATALOGUE_LAYER);
  */
 const byDistance = (rounds: readonly Round[] = makeSeries().rounds): Championship => makeSeries({
   rounds,
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
-    name: 'Race weekend',
+    name: 'Standard',
     sessions: [
       { type: 'qualify', name: 'Qualifying', minutes: 10 },
       {
@@ -153,8 +153,8 @@ describe('core/series', () => {
       id: `round-${at + 1}`, name: `Round ${at + 1}`, track: { id: 'magione' },
     }));
 
-    // A race weekend is a week, so a season has room for as many rounds as it
-    // has weeks - and the calendar would otherwise crowd two onto one weekend.
+    // A race event is a week, so a season has room for as many rounds as it
+    // has weeks - and the calendar would otherwise crowd two onto one event.
     it('refuses a season running more rounds than it has weeks', () => {
       expect(codesFor({ rounds: calendarOf(41) })).toEqual(['series.season.tooManyRounds']);
     });
@@ -551,7 +551,7 @@ describe('core/series', () => {
     it('leaves the format sessions as they are when the weather is authored', () => {
       const series = makeSeries();
 
-      expect(lower(series).sessions).toEqual(series.weekendFormats[0].sessions);
+      expect(lower(series).sessions).toEqual(series.eventFormats[0].sessions);
     });
 
     // The race has to run exactly what the round's forecast showed.

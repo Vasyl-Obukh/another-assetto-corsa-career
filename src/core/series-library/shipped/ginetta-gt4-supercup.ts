@@ -7,7 +7,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Ginetta GT4 Supercup - Ginetta's one-make series on the BTCC support bill,
  * on Guerilla's G55 GT4.
  *
- * Three races a meeting. The calendar is the circuits of the BTCC weekends it
+ * Three races a meeting. The calendar is the circuits of the BTCC events it
  * supports that Assetto Corsa has - Brands Hatch in both layouts, Thruxton,
  * Oulton Park, Croft, Knockhill and Silverstone - rather than one season's,
  * which was not checked; Donington Park and Snetterton are not in Assetto
@@ -67,7 +67,7 @@ export const GINETTA_GT4_SUPERCUP: Championship = {
       eligibility: { kind: 'cars', cars: ['gt4_ginetta_g55'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'race-meeting',
       name: 'Three races',
@@ -80,7 +80,7 @@ export const GINETTA_GT4_SUPERCUP: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-meeting',
+  defaultEventFormat: 'race-meeting',
   rounds: [
     {
       id: 'brands-hatch-indy',

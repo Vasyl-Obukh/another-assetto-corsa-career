@@ -11,7 +11,7 @@ interface SessionStatusDotProps {
 }
 
 /**
- * A session's place in the weekend as a dot: filled with a tick once run, a
+ * A session's place in the event as a dot: filled with a tick once run, a
  * ring in the primary colour for the one to run next, hollow for the rest.
  *
  * A shape as well as a colour, so the three read apart without relying on hue -

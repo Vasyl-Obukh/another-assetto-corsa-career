@@ -10,7 +10,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Europe, on Guerilla's GT4 cars.
  *
  * The GT4 spec: Guerilla's seventeen GT4s, Kunos' Maserati and LFM's Supra,
- * any three to a grid. Two hour-long races a weekend, each from a qualifying
+ * any three to a grid. Two hour-long races a round, each from a qualifying
  * of its own, with a compulsory stop and driver change that cannot be said
  * yet. The calendar is the circuits the series races that Assetto Corsa has -
  * Brands Hatch, Monza, Spa, the Nurburgring, Zandvoort and Barcelona - rather
@@ -29,7 +29,7 @@ export const GT4_EUROPEAN_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt4-european-series',
   name: 'GT4 European Series',
-  description: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a weekend at six of'
+  description: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a round at six of'
     + ' the GT World Challenge circuits.',
   teams: [
     team('hanse', 'Hanse Motorsport', 'DEU', TeamBudget.WORKS),
@@ -91,9 +91,9 @@ export const GT4_EUROPEAN_SERIES: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GT4, minModels: 3 },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
-      id: 'race-weekend',
+      id: 'standard',
       name: 'Two races',
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
@@ -104,7 +104,7 @@ export const GT4_EUROPEAN_SERIES: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'brands-hatch',

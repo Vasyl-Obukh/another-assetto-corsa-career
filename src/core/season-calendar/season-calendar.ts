@@ -8,96 +8,83 @@
 // without "season end" meaning two different dates.
 //
 // Pure: no I/O and no knowledge of what a championship is, so it is tested with
-// a handful of spans rather than with a document.
+// a handful of round ids rather than with a document.
 
-import type { DatedRound, DateSpan, RoundSpan } from './types.ts';
-import { raceDayOnOrAfter } from './utils.ts';
+import type { DatedRound } from './types.ts';
+import { weekdayOnOrAfter } from './utils.ts';
 import { DAYS_PER_WEEK, SEASON_WEEKS } from '../../shared/constants/index.ts';
 import type { SeasonLength } from '../../shared/types/index.ts';
-import { addDays, toDayNumber } from '../../shared/utils/calendar-days/index.ts';
+import { addDays } from '../../shared/utils/calendar-days/index.ts';
 
-export type { DatedRound, DateSpan, RoundSpan } from './types.ts';
-export { raceDayOnOrAfter } from './utils.ts';
+export type { DatedRound } from './types.ts';
+export { weekdayOnOrAfter } from './utils.ts';
 export { addDays, toDayNumber } from '../../shared/utils/calendar-days/index.ts';
 
 /**
  * Dates every round of a season, spread evenly across the weeks it runs over.
  *
  * Rounds are placed a whole number of weeks apart, which is what keeps every
- * race on a Sunday: the first sits on the season's opening race day and the
- * last on its closing one, with the rest spread between them. Spread rather
- * than stepped by a fixed gap, because a fixed gap leaves a twenty-four round
- * year finishing six weeks early.
+ * one on the championship's own day of the week: the first sits on the
+ * season's opening race day and the last on its closing one, with the rest
+ * spread between them. Spread rather than stepped by a fixed gap, because a
+ * fixed gap leaves a twenty-four round year finishing six weeks early.
  *
- * A season with more rounds than weeks cannot give each its own weekend, so
+ * A season with more rounds than weeks cannot give each its own week, so
  * rounds are held one week apart from wherever they would otherwise collide.
  * That keeps the function total for a document that got past validateSeries,
  * which reports `series.season.tooManyRounds` and is where the loud failure
  * belongs.
- * `offsetWeeks` is what stops a hundred championships opening on one Sunday.
- * Spread from a common season start they would all put round one on the same
- * weekend and leave the rest of the calendar bare, which is not what a season
+ *
+ * `offsetWeeks` is what stops a hundred championships opening in one week.
+ * Spread from a common season start they would all put round one in the same
+ * week and leave the rest of the calendar bare, which is not what a season
  * looks like - so each is pushed along by its own offset, and the caller picks
  * one that is stable for the championship.
- * @param rounds The rounds to place, in the order they are run
+ * @param rounds The ids of the rounds to place, in the order they are run
  * @param start The ISO date the season opens on
  * @param length How much of the year this championship fills
+ * @param weekday Which day of the week it races on, as getUTCDay numbers it
  * @param offsetWeeks How many weeks past the season's opening this one starts
  * @returns One dated round per round, in the same order
  */
 export const seasonCalendar = (
-  rounds: readonly RoundSpan[],
+  rounds: readonly string[],
   start: string,
   length: SeasonLength,
+  weekday: number,
   offsetWeeks = 0,
 ): DatedRound[] => {
   // The offset slides the whole championship along rather than shortening it,
-  // or every one of them would still finish on the same weekend however late
-  // it started. Bounding it against the career's own season is the caller's,
+  // or every one of them would still finish in the same week however late it
+  // started. Bounding it against the career's own season is the caller's,
   // which is the only place that knows how long that is.
-  const opening = addDays(raceDayOnOrAfter(start), offsetWeeks * DAYS_PER_WEEK);
+  const opening = addDays(weekdayOnOrAfter(start, weekday), offsetWeeks * DAYS_PER_WEEK);
   const span = SEASON_WEEKS[length] - 1;
   const last = rounds.length - 1;
 
   let previous = -1;
 
-  return rounds.map((round, at) => {
+  return rounds.map((id, at) => {
     // A single round opens the season rather than sitting in the middle of it.
     const spread = last > 0 ? Math.round((at * span) / last) : 0;
     const week = Math.max(previous + 1, spread);
     previous = week;
 
-    const raceDay = addDays(opening, week * DAYS_PER_WEEK);
-    const firstDay = addDays(raceDay, -round.raceDayOffset);
-
-    return {
-      id: round.id,
-      firstDay,
-      raceDay,
-      lastDay: addDays(firstDay, round.days - 1),
-    };
+    return { id, date: addDays(opening, week * DAYS_PER_WEEK) };
   });
 };
 
 /**
- * Which of a set of weekends collide with another.
+ * Which of a set of events fall on the same day as another.
  *
- * Overlapping rather than sharing a race day: two weekends that overlap at all
- * cannot both be driven, since a weekend is several sessions over several days
- * and the player is one person.
- *
- * A clash is reported rather than refused - real calendars clash, and which of
- * two events to give up is the player's to decide.
- * @param spans The weekends to compare, in any order
- * @returns One flag per span, in the same order, true where another overlaps it
+ * A clash is reported here rather than refused: real calendars clash, and
+ * which of two events to give up is the player's to decide.
+ * @param dates The ISO date of each event, in any order
+ * @returns One flag per date, in the same order, true where another shares it
  */
-export const clashes = (spans: readonly DateSpan[]): boolean[] => {
-  const days = spans.map((span) => ({
-    from: toDayNumber(span.firstDay),
-    to: toDayNumber(span.lastDay),
-  }));
+export const clashes = (dates: readonly string[]): boolean[] => {
+  const counts = new Map<string, number>();
+  dates.forEach((date) => counts.set(date, (counts.get(date) ?? 0) + 1));
 
-  return days.map((span, at) => days.some((other, index) => (
-    index !== at && span.from <= other.to && other.from <= span.to
-  )));
+  return dates.map((date) => (counts.get(date) ?? 0) > 1);
 };

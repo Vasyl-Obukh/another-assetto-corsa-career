@@ -99,7 +99,7 @@ describe('core/quick-race', () => {
       expect(series.rounds).toEqual([{
         id: QUICK_ROUND, name: 'Sunday', track: { id: 'magione' }, conditions: race.conditions,
       }]);
-      expect(series.weekendFormats[0].sessions).toEqual(race.sessions);
+      expect(series.eventFormats[0].sessions).toEqual(race.sessions);
       expect(series.pointsSystems[0].positions).toEqual([]);
     });
 

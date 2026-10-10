@@ -20,8 +20,8 @@ import { classifiedRows } from '@/lib/classification';
 
 interface SessionResultProps {
   /**
-   * The weekend: its grid, and whether the player raced it - a round of the
-   * career, or a race weekend of the player's own.
+   * The event: its grid, and whether the player raced it - a round of the
+   * career, or a race event of the player's own.
    */
   view: Pick<CareerEventView, 'grid' | 'substituted' | 'status'>;
   /**

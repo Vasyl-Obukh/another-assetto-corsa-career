@@ -11,6 +11,7 @@
 // the season itself runs on - which is what lets one career hold championships
 // of different lengths without "season end" meaning two dates.
 
+import type { LaunchRecord } from './event.ts';
 import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { GridEntry, SessionType } from './race.ts';
@@ -20,13 +21,12 @@ import type {
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
 } from './standings.ts';
-import type { LaunchRecord } from './weekend.ts';
 import type { AppErrorInfo } from '../errors/types.ts';
 
 /**
  * What became of one event on the calendar.
  *
- * "missed" is a non-start: the clock was moved past the weekend without it
+ * "missed" is a non-start: the clock was moved past the event without it
  * being raced. It pays nothing and costs the entry fee, which is recorded
  * rather than debited, since there is no money anywhere until Phase 7.
  */
@@ -45,26 +45,22 @@ export interface SeasonEvent {
    */
   raceId: string;
   /**
-   * The weekend's opening day, as an ISO date.
+   * The day it is raced on, as an ISO date.
+   *
+   * One day however many days its format runs over: those are the event's own
+   * days, which decide the time of day and how the weather carries over, and
+   * never dates that block another event out.
    */
-  firstDay: string;
-  /**
-   * Race day, always a Sunday, as an ISO date.
-   */
-  raceDay: string;
-  /**
-   * The weekend's closing day, as an ISO date.
-   */
-  lastDay: string;
+  date: string;
   /**
    * What entering it costs, frozen when the season was entered.
    */
   entryFee?: number;
   /**
    * The weather its climate drew, issued once the clock came within
-   * `FORECAST_LEAD_DAYS` of `firstDay` and never drawn again.
+   * `FORECAST_LEAD_DAYS` of `date` and never drawn again.
    *
-   * Absent on a weekend still further out than that, and on a championship that
+   * Absent on an event still further out than that, and on a championship that
    * authors its weather rather than generating it - the two are told apart by
    * whether the round has a climate at all.
    */
@@ -74,12 +70,12 @@ export interface SeasonEvent {
    */
   status: EventStatus;
   /**
-   * One record per session of the weekend that has run, in the order they ran.
+   * One record per session of the event that has run, in the order they ran.
    *
-   * Copied off the race store after every launch rather than once the weekend
+   * Copied off the race store after every launch rather than once the event
    * is over, so a practice or qualifying result is on the event the moment it
    * lands - and stays there when the race store moves on to another round and
-   * its own weekend.json is replaced. A weekend is part-way through when this
+   * its own event.json is replaced. An event is part-way through when this
    * holds anything and the event is still scheduled.
    */
   sessions: readonly LaunchRecord[];
@@ -102,7 +98,7 @@ export interface SeasonEvent {
  * entered, not re-read from the document: the championship stays editable, and
  * an edit that added a round or shortened the season would otherwise move every
  * remaining date under the player mid-season. It is the same freeze
- * `WeekendPlan` performs on a grid, for the same reason.
+ * `EventPlan` performs on a grid, for the same reason.
  */
 export interface SeasonEntry {
   /**
@@ -299,7 +295,7 @@ export interface CalendarEntry {
     layout?: string;
   };
   /**
-   * Each race of the weekend and how long it runs.
+   * Each race of the event and how long it runs.
    */
   races: readonly RoundRaceLength[];
   /**
@@ -319,17 +315,9 @@ export interface CalendarEntry {
    */
   multiClass: boolean;
   /**
-   * The weekend's opening day, as an ISO date.
+   * The day it is raced on, as an ISO date.
    */
-  firstDay: string;
-  /**
-   * Race day, as an ISO date.
-   */
-  raceDay: string;
-  /**
-   * The weekend's closing day, as an ISO date.
-   */
-  lastDay: string;
+  date: string;
   /**
    * Whether it is still to come, has been raced, or was passed by. Always
    * "scheduled" for a championship the career has not entered.
@@ -348,7 +336,8 @@ export interface CalendarEntry {
    */
   raceable: boolean;
   /**
-   * Whether another enrolled weekend overlaps this one.
+   * Whether another of the career's events falls on the same day, neither of
+   * them given up - never so while settings allow two events on one day.
    */
   clash: boolean;
 }
@@ -380,7 +369,7 @@ export interface CareerCalendar {
 }
 
 /**
- * Where one session of a weekend stands for the career.
+ * Where one session of an event stands for the career.
  */
 export type EventSessionStatus = 'done' | 'next' | 'later';
 
@@ -404,7 +393,7 @@ export interface PositionPoints {
  */
 export interface EventSession {
   /**
-   * Which launch of the weekend it is, counting from zero.
+   * Which launch of the event it is, counting from zero.
    */
   index: number;
   /**
@@ -412,16 +401,17 @@ export interface EventSession {
    */
   type: SessionType;
   /**
-   * Its name, as the weekend format gives it, or null for one named only by its
+   * Its name, as the event format gives it, or null for one named only by its
    * type - which the renderer says in the user's language.
    */
   name: string | null;
   /**
-   * The ISO date it runs on.
+   * Which day of the event it runs on, counting from zero - the event's own
+   * day rather than a date, since the whole event sits on its one race day.
    */
-  date: string;
+  day: number;
   /**
-   * When it starts, as "HH:MM", or null when the weekend does not say.
+   * When it starts, as "HH:MM", or null when the event does not say.
    */
   startsAt: string | null;
   /**
@@ -443,7 +433,7 @@ export interface EventSession {
   /**
    * Whether its weather is generated but has not been forecast yet.
    *
-   * A forecast is issued a week before the weekend, so a round further out than
+   * A forecast is issued a week before the event, so a round further out than
    * that has a climate and no draw. Told apart from authored weather here
    * rather than in the renderer, which would otherwise need the round's climate
    * threaded down to every session row to say which kind of nothing it has.
@@ -602,17 +592,9 @@ export interface CareerEventView {
     layout?: string;
   };
   /**
-   * The weekend's opening day, as an ISO date.
+   * The day it is raced on, as an ISO date.
    */
-  firstDay: string;
-  /**
-   * Race day, as an ISO date.
-   */
-  raceDay: string;
-  /**
-   * The weekend's closing day, as an ISO date.
-   */
-  lastDay: string;
+  date: string;
   /**
    * The climate its weather is drawn from, or null when its weather is authored.
    */
@@ -646,12 +628,12 @@ export interface CareerEventView {
    */
   raceable: boolean;
   /**
-   * Every session of the weekend, in the order they run.
+   * Every session of the event, in the order they run.
    */
   sessions: readonly EventSession[];
   /**
-   * The weekend's entry list, which every car index of its sessions indexes
-   * into - the player's seat first. Empty when the weekend could not be planned.
+   * The event's entry list, which every car index of its sessions indexes
+   * into - the player's seat first. Empty when the event could not be planned.
    */
   grid: readonly GridEntry[];
   /**
@@ -666,8 +648,8 @@ export interface CareerEventView {
   blocked: AppErrorInfo | null;
   /**
    * What launching the next session would cost the rest of the season: the
-   * rounds it leaves unraced, and the weekend it shares that can no longer be
-   * driven. Empty for a round the career has not entered.
+   * rounds it leaves unraced, and any event on the same day, which can no
+   * longer be driven. Empty for a round the career has not entered.
    */
   skips: readonly SkippedRound[];
   /**
@@ -676,7 +658,7 @@ export interface CareerEventView {
    */
   behind: readonly SkippedRound[];
   /**
-   * Whether the race being run is this weekend, which is when its launching and
+   * Whether the race being run is this event, which is when its launching and
    * waiting states belong on this page.
    */
   live: boolean;
@@ -685,10 +667,10 @@ export interface CareerEventView {
 /**
  * Why a round of the career's is lost, or put out of reach, by moving on.
  *
- * "skipped" is a round passed by unraced, "partway" a weekend left with
+ * "skipped" is a round passed by unraced, "partway" an event left with
  * sessions still to run, "behind" a round already gone by when its championship
- * is entered, and "clash" a weekend sharing days with the one being raced -
- * not lost yet, but one that cannot be driven as well.
+ * is entered, and "clash" an event on the same day as the one being raced,
+ * which is given up for it unless settings allow two events on one day.
  */
 export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash';
 
@@ -722,13 +704,9 @@ export interface SkippedRound {
    */
   ladder: LadderPosition | null;
   /**
-   * The weekend's opening day, as an ISO date.
+   * The day it is raced on, as an ISO date.
    */
-  firstDay: string;
-  /**
-   * The weekend's closing day, as an ISO date.
-   */
-  lastDay: string;
+  date: string;
   /**
    * What moving on does to it.
    */
@@ -744,9 +722,9 @@ export interface RoundResult {
    */
   round: string;
   /**
-   * The weekend's race day this season, as an ISO date.
+   * The day it is raced on this season, as an ISO date.
    */
-  raceDay: string;
+  date: string;
   /**
    * What became of it.
    */

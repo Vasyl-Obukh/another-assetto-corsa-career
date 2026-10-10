@@ -84,10 +84,10 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
-      name: 'Race weekend',
+      name: 'Standard',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
@@ -95,7 +95,7 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'brands-hatch',

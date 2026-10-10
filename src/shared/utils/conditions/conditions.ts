@@ -1,7 +1,7 @@
-// Merging a session's own conditions over the weekend's defaults.
+// Merging a session's own conditions over the event's defaults.
 //
 // A session is a whole race.ini now, so it can carry its own weather, wind,
-// temperature, track state and start time. The weekend still holds defaults, and
+// temperature, track state and start time. The event still holds defaults, and
 // a session overrides them field by field - except for weather, which is a group
 // rather than a field. See resolveConditions below.
 
@@ -40,22 +40,22 @@ export const pickWeather = (conditions: Conditions | undefined): Conditions => {
 };
 
 /**
- * Resolves what a session actually runs in, given the weekend's defaults.
+ * Resolves what a session actually runs in, given the event's defaults.
  *
  * Field by field, with one exception: `weather`, `weatherType` and
  * `weatherController` are three mutually exclusive ways of answering one
  * question, so a session naming any of them replaces all three. Merged one at a
- * time, a session asking for a CSP type would keep the weekend's preset beside
+ * time, a session asking for a CSP type would keep the event's preset beside
  * it and the two would disagree about what actually runs.
- * @param weekend The weekend's own conditions, or undefined
+ * @param event The event's own conditions, or undefined
  * @param session The session's overrides, or undefined when it inherits everything
  * @returns The conditions the session runs in
  */
 export const resolveConditions = (
-  weekend: Conditions | undefined,
+  event: Conditions | undefined,
   session: Conditions | undefined,
 ): Conditions => {
-  const merged: Conditions = { ...weekend, ...session };
+  const merged: Conditions = { ...event, ...session };
 
   // Nothing to reconcile unless the session opened the weather question itself.
   if (!namesWeather(session)) return merged;

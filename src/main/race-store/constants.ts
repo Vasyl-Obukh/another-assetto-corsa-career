@@ -12,9 +12,9 @@ export const RACE_DIR = 'race';
 export const DRAFT_FILE = 'draft.json';
 
 /**
- * File the weekend's progress is kept in.
+ * File the event's progress is kept in.
  */
-export const STATE_FILE = 'weekend.json';
+export const STATE_FILE = 'event.json';
 
 /**
  * Folder the generated race.ini is written to, for diagnosing a bad launch.

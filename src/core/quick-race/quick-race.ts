@@ -27,7 +27,7 @@ import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import { eligibleCars, roundRace, roundRaceId } from '../series/index.ts';
 
 /**
- * The race id a quick race launches under, which its archives and its weekend
+ * The race id a quick race launches under, which its archives and its event
  * progress carry.
  * @param race The quick race
  * @returns The id
@@ -46,7 +46,7 @@ const fields = (race: QuickRace): ((one: QuickClass) => boolean) => (
 
 /**
  * A quick race as the championship it lowers through: one class entry per
- * class, one round at its track, one weekend format of its sessions, and a
+ * class, one round at its track, one event format of its sessions, and a
  * points table that pays nothing.
  *
  * Every seat is named, from the nation books the editor fills empty seats
@@ -92,8 +92,8 @@ export const quickChampionship = (race: QuickRace, title: string): Championship 
       track: race.track ?? { id: '' },
       conditions: race.conditions,
     }],
-    weekendFormats: [{ id: QUICK_FORMAT, name: title, sessions: race.sessions }],
-    defaultWeekendFormat: QUICK_FORMAT,
+    eventFormats: [{ id: QUICK_FORMAT, name: title, sessions: race.sessions }],
+    defaultEventFormat: QUICK_FORMAT,
     pointsSystems: [{ id: QUICK_POINTS, name: title, positions: [] }],
     defaultPointsSystem: QUICK_POINTS,
     ...(race.regulations ? { regulations: race.regulations } : {}),
@@ -142,7 +142,7 @@ export const quickProblems = (
  * @param catalogue The class catalogue a spec resolves against
  * @param offer What the install and settings can race in
  * @param base The player's AI difficulty, which every offset is laid over
- * @returns The race definition, ready for validateRace and planWeekend
+ * @returns The race definition, ready for validateRace and planEvent
  * @throws When it cannot be lowered - quickProblems says why beforehand
  */
 export const lowerQuickRace = (

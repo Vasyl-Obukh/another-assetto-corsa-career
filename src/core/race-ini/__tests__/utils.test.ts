@@ -260,7 +260,7 @@ describe('core/race-ini/utils', () => {
       expect(grid[1]).toMatchObject({ seat: 'main-1', entry: 'main' });
     });
 
-    // A grid is round-tripped through weekend.json, where an absent key and an
+    // A grid is round-tripped through event.json, where an absent key and an
     // undefined one are not the same thing.
     it('writes no ids at all for a hand-authored race, rather than undefined ones', () => {
       const grid = buildGrid({ ...makeRace(), grid: { size: 2 } }, makeContent());

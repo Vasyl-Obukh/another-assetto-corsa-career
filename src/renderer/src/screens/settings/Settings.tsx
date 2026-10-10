@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { AppearanceSection } from './AppearanceSection.tsx';
+import { CalendarSection } from './CalendarSection.tsx';
 import { GENERAL_SECTIONS } from './constants.ts';
 import { ContentManagerSection } from './ContentManagerSection.tsx';
 import { DriverSection } from './DriverSection.tsx';
@@ -25,6 +26,7 @@ export const Settings = () => {
           <DriverSection />
           <DrivingAidsSection />
           <OpponentsSection />
+          <CalendarSection />
           <WeatherSection />
           <ContentManagerSection />
         </div>

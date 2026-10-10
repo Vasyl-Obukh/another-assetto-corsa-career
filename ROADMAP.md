@@ -320,15 +320,20 @@ The player holds a level per discipline, and:
 - **Entering a new discipline, you start one tier below your best level
   elsewhere.** An IndyCar driver can step into Formula 2, not straight into F1.
 
-### Weekends and sessions
+### Events and sessions
 
-A weekend is an **ordered list of sessions**, authored per series - three
+An event is an **ordered list of sessions**, authored per series - three
 practices and two qualifyings if that is the format, or practice, sprint
-qualifying, sprint, grand prix qualifying, grand prix.
+qualifying, sprint, grand prix qualifying, grand prix. It was called a weekend
+until the calendar stopped putting every race on one.
 
-Sessions carry a **day offset**. Weekends run up to three days (Friday to
-Sunday); races fall on Saturday or Sunday and never Friday. One-off and historic
-events should prefer weekdays so they don't collide with championship rounds.
+Sessions carry a **day offset**, up to three days of the event's own. They are
+never dates: on the calendar an event takes only its race day, and the day
+offset decides the time of day and how the weather carries over. A championship
+races on a day of the week of its own - tier 1 on Sunday, tier 2 on Saturday,
+everything lower on a weekday - so the rungs a career climbs through spread
+across the week instead of queueing for one day. One-off and historic events
+should prefer weekdays so they don't collide with championship rounds.
 
 **Each session is its own launch, started from the app one at a time.** This
 reverses the original decision to bundle sessions into as few launches as AC
@@ -1296,12 +1301,12 @@ reverse-grid sprint, or a fixed grid - simply gets one, with no special case.
 The `LAPS` versus `RACE_LAPS` question stays dissolved: one race per launch
 means the two keys always carry the same number.
 
-### Running a weekend
+### Running an event
 
-`npm run weekend -- <name>` runs the next launch that has not been run, waits
+`npm run event -- <name>` runs the next launch that has not been run, waits
 for it, archives the result and remembers what it produced, so the launch after
 it inherits the grid. `--status` prints the plan without launching anything and
-`--reset` forgets the progress. Progress lives in `data/weekends/`, which is the
+`--reset` forgets the progress. Progress lives in `data/events/`, which is the
 CLI's own business: the state machine itself is pure, and Phase 6's career store
 will persist the same value its own way.
 
@@ -1318,7 +1323,7 @@ session; archives are now named after the session rather than the launch number.
 **The app runs the same reducer over its own storage.** `src/main/race-store/`
 keeps the draft, the progress and the archives under
 `%APPDATA%/ac-career-mode/race/`, deliberately apart from the CLI's `out/`,
-`data/results/` and `data/weekends/`: the state machine is pure, and each caller
+`data/results/` and `data/events/`: the state machine is pure, and each caller
 persists it its own way. Editing a weekend that has already started discards its
 progress, because a launch inherits its grid from the one before and that
 inheritance means nothing once the sessions have changed underneath it - so the
@@ -2393,6 +2398,22 @@ proof that no layer below learned what a series is.
       since a weekend is several sessions over several days and the player is one
       person. Reported and badged, never refused: real calendars clash, and which
       of two to give up is the player's call
+- [x] **Events take one day, spread across the week.** Every race on a Sunday,
+      each round blocking Friday to Sunday, made running two championships at
+      once a clash every other week. An event now sits on its race day alone -
+      a format's days are the event's own, for the time of day and the weather -
+      and `raceWeekdayOf` puts a championship on the day of its highest class's
+      tier: tier 1 Sunday, tier 2 Saturday, the rest a weekday seeded off the id,
+      unless the championship states its own `raceWeekday`. Formula E and the
+      Nordschleife series ship as Saturday races. **A clash is now a shared day
+      and it costs the other round**: launching one event gives up any other on
+      that day, confirmed in `SkipDialog` like every other lost round - which
+      closes the hole where both of a clashing pair could be driven while the
+      page said only one could. `settings.allowSameDayEvents`, a switch in
+      General settings, turns clashes off altogether. The rule that a race may
+      not open a three-day format went with it, having only ever stood in for
+      "never on a Friday". "Weekend" became "event" throughout, code and
+      document fields included
 - [x] Season state machine: next round, results and standings. **Season end is
       not built** - a career runs one season and there is no rollover into a
       second, which is where prize money for a final standing and the ladder

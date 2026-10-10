@@ -47,7 +47,7 @@ export const formatContentIssueReason = (t: TFunction, reason: ContentIssueReaso
 );
 
 /**
- * Writes the days a weekend runs: one day alone, or the first and last.
+ * Writes the days an event runs: one day alone, or the first and last.
  * @param t The translator from useTranslation
  * @param formatDay How to write one day, such as formatDay or formatDayShort
  * @param first Its first day, ISO YYYY-MM-DD

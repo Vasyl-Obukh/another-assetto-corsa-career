@@ -21,7 +21,7 @@ import { usePlayerName } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { classifiedRows } from '@/lib/classification';
-import { archiveOrigins, raceTitle, sessionTypeOf } from '@/lib/result-weekends';
+import { archiveOrigins, raceTitle, sessionTypeOf } from '@/lib/result-events';
 import { path, ROUTE } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';

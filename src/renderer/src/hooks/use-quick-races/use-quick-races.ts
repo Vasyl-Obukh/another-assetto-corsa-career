@@ -7,7 +7,7 @@ import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 export type { QuickRacesState } from './types.ts';
 
 /**
- * Loads every race weekend of the player's own and keeps the list current.
+ * Loads every race event of the player's own and keeps the list current.
  * @returns The races and the commands the list runs on them
  */
 export const useQuickRaces = (): QuickRacesState => {

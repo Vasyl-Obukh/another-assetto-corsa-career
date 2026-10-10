@@ -2,16 +2,16 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A Group C weekend: practice, qualifying and a 480-kilometre race.
+ * A Group C event: practice, qualifying and a 480-kilometre race.
  * @param id The format's id
  * @param laps How many laps 480 kilometres takes on the round's circuit
  * @returns The format
  */
-const weekend = (id: string, laps: number): WeekendFormat => ({
+const event = (id: string, laps: number): EventFormat => ({
   id,
   name: '480 km',
   sessions: [
@@ -83,44 +83,44 @@ export const WORLD_SPORTSCAR_1990: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.GROUP_C, minModels: 1 },
     },
   ],
-  weekendFormats: [
-    weekend('monza', 83),
-    weekend('silverstone', 82),
-    weekend('spa', 69),
-    weekend('nurburgring', 94),
-    weekend('montreal', 110),
+  eventFormats: [
+    event('monza', 83),
+    event('silverstone', 82),
+    event('spa', 69),
+    event('nurburgring', 94),
+    event('montreal', 110),
   ],
-  defaultWeekendFormat: 'monza',
+  defaultEventFormat: 'monza',
   rounds: [
     {
-      id: 'monza', name: '480 km of Monza', track: { id: 'monza' }, weekendFormat: 'monza',
+      id: 'monza', name: '480 km of Monza', track: { id: 'monza' }, eventFormat: 'monza',
     },
     {
       id: 'silverstone',
       name: '480 km of Silverstone',
       track: { id: 'ks_silverstone', layout: 'gp' },
-      weekendFormat: 'silverstone',
+      eventFormat: 'silverstone',
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: '480 km of Spa',
       track: { id: 'spa' },
-      weekendFormat: 'spa',
+      eventFormat: 'spa',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '480 km of the Nurburgring',
       track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
-      weekendFormat: 'nurburgring',
+      eventFormat: 'nurburgring',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'montreal',
       name: '480 km of Montreal',
       track: { id: 'canada_2021', layout: 'lfm' },
-      weekendFormat: 'montreal',
+      eventFormat: 'montreal',
       climate: Climate.TEMPERATE,
     },
   ],

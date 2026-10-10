@@ -5,7 +5,7 @@ import {
 } from '../../../../../shared/constants';
 import { Discipline } from '../../../../../shared/types';
 import type {
-  Championship, ClassEntry, Round, SeriesAvailability, SeriesSession, Weather, WeekendFormat,
+  Championship, ClassEntry, EventFormat, Round, SeriesAvailability, SeriesSession, Weather,
 } from '../../../../../shared/types';
 import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import {
@@ -95,8 +95,8 @@ const series = (rounds: Round[], overrides: Partial<Championship> = {}): Champio
     seats: [{ id: 'main-1' }],
     eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
   }],
-  weekendFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ type: 'race', laps: 5 }] }],
-  defaultWeekendFormat: 'sprint',
+  eventFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ type: 'race', laps: 5 }] }],
+  defaultEventFormat: 'sprint',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10] }],
   defaultPointsSystem: 'race',
   ...overrides,
@@ -130,7 +130,7 @@ const entry = (id: string, cars: string[], overrides: Partial<ClassEntry> = {}):
  * @param sessions Its sessions
  * @returns The format
  */
-const format = (sessions: SeriesSession[]): WeekendFormat => ({ id: 'standard', name: 'Standard', sessions });
+const format = (sessions: SeriesSession[]): EventFormat => ({ id: 'standard', name: 'Standard', sessions });
 
 /**
  * A draft checked against the install, with nothing wrong unless a test says.
@@ -205,8 +205,8 @@ describe('renderer/screens/championship-editor/utils', () => {
         name: 'My championship',
         entries: [],
         rounds: [],
-        weekendFormats: [],
-        defaultWeekendFormat: '',
+        eventFormats: [],
+        defaultEventFormat: '',
         pointsSystems: [],
         defaultPointsSystem: '',
       });
@@ -576,7 +576,7 @@ describe('renderer/screens/championship-editor/utils', () => {
 
     it('steps past an id a surviving format still holds', () => {
       const taken = series([], {
-        weekendFormats: [{ id: 'format-2', name: 'Two', sessions: [{ type: 'race' }] }],
+        eventFormats: [{ id: 'format-2', name: 'Two', sessions: [{ type: 'race' }] }],
       });
 
       expect(nextFormat(taken, []).id).toBe('format-2-2');
@@ -587,13 +587,13 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('replaces only the format named', () => {
       const next = withFormat(series([]), 'sprint', { id: 'sprint', name: 'Short', sessions: [] });
 
-      expect(next.weekendFormats).toEqual([{ id: 'sprint', name: 'Short', sessions: [] }]);
+      expect(next.eventFormats).toEqual([{ id: 'sprint', name: 'Short', sessions: [] }]);
     });
 
     it('drops a round\'s length for a session the format no longer runs', () => {
       const lengths = [{ session: 'race-1', laps: 3 }, { session: 'race-2', laps: 4 }];
       const championship = series([{ ...round('a'), sessionLengths: lengths }], {
-        weekendFormats: [{
+        eventFormats: [{
           id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }, { id: 'race-2', type: 'race' }],
         }],
       });
@@ -609,17 +609,17 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('moves the rounds naming no format onto the new default, dropping what it does not run', () => {
       const championship = series([
         { ...round('a'), sessionLengths: [{ session: 'grand-prix', laps: 50 }] },
-        { ...round('b'), weekendFormat: 'weekend', sessionLengths: [{ session: 'grand-prix', laps: 60 }] },
+        { ...round('b'), eventFormat: 'event', sessionLengths: [{ session: 'grand-prix', laps: 60 }] },
       ], {
-        weekendFormats: [
-          { id: 'weekend', name: 'Weekend', sessions: [{ id: 'grand-prix', type: 'race' }] },
+        eventFormats: [
+          { id: 'event', name: 'Event', sessions: [{ id: 'grand-prix', type: 'race' }] },
           { id: 'sprint', name: 'Sprint', sessions: [{ id: 'sprint', type: 'race' }] },
         ],
-        defaultWeekendFormat: 'weekend',
+        defaultEventFormat: 'event',
       });
       const next = withDefaultFormat(championship, 'sprint');
 
-      expect(next.defaultWeekendFormat).toBe('sprint');
+      expect(next.defaultEventFormat).toBe('sprint');
       expect(next.rounds.map((one) => one.sessionLengths)).toEqual([
         undefined, [{ session: 'grand-prix', laps: 60 }],
       ]);
@@ -628,28 +628,28 @@ describe('renderer/screens/championship-editor/utils', () => {
 
   describe('withoutFormat', () => {
     const two = (): Championship => series([
-      { ...round('a'), weekendFormat: 'endurance' },
-      { ...round('b'), weekendFormat: 'sprint' },
+      { ...round('a'), eventFormat: 'endurance' },
+      { ...round('b'), eventFormat: 'sprint' },
     ], {
-      weekendFormats: [
+      eventFormats: [
         { id: 'sprint', name: 'Sprint', sessions: [{ type: 'race' }] },
         { id: 'endurance', name: 'Endurance', sessions: [{ type: 'race' }] },
       ],
-      defaultWeekendFormat: 'endurance',
+      defaultEventFormat: 'endurance',
     });
 
     it('puts a round that ran it back on the championship default', () => {
       const next = withoutFormat(two(), 'endurance');
 
-      expect(next.rounds.map((one) => one.weekendFormat)).toEqual([undefined, 'sprint']);
+      expect(next.rounds.map((one) => one.eventFormat)).toEqual([undefined, 'sprint']);
     });
 
     it('moves the default to what is left when the default goes', () => {
-      expect(withoutFormat(two(), 'endurance').defaultWeekendFormat).toBe('sprint');
+      expect(withoutFormat(two(), 'endurance').defaultEventFormat).toBe('sprint');
     });
 
     it('leaves the default alone when another format goes', () => {
-      expect(withoutFormat(two(), 'sprint').defaultWeekendFormat).toBe('endurance');
+      expect(withoutFormat(two(), 'sprint').defaultEventFormat).toBe('endurance');
     });
 
     it('drops a round\'s lengths for the format that went', () => {
@@ -663,7 +663,7 @@ describe('renderer/screens/championship-editor/utils', () => {
 
   describe('withRoundLengthsPruned', () => {
     const championship = series([], {
-      weekendFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }] }],
+      eventFormats: [{ id: 'sprint', name: 'Sprint', sessions: [{ id: 'race-1', type: 'race' }] }],
     });
 
     it('keeps the lengths for sessions the round\'s format runs', () => {
@@ -720,18 +720,18 @@ describe('renderer/screens/championship-editor/utils', () => {
         { id: 'sprint', name: 'Sprint', positions: [5] },
       ],
       defaultPointsSystem: 'sprint',
-      weekendFormats: [{
+      eventFormats: [{
         id: 'double',
         name: 'Double',
         sessions: [{ type: 'race', pointsSystem: 'sprint' }, { type: 'race', pointsSystem: 'race' }],
       }],
-      defaultWeekendFormat: 'double',
+      defaultEventFormat: 'double',
     });
 
     it('puts a race that paid it back on the championship default', () => {
       const next = withoutPoints(two(), 'sprint');
 
-      expect(next.weekendFormats[0].sessions.map((one) => one.pointsSystem)).toEqual([undefined, 'race']);
+      expect(next.eventFormats[0].sessions.map((one) => one.pointsSystem)).toEqual([undefined, 'race']);
     });
 
     it('moves the default to what is left when the default goes', () => {
@@ -867,8 +867,8 @@ describe('renderer/screens/championship-editor/utils', () => {
   describe('roundsRunning', () => {
     const championship = series([
       round('a'),
-      { ...round('b'), weekendFormat: 'endurance' },
-      { ...round('c'), weekendFormat: 'sprint' },
+      { ...round('b'), eventFormat: 'endurance' },
+      { ...round('c'), eventFormat: 'sprint' },
     ]);
 
     it('counts the rounds that name nothing as running the default', () => {
@@ -986,7 +986,7 @@ describe('renderer/screens/championship-editor/utils', () => {
       expect(problemTab('series.round.notFound')).toBe('calendar');
       expect(problemTab('series.seat.teamUnknown')).toBe('classes');
       expect(problemTab('series.points.unknown')).toBe('scoring');
-      expect(problemTab('series.formats.empty')).toBe('weekends');
+      expect(problemTab('series.formats.empty')).toBe('formats');
     });
 
     it('sends anything it does not list to the overview', () => {
@@ -1195,7 +1195,7 @@ describe('renderer/screens/championship-editor/utils', () => {
   });
 
   describe('withSessionMoved', () => {
-    const weekend = format([
+    const event = format([
       { type: 'practice', minutes: 30, name: 'P' },
       { type: 'qualify', minutes: 15, name: 'Q' },
       { type: 'race', laps: 5, name: 'R', day: 1 },
@@ -1206,60 +1206,60 @@ describe('renderer/screens/championship-editor/utils', () => {
      * @param moved The format
      * @returns Each session as its name and its day
      */
-    const order = (moved: WeekendFormat): string[] => moved.sessions.map((one) => `${one.name}${one.day ?? 0}`);
+    const order = (moved: EventFormat): string[] => moved.sessions.map((one) => `${one.name}${one.day ?? 0}`);
 
     it('moves a session in front of another, onto the day that one is on', () => {
-      expect(order(withSessionMoved(weekend, 2, 0, 0))).toEqual(['R0', 'P0', 'Q0']);
+      expect(order(withSessionMoved(event, 2, 0, 0))).toEqual(['R0', 'P0', 'Q0']);
     });
 
     it('moves a session to the end of another day', () => {
-      expect(order(withSessionMoved(weekend, 0, null, 1))).toEqual(['Q0', 'R1', 'P1']);
+      expect(order(withSessionMoved(event, 0, null, 1))).toEqual(['Q0', 'R1', 'P1']);
     });
 
-    it('drops a session onto a day the weekend did not reach yet', () => {
-      expect(order(withSessionMoved(weekend, 0, null, 2))).toEqual(['Q0', 'R1', 'P2']);
+    it('drops a session onto a day the event did not reach yet', () => {
+      expect(order(withSessionMoved(event, 0, null, 2))).toEqual(['Q0', 'R1', 'P2']);
     });
 
     // Fixed bug: a session dropped in front of itself was moved to the end of
     // its day, because it was looked for among the sessions it had left.
     it('leaves a session dropped in front of itself where it was', () => {
-      expect(order(withSessionMoved(weekend, 0, 0, 0))).toEqual(['P0', 'Q0', 'R1']);
-      expect(order(withSessionMoved(weekend, 1, 1, 0))).toEqual(['P0', 'Q0', 'R1']);
+      expect(order(withSessionMoved(event, 0, 0, 0))).toEqual(['P0', 'Q0', 'R1']);
+      expect(order(withSessionMoved(event, 1, 1, 0))).toEqual(['P0', 'Q0', 'R1']);
     });
 
     it('writes the first day as no day at all', () => {
-      expect(withSessionMoved(weekend, 2, 0, 0).sessions[0].day).toBeUndefined();
+      expect(withSessionMoved(event, 2, 0, 0).sessions[0].day).toBeUndefined();
     });
   });
 
   describe('withoutDay', () => {
-    const weekend = format([
+    const event = format([
       { type: 'practice', minutes: 30, name: 'A' },
       { type: 'qualify', minutes: 15, name: 'B', day: 1 },
       { type: 'race', laps: 5, name: 'C', day: 2 },
     ]);
 
     it('moves the sessions of a day onto the day before, and every later day one earlier', () => {
-      expect(withoutDay(weekend, 1).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
+      expect(withoutDay(event, 1).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
     });
 
     it('moves the sessions of the first day onto the day after', () => {
-      expect(withoutDay(weekend, 0).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
+      expect(withoutDay(event, 0).sessions.map((one) => one.day)).toEqual([undefined, undefined, 1]);
     });
   });
 
   describe('withSessionConditionsOf', () => {
-    const weekend = format([{ type: 'race', laps: 5 }, { type: 'race', laps: 10 }]);
+    const event = format([{ type: 'race', laps: 5 }, { type: 'race', laps: 10 }]);
 
     it('puts the conditions on the one session', () => {
-      const next = withSessionConditionsOf(weekend, 1, { ambient: 25 });
+      const next = withSessionConditionsOf(event, 1, { ambient: 25 });
 
       expect(next.sessions[1].conditions).toEqual({ ambient: 25 });
       expect(next.sessions[0].conditions).toBeUndefined();
     });
 
     it('leaves conditions that set nothing off the document', () => {
-      expect(withSessionConditionsOf(weekend, 0, { ambient: undefined }).sessions[0].conditions).toBeUndefined();
+      expect(withSessionConditionsOf(event, 0, { ambient: undefined }).sessions[0].conditions).toBeUndefined();
     });
   });
 
@@ -1345,7 +1345,7 @@ describe('renderer/screens/championship-editor/utils', () => {
 
   describe('racesPaying', () => {
     const championship = series([], {
-      weekendFormats: [
+      eventFormats: [
         {
           id: 'sprint',
           name: 'Sprint',

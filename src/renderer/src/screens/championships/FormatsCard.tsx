@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FormatStrip } from './FormatStrip.tsx';
 import { pointsOf, sessionsByDay } from './utils.ts';
 import type { Championship, SeriesSession } from '../../../../shared/types';
-import { formatOf } from '../../../../shared/utils/weekend-format';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -24,13 +24,13 @@ interface FormatsCardProps {
   className?: string;
 }
 
-// Every weekend format: its sessions as a strip and in words, day by day, and
+// Every event format: its sessions as a strip and in words, day by day, and
 // which rounds run it. Several formats sit side by side in columns rather than
 // down one narrow list.
 export const FormatsCard = ({ series, className }: FormatsCardProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
-  const formats = series.weekendFormats;
+  const formats = series.eventFormats;
 
   /**
    * Names one session, with its length where it has one.
@@ -65,7 +65,7 @@ export const FormatsCard = ({ series, className }: FormatsCardProps) => {
       >
         {formats.map((format) => {
           const rounds = series.rounds.filter((round) => formatOf(series, round)?.id === format.id);
-          // A race paying its own table is the whole reason a sprint weekend is
+          // A race paying its own table is the whole reason a sprint event is
           // a separate format, so each one that does is named.
           const ownPoints = format.sessions
             .filter((session) => session.pointsSystem)
@@ -79,7 +79,7 @@ export const FormatsCard = ({ series, className }: FormatsCardProps) => {
                   <span className="text-sm font-semibold">{format.name}</span>
                   {/* Filled, as the format most rounds run. Only worth saying
                       when there is something to default against. */}
-                  {formats.length > 1 && format.id === series.defaultWeekendFormat ? (
+                  {formats.length > 1 && format.id === series.defaultEventFormat ? (
                     <Badge>{t('championships.format.default')}</Badge>
                   ) : null}
                   {/* Neutral on purpose: a points system is named by whoever wrote it. */}

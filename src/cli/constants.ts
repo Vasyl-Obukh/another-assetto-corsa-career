@@ -26,9 +26,9 @@ export const RESULTS_DIR = path.join(PROJECT_ROOT, 'data', 'results');
 export const RACES_DIR = path.join(PROJECT_ROOT, 'races');
 
 /**
- * Where a weekend's progress is kept between its launches.
+ * Where an event's progress is kept between its launches.
  */
-export const WEEKENDS_DIR = path.join(PROJECT_ROOT, 'data', 'weekends');
+export const EVENTS_DIR = path.join(PROJECT_ROOT, 'data', 'events');
 
 /**
  * Race loaded when none is named on the command line.

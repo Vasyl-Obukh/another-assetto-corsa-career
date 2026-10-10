@@ -146,7 +146,7 @@ export const pursesOf = (
 /**
  * Names a round's races, numbering the ones that would otherwise read alike.
  *
- * A race with no name of its own is called by its type, so a weekend of two
+ * A race with no name of its own is called by its type, so an event of two
  * unnamed races would put "Race" beside "Race" - which a calendar or a form
  * listing both cannot leave that way. Only a clash is numbered, counting the
  * races that share the label.

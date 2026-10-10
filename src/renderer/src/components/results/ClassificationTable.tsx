@@ -59,7 +59,7 @@ export const ClassificationTable = ({
     best: rows.some((row) => row.bestLap !== null),
     gap: rows.some((row) => row.gap !== null || row.total !== null),
     cuts: rows.some((row) => (row.cuts ?? 0) > 0),
-    // A race weekend of the player's own pays nothing, so a place alone is no
+    // A race event of the player's own pays nothing, so a place alone is no
     // reason for the column.
     points: rows.some((row) => (row.place?.points ?? 0) > 0),
     classes: new Set(rows.map((row) => row.entry)).size > 1,

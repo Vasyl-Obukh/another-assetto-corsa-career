@@ -2,16 +2,16 @@ import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
-import type { Championship, WeekendFormat } from '../../../shared/types/index.ts';
+import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * A Super Formula weekend: practice on Saturday morning, two-part qualifying
+ * A Super Formula event: practice on Saturday morning, two-part qualifying
  * in the afternoon, and the race on Sunday.
  */
-const WEEKEND: WeekendFormat = {
-  id: 'race-weekend',
-  name: 'Race weekend',
+const EVENT: EventFormat = {
+  id: 'standard',
+  name: 'Standard',
   sessions: [
     { type: 'practice', name: 'Practice', minutes: 90, day: 0 },
     { id: 'q1', type: 'qualify', name: 'Q1', minutes: 10, day: 1 },
@@ -86,10 +86,10 @@ export const SUPER_FORMULA_2023: Championship = {
       eligibility: { kind: 'spec', spec: CarSpec.SUPER_FORMULA_2023, minModels: 1 },
     },
   ],
-  weekendFormats: [
-    WEEKEND,
+  eventFormats: [
+    EVENT,
   ],
-  defaultWeekendFormat: 'race-weekend',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'fuji-1',

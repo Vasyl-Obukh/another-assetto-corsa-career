@@ -1,7 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
-import { Climate, Discipline, Hemisphere } from '../../../shared/types/index.ts';
+import {
+  Climate, Discipline, Hemisphere, Weekday,
+} from '../../../shared/types/index.ts';
 import type {
   CareerSeason,
   LaunchRecord,
@@ -49,7 +51,6 @@ import {
   makePlan,
   makeRound,
   makeSeason,
-  WEEKEND_DAYS,
 } from './fixtures.ts';
 
 /**
@@ -154,6 +155,25 @@ describe('main/career-store/utils', () => {
       expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
     });
 
+    // A career written while an event spanned several days dates its events
+    // with firstDay and lastDay, and its championships' formats under another
+    // name - quarantined at load rather than failing on the first sort.
+    it('refuses an event with no day to race on', () => {
+      const event = {
+        ...makeEvent('one', '2026-03-01'), date: undefined, firstDay: '2026-02-27',
+      } as unknown as SeasonEvent;
+      const entry = makeEntry({ events: [event] });
+
+      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+    });
+
+    it('refuses an entry whose championship holds no event formats', () => {
+      const { eventFormats: unused, ...championship } = makeChampionship();
+      const entry = makeEntry({ championship: championship as unknown as SeasonEntry['championship'] });
+
+      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+    });
+
     it('accepts a career that has entered nothing yet', () => {
       const career = makeCareer({ seasons: [makeSeason()] });
 
@@ -194,12 +214,12 @@ describe('main/career-store/utils', () => {
   describe('materialiseEvents', () => {
     const season = makeSeason();
 
-    it('dates every round of the championship on a Sunday', () => {
-      const events = materialiseEvents(makeChampionship(), season, season.startDate);
+    it('dates every round on the day of the week its championship races', () => {
+      const events = materialiseEvents(makeChampionship({ raceWeekday: Weekday.SUNDAY }), season, season.startDate);
 
       expect(events).toHaveLength(2);
-      expect(events.every((event) => isSunday(event.raceDay))).toBe(true);
-      expect(events[0].firstDay < events[1].firstDay).toBe(true);
+      expect(events.every((event) => isSunday(event.date))).toBe(true);
+      expect(events[0].date < events[1].date).toBe(true);
     });
 
     it('carries the race id each round archives its results under', () => {
@@ -211,14 +231,14 @@ describe('main/career-store/utils', () => {
     it('holds the whole calendar inside the career year it is entered in', () => {
       const events = materialiseEvents(makeChampionship(), season, season.startDate);
 
-      expect(events[0].firstDay >= season.startDate).toBe(true);
-      expect(events[1].lastDay <= seasonEndDate(season.startDate)).toBe(true);
+      expect(events[0].date >= season.startDate).toBe(true);
+      expect(events[1].date <= seasonEndDate(season.startDate)).toBe(true);
     });
 
-    it('records a round whose weekend has already closed as missed', () => {
+    it('records a round whose day has already gone by as missed', () => {
       const dated = materialiseEvents(makeChampionship(), season, season.startDate);
       const events = materialiseEvents(
-        makeChampionship(), season, addDays(dated[0].lastDay, 1),
+        makeChampionship(), season, addDays(dated[0].date, 1),
       );
 
       expect(events.map((event) => event.status)).toEqual(['missed', 'scheduled']);
@@ -249,11 +269,11 @@ describe('main/career-store/utils', () => {
         .toEqual(materialiseEvents(series, season, season.startDate));
     });
 
-    it('opens two championships on different weekends', () => {
+    it('opens two championships on different days', () => {
       const one = materialiseEvents(makeChampionship({ id: 'alpha-cup' }), season, '2026-01-04');
       const two = materialiseEvents(makeChampionship({ id: 'zebra-trophy' }), season, '2026-01-04');
 
-      expect(one[0].firstDay).not.toBe(two[0].firstDay);
+      expect(one[0].date).not.toBe(two[0].date);
     });
   });
 
@@ -279,7 +299,7 @@ describe('main/career-store/utils', () => {
         .toEqual(['one']);
     });
 
-    it('orders weekends of different championships earliest first', () => {
+    it('orders events of different championships earliest first', () => {
       const late = makeEntry({ series: 'late-cup', events: [makeEvent('late', '2026-06-07')] });
       const early = makeEntry({ series: 'early-cup', events: [makeEvent('early', '2026-02-01')] });
 
@@ -301,7 +321,7 @@ describe('main/career-store/utils', () => {
       })],
     });
 
-    it('stops on the opening day of the first enrolled weekend on the way', () => {
+    it('stops on the day of the first enrolled event on the way', () => {
       expect(advanceStop(season, '2026-01-04', '2026-06-07')).toBe('2026-03-01');
     });
 
@@ -309,16 +329,16 @@ describe('main/career-store/utils', () => {
       expect(advanceStop(season, '2026-01-04', '2026-02-01')).toBe('2026-02-01');
     });
 
-    it('stops at a weekend opening on the day asked for', () => {
+    it('stops at an event on the day asked for', () => {
       expect(advanceStop(season, '2026-01-04', '2026-03-01')).toBe('2026-03-01');
     });
 
-    // Otherwise the clock could never leave the weekend it is standing in.
-    it('does not stop again at the weekend the clock already stands in', () => {
+    // Otherwise the clock could never leave the event it is standing in.
+    it('does not stop again at the event on the day the clock stands at', () => {
       expect(advanceStop(season, '2026-03-01', '2026-04-05')).toBe('2026-04-05');
     });
 
-    it('ignores a weekend that has already been raced', () => {
+    it('ignores an event that has already been raced', () => {
       const raced = makeSeason({
         entries: [makeEntry({ events: [makeEvent('one', '2026-03-01', { status: 'raced' })] })],
       });
@@ -349,14 +369,14 @@ describe('main/career-store/utils', () => {
     const GENERATED = makeChampionship({ generatedWeather: { climate: Climate.OCEANIC } });
     const CLOCK = '2026-03-01';
 
-    it('draws a weekend the clock has come within a week of', () => {
+    it('draws an event the clock has come within a week of', () => {
       const issued = issueForecast(makeCareer(), 0, GENERATED, makeEvent('one', addDays(CLOCK, 7)), CLOCK);
 
       expect(issued.forecast).toMatchObject({ series: 'test-cup', round: 'one', climate: Climate.OCEANIC });
       expect(issued.forecast?.sessions).toHaveLength(3);
     });
 
-    it('leaves a weekend further out than a week undrawn', () => {
+    it('leaves an event further out than a week undrawn', () => {
       const event = makeEvent('one', addDays(CLOCK, 8));
 
       expect(issueForecast(makeCareer(), 0, GENERATED, event, CLOCK)).toBe(event);
@@ -368,7 +388,7 @@ describe('main/career-store/utils', () => {
       expect(issueForecast(makeCareer({ id: 'career-2' }), 1, GENERATED, event, CLOCK)).toBe(event);
     });
 
-    it('draws a weekend the clock has already passed, so it shows the weather it had', () => {
+    it('draws an event the clock has already passed, so it shows the weather it had', () => {
       const event = makeEvent('one', '2026-02-01', { status: 'missed' });
 
       expect(issueForecast(makeCareer(), 0, GENERATED, event, CLOCK).forecast).toBeDefined();
@@ -412,7 +432,7 @@ describe('main/career-store/utils', () => {
   });
 
   describe('issueForecasts', () => {
-    it('draws every weekend of every entry that is close enough, and no other', () => {
+    it('draws every event of every entry that is close enough, and no other', () => {
       const championship = makeChampionship({ generatedWeather: { climate: Climate.OCEANIC } });
       const season = makeSeason({
         entries: [makeEntry({
@@ -464,21 +484,21 @@ describe('main/career-store/utils', () => {
   });
 
   describe('inProgressEvent', () => {
-    it('finds the weekend that has sessions recorded against it', () => {
+    it('finds the event that has sessions recorded against it', () => {
       const started = makeEvent('two', '2026-05-03', { sessions: [makeRecord(0)] });
       const entry = makeEntry({ events: [makeEvent('one', '2026-03-01'), started] });
 
       expect(inProgressEvent(makeSeason({ entries: [entry] }))?.event).toBe(started);
     });
 
-    it('finds nothing when no weekend has been started', () => {
+    it('finds nothing when no event has been started', () => {
       const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
 
       expect(inProgressEvent(makeSeason({ entries: [entry] }))).toBeNull();
     });
 
-    // A weekend that has been scored is over, whatever it left behind.
-    it('ignores the records of a weekend that is already raced', () => {
+    // An event that has been scored is over, whatever it left behind.
+    it('ignores the records of an event that is already raced', () => {
       const done = makeEvent('one', '2026-03-01', { status: 'raced', sessions: [makeRecord(0)] });
       const entry = makeEntry({ events: [done] });
 
@@ -512,43 +532,84 @@ describe('main/career-store/utils', () => {
       return { entry, season: makeSeason({ entries: [entry] }) };
     };
 
-    it('allows the next session of a weekend nothing stands in the way of', () => {
-      const { entry } = seasonOf([makeEvent('one', '2026-03-01')]);
+    it('allows the next session of an event nothing stands in the way of', () => {
+      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
 
-      expect(launchBlock({ entry, event: entry.events[0] }, true)).toBeNull();
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toBeNull();
     });
 
-    it('refuses a weekend that has already been raced or passed', () => {
-      const { entry } = seasonOf([makeEvent('one', '2026-03-01', { status: 'missed' })]);
+    it('refuses an event that has already been raced or passed', () => {
+      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01', { status: 'missed' })]);
 
-      expect(launchBlock({ entry, event: entry.events[0] }, true)?.code)
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)?.code)
         .toBe('career.event.closed');
     });
 
     it('refuses a round the installed content cannot race', () => {
-      const { entry } = seasonOf([makeEvent('one', '2026-03-01')]);
+      const { entry, season } = seasonOf([makeEvent('one', '2026-03-01')]);
 
-      expect(launchBlock({ entry, event: entry.events[0] }, false)?.code)
+      expect(launchBlock(season, { entry, event: entry.events[0] }, false, false)?.code)
         .toBe('series.round.unavailable');
     });
 
-    it('allows the weekend that is itself part-way through', () => {
-      const { entry } = seasonOf([
+    it('allows the event that is itself part-way through', () => {
+      const { entry, season } = seasonOf([
         makeEvent('one', '2026-03-01', { sessions: [makeRecord(0)] }),
       ]);
 
-      expect(launchBlock({ entry, event: entry.events[0] }, true)).toBeNull();
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toBeNull();
+    });
+
+    // Racing one event of a day gives up the rest of it, so one entered after
+    // the day was already raced cannot be driven as well.
+    it('refuses an event on a day the career has already raced', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const other = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-01', { status: 'raced' })],
+      });
+      const season = makeSeason({ entries: [entry, other] });
+
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toMatchObject({
+        code: 'career.event.sameDay', params: { event: 'Other Cup - Round one' },
+      });
+    });
+
+    it('allows an event on a raced day while two events on one day are allowed', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const other = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-01', { status: 'raced' })],
+      });
+      const season = makeSeason({ entries: [entry, other] });
+
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, true)).toBeNull();
+    });
+
+    it('ignores a day raced in a championship the career left', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const left = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-01', { status: 'raced' })],
+        withdrawn: true,
+      });
+      const season = makeSeason({ entries: [entry, left] });
+
+      expect(launchBlock(season, { entry, event: entry.events[0] }, true, false)).toBeNull();
     });
 
     // The checks are ordered so the button and the command always agree on
     // which refusal to say first.
-    it('says a weekend is over before it says anything else about it', () => {
-      const { entry } = seasonOf([
+    it('says an event is over before it says anything else about it', () => {
+      const { entry, season } = seasonOf([
         makeEvent('one', '2026-03-01'),
         makeEvent('two', '2026-05-03', { status: 'raced' }),
       ]);
 
-      expect(launchBlock({ entry, event: entry.events[1] }, false)?.code)
+      expect(launchBlock(season, { entry, event: entry.events[1] }, false, false)?.code)
         .toBe('career.event.closed');
     });
   });
@@ -564,8 +625,7 @@ describe('main/career-store/utils', () => {
         roundName: 'Round two',
         number: 2,
         ladder: { discipline: Discipline.ROAD, tier: 4 },
-        firstDay: '2026-05-03',
-        lastDay: event.lastDay,
+        date: '2026-05-03',
         reason: 'skipped',
       });
     });
@@ -599,13 +659,13 @@ describe('main/career-store/utils', () => {
     });
     const season = makeSeason({ entries: [entry] });
 
-    it('lists every weekend of the career\'s over by the date', () => {
+    it('lists every event of the career\'s over by the date', () => {
       expect(advanceSkips(season, '2026-06-01').map((one) => [one.round, one.reason]))
         .toEqual([['one', 'skipped'], ['two', 'partway']]);
     });
 
-    it('costs nothing for a weekend the date falls inside', () => {
-      expect(advanceSkips(season, '2026-03-02')).toEqual([]);
+    it('costs nothing for an event on the date itself', () => {
+      expect(advanceSkips(season, '2026-03-01')).toEqual([]);
     });
 
     it('leaves out what is already raced and what was given up', () => {
@@ -617,45 +677,57 @@ describe('main/career-store/utils', () => {
   });
 
   describe('launchSkips', () => {
-    it('loses every earlier weekend still unraced', () => {
+    it('loses every earlier event still unraced', () => {
       const entry = makeEntry({
         events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
       });
       const season = makeSeason({ entries: [entry] });
 
-      expect(launchSkips(season, { entry, event: entry.events[1] }).map((one) => [one.round, one.reason]))
+      expect(launchSkips(season, { entry, event: entry.events[1] }, false).map((one) => [one.round, one.reason]))
         .toEqual([['one', 'skipped']]);
     });
 
-    it('loses a weekend left part-way, even one later than this', () => {
+    it('loses an event left part-way, even one later than this', () => {
       const entry = makeEntry({
         events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03', { sessions: [makeRecord(0)] })],
       });
       const season = makeSeason({ entries: [entry] });
 
-      expect(launchSkips(season, { entry, event: entry.events[0] }).map((one) => [one.round, one.reason]))
+      expect(launchSkips(season, { entry, event: entry.events[0] }, false).map((one) => [one.round, one.reason]))
         .toEqual([['two', 'partway']]);
     });
 
-    it('lists a weekend opening during this one as a clash rather than lost', () => {
+    it('loses an event on the same day as a clash', () => {
       const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
       const other = makeEntry({
         series: 'other-cup',
         championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
-        events: [makeEvent('one', '2026-03-02')],
+        events: [makeEvent('one', '2026-03-01')],
       });
       const season = makeSeason({ entries: [entry, other] });
 
-      expect(launchSkips(season, { entry, event: entry.events[0] }).map((one) => [one.series, one.reason]))
+      expect(launchSkips(season, { entry, event: entry.events[0] }, false).map((one) => [one.series, one.reason]))
         .toEqual([['other-cup', 'clash']]);
     });
 
-    it('costs nothing for a weekend raced in its turn', () => {
+    it('leaves an event on the same day alone while two on one day are allowed', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const other = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-01')],
+      });
+      const season = makeSeason({ entries: [entry, other] });
+
+      expect(launchSkips(season, { entry, event: entry.events[0] }, true)).toEqual([]);
+    });
+
+    it('costs nothing for an event raced in its turn', () => {
       const entry = makeEntry({
         events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
       });
 
-      expect(launchSkips(makeSeason({ entries: [entry] }), { entry, event: entry.events[0] })).toEqual([]);
+      expect(launchSkips(makeSeason({ entries: [entry] }), { entry, event: entry.events[0] }, false)).toEqual([]);
     });
   });
 
@@ -696,11 +768,11 @@ describe('main/career-store/utils', () => {
   });
 
   describe('clockTime', () => {
-    it('says nothing when the weekend does not say when a session starts', () => {
+    it('says nothing when the event does not say when a session starts', () => {
       expect(clockTime(undefined)).toBeNull();
     });
 
-    it('passes a time the weekend already wrote as "HH:MM" through', () => {
+    it('passes a time the event already wrote as "HH:MM" through', () => {
       expect(clockTime('08:45')).toBe('08:45');
     });
 
@@ -747,13 +819,12 @@ describe('main/career-store/utils', () => {
       },
     ];
 
-    const FIRST_DAY = '2026-03-06';
 
     /**
-     * Runs eventSessions over the three-session weekend above.
+     * Runs eventSessions over the three-session event above.
      * @param records What has run so far
-     * @param live Whether the career can still run this weekend
-     * @param score What the weekend has paid, when it has been scored
+     * @param live Whether the career can still run this event
+     * @param score What the event has paid, when it has been scored
      * @param forecast The round's generated weather, when it has one
      * @param pending Whether that weather is generated but not yet forecast
      * @returns The sessions as the event page would show them
@@ -765,7 +836,7 @@ describe('main/career-store/utils', () => {
       forecast: RoundForecast | null = null,
       pending = false,
     ) => eventSessions(
-      makePlan(SESSIONS), STATED, records, forecast, pending, FIRST_DAY, score, 'seat-2', live,
+      makePlan(SESSIONS), STATED, records, forecast, pending, score, 'seat-2', live,
     );
 
     it('marks what has run, what runs next and what waits on it', () => {
@@ -773,17 +844,16 @@ describe('main/career-store/utils', () => {
         .toEqual(['done', 'next', 'later']);
     });
 
-    it('marks nothing next while the career cannot run the weekend', () => {
+    it('marks nothing next while the career cannot run the event', () => {
       expect(sessionsOf([makeRecord(0)], false).map((one) => one.status))
         .toEqual(['done', 'later', 'later']);
     });
 
-    it('dates each session off the day the weekend opens', () => {
-      expect(sessionsOf([]).map((one) => one.date))
-        .toEqual(['2026-03-06', '2026-03-07', '2026-03-08']);
+    it('says which day of the event each session runs on', () => {
+      expect(sessionsOf([]).map((one) => one.day)).toEqual([0, 1, 2]);
     });
 
-    it('says when a session starts only where the weekend says so', () => {
+    it('says when a session starts only where the event says so', () => {
       expect(sessionsOf([]).map((one) => one.startsAt)).toEqual([null, null, '14:30']);
     });
 
@@ -1058,11 +1128,12 @@ describe('main/career-store/utils', () => {
         season,
         library,
         new Map([[held, makeAvailability(entered)]]),
+        false,
       );
 
       expect(calendar.events).toHaveLength(1);
       expect(calendar.events[0]).toMatchObject({
-        seriesName: 'Test Cup (as entered)', firstDay: '2026-03-01', enrolled: true,
+        seriesName: 'Test Cup (as entered)', date: '2026-03-01', enrolled: true,
       });
     });
 
@@ -1071,7 +1142,7 @@ describe('main/career-store/utils', () => {
       const other = makeChampionship({ id: 'other-cup', name: 'Other Cup' });
 
       const calendar = composeCalendar(
-        makeCareer({ seasons: [season] }), season, [makeListing(other)], new Map(),
+        makeCareer({ seasons: [season] }), season, [makeListing(other)], new Map(), false,
       );
 
       expect(calendar.events).toHaveLength(2);
@@ -1092,6 +1163,7 @@ describe('main/career-store/utils', () => {
         season,
         [makeListing(series)],
         new Map([[held, makeAvailability(series)]]),
+        false,
       );
 
       expect(calendar.events.map((event) => [event.entry, event.enrolled]))
@@ -1103,12 +1175,12 @@ describe('main/career-store/utils', () => {
       const season = makeSeason({ index: 2 });
       const career = makeCareer({ date: '2026-06-07', seasons: [season] });
 
-      expect(composeCalendar(career, season, [], new Map())).toMatchObject({
+      expect(composeCalendar(career, season, [], new Map(), false)).toMatchObject({
         season: 2, from: '2026-01-04', to: '2027-01-02', date: '2026-06-07', events: [],
       });
     });
 
-    it('orders events by opening day, then by championship name', () => {
+    it('orders events by day, then by championship name', () => {
       const zebra = makeEntry({
         series: 'zebra-cup',
         championship: makeChampionship({ id: 'zebra-cup', name: 'Zebra Cup' }),
@@ -1129,23 +1201,24 @@ describe('main/career-store/utils', () => {
           [zebra, makeAvailability(zebra.championship)],
           [alpha, makeAvailability(alpha.championship)],
         ]),
+        false,
       );
 
-      expect(calendar.events.map((event) => [event.firstDay, event.seriesName])).toEqual([
+      expect(calendar.events.map((event) => [event.date, event.seriesName])).toEqual([
         ['2026-02-01', 'Alpha Cup'],
         ['2026-05-03', 'Alpha Cup'],
         ['2026-05-03', 'Zebra Cup'],
       ]);
     });
 
-    it('marks enrolled weekends that overlap another', () => {
+    it('marks enrolled events on the same day as another', () => {
       const first = makeEntry({
         events: [makeEvent('one', '2026-06-07'), makeEvent('two', '2026-07-05')],
       });
       const second = makeEntry({
         series: 'other-cup',
         championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
-        events: [makeEvent('one', addDays('2026-06-07', WEEKEND_DAYS - 1))],
+        events: [makeEvent('one', '2026-06-07')],
       });
       const season = makeSeason({ entries: [first, second] });
 
@@ -1157,18 +1230,66 @@ describe('main/career-store/utils', () => {
           [first, makeAvailability(first.championship)],
           [second, makeAvailability(second.championship)],
         ]),
+        false,
       );
 
       expect(calendar.events.map((event) => [event.series, event.round, event.clash])).toEqual([
-        ['test-cup', 'one', true],
         ['other-cup', 'one', true],
+        ['test-cup', 'one', true],
         ['test-cup', 'two', false],
       ]);
     });
 
+    // Once one of the two was given up there is nothing left to choose.
+    it('does not mark a pair one of which was given up', () => {
+      const first = makeEntry({ events: [makeEvent('one', '2026-06-07', { status: 'raced' })] });
+      const second = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-06-07', { status: 'missed' })],
+      });
+      const season = makeSeason({ entries: [first, second] });
+
+      const calendar = composeCalendar(
+        makeCareer({ seasons: [season] }),
+        season,
+        [],
+        new Map([
+          [first, makeAvailability(first.championship)],
+          [second, makeAvailability(second.championship)],
+        ]),
+        false,
+      );
+
+      expect(calendar.events.every((event) => !event.clash)).toBe(true);
+    });
+
+    it('marks nothing while two events on one day are allowed', () => {
+      const first = makeEntry({ events: [makeEvent('one', '2026-06-07')] });
+      const second = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-06-07')],
+      });
+      const season = makeSeason({ entries: [first, second] });
+
+      const calendar = composeCalendar(
+        makeCareer({ seasons: [season] }),
+        season,
+        [],
+        new Map([
+          [first, makeAvailability(first.championship)],
+          [second, makeAvailability(second.championship)],
+        ]),
+        true,
+      );
+
+      expect(calendar.events.every((event) => !event.clash)).toBe(true);
+    });
+
     // A season the career pulled out of is not one it can be double-booked
-    // against, however its weekends fall.
-    it('does not clash a weekend against a championship the career left', () => {
+    // against, however its events fall.
+    it('does not clash an event against a championship the career left', () => {
       const kept = makeEntry({ events: [makeEvent('one', '2026-06-07')] });
       const left = makeEntry({
         series: 'other-cup',
@@ -1186,6 +1307,7 @@ describe('main/career-store/utils', () => {
           [kept, makeAvailability(kept.championship)],
           [left, makeAvailability(left.championship)],
         ]),
+        false,
       );
 
       expect(calendar.events.every((event) => !event.clash)).toBe(true);
@@ -1200,6 +1322,7 @@ describe('main/career-store/utils', () => {
         season,
         [],
         new Map([[held, makeAvailability(held.championship)]]),
+        false,
       );
 
       expect(calendar.events).toEqual([]);

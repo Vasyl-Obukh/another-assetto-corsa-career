@@ -11,7 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * the base game has nothing to race it. Four of the eight rounds at their real
  * distances: Road Atlanta, Watkins Glen, Road America and Laguna Seca.
  * Mosport, Mid-Ohio, Edmonton and Riverside are not in Assetto Corsa. The
- * season changed its weekend format part-way through; this is its single race,
+ * season changed its event format part-way through; this is its single race,
  * over the two hundred miles each ran. Points are 20-15-12-10-8-6-4-3-2-1. The
  * field is invented.
  *
@@ -50,7 +50,7 @@ export const CAN_AM_1973: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_porsche_917_30'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'road-atlanta',
       name: '200 miles (Road Atlanta)',
@@ -88,7 +88,7 @@ export const CAN_AM_1973: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'road-atlanta',
+  defaultEventFormat: 'road-atlanta',
   rounds: [
     {
       id: 'road-atlanta',
@@ -100,17 +100,17 @@ export const CAN_AM_1973: Championship = {
       id: 'watkins-glen',
       name: 'Watkins Glen',
       track: { id: 'lilski_watkins_glen', layout: 'boot_classic' },
-      weekendFormat: 'watkins-glen',
+      eventFormat: 'watkins-glen',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
       track: { id: 'lilski_road_america' },
-      weekendFormat: 'road-america',
+      eventFormat: 'road-america',
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, weekendFormat: 'laguna-seca' },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, eventFormat: 'laguna-seca' },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },

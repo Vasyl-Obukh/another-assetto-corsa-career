@@ -229,7 +229,7 @@ export const Calendar = () => {
               setDay(null);
               if (view === 'days') toToday('smooth');
             }}
-            onAdvance={() => { if (next) move.moveTo(next.firstDay); }}
+            onAdvance={() => { if (next) move.moveTo(next.date); }}
           />
         )}
 

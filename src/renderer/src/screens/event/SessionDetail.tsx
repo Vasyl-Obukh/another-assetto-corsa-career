@@ -4,11 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { LaunchArea } from './LaunchArea.tsx';
 import { SessionBriefing } from './SessionBriefing.tsx';
 import { SessionResult } from './SessionResult.tsx';
-import { dotted } from './utils.ts';
+import { dotted, sessionDay } from './utils.ts';
 import type { CareerEventView, Championship, EventSession } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
-import { useFormat } from '@/i18n';
 import { EVENT_ACCENT, SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL, sessionName } from '@/lib/session-labels';
 
@@ -39,8 +38,6 @@ export const SessionDetail = ({
   view, session, series, busy, onLaunch,
 }: SessionDetailProps) => {
   const { t } = useTranslation();
-  const { formatDay } = useFormat();
-
   const before = view.sessions[session.index - 1];
 
   return (
@@ -57,7 +54,7 @@ export const SessionDetail = ({
             ) : null}
           </div>
           <span className="text-sm text-muted-foreground">
-            {dotted([formatDay(session.date), session.startsAt])}
+            {dotted([sessionDay(session, view.sessions, t), session.startsAt])}
           </span>
         </div>
 

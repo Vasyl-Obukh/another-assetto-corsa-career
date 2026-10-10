@@ -28,7 +28,7 @@ const makeClass = (id: string, cars: string[], over: Partial<QuickClass> = {}): 
 });
 
 /**
- * A new race weekend, with whatever the test says differently.
+ * A new race event, with whatever the test says differently.
  * @param over What differs
  * @returns The race
  */

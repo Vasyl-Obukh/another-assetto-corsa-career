@@ -52,7 +52,7 @@ export const BPR_GLOBAL_GT_1996: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_mclaren_f1_gtr'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'four-hours',
       name: 'Four hours',
@@ -63,7 +63,7 @@ export const BPR_GLOBAL_GT_1996: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'four-hours',
+  defaultEventFormat: 'four-hours',
   rounds: [
     {
       id: 'monza',

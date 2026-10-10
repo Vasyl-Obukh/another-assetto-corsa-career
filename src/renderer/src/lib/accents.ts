@@ -162,7 +162,7 @@ export const EVENT_ACCENT = {
 
 /**
  * Amber, for something that stops the player without anything being broken: a
- * weekend that clashes with another they entered, or a class above their level
+ * event that clashes with another they entered, or a class above their level
  * when they try to enter it. A traffic light rather than a category, so the two
  * share it.
  *
@@ -187,7 +187,7 @@ export const TEAM_BUDGET_ACCENT = {
  * The colour each class of a race wears, by its place among the race's
  * classes: a chip's tint, and the solid colour its stripe and dot are drawn in.
  *
- * Read by a race weekend's classes and every multi-class result list, which is
+ * Read by a race event's classes and every multi-class result list, which is
  * what makes a GT4 the same colour on the setup and on the classification.
  * Cycles past the fourth with `classAccent`.
  */
@@ -215,7 +215,9 @@ export const classAccent = (slot: number): { chip: string; mark: string } => (
  * any other here, and the three content sources keep the hues their badges
  * already wear. The rest borrow families that never share a screen with them:
  * no settings tab shows a team's budget or a tier, which is what frees the
- * works magenta and the gold for the AI and for Content Manager.
+ * works magenta and the gold for the AI and for Content Manager, and none shows
+ * a session, which frees the race green for the career's calendar - base
+ * content's green sits beside it on the wheel, but only on the sources tab.
  */
 export const SECTION_ACCENT = {
   you: 'bg-primary/12 text-primary',
@@ -223,6 +225,7 @@ export const SECTION_ACCENT = {
   weather: 'bg-weather-wet text-weather-wet-foreground',
   look: 'bg-tier-steel text-tier-steel-foreground',
   tools: 'bg-tier-gold text-tier-gold-foreground',
+  calendar: 'bg-session-race text-session-race-foreground',
   base: 'bg-provenance-base text-provenance-base-foreground',
   dlc: 'bg-provenance-dlc text-provenance-dlc-foreground',
   mod: 'bg-provenance-mod text-provenance-mod-foreground',

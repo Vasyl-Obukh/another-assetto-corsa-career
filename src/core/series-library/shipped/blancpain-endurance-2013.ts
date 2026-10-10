@@ -79,7 +79,7 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
       bop: [{ car: 'ks_audi_r8_lms', ballast: 15, restrictor: 8 }],
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'three-hours',
       name: 'Three hours',
@@ -108,7 +108,7 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'three-hours',
+  defaultEventFormat: 'three-hours',
   rounds: [
     { id: 'monza', name: 'Monza', track: { id: 'monza' } },
     {
@@ -122,14 +122,14 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
       id: 'spa',
       name: 'Spa 24 Hours',
       track: { id: 'spa' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring 1000 km',
       track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
-      weekendFormat: 'thousand-km',
+      eventFormat: 'thousand-km',
       climate: Climate.TEMPERATE,
     },
   ],

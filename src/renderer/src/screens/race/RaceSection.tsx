@@ -16,7 +16,7 @@ interface RaceSectionProps {
 }
 
 /**
- * One part of a race weekend's setup, headed above its card rather than inside
+ * One part of a race event's setup, headed above its card rather than inside
  * it - the rules arrive as the championship editor's own card, so every part
  * is headed the same way around it.
  */

@@ -12,7 +12,7 @@ import path from 'node:path';
 
 import { SERIES_DIR } from './constants.ts';
 import type { SeriesStore } from './types.ts';
-import { isEditable, weekendOf } from './utils.ts';
+import { eventOf, isEditable } from './utils.ts';
 import {
   drawField, roundRace, seriesAvailability, validateSeries,
 } from '../../core/series/index.ts';
@@ -66,7 +66,7 @@ const warnProblems = (loaded: LoadedLibrary): void => {
  * Loads the championship library and returns a store over it.
  * @param userDataDir Folder the user's own championships live under
  * @param content The content store, for what is installed
- * @param race The race store, for the weekend under way and CSP's RainFX setting
+ * @param race The race store, for the event under way and CSP's RainFX setting
  * @param classes The class store, whose catalogue every spec resolves against
  * @param settings The settings store, for the weather generation may use
  * @returns A store holding the loaded library
@@ -90,7 +90,7 @@ export const createSeriesStore = async (
    * Describes one loaded championship for the renderer.
    * @param one The championship and where it came from
    * @param installed What content the library has
-   * @returns The listing, including any weekend of it that is under way
+   * @returns The listing, including any event of it that is under way
    */
   const listing = (one: LoadedSeries, installed: Content): SeriesListing => ({
     series: one.series,
@@ -98,7 +98,7 @@ export const createSeriesStore = async (
     origin: one.origin,
     activeByDefault: one.activeByDefault,
     filler: one.filler,
-    weekend: weekendOf(one.series, race.progress()),
+    event: eventOf(one.series, race.progress()),
   });
 
   /**
@@ -194,7 +194,7 @@ export const createSeriesStore = async (
    * @param series The document offered for it
    * @returns It, with the file to write and the origin that allowed it
    * @throws When the app ships it, when the document renames it, or when a
-   * weekend of it has already begun
+   * event of it has already begun
    */
   const writable = (id: string, series: Championship): LoadedSeries => {
     const found = held(id);
@@ -205,9 +205,9 @@ export const createSeriesStore = async (
       throw new AppError('series.id.immutable', { series: id, id: series.id });
     }
 
-    const underway = weekendOf(found.series, race.progress());
+    const underway = eventOf(found.series, race.progress());
     if (underway) {
-      throw new AppError('series.weekendInProgress', { series: id, round: underway.round });
+      throw new AppError('series.eventInProgress', { series: id, round: underway.round });
     }
 
     return found;
@@ -318,7 +318,7 @@ export const createSeriesStore = async (
       await settle(id);
 
       // Off the reloaded library rather than off `parsed`, so the answer
-      // carries the origin and the weekend state the listing is built with.
+      // carries the origin and the event state the listing is built with.
       const after = seriesById(library, id);
       if (!after) throw new AppError('series.notFound', { series: id });
 

@@ -7,7 +7,7 @@ import { invoke, subscribe } from '@/lib/ipc';
 export type { RaceStatusState } from './types.ts';
 
 /**
- * The launch slot - whichever weekend raced last, and the launch in flight -
+ * The launch slot - whichever event raced last, and the launch in flight -
  * kept current, for a page that says when a launch is with Content Manager.
  *
  * A launch needs no polling: main pushes the whole slot every time its status

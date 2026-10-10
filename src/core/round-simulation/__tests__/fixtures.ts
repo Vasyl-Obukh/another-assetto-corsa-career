@@ -48,15 +48,15 @@ export const makeSeries = (overrides: Partial<Championship> = {}): Championship 
     },
   ],
   rounds: [{ id: 'monza', name: 'Monza', track: { id: 'monza' } }],
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
-    name: 'Race weekend',
+    name: 'Standard',
     sessions: [
       { type: 'qualify', name: 'Qualifying', minutes: 15 },
       { type: 'race', name: 'Race', laps: 10 },
     ],
   }],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{
     id: 'race', name: 'Race points', positions: [10, 8, 6, 4], fastestLap: 1, qualifying: [3, 2, 1],
   }],

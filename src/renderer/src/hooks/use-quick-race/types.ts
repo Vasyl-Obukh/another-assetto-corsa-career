@@ -2,7 +2,7 @@ import type { QuickRace, QuickRaceView } from '../../../../shared/types';
 import type { toDisplayableError } from '@/lib/ipc';
 
 /**
- * One race weekend of the player's own, and the commands its page runs on it.
+ * One race event of the player's own, and the commands its page runs on it.
  */
 export interface QuickRaceState {
   /**

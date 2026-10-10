@@ -54,7 +54,7 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
       eligibility: { kind: 'cars', cars: ['ks_porsche_935_78_moby_dick'] },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'six-hours',
       name: 'Six hours',
@@ -83,13 +83,13 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'six-hours',
+  defaultEventFormat: 'six-hours',
   rounds: [
     {
       id: 'daytona',
       name: '24 Hours of Daytona',
       track: { id: 'rt_daytona', layout: 'sportscar' },
-      weekendFormat: 'twenty-four-hours',
+      eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
@@ -108,7 +108,7 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
       track: { id: 'ks_nordschleife', layout: 'nordschleife' },
-      weekendFormat: 'nurburgring-1000',
+      eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {

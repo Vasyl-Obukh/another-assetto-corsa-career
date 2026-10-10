@@ -1,9 +1,9 @@
-// The Race tab's two screens - the race weekends and one of them - plus the
+// The Race tab's two screens - the race events and one of them - plus the
 // small editing pieces the championship editor shares with them, exported
 // rather than copied.
 
 export { Race } from './Race.tsx';
-export { RaceWeekend } from './RaceWeekend.tsx';
+export { RaceEvent } from './RaceEvent.tsx';
 
 export { ConditionsSummaryLine } from './ConditionsSummaryLine.tsx';
 export { Field } from './Field.tsx';

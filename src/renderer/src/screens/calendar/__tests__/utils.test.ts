@@ -29,9 +29,7 @@ const event = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
   gridSize: 12,
   prize: null,
   multiClass: false,
-  firstDay: '2026-03-06',
-  raceDay: '2026-03-08',
-  lastDay: '2026-03-08',
+  date: '2026-03-08',
   status: 'scheduled',
   enrolled: false,
   eligible: true,
@@ -140,9 +138,9 @@ describe('renderer/screens/calendar/utils', () => {
   describe('agendaDays', () => {
     it('groups the events onto the day they race on, keeping the order given', () => {
       const events = [
-        event({ round: 'imola', raceDay: '2026-03-08' }),
-        event({ round: 'magione', raceDay: '2026-03-08' }),
-        event({ round: 'mugello', raceDay: '2026-03-15' }),
+        event({ round: 'imola', date: '2026-03-08' }),
+        event({ round: 'magione', date: '2026-03-08' }),
+        event({ round: 'mugello', date: '2026-03-15' }),
       ];
 
       expect(agendaDays(events)).toEqual([
@@ -155,7 +153,7 @@ describe('renderer/screens/calendar/utils', () => {
       expect(agendaDays([])).toEqual([]);
     });
 
-    it('puts the weekends the career is in first, then what it could enter', () => {
+    it('puts the events the career is in first, then what it could enter', () => {
       const locked = event({ round: 'imola', eligible: false });
       const open = event({ round: 'magione' });
       const yours = event({ round: 'mugello', enrolled: true });
@@ -177,7 +175,7 @@ describe('renderer/screens/calendar/utils', () => {
   });
 
   describe('eventRank', () => {
-    it('ranks the weekends the career is in first', () => {
+    it('ranks the events the career is in first', () => {
       expect(eventRank(event({ enrolled: true, eligible: false }))).toBe(0);
     });
 
@@ -215,24 +213,24 @@ describe('renderer/screens/calendar/utils', () => {
   });
 
   describe('nextEvent', () => {
-    it('goes to the next weekend the career is in before any other', () => {
-      const other = event({ round: 'imola', firstDay: '2026-03-06' });
-      const yours = event({ round: 'mugello', firstDay: '2026-03-13', enrolled: true });
+    it('goes to the next event the career is in before any other', () => {
+      const other = event({ round: 'imola', date: '2026-03-06' });
+      const yours = event({ round: 'mugello', date: '2026-03-13', enrolled: true });
 
       expect(nextEvent([other, yours], '2026-03-01')).toBe(yours);
     });
 
-    it('falls back to the next weekend at all when the career is in none to come', () => {
-      const past = event({ round: 'imola', firstDay: '2026-02-27', enrolled: true });
-      const other = event({ round: 'mugello', firstDay: '2026-03-06' });
+    it('falls back to the next event at all when the career is in none to come', () => {
+      const past = event({ round: 'imola', date: '2026-02-27', enrolled: true });
+      const other = event({ round: 'mugello', date: '2026-03-06' });
 
       expect(nextEvent([past, other], '2026-03-01')).toBe(other);
     });
 
-    // The clock already stands on a weekend that opens today, so moving to it
-    // would go nowhere.
-    it('passes over a weekend opening on the day the clock stands at', () => {
-      expect(nextEvent([event({ firstDay: '2026-03-06' })], '2026-03-06')).toBeNull();
+    // The clock already stands on an event raced today, so moving to it would
+    // go nowhere.
+    it('passes over an event on the day the clock stands at', () => {
+      expect(nextEvent([event({ date: '2026-03-06' })], '2026-03-06')).toBeNull();
     });
   });
 
@@ -259,9 +257,9 @@ describe('renderer/screens/calendar/utils', () => {
 
     it('ticks a race day once, however many events share it', () => {
       const months = seasonMonths('2026-03-01', '2026-03-31', [
-        event({ round: 'imola', raceDay: '2026-03-08' }),
-        event({ round: 'magione', raceDay: '2026-03-08' }),
-        event({ round: 'mugello', raceDay: '2026-03-22' }),
+        event({ round: 'imola', date: '2026-03-08' }),
+        event({ round: 'magione', date: '2026-03-08' }),
+        event({ round: 'mugello', date: '2026-03-22' }),
       ]);
 
       expect(months[0].ticks).toEqual(['other', 'other']);
@@ -269,17 +267,17 @@ describe('renderer/screens/calendar/utils', () => {
 
     it('marks a day the career races, and a clash over that', () => {
       const months = seasonMonths('2026-03-01', '2026-03-31', [
-        event({ round: 'imola', raceDay: '2026-03-08', enrolled: true }),
-        event({ round: 'magione', raceDay: '2026-03-15', enrolled: true, clash: true }),
-        event({ round: 'mugello', raceDay: '2026-03-15', enrolled: true }),
+        event({ round: 'imola', date: '2026-03-08', enrolled: true }),
+        event({ round: 'magione', date: '2026-03-15', enrolled: true, clash: true }),
+        event({ round: 'mugello', date: '2026-03-15', enrolled: true }),
       ]);
 
       expect(months[0].ticks).toEqual(['yours', 'clash']);
     });
 
-    it('reads a clash only on a weekend the career entered', () => {
+    it('reads a clash only on an event the career entered', () => {
       const months = seasonMonths('2026-03-01', '2026-03-31', [
-        event({ raceDay: '2026-03-08', clash: true }),
+        event({ date: '2026-03-08', clash: true }),
       ]);
 
       expect(months[0].ticks).toEqual(['other']);
@@ -312,9 +310,9 @@ describe('renderer/screens/calendar/utils', () => {
 
   describe('defaultDay', () => {
     const events = [
-      event({ round: 'imola', raceDay: '2026-03-08' }),
-      event({ round: 'mugello', raceDay: '2026-03-22' }),
-      event({ round: 'spa', raceDay: '2026-04-05' }),
+      event({ round: 'imola', date: '2026-03-08' }),
+      event({ round: 'mugello', date: '2026-03-22' }),
+      event({ round: 'spa', date: '2026-04-05' }),
     ];
 
     it('lists the first race day of the month still to come', () => {

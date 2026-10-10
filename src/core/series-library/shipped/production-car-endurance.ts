@@ -100,7 +100,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'standard',
       name: 'One hour',
@@ -120,7 +120,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   rounds: [
     {
       id: 'silverstone',
@@ -143,7 +143,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       id: 'bathurst',
       name: 'Bathurst 6 Hour',
       track: { id: 'rt_bathurst' },
-      weekendFormat: 'six-hours',
+      eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },

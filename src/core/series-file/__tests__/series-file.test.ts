@@ -22,12 +22,12 @@ const raw = (overrides: Record<string, unknown> = {}): Record<string, unknown> =
     eligibility: { kind: 'cars', cars: ['ks_mazda_mx5_cup'] },
   }],
   rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
-    name: 'Race weekend',
+    name: 'Standard',
     sessions: [{ type: 'race', name: 'Race', laps: 8, day: 0 }],
   }],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
   ...overrides,
@@ -114,9 +114,9 @@ describe('core/series-file', () => {
 
     it('rejects a session type that is not a real one', () => {
       const value = raw({
-        weekendFormats: [{
+        eventFormats: [{
           id: 'standard',
-          name: 'Race weekend',
+          name: 'Standard',
           sessions: [{ type: 'practise', minutes: 10 }],
         }],
       });
@@ -214,12 +214,12 @@ describe('core/series-file', () => {
       expect(codesFor(value)).toEqual(['seriesFile.field.invalid']);
     });
 
-    it('rejects a weekend format with no id to be named by', () => {
+    it('rejects an event format with no id to be named by', () => {
       // A round names its format by id, so one without is a format nothing can
       // reach - and the file must not read as though it had been understood.
       const value = raw({
-        weekendFormats: [{
-          name: 'Race weekend',
+        eventFormats: [{
+          name: 'Standard',
           sessions: [{ type: 'race', name: 'Race', laps: 8, day: 0 }],
         }],
       });
@@ -396,9 +396,9 @@ describe('core/series-file', () => {
        * @returns The value JSON.parse would have returned
        */
       const withStart = (start: unknown): Record<string, unknown> => raw({
-        weekendFormats: [{
+        eventFormats: [{
           id: 'standard',
-          name: 'Race weekend',
+          name: 'Standard',
           sessions: [{
             type: 'race', name: 'Race', laps: 8, day: 0, start,
           }],
@@ -406,8 +406,8 @@ describe('core/series-file', () => {
       });
 
       ['last', 'pole', 'random', 3].forEach((start) => expect(codesFor(withStart(start))).toEqual([]));
-      expect(fieldsFor(withStart('front'))).toEqual(['weekendFormats[0].sessions[0].start']);
-      expect(fieldsFor(withStart(true))).toEqual(['weekendFormats[0].sessions[0].start']);
+      expect(fieldsFor(withStart('front'))).toEqual(['eventFormats[0].sessions[0].start']);
+      expect(fieldsFor(withStart(true))).toEqual(['eventFormats[0].sessions[0].start']);
     });
 
     it('accepts a championship that names no teams at all', () => {
@@ -453,6 +453,18 @@ describe('core/series-file', () => {
       expect(codesFor(raw({ rounds: [round([{ laps: 12 }])] }))).toEqual(['seriesFile.field.invalid']);
       expect(codesFor(raw({ rounds: [round([{ session: 'race', distance: '305 km' }])] })))
         .toEqual(['seriesFile.field.invalid']);
+    });
+
+    it('reads the day of the week a championship races on', () => {
+      const { series, problems } = parseSeries(raw({ raceWeekday: 'wednesday' }), 'test.json');
+
+      expect(problems).toEqual([]);
+      expect(series?.raceWeekday).toBe('wednesday');
+    });
+
+    it('rejects a race day that is not a day of the week', () => {
+      expect(fieldsFor(raw({ raceWeekday: 'Wednesday' }))).toEqual(['raceWeekday']);
+      expect(fieldsFor(raw({ raceWeekday: 3 }))).toEqual(['raceWeekday']);
     });
 
     it('rejects an entry fee that is not a number', () => {

@@ -35,7 +35,7 @@ interface QuickClassPanelProps {
    */
   raceGrid: SeriesGrid;
   /**
-   * Whether the weekend has started, in which case nothing can change.
+   * Whether the event has started, in which case nothing can change.
    */
   locked: boolean;
   /**
@@ -55,7 +55,7 @@ interface QuickClassPanelProps {
 }
 
 /**
- * One class of a race weekend, opened beside the list: its name, what it
+ * One class of a race event, opened beside the list: its name, what it
  * races, as the championship editor writes a class's cars, and how its drivers
  * drive, as the figures they race at. A championship's seats, teams and purse
  * have no meaning for a single race and are not here.

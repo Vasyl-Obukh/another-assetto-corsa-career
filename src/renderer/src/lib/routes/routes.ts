@@ -101,18 +101,18 @@ export const path = {
    */
   home: (): string => ROUTE.home,
   /**
-   * Every race weekend of the player's own.
+   * Every race event of the player's own.
    * @returns Its URL
    */
   race: (): string => ROUTE.race,
   /**
-   * One race weekend of the player's own, where it is set up and run.
+   * One race event of the player's own, where it is set up and run.
    * @param params The race's id
    * @returns Its URL, with the id encoded
    */
-  raceWeekend: (
-    params: RouteParams<typeof ROUTE.raceWeekend>,
-  ): string => buildPath(ROUTE.raceWeekend, params),
+  raceEvent: (
+    params: RouteParams<typeof ROUTE.raceEvent>,
+  ): string => buildPath(ROUTE.raceEvent, params),
   /**
    * The career's calendar.
    * @returns Its URL

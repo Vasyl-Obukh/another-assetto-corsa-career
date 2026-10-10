@@ -9,7 +9,7 @@ import { groupsSet } from './utils.ts';
 import type {
   Championship, Round, RoundAvailability, RoundRaceLength,
 } from '../../../../shared/types';
-import { formatOf } from '../../../../shared/utils/weekend-format';
+import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
@@ -45,7 +45,7 @@ interface RoundRowProps {
    */
   availability: RoundAvailability | undefined;
   /**
-   * Whether a weekend is under way, in which case nothing may change.
+   * Whether an event is under way, in which case nothing may change.
    */
   locked: boolean;
   /**
@@ -85,7 +85,7 @@ interface RoundRowProps {
  * One event on the calendar, read-only, as a line of the calendar's table.
  *
  * The columns are the point: a twenty-round season is scanned down them for
- * what is unusual about a round - a circuit that is not installed, a weekend
+ * what is unusual about a round - a circuit that is not installed, an event
  * of its own, weather of its own, a class running different cars - rather than
  * read field by field.
  */
@@ -111,7 +111,7 @@ export const RoundRow = ({
     ? t('championships.format.laps', { count: race.laps ?? 0 })
     : t('championships.format.distance', { value: formatNumber(race.distance) }));
   const lengths = availability?.races.map(lengthOf) ?? [];
-  // A weekend of identical races says so once rather than repeating itself.
+  // An event of identical races says so once rather than repeating itself.
   const races = lengths.length > 1 && lengths.every((length) => length === lengths[0])
     ? t('championships.detail.raceTimes', { count: lengths.length, length: lengths[0] })
     : lengths.join(', ');
@@ -162,10 +162,10 @@ export const RoundRow = ({
         </Badge>
       ) : null}
 
-      <span className={cn('min-w-0 items-center gap-2', ROUND_COLUMN.WEEKEND)}>
+      <span className={cn('min-w-0 items-center gap-2', ROUND_COLUMN.EVENT)}>
         {format ? <FormatStrip sessions={format.sessions} /> : null}
         {/* Muted when it is only the default, which is what most rounds run. */}
-        <span className={cn('truncate text-xs', round.weekendFormat === undefined ? 'text-muted-foreground' : 'font-medium')}>
+        <span className={cn('truncate text-xs', round.eventFormat === undefined ? 'text-muted-foreground' : 'font-medium')}>
           {format?.name ?? ''}
         </span>
       </span>

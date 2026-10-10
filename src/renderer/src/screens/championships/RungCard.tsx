@@ -7,7 +7,7 @@ import { NeedsChips } from './NeedsChips.tsx';
 import { OriginBadge } from './OriginBadge.tsx';
 import type { Rung } from './types.ts';
 import { tierAccent } from './utils.ts';
-import { defaultFormatOf } from '../../../../shared/utils/weekend-format';
+import { defaultFormatOf } from '../../../../shared/utils/event-format';
 import { Badge } from '@/components/ui/badge.tsx';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';

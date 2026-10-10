@@ -47,9 +47,9 @@ if (!app.requestSingleInstanceLock()) {
     );
     // After the series store, because a career is entered into championships it
     // resolves. It subscribes to the race store itself rather than being wired
-    // here: deciding that a weekend has finished means reading the plan, the
+    // here: deciding that an event has finished means reading the plan, the
     // progress and the phase together, which is a career rule and not wiring.
-    const career = await createCareerStore(app.getPath('userData'), series, race, content);
+    const career = await createCareerStore(app.getPath('userData'), series, race, content, settings);
     const quick = await createQuickRaceStore(app.getPath('userData'), content, classes, series, settings, race);
     applyThemeChoice(settings.get().theme);
     registerHandlers(settings, content, race, series, classes, career, quick);

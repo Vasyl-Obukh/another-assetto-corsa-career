@@ -6,12 +6,12 @@ import type {
 } from '../../../../shared/types';
 
 /**
- * How many laps a race added to a weekend starts with.
+ * How many laps a race added to an event starts with.
  */
 export const DEFAULT_SESSION_LAPS = 5;
 
 /**
- * How many minutes a practice added to a weekend starts with.
+ * How many minutes a practice added to an event starts with.
  */
 export const DEFAULT_SESSION_MINUTES = 15;
 
@@ -115,7 +115,7 @@ export const REGULATION_FLAGS: readonly { key: RegulationFlag; id: string }[] = 
 ];
 
 /**
- * The colour a race weekend's phase pill wears over its photograph. One under
+ * The colour a race event's phase pill wears over its photograph. One under
  * way is primary and one finished is success, which is what those two tokens
  * mean everywhere; one only set up stays on the photograph's own scrim on
  * purpose, since nothing about it has happened yet.
@@ -127,12 +127,12 @@ export const PHASE_PILL = {
 } as const satisfies Record<QuickRacePhase, string>;
 
 /**
- * How many weekend cards the list's skeleton holds.
+ * How many event cards the list's skeleton holds.
  */
-export const WEEKEND_SKELETON = 5;
+export const EVENT_SKELETON = 5;
 
 /**
- * How many session rows a weekend card's skeleton holds.
+ * How many session rows an event card's skeleton holds.
  */
 export const SESSION_SKELETON = 2;
 
@@ -147,13 +147,13 @@ export const CLASS_SKELETON = 2;
 export const CAR_TILE_SKELETON = 5;
 
 /**
- * How many rows a started weekend's session list shows while it is read: the
+ * How many rows a started event's session list shows while it is read: the
  * results row and two sessions.
  */
-export const WEEKEND_ROW_SKELETON = 3;
+export const EVENT_ROW_SKELETON = 3;
 
 /**
- * The most cars one class of a race weekend may hold. As a championship's
+ * The most cars one class of a race event may hold. As a championship's
  * class: past it a grid outgrows every track's pit lane anyway.
  */
 export const MAX_CLASS_CARS = 60;

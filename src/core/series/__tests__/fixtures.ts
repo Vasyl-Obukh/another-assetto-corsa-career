@@ -109,12 +109,12 @@ export const makeSeries = (overrides: Partial<Championship> = {}): Championship 
     eligibility: { kind: 'cars', cars: ['test_car'] },
   }],
   rounds: [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }],
-  weekendFormats: [{
+  eventFormats: [{
     id: 'standard',
-    name: 'Race weekend',
+    name: 'Standard',
     sessions: [{ type: 'race', name: 'Race', laps: 8, day: 0 }],
   }],
-  defaultWeekendFormat: 'standard',
+  defaultEventFormat: 'standard',
   pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
   defaultPointsSystem: 'race',
   ...overrides,

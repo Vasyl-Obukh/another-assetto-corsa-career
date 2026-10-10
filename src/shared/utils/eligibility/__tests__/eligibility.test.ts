@@ -24,8 +24,8 @@ const withRounds = (rounds: Round[]): { series: Championship; entry: ClassEntry 
     name: 'Test Cup',
     entries: [entry],
     rounds,
-    weekendFormats: [{ id: 'standard', name: 'Race weekend', sessions: [{ type: 'race', laps: 8 }] }],
-    defaultWeekendFormat: 'standard',
+    eventFormats: [{ id: 'standard', name: 'Standard', sessions: [{ type: 'race', laps: 8 }] }],
+    defaultEventFormat: 'standard',
     pointsSystems: [{ id: 'race', name: 'Race points', positions: [10, 8, 6] }],
     defaultPointsSystem: 'race',
   };

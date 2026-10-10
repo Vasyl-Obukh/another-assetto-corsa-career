@@ -138,11 +138,11 @@ export interface RegulationSpec {
 }
 
 /**
- * The router state a race weekend's card hands the page it opens: how far the
- * weekend has got, which decides the shape of the page's skeleton before the
- * weekend itself is read.
+ * The router state a race event's card hands the page it opens: how far the
+ * event has got, which decides the shape of the page's skeleton before the
+ * event itself is read.
  */
-export interface RaceWeekendState {
+export interface RaceEventState {
   /**
    * Set up, under way, or finished.
    */

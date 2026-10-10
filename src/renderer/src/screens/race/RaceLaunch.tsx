@@ -8,7 +8,7 @@ import { sessionName } from '@/lib/session-labels';
 
 interface RaceLaunchProps {
   /**
-   * The race weekend.
+   * The race event.
    */
   view: QuickRaceView;
   /**
@@ -24,13 +24,13 @@ interface RaceLaunchProps {
    */
   onCancel: () => void;
   /**
-   * Called to throw away what has run and start the weekend over.
+   * Called to throw away what has run and start the event over.
    */
   onRestart: () => void;
 }
 
 /**
- * Where a race weekend is launched from, in the page's pinned header so it is
+ * Where a race event is launched from, in the page's pinned header so it is
  * in reach from anywhere on the page: the next session by name, with the line
  * under it saying what follows or what is still missing - the event page's
  * launch area, moved up beside the title.
@@ -77,7 +77,7 @@ export const RaceLaunch = ({
   return (
     <div className="flex flex-col items-end gap-1.5">
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {/* Once a session has run the weekend is fixed, and starting it over
+        {/* Once a session has run the event is fixed, and starting it over
             is the way back to changing it. */}
         {view.phase !== 'setup' ? (
           <>

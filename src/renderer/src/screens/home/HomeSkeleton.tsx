@@ -11,7 +11,7 @@ import { path } from '@/lib/routes';
 import { slots } from '@/lib/slots.ts';
 
 /**
- * Home while the career is read: the next weekend and three championship rows,
+ * Home while the career is read: the next event and three championship rows,
  * the common case, under the real headings and legend.
  */
 export const HomeSkeleton = () => {
@@ -36,7 +36,7 @@ export const HomeSkeleton = () => {
         <section className="grid overflow-hidden rounded-xl border bg-card shadow-sm sm:grid-cols-[minmax(0,1fr)_15rem]">
           <div className="flex min-w-0 flex-col gap-3 p-5">
             <span className="text-[0.65rem] font-semibold tracking-wide text-primary uppercase">
-              {t('home.nextWeekend')}
+              {t('home.nextEvent')}
             </span>
             <div className="flex items-end gap-2.5">
               <Shimmer className="h-9 w-10" />

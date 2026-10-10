@@ -79,7 +79,7 @@ export const RADICAL_CUP_UK: Championship = {
       },
     },
   ],
-  weekendFormats: [
+  eventFormats: [
     {
       id: 'race-meeting',
       name: 'Two races',
@@ -91,7 +91,7 @@ export const RADICAL_CUP_UK: Championship = {
       ],
     },
   ],
-  defaultWeekendFormat: 'race-meeting',
+  defaultEventFormat: 'race-meeting',
   rounds: [
     {
       id: 'silverstone',

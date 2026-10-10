@@ -79,16 +79,16 @@ export interface RacePlace {
 }
 
 /**
- * One race of a weekend, scored.
+ * One race of an event, scored.
  */
 export interface RaceScore {
   /**
-   * Which launch of the weekend it was, counting from zero - what matches it to
-   * the session it scored, since two races of one weekend may share a name.
+   * Which launch of the event it was, counting from zero - what matches it to
+   * the session it scored, since two races of one event may share a name.
    */
   launch: number;
   /**
-   * The session's id in its weekend format, or null when it has none.
+   * The session's id in its event format, or null when it has none.
    */
   session: string | null;
   /**
@@ -118,7 +118,7 @@ export interface RaceScore {
 /**
  * One round of a championship, scored.
  *
- * A round rather than a race, because a sprint weekend is one round that scores
+ * A round rather than a race, because a sprint event is one round that scores
  * twice - and a season counts rounds.
  */
 export interface RoundScore {
@@ -131,7 +131,7 @@ export interface RoundScore {
    */
   recordedAt: string;
   /**
-   * Every race of the weekend that paid points, in the order they ran.
+   * Every race of the event that paid points, in the order they ran.
    */
   races: readonly RaceScore[];
 }

@@ -32,7 +32,7 @@ export interface RowMenuItem {
 }
 
 /**
- * One session of a weekend format, as the session page hands it back.
+ * One session of an event format, as the session page hands it back.
  *
  * What it follows travels beside the session rather than on it, because the two
  * are written differently: `inherit.from` is the id of another session, and a
@@ -110,7 +110,7 @@ export type LengthUnit = 'laps' | 'minutes' | 'distance';
 /**
  * One tab of the editor, each holding one subject of the championship.
  */
-export type EditorTab = 'overview' | 'teams' | 'classes' | 'calendar' | 'weekends' | 'scoring';
+export type EditorTab = 'overview' | 'teams' | 'classes' | 'calendar' | 'formats' | 'scoring';
 
 /**
  * A run of consecutive seats fielded by the same team, which the seat sheet
@@ -199,8 +199,8 @@ export type RoundTab = 'basics' | 'conditions' | 'cars';
 export type StartKind = 'last' | 'pole' | 'position' | 'random';
 
 /**
- * Something listed above a weekend's days and opened in place of a session,
- * which is how a race weekend of the player's own puts its weekend-wide
+ * Something listed above an event's days and opened in place of a session,
+ * which is how a race event of the player's own puts its event-wide
  * conditions at the head of its sessions.
  */
 export interface SessionsHead {

@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 
-import type { EventSession, LaunchRecord } from '../../../../shared/types';
+import type { EventSession, LaunchRecord, SkippedRound } from '../../../../shared/types';
 import { raceLength } from '@/lib/session-labels';
 
 /**
@@ -8,7 +8,7 @@ import { raceLength } from '@/lib/session-labels';
  *
  * The one to run next, since that is what the player came to do; failing that
  * the last one run, which is what they came to read; failing that the first.
- * @param sessions The weekend's sessions, in the order they run
+ * @param sessions The event's sessions, in the order they run
  * @returns The index of the session to show
  */
 export const defaultSession = (sessions: readonly EventSession[]): number => {
@@ -24,7 +24,7 @@ export const defaultSession = (sessions: readonly EventSession[]): number => {
  * Where the player finished a session, counting from one.
  *
  * Read off the classification rather than the archive's names: the player is
- * always car 0 of the weekend's grid, while the name in the archive is whatever
+ * always car 0 of the event's grid, while the name in the archive is whatever
  * Content Manager's own profile is called.
  * @param record What the session left
  * @returns The position, or null when it classified nobody
@@ -53,6 +53,36 @@ export const sessionLength = (
   return session.minutes === undefined
     ? null
     : t('championships.format.minutes', { count: session.minutes });
+};
+
+/**
+ * Which of its event's days a session runs on, as a label - or nothing for an
+ * event run in a single day, where every session saying so is only noise.
+ * @param session The session
+ * @param sessions Every session of its event
+ * @param t The translator
+ * @returns The label, or null for a one-day event
+ */
+export const sessionDay = (
+  session: EventSession,
+  sessions: readonly EventSession[],
+  t: TFunction,
+): string | null => (
+  sessions.some((one) => one.day > 0) ? t('championships.format.day', { number: session.day + 1 }) : null
+);
+
+/**
+ * Which note sums up what launching would cost, by why its rounds are lost.
+ * @param skips What launching costs, which holds at least one round
+ * @returns The note's translation key
+ */
+export const launchNote = (
+  skips: readonly SkippedRound[],
+): 'skip.launchNote' | 'skip.launchNoteClash' | 'skip.launchNoteMixed' | 'skip.launchNotePartway' => {
+  if (skips.some((one) => one.reason === 'partway')) return 'skip.launchNotePartway';
+  if (skips.every((one) => one.reason === 'clash')) return 'skip.launchNoteClash';
+
+  return skips.some((one) => one.reason === 'clash') ? 'skip.launchNoteMixed' : 'skip.launchNote';
 };
 
 /**

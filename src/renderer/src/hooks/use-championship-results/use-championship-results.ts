@@ -10,7 +10,7 @@ export type { ChampionshipResultsDetail } from './types.ts';
  * Loads a championship's season so far - the career's own rounds, or every
  * round behind the clock simulated when the career is not in it.
  *
- * Read again whenever the career or the library changes: a weekend scored,
+ * Read again whenever the career or the library changes: an event scored,
  * the clock moved or the championship edited each change what it says.
  * @param series The championship, by its id
  * @returns The season and what is stopping it loading
