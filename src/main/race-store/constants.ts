@@ -46,6 +46,15 @@ export const WRITE_DEBOUNCE_MS = 250;
 export const MAX_LISTED_RESULTS = 100;
 
 /**
+ * The most archives the latest-result read opens for one event.
+ *
+ * More than any event's sessions - a practice, three qualifying segments and a
+ * handful of races - so the newest event comes back whole, while a run of
+ * archives that never stops matching still stops being read.
+ */
+export const MAX_LATEST_ARCHIVES = 16;
+
+/**
  * How long to wait for a result before giving up, in milliseconds. Matches the
  * core's own default and is repeated here only so the error can name it.
  */

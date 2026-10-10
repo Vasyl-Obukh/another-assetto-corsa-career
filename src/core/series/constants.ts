@@ -1,4 +1,5 @@
-// Which day of the week a championship races on.
+// Which day of the week a championship races on, and how a career qualifies a
+// round's race id.
 
 import { Weekday } from '../../shared/types/index.ts';
 
@@ -31,3 +32,11 @@ export const TIER_WEEKDAY: Readonly<Partial<Record<number, Weekday>>> = {
 export const WORKDAYS: readonly Weekday[] = [
   Weekday.MONDAY, Weekday.TUESDAY, Weekday.WEDNESDAY, Weekday.THURSDAY, Weekday.FRIDAY,
 ];
+
+/**
+ * What joins a round's race id to the run a career races it in.
+ *
+ * `@`, because `encodeURIComponent` always escapes it, so it can never occur
+ * inside the round id it follows.
+ */
+export const RUN_SEPARATOR = '@';

@@ -1,22 +1,28 @@
+import { ArrowRightIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import {
+  Link, useLocation, useNavigate, useParams, useSearchParams,
+} from 'react-router';
 
 import { ClassRow } from './ClassRow.tsx';
 import { DETAIL_TABS, UNDERLINE_TAB } from './constants.ts';
 import { DetailSkeleton } from './DetailSkeleton.tsx';
 import { DetailSummary } from './DetailSummary.tsx';
+import { EditionSwitcher } from './EditionSwitcher.tsx';
 import { EnterChampionship } from './EnterChampionship.tsx';
 import { RoundTable } from './RoundTable.tsx';
 import { SeasonRules } from './SeasonRules.tsx';
 import { SeasonSummary } from './SeasonSummary.tsx';
 import { StandingsSection } from './StandingsSection.tsx';
 import type { DetailTab, NextRound } from './types.ts';
-import { entryAvailability } from './utils.ts';
+import { enterHintOf, entryAvailability, shownRun } from './utils.ts';
+import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
 import {
   ErrorCard, ResultCell, ScreenBody, ScreenHeader,
 } from '@/components';
+import { Button } from '@/components/ui/button.tsx';
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs.tsx';
@@ -24,8 +30,12 @@ import {
   useCareer, useChampionship, useChampionshipResults, usePageName, useSeriesCommands,
 } from '@/hooks';
 import { usePlayerName } from '@/hooks';
-import { path, ROUTE } from '@/lib/routes';
+import { editionName } from '@/lib/edition-names';
+import {
+  DETAIL_TAB_PARAM, linkRun, path, ROUTE, RUN_PARAM, runOf,
+} from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
+import { editionOver } from '@/lib/season-review';
 import { cn } from '@/lib/utils.ts';
 
 interface ChampionshipDetailProps {
@@ -42,30 +52,42 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const navigate = useNavigate();
   const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
   const championship = useChampionship(id);
-  const results = useChampionshipResults(id);
-  const commands = useSeriesCommands();
-  // The open tab lives in the URL, so Back from a round returns to it.
+  // The open tab lives in the URL, so Back from a round returns to it - and so
+  // does the run, for an earlier season or one edition of several.
   const [search, setSearch] = useSearchParams();
+  const asked = manage ? {} : runOf(search);
+  const results = useChampionshipResults(id, asked);
+  const commands = useSeriesCommands();
   // The season this championship is being raced in, when the career has entered
   // it: what dates its rounds and what its standings are. The settings tab
   // manages the library rather than running a season in it, so it never shows.
   const career = useCareer();
+  // A class and car a link asked the Enter panel to start from.
+  const hint = enterHintOf(useLocation().state);
 
-  const season = career.career?.seasons[career.career.seasons.length - 1];
-  const entered = manage
-    ? null
-    : season?.entries.find((one) => one.series === id && !one.withdrawn) ?? null;
   const { listing } = championship;
+  const {
+    season, closed, edition, entered,
+  } = shownRun(career.career, id, asked, results.results?.edition, manage);
+  const editions = listing ? editionsOf(listing.series) : 1;
+  const run = season && edition !== undefined
+    ? linkRun({ season: season.index, edition }, career.career?.seasons.at(-1)?.index, editions)
+    : {};
   // In a career, its own next round; otherwise the next one still to come on
   // the calendar, since that round's page is where the championship is entered.
-  const next = useMemo((): NextRound | undefined => {
+  const next = ((): NextRound | undefined => {
     const rounds = listing?.series.rounds ?? [];
     const clock = career.calendar?.date;
     const event = entered
       ? entered.events.find((one) => one.status === 'scheduled')
-      : career.calendar?.events.find((one) => one.series === id && clock !== undefined && one.date >= clock);
+      : career.calendar?.events.find((one) => (
+        one.series === id
+        && (edition === undefined || one.edition === edition)
+        && clock !== undefined
+        && one.date >= clock
+      ));
     const at = rounds.findIndex((round) => round.id === event?.round);
-    if (manage || !event || at < 0) return undefined;
+    if (manage || closed || !event || at < 0) return undefined;
 
     return {
       round: rounds[at],
@@ -73,7 +95,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
       date: event.date,
       underway: 'sessions' in event && event.sessions.length > 0,
     };
-  }, [listing, career.calendar, entered, id, manage]);
+  })();
   // Back with nowhere earlier to return to leads to the list each is opened
   // from: a championship on the settings tab may be switched off, and then the
   // Championships page does not list it.
@@ -88,16 +110,28 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const playerName = usePlayerName();
   const openRound = manage
     ? undefined
-    : (round: string) => { void navigate(path.event({ series: id, round })); };
+    : (round: string) => { void navigate(path.event({ series: id, round }, run)); };
 
   // The settings tab manages the library and races nothing, so it has no
   // standings to show.
   const tabs = manage ? DETAIL_TABS.filter((one) => one !== 'standings') : DETAIL_TABS;
-  const wanted = search.get('tab');
+  const wanted = search.get(DETAIL_TAB_PARAM);
   const tab: DetailTab = tabs.find((one) => one === wanted) ?? 'rounds';
   const openTab = (picked: DetailTab): void => {
-    setSearch(picked === 'rounds' ? {} : { tab: picked }, { replace: true });
+    const query = new URLSearchParams(search);
+    if (picked === 'rounds') query.delete(DETAIL_TAB_PARAM);
+    else query.set(DETAIL_TAB_PARAM, picked);
+    setSearch(query, { replace: true });
   };
+  const openEdition = (picked: number): void => {
+    const query = new URLSearchParams(search);
+    query.set(RUN_PARAM.edition, String(picked));
+    setSearch(query, { replace: true });
+  };
+  const named = season && edition !== undefined
+    ? editionName({ year: seasonYear(season), edition, editions }, t)
+    : null;
+  const reviewable = entered && season && career.career && editionOver(entered, career.career.date);
   const table = useMemo(
     () => (results.results && !manage ? seasonResults(results.results) : null),
     [results.results, manage],
@@ -142,9 +176,19 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
               next={entered ? next : undefined}
               onOpen={openRound}
             />
+            {reviewable && season && entered ? (
+              <Button asChild>
+                <Link to={path.championshipReview({ series: id, season: season.index, edition: entered.edition })}>
+                  {t('championships.detail.review')}
+                  <ArrowRightIcon />
+                </Link>
+              </Button>
+            ) : null}
             {/* Entering comes before anything else this page offers: the
                 round page's own panel, set at the round entering starts from. */}
-            {!manage && !entered && next ? <EnterChampionship series={id} round={next.round.id} /> : null}
+            {!manage && !entered && next ? (
+              <EnterChampionship series={id} round={next.round.id} edition={edition} hint={hint} />
+            ) : null}
             {table && mine && results.results ? (
               <SeasonSummary
                 season={mine}
@@ -157,6 +201,21 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
           </aside>
 
           <Tabs value={tab} onValueChange={(value) => openTab(value as DetailTab)} className="min-w-0 gap-4">
+            {/* One edition of several, or of a season gone by, says which. */}
+            {!manage && closed && named ? (
+              <p className="text-sm text-muted-foreground">{t('championships.detail.pastSeason', { edition: named })}</p>
+            ) : null}
+            {!manage && !closed && editions > 1 && season && career.calendar && edition !== undefined ? (
+              <EditionSwitcher
+                series={id}
+                editions={editions}
+                season={season}
+                events={career.calendar.events}
+                clock={career.calendar.date}
+                selected={edition}
+                onSelect={openEdition}
+              />
+            ) : null}
             <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
               {tabs.map((one) => (
                 <TabsTrigger key={one} value={one} className={cn(UNDERLINE_TAB, 'gap-2 px-4 py-2.5')}>

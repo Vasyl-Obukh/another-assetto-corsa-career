@@ -10,7 +10,7 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
-  ClassificationOrigin, Climate, Discipline, EventStatus, SessionType, TeamBudget,
+  ClassificationOrigin, Climate, Discipline, EventStatus, LadderPosition, SessionType, TeamBudget,
 } from '../../../shared/types';
 
 /**
@@ -142,6 +142,16 @@ export const TIER_ACCENT: readonly string[] = [
 ];
 
 /**
+ * The colour of a stripe or dot standing for a class's discipline: its own, or
+ * muted for a class the championship no longer has.
+ * @param ladder The class's discipline and rung, or null
+ * @returns Its background class
+ */
+export const disciplineDot = (ladder: LadderPosition | null | undefined): string => (
+  ladder ? DISCIPLINE_DOT[ladder.discipline] : 'bg-muted'
+);
+
+/**
  * The colour each state of a career calendar's event is chipped in.
  *
  * Only two of the three carry one. A raced round is `success`, which already
@@ -159,6 +169,37 @@ export const EVENT_ACCENT = {
   raced: 'border-transparent bg-success text-success-foreground',
   missed: 'border-transparent bg-event-missed text-event-missed-foreground',
 } as const satisfies Record<EventStatus, string>;
+
+/**
+ * The colour each segment of a championship's progress bar is filled in. The
+ * same success green and missed rose the calendar's status chips wear, primary
+ * for the round up next, and plain muted for everything still to come.
+ *
+ * Read by Home's championship rows and its legend, and by a championship's
+ * edition switcher.
+ */
+export const ROUND_MARK = {
+  raced: 'bg-success',
+  missed: 'bg-event-missed-foreground/60',
+  next: 'bg-primary',
+  later: 'bg-muted',
+} as const;
+
+/**
+ * The colour each state of a championship edition is chipped in, wherever a
+ * season is looked back on: one that is over in a points finish's soft green,
+ * one under way - or entered and still to come - in primary, and a title in
+ * the podium's gold. The same three families the result cells already wear, so
+ * nothing new had to be placed on the wheel.
+ *
+ * Read by History, the season and championship reviews, Home and a
+ * championship's edition switcher.
+ */
+export const EDITION_ACCENT = {
+  over: 'border-transparent bg-result-points text-result-points-foreground',
+  running: 'border-transparent bg-primary/12 text-primary',
+  title: 'border-transparent bg-podium-gold text-podium-gold-foreground',
+} as const;
 
 /**
  * Amber, for something that stops the player without anything being broken: a

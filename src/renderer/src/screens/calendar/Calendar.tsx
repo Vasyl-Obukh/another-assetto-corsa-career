@@ -34,7 +34,7 @@ import {
 import {
   useCareer, useChampionships, useClockMove, useElementHeight,
 } from '@/hooks';
-import { path } from '@/lib/routes';
+import { linkRun, path } from '@/lib/routes';
 import { readPreference, writePreference } from '@/lib/stored-preference';
 import { isListed } from '@/screens/championships';
 
@@ -203,7 +203,10 @@ export const Calendar = () => {
    * @param event Which event
    */
   const open = (event: CalendarEntry): void => {
-    void navigate(path.event({ series: event.series, round: event.round }));
+    void navigate(path.event(
+      { series: event.series, round: event.round },
+      linkRun({ season: 0, edition: event.edition }, 0, event.editions),
+    ));
   };
 
   return (

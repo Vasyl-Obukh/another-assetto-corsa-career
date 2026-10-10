@@ -1,7 +1,7 @@
 // The decidable parts of the store's guards, kept pure so they can be read and
 // tested without an Electron fake behind them.
 
-import { roundRaceId } from '../../core/series/index.ts';
+import { baseRaceId, roundRaceId } from '../../core/series/index.ts';
 import type { Championship, SeriesEventState, SeriesOrigin } from '../../shared/types/index.ts';
 import type { RaceProgress } from '../race-store/index.ts';
 
@@ -9,7 +9,9 @@ import type { RaceProgress } from '../race-store/index.ts';
  * Which round of a championship an event belongs to, if any.
  *
  * Matched exactly against every round's composed id, which roundRaceId keeps
- * unambiguous across championships.
+ * unambiguous across championships - after dropping the run a career qualifies
+ * its own races with, since whichever season or edition is racing the round,
+ * it is still this championship's round under way.
  *
  * A round renamed or deleted since the event began stops matching and the
  * lock lifts, the same stale state `assertStateMatches` already discards.
@@ -23,7 +25,8 @@ export const eventOf = (
 ): SeriesEventState | null => {
   if (!progress) return null;
 
-  const round = series.rounds.find((one) => roundRaceId(series.id, one.id) === progress.raceId);
+  const raceId = baseRaceId(progress.raceId);
+  const round = series.rounds.find((one) => roundRaceId(series.id, one.id) === raceId);
   if (!round) return null;
 
   return { round: round.id, completed: progress.completed, inFlight: progress.inFlight };

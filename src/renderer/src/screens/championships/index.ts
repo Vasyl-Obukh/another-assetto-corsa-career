@@ -23,7 +23,7 @@ export { SeasonCardSkeleton } from './SeasonCardSkeleton.tsx';
 export { TierMedal } from './TierMedal.tsx';
 
 export {
-  availabilityState, disciplineKey, isListed, pointsOf, raceLabels, tierAccent,
+  availabilityState, disciplineKey, enterHintOf, isListed, pointsOf, raceLabels, tierAccent,
   tierMetalKey, trackKeyOf,
 } from './utils.ts';
-export type { ChampionshipFilter } from './types.ts';
+export type { ChampionshipFilter, EnterHint } from './types.ts';

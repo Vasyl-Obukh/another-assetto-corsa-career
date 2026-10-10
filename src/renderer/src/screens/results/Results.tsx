@@ -7,13 +7,16 @@ import { ResultCard } from './ResultCard.tsx';
 import { ResultsSkeleton } from './ResultsSkeleton.tsx';
 import type { SessionFilter } from './types.ts';
 import { filterEvents } from './utils.ts';
-import { ErrorCard, ScreenBody, Segments } from '@/components';
+import {
+  ErrorCard, ScreenBody, ScreenHeader, Segments,
+} from '@/components';
 import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useCareer, useResults } from '@/hooks';
 import { archiveOrigins, resultEvents } from '@/lib/result-events';
+import { path } from '@/lib/routes';
 
 export const Results = () => {
   const { t } = useTranslation();
@@ -33,11 +36,15 @@ export const Results = () => {
   const shown = filterEvents(events, { search, kind, championship });
 
   return (
-    <ScreenBody className="flex flex-col gap-4 py-8" backToTop>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{t('results.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('results.subtitle')}</p>
-      </header>
+    <ScreenBody className="flex flex-col gap-4 pb-8">
+      {/* Reached from Home's card rather than the navigation, so it heads
+          itself with the way back there. */}
+      <ScreenHeader back={{ to: path.home(), label: t('back.home') }}>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">{t('results.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('results.subtitle')}</p>
+        </div>
+      </ScreenHeader>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72">
@@ -84,7 +91,9 @@ export const Results = () => {
 
       {shown.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {shown.map((event) => <ResultCard key={`${event.key}@${event.to}`} event={event} />)}
+          {shown.map((event) => (
+            <ResultCard key={`${event.key}@${event.to}`} event={event} current={career?.seasons.at(-1)?.index} />
+          ))}
         </div>
       ) : null}
     </ScreenBody>

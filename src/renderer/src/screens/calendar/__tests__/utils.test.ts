@@ -17,6 +17,8 @@ import {
  */
 const event = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
   series: 'sunday-cup',
+  edition: 0,
+  editions: 1,
   seriesName: 'Sunday Cup',
   entry: 'main',
   entryName: 'Main',
@@ -171,6 +173,10 @@ describe('renderer/screens/calendar/utils', () => {
 
     it('gives the same event the same key every time', () => {
       expect(eventKey(event())).toBe(eventKey(event()));
+    });
+
+    it('tells apart the same round of two editions', () => {
+      expect(eventKey(event({ edition: 0 }))).not.toBe(eventKey(event({ edition: 1 })));
     });
   });
 

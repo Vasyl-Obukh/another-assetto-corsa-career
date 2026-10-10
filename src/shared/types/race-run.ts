@@ -145,3 +145,18 @@ export interface ResultRecord {
     name: string;
   };
 }
+
+/**
+ * The newest event's archives, and how many archives there are in all - what a
+ * preview of the latest result needs, without reading every one.
+ */
+export interface LatestResults {
+  /**
+   * Every archive of the newest event, newest first, summarised.
+   */
+  records: readonly ResultRecord[];
+  /**
+   * How many archives there are, every event's sessions together.
+   */
+  sessions: number;
+}

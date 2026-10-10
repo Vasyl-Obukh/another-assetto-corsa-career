@@ -51,6 +51,8 @@ export { useResult } from './use-result/index.ts';
 export type { ResultDetail } from './use-result/index.ts';
 export { useResults } from './use-results/index.ts';
 export type { ResultsState } from './use-results/index.ts';
+export { useLatestResults } from './use-latest-results/index.ts';
+export type { LatestResultsState } from './use-latest-results/index.ts';
 export { useRowDrag } from './use-row-drag/index.ts';
 export type { RowDrag, RowEdge } from './use-row-drag/index.ts';
 export { useRowEdit } from './use-row-edit/index.ts';

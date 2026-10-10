@@ -7,7 +7,7 @@ import {
   ContentSource, Discipline, DLCPack, ModMaker,
 } from '../../../../../shared/types';
 import type {
-  Championship, ClassEntry, Seat, SeriesAvailability, SeriesListing, Team,
+  Career, CareerSeason, Championship, ClassEntry, SeasonEntry, Seat, SeriesAvailability, SeriesListing, Team,
 } from '../../../../../shared/types';
 import { DEFAULT_STANDINGS, TIER_METAL_KEYS } from '../constants.ts';
 import {
@@ -15,12 +15,14 @@ import {
   contentFacets,
   contentPicks,
   contentValues,
+  enterHintOf,
   isListed,
   ladderDepth,
   pursesOf,
   raceLabels,
   readStandingsLayout,
   rungsAt,
+  shownRun,
   teamGroups,
   tierAccent,
   tierMetalKey,
@@ -402,6 +404,91 @@ describe('renderer/screens/championships/utils', () => {
 
       read.mockReturnValue('not an object');
       expect(readStandingsLayout()).toEqual(DEFAULT_STANDINGS);
+    });
+  });
+
+  describe('enterHintOf', () => {
+    it('reads the class and car a link handed the page', () => {
+      expect(enterHintOf({ enter: { entry: 'pro', car: { model: 'ks_car', skin: 'red' } } }))
+        .toEqual({ entry: 'pro', car: { model: 'ks_car', skin: 'red' } });
+    });
+
+    it('reads a car named without a livery', () => {
+      expect(enterHintOf({ enter: { entry: 'pro', car: { model: 'ks_car', skin: 3 } } }))
+        .toEqual({ entry: 'pro', car: { model: 'ks_car' } });
+    });
+
+    it('reads nothing from state that carries no whole hint', () => {
+      expect(enterHintOf(null)).toBeNull();
+      expect(enterHintOf({ section: 'home' })).toBeNull();
+      expect(enterHintOf({ enter: null })).toBeNull();
+      expect(enterHintOf({ enter: { entry: 'pro' } })).toBeNull();
+      expect(enterHintOf({ enter: { car: { model: 'ks_car' } } })).toBeNull();
+    });
+  });
+
+  describe('shownRun', () => {
+    /**
+     * An edition of the championship, its rounds in the states given.
+     * @param at Which of the season's editions
+     * @param statuses Each round's state
+     * @param overrides What to change about it
+     * @returns The entry
+     */
+    const edition = (
+      at: number,
+      statuses: readonly SeasonEntry['events'][number]['status'][],
+      overrides: Partial<SeasonEntry> = {},
+    ): SeasonEntry => ({
+      series: 'cup',
+      edition: at,
+      events: statuses.map((status, round) => ({ round: `r${round}`, status })),
+      ...overrides,
+    } as SeasonEntry);
+    /**
+     * A season holding the entries given.
+     * @param index Which season it is
+     * @param entries Its entries
+     * @returns The season
+     */
+    const season = (index: number, ...entries: SeasonEntry[]): CareerSeason => ({
+      index, startDate: `${2026 + index}-01-01`, endDate: `${2026 + index}-12-31`, entries,
+    });
+    const past = season(0, edition(0, ['raced']), edition(1, ['missed'], { withdrawn: true }));
+    const now = season(1, edition(0, ['raced']), edition(1, ['scheduled']), edition(2, ['missed'], { withdrawn: true }));
+    const career = { seasons: [past, now] } as unknown as Career;
+
+    it('shows the current season and the edition the career is racing when the URL names neither', () => {
+      expect(shownRun(career, 'cup', {}, undefined, false)).toEqual({
+        season: now, closed: false, edition: 1, entered: now.entries[1],
+      });
+    });
+
+    it('prefers the edition the URL names, then the one main answered for', () => {
+      expect(shownRun(career, 'cup', { edition: 0 }, 1, false).edition).toBe(0);
+      expect(shownRun(career, 'cup', {}, 3, false).edition).toBe(3);
+    });
+
+    it('reads back a season gone by, and an edition the career pulled out of in it', () => {
+      expect(shownRun(career, 'cup', { season: 0, edition: 1 }, undefined, false)).toEqual({
+        season: past, closed: true, edition: 1, entered: past.entries[1],
+      });
+    });
+
+    // In the season under way an edition left can be entered again, so the page
+    // treats it as not entered.
+    it('holds no entry for an edition of the current season the career pulled out of', () => {
+      expect(shownRun(career, 'cup', { edition: 2 }, undefined, false).entered).toBeNull();
+    });
+
+    it('holds no entry for a page that manages the library', () => {
+      expect(shownRun(career, 'cup', {}, undefined, true).entered).toBeNull();
+    });
+
+    it('shows nothing before the career is read', () => {
+      expect(shownRun(null, 'cup', {}, undefined, false)).toEqual({
+        season: null, closed: false, edition: undefined, entered: null,
+      });
     });
   });
 });

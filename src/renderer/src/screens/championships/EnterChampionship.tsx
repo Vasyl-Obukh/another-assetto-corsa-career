@@ -1,3 +1,5 @@
+import { EnterWithHint } from './EnterWithHint.tsx';
+import type { EnterHint } from './types.ts';
 import { ErrorCard } from '@/components';
 import { useCareerEvent } from '@/hooks';
 import { EnterPanel, EnterPanelSkeleton } from '@/screens/event';
@@ -11,6 +13,14 @@ interface EnterChampionshipProps {
    * The round entering would start from, by its id.
    */
   round: string;
+  /**
+   * Which of the season's editions it would enter, where the page shows one.
+   */
+  edition?: number;
+  /**
+   * A class and car a link asked the panel to start from, or null.
+   */
+  hint?: EnterHint | null;
 }
 
 /**
@@ -18,13 +28,22 @@ interface EnterChampionshipProps {
  * round's view - so the classes, the cars and what entering now costs are the
  * same answer on both pages.
  */
-export const EnterChampionship = ({ series, round }: EnterChampionshipProps) => {
-  const event = useCareerEvent(series, round);
+export const EnterChampionship = ({
+  series, round, edition, hint = null,
+}: EnterChampionshipProps) => {
+  const event = useCareerEvent(series, round, { edition });
 
   if (event.error) return <ErrorCard error={event.error} onDismiss={event.dismissError} />;
   if (!event.view) return <EnterPanelSkeleton showFirstRound />;
 
-  return (
+  return hint ? (
+    <EnterWithHint
+      view={event.view}
+      hint={hint}
+      busy={event.busy}
+      onEnter={(entry, car) => { void event.enter(entry, car); }}
+    />
+  ) : (
     <EnterPanel
       view={event.view}
       busy={event.busy}

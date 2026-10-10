@@ -105,7 +105,7 @@ export const resultEvents = (
     // By key rather than by neighbour: the launch slot is shared, so a round's
     // sessions can have a quick race run between them.
     const key = origin
-      ? `${origin.season}/${origin.entry.series}/${origin.round}`
+      ? `${origin.season}/${origin.entry.series}/${origin.entry.edition}/${origin.round}`
       : `${record.raceId ?? record.raceName ?? ''}@${record.recordedAt.slice(0, 10)}`;
     const held = events.get(key);
 

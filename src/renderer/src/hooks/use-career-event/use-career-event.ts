@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { CareerEventState } from './types.ts';
-import type { CareerEventView } from '../../../../shared/types';
+import type { CareerEventView, ChampionshipRun } from '../../../../shared/types';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 
 export type { CareerEventState } from './types.ts';
@@ -15,9 +15,17 @@ export type { CareerEventState } from './types.ts';
  * each is only a signal to ask again.
  * @param series The championship's id, or an empty string to load nothing
  * @param round The round's id
+ * @param run Which season and edition, where the page names one; otherwise the
+ * current season and the edition the career is racing, or else the one still
+ * to come
  * @returns The round and the commands the page runs on it
  */
-export const useCareerEvent = (series: string, round: string): CareerEventState => {
+export const useCareerEvent = (
+  series: string,
+  round: string,
+  run: Partial<ChampionshipRun> = {},
+): CareerEventState => {
+  const { season, edition } = run;
   const [view, setView] = useState<CareerEventView | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -27,7 +35,9 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
     if (series === '') return () => undefined;
 
     let live = true;
-    invoke('career:event', { series, round }).then(
+    invoke('career:event', {
+      series, round, season, edition,
+    }).then(
       (next) => { if (live) { setView(next); setLoading(false); } },
       (thrown: unknown) => {
         if (!live) return;
@@ -37,7 +47,7 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
     );
 
     return () => { live = false; };
-  }, [series, round]);
+  }, [series, round, season, edition]);
 
   useEffect(load, [load]);
   useEffect(() => subscribe('career:changed', () => { load(); }), [load]);
@@ -47,13 +57,13 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
 
   /**
    * Runs one command, holding the buttons while it is in flight.
-   * @param command What to run
+   * @param send What to run
    * @returns Resolves once it has finished, whether or not it worked
    */
-  const run = useCallback(async (command: () => Promise<unknown>): Promise<void> => {
+  const command = useCallback(async (send: () => Promise<unknown>): Promise<void> => {
     setBusy(true);
     try {
-      await command();
+      await send();
       setError(null);
     } catch (thrown: unknown) {
       setError(toDisplayableError(thrown));
@@ -69,7 +79,13 @@ export const useCareerEvent = (series: string, round: string): CareerEventState 
     busy,
     error,
     dismissError: () => setError(null),
-    enter: (entry, car) => run(() => invoke('career:enrol', { series, entry, car })),
-    launch: (skip) => run(() => invoke('career:launch', { series, round, skip })),
+    // The edition the page shows, so entering and racing it never land on
+    // another edition of the same championship.
+    enter: (entry, car) => command(() => invoke('career:enrol', {
+      series, entry, car, edition: view?.edition ?? edition,
+    })),
+    launch: (skip) => command(() => invoke('career:launch', {
+      series, round, edition: view?.edition ?? edition, skip,
+    })),
   };
 };

@@ -34,6 +34,24 @@ interface EnterPanelProps {
    */
   showFirstRound?: boolean;
   /**
+   * A class, car and livery to open on rather than the panel's own first
+   * choice - an earlier edition's, when the page was opened to enter again.
+   */
+  initial?: {
+    /**
+     * The class entry's id.
+     */
+    entry: string;
+    /**
+     * The car, or null to leave it to the player.
+     */
+    car: Car | null;
+    /**
+     * The livery, or null for the car's own choice.
+     */
+    skin: Skin | null;
+  };
+  /**
    * Called with the class, car and livery chosen, once the player has
    * confirmed whatever entering now costs.
    * @param entry The class entry's id
@@ -43,17 +61,19 @@ interface EnterPanelProps {
 }
 
 export const EnterPanel = ({
-  view, busy, showFirstRound = false, onEnter,
+  view, busy, showFirstRound = false, initial, onEnter,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
   // The first class the career may enter, not merely the first listed: a
   // multi-class championship's top class is usually the one out of reach.
-  const [entry, setEntry] = useState(
-    () => (view.classes.find((one) => one.eligible) ?? view.classes[0])?.id ?? '',
-  );
-  const [car, setCar] = useState<Car | null>(null);
-  const [skin, setSkin] = useState<Skin | null>(null);
+  const [entry, setEntry] = useState(() => (
+    view.classes.find((one) => one.id === initial?.entry)
+    ?? view.classes.find((one) => one.eligible)
+    ?? view.classes[0]
+  )?.id ?? '');
+  const [car, setCar] = useState<Car | null>(initial?.car ?? null);
+  const [skin, setSkin] = useState<Skin | null>(initial?.skin ?? null);
   const [picking, setPicking] = useState(false);
   // Entering a championship already rounds in asks first, here rather than in
   // each page that shows the panel.

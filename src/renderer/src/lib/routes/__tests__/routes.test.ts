@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { ROUTE } from '../constants.ts';
 import {
-  buildPath, path, routeOf, sectionOf,
+  buildPath, linkRun, path, routeOf, runOf, sectionOf,
 } from '../routes.ts';
 import type { RouteId } from '../types.ts';
 
@@ -71,7 +71,7 @@ describe('renderer/lib/routes/routes', () => {
     // file name reaches the URL as it stands.
     it('builds the page for one archived result from its file name', () => {
       expect(path.result({ file: '2026-08-31T18-04-11-123Z.json' }))
-        .toBe('/results/2026-08-31T18-04-11-123Z.json');
+        .toBe('/home/results/2026-08-31T18-04-11-123Z.json');
     });
 
     it('builds a championship editor under settings, where the library is managed', () => {
@@ -117,6 +117,62 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.track({ id: 'spa' })).toBe('/tracks/spa');
       expect(path.track({ id: 'spa' }, 'gp 2022')).toBe('/tracks/spa?layout=gp%202022');
     });
+
+    it('builds a championship\'s page on a run and a tab when given them', () => {
+      expect(path.championship({ id: 'cup' })).toBe('/championships/cup');
+      expect(path.championship({ id: 'cup' }, { season: 1, edition: 2 })).toBe('/championships/cup?season=1&edition=2');
+      expect(path.championship({ id: 'cup' }, { edition: 0 }, 'standings'))
+        .toBe('/championships/cup?edition=0&tab=standings');
+    });
+
+    it('builds a round\'s page on a run when given one', () => {
+      expect(path.event({ series: 'cup', round: 'r1' }, {})).toBe('/calendar/cup/r1');
+      expect(path.event({ series: 'cup', round: 'r1' }, { season: 0 })).toBe('/calendar/cup/r1?season=0');
+    });
+
+    it('builds History and the reviews it opens under Home', () => {
+      expect(path.history()).toBe('/home/history');
+      expect(path.yearReview({ season: 2 })).toBe('/home/history/2');
+      expect(path.championshipReview({ series: 'lotus cup', season: 2, edition: 1 }))
+        .toBe('/home/history/2/lotus%20cup/1');
+    });
+  });
+
+  describe('linkRun', () => {
+    // Guards a bug: links within the season under way named it, so the page
+    // stayed pinned to that season once the next one opened.
+    it('names no season for the current one, and no edition for a championship run once a year', () => {
+      expect(linkRun({ season: 2, edition: 0 }, 2, 1)).toEqual({});
+    });
+
+    it('names a season gone by', () => {
+      expect(linkRun({ season: 1, edition: 0 }, 2, 1)).toEqual({ season: 1 });
+    });
+
+    it('names the edition of a championship that runs more than once a year', () => {
+      expect(linkRun({ season: 2, edition: 3 }, 2, 4)).toEqual({ edition: 3 });
+      expect(linkRun({ season: 0, edition: 1 }, 2, 2)).toEqual({ season: 0, edition: 1 });
+    });
+  });
+
+  describe('runOf', () => {
+    it('reads back the run a page\'s URL names', () => {
+      const query = path.championship({ id: 'cup' }, { season: 3, edition: 1 }).split('?')[1];
+
+      expect(runOf(new URLSearchParams(query))).toEqual({ season: 3, edition: 1 });
+    });
+
+    it('names nothing a URL leaves out', () => {
+      expect(runOf(new URLSearchParams('tab=standings'))).toEqual({});
+      expect(runOf(new URLSearchParams('edition=2'))).toEqual({ edition: 2 });
+    });
+
+    // A hand-edited URL falls back to the page's own default rather than
+    // asking main for season NaN.
+    it('names nothing for a value that is not a whole number of zero or more', () => {
+      expect(runOf(new URLSearchParams('season=two&edition=-1'))).toEqual({});
+      expect(runOf(new URLSearchParams('season=1.5'))).toEqual({});
+    });
   });
 
   describe('routeOf', () => {
@@ -155,6 +211,7 @@ describe('renderer/lib/routes/routes', () => {
 
     it('reads nothing from state that names no section navigation offers', () => {
       expect(sectionOf({ section: 'car' })).toBeNull();
+      expect(sectionOf({ section: 'results' })).toBeNull();
       expect(sectionOf({ other: true })).toBeNull();
       expect(sectionOf(null)).toBeNull();
       expect(sectionOf('settings')).toBeNull();

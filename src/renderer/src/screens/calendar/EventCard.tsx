@@ -7,6 +7,7 @@ import { useFormat } from '@/i18n';
 import {
   CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_DOT, EVENT_ACCENT,
 } from '@/lib/accents';
+import { editionName } from '@/lib/edition-names';
 import { raceLength } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { raceLabels, tierAccent } from '@/screens/championships';
@@ -84,8 +85,18 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
             ) : null}
           </div>
 
-          <h3 className={cn('truncate text-sm', event.eligible ? 'font-semibold' : 'font-medium')}>
-            {event.seriesName}
+          <h3 className={cn('flex items-center gap-1.5 text-sm', event.eligible ? 'font-semibold' : 'font-medium')}>
+            <span className="truncate">{event.seriesName}</span>
+            {/* Neutral on purpose: an edition's name is an identifier, not one of
+                a set - and named only where the championship runs more than once
+                a year, since a year-long one's is the year the calendar shows. */}
+            {event.editions > 1 ? (
+              <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-[0.65rem]">
+                {editionName({
+                  year: Number(event.date.slice(0, 4)), edition: event.edition, editions: event.editions,
+                }, t)}
+              </Badge>
+            ) : null}
           </h3>
 
           <p className="truncate text-xs text-muted-foreground">

@@ -50,6 +50,13 @@ describe('main/series-store/utils', () => {
         .toEqual({ round: 'monza', completed: 1, inFlight: false });
     });
 
+    // A career's race id names its season and edition too, and its round is
+    // still this championship's round under way.
+    it('names the round a career is racing in a run of its own', () => {
+      expect(eventOf(series('lotus-cup'), progress('lotus-cup/monza@2.1')))
+        .toEqual({ round: 'monza', completed: 1, inFlight: false });
+    });
+
     it('says nothing when no event has started', () => {
       expect(eventOf(series('lotus-cup'), null)).toBeNull();
     });

@@ -13,9 +13,10 @@
 // suite. The type-only import in types.ts is erased before either sees it.
 
 import {
-  NAV, OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE, TRACK_LAYOUT_PARAM,
+  DETAIL_TAB_PARAM, NAV, OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE, RUN_PARAM, TRACK_LAYOUT_PARAM,
 } from './constants.ts';
 import type { NavId, RouteId, RouteParams } from './types.ts';
+import type { ChampionshipRun } from '../../../../shared/types';
 
 /**
  * Encodes one path segment the way a URL wants it.
@@ -77,6 +78,63 @@ export const routeOf = (pathname: string): RouteId | null => {
 };
 
 /**
+ * The query string that names a run, for a page that shows one.
+ * @param run Which season and edition, either of which may be left out
+ * @param tab The tab to open the page on, for a page that keeps one
+ * @returns The query, with its leading `?`, or nothing when it names nothing
+ */
+const runQuery = (run: Partial<ChampionshipRun> | undefined, tab?: string): string => {
+  const query = new URLSearchParams();
+  if (run?.season !== undefined) query.set(RUN_PARAM.season, String(run.season));
+  if (run?.edition !== undefined) query.set(RUN_PARAM.edition, String(run.edition));
+  if (tab !== undefined) query.set(DETAIL_TAB_PARAM, tab);
+  const text = query.toString();
+
+  return text === '' ? '' : `?${text}`;
+};
+
+/**
+ * Which run a page's query string names.
+ *
+ * Whatever is not a whole number is read as not named at all, so a hand-edited
+ * URL falls back to the page's own default rather than asking for season NaN.
+ * @param search The page's search parameters
+ * @returns The season and edition named, each left out when it is not
+ */
+export const runOf = (search: URLSearchParams): Partial<ChampionshipRun> => {
+  const read = (name: string): number | undefined => {
+    const value = Number(search.get(name) ?? Number.NaN);
+
+    return Number.isInteger(value) && value >= 0 ? value : undefined;
+  };
+  const season = read(RUN_PARAM.season);
+  const edition = read(RUN_PARAM.edition);
+
+  return {
+    ...(season === undefined ? {} : { season }),
+    ...(edition === undefined ? {} : { edition }),
+  };
+};
+
+/**
+ * The run a link names: the season only where it is not the current one, and
+ * the edition only for a championship that runs more than once a year - so a
+ * link within the season under way follows it rather than pinning it.
+ * @param run The season and edition the link leads to
+ * @param current The current season's index, or undefined before it is read
+ * @param editions How many editions the championship runs a season
+ * @returns What the link's query names
+ */
+export const linkRun = (
+  run: ChampionshipRun,
+  current: number | undefined,
+  editions: number,
+): Partial<ChampionshipRun> => ({
+  ...(run.season === current ? {} : { season: run.season }),
+  ...(editions > 1 ? { edition: run.edition } : {}),
+});
+
+/**
  * The section a page's router state says navigation should light.
  * @param state The location's state, whatever pushed it
  * @returns The section a `NavState` names, or null for any other state
@@ -121,11 +179,13 @@ export const path = {
   /**
    * One round of the career's season, where its sessions are run.
    * @param params The championship's and the round's ids
+   * @param run Which season and edition, where the page should not pick its own
    * @returns Its URL, with both ids encoded
    */
   event: (
     params: RouteParams<typeof ROUTE.event>,
-  ): string => buildPath(ROUTE.event, params),
+    run?: Partial<ChampionshipRun>,
+  ): string => buildPath(ROUTE.event, params) + runQuery(run),
   /**
    * The list of shipped championships.
    * @returns Its URL
@@ -134,13 +194,17 @@ export const path = {
   /**
    * One championship's page.
    * @param params The championship's id
+   * @param run Which season and edition, where the page should not pick its own
+   * @param tab The tab to open it on, where not its first
    * @returns Its URL, with the id encoded
    */
   championship: (
     params: RouteParams<typeof ROUTE.championship>,
-  ): string => buildPath(ROUTE.championship, params),
+    run?: Partial<ChampionshipRun>,
+    tab?: string,
+  ): string => buildPath(ROUTE.championship, params) + runQuery(run, tab),
   /**
-   * The list of archived results.
+   * The list of archived results, reached from Home.
    * @returns Its URL
    */
   results: (): string => ROUTE.results,
@@ -150,6 +214,30 @@ export const path = {
    * @returns Its URL, with the file name encoded
    */
   result: (params: RouteParams<typeof ROUTE.result>): string => buildPath(ROUTE.result, params),
+  /**
+   * Every season of the career, reached from Home.
+   * @returns Its URL
+   */
+  history: (): string => ROUTE.history,
+  /**
+   * One season of the career, looked back on.
+   * @param params Which season, counting from zero
+   * @param params.season The season's index
+   * @returns Its URL
+   */
+  yearReview: (params: { season: number }): string => buildPath(ROUTE.yearReview, { season: String(params.season) }),
+  /**
+   * One edition of a championship the career raced, looked back on.
+   * @param params Which championship, season and edition
+   * @param params.series The championship's id
+   * @param params.season The season's index
+   * @param params.edition Which of the season's editions
+   * @returns Its URL, with the championship's id encoded
+   */
+  championshipReview: (params: { series: string; season: number; edition: number }): string => buildPath(
+    ROUTE.championshipReview,
+    { series: params.series, season: String(params.season), edition: String(params.edition) },
+  ),
   /**
    * The settings screen, on its General tab.
    * @returns Its URL

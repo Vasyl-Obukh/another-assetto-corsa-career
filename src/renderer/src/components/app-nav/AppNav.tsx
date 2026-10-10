@@ -1,5 +1,5 @@
 import {
-  CalendarDaysIcon, CarIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
+  CalendarDaysIcon, CarIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,6 @@ const NAV_ICONS: Record<NavId, ReactNode> = {
   race: <FlagIcon />,
   calendar: <CalendarDaysIcon />,
   championships: <MedalIcon />,
-  results: <TrophyIcon />,
   cars: <CarIcon />,
   tracks: <MapIcon />,
   settings: <SettingsIcon />,

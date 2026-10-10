@@ -2,7 +2,7 @@ import type { ParseKeys, TFunction } from 'i18next';
 import type { ComponentType, ReactNode } from 'react';
 
 import type {
-  ClassEntry, PrizeMoney, Round, Seat, SeriesListing, Team,
+  CareerSeason, ClassEntry, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
 } from '../../../../shared/types';
 import type { StandingsView } from '@/components';
 import type { ChampionshipDimension } from '@/hooks';
@@ -173,3 +173,51 @@ export type DetailTab = 'rounds' | 'standings' | 'classes' | 'rules';
  * missing.
  */
 export type AvailabilityState = 'available' | 'misconfigured' | 'unavailable';
+
+/**
+ * What a link into a championship's page hands its Enter panel: the class and
+ * the car an earlier edition was raced in, picked already. Router state rather
+ * than a command, so entering stays the page's own to decide.
+ */
+export interface EnterHint {
+  /**
+   * The class entry to pick, by its id.
+   */
+  entry: string;
+  /**
+   * The car and livery to pick.
+   */
+  car: {
+    /**
+     * Car folder ID.
+     */
+    model: string;
+    /**
+     * Skin folder ID, when one was picked.
+     */
+    skin?: string;
+  };
+}
+
+/**
+ * Which season and edition of a championship its page is showing, and the
+ * career's entry in it.
+ */
+export interface ShownRun {
+  /**
+   * The season shown, or null before the career is read.
+   */
+  season: CareerSeason | null;
+  /**
+   * Whether that season is behind the current one, and so only read back.
+   */
+  closed: boolean;
+  /**
+   * The edition shown, or undefined while nothing says which yet.
+   */
+  edition: number | undefined;
+  /**
+   * The career's entry in that edition, or null when it is not in it.
+   */
+  entered: SeasonEntry | null;
+}

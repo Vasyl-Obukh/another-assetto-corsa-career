@@ -1,7 +1,9 @@
 // Helpers behind reading a championship: resolving what overrides what, and
 // composing the field a round is raced against.
 
-import { TIER_WEEKDAY, WEEKDAY_NUMBER, WORKDAYS } from './constants.ts';
+import {
+  RUN_SEPARATOR, TIER_WEEKDAY, WEEKDAY_NUMBER, WORKDAYS,
+} from './constants.ts';
 import {
   DEFAULT_MIN_MODELS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_EVENT_DAYS, MAX_GRID_OFFSET,
   MIN_REVERSED,
@@ -14,6 +16,7 @@ import type {
   Car,
   CarEntry,
   Championship,
+  ChampionshipRun,
   ClassCatalogue,
   ClassEntry,
   Climate,
@@ -85,6 +88,36 @@ export const seatDraw = (
 export const roundRaceId = (series: string, round: string): string => (
   `${encodeURIComponent(series)}/${encodeURIComponent(round)}`
 );
+
+/**
+ * The id a round carries when a career races it, qualified by the run.
+ *
+ * The same round comes round again in every season and in every edition of a
+ * championship that runs more than once a year, and the race store holds one
+ * event at a time by its id - so a bare round id would let last year's round,
+ * still sitting in the slot, pass for this year's. `RUN_SEPARATOR` is a
+ * character `encodeURIComponent` always escapes, so the round id before it is
+ * recovered exactly by `baseRaceId`.
+ * @param series The championship's id
+ * @param round The round's id
+ * @param run Which season and edition of the championship
+ * @returns The RaceDefinition id for that round of that run
+ */
+export const runRaceId = (series: string, round: string, run: ChampionshipRun): string => (
+  `${roundRaceId(series, round)}${RUN_SEPARATOR}${run.season}.${run.edition}`
+);
+
+/**
+ * The round id a race id was composed from, without the run a career
+ * qualified it with.
+ * @param raceId A race id, from `roundRaceId` or `runRaceId`
+ * @returns The id `roundRaceId` gives that round
+ */
+export const baseRaceId = (raceId: string): string => {
+  const at = raceId.indexOf(RUN_SEPARATOR);
+
+  return at < 0 ? raceId : raceId.slice(0, at);
+};
 
 /**
  * Finds a class entry by its id.

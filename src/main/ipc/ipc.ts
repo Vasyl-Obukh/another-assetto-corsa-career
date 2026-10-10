@@ -89,6 +89,7 @@ export const registerHandlers = (
   handle('race:get', async () => race.get());
   handle('race:cancel', async () => race.cancel());
   handle('race:results', async () => race.results());
+  handle('race:latest', async () => race.latest());
   handle('race:result', async ({ file }) => race.result(file));
 
   handle('quick:list', async () => quick.list());
@@ -159,7 +160,7 @@ export const registerHandlers = (
   handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));
   handle('career:skips', async ({ date }) => career.skips(date));
   handle('career:event', async (request) => career.event(request));
-  handle('career:results', async ({ series: id }) => career.results(id));
+  handle('career:results', async (request) => career.results(request));
   handle('career:launch', async (request) => career.launch(request));
 
   handle('cm:arguments', readCmArguments);

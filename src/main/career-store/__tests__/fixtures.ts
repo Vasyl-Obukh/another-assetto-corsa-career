@@ -106,6 +106,7 @@ export const makeEvent = (
  */
 export const makeEntry = (over: Partial<SeasonEntry> = {}): SeasonEntry => ({
   series: 'test-cup',
+  edition: 0,
   championship: makeChampionship(),
   entry: 'main',
   playerSeat: 'seat-2',
@@ -117,14 +118,14 @@ export const makeEntry = (over: Partial<SeasonEntry> = {}): SeasonEntry => ({
 });
 
 /**
- * Builds a season opening on a Sunday.
+ * Builds a season, which is a calendar year.
  * @param over Whatever the test wants said differently
  * @returns The season
  */
 export const makeSeason = (over: Partial<CareerSeason> = {}): CareerSeason => ({
   index: 0,
-  startDate: '2026-01-04',
-  endDate: '2027-01-02',
+  startDate: '2026-01-01',
+  endDate: '2026-12-31',
   entries: [],
   ...over,
 });

@@ -2,9 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 
 import { Discipline } from '../../../../../shared/types';
 import type {
-  CalendarEntry, Career, CareerCalendar, Championship, DriverStanding, SeasonEntry, SeasonEvent,
+  CalendarEntry, Career, CareerCalendar, CareerSeason, Championship, DriverStanding, SeasonEntry, SeasonEvent,
 } from '../../../../../shared/types';
-import { clashingWith, seasonProgress, upcomingEvent } from '../utils.ts';
+import {
+  clashingWith, editionAhead, racedLastSeason, recentlyFinished, seasonProgress, upcomingEvent,
+} from '../utils.ts';
+import { makeSeries } from '@/lib/season-results/__tests__/fixtures.ts';
 
 /**
  * A calendar event the career is entered in and has still to race.
@@ -49,6 +52,7 @@ const row = (seat: string, position: number, points: number, substitute?: boolea
  */
 const entered = (overrides: Partial<SeasonEntry> = {}): SeasonEntry => ({
   series: 'cup',
+  edition: 0,
   entry: 'main',
   playerSeat: 'me',
   championship: {
@@ -68,7 +72,12 @@ const entered = (overrides: Partial<SeasonEntry> = {}): SeasonEntry => ({
  * @returns The career and the calendar of that season
  */
 const careerWith = (...entries: SeasonEntry[]): [Career, CareerCalendar] => [
-  { seasons: [{ index: 0, entries }] } as unknown as Career,
+  {
+    date: '2026-03-01',
+    seasons: [{
+      index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries,
+    }],
+  } as unknown as Career,
   { season: 0 } as CareerCalendar,
 ];
 
@@ -140,6 +149,11 @@ describe('renderer/screens/home/utils', () => {
 
       expect(seasonProgress(career, calendar)).toEqual([{
         series: 'cup',
+        season: 0,
+        edition: 0,
+        editions: 1,
+        year: 2026,
+        over: false,
         entry: 'main',
         name: 'Sunday Cup',
         className: null,
@@ -150,6 +164,15 @@ describe('renderer/screens/home/utils', () => {
         points: 18,
         next: event('r2', 'scheduled'),
       }]);
+    });
+
+    it('says an edition is over once every round has run, and names the edition', () => {
+      const [career, calendar] = careerWith(entered({
+        edition: 2,
+        events: [event('r1', 'raced'), event('r2', 'raced'), event('r3', 'missed')],
+      }));
+
+      expect(seasonProgress(career, calendar)[0]).toMatchObject({ edition: 2, over: true, next: null });
     });
 
     it('marks a missed round apart from a raced one', () => {
@@ -207,6 +230,85 @@ describe('renderer/screens/home/utils', () => {
       }));
 
       expect(seasonProgress(career, calendar)[0]).toMatchObject({ position: 3, points: 4, field: 2 });
+    });
+  });
+
+  describe('recentlyFinished', () => {
+    /**
+     * A season holding the entries given.
+     * @param entries Its entries
+     * @returns The season
+     */
+    const season = (...entries: SeasonEntry[]): CareerSeason => ({
+      index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries,
+    });
+    // A whole championship, since an announcement reads the edition's review.
+    // Its last round is r3, on 1 March.
+    const over = entered({
+      championship: makeSeries(), events: [event('r1', 'raced'), event('r2', 'raced'), event('r3', 'raced')],
+    });
+
+    it('announces an edition whose last round ran within the fortnight', () => {
+      expect(recentlyFinished(season(over), '2026-03-10').map((one) => one.series)).toEqual(['cup']);
+    });
+
+    it('stops announcing it once a fortnight has gone by', () => {
+      expect(recentlyFinished(season(over), '2026-03-16')).toEqual([]);
+    });
+
+    it('announces nothing still running, nor an edition the career pulled out of', () => {
+      expect(recentlyFinished(season(entered()), '2026-03-10')).toEqual([]);
+      expect(recentlyFinished(season({ ...over, withdrawn: true }), '2026-03-10')).toEqual([]);
+    });
+
+    it('announces the latest to finish first', () => {
+      const earlier = entered({
+        series: 'early-cup', championship: makeSeries(), events: [{ ...event('r1', 'raced'), date: '2026-02-25' }],
+      });
+
+      expect(recentlyFinished(season(earlier, over), '2026-03-02').map((one) => one.series))
+        .toEqual(['cup', 'early-cup']);
+    });
+  });
+
+  describe('racedLastSeason', () => {
+    it('lists each championship and class raced once, by its latest edition', () => {
+      const spring = entered({ edition: 0, events: [event('r1', 'raced')] });
+      const autumn = entered({ edition: 3, events: [event('r9', 'raced')] });
+      const other = entered({ series: 'other-cup', events: [event('r5', 'raced')] });
+      const season: CareerSeason = {
+        index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries: [autumn, other, spring],
+      };
+
+      expect(racedLastSeason(season)).toEqual([other, autumn]);
+    });
+  });
+
+  describe('editionAhead', () => {
+    const quarters = [
+      calendarEvent({ edition: 0, date: '2027-01-10' }),
+      calendarEvent({ edition: 0, round: 'r2', date: '2027-03-14' }),
+      calendarEvent({ edition: 1, date: '2027-04-11' }),
+      calendarEvent({ edition: 1, round: 'r2', date: '2027-06-13' }),
+    ];
+
+    it('offers the first edition while its rounds are still to come', () => {
+      expect(editionAhead(quarters, 'cup', '2027-01-01')).toEqual({ edition: 0, opens: '2027-01-10' });
+    });
+
+    // Guards a bug: the first edition was offered all year, opening a page on
+    // an edition already over with nothing left to enter.
+    it('passes an edition already over for the next one still to come', () => {
+      expect(editionAhead(quarters, 'cup', '2027-03-20')).toEqual({ edition: 1, opens: '2027-04-11' });
+    });
+
+    it('says when the edition offered opened, though it is already under way', () => {
+      expect(editionAhead(quarters, 'cup', '2027-05-01')).toEqual({ edition: 1, opens: '2027-04-11' });
+    });
+
+    it('offers nothing once every edition of the season is behind the clock', () => {
+      expect(editionAhead(quarters, 'cup', '2027-07-01')).toBeNull();
+      expect(editionAhead(quarters, 'other-cup', '2027-01-01')).toBeNull();
     });
   });
 });

@@ -36,6 +36,35 @@ export interface EventRequest {
    * The round's id.
    */
   round: string;
+  /**
+   * Which season, counting from zero - the current one when omitted. Only read
+   * back: a round of a closed season cannot be raced.
+   */
+  season?: number;
+  /**
+   * Which of the season's editions, counting from zero - the one the career is
+   * racing when omitted, or else the one still to come.
+   */
+  edition?: number;
+}
+
+/**
+ * Which edition of which championship a results read is about.
+ */
+export interface ResultsRequest {
+  /**
+   * The championship's id.
+   */
+  series: string;
+  /**
+   * Which season, counting from zero - the current one when omitted.
+   */
+  season?: number;
+  /**
+   * Which of the season's editions, counting from zero, defaulting as
+   * `EventRequest.edition` does.
+   */
+  edition?: number;
 }
 
 /**
@@ -63,6 +92,11 @@ export interface EnrolRequest {
      */
     skin?: string;
   };
+  /**
+   * Which of the season's editions, counting from zero - the one still to
+   * come when omitted.
+   */
+  edition?: number;
 }
 
 /**
@@ -91,28 +125,31 @@ export interface CareerStore {
    */
   calendar(season?: number): Promise<CareerCalendar>;
   /**
-   * Enters a championship for the current season.
-   * @param request Which championship, which class, and in what
-   * @returns The career with the season entered
+   * Enters an edition of a championship for the current season.
+   * @param request Which championship, which class, in what, and which edition
+   * @returns The career with the edition entered
    * @throws When the championship cannot be entered
    */
   enrol(request: EnrolRequest): Promise<Career>;
   /**
-   * Pulls out of a championship, marking everything still to come as missed.
-   * @param request Which championship and class to leave
+   * Pulls out of an edition of a championship, marking everything still to
+   * come as missed.
+   * @param request Which championship, class and edition to leave - the
+   * edition being raced when it names none
    * @returns The career
    * @throws When that championship was not entered
    */
-  withdraw(request: { series: string; entry: string }): Promise<Career>;
+  withdraw(request: { series: string; entry: string; edition?: number }): Promise<Career>;
   /**
    * Moves the clock forward, stopping at the first enrolled event on the way
-   * - or, once the player has confirmed what it costs, all the way.
+   * - or, once the player has confirmed what it costs, all the way. A move past
+   * 31 December closes the season and opens the next, empty.
    * @param date The ISO date to advance towards
    * @param skip Whether to go all the way, marking every round of the career's
    * passed on the way, and an event left part-way, as non-starts
    * @returns The career, with the clock wherever it stopped
-   * @throws When the date is behind the clock, or an event is part-way through
-   * and the move was not confirmed
+   * @throws When the date is behind the clock, a launch is out, or the move
+   * would lose rounds and was not confirmed
    */
   advanceTo(date: string, skip?: boolean): Promise<Career>;
   /**
@@ -122,34 +159,35 @@ export interface CareerStore {
    */
   skips(date: string): Promise<SkippedRound[]>;
   /**
-   * One round as the event page shows it.
-   * @param request Which championship and round
+   * One round as the event page shows it, of any season - a closed one's
+   * read-only.
+   * @param request Which championship and round, and which season and edition
    * @returns The round, its sessions and what the career can do with it
    * @throws When no championship the career or the library holds has it
    */
   event(request: EventRequest): Promise<CareerEventView>;
   /**
-   * A championship's season so far.
+   * An edition of a championship so far.
    *
-   * The career's own rounds when it is in the championship. Otherwise every
-   * round behind the clock is simulated on the spot and nothing is stored -
-   * the same round always simulates the same, so there is nothing to keep.
-   * @param series The championship, by its id
+   * The career's own rounds when it is in the edition. Otherwise every round
+   * behind the clock is simulated on the spot and nothing is stored - the same
+   * round always simulates the same, so there is nothing to keep.
+   * @param request Which championship, and which season and edition
    * @returns Every round and what it left
    * @throws When neither the career nor the library holds the championship
    */
-  results(series: string): Promise<ChampionshipResults>;
+  results(request: ResultsRequest): Promise<ChampionshipResults>;
   /**
    * Runs the next session of a round the career is in.
    *
    * Sets the round up first when the race being run is some other event, and
    * moves the clock to the event when it is still ahead.
-   * @param request Which championship and round, and whether the player
-   * confirmed losing the rounds `skips` on its event view lists
+   * @param request Which championship, round and edition, and whether the
+   * player confirmed losing the rounds `skips` on its event view lists
    * @returns The race as it stands once the launch has started
    * @throws When the round cannot be raced now, saying why
    */
-  launch(request: EventRequest & { skip?: boolean }): Promise<RaceSetup>;
+  launch(request: Omit<EventRequest, 'season'> & { skip?: boolean }): Promise<RaceSetup>;
   /**
    * Forces any pending write to complete. Call before quitting.
    * @returns Resolves once nothing is left to write

@@ -24,7 +24,7 @@ import type {
 } from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { QuickRace, QuickRaceView } from './quick-race.ts';
-import type { RaceSetup, ResultRecord } from './race-run.ts';
+import type { LatestResults, RaceSetup, ResultRecord } from './race-run.ts';
 import type {
   Championship,
   SeriesAvailability,
@@ -130,6 +130,11 @@ export interface IpcContract {
    * Every result the app has archived, newest first.
    */
   'race:results': { req: void; res: ResultRecord[] };
+  /**
+   * The newest event's archives and how many there are in all, for Home's
+   * preview - which reads a handful of files rather than every one.
+   */
+  'race:latest': { req: void; res: LatestResults };
   /**
    * One archived result by file name.
    */
@@ -320,16 +325,18 @@ export interface IpcContract {
    */
   'career:calendar': { req: { season?: number }; res: CareerCalendar };
   /**
-   * Enter a championship for the current season.
+   * Enter an edition of a championship for the current season - the one named,
+   * or the one still to come when none is.
    */
   'career:enrol': {
-    req: { series: string; entry: string; car: { model: string; skin?: string } };
+    req: { series: string; entry: string; car: { model: string; skin?: string }; edition?: number };
     res: Career;
   };
   /**
-   * Pull out of a championship, marking everything still to come as missed.
+   * Pull out of an edition of a championship, marking everything still to come
+   * as missed.
    */
-  'career:withdraw': { req: { series: string; entry: string }; res: Career };
+  'career:withdraw': { req: { series: string; entry: string; edition?: number }; res: Career };
   /**
    * Move the clock forward, stopping at the first enrolled event on the way -
    * or, with `skip`, all the way to the date, marking every round of the
@@ -343,20 +350,29 @@ export interface IpcContract {
   'career:skips': { req: { date: string }; res: SkippedRound[] };
   /**
    * One round as the event page shows it: its sessions, what has run of them,
-   * and what the career can do next.
+   * and what the career can do next. Of any season and edition - the current
+   * season, and the edition the career is in or else the one still to come,
+   * when none is named. A round of a closed season is read-only.
    */
-  'career:event': { req: { series: string; round: string }; res: CareerEventView };
+  'career:event': {
+    req: { series: string; round: string; season?: number; edition?: number };
+    res: CareerEventView;
+  };
   /**
-   * A championship's season so far: the career's own rounds when it is in the
-   * championship, and otherwise every round behind the clock simulated.
+   * An edition of a championship so far: the career's own rounds when it is in
+   * it, and otherwise every round behind the clock simulated. Defaults as
+   * `career:event` does.
    */
-  'career:results': { req: { series: string }; res: ChampionshipResults };
+  'career:results': { req: { series: string; season?: number; edition?: number }; res: ChampionshipResults };
   /**
    * Run the next session of a round the career is in, setting the round up
    * first when the race being run is another event. A round that would leave
    * others unraced is refused unless `skip` says the player confirmed it.
    */
-  'career:launch': { req: { series: string; round: string; skip?: boolean }; res: RaceSetup };
+  'career:launch': {
+    req: { series: string; round: string; edition?: number; skip?: boolean };
+    res: RaceSetup;
+  };
   /**
    * What Content Manager's Arguments.txt holds.
    *

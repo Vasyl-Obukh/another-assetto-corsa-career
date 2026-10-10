@@ -15,11 +15,13 @@ export const CAREER_FILE = 'career.json';
 export const CAREER_VERSION = 1;
 
 /**
- * How long one season of a career runs, in weeks.
+ * How many whole weeks of a career's season championships are placed across.
  *
- * Fifty-two, so a season is a year in every sense that matters and the season
- * after it opens on the same weekday. A championship's own SeasonLength says
- * how much of this its rounds fill, never how long the season is.
+ * A season is a calendar year, which is fifty-two weeks and a day or two over;
+ * the editions of a championship split these weeks between them, and the day
+ * or two left at the end of December races nothing. A championship's own
+ * SeasonLength says how much of an edition's share its rounds fill, never how
+ * long the season is.
  */
 export const CAREER_SEASON_WEEKS = 52;
 

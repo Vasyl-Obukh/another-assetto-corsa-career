@@ -7,7 +7,7 @@ import type {
   EventState, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../../shared/types/index.ts';
 import {
-  isArchiveName, progressOf, readJson, readRecord, slotHolds, withLayout, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, sameEvent, slotHolds, withLayout, writeJson,
 } from '../utils.ts';
 
 jest.mock('node:fs/promises');
@@ -290,6 +290,65 @@ describe('main/race-store/utils', () => {
     it('always puts an event back before its first launch', () => {
       expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0)).toBe(false);
       expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0)).toBe(false);
+    });
+  });
+
+  describe('sameEvent', () => {
+    /**
+     * An archive recorded at the time given, for the race named.
+     * @param recordedAt When it was written
+     * @param race Its race id and name, whichever it carries
+     * @returns The record
+     */
+    const archived = (recordedAt: string, race: Pick<ResultRecord, 'raceId' | 'raceName'>): ResultRecord => ({
+      file: `${recordedAt.replaceAll(':', '-')}.json`,
+      recordedAt,
+      ...race,
+      summary: { track: 'monza', sessions: [] },
+    });
+
+    it('holds a career round together across the days it ran over', () => {
+      const practice = archived('2027-03-13T18:00:00.000Z', { raceId: 'lotus-cup/r1@0.0' });
+      const race = archived('2027-03-14T18:00:00.000Z', { raceId: 'lotus-cup/r1@0.0' });
+
+      expect(sameEvent(race, practice)).toBe(true);
+    });
+
+    it('tells two runs of one round apart', () => {
+      const lastYear = archived('2026-03-14T18:00:00.000Z', { raceId: 'lotus-cup/r1@0.0' });
+      const nextEdition = archived('2027-03-14T18:00:00.000Z', { raceId: 'lotus-cup/r1@1.1' });
+
+      expect(sameEvent(nextEdition, lastYear)).toBe(false);
+    });
+
+    it('holds a race of the player\'s own together on the day it was driven', () => {
+      const qualifying = archived('2027-03-14T17:00:00.000Z', { raceId: 'quick-1', raceName: 'Monza sprint' });
+      const race = archived('2027-03-14T18:00:00.000Z', { raceId: 'quick-1', raceName: 'Monza sprint' });
+
+      expect(sameEvent(race, qualifying)).toBe(true);
+    });
+
+    it('reads one race driven on two days as two events', () => {
+      const monday = archived('2027-03-15T18:00:00.000Z', { raceId: 'quick-1' });
+      const sunday = archived('2027-03-14T18:00:00.000Z', { raceId: 'quick-1' });
+
+      expect(sameEvent(monday, sunday)).toBe(false);
+    });
+
+    it('falls back on the race name for an archive with no id', () => {
+      const first = archived('2027-03-14T17:00:00.000Z', { raceName: 'Demo' });
+
+      expect(sameEvent(first, archived('2027-03-14T18:00:00.000Z', { raceName: 'Demo' }))).toBe(true);
+      expect(sameEvent(first, archived('2027-03-14T18:00:00.000Z', { raceName: 'Other' }))).toBe(false);
+    });
+
+    // A hand-copied race_out.json says nothing of its race, so it cannot be
+    // shown to belong with anything - not even another archive like it.
+    it('never joins an archive that names no race to anything', () => {
+      const bare = archived('2027-03-14T17:00:00.000Z', {});
+
+      expect(sameEvent(bare, archived('2027-03-14T18:00:00.000Z', {}))).toBe(false);
+      expect(sameEvent(bare, archived('2027-03-14T18:00:00.000Z', { raceName: 'Demo' }))).toBe(false);
     });
   });
 });

@@ -11,8 +11,8 @@ import type {
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
-  aiSeats, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
-  nationOf, raceLengths, raceWeekdayOf, requirementsOf, roundRaceId, roundSessions, seatDraw, seatSkin,
+  aiSeats, baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
+  nationOf, raceLengths, raceWeekdayOf, requirementsOf, roundRaceId, roundSessions, runRaceId, seatDraw, seatSkin,
   validateFormat, validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
@@ -69,6 +69,37 @@ describe('core/series/utils', () => {
     it('never composes one id for two different pairs', () => {
       expect(roundRaceId('gt3', 'sprint-r1')).not.toBe(roundRaceId('gt3-sprint', 'r1'));
       expect(roundRaceId('a/b', 'c')).not.toBe(roundRaceId('a', 'b/c'));
+    });
+  });
+
+  describe('runRaceId', () => {
+    it('names the run a career races a round in', () => {
+      expect(runRaceId('lotus-cup', 'monza', { season: 2, edition: 1 })).toBe('lotus-cup/monza@2.1');
+    });
+
+    // Guards a bug: one id per round let last year's round, still in the race
+    // store's slot, pass for this year's.
+    it('tells apart the same round of two seasons and of two editions', () => {
+      const first = runRaceId('cup', 'r1', { season: 0, edition: 0 });
+
+      expect(runRaceId('cup', 'r1', { season: 1, edition: 0 })).not.toBe(first);
+      expect(runRaceId('cup', 'r1', { season: 0, edition: 1 })).not.toBe(first);
+    });
+  });
+
+  describe('baseRaceId', () => {
+    it('recovers the round id a run was composed from', () => {
+      expect(baseRaceId(runRaceId('lotus-cup', 'monza', { season: 3, edition: 2 }))).toBe(roundRaceId('lotus-cup', 'monza'));
+    });
+
+    it('leaves a round id with no run as it is', () => {
+      expect(baseRaceId('lotus-cup/monza')).toBe('lotus-cup/monza');
+    });
+
+    it('splits cleanly where an id holds the separator itself', () => {
+      const id = roundRaceId('a@b', 'c@d');
+
+      expect(baseRaceId(runRaceId('a@b', 'c@d', { season: 0, edition: 0 }))).toBe(id);
     });
   });
 

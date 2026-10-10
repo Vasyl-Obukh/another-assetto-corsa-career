@@ -3,11 +3,19 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
+import { EditionFinished } from './EditionFinished.tsx';
+import { HomeDoors } from './HomeDoors.tsx';
 import { HomeSkeleton } from './HomeSkeleton.tsx';
+import { NewSeason } from './NewSeason.tsx';
 import { NextEvent } from './NextEvent.tsx';
 import { NoEvent } from './NoEvent.tsx';
-import { clashingWith, seasonProgress, upcomingEvent } from './utils.ts';
+import {
+  clashingWith, recentlyFinished, seasonProgress, upcomingEvent,
+} from './utils.ts';
+import { YearDone } from './YearDone.tsx';
 import { YourChampionships } from './YourChampionships.tsx';
+import { addDays } from '../../../../shared/utils/calendar-days';
+import { seasonYear } from '../../../../shared/utils/editions';
 import { AdvanceDialog, ErrorCard, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareer, useClockMove } from '@/hooks';
@@ -28,8 +36,14 @@ export const Home = () => {
     () => (career.career && calendar ? seasonProgress(career.career, calendar) : []),
     [career.career, calendar],
   );
+  const season = career.career?.seasons.find((one) => one.index === calendar?.season) ?? null;
+  const previous = career.career?.seasons.find((one) => one.index === (season?.index ?? 0) - 1) ?? null;
+  const finished = useMemo(
+    () => (season && calendar ? recentlyFinished(season, calendar.date) : []),
+    [season, calendar],
+  );
 
-  if (!calendar || !career.career) {
+  if (!calendar || !career.career || !season) {
     return (
       <ScreenBody className="flex flex-col gap-4 pt-8 pb-8">
         {career.error ? <ErrorCard error={career.error} onDismiss={career.dismissError} /> : null}
@@ -39,6 +53,7 @@ export const Home = () => {
   }
 
   const next = upcomingEvent(calendar.events, calendar.date);
+  const year = seasonYear(season);
 
   /**
    * Opens the calendar on what the career could enter, wherever its filters
@@ -50,12 +65,45 @@ export const Home = () => {
     void navigate(path.calendar());
   };
 
+  /**
+   * What stands where the next event would once there is none: the year done,
+   * a new year to fill, or nothing entered at all.
+   * @returns The card
+   */
+  const nothingAhead = () => {
+    if (season.entries.length > 0) {
+      return (
+        <YearDone
+          season={season.index}
+          year={year}
+          opens={addDays(season.endDate, 1)}
+          busy={career.busy}
+          onFinish={() => move.moveTo(addDays(season.endDate, 1))}
+          onFind={findChampionship}
+        />
+      );
+    }
+    if (previous && previous.entries.length > 0) {
+      return (
+        <NewSeason
+          previous={previous}
+          year={year}
+          events={calendar.events}
+          clock={calendar.date}
+          onFind={findChampionship}
+        />
+      );
+    }
+
+    return <NoEvent onFind={findChampionship} />;
+  };
+
   return (
     <ScreenBody className="flex flex-col gap-5 pt-8 pb-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-0.5">
           <span className="text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
-            {t('home.season', { number: calendar.season + 1 })}
+            {t('home.season', { year })}
           </span>
           <h1 className="text-2xl font-semibold first-letter:uppercase">
             {t('home.today', { weekday: formatWeekday(calendar.date), day: formatDay(calendar.date) })}
@@ -71,6 +119,10 @@ export const Home = () => {
 
       {career.error ? <ErrorCard error={career.error} onDismiss={career.dismissError} /> : null}
 
+      {finished.map((one) => (
+        <EditionFinished key={`${one.series}-${one.edition}-${one.entry}`} summary={one} year={year} />
+      ))}
+
       <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {next ? (
           <NextEvent
@@ -80,10 +132,12 @@ export const Home = () => {
             busy={career.busy}
             onAdvance={() => move.moveTo(next.date)}
           />
-        ) : <NoEvent onFind={findChampionship} />}
+        ) : nothingAhead()}
 
         <YourChampionships rows={rows} />
       </div>
+
+      <HomeDoors career={career.career} />
 
       <AdvanceDialog pending={move.pending} busy={career.busy} onConfirm={move.confirm} onClose={move.cancel} />
     </ScreenBody>

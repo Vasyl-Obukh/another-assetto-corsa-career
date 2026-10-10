@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { ROW_SKELETON } from './constants.ts';
+import { HomeDoorsSkeleton } from './HomeDoorsSkeleton.tsx';
 import { MarkLegend } from './MarkLegend.tsx';
 import { SessionsSkeleton } from './SessionsSkeleton.tsx';
 import { Loading, Shimmer } from '@/components';
@@ -12,7 +13,7 @@ import { slots } from '@/lib/slots.ts';
 
 /**
  * Home while the career is read: the next event and three championship rows,
- * the common case, under the real headings and legend.
+ * the common case, under the real headings and legend, and the two doors below.
  */
 export const HomeSkeleton = () => {
   const { t } = useTranslation();
@@ -94,6 +95,8 @@ export const HomeSkeleton = () => {
           <MarkLegend />
         </section>
       </div>
+
+      <HomeDoorsSkeleton />
     </Loading>
   );
 };

@@ -51,6 +51,7 @@ const archive = (file: string, recordedAt: string, overrides: Partial<ResultReco
  */
 const seasonEntry = (): SeasonEntry => ({
   series: 'test-cup',
+  edition: 0,
   championship: makeSeries(),
   entry: 'main',
   playerSeat: 'main-1',
@@ -191,6 +192,19 @@ describe('renderer/lib/result-events/result-events', () => {
       const events = resultEvents([
         archive('new.json', '2027-05-03T10:00:00Z'),
         archive('old.json', '2026-05-03T10:00:00Z'),
+      ], origins);
+
+      expect(events).toHaveLength(2);
+    });
+
+    it('keeps the same round of two editions of one season apart', () => {
+      const origins = new Map<string, ArchiveOrigin>([
+        ['spring.json', { season: 0, entry: seasonEntry(), round: 'r1', launch: 1 }],
+        ['autumn.json', { season: 0, entry: { ...seasonEntry(), edition: 2 }, round: 'r1', launch: 1 }],
+      ]);
+      const events = resultEvents([
+        archive('autumn.json', '2026-10-04T10:00:00Z'),
+        archive('spring.json', '2026-04-05T10:00:00Z'),
       ], origins);
 
       expect(events).toHaveLength(2);

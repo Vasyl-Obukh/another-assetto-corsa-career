@@ -77,6 +77,20 @@ export const SEASON_WEEKS: Record<SeasonLength, number> = {
 };
 
 /**
+ * How many editions of a championship each season length runs in a career's
+ * year.
+ *
+ * As many as fit: a half-year championship runs twice and a quarter-length one
+ * four times, each in its own share of the year, so a series that really comes
+ * round twice a year is written once rather than twice.
+ */
+export const EDITIONS_PER_YEAR: Record<SeasonLength, number> = {
+  [SeasonLength.YEAR]: 1,
+  [SeasonLength.HALF_YEAR]: 2,
+  [SeasonLength.QUARTER]: 4,
+};
+
+/**
  * The furthest a championship, a class, a round or a seat may move the AI from
  * the difficulty in settings, either way.
  *

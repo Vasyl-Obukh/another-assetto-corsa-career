@@ -285,6 +285,7 @@ describe('shared/utils/standings', () => {
     it('reads the season\'s own copy of the championship, its rounds and the player\'s seat', () => {
       const entry: SeasonEntry = {
         series: 'test-cup',
+        edition: 1,
         championship: SERIES,
         entry: 'main',
         playerSeat: 'seat-3',
@@ -294,8 +295,10 @@ describe('shared/utils/standings', () => {
         standings: { classes: [], updatedAt: '2026-03-01T00:00:00.000Z' },
       };
 
-      expect(entryResults(entry)).toEqual({
+      expect(entryResults(entry, 2)).toEqual({
         championship: SERIES,
+        season: 2,
+        edition: 1,
         rounds: [roundResult(entry.events[0])],
         playerSeat: 'seat-3',
         playerEntry: 'main',

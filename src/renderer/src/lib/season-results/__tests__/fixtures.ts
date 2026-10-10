@@ -111,6 +111,8 @@ export const roundScore = (round: string, races: readonly RaceScore[]): RoundSco
  */
 export const makeResults = (overrides: Partial<ChampionshipResults> = {}): ChampionshipResults => ({
   championship: makeSeries(),
+  season: 0,
+  edition: 0,
   rounds: [
     {
       round: 'r1',

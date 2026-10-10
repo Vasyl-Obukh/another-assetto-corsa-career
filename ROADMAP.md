@@ -2380,8 +2380,9 @@ proof that no layer below learned what a series is.
       drivers who have scored, and the player's own name replaces the AI name
       the document wrote in the seat they took
 - [x] **Career calendar with dates** - `src/core/season-calendar/`, pure
-      arithmetic on UTC day numbers. A career season is 52 weeks from the day it
-      opens; `Championship.seasonLength` says how much of that one championship
+      arithmetic on UTC day numbers. A career season is a calendar year - it was
+      52 weeks from the day it opened until season end landed, below;
+      `Championship.seasonLength` says how much of that one championship
       fills - a year, half a year or a quarter - so a series that really runs
       twice a year says so instead of being written out twice. Rounds are spread
       evenly and **every race lands on a Sunday**, with the weekend's opening day
@@ -2414,10 +2415,33 @@ proof that no layer below learned what a series is.
       not open a three-day format went with it, having only ever stood in for
       "never on a Friday". "Weekend" became "event" throughout, code and
       document fields included
-- [x] Season state machine: next round, results and standings. **Season end is
-      not built** - a career runs one season and there is no rollover into a
-      second, which is where prize money for a final standing and the ladder
-      moving would land
+- [x] Season state machine: next round, results and standings
+- [x] **Season end: a season is a calendar year, and it closes.** Moving the
+      clock past 31 December - by advancing, or with *Finish the year* on Home
+      once nothing entered is left - gives up whatever the year still had to
+      run (confirmed in `SkipDialog` like every other lost round), races it with
+      the field, and opens the next season **empty**. `closeSeason` in
+      `src/main/career-store/` is where prize money for a final standing
+      (Phase 7) and the ladder moving (Phase 8) land; `openSeason` is the one
+      place a commitment carries over, and there are none until Phase 9's
+      contracts. **Entering stays the championship page's**: nothing re-enters
+      itself, and the reviews link to the page with the class and car pre-picked
+      rather than offering an *Enter again* of their own - so when Phase 9 decides
+      how a career gets into a championship, none of this changes. A closed
+      season reads back read-only: its championship and round pages take
+      `?season=&edition=`, and a launch refuses anything but the current season.
+      **A career's race id now names its run** - `runRaceId` appends
+      `@<season>.<edition>` - so last year's round, still in the race store's slot,
+      can never pass for this year's. `advanceTo` also refuses to move while a
+      launch is out, and no longer loses a round on the clock's own day unasked
+- [x] **Editions.** `seasonLength` says how often a championship runs, too: a
+      half-year one twice a year and a quarter-length one four times, each run an
+      *edition* - a season entry of its own, with its own field, forecasts,
+      standings and review, entered separately. Each edition has its own share of
+      the year's 52 weeks, its rounds placed by the same seeded offset. Named
+      `2027`, `H2 2027` or `Q3 2027`; the championship page switches between a
+      year's editions. Nothing shipped sets a length, so this serves the user's
+      own championships
 - [x] **Rounds nobody drove are simulated** - `src/core/round-simulation/`.
       A round the player missed, one run before they entered the championship,
       and every round of a championship they are not in is raced by the field
@@ -2588,7 +2612,18 @@ proof that no layer below learned what a series is.
       no longer has to answer is what scaling does to a timed race, since there
       are none - every race is laps or a distance
 - [ ] Adaptive difficulty, recording the level actually raced against
-- [ ] Season summary and history
+- [x] **Season summary and history.** A *championship review* once an edition's
+      last round has run - the place, the champions per class, the edition in
+      figures, the position round by round, the teammate head to head, the final
+      tables and the way into the next run - and a *year review* of every edition
+      a season entered, which is where a season is finished from while it is
+      open. **History** lists every season, newest first. All three are derived
+      from the season's own copy of each championship, never stored. **History
+      and Results left the navigation**: both are reached from two cards on
+      Home, which preview what each holds and live under `/home/`, so Home stays
+      lit while either is open. Agreed in `mockups/season-review.html`. The
+      boxes the mockup kept for prize money, rating and contract are left for
+      the phases that fill them
 - [x] **Race weekends of your own, as many as you like.** The Race tab lists
       every weekend set up outside a championship, each kept with its own
       sessions, progress and results, so starting another means adding one
@@ -2691,7 +2726,10 @@ proof that no layer below learned what a series is.
 - [ ] Offer deadlines and a decision window
 - [ ] Contract expiry and renewal
 - [ ] Buying a seat as a pay driver
-- [ ] **How you are entered decides your car and your rounds.** Undecided, and
+- [ ] **How you are entered decides your car and your rounds.** Season end
+      deliberately left this alone: a new season opens empty, `openSeason` is
+      where a contract running into the next year will enter its championship,
+      and re-entering goes through the championship page's own Enter panel. Undecided, and
       the user's own framing: under a contract the team supplies the car and
       you race the whole championship, with a fine for a missed round; as a pay
       driver you enter only the rounds you choose, in a car you own or rent.

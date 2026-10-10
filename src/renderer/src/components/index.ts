@@ -47,6 +47,7 @@ export { ScreenBody } from './ScreenBody.tsx';
 export { ScreenHeader } from './ScreenHeader.tsx';
 export { ScreenStrip } from './ScreenStrip.tsx';
 export { Segments } from './Segments.tsx';
+export { EditionState, Sparkline } from './season-review/index.ts';
 export { SettingsSection } from './SettingsSection.tsx';
 export { Shimmer } from './Shimmer.tsx';
 export {

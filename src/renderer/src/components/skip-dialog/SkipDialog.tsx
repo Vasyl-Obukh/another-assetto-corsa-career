@@ -75,7 +75,7 @@ export const SkipDialog = ({
               </h3>
               <ul>
                 {group.rounds.map((round) => (
-                  <SkipRow key={`${round.series}-${round.round}`} round={round} named={group.seriesName === null} />
+                  <SkipRow key={`${round.series}-${round.edition}-${round.round}`} round={round} named={group.seriesName === null} />
                 ))}
               </ul>
             </section>

@@ -12,10 +12,12 @@ import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
 import { ChampionshipEditor } from '@/screens/championship-editor';
 import { ChampionshipLibrary } from '@/screens/championship-library';
+import { ChampionshipReview } from '@/screens/championship-review';
 import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
+import { History } from '@/screens/history';
 import { Home } from '@/screens/home';
 import { Race, RaceEvent } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
@@ -23,6 +25,7 @@ import { Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
 import { TrackBrowser } from '@/screens/track-browser';
 import { TrackDetail } from '@/screens/track-detail';
+import { YearReview } from '@/screens/year-review';
 import { YourContent } from '@/screens/your-content';
 
 interface AppProps {
@@ -55,6 +58,9 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.championship} element={<ChampionshipDetail />} />
             <Route path={ROUTE.results} element={<Results />} />
             <Route path={ROUTE.result} element={<ResultDetail />} />
+            <Route path={ROUTE.history} element={<History />} />
+            <Route path={ROUTE.yearReview} element={<YearReview />} />
+            <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
             <Route path={ROUTE.cars} element={<CarBrowser />} />
             <Route path={ROUTE.car} element={<CarDetail />} />
             <Route path={ROUTE.tracks} element={<TrackBrowser />} />

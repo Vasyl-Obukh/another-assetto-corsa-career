@@ -1,17 +1,3 @@
-import type { RoundMark } from './types.ts';
-
-/**
- * The colour each segment of a championship's progress bar is filled in. The
- * same success green and missed rose the calendar's status chips wear, primary
- * for the round up next, and plain muted for everything still to come.
- */
-export const ROUND_MARK = {
-  raced: 'bg-success',
-  missed: 'bg-event-missed-foreground/60',
-  next: 'bg-primary',
-  later: 'bg-muted',
-} as const satisfies Record<RoundMark, string>;
-
 /**
  * The badge width of each session row in the event's skeleton - three, the
  * shortest event a championship runs.
@@ -27,3 +13,19 @@ export const ROW_SKELETON = [
   { name: 'w-40', rounds: 6 },
   { name: 'w-24', rounds: 8 },
 ] as const;
+
+/**
+ * How long after an edition's last round Home keeps saying it is over, in
+ * days: a fortnight, long enough to be seen however the clock is moved on.
+ */
+export const RECENT_FINISH_DAYS = 14;
+
+/**
+ * The colour each of Home's two doors wears in its icon's well: Results a
+ * race's green, History a title's gold - each the colour of what it holds, so
+ * the two read apart before their names do.
+ */
+export const DOOR_ACCENT = {
+  results: 'bg-session-race text-session-race-foreground',
+  history: 'bg-podium-gold text-podium-gold-foreground',
+} as const;

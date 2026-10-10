@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 
 import { SESSION_SCROLL } from './constants.ts';
 import { ResultCardHead } from './ResultCardHead.tsx';
+import { editionsOf } from '../../../../shared/utils/editions';
 import { formatLapTime } from '../../../../shared/utils/lap-time';
 import { entryResults } from '../../../../shared/utils/standings';
 import {
@@ -15,7 +16,7 @@ import { useCarNames } from '@/hooks';
 import { formatDayRange, useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import type { ResultEvent } from '@/lib/result-events';
-import { path } from '@/lib/routes';
+import { linkRun, path } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -25,6 +26,10 @@ interface ResultCardProps {
    * The event.
    */
   event: ResultEvent;
+  /**
+   * The current season's index, which a round's link leaves unnamed.
+   */
+  current: number | undefined;
 }
 
 /**
@@ -33,7 +38,7 @@ interface ResultCardProps {
  * it paid - each opening its own result. A championship round ends in what it
  * did to the championship, which opens the round's page.
  */
-export const ResultCard = ({ event }: ResultCardProps) => {
+export const ResultCard = ({ event, current }: ResultCardProps) => {
   const { t } = useTranslation();
   const { formatDay, formatNumber } = useFormat();
 
@@ -51,7 +56,7 @@ export const ResultCard = ({ event }: ResultCardProps) => {
   // Where the round left the championship, once it is a round of the career's.
   const after = useMemo(() => {
     if (!origin) return null;
-    const season = seasonResults(entryResults(origin.entry), origin.round);
+    const season = seasonResults(entryResults(origin.entry, origin.season), origin.round);
     const table = season.classes.find((one) => one.entry === origin.entry.entry);
 
     return table?.drivers.find((row) => row.player) ?? null;
@@ -113,7 +118,11 @@ export const ResultCard = ({ event }: ResultCardProps) => {
 
       {origin && after ? (
         <Link
-          to={path.event({ series: origin.entry.series, round: origin.round })}
+          to={path.event({ series: origin.entry.series, round: origin.round }, linkRun(
+            { season: origin.season, edition: origin.entry.edition },
+            current,
+            editionsOf(origin.entry.championship),
+          ))}
           className="mt-auto flex items-center gap-2 border-t px-4 py-2.5 text-xs hover:bg-accent/50"
         >
           <span className="flex items-center gap-1">

@@ -25,7 +25,7 @@ export const YourChampionships = ({ rows }: YourChampionshipsProps) => {
 
       {rows.length === 0 ? (
         <p className="px-2 py-4 text-sm text-muted-foreground">{t('home.noneEntered')}</p>
-      ) : rows.map((row) => <ChampionshipRow key={`${row.series}-${row.entry}`} progress={row} />)}
+      ) : rows.map((row) => <ChampionshipRow key={`${row.series}-${row.edition}-${row.entry}`} progress={row} />)}
 
       {rows.length > 0 ? <MarkLegend /> : null}
     </section>

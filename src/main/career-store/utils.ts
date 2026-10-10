@@ -8,13 +8,13 @@ import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
 import {
-  climateOf, formatOf, hemisphereOf, raceWeekdayOf, roundRaceId,
+  climateOf, formatOf, hemisphereOf, raceWeekdayOf, runRaceId,
 } from '../../core/series/index.ts';
 import { drawRound } from '../../core/weather-forecast/index.ts';
 import {
   DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MINUTES_PER_HOUR, SEASON_WEEKS,
 } from '../../shared/constants/index.ts';
-import { appErrorInfo } from '../../shared/errors/index.ts';
+import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   CalendarEntry,
@@ -22,6 +22,7 @@ import type {
   CareerCalendar,
   CareerSeason,
   Championship,
+  ChampionshipRun,
   ClassEntry,
   EventPlan,
   EventSession,
@@ -38,8 +39,17 @@ import type {
   SkipReason,
 } from '../../shared/types/index.ts';
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
+import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
+
+/**
+ * The last day a season covers, given the day it opens on: the 31 December of
+ * its year, since a season is a calendar year.
+ * @param startDate The ISO date the season opens
+ * @returns The ISO date of its last day
+ */
+export const seasonEndDate = (startDate: string): string => `${startDate.slice(0, 4)}-12-31`;
 
 /**
  * Whether a value is a career this build can read.
@@ -66,9 +76,16 @@ export const readCareer = (value: unknown): Career | null => {
     && typeof career.level === 'object' && career.level !== null
     && Array.isArray(career.seasons)
     && (career.seasons as readonly Partial<CareerSeason>[]).every((season) => (
-      Array.isArray(season?.entries)
+      // A calendar year, which a career written while a season was fifty-two
+      // weeks long is not - it would close a day early, and every season after it
+      // would drift a day further.
+      typeof season?.startDate === 'string'
+      && season.startDate.endsWith('-01-01')
+      && season.endDate === seasonEndDate(season.startDate)
+      && Array.isArray(season.entries)
       && (season.entries as readonly Partial<SeasonEntry>[]).every((entry) => (
-        typeof entry?.championship === 'object'
+        typeof entry?.edition === 'number'
+        && typeof entry.championship === 'object'
         && entry.championship !== null
         && Array.isArray(entry.championship.eventFormats)
         && Array.isArray(entry.events)
@@ -83,15 +100,6 @@ export const readCareer = (value: unknown): Career | null => {
 };
 
 /**
- * The last day a season covers, given the day it opens on.
- * @param startDate The ISO date the season opens
- * @returns The ISO date of its last day
- */
-export const seasonEndDate = (startDate: string): string => (
-  addDays(startDate, CAREER_SEASON_WEEKS * DAYS_PER_WEEK - 1)
-);
-
-/**
  * The season a career is currently in, which is always its last.
  * @param career The career
  * @returns The season, or null when it has none
@@ -101,38 +109,67 @@ export const currentSeason = (career: Career): CareerSeason | null => (
 );
 
 /**
- * Dates a championship's rounds across a season and freezes them as events.
+ * One season of a career, by its index.
+ * @param career The career
+ * @param index Which season, counting from zero; the current one when omitted
+ * @returns The season, or null when the career has none by that index
+ */
+export const seasonOf = (career: Career, index?: number): CareerSeason | null => (
+  index === undefined ? currentSeason(career) : career.seasons.find((one) => one.index === index) ?? null
+);
+
+/**
+ * A season, freshly opened.
  *
- * Rounds whose day has already gone by the time the championship is entered
- * are recorded missed rather than scheduled, which is what entering a
+ * It opens empty. Only commitments carry over from the season before, and
+ * there are none yet: a contract that runs into the next year is Phase 9's,
+ * and is what will enter its championship here.
+ * @param index Which season it is, counting from zero
+ * @param startDate The ISO date it opens, which is 1 January
+ * @returns The season
+ */
+export const openSeason = (index: number, startDate: string): CareerSeason => ({
+  index, startDate, endDate: seasonEndDate(startDate), entries: [],
+});
+
+
+/**
+ * Dates one edition of a championship's rounds and freezes them as events.
+ *
+ * Each edition has an equal share of the season's weeks, the first opening the
+ * year. Rounds whose day has already gone by the time the championship is
+ * entered are recorded missed rather than scheduled, which is what entering a
  * championship in June means: the spring rounds happened without you.
  * @param series The championship being entered
  * @param season The season it is entered in
+ * @param edition Which of the season's editions, counting from zero
  * @param today The ISO date the career's clock stands at
  * @returns Its rounds, dated
  */
 export const materialiseEvents = (
   series: Championship,
   season: CareerSeason,
+  edition: number,
   today: string,
 ): SeasonEvent[] => {
   const length = series.seasonLength ?? DEFAULT_SEASON_LENGTH;
+  const share = Math.floor(CAREER_SEASON_WEEKS / editionsOf(series));
   const dated = seasonCalendar(
     series.rounds.map((round) => round.id),
-    season.startDate,
+    addDays(season.startDate, edition * share * DAYS_PER_WEEK),
     length,
     raceWeekdayOf(series),
     // Off the championship's own id, so its calendar is the same every time it
-    // is drawn and no two seasons of it wander. Without this every one of the
-    // library's championships would open in the same week. Held inside the
-    // weeks its own racing does not fill, so a season always finishes within
-    // the career's year.
-    seedFrom(series.id) % Math.max(1, CAREER_SEASON_WEEKS - SEASON_WEEKS[length] + 1),
+    // is drawn and no two seasons or editions of it wander. Without this every
+    // one of the library's championships would open in the same week. Held
+    // inside the weeks its own racing does not fill, so an edition always
+    // finishes within its share of the year.
+    seedFrom(series.id) % Math.max(1, share - SEASON_WEEKS[length] + 1),
   );
 
   return dated.map((round, at) => ({
     round: round.id,
-    raceId: roundRaceId(series.id, round.id),
+    raceId: runRaceId(series.id, round.id, { season: season.index, edition }),
     date: round.date,
     entryFee: series.rounds[at]?.entryFee ?? series.entryFee,
     status: round.date < today ? 'missed' : 'scheduled',
@@ -151,6 +188,39 @@ export const scheduledEvents = (season: CareerSeason): EnteredEvent[] => season.
     .filter((event) => event.status === 'scheduled')
     .map((event) => ({ entry, event })))
   .sort((left, right) => left.event.date.localeCompare(right.event.date));
+
+/**
+ * The edition of a championship still to come, or under way, on a date: the
+ * first whose last round is not yet behind it - or the season's last, once
+ * every one of them is.
+ * @param series The championship
+ * @param season The season
+ * @param today The ISO date the career's clock stands at
+ * @returns The edition, counting from zero
+ */
+export const editionAt = (series: Championship, season: CareerSeason, today: string): number => {
+  const editions = editionsOf(series);
+
+  for (let edition = 0; edition < editions; edition += 1) {
+    const last = materialiseEvents(series, season, edition, today).at(-1);
+    if (last && last.date >= today) return edition;
+  }
+
+  return editions - 1;
+};
+
+/**
+ * Refuses an edition a championship does not run.
+ * @param series The championship
+ * @param edition Which of the season's editions was asked for
+ * @throws When the season holds no such edition of it
+ */
+export const checkEdition = (series: Championship, edition: number): void => {
+  const editions = editionsOf(series);
+  if (!Number.isInteger(edition) || edition < 0 || edition >= editions) {
+    throw new AppError('career.edition.unknown', { series: series.name, edition, editions });
+  }
+};
 
 /**
  * Where the clock stops when it is asked to move to a date.
@@ -179,15 +249,21 @@ export const advanceStop = (
 };
 
 /**
- * What makes one season of one career draw differently from every other.
+ * What makes one run of one career draw differently from every other.
  *
- * The career and the season, so two careers never race one year's weather or
- * field one year's drivers, and a second season of a championship rolls its own.
+ * The career, the season and the edition, so two careers never race one year's
+ * weather or field one year's drivers, and a second season or a second edition
+ * of a championship rolls its own. The first edition is spelled exactly as a
+ * season always was, so a championship that runs once a year draws what it did
+ * before editions existed.
  * @param career The career
  * @param season Which season of it, counting from zero
- * @returns The salt every draw of that season is seeded with
+ * @param edition Which of the season's editions, counting from zero
+ * @returns The salt every draw of that run is seeded with
  */
-export const seasonSalt = (career: Career, season: number): string => `${career.id}\u0000${season}`;
+export const seasonSalt = (career: Career, season: number, edition = 0): string => (
+  edition === 0 ? `${career.id}\u0000${season}` : `${career.id}\u0000${season}\u0000${edition}`
+);
 
 /**
  * Draws one event's weather, once the clock has come within a week of it.
@@ -199,7 +275,7 @@ export const seasonSalt = (career: Career, season: number): string => `${career.
  * is stored rather than the forecast: what an install can race is asked when
  * the event is shown or set up.
  * @param career The career, whose id salts the draw
- * @param season Which season of the career it falls in
+ * @param run Which season and edition of the championship it falls in
  * @param championship The championship it is a round of
  * @param event The event
  * @param date The ISO date the clock now stands at
@@ -207,7 +283,7 @@ export const seasonSalt = (career: Career, season: number): string => `${career.
  */
 export const issueForecast = (
   career: Career,
-  season: number,
+  run: ChampionshipRun,
   championship: Championship,
   event: SeasonEvent,
   date: string,
@@ -222,7 +298,7 @@ export const issueForecast = (
   return {
     ...event,
     forecast: drawRound(championship.id, round, format, climate, {
-      salt: seasonSalt(career, season),
+      salt: seasonSalt(career, run.season, run.edition),
       raceDay: event.date,
       hemisphere: hemisphereOf(championship, round),
     }),
@@ -246,7 +322,7 @@ export const issueForecasts = (
   entries: season.entries.map((entry) => ({
     ...entry,
     events: entry.events.map((event) => (
-      issueForecast(career, season.index, entry.championship, event, date)
+      issueForecast(career, { season: season.index, edition: entry.edition }, entry.championship, event, date)
     )),
   })),
 });
@@ -263,18 +339,25 @@ export const withSeason = (career: Career, season: CareerSeason): Career => ({
 });
 
 /**
- * One round of a championship the career is in, found by its ids.
+ * One round of a championship edition the career is in, found by its ids.
  * @param season The season to look in
  * @param series The championship's id
  * @param round The round's id
+ * @param edition Which of the season's editions
+ * @param withdrawn Whether an edition the career pulled out of counts, which it
+ * does only for reading a round back - never for racing one
  * @returns The entry and its event, or null when the career is not in it
  */
 export const enteredEvent = (
   season: CareerSeason,
   series: string,
   round: string,
+  edition: number,
+  withdrawn = false,
 ): EnteredEvent | null => {
-  const entry = season.entries.find((one) => one.series === series && !one.withdrawn);
+  const entry = withdrawn
+    ? editionEntry(season, series, edition)
+    : season.entries.find((one) => one.series === series && one.edition === edition && !one.withdrawn);
   const event = entry?.events.find((one) => one.round === round);
 
   return entry && event ? { entry, event } : null;
@@ -328,7 +411,7 @@ export const launchBlock = (
 
   if (event.status !== 'scheduled') return appErrorInfo('career.event.closed', { round: name });
   const raced = allowSameDay ? undefined : season.entries
-    .filter((entry) => !entry.withdrawn && entry.series !== held.entry.series)
+    .filter((entry) => !entry.withdrawn && entry !== held.entry)
     .flatMap((entry) => entry.events.map((one) => ({ entry, event: one })))
     .find((other) => other.event.date === event.date && other.event.status === 'raced');
   if (raced) return appErrorInfo('career.event.sameDay', { event: eventName(raced) });
@@ -345,6 +428,7 @@ export const launchBlock = (
  * One round of a championship as a confirmation lists it.
  * @param championship The championship, as the career holds it
  * @param entry The class the career is in, or would enter, by its id
+ * @param edition Which of the season's editions
  * @param event The round, dated
  * @param reason What moving on does to it
  * @returns The round, named and dated
@@ -352,6 +436,7 @@ export const launchBlock = (
 export const skippedRound = (
   championship: Championship,
   entry: string,
+  edition: number,
   event: SeasonEvent,
   reason: SkipReason,
 ): SkippedRound => {
@@ -360,6 +445,7 @@ export const skippedRound = (
 
   return {
     series: championship.id,
+    edition,
     seriesName: championship.name,
     round: event.round,
     roundName: championship.rounds[at]?.name ?? event.round,
@@ -379,6 +465,7 @@ export const skippedRound = (
 const lost = (held: EnteredEvent): SkippedRound => skippedRound(
   held.entry.championship,
   held.entry.entry,
+  held.entry.edition,
   held.event,
   held.event.sessions.length > 0 ? 'partway' : 'skipped',
 );
@@ -417,12 +504,19 @@ export const launchSkips = (
     .flatMap((other) => {
       if (other.event.date < held.event.date || other.event.sessions.length > 0) return [lost(other)];
       if (other.event.date === held.event.date && !allowSameDay) {
-        return [skippedRound(other.entry.championship, other.entry.entry, other.event, 'clash')];
+        return [skippedRound(other.entry.championship, other.entry.entry, other.entry.edition, other.event, 'clash')];
       }
 
       return [];
     })
 );
+
+/**
+ * What a refusal calls a lost round: its championship and its name.
+ * @param round The round
+ * @returns The name
+ */
+export const lostName = (round: SkippedRound): string => `${round.seriesName} - ${round.roundName}`;
 
 /**
  * A season with some of its rounds marked as non-starts.
@@ -431,19 +525,39 @@ export const launchSkips = (
  * @returns The season
  */
 export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]): CareerSeason => {
-  const marked = new Set(rounds.map((one) => `${one.series}\u0000${one.round}`));
+  const key = (series: string, edition: number, round: string): string => `${series}\u0000${edition}\u0000${round}`;
+  const marked = new Set(rounds.map((one) => key(one.series, one.edition, one.round)));
 
   return {
     ...season,
     entries: season.entries.map((entry) => (entry.withdrawn ? entry : {
       ...entry,
       events: entry.events.map((event) => (
-        event.status === 'scheduled' && marked.has(`${entry.series}\u0000${event.round}`)
+        event.status === 'scheduled' && marked.has(key(entry.series, entry.edition, event.round))
           ? { ...event, status: 'missed' as const }
           : event
       )),
     })),
   };
+};
+
+/**
+ * A career with its current season brought to the season's last day.
+ *
+ * Every round of the career's still to run in it becomes a non-start - the
+ * player has been shown and confirmed what moving past the year costs - and the
+ * clock stands on 31 December, so simulating the missed rounds reaches every
+ * one of them. What a season's end pays out - prize money for a final
+ * standing, the ladder moving - lands here too, once Phases 7 and 8 bring it.
+ * @param career The career
+ * @param season The season to close
+ * @returns The career, its clock on the season's last day
+ */
+export const closeSeason = (career: Career, season: CareerSeason): Career => {
+  const dated = { ...career, date: season.endDate };
+  const marked = markMissed(season, advanceSkips(season, addDays(season.endDate, 1)));
+
+  return withSeason(dated, issueForecasts(dated, marked, season.endDate));
 };
 
 /**
@@ -540,15 +654,17 @@ export const eventSessions = (
  * for a class the career entered, the library's otherwise
  * @param availability What the install can race of that championship
  * @param entry The class entry the row is read through
+ * @param edition Which of the season's editions the round belongs to
  * @param event The dated round
  * @param career The career reading it
- * @param enrolled Whether the career is in this class this season
+ * @param enrolled Whether the career is in this class of this edition
  * @returns The row
  */
 export const calendarEntry = (
   series: Championship,
   availability: SeriesAvailability,
   entry: ClassEntry,
+  edition: number,
   event: SeasonEvent,
   career: Career,
   enrolled: boolean,
@@ -564,6 +680,8 @@ export const calendarEntry = (
 
   return {
     series: series.id,
+    edition,
+    editions: editionsOf(series),
     seriesName: series.name,
     entry: entry.id,
     entryName: entry.name,
@@ -590,9 +708,10 @@ export const calendarEntry = (
  * Builds one season's calendar out of the career and the library.
  *
  * A class the career entered is drawn from its season's own copy of the
- * championship, with the dates it was entered on; every other class from the
- * library, where it would fall if it were entered today. So a championship
- * edited or deleted mid-season still shows the season being raced in it.
+ * championship, with the dates it was entered on; every other class, and every
+ * edition of it not entered, from the library, where it would fall if it were
+ * entered today. So a championship edited or deleted mid-season still shows
+ * the season being raced in it.
  * @param career The career
  * @param season The season to draw
  * @param listings Every championship the library holds
@@ -608,8 +727,10 @@ export const composeCalendar = (
   entered: ReadonlyMap<SeasonEntry, SeriesAvailability>,
   allowSameDay: boolean,
 ): CareerCalendar => {
-  const key = (series: string, entry: string): string => `${series}\u0000${entry}`;
-  const taken = new Set(season.entries.map((one) => key(one.series, one.entry)));
+  const key = (series: string, entry: string, edition: number): string => (
+    `${series}\u0000${entry}\u0000${edition}`
+  );
+  const taken = new Set(season.entries.map((one) => key(one.series, one.entry, one.edition)));
 
   const own = season.entries.flatMap((held): CalendarEntry[] => {
     const entry = held.championship.entries.find((one) => one.id === held.entry);
@@ -617,24 +738,27 @@ export const composeCalendar = (
     if (!entry || !availability) return [];
 
     return held.events.map((event) => calendarEntry(
-      held.championship, availability, entry, event, career, !held.withdrawn,
+      held.championship, availability, entry, held.edition, event, career, !held.withdrawn,
     ));
   });
 
-  const library = listings.flatMap((listing) => {
-    const entries = listing.series.entries
-      .filter((entry) => !taken.has(key(listing.series.id, entry.id)));
-    if (entries.length === 0) return [];
+  const library = listings.flatMap((listing) => Array.from(
+    { length: editionsOf(listing.series) },
+    (unused, edition) => {
+      const entries = listing.series.entries
+        .filter((entry) => !taken.has(key(listing.series.id, entry.id, edition)));
+      if (entries.length === 0) return [];
 
-    // Dated once per championship rather than once per class of it: every class
-    // of a championship races the same rounds on the same days, and the library
-    // is a hundred-odd championships deep.
-    const events = materialiseEvents(listing.series, season, career.date);
+      // Dated once per edition rather than once per class of it: every class of
+      // a championship races the same rounds on the same days, and the library
+      // is a hundred-odd championships deep.
+      const events = materialiseEvents(listing.series, season, edition, career.date);
 
-    return entries.flatMap((entry) => events.map((event) => (
-      calendarEntry(listing.series, listing.availability, entry, event, career, false)
-    )));
-  });
+      return entries.flatMap((entry) => events.map((event) => (
+        calendarEntry(listing.series, listing.availability, entry, edition, event, career, false)
+      )));
+    },
+  ).flat());
 
   const events = [...own, ...library];
   // A pair settled by giving one up has nothing left to choose between.
@@ -642,7 +766,7 @@ export const composeCalendar = (
   const clashing = clashes(enrolled.map((event) => event.date));
   const clashed = new Set(enrolled
     .filter((unused, at) => clashing[at])
-    .map((event) => `${key(event.series, event.entry)}\u0000${event.round}`));
+    .map((event) => `${key(event.series, event.entry, event.edition)}\u0000${event.round}`));
 
   return {
     season: season.index,
@@ -652,7 +776,7 @@ export const composeCalendar = (
     events: events
       .map((event) => ({
         ...event,
-        clash: clashed.has(`${key(event.series, event.entry)}\u0000${event.round}`),
+        clash: clashed.has(`${key(event.series, event.entry, event.edition)}\u0000${event.round}`),
       }))
       .sort((left, right) => (
         left.date.localeCompare(right.date)

@@ -13,6 +13,7 @@ import {
   DEFAULT_DEFINITION,
   DEFAULT_PLAN_HOUR,
   DRAFT_FILE,
+  MAX_LATEST_ARCHIVES,
   MAX_LISTED_RESULTS,
   OUT_DIR,
   RACE_DIR,
@@ -24,7 +25,7 @@ import {
 } from './constants.ts';
 import type { CspSetup, RaceStore } from './types.ts';
 import {
-  isArchiveName, progressOf, readJson, readRecord, withLayout, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, sameEvent, withLayout, writeJson,
 } from './utils.ts';
 import {
   advanceEvent,
@@ -203,6 +204,18 @@ export const createRaceStore = async (
 
       return [];
     }
+  };
+
+  /**
+   * Every archive in the results folder, newest first.
+   * @returns The archives' file names
+   */
+  const archiveNames = async (): Promise<string[]> => {
+    const names = await readdir(resultsDir).catch(() => [] as string[]);
+
+    // The names are ISO timestamps, so sorting them descending is newest first
+    // without stat-ing anything.
+    return names.filter(isArchiveName).sort().reverse();
   };
 
   const describe = async (): Promise<RaceSetup> => {
@@ -536,10 +549,7 @@ export const createRaceStore = async (
     },
 
     async results() {
-      const names = await readdir(resultsDir).catch(() => [] as string[]);
-      // The names are ISO timestamps, so sorting them descending is newest first
-      // without stat-ing anything.
-      const newest = names.filter(isArchiveName).sort().reverse().slice(0, MAX_LISTED_RESULTS);
+      const newest = (await archiveNames()).slice(0, MAX_LISTED_RESULTS);
       const records = await Promise.all(
         newest.map((name) => readRecord(name, path.join(resultsDir, name))),
       );
@@ -548,6 +558,23 @@ export const createRaceStore = async (
       return records
         .filter((record): record is ResultRecord => record !== null)
         .map((record) => withLayout(record, tracks));
+    },
+
+    async latest() {
+      const names = await archiveNames();
+      const records: ResultRecord[] = [];
+      // One at a time, newest first, stopping at the first archive of another
+      // event: the newest event is all the preview shows.
+      for (const name of names.slice(0, MAX_LATEST_ARCHIVES)) {
+        const record = await readRecord(name, path.join(resultsDir, name));
+        if (record) {
+          if (records.length > 0 && !sameEvent(records[0], record)) break;
+          records.push(record);
+        }
+      }
+      const tracks = records.length > 0 ? await installedTracks() : [];
+
+      return { records: records.map((record) => withLayout(record, tracks)), sessions: names.length };
     },
 
     async result(file) {

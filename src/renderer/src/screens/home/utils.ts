@@ -1,5 +1,12 @@
+import { RECENT_FINISH_DAYS } from './constants.ts';
 import type { RoundMark, SeasonProgress } from './types.ts';
-import type { CalendarEntry, Career, CareerCalendar } from '../../../../shared/types';
+import type {
+  CalendarEntry, Career, CareerCalendar, CareerSeason, SeasonEntry,
+} from '../../../../shared/types';
+import { addDays } from '../../../../shared/utils/calendar-days';
+import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import type { EditionSummary } from '@/lib/season-review';
+import { editionOver, editionSummary } from '@/lib/season-review';
 
 /**
  * The next event the career is entered in, still to be raced - including one
@@ -54,6 +61,11 @@ export const seasonProgress = (career: Career, calendar: CareerCalendar): Season
 
     return {
       series: entry.series,
+      season: season?.index ?? 0,
+      edition: entry.edition,
+      editions: editionsOf(entry.championship),
+      year: season ? seasonYear(season) : 0,
+      over: editionOver(entry, career.date),
       entry: entry.entry,
       name: entry.championship.name,
       className: entry.championship.entries.length > 1 ? held?.name ?? null : null,
@@ -70,4 +82,58 @@ export const seasonProgress = (career: Career, calendar: CareerCalendar): Season
       next: nextAt < 0 ? null : entry.events[nextAt],
     };
   });
+};
+
+/**
+ * The editions of a season that finished lately - within a fortnight of the
+ * clock - and are worth saying so on Home until the career has moved on.
+ * @param season The season
+ * @param clock The ISO date the career's clock stands at
+ * @returns Their summaries, the latest to finish first
+ */
+export const recentlyFinished = (season: CareerSeason, clock: string): EditionSummary[] => season.entries
+  .filter((entry) => !entry.withdrawn && editionOver(entry, clock))
+  .filter((entry) => (entry.events.at(-1)?.date ?? '') >= addDays(clock, -RECENT_FINISH_DAYS))
+  .sort((left, right) => (right.events.at(-1)?.date ?? '').localeCompare(left.events.at(-1)?.date ?? ''))
+  .map((entry) => editionSummary(entry, season.index, clock));
+
+/**
+ * The championships a season raced, one each: the latest edition of each class
+ * entered, which is what entering again in the next season starts from.
+ * @param season The season
+ * @returns One entry per championship and class, in calendar order
+ */
+export const racedLastSeason = (season: CareerSeason): SeasonEntry[] => {
+  const latest = new Map<string, SeasonEntry>();
+  season.entries.forEach((entry) => {
+    const key = `${entry.series}\u0000${entry.entry}`;
+    const held = latest.get(key);
+    if (!held || held.edition < entry.edition) latest.set(key, entry);
+  });
+
+  return [...latest.values()].sort((left, right) => (
+    (left.events[0]?.date ?? '').localeCompare(right.events[0]?.date ?? '')
+  ));
+};
+
+/**
+ * The edition of a championship a career can still enter this season: the
+ * first with a round left on or after the clock.
+ * @param events Every event of the season, earliest first
+ * @param series The championship's id
+ * @param clock The ISO date the career's clock stands at
+ * @returns The edition and the day its first round runs, or null when every
+ * edition of the season is behind the clock
+ */
+export const editionAhead = (
+  events: readonly CalendarEntry[],
+  series: string,
+  clock: string,
+): { edition: number; opens: string } | null => {
+  const own = events.filter((one) => one.series === series);
+  const edition = own.find((one) => one.date >= clock)?.edition;
+  if (edition === undefined) return null;
+  const opens = own.filter((one) => one.edition === edition).map((one) => one.date).sort()[0];
+
+  return opens === undefined ? null : { edition, opens };
 };

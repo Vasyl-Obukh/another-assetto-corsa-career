@@ -18,6 +18,10 @@ interface EventSessionsProps {
    * Which round of it, by its id.
    */
   round: string;
+  /**
+   * Which of the season's editions it is a round of.
+   */
+  edition: number;
 }
 
 /**
@@ -25,10 +29,10 @@ interface EventSessionsProps {
  * where it runs over more than one - read off the event page's own view, so
  * the two never disagree about what the event runs.
  */
-export const EventSessions = ({ series, round }: EventSessionsProps) => {
+export const EventSessions = ({ series, round, edition }: EventSessionsProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
-  const { view } = useCareerEvent(series, round);
+  const { view } = useCareerEvent(series, round, { edition });
 
   if (!view) return <SessionsSkeleton />;
 

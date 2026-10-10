@@ -6,6 +6,7 @@ import type { PathParam } from 'react-router';
 
 import { ResultDetailSkeleton } from './ResultDetailSkeleton.tsx';
 import { ResultHero } from './ResultHero.tsx';
+import { editionsOf } from '../../../../shared/utils/editions';
 import { formatGap, formatLapTime } from '../../../../shared/utils/lap-time';
 import { entryResults } from '../../../../shared/utils/standings';
 import {
@@ -22,7 +23,7 @@ import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { classifiedRows } from '@/lib/classification';
 import { archiveOrigins, raceTitle, sessionTypeOf } from '@/lib/result-events';
-import { path, ROUTE } from '@/lib/routes';
+import { linkRun, path, ROUTE } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -36,7 +37,14 @@ export const ResultDetail = () => {
 
   const { record } = detail;
   const origin = useMemo(() => archiveOrigins(career).get(file) ?? null, [career, file]);
-  const event = useCareerEvent(origin?.entry.series ?? '', origin?.round ?? '');
+  // The run the archive was raced in, so a result from an earlier season or
+  // another edition reads its own round rather than this year's.
+  const run = origin ? linkRun(
+    { season: origin.season, edition: origin.entry.edition },
+    career?.seasons.at(-1)?.index,
+    editionsOf(origin.entry.championship),
+  ) : undefined;
+  const event = useCareerEvent(origin?.entry.series ?? '', origin?.round ?? '', run);
   const view = origin ? event.view : null;
   const session = record?.summary.sessions.at(-1) ?? null;
   const type = sessionTypeOf(session?.type ?? 1);
@@ -63,7 +71,7 @@ export const ResultDetail = () => {
   // Where the championship stood once this race was in it.
   const after = useMemo(() => {
     if (!origin || !race) return null;
-    const season = seasonResults(entryResults(origin.entry), origin.round);
+    const season = seasonResults(entryResults(origin.entry, origin.season), origin.round);
 
     return season.classes.find((one) => one.entry === origin.entry.entry) ?? null;
   }, [origin, race]);
@@ -143,12 +151,12 @@ export const ResultDetail = () => {
             )}
             links={origin && round && championship ? (
               <>
-                <Link to={path.championship({ id: origin.entry.series })} className="underline-offset-4 hover:underline">
+                <Link to={path.championship({ id: origin.entry.series }, run)} className="underline-offset-4 hover:underline">
                   {championship.name}
                 </Link>
                 <ChevronRightIcon className="size-3.5 opacity-60" />
                 <Link
-                  to={path.event({ series: origin.entry.series, round: origin.round })}
+                  to={path.event({ series: origin.entry.series, round: origin.round }, run)}
                   className="underline-offset-4 hover:underline"
                 >
                   {t('championships.detail.roundAt', { number, round: round.name })}
@@ -195,7 +203,7 @@ export const ResultDetail = () => {
                 </div>
                 {origin ? (
                   <Link
-                    to={{ pathname: path.championship({ id: origin.entry.series }), search: '?tab=standings' }}
+                    to={path.championship({ id: origin.entry.series }, run, 'standings')}
                     className="flex items-center justify-center gap-1 border-t py-2 text-xs font-medium text-primary hover:bg-accent/50"
                   >
                     {t('standings.fullStandings')}

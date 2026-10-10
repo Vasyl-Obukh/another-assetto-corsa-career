@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
-import { path } from '@/lib/routes';
+import { linkRun, path } from '@/lib/routes';
 import { tierAccent } from '@/screens/championships';
 import { LayoutMap } from '@/screens/track-browser';
 
@@ -83,7 +83,7 @@ export const NextEvent = ({
           )}
         </div>
 
-        <EventSessions series={event.series} round={event.round} />
+        <EventSessions series={event.series} round={event.round} edition={event.edition} />
 
         {clashes.length > 0 ? (
           <div className="flex items-center gap-2 rounded-lg bg-warning/20 px-3 py-2 text-sm">
@@ -97,7 +97,12 @@ export const NextEvent = ({
 
         <div className="mt-1 flex flex-wrap gap-2">
           <Button asChild>
-            <Link to={path.event({ series: event.series, round: event.round })}>
+            <Link
+              to={path.event(
+                { series: event.series, round: event.round },
+                linkRun({ season: 0, edition: event.edition }, 0, event.editions),
+              )}
+            >
               {t('home.goToEvent')}
               <ArrowRightIcon />
             </Link>

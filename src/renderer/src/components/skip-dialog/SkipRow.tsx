@@ -4,7 +4,7 @@ import { SKIP_ACCENT } from './constants.ts';
 import type { SkippedRound } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { DISCIPLINE_DOT } from '@/lib/accents';
+import { disciplineDot } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
 interface SkipRowProps {
@@ -28,7 +28,7 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
     <li className="grid grid-cols-[0.25rem_minmax(0,1fr)_auto] items-center gap-3 border-t py-2 pr-3 first:border-t-0">
       <span
         aria-hidden
-        className={cn('self-stretch', round.ladder ? DISCIPLINE_DOT[round.ladder.discipline] : 'bg-muted')}
+        className={cn('self-stretch', disciplineDot(round.ladder))}
       />
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-sm font-medium">

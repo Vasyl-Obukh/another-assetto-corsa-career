@@ -1,6 +1,6 @@
 import type { LaunchResult } from '../../core/season-scoring/index.ts';
 import type {
-  AcPaths, LaunchRecord, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
+  AcPaths, LatestResults, LaunchRecord, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
 } from '../../shared/types/index.ts';
 
 /**
@@ -33,7 +33,7 @@ export interface CspSetup {
 export interface RaceProgress {
   /**
    * Which race the progress belongs to - RaceDefinition.id, which a lowered
-   * round composes through roundRaceId.
+   * round composes through roundRaceId, and a career's round through runRaceId.
    */
   raceId: string;
   /**
@@ -122,6 +122,15 @@ export interface RaceStore {
    * @returns One record per archive, summarised
    */
   results(): Promise<ResultRecord[]>;
+  /**
+   * The newest event's archives, and how many archives there are in all.
+   *
+   * Reads only as far back as that event goes, where results() reads every
+   * archive it lists - which is what lets Home preview the latest result
+   * without paying for the whole Results page.
+   * @returns The newest event's records, newest first, and the archive count
+   */
+  latest(): Promise<LatestResults>;
   /**
    * One archived result.
    * @param file The archive's file name, without its folder

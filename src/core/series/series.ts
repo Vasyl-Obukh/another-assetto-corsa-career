@@ -71,8 +71,8 @@ import {
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
-  classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, roundOf, roundRaceId, roundSessions,
-  seatDraw,
+  baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, roundOf, roundRaceId,
+  roundSessions, runRaceId, seatDraw,
 } from './utils.ts';
 export { formatOf } from '../../shared/utils/event-format/index.ts';
 

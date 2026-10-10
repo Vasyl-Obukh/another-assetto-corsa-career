@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { ROUND_MARK } from './constants.ts';
 import type { RoundMark } from './types.ts';
+import { ROUND_MARK } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
 // What each colour of a championship's progress bar means, at the foot of the list.

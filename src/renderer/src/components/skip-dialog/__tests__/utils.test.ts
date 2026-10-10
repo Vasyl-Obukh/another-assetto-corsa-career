@@ -12,6 +12,7 @@ import { skipGroups } from '../utils.ts';
  */
 const skipped = (series: string, round: string, reason: SkipReason = 'skipped'): SkippedRound => ({
   series,
+  edition: 0,
   seriesName: series.toUpperCase(),
   round,
   roundName: round,

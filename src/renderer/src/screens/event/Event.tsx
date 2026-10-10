@@ -1,7 +1,9 @@
 import { ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router';
+import {
+  Link, useNavigate, useParams, useSearchParams,
+} from 'react-router';
 import type { PathParam } from 'react-router';
 
 import { SUMMARY } from './constants.ts';
@@ -22,7 +24,9 @@ import {
 } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
-import { path, ROUTE } from '@/lib/routes';
+import {
+  linkRun, path, ROUTE, runOf,
+} from '@/lib/routes';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { disciplineKey, tierAccent } from '@/screens/championships';
@@ -32,8 +36,22 @@ export const Event = () => {
   const { t } = useTranslation();
   const { formatDay, formatDayShort, formatMoney } = useFormat();
   const { series = '', round = '' } = useParams<PathParam<typeof ROUTE.event>>();
-  const event = useCareerEvent(series, round);
-  const results = useChampionshipResults(series);
+  // A round of an earlier season, or of one edition of several, names its run
+  // in the URL; otherwise main picks the edition the career is racing.
+  const [search] = useSearchParams();
+  const asked = runOf(search);
+  const event = useCareerEvent(series, round, asked);
+  // Main picks the same default for both reads, so the results ask what the
+  // URL asked rather than waiting on the view to say which run it chose.
+  const results = useChampionshipResults(series, asked);
+  // A closed season is the one view that says it is not the current one.
+  const run = event.view
+    ? linkRun(
+      { season: event.view.season, edition: event.view.edition },
+      event.view.blocked?.code === 'career.season.closed' ? undefined : event.view.season,
+      event.view.editions,
+    )
+    : asked;
   const navigate = useNavigate();
   // Null until the player picks one, so the page follows the event on its own
   // - opening on the next session, and moving on to the one after once it has
@@ -57,7 +75,7 @@ export const Event = () => {
   const session = view?.sessions.find((one) => one.index === selected) ?? view?.sessions[0];
   const playerName = usePlayerName();
   const openStandings = (): void => {
-    void navigate({ pathname: path.championship({ id: series }), search: '?tab=standings' });
+    void navigate(path.championship({ id: series }, run, 'standings'));
   };
   const ladder = view?.entered?.ladder ?? view?.classes[0]?.ladder;
 
@@ -87,7 +105,7 @@ export const Event = () => {
               <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {/* The championship this round belongs to, in its discipline's colour. */}
                 <Link
-                  to={path.championship({ id: view.series })}
+                  to={path.championship({ id: view.series }, run)}
                   className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2 pl-2.5 font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
                 >
                   {ladder ? <span className={cn('size-2 rounded-full', DISCIPLINE_DOT[ladder.discipline])} /> : null}
@@ -122,7 +140,11 @@ export const Event = () => {
       {view ? (
         <div className="grid items-start gap-4 lg:grid-cols-[300px_1fr]">
           <aside className="flex flex-col gap-4">
-            {view.entered ? <EntryPanel entry={view.entered} /> : (
+            {/* A round of a closed season, or of an edition already over, can
+                only be read back - entering would be refused. */}
+            {view.entered || view.blocked?.code === 'career.season.closed' || view.behind.length === view.rounds ? (
+              view.entered ? <EntryPanel entry={view.entered} /> : null
+            ) : (
               <EnterPanel
                 view={view}
                 busy={event.busy}

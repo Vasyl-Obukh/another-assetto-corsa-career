@@ -4,10 +4,12 @@ import {
   CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
 } from './constants.ts';
 import type {
-  AvailabilityState, ContentList, Purse, Rung, StandingsLayout, TeamGroup,
+  AvailabilityState, ContentList, EnterHint, Purse, Rung, ShownRun, StandingsLayout, TeamGroup,
 } from './types.ts';
 import type {
+  Career,
   Championship,
+  ChampionshipRun,
   ClassEntry,
   Discipline,
   EntryAvailability,
@@ -15,6 +17,7 @@ import type {
   PointsSystem,
   PrizeMoney,
   Round,
+  SeasonEntry,
   Seat,
   SeriesAvailability,
   SeriesListing,
@@ -24,6 +27,7 @@ import type {
   Team,
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
+import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
 import { roundAvailability } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { ProvenancePicks } from '@/components';
@@ -398,5 +402,65 @@ export const readStandingsLayout = (): StandingsLayout => {
     who: stored.who === 'teams' ? 'teams' : DEFAULT_STANDINGS.who,
     shape: stored.shape === 'table' ? 'table' : DEFAULT_STANDINGS.shape,
     view: stored.view === 'positions' ? 'positions' : DEFAULT_STANDINGS.view,
+  };
+};
+
+/**
+ * The class and car a link asked the Enter panel to start from, read out of
+ * whatever router state the page was opened with.
+ * @param state The location's state
+ * @returns The hint, or null for any other state
+ */
+export const enterHintOf = (state: unknown): EnterHint | null => {
+  if (typeof state !== 'object' || state === null || !('enter' in state)) return null;
+  const { enter } = state;
+  if (typeof enter !== 'object' || enter === null) return null;
+  const hint = enter as Partial<EnterHint>;
+  if (typeof hint.entry !== 'string' || typeof hint.car?.model !== 'string') return null;
+
+  return {
+    entry: hint.entry,
+    car: { model: hint.car.model, ...(typeof hint.car.skin === 'string' ? { skin: hint.car.skin } : {}) },
+  };
+};
+
+/**
+ * Which season and edition a championship's page shows, and the career's entry
+ * in it.
+ *
+ * The season the URL names, or the current one. The edition the URL names,
+ * else the one main answered the results for, else the one the career is
+ * racing - the default main itself reaches, so the page can say which before
+ * the results land. A season gone by reads back an edition the career pulled
+ * out of; the current one does not, since that edition can be entered again.
+ * @param career The career, or null before it is read
+ * @param series The championship's id
+ * @param asked The run the URL names
+ * @param answered The edition main read the results for, once it has
+ * @param manage Whether the page manages the library rather than a career's season
+ * @returns The run shown
+ */
+export const shownRun = (
+  career: Career | null,
+  series: string,
+  asked: Partial<ChampionshipRun>,
+  answered: number | undefined,
+  manage: boolean,
+): ShownRun => {
+  const current = career?.seasons.at(-1) ?? null;
+  const season = asked.season === undefined
+    ? current
+    : career?.seasons.find((one) => one.index === asked.season) ?? null;
+  const closed = season !== null && season !== current;
+  const edition = asked.edition ?? answered ?? (season ? enteredEdition(season, series) : null) ?? undefined;
+  let entered: SeasonEntry | null = null;
+  if (!manage && season && edition !== undefined) {
+    entered = closed
+      ? editionEntry(season, series, edition)
+      : season.entries.find((one) => one.series === series && one.edition === edition && !one.withdrawn) ?? null;
+  }
+
+  return {
+    season, closed, edition, entered,
   };
 };

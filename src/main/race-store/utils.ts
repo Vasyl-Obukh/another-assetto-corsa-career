@@ -3,6 +3,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { ARCHIVE_NAME } from './constants.ts';
 import type { RaceProgress } from './types.ts';
 import { summarise } from '../../core/results/index.ts';
+import { baseRaceId } from '../../core/series/index.ts';
 import type {
   EventState, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../shared/types/index.ts';
@@ -138,4 +139,23 @@ export const withLayout = (record: ResultRecord, tracks: readonly Track[]): Resu
   const ran = tracks.find((track) => (track.layout ? `${track.id}-${track.layout}` : track.id) === record.summary.track);
 
   return ran ? { ...record, layout: { id: ran.id, layout: ran.layout, name: ran.name } } : record;
+};
+
+/**
+ * Whether two archives are sessions of one event.
+ *
+ * A career round's race id names its run, so one id is one event however many
+ * days it ran over. Anything else - a race of the player's own, or an archive
+ * from before ids named runs - is one event per race and per day, the way the
+ * Results page gathers them.
+ * @param first One archive
+ * @param other The other
+ * @returns True when both belong to the same event
+ */
+export const sameEvent = (first: ResultRecord, other: ResultRecord): boolean => {
+  const name = first.raceId ?? first.raceName;
+  if (name === undefined || name !== (other.raceId ?? other.raceName)) return false;
+  if (first.raceId !== undefined && baseRaceId(first.raceId) !== first.raceId) return true;
+
+  return first.recordedAt.slice(0, 10) === other.recordedAt.slice(0, 10);
 };

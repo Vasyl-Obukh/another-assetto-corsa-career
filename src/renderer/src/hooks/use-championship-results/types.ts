@@ -2,11 +2,12 @@ import type { ChampionshipResults } from '../../../../shared/types';
 import type { DisplayableError } from '@/lib/ipc';
 
 /**
- * What was loaded, and for which championship.
+ * What was loaded, and for which championship and run.
  */
 export interface ChampionshipResultsState {
   /**
-   * The championship this state answers, by its id.
+   * The championship and run this state answers - its id, and the season and
+   * edition asked for.
    */
   key: string;
   /**

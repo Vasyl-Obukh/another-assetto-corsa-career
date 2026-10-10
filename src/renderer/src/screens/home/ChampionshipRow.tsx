@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { ROUND_MARK } from './constants.ts';
 import type { SeasonProgress } from './types.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { DISCIPLINE_DOT } from '@/lib/accents';
-import { path } from '@/lib/routes';
+import { disciplineDot, ROUND_MARK } from '@/lib/accents';
+import { editionName } from '@/lib/edition-names';
+import { linkRun, path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 import { tierAccent } from '@/screens/championships';
 
@@ -23,12 +23,18 @@ export const ChampionshipRow = ({ progress }: ChampionshipRowProps) => {
 
   return (
     <Link
-      to={path.championship({ id: progress.series })}
+      // A finished edition opens its review; one still running, its page.
+      to={progress.over
+        ? path.championshipReview({ series: progress.series, season: progress.season, edition: progress.edition })
+        : path.championship(
+          { id: progress.series },
+          linkRun({ season: progress.season, edition: progress.edition }, progress.season, progress.editions),
+        )}
       className="grid grid-cols-[0.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent"
     >
       <span
         aria-hidden
-        className={cn('self-stretch rounded-full', progress.ladder ? DISCIPLINE_DOT[progress.ladder.discipline] : 'bg-muted')}
+        className={cn('self-stretch rounded-full', disciplineDot(progress.ladder))}
       />
 
       <span className="flex min-w-0 flex-col gap-1.5">
@@ -37,6 +43,12 @@ export const ChampionshipRow = ({ progress }: ChampionshipRowProps) => {
           {progress.ladder ? (
             <Badge className={cn('shrink-0', tierAccent(progress.ladder.tier))}>
               {t('championships.tier', { tier: progress.ladder.tier })}
+            </Badge>
+          ) : null}
+          {/* Neutral on purpose: an edition's name is an identifier, not one of a set. */}
+          {progress.editions > 1 ? (
+            <Badge variant="secondary" className="shrink-0">
+              {editionName({ year: progress.year, edition: progress.edition, editions: progress.editions }, t)}
             </Badge>
           ) : null}
           {progress.className ? (

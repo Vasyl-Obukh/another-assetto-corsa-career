@@ -9,7 +9,6 @@
     "race": "Race",
     "calendar": "Calendar",
     "championships": "Championships",
-    "results": "Results",
     "cars": "Cars",
     "tracks": "Tracks",
     "settings": "Settings"
@@ -870,7 +869,9 @@
       "inDays_other": "in {{count}} days",
       "roundAt": "Round {{number}} · {{round}}",
       "openRound": "Open round {{number}} · {{round}}",
-      "raceOrWinners": "Race / winners"
+      "raceOrWinners": "Race / winners",
+      "review": "See the season review",
+      "pastSeason": "{{edition}}, looked back on: nothing in it can be raced or entered any more."
     },
     "tabs": {
       "rounds": "Rounds",
@@ -878,6 +879,17 @@
       "classes": "Classes",
       "rules": "Points, prizes and formats",
       "raced": "{{count}} of {{rounds}} raced"
+    },
+    "editions": {
+      "won": "You won it",
+      "finished": "You finished P{{position}}",
+      "entered": "Entered",
+      "next": "You are in · round {{number}} next",
+      "over": "Over",
+      "running": "Under way",
+      "opens": "Opens {{day}}",
+      "span": "{{from}} - {{to}}",
+      "label": "Editions this season"
     }
   },
   "championshipLibrary": {
@@ -1729,7 +1741,7 @@
     "notScanned": "Everything is found - scan your content below to fill the library."
   },
   "home": {
-    "season": "Season {{number}}",
+    "season": "{{year}} season",
     "openCalendar": "Open the calendar",
     "nextEvent": "Your next event",
     "daysToGo_one": "day to go · {{day}}",
@@ -1745,7 +1757,7 @@
     "entered_other": "{{count}} entered",
     "noneEntered": "You have not entered a championship this season.",
     "nextRound": "Next: round {{number}} · {{day}}",
-    "seasonDone": "Season done",
+    "seasonDone": "Finished · see the season",
     "noPosition": "-",
     "position": "P{{position}}",
     "ofField_one": " / {{count}}",
@@ -1761,7 +1773,180 @@
     "noEvent": "No event ahead of you",
     "noEventHint": "Enter a championship and its next round shows up here.",
     "findChampionship": "Find a championship to enter",
-    "today": "{{weekday}} {{day}}"
+    "today": "{{weekday}} {{day}}",
+    "wins_one": "{{count}} win",
+    "wins_other": "{{count}} wins",
+    "finished": {
+      "title": "{{series}} is over - you finished P{{position}}",
+      "titleChampion": "{{series}} is over - you are the champion",
+      "titleNone": "{{series}} is over",
+      "detail": "{{points}}, {{wins}}. Champion: {{champion}}.",
+      "open": "See the season"
+    },
+    "yearDone": {
+      "title": "Your {{year}} is done",
+      "hint": "Everything you entered this year has been raced. Look back over the year, then move on to {{next}} - or enter something that still runs before 31 December.",
+      "review": "Review {{year}}",
+      "finish": "Finish the year",
+      "note": "Finishing moves the clock to {{day}}. Nothing carries over - you enter {{next}}'s championships afresh.",
+      "find": "Find a championship"
+    },
+    "newSeason": {
+      "kicker": "A new season",
+      "title": "{{year}} is open",
+      "hint": "Nothing is entered yet. Here is what you raced last year - each opens its championship with your class and car already picked.",
+      "lastYear": "Last year",
+      "opens": "{{edition}} opens {{day}}",
+      "enter": "Enter {{edition}}",
+      "find": "Find another championship",
+      "lookBack": "Look back at {{year}}"
+    },
+    "doors": {
+      "open": "Open",
+      "results": {
+        "title": "Results",
+        "hint": "Every event you have driven",
+        "sessions_one": "{{count}} session",
+        "sessions_other": "{{count}} sessions",
+        "latest": "Last driven",
+        "none": "Nothing driven yet - every session you run lands here."
+      },
+      "history": {
+        "title": "History",
+        "hint": "Every season of your career, and each championship's review",
+        "seasons": "Your seasons",
+        "empty": "Nothing entered yet",
+        "titles_one": "{{count}} title",
+        "titles_other": "{{count}} titles",
+        "running_one": "+ {{count}} running",
+        "running_other": "+ {{count}} running"
+      }
+    }
+  },
+  "edition": {
+    "year": "{{year}}",
+    "half": "H{{number}} {{year}}",
+    "quarter": "Q{{number}} {{year}}"
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "Every season of your career, newest first",
+    "underWay": "Under way",
+    "closed": "Closed",
+    "championships_one": "{{count}} championship",
+    "championships_other": "{{count}} championships",
+    "titles_one": "{{count}} title",
+    "titles_other": "{{count}} titles",
+    "podiums_one": "{{count}} podium",
+    "podiums_other": "{{count}} podiums",
+    "yearReview": "Season review",
+    "soFar": "So far",
+    "col": {
+      "championship": "Championship",
+      "edition": "Edition",
+      "rounds": "Rounds",
+      "champion": "Champion",
+      "you": "You",
+      "points": "Points"
+    },
+    "rounds": "{{run}} of {{count}}",
+    "champion": "Champion",
+    "withdrawn": "Withdrawn",
+    "leading": "so far",
+    "nothing": "Nothing entered",
+    "empty": "Nothing raced yet - each season you enter something in shows up here."
+  },
+  "yearReview": {
+    "subtitleOpen": "So far · {{day}}",
+    "subtitleClosed": "{{from}} - {{to}}",
+    "figures": {
+      "championships": "Championships",
+      "titles": "Titles",
+      "starts": "Starts",
+      "wins": "Wins",
+      "poles": "Poles"
+    },
+    "finished_one": "{{count}} finished",
+    "finished_other": "{{count}} finished",
+    "nonStarts_one": "{{count}} non-start",
+    "nonStarts_other": "{{count}} non-starts",
+    "noNonStarts": "no non-starts",
+    "podiums_one": "{{count}} podium",
+    "podiums_other": "{{count}} podiums",
+    "fastestLaps_one": "{{count}} fastest lap",
+    "fastestLaps_other": "{{count}} fastest laps",
+    "yourChampionships": "Your championships",
+    "eachOpens": "Each opens its review",
+    "running": "{{name}} is still running",
+    "runningHint_one": "{{count}} round left, the last on {{day}}. Finishing the year now gives it up.",
+    "runningHint_other": "{{count}} rounds left, the last on {{day}}. Finishing the year now gives them up.",
+    "goToRound": "Go to the next round",
+    "finishAnyway": "Finish {{year}} anyway",
+    "finish": "Finish {{year}} and start {{next}}",
+    "wonBy": "Won by {{name}}",
+    "underWay": "Round {{run}} of {{rounds}} · under way",
+    "soFar": "so far",
+    "notFound": "The career has no such season.",
+    "empty": "Nothing was entered this season."
+  },
+  "review": {
+    "complete": "Complete",
+    "underWay": "Under way",
+    "rounds_one": "{{count}} round",
+    "rounds_other": "{{count}} rounds",
+    "races_one": "{{count}} race",
+    "races_other": "{{count}} races",
+    "dates": "{{from}} - {{to}}",
+    "champion": "Champion",
+    "place": "P{{position}} of {{count}}",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "figures": {
+      "points": "Points",
+      "wins": "Wins",
+      "poles": "Poles",
+      "best": "Best finish",
+      "starts": "Starts"
+    },
+    "clear": "+{{points}} clear",
+    "toChampion": "-{{points}} to the champion",
+    "podiums_one": "{{count}} podium",
+    "podiums_other": "{{count}} podiums",
+    "fastestLaps_one": "{{count}} fastest lap",
+    "fastestLaps_other": "{{count}} fastest laps",
+    "average": "avg {{value}}",
+    "startsOf": "of {{count}}",
+    "nonStarts_one": "{{count}} non-start",
+    "nonStarts_other": "{{count}} non-starts",
+    "noNonStarts": "no non-starts",
+    "champions": "Champions",
+    "championsHint": "One pair per class",
+    "driversChampion": "Drivers' champion",
+    "teamsChampion": "Teams' champion",
+    "path": "Your season, round by round",
+    "pathHint": "Championship position after each round",
+    "standings": "Final standings",
+    "everyRace": "Every race",
+    "drivers": "Drivers",
+    "teams": "Teams",
+    "next": {
+      "season": "Next season",
+      "edition": "Next edition",
+      "opens": "Opens",
+      "rounds": "Rounds",
+      "roundsValue_one": "{{count}}, as your library has it now",
+      "roundsValue_other": "{{count}}, as your library has it now",
+      "enter": "Enter {{edition}}",
+      "hint": "Opens the championship's page with your class and car picked, ready to enter once {{edition}} begins.",
+      "gone": "The championship is no longer in your library."
+    },
+    "teammate": "Against your teammate",
+    "qualifyingAhead": "Ahead in qualifying",
+    "finishAhead": "Ahead at the finish",
+    "teammatePoints": "Points",
+    "notFound": "You did not race this championship that season.",
+    "notOver": "This edition is still running, and its review fills in as it goes.",
+    "earned": "+{{points}}"
   },
   "skip": {
     "round": "R{{number}} · {{name}}",
@@ -1824,7 +2009,10 @@
     "settingsSources": "Settings · Content sources",
     "championshipNew": "New championship",
     "championshipEdit": "Championship editor",
-    "raceEvent": "Race event"
+    "raceEvent": "Race event",
+    "history": "History",
+    "yearReview": "Season review",
+    "championshipReview": "Championship review"
   },
   "standings": {
     "title": "Standings",

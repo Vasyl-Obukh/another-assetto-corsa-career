@@ -66,11 +66,13 @@ export const offeredDisciplines = (
 
 /**
  * A key telling one event apart from every other on the calendar: a round of
- * a championship, for one of its class entries.
+ * one edition of a championship, for one of its class entries.
  * @param event The event
  * @returns Its key
  */
-export const eventKey = (event: CalendarEntry): string => `${event.series}-${event.entry}-${event.round}`;
+export const eventKey = (event: CalendarEntry): string => (
+  `${event.series}-${event.edition}-${event.entry}-${event.round}`
+);
 
 /**
  * How far down a day's list an event goes: the career's own events first,

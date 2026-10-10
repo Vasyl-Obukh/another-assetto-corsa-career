@@ -15,6 +15,26 @@ export interface SeasonProgress {
    */
   series: string;
   /**
+   * Which season it is entered in, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of the season's editions, counting from zero.
+   */
+  edition: number;
+  /**
+   * How many editions the championship runs a season.
+   */
+  editions: number;
+  /**
+   * The year the season is, which an edition is named by.
+   */
+  year: number;
+  /**
+   * Whether its last round has run.
+   */
+  over: boolean;
+  /**
    * Which class of it was entered, by its class entry id.
    */
   entry: string;

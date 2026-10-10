@@ -225,13 +225,14 @@ export enum Hemisphere {
 }
 
 /**
- * How much of a career's year a championship's rounds are spread over.
+ * How long one edition of a championship runs, and so how often it runs.
  *
  * A career season is always one calendar year, whatever is entered; this says
- * how much of that year one championship fills. So a quarter-length series runs
- * its rounds inside ten racing weeks and its standings are final from the spring,
- * while the season itself still ends where the year does - which is what lets a
- * career hold a year-long championship and a quarter-long one at once without
+ * how much of that year one edition fills, and the championship runs as many
+ * editions as fit. So a quarter-length series runs its rounds inside ten racing
+ * weeks, four times a year, each edition with its own standings - while the
+ * season itself still ends where the year does, which is what lets a career
+ * hold a year-long championship and a quarter-long one at once without
  * "season end" meaning two different dates.
  */
 export enum SeasonLength {
@@ -747,11 +748,12 @@ export interface Championship {
    */
   rounds: readonly Round[];
   /**
-   * How much of a career's year this championship's rounds are spread over.
+   * How much of a career's year one edition of this championship spreads its
+   * rounds over, and so how many editions it runs a year.
    *
-   * Omitted, a season fills the year. A series that really runs twice a year
-   * says so here rather than being written out twice, and the career dates its
-   * rounds evenly across whatever this names.
+   * Omitted, an edition fills the year and runs once. A series that really runs
+   * twice a year says so here rather than being written out twice, and the
+   * career dates each edition's rounds evenly across its share of the year.
    */
   seasonLength?: SeasonLength;
   /**

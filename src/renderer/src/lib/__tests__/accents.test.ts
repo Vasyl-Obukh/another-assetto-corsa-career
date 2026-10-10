@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { Discipline } from '../../../../shared/types';
 import {
-  classAccent, PODIUM_ACCENT, POINTS_ACCENT, RACE_CLASS_ACCENT, resultAccent,
+  classAccent, DISCIPLINE_DOT, disciplineDot, PODIUM_ACCENT, POINTS_ACCENT, RACE_CLASS_ACCENT, resultAccent,
 } from '../accents.ts';
 
 describe('renderer/lib/accents', () => {
@@ -17,6 +18,17 @@ describe('renderer/lib/accents', () => {
 
     it('leaves a finish off the podium that scored nothing plain', () => {
       expect(resultAccent(14, false)).toBeUndefined();
+    });
+  });
+
+  describe('disciplineDot', () => {
+    it('wears the colour of the class\'s discipline', () => {
+      expect(disciplineDot({ discipline: Discipline.TOURING, tier: 3 })).toBe(DISCIPLINE_DOT[Discipline.TOURING]);
+    });
+
+    it('stays muted for a class the championship no longer has', () => {
+      expect(disciplineDot(null)).toBe('bg-muted');
+      expect(disciplineDot(undefined)).toBe('bg-muted');
     });
   });
 

@@ -24,8 +24,11 @@ export const ROUTE = {
   event: '/calendar/:series/:round',
   championships: '/championships',
   championship: '/championships/:id',
-  results: '/results',
-  result: '/results/:file',
+  results: '/home/results',
+  result: '/home/results/:file',
+  history: '/home/history',
+  yearReview: '/home/history/:season',
+  championshipReview: '/home/history/:season/:series/:edition',
   cars: '/cars',
   car: '/cars/:id',
   tracks: '/tracks',
@@ -48,6 +51,23 @@ export const ROUTE = {
 export const TRACK_LAYOUT_PARAM = 'layout';
 
 /**
+ * The search parameters a championship's page and a round's page keep their
+ * run in: which season and which of its editions. Absent, a page shows the
+ * current season and the edition the career is racing, or else the one still
+ * to come.
+ */
+export const RUN_PARAM = {
+  season: 'season',
+  edition: 'edition',
+} as const;
+
+/**
+ * The search parameter a championship's page keeps its open tab in, so Back
+ * from a round returns to the tab it left.
+ */
+export const DETAIL_TAB_PARAM = 'tab';
+
+/**
  * The destinations navigation offers, in the order they are shown.
  *
  * Only the label lives here. Icons stay with the component that draws them,
@@ -55,13 +75,15 @@ export const TRACK_LAYOUT_PARAM = 'layout';
  *
  * When the browsers demote out of primary nav into a content area, a `section`
  * field on each entry is where that split belongs.
+ *
+ * Results and History are deliberately not here: both are reached from Home,
+ * and live under its path so Home stays lit while either is open.
  */
 export const NAV = [
   { id: 'home', label: 'nav.home' },
   { id: 'race', label: 'nav.race' },
   { id: 'calendar', label: 'nav.calendar' },
   { id: 'championships', label: 'nav.championships' },
-  { id: 'results', label: 'nav.results' },
   { id: 'cars', label: 'nav.cars' },
   { id: 'tracks', label: 'nav.tracks' },
   { id: 'settings', label: 'nav.settings' },
@@ -83,6 +105,9 @@ export const BACK_LABEL = {
   championship: 'back.championship',
   results: 'back.results',
   result: 'back.result',
+  history: 'back.history',
+  yearReview: 'back.yearReview',
+  championshipReview: 'back.championshipReview',
   cars: 'back.cars',
   car: 'back.car',
   tracks: 'back.tracks',

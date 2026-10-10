@@ -159,11 +159,14 @@ export const roundResult = (event: SeasonEvent): RoundResult => ({
 
 /**
  * A season entry as the results screens read a championship.
- * @param entry The career's season in the championship
+ * @param entry The career's edition of the championship
+ * @param season Which season the entry belongs to, counting from zero
  * @returns Its rounds and what each left
  */
-export const entryResults = (entry: SeasonEntry): ChampionshipResults => ({
+export const entryResults = (entry: SeasonEntry, season: number): ChampionshipResults => ({
   championship: entry.championship,
+  season,
+  edition: entry.edition,
   rounds: entry.events.map(roundResult),
   playerSeat: entry.playerSeat,
   playerEntry: entry.entry,

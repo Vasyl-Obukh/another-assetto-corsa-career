@@ -5,11 +5,12 @@
 // because a Date does not survive the file and a date-only string parsed as
 // local time reads back a day early west of Greenwich.
 //
-// A career season is fifty-two weeks long, opening on the career's own start
-// date. A championship's SeasonLength says how much of that season its rounds
-// are spread over, so a quarter-length series is finished by the spring while
-// the season itself runs on - which is what lets one career hold championships
-// of different lengths without "season end" meaning two dates.
+// A career season is a calendar year, 1 January to 31 December, and closes
+// when the clock crosses into the next. A championship runs inside it as many
+// times as its SeasonLength fits - a year-long one once, a quarter-length one
+// four times - and each run is an edition: a season entry of its own, with its
+// own field, standings and review, entered separately. So "season end" still
+// means one date, while a short championship comes round again within it.
 
 import type { LaunchRecord } from './event.ts';
 import type { RoundDraw, SessionForecast } from './forecast.ts';
@@ -33,6 +34,22 @@ import type { AppErrorInfo } from '../errors/types.ts';
 export type EventStatus = 'scheduled' | 'raced' | 'missed';
 
 /**
+ * One run of a championship in a career: the season it falls in and which of
+ * that season's editions it is.
+ */
+export interface ChampionshipRun {
+  /**
+   * Which season, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of the season's editions, counting from zero - always zero for a
+   * championship that runs once a year.
+   */
+  edition: number;
+}
+
+/**
  * One round of one enrolled championship, placed on the career's calendar.
  */
 export interface SeasonEvent {
@@ -42,6 +59,9 @@ export interface SeasonEvent {
   round: string;
   /**
    * The race id the round lowers to, which is what an archived result carries.
+   *
+   * Qualified by the run, so the same round of two editions or two seasons is
+   * never mistaken for the other by the race being run.
    */
   raceId: string;
   /**
@@ -92,7 +112,7 @@ export interface SeasonEvent {
 }
 
 /**
- * One championship a career has entered, for one season.
+ * One edition of a championship a career has entered.
  *
  * The event list and the season length are frozen when the championship is
  * entered, not re-read from the document: the championship stays editable, and
@@ -105,6 +125,10 @@ export interface SeasonEntry {
    * Which championship, by its id.
    */
   series: string;
+  /**
+   * Which of the season's editions of it, counting from zero.
+   */
+  edition: number;
   /**
    * The championship as it stood when the season was entered, whole.
    *
@@ -173,7 +197,10 @@ export interface SeasonEntry {
 }
 
 /**
- * One season of a career.
+ * One season of a career, which is one calendar year.
+ *
+ * Every season but the last is closed: its clock has run out, and nothing in
+ * it can be raced, entered or given up any more.
  */
 export interface CareerSeason {
   /**
@@ -181,15 +208,15 @@ export interface CareerSeason {
    */
   index: number;
   /**
-   * The day it opens, as an ISO date.
+   * The day it opens, as an ISO date - always 1 January.
    */
   startDate: string;
   /**
-   * The last day it covers, as an ISO date.
+   * The last day it covers, as an ISO date - always 31 December.
    */
   endDate: string;
   /**
-   * The championships entered in it.
+   * The championship editions entered in it.
    */
   entries: readonly SeasonEntry[];
 }
@@ -253,6 +280,14 @@ export interface CalendarEntry {
    * Which championship, by its id.
    */
   series: string;
+  /**
+   * Which of the season's editions of it, counting from zero.
+   */
+  edition: number;
+  /**
+   * How many editions it runs a season, which is what an edition is named by.
+   */
+  editions: number;
   /**
    * Its display name.
    */
@@ -319,12 +354,13 @@ export interface CalendarEntry {
    */
   date: string;
   /**
-   * Whether it is still to come, has been raced, or was passed by. Always
-   * "scheduled" for a championship the career has not entered.
+   * Whether it is still to come, has been raced, or was passed by. For a
+   * championship the career has not entered, only whether its day is behind
+   * the clock.
    */
   status: EventStatus;
   /**
-   * Whether the career has entered this championship this season.
+   * Whether the career has entered this edition of the championship.
    */
   enrolled: boolean;
   /**
@@ -559,6 +595,18 @@ export interface CareerEventView {
    */
   series: string;
   /**
+   * Which season the round falls in, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of that season's editions, counting from zero.
+   */
+  edition: number;
+  /**
+   * How many editions the championship runs a season.
+   */
+  editions: number;
+  /**
    * Its display name.
    */
   seriesName: string;
@@ -683,6 +731,10 @@ export interface SkippedRound {
    */
   series: string;
   /**
+   * Which of the season's editions of it, counting from zero.
+   */
+  edition: number;
+  /**
    * Its display name.
    */
   seriesName: string;
@@ -741,8 +793,9 @@ export interface RoundResult {
 }
 
 /**
- * A championship's season so far, for any championship - the career's own, or
- * one it is not in, whose rounds behind the clock are simulated on the spot.
+ * One edition of a championship so far, for any championship - the career's
+ * own, or one it is not in, whose rounds behind the clock are simulated on the
+ * spot.
  */
 export interface ChampionshipResults {
   /**
@@ -750,6 +803,14 @@ export interface ChampionshipResults {
    * is in it, the library's otherwise.
    */
   championship: Championship;
+  /**
+   * Which season it is of, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of that season's editions, counting from zero.
+   */
+  edition: number;
   /**
    * Every round, in calendar order.
    */

@@ -101,6 +101,7 @@ export type {
 export type {
   RacePhase,
   RaceSetup,
+  LatestResults,
   RaceStatus,
   ResultRecord,
 } from './race-run.ts';
@@ -128,6 +129,7 @@ export type {
   CareerEventView,
   CareerSeason,
   ChampionshipResults,
+  ChampionshipRun,
   EventClassOption,
   EventEntry,
   EventSession,
