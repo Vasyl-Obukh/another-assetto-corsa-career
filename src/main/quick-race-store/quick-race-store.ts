@@ -13,7 +13,7 @@ import path from 'node:path';
 import { EMIT_DEBOUNCE_MS, QUICK_DIR, WRITE_DEBOUNCE_MS } from './constants.ts';
 import type { QuickRaceFile, QuickRaceStore } from './types.ts';
 import {
-  byRecency, phaseOf, readQuickFile, titleOf,
+  archivesOf, byRecency, phaseOf, readQuickFile, titleOf,
 } from './utils.ts';
 import { planEvent } from '../../core/event/index.ts';
 import {
@@ -291,6 +291,14 @@ export const createQuickRaceStore = async (
 
   return {
     list: views,
+
+    async archives() {
+      // Only the titles want the scan, and Results reads its archives with no
+      // install located at all, so a scan that cannot run names by track id.
+      const tracks = await content.content().then((scan) => scan.tracks, () => []);
+
+      return [...races.values()].map((file) => archivesOf(file, titleOf(file.race, tracks)));
+    },
 
     get: async (id) => view(held(id), await race.get()),
 

@@ -16,13 +16,15 @@ import {
 import type { StripFigure } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
-  useCareer, useCareerEvent, usePageName, useResult,
+  useCareer, useCareerEvent, usePageName, useQuickArchives, useResult,
 } from '@/hooks';
 import { usePlayerName } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
-import { classifiedRows } from '@/lib/classification';
-import { archiveOrigins, raceTitle, sessionTypeOf } from '@/lib/result-events';
+import { classifiedRows, racedClasses } from '@/lib/classification';
+import {
+  archiveOrigins, quickOrigins, raceTitle, sessionTypeOf,
+} from '@/lib/result-events';
 import { linkRun, path, ROUTE } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
@@ -37,6 +39,14 @@ export const ResultDetail = () => {
 
   const { record } = detail;
   const origin = useMemo(() => archiveOrigins(career).get(file) ?? null, [career, file]);
+  // A race event of the player's own that still lists the archive, which the
+  // breadcrumb leads back to. Waited for, so the title is said once.
+  const archives = useQuickArchives();
+  const quick = useMemo(
+    () => (origin ? null : quickOrigins(archives.archives).get(file) ?? null),
+    [origin, archives.archives, file],
+  );
+  const loading = detail.loading || archives.loading;
   // The run the archive was raced in, so a result from an earlier season or
   // another edition reads its own round rather than this year's.
   const run = origin ? linkRun(
@@ -55,18 +65,27 @@ export const ResultDetail = () => {
   const number = round && championship ? championship.rounds.indexOf(round) + 1 : 0;
   const playerName = usePlayerName();
 
-  const rows = classifiedRows({
+  // A race event of the player's own has no grid to hand, and its launch says
+  // what class each car raced in.
+  const source = {
     type,
     standings: session?.standings ?? null,
-    record: eventSession?.record ?? null,
+    record: eventSession?.record ?? quick?.launch ?? null,
     grid: view?.grid ?? [],
     score: eventSession?.score ?? null,
     startOrder: eventSession?.startOrder ?? null,
     series: championship,
     substituted: false,
-  });
+  };
+  const rows = classifiedRows(source);
   const mine = rows.find((row) => row.player);
-  const fastest = Math.min(...rows.map((row) => row.bestLap ?? Infinity));
+  const classes = racedClasses(rows, championship?.entries ?? quick?.race.classes ?? []);
+  const multi = classes.length > 1;
+  // The player measures against their own class, as on the round's page.
+  const own = multi && mine?.entry ? classifiedRows({ ...source, entry: mine.entry }) : rows;
+  const ownRow = own.find((row) => row.player);
+  const ownClass = classes.find((one) => one.id === mine?.entry);
+  const fastest = Math.min(...own.map((row) => row.bestLap ?? Infinity));
 
   // Where the championship stood once this race was in it.
   const after = useMemo(() => {
@@ -79,16 +98,25 @@ export const ResultDetail = () => {
   const title = round
     ? t('results.sessionOf', { round: round.name, session: eventSession?.name ?? t(SESSION_TYPE_LABEL[type]) })
     : t('results.sessionOf', {
-      round: (record && raceTitle(record)) || record?.summary.track || '',
-      session: t(SESSION_TYPE_LABEL[type]),
+      round: quick?.race.title ?? ((record && raceTitle(record)) || record?.summary.track || ''),
+      session: quick?.launch.name ?? t(SESSION_TYPE_LABEL[type]),
     });
-  usePageName(record ? title : null);
+  usePageName(record && !loading ? title : null);
 
   const figures: StripFigure[] = mine ? [
     {
       label: t('event.result.you'),
-      value: <ResultCell position={mine.position} scored={(mine.place?.finishPoints ?? 0) > 0} prefixed size="lg" />,
-      detail: t('results.strip.of', { count: rows.length }),
+      value: (
+        <ResultCell
+          position={ownRow?.position ?? mine.position}
+          scored={(mine.place?.finishPoints ?? 0) > 0}
+          prefixed
+          size="lg"
+        />
+      ),
+      detail: multi && ownClass
+        ? t('results.strip.inClass', { name: ownClass.name, position: mine.position, count: rows.length })
+        : t('results.strip.of', { count: rows.length }),
     },
     ...(race && mine.started !== null ? [{
       label: t('results.strip.started'),
@@ -129,18 +157,18 @@ export const ResultDetail = () => {
       {detail.error ? <ErrorCard error={detail.error} onDismiss={detail.dismissError} /> : null}
       {/* The career knows the session's kind wherever it filed the archive; a
           race is the guess everywhere else. */}
-      {detail.loading ? (
+      {loading ? (
         <ResultDetailSkeleton
           race={eventSession ? eventSession.type === 'race' : true}
           standings={origin !== null && (eventSession ? eventSession.type === 'race' : true)}
         />
       ) : null}
 
-      {!detail.loading && record === null && detail.error === null ? (
+      {!loading && record === null && detail.error === null ? (
         <p className="text-sm text-muted-foreground">{t('results.notFound')}</p>
       ) : null}
 
-      {record && session ? (
+      {!loading && record && session ? (
         <>
           <ResultHero
             layout={round
@@ -162,7 +190,19 @@ export const ResultDetail = () => {
                   {t('championships.detail.roundAt', { number, round: round.name })}
                 </Link>
               </>
-            ) : null}
+            ) : quick && (
+              // A race event of the player's own leads back the same way: the
+              // Race tab, then the race.
+              <>
+                <Link to={path.race()} className="underline-offset-4 hover:underline">
+                  {t('nav.race')}
+                </Link>
+                <ChevronRightIcon className="size-3.5 opacity-60" />
+                <Link to={path.raceEvent({ id: quick.race.id })} className="underline-offset-4 hover:underline">
+                  {quick.race.title}
+                </Link>
+              </>
+            )}
             title={title}
             line={[record.layout?.name ?? record.summary.track]}
             recordedAt={record.recordedAt}
@@ -172,12 +212,13 @@ export const ResultDetail = () => {
 
           <div className={cn('grid items-start gap-4', after && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
             <div className="flex min-w-0 flex-col gap-4">
-              {race && rows.length >= 3 ? <Podium rows={rows} playerName={playerName} /> : null}
+              {race && own.length >= 3 ? <Podium rows={own} playerName={playerName} /> : null}
               <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                 <ClassificationTable
                   rows={rows}
                   race={race}
                   playerName={playerName}
+                  classes={classes}
                   footnote={session.order === 'raceResult' ? (
                     <>
                       <CheckIcon className="size-3.5 text-success" />

@@ -26,3 +26,10 @@ export const WINNER_PLACES = [1, 2, 3] as const;
  * the championship's own, and none is spelled with a space.
  */
 export const ALL_CLASSES = 'all classes';
+
+/**
+ * How wide the slider's thumb is, in pixels. Radix keeps the thumb inside the
+ * track, so a step's centre sits half of it in from either end - which is
+ * where the race length control draws its steps and reads the pointer.
+ */
+export const SLIDER_THUMB_PX = 16;

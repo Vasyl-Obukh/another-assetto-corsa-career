@@ -24,6 +24,7 @@ const session = (type: SessionType, track = 'magione'): ResultSession => ({
   name: null,
   player: null,
   place: null,
+  position: null,
 });
 
 /**
@@ -34,6 +35,7 @@ const session = (type: SessionType, track = 'magione'): ResultSession => ({
 const event = (overrides: Partial<ResultEvent> = {}): ResultEvent => ({
   key: 'quick',
   origin: null,
+  quick: null,
   title: 'Sunday blast',
   sessions: [session('practice'), session('qualify'), session('race')],
   from: '2026-03-08T12:00:00Z',

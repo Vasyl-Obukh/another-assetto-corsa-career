@@ -60,6 +60,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'event.state.stale':
     'Saved progress for {{race}} covers {{saved}} launches, but it now plans {{planned}}. '
     + 'Reset the event to run it again.',
+  'event.scale.notRace':
+    'Only a race run to a number of laps can be shortened, and the next launch of {{race}} is not one.',
+  'event.scale.unavailable':
+    'A race of {{laps}} laps cannot run at 1/{{scale}} of its length: it would go under {{min}} laps, '
+    + 'or that is not a step on offer.',
 
   'seriesFile.notAnObject': '{{file}} is not a championship: the file holds no object',
   'seriesFile.unparseable': '{{file}} is not valid JSON: {{reason}}',

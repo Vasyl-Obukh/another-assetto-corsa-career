@@ -1,6 +1,6 @@
 import type { QuickRaceFile } from './types.ts';
 import type {
-  QuickRace, QuickRacePhase, QuickRaceView, Track,
+  QuickRace, QuickRaceArchives, QuickRacePhase, QuickRaceView, Track,
 } from '../../shared/types/index.ts';
 import { QUICK_RACE_VERSION } from '../../shared/utils/quick-race/index.ts';
 
@@ -19,6 +19,27 @@ export const titleOf = (race: QuickRace, tracks: readonly Track[]): string => {
 
   return tracks.find((one) => one.id === id && one.layout === (layout ?? ''))?.name ?? id;
 };
+
+/**
+ * Which archives a quick race's launches wrote, off its file alone.
+ *
+ * A simulated launch archived nothing, so it counts as run and lists no
+ * archive.
+ * @param file What is kept of the race
+ * @param title What it goes by
+ * @returns The race, as the Results page links to it
+ */
+export const archivesOf = ({ race, completed }: QuickRaceFile, title: string): QuickRaceArchives => ({
+  id: race.id,
+  title,
+  sessions: race.sessions.length,
+  run: completed.length,
+  classes: race.classes.map(({ id, name }) => ({ id, name })),
+  launches: completed.flatMap((launch) => (launch.archive ? [{
+    ...launch,
+    name: race.sessions[launch.index]?.name ?? null,
+  }] : [])),
+});
 
 /**
  * Where a quick race is up to.

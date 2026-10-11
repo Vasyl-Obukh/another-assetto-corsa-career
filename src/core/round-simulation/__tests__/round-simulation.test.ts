@@ -64,6 +64,12 @@ describe('core/round-simulation', () => {
       });
     });
 
+    it('records the class each car raced in on every launch, as a driven one does', () => {
+      simulateRound(request()).sessions.forEach((session) => {
+        expect([...session.carClasses ?? []].sort()).toEqual(['gt3', 'gt3', 'gt3', 'gt3', 'gt4', 'gt4', 'gt4', 'gt4']);
+      });
+    });
+
     it('comes out the same every time it is asked', () => {
       expect(simulateRound(request())).toEqual(simulateRound(request()));
     });

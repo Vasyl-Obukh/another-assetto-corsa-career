@@ -36,7 +36,8 @@ interface ResultCardProps {
  * One event of the Results page: the track, the championship and round, the
  * car, and every session driven there with where the player finished and what
  * it paid - each opening its own result. A championship round ends in what it
- * did to the championship, which opens the round's page.
+ * did to the championship, which opens the round's page, and a race event of
+ * the player's own in how far it has got, which opens the race.
  */
 export const ResultCard = ({ event, current }: ResultCardProps) => {
   const { t } = useTranslation();
@@ -103,10 +104,10 @@ export const ResultCard = ({ event, current }: ResultCardProps) => {
                 </>
               ) : null}
             </span>
-            {one.player ? (
+            {one.position !== null ? (
               <ResultCell
                 className="justify-self-end"
-                position={one.place?.classPosition ?? one.player.position}
+                position={one.position}
                 scored={(one.place?.finishPoints ?? 0) > 0}
                 quiet={one.type !== 'race'}
                 prefixed
@@ -134,6 +135,24 @@ export const ResultCard = ({ event, current }: ResultCardProps) => {
           <span className="flex items-center gap-1 text-muted-foreground">
             <ResultCell position={after.position} scored={after.points > 0} prefixed size="sm" />
             <Movement move={after.move} />
+          </span>
+          <ChevronRightIcon className="ml-auto size-3.5 text-primary" />
+        </Link>
+      ) : null}
+
+      {/* A race event of the player's own opens on the Race tab, saying how
+          far it has got. */}
+      {event.quick ? (
+        <Link
+          to={path.raceEvent({ id: event.quick.race.id })}
+          className="mt-auto flex items-center gap-2 border-t px-4 py-2.5 text-xs hover:bg-accent/50"
+        >
+          <span>{t('results.quick.open')}</span>
+          <span className="text-muted-foreground">
+            {t('results.quick.run', {
+              run: event.quick.race.run,
+              count: event.quick.race.sessions,
+            })}
           </span>
           <ChevronRightIcon className="ml-auto size-3.5 text-primary" />
         </Link>

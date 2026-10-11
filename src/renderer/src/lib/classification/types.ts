@@ -22,7 +22,8 @@ export interface ClassificationSource {
    */
   record?: LaunchRecord | null;
   /**
-   * The event's entry list, which the record's car indices index into.
+   * The event's entry list, which the record's car indices index into. Without
+   * one, a car's class is the record's own.
    */
   grid?: readonly GridEntry[];
   /**
@@ -148,4 +149,18 @@ export interface ClassifiedRow {
    * the grid does not say what class it was.
    */
   classPosition: number | null;
+}
+
+/**
+ * One class of an event, as a classification names and colours it.
+ */
+export interface RacedClass {
+  /**
+   * The class entry's id, which a row's `entry` names.
+   */
+  id: string;
+  /**
+   * Display name.
+   */
+  name: string;
 }

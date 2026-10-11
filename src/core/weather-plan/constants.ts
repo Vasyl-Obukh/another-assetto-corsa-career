@@ -115,8 +115,10 @@ export const PURE_PLAN_TYPE = 2;
  * Midnight of the reference day a PURE plan's timestamps count from.
  *
  * The timestamps are not decoration: PURE builds its sun table from the first
- * step's timestamp to the last one's plus its duration, so they say what time of
- * day the plan runs at. Chained from here plus the plan's own start hour.
+ * step's timestamp to the last one's plus its duration stretched by the time
+ * multiplier (PLANNER_built_day_table in PurePlanner/plan/plan.lua), so they say
+ * what time of day the plan runs at. Chained from here plus the plan's own
+ * start hour.
  */
 export const PURE_PLAN_EPOCH = 1788048000;
 
@@ -236,6 +238,20 @@ export const PROBE_PLANS: Record<string, WeatherPlan> = {
     steps: [
       { weather: 'race', minutes: 5 },
       { weather: WeatherType.HEAVY_RAIN, minutes: 5, rain: 0.8 },
+    ],
+  },
+  // Does a plan keep a shortened race's clock? Both planners set the game's
+  // clock to the plan's multiplier, so at 48 the clock reaches 20:00 two and a
+  // half minutes after an 18:00 start, while the rain still arrives three real
+  // minutes in. Driven with spikes/time-multiplier-plan, which starts at 18:00.
+  clock: {
+    loop: false,
+    timeMultiplier: 48,
+    startHour: 18,
+    steps: [
+      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
+      { weather: WeatherType.HEAVY_RAIN, minutes: 3, rain: 0.8, ambient: 14 },
+      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
     ],
   },
 };

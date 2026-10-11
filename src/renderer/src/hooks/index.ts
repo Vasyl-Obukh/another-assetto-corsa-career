@@ -40,6 +40,8 @@ export { usePageName } from './use-page-name/index.ts';
 export { usePlayerName } from './use-player-name/index.ts';
 export { useQuickRace } from './use-quick-race/index.ts';
 export type { QuickRaceState } from './use-quick-race/index.ts';
+export { useQuickArchives } from './use-quick-archives/index.ts';
+export type { QuickArchivesState } from './use-quick-archives/index.ts';
 export { useQuickRaces } from './use-quick-races/index.ts';
 export type { QuickRacesState } from './use-quick-races/index.ts';
 export { useRaceContent } from './use-race-content/index.ts';

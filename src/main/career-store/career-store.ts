@@ -915,7 +915,7 @@ export const createCareerStore = async (
         slotHolds(setup, event.raceId, event.sessions.length) ? withLevelsOf(setup.definition, fresh) : fresh,
         event.sessions,
       );
-      const launched = await race.launch();
+      const launched = await race.launch({ scale: request.scale });
 
       // Kept only once the launch is away, so one that fails to start costs the
       // season nothing.

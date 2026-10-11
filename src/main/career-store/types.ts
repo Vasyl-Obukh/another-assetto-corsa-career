@@ -215,12 +215,14 @@ export interface CareerStore {
    *
    * Sets the round up first when the race being run is some other event, and
    * moves the clock to the event when it is still ahead.
-   * @param request Which championship, round and edition, and whether the
-   * player confirmed losing the rounds `skips` on its event view lists
+   * @param request Which championship, round and edition, whether the player
+   * confirmed losing the rounds `skips` on its event view lists, and the factor
+   * a race is shortened by - one or absent for the full race
    * @returns The race as it stands once the launch has started
-   * @throws When the round cannot be raced now, saying why
+   * @throws When the round cannot be raced now, saying why, or the next launch
+   * cannot be shortened by that much
    */
-  launch(request: Omit<EventRequest, 'season'> & { skip?: boolean }): Promise<RaceSetup>;
+  launch(request: Omit<EventRequest, 'season'> & { skip?: boolean; scale?: number }): Promise<RaceSetup>;
   /**
    * Forces any pending write to complete. Call before quitting.
    * @returns Resolves once nothing is left to write

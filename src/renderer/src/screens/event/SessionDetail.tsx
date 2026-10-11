@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LaunchArea } from './LaunchArea.tsx';
 import { SessionBriefing } from './SessionBriefing.tsx';
 import { SessionResult } from './SessionResult.tsx';
+import type { RaceLengthControl } from './types.ts';
 import { dotted, sessionDay } from './utils.ts';
 import type { CareerEventView, Championship, EventSession } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -29,13 +30,17 @@ interface SessionDetailProps {
    */
   busy: boolean;
   /**
+   * How the next race is shortened for its launch, when it is a race.
+   */
+  length?: RaceLengthControl;
+  /**
    * Called to run the next session.
    */
   onLaunch: () => void;
 }
 
 export const SessionDetail = ({
-  view, session, series, busy, onLaunch,
+  view, session, series, busy, length, onLaunch,
 }: SessionDetailProps) => {
   const { t } = useTranslation();
   const before = view.sessions[session.index - 1];
@@ -61,7 +66,7 @@ export const SessionDetail = ({
         {session.record ? (
           <SessionResult view={view} session={session} record={session.record} series={series} />
         ) : (
-          <SessionBriefing session={session} />
+          <SessionBriefing session={session} length={session.status === 'next' ? length : undefined} />
         )}
 
         {session.status === 'next' ? (
@@ -69,6 +74,7 @@ export const SessionDetail = ({
             view={view}
             session={session}
             busy={busy}
+            scale={session.type === 'race' ? length?.scale ?? 1 : 1}
             onLaunch={onLaunch}
           />
         ) : null}

@@ -1,7 +1,7 @@
 import { Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { launchNote } from './utils.ts';
+import { launchNote, scaleName } from './utils.ts';
 import type { CareerEventView, EventSession } from '../../../../shared/types';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -23,6 +23,10 @@ interface LaunchAreaProps {
    */
   busy: boolean;
   /**
+   * The factor its race is shortened by, one for the full race.
+   */
+  scale: number;
+  /**
    * Called to run it.
    */
   onLaunch: () => void;
@@ -36,7 +40,7 @@ interface LaunchAreaProps {
  * launch has nothing to say here.
  */
 export const LaunchArea = ({
-  view, session, busy, onLaunch,
+  view, session, busy, scale, onLaunch,
 }: LaunchAreaProps) => {
   const { t } = useTranslation();
   const describe = useAppError();
@@ -78,7 +82,14 @@ export const LaunchArea = ({
         />
       ) : null}
 
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {/* Plain on purpose: the step is a number, as a lap count is. Said
+            beside Launch so the choice reads with its popover closed. */}
+        {scale > 1 ? (
+          <span className="text-sm text-muted-foreground">
+            {t('event.length.launch', { share: scaleName(scale, t) })}
+          </span>
+        ) : null}
         <Button type="button" size="lg" disabled={busy || view.blocked !== null} onClick={onLaunch}>
           {t('race.launch.actionNamed', { name })}
         </Button>

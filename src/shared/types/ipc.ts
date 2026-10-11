@@ -23,7 +23,7 @@ import type {
   WeatherController,
 } from './content.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
-import type { QuickRace, QuickRaceView } from './quick-race.ts';
+import type { QuickRace, QuickRaceArchives, QuickRaceView } from './quick-race.ts';
 import type { LatestResults, RaceSetup, ResultRecord } from './race-run.ts';
 import type {
   Championship,
@@ -143,6 +143,12 @@ export interface IpcContract {
    * Every race event of the player's own, the ones part-way first.
    */
   'quick:list': { req: void; res: QuickRaceView[] };
+  /**
+   * Which archives each race event of the player's own wrote, for the Results
+   * page to link them back to it. Read off the files alone, without planning
+   * any race, so it is cheap enough for Home.
+   */
+  'quick:archives': { req: void; res: QuickRaceArchives[] };
   /**
    * One race event of the player's own.
    */
@@ -382,9 +388,11 @@ export interface IpcContract {
    * Run the next session of a round the career is in, setting the round up
    * first when the race being run is another event. A round that would leave
    * others unraced is refused unless `skip` says the player confirmed it.
+   * `scale` shortens a race by one of the steps its length offers, for this
+   * launch alone.
    */
   'career:launch': {
-    req: { series: string; round: string; edition?: number; skip?: boolean };
+    req: { series: string; round: string; edition?: number; skip?: boolean; scale?: number };
     res: RaceSetup;
   };
   /**

@@ -2606,14 +2606,28 @@ proof that no layer below learned what a series is.
       of it - which is why the championships of seasons before 2006 ship
       switched off rather than being the way to race those cars. After the
       career exists, since an event needs a date to sit on
-- [ ] **Scale a race's length before its start.** Shipped championships race
+- [x] **Scale a race's length before its start.** Shipped championships race
       their real lengths, so a 24-hour race is twenty-four hours; the player
-      should be able to shrink one at the moment they start it - 48x runs that
-      race in thirty minutes - never below five laps. Deliberately not built
-      yet: what it does to fuel and tyre wear, to a mandatory stop, and to
-      points that pay by distance are all still to be decided. One question it
-      no longer has to answer is what scaling does to a timed race, since there
-      are none - every race is laps or a distance
+      shortens one at the moment they start it, on a slider in a popover off
+      the round page's Length tile - shortest on the left to the full race on
+      the right, the steps 1/48, 1/24, 1/16, 1/12, 1/8, 1/6, 1/4, 1/3, 1/2,
+      named in a tooltip on hover - and **never below five laps**, so a step
+      that would go under is not offered. Career rounds' races only; a race
+      event of the player's own sets its own laps. **Picked per launch**, Full
+      every time, and kept nowhere until the launch records it as
+      `LaunchRecord.scale`. **The clock runs at the same step**, so 1/48 still
+      takes Daytona through the night; **fuel and tyre wear are left alone**,
+      so a shortened race simply stops less; and **points pay in full**, Le
+      Mans' double included. `scaleLaunch` in `src/core/event/` is the whole
+      of it, over `src/shared/utils/race-scale/`. Found on the way: **both
+      weather planners set the game's clock to their plan's own multiplier**,
+      PURE on every update and Sol on loading its preset, so a plan written at
+      1 - which every plan was - took any faster clock back to real time. The
+      plan now carries the race's `TIME_MULT`, step lengths staying in session
+      time. Read out of their source; `races/spikes/time-multiplier` and
+      `time-multiplier-plan` are what driving it confirms, and
+      `MAX_TIME_MULTIPLIER` stays a provisional 48 until the first one has
+      found where AC itself stops. Agreed in `mockups/race-length.html`
 - [x] **Set the AI's strength per round, without editing the championship -
       and record the level actually raced against.** Replaces adaptive
       difficulty, which was dropped: the player chooses, since pace against the
@@ -2665,8 +2679,14 @@ proof that no layer below learned what a series is.
       round's does** - strip, podium, classification - and a multi-class one
       is filtered and placed by class, which multi-class championships get
       too
-- [ ] Link a quick race's archives on the Results page back to its weekend,
-      as a round's link back to its round
+- [x] **Link a quick race's archives on the Results page back to its race**,
+      as a round's link back to its round. Every archive a race event still
+      lists is one card however many days its sessions took, its sessions
+      named by the race's own, ending in a footer that opens the race on the
+      Race tab and says how far it has got; a result's breadcrumb leads back
+      the same way. **Only what a race lists now**: one deleted, or started
+      over, no longer holds those results, so its archives stay a card of their
+      own with no way back rather than opening a race showing other results
 - [x] **A race with nothing to line it up says where you start.** Behind a
       qualifying or an earlier race a race session follows it, as a
       championship's does - which session, how many carry over, how many of
@@ -2731,6 +2751,9 @@ proof that no layer below learned what a series is.
 
 - [ ] Global rating plus per-discipline ratings
 - [ ] Elo-style update weighted by series tier and per-entry `AI_LEVEL` spread
+- [ ] **Weigh a shortened race.** `LaunchRecord.scale` says how far a race was
+      shortened, and it pays full points; whether 1/48 of a 24-hour race should
+      move a rating as far as the whole of one is this phase's to decide
 - [ ] Rating from both who you beat and who beat you
 - [ ] Progression speed multiplier applied to rating gains
 - [ ] Discipline levels derived from rating

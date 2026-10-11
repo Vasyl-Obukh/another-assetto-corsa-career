@@ -35,6 +35,14 @@ import { eligibleCars, roundRace, roundRaceId } from '../series/index.ts';
 export const quickRaceId = (race: QuickRace): string => roundRaceId(race.id, QUICK_ROUND);
 
 /**
+ * Whether a race id is a quick race's, which is one event however many days
+ * its sessions ran over.
+ * @param raceId The id an archive or a plan carries
+ * @returns True for an id quickRaceId wrote
+ */
+export const isQuickRaceId = (raceId: string): boolean => raceId.endsWith(`/${QUICK_ROUND}`);
+
+/**
  * Which classes a quick race puts on the grid: every one with cars in it, and
  * the player's, which holds them however many it lists.
  * @param race The quick race

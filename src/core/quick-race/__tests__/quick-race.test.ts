@@ -8,7 +8,7 @@ import { roundRaceId } from '../../series/index.ts';
 import { defaultWeatherOffer } from '../../weather-forecast/index.ts';
 import { QUICK_ROUND } from '../constants.ts';
 import {
-  lowerQuickRace, quickChampionship, quickProblems, quickRaceId,
+  isQuickRaceId, lowerQuickRace, quickChampionship, quickProblems, quickRaceId,
 } from '../quick-race.ts';
 
 /**
@@ -50,6 +50,17 @@ describe('core/quick-race', () => {
   describe('quickRaceId', () => {
     it('is the id of the one round the race lowers into', () => {
       expect(quickRaceId(makeRace())).toBe(roundRaceId('quick-1', QUICK_ROUND));
+    });
+  });
+
+  describe('isQuickRaceId', () => {
+    it('knows an id quickRaceId wrote', () => {
+      expect(isQuickRaceId(quickRaceId(makeRace()))).toBe(true);
+    });
+
+    it('takes neither a career round\'s id nor a hand-written race\'s for one', () => {
+      expect(isQuickRaceId('lotus-cup/r1@0.0')).toBe(false);
+      expect(isQuickRaceId('demo')).toBe(false);
     });
   });
 

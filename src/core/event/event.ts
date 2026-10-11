@@ -29,12 +29,16 @@ import type {
   EventPlan,
   EventState,
   GridEntry,
+  LaunchRecord,
   RaceDefinition,
   RaceOut,
   SessionDefinition,
   StartingGrid,
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
+import {
+  MIN_SCALED_LAPS, scaledClock, scaledLaps, scalesFor,
+} from '../../shared/utils/race-scale/index.ts';
 import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts';
 import { finishingOrder } from '../results/index.ts';
 
@@ -204,6 +208,19 @@ export const launchRunnable = (
 };
 
 /**
+ * The class each car of an event's grid races in, as a launch records it -
+ * only where the grid holds more than one class, since one class places every
+ * car as the overall order does.
+ * @param plan The event
+ * @returns The record's carClasses, or nothing to record
+ */
+export const carClassesOf = (plan: EventPlan): Pick<LaunchRecord, 'carClasses'> => {
+  const classes = plan.grid.flatMap((car) => (car.entry ? [car.entry] : []));
+
+  return classes.length === plan.grid.length && new Set(classes).size > 1 ? { carClasses: classes } : {};
+};
+
+/**
  * Records a launch the player was eliminated from, with an invented result.
  *
  * The order is fabricated, and `skipped` says so. There is no Assetto Corsa
@@ -243,6 +260,7 @@ export const skipLaunch = (
       archive: '',
       gridOrder: field,
       classification: simulateSegment(field, `${plan.raceId}:simulate:${index}`),
+      ...carClassesOf(plan),
       skipped: true,
     }],
   };
@@ -320,6 +338,40 @@ export const prepareLaunch = (
 };
 
 /**
+ * Shortens a launch's race by one of the steps on offer, and speeds its clock
+ * up by as much, so the day moves on as far as it would over the full race.
+ *
+ * Nothing else changes: fuel use and tyre wear stay what the race states, so a
+ * shortened race simply makes fewer stops.
+ * @param race One launch, as prepareLaunch built it
+ * @param scale The factor its laps are divided by, one for the full race
+ * @returns The launch as it runs, untouched at one
+ * @throws When the launch is not a race run to laps, or the step would take it
+ * under MIN_SCALED_LAPS or is not one RACE_SCALES offers
+ */
+export const scaleLaunch = (race: RaceDefinition, scale: number): RaceDefinition => {
+  if (scale === 1) return race;
+
+  // A launch runs one session, and only a race run to laps can be shortened.
+  const sessions = race.sessions ?? [];
+  const [session] = sessions;
+  if (sessions.length !== 1 || session?.type !== 'race' || session.laps === undefined) {
+    throw new AppError('event.scale.notRace', { race: race.name });
+  }
+  if (!scalesFor(session.laps).includes(scale)) {
+    throw new AppError('event.scale.unavailable', { laps: session.laps, scale, min: MIN_SCALED_LAPS });
+  }
+
+  const conditions = race.conditions ?? {};
+
+  return {
+    ...race,
+    sessions: [{ ...session, laps: scaledLaps(session.laps, scale) }],
+    conditions: { ...conditions, timeMultiplier: scaledClock(conditions.timeMultiplier ?? 1, scale) },
+  };
+};
+
+/**
  * Records a finished launch and, with it, the grid the next one inherits.
  *
  * Pure: the timestamp and the archive path are supplied rather than read, so
@@ -327,7 +379,11 @@ export const prepareLaunch = (
  * @param plan The event plan
  * @param state How far through the event we were before this launch
  * @param raceOut What AC wrote for the launch that just ran
- * @param record Where the result was archived and when it finished
+ * @param record What the launch left behind
+ * @param record.archive Where the result was archived
+ * @param record.completedAt When it finished, as an ISO timestamp
+ * @param record.scale The factor its race was shortened by, one or absent for
+ * the full race
  * @returns The state with this launch marked done
  * @throws When there was no pending launch to record
  */
@@ -335,7 +391,7 @@ export const advanceEvent = (
   plan: EventPlan,
   state: EventState,
   raceOut: RaceOut,
-  record: { archive: string; completedAt: string },
+  record: { archive: string; completedAt: string; scale?: number },
 ): EventState => {
   const index = state.completed.length;
   if (index >= plan.launches.length) {
@@ -371,6 +427,9 @@ export const advanceEvent = (
       // The plan in flight is the one this launch went out with, whatever the
       // difficulty says by the time its result lands.
       ...(plan.classStrength ? { classStrength: plan.classStrength } : {}),
+      ...carClassesOf(plan),
+      // Kept only for a race that ran short, so a full one reads as it always has.
+      ...(record.scale !== undefined && record.scale > 1 ? { scale: record.scale } : {}),
     }],
   };
 };

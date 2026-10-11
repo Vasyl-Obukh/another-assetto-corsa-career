@@ -4,7 +4,7 @@ import type { GridEntry, LaunchRecord, Standing } from '../../../../../shared/ty
 import {
   makeSeries, place, race,
 } from '../../season-results/__tests__/fixtures.ts';
-import { classifiedRows } from '../classification.ts';
+import { classifiedRows, racedClasses } from '../classification.ts';
 
 /**
  * One car of an event's grid.
@@ -231,8 +231,42 @@ describe('renderer/lib/classification/classification', () => {
       expect(row.nation).toBe('ITA');
     });
 
+    it('reads each car\'s class off the launch where no grid is to hand', () => {
+      const rows = classifiedRows({
+        type: 'qualify',
+        standings: [standing(1), standing(0, { position: 2, player: true }), standing(2, { position: 3 })],
+        record: record({ carClasses: ['am', 'pro', 'am'] }),
+      });
+
+      expect(rows.map((row) => [row.entry, row.classPosition])).toEqual([['pro', 1], ['am', 1], ['am', 2]]);
+      expect(rows.find((row) => row.player)?.position).toBe(2);
+    });
+
     it('lists nothing for a session it knows nothing of', () => {
       expect(classifiedRows({ type: 'race' })).toEqual([]);
+    });
+  });
+
+  describe('racedClasses', () => {
+    const classes = [
+      { id: 'pro', name: 'Pro' }, { id: 'pro-am', name: 'Pro-Am' }, { id: 'am', name: 'Am' },
+    ];
+
+    it('keeps the classes with a car in the classification, in the event\'s order', () => {
+      const rows = classifiedRows({
+        type: 'race',
+        standings: [standing(0), standing(1, { position: 2 })],
+        record: record(),
+        grid: [gridRow('am-1', { entry: 'am' }), gridRow('pro-1', { entry: 'pro' })],
+      });
+
+      expect(racedClasses(rows, classes)).toEqual([{ id: 'pro', name: 'Pro' }, { id: 'am', name: 'Am' }]);
+    });
+
+    it('finds none in a classification no grid joins to a class', () => {
+      const rows = classifiedRows({ type: 'race', standings: [standing(0)] });
+
+      expect(racedClasses(rows, classes)).toEqual([]);
     });
   });
 });

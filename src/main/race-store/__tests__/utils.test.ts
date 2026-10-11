@@ -389,18 +389,27 @@ describe('main/race-store/utils', () => {
       expect(sameEvent(nextEdition, lastYear)).toBe(false);
     });
 
-    it('holds a race of the player\'s own together on the day it was driven', () => {
-      const qualifying = archived('2027-03-14T17:00:00.000Z', { raceId: 'quick-1', raceName: 'Monza sprint' });
-      const race = archived('2027-03-14T18:00:00.000Z', { raceId: 'quick-1', raceName: 'Monza sprint' });
+    it('holds a hand-written race together on the day it was driven', () => {
+      const qualifying = archived('2027-03-14T17:00:00.000Z', { raceId: 'demo', raceName: 'Monza sprint' });
+      const race = archived('2027-03-14T18:00:00.000Z', { raceId: 'demo', raceName: 'Monza sprint' });
 
       expect(sameEvent(race, qualifying)).toBe(true);
     });
 
-    it('reads one race driven on two days as two events', () => {
-      const monday = archived('2027-03-15T18:00:00.000Z', { raceId: 'quick-1' });
-      const sunday = archived('2027-03-14T18:00:00.000Z', { raceId: 'quick-1' });
+    it('reads one hand-written race driven on two days as two events', () => {
+      const monday = archived('2027-03-15T18:00:00.000Z', { raceId: 'demo' });
+      const sunday = archived('2027-03-14T18:00:00.000Z', { raceId: 'demo' });
 
       expect(sameEvent(monday, sunday)).toBe(false);
+    });
+
+    // A fixed bug: a race event of the player's own was cut at the day, so Home
+    // previewed the last day of it while Results showed the whole of it.
+    it('holds a race event of the player\'s own together across the days it ran over', () => {
+      const monday = archived('2027-03-15T18:00:00.000Z', { raceId: 'quick-1/race' });
+      const sunday = archived('2027-03-14T18:00:00.000Z', { raceId: 'quick-1/race' });
+
+      expect(sameEvent(monday, sunday)).toBe(true);
     });
 
     it('falls back on the race name for an archive with no id', () => {

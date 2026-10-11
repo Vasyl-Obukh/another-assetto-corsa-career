@@ -91,10 +91,12 @@ describe('core/weather-plan/pure', () => {
       expect(render(plan).container.map((entry) => entry.data.duration)).toEqual([300, 180]);
     });
 
-    it('chains each step timestamp on from the one before', () => {
+    // A duration is session seconds and a timestamp the game's clock, which a
+    // timed plan runs at its multiplier - this plan's is 2.
+    it('chains each step timestamp on by its duration on the game\'s clock', () => {
       const [first, second] = render(plan).container;
 
-      expect(second.data.timestamp - first.data.timestamp).toBe(first.data.duration);
+      expect(second.data.timestamp - first.data.timestamp).toBe(first.data.duration * 2);
     });
 
     it('carries the loop and the time multiplier into the control block', () => {

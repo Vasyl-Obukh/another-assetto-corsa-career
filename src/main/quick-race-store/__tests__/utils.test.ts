@@ -1,9 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
-import type { QuickRace, QuickRaceView, Track } from '../../../shared/types/index.ts';
+import type {
+  LaunchRecord, QuickRace, QuickRaceView, Track,
+} from '../../../shared/types/index.ts';
 import { newQuickRace, QUICK_RACE_VERSION } from '../../../shared/utils/quick-race/index.ts';
 import {
-  byRecency, phaseOf, readQuickFile, titleOf,
+  archivesOf, byRecency, phaseOf, readQuickFile, titleOf,
 } from '../utils.ts';
 
 /**
@@ -35,7 +37,62 @@ const makeView = (phase: QuickRaceView['phase'], updatedAt: string): QuickRaceVi
   phase, race: makeRace({ updatedAt }),
 }) as QuickRaceView;
 
+/**
+ * One launch of a race that has run.
+ * @param index Which launch it was
+ * @param archive The archive it wrote, empty for one simulated
+ * @returns The record
+ */
+const makeLaunch = (index: number, archive: string): LaunchRecord => ({
+  index, completedAt: '2026-09-11T18:00:00.000Z', archive, gridOrder: [], classification: null,
+});
+
 describe('main/quick-race-store/utils', () => {
+  describe('archivesOf', () => {
+    const race = makeRace({
+      sessions: [
+        { type: 'practice', name: 'Warm-up', minutes: 10 },
+        { type: 'qualify', minutes: 10 },
+        { type: 'race', laps: 10 },
+      ],
+    });
+
+    it('lists the launch behind each archive, named as its session is', () => {
+      const archives = archivesOf({ race, completed: [makeLaunch(0, 'a.json'), makeLaunch(1, 'b.json')] }, 'Friday');
+
+      expect(archives).toMatchObject({
+        id: 'race-1', title: 'Friday', sessions: 3, run: 2,
+      });
+      expect(archives.launches).toEqual([
+        { ...makeLaunch(0, 'a.json'), name: 'Warm-up' },
+        { ...makeLaunch(1, 'b.json'), name: null },
+      ]);
+    });
+
+    it('carries the race\'s classes and what each launch recorded', () => {
+      const archives = archivesOf({
+        race: {
+          ...race,
+          classes: [
+            { id: 'pro', name: 'Pro', eligibility: { kind: 'cars', cars: ['gt3'] }, cars: 1 },
+            { id: 'am', name: 'Am', eligibility: { kind: 'cars', cars: ['gt3'] }, cars: 2 },
+          ],
+        },
+        completed: [{ ...makeLaunch(0, 'a.json'), carClasses: ['am', 'pro', 'am'] }],
+      }, 'Friday');
+
+      expect(archives.classes).toEqual([{ id: 'pro', name: 'Pro' }, { id: 'am', name: 'Am' }]);
+      expect(archives.launches[0].carClasses).toEqual(['am', 'pro', 'am']);
+    });
+
+    it('counts a simulated launch as run, with no archive to list', () => {
+      const archives = archivesOf({ race, completed: [makeLaunch(0, '')] }, 'Friday');
+
+      expect(archives.run).toBe(1);
+      expect(archives.launches).toEqual([]);
+    });
+  });
+
   describe('titleOf', () => {
     const tracks = [
       makeLayout('ks_nordschleife', 'endurance', 'Nordschleife - Endurance'),

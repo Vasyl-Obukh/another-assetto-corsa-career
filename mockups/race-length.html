@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race length at launch, and quick races on Results - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --destructive: oklch(0.58 0.22 27);
+  --warning: oklch(0.79 0.15 80); --warning-fg: oklch(0.28 0.06 70);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --t-platinum: oklch(0.945 0.022 210); --t-platinum-fg: oklch(0.4 0.05 215);
+  --t-gold: oklch(0.9 0.085 88); --t-gold-fg: oklch(0.42 0.1 75);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --points: oklch(0.93 0.05 155); --points-fg: oklch(0.34 0.09 155);
+  --rc1: oklch(0.92 0.055 195); --rc1-fg: oklch(0.38 0.09 200);
+  --rc2: oklch(0.92 0.06 18); --rc2-fg: oklch(0.42 0.13 22);
+  --rc3: oklch(0.92 0.06 340); --rc3-fg: oklch(0.4 0.13 340);
+  --rc4: oklch(0.93 0.06 128); --rc4-fg: oklch(0.4 0.1 130);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  --sk: oklch(0.925 0.018 255); --sk-hi: oklch(0.965 0.01 255); --sk-deep: oklch(0.885 0.02 255);
+  --map-filter: none;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --destructive: oklch(0.66 0.2 25);
+  --warning: oklch(0.8 0.14 82); --warning-fg: oklch(0.2 0.04 70);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --t-platinum: oklch(0.34 0.025 210); --t-platinum-fg: oklch(0.9 0.03 210);
+  --t-gold: oklch(0.36 0.07 88); --t-gold-fg: oklch(0.89 0.12 92);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --points: oklch(0.32 0.06 155); --points-fg: oklch(0.86 0.11 155);
+  --rc1: oklch(0.33 0.06 195); --rc1-fg: oklch(0.86 0.09 195);
+  --rc2: oklch(0.33 0.07 18); --rc2-fg: oklch(0.86 0.09 22);
+  --rc3: oklch(0.33 0.07 340); --rc3-fg: oklch(0.86 0.1 340);
+  --rc4: oklch(0.32 0.065 128); --rc4-fg: oklch(0.86 0.09 130);
+  --sk: oklch(0.3 0.016 265); --sk-hi: oklch(0.345 0.016 265); --sk-deep: oklch(0.27 0.016 265);
+  --map-filter: invert(1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 1280px; margin: 14px auto 0; padding: 0 24px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why code { font-size: 12.5px; }
+
+/* ---------- App frame ---------- */
+.frame { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; }
+.app-nav { display: flex; gap: 18px; align-items: center; height: 44px; font-size: 13px; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
+.app-nav .brand { color: var(--foreground); font-weight: 600; margin-right: 8px; }
+.app-nav .on { color: var(--primary); font-weight: 600; background: color-mix(in oklch, var(--primary) 10%, transparent); padding: 4px 8px; border-radius: 6px; }
+.shead { padding: 12px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+.head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.head-row h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.over { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted-foreground); }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: 13.5px; color: var(--muted-foreground); }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 99px; padding: 2px 8px 2px 10px; color: var(--foreground); font-weight: 500; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.map { width: 144px; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--muted); display: grid; place-items: center; overflow: hidden; flex: none; }
+.map img { width: 88%; height: 88%; object-fit: contain; filter: var(--map-filter); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.chip.outline { border: 1px solid var(--border); color: var(--foreground); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-t1 { background: var(--t-platinum); color: var(--t-platinum-fg); }
+.c-t2 { background: var(--t-gold); color: var(--t-gold-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-rc1 { background: var(--rc1); color: var(--rc1-fg); }
+.c-rc2 { background: var(--rc2); color: var(--rc2-fg); }
+.c-rc3 { background: var(--rc3); color: var(--rc3-fg); }
+.c-rc4 { background: var(--rc4); color: var(--rc4-fg); }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel-h { padding: 12px 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.panel .pb { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.lg { height: 38px; padding: 0 16px; }
+.btn.sm { height: 26px; padding: 0 8px; font-size: 12.5px; }
+.link { color: var(--primary); font-weight: 500; display: inline-flex; align-items: center; gap: 2px; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 14px; color: var(--muted-foreground); font-size: 12.5px; text-align: center; }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.well { aspect-ratio: 16 / 9; border-radius: 8px; background: var(--muted); display: grid; place-items: center; color: color-mix(in oklch, var(--muted-foreground) 45%, transparent); }
+.well svg { width: 32px; height: 32px; }
+.note { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--muted-foreground); background: var(--muted); border-radius: 8px; padding: 8px 10px; }
+.note svg { margin-top: 2px; }
+.note b { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Event list and briefing, as the round page draws them ---------- */
+.ses { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border); text-align: left; width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; }
+.ses:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.ses[aria-current="true"] { background: var(--accent); }
+.ses .nm { display: flex; flex-direction: column; min-width: 0; }
+.ses .nm b { font-size: 13.5px; font-weight: 600; }
+.ses .nm small { font-size: 12px; color: var(--muted-foreground); }
+.ses .nm small i { font-style: normal; color: var(--foreground); }
+.sdot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; }
+.sdot.done { background: var(--success); border-color: var(--success); color: var(--card); }
+.sdot.done svg { width: 10px; height: 10px; stroke-width: 3; }
+.sdot.next { border-color: var(--primary); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 8px var(--primary); }
+.sval { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; display: flex; gap: 6px; align-items: center; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tile { position: relative; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.tile .k { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.tile b { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile small { font-size: 12px; color: var(--muted-foreground); }
+.tile .corner { position: absolute; top: 6px; right: 6px; }
+.tile.live { border-color: color-mix(in oklch, var(--primary) 55%, var(--border)); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 12%, transparent); }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--border); border-radius: 10px; }
+.strip > div { padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.strip > div:not(:first-child) { border-left: 1px solid var(--border); }
+.strip .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.strip b { font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; min-height: 30px; display: flex; align-items: center; }
+.strip small { font-size: 12px; color: var(--muted-foreground); }
+.strip .new { box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--primary) 45%, transparent); }
+.strip .new:last-child { border-radius: 0 10px 10px 0; }
+.rc { display: inline-grid; place-items: center; min-width: 40px; height: 30px; padding: 0 5px; border-radius: 6px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rc.pts { background: var(--points); color: var(--points-fg); }
+.launch { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; }
+
+/* ---------- The race length control - RegulationSlider's shape, the bar alone ---------- */
+.len { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.len .row { display: flex; align-items: center; gap: 8px; }
+.len label { flex: 1; font-size: 13.5px; font-weight: 500; display: flex; flex-direction: column; line-height: 1.25; }
+.len label small { font-size: 11.5px; font-weight: 400; color: var(--muted-foreground); }
+.val { border-radius: 6px; background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); padding: 2px 8px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.val.full { background: transparent; color: var(--muted-foreground); font-weight: 400; padding: 2px 0; }
+.slider { position: relative; height: 22px; margin: 0 4px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 8px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .range { position: absolute; left: 0; top: 8px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .tick { position: absolute; top: 9px; width: 4px; height: 4px; border-radius: 50%; transform: translateX(-50%); background: color-mix(in oklch, var(--muted-foreground) 55%, transparent); }
+.slider .thumb { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; transform: translateX(-50%); background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 2px oklch(0 0 0 / .15); }
+.slider input { position: absolute; inset: 0; width: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.slider.off { opacity: .45; }
+.slider.off input { cursor: not-allowed; }
+/* A step's name on hover, drawn as ui/tooltip.tsx draws one. */
+.slider .tip { position: absolute; bottom: calc(100% + 8px); transform: translateX(-50%); z-index: 2; pointer-events: none; white-space: nowrap;
+  background: var(--foreground); color: var(--background); border-radius: 6px; padding: 5px 10px; font-size: 12px; font-variant-numeric: tabular-nums;
+  opacity: 0; transition: opacity .1s; }
+.slider .tip::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--foreground); }
+.slider .tip.on { opacity: 1; }
+.slider .tick.hover { background: var(--primary); }
+.len .slider { margin-top: 4px; }
+.consequences { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.consequences div { display: flex; gap: 6px; align-items: flex-start; font-size: 12px; color: var(--muted-foreground); }
+.consequences b { color: var(--foreground); font-weight: 600; }
+.consequences svg { margin-top: 1px; width: 14px; height: 14px; }
+
+/* The control opens from the Length tile, in a popover. */
+.pop-wrap { position: relative; }
+.popover { position: absolute; z-index: 10; top: calc(100% + 6px); left: 0; width: 420px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 30px oklch(0 0 0 / .14); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.popover .len { border: 0; padding: 0; }
+.popover .consequences { grid-template-columns: 1fr; gap: 4px; }
+
+/* ---------- SkipDialog ---------- */
+.scrim { position: fixed; inset: 0; z-index: 40; background: oklch(0.14 0.012 265 / .45); display: grid; place-items: center; }
+.dialog { width: 480px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px oklch(0 0 0 / .25); }
+.dialog h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.dialog p { margin: 0; font-size: 13.5px; color: var(--muted-foreground); }
+.lost { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; justify-content: space-between; font-size: 13px; }
+.dialog .end { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- Results page cards - ResultCard and ResultCardHead ---------- */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.rcard { display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.rhead { position: relative; height: 120px; background: var(--scrim); }
+.rhead::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .85), transparent); }
+.rhead img { position: absolute; right: 12px; top: 12px; height: 64px; width: 96px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.rhead .when { position: absolute; top: 12px; left: 12px; z-index: 1; border-radius: 99px; background: oklch(0.14 0.012 265 / .55); color: var(--on-scrim); padding: 2px 8px; font-size: 12px; }
+.rhead .ttl { position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 1; display: flex; flex-direction: column; color: var(--on-scrim); }
+.rhead .ttl b { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rhead .ttl span { font-size: 12px; opacity: .85; }
+.rcar { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; font-size: 12px; color: var(--muted-foreground); }
+.rcar .sw { width: 16px; height: 16px; border-radius: 4px; background: var(--muted); flex: none; }
+.rcar .n { margin-left: auto; }
+.rses { margin: 0 8px 8px; display: flex; flex-direction: column; }
+.rses a { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto 2.75rem; gap: 12px; align-items: center; height: 36px; padding: 0 8px; border-top: 1px solid var(--border); border-radius: 6px; }
+.rses a:first-child { border-top: 0; }
+.rses a:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.rses .lap { font-size: 13px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.rses .pts { font-size: 12px; font-weight: 600; color: var(--points-fg); font-variant-numeric: tabular-nums; }
+.pos { justify-self: end; display: inline-grid; place-items: center; min-width: 34px; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.pos.p1 { background: var(--gold); color: var(--gold-fg); }
+.pos.pts { background: var(--points); color: var(--points-fg); }
+.pos.quiet { color: var(--muted-foreground); font-weight: 500; }
+.rfoot { margin-top: auto; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding: 10px 16px; font-size: 12px; }
+.rfoot:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.rfoot .go { margin-left: auto; color: var(--primary); }
+.rfoot.new { box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--primary) 45%, transparent); border-radius: 0 0 14px 14px; }
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.search { width: 288px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 0 10px; display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 13px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; width: 240px; justify-content: space-between; }
+
+/* ---------- Result page hero - ResultHero ---------- */
+.hero { position: relative; height: 192px; border-radius: 14px; overflow: hidden; background: var(--scrim); color: var(--on-scrim); }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .85), transparent 70%); }
+.hero img { position: absolute; right: 20px; top: 20px; height: 120px; width: 200px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.hero .txt { position: absolute; left: 20px; bottom: 16px; z-index: 1; display: flex; flex-direction: column; gap: 8px; }
+.hero .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.hero .crumbs a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.hero .crumbs .new { outline: 2px solid color-mix(in oklch, var(--primary) 70%, transparent); outline-offset: 3px; border-radius: 4px; }
+.hero h1 { margin: 0; font-size: 24px; font-weight: 600; }
+.hero p { margin: 0; font-size: 13.5px; opacity: .85; }
+
+/* ---------- Skeleton primitives, as mockups/loading.html draws them ---------- */
+.sk { display: block; background: var(--sk); border-radius: 6px; flex: none;
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--sk-hi) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.sk.round { border-radius: 99px; }
+.sk.deep { background-color: var(--sk-deep); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="grp"><strong>Page</strong>
+    <button class="opt" data-k="page" data-v="round">Round page</button>
+    <button class="opt" data-k="page" data-v="results">Results</button>
+    <button class="opt" data-k="page" data-v="result">Result (race event)</button>
+  </div>
+  <div class="grp" data-for="round"><strong>Race</strong>
+    <button class="opt" data-k="race" data-v="daytona">24 hours · 781 laps</button>
+    <button class="opt" data-k="race" data-v="sprint">Sprint · 22 laps</button>
+    <button class="opt" data-k="race" data-v="short">Short · 8 laps</button>
+  </div>
+  <div class="grp" data-for="round"><strong>Moment</strong>
+    <button class="opt" data-k="moment" data-v="next">Race next</button>
+    <button class="opt" data-k="moment" data-v="dialog">Launch asks first</button>
+    <button class="opt" data-k="moment" data-v="raced">Raced</button>
+  </div>
+  <div class="grp" data-for="results"><strong>Grouping</strong>
+    <button class="opt" data-k="grouping" data-v="before">Today</button>
+    <button class="opt" data-k="grouping" data-v="after">After</button>
+  </div>
+  <div class="grp"><strong>State</strong>
+    <button class="opt" data-k="load" data-v="loaded">Loaded</button>
+    <button class="opt" data-k="load" data-v="loading">Loading</button>
+  </div>
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-k="th" data-v="light">Light</button>
+    <button class="opt" data-k="th" data-v="dark">Dark</button>
+  </div>
+</div>
+<div class="why" id="why"></div>
+<div class="frame" id="app"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const I = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 18 6-6-6-6"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  info: '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  lock: '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  car: '<svg class="i" viewBox="0 0 24 24"><path d="M5 17h14M6 17v2M18 17v2M4 13l2-5a2 2 0 0 1 2-1h8a2 2 0 0 1 2 1l2 5v4H4z"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/></svg>',
+  clock: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  fuel: '<svg class="i" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M15 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V8l-3-3"/><path d="M7 8h5"/></svg>',
+  trophy: '<svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+  scissors: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m6 9 6 6 6-6"/></svg>',
+};
+const img = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" onerror="this.remove()">`;
+
+// ---------- The arithmetic, as race-scale would do it ----------
+const SCALES = [1, 2, 3, 4, 6, 8, 12, 16, 24, 48];
+const MIN_LAPS = 5;
+const scaled = (laps, f) => Math.round(laps / f);
+const offered = (laps) => SCALES.filter((f) => f === 1 || scaled(laps, f) >= MIN_LAPS);
+
+// ---------- Three races a career might launch ----------
+const RACES = {
+  daytona: {
+    series: 'IMSA SportsCar Championship', round: 'Rolex 24 at Daytona', number: 1, rounds: 11, tier: 1, date: 'Saturday 24 January 2026',
+    grid: 60, track: 'daytona_2017', laps: 781, start: 'Day 3 · 13:40', car: 'Porsche 911 GT3 R (992)', team: 'AO Racing', entry: 'GTD Pro',
+    sessions: [['practice', 'Practice 1', 'Day 1 · 11:00', '90 min'], ['practice', 'Night practice', 'Day 1 · 19:00', '60 min'], ['qualify', 'Qualifying', 'Day 2 · 14:00', '15 min']],
+    raced: 16, place: 4, points: 320, classes: ['GTP', 'LMP2', 'GTD Pro', 'GTD'],
+  },
+  sprint: {
+    series: 'GT3 Sprint Series', round: 'Spa-Francorchamps', number: 4, rounds: 8, tier: 2, date: 'Saturday 16 May 2026',
+    grid: 24, track: 'spa', laps: 22, start: 'Day 2 · 14:00', car: 'Ferrari 296 GT3', team: 'Kessel Racing', entry: 'GT3',
+    sessions: [['practice', 'Practice', 'Day 1 · 10:00', '60 min'], ['qualify', 'Qualifying', 'Day 1 · 15:00', '15 min']],
+    raced: 7, place: 5, points: 10, classes: ['GT3'],
+  },
+  short: {
+    series: 'Formula Abarth Trophy', round: 'Vallelunga', number: 2, rounds: 6, tier: 2, date: 'Wednesday 8 April 2026',
+    grid: 14, track: 'vallelunga', laps: 8, start: 'Day 1 · 16:00', car: 'Tatuus FA01', team: 'Prema Junior', entry: 'Formula Abarth',
+    sessions: [['qualify', 'Qualifying', 'Day 1 · 11:00', '20 min']],
+    raced: 8, place: 3, points: 15, classes: ['Formula Abarth'],
+  },
+};
+
+const state = {
+  page: 'round', race: 'daytona', moment: 'next', grouping: 'after', load: 'loaded', th: 'light', scale: 48, popover: true,
+};
+const R = () => RACES[state.race];
+// What the launch will run at: the stop picked, held to what this race offers.
+const factor = () => {
+  const ok = offered(R().laps);
+  return ok.includes(state.scale) ? state.scale : ok.at(-1);
+};
+
+// ---------- Pieces ----------
+const sk = (w, h, cls = '') => `<span class="sk ${cls}" style="width:${typeof w === 'number' ? `${w}px` : w};height:${h}px"></span>`;
+const chip = (cls, text) => `<span class="chip ${cls}">${text}</span>`;
+const sessionChip = (type) => chip(`c-${type}`, { practice: 'Practice', qualify: 'Qualifying', race: 'Race' }[type]);
+const panelTitle = (text, end = '') => `<div class="panel-h"><span class="caps">${text}</span>${end}</div>`;
+const nav = (on) => `<nav class="app-nav"><span class="brand">AC Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</nav>`;
+const laps = (n) => `${n} ${n === 1 ? 'lap' : 'laps'}`;
+
+// A stop as the share of the race it runs, so the labels grow left to right
+// the way the race does.
+const share = (f) => (f === 1 ? 'Full' : `1/${f}`);
+// The stops shortest first, so dragging right lengthens the race and Full is
+// the far end of the bar.
+const order = (laps) => offered(laps).slice().reverse();
+
+// The slider itself: one notch per stop the race offers, so a stop is always
+// a whole factor and the clock runs at exactly it.
+const lengthControl = () => {
+  const r = R();
+  const ok = order(r.laps);
+  const f = factor();
+  const at = ok.indexOf(f);
+  const only = ok.length === 1;
+  const fill = only ? 100 : (at / (ok.length - 1)) * 100;
+  const value = f === 1
+    ? `<span class="val full">Full length · ${laps(r.laps)}</span>`
+    : `<span class="val">${share(f)} · ${laps(scaled(r.laps, f))}</span>`;
+  const cut = SCALES.length - ok.length;
+  return `<div class="len">
+    <div class="row"><label>Race length<small>${only ? 'Already as short as a race may be' : 'Picked for this launch alone - the next race starts at full length again'}</small></label>${value}</div>
+    <div class="slider ${only ? 'off' : ''}">
+      <div class="track"></div>
+      <div class="range" style="width:${fill}%"></div>
+      ${ok.map((_, i) => `<span class="tick" style="left:${only ? 100 : (i / (ok.length - 1)) * 100}%"></span>`).join('')}
+      <span class="thumb" style="left:${fill}%"></span>
+      <input type="range" min="0" max="${ok.length - 1}" step="1" value="${at}" ${only ? 'disabled' : ''} aria-label="Race length" aria-valuetext="${share(f)}" data-range>
+      <span class="tip" role="tooltip"></span>
+    </div>
+    ${only ? `<span class="muted" style="font-size:12px">A race of ${laps(r.laps)} cannot be shortened: halving it would go under ${MIN_LAPS} laps.</span>`
+    : cut > 0 ? `<span class="muted" style="font-size:12px">Nothing shorter than ${share(ok[0])} - it would go under ${MIN_LAPS} laps.</span>` : ''}
+    ${f === 1 ? '' : `<div class="consequences">
+      <div>${I.clock}<span>The clock runs <b>×${f}</b>, so day turns to night as it would over the full race.</span></div>
+      <div>${I.fuel}<span>Fuel use and tyre wear stay the <b>championship's</b>.</span></div>
+      <div>${I.trophy}<span>Points are paid <b>in full</b>.</span></div>
+    </div>`}
+  </div>`;
+};
+
+const statusOf = (i, count) => {
+  if (state.moment === 'raced') return 'done';
+  return i < count - 1 ? 'done' : 'next';
+};
+const allSessions = () => {
+  const r = R();
+  return [...r.sessions, ['race', 'Race', r.start, laps(r.laps)]];
+};
+const sessionList = () => {
+  const r = R();
+  const list = allSessions();
+  const f = factor();
+  return `<section class="panel" style="padding:0;overflow:hidden">${panelTitle('Event')}<div style="height:8px"></div>
+    ${list.map(([type, name, when, len], i) => {
+    const st = statusOf(i, list.length);
+    const race = type === 'race';
+    const shortened = race && state.moment === 'raced' && f > 1;
+    const lenText = shortened ? `<i>${laps(scaled(r.laps, f))}</i> · ${share(f)} of ${r.laps}` : len;
+    return `<button type="button" class="ses" aria-current="${race}">
+      <span class="sdot ${st}">${st === 'done' ? I.check : ''}</span>
+      <span class="nm"><b>${name}</b><small>${when} · ${lenText}</small></span>
+      <span class="sval">${st === 'done' ? (race ? `<span class="pos pts">P${r.place}</span>` : `<span class="pos quiet">P${i + 6}</span>`) : '<span class="chip outline">Next</span>'}</span>
+    </button>`;
+  }).join('')}</section>`;
+};
+
+const entryCard = () => {
+  const r = R();
+  return `<section class="panel">${panelTitle('Your entry')}<div class="pb">
+    <div class="well">${I.car}</div>
+    <div style="display:flex;flex-direction:column;gap:1px"><span style="font-weight:500">${r.car}</span>
+    <span class="muted" style="font-size:12px">${r.team} · ${r.entry}</span></div>
+  </div></section>`;
+};
+
+const roundHead = () => {
+  const r = R();
+  return `<div class="shead"><a class="back">${I.back} Calendar</a>
+    <div class="head-row"><div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+      <div class="over"><span class="mono">ROUND ${r.number} OF ${r.rounds}</span>${chip('c-sports', 'Sportscar')}${chip(`c-t${r.tier}`, `Tier ${r.tier}`)}</div>
+      <h1>${r.round}</h1>
+      <div class="facts"><a class="pill"><span class="dot" style="background:var(--d-sports-fg)"></span>${r.series} ${I.chev}</a><span>${r.date}</span><span>${r.grid} cars</span></div>
+    </div><div class="map">${img(`${AC}tracks/${r.track}/ui/outline.png`)}</div></div></div>`;
+};
+
+// The briefing's Length tile follows the slider, so the four tiles stay the
+// one place a session's length is read.
+const lengthTile = () => {
+  const r = R();
+  const f = factor();
+  const only = offered(r.laps).length === 1;
+  const live = f > 1;
+  const button = only ? ''
+    : `<span class="corner"><button type="button" class="btn sm" data-toggle="popover">${I.scissors} ${live ? share(f) : 'Shorten'}</button></span>`;
+  return `<div class="pop-wrap"><div class="tile ${live ? 'live' : ''}" style="height:100%"><span class="k">Length</span>
+    <b>${laps(live ? scaled(r.laps, f) : r.laps)}</b>
+    <small>${live ? `${share(f)} of ${r.laps}` : '&nbsp;'}</small>${button}</div>
+    ${state.popover && !only ? `<div class="popover">${lengthControl()}</div>` : ''}</div>`;
+};
+
+const briefing = () => {
+  const f = factor();
+  return `<div class="tiles">
+    ${lengthTile()}
+    <div class="tile"><span class="k">Weather</span><b>☀ 21°C</b><small>Clear, clouding over</small></div>
+    <div class="tile"><span class="k">Wind</span><b>6-11 km/h</b></div>
+    <div class="tile"><span class="k">You start</span><b>Set by qualifying</b></div>
+  </div>
+  <p class="muted" style="margin:0;font-size:13.5px">The grid comes from Qualifying.</p>
+  <div class="launch">${f > 1 ? `<span class="muted" style="font-size:12.5px">Shortened to ${share(f)}</span>` : ''}<button class="btn pri lg" data-set="moment=dialog">Launch Race</button></div>`;
+};
+
+// Once raced, the strip says how long the race actually ran, from the launch's
+// own record - so a later race at full length never reads as shortened.
+const resultStrip = () => {
+  const r = R();
+  const f = factor();
+  const multi = r.classes.length > 1;
+  return `<div class="strip">
+    <div><span class="k">You</span><b><span class="rc pts">P${r.place}</span></b><small>${multi ? `in ${r.entry} · 17 of ${r.grid} overall` : `of ${r.grid}`}</small></div>
+    <div><span class="k">Started</span><b>P7</b><small>gained 3</small></div>
+    <div><span class="k">Points</span><b style="color:var(--points-fg)">+${r.points}</b><small>${state.race === 'daytona' ? 'double points, paid in full' : ''}</small></div>
+    ${f > 1 ? `<div class="new"><span class="k">Length <span class="newtag">new</span></span><b>${laps(scaled(r.laps, f))}</b><small>${share(f)} of ${r.laps}</small></div>` : ''}
+    <div><span class="k">AI strength</span><b>88</b><small>${multi ? 'GTP 92 · LMP2 89 · GTD 86' : 'drivers 86-90'}</small></div>
+  </div>
+  <div class="placeholder">The podium and the classification, as they are today</div>`;
+};
+
+const sessionDetail = () => {
+  const r = R();
+  const raced = state.moment === 'raced';
+  return `<section class="panel"><div class="pb" style="padding:16px;gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;align-items:center">${sessionChip('race')}<span style="font-size:18px;font-weight:600">Race</span>${raced ? chip('c-done', 'Done') : ''}</div>
+      <span class="muted" style="font-size:13.5px">${r.start}</span>
+    </div>
+    ${raced ? resultStrip() : briefing()}
+  </div></section>`;
+};
+
+const dialog = () => {
+  const r = R();
+  const f = factor();
+  return `<div class="scrim"><div class="dialog" role="dialog">
+    <h2>Launching gives up 1 round</h2>
+    <p>Starting ${r.round} moves the clock to ${r.date.split(' ').slice(1).join(' ')}. This round you entered has not been raced, and becomes a non-start. Points you have already scored stay.</p>
+    <div class="lost"><span>Formula Abarth Trophy · Vallelunga</span><span class="muted">Wed 21 Jan</span></div>
+    ${f > 1 ? `<div class="note">${I.info}<span>The race runs <b>shortened to ${share(f)}</b>, at ${laps(scaled(r.laps, f))}.</span></div>` : ''}
+    <div class="end"><button class="btn" data-set="moment=next">Cancel</button><button class="btn pri" data-set="moment=raced">Give up 1 round and launch Race</button></div>
+  </div></div>`;
+};
+
+const roundPage = () => `${nav('Calendar')}${roundHead()}
+  <div class="layout"><aside class="side">${entryCard()}${sessionList()}<div class="placeholder">AI strength, as it is today</div></aside>
+  <main class="col">${sessionDetail()}</main></div>${state.moment === 'dialog' ? dialog() : ''}`;
+
+// The skeleton is the round page's own, unchanged: whether the next session is
+// a race is data, so the control arrives with it, as Launch already does.
+const roundSkeleton = () => `${nav('Calendar')}
+  <div class="shead"><a class="back">${I.back} Calendar</a>
+    <div class="head-row"><div style="display:flex;flex-direction:column;gap:8px">${sk(260, 14)}${sk(320, 24)}${sk(380, 16)}</div>${sk(144, 81, 'deep')}</div></div>
+  <div class="layout"><aside class="side">
+    <section class="panel"><div class="panel-h">${sk(80, 10)}</div><div class="pb">${sk('100%', 150, 'deep')}${sk(130, 14)}${sk(160, 11)}</div></section>
+    <section class="panel" style="padding:0;overflow:hidden">${panelTitle('Event')}<div style="height:8px"></div>
+      ${[0, 1, 2, 3].map(() => `<div class="ses" style="cursor:default">${sk(16, 16, 'round')}<span class="nm" style="gap:6px">${sk(80, 12)}${sk(140, 10)}</span>${sk(30, 20)}</div>`).join('')}</section>
+  </aside>
+  <main class="col"><section class="panel"><div class="pb" style="padding:16px;gap:16px">
+    <div style="display:flex;justify-content:space-between">${sk(150, 22)}${sk(90, 14)}</div>
+    <div class="tiles">${['Length', 'Weather', 'Wind', 'You start'].map((k) => `<div class="tile"><span class="k">${k}</span>${sk(90, 18)}</div>`).join('')}</div>
+    ${sk(220, 14)}
+  </div></section></main></div>`;
+
+// ---------- Results page ----------
+const sessionRow = (type, name, lap, pos, pts = '') => `<a>${chip(`c-${type}`, name)}<span class="lap">${lap}</span><span class="pts">${pts}</span><span class="pos ${pos.cls}">P${pos.n}</span></a>`;
+const roundCard = () => `<article class="rcard">
+  <div class="rhead">${img(`${AC}tracks/daytona_2017/ui/outline.png`)}<span class="when">25 Jan</span>
+    <div class="ttl"><b>IMSA SportsCar Championship</b><span>Round 1 · Rolex 24 at Daytona</span></div></div>
+  <div class="rcar"><span class="sw"></span><span>Porsche 911 GT3 R (992)</span><span class="n">60 cars</span></div>
+  <div class="rses">
+    ${sessionRow('qualify', 'Qualifying', '1:46.902', { n: 7, cls: 'quiet' })}
+    ${sessionRow('race', 'Race', '1:47.315', { n: 4, cls: 'pts' }, '+320')}
+  </div>
+  <a class="rfoot"><span>Round results <b style="color:var(--points-fg)">+320</b></span><span class="pos pts" style="min-width:30px">P2</span><span class="go">${I.chev}</span></a>
+</article>`;
+// A race event of the player's own, named by its own sessions and kept as one
+// card however many days it took.
+const quickCard = (days, sessions, foot = true) => `<article class="rcard">
+  <div class="rhead">${img(`${AC}tracks/ks_brands_hatch/ui/gp/outline.png`)}<span class="when">${days}</span>
+    <div class="ttl"><b>Brands Hatch club race</b><span>Brands Hatch · GP</span></div></div>
+  <div class="rcar"><span class="sw"></span><span>Lotus Exige S</span><span class="n">16 cars</span></div>
+  <div class="rses">${sessions.join('')}</div>
+  ${foot ? `<a class="rfoot ${state.grouping === 'after' ? 'new' : ''}"><span>Race event</span><span class="muted">2 of 3 sessions run</span><span class="go">${I.chev}</span></a>` : ''}
+</article>`;
+const deletedCard = () => `<article class="rcard">
+  <div class="rhead">${img(`${AC}tracks/ks_nordschleife/ui/endurance/outline.png`)}<span class="when">2 Oct</span>
+    <div class="ttl"><b>Nordschleife shakedown</b><span>Nordschleife · Endurance</span></div></div>
+  <div class="rcar"><span class="sw"></span><span>BMW M4 GT3</span><span class="n">20 cars</span></div>
+  <div class="rses">${sessionRow('practice', 'Practice', '8:21.660', { n: 9, cls: 'quiet' })}${sessionRow('race', 'Race', '8:19.004', { n: 6, cls: 'quiet' })}</div>
+</article>`;
+const WARMUP = sessionRow('practice', 'Warm-up', '1:31.840', { n: 6, cls: 'quiet' });
+const QUALI = sessionRow('qualify', 'Qualifying', '1:31.207', { n: 4, cls: 'quiet' });
+const resultsPage = () => `${nav('Home')}
+  <div class="shead"><a class="back">${I.back} Home</a><div style="display:flex;flex-direction:column;gap:2px"><h1 style="margin:0;font-size:24px;font-weight:600">Results</h1><span class="muted" style="font-size:13.5px">Every session you have driven, newest first</span></div></div>
+  <div class="toolbar"><span class="search">${I.search} Search results</span>
+    <span class="seg"><span class="on">All</span><span>Practice</span><span>Qualifying</span><span>Race</span></span>
+    <span class="select"><span>All championships</span>${I.down}</span></div>
+  <div class="cards">
+    ${roundCard()}
+    ${state.grouping === 'after'
+    ? quickCard('10-11 Oct', [WARMUP, QUALI])
+    : `${quickCard('11 Oct', [QUALI], false)}${quickCard('10 Oct', [WARMUP], false)}`}
+    ${deletedCard()}
+  </div>`;
+const resultsSkeleton = () => `${nav('Home')}
+  <div class="shead"><a class="back">${I.back} Home</a><div style="display:flex;flex-direction:column;gap:2px"><h1 style="margin:0;font-size:24px;font-weight:600">Results</h1><span class="muted" style="font-size:13.5px">Every session you have driven, newest first</span></div></div>
+  <div class="toolbar"><span class="search">${I.search} Search results</span>
+    <span class="seg"><span class="on">All</span><span>Practice</span><span>Qualifying</span><span>Race</span></span>
+    <span class="select" style="opacity:.5"><span>All championships</span>${I.down}</span></div>
+  <div class="cards">${[0, 1, 2].map(() => `<article class="rcard"><div class="rhead">${sk('100%', 120, 'deep')}</div>
+    <div class="rcar">${sk(16, 16)}${sk(140, 11)}</div>
+    <div class="rses">${[0, 1].map(() => `<a>${sk(80, 20)}${sk(60, 12)}<span></span>${sk(34, 22)}</a>`).join('')}</div></article>`).join('')}</div>`;
+
+// ---------- Result page of a race event ----------
+const resultPage = () => `${nav('Home')}
+  <div class="shead"><a class="back">${I.back} Results</a></div>
+  <section class="hero">${img(`${AC}tracks/ks_brands_hatch/ui/gp/outline.png`)}
+    <div class="txt"><div class="crumbs">${chip('c-qualify', 'Qualifying')}<a class="new">Race</a>${I.chev}<a class="new">Brands Hatch club race</a></div>
+      <h1>Qualifying</h1><p>Brands Hatch · GP · 11 October 2026, 18:42</p></div></section>
+  <div class="placeholder" style="margin-top:16px;padding:40px">The strip, the classification and the laps, as they are today</div>`;
+const resultSkeleton = () => `${nav('Home')}
+  <div class="shead"><a class="back">${I.back} Results</a></div>
+  ${sk('100%', 192, 'deep')}
+  <div class="placeholder" style="margin-top:16px;padding:40px">The result page's own skeleton, as it is today - the breadcrumb is in the hero, which is a shimmer until the archive is read</div>`;
+
+// ---------- Notes ----------
+const WHY = {
+  round: `<b>Round page</b>, with the race next. The Length tile carries a <i>Shorten</i> button that opens the <b>Race length</b> slider in a popover
+    (shown open; the button toggles it). The slider runs <b>shortest on the left to Full on the right</b>, so dragging right lengthens the race and the bar
+    fills as the race grows. <b>The bar is the only control</b>: hovering it names the step under the pointer in a tooltip - 1/48, 1/24, 1/16, 1/12, 1/8,
+    1/6, 1/4, 1/3, 1/2 or Full, with the laps it comes to - and the figure beside the label says what is picked. A stop that would go under ${MIN_LAPS} laps is
+    not offered, so a sprint's bar starts further along and a race of nine laps or fewer cannot be shortened at all. It starts at <b>Full</b> every time and
+    lasts this launch alone: nothing is stored until the race has run, when the launch records the factor. Only a race session of a career round gets it -
+    practice and qualifying run on the clock, and a race event of your own sets its laps itself.
+    <ul>
+      <li>Once shortened, the tile reads the laps the race comes to and <i>1/48 of 781</i> under them, its button names the stop, and Launch is captioned
+        <i>Shortened to 1/48</i>, so the choice shows with the popover closed.</li>
+      <li><b>The clock runs at the same factor</b> (<code>TIME_MULT</code>), so 1/48 runs Daytona's clock ×48 and takes it through the night in about half an
+        hour. Fuel use and tyre wear stay the championship's, and <b>points are paid in full</b> - Le Mans and Daytona's double included.</li>
+      <li><b>Launch asks first</b>: the SkipDialog flow keeps the stop picked, and says so.</li>
+      <li><b>Raced</b>: the session row reads <i>16 laps · 1/48 of 781</i>, and the result's strip gains a <i>Length</i> figure from the launch's own record.</li>
+    </ul>`,
+  results: `<b>Results</b>. A race event of your own is now joined to its race the way a round is joined to its round: every archive the race still lists is one
+    card, however many days its sessions took (switch <i>Grouping</i> to see today's split into two), its sessions named by the race's own, and a footer that
+    opens it on the Race tab. A race since deleted, or a run from before it was restarted, stays as today - a card of its own with no way back, since the
+    race it would open no longer holds those results.`,
+  result: `<b>Result page</b> of a race event's session. The hero's breadcrumb leads back the way a round's does - the Race tab, then the race itself.`,
+};
+const NOTES = `<ul>
+  <li><b>Colour</b>: there is no new chip. The factor is a number, as a lap count is, so it is never a chip of its own: the figure for the step picked wears
+    primary, as every regulation slider's does, the tooltip is the app's own neutral one, and the result's Length figure is plain, as the AI strength figure beside it is. Session, discipline, tier and podium
+    chips are as everywhere else; the <i>new</i> outline marks what this mockup adds and is not drawn in the app.</li>
+  <li><b>Loading</b>: the round page's skeleton is unchanged - whether the next session is a race is data, so the control arrives with it as Launch already
+    does. The Results skeleton is unchanged too: a card's footer is data.</li>
+</ul>`;
+
+const PAGES = { round: [roundPage, roundSkeleton], results: [resultsPage, resultsSkeleton], result: [resultPage, resultSkeleton] };
+const render = () => {
+  document.documentElement.dataset.theme = state.th;
+  document.querySelectorAll('.opt').forEach((b) => b.setAttribute('aria-pressed', String(String(state[b.dataset.k]) === b.dataset.v)));
+  document.querySelectorAll('.grp[data-for]').forEach((g) => { g.hidden = !g.dataset.for.split(' ').includes(state.page); });
+  document.getElementById('why').innerHTML = WHY[state.page] + NOTES;
+  document.getElementById('app').innerHTML = PAGES[state.page][state.load === 'loading' ? 1 : 0]();
+};
+document.addEventListener('click', (e) => {
+  const opt = e.target.closest('.opt');
+  if (opt) { state[opt.dataset.k] = opt.dataset.v; render(); return; }
+  const toggle = e.target.closest('[data-toggle]');
+  if (toggle) { state.popover = !state.popover; render(); return; }
+  const set = e.target.closest('[data-set]');
+  if (set) { const [k, v] = set.dataset.set.split('='); state[k] = v; render(); }
+});
+document.addEventListener('input', (e) => {
+  if (!e.target.matches('[data-range]')) return;
+  state.scale = order(R().laps)[Number(e.target.value)];
+  render();
+  const range = document.querySelector('[data-range]');
+  range?.focus();
+  if (range && lastX !== null) showTip(range.closest('.slider'), lastX);
+});
+// Hovering the bar names the step nearest the pointer - the bar is the only
+// control, so this is how a step is read before it is picked.
+let lastX = null;
+const showTip = (slider, clientX) => {
+  const ok = order(R().laps);
+  if (ok.length < 2) return;
+  const box = slider.getBoundingClientRect();
+  const i = Math.round(Math.min(1, Math.max(0, (clientX - box.left) / box.width)) * (ok.length - 1));
+  const tip = slider.querySelector('.tip');
+  tip.textContent = `${share(ok[i])} · ${laps(scaled(R().laps, ok[i]))}`;
+  tip.style.left = `${(i / (ok.length - 1)) * 100}%`;
+  tip.classList.add('on');
+  slider.querySelectorAll('.tick').forEach((t, n) => t.classList.toggle('hover', n === i));
+};
+document.addEventListener('pointermove', (e) => {
+  const slider = e.target.closest?.('.slider');
+  document.querySelectorAll('.slider .tip.on').forEach((t) => { if (!slider?.contains(t)) t.classList.remove('on'); });
+  document.querySelectorAll('.slider .tick.hover').forEach((t) => { if (!slider?.contains(t)) t.classList.remove('hover'); });
+  if (slider) showTip(slider, e.clientX);
+  lastX = e.clientX;
+});
+document.addEventListener('pointerdown', (e) => { lastX = e.clientX; });
+// A hash such as #page=round&moment=raced opens the mockup on that state.
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in state) state[k] = k === 'scale' ? Number(v) : v; });
+render();
+</script>
+</body>
+</html>

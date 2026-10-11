@@ -2,6 +2,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 
 import { ARCHIVE_NAME } from './constants.ts';
 import type { RaceProgress } from './types.ts';
+import { isQuickRaceId } from '../../core/quick-race/index.ts';
 import { summarise } from '../../core/results/index.ts';
 import { baseRaceId } from '../../core/series/index.ts';
 import type {
@@ -170,10 +171,11 @@ export const withLayout = (record: ResultRecord, tracks: readonly Track[]): Resu
 /**
  * Whether two archives are sessions of one event.
  *
- * A career round's race id names its run, so one id is one event however many
- * days it ran over. Anything else - a race of the player's own, or an archive
- * from before ids named runs - is one event per race and per day, the way the
- * Results page gathers them.
+ * A career round's race id names its run, and a race event of the player's own
+ * is one event however many days it ran over, so both are one event per id.
+ * Anything else - a hand-written race, or an archive from before ids named
+ * runs - is one event per race and per day, the way the Results page gathers
+ * them.
  * @param first One archive
  * @param other The other
  * @returns True when both belong to the same event
@@ -181,7 +183,9 @@ export const withLayout = (record: ResultRecord, tracks: readonly Track[]): Resu
 export const sameEvent = (first: ResultRecord, other: ResultRecord): boolean => {
   const name = first.raceId ?? first.raceName;
   if (name === undefined || name !== (other.raceId ?? other.raceName)) return false;
-  if (first.raceId !== undefined && baseRaceId(first.raceId) !== first.raceId) return true;
+  if (first.raceId !== undefined && (baseRaceId(first.raceId) !== first.raceId || isQuickRaceId(first.raceId))) {
+    return true;
+  }
 
   return first.recordedAt.slice(0, 10) === other.recordedAt.slice(0, 10);
 };

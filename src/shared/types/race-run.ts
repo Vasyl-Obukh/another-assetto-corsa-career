@@ -36,6 +36,11 @@ export interface RaceStatus {
    */
   startedAt: string | null;
   /**
+   * The factor the launch in flight is shortened by, one for the full race, or
+   * null when none is in flight - so a page opened while it runs can say so.
+   */
+  scale: number | null;
+  /**
    * Why the last launch attempt gave up, or null when it did not.
    *
    * Needed because the wait outlives the call that started it: a launch

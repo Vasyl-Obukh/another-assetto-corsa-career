@@ -1,4 +1,6 @@
 export {
-  archiveOrigins, raceTitle, resultEvents, sessionTypeOf,
+  archiveOrigins, quickOrigins, raceTitle, resultEvents, sessionTypeOf,
 } from './result-events.ts';
-export type { ArchiveOrigin, ResultSession, ResultEvent } from './types.ts';
+export type {
+  ArchiveOrigin, QuickOrigin, ResultSession, ResultEvent,
+} from './types.ts';

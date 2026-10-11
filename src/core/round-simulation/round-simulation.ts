@@ -23,7 +23,7 @@ import type {
   EventLaunch, EventPlan, EventState, LaunchRecord, RacePlace,
 } from '../../shared/types/index.ts';
 import {
-  chainOf, composeOrder, dayOf, fieldFor, reverseFront,
+  carClassesOf, chainOf, composeOrder, dayOf, fieldFor, reverseFront,
 } from '../event/index.ts';
 import { scoreRound } from '../season-scoring/index.ts';
 import type { LaunchResult } from '../season-scoring/index.ts';
@@ -170,7 +170,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
     }
 
     sessions.push({
-      index, completedAt: recordedAt, archive: '', gridOrder, classification, skipped: true,
+      index, completedAt: recordedAt, archive: '', gridOrder, classification, ...carClassesOf(plan), skipped: true,
     });
   }
 

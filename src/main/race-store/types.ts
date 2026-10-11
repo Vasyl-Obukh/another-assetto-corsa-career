@@ -82,10 +82,14 @@ export interface RaceStore {
    *
    * Resolves once Content Manager has been handed the URI. The result arrives
    * much later, as a change pushed to whoever is listening.
+   * @param options How the launch runs, when it differs from the event
+   * @param options.scale The factor its race is shortened by, one or absent
+   * for the full race
    * @returns The setup, with a launch now in flight
-   * @throws AppError when one is already in flight, or the race is not runnable
+   * @throws AppError when one is already in flight, the race is not runnable,
+   * or the next launch cannot be shortened by that much
    */
-  launch(): Promise<RaceSetup>;
+  launch(options?: { scale?: number }): Promise<RaceSetup>;
   /**
    * Stops waiting for a result, without advancing the event.
    * @returns The setup, back to idle

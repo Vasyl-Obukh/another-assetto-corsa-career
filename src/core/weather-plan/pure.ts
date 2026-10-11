@@ -64,12 +64,16 @@ export const pureWeather = (step: WeatherStep): Record<string, number | boolean>
  */
 export const purePlanJson = (plan: WeatherPlan): string => {
   const startHour = plan.startHour ?? DEFAULT_PLAN_START_HOUR;
+  const multiplier = plan.timeMultiplier ?? 1;
   let timestamp = PURE_PLAN_EPOCH + startHour * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
 
+  // A duration is session seconds and a timestamp is the game's clock: a timed
+  // plan stretches every step by its multiplier (CONTAINER_adapted_duration in
+  // PurePlanner/plan/plan.lua), and chains the steps after the first that way.
   const container = plan.steps.map((step) => {
     const duration = stepSeconds(step);
     const data = { timestamp, duration, weather: pureWeather(step) };
-    timestamp += duration;
+    timestamp += duration * multiplier;
 
     return { data };
   });
@@ -78,7 +82,7 @@ export const purePlanJson = (plan: WeatherPlan): string => {
     container,
     control: {
       type: PURE_PLAN_TYPE,
-      timemulti: plan.timeMultiplier ?? 1,
+      timemulti: multiplier,
       loop: plan.loop ?? false,
     },
   }, null, 1)}\n`;

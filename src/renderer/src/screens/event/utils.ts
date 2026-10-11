@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 
 import type { EventSession, LaunchRecord, SkippedRound } from '../../../../shared/types';
+import { scaledLaps } from '../../../../shared/utils/race-scale';
 import { raceLength } from '@/lib/session-labels';
 
 /**
@@ -21,7 +22,8 @@ export const defaultSession = (sessions: readonly EventSession[]): number => {
 };
 
 /**
- * Where the player finished a session, counting from one.
+ * Where the player finished a session among their own class, counting from
+ * one - overall, where the grid held one class.
  *
  * Read off the classification rather than the archive's names: the player is
  * always car 0 of the event's grid, while the name in the archive is whatever
@@ -30,14 +32,63 @@ export const defaultSession = (sessions: readonly EventSession[]): number => {
  * @returns The position, or null when it classified nobody
  */
 export const playerPosition = (record: LaunchRecord | null): number | null => {
-  const at = record?.classification?.indexOf(0) ?? -1;
+  const classes = record?.carClasses;
+  const order = record?.classification?.filter((car) => !classes || classes[car] === classes[0]);
+  const at = order?.indexOf(0) ?? -1;
 
   return at < 0 ? null : at + 1;
 };
 
 /**
+ * What share of its race a step runs, as the race length control names it.
+ * @param scale The factor the race is shortened by, one for the full race
+ * @param t The translator
+ * @returns "Full", or the share - "1/48"
+ */
+export const scaleName = (scale: number, t: TFunction): string => (
+  scale === 1 ? t('event.length.full') : t('event.length.share', { scale })
+);
+
+/**
+ * How many laps a race comes to once shortened, in words.
+ * @param laps The race's full length, in laps
+ * @param scale The factor it is shortened by
+ * @param t The translator
+ * @returns The laps it runs - "16 laps"
+ */
+export const shortLaps = (laps: number, scale: number, t: TFunction): string => (
+  t('championships.format.laps', { count: scaledLaps(laps, scale) })
+);
+
+/**
+ * Which share of the full race a shortened one runs, in words.
+ * @param laps The race's full length, in laps
+ * @param scale The factor it is shortened by
+ * @param t The translator
+ * @param formatNumber The locale's number formatter
+ * @returns The share and the full length - "1/48 of 781"
+ */
+export const shareOf = (
+  laps: number,
+  scale: number,
+  t: TFunction,
+  formatNumber: (value: number) => string,
+): string => t('event.length.of', { share: scaleName(scale, t), full: formatNumber(laps) });
+
+/**
+ * Joins the parts of a line with the dot the app separates them with, leaving
+ * out whichever are missing.
+ * @param parts The parts, any of which may be absent
+ * @returns The line
+ */
+export const dotted = (parts: readonly (string | null | undefined)[]): string => (
+  parts.filter((part) => part).join(' · ')
+);
+
+/**
  * How long a session runs, in the words a championship's round row uses: laps,
- * minutes, or a race's distance beside the laps it comes to on this track.
+ * minutes, or a race's distance beside the laps it comes to on this track. A
+ * race its launch ran short says so beside the laps it ran.
  * @param session The session
  * @param t The translator
  * @param formatNumber The locale's number formatter
@@ -48,6 +99,10 @@ export const sessionLength = (
   t: TFunction,
   formatNumber: (value: number) => string,
 ): string | null => {
+  const scale = session.record?.scale;
+  if (session.laps !== undefined && scale !== undefined) {
+    return dotted([shortLaps(session.laps, scale, t), shareOf(session.laps, scale, t, formatNumber)]);
+  }
   if (session.laps !== undefined) return raceLength(session, t, formatNumber);
 
   return session.minutes === undefined
@@ -84,16 +139,6 @@ export const launchNote = (
 
   return skips.some((one) => one.reason === 'clash') ? 'skip.launchNoteMixed' : 'skip.launchNote';
 };
-
-/**
- * Joins the parts of a line with the dot the app separates them with, leaving
- * out whichever are missing.
- * @param parts The parts, any of which may be absent
- * @returns The line
- */
-export const dotted = (parts: readonly (string | null | undefined)[]): string => (
-  parts.filter((part) => part).join(' · ')
-);
 
 /**
  * The sessions of an event that recorded the strength they raced the player's

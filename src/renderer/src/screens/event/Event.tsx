@@ -16,12 +16,13 @@ import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
-import { defaultSession } from './utils.ts';
+import { defaultSession, scaleName, shortLaps } from './utils.ts';
+import { scalesFor } from '../../../../shared/utils/race-scale';
 import { ClimateBadge, ErrorCard, ScreenBody, ScreenHeader, SkipDialog } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import {
-  useCareerEvent, useChampionshipResults, usePageName, usePlayerName,
+  useCareerEvent, useChampionshipResults, usePageName, usePlayerName, useRaceStatus,
 } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
@@ -60,6 +61,10 @@ export const Event = () => {
   const [picked, setPicked] = useState<number | null>(null);
   // Whether the next launch is waiting on the player to confirm what it costs.
   const [confirming, setConfirming] = useState(false);
+  // The step the next race is shortened by, kept against the session it was
+  // picked for: once that session has run, the next race starts at full length.
+  const [length, setLength] = useState<{ key: string; scale: number } | null>(null);
+  const race = useRaceStatus();
 
   const { view } = event;
   usePageName(view ? t('back.round', { round: view.roundName, series: view.seriesName }) : null);
@@ -79,6 +84,18 @@ export const Event = () => {
     void navigate(path.championship({ id: series }, run, 'standings'));
   };
   const ladder = view?.entered?.ladder ?? view?.classes[0]?.ladder;
+
+  const next = view?.sessions.find((one) => one.status === 'next');
+  // The round as well as the run: moving to another round keeps this page
+  // mounted, and a step picked for one race must never reach another.
+  const lengthKey = view && next ? `${series}/${round}@${view.season}.${view.edition}/${next.index}` : null;
+  const picks = length && length.key === lengthKey && next?.laps !== undefined
+    && scalesFor(next.laps).includes(length.scale) ? length.scale : 1;
+  // A launch in flight runs at the step it went out with, which the race store
+  // remembers when this page, opened afresh, does not.
+  const status = view?.live ? race.setup?.status : undefined;
+  const running = status !== undefined && status.phase !== 'idle';
+  const scale = running ? status.scale ?? 1 : picks;
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
@@ -200,6 +217,11 @@ export const Event = () => {
               session={session}
               series={results.results?.championship ?? null}
               busy={event.busy}
+              length={next?.type === 'race' && lengthKey ? {
+                scale,
+                disabled: event.busy || running || view.blocked !== null,
+                onChange: (step) => setLength({ key: lengthKey, scale: step }),
+              } : undefined}
               onLaunch={() => {
                 if (view.skips.length > 0) {
                   setConfirming(true);
@@ -208,7 +230,7 @@ export const Event = () => {
                 }
 
                 setPicked(null);
-                void event.launch();
+                void event.launch(false, scale);
               }}
             />
           ) : null}
@@ -227,6 +249,10 @@ export const Event = () => {
             { round: view.roundName, day: formatDayShort(view.date) },
           )}
           rounds={view.skips}
+          note={scale > 1 && next?.laps !== undefined ? t('event.length.skip', {
+            share: scaleName(scale, t),
+            laps: shortLaps(next.laps, scale, t),
+          }) : undefined}
           confirmLabel={t('skip.launchConfirm', {
             count: view.skips.length,
             name: sessionName(session, t),
@@ -235,7 +261,7 @@ export const Event = () => {
           onConfirm={() => {
             setConfirming(false);
             setPicked(null);
-            void event.launch(true);
+            void event.launch(true, scale);
           }}
           onClose={() => setConfirming(false)}
         />

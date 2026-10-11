@@ -5,7 +5,9 @@
 // player's - so the career's seats, teams and points line up with the archive's
 // laps without trusting a name.
 
-import type { ClassificationSource, ClassifiedGap, ClassifiedRow } from './types.ts';
+import type {
+  ClassificationSource, ClassifiedGap, ClassifiedRow, RacedClass,
+} from './types.ts';
 import type { Standing } from '../../../../shared/types';
 import { seatNation, teamName } from '../season-results/index.ts';
 
@@ -43,8 +45,13 @@ export const classifiedRows = (source: ClassificationSource): ClassifiedRow[] =>
   const carOf = (standing: Standing | undefined, at: number): number | undefined => (
     standing?.slot !== undefined && record ? record.gridOrder[standing.slot] : record?.classification?.[at]
   );
+  // The grid says each car's class where it is to hand, and the launch's own
+  // record where only the archive is.
+  const classOf = (car: number | undefined): string | undefined => (
+    car === undefined ? undefined : grid[car]?.entry ?? record?.carClasses?.[car]
+  );
   const inClass = (car: number | undefined): boolean => (
-    source.entry === undefined || (car !== undefined && grid[car]?.entry === source.entry)
+    source.entry === undefined || (car !== undefined && classOf(car) === source.entry)
   );
   // A class listed alone is filtered before anything is measured, so its
   // leader, its gaps and its fastest lap are its own.
@@ -62,7 +69,7 @@ export const classifiedRows = (source: ClassificationSource): ClassifiedRow[] =>
     const standing = standings?.[at];
     const car = cars[at];
     const entry = car === undefined ? undefined : grid[car];
-    const ownClass = entry?.entry ?? null;
+    const ownClass = classOf(car) ?? null;
     const classPosition = ownClass === null ? null : (seen.get(ownClass) ?? 0) + 1;
     if (ownClass !== null && classPosition !== null) seen.set(ownClass, classPosition);
     const place = score?.places.find((one) => one.seat === entry?.seat && !one.bonusOnly) ?? null;
@@ -91,4 +98,20 @@ export const classifiedRows = (source: ClassificationSource): ClassifiedRow[] =>
       classPosition,
     };
   });
+};
+
+/**
+ * The classes a classification holds cars of, in the event's own order -
+ * which is what picks each one's colour.
+ * @param rows The classification
+ * @param classes Every class of the event, in the order they line up
+ * @returns The ones that raced
+ */
+export const racedClasses = (
+  rows: readonly ClassifiedRow[],
+  classes: readonly RacedClass[],
+): RacedClass[] => {
+  const raced = new Set(rows.map((row) => row.entry));
+
+  return classes.filter((one) => raced.has(one.id)).map(({ id, name }) => ({ id, name }));
 };

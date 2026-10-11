@@ -93,8 +93,8 @@ export const useCareerEvent = (
     enter: (entry, car) => command(() => invoke('career:enrol', {
       series, entry, car, edition: view?.edition ?? edition,
     })),
-    launch: (skip) => command(() => invoke('career:launch', {
-      series, round, edition: view?.edition ?? edition, skip,
+    launch: (skip, scale) => command(() => invoke('career:launch', {
+      series, round, edition: view?.edition ?? edition, skip, scale,
     })),
     // Shown at once and kept behind it, never holding the buttons, so a step
     // can be typed or clicked through; the round is read once the last lands.

@@ -112,7 +112,11 @@ export interface WeatherPlan {
    */
   loop?: boolean;
   /**
-   * How fast the plan's clock runs relative to the session's.
+   * How fast the game's clock runs while the plan plays.
+   *
+   * Not the plan's own speed: both planners set Assetto Corsa's clock to it,
+   * so it has to be the race's `TIME_MULT` or the planner overrides that. Step
+   * lengths stay in session time whatever it is.
    */
   timeMultiplier?: number;
   /**

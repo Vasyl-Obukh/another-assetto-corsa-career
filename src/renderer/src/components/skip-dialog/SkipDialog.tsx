@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from 'lucide-react';
+import { InfoIcon, TriangleAlertIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SkipRow } from './SkipRow.tsx';
@@ -27,6 +27,11 @@ interface SkipDialogProps {
    */
   rounds: readonly SkippedRound[];
   /**
+   * Anything else about the move worth saying before it is confirmed, such as
+   * a race about to run shortened.
+   */
+  note?: string;
+  /**
    * The wording on the confirming button, which says what is lost.
    */
   confirmLabel: string;
@@ -50,7 +55,7 @@ interface SkipDialogProps {
  * than a count.
  */
 export const SkipDialog = ({
-  open, title, description, rounds, confirmLabel, busy, onConfirm, onClose,
+  open, title, description, rounds, note, confirmLabel, busy, onConfirm, onClose,
 }: SkipDialogProps) => {
   const { t } = useTranslation();
 
@@ -81,6 +86,13 @@ export const SkipDialog = ({
             </section>
           ))}
         </div>
+
+        {note ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <InfoIcon className="size-4 shrink-0" />
+            {note}
+          </p>
+        ) : null}
 
         <DialogFooter>
           <Button variant="ghost" disabled={busy} onClick={onClose}>{t('confirm.cancel')}</Button>

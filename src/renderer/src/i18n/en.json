@@ -634,6 +634,22 @@
       "authored": "As the event sets it",
       "pending": "Forecast a week before the event"
     },
+    "length": {
+      "title": "Race length",
+      "hint": "Picked for this launch alone - the next race starts at full length again",
+      "shorten": "Shorten",
+      "full": "Full",
+      "share": "1/{{scale}}",
+      "step": "{{share}} · {{laps}}",
+      "fullValue": "Full length · {{laps}}",
+      "of": "{{share}} of {{full}}",
+      "floor": "Nothing shorter than {{share}}: it would go under {{laps}}.",
+      "clock": "The clock runs ×{{clock}}, so day turns to night as it would over the full race.",
+      "wear": "Fuel use and tyre wear stay the championship's.",
+      "points": "Points are paid in full.",
+      "launch": "Shortened to {{share}}",
+      "skip": "The race runs shortened to {{share}}, at {{laps}}."
+    },
     "source": {
       "from": "The grid is the order {{from}} finished in.",
       "reversed": "The grid is the order {{from}} finished in, with the top {{count}} turned round.",
@@ -1435,6 +1451,11 @@
     "subtitle": "Every event you have driven, newest first.",
     "empty": "No races run yet.",
     "notFound": "That result is no longer there.",
+    "quick": {
+      "open": "Race event",
+      "run_one": "{{run}} of {{count}} session run",
+      "run_other": "{{run}} of {{count}} sessions run"
+    },
     "order": {
       "raceResultHint": "Classified by Assetto Corsa itself, which is why it cannot inherit a sorting bug of ours.",
       "inferredHint": "Practice and qualifying carry no classification of their own, so this order is sorted from the lap data."

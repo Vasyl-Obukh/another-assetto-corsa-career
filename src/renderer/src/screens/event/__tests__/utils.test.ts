@@ -5,7 +5,8 @@ import type {
   EventSession, EventSessionStatus, LaunchRecord, SkippedRound,
 } from '../../../../../shared/types';
 import {
-  defaultSession, dotted, launchNote, playerPosition, racedStrength, sessionDay, sessionLength,
+  defaultSession, dotted, launchNote, playerPosition, racedStrength, scaleName, sessionDay, sessionLength,
+  shareOf, shortLaps,
 } from '../utils.ts';
 
 /**
@@ -99,6 +100,14 @@ describe('renderer/screens/event/utils', () => {
       expect(playerPosition(record([0, 3, 1]))).toBe(1);
     });
 
+    // A fixed bug: a qualifying of several classes read the player's place
+    // overall, where a race reads it in class.
+    it('counts among the player\'s own class where the grid held several', () => {
+      const raced = { ...record([1, 3, 0, 2]), carClasses: ['am', 'am', 'pro', 'pro'] };
+
+      expect(playerPosition(raced)).toBe(2);
+    });
+
     it('is nothing for a session that left no record', () => {
       expect(playerPosition(null)).toBeNull();
     });
@@ -134,6 +143,35 @@ describe('renderer/screens/event/utils', () => {
         .toBe('championships.detail.lengthDistance('
           + 'distance=championships.format.distance(value=#305),'
           + 'laps=championships.format.laps(count=44))');
+    });
+
+    it('states a race its launch ran short as the laps it ran, of the full length', () => {
+      const shortened = session({
+        type: 'race', laps: 781, distance: 4500, record: { ...record([0]), scale: 48 },
+      });
+
+      expect(sessionLength(shortened, translate, formatNumber))
+        .toBe('championships.format.laps(count=16) · event.length.of(share=event.length.share(scale=48),full=#781)');
+    });
+  });
+
+  describe('scaleName', () => {
+    it('names the full race as such, and any other step as its share', () => {
+      expect(scaleName(1, translate)).toBe('event.length.full');
+      expect(scaleName(48, translate)).toBe('event.length.share(scale=48)');
+    });
+  });
+
+  describe('shortLaps', () => {
+    it('states the laps a shortened race comes to', () => {
+      expect(shortLaps(781, 48, translate)).toBe('championships.format.laps(count=16)');
+    });
+  });
+
+  describe('shareOf', () => {
+    it('states the step beside the race\'s full length', () => {
+      expect(shareOf(781, 48, translate, formatNumber))
+        .toBe('event.length.of(share=event.length.share(scale=48),full=#781)');
     });
   });
 

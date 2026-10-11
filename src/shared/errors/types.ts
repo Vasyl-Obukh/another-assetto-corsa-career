@@ -42,6 +42,8 @@ export type ErrorCode =
   | 'event.launch.outOfRange'
   | 'event.launch.runnable'
   | 'event.state.stale'
+  | 'event.scale.notRace'
+  | 'event.scale.unavailable'
   // src/core/series-file
   | 'seriesFile.notAnObject'
   | 'seriesFile.unparseable'

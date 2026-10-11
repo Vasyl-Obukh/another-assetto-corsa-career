@@ -107,7 +107,7 @@ export type {
 } from './race-run.ts';
 
 export type {
-  QuickClass, QuickRace, QuickRacePhase, QuickRaceView,
+  QuickClass, QuickRace, QuickRaceArchives, QuickRaceLaunch, QuickRacePhase, QuickRaceView,
 } from './quick-race.ts';
 
 export type {

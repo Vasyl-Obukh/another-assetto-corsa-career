@@ -10,11 +10,13 @@ import {
   advanceEvent,
   appliedOrder,
   assertStateMatches,
+  carClassesOf,
   initEventState,
   launchRunnable,
   nextLaunch,
   planEvent,
   prepareLaunch,
+  scaleLaunch,
   skipEliminated,
   skipLaunch,
   startingGrid,
@@ -28,6 +30,16 @@ import {
 const plan = (race: RaceDefinition = makeEvent()): EventPlan => (
   planEvent(race, makeContent())
 );
+
+/**
+ * A plan whose grid races in two classes, alternating Pro and Am down it.
+ * @param eventPlan The plan to split
+ * @returns The plan, its cars given classes
+ */
+const twoClasses = (eventPlan: EventPlan): EventPlan => ({
+  ...eventPlan,
+  grid: eventPlan.grid.map((car, at) => ({ ...car, entry: at % 2 === 0 ? 'pro' : 'am' })),
+});
 
 /**
  * Runs a launch through the state machine.
@@ -91,6 +103,19 @@ const makeReverseEvent = (reverse: number): RaceDefinition => ({
       type: 'race', name: 'Feature', laps: 6, inherit: { from: 'sprint', reverse },
     },
   ],
+});
+
+/**
+ * One launch of a race run to laps, as prepareLaunch hands it on.
+ * @param laps How many laps it runs at full length
+ * @param timeMultiplier The race's own clock, when it states one
+ * @returns The launch
+ */
+const raceLaunch = (laps: number, timeMultiplier?: number): RaceDefinition => ({
+  ...makeEvent(),
+  sessions: [{ type: 'race', name: 'Feature', laps }],
+  conditions: { trackState: 'green', ...(timeMultiplier === undefined ? {} : { timeMultiplier }) },
+  assists: { fuelRate: 2, tyreWear: 3 },
 });
 
 /**
@@ -478,6 +503,14 @@ describe('core/event', () => {
         .toEqual(skipLaunch(knockout, state, 'later').completed[1].classification);
     });
 
+    it('records the class each car raced in, as a driven segment does', () => {
+      const knockout = twoClasses(plan(makeKnockout()));
+      const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
+
+      expect(skipLaunch(knockout, state, 'now').completed[1].carClasses)
+        .toEqual(['pro', 'am', 'pro', 'am', 'pro', 'am']);
+    });
+
     it('refuses a launch the player is in, which has to be driven', () => {
       const knockout = plan(makeKnockout());
       const state = throughFirstSegment(knockout, [0, 3, 1, 5, 2, 4]);
@@ -507,6 +540,23 @@ describe('core/event', () => {
       skipLaunch(knockout, before, 'now');
 
       expect(before.completed).toHaveLength(1);
+    });
+  });
+
+  describe('carClassesOf', () => {
+    it('names the class of every car of a grid of several, by car index', () => {
+      expect(carClassesOf(twoClasses(plan()))).toEqual({ carClasses: ['pro', 'am', 'pro', 'am', 'pro', 'am'] });
+    });
+
+    it('records nothing for a grid of one class, which places as the overall order does', () => {
+      const eventPlan = plan();
+      const oneClass = { ...eventPlan, grid: eventPlan.grid.map((car) => ({ ...car, entry: 'pro' })) };
+
+      expect(carClassesOf(oneClass)).toEqual({});
+    });
+
+    it('records nothing for a grid with no classes', () => {
+      expect(carClassesOf(plan())).toEqual({});
     });
   });
 
@@ -605,7 +655,70 @@ describe('core/event', () => {
     });
   });
 
+  describe('scaleLaunch', () => {
+    it('hands the full race back untouched', () => {
+      const launch = raceLaunch(781);
+
+      expect(scaleLaunch(launch, 1)).toBe(launch);
+    });
+
+    it('divides the laps and runs the clock faster by the same step', () => {
+      const scaled = scaleLaunch(raceLaunch(781), 48);
+
+      expect(scaled.sessions?.[0]?.laps).toBe(16);
+      expect(scaled.conditions?.timeMultiplier).toBe(48);
+    });
+
+    it('speeds up a clock the race already runs fast, held to the most it is ever sent at', () => {
+      expect(scaleLaunch(raceLaunch(781, 2), 4).conditions?.timeMultiplier).toBe(8);
+      expect(scaleLaunch(raceLaunch(781, 2), 48).conditions?.timeMultiplier).toBe(48);
+    });
+
+    it('leaves fuel use, tyre wear and the rest of the race as they were', () => {
+      const launch = raceLaunch(781);
+      const scaled = scaleLaunch(launch, 2);
+
+      expect(scaled.assists).toEqual(launch.assists);
+      expect(scaled.grid).toEqual(launch.grid);
+      expect(scaled.conditions?.trackState).toBe('green');
+    });
+
+    it('refuses a launch that is not a race run to laps', () => {
+      const practice: RaceDefinition = {
+        ...makeEvent(), sessions: [{ type: 'practice', name: 'Practice', minutes: 10 }],
+      };
+
+      expect(() => scaleLaunch(practice, 2)).toThrow(/can be shortened/);
+    });
+
+    it('refuses a step that would take the race under five laps', () => {
+      expect(() => scaleLaunch(raceLaunch(22), 6)).toThrow(/cannot run at 1\/6/);
+    });
+
+    it('refuses a step that is not one on offer', () => {
+      expect(() => scaleLaunch(raceLaunch(781), 5)).toThrow(/cannot run at 1\/5/);
+    });
+  });
+
   describe('advanceEvent', () => {
+    it('records the step a shortened race ran at', () => {
+      const eventPlan = plan();
+      const after = advanceEvent(eventPlan, initEventState(eventPlan), makeRaceOut([makeSession(1, 'Practice')]), {
+        archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z', scale: 48,
+      });
+
+      expect(after.completed[0].scale).toBe(48);
+    });
+
+    it('records no step for a launch run at full length', () => {
+      const eventPlan = plan();
+      const after = advanceEvent(eventPlan, initEventState(eventPlan), makeRaceOut([makeSession(1, 'Practice')]), {
+        archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z', scale: 1,
+      });
+
+      expect(after.completed[0]).not.toHaveProperty('scale');
+    });
+
     it('records the launch that ran, with where its result went', () => {
       const eventPlan = plan();
       const after = complete(eventPlan, initEventState(eventPlan), [
@@ -630,6 +743,20 @@ describe('core/event', () => {
       const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
 
       expect(after.completed[0]).not.toHaveProperty('classStrength');
+    });
+
+    it('records the class each car raced in, where the grid held several', () => {
+      const eventPlan = twoClasses(plan());
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0].carClasses).toEqual(['pro', 'am', 'pro', 'am', 'pro', 'am']);
+    });
+
+    it('records no classes for a grid with none', () => {
+      const eventPlan = plan();
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0]).not.toHaveProperty('carClasses');
     });
 
     it('keeps the qualifying order the launch produced', () => {

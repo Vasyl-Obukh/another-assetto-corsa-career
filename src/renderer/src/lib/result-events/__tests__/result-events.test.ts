@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type {
-  Career, ResultRecord, SeasonEntry, SessionSummary,
+  Career, QuickRaceArchives, ResultRecord, SeasonEntry, SessionSummary,
 } from '../../../../../shared/types';
 import {
   makeSeries, place, race, roundScore,
 } from '../../season-results/__tests__/fixtures.ts';
 import {
-  archiveOrigins, raceTitle, resultEvents, sessionTypeOf,
+  archiveOrigins, quickOrigins, raceTitle, resultEvents, sessionTypeOf,
 } from '../result-events.ts';
 import type { ArchiveOrigin } from '../types.ts';
 
@@ -92,6 +92,59 @@ const career = (seasons = 1): Career => ({
   })),
 });
 
+/**
+ * A race event of the player's own of three sessions, as the Results page
+ * reads it: the archive each launch run so far wrote, each launch writing the
+ * grid's cars in their own order.
+ * @param archives Each launch's archive, in the order they ran
+ * @param carClasses The class each car raced in, where the grid held several
+ * @returns The race's archives
+ */
+const quickRace = (archives: readonly string[], carClasses?: string[]): QuickRaceArchives => ({
+  id: 'quick-1',
+  title: 'Evening sprint',
+  sessions: 3,
+  run: archives.length,
+  classes: [{ id: 'pro', name: 'Pro' }, { id: 'am', name: 'Am' }],
+  launches: archives.map((file, index) => ({
+    index,
+    completedAt: '',
+    archive: file,
+    gridOrder: [0, 1, 2],
+    classification: null,
+    ...(carClasses ? { carClasses } : {}),
+    name: ['Warm-up', 'Qualifying', 'Race'][index] ?? null,
+  })),
+});
+
+/**
+ * A session of two classes the player finished second in overall and first
+ * in their own: a Pro car ahead, an Am car behind.
+ * @param file Its file name
+ * @param type Assetto Corsa's numeric type for it
+ * @returns The archive
+ */
+const twoClassSession = (file: string, type = 3): ResultRecord => archive(file, '2026-05-03T10:00:00Z', {
+  summary: {
+    track: 'magione',
+    sessions: [{
+      ...session(type, 'Two classes'),
+      standings: [1, 0, 2].map((slot, at) => ({
+        position: at + 1,
+        driver: `Driver ${slot}`,
+        car: 'test_car',
+        skin: 'red',
+        laps: 5,
+        cuts: 0,
+        bestLap: 90_000 + at,
+        totalTime: 0,
+        slot,
+        ...(slot === 0 ? { player: true } : {}),
+      })),
+    }],
+  },
+});
+
 describe('renderer/lib/result-events/result-events', () => {
   describe('sessionTypeOf', () => {
     it('names Assetto Corsa\'s numeric session types', () => {
@@ -140,7 +193,90 @@ describe('renderer/lib/result-events/result-events', () => {
     });
   });
 
+  describe('quickOrigins', () => {
+    it('finds every archive a race still lists, with the launch that wrote it', () => {
+      const listed = quickRace(['warm-up.json', 'quali.json']);
+      const origins = quickOrigins([listed]);
+
+      expect([...origins.keys()]).toEqual(['warm-up.json', 'quali.json']);
+      expect(origins.get('quali.json')).toEqual({ race: listed, launch: listed.launches[1] });
+    });
+
+    it('finds nothing before the races have been read', () => {
+      expect(quickOrigins(null).size).toBe(0);
+    });
+  });
+
   describe('resultEvents', () => {
+    it('gathers a race event\'s launches into one event, however many days they took', () => {
+      const [event, ...rest] = resultEvents([
+        archive('quali.json', '2026-05-04T10:00:00Z'),
+        archive('warm-up.json', '2026-05-03T10:00:00Z'),
+      ], new Map(), quickOrigins([quickRace(['warm-up.json', 'quali.json'])]));
+
+      expect(rest).toEqual([]);
+      expect(event).toMatchObject({
+        key: 'quick/quick-1', title: 'Evening sprint', from: '2026-05-03T10:00:00Z', to: '2026-05-04T10:00:00Z',
+      });
+      expect(event.quick?.race.id).toBe('quick-1');
+    });
+
+    it('names a race event\'s session by its own name', () => {
+      const [event] = resultEvents(
+        [archive('warm-up.json', '2026-05-03T10:00:00Z')],
+        new Map(),
+        quickOrigins([quickRace(['warm-up.json'])]),
+      );
+
+      expect(event.sessions[0].name).toBe('Warm-up');
+    });
+
+    // A fixed bug: a race event of several classes showed the player's place
+    // overall, where a round's card shows it in their class.
+    it('places the player in their own class in a race event of several', () => {
+      const [event] = resultEvents(
+        [twoClassSession('race.json')],
+        new Map(),
+        quickOrigins([quickRace(['race.json'], ['am', 'pro', 'am'])]),
+      );
+
+      expect(event.sessions[0].player?.position).toBe(2);
+      expect(event.sessions[0].position).toBe(1);
+    });
+
+    it('places the player overall where the launch raced one class', () => {
+      const [event] = resultEvents(
+        [twoClassSession('race.json')],
+        new Map(),
+        quickOrigins([quickRace(['race.json'])]),
+      );
+
+      expect(event.sessions[0].position).toBe(2);
+    });
+
+    // A race deleted or started over no longer holds those results, so linking
+    // them to it would open a race showing others.
+    it('leaves an archive no race lists any more on its own, unlinked', () => {
+      const events = resultEvents([
+        archive('new.json', '2026-05-04T10:00:00Z'),
+        archive('old.json', '2026-05-03T10:00:00Z'),
+      ], new Map(), quickOrigins([quickRace(['new.json'])]));
+
+      expect(events.map((one) => one.quick === null)).toEqual([false, true]);
+      expect(events[1].key).toBe('quick-1@2026-05-03');
+    });
+
+    it('files an archive the career claims under its round, whatever a race lists', () => {
+      const [event] = resultEvents(
+        [archive('race.json', '2026-05-03T11:00:00Z')],
+        archiveOrigins(career()),
+        quickOrigins([quickRace(['race.json'])]),
+      );
+
+      expect(event.origin?.round).toBe('r1');
+      expect(event.quick).toBeNull();
+    });
+
     it('gathers a race\'s launches on one day into one event, in the order they ran', () => {
       const events = resultEvents([
         archive('race.json', '2026-05-03T11:00:00Z'),
@@ -223,10 +359,45 @@ describe('renderer/lib/result-events/result-events', () => {
       expect(qualified.place).toBeNull();
     });
 
+    it('places the player in a round\'s race by its score, and elsewhere by the archive', () => {
+      // Fourth overall in both archives, and first in class by the race's score.
+      const fourth = { ...session(3, 'Race').standings[0], position: 4 };
+      const [event] = resultEvents([
+        archive('race.json', '2026-05-03T11:00:00Z', {
+          summary: { track: 'magione', sessions: [{ ...session(3, 'Race'), standings: [fourth] }] },
+        }),
+        archive('quali.json', '2026-05-03T10:00:00Z', {
+          summary: { track: 'magione', sessions: [{ ...session(2, 'Qualifying'), standings: [fourth] }] },
+        }),
+      ], archiveOrigins(career()));
+
+      expect(event.sessions.map((one) => one.position)).toEqual([4, 1]);
+    });
+
+    // A fixed bug: only a round's races were placed in class, off its score,
+    // so its qualifying and practice read overall.
+    it('places the player in their own class in a round\'s qualifying', () => {
+      const base = seasonEntry();
+      const [round] = base.events;
+      const [qualifying, ...rest] = round.sessions;
+      const entry: SeasonEntry = {
+        ...base,
+        events: [{
+          ...round,
+          sessions: [{ ...qualifying, gridOrder: [0, 1, 2], carClasses: ['am', 'pro', 'am'] }, ...rest],
+        }],
+      };
+      const origins = new Map<string, ArchiveOrigin>([['quali.json', { season: 0, entry, round: 'r1', launch: 0 }]]);
+      const [event] = resultEvents([twoClassSession('quali.json', 2)], origins);
+
+      expect(event.sessions[0].place).toBeNull();
+      expect(event.sessions[0].position).toBe(1);
+    });
+
     it('names anything outside a championship by its kind alone', () => {
       const [event] = resultEvents([archive('a.json', '2026-05-03T10:00:00Z')], new Map());
 
-      expect(event.sessions[0]).toMatchObject({ name: null, type: 'race' });
+      expect(event.sessions[0]).toMatchObject({ name: null, type: 'race', position: 1 });
       expect(event.sessions[0].player?.driver).toBe('Me');
     });
 

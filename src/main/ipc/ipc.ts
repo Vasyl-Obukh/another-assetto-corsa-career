@@ -93,6 +93,7 @@ export const registerHandlers = (
   handle('race:result', async ({ file }) => race.result(file));
 
   handle('quick:list', async () => quick.list());
+  handle('quick:archives', async () => quick.archives());
   handle('quick:get', async ({ id }) => quick.get(id));
   handle('quick:create', async () => quick.create());
   handle('quick:save', async (next) => quick.save(next));

@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
 import { BriefTile } from './BriefTile.tsx';
-import { sessionLength } from './utils.ts';
+import { LengthTile } from './LengthTile.tsx';
+import type { RaceLengthControl } from './types.ts';
 import type { EventSession } from '../../../../shared/types';
 import { WeatherStepIcons, WeatherStepsLabel } from '@/components';
 import { useFormat } from '@/i18n';
@@ -11,9 +12,14 @@ interface SessionBriefingProps {
    * The session to brief.
    */
   session: EventSession;
+  /**
+   * How the race is shortened for its launch, for a career round's race that
+   * runs next.
+   */
+  length?: RaceLengthControl;
 }
 
-export const SessionBriefing = ({ session }: SessionBriefingProps) => {
+export const SessionBriefing = ({ session, length }: SessionBriefingProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
 
@@ -45,9 +51,7 @@ export const SessionBriefing = ({ session }: SessionBriefingProps) => {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
-        <BriefTile label={t('event.brief.length')}>
-          <span className="text-lg font-semibold">{sessionLength(session, t, formatNumber) ?? '-'}</span>
-        </BriefTile>
+        <LengthTile session={session} length={length} />
 
         <BriefTile label={t('event.brief.weather')}>
           {forecast ? (

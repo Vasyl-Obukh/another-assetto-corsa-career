@@ -1,5 +1,6 @@
 import type {
-  RacePlace, ResultRecord, SeasonEntry, SessionSummary, SessionType, Standing,
+  QuickRaceArchives, QuickRaceLaunch, RacePlace, ResultRecord, SeasonEntry, SessionSummary, SessionType,
+  Standing,
 } from '../../../../shared/types';
 
 /**
@@ -23,6 +24,21 @@ export interface ArchiveOrigin {
    * Which launch of the event it was.
    */
   launch: number;
+}
+
+/**
+ * Which race event of the player's own an archived session was run for, when
+ * that race still lists it.
+ */
+export interface QuickOrigin {
+  /**
+   * The race.
+   */
+  race: QuickRaceArchives;
+  /**
+   * The launch of it that wrote the archive.
+   */
+  launch: QuickRaceLaunch;
 }
 
 /**
@@ -54,11 +70,17 @@ export interface ResultSession {
    * What the player took from it, for a scored championship race.
    */
   place: RacePlace | null;
+  /**
+   * Where the player finished: among their own class wherever the event says
+   * which class each car raced in, and overall elsewhere - or null when it
+   * classified nobody.
+   */
+  position: number | null;
 }
 
 /**
- * One event of archived sessions: a championship round, or a run of
- * sessions of the same race on the same day.
+ * One event of archived sessions: a championship round, a race event of the
+ * player's own, or a run of sessions of the same race on the same day.
  */
 export interface ResultEvent {
   /**
@@ -70,7 +92,13 @@ export interface ResultEvent {
    */
   origin: ArchiveOrigin | null;
   /**
-   * The race's name with the session's taken off, for anything else.
+   * The race event it was run for, when a race of the player's own still
+   * lists it.
+   */
+  quick: QuickOrigin | null;
+  /**
+   * The race's name: a race event's own, or the archive's with the session's
+   * taken off.
    */
   title: string;
   /**

@@ -6,10 +6,10 @@ import { Door } from './Door.tsx';
 import type { Career } from '../../../../shared/types';
 import { ResultCell, Shimmer } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
-import { useLatestResults } from '@/hooks';
+import { useLatestResults, useQuickArchives } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
-import { archiveOrigins, resultEvents } from '@/lib/result-events';
+import { archiveOrigins, quickOrigins, resultEvents } from '@/lib/result-events';
 import { path } from '@/lib/routes';
 import { sessionName } from '@/lib/session-labels';
 
@@ -28,10 +28,14 @@ export const ResultsDoor = ({ career }: ResultsDoorProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
   const results = useLatestResults();
+  // So a race event of the player's own names its sessions as Results does -
+  // and waits for them, or they would be renamed under the reader.
+  const quick = useQuickArchives();
+  const loading = results.loading || quick.loading;
   // Main reads the newest event's archives alone, so this is one event.
   const latest = useMemo(
-    () => resultEvents(results.records, archiveOrigins(career))[0],
-    [results.records, career],
+    () => resultEvents(results.records, archiveOrigins(career), quickOrigins(quick.archives))[0],
+    [results.records, career, quick.archives],
   );
   const round = latest?.origin
     ? latest.origin.entry.championship.rounds.find((one) => one.id === latest.origin?.round)
@@ -49,7 +53,7 @@ export const ResultsDoor = ({ career }: ResultsDoorProps) => {
         : [t('home.doors.results.hint'), t('home.doors.results.sessions', { count: results.sessions })].join(' · ')}
       kicker={t('home.doors.results.latest')}
     >
-      {results.loading ? (
+      {loading ? (
         <>
           <Shimmer className="my-1 h-3.5 w-60" />
           <div className="flex gap-1.5">
@@ -60,8 +64,8 @@ export const ResultsDoor = ({ career }: ResultsDoorProps) => {
           </div>
         </>
       ) : null}
-      {!results.loading && !latest ? <p className="text-sm text-muted-foreground">{t('home.doors.results.none')}</p> : null}
-      {latest ? (
+      {!loading && !latest ? <p className="text-sm text-muted-foreground">{t('home.doors.results.none')}</p> : null}
+      {!loading && latest ? (
         <>
           <p className="flex min-w-0 items-baseline gap-2 text-sm">
             <span className="truncate font-semibold">{latest.origin?.entry.championship.name ?? latest.title}</span>
@@ -71,9 +75,9 @@ export const ResultsDoor = ({ career }: ResultsDoorProps) => {
             {latest.sessions.map((one) => (
               <span key={one.record.file} className="flex items-center gap-1">
                 <Badge className={SESSION_ACCENT[one.type]}>{sessionName(one, t)}</Badge>
-                {one.player ? (
+                {one.position !== null ? (
                   <ResultCell
-                    position={one.place?.classPosition ?? one.player.position}
+                    position={one.position}
                     scored={(one.place?.finishPoints ?? 0) > 0}
                     quiet={one.type !== 'race'}
                     prefixed

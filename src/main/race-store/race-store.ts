@@ -34,6 +34,7 @@ import {
   nextLaunch,
   planEvent,
   prepareLaunch,
+  scaleLaunch,
   skipEliminated,
 } from '../../core/event/index.ts';
 import { assistsPresetJson, buildRaceUri, launchUri } from '../../core/launch/index.ts';
@@ -95,7 +96,7 @@ export const createRaceStore = async (
   let state = await readJson<EventState>(stateFile);
   let paths: AcPaths | null = null;
   let status: RaceStatus = {
-    phase: 'idle', launchIndex: null, startedAt: null, failure: null,
+    phase: 'idle', launchIndex: null, startedAt: null, scale: null, failure: null,
   };
   let watching: AbortController | null = null;
   // Held rather than re-read, and dropped when use() points us somewhere else.
@@ -307,11 +308,15 @@ export const createRaceStore = async (
 
     if (dynamic && paths && steps) {
       const planner = plannerFor(system);
-      // The sun follows the plan, so it has to open when the session does.
+      // The sun follows the plan, so it has to open when the session does. And
+      // both planners set the game's clock to the plan's own multiplier while it
+      // plays - PURE on every update, Sol on loading it - so a plan left at one
+      // would take a shortened race's clock back to real time.
       if (planner) {
         await installPlan(paths.acRoot, planner, {
           steps,
           startHour: parseClock(conditions.timeOfDay ?? DEFAULT_PLAN_HOUR),
+          timeMultiplier: conditions.timeMultiplier ?? 1,
         });
       }
     }
@@ -343,7 +348,7 @@ export const createRaceStore = async (
 
     watching = null;
     status = {
-      phase: 'idle', launchIndex: null, startedAt: null, failure,
+      phase: 'idle', launchIndex: null, startedAt: null, scale: null, failure,
     };
     await emit();
   };
@@ -358,6 +363,7 @@ export const createRaceStore = async (
    * @param file The race_out.json to watch, as it was when the launch started
    * @param since Anything written at or before this is a previous result
    * @param signal Aborted when the user stops waiting
+   * @param scale The factor the launch's race was shortened by
    * @returns Resolves once the result has been archived or given up on
    */
   const awaitResult = async (
@@ -366,6 +372,7 @@ export const createRaceStore = async (
     file: string,
     since: number,
     signal: AbortSignal,
+    scale: number,
   ): Promise<void> => {
     const raceOut = await waitForResults(file, { since, signal });
 
@@ -393,6 +400,7 @@ export const createRaceStore = async (
     state = advanceEvent(plan, state ?? initEventState(plan), raceOut, {
       archive: path.basename(archived),
       completedAt: new Date().toISOString(),
+      scale,
     });
     schedule();
     await settle(null);
@@ -409,6 +417,7 @@ export const createRaceStore = async (
    * @param file The race_out.json to watch, as it was when the launch started
    * @param since Anything written at or before this is a previous result
    * @param signal Aborted when the user stops waiting
+   * @param scale The factor the launch's race was shortened by
    * @returns Resolves once the launch has been settled
    */
   const collect = async (
@@ -417,9 +426,10 @@ export const createRaceStore = async (
     file: string,
     since: number,
     signal: AbortSignal,
+    scale: number,
   ): Promise<void> => {
     try {
-      await awaitResult(plan, index, file, since, signal);
+      await awaitResult(plan, index, file, since, signal, scale);
     } catch (error) {
       const failure = isAppError(error)
         ? error
@@ -466,7 +476,7 @@ export const createRaceStore = async (
       return describe();
     },
 
-    async launch() {
+    async launch(options = {}) {
       if (status.phase !== 'idle') throw new AppError('run.inFlight');
       if (!paths) throw new AppError('paths.unresolved');
 
@@ -481,7 +491,10 @@ export const createRaceStore = async (
       const launch = nextLaunch(plan, progress);
       if (!launch) throw new AppError('event.complete', { race: plan.raceName });
 
-      const launched = prepareLaunch(plan, progress, launch.index);
+      // Shortened before anything is written, so a step the launch cannot take
+      // is refused while nothing of the planner's is ours yet.
+      const scale = options.scale ?? 1;
+      const launched = scaleLaunch(prepareLaunch(plan, progress, launch.index), scale);
 
       // From here on the planner's own settings may already be ours, so every
       // way out has to give them back - a race that failed to start must not
@@ -506,6 +519,7 @@ export const createRaceStore = async (
         phase: 'launching',
         launchIndex: launch.index,
         startedAt: new Date().toISOString(),
+        scale,
         failure: null,
       };
       await emit();
@@ -527,7 +541,7 @@ export const createRaceStore = async (
       // Pushed as well as returned, so every status move reaches listeners the
       // same way.
       await emit();
-      void collect(plan, launch.index, paths.raceOut, since, watching.signal);
+      void collect(plan, launch.index, paths.raceOut, since, watching.signal, scale);
 
       return describe();
     },

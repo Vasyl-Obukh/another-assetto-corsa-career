@@ -1,5 +1,5 @@
 import type {
-  LaunchRecord, QuickRace, QuickRaceView,
+  LaunchRecord, QuickRace, QuickRaceArchives, QuickRaceView,
 } from '../../shared/types/index.ts';
 
 /**
@@ -32,6 +32,12 @@ export interface QuickRaceStore {
    * @returns One view per race
    */
   list(): Promise<QuickRaceView[]>;
+  /**
+   * Which archives every quick race wrote, read off the files without
+   * planning any of them.
+   * @returns One entry per race
+   */
+  archives(): Promise<QuickRaceArchives[]>;
   /**
    * One quick race.
    * @param id The race's id

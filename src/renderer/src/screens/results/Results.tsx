@@ -14,21 +14,25 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
-import { useCareer, useResults } from '@/hooks';
-import { archiveOrigins, resultEvents } from '@/lib/result-events';
+import { useCareer, useQuickArchives, useResults } from '@/hooks';
+import { archiveOrigins, quickOrigins, resultEvents } from '@/lib/result-events';
 import { path } from '@/lib/routes';
 
 export const Results = () => {
   const { t } = useTranslation();
   const results = useResults();
   const { career } = useCareer();
+  // Which archives each race event still lists; a list that cannot be read
+  // leaves those cards unlinked.
+  const quick = useQuickArchives();
+  const loading = results.loading || quick.loading;
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState<SessionFilter>('all');
   const [championship, setChampionship] = useState(ALL_CHAMPIONSHIPS);
 
   const events = useMemo(
-    () => resultEvents(results.records, archiveOrigins(career)),
-    [results.records, career],
+    () => resultEvents(results.records, archiveOrigins(career), quickOrigins(quick.archives)),
+    [results.records, career, quick.archives],
   );
   const championships = useMemo(() => [...new Map(events.flatMap((event) => (
     event.origin ? [[event.origin.entry.series, event.origin.entry.championship.name] as const] : []
@@ -66,8 +70,8 @@ export const Results = () => {
         {/* Held open, disabled, while the archives are read: nearly every
             career has a championship to pick, and the toolbar should not
             reflow when they land. */}
-        {championships.length > 0 || results.loading ? (
-          <Select value={championship} onValueChange={setChampionship} disabled={results.loading}>
+        {championships.length > 0 || loading ? (
+          <Select value={championship} onValueChange={setChampionship} disabled={loading}>
             <SelectTrigger className="w-60" aria-label={t('results.championship')}>
               <SelectValue />
             </SelectTrigger>
@@ -81,15 +85,15 @@ export const Results = () => {
       </div>
 
       {results.error ? <ErrorCard error={results.error} onDismiss={results.dismissError} /> : null}
-      {results.loading ? <ResultsSkeleton /> : null}
+      {loading ? <ResultsSkeleton /> : null}
 
-      {!results.loading && shown.length === 0 && !results.error ? (
+      {!loading && shown.length === 0 && !results.error ? (
         <p className="text-sm text-muted-foreground">
           {events.length === 0 ? t('results.empty') : t('results.noneMatch')}
         </p>
       ) : null}
 
-      {shown.length > 0 ? (
+      {!loading && shown.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {shown.map((event) => (
             <ResultCard key={`${event.key}@${event.to}`} event={event} current={career?.seasons.at(-1)?.index} />

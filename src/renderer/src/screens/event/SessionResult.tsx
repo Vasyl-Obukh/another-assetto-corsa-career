@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ALL_CLASSES, RESULT_SKELETON } from './constants.ts';
 import { ResultTableSkeleton } from './ResultTableSkeleton.tsx';
+import { shareOf, shortLaps } from './utils.ts';
 import { DRIVER_STRENGTH_SPREAD } from '../../../../shared/constants';
 import type {
   CareerEventView, Championship, EventSession, LaunchRecord,
@@ -18,7 +19,7 @@ import { useResult } from '@/hooks';
 import { usePlayerName } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { classAccent } from '@/lib/accents';
-import { classifiedRows } from '@/lib/classification';
+import { classifiedRows, racedClasses } from '@/lib/classification';
 
 interface SessionResultProps {
   /**
@@ -70,10 +71,7 @@ export const SessionResult = ({
   const rows = classifiedRows(source);
   const playerName = usePlayerName();
   const mine = rows.find((row) => row.player);
-  // Only the classes that raced, in the championship's own order, which is
-  // what picks each one's colour.
-  const raced = new Set(rows.map((row) => row.entry));
-  const classes = (series?.entries ?? []).filter((one) => raced.has(one.id)).map(({ id, name }) => ({ id, name }));
+  const classes = racedClasses(rows, series?.entries ?? []);
   const multi = classes.length > 1;
   const listed = multi && shown !== ALL_CLASSES ? classifiedRows({ ...source, entry: shown }) : rows;
   // The player measures against their own class: its fastest lap and its
@@ -137,6 +135,13 @@ export const SessionResult = ({
           <BonusPoints qualifying={mine.place.qualifyingPoints} fastestLap={mine.place.fastestLapPoints} />
         </>
       ) : null,
+    }] : []),
+    // How long the race ran, off the launch's own record, so a later race at
+    // full length never reads as shortened. Plain, as the AI figure beside it.
+    ...(record.scale !== undefined && session.laps !== undefined ? [{
+      label: t('event.brief.length'),
+      value: shortLaps(session.laps, record.scale, t),
+      detail: shareOf(session.laps, record.scale, t, formatNumber),
     }] : []),
     // What the launch recorded, so a step taken since never rewrites it.
     ...(strength !== undefined ? [{

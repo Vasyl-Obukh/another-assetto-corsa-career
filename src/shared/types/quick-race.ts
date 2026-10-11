@@ -8,7 +8,7 @@
 // and class positions without any of them being written twice.
 
 import type { EventSession } from './career.ts';
-import type { EventPlan } from './event.ts';
+import type { EventPlan, LaunchRecord } from './event.ts';
 import type { RaceStatus } from './race-run.ts';
 import type { Conditions, GridEntry, SessionDefinition } from './race.ts';
 import type {
@@ -131,6 +131,49 @@ export interface QuickRace {
  * Where a quick race is up to.
  */
 export type QuickRacePhase = 'setup' | 'running' | 'finished';
+
+/**
+ * One launch of a race event of the player's own that wrote an archive, as the
+ * race recorded it - which says what class each car of the archive raced in.
+ */
+export interface QuickRaceLaunch extends LaunchRecord {
+  /**
+   * The session's own name, or null for one named only by its kind.
+   */
+  name: string | null;
+}
+
+/**
+ * A race event of the player's own as the Results page links to it: what it
+ * goes by and the archives its launches wrote. Read off its file alone, so it
+ * answers without planning the race - and for one that can no longer be.
+ */
+export interface QuickRaceArchives {
+  /**
+   * The race's id, which opens its page.
+   */
+  id: string;
+  /**
+   * The name it goes by: its own, or its layout's when it has none.
+   */
+  title: string;
+  /**
+   * How many sessions it runs.
+   */
+  sessions: number;
+  /**
+   * How many of them have run, simulated ones included.
+   */
+  run: number;
+  /**
+   * Its classes, in the order they line up, which picks each one's colour.
+   */
+  classes: readonly Pick<QuickClass, 'id' | 'name'>[];
+  /**
+   * Every launch that wrote an archive, in the order they ran.
+   */
+  launches: readonly QuickRaceLaunch[];
+}
 
 /**
  * A quick race as the Race tab lists it and its page shows it: the race, what

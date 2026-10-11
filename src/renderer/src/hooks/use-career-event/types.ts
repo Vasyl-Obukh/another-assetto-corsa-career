@@ -36,9 +36,11 @@ export interface CareerEventState {
    * Runs the next session of the round.
    * @param skip Whether the player confirmed losing the rounds the view's
    * `skips` lists, which main otherwise refuses to
+   * @param scale The factor a race is shortened by, one or absent for the
+   * full race
    * @returns Resolves once Content Manager has been handed it
    */
-  launch: (skip?: boolean) => Promise<void>;
+  launch: (skip?: boolean, scale?: number) => Promise<void>;
   /**
    * Sets the player's own step on the AI's strength for this round.
    * @param strength The step, zero for none

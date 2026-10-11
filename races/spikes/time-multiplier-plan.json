@@ -1,0 +1,33 @@
+{
+  "id": "spike-time-multiplier-plan",
+  "name": "Spike - does a weather plan keep a shortened race's clock",
+
+  "notes": "A shortened race with generated weather runs a plan, and both planners set the game's own clock to the plan's multiplier while it plays: PURE Planner calls ac.setWeatherTimeMultiplier with the plan's timemulti on every update (PLAN_MGR_update_Timed in apps/lua/PurePlanner/plan/plan_manager.lua), and Sol Planner does the same with timemultiplier as it loads its preset (setTimeMultiplier in apps/python/sol_planner). So the race store now writes the race's own TIME_MULT into the plan, where it used to write 1 and so put the clock back to real time. Step lengths stay in session time: PURE stretches each duration by the multiplier itself (CONTAINER_adapted_duration in plan.lua) and Sol counts playseconds in real seconds. That is read out of their source and not yet driven, which is what this probe is for. PROCEDURE: install the probe plan with `npm run weather -- plan pure clock` (or `sol clock`), then `npm run race -- spikes/time-multiplier-plan` - and for Sol, change weatherController below to sol2 first, since only one controller runs. It starts at 18:00 and the plan says x48. WHAT HAS TO BE TRUE: a game hour passes every 75 seconds, so the clock reads 20:00 at 2.5 minutes and the sun is down soon after, AND the heavy rain arrives about 3 real minutes in and moves off about 6 minutes in. IF THE CLOCK RUNS IN REAL TIME the planner is not taking the multiplier from the plan. IF THE RAIN ARRIVES FAR LATER than 3 minutes - 48 times later would be two and a half hours - step lengths are being read on the game's clock and have to be divided by the multiplier before they are written. Undo with `npm run weather -- plan remove` afterwards.",
+
+  "track": {
+    "id": "magione"
+  },
+
+  "playerCar": {
+    "model": "bmw_m3_e30_gra",
+    "driver": "Player",
+    "nationality": "Ukraine",
+    "nationCode": "UKR"
+  },
+
+  "grid": {
+    "size": 1
+  },
+
+  "sessions": [
+    { "type": "practice", "name": "Practice", "minutes": 10, "spawnSet": "PIT" }
+  ],
+
+  "conditions": {
+    "weatherController": "pureCtrl",
+    "timeOfDay": "18:00",
+    "ambient": 20,
+    "trackState": "optimum",
+    "timeMultiplier": 48
+  }
+}

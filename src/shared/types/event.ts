@@ -125,6 +125,23 @@ export interface LaunchRecord {
    * classes, and on one simulated rather than driven.
    */
   classStrength?: Record<string, number>;
+  /**
+   * The class entry each car of the event's grid raced in, by car index - what
+   * places a car in its class wherever only this record and an archive are to
+   * hand, as the Results page has.
+   *
+   * Kept only where the grid holds more than one class, since one class places
+   * every car as the overall order does.
+   */
+  carClasses?: string[];
+  /**
+   * The factor this launch's race was shortened by, when it ran short of the
+   * length its event states - 48 for a race run at a forty-eighth of its laps.
+   *
+   * What was actually raced, since the step is picked afresh at every launch.
+   * Absent for a race run at full length and for anything that is not a race.
+   */
+  scale?: number;
 }
 
 /**
