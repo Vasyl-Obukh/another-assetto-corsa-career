@@ -25,9 +25,11 @@ import {
   composeCalendar,
   currentSeason,
   editionAt,
+  enteredEntry,
   enteredEvent,
   eventName,
   eventSessions,
+  eventStrength,
   inProgressEvent,
   issueForecast,
   issueForecasts,
@@ -44,6 +46,7 @@ import {
   seasonSalt,
   simulatedEvent,
   skippedRound,
+  strengthStep,
   withSeason,
 } from '../utils.ts';
 import {
@@ -565,6 +568,36 @@ describe('main/career-store/utils', () => {
 
       expect(withSeason(makeCareer({ seasons: [first, second] }), replaced).seasons)
         .toEqual([first, replaced]);
+    });
+  });
+
+  describe('enteredEntry', () => {
+    const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+
+    it('finds the edition the career is racing', () => {
+      expect(enteredEntry(makeSeason({ entries: [entry] }), 'test-cup', 0)).toBe(entry);
+    });
+
+    it('finds nothing in a championship the career never entered', () => {
+      expect(enteredEntry(makeSeason({ entries: [entry] }), 'other-cup', 0)).toBeNull();
+    });
+
+    it('finds nothing in an edition the career pulled out of', () => {
+      const gone = makeEntry({ withdrawn: true });
+
+      expect(enteredEntry(makeSeason({ entries: [gone] }), 'test-cup', 0)).toBeNull();
+    });
+
+    it('finds the edition asked for rather than another of the same championship', () => {
+      const second = makeEntry({ edition: 1 });
+
+      expect(enteredEntry(makeSeason({ entries: [entry, second] }), 'test-cup', 1)).toBe(second);
+    });
+
+    it('finds the edition re-entered rather than the one the career left', () => {
+      const left = makeEntry({ withdrawn: true });
+
+      expect(enteredEntry(makeSeason({ entries: [left, entry] }), 'test-cup', 0)).toBe(entry);
     });
   });
 
@@ -1615,6 +1648,59 @@ describe('main/career-store/utils', () => {
       const unknown = makeEvent('bygone', '2026-03-01', { status: 'missed' });
 
       expect(simulatedEvent(makeChampionship(), unknown, 'salt')).toBe(unknown);
+    });
+  });
+
+  describe('strengthStep', () => {
+    it('adds the step for the round to the step for the season', () => {
+      const entry = makeEntry({ strength: -2 });
+
+      expect(strengthStep({ entry, event: makeEvent('one', '2026-03-01', { strength: 3 }) })).toBe(1);
+    });
+
+    it('takes either step alone where the other is none', () => {
+      expect(strengthStep({ entry: makeEntry({ strength: -2 }), event: makeEvent('one', '2026-03-01') })).toBe(-2);
+      expect(strengthStep({ entry: makeEntry(), event: makeEvent('one', '2026-03-01', { strength: 4 }) })).toBe(4);
+    });
+
+    it('is no step at all where neither says one', () => {
+      expect(strengthStep({ entry: makeEntry(), event: makeEvent('one', '2026-03-01') })).toBe(0);
+    });
+  });
+
+  describe('eventStrength', () => {
+    it('says every layer the round races over, with the steps of the player last', () => {
+      const championship = makeChampionship({
+        grid: { strength: 4 },
+        entries: [
+          makeClassEntry({ grid: { strength: -1 } }),
+          makeClassEntry({ id: 'second', name: 'Second', grid: { strength: 2 } }),
+        ],
+        rounds: [makeRound('one', { grid: { strength: 1 } }), makeRound('two')],
+      });
+      const entry = makeEntry({ championship, strength: -2 });
+      const event = makeEvent('one', '2026-03-01', { strength: 3 });
+
+      expect(eventStrength({ entry, event }, true)).toEqual({
+        championship: 4,
+        classes: [
+          { entry: 'main', name: 'Main', offset: -1 },
+          { entry: 'second', name: 'Second', offset: 2 },
+        ],
+        round: 1,
+        season: -2,
+        step: 3,
+        editable: true,
+      });
+    });
+
+    it('says nothing where a layer states nothing', () => {
+      const strength = eventStrength({ entry: makeEntry(), event: makeEvent('two', '2026-05-03') }, false);
+
+      expect(strength).toMatchObject({
+        championship: 0, round: 0, season: 0, step: 0, editable: false,
+      });
+      expect(strength.classes).toEqual([{ entry: 'main', name: 'Main', offset: 0 }]);
     });
   });
 });

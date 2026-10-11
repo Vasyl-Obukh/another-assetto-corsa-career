@@ -5,7 +5,7 @@ import type {
   EventSession, EventSessionStatus, LaunchRecord, SkippedRound,
 } from '../../../../../shared/types';
 import {
-  defaultSession, dotted, launchNote, playerPosition, sessionDay, sessionLength,
+  defaultSession, dotted, launchNote, playerPosition, racedStrength, sessionDay, sessionLength,
 } from '../utils.ts';
 
 /**
@@ -190,6 +190,39 @@ describe('renderer/screens/event/utils', () => {
 
     it('is empty when nothing is there at all', () => {
       expect(dotted([null, undefined])).toBe('');
+    });
+  });
+
+  describe('racedStrength', () => {
+    /**
+     * A session that has run, recording the strength each class raced at.
+     * @param index Which launch it was
+     * @param classStrength What it recorded, if anything
+     * @returns The session
+     */
+    const ran = (index: number, classStrength?: Record<string, number>): EventSession => session({
+      index,
+      status: 'done',
+      record: { ...record(null), index, ...(classStrength ? { classStrength } : {}) },
+    });
+
+    it('lists every session with what it raced the player\'s class at, in order', () => {
+      const sessions = [ran(0, { gt3: 86, gt4: 80 }), ran(1, { gt3: 84, gt4: 78 })];
+
+      expect(racedStrength(sessions, 'gt3').map(({ session: one, figure }) => [one.index, figure]))
+        .toEqual([[0, 86], [1, 84]]);
+    });
+
+    it('leaves out a session still to run', () => {
+      expect(racedStrength([ran(0, { gt3: 86 }), session({ index: 1, status: 'next' })], 'gt3')).toHaveLength(1);
+    });
+
+    it('leaves out a session that recorded nothing, as one simulated or run before strength was', () => {
+      expect(racedStrength([ran(0), ran(1, { gt3: 84 })], 'gt3').map(({ figure }) => figure)).toEqual([84]);
+    });
+
+    it('leaves out a session that recorded no figure for the player\'s class', () => {
+      expect(racedStrength([ran(0, { gt4: 80 })], 'gt3')).toEqual([]);
     });
   });
 });

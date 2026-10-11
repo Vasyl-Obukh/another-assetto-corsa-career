@@ -27,6 +27,7 @@ import type {
   EventPlan,
   EventSession,
   EventState,
+  EventStrength,
   LaunchRecord,
   RoundForecast,
   RoundScore,
@@ -339,6 +340,18 @@ export const withSeason = (career: Career, season: CareerSeason): Career => ({
 });
 
 /**
+ * The edition of a championship the career is racing: entered, and not pulled
+ * out of.
+ * @param season The season to look in
+ * @param series The championship's id
+ * @param edition Which of the season's editions
+ * @returns The entry, or null when the career is not in it
+ */
+export const enteredEntry = (season: CareerSeason, series: string, edition: number): SeasonEntry | null => (
+  season.entries.find((one) => one.series === series && one.edition === edition && !one.withdrawn) ?? null
+);
+
+/**
  * One round of a championship edition the career is in, found by its ids.
  * @param season The season to look in
  * @param series The championship's id
@@ -355,9 +368,7 @@ export const enteredEvent = (
   edition: number,
   withdrawn = false,
 ): EnteredEvent | null => {
-  const entry = withdrawn
-    ? editionEntry(season, series, edition)
-    : season.entries.find((one) => one.series === series && one.edition === edition && !one.withdrawn);
+  const entry = withdrawn ? editionEntry(season, series, edition) : enteredEntry(season, series, edition);
   const event = entry?.events.find((one) => one.round === round);
 
   return entry && event ? { entry, event } : null;
@@ -826,4 +837,34 @@ export const simulatedEvent = (
 
     return event;
   }
+};
+
+/**
+ * The player's own steps on the AI's strength for one round: the season's and
+ * the round's together.
+ * @param held The edition and the round
+ * @returns The sum, zero for none
+ */
+export const strengthStep = (held: EnteredEvent): number => (
+  (held.entry.strength ?? 0) + (held.event.strength ?? 0)
+);
+
+/**
+ * What the AI's strength in one of the career's rounds is made of, below the
+ * difficulty in settings.
+ * @param held The edition and the round
+ * @param editable Whether the round's step may still change
+ * @returns Every layer, zero where nothing states one
+ */
+export const eventStrength = (held: EnteredEvent, editable: boolean): EventStrength => {
+  const { championship } = held.entry;
+
+  return {
+    championship: championship.grid?.strength ?? 0,
+    classes: championship.entries.map((one) => ({ entry: one.id, name: one.name, offset: one.grid?.strength ?? 0 })),
+    round: championship.rounds.find((one) => one.id === held.event.round)?.grid?.strength ?? 0,
+    season: held.entry.strength ?? 0,
+    step: held.event.strength ?? 0,
+    editable,
+  };
 };

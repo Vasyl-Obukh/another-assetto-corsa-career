@@ -7,6 +7,7 @@ import { CarCard } from './CarCard.tsx';
 import { ClassesCard } from './ClassesCard.tsx';
 import { EventResults } from './EventResults.tsx';
 import { QuickSession } from './QuickSession.tsx';
+import { QuickStrength } from './QuickStrength.tsx';
 import { RaceEventHead } from './RaceEventHead.tsx';
 import { RaceEventHeadSkeleton } from './RaceEventHeadSkeleton.tsx';
 import { RaceEventSkeleton } from './RaceEventSkeleton.tsx';
@@ -94,6 +95,11 @@ export const RaceEvent = () => {
                 substituted={false}
                 onSelect={setPicked}
               />
+            ) : null}
+            {/* Before the start the strength is the Rules card's, with the rest
+                of the setup. */}
+            {started ? (
+              <QuickStrength view={view} onChange={(step) => { void quick.setStrength(step); }} />
             ) : null}
           </aside>
 

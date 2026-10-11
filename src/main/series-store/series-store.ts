@@ -133,17 +133,21 @@ export const createSeriesStore = async (
    * @param series The championship, as the caller holds it
    * @param request Which class, which round, the player's car, and the weather
    * a career has already drawn for it
+   * @param step The player's own steps on the AI's strength for this round
    * @returns The race the round runs as
    */
-  const lowerRound: SeriesStore['lowerRound'] = async (series, request) => {
+  const lowerRound: SeriesStore['lowerRound'] = async (series, request, step = 0) => {
     const installed = await content.content();
+    const { opponents } = settings.get();
 
     return roundRace(
       { series, ...request },
       installed,
       classes.catalogue(),
       await offer(installed),
-      settings.get().opponents,
+      // Folded into the base rather than laid over it, which comes to the same
+      // sum: every offset only adds before the figure is rounded and clamped.
+      { ...opponents, strength: opponents.strength + step },
     );
   };
 

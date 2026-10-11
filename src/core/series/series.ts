@@ -570,5 +570,10 @@ export const roundRace = (
     penalties: series.regulations?.penalties,
     jumpStartPenalty: series.regulations?.jumpStartPenalty,
     allowedTyresOut: series.regulations?.allowedTyresOut,
+    // What each launch records as the strength it raced at, since the base and
+    // the player's steps may move before the next one - for a class with AI in it.
+    classStrength: Object.fromEntries(series.entries
+      .filter((entry) => aiSeats(entry, playerEntry.id).length > 0)
+      .map((entry) => [entry.id, aiFigure(base.strength, classOffset(series, entry, round).strength)])),
   };
 };

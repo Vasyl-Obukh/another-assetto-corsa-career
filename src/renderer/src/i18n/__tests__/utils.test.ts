@@ -60,6 +60,16 @@ describe('renderer/i18n/utils', () => {
       expect(formattersFor('uk').formatNumber(1234567)).not.toContain(',');
     });
 
+    it('formats an offset with its sign, and none as a plain zero', () => {
+      const { formatSigned } = formattersFor('en');
+
+      expect([formatSigned(3), formatSigned(-3), formatSigned(0)]).toEqual(['+3', '-3', '0']);
+    });
+
+    it('signs an offset in Ukrainian too', () => {
+      expect(formattersFor('uk').formatSigned(4)).toBe('+4');
+    });
+
     // A year is an identifier, not a quantity: 2,019 in English and 2 019 in
     // Ukrainian both read as something other than the year 2019.
     it('formats a year without the grouping a plain number gets', () => {

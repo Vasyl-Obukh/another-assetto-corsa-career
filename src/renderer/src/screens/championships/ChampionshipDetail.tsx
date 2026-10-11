@@ -14,6 +14,7 @@ import { EditionSwitcher } from './EditionSwitcher.tsx';
 import { EnterChampionship } from './EnterChampionship.tsx';
 import { RoundTable } from './RoundTable.tsx';
 import { SeasonRules } from './SeasonRules.tsx';
+import { SeasonStrength } from './SeasonStrength.tsx';
 import { SeasonSummary } from './SeasonSummary.tsx';
 import { StandingsSection } from './StandingsSection.tsx';
 import type { DetailTab, NextRound } from './types.ts';
@@ -132,6 +133,10 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
     ? editionName({ year: seasonYear(season), edition, editions }, t)
     : null;
   const reviewable = entered && season && career.career && editionOver(entered, career.career.date);
+  // An edition still being raced takes a step; one gone by, given up on or
+  // run to its end races nothing more.
+  const adjustable = !manage && entered !== null && !closed && !entered.withdrawn
+    && entered.events.some((one) => one.status === 'scheduled');
   const table = useMemo(
     () => (results.results && !manage ? seasonResults(results.results) : null),
     [results.results, manage],
@@ -155,7 +160,13 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
           takes its own shape before the championship arrives; until then it
           takes a not-entered one. */}
       {championship.loading ? (
-        <DetailSkeleton entered={entered !== null} enterable={!manage && entered === null} manage={manage} tab={tab} />
+        <DetailSkeleton
+          entered={entered !== null}
+          enterable={!manage && entered === null}
+          manage={manage}
+          strength={adjustable}
+          tab={tab}
+        />
       ) : null}
 
       {!championship.loading && listing === null && !championship.error ? (
@@ -188,6 +199,14 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
                 round page's own panel, set at the round entering starts from. */}
             {!manage && !entered && next ? (
               <EnterChampionship series={id} round={next.round.id} edition={edition} hint={hint} />
+            ) : null}
+            {adjustable && entered ? (
+              <SeasonStrength
+                entry={entered}
+                edition={named}
+                run={run}
+                onChange={(step) => { void career.setStrength(id, entered.edition, step); }}
+              />
             ) : null}
             {table && mine && results.results ? (
               <SeasonSummary

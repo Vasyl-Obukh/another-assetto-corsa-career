@@ -26,9 +26,11 @@ import {
   composeCalendar,
   currentSeason,
   editionAt,
+  enteredEntry,
   enteredEvent,
   eventName,
   eventSessions,
+  eventStrength,
   inProgressEvent,
   issueForecast,
   issueForecasts,
@@ -43,6 +45,7 @@ import {
   seasonSalt,
   simulatedEvent,
   skippedRound,
+  strengthStep,
   withSeason,
 } from './utils.ts';
 import { planEvent } from '../../core/event/index.ts';
@@ -65,6 +68,7 @@ import type {
   SeasonEvent,
   SeriesAvailability,
 } from '../../shared/types/index.ts';
+import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { isEligible, startingLevels } from '../../shared/utils/career-eligibility/index.ts';
 import {
   editionEntry, editionsOf, enteredEdition, seasonYear,
@@ -73,13 +77,13 @@ import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-a
 import { buildStandings, entryResults, roundResult } from '../../shared/utils/standings/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
-import { slotHolds } from '../race-store/index.ts';
+import { slotHolds, withLevelsOf } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { quarantine } from '../settings-store/index.ts';
 
 export type {
-  CareerStore, EnrolRequest, EventRequest, ResultsRequest,
+  CareerStore, EnrolRequest, EventRequest, ResultsRequest, StrengthRequest,
 } from './types.ts';
 // Re-exported because a quick race's page lists its sessions the way a
 // round's page does.
@@ -316,13 +320,15 @@ export const createCareerStore = async (
    * @param championship The season's own copy of the championship
    * @param request What the round is lowered with
    * @param raceId The event's own race id
+   * @param step The player's own steps on the AI's strength for the round
    * @returns The race the round runs as
    */
   const lowerEvent = async (
     championship: Championship,
     request: Parameters<SeriesStore['lowerRound']>[1],
     raceId: string,
-  ): Promise<RaceDefinition> => ({ ...await series.lowerRound(championship, request), id: raceId });
+    step: number,
+  ): Promise<RaceDefinition> => ({ ...await series.lowerRound(championship, request, step), id: raceId });
 
   /**
    * Replaces one season entry, and the season around it, in the career.
@@ -548,10 +554,9 @@ export const createCareerStore = async (
       }
       const edition = request.edition ?? editionAt(listing.series, season, career.date);
       checkEdition(listing.series, edition);
-      const already = season.entries.some((one) => (
-        one.series === request.series && one.edition === edition && !one.withdrawn
-      ));
-      if (already) throw new AppError('career.entry.enrolled', { entry: listing.series.name });
+      if (enteredEntry(season, request.series, edition)) {
+        throw new AppError('career.entry.enrolled', { entry: listing.series.name });
+      }
 
       // A copy, and a deep one: the season must not change when the library's
       // own object does.
@@ -621,6 +626,40 @@ export const createCareerStore = async (
       });
       // Only what is already behind the clock; the rest is simulated as it comes.
       await catchUp();
+
+      return settle();
+    }),
+
+    strength: (request) => commit(async () => {
+      const { season } = await seasonNow();
+      const step = keptStep(request.strength);
+      const edition = request.edition ?? enteredEdition(season, request.series);
+      const entry = edition === null ? null : enteredEntry(season, request.series, edition);
+      if (!entry) {
+        const listing = await series.get(request.series);
+        throw new AppError('career.event.notEntered', { series: listing?.series.name ?? request.series });
+      }
+
+      if (request.round === undefined) {
+        replaceEntry(season, entry, withStrength(entry, step));
+
+        return settle();
+      }
+
+      const event = entry.events.find((one) => one.round === request.round);
+      if (!event) {
+        throw new AppError('career.event.notFound', { series: entry.championship.name, round: request.round });
+      }
+      // A round already run keeps what it raced at, which its sessions record.
+      if (event.status !== 'scheduled') {
+        const round = entry.championship.rounds.find((one) => one.id === event.round);
+        throw new AppError('career.event.closed', { round: round?.name ?? event.round });
+      }
+
+      replaceEntry(season, entry, {
+        ...entry,
+        events: entry.events.map((one) => (one === event ? withStrength(one, step) : one)),
+      });
 
       return settle();
     }),
@@ -725,7 +764,7 @@ export const createCareerStore = async (
         try {
           const definition = await lowerEvent(championship, {
             entry: classEntry.id, round: request.round, car, draw: event.forecast, field: held?.entry.field,
-          }, event.raceId);
+          }, event.raceId, held ? strengthStep(held) : 0);
           plan = planEvent(definition, await content.content());
         } catch (error) {
           // What the page can show without a plan is the round itself, and it
@@ -769,6 +808,7 @@ export const createCareerStore = async (
           car: held.entry.car,
           team: championship.teams?.find((one) => one.id === seat?.team)?.name ?? null,
         } : null,
+        strength: held ? eventStrength(held, !closed && event.status === 'scheduled') : null,
         classes: championship.entries.map((one) => ({
           id: one.id,
           name: one.name,
@@ -829,7 +869,6 @@ export const createCareerStore = async (
     launch: (request) => commit(async () => {
       const { career, season } = await seasonNow();
       const held = await heldEvent(season, request);
-      const setup = await race.get();
 
       const availability = await series.validate(held.entry.championship);
       const block = launchBlock(
@@ -861,17 +900,21 @@ export const createCareerStore = async (
       const moved = issueForecasts(career, markMissed(season, lost), date);
       const event = enteredEvent(moved, request.series, request.round, held.entry.edition)?.event ?? held.event;
 
-      // What has run comes from the career's own record, so a quick race raced
-      // in between costs this event nothing.
-      if (!slotHolds(setup, held.event.raceId, event.sessions.length)) {
-        await race.load(await lowerEvent(held.entry.championship, {
-          entry: held.entry.entry,
-          round: request.round,
-          car: held.entry.car,
-          draw: event.forecast,
-          field: held.entry.field,
-        }, event.raceId), event.sessions);
-      }
+      // Part-way through, the event carries on from the race the slot holds,
+      // with only its AI levels taken afresh. What has run comes from the
+      // career's own record, so a quick race raced in between costs it nothing.
+      const fresh = await lowerEvent(held.entry.championship, {
+        entry: held.entry.entry,
+        round: request.round,
+        car: held.entry.car,
+        draw: event.forecast,
+        field: held.entry.field,
+      }, event.raceId, strengthStep(held));
+      const setup = await race.get();
+      await race.load(
+        slotHolds(setup, event.raceId, event.sessions.length) ? withLevelsOf(setup.definition, fresh) : fresh,
+        event.sessions,
+      );
       const launched = await race.launch();
 
       // Kept only once the launch is away, so one that fails to start costs the

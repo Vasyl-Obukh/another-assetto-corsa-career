@@ -4,6 +4,7 @@ import {
 
 import type { QuickRaceState } from './types.ts';
 import type { QuickRace, QuickRaceView } from '../../../../shared/types';
+import { withStrength } from '../../../../shared/utils/ai-figure';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 
 export type { QuickRaceState } from './types.ts';
@@ -11,7 +12,8 @@ export type { QuickRaceState } from './types.ts';
 /**
  * Loads one race event of the player's own and keeps it current.
  *
- * An edit shows at once and is saved behind it, every keystroke a whole race:
+ * An edit shows at once and is saved behind it, every keystroke a whole race -
+ * and so does a step on its strength once it is under way:
  * only the answer to the latest save is taken, so a slow early one can never
  * put back what was typed after it, and a push arriving while saves are still
  * out is left for the save's own answer to supersede.
@@ -77,6 +79,20 @@ export const useQuickRace = (id: string): QuickRaceState => {
     ).finally(() => { saving.current -= 1; });
   }, []);
 
+  const setStrength = useCallback((strength: number): Promise<void> => {
+    setView((now) => (now ? {
+      ...now, race: { ...now.race, grid: withStrength(now.race.grid ?? {}, strength === 0 ? undefined : strength) },
+    } : now));
+    latest.current += 1;
+    const asked = latest.current;
+    saving.current += 1;
+
+    return invoke('quick:strength', { id, strength }).then(
+      (next) => { if (asked === latest.current) { setView(next); setError(null); } },
+      (thrown: unknown) => { if (asked === latest.current) { setError(toDisplayableError(thrown)); load(); } },
+    ).finally(() => { saving.current -= 1; });
+  }, [id, load]);
+
   return {
     view,
     loading,
@@ -87,5 +103,6 @@ export const useQuickRace = (id: string): QuickRaceState => {
     launch: () => run(() => invoke('quick:launch', { id })),
     cancel: () => run(() => invoke('race:cancel', undefined)),
     restart: () => run(() => invoke('quick:restart', { id })),
+    setStrength,
   };
 };

@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 
 import type { CareerState } from './types.ts';
+import { withSeasonStrength } from './utils.ts';
 import type { Career, CareerCalendar } from '../../../../shared/types';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 
@@ -22,6 +25,9 @@ export const useCareer = (): CareerState => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReturnType<typeof toDisplayableError> | null>(null);
+  // Steps on the strength still out, while which a push would put back an
+  // earlier one over the step on screen.
+  const stepping = useRef(0);
 
   // Reading the calendar is also what starts a career the first time, and
   // starting one pushes career:changed - so the career arrives on its own
@@ -55,7 +61,7 @@ export const useCareer = (): CareerState => {
 
   useEffect(load, [load]);
   useEffect(() => subscribe('career:changed', (next) => {
-    setCareer(next);
+    if (stepping.current === 0) setCareer(next);
     loadCalendar();
   }), [loadCalendar]);
   useEffect(() => subscribe('content:changed', loadCalendar), [loadCalendar]);
@@ -87,6 +93,22 @@ export const useCareer = (): CareerState => {
     dismissError: () => setError(null),
     enrol: (series, entry, car) => run(() => invoke('career:enrol', { series, entry, car })),
     withdraw: (series, entry) => run(() => invoke('career:withdraw', { series, entry })),
+    // Shown at once and kept behind it, never holding the buttons, so a step can
+    // be typed or clicked through; only the last answer is taken, holding them all.
+    setStrength: (series, edition, strength) => {
+      setCareer((now) => now && withSeasonStrength(now, series, edition, strength));
+      stepping.current += 1;
+
+      return invoke('career:strength', { series, edition, strength }).then(
+        (next) => { setError(null); return next; },
+        (thrown: unknown) => { setError(toDisplayableError(thrown)); return null; },
+      ).then((next) => {
+        stepping.current -= 1;
+        if (stepping.current > 0) return;
+        if (next) setCareer(next);
+        else load();
+      });
+    },
     advanceTo: (date, skip) => run(() => invoke('career:advance', { date, skip })),
     // An error is shown as any command's is, and still rejects: a move whose
     // cost could not be read must not go ahead as though it cost nothing.

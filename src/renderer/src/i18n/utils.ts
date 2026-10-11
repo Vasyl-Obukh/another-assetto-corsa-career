@@ -143,6 +143,11 @@ export const formattersFor = (language: Language): Formatters => {
       () => new Intl.NumberFormat(locale),
     ).format(value),
 
+    formatSigned: (value) => cached(
+      `s:${locale}`,
+      () => new Intl.NumberFormat(locale, { signDisplay: 'exceptZero' }),
+    ).format(value),
+
     formatYear: (value) => cached(
       `y:${locale}`,
       () => new Intl.NumberFormat(locale, { useGrouping: false }),

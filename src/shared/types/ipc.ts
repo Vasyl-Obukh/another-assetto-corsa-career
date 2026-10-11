@@ -175,6 +175,11 @@ export interface IpcContract {
    */
   'quick:restart': { req: { id: string }; res: QuickRaceView };
   /**
+   * Set a race event's own step on the AI's strength - the one thing about it
+   * that may still change once a session has run, reaching the sessions after.
+   */
+  'quick:strength': { req: { id: string; strength: number }; res: QuickRaceView };
+  /**
    * Every championship the app knows, each with whether it can be raced.
    *
    * Not paged, and carrying whole championships rather than summaries: a
@@ -337,6 +342,15 @@ export interface IpcContract {
    * as missed.
    */
   'career:withdraw': { req: { series: string; entry: string; edition?: number }; res: Career };
+  /**
+   * Set the player's own step on the AI's strength for an edition the career is
+   * in - for every round of it, or for the one round named. Reaches the next
+   * session launched, never one already run.
+   */
+  'career:strength': {
+    req: { series: string; edition?: number; round?: string; strength: number };
+    res: Career;
+  };
   /**
    * Move the clock forward, stopping at the first enrolled event on the way -
    * or, with `skip`, all the way to the date, marking every round of the

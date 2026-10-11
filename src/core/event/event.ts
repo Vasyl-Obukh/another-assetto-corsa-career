@@ -76,7 +76,11 @@ export const planEvent = (race: RaceDefinition, content: Content): EventPlan => 
   });
 
   return {
-    raceId: race.id, raceName: race.name, grid, launches,
+    raceId: race.id,
+    raceName: race.name,
+    grid,
+    launches,
+    ...(race.classStrength ? { classStrength: race.classStrength } : {}),
   };
 };
 
@@ -364,6 +368,9 @@ export const advanceEvent = (
       archive: record.archive,
       gridOrder,
       classification,
+      // The plan in flight is the one this launch went out with, whatever the
+      // difficulty says by the time its result lands.
+      ...(plan.classStrength ? { classStrength: plan.classStrength } : {}),
     }],
   };
 };

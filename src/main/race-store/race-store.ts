@@ -67,9 +67,11 @@ import type { SettingsStore } from '../settings-store/index.ts';
 export type { RaceProgress, RaceStore } from './types.ts';
 // Re-exported because the quick-race store keeps its races beside the race
 // store's own files, written the same tolerant way, and it and the career both
-// put an event back in the slot only when the slot does not already hold it.
+// carry an event part-way through on from the race the slot already holds.
 export { RACE_DIR } from './constants.ts';
-export { readJson, slotHolds, writeJson } from './utils.ts';
+export {
+  readJson, slotHolds, withLevelsOf, writeJson,
+} from './utils.ts';
 
 /**
  * Loads the race being set up and returns a store over it.

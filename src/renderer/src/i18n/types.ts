@@ -60,6 +60,13 @@ export interface Formatters {
    */
   formatNumber(value: number): string;
   /**
+   * Formats an offset with its sign, as every AI step reads - "+3", "-3", and
+   * a plain "0" for none.
+   * @param value The offset
+   * @returns The formatted offset
+   */
+  formatSigned(value: number): string;
+  /**
    * Formats a year, without the thousands grouping a plain number would get.
    *
    * A year is an identifier rather than a quantity, and 2,019 reads as a

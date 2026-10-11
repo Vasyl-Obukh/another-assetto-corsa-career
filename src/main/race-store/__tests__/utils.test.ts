@@ -4,10 +4,10 @@ import {
 import { readFile, rename, writeFile } from 'node:fs/promises';
 
 import type {
-  EventState, RaceOut, RaceSetup, ResultRecord, Track,
+  EventState, RaceDefinition, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../../shared/types/index.ts';
 import {
-  isArchiveName, progressOf, readJson, readRecord, sameEvent, slotHolds, withLayout, writeJson,
+  isArchiveName, progressOf, readJson, readRecord, sameEvent, slotHolds, withLayout, withLevelsOf, writeJson,
 } from '../utils.ts';
 
 jest.mock('node:fs/promises');
@@ -290,6 +290,74 @@ describe('main/race-store/utils', () => {
     it('always puts an event back before its first launch', () => {
       expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0)).toBe(false);
       expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0)).toBe(false);
+    });
+  });
+
+  describe('withLevelsOf', () => {
+    /**
+     * A race of a championship round, its AI field stamped with their seats.
+     * @param levels Each seat's strength and aggression, in field order
+     * @param over Whatever else the race says differently
+     * @returns The race
+     */
+    const lowered = (
+      levels: readonly [string, number, number][],
+      over: Partial<RaceDefinition> = {},
+    ): RaceDefinition => ({
+      id: 'test-cup/one',
+      name: 'Test Cup - One',
+      track: { id: 'magione' },
+      playerCar: { model: 'test_car' },
+      grid: {
+        size: levels.length + 1,
+        opponents: levels.map(([seat, aiLevel, aiAggression]) => ({
+          model: 'test_car', seat, aiLevel, aiAggression,
+        })),
+      },
+      ...over,
+    });
+
+    it('takes each seat\'s levels from the race lowered afresh', () => {
+      const held = lowered([['a', 80, 20], ['b', 82, 30]]);
+      const fresh = lowered([['a', 77, 25], ['b', 79, 35]]);
+
+      expect(withLevelsOf(held, fresh).grid?.opponents?.map((car) => [car.aiLevel, car.aiAggression]))
+        .toEqual([[77, 25], [79, 35]]);
+    });
+
+    it('matches seats by their stamp rather than their place in the field', () => {
+      const held = lowered([['a', 80, 20], ['b', 82, 30]]);
+      const fresh = lowered([['b', 70, 10], ['a', 60, 5]]);
+
+      expect(withLevelsOf(held, fresh).grid?.opponents?.map((car) => [car.seat, car.aiLevel]))
+        .toEqual([['a', 60], ['b', 70]]);
+    });
+
+    // Guards a regression: lowering a part-way event afresh re-derived its
+    // weather, its grip and its field from whatever settings said by then.
+    it('keeps everything else the event started with', () => {
+      const held = lowered([['a', 80, 20]], {
+        sessions: [{ type: 'race', laps: 10, conditions: { weatherType: 7 } }],
+      });
+      const fresh = lowered([['a', 77, 20]], {
+        sessions: [{ type: 'race', laps: 10, conditions: { weatherType: 1 } }],
+      });
+
+      expect(withLevelsOf(held, fresh).sessions).toEqual(held.sessions);
+    });
+
+    it('carries the strength each class now races at', () => {
+      const held = lowered([['a', 80, 20]], { classStrength: { main: 80 } });
+      const fresh = lowered([['a', 77, 20]], { classStrength: { main: 77 } });
+
+      expect(withLevelsOf(held, fresh).classStrength).toEqual({ main: 77 });
+    });
+
+    it('leaves a car the fresh race does not field as it was', () => {
+      const held = lowered([['a', 80, 20], ['gone', 82, 30]]);
+      const fresh = lowered([['a', 77, 25]]);
+
+      expect(withLevelsOf(held, fresh).grid?.opponents?.[1]).toMatchObject({ seat: 'gone', aiLevel: 82 });
     });
   });
 

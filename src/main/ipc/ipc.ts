@@ -100,6 +100,7 @@ export const registerHandlers = (
   handle('quick:remove', async ({ id }) => quick.remove(id));
   handle('quick:launch', async ({ id }) => quick.launch(id));
   handle('quick:restart', async ({ id }) => quick.restart(id));
+  handle('quick:strength', async ({ id, strength }) => quick.strength(id, strength));
 
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
@@ -157,6 +158,7 @@ export const registerHandlers = (
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
   handle('career:withdraw', async (request) => career.withdraw(request));
+  handle('career:strength', async (request) => career.strength(request));
   handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));
   handle('career:skips', async ({ date }) => career.skips(date));
   handle('career:event', async (request) => career.event(request));

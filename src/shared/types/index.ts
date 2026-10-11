@@ -135,6 +135,7 @@ export type {
   EventSession,
   EventSessionStatus,
   EventStatus,
+  EventStrength,
   PositionPoints,
   RoundResult,
   SeasonEntry,

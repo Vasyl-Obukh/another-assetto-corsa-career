@@ -94,3 +94,20 @@ export const launchNote = (
 export const dotted = (parts: readonly (string | null | undefined)[]): string => (
   parts.filter((part) => part).join(' · ')
 );
+
+/**
+ * The sessions of an event that recorded the strength they raced the player's
+ * class at, each with that figure - which a simulated session, and one run
+ * before strength was recorded, did not.
+ * @param sessions The event's sessions, in the order they ran
+ * @param entry The player's class, by its entry id
+ * @returns Every session that recorded one, in order
+ */
+export const racedStrength = (
+  sessions: readonly EventSession[],
+  entry: string,
+): { session: EventSession; figure: number }[] => sessions.flatMap((session) => {
+  const figure = session.record?.classStrength?.[entry];
+
+  return figure === undefined ? [] : [{ session, figure }];
+});

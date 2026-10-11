@@ -80,11 +80,14 @@ export interface SeriesStore {
    * @param series The championship, as the caller holds it
    * @param request Which class, which round, the player's car, and the weather
    * and the field a career has already drawn for it
+   * @param step The player's own steps on the AI's strength for this round,
+   * laid over the difficulty in settings - none by default
    * @returns The race the round runs as
    */
   lowerRound: (
     series: Championship,
     request: RoundRequest & CareerDraws,
+    step?: number,
   ) => Promise<RaceDefinition>;
   /**
    * Draws a season's AI field over the installed content: every seat's car,

@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 
 import type { CareerEventState } from './types.ts';
 import type { CareerEventView, ChampionshipRun } from '../../../../shared/types';
@@ -30,6 +32,9 @@ export const useCareerEvent = (
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReturnType<typeof toDisplayableError> | null>(null);
+  // Steps on the strength still out, while which a read would put back an
+  // earlier one over the step on screen.
+  const stepping = useRef(0);
 
   const load = useCallback((): (() => void) => {
     if (series === '') return () => undefined;
@@ -38,7 +43,11 @@ export const useCareerEvent = (
     invoke('career:event', {
       series, round, season, edition,
     }).then(
-      (next) => { if (live) { setView(next); setLoading(false); } },
+      (next) => {
+        if (!live) return;
+        if (stepping.current === 0) setView(next);
+        setLoading(false);
+      },
       (thrown: unknown) => {
         if (!live) return;
         setError(toDisplayableError(thrown));
@@ -87,5 +96,21 @@ export const useCareerEvent = (
     launch: (skip) => command(() => invoke('career:launch', {
       series, round, edition: view?.edition ?? edition, skip,
     })),
+    // Shown at once and kept behind it, never holding the buttons, so a step
+    // can be typed or clicked through; the round is read once the last lands.
+    setStrength: (strength) => {
+      setView((now) => (now?.strength ? { ...now, strength: { ...now.strength, step: strength } } : now));
+      stepping.current += 1;
+
+      return invoke('career:strength', {
+        series, round, edition: view?.edition ?? edition, strength,
+      }).then(
+        () => { setError(null); },
+        (thrown: unknown) => { setError(toDisplayableError(thrown)); },
+      ).finally(() => {
+        stepping.current -= 1;
+        if (stepping.current === 0) load();
+      });
+    },
   };
 };

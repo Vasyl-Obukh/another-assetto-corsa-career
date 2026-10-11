@@ -60,6 +60,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | AI economy                      | **None.** Teams have budget tiers that shape their offers; AI drivers have no wallet.                                                                                                                                                     |
 | Currency                        | **Real currency, $ by default.** € and £ selectable later as display only - no conversion.                                                                                                                                                |
 | Progression speed               | **0.5x-2x multiplier on money and rating**, separate from AI difficulty. Changeable any time; the career records that it changed.                                                                                                         |
+| AI difficulty                   | **The player's to set, never learned.** One strength in settings, and a step of their own for a season or a round of the career. Adaptive difficulty was dropped: pace against the AI moves with the car and the track, which a learned figure would chase rather than answer. |
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
 | Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later).                                                                                      |
@@ -539,9 +540,9 @@ with the seat.
 Rating moves on results, weighted by the **tier being raced** and by the
 **strength of who you beat and who beat you**. We set `AI_LEVEL` per entry, so
 the field has a known strength spread and every finish carries an
-expected-versus-actual signal; an Elo-style update fits naturally. Adaptive
-difficulty must feed in honestly - gains reflect the level actually raced
-against, not the nominal one.
+expected-versus-actual signal; an Elo-style update fits naturally. The
+player's own steps must feed in honestly - gains reflect the level actually
+raced against, which every launch records, not the nominal one.
 
 ### Sponsors
 
@@ -2511,9 +2512,11 @@ proof that no layer below learned what a series is.
       added to the one below; a seat's `strength` and `aggression` are offsets
       too, and replace that driver's drawn spread rather than adding to it. So the
       difficulty setting moves every grid at once, a season already under way
-      included from the next weekend set up - levels are resolved at lowering,
-      never frozen, and a weekend is lowered once, so one part-way through keeps
-      the field it started with. `aiLevel`, `aiLevelMin` and `aiAggression` are gone from the
+      included - levels are resolved at lowering, never frozen. **An event
+      part-way through takes its AI levels afresh at every launch** since the
+      per-round step below, while the rest of the race the slot holds stays as
+      it started, so a change reaches its next session and each launch records
+      what it raced at. `aiLevel`, `aiLevelMin` and `aiAggression` are gone from the
       format rather than reinterpreted, and `parseSeries` reports them, so an old
       file is refused rather than read as a +95. The shipped library was
       converted mechanically: a championship's offset is its old spread's
@@ -2611,7 +2614,25 @@ proof that no layer below learned what a series is.
       points that pay by distance are all still to be decided. One question it
       no longer has to answer is what scaling does to a timed race, since there
       are none - every race is laps or a distance
-- [ ] Adaptive difficulty, recording the level actually raced against
+- [x] **Set the AI's strength per round, without editing the championship -
+      and record the level actually raced against.** Replaces adaptive
+      difficulty, which was dropped: the player chooses, since pace against the
+      AI moves with the car and the track. A career takes two steps of its own,
+      offsets over the difficulty in settings like every other layer -
+      `SeasonEntry.strength` for an edition, set on the championship page, and
+      `SeasonEvent.strength` for one round, set on its page - and a race event of
+      the Race tab keeps its own race offset open once a session has run, the one
+      thing its setup no longer holds still. Strength only; aggression stays the
+      championship's. **A step reaches the next session launched**, never one
+      already run: an event part-way through keeps the race the slot holds and
+      takes only its AI levels afresh, matched by seat through `withLevelsOf`,
+      so its weather, its grip and its field stay what it started with; and
+      `roundRace` stamps the figure of each class with AI in it on the race as
+      `classStrength`, which every `LaunchRecord` carries. So a session's
+      result says what it raced at, a finished round lists it per session, and
+      Phase 8 has the level an Elo update needs. **A launch from before this
+      records nothing**, and shows nothing, rather than guessing. Agreed in
+      `mockups/ai-strength.html`, layout B
 - [x] **Season summary and history.** A *championship review* once an edition's
       last round has run - the place, the champions per class, the edition in
       figures, the position round by round, the teammate head to head, the final
@@ -2780,7 +2801,8 @@ Design to be settled before building - see Open questions.
 - [ ] Autosave count and save behaviour
 - [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate).
       **AI strength and aggression landed in Phase 5** as `settings.opponents`,
-      the base every championship's offsets are laid over
+      the base every championship's offsets are laid over, with a step of the
+      player's own per season or round of the career on top
 - [ ] Economy tuning: prize and fee multipliers, starting money, price overrides
 - [ ] **Weather system**: PURE, Sol or none, chosen once. Decides who renders
       static weather and which planner a dynamic race drives. "None" is CSP's

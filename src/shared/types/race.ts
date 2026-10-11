@@ -458,6 +458,15 @@ export interface RaceDefinition {
    * How many wheels may leave the track before a lap is cut. -1 disables the check.
    */
   allowedTyresOut?: number;
+  /**
+   * The AI strength each class races at, keyed by class entry id - the figure
+   * its drivers spread either side of, before any driver's own offset.
+   *
+   * Carried so each launch can record what it raced at; nothing between here
+   * and the launch reads it. Set by a championship round's lowering, and
+   * absent from a race written by hand, which has no classes.
+   */
+  classStrength?: Record<string, number>;
 }
 
 /**

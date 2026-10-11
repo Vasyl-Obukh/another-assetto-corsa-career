@@ -12,6 +12,7 @@ import { EntryPanel } from './EntryPanel.tsx';
 import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
 import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
+import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
@@ -158,6 +159,17 @@ export const Event = () => {
               substituted={view.substituted}
               onSelect={setPicked}
             />
+            {/* Under the sessions rather than above them, since the list is how
+                the page is moved around. */}
+            {view.entered && view.strength ? (
+              <RoundStrength
+                view={view}
+                entered={view.entered}
+                strength={view.strength}
+                championship={path.championship({ id: view.series }, run)}
+                onChange={(step) => { void event.setStrength(step); }}
+              />
+            ) : null}
           </aside>
 
           {selected === SUMMARY && summary ? (

@@ -156,6 +156,8 @@ export type ErrorCode =
   // src/main/quick-race-store
   | 'quick.notFound'
   | 'quick.started'
+  // src/main/career-store and src/main/quick-race-store
+  | 'strength.outOfRange'
   // src/main/ipc
   | 'ipc.noWindow'
   | 'ipc.pathsNotLocated';

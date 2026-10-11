@@ -39,4 +39,10 @@ export interface CareerEventState {
    * @returns Resolves once Content Manager has been handed it
    */
   launch: (skip?: boolean) => Promise<void>;
+  /**
+   * Sets the player's own step on the AI's strength for this round.
+   * @param strength The step, zero for none
+   * @returns Resolves once it has been kept
+   */
+  setStrength: (strength: number) => Promise<void>;
 }

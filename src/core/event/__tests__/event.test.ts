@@ -223,6 +223,15 @@ describe('core/event', () => {
       expect(launches).toHaveLength(1);
       expect(launches[0].race.sessions?.[0].type).toBe('race');
     });
+
+    it('carries the strength each class races at, for its launches to record', () => {
+      expect(plan({ ...makeEvent(), classStrength: { gt3: 84, gt4: 79 } }).classStrength)
+        .toEqual({ gt3: 84, gt4: 79 });
+    });
+
+    it('carries no strength for a race with no classes', () => {
+      expect(plan()).not.toHaveProperty('classStrength');
+    });
   });
 
   describe('initEventState', () => {
@@ -607,6 +616,20 @@ describe('core/event', () => {
       expect(after.completed[0]).toMatchObject({
         index: 0, archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z',
       });
+    });
+
+    it('records the strength each class raced the launch at', () => {
+      const eventPlan = plan({ ...makeEvent(), classStrength: { gt3: 84 } });
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0].classStrength).toEqual({ gt3: 84 });
+    });
+
+    it('records no strength for a launch of a race with no classes', () => {
+      const eventPlan = plan();
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0]).not.toHaveProperty('classStrength');
     });
 
     it('keeps the qualifying order the launch produced', () => {

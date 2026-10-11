@@ -203,7 +203,7 @@
     "opponentsHint": "How strong and how aggressive the AI are. This is your difficulty, and every championship states its field as a step up or down from it.",
     "opponentsStrength": "AI strength",
     "opponentsAggression": "AI aggression",
-    "opponentsOffsets": "A championship, a class and a round may each move these, and every driver sits a little either side of their class for the season. A change here reaches every event set up after it, a season already under way included; an event part-way through keeps the field it started with.",
+    "opponentsOffsets": "A championship, a class and a round may each move these, and so may you, for a season or a round of your career on its own page. Every driver sits a little either side of their class for the season. A change reaches the next session launched, an event part-way through included, and each session records the strength it ran at.",
     "appearanceHint": "How the app looks.",
     "sections": "Sections",
     "aidsElectronics": "Electronics",
@@ -524,7 +524,9 @@
       "clean": "Clean",
       "ruthless": "Ruthless",
       "championship": "championship",
-      "round": "round"
+      "round": "round",
+      "season": "season",
+      "thisRound": "this round"
     }
   },
   "calendar": {
@@ -1463,7 +1465,9 @@
       "held": "held position",
       "fastest": "fastest",
       "toFastest": "+{{gap}} to fastest",
-      "inClass": "in {{name}} · {{position}} of {{count}} overall"
+      "inClass": "in {{name}} · {{position}} of {{count}} overall",
+      "strength": "AI strength",
+      "classStrength": "{{name}} {{figure}}"
     },
     "search": "Search a championship, round or track",
     "kind": "Session",
@@ -2081,6 +2085,29 @@
       "podiums_one": "{{count}} podium",
       "podiums_other": "{{count}} podiums"
     }
+  },
+  "strength": {
+    "title": "AI strength",
+    "round": "This round",
+    "season": "This season",
+    "seasonHint": "Every round of {{series}}",
+    "seasonHintEdition": "Every round of {{series}} {{edition}}",
+    "race": "Race",
+    "raceHint": "The race's own, set before the start",
+    "classes": "Every class moves together",
+    "yours": "yours",
+    "seasonNote": "Your season's {{step}} is set on the championship page.",
+    "seasonNoteNone": "A step for the whole season is set on the championship page.",
+    "seasonLink": "Change it",
+    "ran": "{{session}} ran at {{figure}}.",
+    "appliesFrom": "A change applies from {{session}} on.",
+    "quickLocked": "Aggression and each class's own strength stay as they were set.",
+    "raced": "Raced",
+    "racedHint": "What each session ran at. Changing your strength in settings no longer reaches this event.",
+    "racedHintClass": "What each session ran at, in your class. Changing your strength in settings no longer reaches this event.",
+    "racedHintQuick": "What each session ran at, in your class. Starting the race event over opens its whole setup again.",
+    "ownRounds": "Rounds set on their own",
+    "reset": "Reset"
   },
   "specPicker": {
     "title": "Pick a spec",

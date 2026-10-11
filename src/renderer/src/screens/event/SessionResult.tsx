@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 
 import { ALL_CLASSES, RESULT_SKELETON } from './constants.ts';
 import { ResultTableSkeleton } from './ResultTableSkeleton.tsx';
+import { DRIVER_STRENGTH_SPREAD } from '../../../../shared/constants';
 import type {
   CareerEventView, Championship, EventSession, LaunchRecord,
 } from '../../../../shared/types';
+import { aiFigure } from '../../../../shared/utils/ai-figure';
 import { formatGap, formatLapTime } from '../../../../shared/utils/lap-time';
 import {
   BonusPoints, ClassificationTable, ErrorCard, Podium, ResultCell, ResultStrip, Segments,
@@ -80,6 +82,7 @@ export const SessionResult = ({
   const ownRow = own.find((row) => row.player);
   const ownClass = classes.find((one) => one.id === mine?.entry);
   const fastest = Math.min(...own.map((row) => row.bestLap ?? Infinity));
+  const strength = mine?.entry ? record.classStrength?.[mine.entry] : undefined;
   const pays = rows.some((row) => (row.place?.points ?? 0) > 0);
   /**
    * Places made up from the grid, in words.
@@ -134,6 +137,26 @@ export const SessionResult = ({
           <BonusPoints qualifying={mine.place.qualifyingPoints} fastestLap={mine.place.fastestLapPoints} />
         </>
       ) : null,
+    }] : []),
+    // What the launch recorded, so a step taken since never rewrites it.
+    ...(strength !== undefined ? [{
+      label: t('results.strip.strength'),
+      value: formatNumber(strength),
+      detail: multi ? (
+        // The dots between the classes are drawn, so no literal sits in the markup.
+        <span className="flex flex-wrap gap-x-1.5 [&>span+span]:before:mr-1.5 [&>span+span]:before:content-['·']">
+          {classes.flatMap((one) => {
+            const figure = record.classStrength?.[one.id];
+
+            return one.id === mine.entry || figure === undefined ? [] : [(
+              <span key={one.id}>{t('results.strip.classStrength', { name: one.name, figure: formatNumber(figure) })}</span>
+            )];
+          })}
+        </span>
+      ) : t('race.ai.drivers', {
+        low: formatNumber(aiFigure(strength, -DRIVER_STRENGTH_SPREAD)),
+        high: formatNumber(aiFigure(strength, DRIVER_STRENGTH_SPREAD)),
+      }),
     }] : []),
   ] : [];
 

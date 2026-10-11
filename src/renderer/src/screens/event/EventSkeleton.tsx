@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BriefTile } from './BriefTile.tsx';
 import { EVENT_SKELETON } from './constants.ts';
+import { StrengthCardSkeleton } from './StrengthCardSkeleton.tsx';
 import { Loading, Shimmer } from '@/components';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -10,8 +11,8 @@ import { slots } from '@/lib/slots.ts';
 
 /**
  * A round's page under its header while it is read: the entry card, the
- * event's sessions under their real heading, and the session open beside
- * them with its four briefing tiles.
+ * event's sessions under their real heading, the AI strength card, and the
+ * session open beside them with its four briefing tiles.
  */
 export const EventSkeleton = () => {
   const { t } = useTranslation();
@@ -50,6 +51,10 @@ export const EventSkeleton = () => {
             ))}
           </CardContent>
         </Card>
+
+        {/* Drawn as the entry card is, whether or not the round turns out to be
+            entered. */}
+        <StrengthCardSkeleton label={t('strength.round')} />
       </aside>
 
       <Card className="py-4">

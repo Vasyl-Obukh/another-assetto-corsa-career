@@ -49,6 +49,15 @@ export interface CareerState {
    */
   withdraw: (series: string, entry: string) => Promise<void>;
   /**
+   * Sets the player's own step on the AI's strength for every round of an
+   * edition the career is in.
+   * @param series Which championship
+   * @param edition Which of the season's editions of it
+   * @param strength The step, zero for none
+   * @returns Resolves once it has been kept
+   */
+  setStrength: (series: string, edition: number, strength: number) => Promise<void>;
+  /**
    * Moves the clock forward.
    * @param date The ISO date to advance towards
    * @param skip Whether to go all the way, past rounds of the career's the

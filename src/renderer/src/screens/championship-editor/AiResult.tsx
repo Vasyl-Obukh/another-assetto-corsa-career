@@ -6,6 +6,7 @@ import { offsetBounds } from './utils.ts';
 import { AI_RANGE } from '../../../../shared/constants';
 import { aiFigure } from '../../../../shared/utils/ai-figure';
 import { useFormat } from '@/i18n';
+import { cn } from '@/lib/utils.ts';
 
 interface AiResultProps {
   /**
@@ -16,6 +17,10 @@ interface AiResultProps {
    * What the figure is, already translated.
    */
   label: string;
+  /**
+   * A line under the label saying what the step reaches, already translated.
+   */
+  hint?: string;
   /**
    * The player's own difficulty, out of settings.
    */
@@ -46,6 +51,10 @@ interface AiResultProps {
    */
   locked: boolean;
   /**
+   * Whether to draw it without a box of its own, for a card that is already one.
+   */
+  bare?: boolean;
+  /**
    * Called with the class's new offset.
    * @param next The offset, or undefined once emptied
    */
@@ -67,27 +76,23 @@ const along = (figure: number): number => ((figure - AI_RANGE.min) / (AI_RANGE.m
  * clamped away unseen.
  */
 export const AiResult = ({
-  id, label, base, layers, own, value, spread, ends, locked, onChange,
+  id, label, hint, base, layers, own, value, spread, ends, locked, bare = false, onChange,
 }: AiResultProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const { formatNumber, formatSigned } = useFormat();
   const under = base + layers.reduce((sum, layer) => sum + (layer.value ?? 0), 0);
   const figure = aiFigure(under, value ?? 0);
   const low = aiFigure(figure, -spread);
   const high = aiFigure(figure, spread);
   const bounds = offsetBounds(under);
 
-  /**
-   * Writes an offset with its sign, so a step reads as one.
-   * @param offset The offset
-   * @returns The offset, signed
-   */
-  const signed = (offset: number): string => (offset > 0 ? `+${formatNumber(offset)}` : formatNumber(offset));
-
   return (
-    <div className="flex flex-col gap-2.5 rounded-lg border p-3">
+    <div className={cn('flex flex-col gap-2.5', !bare && 'rounded-lg border p-3')}>
       <div className="flex items-center gap-2">
-        <label htmlFor={id} className="flex-1 text-sm font-medium">{label}</label>
+        <label htmlFor={id} className="flex min-w-0 flex-1 flex-col text-sm font-medium">
+          {label}
+          {hint ? <span className="text-xs font-normal text-muted-foreground">{hint}</span> : null}
+        </label>
         <div className="w-28">
           <OffsetStepper
             id={id}
@@ -114,13 +119,13 @@ export const AiResult = ({
             <span key={layer.label}>
               {layer.label}
               {' '}
-              <b className="font-semibold text-foreground tabular-nums">{signed(layer.value ?? 0)}</b>
+              <b className="font-semibold text-foreground tabular-nums">{formatSigned(layer.value ?? 0)}</b>
             </span>
           ))}
           <span>
             {own}
             {' '}
-            <b className="font-semibold text-foreground tabular-nums">{signed(value ?? 0)}</b>
+            <b className="font-semibold text-foreground tabular-nums">{formatSigned(value ?? 0)}</b>
           </span>
         </span>
       </div>

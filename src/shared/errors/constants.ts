@@ -210,6 +210,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'quick.notFound': 'There is no race event with the id {{race}}.',
   'quick.started': '{{race}} has started. Start it over to change it.',
 
+  'strength.outOfRange':
+    'A step of {{value}} moves the AI further than the {{max}} either way a step may move them from the difficulty in settings.',
+
   'ipc.noWindow': 'No window to attach the folder picker to.',
   'ipc.pathsNotLocated': 'Cannot scan content until the Assetto Corsa install has been located.',
 };

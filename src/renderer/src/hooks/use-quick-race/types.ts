@@ -45,4 +45,11 @@ export interface QuickRaceState {
    * @returns Resolves once it has been
    */
   restart: () => Promise<void>;
+  /**
+   * Sets the race's own step on the AI's strength, which may change between
+   * sessions as nothing else about it may.
+   * @param strength The step, zero for none
+   * @returns Resolves once it has been kept
+   */
+  setStrength: (strength: number) => Promise<void>;
 }

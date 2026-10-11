@@ -26,13 +26,14 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   EventPlan, QuickRace, QuickRaceView, RaceDefinition, RaceSetup, RoundScore,
 } from '../../shared/types/index.ts';
+import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { newQuickRace } from '../../shared/utils/quick-race/index.ts';
 import { eventSessions } from '../career-store/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import {
-  RACE_DIR, readJson, slotHolds, writeJson,
+  RACE_DIR, readJson, slotHolds, withLevelsOf, writeJson,
 } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
@@ -352,10 +353,12 @@ export const createQuickRaceStore = async (
         throw first ? new AppError(first.code, first.params) : new AppError('run.notPlanned');
       }
 
-      // Carries on from its own last launch, whatever raced in between.
-      if (!slotHolds(await race.get(), definition.id, found.completed.length)) {
-        await race.load(definition, found.completed);
-      }
+      // Part-way through, it carries on from the race the slot holds, with only
+      // its AI levels taken afresh; and from its own last launch, whatever raced
+      // in between.
+      const setup = await race.get();
+      const carriedOn = slotHolds(setup, definition.id, found.completed.length);
+      await race.load(carriedOn ? withLevelsOf(setup.definition, definition) : definition, found.completed);
 
       return view(found, await race.launch());
     },
@@ -369,6 +372,20 @@ export const createQuickRaceStore = async (
       scores.delete(id);
 
       return keep({ race: { ...found.race, updatedAt: new Date().toISOString() }, completed: [] });
+    },
+
+    async strength(id, strength) {
+      // Read and written with nothing awaited between, so a launch landing
+      // meanwhile cannot be written over.
+      const found = held(id);
+      const grid = withStrength(found.race.grid ?? {}, keptStep(strength));
+
+      // Its launches stay: they recorded what they raced at, and only the ones
+      // still to come take the new step.
+      return keep({
+        race: { ...found.race, grid, updatedAt: new Date().toISOString() },
+        completed: found.completed,
+      });
     },
 
     onChange(listener) {

@@ -5,7 +5,7 @@ import type { RaceProgress } from './types.ts';
 import { summarise } from '../../core/results/index.ts';
 import { baseRaceId } from '../../core/series/index.ts';
 import type {
-  EventState, RaceOut, RaceSetup, ResultRecord, Track,
+  EventState, RaceDefinition, RaceOut, RaceSetup, ResultRecord, Track,
 } from '../../shared/types/index.ts';
 
 /**
@@ -111,7 +111,7 @@ export const progressOf = (
 
 /**
  * Whether the slot already holds an event exactly as far as it has run, so its
- * next launch can go without putting it back first.
+ * next launch can carry on from the race the slot holds.
  *
  * Never before its first launch: whatever set the slot up then may since have
  * been edited, or had its forecast issued, and the race has to be the one the
@@ -119,11 +119,37 @@ export const progressOf = (
  * @param setup The race store as it stands
  * @param raceId The event's race id
  * @param completed How many of its launches have run
- * @returns True when launching can carry on from the slot as it is
+ * @returns True when launching can carry on from the slot's race
  */
 export const slotHolds = (setup: RaceSetup, raceId: string, completed: number): boolean => (
   completed > 0 && setup.definition.id === raceId && (setup.state?.completed.length ?? 0) === completed
 );
+
+/**
+ * The race an event part-way through was set up with, its AI levels taken from
+ * the same event lowered afresh - which is how the difficulty and the player's
+ * own steps reach its next session while its weather, its grip and its field
+ * stay what the event started with.
+ * @param held The race the slot holds
+ * @param fresh The same event, lowered again now
+ * @returns The held race with each AI seat's levels, and each class's strength,
+ * as they now are
+ */
+export const withLevelsOf = (held: RaceDefinition, fresh: RaceDefinition): RaceDefinition => {
+  const levels = new Map((fresh.grid?.opponents ?? [])
+    .flatMap((car) => (car.seat === undefined ? [] : [[car.seat, car]])));
+  const opponents = held.grid?.opponents?.map((car) => {
+    const now = car.seat === undefined ? undefined : levels.get(car.seat);
+
+    return now ? { ...car, aiLevel: now.aiLevel, aiAggression: now.aiAggression } : car;
+  });
+
+  return {
+    ...held,
+    ...(held.grid && opponents ? { grid: { ...held.grid, opponents } } : {}),
+    ...(fresh.classStrength ? { classStrength: fresh.classStrength } : {}),
+  };
+};
 
 /**
  * A result with the layout it ran on, found among the installed tracks.

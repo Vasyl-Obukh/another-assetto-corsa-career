@@ -79,6 +79,16 @@ export interface QuickRaceStore {
    */
   restart(id: string): Promise<QuickRaceView>;
   /**
+   * Sets a race's own step on the AI's strength - the one thing about it that
+   * may still change once a session has run. Read at every launch, so it
+   * reaches the next session and never one already run.
+   * @param id The race
+   * @param strength The step, zero for none
+   * @returns Its view
+   * @throws AppError when the step moves the AI further than a step may
+   */
+  strength(id: string, strength: number): Promise<QuickRaceView>;
+  /**
    * Subscribes to any race changing, a launch of one landing included.
    * @param listener Called with every race whenever any of them changes
    * @returns A function that removes the listener

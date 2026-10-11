@@ -9,7 +9,7 @@ import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
 import { slots } from '@/lib/slots.ts';
-import { BriefTile } from '@/screens/event';
+import { BriefTile, RacedStrengthSkeleton, StrengthCardSkeleton } from '@/screens/event';
 
 interface RaceEventSkeletonProps {
   /**
@@ -22,9 +22,9 @@ interface RaceEventSkeletonProps {
 /**
  * A race event's page under its header while it is read. The pickers down
  * the side, then either the setup - classes, sessions, rules - or, for one
- * already under way, its sessions below the pickers and beside them the one
- * open, or the event's results once it has finished - each laid out as the
- * loaded page lays it out.
+ * already under way, its sessions and its AI strength below the pickers and
+ * beside them the one open, or the event's results once it has finished - each
+ * laid out as the loaded page lays it out.
  */
 export const RaceEventSkeleton = ({ phase }: RaceEventSkeletonProps) => {
   const { t } = useTranslation();
@@ -84,6 +84,8 @@ export const RaceEventSkeleton = ({ phase }: RaceEventSkeletonProps) => {
             </CardContent>
           </Card>
         ) : null}
+        {phase === 'running' ? <StrengthCardSkeleton label={t('strength.race')} /> : null}
+        {phase === 'finished' ? <RacedStrengthSkeleton rows={EVENT_ROW_SKELETON} /> : null}
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">

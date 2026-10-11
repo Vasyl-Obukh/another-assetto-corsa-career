@@ -653,6 +653,41 @@ describe('core/series', () => {
       expect(first).toMatchObject({ aiLevel: 75, aiAggression: 30 });
     });
 
+    it('records the strength every class races at, before any driver adds their own', () => {
+      const base = makeSeries({ grid: { strength: 5 } });
+      const series = {
+        ...base,
+        entries: [
+          { ...base.entries[0], grid: { strength: -2 } },
+          { ...base.entries[0], id: 'second', name: 'Second', grid: { strength: 3 } },
+        ],
+        rounds: [{ ...base.rounds[0], grid: { strength: 1 } }],
+      };
+      const field: FieldSeat[] = [{ seat: 'main-1', model: 'test_car', strength: 2, aggression: 0 }];
+
+      expect(lowerWith(series, field, { strength: 70, aggression: 20 }).classStrength)
+        .toEqual({ main: 74, second: 79 });
+    });
+
+    it('records no strength for a class with no AI in it', () => {
+      const base = makeSeries();
+      const series = {
+        ...base,
+        entries: [
+          { ...base.entries[0], seats: [{ id: 'main-1' }] },
+          { ...base.entries[0], id: 'second', name: 'Second' },
+        ],
+      };
+
+      expect(lowerWith(series).classStrength).toEqual({ second: DEFAULT_OPPONENTS.strength });
+    });
+
+    it('holds a recorded class strength inside the range Assetto Corsa accepts', () => {
+      const series = makeSeries({ grid: { strength: 10 } });
+
+      expect(lowerWith(series, undefined, { strength: 95, aggression: 30 }).classStrength).toEqual({ main: 100 });
+    });
+
     it('draws a round\'s own car for a seat whose season car it does not run', () => {
       const field: FieldSeat[] = [
         {

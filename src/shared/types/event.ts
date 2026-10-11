@@ -55,6 +55,11 @@ export interface EventPlan {
    * The launches, in the order they must be run.
    */
   launches: EventLaunch[];
+  /**
+   * The AI strength each class races at, carried from the definition so a
+   * launch can record it.
+   */
+  classStrength?: Record<string, number>;
 }
 
 /**
@@ -111,6 +116,15 @@ export interface LaunchRecord {
    * archived.
    */
   skipped?: boolean;
+  /**
+   * The AI strength each class raced this launch at, keyed by class entry id.
+   *
+   * What was actually raced rather than what the difficulty says now: the
+   * difficulty and the player's own steps may change between sessions, and
+   * reach only the launches after them. Absent on a launch of a race with no
+   * classes, and on one simulated rather than driven.
+   */
+  classStrength?: Record<string, number>;
 }
 
 /**

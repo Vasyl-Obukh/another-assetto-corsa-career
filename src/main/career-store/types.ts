@@ -25,6 +25,28 @@ export interface EnteredEvent {
 }
 
 /**
+ * A step on the AI's strength, for an edition or one round of it.
+ */
+export interface StrengthRequest {
+  /**
+   * The championship's id.
+   */
+  series: string;
+  /**
+   * Which of the season's editions - the one being raced when omitted.
+   */
+  edition?: number;
+  /**
+   * The round the step is for, or omitted for every round of the edition.
+   */
+  round?: string;
+  /**
+   * The step, zero for none.
+   */
+  strength: number;
+}
+
+/**
  * Which round of which championship a command is about.
  */
 export interface EventRequest {
@@ -140,6 +162,17 @@ export interface CareerStore {
    * @throws When that championship was not entered
    */
   withdraw(request: { series: string; entry: string; edition?: number }): Promise<Career>;
+  /**
+   * Sets the player's own step on the AI's strength for an edition the career
+   * is in: for every round of it, or for the one round named. Read at every
+   * launch, so it reaches the next session and never one already run.
+   * @param request Which championship and edition - the one being raced when
+   * it names none - which round, if only one, and the step, zero for none
+   * @returns The career
+   * @throws When the edition is not entered, the round has been run, or the
+   * step moves the AI further than a step may
+   */
+  strength(request: StrengthRequest): Promise<Career>;
   /**
    * Moves the clock forward, stopping at the first enrolled event on the way
    * - or, once the player has confirmed what it costs, all the way. A move past

@@ -109,6 +109,15 @@ export interface SeasonEvent {
    * on one that could not be, which stays a plain non-start.
    */
   simulated?: boolean;
+  /**
+   * The player's own step on the AI's strength for this round alone, laid over
+   * the season's step - absent for none.
+   *
+   * The career's rather than the championship's, so a track where the AI are
+   * quicker than anywhere else is answered without editing the document. An
+   * offset, so the difficulty in settings still moves the round.
+   */
+  strength?: number;
 }
 
 /**
@@ -194,6 +203,12 @@ export interface SeasonEntry {
    * and a season's history should say that it was abandoned rather than lose it.
    */
   withdrawn?: boolean;
+  /**
+   * The player's own step on the AI's strength for every round of this
+   * edition, laid over the championship's and the class's offsets - absent for
+   * none. Each round may add a step of its own.
+   */
+  strength?: number;
 }
 
 /**
@@ -584,6 +599,52 @@ export interface EventEntry {
 }
 
 /**
+ * What the AI's strength in one round of the career's is made of, below the
+ * difficulty in settings, which the renderer reads for itself.
+ */
+export interface EventStrength {
+  /**
+   * The championship's own offset.
+   */
+  championship: number;
+  /**
+   * Every class of the championship and its own offset, the player's included,
+   * in the championship's order.
+   */
+  classes: readonly {
+    /**
+     * The class entry's id.
+     */
+    entry: string;
+    /**
+     * Its display name.
+     */
+    name: string;
+    /**
+     * Its own offset.
+     */
+    offset: number;
+  }[];
+  /**
+   * The offset the championship writes for this round.
+   */
+  round: number;
+  /**
+   * The player's step for the whole edition.
+   */
+  season: number;
+  /**
+   * The player's step for this round.
+   */
+  step: number;
+  /**
+   * Whether the round's step may still change: the round is in the current
+   * season and still to be raced, or part-way through.
+   */
+  editable: boolean;
+}
+
+/**
  * One round, as the event page reads it.
  *
  * Derived on every read, never stored: it joins the career's event, the season's
@@ -667,6 +728,10 @@ export interface CareerEventView {
    * How the career is entered, or null when it is not.
    */
   entered: EventEntry | null;
+  /**
+   * What the AI's strength is made of, or null when the career is not entered.
+   */
+  strength: EventStrength | null;
   /**
    * The classes it can be entered in, for a career not yet in it.
    */

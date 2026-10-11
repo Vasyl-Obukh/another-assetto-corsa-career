@@ -10,7 +10,7 @@ import type { DetailTab } from './types.ts';
 import { Loading, Shimmer } from '@/components';
 import { slots } from '@/lib/slots.ts';
 import { cn } from '@/lib/utils.ts';
-import { EnterPanelSkeleton } from '@/screens/event';
+import { EnterPanelSkeleton, StrengthCardSkeleton } from '@/screens/event';
 
 interface DetailSkeletonProps {
   /**
@@ -27,6 +27,10 @@ interface DetailSkeletonProps {
    */
   manage: boolean;
   /**
+   * Whether the page will offer the season's step on the AI's strength.
+   */
+  strength: boolean;
+  /**
    * The tab the page opens on.
    */
   tab: DetailTab;
@@ -37,7 +41,7 @@ interface DetailSkeletonProps {
  * the round table under its real headings, and a class row.
  */
 export const DetailSkeleton = ({
-  entered, enterable, manage, tab,
+  entered, enterable, manage, strength, tab,
 }: DetailSkeletonProps) => {
   const { t } = useTranslation();
 
@@ -67,6 +71,7 @@ export const DetailSkeleton = ({
           {entered ? <Shimmer className="h-32 w-full rounded-lg" /> : null}
         </section>
         {enterable ? <EnterPanelSkeleton showFirstRound /> : null}
+        {strength ? <StrengthCardSkeleton label={t('strength.season')} note={false} /> : null}
         {manage ? null : (
           <section className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
             <h2 className="font-semibold">{t(entered ? 'standings.season.title' : 'standings.title')}</h2>
