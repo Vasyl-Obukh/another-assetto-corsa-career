@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { CarListField } from './CarListField.tsx';
 import { CarShots } from './CarShots.tsx';
@@ -12,6 +12,7 @@ import { carSpecName, carSpecsOf } from '../../../../shared/utils/car-classes';
 import { carsOf } from '../../../../shared/utils/eligibility';
 import { useClasses } from '@/app';
 import { CarPicker, SpecField } from '@/components';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { Field } from '@/screens/race';
 
@@ -90,7 +91,7 @@ interface EligibilityFieldProps {
 export const EligibilityField = ({
   idPrefix, eligibility, locked, nameOf, onChange, showCars = true, minModels = true, pictured,
 }: EligibilityFieldProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const [picking, setPicking] = useState(false);
 

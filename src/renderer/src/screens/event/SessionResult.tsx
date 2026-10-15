@@ -20,13 +20,14 @@ import { usePlayerName } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { classAccent } from '@/lib/accents';
 import { classifiedRows, racedClasses } from '@/lib/classification';
+import { prizeFor } from '@/lib/season-review';
 
 interface SessionResultProps {
   /**
    * The event: its grid, and whether the player raced it - a round of the
    * career, or a race event of the player's own.
    */
-  view: Pick<CareerEventView, 'grid' | 'substituted' | 'status'>;
+  view: Pick<CareerEventView, 'grid' | 'substituted' | 'status'> & Partial<Pick<CareerEventView, 'historic'>>;
   /**
    * The session, which has run.
    */
@@ -225,6 +226,11 @@ export const SessionResult = ({
             playerName={playerName}
             footnote={footnote}
             classes={classes}
+            // A historic event pays money and no points, so its places say
+            // what they were worth.
+            prizeOf={view.historic && series ? (row) => (
+              row.place && !row.place.bonusOnly ? prizeFor(series, row.place.entry, row.place.classPosition) : null
+            ) : undefined}
           />
         </div>
       ) : null}

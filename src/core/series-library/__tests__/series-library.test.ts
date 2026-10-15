@@ -217,6 +217,20 @@ describe('core/series-library', () => {
       expect(library.series.every((held) => held.origin === 'shipped')).toBe(true);
     });
 
+    it('reads whatever shipped list it is handed in place of the championships', async () => {
+      const library = await loadSeriesLibrary(undefined, [{ series: championship('cup-one'), active: false }]);
+
+      expect(library.series.map((held) => held.series.id)).toEqual(['cup-one']);
+      expect(library.series[0].activeByDefault).toBe(false);
+    });
+
+    it('lets a user file replace an entry of a shipped list it was handed', async () => {
+      givenFiles({ 'mine.json': seriesFile({ id: 'cup-one', name: 'Mine' }) });
+      const library = await loadSeriesLibrary('user-dir', [{ series: championship('cup-one'), active: true }]);
+
+      expect(library.series.map((held) => [held.series.name, held.origin])).toEqual([['Mine', 'adjusted']]);
+    });
+
     it('orders them by the rung they are entered at, easiest first', async () => {
       const library = await loadSeriesLibrary();
       const tiers = library.series.map((held) => Math.max(

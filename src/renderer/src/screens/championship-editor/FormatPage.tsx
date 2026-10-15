@@ -1,5 +1,5 @@
 import { CopyIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { RowActions } from './RowActions.tsx';
 import { SessionsSplit } from './SessionsSplit.tsx';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { useKindTranslation } from '@/i18n';
 import { FormatStrip } from '@/screens/championships';
 
 interface FormatPageProps {
@@ -58,7 +59,7 @@ interface FormatPageProps {
 export const FormatPage = ({
   series, format, weather, controllers, system, locked, onChange, onDuplicate,
 }: FormatPageProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const isDefault = series.defaultEventFormat === format.id;
   const running = roundsRunning(series, format.id);
 

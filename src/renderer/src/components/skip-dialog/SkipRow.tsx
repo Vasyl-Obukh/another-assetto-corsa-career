@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SKIP_ACCENT } from './constants.ts';
 import type { SkippedRound } from '../../../../shared/types';
+import { HistoricChip } from '../HistoricChip.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import { disciplineDot } from '@/lib/accents';
@@ -31,9 +32,18 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
         className={cn('self-stretch', disciplineDot(round.ladder))}
       />
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-sm font-medium">
-          {named ? t('skip.named', { series: round.seriesName, round: title }) : title}
-        </span>
+        {/* A historic event is one event: its chip stands where a round says
+            which round it is, and its name only where no heading gives it. */}
+        {round.historic ? (
+          <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+            <HistoricChip className="shrink-0 px-1.5 py-0 text-[0.65rem]" />
+            {named ? <span className="truncate">{round.seriesName}</span> : null}
+          </span>
+        ) : (
+          <span className="truncate text-sm font-medium">
+            {named ? t('skip.named', { series: round.seriesName, round: title }) : title}
+          </span>
+        )}
         <span className="text-xs text-muted-foreground">
           {formatDayShort(round.date)}
         </span>

@@ -67,6 +67,7 @@ export const TrackTable = ({
       <table className="w-full border-collapse text-sm">
         <thead className="border-b">
           <tr>
+            {toggle === undefined ? null : <th scope="col" aria-hidden />}
             <th scope="col" aria-hidden />
             <SortHeader {...heading} label={t('tracks.column.circuit')} sortKey="name" />
             <SortHeader {...heading} label={t('tracks.column.country')} sortKey="country" className={TRACK_COLUMN.wide} />
@@ -76,7 +77,6 @@ export const TrackTable = ({
             <SortHeader {...heading} label={t('tracks.column.located')} className={TRACK_COLUMN.located} />
             <SortHeader {...heading} label={t('tracks.column.championships')} />
             <SortHeader {...heading} label={t('tracks.column.source')} className={TRACK_COLUMN.wide} />
-            {toggle === undefined ? null : <th scope="col" aria-hidden />}
           </tr>
         </thead>
         <tbody>

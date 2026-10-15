@@ -9,10 +9,11 @@ import { createContentStore } from './content-store/index.ts';
 import { registerHandlers, send } from './ipc/index.ts';
 import { createQuickRaceStore } from './quick-race-store/index.ts';
 import { createRaceStore } from './race-store/index.ts';
-import { createSeriesStore } from './series-store/index.ts';
+import { createSeriesStore, HISTORIC_DIR } from './series-store/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
 import { createWindow, followRace } from './window/index.ts';
+import { historicProblems, SHIPPED_HISTORIC } from '../core/historic-library/index.ts';
 
 // The app sits alongside a running game; a second copy racing it for the same
 // settings file and the same AC folders helps nobody.
@@ -45,14 +46,24 @@ if (!app.requestSingleInstanceLock()) {
       classes,
       settings,
     );
+    // The historic events are one-round championships, so they are kept by a
+    // second store of the same kind over a library of their own.
+    const historic = await createSeriesStore(
+      app.getPath('userData'),
+      content,
+      race,
+      classes,
+      settings,
+      { dir: HISTORIC_DIR, shipped: SHIPPED_HISTORIC, rules: historicProblems },
+    );
     // After the series store, because a career is entered into championships it
     // resolves. It subscribes to the race store itself rather than being wired
     // here: deciding that an event has finished means reading the plan, the
     // progress and the phase together, which is a career rule and not wiring.
-    const career = await createCareerStore(app.getPath('userData'), series, race, content, settings);
+    const career = await createCareerStore(app.getPath('userData'), series, historic, race, content, settings);
     const quick = await createQuickRaceStore(app.getPath('userData'), content, classes, series, settings, race);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race, series, classes, career, quick);
+    registerHandlers(settings, content, race, series, historic, classes, career, quick);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
@@ -83,12 +94,19 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow) send(mainWindow, 'series:changed', library);
     });
 
+    historic.onChange((library) => {
+      if (mainWindow) send(mainWindow, 'historic:changed', library);
+    });
+
     classes.onChange((layer) => {
       content.classify(classes.catalogue());
       if (mainWindow) send(mainWindow, 'classes:changed', layer);
       // What a spec holds decides whether a championship can be raced.
       series.refresh().catch((error: unknown) => {
         console.error('Could not refresh the championship library.', error);
+      });
+      historic.refresh().catch((error: unknown) => {
+        console.error('Could not refresh the historic events.', error);
       });
     });
 

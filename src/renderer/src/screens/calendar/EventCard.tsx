@@ -2,6 +2,7 @@ import { ArrowRightIcon, LockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { CalendarEntry } from '../../../../shared/types';
+import { HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import {
@@ -67,9 +68,12 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-mono text-[0.65rem] text-muted-foreground">
-              {t('calendar.round', { number: event.number })}
-            </span>
+            {/* A historic event has no round number; its chip stands there. */}
+            {event.historic ? <HistoricChip className="px-1.5 py-0 text-[0.65rem]" /> : (
+              <span className="font-mono text-[0.65rem] text-muted-foreground">
+                {t('calendar.round', { number: event.number })}
+              </span>
+            )}
             <Badge className={cn('px-1.5 py-0 text-[0.65rem]', DISCIPLINE_ACCENT[event.ladder.discipline])}>
               {event.entryName}
             </Badge>
@@ -100,7 +104,10 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
           </h3>
 
           <p className="truncate text-xs text-muted-foreground">
-            {[event.roundName, ...lengths, t('calendar.grid', { count: event.gridSize })].join(' · ')}
+            {/* A historic event's one round is named after the event, which
+                the title already says. */}
+            {[...(event.historic ? [] : [event.roundName]), ...lengths, t('calendar.grid', { count: event.gridSize })]
+              .join(' · ')}
           </p>
         </div>
 
@@ -129,7 +136,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
             be confused. */}
         {yours && !event.clash ? (
           <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">
-            {t('calendar.enrolled')}
+            {t(event.historic ? 'calendar.invited' : 'calendar.enrolled')}
           </Badge>
         ) : null}
         {event.clash ? (

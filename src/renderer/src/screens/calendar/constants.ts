@@ -1,5 +1,5 @@
 import type {
-  CalendarCriteria, CalendarStatus, CalendarView, MonthTick,
+  CalendarCriteria, CalendarEventKind, CalendarStatus, CalendarView, MonthTick,
 } from './types.ts';
 
 /**
@@ -15,7 +15,13 @@ export const CALENDAR_STATUSES: readonly CalendarStatus[] = [
  * Everything, because a career with nothing entered would otherwise open on an
  * empty page and have no way to find something to enter.
  */
-export const DEFAULT_CRITERIA: CalendarCriteria = { status: 'all', disciplines: [] };
+export const DEFAULT_CRITERIA: CalendarCriteria = { status: 'all', disciplines: [], kinds: [] };
+
+/**
+ * The kinds of event the toolbar can narrow the calendar to, in the order they
+ * are shown.
+ */
+export const CALENDAR_EVENT_KINDS: readonly CalendarEventKind[] = ['championship', 'historic'];
 
 /**
  * The layouts the view switch offers, in the order they are shown.

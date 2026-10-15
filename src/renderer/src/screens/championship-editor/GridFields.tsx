@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 
 import { AiResult } from './AiResult.tsx';
 import { AI_RANGE, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD } from '../../../../shared/constants';
 import type { SeriesGrid } from '../../../../shared/types';
 import { useSettings } from '@/app';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 
 interface GridFieldsProps {
@@ -46,7 +46,7 @@ interface GridFieldsProps {
 export const GridFields = ({
   grid, above = [], own, idPrefix, locked, onChange,
 }: GridFieldsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { settings } = useSettings();
   const { formatNumber } = useFormat();
 

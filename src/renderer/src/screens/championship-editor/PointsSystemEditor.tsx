@@ -1,6 +1,6 @@
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { MAX_BONUS_POINTS, MIN_POINTS, POINTS_TEMPLATES } from './constants.ts';
 import { NumberedStep } from './NumberedStep.tsx';
@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 interface PointsSystemEditorProps {
@@ -51,7 +52,7 @@ interface PointsSystemEditorProps {
 export const PointsSystemEditor = ({
   series, points, locked, onChange, onPick,
 }: PointsSystemEditorProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [template, setTemplate] = useState<PointsTemplate | null>(null);
   const isDefault = series.defaultPointsSystem === points.id;
   const qualifying = points.qualifying ?? [];

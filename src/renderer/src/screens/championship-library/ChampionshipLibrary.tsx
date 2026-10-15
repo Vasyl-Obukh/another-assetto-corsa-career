@@ -3,20 +3,31 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
+import { LIBRARY_VIEW_MEMORY } from './constants.ts';
+import { LibraryTable } from './LibraryTable.tsx';
 import type { SeriesImportResult } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { useSettings } from '@/app';
 import {
   ActiveFilters, BrowserLayout, ErrorCard, Loading, ProblemList, SearchField, SortMenu, TOOLBAR_SEARCH,
+  ViewToggle,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useChampionshipBrowser, useChampionships, useSeriesCommands } from '@/hooks';
+import { readBrowserView } from '@/lib/browser-memory';
+import type { BrowserView } from '@/lib/browser-memory';
 import { path } from '@/lib/routes';
 import { slots } from '@/lib/slots.ts';
+import { readPreference, writePreference } from '@/lib/stored-preference';
 import {
   CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, championshipFilters, championshipPills, ChampionshipRail, NoneMatch,
   SEASON_SKELETON, SeasonCard, SeasonCardSkeleton,
 } from '@/screens/championships';
+
+/**
+ * The cards' grid.
+ */
+const GRID = 'grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4';
 
 export const ChampionshipLibrary = () => {
   const { t } = useTranslation();
@@ -25,6 +36,7 @@ export const ChampionshipLibrary = () => {
   const commands = useSeriesCommands();
   const { settings } = useSettings();
   const [refused, setRefused] = useState<SeriesImportResult | null>(null);
+  const [view, setView] = useState<BrowserView>(() => readBrowserView(readPreference(LIBRARY_VIEW_MEMORY)));
 
   // One card rather than two: the two hooks fail for the same kinds of reason,
   // and stacking a second banner under the first says nothing extra.
@@ -50,6 +62,15 @@ export const ChampionshipLibrary = () => {
     !championships.loading,
   );
   const { criteria } = browser;
+
+  /**
+   * Shows the library as cards or a table, and keeps that for next time.
+   * @param next Which
+   */
+  const changeView = (next: BrowserView): void => {
+    setView(next);
+    writePreference(LIBRARY_VIEW_MEMORY, next);
+  };
 
   return (
     <BrowserLayout
@@ -98,6 +119,8 @@ export const ChampionshipLibrary = () => {
               <UploadIcon />
               {t('championships.actions.import')}
             </Button>
+
+            <ViewToggle value={view} onChange={changeView} />
           </div>
 
           <ActiveFilters
@@ -139,20 +162,39 @@ export const ChampionshipLibrary = () => {
           hint={t('championships.problems.hint')}
         />
 
-        {championships.loading ? (
-          <Loading className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4">
+        {championships.loading && view === 'cards' ? (
+          <Loading className={GRID}>
             {slots(SEASON_SKELETON).map((at) => <SeasonCardSkeleton key={at} />)}
+          </Loading>
+        ) : null}
+        {championships.loading && view === 'list' ? (
+          <Loading>
+            <LibraryTable
+              listings={[]}
+              commands={commands}
+              criteria={criteria}
+              onCriteria={browser.setCriteria}
+              loading
+            />
           </Loading>
         ) : null}
 
         {offered.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
 
-        {browser.shown.length > 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4">
+        {browser.shown.length > 0 && view === 'cards' ? (
+          <div className={GRID}>
             {browser.shown.map((listing) => (
               <SeasonCard key={listing.series.id} listing={listing} commands={commands} />
             ))}
           </div>
+        ) : null}
+        {browser.shown.length > 0 && view === 'list' ? (
+          <LibraryTable
+            listings={browser.shown}
+            commands={commands}
+            criteria={criteria}
+            onCriteria={browser.setCriteria}
+          />
         ) : null}
       </div>
     </BrowserLayout>

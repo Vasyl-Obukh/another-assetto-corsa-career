@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 
 import { DEFAULT_REF } from './constants.ts';
 import type { Championship, SeriesSession } from '../../../../shared/types';
@@ -6,6 +5,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -37,7 +37,7 @@ interface RacesPayingProps {
 export const RacesPaying = ({
   series, system, locked, onChange,
 }: RacesPayingProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const defaultName = series.pointsSystems.find((one) => one.id === series.defaultPointsSystem)?.name ?? '';
   const races = series.eventFormats.flatMap((format) => format.sessions
     .map((session, index) => ({ format, session, index }))

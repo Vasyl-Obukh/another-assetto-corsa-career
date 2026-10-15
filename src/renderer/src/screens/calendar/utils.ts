@@ -1,10 +1,12 @@
-import { CALENDAR_STATUSES, CALENDAR_VIEWS, DEFAULT_CRITERIA } from './constants.ts';
+import {
+  CALENDAR_EVENT_KINDS, CALENDAR_STATUSES, CALENDAR_VIEWS, DEFAULT_CRITERIA,
+} from './constants.ts';
 import type {
   AgendaDay, CalendarCriteria, CalendarStatus, CalendarView, MonthTick, SeasonMonth,
 } from './types.ts';
 import { DAYS_PER_WEEK, DISCIPLINES } from '../../../../shared/constants';
 import type { CalendarEntry, Discipline } from '../../../../shared/types';
-import { addDays } from '../../../../shared/utils/calendar-days';
+import { addDays, weekdayOf } from '../../../../shared/utils/calendar-days';
 import { isRecord, memberOf } from '../../../../shared/utils/coerce';
 
 /**
@@ -19,9 +21,10 @@ import { isRecord, memberOf } from '../../../../shared/utils/coerce';
  * @returns True when it is shown
  */
 export const passesFilter = (event: CalendarEntry, criteria: CalendarCriteria): boolean => {
-  const { status, disciplines } = criteria;
+  const { status, disciplines, kinds } = criteria;
 
   if (disciplines.length > 0 && !disciplines.includes(event.ladder.discipline)) return false;
+  if (kinds.length > 0 && !kinds.includes(event.historic ? 'historic' : 'championship')) return false;
   if (status === 'entered') return event.enrolled;
   if (status === 'locked') return !event.eligible;
   if (status === 'available') return event.eligible && event.raceable && !event.enrolled;
@@ -202,7 +205,7 @@ export const seasonMonths = (
  */
 export const monthGrid = (month: string): string[] => {
   // getUTCDay counts from Sunday; the grid's weeks start on a Monday.
-  const lead = (new Date(`${month}T00:00:00Z`).getUTCDay() + DAYS_PER_WEEK - 1) % DAYS_PER_WEEK;
+  const lead = (weekdayOf(month) + DAYS_PER_WEEK - 1) % DAYS_PER_WEEK;
   const start = addDays(month, -lead);
   const last = addDays(shiftMonth(month, 1), -1);
   const days: string[] = [];
@@ -247,10 +250,15 @@ export const readCriteria = (stored: unknown): CalendarCriteria => {
   const disciplines = Array.isArray(stored.disciplines)
     ? stored.disciplines.flatMap((one) => memberOf(one, DISCIPLINES) ?? [])
     : [];
+  // Missing reads as nothing picked, which shows both.
+  const kinds = Array.isArray(stored.kinds)
+    ? stored.kinds.flatMap((one) => memberOf(one, CALENDAR_EVENT_KINDS) ?? [])
+    : [];
 
   return {
     status: memberOf(stored.status, CALENDAR_STATUSES) ?? DEFAULT_CRITERIA.status,
     disciplines: [...new Set(disciplines)],
+    kinds: [...new Set(kinds)],
   };
 };
 

@@ -1,10 +1,11 @@
 import { CornerDownRightIcon, GripVerticalIcon } from 'lucide-react';
 import type { DragEvent } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { groupsSet } from './utils.ts';
 import type { SeriesSession } from '../../../../shared/types';
 import { WEATHER_ICON, WEATHER_TYPE_LABEL, weatherKindOf } from '@/components';
+import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
@@ -70,7 +71,7 @@ export const SessionBlock = ({
   session, name, length, from, selected, dragging, draggable, onSelect,
   onDragStart, onDragEnd, onDragOver, onDrop,
 }: SessionBlockProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const conditions = session.conditions ?? {};
   const own = groupsSet(conditions);
   // A single weather is one of a closed set and wears its picker colour; a

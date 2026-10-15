@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 
 import type { ClassEntry, EntryAvailability } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { useClasses } from '@/app';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { TierMedal } from '@/screens/championships';
 
@@ -38,7 +38,7 @@ interface ClassListItemProps {
 export const ClassListItem = ({
   entry, availability, selected, disabled, onSelect,
 }: ClassListItemProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const cars = entry.eligibility.kind === 'spec'
     ? carSpecName(entry.eligibility.spec, catalogue)

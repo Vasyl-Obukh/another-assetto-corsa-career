@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { YEAR_SKELETON } from './constants.ts';
+import { HistoricSectionSkeleton } from './HistoricSectionSkeleton.tsx';
 import { Loading, ResultStrip, Shimmer } from '@/components';
 import { slots } from '@/lib/slots.ts';
 
@@ -50,6 +51,7 @@ export const YearReviewSkeleton = () => {
           </div>
         ))}
       </div>
+      <HistoricSectionSkeleton />
     </Loading>
   );
 };

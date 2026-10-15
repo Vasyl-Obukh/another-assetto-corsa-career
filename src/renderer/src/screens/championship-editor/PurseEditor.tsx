@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import {
   MAX_PURSE_PLACES, PURSE_ROUNDING, PURSE_SHAPE_BARS, PURSE_SHAPES,
@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { PlaceBadge } from '@/screens/championships';
@@ -66,7 +67,7 @@ interface PurseEditorProps {
 export const PurseEditor = ({
   idPrefix, title, hint, values, disabled, onChange,
 }: PurseEditorProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatMoney } = useFormat();
   const [recipe, setRecipe] = useState<PurseRecipe>(() => recipeOf(values));
   // Places typed over since the table was last generated, and whether it has

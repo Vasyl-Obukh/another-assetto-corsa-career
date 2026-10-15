@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 
 import { paysInAll } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { TierMedal } from '@/screens/championships';
 
@@ -24,7 +24,7 @@ interface WhoPaysProps {
  * so a class paying its own is not a surprise found on its own tab.
  */
 export const WhoPays = ({ series, onOpen }: WhoPaysProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatMoney } = useFormat();
 
   return (

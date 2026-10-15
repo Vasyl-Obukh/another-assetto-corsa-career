@@ -803,6 +803,7 @@ describe('main/career-store/utils', () => {
         ladder: { discipline: Discipline.ROAD, tier: 4 },
         date: '2026-05-03',
         reason: 'skipped',
+        historic: false,
       });
     });
 
@@ -827,6 +828,11 @@ describe('main/career-store/utils', () => {
 
     it('says which edition the round was lost from', () => {
       expect(skippedRound(makeChampionship(), 'main', 2, makeEvent('one', '2026-03-01'), 'skipped').edition).toBe(2);
+    });
+
+    it('says when what was lost is a historic event rather than a championship round', () => {
+      expect(skippedRound(makeChampionship(), 'main', 0, makeEvent('one', '2026-03-01'), 'clash', true).historic)
+        .toBe(true);
     });
   });
 
@@ -933,6 +939,37 @@ describe('main/career-store/utils', () => {
       });
 
       expect(launchSkips(makeSeason({ entries: [entry] }), { entry, event: entry.events[0] }, false)).toEqual([]);
+    });
+
+    it('marks a historic event it loses as historic, whether earlier or on the same day', () => {
+      const entry = makeEntry({ events: [makeEvent('two', '2026-05-03')] });
+      const earlier = makeEntry({
+        series: 'british-gp-1967',
+        championship: makeChampionship({ id: 'british-gp-1967', name: 'British Grand Prix 1967' }),
+        events: [makeEvent('one', '2026-03-01')],
+        historic: true,
+      });
+      const sameDay = makeEntry({
+        series: 'monaco-gp-1961',
+        championship: makeChampionship({ id: 'monaco-gp-1961', name: 'Monaco Grand Prix 1961' }),
+        events: [makeEvent('one', '2026-05-03')],
+        historic: true,
+      });
+      const season = makeSeason({ entries: [entry, earlier, sameDay] });
+
+      const lost = launchSkips(season, { entry, event: entry.events[0] }, false);
+
+      expect(lost.map((one) => [one.series, one.reason, one.historic]))
+        .toEqual([['british-gp-1967', 'skipped', true], ['monaco-gp-1961', 'clash', true]]);
+    });
+
+    it('leaves a championship round it loses unmarked', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(launchSkips(season, { entry, event: entry.events[1] }, false)[0].historic).toBe(false);
     });
   });
 
@@ -1359,6 +1396,31 @@ describe('main/career-store/utils', () => {
       ).eligible).toBe(false);
     });
 
+    it('marks a historic event, which the career may race whatever its level', () => {
+      const entry = makeClassEntry({ ladder: { discipline: Discipline.ROAD, tier: 1 } });
+      const series = makeChampionship({ entries: [entry] });
+
+      expect(calendarEntry(
+        series, makeAvailability(series), entry, 0, makeEvent('one', '2026-05-03'), career, true, true,
+      )).toMatchObject({ historic: true, eligible: true });
+    });
+
+    it('says a historic event the career declined is no longer one it may race', () => {
+      const series = makeChampionship();
+
+      expect(calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, false, true,
+      ).eligible).toBe(false);
+    });
+
+    it('leaves a championship round unmarked', () => {
+      const series = makeChampionship();
+
+      expect(calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, true,
+      ).historic).toBe(false);
+    });
+
     it('says which edition the round belongs to and how many the championship runs', () => {
       const series = makeChampionship({ seasonLength: SeasonLength.QUARTER });
 
@@ -1389,6 +1451,20 @@ describe('main/career-store/utils', () => {
       expect(calendar.events[0]).toMatchObject({
         seriesName: 'Test Cup (as entered)', date: '2026-03-01', enrolled: true,
       });
+    });
+
+    it('marks a historic event the season drew as historic', () => {
+      const event = makeChampionship({ id: 'british-gp-1967', name: 'British Grand Prix 1967' });
+      const held = makeEntry({
+        series: 'british-gp-1967', championship: event, events: [makeEvent('one', '2026-03-01')], historic: true,
+      });
+      const season = makeSeason({ entries: [held] });
+
+      const calendar = composeCalendar(
+        makeCareer({ seasons: [season] }), season, [], new Map([[held, makeAvailability(event)]]), false,
+      );
+
+      expect(calendar.events.map((one) => [one.series, one.historic])).toEqual([['british-gp-1967', true]]);
     });
 
     it('draws a class the career did not enter from the library', () => {

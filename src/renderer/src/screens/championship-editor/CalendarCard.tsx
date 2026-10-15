@@ -1,6 +1,6 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { EditorSection } from './EditorSection.tsx';
 import { RoundDialog } from './RoundDialog.tsx';
@@ -13,6 +13,7 @@ import type {
 } from '../../../../shared/types';
 import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { moveAt, moveTo } from '@/screens/race';
 
 interface CalendarCardProps {
@@ -80,7 +81,7 @@ interface OpenRound {
 export const CalendarCard = ({
   series, checked, weather, controllers, system, locked, nameOf, onChange,
 }: CalendarCardProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [open, setOpen] = useState<OpenRound | null>(null);
   const { rounds } = series;
 

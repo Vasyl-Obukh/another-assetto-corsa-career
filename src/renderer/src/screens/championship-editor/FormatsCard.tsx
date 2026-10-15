@@ -1,12 +1,13 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { FormatPage } from './FormatPage.tsx';
 import { nextFormat, roundsRunning } from './utils.ts';
 import type {
   Championship, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { nextSession } from '@/screens/race';
 
@@ -45,7 +46,7 @@ interface FormatsCardProps {
 export const FormatsCard = ({
   series, weather, controllers, system, locked, onChange,
 }: FormatsCardProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [picked, setPicked] = useState<string | null>(null);
   const formats = series.eventFormats;
   const format = formats.find((one) => one.id === picked) ?? formats[0];

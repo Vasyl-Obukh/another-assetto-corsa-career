@@ -29,3 +29,14 @@ export const DOOR_ACCENT = {
   results: 'bg-session-race text-session-race-foreground',
   history: 'bg-podium-gold text-podium-gold-foreground',
 } as const;
+
+/**
+ * How many historic events Home's strip shows at once.
+ */
+export const HISTORIC_SHOWN = 6;
+
+/**
+ * How many of those may be behind the clock, so the strip shows what just
+ * happened as well as what is coming.
+ */
+export const HISTORIC_BEHIND = 2;

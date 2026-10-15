@@ -5,12 +5,22 @@
 // is nothing stored to fall out of step with it.
 
 import type {
-  ChampionshipReview, ClassChampions, EditionSummary, ReviewFigures, RoundStanding, TeammateRecord, YearReview,
+  ChampionshipReview,
+  ClassChampions,
+  EditionSummary,
+  HistoricOutcome,
+  HistoricReview,
+  HistoricRow,
+  ReviewFigures,
+  RoundStanding,
+  TeammateRecord,
+  YearReview,
 } from './types.ts';
 import type {
-  CareerSeason, ChampionshipResults, ChampionshipRun, RacePlace, RaceScore, SeasonEntry,
+  CareerSeason, Championship, ChampionshipResults, ChampionshipRun, RacePlace, RaceScore, SeasonEntry,
 } from '../../../../shared/types';
 import { editionsOf } from '../../../../shared/utils/editions';
+import { championshipEntries, historicEntries } from '../../../../shared/utils/historic';
 import { entryResults } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
 import { seasonResults } from '@/lib/season-results';
@@ -239,7 +249,9 @@ export const editionSummary = (entry: SeasonEntry, season: number, today: string
  * @returns Every edition it entered, and the season in numbers
  */
 export const yearReview = (season: CareerSeason, today: string): YearReview => {
-  const ordered = [...season.entries].sort((left, right) => (
+  // A historic event is a single event rather than an edition, and has a
+  // section of its own.
+  const ordered = championshipEntries(season).sort((left, right) => (
     (left.events[0]?.date ?? '').localeCompare(right.events[0]?.date ?? '')
   ));
   const reviews = ordered.map((entry) => ({ entry, review: championshipReview(entry, season.index) }));
@@ -263,5 +275,97 @@ export const yearReview = (season: CareerSeason, today: string): YearReview => {
       poles: sum((one) => one.poles),
       fastestLaps: sum((one) => one.fastestLaps),
     },
+  };
+};
+
+/**
+ * What one class place pays in prize money, by the purse of the class it is
+ * in - its own where it has one, the event's otherwise.
+ * @param series The championship or historic event
+ * @param entry The class entry's id
+ * @param classPosition The place within the class, counting from one
+ * @returns The prize, or null for a place that pays nothing
+ */
+export const prizeFor = (
+  series: Championship,
+  entry: string | null | undefined,
+  classPosition: number,
+): number | null => {
+  const held = series.entries.find((one) => one.id === entry);
+  const prize = (held?.prizes?.positions ?? series.prizes?.positions ?? [])[classPosition - 1] ?? 0;
+
+  return prize > 0 ? prize : null;
+};
+
+/**
+ * What became of one historic event, from the player's side.
+ * @param entry The historic event, as the season holds it
+ * @returns The outcome
+ */
+const outcomeOf = (entry: SeasonEntry): HistoricOutcome => {
+  const status = entry.events[0]?.status ?? 'scheduled';
+  if (status === 'missed') return entry.withdrawn ? 'declined' : 'missed';
+
+  return status;
+};
+
+/**
+ * One historic event of a season, as a list of them reads it.
+ * @param entry The historic event, as the season holds it
+ * @returns Its row
+ */
+const historicRow = (entry: SeasonEntry): HistoricRow => {
+  const event = entry.events[0];
+  const round = entry.championship.rounds.find((one) => one.id === event?.round);
+  const held = entry.championship.entries.find((one) => one.id === entry.entry);
+  const seat = held?.seats.find((one) => one.id === entry.playerSeat);
+  const places = (event?.score?.races ?? []).flatMap((race) => {
+    const place = ownPlace(race, entry.playerSeat);
+
+    return place ? [place] : [];
+  });
+  const last = places.at(-1);
+  // Per race, as a purse pays.
+  const prize = places.reduce((sum, place) => (
+    sum + (prizeFor(entry.championship, entry.entry, place.classPosition) ?? 0)
+  ), 0);
+
+  return {
+    series: entry.series,
+    round: event?.round ?? '',
+    name: entry.championship.name,
+    date: event?.date ?? '',
+    track: round?.track ?? { id: '' },
+    ladder: held?.ladder ?? null,
+    car: entry.car.model,
+    team: entry.championship.teams?.find((one) => one.id === seat?.team)?.name ?? null,
+    driver: seat?.driver?.name ?? null,
+    outcome: outcomeOf(entry),
+    started: (event?.sessions.length ?? 0) > 0,
+    qualified: last?.qualifyingPosition ?? null,
+    finished: last?.classPosition ?? null,
+    multiClass: entry.championship.entries.length > 1,
+    prize: prize > 0 ? prize : null,
+  };
+};
+
+/**
+ * A season's historic events, looked back on.
+ * @param season The season
+ * @returns Every one it drew, and what the player made of them
+ */
+export const historicReview = (season: CareerSeason): HistoricReview => {
+  const rows = historicEntries(season)
+    .map(historicRow)
+    .sort((left, right) => left.date.localeCompare(right.date));
+  const raced = rows.filter((row) => row.finished !== null);
+
+  return {
+    rows,
+    raced: raced.length,
+    wins: raced.filter((row) => row.finished === 1).length,
+    podiums: raced.filter((row) => (row.finished ?? 0) <= 3).length,
+    prize: rows.reduce((sum, row) => sum + (row.prize ?? 0), 0),
+    notRaced: rows.filter((row) => row.outcome === 'declined' || row.outcome === 'missed').length,
   };
 };

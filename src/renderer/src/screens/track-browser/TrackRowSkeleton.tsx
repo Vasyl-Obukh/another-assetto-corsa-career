@@ -15,6 +15,7 @@ interface TrackRowSkeletonProps {
  */
 export const TrackRowSkeleton = ({ toggle }: TrackRowSkeletonProps) => (
   <tr className="border-t first:border-t-0">
+    {toggle ? <td className="w-14 px-2.5 py-1.5"><Shimmer className="h-4.5 w-8 rounded-full" /></td> : null}
     <td className="w-20 py-1.5 pr-1 pl-2.5 @[44rem]:w-28">
       <Shimmer deep className="h-10 w-16 rounded-md @[44rem]:h-13 @[44rem]:w-24" />
     </td>
@@ -31,6 +32,5 @@ export const TrackRowSkeleton = ({ toggle }: TrackRowSkeletonProps) => (
     <td className={cn('px-2.5 py-1.5', TRACK_COLUMN.located)}><Shimmer className="size-4 rounded-full" /></td>
     <td className="px-2.5 py-1.5"><Shimmer className="h-3 w-8" /></td>
     <td className={cn('px-2.5 py-1.5', TRACK_COLUMN.wide)}><Shimmer className="h-5.5 w-16" /></td>
-    {toggle ? <td className="w-14 px-2.5 py-1.5"><Shimmer className="h-4.5 w-8 rounded-full" /></td> : null}
   </tr>
 );

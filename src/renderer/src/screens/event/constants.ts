@@ -11,6 +11,12 @@ export const EVENT_SKELETON = 4;
 export const SUMMARY = -1;
 
 /**
+ * The index the page selects to show a historic event's own details, kept
+ * clear of every session's and of the summary's.
+ */
+export const ABOUT = -2;
+
+/**
  * How many cars a session result's skeleton lists while the archive is read.
  */
 export const RESULT_SKELETON = 6;

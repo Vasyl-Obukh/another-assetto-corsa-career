@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 
 import { TIME_PRESETS, TIME_STEP_MINUTES } from './constants.ts';
 import { minutesOf } from './utils.ts';
 import { HOURS_PER_DAY, MINUTES_PER_HOUR } from '../../../../shared/constants';
 import { clockOf } from '../../../../shared/utils/road-temperature';
+import { useKindTranslation } from '@/i18n';
 
 /**
  * The minutes in a day, which the bar spans.
@@ -43,7 +43,7 @@ interface TimeOfDayControlProps {
 export const TimeOfDayControl = ({
   id, value, disabled, onChange,
 }: TimeOfDayControlProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const minutes = minutesOf(value) ?? DAY_MINUTES / 2;
   const at = (minutes / DAY_MINUTES) * 100;
 

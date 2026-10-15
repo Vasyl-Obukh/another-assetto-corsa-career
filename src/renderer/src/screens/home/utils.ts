@@ -1,11 +1,12 @@
-import { RECENT_FINISH_DAYS } from './constants.ts';
+import { HISTORIC_BEHIND, HISTORIC_SHOWN, RECENT_FINISH_DAYS } from './constants.ts';
 import type { RoundMark, SeasonProgress } from './types.ts';
 import type {
   CalendarEntry, Career, CareerCalendar, CareerSeason, SeasonEntry,
 } from '../../../../shared/types';
 import { addDays } from '../../../../shared/utils/calendar-days';
 import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
-import type { EditionSummary } from '@/lib/season-review';
+import { championshipEntries } from '../../../../shared/utils/historic';
+import type { EditionSummary, HistoricRow } from '@/lib/season-review';
 import { editionOver, editionSummary } from '@/lib/season-review';
 
 /**
@@ -49,7 +50,7 @@ export const clashingWith = (
 export const seasonProgress = (career: Career, calendar: CareerCalendar): SeasonProgress[] => {
   const season = career.seasons.find((one) => one.index === calendar.season);
 
-  return (season?.entries ?? []).filter((entry) => !entry.withdrawn).map((entry) => {
+  return (season ? championshipEntries(season) : []).filter((entry) => !entry.withdrawn).map((entry) => {
     const held = entry.championship.entries.find((one) => one.id === entry.entry);
     const table = entry.standings.classes.find((one) => one.entry === entry.entry);
     // A stand-in who raced the player's seat has a row of its own under the same
@@ -91,7 +92,7 @@ export const seasonProgress = (career: Career, calendar: CareerCalendar): Season
  * @param clock The ISO date the career's clock stands at
  * @returns Their summaries, the latest to finish first
  */
-export const recentlyFinished = (season: CareerSeason, clock: string): EditionSummary[] => season.entries
+export const recentlyFinished = (season: CareerSeason, clock: string): EditionSummary[] => championshipEntries(season)
   .filter((entry) => !entry.withdrawn && editionOver(entry, clock))
   .filter((entry) => (entry.events.at(-1)?.date ?? '') >= addDays(clock, -RECENT_FINISH_DAYS))
   .sort((left, right) => (right.events.at(-1)?.date ?? '').localeCompare(left.events.at(-1)?.date ?? ''))
@@ -105,7 +106,7 @@ export const recentlyFinished = (season: CareerSeason, clock: string): EditionSu
  */
 export const racedLastSeason = (season: CareerSeason): SeasonEntry[] => {
   const latest = new Map<string, SeasonEntry>();
-  season.entries.forEach((entry) => {
+  championshipEntries(season).forEach((entry) => {
     const key = `${entry.series}\u0000${entry.entry}`;
     const held = latest.get(key);
     if (!held || held.edition < entry.edition) latest.set(key, entry);
@@ -136,4 +137,19 @@ export const editionAhead = (
   const opens = own.filter((one) => one.edition === edition).map((one) => one.date).sort()[0];
 
   return opens === undefined ? null : { edition, opens };
+};
+
+/**
+ * The historic events Home shows around the clock: the last few behind it and
+ * those coming up, in the order they run.
+ * @param rows Every historic event of the season, earliest first
+ * @param clock The ISO date the career's clock stands at
+ * @returns The ones to show
+ */
+export const stripRows = (rows: readonly HistoricRow[], clock: string): HistoricRow[] => {
+  const ahead = rows.findIndex((row) => row.date >= clock);
+  const from = Math.max(0, (ahead < 0 ? rows.length : ahead) - HISTORIC_BEHIND);
+  const start = Math.max(0, Math.min(from, rows.length - HISTORIC_SHOWN));
+
+  return rows.slice(start, start + HISTORIC_SHOWN);
 };

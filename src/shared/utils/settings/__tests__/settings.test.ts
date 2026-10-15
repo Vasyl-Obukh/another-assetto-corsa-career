@@ -313,6 +313,8 @@ describe('shared/utils/settings', () => {
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,
         allowSameDayEvents: true,
+        historicFrequency: 'weekly',
+        historicActive: { 'british-gp-1967': false },
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -329,6 +331,18 @@ describe('shared/utils/settings', () => {
 
     it('rejects a language it does not have a catalogue for', () => {
       expect(readSettings({ language: 'fr' }).language).toBe('en');
+    });
+
+    it('keeps a historic frequency it knows and falls back to monthly for one it does not', () => {
+      expect(readSettings({ historicFrequency: 'off' }).historicFrequency).toBe('off');
+      expect(readSettings({ historicFrequency: 'daily' }).historicFrequency).toBe('monthly');
+      expect(readSettings({}).historicFrequency).toBe(DEFAULT_SETTINGS.historicFrequency);
+    });
+
+    it("reads the historic switches as the championships' are, dropping what is not a switch", () => {
+      expect(readSettings({ historicActive: { 'british-gp-1967': true, broken: 'yes' } }).historicActive)
+        .toEqual({ 'british-gp-1967': true });
+      expect(readSettings({ historicActive: 'all' }).historicActive).toEqual({});
     });
 
     it('keeps a weather system it knows and rejects one it does not', () => {

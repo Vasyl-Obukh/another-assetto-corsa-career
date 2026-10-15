@@ -1,10 +1,11 @@
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import type { SeatCar, Skin } from '../../../../shared/types';
 import { CarPicker } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
+import { useKindTranslation } from '@/i18n';
 import { Field } from '@/screens/race';
 
 interface SeatCarFieldProps {
@@ -56,7 +57,7 @@ interface SeatCarFieldProps {
 export const SeatCarField = ({
   id, car, fieldable, locked, nameOf, onChange, bare = false,
 }: SeatCarFieldProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [picking, setPicking] = useState(false);
   // Only a pick brings a livery's name back, so it is kept stamped with the car
   // and livery it was for - and ignored once the pin no longer matches.

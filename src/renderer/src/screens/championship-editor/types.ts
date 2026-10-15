@@ -110,7 +110,7 @@ export type LengthUnit = 'laps' | 'minutes' | 'distance';
 /**
  * One tab of the editor, each holding one subject of the championship.
  */
-export type EditorTab = 'overview' | 'teams' | 'classes' | 'calendar' | 'formats' | 'scoring';
+export type EditorTab = 'overview' | 'teams' | 'classes' | 'calendar' | 'formats' | 'scoring' | 'event' | 'prizes';
 
 /**
  * A run of consecutive seats fielded by the same team, which the seat sheet

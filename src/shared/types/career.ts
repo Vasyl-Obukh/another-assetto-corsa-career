@@ -17,7 +17,7 @@ import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { GridEntry, SessionType } from './race.ts';
 import type {
-  Championship, Climate, FieldSeat, RoundRaceLength,
+  Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability,
 } from './series.ts';
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
@@ -209,6 +209,16 @@ export interface SeasonEntry {
    * none. Each round may add a step of its own.
    */
   strength?: number;
+  /**
+   * Set on a historic event rather than a championship: a single event the
+   * season drew onto its calendar, with the player invited to it.
+   *
+   * Its `series` is the historic event's own id, its `edition` is always zero,
+   * and its `championship` is a copy of the event with the seat the player was
+   * given moved to the end of its class - which is where every lowering and
+   * every simulation already takes the player's seat from.
+   */
+  historic?: true;
 }
 
 /**
@@ -231,9 +241,16 @@ export interface CareerSeason {
    */
   endDate: string;
   /**
-   * The championship editions entered in it.
+   * The championship editions entered in it, and the historic events it drew.
    */
   entries: readonly SeasonEntry[];
+  /**
+   * Set once the season has drawn its historic events, which it does once.
+   *
+   * Absent on a season that has not, which is how a career started before
+   * historic events existed draws its own the first time it is read.
+   */
+  historicDrawn?: true;
 }
 
 /**
@@ -391,6 +408,10 @@ export interface CalendarEntry {
    * them given up - never so while settings allow two events on one day.
    */
   clash: boolean;
+  /**
+   * Whether it is a historic event rather than a round of a championship.
+   */
+  historic: boolean;
 }
 
 /**
@@ -775,6 +796,33 @@ export interface CareerEventView {
    * waiting states belong on this page.
    */
   live: boolean;
+  /**
+   * The historic event this is, or null for a round of a championship.
+   */
+  historic: HistoricView | null;
+}
+
+/**
+ * A historic event, as its page in a career shows what it is about.
+ */
+export interface HistoricView {
+  /**
+   * What it says about itself, or null when it says nothing.
+   */
+  description: string | null;
+  /**
+   * The event itself, as the season holds it, which is what its classes, field
+   * and prizes are read from.
+   */
+  event: Championship;
+  /**
+   * What the install can race of it, which says the cars each class fields.
+   */
+  availability: SeriesAvailability;
+  /**
+   * The seat the player was given, by its id.
+   */
+  seat: string;
 }
 
 /**
@@ -828,6 +876,10 @@ export interface SkippedRound {
    * What moving on does to it.
    */
   reason: SkipReason;
+  /**
+   * Whether it is a historic event rather than a round of a championship.
+   */
+  historic: boolean;
 }
 
 /**

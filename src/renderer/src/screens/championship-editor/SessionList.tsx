@@ -1,7 +1,7 @@
 import { MoreVerticalIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import type { DragEvent, ReactNode } from 'react';
 import { Fragment, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { MAX_DAY } from './constants.ts';
 import { RuleHeading } from './RuleHeading.tsx';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button.tsx';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 /**
@@ -111,7 +112,7 @@ export const SessionList = ({
   head, flat = false, sessions, days, selected, locked, nameOf, lengthOf, fromOf,
   onSelect, onMove, onAdd, onAddDay, onRemoveDay,
 }: SessionListProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [dragging, setDragging] = useState<number | null>(null);
   const [target, setTarget] = useState<DropTarget | null>(null);
 

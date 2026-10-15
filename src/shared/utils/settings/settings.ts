@@ -12,6 +12,7 @@ import {
   DEFAULT_SETTINGS,
   DRIVING_AID_FLAGS,
   DRIVING_AID_NUMBERS,
+  HISTORIC_FREQUENCIES,
   LANGUAGES,
   THEME_CHOICES,
   WEATHER_SYSTEMS,
@@ -279,6 +280,9 @@ export const readSettings = (raw: unknown): Settings => {
     allowSameDayEvents: typeof raw.allowSameDayEvents === 'boolean'
       ? raw.allowSameDayEvents
       : DEFAULT_SETTINGS.allowSameDayEvents,
+    historicFrequency: oneOf(raw.historicFrequency, HISTORIC_FREQUENCIES, DEFAULT_SETTINGS.historicFrequency),
+    // The same shape as the championships' switches, so read the same way.
+    historicActive: readSeriesActive(raw.historicActive),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

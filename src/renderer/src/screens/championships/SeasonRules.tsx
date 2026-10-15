@@ -1,5 +1,6 @@
 import { FormatsCard } from './FormatsCard.tsx';
 import { RacePrizes } from './RacePrizes.tsx';
+import { RulesSheet } from './RulesSheet.tsx';
 import { SeasonPrizes } from './SeasonPrizes.tsx';
 import { pursesOf } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
@@ -33,6 +34,7 @@ export const SeasonRules = ({ series }: SeasonRulesProps) => {
         <RacePrizes series={series} purses={race} split={split} />
         {seasonCard}
         <FormatsCard series={series} />
+        <RulesSheet regulations={series.regulations ?? {}} />
       </div>
     );
   }
@@ -43,6 +45,7 @@ export const SeasonRules = ({ series }: SeasonRulesProps) => {
       <div className="flex flex-col gap-4">
         {seasonCard}
         {several ? null : <FormatsCard series={series} />}
+        <RulesSheet regulations={series.regulations ?? {}} />
       </div>
       {several ? <FormatsCard series={series} className="lg:col-span-2" /> : null}
     </div>

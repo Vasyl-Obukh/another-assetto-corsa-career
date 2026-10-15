@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
 import { EditionCard } from './EditionCard.tsx';
+import { HistoricSection } from './HistoricSection.tsx';
 import { YearHeadSkeleton } from './YearHeadSkeleton.tsx';
 import { YearReviewSkeleton } from './YearReviewSkeleton.tsx';
 import { addDays } from '../../../../shared/utils/calendar-days';
@@ -20,7 +21,7 @@ import {
 import { useFormat } from '@/i18n';
 import { EDITION_ACCENT } from '@/lib/accents';
 import { linkRun, path, ROUTE } from '@/lib/routes';
-import { yearReview } from '@/lib/season-review';
+import { historicReview, yearReview } from '@/lib/season-review';
 
 /**
  * One season of the career, looked back on: the year in numbers and every
@@ -39,6 +40,7 @@ export const YearReview = () => {
   const index = Number(param);
   const season = career?.seasons.find((one) => one.index === index) ?? null;
   const review = useMemo(() => (season && career ? yearReview(season, career.date) : null), [season, career]);
+  const historic = useMemo(() => (season ? historicReview(season) : null), [season]);
   const year = season ? seasonYear(season) : null;
   usePageName(year === null ? null : String(year));
   const back = { to: path.history(), label: t('back.history') };
@@ -169,6 +171,14 @@ export const YearReview = () => {
           ))}
         </div>
       )}
+
+      {historic && historic.rows.length > 0 ? (
+        <HistoricSection
+          review={historic}
+          season={season.index}
+          current={career.seasons.at(-1)?.index ?? season.index}
+        />
+      ) : null}
 
       {open ? (
         <div className="flex justify-end pt-2">

@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
@@ -18,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
+import { useKindTranslation } from '@/i18n';
 import { CLIMATE_ACCENT } from '@/lib/accents';
 import { Field } from '@/screens/race';
 
@@ -31,14 +31,22 @@ interface DetailsCardProps {
    */
   locked: boolean;
   /**
+   * Whether it is a historic event, which has no season to run: no entry fee,
+   * no length and no race day of its own, since a career places it - only
+   * where its weather comes from.
+   */
+  historic?: boolean;
+  /**
    * Called with the whole championship whenever any of these fields changes.
    * @param next The championship to apply
    */
   onChange: (next: Championship) => void;
 }
 
-export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
-  const { t } = useTranslation();
+export const DetailsCard = ({
+  series, locked, historic = false, onChange,
+}: DetailsCardProps) => {
+  const { t } = useKindTranslation();
   const weather = series.generatedWeather;
 
   return (
@@ -73,68 +81,70 @@ export const DetailsCard = ({ series, locked, onChange }: DetailsCardProps) => {
       </div>
 
       <div className="flex flex-col gap-4 border-t p-6 lg:border-t-0 lg:border-l">
-        <PaneHeading>{t('editor.details.season')}</PaneHeading>
+        <PaneHeading>{t(historic ? 'historicEditor.weather' : 'editor.details.season')}</PaneHeading>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <NumberField
-            id="editor-entry-fee"
-            label={t('editor.details.entryFee')}
-            hint={t('editor.details.entryFeeShort')}
-            value={series.entryFee}
-            min={MIN_MONEY}
-            disabled={locked}
-            onChange={(entryFee) => onChange({ ...series, entryFee })}
-          />
-
-          <Field
-            id="editor-season-length"
-            label={t('editor.details.seasonLength')}
-            hint={t('editor.details.seasonLengthShort')}
-          >
-            <Select
-              value={series.seasonLength ?? DEFAULT_SEASON_LENGTH}
+        {historic ? null : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <NumberField
+              id="editor-entry-fee"
+              label={t('editor.details.entryFee')}
+              hint={t('editor.details.entryFeeShort')}
+              value={series.entryFee}
+              min={MIN_MONEY}
               disabled={locked}
-              onValueChange={(value) => onChange({
-                ...series,
-                seasonLength: value as SeasonLength,
-              })}
-            >
-              <SelectTrigger id="editor-season-length" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SEASON_LENGTHS.map((length) => (
-                  <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+              onChange={(entryFee) => onChange({ ...series, entryFee })}
+            />
 
-          <Field
-            id="editor-race-weekday"
-            label={t('editor.details.raceWeekday')}
-            hint={t('editor.details.raceWeekdayShort')}
-          >
-            <Select
-              value={series.raceWeekday ?? DEFAULT_REF}
-              disabled={locked}
-              onValueChange={(value) => onChange({
-                ...series,
-                raceWeekday: value === DEFAULT_REF ? undefined : value as Weekday,
-              })}
+            <Field
+              id="editor-season-length"
+              label={t('editor.details.seasonLength')}
+              hint={t('editor.details.seasonLengthShort')}
             >
-              <SelectTrigger id="editor-race-weekday" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={DEFAULT_REF}>{t('weekday.byTier')}</SelectItem>
-                {WEEKDAYS.map((day) => (
-                  <SelectItem key={day} value={day}>{t(`weekday.${day}`)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
+              <Select
+                value={series.seasonLength ?? DEFAULT_SEASON_LENGTH}
+                disabled={locked}
+                onValueChange={(value) => onChange({
+                  ...series,
+                  seasonLength: value as SeasonLength,
+                })}
+              >
+                <SelectTrigger id="editor-season-length" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SEASON_LENGTHS.map((length) => (
+                    <SelectItem key={length} value={length}>{t(`seasonLength.${length}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field
+              id="editor-race-weekday"
+              label={t('editor.details.raceWeekday')}
+              hint={t('editor.details.raceWeekdayShort')}
+            >
+              <Select
+                value={series.raceWeekday ?? DEFAULT_REF}
+                disabled={locked}
+                onValueChange={(value) => onChange({
+                  ...series,
+                  raceWeekday: value === DEFAULT_REF ? undefined : value as Weekday,
+                })}
+              >
+                <SelectTrigger id="editor-race-weekday" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DEFAULT_REF}>{t('weekday.byTier')}</SelectItem>
+                  {WEEKDAYS.map((day) => (
+                    <SelectItem key={day} value={day}>{t(`weekday.${day}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+        )}
 
         <SwitchLine
           id="editor-generated-weather"

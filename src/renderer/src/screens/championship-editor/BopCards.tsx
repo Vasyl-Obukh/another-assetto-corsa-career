@@ -1,5 +1,5 @@
 import { CarIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import {
   BALLAST_STEP, MAX_BALLAST, MAX_RESTRICTOR, MIN_BOP,
@@ -9,6 +9,7 @@ import { withBop } from './utils.ts';
 import type { BopEntry } from '../../../../shared/types';
 import { ContentImage } from '@/components';
 import { useCars } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { carImageSources } from '@/screens/car-browser';
 
@@ -50,7 +51,7 @@ interface BopCardsProps {
 export const BopCards = ({
   idPrefix, bop, fieldable, locked, nameOf, onChange,
 }: BopCardsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const installed = useCars(fieldable);
 
   return (

@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 
 import type { EditorTab } from './types.ts';
 import { Shimmer } from '@/components';
 import { TabsTrigger } from '@/components/ui/tabs.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { UNDERLINE_TAB } from '@/screens/championships';
 
@@ -42,7 +42,7 @@ interface EditorTabTriggerProps {
 export const EditorTabTrigger = ({
   value, label, count, changed, problem, disabled,
 }: EditorTabTriggerProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <TabsTrigger

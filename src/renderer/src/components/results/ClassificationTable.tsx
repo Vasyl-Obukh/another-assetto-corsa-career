@@ -39,6 +39,13 @@ interface ClassificationTableProps {
    * class column shows when the rows hold more than one of them.
    */
   classes?: readonly { id: string; name: string }[];
+  /**
+   * What a row's place paid in prize money, for a race whose prizes are worth
+   * a column - a historic event's, which pays money and no points.
+   * @param row The row
+   * @returns The prize, or null for none
+   */
+  prizeOf?: (row: ClassifiedRow) => number | null;
 }
 
 /**
@@ -46,10 +53,10 @@ interface ClassificationTableProps {
  * left out, so a quick race has no points, and a simulated session no laps.
  */
 export const ClassificationTable = ({
-  rows, race, playerName, footnote, classes = [],
+  rows, race, playerName, footnote, classes = [], prizeOf,
 }: ClassificationTableProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const { formatMoney, formatNumber } = useFormat();
   const carName = useCarNames([...new Set(rows.flatMap((row) => (row.car ? [row.car.model] : [])))]);
 
   const has = {
@@ -63,6 +70,7 @@ export const ClassificationTable = ({
     // reason for the column.
     points: rows.some((row) => (row.place?.points ?? 0) > 0),
     classes: new Set(rows.map((row) => row.entry)).size > 1,
+    prize: race && prizeOf !== undefined && rows.some((row) => (prizeOf(row) ?? 0) > 0),
   };
   const slotOf = new Map(classes.map((one, at) => [one.id, at]));
 
@@ -112,6 +120,7 @@ export const ClassificationTable = ({
               {has.points ? (
                 <th className="py-2 pr-3 text-right font-normal">{t('standings.column.points')}</th>
               ) : null}
+              {has.prize ? <th className="py-2 pr-3 text-right font-normal">{t('results.column.prize')}</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -200,6 +209,13 @@ export const ClassificationTable = ({
                         />
                       </>
                     ) : <span className="font-normal text-muted-foreground">{t('standings.none')}</span>}
+                  </td>
+                ) : null}
+                {has.prize ? (
+                  <td className="py-1.5 pr-3 text-right tabular-nums">
+                    {(prizeOf?.(row) ?? 0) > 0
+                      ? formatMoney(prizeOf?.(row) ?? 0)
+                      : <span className="text-muted-foreground">{t('standings.none')}</span>}
                   </td>
                 ) : null}
               </tr>

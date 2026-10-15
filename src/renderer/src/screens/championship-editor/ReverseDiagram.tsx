@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
+import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
@@ -26,7 +26,7 @@ interface ReverseDiagramProps {
  * and the grid it makes, the reversed places in qualifying's colour.
  */
 export const ReverseDiagram = ({ from, reverse }: ReverseDiagramProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const places = Array.from({ length: reverse + TAIL }, (_, at) => at + 1);
   const grid = places.map((place) => (place <= reverse ? reverse + 1 - place : place));
 

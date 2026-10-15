@@ -242,7 +242,36 @@ export const TAB_FIELDS: Readonly<Record<EditorTab, readonly (keyof Championship
   calendar: ['rounds'],
   formats: ['eventFormats', 'defaultEventFormat'],
   scoring: ['pointsSystems', 'defaultPointsSystem', 'prizes'],
+  event: ['rounds', 'eventFormats', 'defaultEventFormat'],
+  prizes: ['prizes', 'pointsSystems', 'defaultPointsSystem'],
 };
+
+/**
+ * A historic event's editor's tabs, in the order they are shown: a
+ * championship's narrowed to one event, its calendar and its formats one tab,
+ * and its scoring the prize money alone.
+ */
+export const HISTORIC_EDITOR_TABS: readonly EditorTab[] = ['overview', 'teams', 'classes', 'event', 'prizes'];
+
+/**
+ * Which of a historic event's tabs holds what a championship's tab of the
+ * same subject would - so a problem found on a calendar is fixed on Event.
+ */
+export const HISTORIC_TAB_OF: Readonly<Partial<Record<EditorTab, EditorTab>>> = {
+  calendar: 'event',
+  formats: 'event',
+  scoring: 'prizes',
+};
+
+/**
+ * The ids a new historic event's one round, one format and points table are
+ * written under - the same three a shipped one carries.
+ */
+export const HISTORIC_IDS = {
+  round: 'event',
+  format: 'event',
+  points: 'none',
+} as const;
 
 /**
  * Which tab a problem is fixed on, by the subject its code names - the

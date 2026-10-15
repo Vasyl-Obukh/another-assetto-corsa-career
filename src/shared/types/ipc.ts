@@ -269,6 +269,56 @@ export interface IpcContract {
    */
   'series:export': { req: { id: string }; res: string | null };
   /**
+   * Every historic event the app knows, each with whether it can be raced.
+   *
+   * A historic event is a one-round championship kept in a library of its own,
+   * so each of these answers exactly as its series: counterpart does - only
+   * over that library.
+   */
+  'historic:list': { req: void; res: SeriesLibrary };
+  /**
+   * One historic event by id, or null when the library has none.
+   */
+  'historic:get': { req: { id: string }; res: SeriesListing | null };
+  /**
+   * What is wrong with a historic event as it stands, writing nothing.
+   */
+  'historic:validate': { req: { series: Championship }; res: SeriesAvailability };
+  /**
+   * Write a historic event the user owns back over its own file.
+   */
+  'historic:save': { req: { id: string; series: Championship }; res: SeriesListing };
+  /**
+   * Take a copy of a historic event the app ships, under its own id, which
+   * replaces the app's own until it is reverted.
+   */
+  'historic:customise': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Copy a historic event into a separate one of the user's own.
+   */
+  'historic:duplicate': { req: { id: string; name?: string }; res: SeriesCommandResult };
+  /**
+   * Write a historic event of the user's own for the first time.
+   */
+  'historic:create': { req: { series: Championship }; res: SeriesCommandResult };
+  /**
+   * Delete the user's version of a historic event the app ships.
+   */
+  'historic:revert': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Delete one of the user's own historic events.
+   */
+  'historic:delete': { req: { id: string }; res: SeriesCommandResult };
+  /**
+   * Read a historic event file the user picks into their library, as
+   * series:import reads a championship.
+   */
+  'historic:import': { req: void; res: SeriesImportResult | null };
+  /**
+   * Write one historic event out as a file the user can share.
+   */
+  'historic:export': { req: { id: string }; res: string | null };
+  /**
    * The user's layer over the shipped class catalogue.
    *
    * The layer rather than the resolved catalogue: the catalogue holds maps,
@@ -476,6 +526,11 @@ export interface IpcEvents {
    * answers, so a listener needs no round trip of its own.
    */
   'series:changed': SeriesLibrary;
+  /**
+   * The historic event library changed, because a command wrote or deleted one
+   * of the user's files. Pushed for the reason series:changed is.
+   */
+  'historic:changed': SeriesLibrary;
   /**
    * The user's class layer changed, because a command wrote it.
    *

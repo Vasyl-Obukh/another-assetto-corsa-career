@@ -1,12 +1,13 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { MIN_POINTS, POINTS_SHOWN } from './constants.ts';
 import { withPlace } from './utils.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { useKindTranslation } from '@/i18n';
 import { POINTS_ACCENT, resultAccent, SESSION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 import { fromNumber, toNumber } from '@/screens/race';
@@ -49,7 +50,7 @@ interface PlaceStripProps {
 export const PlaceStrip = ({
   idPrefix, kind, values, disabled, summary, onChange,
 }: PlaceStripProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [all, setAll] = useState(false);
   const shown = all ? values.length : Math.min(values.length, POINTS_SHOWN);
   const folded = values.length > POINTS_SHOWN && !all;

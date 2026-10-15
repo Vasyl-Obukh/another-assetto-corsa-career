@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { MONTH_CELL_CHROME, MONTH_LINE_HEIGHT } from './constants.ts';
 import { eventKey } from './utils.ts';
 import type { CalendarEntry } from '../../../../shared/types';
+import { HistoricChip } from '@/components';
 import { useElementHeight } from '@/hooks';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
@@ -84,15 +85,20 @@ export const MonthCell = ({
             <span
               key={key}
               className={cn(
-                'truncate rounded px-1.5 text-[0.7rem] leading-5 font-semibold',
+                'flex min-w-0 items-center gap-1 rounded px-1.5 text-[0.7rem] leading-5 font-semibold',
                 event.clash ? 'bg-warning text-warning-foreground' : 'bg-primary text-primary-foreground',
                 past && 'opacity-50',
               )}
             >
-              {t('calendar.seriesRound', {
-                series: event.seriesName,
-                round: t('calendar.round', { number: event.number }),
-              })}
+              {/* A historic event is named alone, its chip standing where a
+                  round would give its number. */}
+              {event.historic ? <HistoricChip className="shrink-0 px-1 py-0 text-[0.6rem]" /> : null}
+              <span className="truncate">
+                {event.historic ? event.seriesName : t('calendar.seriesRound', {
+                  series: event.seriesName,
+                  round: t('calendar.round', { number: event.number }),
+                })}
+              </span>
             </span>
           );
         }

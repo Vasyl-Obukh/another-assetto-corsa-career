@@ -6,32 +6,35 @@ import {
 } from 'react-router';
 import type { PathParam } from 'react-router';
 
-import { SUMMARY } from './constants.ts';
+import { ABOUT, SUMMARY } from './constants.ts';
 import { EnterPanel } from './EnterPanel.tsx';
 import { EntryPanel } from './EntryPanel.tsx';
 import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
 import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
+import { HistoricSeatPanel } from './HistoricSeatPanel.tsx';
 import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
 import { defaultSession, scaleName, shortLaps } from './utils.ts';
 import { scalesFor } from '../../../../shared/utils/race-scale';
-import { ClimateBadge, ErrorCard, ScreenBody, ScreenHeader, SkipDialog } from '@/components';
+import {
+  ClimateBadge, ErrorCard, HistoricChip, ScreenBody, ScreenHeader, SkipDialog,
+} from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import {
   useCareerEvent, useChampionshipResults, usePageName, usePlayerName, useRaceStatus,
 } from '@/hooks';
-import { useFormat } from '@/i18n';
+import { useFormat, WordingKind } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
 import {
   linkRun, path, ROUTE, runOf,
 } from '@/lib/routes';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
-import { disciplineKey, tierAccent } from '@/screens/championships';
+import { disciplineKey, HistoricAbout, tierAccent } from '@/screens/championships';
 import { LayoutMap } from '@/screens/track-browser';
 
 export const Event = () => {
@@ -67,17 +70,25 @@ export const Event = () => {
   const race = useRaceStatus();
 
   const { view } = event;
-  usePageName(view ? t('back.round', { round: view.roundName, series: view.seriesName }) : null);
+  const historic = view?.historic ?? null;
+  // A historic event is named by itself alone, having no championship around it.
+  usePageName(view ? (historic ? view.seriesName : t('back.round', { round: view.roundName, series: view.seriesName }))
+    : null);
   // The round's own results head the event once anything of it has run, and
   // an event over and done opens on them.
   const raced = view?.sessions.some((one) => one.record !== null) ?? false;
   const summary = view && raced ? {
-    points: view.entered && !view.substituted
+    // A historic event pays no points, so it has none to sum.
+    points: view.entered && !view.substituted && !historic
       ? view.sessions.reduce((sum, one) => sum + (one.place?.points ?? 0), 0)
       : null,
     complete: view.status !== 'scheduled',
   } : null;
-  const selected = picked ?? (summary?.complete ? SUMMARY : view ? defaultSession(view.sessions) : 0);
+  // A historic event opens on what it is about until anything of it has run.
+  let opening = view ? defaultSession(view.sessions) : 0;
+  if (summary?.complete) opening = SUMMARY;
+  else if (historic && !raced) opening = ABOUT;
+  const selected = picked ?? opening;
   const session = view?.sessions.find((one) => one.index === selected) ?? view?.sessions[0];
   const playerName = usePlayerName();
   const openStandings = (): void => {
@@ -104,9 +115,13 @@ export const Event = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 flex-col gap-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {t('event.roundOf', { number: view.number, rounds: view.rounds })}
-                </span>
+                {/* A historic event is one event: its chip stands where a round
+                    says which of how many it is. */}
+                {historic ? <HistoricChip /> : (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {t('event.roundOf', { number: view.number, rounds: view.rounds })}
+                  </span>
+                )}
                 {ladder ? (
                   <>
                     <Badge className={DISCIPLINE_ACCENT[ladder.discipline]}>
@@ -119,17 +134,20 @@ export const Event = () => {
                 ) : null}
                 {view.climate ? <ClimateBadge climate={view.climate} /> : null}
               </div>
-              <h1 className="text-2xl font-semibold" data-selectable>{view.roundName}</h1>
+              <h1 className="text-2xl font-semibold" data-selectable>{historic ? view.seriesName : view.roundName}</h1>
               <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                {/* The championship this round belongs to, in its discipline's colour. */}
-                <Link
-                  to={path.championship({ id: view.series }, run)}
-                  className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2 pl-2.5 font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                >
-                  {ladder ? <span className={cn('size-2 rounded-full', DISCIPLINE_DOT[ladder.discipline])} /> : null}
-                  {view.seriesName}
-                  <ChevronRightIcon className="size-3.5" />
-                </Link>
+                {/* The championship this round belongs to, in its discipline's
+                    colour - none for a historic event, which belongs to none. */}
+                {historic ? null : (
+                  <Link
+                    to={path.championship({ id: view.series }, run)}
+                    className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2 pl-2.5 font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  >
+                    {ladder ? <span className={cn('size-2 rounded-full', DISCIPLINE_DOT[ladder.discipline])} /> : null}
+                    {view.seriesName}
+                    <ChevronRightIcon className="size-3.5" />
+                  </Link>
+                )}
                 <span>
                   {formatDay(view.date)}
                 </span>
@@ -152,28 +170,44 @@ export const Event = () => {
         {!view && event.loading ? <EventHeadSkeleton /> : null}
       </ScreenHeader>
 
-      {event.error ? <ErrorCard error={event.error} onDismiss={event.dismissError} /> : null}
+      {event.error ? (
+        <WordingKind.Provider value={historic ? 'historic' : 'series'}>
+          <ErrorCard error={event.error} onDismiss={event.dismissError} />
+        </WordingKind.Provider>
+      ) : null}
       {event.loading ? <EventSkeleton /> : null}
 
       {view ? (
         <div className="grid items-start gap-4 lg:grid-cols-[300px_1fr]">
           <aside className="flex flex-col gap-4">
-            {/* A round of a closed season, or of an edition already over, can
-                only be read back - entering would be refused. */}
-            {view.entered || view.blocked?.code === 'career.season.closed' || view.behind.length === view.rounds ? (
-              view.entered ? <EntryPanel entry={view.entered} /> : null
-            ) : (
-              <EnterPanel
+            {/* A historic event the player was invited to has a seat rather
+                than an entry. A round of a closed season, or of an edition
+                already over, can only be read back - entering would be
+                refused. */}
+            {historic && view.entered ? (
+              <HistoricSeatPanel
                 view={view}
-                busy={event.busy}
-                onEnter={(entry, car) => { void event.enter(entry, car); }}
+                entered={view.entered}
+                historic={historic}
+                busy={event.busy || running}
+                onDecline={() => { void event.decline(); }}
               />
-            )}
+            ) : null}
+            {!historic && view.entered ? <EntryPanel entry={view.entered} /> : null}
+            {historic || view.entered || view.blocked?.code === 'career.season.closed'
+              || view.behind.length === view.rounds ? null : (
+                <EnterPanel
+                  view={view}
+                  busy={event.busy}
+                  onEnter={(entry, car) => { void event.enter(entry, car); }}
+                />
+              )}
             <EventSessionList
               sessions={view.sessions}
               selected={selected}
               summary={summary}
               substituted={view.substituted}
+              about={historic !== null}
               onSelect={setPicked}
             />
             {/* Under the sessions rather than above them, since the list is how
@@ -183,12 +217,21 @@ export const Event = () => {
                 view={view}
                 entered={view.entered}
                 strength={view.strength}
-                championship={path.championship({ id: view.series }, run)}
+                championship={historic ? null : path.championship({ id: view.series }, run)}
                 onChange={(step) => { void event.setStrength(step); }}
               />
             ) : null}
           </aside>
 
+          {selected === ABOUT && historic ? (
+            <Card className="py-4">
+              <CardContent className="flex flex-col gap-4 px-4">
+                {/* Untitled: the event's own description heads it, under the
+                    same words the list beside it uses. */}
+                <HistoricAbout event={historic.event} availability={historic.availability} playerSeat={historic.seat} />
+              </CardContent>
+            </Card>
+          ) : null}
           {selected === SUMMARY && summary ? (
             <Card className="py-4">
               <CardContent className="flex flex-col gap-4 px-4">
@@ -206,12 +249,13 @@ export const Event = () => {
                     entered={view.entered !== null}
                     races={view.sessions.filter((one) => one.type === 'race').length}
                     round={view.number}
+                    historic={historic !== null}
                   />
                 ) : null}
               </CardContent>
             </Card>
           ) : null}
-          {selected !== SUMMARY && session ? (
+          {selected !== SUMMARY && selected !== ABOUT && session ? (
             <SessionDetail
               view={view}
               session={session}
@@ -234,7 +278,7 @@ export const Event = () => {
               }}
             />
           ) : null}
-          {selected !== SUMMARY && !session ? (
+          {selected !== SUMMARY && selected !== ABOUT && !session ? (
             <p className="text-sm text-muted-foreground">{t('event.noSessions')}</p>
           ) : null}
         </div>

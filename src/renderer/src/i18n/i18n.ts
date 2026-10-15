@@ -14,8 +14,10 @@ export type { Formatters } from './types.ts';
 export {
   formatAppError, formatContentIssueReason, formatDayRange, formattersFor,
 } from './utils.ts';
+export { WordingKind } from './constants.ts';
 export { useAppError } from './use-app-error.ts';
 export { useContentIssueReason } from './use-content-issue-reason.ts';
+export { useKindTranslation } from './use-kind-translation.ts';
 
 /**
  * Every catalogue, keyed by language.

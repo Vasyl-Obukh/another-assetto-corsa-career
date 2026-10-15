@@ -8,7 +8,7 @@ import {
   makeResults, makeSeries, place, race, roundScore,
 } from '../../season-results/__tests__/fixtures.ts';
 import {
-  championshipReview, editionOver, editionSummary, nextRun, yearReview,
+  championshipReview, editionOver, editionSummary, historicReview, nextRun, prizeFor, yearReview,
 } from '../season-review.ts';
 
 /**
@@ -61,6 +61,32 @@ const scored = (round: string, date: string, ...places: (readonly RacePlace[])[]
  */
 const season = (...entries: SeasonEntry[]): CareerSeason => ({
   index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries,
+});
+
+/**
+ * A historic event the season drew: the test championship's one round, paying
+ * a purse per race, the player in Ada's seat.
+ * @param id Its id
+ * @param event Its one event
+ * @param overrides What else to change about it
+ * @returns The entry
+ */
+const historic = (id: string, event: SeasonEvent, overrides: Partial<SeasonEntry> = {}): SeasonEntry => entry({
+  series: id,
+  championship: makeSeries({ id, name: id, prizes: { positions: [1000, 500, 250] } }),
+  events: [event],
+  historic: true,
+  ...overrides,
+});
+
+/**
+ * An event of a historic event nobody has scored.
+ * @param date The ISO date it runs
+ * @param status Where it stands
+ * @returns The event
+ */
+const unscored = (date: string, status: SeasonEvent['status']): SeasonEvent => ({
+  round: 'r1', raceId: `h/r1@0.0`, date, status, sessions: [],
 });
 
 describe('renderer/lib/season-review/season-review', () => {
@@ -283,11 +309,126 @@ describe('renderer/lib/season-review/season-review', () => {
       });
     });
 
+    // A historic event is a single event rather than an edition, and the year
+    // review gives it a section of its own.
+    it('leaves historic events out of the editions and their totals', () => {
+      const drawn = historic('british-gp', scored('r1', '2026-02-02', [place('main-1', 1), place('main-2', 2)]));
+      const review = yearReview(season(entry(), drawn), '2026-12-31');
+
+      expect(review.editions.map((one) => one.series)).toEqual(['test-cup']);
+      expect(review.totals).toMatchObject({ championships: 1, starts: 3, wins: 1 });
+    });
+
     it('counts an edition still running as no title, and lists it as running', () => {
       const review = yearReview(season(entry(), won), '2026-04-01');
 
       expect(review.running.map((one) => one.series)).toEqual(['test-cup']);
       expect(review.totals).toMatchObject({ finished: 1, titles: 1 });
+    });
+  });
+
+  describe('prizeFor', () => {
+    const series = makeSeries({
+      prizes: { positions: [100, 50] },
+      entries: [
+        { ...makeSeries().entries[0], prizes: { positions: [500, 300, 0] } },
+        { ...makeSeries().entries[0], id: 'am', name: 'Am' },
+      ],
+    });
+
+    it("pays a place out of its own class's purse where the class has one", () => {
+      expect(prizeFor(series, 'main', 1)).toBe(500);
+      expect(prizeFor(series, 'main', 2)).toBe(300);
+    });
+
+    it("pays a class with no purse of its own out of the event's", () => {
+      expect(prizeFor(series, 'am', 1)).toBe(100);
+      expect(prizeFor(series, 'nobody', 2)).toBe(50);
+    });
+
+    it('pays nothing for a place past the purse or one it pays nothing', () => {
+      expect(prizeFor(series, 'main', 3)).toBeNull();
+      expect(prizeFor(series, 'main', 9)).toBeNull();
+      expect(prizeFor(makeSeries(), 'main', 1)).toBeNull();
+    });
+  });
+
+  describe('historicReview', () => {
+    const won = historic('won', scored('r1', '2026-06-03', [place('main-1', 1, { qualifyingPosition: 2 }), place('main-2', 2)]));
+    const third = historic('third', scored('r1', '2026-03-04', [place('main-2', 1), place('main-3', 2), place('main-1', 3)]));
+    const declined = historic('declined', unscored('2026-04-08', 'missed'), { withdrawn: true });
+    const missed = historic('missed', unscored('2026-05-06', 'missed'));
+    const ahead = historic('ahead', unscored('2026-09-09', 'scheduled'));
+
+    it("lists the season's historic events earliest first, and nothing else of it", () => {
+      expect(historicReview(season(entry(), ahead, won, third, declined, missed)).rows.map((row) => row.series))
+        .toEqual(['third', 'declined', 'missed', 'won', 'ahead']);
+    });
+
+    it('says what became of each one', () => {
+      const outcomes = historicReview(season(won, declined, missed, ahead)).rows
+        .map((row) => [row.series, row.outcome]);
+
+      expect(outcomes).toEqual([
+        ['declined', 'declined'], ['missed', 'missed'], ['won', 'raced'], ['ahead', 'scheduled'],
+      ]);
+    });
+
+    // Fixed: Home offered Decline on an event part-way through, which threw the
+    // driven sessions away; it now asks whether one has started.
+    it('says whether a session of one still to finish has run', () => {
+      const launched = { ...unscored('2026-10-07', 'scheduled'), sessions: [{} as SeasonEvent['sessions'][number]] };
+      const { rows } = historicReview(season(ahead, historic('begun', launched)));
+
+      expect(rows.map((row) => [row.series, row.started])).toEqual([['ahead', false], ['begun', true]]);
+    });
+
+    it("reads the player's seat, start, finish and prize off a raced one", () => {
+      expect(historicReview(season(won)).rows[0]).toMatchObject({
+        name: 'won',
+        date: '2026-06-03',
+        track: { id: 'magione' },
+        car: 'test_car',
+        team: 'Alpha Racing',
+        driver: 'Ada',
+        qualified: 2,
+        finished: 1,
+        multiClass: false,
+        prize: 1000,
+      });
+    });
+
+    it('pays every race of an event and finishes it where its last race did', () => {
+      const double = historic('double', {
+        ...scored('r2', '2026-07-01', [place('main-1', 2), place('main-2', 1)], [place('main-1', 1), place('main-2', 2)]),
+      });
+
+      expect(historicReview(season(double)).rows[0]).toMatchObject({ finished: 1, prize: 1500 });
+    });
+
+    // A stand-in raced the seat of an event the player missed; that result is
+    // the stand-in's and pays the player nothing.
+    it("gives the player nothing for a stand-in's drive", () => {
+      const covered = historic('covered', {
+        ...scored('r1', '2026-05-06', [place('main-1', 1, { substitute: true }), place('main-2', 2)]),
+        status: 'missed',
+      });
+
+      expect(historicReview(season(covered)).rows[0]).toMatchObject({ outcome: 'missed', finished: null, prize: null });
+    });
+
+    it('adds up the starts, wins, podiums, prize money and events not raced', () => {
+      const review = historicReview(season(won, third, declined, missed, ahead));
+
+      expect(review).toMatchObject({
+        raced: 2, wins: 1, podiums: 2, prize: 1250, notRaced: 2,
+      });
+    });
+
+    it('reads a season without historic events as nothing to review', () => {
+      expect(historicReview(season(entry()))).toEqual({
+        rows: [], raced: 0, wins: 0, podiums: 0, prize: 0, notRaced: 0,
+      });
     });
   });
 });

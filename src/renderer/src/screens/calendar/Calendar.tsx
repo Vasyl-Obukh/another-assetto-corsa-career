@@ -258,6 +258,8 @@ export const Calendar = () => {
               ...criteria,
               disciplines: toggledIn(criteria.disciplines, discipline),
             })}
+            kinds={criteria.kinds}
+            onKind={(kind) => narrow({ ...criteria, kinds: toggledIn(criteria.kinds, kind) })}
           />
 
           <Segments

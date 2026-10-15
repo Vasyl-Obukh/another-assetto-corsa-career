@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
 
 import { OffsetStepper } from './OffsetStepper.tsx';
 import type { AiLayer } from './types.ts';
 import { offsetBounds } from './utils.ts';
 import { AI_RANGE } from '../../../../shared/constants';
 import { aiFigure } from '../../../../shared/utils/ai-figure';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -78,7 +78,7 @@ const along = (figure: number): number => ((figure - AI_RANGE.min) / (AI_RANGE.m
 export const AiResult = ({
   id, label, hint, base, layers, own, value, spread, ends, locked, bare = false, onChange,
 }: AiResultProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber, formatSigned } = useFormat();
   const under = base + layers.reduce((sum, layer) => sum + (layer.value ?? 0), 0);
   const figure = aiFigure(under, value ?? 0);

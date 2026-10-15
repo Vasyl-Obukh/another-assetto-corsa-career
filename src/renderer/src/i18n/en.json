@@ -193,7 +193,8 @@
       "content": "Your content",
       "classes": "Classes",
       "championships": "Championships",
-      "sources": "Content sources"
+      "sources": "Content sources",
+      "historic": "Historic events"
     },
     "opponents": "AI opponents",
     "calendar": "Calendar",
@@ -216,6 +217,23 @@
       "rain": "Rain and wet roads",
       "dynamic": "Weather changes mid-session",
       "exactRain": "Rain as strong as the preset asks"
+    },
+    "historic": {
+      "label": "Historic events",
+      "hint": "Single events from racing's past, drawn at random each year from the events switched on and put on weekdays. You're invited to every one; decline any you don't want.",
+      "frequency": {
+        "off": "Off",
+        "quarterly": "Quarterly",
+        "monthly": "Monthly",
+        "fortnightly": "Every two weeks",
+        "weekly": "Weekly"
+      },
+      "perYear_zero": "None.",
+      "perYear_one": "About {{count}} a year.",
+      "perYear_other": "About {{count}} a year.",
+      "nextSeason": "Takes effect from next season - this season's historic events stay as they were drawn.",
+      "weekly": "Advancing stops at each one. You're invited to every historic event, so weekly means the clock stops every week unless you decline.",
+      "pool": "Choose which events can be drawn"
     }
   },
   "carClasses": {
@@ -541,7 +559,12 @@
       "discipline": "Discipline",
       "available": "Available",
       "entered": "Entered",
-      "locked": "Locked"
+      "locked": "Locked",
+      "events": "Events",
+      "kind": {
+        "championship": "Championships",
+        "historic": "Historic"
+      }
     },
     "status": {
       "scheduled": "To come",
@@ -592,7 +615,8 @@
     "roundAt": "{{round}} · {{name}}",
     "seriesRound": "{{series}} {{round}}",
     "advanceHere": "Advance to this day",
-    "advanceShort": "Go here"
+    "advanceShort": "Go here",
+    "invited": "Invited"
   },
   "event": {
     "roundOf": "Round {{number}} of {{rounds}}",
@@ -678,7 +702,8 @@
       "championship": "Championship",
       "total_one": "{{count}} pt",
       "total_other": "{{count}} pts",
-      "winners": "Race winners"
+      "winners": "Race winners",
+      "prize": "Prize"
     }
   },
   "championships": {
@@ -895,7 +920,7 @@
       "rounds": "Rounds",
       "standings": "Standings",
       "classes": "Classes",
-      "rules": "Points, prizes and formats",
+      "rules": "Points, prizes and rules",
       "raced": "{{count}} of {{rounds}} raced"
     },
     "editions": {
@@ -908,6 +933,15 @@
       "opens": "Opens {{day}}",
       "span": "{{from}} - {{to}}",
       "label": "Editions this season"
+    },
+    "rules": {
+      "title": "Rules",
+      "hint": "What the championship allows and how it is policed. Your own aids are in Settings and are not shown here.",
+      "carry": "What the cars carry",
+      "allowed": "Allowed",
+      "notAllowed": "Not allowed",
+      "enforced": "Enforced",
+      "off": "Off"
     }
   },
   "championshipLibrary": {
@@ -939,7 +973,24 @@
     "neededBy_other": "Needed by {{shown}} championships",
     "neededByNone": "No championship needs it",
     "hiddenNow_one": "{{shown}} championship hidden",
-    "hiddenNow_other": "{{shown}} championships hidden"
+    "hiddenNow_other": "{{shown}} championships hidden",
+    "table": {
+      "column": {
+        "championship": "Championship",
+        "ladder": "Ladder",
+        "classes": "Classes",
+        "season": "Season",
+        "format": "Format",
+        "grid": "Grid",
+        "needs": "Needs"
+      },
+      "perYear_one": "{{count}} time a year",
+      "perYear_other": "{{count}} times a year",
+      "gridSize": "{{cars}} · {{teams}}",
+      "someRounds": "+ some rounds",
+      "underway": "Under way",
+      "andMore": "and {{count}} more"
+    }
   },
   "editor": {
     "notFound": "That championship is no longer in the library.",
@@ -1310,7 +1361,9 @@
       "formats": "Formats",
       "scoring": "Points & money",
       "changed": "Unsaved changes on this tab",
-      "problem": "Something here needs fixing"
+      "problem": "Something here needs fixing",
+      "event": "Event",
+      "prizes": "Prizes"
     },
     "stepper": {
       "less": "Lower {{label}}",
@@ -1471,7 +1524,8 @@
       "timeGap": "Time / gap",
       "gap": "Gap",
       "gained": "Places gained from the grid",
-      "class": "Class"
+      "class": "Class",
+      "prize": "Prize"
     },
     "gap": "+{{time}}",
     "lapped_one": "+{{count}} lap",
@@ -1504,7 +1558,12 @@
     "noneMatch": "No event matches.",
     "sessionOf": "{{round}} · {{session}}",
     "classFilter": "Class",
-    "overall": "Overall"
+    "overall": "Overall",
+    "historic": {
+      "open": "Open the event",
+      "title": "Historic event",
+      "for": "for P{{position}} in your class"
+    }
   },
   "cars": {
     "title": "Cars",
@@ -1846,6 +1905,17 @@
         "running_one": "+ {{count}} running",
         "running_other": "+ {{count}} running"
       }
+    },
+    "historic": {
+      "heading": "Historic events",
+      "title": "Historic events in {{year}}",
+      "counts_one": "{{count}} · {{raced}} raced · {{declined}} declined",
+      "counts_other": "{{count}} · {{raced}} raced · {{declined}} declined",
+      "all": "All in the year review",
+      "seatOf": "{{team}} · in {{driver}}'s seat",
+      "invited": "You're invited to drive it at this event",
+      "declined": "Declined",
+      "missed": "Missed"
     }
   },
   "edition": {
@@ -1879,7 +1949,9 @@
     "withdrawn": "Withdrawn",
     "leading": "so far",
     "nothing": "Nothing entered",
-    "empty": "Nothing raced yet - each season you enter something in shows up here."
+    "empty": "Nothing raced yet - each season you enter something in shows up here.",
+    "historic_one": "{{count}} historic event raced · {{wins}} won",
+    "historic_other": "{{count}} historic events raced · {{wins}} won"
   },
   "yearReview": {
     "subtitleOpen": "So far · {{day}}",
@@ -1912,7 +1984,28 @@
     "underWay": "Round {{run}} of {{rounds}} · under way",
     "soFar": "so far",
     "notFound": "The career has no such season.",
-    "empty": "Nothing was entered this season."
+    "empty": "Nothing was entered this season.",
+    "historic": {
+      "title": "Historic events",
+      "drawn_one": "{{count}} this season",
+      "drawn_other": "{{count}} this season",
+      "raced": "Raced",
+      "of_one": "of {{count}}",
+      "of_other": "of {{count}}",
+      "podiums": "Podiums",
+      "prize": "Prize money",
+      "notRaced": "Declined or missed",
+      "byField": "raced by the field",
+      "inClass": "in class",
+      "column": {
+        "date": "Date",
+        "event": "Event",
+        "car": "Car",
+        "qualified": "Qualified",
+        "finished": "Finished",
+        "prize": "Prize"
+      }
+    }
   },
   "review": {
     "complete": "Complete",
@@ -2037,7 +2130,11 @@
     "raceEvent": "Race event",
     "history": "History",
     "yearReview": "Season review",
-    "championshipReview": "Championship review"
+    "championshipReview": "Championship review",
+    "settingsHistoric": "Settings · Historic events",
+    "historicEvent": "Historic event",
+    "historicNew": "New historic event",
+    "historicEdit": "Historic event editor"
   },
   "standings": {
     "title": "Standings",
@@ -2146,5 +2243,160 @@
   },
   "weatherPicker": {
     "kinds": "Kind of weather"
+  },
+  "historic": {
+    "chip": "Historic",
+    "about": {
+      "title": "About this event",
+      "track": "Track",
+      "openTrack": "Open the track's page",
+      "format": "Format",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "race": "Race",
+      "weather": "Weather",
+      "authored": "Set by the event",
+      "drawn": "Drawn a week out",
+      "classes": "Classes",
+      "prizes": "Prizes",
+      "noPrizes": "This event pays no prize money.",
+      "hint": "Classes, field and prizes",
+      "rules": "Rules"
+    },
+    "seat": {
+      "title": "Your seat",
+      "declinedTitle": "The seat you declined",
+      "inSeat": "In {{driver}}'s seat, for this event alone",
+      "racedBy": "{{driver}} raced it instead",
+      "underWay": "Under way - it can no longer be declined."
+    },
+    "decline": {
+      "action": "Decline",
+      "event": "Decline this event",
+      "title": "Decline {{name}}?",
+      "body": "{{driver}} goes back in the seat, and the field races it on {{day}} without you. You can't take it back.",
+      "confirm": "Decline"
+    },
+    "strength": {
+      "event": "Event"
+    }
+  },
+  "historicLibrary": {
+    "search": "Search events, tracks and cars",
+    "active": "Whether a season can draw {{name}}",
+    "cars_one": "{{count}} car",
+    "cars_other": "{{count}} cars",
+    "problems_one": "{{count}} historic event could not be read",
+    "problems_other": "{{count}} historic events could not be read",
+    "column": {
+      "event": "Event",
+      "discipline": "Discipline",
+      "classes": "Classes",
+      "field": "Field",
+      "format": "Format"
+    },
+    "drawn": "Can be drawn",
+    "notFound": "No such historic event.",
+    "tabs": {
+      "event": "Event",
+      "classes": "Classes",
+      "prizes": "Prizes"
+    },
+    "copyBody": "This is a historic event the app ships, so editing it takes your own copy first. The app's own version is replaced until you revert it."
+  },
+  "historicEditor": {
+    "create": {
+      "name": "My historic event"
+    },
+    "noPoints": "No points",
+    "notFound": "That historic event is no longer in the pool.",
+    "shipped": "This is a historic event the app ships, so there is no file of yours to edit. Take a copy of it first.",
+    "aiOwn": "Event",
+    "weather": "Weather",
+    "eventClimate": "The event's",
+    "track": "Track and race",
+    "format": "Format",
+    "formatHint": "The event's sessions, day by day. It has no date of its own: a career puts it on a weekday.",
+    "whole": "Whole event",
+    "wholeHint": "Conditions every session starts from, unless it sets its own.",
+    "wording": {
+      "editor": {
+        "problems": {
+          "hint": "These are checked as you type and nothing is written until you save. An event that does not validate can still be saved, but it is never drawn into a season."
+        },
+        "locked": {
+          "title": "This historic event cannot be edited yet",
+          "body": "A career is part-way through it. Everything below decides what the next session's grid holds, so the event is locked until that session is finished or reset."
+        },
+        "nation": {
+          "used": "In this event"
+        },
+        "entries": {
+          "hint": "One class per field the event runs, each with its own rung of the ladder and its own cars. Most historic events run a single class.",
+          "prizesHint": "What this class pays, in place of the event's own prize money. A multi-class grid pays its classes differently; classes sharing a purse leave both tables empty.",
+          "prizesShared": "Pays what the event pays.",
+          "startSeatsHint": "Empty seats, drawn each time it is raced"
+        },
+        "eligibility": {
+          "minModelsHint": "How many distinct models must be installed before the class can be raced. One model is a field of clones rather than the event."
+        },
+        "roundEligibility": {
+          "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list stays the event's."
+        },
+        "calendar": {
+          "defaultHemisphere": "The event's own ({{hemisphere}})",
+          "climateHint": "The event's is {{climate}}.",
+          "dialogNote": "Nothing is written until the event is saved"
+        },
+        "classPrizes": {
+          "shared": "What the event pays",
+          "compare": "The event pays {{championship}} - {{name}} pays {{own}}",
+          "start": "Give {{name}} its own purse, starting from the event's",
+          "dropTitle": "Pay {{name}} what the event pays?",
+          "drop": "Share the event's"
+        },
+        "prizeMoney": {
+          "hint": "What the event pays. A class may pay its own instead, on its own tab.",
+          "shared": "The event's"
+        },
+        "purse": {
+          "raceHint": "Paid for a finishing place in the race"
+        },
+        "details": {
+          "generatedWeatherShort": "Drawn from a climate; a session may still set its own"
+        },
+        "regulations": {
+          "hint": "What the event allows, and what it does when the rules are broken. These are the rules rather than what you drive with - your own aids are in Settings - and an empty field is whatever Assetto Corsa ships."
+        }
+      },
+      "errors": {
+        "series.notFound": "Historic event not found: {{series}}",
+        "series.entries.empty": "The event has no classes",
+        "series.rounds.empty": "The event has no round",
+        "series.sessions.empty": "Its format has no sessions",
+        "series.formats.empty": "The event has no format",
+        "series.points.empty": "The event declares no points table",
+        "series.id.duplicate": "Duplicate {{kind}} id in the event: {{id}}",
+        "series.entry.notFound": "Class not found in the event: {{entry}}",
+        "series.entry.unknown": "The event's round overrides a class it does not have: {{entry}}",
+        "series.seat.teamUnknown": "Seat {{seat}} is fielded by a team the event does not have: {{team}}",
+        "series.days.gapped": "Its format skips day {{day}}",
+        "series.prizes.invalid": "The event pays {{amount}} for {{table}} position {{position}}; prize money cannot be negative",
+        "series.round.notFound": "The event has no round {{round}}",
+        "series.round.unavailable": "The event cannot be raced against the installed content",
+        "series.notShipped": "This historic event is already yours, so there is nothing the app ships to adjust.",
+        "series.notAdjusted": "This historic event does not replace one the app ships, so there is nothing to go back to.",
+        "series.notDeletable": "This historic event is not one you wrote. An adjusted one is reverted rather than deleted.",
+        "series.notEditable": "This historic event is one the app ships. Take your own copy of it before editing.",
+        "series.id.immutable": "A historic event cannot be renamed to {{id}}. Duplicate it instead, which gives the copy an id of its own.",
+        "series.eventInProgress": "A career is part-way through this historic event. Finish it, or reset it, before editing.",
+        "series.save.unreadable": "The historic event could not be saved: {{reason}}"
+      },
+      "championships": {
+        "rules": {
+          "hint": "What the event allows and how it is policed. Your own aids are in Settings and are not shown here."
+        }
+      }
+    }
   }
 }

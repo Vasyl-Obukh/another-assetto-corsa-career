@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { PURSE_SCALES } from './constants.ts';
@@ -8,6 +8,7 @@ import { paysInAll, withEntryPrizes } from './utils.ts';
 import type { Championship, ClassEntry } from '../../../../shared/types';
 import { ConfirmDialog } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 
 interface ClassPrizesProps {
@@ -38,7 +39,7 @@ interface ClassPrizesProps {
 export const ClassPrizes = ({
   series, entry, locked, onChange,
 }: ClassPrizesProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatMoney } = useFormat();
   const [scale, setScale] = useState(1);
   const [dropping, setDropping] = useState(false);

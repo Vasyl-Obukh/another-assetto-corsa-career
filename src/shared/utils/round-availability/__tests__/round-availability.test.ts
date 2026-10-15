@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { appErrorInfo } from '../../../errors/index.ts';
 import type { SeriesAvailability, SeriesListing } from '../../../types/index.ts';
 import {
-  roundAvailability, roundAvailabilityIn, roundRaceable, roundRaceableIn,
+  eligibleCarsIn, roundAvailability, roundAvailabilityIn, roundRaceable, roundRaceableIn,
 } from '../index.ts';
 
 /**
@@ -134,6 +134,33 @@ describe('shared/utils/round-availability', () => {
       })];
 
       expect(roundRaceable(listing({ available: false, problems }), 'magione')).toBe(false);
+    });
+  });
+
+  describe('eligibleCarsIn', () => {
+    const override = availability({
+      rounds: [{
+        round: 'magione',
+        track: null,
+        pitboxes: null,
+        entries: [{
+          entry: 'main', eligible: ['ks_mazda_mx5_nd'], missing: [], enough: true,
+        }],
+        races: [],
+      }],
+    });
+
+    it('answers with the cars a round races where it changes them', () => {
+      expect(eligibleCarsIn(override, 'magione', 'main')).toEqual(['ks_mazda_mx5_nd']);
+    });
+
+    it("falls back to the season's cars for a round that keeps them", () => {
+      expect(eligibleCarsIn(availability(), 'magione', 'main')).toEqual(['ks_mazda_mx5_cup']);
+      expect(eligibleCarsIn(override, 'monza', 'main')).toEqual(['ks_mazda_mx5_cup']);
+    });
+
+    it('answers with no cars for a class the championship does not hold', () => {
+      expect(eligibleCarsIn(override, 'magione', 'pro')).toEqual([]);
     });
   });
 });

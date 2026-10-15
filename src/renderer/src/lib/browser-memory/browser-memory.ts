@@ -1,5 +1,5 @@
 import { EMPTY_MEMORY } from './constants.ts';
-import type { BrowserMemory } from './types.ts';
+import type { BrowserMemory, BrowserView } from './types.ts';
 
 // Module-level rather than React state or storage, and each for its own reason.
 // State cannot outlive the route that owns it, which is exactly what has to
@@ -41,3 +41,10 @@ export const rememberBrowser = <C>(
 
   MEMORY.set(id, { ...(MEMORY.get(id) ?? EMPTY_MEMORY), ...patch });
 };
+
+/**
+ * Reads a stored choice of cards or a table, falling back to cards.
+ * @param stored Whatever was stored
+ * @returns Cards or a table
+ */
+export const readBrowserView = (stored: unknown): BrowserView => (stored === 'list' ? 'list' : 'cards');

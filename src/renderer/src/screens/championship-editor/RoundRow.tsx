@@ -1,5 +1,5 @@
 import { CarFrontIcon, CloudSunIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ROUND_COLUMN } from './constants.ts';
 import { ListRow } from './ListRow.tsx';
@@ -13,6 +13,7 @@ import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { FormatStrip, trackKeyOf } from '@/screens/championships';
@@ -93,7 +94,7 @@ export const RoundRow = ({
   series, round, index, count, availability, locked, drag, nameOf,
   onEdit, onConditions, onCars, onMove, onRemove,
 }: RoundRowProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatMoney, formatNumber } = useFormat();
 
   const trackKey = trackKeyOf(round);

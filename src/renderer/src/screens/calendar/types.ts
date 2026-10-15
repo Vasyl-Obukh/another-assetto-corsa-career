@@ -6,6 +6,12 @@ import type { CalendarEntry, Discipline } from '../../../../shared/types';
 export type CalendarStatus = 'all' | 'available' | 'entered' | 'locked';
 
 /**
+ * What an event on the calendar is: a round of a championship, or a historic
+ * event the season drew.
+ */
+export type CalendarEventKind = 'championship' | 'historic';
+
+/**
  * What the calendar was left showing.
  */
 export interface CalendarCriteria {
@@ -17,6 +23,10 @@ export interface CalendarCriteria {
    * The disciplines being shown, or empty for all of them.
    */
   disciplines: readonly Discipline[];
+  /**
+   * The kinds of event being shown, or empty for both.
+   */
+  kinds: readonly CalendarEventKind[];
 }
 
 /**

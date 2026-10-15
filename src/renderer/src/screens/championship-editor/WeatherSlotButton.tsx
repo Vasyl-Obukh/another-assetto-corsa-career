@@ -1,10 +1,11 @@
 import { ChevronDownIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import type { WeatherType } from '../../../../shared/constants';
 import { WEATHER_ICON, WEATHER_TYPE_LABEL, WeatherPicker } from '@/components';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
+import { useKindTranslation } from '@/i18n';
 
 interface WeatherSlotButtonProps {
   /**
@@ -41,7 +42,7 @@ interface WeatherSlotButtonProps {
 export const WeatherSlotButton = ({
   id, label, value, offered, disabled, onPick,
 }: WeatherSlotButtonProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [open, setOpen] = useState(false);
   const Icon = value === undefined ? undefined : WEATHER_ICON[value];
 

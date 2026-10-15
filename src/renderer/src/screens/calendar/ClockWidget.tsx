@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CalendarEntry } from '../../../../shared/types';
 import { daysBetween } from '../../../../shared/utils/calendar-days';
+import { HistoricChip } from '@/components';
 import { useFormat } from '@/i18n';
 
 interface ClockWidgetProps {
@@ -51,11 +52,20 @@ export const ClockWidget = ({
                 count: daysBetween(today, next.date),
               })}
             </span>
-            <span className="truncate text-sm">
-              <span className="font-semibold">{next.seriesName}</span>
-              {' '}
-              {t('calendar.roundAt', { round: t('calendar.round', { number: next.number }), name: next.roundName })}
-            </span>
+            {next.historic ? (
+              // A historic event is named alone, its chip where a round gives
+              // its number and name.
+              <span className="flex min-w-0 items-center gap-1.5 text-sm">
+                <HistoricChip className="shrink-0 px-1.5 py-0 text-[0.65rem]" />
+                <span className="truncate font-semibold">{next.seriesName}</span>
+              </span>
+            ) : (
+              <span className="truncate text-sm">
+                <span className="font-semibold">{next.seriesName}</span>
+                {' '}
+                {t('calendar.roundAt', { round: t('calendar.round', { number: next.number }), name: next.roundName })}
+              </span>
+            )}
           </div>
 
           <button

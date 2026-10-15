@@ -1,7 +1,7 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { fromNumber, toNumber } from '@/screens/race';
 
@@ -65,7 +65,7 @@ export const OffsetStepper = ({
   id, label, value, limit, min = -limit, step = 1, signed = true, small = false, placeholder = '0',
   disabled, onChange,
 }: OffsetStepperProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   // What is being typed, kept as typed until the box is left - a lone minus
   // is no number yet, and must not be wiped while it is written.
   const [draft, setDraft] = useState<string | null>(null);

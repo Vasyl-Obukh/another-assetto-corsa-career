@@ -333,8 +333,8 @@ never dates: on the calendar an event takes only its race day, and the day
 offset decides the time of day and how the weather carries over. A championship
 races on a day of the week of its own - tier 1 on Sunday, tier 2 on Saturday,
 everything lower on a weekday - so the rungs a career climbs through spread
-across the week instead of queueing for one day. One-off and historic events
-should prefer weekdays so they don't collide with championship rounds.
+across the week instead of queueing for one day. Historic events fall on
+weekdays too, and on a day the career races nothing else where they can.
 
 **Each session is its own launch, started from the app one at a time.** This
 reverses the original decision to bundle sessions into as few launches as AC
@@ -2021,6 +2021,8 @@ catalogue.
       flipped, either way - `inactiveSeries` is gone. **There is no historic
       championship in the app**: every championship is the same kind of thing,
       and which of ours start off is the authoring rule below and nothing more.
+      "Historic" names historic events, single events of their own, which is a
+      different thing again
       A switch on the Content sources tab hides every filler championship at
       once
 - [x] **A race is laps or a distance, never the clock.** Assetto Corsa runs a
@@ -2142,9 +2144,9 @@ read off the content cache. Five rules decide how they are written.
   Abarth + and ++ between Formula Abarth and BOSS GP Open - and one setting hides
   them all.
 - **A real season before 2006 ships switched off.** That is the whole of what
-  "historic" means here: an authoring rule for our defaults, never a field, a
-  chip or a label. Occasionally racing an old car is what one-off events are for,
-  which wait for the career.
+  "historic" means for a championship: an authoring rule for our defaults,
+  never a field, a chip or a label. Occasionally racing an old car is what
+  historic events are for - single events of their own, see Phase 5.
 
 Grids are capped at the fewest pit boxes on the calendar - plain Kunos layouts
 have 24, Zandvoort and Magione 18, Silverstone 1967 20 - and mod calendars use
@@ -2331,8 +2333,9 @@ landing with the last of them:
       invented, the latter for the Liana GT V6 Cup the plan had no home for;
       American Le Mans Series 2001 (off), the E46 GTR's GT class with RSS's
       333 SP and GT cars; and **VLN 2004 (off) in place of a Nurburgring 24
-      Hours 2004** - one race on its own would be a one-off event, which is not
-      a championship, so the 24 Hours sits inside the season that builds to it.
+      Hours 2004** - one race on its own would be a historic event, which is
+      not a championship, so the 24 Hours sits inside the season that builds to
+      it.
       GT4 and GT2 European Series, the M2 Cup and the Ginetta Supercup are not
       tied to a season
 - [x] **Yezhrod** - landed as seven championships: WEC 2012 (LMP1 on the R18
@@ -2601,11 +2604,36 @@ proof that no layer below learned what a series is.
       walks the same random numbers and differs only where the shifted
       threshold is crossed. So giving a climate a season re-weighted the
       calendar without re-rolling it
-- [ ] One-off and historic events, preferring weekdays. **Not championships**: a
-      single weekend, for racing an old car now and again rather than a season
-      of it - which is why the championships of seasons before 2006 ship
-      switched off rather than being the way to race those cars. After the
-      career exists, since an event needs a date to sit on
+- [x] **Historic events.** Single events of racing's past, for racing an old
+      car now and again rather than a season of it - which is why the
+      championships of seasons before 2006 ship switched off. **Each is an event
+      of its own**, with its own classes, teams, track, format and prizes, and
+      no connection to any championship: it is written as a one-round
+      championship document, which is what lets it reuse everything a
+      championship has, and kept in a library of its own -
+      `src/core/historic-library/`, the user's under
+      `%APPDATA%/ac-career-mode/historic/` -
+      that main serves through a second series store, as `historic:*`.
+      `historicProblems` holds a document to one round, a points table that
+      pays nothing and no calendar of its own. **A season draws them**: once a
+      month by default, or as `settings.historicFrequency` says, each on a
+      weekday, preferring a day the career races nothing else, seeded on the
+      career and the season - `src/core/historic-draw/`. Read once, when the
+      season opens, so a change to the frequency, the switches or the content
+      sources reaches the next season and never re-draws this one. **For now
+      the player is invited to every one and has accepted**, in a seat the draw
+      picks: a historic event is a season entry marked `historic`, its copy's
+      drawn seat moved to the end of its class, so the clock, clashes,
+      SkipDialog, launching, scoring and simulation treat it as any round.
+      Declining is withdrawing; not racing one is a missed round, raced by the
+      field with the seat's own driver back in it. **No points**, a
+      classification and prize money. The pool ships 46 events, seeded once
+      from rounds of the switched-off championships and owned independently
+      since; Settings › Historic events lists it as cards or a table, switches
+      events off and edits them with the championship editor's pieces. Agreed
+      in `mockups/historic-events.html`
+- [ ] **Review the historic event pool.** Keep, drop and add: the 46 shipped
+      were seeded mechanically and their descriptions written in one pass
 - [x] **Scale a race's length before its start.** Shipped championships race
       their real lengths, so a 24-hour race is twenty-four hours; the player
       shortens one at the moment they start it, on a slider in a popover off
@@ -2742,7 +2770,8 @@ proof that no layer below learned what a series is.
 - [ ] Buy, sell and own cars
 - [ ] **Rent a car for an event**, from the event screen
 - [ ] Entry fees charged per round, with contract coverage applied
-- [ ] Prize money per event and per final championship standing
+- [ ] Prize money per event and per final championship standing - a
+      historic event's purse included, which is recorded until then
 - [ ] Progression speed multiplier applied to all earnings
 - [ ] Forced down the ladder when you can't afford to race
 - [ ] Sell owned cars to recover
@@ -2751,6 +2780,9 @@ proof that no layer below learned what a series is.
 
 - [ ] Global rating plus per-discipline ratings
 - [ ] Elo-style update weighted by series tier and per-entry `AI_LEVEL` spread
+- [ ] **Who a historic event invites.** Today every one invites the player;
+      level, rating and experience should decide it once there is a rating,
+      and how far a historic event moves the rating
 - [ ] **Weigh a shortened race.** `LaunchRecord.scale` says how far a race was
       shortened, and it pays full points; whether 1/48 of a 24-hour race should
       move a rating as far as the whole of one is this phase's to decide
@@ -2786,7 +2818,9 @@ proof that no layer below learned what a series is.
       always the last seat of the class they enter, which is what the driver it
       names gives up - and who stands in for the player in a round they miss.
       A contract with a team should name the seat instead, and with it which
-      driver the player replaces
+      driver the player replaces. A historic event's invitation names a seat
+      already, and gets there by moving that seat to the end of its class in
+      the season's copy; a real seat in the lowering would replace that trick
 
 ## Phase 10 - Sponsors
 
@@ -2803,7 +2837,9 @@ Design to be settled before building - see Open questions.
 
 - [ ] Message model with read/unread, categories and expiry
 - [ ] Seat and sponsor offers with accept/decline and deadlines
-- [ ] Event invitations
+- [ ] Event invitations: a historic event arrives as an invitation a few
+      weeks ahead, to accept or decline by its day, replacing today's
+      acceptance of every one
 - [ ] Session, race and championship results from engineer and team owner
 - [ ] Contract and market news
 - [ ] Earlier phases emit events into this bus as they land
@@ -2820,6 +2856,11 @@ Design to be settled before building - see Open questions.
 ## Phase 13 - Customization and settings
 
 - [ ] Settings UI: paths, CM flags, units (`USE_MPH`), theme, language, currency
+- [x] **A table view for the Championships tab in settings**, beside its cards,
+      through the same `ViewToggle` the car and track browsers have - a
+      library of 130-odd championships is easier to manage a row at a time.
+      What is missing or misconfigured is a tooltip on the row's state chip,
+      and the Championship and Ladder headings sort as the sort menu does
 - [ ] Progression speed, with the career flagged when it changes
 - [ ] Autosave count and save behaviour
 - [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate).
@@ -2892,8 +2933,9 @@ Design to be settled before building - see Open questions.
   numerically; whether sponsors are per-season or per-championship.
 - **Default exclusivity.** Are most contracts permissive, with only top teams
   locking you in? This sets how much multi-series racing feels normal.
-- **Event scheduling.** Do one-off and historic events auto-place on free
-  weekdays, or does the series author fix their dates and accept clashes?
+- ~~**Event scheduling.**~~ Settled: historic events are placed by the
+  career, on weekdays and on a day it races nothing else where it can; a clash
+  that remains is a clash like any other.
 - **Car condition and maintenance.** Needs damage data from Phase 12, and risks
   feeling like admin.
 - **Reputation as a separate axis from rating** - covering reliability and

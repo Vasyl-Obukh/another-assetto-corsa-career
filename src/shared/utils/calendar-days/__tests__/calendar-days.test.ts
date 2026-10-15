@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { isAppError } from '../../../errors/index.ts';
 import {
-  addDays, daysBetween, fromDayNumber, toDayNumber,
+  addDays, daysBetween, fromDayNumber, toDayNumber, weekdayOf,
 } from '../calendar-days.ts';
 
 /**
@@ -134,6 +134,22 @@ describe('shared/utils/calendar-days', () => {
     it('counts across a year end and a leap day', () => {
       expect(daysBetween('2025-12-31', '2026-01-01')).toBe(1);
       expect(daysBetween('2024-02-28', '2024-03-01')).toBe(2);
+    });
+  });
+
+  describe('weekdayOf', () => {
+    it('numbers the days of the week as getUTCDay does, from Sunday', () => {
+      expect(weekdayOf('2027-01-03')).toBe(0);
+      expect(weekdayOf('2027-01-04')).toBe(1);
+      expect(weekdayOf('2027-01-09')).toBe(6);
+    });
+
+    it('reads a leap day', () => {
+      expect(weekdayOf('2028-02-29')).toBe(2);
+    });
+
+    it('refuses something that is not a date', () => {
+      expect(codeFrom(() => weekdayOf('2027-02-30'))).toBe('season.date.invalid');
     });
   });
 });

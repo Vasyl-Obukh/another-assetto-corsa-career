@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
 
 import type { WeatherStep } from '../../../../shared/types';
 import { WEATHER_ICON, WEATHER_TYPE_LABEL, weatherKindOf } from '@/components';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 interface WeatherPlanBarProps {
@@ -17,7 +17,7 @@ interface WeatherPlanBarProps {
  * until the flag - striped and open-ended.
  */
 export const WeatherPlanBar = ({ steps }: WeatherPlanBarProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const timed = steps.slice(0, -1).reduce((total, step) => total + (step.minutes ?? 0), 0);
   // The open-ended stretch is drawn as a third of the bar, whatever the rest is.
   const whole = Math.max(1, timed * 1.5);

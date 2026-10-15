@@ -57,3 +57,10 @@ export const addDays = (date: string, days: number): string => (
  * @returns The days from one to the other, negative when they are the other way round
  */
 export const daysBetween = (from: string, to: string): number => toDayNumber(to) - toDayNumber(from);
+
+/**
+ * Which day of the week a calendar date falls on.
+ * @param date An ISO YYYY-MM-DD date
+ * @returns The day as getUTCDay numbers it, Sunday being 0
+ */
+export const weekdayOf = (date: string): number => new Date(toDayNumber(date) * MS_PER_DAY).getUTCDay();

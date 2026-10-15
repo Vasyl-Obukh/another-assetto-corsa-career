@@ -215,6 +215,13 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'quick.notFound': 'There is no race event with the id {{race}}.',
   'quick.started': '{{race}} has started. Start it over to change it.',
 
+  'historic.started': '{{event}} has already begun, so it can no longer be declined.',
+  'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
+  'historic.points':
+    'Points system "{{system}}" of {{event}} pays points, but a historic event pays only its prize money.',
+  'historic.calendar':
+    '{{event}} states a season length or a race day, but a historic event is placed on the calendar by the career.',
+
   'strength.outOfRange':
     'A step of {{value}} moves the AI further than the {{max}} either way a step may move them from the difficulty in settings.',
 

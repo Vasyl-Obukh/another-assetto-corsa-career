@@ -279,6 +279,19 @@
   --event-missed: oklch(0.925 0.035 8);
   --event-missed-foreground: oklch(0.42 0.09 12);
 
+  /* A historic event, as against a round of a championship - the one value of
+     that pair worth a chip, since a championship's round already says what it
+     is with its number. It shares screens with nearly everything: session and
+     podium chips, a round's discipline and tier, class slots and climates on
+     its page, provenance and origin in its settings tab. No hue on the wheel is
+     clear of all of them, so this is the climate chips' technique: leather,
+     bronze's neighbourhood (52) at hue 40 and about two thirds its chroma.
+     Bronze is a podium place and sits beside this on a result, which the
+     lower chroma and the redder hue carry; missed (8) is drained further still
+     and further round. */
+  --historic: oklch(0.915 0.04 40);
+  --historic-foreground: oklch(0.42 0.075 38);
+
   /* What is laid over a photograph - the fade under a card's name, the
      backing behind a livery count or a circuit's outline - and the text on it.
      The same in both themes on purpose: it sits on a picture, not on the page,
@@ -428,6 +441,8 @@
 
   --event-missed: oklch(0.32 0.035 8);
   --event-missed-foreground: oklch(0.86 0.075 12);
+  --historic: oklch(0.33 0.04 40);
+  --historic-foreground: oklch(0.86 0.06 45);
   --curve-power: oklch(0.7 0.16 262);
   --curve-torque: oklch(0.76 0.13 50);
 
@@ -553,6 +568,8 @@
   --color-sky-dusk: var(--sky-dusk);
   --color-event-missed: var(--event-missed);
   --color-event-missed-foreground: var(--event-missed-foreground);
+  --color-historic: var(--historic);
+  --color-historic-foreground: var(--historic-foreground);
   --color-scrim: var(--scrim);
   --color-on-scrim: var(--on-scrim);
   --color-curve-power: var(--curve-power);

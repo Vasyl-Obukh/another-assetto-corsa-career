@@ -1,7 +1,7 @@
-import { TrophyIcon } from 'lucide-react';
+import { InfoIcon, TrophyIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { SUMMARY } from './constants.ts';
+import { ABOUT, SUMMARY } from './constants.ts';
 import { EventSessionItem } from './EventSessionItem.tsx';
 import { sessionDay } from './utils.ts';
 import type { EventSession } from '../../../../shared/types';
@@ -44,6 +44,10 @@ interface EventSessionListProps {
    */
   substituted: boolean;
   /**
+   * Whether the event is a historic event, whose own details head the list.
+   */
+  about?: boolean;
+  /**
    * Called with the index of the session to show.
    * @param index Which session
    */
@@ -51,7 +55,7 @@ interface EventSessionListProps {
 }
 
 export const EventSessionList = ({
-  sessions, selected, summary, substituted, onSelect,
+  sessions, selected, summary, substituted, about = false, onSelect,
 }: EventSessionListProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
@@ -64,6 +68,23 @@ export const EventSessionList = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
+        {about ? (
+          <button
+            type="button"
+            aria-current={selected === ABOUT}
+            onClick={() => onSelect(ABOUT)}
+            className={cn(
+              'grid w-full grid-cols-[auto_1fr] items-center gap-3 px-3 py-2.5 text-left',
+              selected === ABOUT ? 'bg-accent' : 'hover:bg-accent/50',
+            )}
+          >
+            <InfoIcon className="size-4 text-historic-foreground" />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-semibold">{t('historic.about.title')}</span>
+              <span className="truncate text-xs text-muted-foreground">{t('historic.about.hint')}</span>
+            </span>
+          </button>
+        ) : null}
         {summary ? (
           <button
             type="button"

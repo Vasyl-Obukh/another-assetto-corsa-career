@@ -171,6 +171,22 @@ export const EVENT_ACCENT = {
 } as const satisfies Record<EventStatus, string>;
 
 /**
+ * The leather a historic event is chipped in, wherever it stands beside a
+ * championship's rounds: the calendar, Home, its own page, a result, a lost
+ * round's row and the year review. A round of a championship carries no chip
+ * of its own - its number already says what it is - so this is one colour
+ * rather than a map. globals.css says why leather.
+ */
+export const HISTORIC_ACCENT = 'border-transparent bg-historic text-historic-foreground';
+
+/**
+ * A historic event as a dot - the leather's own deep tone - for where the
+ * calendar marks it beside the discipline dots, as its filter's legend and on
+ * the edge of a card.
+ */
+export const HISTORIC_DOT = 'bg-historic-foreground';
+
+/**
  * The colour each segment of a championship's progress bar is filled in. The
  * same success green and missed rose the calendar's status chips wear, primary
  * for the round up next, and plain muted for everything still to come.

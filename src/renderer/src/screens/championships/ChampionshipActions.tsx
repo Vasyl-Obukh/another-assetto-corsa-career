@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/context-menu.tsx';
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu.tsx';
 import type { SeriesCommandsState } from '@/hooks';
-import { path } from '@/lib/routes';
+import { editorPath } from '@/lib/series-kind';
+import type { SeriesKind } from '@/lib/series-kind';
 
 /**
  * Which destructive action is being confirmed, or null for none.
@@ -45,6 +46,11 @@ interface ChampionshipActionsProps {
    */
   manage: boolean;
   /**
+   * Which library the championship is in, which decides where Edit goes - the
+   * championships unless it says otherwise.
+   */
+  kind?: SeriesKind;
+  /**
    * Called once the championship has been deleted, for a screen that was
    * showing it and now has nothing to show.
    */
@@ -75,7 +81,7 @@ interface ChampionshipActionsProps {
 }
 
 export const ChampionshipActions = ({
-  listing, commands, manage, onDeleted, onOpen, active, onToggle, triggerClassName,
+  listing, commands, manage, kind = 'series', onDeleted, onOpen, active, onToggle, triggerClassName,
   children,
 }: ChampionshipActionsProps) => {
   const { t } = useTranslation();
@@ -85,7 +91,7 @@ export const ChampionshipActions = ({
   const [confirming, setConfirming] = useState<Confirming>(null);
 
   const { id, name } = listing.series;
-  const editor = path.championshipEdit({ id });
+  const editor = editorPath(kind, id);
 
   /**
    * Opens the editor, taking a copy of a shipped championship on the way.
@@ -144,7 +150,7 @@ export const ChampionshipActions = ({
         open={copying}
         busy={commands.busy}
         title={t('championships.edit.title', { name })}
-        description={t('championships.edit.body')}
+        description={t(kind === 'historic' ? 'historicLibrary.copyBody' : 'championships.edit.body')}
         confirmLabel={t('championships.edit.confirm')}
         onClose={() => setCopying(false)}
         onConfirm={customise}
@@ -169,7 +175,7 @@ export const ChampionshipActions = ({
             // Off the returned id rather than off the pushed library: the push
             // lands while this call is still resolving, so local state may not
             // hold the copy yet.
-            if (copied) navigate(path.championshipEdit({ id: copied }));
+            if (copied) navigate(editorPath(kind, copied));
           }, () => setDuplicating(false));
         }}
       />

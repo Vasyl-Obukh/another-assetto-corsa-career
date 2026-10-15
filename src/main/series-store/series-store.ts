@@ -11,7 +11,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { SERIES_DIR } from './constants.ts';
-import type { SeriesStore } from './types.ts';
+import type { SeriesStore, SeriesStoreOptions } from './types.ts';
 import { eventOf, isEditable } from './utils.ts';
 import {
   drawField, roundRace, seriesAvailability, validateSeries,
@@ -24,6 +24,7 @@ import {
   newSeriesId,
   saveUserSeries,
   seriesById,
+  SHIPPED,
   takenSeriesIds,
 } from '../../core/series-library/index.ts';
 import type { LoadedLibrary, LoadedSeries } from '../../core/series-library/index.ts';
@@ -32,6 +33,7 @@ import type { ErrorCode } from '../../shared/errors/index.ts';
 import type {
   Championship,
   Content,
+  SeriesAvailability,
   SeriesCommandResult,
   SeriesLibrary,
   SeriesListing,
@@ -45,7 +47,8 @@ import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 
-export type { SeriesStore } from './types.ts';
+export type { SeriesStore, SeriesStoreOptions } from './types.ts';
+export { HISTORIC_DIR } from './constants.ts';
 
 /**
  * Says on the console what would not load.
@@ -69,6 +72,8 @@ const warnProblems = (loaded: LoadedLibrary): void => {
  * @param race The race store, for the event under way and CSP's RainFX setting
  * @param classes The class store, whose catalogue every spec resolves against
  * @param settings The settings store, for the weather generation may use
+ * @param options Which library this is - the championships unless it says
+ * otherwise, since the historic events are kept in a second store like this one
  * @returns A store holding the loaded library
  */
 export const createSeriesStore = async (
@@ -77,14 +82,33 @@ export const createSeriesStore = async (
   race: RaceStore,
   classes: ClassStore,
   settings: SettingsStore,
+  options: SeriesStoreOptions = {},
 ): Promise<SeriesStore> => {
+  const { dir = SERIES_DIR, shipped = SHIPPED, rules } = options;
   // The app's own are compiled in; only the user's are read from disk.
-  const userDir = path.join(userDataDir, SERIES_DIR);
+  const userDir = path.join(userDataDir, dir);
+  const load = (): Promise<LoadedLibrary> => loadSeriesLibrary(userDir, shipped);
 
-  let library: LoadedLibrary = await loadSeriesLibrary(userDir);
+  let library: LoadedLibrary = await load();
   warnProblems(library);
 
   const listeners = new Set<(next: SeriesLibrary) => void>();
+
+  /**
+   * What the install can race of one championship, and everything wrong with
+   * it - the library's own rules included, which make it unavailable.
+   * @param series The championship
+   * @param installed What content the library has
+   * @returns Its availability
+   */
+  const availabilityOf = (series: Championship, installed: Content): SeriesAvailability => {
+    const found = seriesAvailability(series, installed, classes.catalogue());
+    const broken = rules?.(series) ?? [];
+
+    return broken.length === 0
+      ? found
+      : { ...found, available: false, problems: [...found.problems, ...broken] };
+  };
 
   /**
    * Describes one loaded championship for the renderer.
@@ -94,7 +118,7 @@ export const createSeriesStore = async (
    */
   const listing = (one: LoadedSeries, installed: Content): SeriesListing => ({
     series: one.series,
-    availability: seriesAvailability(one.series, installed, classes.catalogue()),
+    availability: availabilityOf(one.series, installed),
     origin: one.origin,
     activeByDefault: one.activeByDefault,
     filler: one.filler,
@@ -228,7 +252,7 @@ export const createSeriesStore = async (
    * @returns What the command answers with
    */
   const settle = async (id: string | null): Promise<SeriesCommandResult> => {
-    library = await loadSeriesLibrary(userDir);
+    library = await load();
     warnProblems(library);
 
     const next = await list();
@@ -298,7 +322,7 @@ export const createSeriesStore = async (
     },
 
     async validate(series) {
-      return seriesAvailability(series, await content.content(), classes.catalogue());
+      return availabilityOf(series, await content.content());
     },
 
     async save(id, series) {
@@ -410,7 +434,7 @@ export const createSeriesStore = async (
         // Reported rather than refused: a championship the app will not accept
         // is one the user cannot fix, and the misconfigured badge makes letting
         // it in safe.
-        problems: validateSeries(imported, classes.catalogue()),
+        problems: [...validateSeries(imported, classes.catalogue()), ...rules?.(imported) ?? []],
       };
     },
 
@@ -444,7 +468,7 @@ export const createSeriesStore = async (
     },
 
     async reload() {
-      library = await loadSeriesLibrary(userDir);
+      library = await load();
       warnProblems(library);
     },
 

@@ -1,4 +1,7 @@
+import { createContext } from 'react';
+
 import type { Language } from '../../../shared/types';
+import type { SeriesKind } from '@/lib/series-kind';
 
 /**
  * BCP 47 locale used for each language's dates, numbers and money.
@@ -29,3 +32,20 @@ export const HOME_NATION_NAMES: Partial<Record<Language, Readonly<Record<string,
     WLS: 'Уельс',
   },
 };
+
+/**
+ * Which library the screen around a component words itself for. A historic
+ * event is a championship document, so the championship editor and its
+ * problem lists serve both - and inside a historic event's screens they read
+ * `HISTORIC_WORDING` first, which says "event" where the shared copy says
+ * "championship". Outside any provider it is the championships, unchanged.
+ */
+export const WordingKind = createContext<SeriesKind>('series');
+
+/**
+ * Where a historic event's own wording of a shared key lives: the key's full
+ * path again under this one, so `editor.problems.hint` is overridden by
+ * `historicEditor.wording.editor.problems.hint`, and an error code by
+ * `historicEditor.wording.errors.<code>`.
+ */
+export const HISTORIC_WORDING = 'historicEditor.wording';

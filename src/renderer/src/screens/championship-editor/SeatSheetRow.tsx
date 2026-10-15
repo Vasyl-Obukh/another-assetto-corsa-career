@@ -1,6 +1,6 @@
 import { GripVerticalIcon } from 'lucide-react';
 import { useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { NationPicker } from './NationPicker.tsx';
 import { OffsetStepper } from './OffsetStepper.tsx';
@@ -18,6 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import type { RowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { NOT_SET } from '@/screens/race';
@@ -89,7 +90,7 @@ interface SeatSheetRowProps {
 export const SeatSheetRow = ({
   under, seat, index, count, teams, fieldable, used, locked, drag, nameOf, onChange, onMove, onRemove,
 }: SeatSheetRowProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber } = useFormat();
   const row = useRef<HTMLTableRowElement>(null);
   const edge = drag.edgeOf(index);

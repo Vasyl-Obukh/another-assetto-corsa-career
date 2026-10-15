@@ -42,6 +42,10 @@ export const ROUTE = {
   settingsChampionship: '/settings/championships/:id',
   championshipNew: '/settings/championships/new',
   championshipEdit: '/settings/championships/:id/edit',
+  settingsHistoric: '/settings/historic',
+  settingsHistoricEvent: '/settings/historic/:id',
+  historicNew: '/settings/historic/new',
+  historicEdit: '/settings/historic/:id/edit',
 } as const;
 
 /**
@@ -121,6 +125,10 @@ export const BACK_LABEL = {
   settingsChampionship: 'back.championship',
   championshipNew: 'back.championshipNew',
   championshipEdit: 'back.championshipEdit',
+  settingsHistoric: 'back.settingsHistoric',
+  settingsHistoricEvent: 'back.historicEvent',
+  historicNew: 'back.historicNew',
+  historicEdit: 'back.historicEdit',
 } as const satisfies Record<RouteId, ParseKeys>;
 
 /**

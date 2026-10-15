@@ -4,6 +4,8 @@ import type { SeriesCommandsState } from './types.ts';
 import type { IpcChannel, IpcRequest, IpcResponse } from '../../../../shared/types';
 import type { DisplayableError } from '@/lib/ipc';
 import { invoke, toDisplayableError } from '@/lib/ipc';
+import { SERIES_CHANNELS } from '@/lib/series-kind';
+import type { SeriesKind } from '@/lib/series-kind';
 
 export type { SeriesCommandsState } from './types.ts';
 
@@ -13,9 +15,12 @@ export type { SeriesCommandsState } from './types.ts';
  * Nothing here updates local state on success: main pushes `series:changed`
  * with the whole library and both screens listen, so splicing an answer in
  * here would give them two paths to the same truth.
+ * @param kind Which library the commands write - the championships unless it
+ * says otherwise
  * @returns The commands, and whether one is running
  */
-export const useSeriesCommands = (): SeriesCommandsState => {
+export const useSeriesCommands = (kind: SeriesKind = 'series'): SeriesCommandsState => {
+  const channels = SERIES_CHANNELS[kind];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
 
@@ -52,38 +57,38 @@ export const useSeriesCommands = (): SeriesCommandsState => {
     dismissError: () => setError(null),
 
     customise: useCallback(
-      async (id) => (await run('series:customise', { id }, null)) !== null,
-      [run],
+      async (id) => (await run(channels.customise, { id }, null)) !== null,
+      [run, channels],
     ),
 
     duplicate: useCallback(
-      async (id, name) => (await run('series:duplicate', { id, name }, null))?.id ?? null,
-      [run],
+      async (id, name) => (await run(channels.duplicate, { id, name }, null))?.id ?? null,
+      [run, channels],
     ),
 
     create: useCallback(
-      async (series) => (await run('series:create', { series }, null))?.id ?? null,
-      [run],
+      async (series) => (await run(channels.create, { series }, null))?.id ?? null,
+      [run, channels],
     ),
 
     revert: useCallback(
-      async (id) => (await run('series:revert', { id }, null)) !== null,
-      [run],
+      async (id) => (await run(channels.revert, { id }, null)) !== null,
+      [run, channels],
     ),
 
     remove: useCallback(
-      async (id) => (await run('series:delete', { id }, null)) !== null,
-      [run],
+      async (id) => (await run(channels.remove, { id }, null)) !== null,
+      [run, channels],
     ),
 
     exportSeries: useCallback(
-      async (id) => run('series:export', { id }, null),
-      [run],
+      async (id) => run(channels.exportFile, { id }, null),
+      [run, channels],
     ),
 
     importSeries: useCallback(
-      async () => run('series:import', undefined, null),
-      [run],
+      async () => run(channels.importFile, undefined, null),
+      [run, channels],
     ),
   };
 };

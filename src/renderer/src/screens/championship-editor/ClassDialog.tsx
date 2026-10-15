@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
@@ -19,6 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useFocusOnMount } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { disciplineKey } from '@/screens/championships';
 import { Field, NOT_SET } from '@/screens/race';
@@ -59,7 +60,7 @@ interface ClassDialogProps {
 export const ClassDialog = ({
   series, entry, adding, locked, onConfirm, onCancel,
 }: ClassDialogProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const [draft, setDraft] = useState(entry);
   const [spec, setSpec] = useState<string>(() => catalogue.specById.keys().next().value ?? '');

@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 
 import type { EditorTab } from './types.ts';
 import { problemTab } from './utils.ts';
 import type { SeriesAvailability } from '../../../../shared/types';
+import { useKindTranslation } from '@/i18n';
 import { useAppError } from '@/i18n';
 
 interface EditorProblemsProps {
@@ -15,14 +15,21 @@ interface EditorProblemsProps {
    * @param tab The tab
    */
   onGo: (tab: EditorTab) => void;
+  /**
+   * Which of the editor's own tabs holds a championship's tab, for an editor
+   * that groups them differently - the same tab when left out.
+   * @param tab The championship's tab
+   * @returns The editor's tab
+   */
+  tabOf?: (tab: EditorTab) => EditorTab;
 }
 
 /**
  * What stops the draft being raced, in one tinted box under the tabs, each
  * line with a way to the tab that fixes it.
  */
-export const EditorProblems = ({ problems, onGo }: EditorProblemsProps) => {
-  const { t } = useTranslation();
+export const EditorProblems = ({ problems, onGo, tabOf = (tab) => tab }: EditorProblemsProps) => {
+  const { t } = useKindTranslation();
   const describeError = useAppError();
 
   if (problems.length === 0) return null;
@@ -35,7 +42,7 @@ export const EditorProblems = ({ problems, onGo }: EditorProblemsProps) => {
       </div>
       <ul className="flex flex-col gap-1">
         {problems.map((problem) => {
-          const tab = problemTab(problem.code);
+          const tab = tabOf(problemTab(problem.code));
 
           return (
             <li key={problem.code + JSON.stringify(problem.params)} className="flex flex-wrap items-baseline gap-x-3" data-selectable>

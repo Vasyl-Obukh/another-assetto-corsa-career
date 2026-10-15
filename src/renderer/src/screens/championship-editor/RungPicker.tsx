@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
 
 import { MIN_TIER, RUNGS_OFFERED } from './constants.ts';
 import { Input } from '@/components/ui/input.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { TierMedal, tierMetalKey } from '@/screens/championships';
 import { fromNumber, toNumber } from '@/screens/race';
@@ -34,7 +34,7 @@ interface RungPickerProps {
 export const RungPicker = ({
   idPrefix, tier, disabled, onChange,
 }: RungPickerProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <div className="flex flex-wrap items-center gap-2">

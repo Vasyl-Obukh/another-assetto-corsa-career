@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 
 import { BopCards } from './BopCards.tsx';
 import { ClassPrizes } from './ClassPrizes.tsx';
@@ -20,6 +19,7 @@ import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs.tsx';
 import type { RowEditState } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import {
   disciplineKey, tierAccent, TierMedal, tierMetalKey,
@@ -117,7 +117,7 @@ export const ClassPanel = ({
   series, entry, index, count, availability, teams, fieldable, rows, locked, section, nameOf,
   onSection, onChange, onEligibility, onEdit, onMove, onRemove,
 }: ClassPanelProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const idPrefix = `entry-${entry.id}`;
   // An open row quietens the lists here too; the plain fields beside it stay live.

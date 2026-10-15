@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import type { PathParam } from 'react-router';
 
+import { HistoricResultCard } from './HistoricResultCard.tsx';
 import { ResultDetailSkeleton } from './ResultDetailSkeleton.tsx';
 import { ResultHero } from './ResultHero.tsx';
 import { editionsOf } from '../../../../shared/utils/editions';
@@ -27,12 +28,13 @@ import {
 } from '@/lib/result-events';
 import { linkRun, path, ROUTE } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
+import { prizeFor } from '@/lib/season-review';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 
 export const ResultDetail = () => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const { formatMoney, formatNumber } = useFormat();
   const { file = '' } = useParams<PathParam<typeof ROUTE.result>>();
   const detail = useResult(file);
   const { career } = useCareer();
@@ -63,6 +65,9 @@ export const ResultDetail = () => {
   const championship = origin?.entry.championship ?? null;
   const round = championship?.rounds.find((one) => one.id === origin?.round) ?? null;
   const number = round && championship ? championship.rounds.indexOf(round) + 1 : 0;
+  // A historic event is one event: no championship around it, no table it
+  // stands in, and money rather than points.
+  const historic = origin?.entry.historic === true;
   const playerName = usePlayerName();
 
   // A race event of the player's own has no grid to hand, and its launch says
@@ -89,14 +94,17 @@ export const ResultDetail = () => {
 
   // Where the championship stood once this race was in it.
   const after = useMemo(() => {
-    if (!origin || !race) return null;
+    if (!origin || !race || historic) return null;
     const season = seasonResults(entryResults(origin.entry, origin.season), origin.round);
 
     return season.classes.find((one) => one.entry === origin.entry.entry) ?? null;
-  }, [origin, race]);
+  }, [origin, race, historic]);
 
   const title = round
-    ? t('results.sessionOf', { round: round.name, session: eventSession?.name ?? t(SESSION_TYPE_LABEL[type]) })
+    ? t('results.sessionOf', {
+      round: historic && championship ? championship.name : round.name,
+      session: eventSession?.name ?? t(SESSION_TYPE_LABEL[type]),
+    })
     : t('results.sessionOf', {
       round: quick?.race.title ?? ((record && raceTitle(record)) || record?.summary.track || ''),
       session: quick?.launch.name ?? t(SESSION_TYPE_LABEL[type]),
@@ -134,7 +142,12 @@ export const ResultDetail = () => {
         ? t('results.strip.fastest')
         : t('results.strip.toFastest', { gap: formatGap(mine.bestLap - fastest) }),
     }] : []),
-    ...(mine.place ? [{
+    // A place the player's stand-in drove pays nothing, as the table beside it says.
+    ...(mine.place && !mine.place.bonusOnly && historic && championship && race ? [{
+      label: t('event.summary.prize'),
+      value: formatMoney(prizeFor(championship, mine.place.entry, mine.place.classPosition) ?? 0),
+    }] : []),
+    ...(mine.place && !historic ? [{
       label: t('event.result.points'),
       value: (
         <span className="text-result-points-foreground">
@@ -160,7 +173,8 @@ export const ResultDetail = () => {
       {loading ? (
         <ResultDetailSkeleton
           race={eventSession ? eventSession.type === 'race' : true}
-          standings={origin !== null && (eventSession ? eventSession.type === 'race' : true)}
+          standings={origin !== null && !historic && (eventSession ? eventSession.type === 'race' : true)}
+          historic={historic}
         />
       ) : null}
 
@@ -177,7 +191,21 @@ export const ResultDetail = () => {
             chip={(
               <Badge className={SESSION_ACCENT[type]}>{t(SESSION_TYPE_LABEL[type])}</Badge>
             )}
-            links={origin && round && championship ? (
+            links={origin && round && championship && historic ? (
+              // A historic event leads back to Results, then the event itself.
+              <>
+                <Link to={path.results()} className="underline-offset-4 hover:underline">
+                  {t('results.title')}
+                </Link>
+                <ChevronRightIcon className="size-3.5 opacity-60" />
+                <Link
+                  to={path.event({ series: origin.entry.series, round: origin.round }, run)}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {championship.name}
+                </Link>
+              </>
+            ) : origin && round && championship ? (
               <>
                 <Link to={path.championship({ id: origin.entry.series }, run)} className="underline-offset-4 hover:underline">
                   {championship.name}
@@ -210,7 +238,7 @@ export const ResultDetail = () => {
 
           {figures.length > 0 ? <ResultStrip figures={figures} /> : null}
 
-          <div className={cn('grid items-start gap-4', after && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
+          <div className={cn('grid items-start gap-4', (after || historic) && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
             <div className="flex min-w-0 flex-col gap-4">
               {race && own.length >= 3 ? <Podium rows={own} playerName={playerName} /> : null}
               <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -219,6 +247,11 @@ export const ResultDetail = () => {
                   race={race}
                   playerName={playerName}
                   classes={classes}
+                  prizeOf={historic && championship ? (row) => (
+                    row.place && !row.place.bonusOnly
+                      ? prizeFor(championship, row.place.entry, row.place.classPosition)
+                      : null
+                  ) : undefined}
                   footnote={session.order === 'raceResult' ? (
                     <>
                       <CheckIcon className="size-3.5 text-success" />
@@ -234,6 +267,15 @@ export const ResultDetail = () => {
               </div>
             </div>
 
+            {historic && origin && championship ? (
+              <HistoricResultCard
+                prize={mine?.place && !mine.place.bonusOnly && race
+                  ? prizeFor(championship, mine.place.entry, mine.place.classPosition)
+                  : null}
+                place={race ? mine?.place?.classPosition ?? null : null}
+                to={path.event({ series: origin.entry.series, round: origin.round }, run)}
+              />
+            ) : null}
             {after && championship ? (
               <aside className="flex flex-col rounded-xl border bg-card shadow-sm">
                 <h2 className="px-4 pt-4 text-sm font-semibold">

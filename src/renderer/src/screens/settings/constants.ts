@@ -2,13 +2,14 @@
 // are shared, since the settings reader coerces the same fields.
 
 import {
-  ActivityIcon, BotIcon, CalendarDaysIcon, CarIcon, CloudIcon, GaugeIcon, LayersIcon, MonitorIcon, PackageIcon,
-  SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
+  ActivityIcon, BotIcon, CalendarDaysIcon, CarIcon, CloudIcon, GaugeIcon, LandmarkIcon, LayersIcon, MonitorIcon,
+  PackageIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
 } from 'lucide-react';
 
 import type {
   AidMode, SectionLink, SettingsCmFlag, SettingsTab, WeatherCapability,
 } from './types.ts';
+import type { HistoricFrequency } from '../../../../shared/types';
 import { path } from '@/lib/routes';
 
 /**
@@ -31,9 +32,24 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     to: path.settingsChampionships(), label: 'settings.tabs.championships', icon: TrophyIcon, end: false,
   },
   {
+    to: path.settingsHistoric(), label: 'settings.tabs.historic', icon: LandmarkIcon, end: false,
+  },
+  {
     to: path.settingsContent(), label: 'settings.tabs.content', icon: CarIcon, end: false,
   },
 ];
+
+/**
+ * About how many historic events a season draws at each frequency, which the
+ * setting's hint says - a stretch of the year draws one each.
+ */
+export const HISTORIC_PER_YEAR: Readonly<Record<HistoricFrequency, number>> = {
+  off: 0,
+  quarterly: 4,
+  monthly: 12,
+  fortnightly: 26,
+  weekly: 52,
+};
 
 /**
  * The General tab's sections, in page order, for the index beside them.

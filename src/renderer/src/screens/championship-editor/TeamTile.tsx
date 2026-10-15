@@ -1,6 +1,6 @@
 import { GripVerticalIcon } from 'lucide-react';
 import { useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { RowActions } from './RowActions.tsx';
 import type { Team } from '../../../../shared/types';
@@ -8,6 +8,7 @@ import { NationFlag } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import type { RowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
@@ -65,7 +66,7 @@ interface TeamTileProps {
 export const TeamTile = ({
   team, index, count, fields, locked, editable, drag, onEdit, onMove, onRemove,
 }: TeamTileProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNation } = useFormat();
   const nation = team.nationCode === undefined ? undefined : formatNation(team.nationCode);
   // The drag ghost would otherwise be a snapshot of the grip alone.

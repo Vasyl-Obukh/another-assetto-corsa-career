@@ -1,7 +1,9 @@
 /**
- * How many edition cards a season's skeleton holds: three, a season of a
- * championship or two and a shorter one beside them.
+ * How many edition cards a season's skeleton holds - three, a season of a
+ * championship or two and a shorter one beside them - and how many rows its
+ * table of historic events.
  */
 export const YEAR_SKELETON = {
   editions: 3,
+  historic: 4,
 } as const;

@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { PaneHeading } from './PaneHeading.tsx';
 import { RulesCardSkeleton } from './RulesCardSkeleton.tsx';
 import { Loading, Shimmer } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useKindTranslation } from '@/i18n';
 
 /**
  * A field of the form while the championship is read: its real label, and an
@@ -28,7 +29,7 @@ const field = (label: ReactNode, hint?: string) => (
  * headings, labels and hints, and every value still to come.
  */
 export const OverviewSkeleton = () => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <Loading className="flex flex-col gap-4">

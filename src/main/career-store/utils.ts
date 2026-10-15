@@ -41,6 +41,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
+import { isHistoric } from '../../shared/utils/historic/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 
@@ -442,6 +443,7 @@ export const launchBlock = (
  * @param edition Which of the season's editions
  * @param event The round, dated
  * @param reason What moving on does to it
+ * @param historic Whether it is a historic event rather than a championship's round
  * @returns The round, named and dated
  */
 export const skippedRound = (
@@ -450,6 +452,7 @@ export const skippedRound = (
   edition: number,
   event: SeasonEvent,
   reason: SkipReason,
+  historic = false,
 ): SkippedRound => {
   const at = championship.rounds.findIndex((one) => one.id === event.round);
   const held = championship.entries.find((one) => one.id === entry) ?? championship.entries[0];
@@ -464,6 +467,7 @@ export const skippedRound = (
     ladder: held?.ladder ?? null,
     date: event.date,
     reason,
+    historic,
   };
 };
 
@@ -479,6 +483,7 @@ const lost = (held: EnteredEvent): SkippedRound => skippedRound(
   held.entry.edition,
   held.event,
   held.event.sessions.length > 0 ? 'partway' : 'skipped',
+  isHistoric(held.entry),
 );
 
 /**
@@ -515,7 +520,14 @@ export const launchSkips = (
     .flatMap((other) => {
       if (other.event.date < held.event.date || other.event.sessions.length > 0) return [lost(other)];
       if (other.event.date === held.event.date && !allowSameDay) {
-        return [skippedRound(other.entry.championship, other.entry.entry, other.entry.edition, other.event, 'clash')];
+        return [skippedRound(
+          other.entry.championship,
+          other.entry.entry,
+          other.entry.edition,
+          other.event,
+          'clash',
+          isHistoric(other.entry),
+        )];
       }
 
       return [];
@@ -669,6 +681,8 @@ export const eventSessions = (
  * @param event The dated round
  * @param career The career reading it
  * @param enrolled Whether the career is in this class of this edition
+ * @param historic Whether it is a historic event, which the career may race
+ * only while it holds the invitation
  * @returns The row
  */
 export const calendarEntry = (
@@ -679,6 +693,7 @@ export const calendarEntry = (
   event: SeasonEvent,
   career: Career,
   enrolled: boolean,
+  historic = false,
 ): CalendarEntry => {
   // A round a season's copy no longer matches keeps its id as its name rather
   // than vanishing off the calendar, which would lose a round that may already
@@ -709,9 +724,12 @@ export const calendarEntry = (
     date: event.date,
     status: event.status,
     enrolled,
-    eligible: isEligible(entry.ladder, career.level),
+    // Whatever the career's level, but only while the invitation stands: one
+    // declined is no longer open to enter.
+    eligible: historic ? enrolled : isEligible(entry.ladder, career.level),
     raceable: roundRaceableIn(availability, event.round),
     clash: false,
+    historic,
   };
 };
 
@@ -749,7 +767,7 @@ export const composeCalendar = (
     if (!entry || !availability) return [];
 
     return held.events.map((event) => calendarEntry(
-      held.championship, availability, entry, held.edition, event, career, !held.withdrawn,
+      held.championship, availability, entry, held.edition, event, career, !held.withdrawn, isHistoric(held),
     ));
   });
 

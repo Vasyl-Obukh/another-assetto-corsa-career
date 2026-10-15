@@ -1,8 +1,9 @@
 import { PlusIcon, XIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { moveTo } from '@/screens/race';
 
@@ -44,7 +45,7 @@ interface CarListFieldProps {
 export const CarListField = ({
   cars, locked, onChange, onAdd, nameOf,
 }: CarListFieldProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const drag = useRowDrag({
     count: cars.length,
     locked,

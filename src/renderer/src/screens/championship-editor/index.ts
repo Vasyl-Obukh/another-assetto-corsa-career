@@ -13,6 +13,9 @@ export { EligibilityField } from './EligibilityField.tsx';
 export { GridFields } from './GridFields.tsx';
 export { OffsetStepper } from './OffsetStepper.tsx';
 export { RulesCard } from './RulesCard.tsx';
+// The race-control choices the editor offers, which the read-only rules list
+// lights the chosen one of.
+export { JUMP_START_CHOICES, TRACK_DEFAULT, TYRES_OUT_CHOICES } from './constants.ts';
 export { GridFieldsSkeleton } from './GridFieldsSkeleton.tsx';
 export { RulesCardSkeleton } from './RulesCardSkeleton.tsx';
 export { SessionsSplit } from './SessionsSplit.tsx';

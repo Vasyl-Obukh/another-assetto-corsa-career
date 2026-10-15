@@ -2,7 +2,7 @@ import type { ParseKeys, TFunction } from 'i18next';
 import type { ComponentType, ReactNode } from 'react';
 
 import type {
-  CareerSeason, ClassEntry, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
+  CareerSeason, ClassEntry, MissingCar, MissingTrack, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
 } from '../../../../shared/types';
 import type { StandingsView } from '@/components';
 import type { ChampionshipDimension } from '@/hooks';
@@ -164,6 +164,20 @@ export interface StandingsLayout {
  * Which part of a championship's page is open.
  */
 export type DetailTab = 'rounds' | 'standings' | 'classes' | 'rules';
+
+/**
+ * The content a championship needs and the install lacks, each named once.
+ */
+export interface MissingContentList {
+  /**
+   * Every car an entry or a round's own grid names that is not installed.
+   */
+  cars: readonly MissingCar[];
+  /**
+   * Every round's track that is not installed.
+   */
+  tracks: readonly MissingTrack[];
+}
 
 /**
  * Which of three things a championship's availability is saying.

@@ -1,8 +1,7 @@
-import { useTranslation } from 'react-i18next';
-
 import {
   ROUND_COLUMN, ROW_GAP, ROW_GRIP, ROW_NUMBER,
 } from './constants.ts';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 /**
@@ -10,7 +9,7 @@ import { cn } from '@/lib/utils.ts';
  * lays out, so the rows below read as a table.
  */
 export const RoundHeading = () => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <div aria-hidden className={cn('-mx-2 flex items-end px-2 pb-1 text-xs text-muted-foreground', ROW_GAP)}>

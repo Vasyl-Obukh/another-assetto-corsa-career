@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { AMBIENT_RANGE, ROAD_KINDS, ROAD_RANGE } from './constants.ts';
@@ -7,6 +6,7 @@ import { DEFAULT_AMBIENT, DEFAULT_TIME_OF_DAY } from '../../../../shared/constan
 import type { Conditions } from '../../../../shared/types';
 import { followedRoad } from '../../../../shared/utils/road-temperature';
 import { Slider } from '@/components/ui/slider.tsx';
+import { useKindTranslation } from '@/i18n';
 
 interface TemperatureControlProps {
   /**
@@ -48,7 +48,7 @@ const along = (value: number): number => ((value - ROAD_RANGE.min) / (ROAD_RANGE
 export const TemperatureControl = ({
   idPrefix, conditions, coeff, disabled, onChange,
 }: TemperatureControlProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const ambient = conditions.ambient ?? DEFAULT_AMBIENT;
   const clock = conditions.timeOfDay ?? DEFAULT_TIME_OF_DAY;
   // Kunos' curve, as race.ini will write it. Approximate where the weather

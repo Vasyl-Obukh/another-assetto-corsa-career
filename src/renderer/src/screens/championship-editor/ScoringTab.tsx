@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
 
 import { PointsSystems } from './PointsSystems.tsx';
 import { PurseEditor } from './PurseEditor.tsx';
 import { withPrizes } from './utils.ts';
 import { WhoPays } from './WhoPays.tsx';
 import type { Championship } from '../../../../shared/types';
+import { useKindTranslation } from '@/i18n';
 
 interface ScoringTabProps {
   /**
@@ -25,6 +25,11 @@ interface ScoringTabProps {
    * @param entry The class entry's id
    */
   onClassPrizes: (entry: string) => void;
+  /**
+   * Whether only what a race pays is edited, for a historic event: it pays no
+   * points and has no season for a final standing to be paid at.
+   */
+  prizesOnly?: boolean;
 }
 
 /**
@@ -32,20 +37,22 @@ interface ScoringTabProps {
  * money - each race's and the season's - and where every class's comes from.
  */
 export const ScoringTab = ({
-  series, locked, onChange, onClassPrizes,
+  series, locked, onChange, onClassPrizes, prizesOnly = false,
 }: ScoringTabProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const prizes = { positions: series.prizes?.positions ?? [], standings: series.prizes?.standings ?? [] };
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline gap-x-3">
-          <h2 className="text-base font-semibold">{t('editor.points.title')}</h2>
-          <p className="text-sm text-muted-foreground">{t('editor.points.hintShort')}</p>
-        </div>
-        <PointsSystems series={series} locked={locked} onChange={onChange} />
-      </section>
+      {prizesOnly ? null : (
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-baseline gap-x-3">
+            <h2 className="text-base font-semibold">{t('editor.points.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('editor.points.hintShort')}</p>
+          </div>
+          <PointsSystems series={series} locked={locked} onChange={onChange} />
+        </section>
+      )}
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline gap-x-3">
@@ -61,14 +68,16 @@ export const ScoringTab = ({
             disabled={locked}
             onChange={(positions) => onChange(withPrizes(series, { ...prizes, positions }))}
           />
-          <PurseEditor
-            idPrefix="purse-season"
-            title={t('editor.purse.season')}
-            hint={t('editor.purse.seasonHint')}
-            values={prizes.standings}
-            disabled={locked}
-            onChange={(standings) => onChange(withPrizes(series, { ...prizes, standings }))}
-          />
+          {prizesOnly ? null : (
+            <PurseEditor
+              idPrefix="purse-season"
+              title={t('editor.purse.season')}
+              hint={t('editor.purse.seasonHint')}
+              values={prizes.standings}
+              disabled={locked}
+              onChange={(standings) => onChange(withPrizes(series, { ...prizes, standings }))}
+            />
+          )}
         </div>
         {series.entries.length > 1 ? <WhoPays series={series} onOpen={onClassPrizes} /> : null}
       </section>

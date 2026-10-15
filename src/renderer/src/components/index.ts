@@ -32,6 +32,7 @@ export {
   TeamStandingsTable,
 } from './results/index.ts';
 export type { StandingsView, StripFigure } from './results/index.ts';
+export { HistoricChip } from './HistoricChip.tsx';
 export { LibrarySwitch, withId } from './library-switch/index.ts';
 export { LiveryPlate } from './LiveryPlate.tsx';
 export { Loading } from './Loading.tsx';

@@ -9,7 +9,9 @@ import { OriginBadge } from './OriginBadge.tsx';
 import { Requirements } from './Requirements.tsx';
 import { SummaryFact } from './SummaryFact.tsx';
 import type { NextRound } from './types.ts';
-import { availabilityState, disciplineKey, tierAccent } from './utils.ts';
+import {
+  availabilityState, disciplineKey, fieldSize, tierAccent,
+} from './utils.ts';
 import type { SeasonEntry, SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
@@ -67,7 +69,6 @@ export const DetailSummary = ({
   const state = availabilityState(availability);
   const format = defaultFormatOf(series);
   const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
-  const seats = series.entries.reduce((sum, entry) => sum + entry.seats.length, 0);
   const yours = entered ? series.entries.find((entry) => entry.id === entered.entry) : undefined;
   const yourSeat = yours?.seats.find((seat) => seat.id === entered?.playerSeat);
   const yourTeam = series.teams?.find((team) => team.id === yourSeat?.team);
@@ -81,24 +82,29 @@ export const DetailSummary = ({
         ))}
       </div>
 
+      {/* The name's first line is the menu button's height, and the controls
+          are centred in that height, so all three line up however long the
+          name runs. */}
       <div className="flex items-start gap-2">
-        <h1 className="min-w-0 flex-1 text-xl leading-tight font-semibold">{series.name}</h1>
-        {manage ? (
-          <Switch
-            checked={active}
-            aria-label={t('championshipLibrary.active', { name: series.name })}
-            className={`mt-1 ${SWITCH_TRACK}`}
-            onCheckedChange={(on) => patch({
-              seriesActive: withSeriesActive(listing, settings.seriesActive, on),
-            })}
+        <h1 className="min-w-0 flex-1 py-1 text-xl leading-7 font-semibold">{series.name}</h1>
+        <div className="flex h-9 shrink-0 items-center gap-2">
+          {manage ? (
+            <Switch
+              checked={active}
+              aria-label={t('championshipLibrary.active', { name: series.name })}
+              className={SWITCH_TRACK}
+              onCheckedChange={(on) => patch({
+                seriesActive: withSeriesActive(listing, settings.seriesActive, on),
+              })}
+            />
+          ) : null}
+          <ChampionshipActions
+            listing={listing}
+            commands={commands}
+            manage={manage}
+            onDeleted={onDeleted}
           />
-        ) : null}
-        <ChampionshipActions
-          listing={listing}
-          commands={commands}
-          manage={manage}
-          onDeleted={onDeleted}
-        />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1">
@@ -142,7 +148,7 @@ export const DetailSummary = ({
         ) : null}
         <SummaryFact label={t('championships.detail.grid')}>
           {t('championships.detail.gridSize', {
-            cars: t('championships.cars', { count: seats }),
+            cars: t('championships.cars', { count: fieldSize(series) }),
             teams: t('championships.teams', { count: series.teams?.length ?? 0 }),
           })}
         </SummaryFact>

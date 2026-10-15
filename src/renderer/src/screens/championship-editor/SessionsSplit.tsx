@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { MAX_DAY } from './constants.ts';
 import { SessionList } from './SessionList.tsx';
@@ -11,6 +11,7 @@ import {
 import type {
   Championship, EventFormat, SeriesSession, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -78,7 +79,7 @@ export const SessionsSplit = ({
   series, format, weather, controllers, system, locked, scoring = true, behind = 'round', flat = false, head, startClass,
   onChange,
 }: SessionsSplitProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber } = useFormat();
   // -1 is the head, when there is one.
   const [selected, setSelected] = useState(0);

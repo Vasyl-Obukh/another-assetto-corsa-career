@@ -111,6 +111,16 @@ export const TrackRow = ({
       )}
       onClick={pick ?? flip ?? open}
     >
+      {toggle === undefined ? null : (
+        <td className="w-14 px-2.5 py-1.5" onClick={(event) => event.stopPropagation()}>
+          <Switch
+            checked={toggle.isOn(group.id)}
+            aria-label={group.name}
+            className={SWITCH_TRACK}
+            onCheckedChange={(next) => toggle.onToggle(group.id, next)}
+          />
+        </td>
+      )}
       <td className="w-20 py-1.5 pr-1 pl-2.5 @[44rem]:w-28">
         <div className="relative h-10 w-16 rounded-md bg-muted @[44rem]:h-13 @[44rem]:w-24">
           {outline === null ? null : (
@@ -151,16 +161,6 @@ export const TrackRow = ({
           <ProvenanceBadges provenance={group.provenance} trackId={toggle ? undefined : group.id} />
         </div>
       </td>
-      {toggle === undefined ? null : (
-        <td className="w-14 px-2.5 py-1.5" onClick={(event) => event.stopPropagation()}>
-          <Switch
-            checked={toggle.isOn(group.id)}
-            aria-label={group.name}
-            className={SWITCH_TRACK}
-            onCheckedChange={(next) => toggle.onToggle(group.id, next)}
-          />
-        </td>
-      )}
     </tr>
   );
 };

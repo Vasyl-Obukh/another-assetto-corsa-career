@@ -30,9 +30,10 @@ interface RoundStrengthProps {
    */
   strength: EventStrength;
   /**
-   * Where the championship's page is, for the season's own step.
+   * Where the championship's page is, for the season's own step - or null for
+   * a historic event, which is one event and has no season to step.
    */
-  championship: string;
+  championship: string | null;
   /**
    * Called with the round's new step.
    * @param step The step, zero for none
@@ -81,11 +82,14 @@ export const RoundStrength = ({
           hint={view.roundName}
           base={yours}
           layers={[
-            { label: t('race.ai.championship'), value: strength.championship },
+            {
+              label: t(championship === null ? 'historic.strength.event' : 'race.ai.championship'),
+              value: strength.championship,
+            },
             { label: t('race.ai.class'), value: own },
             // Named in the chain only where the round states one, which few do.
             ...(strength.round === 0 ? [] : [{ label: t('race.ai.round'), value: strength.round }]),
-            { label: t('race.ai.season'), value: strength.season },
+            ...(championship === null ? [] : [{ label: t('race.ai.season'), value: strength.season }]),
           ]}
           own={t('race.ai.thisRound')}
           value={strength.step === 0 ? undefined : strength.step}
@@ -109,16 +113,18 @@ export const RoundStrength = ({
           />
         ) : null}
 
-        <StrengthNote>
-          {strength.season === 0
-            ? t('strength.seasonNoteNone')
-            : t('strength.seasonNote', { step: formatSigned(strength.season) })}
-          {' '}
-          <Link to={championship} className="inline-flex items-center font-medium text-primary hover:underline">
-            {t('strength.seasonLink')}
-            <ChevronRightIcon className="size-3.5" />
-          </Link>
-        </StrengthNote>
+        {championship === null ? null : (
+          <StrengthNote>
+            {strength.season === 0
+              ? t('strength.seasonNoteNone')
+              : t('strength.seasonNote', { step: formatSigned(strength.season) })}
+            {' '}
+            <Link to={championship} className="inline-flex items-center font-medium text-primary hover:underline">
+              {t('strength.seasonLink')}
+              <ChevronRightIcon className="size-3.5" />
+            </Link>
+          </StrengthNote>
+        )}
         <StrengthBetween sessions={view.sessions} entry={entered.entry} />
       </CardContent>
     </Card>

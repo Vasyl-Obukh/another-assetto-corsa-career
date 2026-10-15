@@ -22,6 +22,11 @@ interface RoundSummarySkeletonProps {
    * The round's number, for the table's heading.
    */
   round: number;
+  /**
+   * Whether it is a historic event, which pays a prize rather than points and
+   * stands in no table.
+   */
+  historic?: boolean;
 }
 
 /**
@@ -30,9 +35,13 @@ interface RoundSummarySkeletonProps {
  * it - each at the size RoundSummary draws it, in the shape the event view
  * already says it will take.
  */
-export const RoundSummarySkeleton = ({ entered, races, round }: RoundSummarySkeletonProps) => {
+export const RoundSummarySkeleton = ({
+  entered, races, round, historic = false,
+}: RoundSummarySkeletonProps) => {
   const { t } = useTranslation();
-  const figures = ['event.summary.races', 'event.summary.points', 'event.summary.championship'] as const;
+  const figures = historic
+    ? ['event.summary.races', 'event.summary.prize'] as const
+    : ['event.summary.races', 'event.summary.points', 'event.summary.championship'] as const;
 
   return (
     <Loading className="flex flex-col gap-4">
@@ -44,7 +53,7 @@ export const RoundSummarySkeleton = ({ entered, races, round }: RoundSummarySkel
                 {t(label)}
               </span>
               <span className="flex min-w-0 items-center gap-2 text-xl font-semibold">
-                {label === 'event.summary.points'
+                {label === 'event.summary.points' || label === 'event.summary.prize'
                   ? <Shimmer className="my-1 h-5 w-12" />
                   : <Shimmer className="h-7.5 w-10 rounded-md" />}
                 {label === 'event.summary.championship' ? <Shimmer className="h-3 w-16" /> : null}
@@ -83,18 +92,20 @@ export const RoundSummarySkeleton = ({ entered, races, round }: RoundSummarySkel
         </div>
       </section>
 
-      <section className="flex flex-col rounded-xl border">
-        <div className="flex items-center justify-between gap-2 px-4 pt-3">
-          <h3 className="text-sm font-semibold">{t('standings.afterRound', { number: round })}</h3>
-          <Button size="sm" variant="outline" disabled>
-            {t('standings.fullStandings')}
-            <ChevronRightIcon />
-          </Button>
-        </div>
-        <div className="px-1 pt-2 pb-1">
-          <CompactStandingsSkeleton withPlayer={entered} />
-        </div>
-      </section>
+      {historic ? null : (
+        <section className="flex flex-col rounded-xl border">
+          <div className="flex items-center justify-between gap-2 px-4 pt-3">
+            <h3 className="text-sm font-semibold">{t('standings.afterRound', { number: round })}</h3>
+            <Button size="sm" variant="outline" disabled>
+              {t('standings.fullStandings')}
+              <ChevronRightIcon />
+            </Button>
+          </div>
+          <div className="px-1 pt-2 pb-1">
+            <CompactStandingsSkeleton withPlayer={entered} />
+          </div>
+        </section>
+      )}
     </Loading>
   );
 };

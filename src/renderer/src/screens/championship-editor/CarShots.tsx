@@ -1,10 +1,11 @@
 import { CarIcon, PlusIcon, XIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ContentImage } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useCars } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { carImageSources } from '@/screens/car-browser';
 
 interface CarShotsProps {
@@ -42,7 +43,7 @@ interface CarShotsProps {
 export const CarShots = ({
   cars, nameOf, locked, onRemove, onAdd,
 }: CarShotsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const installed = useCars(cars);
   const placeholder = (
     <div className="absolute inset-0 flex items-center justify-center">

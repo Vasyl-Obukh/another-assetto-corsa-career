@@ -292,6 +292,33 @@ export const path = {
     params: RouteParams<typeof ROUTE.championshipEdit>,
   ): string => buildPath(ROUTE.championshipEdit, params),
   /**
+   * The settings screen's Historic events tab, where the pool a career draws
+   * its historic events from is managed.
+   * @returns Its URL
+   */
+  settingsHistoric: (): string => ROUTE.settingsHistoric,
+  /**
+   * One historic event's page, as the settings tab opens it.
+   * @param params The historic event's id
+   * @returns Its URL, with the id encoded
+   */
+  settingsHistoricEvent: (
+    params: RouteParams<typeof ROUTE.settingsHistoricEvent>,
+  ): string => buildPath(ROUTE.settingsHistoricEvent, params),
+  /**
+   * The editor, on a historic event that does not exist yet.
+   * @returns Its URL
+   */
+  historicNew: (): string => ROUTE.historicNew,
+  /**
+   * One historic event's editor.
+   * @param params The historic event's id
+   * @returns Its URL, with the id encoded
+   */
+  historicEdit: (
+    params: RouteParams<typeof ROUTE.historicEdit>,
+  ): string => buildPath(ROUTE.historicEdit, params),
+  /**
    * The car browser.
    * @returns Its URL
    */

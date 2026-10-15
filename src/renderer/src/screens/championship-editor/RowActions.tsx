@@ -1,7 +1,7 @@
 import {
   ChevronDownIcon, ChevronUpIcon, MoreVerticalIcon, PencilIcon, Trash2Icon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import type { RowMenuItem } from './types.ts';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
+import { useKindTranslation } from '@/i18n';
 
 interface RowActionsProps {
   /**
@@ -76,7 +77,7 @@ export const RowActions = ({
   label, first, last, locked, removable = true, editable = true,
   onEdit, extra, onMove, onRemove,
 }: RowActionsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const quiet = locked || !editable;
 
   return (

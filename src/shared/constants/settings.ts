@@ -2,7 +2,7 @@
 
 import { WeatherType } from './weather-types.ts';
 import type {
-  AiBase, Language, Settings, ThemeChoice, WeatherSystem,
+  AiBase, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
 } from '../types/index.ts';
 
 /**
@@ -22,6 +22,14 @@ export const LANGUAGES: readonly Language[] = ['en', 'uk'];
  * neither mod has and so what a fresh one must default to.
  */
 export const WEATHER_SYSTEMS: readonly WeatherSystem[] = ['none', 'pure', 'sol'];
+
+/**
+ * How often a season may draw historic events, rarest first - the order the
+ * setting offers them in.
+ */
+export const HISTORIC_FREQUENCIES: readonly HistoricFrequency[] = [
+  'off', 'quarterly', 'monthly', 'fortnightly', 'weekly',
+];
 
 /**
  * The weather a fresh install lets into the sim, in menu order.
@@ -76,6 +84,8 @@ export const DEFAULT_SETTINGS: Settings = {
   seriesActive: {},
   showFillerSeries: true,
   allowSameDayEvents: false,
+  historicFrequency: 'monthly',
+  historicActive: {},
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

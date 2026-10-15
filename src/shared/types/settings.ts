@@ -23,6 +23,12 @@ export type ResolvedTheme = 'light' | 'dark';
 export type Language = 'en' | 'uk';
 
 /**
+ * How often a career season draws a historic event: never, about once a
+ * quarter, a month, a fortnight or a week.
+ */
+export type HistoricFrequency = 'off' | 'quarterly' | 'monthly' | 'fortnightly' | 'weekly';
+
+/**
  * Where the window was last time, so it can be put back.
  */
 export interface WindowState {
@@ -230,6 +236,20 @@ export interface Settings {
    * clashes and the career can race as many championships as it likes.
    */
   allowSameDayEvents: boolean;
+  /**
+   * How often a career season draws a historic event onto its calendar.
+   *
+   * Read when a season draws its historic events, which is when it opens, so a
+   * change reaches the next season and never re-draws the one being raced.
+   */
+  historicFrequency: HistoricFrequency;
+  /**
+   * The historic events the user switched on or off, by id - only those, the
+   * way `seriesActive` keeps the championships' switches. One switched off is
+   * never drawn. Read it through src/shared/utils/series-toggles/, handing it
+   * over as the switches it answers from.
+   */
+  historicActive: Record<string, boolean>;
   /**
    * Paths the user has corrected by hand.
    */

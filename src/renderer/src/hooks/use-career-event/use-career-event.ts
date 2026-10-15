@@ -93,6 +93,12 @@ export const useCareerEvent = (
     enter: (entry, car) => command(() => invoke('career:enrol', {
       series, entry, car, edition: view?.edition ?? edition,
     })),
+    // Declining is withdrawing from it: the event's one round becomes a
+    // non-start, raced by the field.
+    decline: () => command(async () => {
+      if (!view?.entered) return;
+      await invoke('career:withdraw', { series, entry: view.entered.entry, edition: view.edition });
+    }),
     launch: (skip, scale) => command(() => invoke('career:launch', {
       series, round, edition: view?.edition ?? edition, skip, scale,
     })),

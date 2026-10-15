@@ -3,27 +3,30 @@ import { describe, expect, it } from '@jest/globals';
 import {
   AI_RANGE, MAX_GRID_OFFSET, SERIES_FORMAT_VERSION, WeatherType,
 } from '../../../../../shared/constants';
-import { Discipline } from '../../../../../shared/types';
+import { ContentSource, Discipline } from '../../../../../shared/types';
 import type {
   Championship, ClassEntry, EventFormat, Round, SeriesAvailability, SeriesSession, Weather,
 } from '../../../../../shared/types';
 import { SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import {
-  DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER, PURSE_SHAPES,
+  DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER, HISTORIC_EDITOR_TABS, HISTORIC_IDS, PURSE_SHAPES,
 } from '../constants.ts';
 import {
   changedTabs,
   coeffOf,
   daysOf,
+  emptyHistoric,
   emptySeries,
   freeId,
   generatePurse,
   groupSet,
   groupsSet,
+  historicTab,
   lengthUnit,
   minutesOf,
   namedCars,
   namesIn,
+  namesItsType,
   nationsIn,
   nextEntry,
   nextFormat,
@@ -50,6 +53,7 @@ import {
   withEntryEligibility,
   withEntryPrizes,
   withFormat,
+  withHistoricNames,
   withLengthUnit,
   withoutDay,
   withoutEntry,
@@ -979,6 +983,13 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('marks nothing when the draft matches what is written', () => {
       expect(changedTabs(series([round('a')]), series([round('a')]))).toEqual(new Set());
     });
+
+    it('marks only the tabs it is handed, so a historic event marks its own', () => {
+      const saved = series([round('a')]);
+      const draft = { ...saved, rounds: [{ ...round('a'), track: { id: 'spa' } }], prizes: { positions: [100] } };
+
+      expect(changedTabs(draft, saved, HISTORIC_EDITOR_TABS)).toEqual(new Set(['event', 'prizes']));
+    });
   });
 
   describe('problemTab', () => {
@@ -1022,6 +1033,104 @@ describe('renderer/screens/championship-editor/utils', () => {
       });
 
       expect(problemTabs(result)).toEqual(new Set(['calendar', 'classes']));
+    });
+
+    it('marks the tab the editor in use holds each subject on', () => {
+      const result = checked({
+        problems: [
+          { code: 'series.points.unknown', params: {}, message: '' },
+          { code: 'series.seat.teamUnknown', params: {}, message: '' },
+        ],
+        rounds: [{
+          round: 'a', track: {
+            key: 'spa', id: 'spa', layout: '', provenance: {
+              source: ContentSource.BASE, pack: null, maker: null, distributor: null,
+            },
+          }, pitboxes: null, entries: [], races: [],
+        }],
+      });
+
+      expect(problemTabs(result, historicTab)).toEqual(new Set(['prizes', 'classes', 'event']));
+    });
+  });
+
+  describe('historicTab', () => {
+    it('moves the calendar and the formats to Event, and scoring to Prizes', () => {
+      expect(historicTab('calendar')).toBe('event');
+      expect(historicTab('formats')).toBe('event');
+      expect(historicTab('scoring')).toBe('prizes');
+    });
+
+    it('keeps the tabs a historic event shares with a championship', () => {
+      expect(historicTab('overview')).toBe('overview');
+      expect(historicTab('teams')).toBe('teams');
+      expect(historicTab('classes')).toBe('classes');
+    });
+  });
+
+  describe('emptyHistoric', () => {
+    it('writes one round, one empty format and a points table paying nothing, all named for the event', () => {
+      const event = emptyHistoric('Grand Prix', 'No points');
+
+      expect(event.rounds).toEqual([{ id: HISTORIC_IDS.round, name: 'Grand Prix', track: { id: '' } }]);
+      expect(event.eventFormats).toEqual([{ id: HISTORIC_IDS.format, name: 'Grand Prix', sessions: [] }]);
+      expect(event.defaultEventFormat).toBe(HISTORIC_IDS.format);
+      expect(event.pointsSystems).toEqual([{ id: HISTORIC_IDS.points, name: 'No points', positions: [] }]);
+      expect(event.defaultPointsSystem).toBe(HISTORIC_IDS.points);
+    });
+
+    it('leaves the id blank and the classes empty, for main and the editor to fill', () => {
+      const event = emptyHistoric('Grand Prix', 'No points');
+
+      expect(event.id).toBe('');
+      expect(event.entries).toEqual([]);
+      expect(event.version).toBe(SERIES_FORMAT_VERSION);
+      expect(event.seasonLength).toBeUndefined();
+      expect(event.raceWeekday).toBeUndefined();
+    });
+  });
+
+  describe('withHistoricNames', () => {
+    it('renames the round and every format after the event', () => {
+      const event = series([round('a')], {
+        name: 'Italian Grand Prix 1967',
+        eventFormats: [format([]), { id: 'other', name: 'Other', sessions: [] }],
+      });
+      const named = withHistoricNames(event);
+
+      expect(named.rounds.map((one) => one.name)).toEqual(['Italian Grand Prix 1967']);
+      expect(named.eventFormats.map((one) => one.name)).toEqual(['Italian Grand Prix 1967', 'Italian Grand Prix 1967']);
+    });
+
+    it('leaves everything else of the round as it was', () => {
+      const named = withHistoricNames(series([round('a')], { name: 'Event' }));
+
+      expect(named.rounds[0]).toEqual({ id: 'a', name: 'Event', track: { id: 'magione' } });
+    });
+  });
+
+  describe('namesItsType', () => {
+    it("reads a name that is its kind's label as naming the kind", () => {
+      expect(namesItsType('Qualifying', 'qualify', ['Qualifying'])).toBe(true);
+    });
+
+    // Fixed: only the app's own language was checked, so with the app in
+    // Ukrainian a shipped session named "Qualifying" kept its name as a race.
+    it("reads a name in any of the languages handed as naming the kind", () => {
+      expect(namesItsType('Qualifying', 'qualify', ['Кваліфікація', 'Qualifying'])).toBe(true);
+    });
+
+    it("reads the kind's own word, in any case, as naming the kind", () => {
+      expect(namesItsType('race', 'race', ['Race'])).toBe(true);
+      expect(namesItsType('RACE', 'race', ['Гонка'])).toBe(true);
+    });
+
+    it("keeps a name of the player's own", () => {
+      expect(namesItsType('Feature race', 'race', ['Race'])).toBe(false);
+    });
+
+    it('has nothing to drop when the session has no name', () => {
+      expect(namesItsType(undefined, 'race', ['Race'])).toBe(false);
     });
   });
 

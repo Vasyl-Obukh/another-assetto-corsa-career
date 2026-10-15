@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ConditionsEditor } from './ConditionsEditor.tsx';
 import { ROUND_TABS } from './constants.ts';
@@ -13,6 +13,7 @@ import type {
 } from '../../../../shared/types';
 import { useClasses } from '@/app';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { UNDERLINE_TAB } from '@/screens/championships';
 import { withSessionConditions } from '@/screens/race';
@@ -82,7 +83,7 @@ export const RoundDialog = ({
   series, round, adding, tab: opening, availability, weather, controllers, system, locked, nameOf,
   onConfirm, onCancel,
 }: RoundDialogProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const [draft, setDraft] = useState(series);
   const [tab, setTab] = useState<RoundTab>(opening);

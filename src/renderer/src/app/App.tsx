@@ -17,6 +17,8 @@ import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
+import { HistoricDetail } from '@/screens/historic-detail';
+import { HistoricLibrary } from '@/screens/historic-library';
 import { History } from '@/screens/history';
 import { Home } from '@/screens/home';
 import { Race, RaceEvent } from '@/screens/race';
@@ -75,10 +77,14 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
               <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
               <Route path={ROUTE.settingsSources} element={<ContentSources />} />
+              <Route path={ROUTE.settingsHistoric} element={<HistoricLibrary />} />
             </Route>
             <Route path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />
             <Route path={ROUTE.championshipNew} element={<ChampionshipEditor />} />
             <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
+            <Route path={ROUTE.settingsHistoricEvent} element={<HistoricDetail />} />
+            <Route path={ROUTE.historicNew} element={<ChampionshipEditor kind="historic" />} />
+            <Route path={ROUTE.historicEdit} element={<ChampionshipEditor kind="historic" />} />
             <Route path="*" element={<Navigate to={path.home()} replace />} />
           </Routes>
         </main>

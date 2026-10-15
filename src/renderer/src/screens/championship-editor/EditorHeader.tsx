@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 
 import type { SeriesOrigin } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { useKindTranslation } from '@/i18n';
 import { OriginBadge } from '@/screens/championships';
 
 interface EditorHeaderProps {
@@ -45,7 +45,7 @@ interface EditorHeaderProps {
 export const EditorHeader = ({
   name, origin, dirty, busy, editable, onSave, onDiscard,
 }: EditorHeaderProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <div className="flex flex-wrap items-center gap-3">

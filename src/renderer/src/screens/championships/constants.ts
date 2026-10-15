@@ -234,3 +234,9 @@ export const UNDERLINE_TAB = 'h-auto flex-none rounded-none border-0 border-b-2 
  * How many rows the sidebar's standings hold while the page loads.
  */
 export const STANDINGS_SKELETON = 5;
+
+/**
+ * A library table's column heading, shared by the championships' and the
+ * historic events' tables.
+ */
+export const TABLE_HEADING = 'px-2.5 py-2 text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase';

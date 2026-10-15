@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { JUMP_START_CHOICES, TRACK_DEFAULT, TYRES_OUT_CHOICES } from './constants.ts';
@@ -9,6 +8,7 @@ import type {
   RegulatedAssists, Regulations, SeriesGrid,
 } from '../../../../shared/types';
 import { Card } from '@/components/ui/card.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { RegulationsInputs } from '@/screens/race';
 
@@ -50,7 +50,7 @@ interface RulesCardProps {
 export const RulesCard = ({
   grid, own, regulations, locked, onGrid, onRegulations,
 }: RulesCardProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber } = useFormat();
   const jump = regulations.jumpStartPenalty ?? 0;
   // A penalty the document states that none of the chips name stays offered,

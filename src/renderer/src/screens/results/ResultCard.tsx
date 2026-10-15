@@ -9,7 +9,7 @@ import { editionsOf } from '../../../../shared/utils/editions';
 import { formatLapTime } from '../../../../shared/utils/lap-time';
 import { entryResults } from '../../../../shared/utils/standings';
 import {
-  BonusPoints, CarSwatch, Movement, ResultCell,
+  BonusPoints, CarSwatch, HistoricChip, Movement, ResultCell,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useCarNames } from '@/hooks';
@@ -47,6 +47,8 @@ export const ResultCard = ({ event, current }: ResultCardProps) => {
   const championship = origin?.entry.championship;
   const round = championship?.rounds.find((one) => one.id === origin?.round);
   const number = round && championship ? championship.rounds.indexOf(round) + 1 : null;
+  // A historic event is one event, named by itself and its track.
+  const historic = origin?.entry.historic === true;
   const record = sessions.at(-1)?.record;
   const layout = round
     ? { id: round.track.id, layout: round.track.layout ?? '' }
@@ -70,7 +72,7 @@ export const ResultCard = ({ event, current }: ResultCardProps) => {
         layout={layout}
         pill={formatDayRange(t, formatDay, event.from.slice(0, 10), event.to.slice(0, 10))}
         title={championship?.name ?? event.title}
-        line={round && number
+        line={round && number && !historic
           ? t('championships.detail.roundAt', { number, round: round.name })
           : record?.layout?.name ?? record?.summary.track}
       />
@@ -117,7 +119,22 @@ export const ResultCard = ({ event, current }: ResultCardProps) => {
         ))}
       </div>
 
-      {origin && after ? (
+      {origin && historic ? (
+        <Link
+          to={path.event({ series: origin.entry.series, round: origin.round }, linkRun(
+            { season: origin.season, edition: origin.entry.edition },
+            current,
+            1,
+          ))}
+          className="mt-auto flex items-center gap-2 border-t px-4 py-2.5 text-xs hover:bg-accent/50"
+        >
+          <HistoricChip className="px-1.5 py-0 text-[0.65rem]" />
+          <span>{t('results.historic.open')}</span>
+          <ChevronRightIcon className="ml-auto size-3.5 text-primary" />
+        </Link>
+      ) : null}
+
+      {origin && after && !historic ? (
         <Link
           to={path.event({ series: origin.entry.series, round: origin.round }, linkRun(
             { season: origin.season, edition: origin.entry.edition },

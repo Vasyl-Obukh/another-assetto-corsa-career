@@ -22,6 +22,24 @@ export const roundAvailabilityIn = (
 ): RoundAvailability | undefined => availability.rounds.find((one) => one.round === round);
 
 /**
+ * The installed cars a class may race in one round: the round's own answer
+ * where it races other cars than its season does, the season's otherwise.
+ * @param availability What seriesAvailability said about the championship
+ * @param round The round's id
+ * @param entry The class entry's id
+ * @returns Installed car folder IDs, which may be empty
+ */
+export const eligibleCarsIn = (
+  availability: SeriesAvailability,
+  round: string,
+  entry: string,
+): readonly string[] => (
+  roundAvailabilityIn(availability, round)?.entries.find((one) => one.entry === entry)?.eligible
+  ?? availability.entries.find((one) => one.entry === entry)?.eligible
+  ?? []
+);
+
+/**
  * Finds one round's availability within a championship's.
  * @param listing The championship and its availability
  * @param round The round's id

@@ -1,18 +1,27 @@
-import { useTranslation } from 'react-i18next';
 
 import { COUNTED_TABS, EDITOR_TABS } from './constants.ts';
 import { EditorTabTrigger } from './EditorTabTrigger.tsx';
+import type { EditorTab } from './types.ts';
 import { Shimmer } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { TabsList } from '@/components/ui/tabs.tsx';
+import { useKindTranslation } from '@/i18n';
+
+interface EditorHeadSkeletonProps {
+  /**
+   * The tabs the editor will open with - a championship's unless it says
+   * otherwise.
+   */
+  tabs?: readonly EditorTab[];
+}
 
 /**
  * The editor's pinned header while the championship is read: its name and
  * whose it is still to come, Discard and Save held, and the tabs it will open
  * on with their counts still to come.
  */
-export const EditorHeadSkeleton = () => {
-  const { t } = useTranslation();
+export const EditorHeadSkeleton = ({ tabs = EDITOR_TABS }: EditorHeadSkeletonProps) => {
+  const { t } = useKindTranslation();
 
   return (
     <>
@@ -26,7 +35,7 @@ export const EditorHeadSkeleton = () => {
       </div>
 
       <TabsList className="-mb-4 h-auto w-full flex-wrap justify-start rounded-none bg-transparent p-0">
-        {EDITOR_TABS.map((one) => (
+        {tabs.map((one) => (
           <EditorTabTrigger
             key={one}
             value={one}

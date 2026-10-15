@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 
 import { MAX_WIND } from './constants.ts';
 import type { Conditions } from '../../../../shared/types';
 import { Input } from '@/components/ui/input.tsx';
+import { useKindTranslation } from '@/i18n';
 import { Field, fromNumber, toNumber } from '@/screens/race';
 
 /**
@@ -37,7 +37,7 @@ interface WindControlProps {
 export const WindControl = ({
   idPrefix, conditions, disabled, onChange,
 }: WindControlProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const direction = conditions.windDirection ?? 0;
 
   return (

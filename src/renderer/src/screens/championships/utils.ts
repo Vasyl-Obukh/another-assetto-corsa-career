@@ -4,7 +4,8 @@ import {
   CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
 } from './constants.ts';
 import type {
-  AvailabilityState, ContentList, EnterHint, Purse, Rung, ShownRun, StandingsLayout, TeamGroup,
+  AvailabilityState, ContentList, EnterHint, MissingContentList, Purse, Rung, ShownRun, StandingsLayout,
+  TeamGroup,
 } from './types.ts';
 import type {
   Career,
@@ -28,7 +29,7 @@ import type {
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
-import { roundAvailability } from '../../../../shared/utils/round-availability';
+import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { ProvenancePicks } from '@/components';
 import type { ChampionshipCriteria } from '@/hooks';
@@ -83,11 +84,7 @@ export const carsFor = (
   listing: SeriesListing,
   entry: string,
   round: string,
-): readonly string[] => {
-  const overridden = roundAvailability(listing, round)?.entries.find((one) => one.entry === entry);
-
-  return overridden?.eligible ?? entryAvailability(listing, entry)?.eligible ?? [];
-};
+): readonly string[] => eligibleCarsIn(listing.availability, round, entry);
 
 /**
  * The track key a round runs on, as the content channels want it.
@@ -239,6 +236,36 @@ export const isListed = (
  * @returns The index into the ramp
  */
 const metalIndex = (tier: number, length: number): number => Math.min(Math.max(tier, 1), length) - 1;
+
+/**
+ * What a championship needs that is not installed, each car and track once.
+ *
+ * Named by folder ID rather than by a display name, because nothing that is
+ * not installed has one.
+ * @param listing The championship and its availability
+ * @returns The missing cars and tracks
+ */
+export const missingContent = ({ availability }: SeriesListing): MissingContentList => {
+  const cars = [
+    ...availability.entries,
+    ...availability.rounds.flatMap((round) => round.entries),
+  ].flatMap((entry) => entry.missing);
+
+  return {
+    cars: [...new Map(cars.map((car) => [car.id, car])).values()],
+    tracks: availability.rounds.map((round) => round.track).filter((track) => track !== null),
+  };
+};
+
+/**
+ * How many cars a championship or a historic event puts on the grid, every
+ * class together.
+ * @param series The championship
+ * @returns The seats, the player's included
+ */
+export const fieldSize = (series: Championship): number => (
+  series.entries.reduce((sum, entry) => sum + entry.seats.length, 0)
+);
 
 /**
  * The colour a tier is chipped in.

@@ -1,5 +1,5 @@
 import { PlusIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ROW_SCOPE } from './constants.ts';
 import { EditorSection } from './EditorSection.tsx';
@@ -11,6 +11,7 @@ import {
 import type { Championship } from '../../../../shared/types';
 import type { RowEditState } from '@/hooks';
 import { useRowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { moveAt, moveTo } from '@/screens/race';
 
 interface TeamsCardProps {
@@ -42,7 +43,7 @@ interface TeamsCardProps {
 export const TeamsCard = ({
   series, rows, locked, onChange,
 }: TeamsCardProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const teams = series.teams ?? [];
   const adding = rows.adding(ROW_SCOPE.TEAMS);
   const several = series.entries.length > 1;

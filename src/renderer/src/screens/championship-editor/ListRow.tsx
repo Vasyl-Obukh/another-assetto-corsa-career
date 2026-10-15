@@ -1,13 +1,14 @@
 import { GripVerticalIcon } from 'lucide-react';
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ROW_GAP, ROW_GRIP, ROW_NUMBER } from './constants.ts';
 import { RowActions } from './RowActions.tsx';
 import type { RowMenuItem } from './types.ts';
 import { Button } from '@/components/ui/button.tsx';
 import type { RowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 interface ListRowProps {
@@ -76,7 +77,7 @@ interface ListRowProps {
 export const ListRow = ({
   index, name, detail, lead, label, count, locked, extra, drag, onEdit, onMove, onRemove, children,
 }: ListRowProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   // The drag ghost would otherwise be a snapshot of the grip alone.
   const row = useRef<HTMLDivElement>(null);
   const edge = drag.edgeOf(index);

@@ -1,5 +1,6 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain } from 'electron';
 
+import { SERIES_FILE_EXTENSION } from '../../core/series-file/index.ts';
 import { isSafeSeriesId } from '../../core/series-library/index.ts';
 import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type {
@@ -10,7 +11,9 @@ import type {
   IpcRequest,
   IpcResponse,
   IpcResult,
+  SeriesImportResult,
 } from '../../shared/types/index.ts';
+import type { SeriesStore } from '../series-store/index.ts';
 
 /**
  * Flattens anything thrown into something that survives the process boundary.
@@ -93,4 +96,44 @@ export const fileNameFor = (name: string, id: string): string => {
   const stem = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
   return isSafeSeriesId(stem) ? stem : id;
+};
+
+/**
+ * Asks for a file to read into a library, and reads it.
+ * @param store The library to read it into - the championships or the
+ * historic events, which are files of the same kind
+ * @returns What came in, or null when the dialog was cancelled
+ */
+export const importInto = async (store: SeriesStore): Promise<SeriesImportResult | null> => {
+  const result = await dialog.showOpenDialog(focusedWindow(), {
+    properties: ['openFile'],
+    filters: [{ name: 'Championship', extensions: ['json'] }],
+  });
+  const file = result.canceled ? null : result.filePaths[0] ?? null;
+
+  return file === null ? null : store.importFrom(file);
+};
+
+/**
+ * Asks where to write one of a library's documents, and writes it.
+ * @param store The library it is in
+ * @param id Its id
+ * @returns The path written, or null when the dialog was cancelled
+ */
+export const exportFrom = async (store: SeriesStore, id: string): Promise<string | null> => {
+  // Named after the document, since a minted id is a UUID.
+  const listing = await store.get(id);
+  const suggested = listing ? fileNameFor(listing.series.name, id) : id;
+
+  // No title: omitted so Windows supplies its own localised "Save As" rather
+  // than us pushing a translated string across IPC purely to label a dialog.
+  const result = await dialog.showSaveDialog(focusedWindow(), {
+    defaultPath: `${suggested}${SERIES_FILE_EXTENSION}`,
+    filters: [{ name: 'Championship', extensions: ['json'] }],
+  });
+  if (result.canceled || !result.filePath) return null;
+
+  await store.exportTo(id, result.filePath);
+
+  return result.filePath;
 };

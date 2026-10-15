@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
 
 import { AiResultSkeleton } from './AiResultSkeleton.tsx';
 import { AI_RANGE } from '../../../../shared/constants';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 
 /**
@@ -9,7 +9,7 @@ import { useFormat } from '@/i18n';
  * strength and aggression under their real labels and scale ends.
  */
 export const GridFieldsSkeleton = () => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber } = useFormat();
 
   return (

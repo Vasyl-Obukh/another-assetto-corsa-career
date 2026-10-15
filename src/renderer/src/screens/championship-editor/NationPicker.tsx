@@ -1,7 +1,7 @@
 import { ChevronDownIcon, SearchIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { NationOption } from './NationOption.tsx';
 import { NATION_CODES } from '../../../../shared/constants';
@@ -9,6 +9,7 @@ import { matchesTerms, searchTerms } from '../../../../shared/utils/search';
 import { NationFlag } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -68,7 +69,7 @@ interface NationPickerProps {
 export const NationPicker = ({
   id, label, value, fallback, used, compact = false, disabled, onChange,
 }: NationPickerProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { compare, formatNation } = useFormat();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

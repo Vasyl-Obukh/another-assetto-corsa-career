@@ -1,6 +1,6 @@
 import { DicesIcon, PlusIcon } from 'lucide-react';
 import { Fragment } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { SeatSheetRow } from './SeatSheetRow.tsx';
 import {
@@ -13,6 +13,7 @@ import { NationFlag } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 import { TEAM_BUDGET_LABEL } from '@/screens/championships';
@@ -62,7 +63,7 @@ interface SeatSheetProps {
 export const SeatSheet = ({
   series, entry, teams, fieldable, locked, nameOf, onChange,
 }: SeatSheetProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { seats } = entry;
   const empty = seats.filter((seat) => !seat.driver?.name).length;
   const used = nationsIn(series);

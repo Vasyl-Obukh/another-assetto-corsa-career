@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historic events - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - the only new family is
+   --historic, the leather chip. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --destructive: oklch(0.58 0.22 27);
+  --warning: oklch(0.79 0.15 80); --warning-fg: oklch(0.28 0.06 70);
+  --missed: oklch(0.925 0.035 8); --missed-fg: oklch(0.42 0.09 12);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215); --d-single-dot: oklch(0.62 0.13 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118); --d-sports-dot: oklch(0.65 0.13 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178); --d-touring-dot: oklch(0.62 0.1 178);
+  --t-platinum: oklch(0.945 0.022 210); --t-platinum-fg: oklch(0.4 0.05 215);
+  --t-gold: oklch(0.9 0.085 88); --t-gold-fg: oklch(0.42 0.1 75);
+  --t-bronze: oklch(0.89 0.07 52); --t-bronze-fg: oklch(0.41 0.09 48);
+  --t-steel: oklch(0.875 0.022 250); --t-steel-fg: oklch(0.36 0.035 255);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --climate-oceanic: oklch(0.925 0.03 232); --climate-oceanic-fg: oklch(0.4 0.05 235);
+  --origin-modified: oklch(0.93 0.05 195); --origin-modified-fg: oklch(0.36 0.09 200);
+  --origin-custom: oklch(0.93 0.05 340); --origin-custom-fg: oklch(0.38 0.12 340);
+  /* Leather: bronze's neighbourhood at about two thirds its chroma, the
+     technique the climate chips use. */
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --calendar-well: oklch(0.93 0.05 250); --calendar-well-fg: oklch(0.42 0.13 258);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  --sk: oklch(0.925 0.018 255); --sk-hi: oklch(0.965 0.01 255); --sk-deep: oklch(0.885 0.02 255);
+  --map-filter: none;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --destructive: oklch(0.66 0.2 25);
+  --warning: oklch(0.8 0.14 82); --warning-fg: oklch(0.2 0.04 70);
+  --missed: oklch(0.32 0.04 8); --missed-fg: oklch(0.86 0.06 12);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.09 212); --d-single-dot: oklch(0.68 0.12 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112); --d-sports-dot: oklch(0.7 0.13 115);
+  --d-touring: oklch(0.32 0.06 175); --d-touring-fg: oklch(0.86 0.08 175); --d-touring-dot: oklch(0.68 0.1 178);
+  --t-platinum: oklch(0.34 0.025 210); --t-platinum-fg: oklch(0.9 0.03 210);
+  --t-gold: oklch(0.36 0.07 88); --t-gold-fg: oklch(0.89 0.12 92);
+  --t-bronze: oklch(0.35 0.06 52); --t-bronze-fg: oklch(0.86 0.08 55);
+  --t-steel: oklch(0.32 0.02 250); --t-steel-fg: oklch(0.85 0.03 250);
+  --silver: oklch(0.34 0.01 255); --silver-fg: oklch(0.88 0.01 255);
+  --climate-oceanic: oklch(0.32 0.03 232); --climate-oceanic-fg: oklch(0.86 0.04 232);
+  --origin-modified: oklch(0.33 0.06 195); --origin-modified-fg: oklch(0.86 0.08 195);
+  --origin-custom: oklch(0.33 0.06 340); --origin-custom-fg: oklch(0.86 0.08 340);
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --calendar-well: oklch(0.32 0.06 250); --calendar-well-fg: oklch(0.86 0.09 255);
+  --sk: oklch(0.3 0.016 265); --sk-hi: oklch(0.345 0.016 265); --sk-deep: oklch(0.27 0.016 265);
+  --map-filter: invert(1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 1280px; margin: 14px auto 0; padding: 0 24px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why code { font-size: 12.5px; }
+
+/* ---------- App frame ---------- */
+.frame { max-width: 1280px; margin: 0 auto; padding: 0 24px 60px; }
+.app-nav { display: flex; gap: 18px; align-items: center; height: 44px; font-size: 13px; color: var(--muted-foreground); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.app-nav .brand { color: var(--foreground); font-weight: 600; margin-right: 8px; }
+.app-nav .on { color: var(--primary); font-weight: 600; background: color-mix(in oklch, var(--primary) 10%, transparent); padding: 4px 8px; border-radius: 6px; }
+.shead { padding: 0 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+.head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.head-row h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.over { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: 13.5px; color: var(--muted-foreground); }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 99px; padding: 2px 8px 2px 10px; color: var(--foreground); font-weight: 500; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.map { width: 144px; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--muted); display: grid; place-items: center; overflow: hidden; flex: none; }
+.map img, .thumb img { width: 88%; height: 88%; object-fit: contain; filter: var(--map-filter); }
+.thumb { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; background: var(--muted); display: grid; place-items: center; overflow: hidden; flex: none; }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.chip.xs { font-size: 10.5px; padding: 3px 6px; }
+.chip.outline { border: 1px solid var(--border); color: var(--foreground); }
+.chip.ghost { border: 1px solid var(--border); color: var(--muted-foreground); }
+.chip svg { width: 12px; height: 12px; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-t1 { background: var(--t-platinum); color: var(--t-platinum-fg); }
+.c-t2 { background: var(--t-gold); color: var(--t-gold-fg); }
+.c-t3 { background: var(--silver); color: var(--silver-fg); }
+.c-t4 { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.c-raced { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-missed { background: var(--missed); color: var(--missed-fg); }
+.c-clash { background: var(--warning); color: var(--warning-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-oceanic { background: var(--climate-oceanic); color: var(--climate-oceanic-fg); }
+.c-adjusted { background: var(--origin-modified); color: var(--origin-modified-fg); }
+.c-custom { background: var(--origin-custom); color: var(--origin-custom-fg); }
+.c-historic { background: var(--historic); color: var(--historic-fg); }
+.c-gold { background: var(--t-gold); color: var(--t-gold-fg); }
+.c-silver { background: var(--silver); color: var(--silver-fg); }
+.c-bronze { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel-h { padding: 12px 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.panel .pb { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted-foreground); }
+.btn.danger { background: var(--destructive); color: oklch(0.985 0.005 60); border-color: transparent; }
+.btn.lg { height: 38px; padding: 0 16px; }
+.btn.sm { height: 26px; padding: 0 8px; font-size: 12.5px; }
+.btn.icon { width: 28px; padding: 0; }
+.link { color: var(--primary); font-weight: 500; display: inline-flex; align-items: center; gap: 2px; }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.well { aspect-ratio: 16 / 9; border-radius: 8px; background: var(--muted); display: grid; place-items: center; overflow: hidden; }
+.well img { width: 100%; height: 100%; object-fit: cover; }
+.note { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--muted-foreground); background: var(--muted); border-radius: 8px; padding: 8px 10px; }
+.note svg { margin-top: 2px; }
+.note b { color: var(--foreground); font-weight: 600; }
+.note.amber { background: color-mix(in oklch, var(--warning) 22%, transparent); color: var(--foreground); }
+.new-outline { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 3px; border-radius: 10px; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; }
+.switch { display: inline-block; vertical-align: middle; width: 32px; height: 18px; border-radius: 99px; background: var(--border); position: relative; flex: none; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .2); }
+.switch.on { background: var(--primary); }
+.switch.on::after { left: 16px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.search { width: 288px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 0 10px; display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 13px; }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; justify-content: space-between; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: 500; }
+.field small { font-size: 12px; color: var(--muted-foreground); }
+.input { height: 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 0 10px; display: flex; align-items: center; font-size: 13.5px; }
+.textarea { min-height: 84px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 8px 10px; font-size: 13.5px; }
+
+/* ---------- Home ---------- */
+.next { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.next .body { display: flex; flex-direction: column; gap: 12px; padding: 20px; min-width: 0; }
+.next .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--primary); }
+.next .count { display: flex; align-items: baseline; gap: 10px; }
+.next .count b { font-size: 36px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.next h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.next .aside { background: var(--muted); display: grid; place-items: center; }
+.next .aside img { width: 70%; filter: var(--map-filter); }
+.seat { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.seat .pic { aspect-ratio: 16 / 9; border-radius: 6px; background: var(--muted); overflow: hidden; }
+.seat .pic img { width: 100%; height: 100%; object-fit: cover; }
+.seat b { font-size: 13.5px; font-weight: 600; display: block; }
+.seat small { font-size: 12px; color: var(--muted-foreground); display: block; }
+.sesstrip { display: flex; gap: 6px; flex-wrap: wrap; }
+.sesstrip span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 0 10px; }
+.section-title h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.strip-scroll { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.mini { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 10px 12px; position: relative; overflow: hidden; }
+.mini::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--stripe, var(--border)); }
+.mini .when { font-size: 11.5px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.mini b { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.mini small { font-size: 11.5px; color: var(--muted-foreground); }
+.mini.past { background: transparent; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 14px; color: var(--muted-foreground); font-size: 12.5px; text-align: center; }
+
+/* ---------- Calendar ---------- */
+.agenda { display: flex; flex-direction: column; gap: 16px; }
+.day { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; }
+.day .dl { display: flex; flex-direction: column; padding-top: 6px; }
+.day .dl b { font-size: 22px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; }
+.day .dl span { font-size: 12px; color: var(--muted-foreground); }
+.day .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ecard { position: relative; display: flex; flex-direction: column; gap: 8px; overflow: hidden; border-radius: 8px; border: 1px solid var(--border); background: var(--card); padding: 10px 12px 10px 16px; text-align: left; }
+.ecard.yours { border-color: color-mix(in oklch, var(--primary) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 60%, transparent); }
+.ecard .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.ecard .top { display: flex; gap: 12px; align-items: flex-start; }
+.ecard .meta { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ecard .chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ecard h4 { margin: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ecard p { margin: 0; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ecard .foot { display: flex; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; flex-wrap: wrap; }
+.ecard .foot .go { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; }
+.month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.month .h { font-size: 11px; font-weight: 600; color: var(--muted-foreground); padding: 6px 8px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .04em; }
+.month .c { min-height: 92px; padding: 6px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.month .c:nth-child(7n + 1) { border-left: 0; }
+.month .c .n { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.month .c.out .n { color: var(--muted-foreground); opacity: .5; }
+.month .c.today .n { color: var(--primary); }
+.evline { display: flex; align-items: center; gap: 5px; font-size: 11.5px; border-radius: 5px; padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+.evline .d { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.evline.yours { background: color-mix(in oklch, var(--primary) 12%, transparent); font-weight: 600; }
+.evline.clash { box-shadow: inset 0 0 0 1.5px var(--warning); }
+.evline span { overflow: hidden; text-overflow: ellipsis; }
+.clock { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 8px 12px; font-size: 13px; }
+.clock .well-ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--calendar-well); color: var(--calendar-well-fg); }
+
+/* ---------- Event page ---------- */
+.ses { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border); text-align: left; width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; }
+.ses[aria-current="true"] { background: var(--accent); }
+.ses .nm { display: flex; flex-direction: column; min-width: 0; }
+.ses .nm b { font-size: 13.5px; font-weight: 600; }
+.ses .nm small { font-size: 12px; color: var(--muted-foreground); }
+.sdot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; }
+.sdot.done { background: var(--success); border-color: var(--success); color: var(--card); }
+.sdot.done svg { width: 10px; height: 10px; stroke-width: 3; }
+.sdot.sim { background: var(--muted-foreground); border-color: var(--muted-foreground); color: var(--card); }
+.sdot.sim svg { width: 10px; height: 10px; stroke-width: 3; }
+.sdot.next { border-color: var(--primary); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 8px var(--primary); }
+.sval { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; display: flex; gap: 6px; align-items: center; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tile { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.tile .k { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.tile b { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile small { font-size: 12px; color: var(--muted-foreground); }
+.launch { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.about { display: flex; flex-direction: column; gap: 6px; border-left: 3px solid var(--border); padding: 2px 0 2px 12px; }
+.about p { margin: 0; font-size: 13.5px; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.table td { padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.table tr.you td { background: color-mix(in oklch, var(--primary) 8%, transparent); font-weight: 600; }
+.table tr.stand td { background: color-mix(in oklch, var(--muted-foreground) 8%, transparent); }
+.pos { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.pos.p1 { background: var(--t-gold); color: var(--t-gold-fg); }
+.pos.p2 { background: var(--silver); color: var(--silver-fg); }
+.pos.p3 { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.pos.quiet { color: var(--muted-foreground); font-weight: 500; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--border); border-radius: 10px; }
+.strip > div { padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.strip > div:not(:first-child) { border-left: 1px solid var(--border); }
+.strip .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.strip b { font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.strip small { font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- Dialogs ---------- */
+.scrim { position: fixed; inset: 0; z-index: 40; background: oklch(0.14 0.012 265 / .45); display: grid; place-items: center; }
+.dialog { width: 500px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px oklch(0 0 0 / .25); }
+.dialog h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.dialog p { margin: 0; font-size: 13.5px; color: var(--muted-foreground); }
+.lost { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.lost .when { margin-left: auto; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.dialog .end { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- Results ---------- */
+.cards3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.rcard { display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid var(--border); background: var(--card); }
+.rhead { position: relative; height: 120px; background: var(--scrim); }
+.rhead::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .85), transparent); }
+.rhead img { position: absolute; right: 12px; top: 12px; height: 64px; width: 96px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.rhead .when { position: absolute; top: 12px; left: 12px; z-index: 1; border-radius: 99px; background: oklch(0.14 0.012 265 / .55); color: var(--on-scrim); padding: 2px 8px; font-size: 12px; }
+.rhead .ttl { position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 1; display: flex; flex-direction: column; color: var(--on-scrim); }
+.rhead .ttl b { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rhead .ttl span { font-size: 12px; opacity: .85; display: inline-flex; align-items: center; gap: 4px; }
+.rhead .ttl span svg { width: 12px; height: 12px; }
+.rcar { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; font-size: 12px; color: var(--muted-foreground); }
+.rses { margin: 0 8px 8px; display: flex; flex-direction: column; }
+.rses a { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto 2.75rem; gap: 12px; align-items: center; height: 36px; padding: 0 8px; border-top: 1px solid var(--border); }
+.rses a:first-child { border-top: 0; }
+.rses .lap { font-size: 13px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.rses .pts { font-size: 12px; font-weight: 600; color: var(--success-soft-fg); font-variant-numeric: tabular-nums; }
+.rfoot { margin-top: auto; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding: 10px 16px; font-size: 12px; }
+.rfoot .go { margin-left: auto; color: var(--primary); }
+.hero { position: relative; height: 172px; border-radius: 14px; overflow: hidden; background: var(--scrim); color: var(--on-scrim); }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, oklch(0.14 0.012 265 / .85), transparent 70%); }
+.hero img { position: absolute; right: 20px; top: 20px; height: 110px; width: 190px; object-fit: contain; filter: brightness(0) invert(1); z-index: 1; }
+.hero .txt { position: absolute; left: 20px; bottom: 16px; z-index: 1; display: flex; flex-direction: column; gap: 8px; }
+.hero .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.hero h1 { margin: 0; font-size: 24px; font-weight: 600; }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tabs span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 13px; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs span.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+.tabs span.new { color: var(--primary); }
+.ssec { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; max-width: 72rem; }
+.ssec .sh { display: flex; gap: 12px; align-items: flex-start; }
+.ssec .sh .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: var(--calendar-well); color: var(--calendar-well-fg); flex: none; }
+.ssec .sh h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.ssec .sh p { margin: 2px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.stile { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; border: 1px solid var(--border); border-radius: 10px; padding: 12px; max-width: 28rem; }
+.stile b { font-size: 13.5px; font-weight: 500; display: block; }
+.stile small { font-size: 12.5px; color: var(--muted-foreground); }
+.freq { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; max-width: 40rem; }
+.freq .chipsel { display: flex; gap: 6px; flex-wrap: wrap; }
+.freq .chipsel span { border: 1px solid var(--border); border-radius: 99px; padding: 4px 12px; font-size: 13px; }
+.freq .chipsel span.on { background: color-mix(in oklch, var(--primary) 12%, transparent); border-color: color-mix(in oklch, var(--primary) 50%, transparent); color: var(--primary); font-weight: 600; }
+.pool { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; align-items: start; }
+.rail { display: flex; flex-direction: column; gap: 18px; font-size: 13px; }
+.rail .g { display: flex; flex-direction: column; gap: 4px; }
+.rail .opt { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-radius: 6px; }
+.rail .opt .n { margin-left: auto; font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.rail .opt.on { background: var(--accent); }
+.box { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); flex: none; display: grid; place-items: center; }
+.box.on { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.box svg { width: 10px; height: 10px; stroke-width: 3; }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.toolbar .grow { flex: 1; }
+.pgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ocard { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); background: var(--card); border-radius: 12px; }
+.ocard .band { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; border-top: 4px solid var(--stripe); border-bottom: 1px solid var(--border); }
+.ocard .band .sp { flex: 1; }
+.ocard .bd { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; flex: 1; }
+.ocard .tt { display: flex; align-items: flex-start; gap: 10px; }
+.ocard .tt b { flex: 1; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.ocard .tt small { display: block; font-size: 12px; font-weight: 400; color: var(--muted-foreground); }
+.ocard .blurb { margin: 0; font-size: 13px; color: var(--muted-foreground); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ocard .where { display: flex; align-items: center; gap: 10px; }
+.ocard .where div { display: flex; flex-direction: column; font-size: 12.5px; min-width: 0; }
+.ocard .where div span { color: var(--muted-foreground); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ocard .ft { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding: 9px 14px; font-size: 12px; color: var(--muted-foreground); }
+.ocard.off .dim { opacity: .5; }
+.ptable { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.ptable th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--muted); }
+.ptable td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ptable tr.off td.dim { opacity: .5; }
+.ptable td b { font-weight: 600; display: block; }
+.ptable td small { font-size: 12px; color: var(--muted-foreground); }
+.menu { position: absolute; z-index: 5; right: 8px; top: 34px; width: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 30px oklch(0 0 0 / .14); padding: 4px; display: flex; flex-direction: column; font-size: 13px; }
+.menu span { padding: 6px 8px; border-radius: 5px; display: flex; gap: 8px; align-items: center; }
+.menu span:first-child { background: var(--accent); }
+.menu span.del { color: var(--destructive); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 0; width: 100%; }
+
+/* ---------- Editor ---------- */
+.ed { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+.ed .form { display: flex; flex-direction: column; gap: 16px; }
+.srcpick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rtile { display: flex; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: var(--card); }
+.rtile.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.rtile.bad { border-style: dashed; }
+.rtile div { display: flex; flex-direction: column; min-width: 0; font-size: 12.5px; }
+.rtile div b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rtile div span { color: var(--muted-foreground); font-size: 12px; }
+.prev { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 60px; }
+.carrow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.carrow .pic { width: 72px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--muted); flex: none; }
+.carrow .pic img { width: 100%; height: 100%; object-fit: cover; }
+.carrow .n { margin-left: auto; color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* ---------- Skeleton primitives, as mockups/loading.html draws them ---------- */
+.sk { display: block; background: var(--sk); border-radius: 6px; flex: none;
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--sk-hi) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.sk.round { border-radius: 99px; }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+
+/* ---------- Browser pieces: FilterRail, toolbar, ViewToggle ---------- */
+.frail { border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; align-self: start; }
+.frail .fh { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 6px 16px; border-bottom: 1px solid var(--border); }
+.frail .fh h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.frail .fh a { font-size: 12.5px; color: var(--primary); padding: 4px 10px; visibility: hidden; }
+.frail section { border-bottom: 1px solid var(--border); }
+.frail section:last-child { border-bottom: 0; }
+.frail .sh2 { display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; }
+.frail .sh2 svg { margin-left: auto; width: 14px; height: 14px; color: var(--muted-foreground); }
+.frail .sb { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 1px; }
+.frail .ro { display: flex; align-items: center; gap: 8px; padding: 4px; border-radius: 5px; font-size: 13px; }
+.frail .ro .n { margin-left: auto; font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.frail .rs { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; font-size: 13px; }
+.sfield { flex: 1; min-width: 200px; height: 36px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 0 10px; display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 13.5px; }
+.vt { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+.vt span { width: 34px; height: 34px; display: grid; place-items: center; color: var(--muted-foreground); }
+.vt span.on { background: var(--accent); color: var(--foreground); }
+.vsep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+/* ---------- SeasonCard pieces ---------- */
+.scard { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); background: var(--card); border-radius: 12px; }
+.sband { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; font-size: 12px; font-weight: 600; }
+.sband .end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.medal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--card); }
+.medal.lg { width: 36px; height: 36px; font-size: 14px; box-shadow: none; }
+.b-single { background: var(--d-single); color: var(--d-single-fg); }
+.b-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.b-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.sbody { display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 12px; flex: 1; }
+.stitle { display: flex; align-items: flex-start; gap: 12px; }
+.stitle b { flex: 1; font-size: 16px; font-weight: 600; line-height: 1.3; }
+.sdesc { margin: 0; font-size: 13.5px; color: var(--muted-foreground); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border); padding: 10px 16px; font-size: 12px; color: var(--muted-foreground); }
+.fstrip { display: inline-flex; gap: 2px; }
+.fstrip span { display: grid; place-items: center; height: 20px; min-width: 20px; padding: 0 4px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.gswitch { display: inline-block; flex: none; width: 32px; height: 18px; border-radius: 99px; background: color-mix(in oklch, var(--muted-foreground) 35%, transparent); position: relative; }
+.gswitch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .2); }
+.gswitch.on { background: var(--success); }
+.gswitch.on::after { left: 16px; }
+.dimmed { opacity: .5; }
+
+/* ---------- Detail page and editor ---------- */
+.utabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.utabs span { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 13.5px; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.utabs span.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+.utabs span.dotw { width: 6px; height: 6px; padding: 0; margin: 0; border: 0; border-radius: 50%; background: var(--warning); }
+.class-head { display: flex; align-items: center; gap: 12px; }
+.class-head b { font-size: 15px; font-weight: 600; }
+.teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.team { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+.team .pic { width: 64px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--muted); flex: none; }
+.team .pic img { width: 100%; height: 100%; object-fit: cover; }
+.team div { display: flex; flex-direction: column; min-width: 0; font-size: 12.5px; }
+.team div b { font-size: 13px; font-weight: 600; }
+.team div span { color: var(--muted-foreground); }
+.team.you { border-color: color-mix(in oklch, var(--primary) 55%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 55%, transparent); }
+.prizes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.prize { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.prize b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.formgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ecard2 { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.ecard2 h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.ecard2 .hint { margin: -10px 0 0; font-size: 12.5px; color: var(--muted-foreground); }
+.tpick { display: grid; grid-template-columns: 160px minmax(0, 1fr) auto; gap: 14px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.tpick .well img { object-fit: contain; width: 86%; height: 86%; filter: var(--map-filter); }
+.sesslist { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.sesslist > div { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+.sesslist > div:first-child { border-top: 0; }
+.sesslist > div.on { background: var(--accent); }
+
+/* ---------- Calendar head, as CalendarHead, ClockWidget, MonthStrip and CalendarFilters draw it ---------- */
+.chead { display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+.crow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.cmonth { display: flex; align-items: center; gap: 8px; }
+.cmonth h1 { margin: 0; min-width: 11ch; font-size: 24px; font-weight: 600; }
+.ibtn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border); background: var(--card); }
+.clockw { display: flex; align-items: stretch; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); background: var(--card); }
+.clockw > div { display: flex; flex-direction: column; justify-content: center; padding: 6px 14px; min-width: 0; }
+.clockw > div + div { border-left: 1px solid var(--border); }
+.clockw .k { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.clockw .v { font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.clockw .go { display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--border); background: var(--primary); color: var(--primary-foreground); padding: 0 16px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.mstrip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+.mstrip span.m { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); padding: 6px 4px 4px; font-size: 12px; }
+.mstrip span.m.past { color: var(--muted-foreground); }
+.mstrip span.m.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); color: var(--primary); font-weight: 600; }
+.mstrip .ticks { display: flex; gap: 2px; height: 4px; }
+.mstrip .ticks i { width: 6px; border-radius: 99px; }
+.t-yours { background: var(--primary); }
+.t-clash { background: var(--warning); }
+.t-other { background: color-mix(in oklch, var(--muted-foreground) 25%, transparent); }
+.cfilters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cfilters .l { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.cfilters .grp2 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cfilters .lab { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); margin-right: 2px; }
+.segs { display: flex; gap: 2px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); padding: 2px; }
+.segs span { display: flex; align-items: center; gap: 6px; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.segs span.on { background: var(--primary); color: var(--primary-foreground); }
+.segs span i { font-style: normal; opacity: .7; font-variant-numeric: tabular-nums; }
+.segs svg { width: 14px; height: 14px; }
+.fbtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 12px; font-weight: 500; }
+.fbtn .dot { opacity: .5; }
+.fbtn.on { border-color: color-mix(in oklch, var(--foreground) 50%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 50%, transparent); }
+.fbtn.on .dot { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="grp"><strong>Page</strong>
+    <button class="opt" data-k="page" data-v="home">Home</button>
+    <button class="opt" data-k="page" data-v="calendar">Calendar</button>
+    <button class="opt" data-k="page" data-v="event">Event page</button>
+    <button class="opt" data-k="page" data-v="results">Results</button>
+    <button class="opt" data-k="page" data-v="review">Year review</button>
+    <button class="opt" data-k="page" data-v="general">Settings · General</button>
+    <button class="opt" data-k="page" data-v="pool">Settings · Historic events</button>
+    <button class="opt" data-k="page" data-v="detail">Historic event page</button>
+    <button class="opt" data-k="page" data-v="editor">Editor</button>
+  </div>
+  <div class="grp" data-for="home"><strong>Moment</strong>
+    <button class="opt" data-k="home" data-v="next">Next is historic</button>
+    <button class="opt" data-k="home" data-v="start">New season</button>
+  </div>
+  <div class="grp" data-for="event"><strong>State</strong>
+    <button class="opt" data-k="ev" data-v="about">About this event</button>
+    <button class="opt" data-k="ev" data-v="upcoming">Practice next</button>
+    <button class="opt" data-k="ev" data-v="decline">Decline asks</button>
+    <button class="opt" data-k="ev" data-v="skip">Launch asks</button>
+    <button class="opt" data-k="ev" data-v="partway">Part-way</button>
+    <button class="opt" data-k="ev" data-v="finished">Finished</button>
+    <button class="opt" data-k="ev" data-v="missed">Declined</button>
+  </div>
+  <div class="grp" data-for="results"><strong>Show</strong>
+    <button class="opt" data-k="res" data-v="cards">Results page</button>
+    <button class="opt" data-k="res" data-v="result">Result page</button>
+  </div>
+  <div class="grp" data-for="general"><strong>Frequency</strong>
+    <button class="opt" data-k="freq" data-v="monthly">Monthly</button>
+    <button class="opt" data-k="freq" data-v="weekly">Weekly</button>
+    <button class="opt" data-k="freq" data-v="off">Off</button>
+  </div>
+  <div class="grp" data-for="pool"><strong>View</strong>
+    <button class="opt" data-k="view" data-v="cards">Cards</button>
+    <button class="opt" data-k="view" data-v="table">Table</button>
+  </div>
+  <div class="grp" data-for="detail"><strong>Tab</strong>
+    <button class="opt" data-k="dtab" data-v="event">Event</button>
+    <button class="opt" data-k="dtab" data-v="classes">Classes</button>
+    <button class="opt" data-k="dtab" data-v="prizes">Prizes</button>
+  </div>
+  <div class="grp" data-for="editor"><strong>Tab</strong>
+    <button class="opt" data-k="etab" data-v="overview">Overview</button>
+    <button class="opt" data-k="etab" data-v="event">Event</button>
+    <button class="opt" data-k="etab" data-v="reused">Teams · Classes · Prizes</button>
+  </div>
+  <div class="grp" data-for="editor"><strong>Editing</strong>
+    <button class="opt" data-k="edit" data-v="shipped">Ours (adjusting)</button>
+    <button class="opt" data-k="edit" data-v="new">New event</button>
+  </div>
+  <div class="grp" data-for="pool detail editor"><strong>Load</strong>
+    <button class="opt" data-k="load" data-v="loaded">Loaded</button>
+    <button class="opt" data-k="load" data-v="loading">Loading</button>
+  </div>
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-k="th" data-v="light">Light</button>
+    <button class="opt" data-k="th" data-v="dark">Dark</button>
+  </div>
+</div>
+<div class="why" id="why"></div>
+<div class="frame" id="app"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const I = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 18 6-6-6-6"/></svg>',
+  right: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  info: '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  landmark: '<svg class="i" viewBox="0 0 24 24"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2 20 7H4z"/></svg>',
+  cal: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m6 9 6 6 6-6"/></svg>',
+  dots: '<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  pencil: '<svg class="i" viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+  copy: '<svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>',
+  undo: '<svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+  grid: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  list: '<svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  sort: '<svg class="i" viewBox="0 0 24 24"><path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"/></svg>',
+  settings: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  trophy: '<svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+};
+const img = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" onerror="this.remove()">`;
+const outline = (track, layout) => `${AC}tracks/${track}/ui/${layout ? `${layout}/` : ''}outline.png`;
+const preview = (car, skin) => `${AC}cars/${car}/skins/${skin}/preview.jpg`;
+
+// ---------- The historic event the pages are about. Its own document: its own
+// classes, teams, track, format and prizes, and no championship behind it. ----------
+const O = {
+  name: 'British Grand Prix 1967', track: 'ks_silverstone1967', trackName: 'Silverstone 1967', length: '4.71 km',
+  date: 'Wednesday 14 April 2027', short: 'Wed 14 Apr', days: 3, grid: 17,
+  team: 'Rob Walker Racing Team', car: 'Lotus 49', carImg: preview('lotus_49', '1967_05'), seat: 'Jo Siffert',
+  blurb: 'Jim Clark\'s home race, and the one the Lotus 49 was built to win: pole by half a second, and a lap of the field before the flag. Silverstone as it was, flat-out between the oil drums.',
+  sessions: [['practice', 'Practice', 'Day 1 · 14:00', '60 min'], ['qualify', 'Qualifying', 'Day 2 · 14:00', '60 min'], ['race', 'Grand Prix', 'Day 3 · 14:00', '80 laps']],
+  teams: [
+    ['Team Lotus', 'Jim Clark · Graham Hill', 'lotus_49', '1967_02'],
+    ['Brabham Racing Organisation', 'Denny Hulme · Jack Brabham', 'lotus_49', '1967_03'],
+    ['Scuderia Ferrari', 'Chris Amon', 'ks_ferrari_312_67', 'racing_1'],
+    ['Honda Racing', 'John Surtees', 'ks_ferrari_312_67', 'racing_10'],
+    ['Rob Walker Racing Team', '__seat', 'lotus_49', '1967_05'],
+    ['Cooper Car Company', 'Pedro Rodríguez · Jochen Rindt', 'ks_ferrari_312_67', 'racing_12'],
+  ],
+  prizes: ['$12,000', '$8,000', '$6,000', '$4,500', '$3,000', '$2,000'],
+};
+
+const state = {
+  page: 'event', home: 'next', ev: 'about', res: 'cards', freq: 'monthly', view: 'cards', dtab: 'classes', etab: 'overview', edit: 'shipped', load: 'loaded', th: 'light',
+};
+
+// ---------- Pieces ----------
+const sk = (w, h, cls = '') => `<span class="sk ${cls}" style="width:${typeof w === 'number' ? `${w}px` : w};height:${h}px"></span>`;
+const chip = (cls, text, xs = false) => `<span class="chip ${xs ? 'xs ' : ''}${cls}">${text}</span>`;
+const SES = { practice: 'Practice', qualify: 'Qualifying', race: 'Race' };
+const sessionChip = (type, xs) => chip(`c-${type}`, SES[type], xs);
+const DISC = { single: 'Single-seater', sports: 'Sportscar', touring: 'Touring' };
+const disc = (d, xs) => chip(`c-${d}`, DISC[d], xs);
+const tier = (n, xs) => chip(`c-t${n}`, `Tier ${n}`, xs);
+const medal = (n, lg = '') => `<span class="medal ${lg} c-t${n}">${n}</span>`;
+const dotVar = (d) => `var(--d-${d}-dot)`;
+// The format as the championship card draws it: one block per session.
+const fstrip = (types = ['practice', 'qualify', 'race']) => `<span class="fstrip">${types.map((t) => `<span class="c-${t}">${t[0].toUpperCase()}</span>`).join('')}</span>`;
+const historic = (xs) => chip('c-historic', 'Historic', xs);
+const panelTitle = (text, end = '') => `<div class="panel-h"><span class="caps">${text}</span>${end}</div>`;
+const nav = (on) => `<div class="app-nav"><span class="brand">AC Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings']
+  .map((one) => `<span class="${one === on ? 'on' : ''}">${one}</span>`).join('')}</div>`;
+const settingsTabs = (on) => `<div class="tabs">${[['general', `${I.settings}General`], ['diag', 'Diagnostics'], ['content', 'Your content'], ['classes', 'Car classes'], ['sources', 'Content sources'], ['champs', 'Championships'], ['historic', `${I.landmark}Historic events`]]
+  .map(([k, l]) => `<span class="${k === on ? 'on' : ''} ${k === 'historic' ? 'new-outline' : ''}">${l}</span>`).join('')}</div>`;
+
+// ---------- About this event: the event's own details, shared by its page in
+// a career and its page in settings ----------
+const aboutEvent = ({ career }) => `
+  <div class="about"><span class="caps">About this event</span><p>${O.blurb}</p></div>
+  <div class="kv">
+    <div class="tile"><span class="k">Track</span><b style="font-size:15px">${O.trackName}</b><small>${O.length}</small></div>
+    <div class="tile"><span class="k">Format</span><b style="font-size:15px">${fstrip()}</b><small>3 days</small></div>
+    <div class="tile"><span class="k">Race</span><b style="font-size:15px">80 laps</b><small>≈ 1 h 58 min</small></div>
+    <div class="tile"><span class="k">Weather</span><b style="font-size:15px">${chip('c-oceanic', 'Oceanic', true)}</b><small>generated a week out</small></div>
+  </div>
+  <div class="class-head" style="margin-top:4px">${medal(1, 'lg')}<div style="display:flex;flex-direction:column"><b>Formula 1</b><span class="muted" style="font-size:12.5px">${O.grid} cars · Lotus 49, Ferrari 312/67</span></div>${disc('single', true)}</div>
+  <div class="teams">${O.teams.map(([team, who, car, skin]) => `
+    <div class="team ${who === '__seat' && career ? 'you' : ''}"><span class="pic">${img(preview(car, skin))}</span>
+      <div><b>${team}</b><span>${who === '__seat' ? (career ? `You · in ${O.seat}'s seat` : O.seat) : who}</span></div></div>`).join('')}</div>
+  <a class="link" style="font-size:13px">All 12 teams ${I.down}</a>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px"><span class="caps">Prizes</span><span class="muted" style="font-size:12.5px">$40,500 in all</span></div>
+  <div class="prizes">${O.prizes.map((p, at) => `<div class="prize"><span class="pos ${at < 3 ? `p${at + 1}` : 'quiet'}" style="justify-self:start;align-self:flex-start">P${at + 1}</span><b>${p}</b></div>`).join('')}</div>`;
+
+// ---------- Home ----------
+const SEASON = [
+  ['Thu 14 Jan', '1000 km of Spa 1969', 'Porsche 908 · P4', 'sports', 'raced', 'P4'],
+  ['Tue 9 Feb', 'San Marino Grand Prix 1986', 'Williams FW11', 'single', 'declined'],
+  ['Wed 17 Mar', 'Zolder 1993', 'Mercedes 190E · P1', 'touring', 'raced', 'P1'],
+  ['Wed 14 Apr', 'British Grand Prix 1967', 'Lotus 49 · in 3 days', 'single', 'next'],
+  ['Mon 10 May', 'Road America 1973', 'Porsche 917/30', 'sports', 'ahead'],
+  ['Thu 17 Jun', 'Nürburgring 24 Hours 2004', 'Skyline R34 · SP7', 'sports', 'ahead'],
+];
+const miniCard = ([when, name, sub, d, status, pos]) => `
+  <div class="mini ${status === 'raced' || status === 'declined' ? 'past' : ''}" style="--stripe:${dotVar(d)}">
+    <span class="when">${when}</span><b>${name}</b><small>${sub}</small>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${status === 'raced' ? chip('c-raced', 'Raced', true) + (pos === 'P1' ? chip('c-gold', 'P1', true) : '') : ''}
+      ${status === 'declined' ? chip('c-missed', 'Declined', true) : ''}
+      ${status === 'next' ? '<span class="newtag">Next</span>' : ''}
+    </div>
+  </div>`;
+
+const home = () => {
+  if (state.home === 'start') {
+    return `${nav('Home')}
+      <div class="next" style="grid-template-columns:1fr"><div class="body">
+        <span class="eyebrow">2028 · a new season</span><h2>Nothing entered yet</h2>
+        <p class="muted" style="margin:0">Last season's championships are below - each opens its page with the class and car you raced it in.</p>
+        <div class="placeholder">Last season's championships, as NewSeason lists them today</div>
+      </div></div>
+      <div class="section-title new-outline" style="padding:6px 8px"><h3>Historic events in 2028</h3><span class="muted" style="font-size:13px">12 · the first on Tue 11 Jan</span></div>
+      <div class="strip-scroll">${[
+        ['Tue 11 Jan', 'German Grand Prix 1967', 'Ferrari 312/67', 'single'], ['Thu 10 Feb', '24 Hours of Le Mans 1969', 'Ford GT40', 'sports'],
+        ['Wed 8 Mar', 'Italian Grand Prix 1988', 'McLaren MP4/4', 'single'], ['Mon 3 Apr', 'Donington 1998', 'Honda Accord', 'touring'],
+        ['Thu 11 May', 'Sebring 1969', 'Porsche 908', 'sports'], ['Tue 13 Jun', 'Spa 1000 km 1990', 'Porsche 962C', 'sports'],
+      ].map(miniCard).join('')}</div>
+      <div class="why" style="margin:14px 0 0;padding:0"><b>"Nothing entered" still shows:</b> Home counts championships alone, so a season of historic events never hides the way into a championship.</div>`;
+  }
+  return `${nav('Home')}
+    <div class="next">
+      <div class="body">
+        <span class="eyebrow">Next event</span>
+        <div class="count"><b>${O.days}</b><span class="muted">days to go · ${O.short}</span></div>
+        <h2>${O.name}</h2>
+        <div class="over">${historic()}${disc('single')}${tier(1)}<span class="chip outline">${O.grid} cars</span><span class="chip outline">$12,000 to the winner</span></div>
+        <div class="seat new-outline">
+          <div class="pic">${img(O.carImg)}</div>
+          <div><b>${O.car}</b><small>${O.team} · in ${O.seat}'s seat</small><small>You're invited to drive it at this event</small></div>
+        </div>
+        <div class="sesstrip">${O.sessions.map(([t, n, d, l]) => `<span>${sessionChip(t, true)}${d.split(' · ')[0]} · ${l}</span>`).join('')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button class="btn pri">Go to event ${I.right}</button><button class="btn">Advance to ${O.short}</button><button class="btn ghost new-outline">Decline</button>
+        </div>
+      </div>
+      <div class="aside">${img(outline(O.track))}</div>
+    </div>
+    <div class="section-title new-outline" style="padding:6px 8px"><h3>Historic events this season</h3><span class="muted" style="font-size:13px">12 · 2 raced · 1 declined · <a class="link">All in the year review ${I.chev}</a></span></div>
+    <div class="strip-scroll">${SEASON.map(miniCard).join('')}</div>
+    <div class="section-title"><h3>Your championships</h3></div>
+    <div class="placeholder">Unchanged - championships only</div>`;
+};
+
+// ---------- Calendar ----------
+const ecard = ({ d, t, label, name, sub, track, layout, yours, clash, hist }) => `
+  <div class="ecard ${yours ? 'yours' : ''} ${hist ? 'new-outline' : ''}">
+    <span class="stripe" style="background:${dotVar(d)}"></span>
+    <div class="top">
+      <div class="meta">
+        <div class="chips">${hist ? historic(true) : `<span class="mono" style="font-size:10.5px">${label}</span>`}${disc(d, true)}${tier(t, true)}</div>
+        <h4>${name}</h4><p>${sub}</p>
+      </div>
+      <div class="thumb">${img(outline(track, layout))}</div>
+    </div>
+    <div class="foot">
+      ${hist ? '<span style="font-size:13px;font-weight:600" class="num">$12,000</span><span class="muted" style="font-size:12px">to the winner</span>' : ''}
+      ${yours && !clash ? chip('outline', hist ? 'Invited' : 'Entered', true) : ''}
+      ${clash ? chip('c-clash', 'Clash', true) : ''}
+      <span class="go">${yours ? 'Open' : 'Enter'} ${I.right}</span>
+    </div>
+  </div>`;
+const evline = (d, text, hist, cls = '') => `<span class="evline ${cls}"><span class="d" style="background:${dotVar(d)}"></span>${hist ? historic(true) : ''}<span>${text}</span></span>`;
+
+const calendar = () => `${nav('Calendar')}
+  <div class="chead">
+    <div class="crow">
+      <div class="cmonth"><h1>April 2027</h1><span class="ibtn">${I.back}</span><span class="ibtn">${I.chev}</span><button class="btn sm">Today</button></div>
+      <div class="clockw">
+        <div><span class="k">Today</span><span class="v"><b>Monday 12 April 2027</b></span></div>
+        <div><span class="k">Next for you · in 2 days</span><span class="v"><span class="new-outline" style="border-radius:6px;display:inline-flex">${historic(true)}</span><b>British Grand Prix 1967</b></span></div>
+        <span class="go">Go to Wed 14 Apr ${I.right}</span>
+      </div>
+    </div>
+    <div class="mstrip">${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, at) => `<span class="m ${at < 3 ? 'past' : ''} ${at === 3 ? 'on' : ''}">${m}<span class="ticks">${[['yours', 'other', 'yours'], ['yours', 'other'], ['other', 'yours', 'other'], ['yours', 'clash', 'other'], ['yours', 'other', 'yours'], ['other', 'yours'], ['yours', 'other'], ['other'], ['yours', 'other', 'yours'], ['other', 'yours'], ['yours'], ['other']][at].map((k) => `<i class="t-${k}"></i>`).join('')}</span></span>`).join('')}</div>
+    <div class="cfilters">
+      <div class="l">
+        <div class="grp2"><span class="lab">Status</span><span class="segs"><span class="on">All <i>214</i></span><span>Available <i>61</i></span><span>Entered <i>34</i></span><span>Locked <i>119</i></span></span></div>
+        <div class="grp2"><span class="lab">Discipline</span>${['single', 'sports', 'touring'].map((d) => `<span class="fbtn"><span class="dot" style="background:${dotVar(d)}"></span>${DISC[d]}</span>`).join('')}<span class="fbtn"><span class="dot" style="background:var(--d-road-dot, oklch(0.6 0.13 270))"></span>Road</span></div>
+        <div class="grp2 new-outline" style="padding:2px 4px"><span class="lab">Events</span><span class="fbtn"><span class="dot" style="background:var(--muted-foreground)"></span>Championships</span><span class="fbtn"><span class="dot" style="background:var(--historic-fg)"></span>Historic</span></div>
+      </div>
+      <span class="segs"><span class="on">${I.list}Days</span><span>${I.cal}Month</span></span>
+    </div>
+  </div>
+  <div class="agenda">
+    <div class="day"><div class="dl"><b>14</b><span>Wednesday</span></div><div class="cards">
+      ${ecard({ d: 'single', t: 1, name: O.name, sub: `${O.trackName} · 80 laps · 17 cars`, track: O.track, yours: true, hist: true })}
+    </div></div>
+    <div class="day"><div class="dl"><b>15</b><span>Thursday</span></div><div class="cards">
+      ${ecard({ d: 'sports', t: 1, name: '1000 km of Monza 1969', sub: 'Monza 1966 · 1000 km · 24 cars', track: 'ks_monza66', layout: 'full', yours: true, clash: true, hist: true })}
+      ${ecard({ d: 'touring', t: 4, label: 'R5', name: 'Mazda MX-5 Cup', sub: 'Vallelunga · 2 × 25 min · 18 cars', track: 'ks_vallelunga', layout: 'extended_circuit', yours: true, clash: true })}
+    </div></div>
+    <div class="day"><div class="dl"><b>17</b><span>Saturday</span></div><div class="cards">
+      ${ecard({ d: 'sports', t: 2, label: 'R3', name: 'GT3 Sprint Series', sub: 'Spa-Francorchamps · 22 laps · 24 cars', track: 'spa' })}
+    </div></div>
+  </div>
+  <div class="section-title"><h3>Month view</h3><span class="muted" style="font-size:13px">the same week as a grid</span></div>
+  <div class="month">
+    ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => `<div class="h">${d}</div>`).join('')}
+    <div class="c today"><span class="n">12</span></div><div class="c"><span class="n">13</span></div>
+    <div class="c"><span class="n">14</span>${evline('single', 'British GP 1967', true, 'yours new-outline')}</div>
+    <div class="c"><span class="n">15</span>${evline('sports', 'Monza 1000 km 1969', true, 'yours clash')}${evline('touring', 'MX-5 Cup R5', false, 'yours clash')}</div>
+    <div class="c"><span class="n">16</span></div>
+    <div class="c"><span class="n">17</span>${evline('sports', 'GT3 Sprint R3')}</div>
+    <div class="c"><span class="n">18</span>${evline('single', 'F2 R4')}</div>
+  </div>`;
+
+// ---------- Event page ----------
+const CLASSIFICATION = [
+  [1, 'Jim Clark', 'Team Lotus', 'Lotus 49', '1:57:20.8', '$12,000'],
+  [2, 'Denny Hulme', 'Brabham Racing Organisation', 'Lotus 49', '+12.8', '$8,000'],
+  [3, 'Chris Amon', 'Scuderia Ferrari', 'Ferrari 312/67', '+16.6', '$6,000'],
+  [4, '__seat', 'Rob Walker Racing Team', 'Lotus 49', '+1 lap', '$4,500'],
+  [5, 'Jack Brabham', 'Brabham Racing Organisation', 'Lotus 49', '+1 lap', '$3,000'],
+  [6, 'John Surtees', 'Honda Racing', 'Ferrari 312/67', '+2 laps', '$2,000'],
+];
+const classification = (who) => `
+  <table class="table">
+    <thead><tr><th style="width:56px">Pos</th><th>Driver</th><th>Team</th><th>Car</th><th style="text-align:right">Time</th><th style="text-align:right">Prize</th></tr></thead>
+    <tbody>${CLASSIFICATION.map(([p, n, team, car, time, prize]) => `
+      <tr class="${n === '__seat' ? (who === 'you' ? 'you' : 'stand') : ''}">
+        <td><span class="pos ${p <= 3 ? `p${p}` : 'quiet'}">P${p}</span></td>
+        <td>${n === '__seat' ? (who === 'you' ? 'Vasyl Obukh' : `Jo Siffert <span class="chip ghost xs">Stand-in</span>`) : n}</td>
+        <td class="muted">${team}</td><td class="muted">${car}</td><td style="text-align:right" class="num">${time}</td><td style="text-align:right" class="num">${prize}</td>
+      </tr>`).join('')}</tbody>
+  </table>`;
+
+const eventPage = () => {
+  const ev = state.ev;
+  const done = { about: 0, upcoming: 0, decline: 0, skip: 0, partway: 2, finished: 3, missed: 3 }[ev];
+  const over = ev === 'finished' || ev === 'missed';
+  const pick = ev === 'about' ? 'about' : over ? 'summary' : 'session';
+  const row = (cur, dot, title, sub, val = '') => `<button class="ses" ${cur ? 'aria-current="true"' : ''}>${dot}<span class="nm"><b>${title}</b><small>${sub}</small></span><span class="sval">${val}</span></button>`;
+  const rows = O.sessions.map(([t, n, d, l], at) => {
+    const ran = at < done;
+    const dot = ev === 'missed' ? `<span class="sdot sim">${I.check}</span>` : ran ? `<span class="sdot done">${I.check}</span>` : at === done ? '<span class="sdot next"></span>' : '<span class="sdot"></span>';
+    const val = ev === 'missed' ? (t === 'race' ? 'P4 · Siffert' : 'Raced by the field') : ran ? ['P6 · 1:58.204', 'P5 · 1:56.930', 'P4'][at] : l;
+    return row(pick === 'session' && at === done, dot, n, d, `${sessionChip(t, true)}${val}`);
+  }).join('');
+  const aboutRow = `<div class="new-outline" style="border-radius:0">${row(pick === 'about', `<span class="sdot" style="border-color:var(--historic-fg);color:var(--historic-fg)">${I.info.replace('width:14px;height:14px', 'width:10px;height:10px')}</span>`, 'About this event', 'Classes, field and prizes')}</div>`;
+  const summaryRow = over ? row(pick === 'summary', `<span class="sdot done" style="${ev === 'missed' ? 'background:var(--muted-foreground);border-color:var(--muted-foreground)' : ''}">${I.check}</span>`, 'Event results', ev === 'missed' ? 'raced without you' : 'P4 · $4,500') : '';
+
+  const seatPanel = `
+    <div class="panel new-outline">
+      ${panelTitle(ev === 'missed' ? 'The seat you declined' : 'Your seat')}
+      <div class="pb">
+        <div class="well">${img(O.carImg)}</div>
+        <div><b style="font-weight:600">${O.car}</b>
+          <div class="muted" style="font-size:12px">${O.team} · Formula 1</div>
+          <div class="muted" style="font-size:12px">${ev === 'missed' ? `${O.seat} raced it instead` : `In ${O.seat}'s seat, for this event alone`}</div>
+        </div>
+        ${['about', 'upcoming', 'decline', 'skip'].includes(ev) ? '<button class="btn ghost sm" style="align-self:flex-start;padding-left:0">Decline this event</button>' : ''}
+        ${ev === 'partway' ? '<span class="muted" style="font-size:12px">Under way - it can no longer be declined.</span>' : ''}
+      </div>
+    </div>`;
+
+  const right = pick === 'about' ? `
+    <div class="panel new-outline"><div class="pb" style="gap:14px">${aboutEvent({ career: true })}</div></div>`
+    : pick === 'summary' ? `
+    <div class="panel"><div class="pb">
+      <h2 style="margin:0;font-size:18px">Event results</h2>
+      ${ev === 'missed' ? `<div class="note"><span>${I.info}</span><span><b>You declined this event.</b> The field raced it on ${O.short}, with ${O.seat} back in the seat you were offered.</span></div>` : ''}
+      <div class="strip">
+        <div><span class="k">${ev === 'missed' ? 'Your seat' : 'You finished'}</span><b>P4</b><small>${ev === 'missed' ? 'Jo Siffert' : 'of 17'}</small></div>
+        <div><span class="k">Qualified</span><b>P5</b><small>1:56.930</small></div>
+        <div><span class="k">Prize</span><b>${ev === 'missed' ? '-' : '$4,500'}</b><small>${ev === 'missed' ? 'not yours' : 'recorded until money arrives'}</small></div>
+        <div><span class="k">Winner</span><b style="font-size:16px">Jim Clark</b><small>Lotus 49</small></div>
+      </div>
+      ${classification(ev === 'missed' ? 'stand' : 'you')}
+    </div></div>` : `
+    <div class="panel"><div class="pb">
+      <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0;font-size:18px">${O.sessions[done][1]}</h2>${sessionChip(O.sessions[done][0])}</div>
+      <div class="tiles">
+        <div class="tile"><span class="k">Starts</span><b>14:00</b><small>${O.sessions[done][2].split(' · ')[0]}</small></div>
+        <div class="tile"><span class="k">Length</span><b>${O.sessions[done][3]}</b><small>${done === 2 ? '≈ 1 h 58 min' : 'on the clock'}</small></div>
+        <div class="tile"><span class="k">Weather</span><b>Clear</b><small>19 °C · road 27 °C</small></div>
+        <div class="tile"><span class="k">Grid</span><b>${done === 2 ? 'P5' : '17 cars'}</b><small>${done === 2 ? 'from qualifying' : 'Lotus 49 · Ferrari 312/67'}</small></div>
+      </div>
+      <div class="launch"><span class="muted" style="font-size:12.5px">Assetto Corsa starts through Content Manager</span><button class="btn pri lg">Launch ${O.sessions[done][1]}</button></div>
+    </div></div>`;
+
+  const dialog = ev === 'decline' ? `
+    <div class="scrim"><div class="dialog">
+      <h2>Decline ${O.name}?</h2>
+      <p>${O.seat} goes back in the seat, and the field races it on ${O.short} without you. You can't take it back.</p>
+      <div class="lost">${historic(true)}<b>${O.name}</b><span class="when">${O.short}</span></div>
+      <div class="end"><button class="btn">Keep it</button><button class="btn danger">Decline</button></div>
+    </div></div>` : ev === 'skip' ? `
+    <div class="scrim"><div class="dialog">
+      <h2>Give up 2 events?</h2>
+      <p>Launching Practice of ${O.name} on ${O.short} gives these up. The field races them without you.</p>
+      <div class="lost new-outline">${historic(true)}<b>German Grand Prix 1967</b><span class="chip ghost xs">Not raced</span><span class="when">Mon 12 Apr</span></div>
+      <div class="lost"><span class="mono" style="font-size:11px">R5</span><b>Mazda MX-5 Cup · Vallelunga</b><span class="chip c-clash xs">Same day</span><span class="when">${O.short}</span></div>
+      <div class="end"><button class="btn">Cancel</button><button class="btn pri">Give up 2 and launch Practice</button></div>
+    </div></div>` : '';
+
+  return `${nav('Calendar')}
+    <div class="shead">
+      <a class="back">${I.back}Calendar</a>
+      <div class="head-row">
+        <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+          <div class="over">${historic()}${disc('single')}${tier(1)}${chip('c-oceanic', 'Oceanic')}</div>
+          <h1>${O.name}</h1>
+          <div class="facts"><span>${O.date}</span><span>${O.grid} cars</span><span>$12,000 to the winner</span></div>
+        </div>
+        <div class="map">${img(outline(O.track))}</div>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="side">
+        ${seatPanel}
+        <div class="panel">${panelTitle('Event')}<div style="margin-top:8px">${aboutRow}${summaryRow}${rows}</div></div>
+        ${over ? '<div class="placeholder">What each session ran at - RacedStrength, unchanged</div>' : '<div class="placeholder">This event\'s AI strength - RoundStrength, without a season\'s step</div>'}
+      </div>
+      <div class="col">${right}</div>
+    </div>${dialog}`;
+};
+
+// ---------- Results ----------
+const results = () => {
+  if (state.res === 'result') {
+    return `${nav('Home')}
+      <div class="hero"><img src="${outline(O.track)}" onerror="this.remove()">
+        <div class="txt">
+          <div class="crumbs new-outline" style="padding:2px 4px"><a>Results</a>${I.chev}<a>${O.name}</a>${I.chev}<span>Grand Prix</span></div>
+          <h1>Grand Prix · P4</h1>
+          <p style="margin:0;opacity:.85">${O.date} · ${O.car} · ${O.team}</p>
+        </div>
+      </div>
+      <div class="layout" style="grid-template-columns:minmax(0,1fr) 300px;margin-top:16px">
+        <div class="panel"><div class="pb">${classification('you')}</div></div>
+        <div class="side">
+          <div class="panel new-outline">${panelTitle('Historic event', historic(true))}<div class="pb"><div class="strip"><div><span class="k">Prize</span><b>$4,500</b><small>for P4</small></div></div><a class="link">Open the event ${I.chev}</a></div></div>
+          <div class="placeholder">Podium, unchanged</div>
+        </div>
+      </div>`;
+  }
+  const card = ({ when, title, sub, track, layout, hist, car, rows, foot }) => `
+    <div class="rcard ${hist ? 'new-outline' : ''}">
+      <div class="rhead">${img(outline(track, layout))}<span class="when">${when}</span><div class="ttl"><b>${title}</b><span>${sub}</span></div></div>
+      <div class="rcar">${car}</div>
+      <div class="rses">${rows.map(([t, lap, pos, pts]) => `<a>${sessionChip(t, true)}<span class="lap">${lap}</span><span class="pos ${pos === 'P1' ? 'p1' : pos === 'P3' ? 'p3' : 'quiet'}">${pos}</span><span class="pts">${pts}</span></a>`).join('')}</div>
+      <div class="rfoot">${foot}<span class="go">${I.right}</span></div>
+    </div>`;
+  return `${nav('Home')}
+    <div class="shead"><a class="back">${I.back}Home</a><div class="head-row"><h1>Results</h1></div></div>
+    <div class="cards3">
+      ${card({ when: 'Wed 14 Apr', title: O.name, sub: O.trackName, track: O.track, hist: true, car: `${O.car} · ${O.team}`, rows: [['practice', '1:58.204', 'P6', ''], ['qualify', '1:56.930', 'P5', ''], ['race', '1:57:33.6', 'P4', '']], foot: `${historic(true)}<span>Open the event</span>` })}
+      ${card({ when: 'Sat 10 Apr', title: 'GT3 Sprint Series · Round 2', sub: 'Brands Hatch GP', track: 'ks_brands_hatch', layout: 'gp', car: 'Ferrari 296 GT3 · Kessel Racing', rows: [['qualify', '1:24.118', 'P3', '+1'], ['race', '42:10.4', 'P1', '25']], foot: '<span>Round 2 of 8 · GT3 Sprint Series</span>' })}
+      ${card({ when: 'Wed 17 Mar', title: 'Zolder 1993', sub: 'Zolder', track: 'rt_zolder', hist: true, car: 'Mercedes 190E Evo II · AMG', rows: [['qualify', '1:31.882', 'P3', ''], ['race', '38:44.0', 'P1', '']], foot: `${historic(true)}<span>Open the event</span>` })}
+    </div>`;
+};
+
+// ---------- Year review ----------
+const review = () => `${nav('Home')}
+  <div class="shead"><a class="back">${I.back}History</a><div class="head-row"><h1>2027 in review</h1></div></div>
+  <div class="placeholder">The season in numbers and every edition entered - unchanged, counting championships alone</div>
+  <div class="section-title new-outline" style="padding:6px 8px"><h3>Historic events</h3><span class="muted" style="font-size:13px">12 this season</span></div>
+  <div class="strip" style="background:var(--card)">
+    <div><span class="k">Raced</span><b>8</b><small>of 12</small></div>
+    <div><span class="k">Wins</span><b>2</b><small>Zolder 1993 · Spa 1990</small></div>
+    <div><span class="k">Podiums</span><b>4</b></div>
+    <div><span class="k">Prize money</span><b>$38,500</b><small>recorded</small></div>
+    <div><span class="k">Declined or missed</span><b>4</b><small>raced by the field</small></div>
+  </div>
+  <div class="panel" style="margin-top:12px"><div class="pb">
+    <table class="table">
+      <thead><tr><th style="width:110px">Date</th><th>Event</th><th>Car</th><th>Qualified</th><th style="width:110px">Finished</th><th style="text-align:right">Prize</th></tr></thead>
+      <tbody>${[
+        ['Thu 14 Jan', '1000 km of Spa 1969', 'Spa-Francorchamps', 'Porsche 908 · Porsche System', 'P6', '<span class="pos quiet">P4</span>', '$4,000'],
+        ['Tue 9 Feb', 'San Marino Grand Prix 1986', 'Imola', 'Williams FW11 · Williams', '-', chip('c-missed', 'Declined', true), '-'],
+        ['Wed 17 Mar', 'Zolder 1993', 'Zolder', 'Mercedes 190E · AMG', 'P3', '<span class="pos p1">P1</span>', '$10,000'],
+        ['Wed 14 Apr', 'British Grand Prix 1967', 'Silverstone 1967', 'Lotus 49 · Rob Walker Racing Team', 'P5', '<span class="pos quiet">P4</span>', '$4,500'],
+        ['Thu 15 Jul', 'Nürburgring 24 Hours 2004', 'Nordschleife · SP7', 'Nissan Skyline R34 · Falken', 'P2', '<span class="pos p3">P3</span> <span class="muted" style="font-size:11px">in class</span>', '$6,000'],
+      ].map(([d, n, tr, car, q, f, p]) => `<tr><td class="num">${d}</td><td><b style="font-weight:600">${n}</b><div class="muted" style="font-size:12px">${tr}</div></td><td class="muted">${car}</td><td class="num">${q}</td><td>${f}</td><td style="text-align:right" class="num">${p}</td></tr>`).join('')}</tbody>
+    </table>
+  </div></div>
+  <div class="section-title"><h3>History</h3><span class="muted" style="font-size:13px">the seasons list gains a column</span></div>
+  <table class="ptable">
+    <thead><tr><th>Season</th><th>Championships</th><th>Titles</th><th class="new-outline">Historic events</th><th>Wins</th></tr></thead>
+    <tbody><tr><td><b>2027</b></td><td>4</td><td>1</td><td class="num">8 raced · 2 won</td><td>9</td></tr><tr><td><b>2026</b></td><td>3</td><td>0</td><td class="muted">-</td><td>4</td></tr></tbody>
+  </table>`;
+
+// ---------- Settings · General ----------
+const general = () => `${nav('Settings')}
+  <div class="shead"><div class="head-row"><h1>Settings</h1></div></div>
+  ${settingsTabs('general')}
+  <div class="ssec">
+    <div class="sh"><span class="ic">${I.cal}</span><div><h3>Calendar</h3><p>How the career's year is laid out.</p></div></div>
+    <div class="stile"><div><b>Allow two events on one day</b><small>Nothing clashes - you can race both.</small></div><span class="gswitch"></span></div>
+    <div class="freq new-outline">
+      <b style="font-weight:500;font-size:13.5px">Historic events</b>
+      <small class="muted" style="font-size:12.5px">Single events from racing's past, drawn at random from the events switched on each year and put on weekdays. You're invited to every one; decline any you don't want.</small>
+      <div class="chipsel">${['off', 'quarterly', 'monthly', 'fortnightly', 'weekly'].map((f) => `<span class="${f === state.freq ? 'on' : ''}">${{ off: 'Off', quarterly: 'Quarterly', monthly: 'Monthly', fortnightly: 'Every two weeks', weekly: 'Weekly' }[f]}</span>`).join('')}</div>
+      <small class="muted" style="font-size:12.5px">${{ monthly: 'About 12 a year', weekly: 'About 52 a year', off: 'None' }[state.freq]}. <b style="color:var(--foreground);font-weight:600">Takes effect from next season</b> - this season's historic events stay as they were drawn.</small>
+      ${state.freq === 'weekly' ? `<div class="note amber"><span>${I.info}</span><span><b>Advancing stops at each one.</b> You're invited to every historic event, so weekly means the clock stops every week unless you decline.</span></div>` : ''}
+      <a class="link" style="font-size:13px">Choose which events can be drawn ${I.chev}</a>
+    </div>
+  </div>`;
+
+// ---------- Settings · Historic events ----------
+const POOL = [
+  { name: 'British Grand Prix 1967', d: 'single', t: [1], track: 'ks_silverstone1967', trackName: 'Silverstone 1967', race: '80 laps', cars: 'Lotus 49, Ferrari 312/67', n: 17, on: true, blurb: O.blurb, f: ['practice', 'qualify', 'race'] },
+  { name: 'German Grand Prix 1967', d: 'single', t: [1], track: 'ks_nordschleife', layout: 'nordschleife', trackName: 'Nordschleife', race: '15 laps', cars: 'Lotus 49, Ferrari 312/67', n: 17, on: true, origin: 'adjusted', blurb: 'Fourteen miles of the Nürburgring in a car with no downforce at all. The year Clark broke nine minutes in practice.', f: ['practice', 'qualify', 'race'] },
+  { name: '1000 km of Spa 1969', d: 'sports', t: [1], track: 'spa', trackName: 'Spa-Francorchamps', race: '1000 km', cars: 'Porsche 908, Ford GT40, +3', n: 24, on: true, blurb: 'Siffert and Redman in the 908 against the Ford GT40s, through the rain that always finds Spa.', f: ['practice', 'qualify', 'race'] },
+  { name: 'Nürburgring 24 Hours 2004', d: 'sports', t: [3, 4], classes: [['SP8', 3], ['SP7', 3], ['Skyline R34', 4]], track: 'ks_nordschleife', layout: 'endurance', trackName: 'Nordschleife 24h', race: '139 laps', cars: '8 models across 3 classes', n: 30, on: true, blurb: 'Twenty-four hours round the Nordschleife and the GP circuit together, with the Skylines racing the night.', f: ['practice', 'practice', 'qualify', 'race'] },
+  { name: 'Road America 1973', d: 'sports', t: [1], track: 'lilski_road_america', trackName: 'Road America', race: '200 miles', cars: 'Porsche 917/30', n: 14, on: false, blurb: 'Over a thousand horsepower and no rules to speak of: the 917/30 at the height of its power.', f: ['practice', 'qualify', 'race'] },
+  { name: 'Zolder 1993', d: 'touring', t: [1], track: 'rt_zolder', trackName: 'Zolder', race: '2 × 20 laps', cars: 'Mercedes 190E Evo II', n: 18, on: true, blurb: 'The first round of the Class 1 DTM, where the 190E met the Alfa 155 for the first time.', f: ['practice', 'qualify', 'race', 'race'] },
+  { name: 'Monza revival', d: 'sports', t: [1], track: 'ks_monza66', layout: 'full', trackName: 'Monza 1966', race: '30 laps', cars: 'Porsche 908, Ford GT40, +3', n: 24, on: true, origin: 'user', blurb: 'My own: the banking, a short race and a full grid.', f: ['qualify', 'race'] },
+  { name: 'Donington 1998', d: 'touring', t: [2], track: 'donington', trackName: 'Donington Park', race: '2 × 18 laps', cars: 'Honda Accord, Nissan Primera, +4', n: 20, on: true, missing: 'Donington Park is not installed.', blurb: 'Super Touring at its peak, and a door-handle fight into the Old Hairpin.', f: ['practice', 'qualify', 'race', 'race'] },
+  { name: 'Italian Grand Prix 1988', d: 'single', t: [1], track: 'monza', trackName: 'Monza', race: '51 laps', cars: 'McLaren MP4/4, Ferrari F1-87/88C', n: 20, on: true, hidden: 'Needs RSS, which Content sources has switched off.', blurb: 'The only race McLaren lost all year - Ferrari one-two, a month after Enzo died.', f: ['practice', 'qualify', 'race'] },
+];
+const originChip = (o) => (o === 'adjusted' ? chip('c-adjusted', 'Adjusted', true) : o === 'user' ? chip('c-custom', 'Your own', true) : '');
+const poolCard = (e, i) => {
+  const dim = e.on ? '' : 'dimmed';
+  return `
+  <div class="scard">
+    <div class="sband b-${e.d}"><span class="${dim}">${DISC[e.d]}</span><span class="end"><span class="${dim}" style="display:flex">${e.t.map((t) => medal(t)).join('')}</span><button class="btn ghost icon sm" style="color:inherit">${I.dots}</button></span></div>
+    ${i === 1 ? `<div class="menu" style="top:40px"><span>${I.pencil}Edit</span><span>${I.copy}Duplicate</span><hr><span>${I.undo}Revert to ours</span></div>` : ''}
+    <div class="sbody">
+      <div class="stitle"><b class="${dim}">${e.name}</b><span class="gswitch ${e.on ? 'on' : ''}"></span></div>
+      <div class="${dim}" style="display:flex;flex-direction:column;gap:12px">
+        <p class="sdesc">${e.blurb}</p>
+        ${e.classes ? `<div style="display:flex;gap:4px;flex-wrap:wrap">${e.classes.map(([c, t]) => chip(`c-t${t}`, c, true)).join('')}</div>` : ''}
+        <div class="where" style="display:flex;align-items:center;gap:10px"><div class="thumb">${img(outline(e.track, e.layout))}</div><div style="display:flex;flex-direction:column;font-size:13px;min-width:0"><b style="font-weight:500">${e.trackName}</b><span class="muted" style="font-size:12px">${e.race} · ${e.cars}</span></div></div>
+        ${e.origin || e.missing || e.hidden ? `<div style="display:flex;gap:4px;flex-wrap:wrap">${originChip(e.origin)}${e.missing || e.hidden ? chip('c-missed', 'Can\'t be drawn', true) : ''}</div>` : ''}
+        ${e.missing || e.hidden ? `<span class="muted" style="font-size:12.5px;margin-top:-6px">${e.missing || e.hidden}</span>` : ''}
+      </div>
+    </div>
+    <div class="sfoot ${dim}"><span class="num">${e.n} cars</span>${fstrip(e.f)}</div>
+  </div>`;
+};
+const poolRow = (e) => {
+  const dim = e.on ? '' : 'dimmed';
+  return `
+  <tr>
+    <td style="width:52px"><span class="gswitch ${e.on ? 'on' : ''}"></span></td>
+    <td class="${dim}"><b>${e.name}</b><small>${e.trackName} · ${e.race}</small></td>
+    <td class="${dim}"><div style="display:flex;gap:6px;align-items:center">${disc(e.d, true)}<span style="display:flex">${e.t.map((t) => medal(t)).join('')}</span></div></td>
+    <td class="${dim}"><small style="color:var(--foreground);font-size:12.5px">${e.classes ? e.classes.map(([c]) => c).join(', ') : e.cars}</small></td>
+    <td class="${dim} num">${e.n}</td>
+    <td class="${dim}">${fstrip(e.f)}</td>
+    <td>${originChip(e.origin)} ${e.missing || e.hidden ? chip('c-missed', 'Can\'t be drawn', true) : ''}</td>
+    <td style="width:40px"><button class="btn ghost icon sm">${I.dots}</button></td>
+  </tr>`;
+};
+const railSection = (title, body) => `<section><div class="sh2">${title}${I.down}</div><div class="sb">${body}</div></section>`;
+const ro = (label, n, extra = '') => `<div class="ro"><span class="box"></span>${extra}${label}<span class="n">${state.load === 'loading' ? sk(14, 9) : n}</span></div>`;
+const pool = () => {
+  const loading = state.load === 'loading';
+  const rail = `<aside class="frail">
+    <div class="fh"><h2>Filters</h2><a>Clear all</a></div>
+    <section><div class="rs"><span>Show switched off</span><span class="gswitch on"></span></div></section>
+    ${railSection('Discipline', `${ro('Single-seater', 14, '<span class="dot" style="background:var(--d-single-dot)"></span>')}${ro('Sportscar', 18, '<span class="dot" style="background:var(--d-sports-dot)"></span>')}${ro('Touring', 9, '<span class="dot" style="background:var(--d-touring-dot)"></span>')}`)}
+    ${railSection('Tier', [1, 2, 3, 4].map((t, at) => ro(`Tier ${t}`, [22, 9, 6, 4][at], medal(t).replace('class="medal', 'style="width:18px;height:18px;font-size:10px" class="medal'))).join(''))}
+    ${railSection('Decade', [['1950s', 3], ['1960s', 12], ['1970s', 7], ['1980s', 6], ['1990s', 9], ['2000s', 4]].map(([l, n]) => ro(l, n)).join(''))}
+    ${railSection('Whose', `${ro('Ours', 39)}${ro('Adjusted', 1)}${ro('Your own', 1)}`)}
+    ${railSection('Needs', `${ro('Base game', 6)}${ro('DLC', 15)}${ro('Mods', 20)}`)}
+  </aside>`;
+  const head = state.view === 'cards' ? '' : '<thead><tr><th></th><th>Event</th><th>Discipline</th><th>Classes or cars</th><th>Field</th><th>Format</th><th></th><th></th></tr></thead>';
+  const list = loading
+    ? (state.view === 'cards'
+      ? `<div class="pgrid">${Array.from({ length: 6 }, (_, i) => `<div class="scard"><div class="sband b-${['single', 'sports', 'touring'][i % 3]}"><span>${DISC[['single', 'sports', 'touring'][i % 3]]}</span></div><div class="sbody">${sk('70%', 18)}${sk('100%', 32)}<div style="display:flex;gap:10px;align-items:center">${sk(64, 40)}${sk(140, 14)}</div></div><div class="sfoot">${sk(50, 12)}${sk(66, 20)}</div></div>`).join('')}</div>`
+      : `<table class="ptable">${head}<tbody>${Array.from({ length: 8 }, () => `<tr><td>${sk(32, 18, 'round')}</td><td>${sk(180, 14)}</td><td>${sk(110, 18)}</td><td>${sk(150, 12)}</td><td>${sk(20, 12)}</td><td>${sk(66, 20)}</td><td></td><td></td></tr>`).join('')}</tbody></table>`)
+    : (state.view === 'cards'
+      ? `<div class="pgrid">${POOL.map(poolCard).join('')}</div>`
+      : `<table class="ptable">${head}<tbody>${POOL.map(poolRow).join('')}</tbody></table>`);
+  return `${nav('Settings')}
+    <div class="shead"><div class="head-row"><h1>Settings</h1></div></div>
+    ${settingsTabs('historic')}
+    <div class="pool">
+      ${rail}
+      <div>
+        <div class="toolbar">
+          <div class="sfield">${I.search}Search events, tracks and cars</div>
+          <span class="select" style="width:auto;gap:6px">${I.sort}Name</span>
+          <span class="vsep"></span>
+          <button class="btn">${I.plus}New</button>
+          <span class="vt"><span class="${state.view === 'cards' ? 'on' : ''}">${I.grid}</span><span class="${state.view === 'table' ? 'on' : ''}">${I.list}</span></span>
+        </div>
+        ${list}
+      </div>
+    </div>`;
+};
+
+// ---------- A historic event's own page (settings: manage) ----------
+const detail = () => {
+  const loading = state.load === 'loading';
+  const tabs = `<div class="utabs">${[['event', 'Event'], ['classes', 'Classes'], ['prizes', 'Prizes']].map(([k, l]) => `<span class="${state.dtab === k ? 'on' : ''}">${l}</span>`).join('')}</div>`;
+  const body = loading ? `<div class="panel"><div class="pb">${sk('60%', 14)}${sk('100%', 60)}${sk('100%', 120)}</div></div>` : {
+    event: `<div class="panel"><div class="pb" style="gap:14px">
+      <div class="about"><span class="caps">About this event</span><p>${O.blurb}</p></div>
+      <div class="tpick" style="grid-template-columns:200px minmax(0,1fr)"><div class="well">${img(outline(O.track))}</div><div><b style="font-weight:600;font-size:15px">${O.trackName}</b><div class="muted" style="font-size:12.5px">${O.length} · 30 pit boxes</div><div class="over" style="margin-top:6px">${chip('c-oceanic', 'Oceanic', true)}<span class="muted" style="font-size:12px">weather generated a week out</span></div></div></div>
+      <span class="caps">Format</span>
+      <div class="sesslist">${O.sessions.map(([t, n, d, l]) => `<div>${sessionChip(t, true)}<b style="font-weight:500">${n}</b><span class="muted">${d}</span><span class="num">${l}</span></div>`).join('')}</div>
+      <div class="placeholder">Rules - RulesCard, as a championship's page shows it</div>
+    </div></div>`,
+    classes: `<div class="panel"><div class="pb" style="gap:14px">
+      <div class="class-head">${medal(1, 'lg')}<div style="display:flex;flex-direction:column"><b>Formula 1</b><span class="muted" style="font-size:12.5px">${O.grid} cars · Lotus 49, Ferrari 312/67</span></div>${disc('single', true)}</div>
+      <div class="teams">${O.teams.map(([team, who, car, skin]) => `<div class="team"><span class="pic">${img(preview(car, skin))}</span><div><b>${team}</b><span>${who === '__seat' ? O.seat : who}</span></div></div>`).join('')}</div>
+      <a class="link" style="font-size:13px">All 12 teams ${I.down}</a>
+      <div class="note"><span>${I.info}</span><span>In a career your seat is drawn from this field at random - a team, and the car it races.</span></div>
+    </div></div>`,
+    prizes: `<div class="panel"><div class="pb" style="gap:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="caps">The race pays</span><span class="muted" style="font-size:12.5px">$40,500 in all · no points</span></div>
+      <div class="prizes">${O.prizes.map((p, at) => `<div class="prize"><span class="pos ${at < 3 ? `p${at + 1}` : 'quiet'}" style="align-self:flex-start">P${at + 1}</span><b>${p}</b></div>`).join('')}</div>
+      <div class="placeholder">RacePrizes, as a championship's Points, prizes and formats tab draws it</div>
+    </div></div>`,
+  }[state.dtab];
+  return `${nav('Settings')}
+    <div class="shead">
+      <a class="back">${I.back}Historic events</a>
+      <div class="head-row">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="over">${historic()}${disc('single')}${tier(1)}</div>
+          <h1>${loading ? sk(280, 26) : O.name}</h1>
+          <div class="facts">${loading ? sk(260, 12) : `<span>${O.trackName}</span><span>${O.grid} cars</span><span>$12,000 to the winner</span>`}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center"><span class="muted" style="font-size:13px">Can be drawn</span><span class="gswitch on"></span><button class="btn">${I.pencil}Edit</button><button class="btn icon">${I.dots}</button></div>
+      </div>
+    </div>
+    ${tabs}${body}`;
+};
+
+// ---------- Editor ----------
+const editor = () => {
+  const loading = state.load === 'loading';
+  const isNew = state.edit === 'new';
+  const tabs = `<div class="utabs">${[['overview', 'Overview'], ['teams', 'Teams'], ['classes', 'Classes'], ['event', 'Event'], ['prizes', 'Prizes']].map(([k, l]) => `<span class="${state.etab === k || (state.etab === 'reused' && k === 'classes') ? 'on' : ''}">${l}${k === 'event' && !isNew ? '<span class="dotw"></span>' : ''}</span>`).join('')}</div>`;
+  const head = `
+    <div class="shead">
+      <a class="back">${I.back}Historic events</a>
+      <div class="head-row">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="over">${historic()}${isNew ? chip('c-custom', 'Your own') : chip('c-adjusted', 'Adjusting ours')}</div>
+          <h1>${loading ? sk(260, 26) : isNew ? 'New historic event' : O.name}</h1>
+        </div>
+        <div style="display:flex;gap:8px">${isNew ? '' : `<button class="btn ghost">${I.undo}Revert to ours</button>`}<button class="btn">Cancel</button><button class="btn pri">Save</button></div>
+      </div>
+    </div>`;
+  if (loading) return `${nav('Settings')}${head}${tabs}<div class="formgrid"><div class="ecard2">${sk('40%', 16)}${sk('100%', 34)}${sk('100%', 84)}</div><div class="ecard2">${sk('40%', 16)}${sk('100%', 120)}</div></div>`;
+  const body = {
+    overview: `<div class="formgrid">
+      <div class="ecard2"><h3>Details</h3>
+        <div class="field"><label>Name</label><div class="input">${isNew ? '' : O.name}</div></div>
+        <div class="field"><label>About this event</label><div class="textarea">${isNew ? '<span class="muted">What made it worth racing - shown on its page.</span>' : O.blurb}</div></div>
+      </div>
+      <div class="ecard2"><h3>The field</h3><p class="hint">GridFields, as a championship's Overview has them.</p>
+        <div class="placeholder">AI strength and aggression as offsets over your difficulty - OffsetStepper</div>
+        <div class="placeholder">Regulations - RulesCard</div>
+      </div>
+    </div>`,
+    event: `<div class="formgrid">
+      <div class="ecard2"><h3>Track</h3><p class="hint">One track - the event has no date of its own, since a career puts it on a weekday.</p>
+        <div class="tpick"><div class="well">${img(outline(O.track))}</div><div><b style="font-weight:600">${O.trackName}</b><div class="muted" style="font-size:12.5px">${O.length} · 30 pit boxes</div></div><button class="btn sm">Change</button></div>
+        <div class="field"><label>Weather</label><div class="over">${chip('c-oceanic', 'Oceanic')}<span class="muted" style="font-size:12.5px">a climate, drawn a week out - or set by hand, a session at a time</span></div></div>
+        <div class="placeholder">Conditions - ConditionsEditor, as a round's dialog has it</div>
+      </div>
+      <div class="ecard2"><h3>Format</h3><p class="hint">SessionsSplit, as the Formats tab edits one format - here there is only ever this one.</p>
+        <div class="sesslist">${O.sessions.map(([t, n, d, l], at) => `<div class="${at === 2 ? 'on' : ''}">${sessionChip(t, true)}<b style="font-weight:500">${n}</b><span class="muted">${d}</span><span class="num">${l}</span></div>`).join('')}</div>
+        <button class="btn sm" style="align-self:flex-start">${I.plus}Add session</button>
+        <div class="placeholder">The selected session - SessionPage</div>
+      </div>
+    </div>`,
+    reused: `<div class="ecard2">
+      <p style="margin:0">Teams, Classes and Prizes are the championship editor's own tabs, unchanged:</p>
+      <ul style="margin:0;padding-left:18px;font-size:13.5px">
+        <li><b>Teams</b> - TeamsCard and TeamDialog.</li>
+        <li><b>Classes</b> - the class list beside the one open: ClassPanel, the seats typed straight in, balance of performance, the car eligibility.</li>
+        <li><b>Prizes</b> - PurseEditor: what the race pays in all and the shape of its curve, then adjusted by hand. No points systems - a historic event pays none.</li>
+      </ul>
+    </div>`,
+  }[state.etab];
+  return `${nav('Settings')}${head}${tabs}${body}`;
+};
+
+// ---------- Explanations per page ----------
+const WHY = {
+  home: `<b>Home.</b> A historic event can be the next event: the Historic chip, its name, the seat you were given and Decline. Below it is a strip of this season's historic events. "Your championships" and the "nothing entered" test count championships only. Dashed outlines mark what is new.`,
+  calendar: `<b>Calendar.</b> The head is today's, with two additions. The clock's <i>Next</i> carries the Historic chip where a round would say "R3 · Monza". A third filter group, <i>Events</i>, works like Discipline: nothing picked shows both, and picking Championships or Historic narrows to it. Its dots are a legend: the Historic chip's leather, and neutral for championships on purpose, since a round has no marker of its own. Below that: a historic event is entered (you are invited and have accepted), so it carries the ring, its card shows the Historic chip where a round shows "R3", and it says <i>Invited</i>. A clash works as it does today.`,
+  event: `<b>The event page.</b> The header shows the Historic chip, the discipline, the tier and the climate, with no championship link. <i>Your seat</i> replaces <i>Your entry</i> and offers Decline until the first session runs. A new <i>About this event</i> item opens the event's own details: the description, track, format, classes, field (your seat ringed) and prizes. Once finished: the classification with prizes, and no points column.`,
+  results: `<b>Results.</b> A historic event's card heads itself with its own name and track, ending in "Historic · Open the event". The result page's breadcrumb goes Results › event › session, and the side card shows the prize.`,
+  review: `<b>Year review and History.</b> Historic events get a section of their own under the championships: figures, prize money recorded, and a row per event. History gains a column, and the championship count never includes them.`,
+  general: `<b>General › Calendar</b> gains the frequency as chips. Default Monthly. <b>A change takes effect from next season</b>: what is already drawn is never re-drawn. Weekly carries a warning.`,
+  pool: `<b>Settings › Historic events.</b> The whole pool, in cards or a table, through the browsers' own pieces: FilterRail, a search field that takes the toolbar's width, the sort menu, New and the view toggle. A card is a championship card's shape: the band in the discipline's colour with tier medals and the menu, a green switch, the format as P/Q/R blocks, and Adjusted or Your own. An event that can't be drawn here says why. Switching one off takes effect from next season's draw.`,
+  detail: `<b>A historic event's own page</b>, at <code>/settings/historic/:id</code>: read-only, with the switch, Edit and the menu, in tabs - Event (description, track, weather, format, rules), Classes (the field) and Prizes. The career's event page shows the same content under <i>About this event</i>, from one component.`,
+  editor: `<b>The editor</b>, at <code>/settings/historic/:id/edit</code> and <code>/settings/historic/new</code>, is the championship editor's tabs narrowed to one event: Overview, Teams, Classes, Event and Prizes. Teams, Classes and Prizes are the championship editor's own. Event is one round's track, weather and format, with no date. There are no points systems.`,
+};
+
+const pages = { home, calendar, event: eventPage, results, review, general, pool, detail, editor };
+const render = () => {
+  document.documentElement.dataset.theme = state.th;
+  document.querySelectorAll('.opt').forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+  document.querySelectorAll('.grp[data-for]').forEach((g) => { g.hidden = !g.dataset.for.split(' ').includes(state.page); });
+  document.getElementById('why').innerHTML = WHY[state.page];
+  document.getElementById('app').innerHTML = pages[state.page]();
+};
+document.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => { state[b.dataset.k] = b.dataset.v; render(); }));
+// A state can be linked to: #page=pool&th=dark
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in state) state[k] = v; });
+render();
+</script>
+</body>
+</html>

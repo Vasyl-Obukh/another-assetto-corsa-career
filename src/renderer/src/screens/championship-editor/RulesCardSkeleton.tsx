@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 
 import { GridFieldsSkeleton } from './GridFieldsSkeleton.tsx';
 import { PaneHeading } from './PaneHeading.tsx';
 import { Shimmer } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useKindTranslation } from '@/i18n';
 import { REGULATION_FLAGS, REGULATIONS } from '@/screens/race';
 
 /**
@@ -12,7 +12,7 @@ import { REGULATION_FLAGS, REGULATIONS } from '@/screens/race';
  * the race control's chips - and every value still to come.
  */
 export const RulesCardSkeleton = () => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <Card className="grid gap-0 py-0 lg:grid-cols-3">

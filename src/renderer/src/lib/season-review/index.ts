@@ -1,6 +1,15 @@
 export {
-  championshipReview, editionOver, editionSummary, nextRun, yearReview,
+  championshipReview, editionOver, editionSummary, historicReview, nextRun, prizeFor, yearReview,
 } from './season-review.ts';
 export type {
-  ChampionshipReview, ClassChampions, EditionSummary, ReviewFigures, RoundStanding, TeammateRecord, YearReview,
+  ChampionshipReview,
+  ClassChampions,
+  EditionSummary,
+  HistoricOutcome,
+  HistoricReview,
+  HistoricRow,
+  ReviewFigures,
+  RoundStanding,
+  TeammateRecord,
+  YearReview,
 } from './types.ts';

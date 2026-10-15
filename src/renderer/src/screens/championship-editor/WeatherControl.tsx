@@ -1,6 +1,6 @@
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { RadioCard } from './RadioCard.tsx';
 import { WeatherPlanBar } from './WeatherPlanBar.tsx';
@@ -14,6 +14,7 @@ import { useSettings } from '@/app';
 import { ConfirmDialog, WeatherPicker } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import {
   addWeatherSlot, fromNumber, offeredTypes, removeWeatherSlot, setWeatherSlot, toNumber, withChosenTypes,
@@ -60,7 +61,7 @@ interface WeatherControlProps {
 export const WeatherControl = ({
   idPrefix, conditions, weather, controllers, system, locked, onChange,
 }: WeatherControlProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { settings } = useSettings();
   const [dropping, setDropping] = useState(false);
   const offered = offeredTypes(weather, system, true, settings.allowedWeather);

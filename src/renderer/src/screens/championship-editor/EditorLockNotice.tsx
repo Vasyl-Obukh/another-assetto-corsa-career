@@ -1,12 +1,12 @@
 import { LockIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button.tsx';
+import { useKindTranslation } from '@/i18n';
 import { path } from '@/lib/routes';
 
 export const EditorLockNotice = () => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-md border border-warning/50 p-3">

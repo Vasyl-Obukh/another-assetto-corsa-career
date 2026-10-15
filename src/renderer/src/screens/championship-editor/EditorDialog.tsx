@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 interface EditorDialogProps {
@@ -63,7 +64,7 @@ export const EditorDialog = ({
   title, caption, description, tabs, note, confirmLabel, locked, className,
   onConfirm, onCancel, children,
 }: EditorDialogProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
 
   return (
     <Dialog open onOpenChange={(next) => { if (!next) onCancel(); }}>

@@ -1,5 +1,5 @@
 import { Trash2Icon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { ConditionsEditor } from './ConditionsEditor.tsx';
@@ -13,7 +13,8 @@ import type {
   LengthUnit, SessionEdit, StartClass, StartKind,
 } from './types.ts';
 import {
-  lengthUnit, sessionSource, sessionSources, startKindOf, withLengthUnit, withSession, withSessionConditionsOf,
+  lengthUnit, namesItsType, sessionSource, sessionSources, startKindOf, withLengthUnit, withSession,
+  withSessionConditionsOf,
 } from './utils.ts';
 import { MIN_REVERSED } from '../../../../shared/constants';
 import type {
@@ -25,6 +26,7 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
 import { countsLaps, Field, fromNumber, NOT_SET, toNumber } from '@/screens/race';
@@ -111,7 +113,7 @@ export const SessionPage = ({
   series, format, index, nameOf, weather, controllers, system, locked, scoring = true, behind = 'round',
   undated = false, startClass, onChange, onRemove,
 }: SessionPageProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const session = format.sessions[index];
   const idPrefix = `session-${format.id}-${index}`;
   const from = sessionSource(format.sessions, session);
@@ -180,7 +182,13 @@ export const SessionPage = ({
               // Only a race scores, so anything else drops its points system;
               // and only a race counts laps, so anything else runs the clock.
               const scored = type === 'race' ? session.pointsSystem : undefined;
-              const next = { ...session, type, pointsSystem: scored };
+              // The shipped championships name their sessions in English,
+              // whatever language the app is in.
+              const label = SESSION_TYPE_LABEL[session.type];
+              const generic = namesItsType(session.name, session.type, [t(label), t(label, { lng: 'en' })]);
+              const next = {
+                ...session, type, pointsSystem: scored, name: generic ? undefined : session.name,
+              };
               edit(countsLaps(type) ? next : withLengthUnit(next, 'minutes'));
             }}
           />

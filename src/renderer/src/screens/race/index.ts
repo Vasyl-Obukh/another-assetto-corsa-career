@@ -9,6 +9,8 @@ export { ConditionsSummaryLine } from './ConditionsSummaryLine.tsx';
 export { Field } from './Field.tsx';
 export { RegulationsInputs } from './RegulationsInputs.tsx';
 
+export type { RegulationSpec } from './types.ts';
+
 export {
   NOT_SET,
   REGULATION_FLAGS,

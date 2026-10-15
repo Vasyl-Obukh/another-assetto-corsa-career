@@ -130,6 +130,18 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.event({ series: 'cup', round: 'r1' }, { season: 0 })).toBe('/calendar/cup/r1?season=0');
     });
 
+    it('builds the page and the editor of a historic event under settings, with the id encoded', () => {
+      expect(path.settingsHistoricEvent({ id: 'british gp 1967' })).toBe('/settings/historic/british%20gp%201967');
+      expect(path.historicEdit({ id: 'british-gp-1967' })).toBe('/settings/historic/british-gp-1967/edit');
+    });
+
+    it('puts the historic events tab and a new historic event under settings', () => {
+      expect(path.settingsHistoric()).toBe(ROUTE.settingsHistoric);
+      expect(path.historicNew()).toBe(ROUTE.historicNew);
+      [path.settingsHistoric(), path.historicNew()]
+        .forEach((url) => expect(url.startsWith(`${ROUTE.settings}/`)).toBe(true));
+    });
+
     it('builds History and the reviews it opens under Home', () => {
       expect(path.history()).toBe('/home/history');
       expect(path.yearReview({ season: 2 })).toBe('/home/history/2');
@@ -191,6 +203,15 @@ describe('renderer/lib/routes/routes', () => {
     it('prefers a literal route over a pattern the same path fits', () => {
       expect(routeOf('/settings/championships/new')).toBe('championshipNew');
       expect(routeOf('/settings/championships/lotus-cup')).toBe('settingsChampionship');
+    });
+
+    // The same as a new championship: a historic event called "new" would
+    // otherwise open the page of one that does not exist.
+    it('reads a new historic event as the editor rather than an event called new', () => {
+      expect(routeOf('/settings/historic/new')).toBe('historicNew');
+      expect(routeOf('/settings/historic/british-gp-1967')).toBe('settingsHistoricEvent');
+      expect(routeOf('/settings/historic/british-gp-1967/edit')).toBe('historicEdit');
+      expect(routeOf('/settings/historic')).toBe('settingsHistoric');
     });
 
     it('finds nothing for a path no route matches', () => {

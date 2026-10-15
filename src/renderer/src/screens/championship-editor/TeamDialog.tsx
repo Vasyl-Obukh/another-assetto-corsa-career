@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { TEAM_BUDGETS } from './constants.ts';
 import { EditorDialog } from './EditorDialog.tsx';
@@ -9,6 +9,7 @@ import type { Team, TeamBudget } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { useFocusOnMount } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 import { TEAM_BUDGET_LABEL } from '@/screens/championships';
@@ -54,7 +55,7 @@ interface TeamDialogProps {
 export const TeamDialog = ({
   team, adding, fields, used, locked, onConfirm, onCancel,
 }: TeamDialogProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [draft, setDraft] = useState(team);
   const name = useFocusOnMount<HTMLInputElement>();
   const idPrefix = `team-${team.id}`;

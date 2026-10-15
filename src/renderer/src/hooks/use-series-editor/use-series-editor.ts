@@ -8,6 +8,8 @@ import type { Championship, SeriesAvailability, SeriesListing } from '../../../.
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 import type { DisplayableError } from '@/lib/ipc';
+import { SERIES_CHANNELS } from '@/lib/series-kind';
+import type { SeriesKind } from '@/lib/series-kind';
 
 export type { SeriesEditorState } from './types.ts';
 
@@ -26,9 +28,15 @@ export type { SeriesEditorState } from './types.ts';
  * writes it rather than replacing anything.
  * @param id The championship's id, from the route, or undefined for a new one
  * @param blank The document a new championship starts from
+ * @param kind Which library it is in - the championships unless it says otherwise
  * @returns The draft, what is wrong with it, and the actions the screen binds to
  */
-export const useSeriesEditor = (id: string | undefined, blank: Championship): SeriesEditorState => {
+export const useSeriesEditor = (
+  id: string | undefined,
+  blank: Championship,
+  kind: SeriesKind = 'series',
+): SeriesEditorState => {
+  const channels = SERIES_CHANNELS[kind];
   const [listing, setListing] = useState<SeriesListing | null>(null);
   // Unsaved from the first render when it is new, since there is nothing on
   // disk for it to differ from.
@@ -61,7 +69,7 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
     if (id === undefined) return undefined;
     let live = true;
 
-    invoke('series:get', { id }).then(
+    invoke(channels.get, { id }).then(
       (next) => { if (live) { adopt(next); setLoading(false); } },
       (thrown: unknown) => {
         if (!live) return;
@@ -71,16 +79,16 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
     );
 
     return () => { live = false; };
-  }, [adopt, id]);
+  }, [adopt, id, channels]);
 
   // Subscribed for one reason only: this championship being deleted or reverted
   // somewhere else, which leaves the editor holding a draft with nowhere to go.
   // A push is deliberately not adopted - it would clobber the draft mid-typing.
-  useEffect(() => subscribe('series:changed', (library) => {
+  useEffect(() => subscribe(channels.changed, (library) => {
     // Nothing to lose track of until it has been written once.
     if (id === undefined) return;
     if (!library.series.some((one) => one.series.id === id)) adopt(null);
-  }), [adopt, id]);
+  }), [adopt, id, channels]);
 
   const settled = useDebouncedValue(draft, CHECK_DEBOUNCE_MS);
   // Bumped when the class catalogue changes, since what a spec holds decides
@@ -96,13 +104,13 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
     const mine = issued.current;
     let live = true;
 
-    invoke('series:validate', { series: settled }).then(
+    invoke(channels.validate, { series: settled }).then(
       (next) => { if (live && mine === issued.current) setChecked(next); },
       () => { /* a draft that cannot even be checked is reported by saving it */ },
     );
 
     return () => { live = false; };
-  }, [settled, classified]);
+  }, [settled, classified, channels]);
 
   const edit = useCallback((change: (from: Championship) => Championship): void => {
     if (!current.current) return;
@@ -129,7 +137,7 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
       // where its id comes from: the screen then moves to that id's own URL.
       const target = id ?? minted.current;
       if (target === undefined) {
-        const created = await invoke('series:create', { series: sent });
+        const created = await invoke(channels.create, { series: sent });
         minted.current = created.id ?? undefined;
         // Settled, or the screen's own guard against leaving with a draft
         // unwritten would block the move to the new id's URL. Only when the
@@ -139,7 +147,7 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
         return created.id;
       }
 
-      const saved = await invoke('series:save', { id: target, series: sent });
+      const saved = await invoke(channels.save, { id: target, series: sent });
 
       // Adopting what comes back rather than what was sent: parseSeries
       // normalises in main, so the two would otherwise drift wherever it
@@ -157,7 +165,7 @@ export const useSeriesEditor = (id: string | undefined, blank: Championship): Se
     } finally {
       setBusy(false);
     }
-  }, [adopt, id]);
+  }, [adopt, id, channels]);
 
   return {
     draft,

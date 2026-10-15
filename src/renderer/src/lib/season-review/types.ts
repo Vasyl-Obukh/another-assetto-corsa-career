@@ -323,3 +323,118 @@ export interface YearReview {
     fastestLaps: number;
   };
 }
+
+/**
+ * What became of a historic event the season drew, as the player sees it.
+ *
+ * "declined" is one the player turned down ahead of its day, and "missed" one
+ * the clock simply went past.
+ */
+export type HistoricOutcome = 'scheduled' | 'raced' | 'declined' | 'missed';
+
+/**
+ * One historic event of a season, as a list of them reads it.
+ */
+export interface HistoricRow {
+  /**
+   * The historic event, by its id.
+   */
+  series: string;
+  /**
+   * Its round, by its id.
+   */
+  round: string;
+  /**
+   * Its display name.
+   */
+  name: string;
+  /**
+   * The day it is raced on, as an ISO date.
+   */
+  date: string;
+  /**
+   * The track and layout it runs on.
+   */
+  track: {
+    /**
+     * Track folder ID.
+     */
+    id: string;
+    /**
+     * Layout folder name, when the circuit has more than one.
+     */
+    layout?: string;
+  };
+  /**
+   * The discipline and rung of the class the player was invited into.
+   */
+  ladder: LadderPosition | null;
+  /**
+   * The car the player was invited to drive, by its folder ID.
+   */
+  car: string;
+  /**
+   * The team behind the seat, by its display name, or null.
+   */
+  team: string | null;
+  /**
+   * The driver whose seat it is, who races it when the player does not.
+   */
+  driver: string | null;
+  /**
+   * What became of it.
+   */
+  outcome: HistoricOutcome;
+  /**
+   * Whether any of its sessions has run, past which it can no longer be
+   * declined.
+   */
+  started: boolean;
+  /**
+   * Where the player started its last race within their class, once driven.
+   */
+  qualified: number | null;
+  /**
+   * Where the player finished its last race within their class, once driven.
+   */
+  finished: number | null;
+  /**
+   * Whether the event races more than one class, which is when a place is
+   * worth saying is the class's.
+   */
+  multiClass: boolean;
+  /**
+   * The prize money the player's places earned, or null for none.
+   */
+  prize: number | null;
+}
+
+/**
+ * A season's historic events, looked back on.
+ */
+export interface HistoricReview {
+  /**
+   * Every one the season drew, earliest first.
+   */
+  rows: readonly HistoricRow[];
+  /**
+   * How many were raced.
+   */
+  raced: number;
+  /**
+   * How many the player won.
+   */
+  wins: number;
+  /**
+   * How many the player finished in the top three of their class.
+   */
+  podiums: number;
+  /**
+   * The prize money they earned between them.
+   */
+  prize: number;
+  /**
+   * How many were declined or passed by.
+   */
+  notRaced: number;
+}

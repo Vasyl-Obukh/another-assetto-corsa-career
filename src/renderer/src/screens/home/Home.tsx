@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
 import { EditionFinished } from './EditionFinished.tsx';
+import { HistoricStrip } from './HistoricStrip.tsx';
 import { HomeDoors } from './HomeDoors.tsx';
 import { HomeSkeleton } from './HomeSkeleton.tsx';
 import { NewSeason } from './NewSeason.tsx';
@@ -16,11 +17,13 @@ import { YearDone } from './YearDone.tsx';
 import { YourChampionships } from './YourChampionships.tsx';
 import { addDays } from '../../../../shared/utils/calendar-days';
 import { seasonYear } from '../../../../shared/utils/editions';
+import { championshipEntries } from '../../../../shared/utils/historic';
 import { AdvanceDialog, ErrorCard, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareer, useClockMove } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { path } from '@/lib/routes';
+import { historicReview } from '@/lib/season-review';
 import { readPreference, writePreference } from '@/lib/stored-preference';
 import { CALENDAR_MEMORY, readCriteria } from '@/screens/calendar';
 
@@ -42,6 +45,7 @@ export const Home = () => {
     () => (season && calendar ? recentlyFinished(season, calendar.date) : []),
     [season, calendar],
   );
+  const historic = useMemo(() => (season ? historicReview(season) : null), [season]);
 
   if (!calendar || !career.career || !season) {
     return (
@@ -71,7 +75,9 @@ export const Home = () => {
    * @returns The card
    */
   const nothingAhead = () => {
-    if (season.entries.length > 0) {
+    // On championships alone: a season of historic events is never what hides
+    // the way into a championship.
+    if (championshipEntries(season).length > 0) {
       return (
         <YearDone
           season={season.index}
@@ -83,7 +89,7 @@ export const Home = () => {
         />
       );
     }
-    if (previous && previous.entries.length > 0) {
+    if (previous && championshipEntries(previous).length > 0) {
       return (
         <NewSeason
           previous={previous}
@@ -131,11 +137,17 @@ export const Home = () => {
             today={calendar.date}
             busy={career.busy}
             onAdvance={() => move.moveTo(next.date)}
+            seat={next.historic ? historic?.rows.find((row) => row.series === next.series) ?? null : null}
+            onDecline={() => { void career.withdraw(next.series, next.entry); }}
           />
         ) : nothingAhead()}
 
         <YourChampionships rows={rows} />
       </div>
+
+      {historic && historic.rows.length > 0 ? (
+        <HistoricStrip review={historic} season={season.index} year={year} clock={calendar.date} />
+      ) : null}
 
       <HomeDoors career={career.career} />
 

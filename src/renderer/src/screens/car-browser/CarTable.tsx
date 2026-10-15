@@ -67,6 +67,7 @@ export const CarTable = ({
       <table className="w-full border-collapse text-sm">
         <thead className="border-b">
           <tr>
+            {toggle === undefined ? null : <th scope="col" aria-hidden />}
             <th scope="col" aria-hidden />
             <SortHeader {...heading} label={t('cars.column.car')} sortKey="name" />
             <SortHeader {...heading} label={t('cars.column.class')} className={CAR_COLUMN.wide} />
@@ -77,7 +78,6 @@ export const CarTable = ({
             <SortHeader {...heading} label={t('cars.column.liveries')} numeric className={CAR_COLUMN.liveries} />
             <SortHeader {...heading} label={t('cars.column.championships')} />
             <SortHeader {...heading} label={t('cars.column.source')} className={CAR_COLUMN.wide} />
-            {toggle === undefined ? null : <th scope="col" aria-hidden />}
           </tr>
         </thead>
         <tbody>

@@ -4,10 +4,11 @@
 
 import { dialog } from 'electron';
 
-import { fileNameFor, focusedWindow, handle } from './utils.ts';
+import {
+  exportFrom, focusedWindow, handle, importInto,
+} from './utils.ts';
 import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts';
 import { probePaths } from '../../core/paths/index.ts';
-import { SERIES_FILE_EXTENSION } from '../../core/series-file/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
 import type { CareerStore } from '../career-store/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
@@ -29,6 +30,7 @@ export { send } from './utils.ts';
  * @param content The store handlers read installed content through
  * @param race The store handlers set up, launch and archive races through
  * @param series The store handlers read and write the championship library through
+ * @param historic The store handlers read and write the historic events through
  * @param classes The store handlers read and write the user's class layer through
  * @param career The store handlers read and command the career through
  * @param quick The store handlers keep and run race events of the player's own through
@@ -38,6 +40,7 @@ export const registerHandlers = (
   content: ContentStore,
   race: RaceStore,
   series: SeriesStore,
+  historic: SeriesStore,
   classes: ClassStore,
   career: CareerStore,
   quick: QuickRaceStore,
@@ -115,33 +118,20 @@ export const registerHandlers = (
 
   // The dialogs live here rather than in the series store, so that store stays
   // the same path-in, value-out shape it has always had and imports no Electron.
-  handle('series:import', async () => {
-    const result = await dialog.showOpenDialog(focusedWindow(), {
-      properties: ['openFile'],
-      filters: [{ name: 'Championship', extensions: ['json'] }],
-    });
-    const file = result.canceled ? null : result.filePaths[0] ?? null;
+  handle('series:import', async () => importInto(series));
+  handle('series:export', async ({ id }) => exportFrom(series, id));
+  handle('historic:import', async () => importInto(historic));
+  handle('historic:export', async ({ id }) => exportFrom(historic, id));
 
-    return file === null ? null : series.importFrom(file);
-  });
-
-  handle('series:export', async ({ id }) => {
-    // Named after the championship, since a minted id is a UUID.
-    const listing = await series.get(id);
-    const suggested = listing ? fileNameFor(listing.series.name, id) : id;
-
-    // No title: omitted so Windows supplies its own localised "Save As" rather
-    // than us pushing a translated string across IPC purely to label a dialog.
-    const result = await dialog.showSaveDialog(focusedWindow(), {
-      defaultPath: `${suggested}${SERIES_FILE_EXTENSION}`,
-      filters: [{ name: 'Championship', extensions: ['json'] }],
-    });
-    if (result.canceled || !result.filePath) return null;
-
-    await series.exportTo(id, result.filePath);
-
-    return result.filePath;
-  });
+  handle('historic:list', async () => historic.list());
+  handle('historic:get', async ({ id }) => historic.get(id));
+  handle('historic:validate', async ({ series: draft }) => historic.validate(draft));
+  handle('historic:save', async ({ id, series: draft }) => historic.save(id, draft));
+  handle('historic:customise', async ({ id }) => historic.customise(id));
+  handle('historic:duplicate', async ({ id, name }) => historic.duplicate(id, name));
+  handle('historic:create', async ({ series: drafted }) => historic.create(drafted));
+  handle('historic:revert', async ({ id }) => historic.revert(id));
+  handle('historic:delete', async ({ id }) => historic.remove(id));
 
   handle('classes:get', async () => classes.layer());
   handle('classes:assignCar', async ({ car, specs }) => classes.assignCar(car, specs));
@@ -152,8 +142,10 @@ export const registerHandlers = (
   handle('classes:saveSpecCars', async ({ spec, cars }) => classes.saveSpecCars(spec, cars));
   // Which championships race a spec is the series store's to know, so the class
   // store is told them rather than reaching into the library itself.
-  handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, series.usingSpec(id)));
-  handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, (spec) => series.usingSpec(spec)));
+  // Historic events race specs too, and name them the same way.
+  const usingSpec = (spec: string): string[] => [...series.usingSpec(spec), ...historic.usingSpec(spec)];
+  handle('classes:deleteSpec', async ({ id }) => classes.deleteSpec(id, usingSpec(id)));
+  handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, usingSpec));
 
   handle('career:get', async () => career.get());
   handle('career:calendar', async ({ season }) => career.calendar(season));

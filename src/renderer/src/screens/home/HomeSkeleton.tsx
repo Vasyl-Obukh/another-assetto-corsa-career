@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { ROW_SKELETON } from './constants.ts';
+import { HistoricStripSkeleton } from './HistoricStripSkeleton.tsx';
 import { HomeDoorsSkeleton } from './HomeDoorsSkeleton.tsx';
 import { MarkLegend } from './MarkLegend.tsx';
 import { SessionsSkeleton } from './SessionsSkeleton.tsx';
@@ -95,6 +96,8 @@ export const HomeSkeleton = () => {
           <MarkLegend />
         </section>
       </div>
+
+      <HistoricStripSkeleton />
 
       <HomeDoorsSkeleton />
     </Loading>

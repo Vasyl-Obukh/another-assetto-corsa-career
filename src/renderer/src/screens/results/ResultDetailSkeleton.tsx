@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { RESULT_ROWS } from './constants.ts';
 import {
-  ClassificationTableSkeleton, CompactStandingsSkeleton, Loading, PodiumSkeleton, Shimmer,
+  ClassificationTableSkeleton, CompactStandingsSkeleton, HistoricChip, Loading, PodiumSkeleton, Shimmer,
 } from '@/components';
 import { cn } from '@/lib/utils.ts';
 
@@ -18,6 +18,11 @@ interface ResultDetailSkeletonProps {
    * beside the table and pays points.
    */
   standings: boolean;
+  /**
+   * Whether it is a historic event's race, which pays a prize rather than
+   * points and stands what it paid beside the table instead of a championship.
+   */
+  historic?: boolean;
 }
 
 /**
@@ -25,13 +30,14 @@ interface ResultDetailSkeletonProps {
  * their real labels, the podium over the classification for a race, and the
  * championship after it beside them for a career round's race.
  */
-export const ResultDetailSkeleton = ({ race, standings }: ResultDetailSkeletonProps) => {
+export const ResultDetailSkeleton = ({ race, standings, historic = false }: ResultDetailSkeletonProps) => {
   const { t } = useTranslation();
   const figures = [
     'event.result.you',
     ...(race ? ['results.strip.started'] as const : []),
     'event.result.best',
     ...(standings ? ['event.result.points'] as const : []),
+    ...(historic && race ? ['event.summary.prize'] as const : []),
   ] as const;
 
   return (
@@ -54,13 +60,33 @@ export const ResultDetailSkeleton = ({ race, standings }: ResultDetailSkeletonPr
         ))}
       </section>
 
-      <div className={cn('grid items-start gap-4', standings && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
+      <div className={cn('grid items-start gap-4', (standings || historic) && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
         <div className="flex min-w-0 flex-col gap-4">
           {race ? <PodiumSkeleton /> : null}
           <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
             <ClassificationTableSkeleton rows={RESULT_ROWS} race={race} points={standings} footnote />
           </div>
         </div>
+
+        {historic ? (
+          <aside className="flex flex-col rounded-xl border bg-card shadow-sm">
+            <div className="flex items-center justify-between gap-2 px-4 pt-4">
+              <span className="text-sm font-semibold">{t('results.historic.title')}</span>
+              <HistoricChip />
+            </div>
+            <div className="flex flex-col gap-1 px-4 py-3">
+              <span className="text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
+                {t('event.summary.prize')}
+              </span>
+              <Shimmer className="my-1 h-5 w-20" />
+              <Shimmer className="h-3 w-14" />
+            </div>
+            <span className="flex items-center justify-center gap-1 border-t py-2 text-xs font-medium text-primary">
+              {t('results.historic.open')}
+              <ChevronRightIcon className="size-3.5" />
+            </span>
+          </aside>
+        ) : null}
 
         {standings ? (
           <aside className="flex flex-col rounded-xl border bg-card shadow-sm">

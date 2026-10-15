@@ -7,7 +7,7 @@
 
 import {
   CONDITION_GROUP_ORDER, CONDITION_GROUPS, DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER,
-  EDITOR_TABS, PROBLEM_TAB, PURSE_ROUNDING, PURSE_WEIGHT, TAB_FIELDS,
+  EDITOR_TABS, HISTORIC_IDS, HISTORIC_TAB_OF, PROBLEM_TAB, PURSE_ROUNDING, PURSE_WEIGHT, TAB_FIELDS,
 } from './constants.ts';
 import type {
   ConditionGroup, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit, SetAside,
@@ -34,6 +34,7 @@ import type {
   SeatCar,
   SeriesAvailability,
   SeriesSession,
+  SessionType,
   Team,
   Weather,
 } from '../../../../shared/types';
@@ -109,6 +110,39 @@ export const emptySeries = (name: string): Championship => ({
   defaultEventFormat: '',
   pointsSystems: [],
   defaultPointsSystem: '',
+});
+
+/**
+ * A historic event that has not been written yet: one round on no track yet,
+ * one format of no sessions yet, and a points table that pays nothing - which
+ * is everything a historic event is held to beyond what a championship is.
+ * Classes and sessions are the editor's to add, as a new championship's are.
+ * @param name What to call it, which its round and format are called too
+ * @param noPoints What its points table is called
+ * @returns The new historic event, its id blank until main mints one
+ */
+export const emptyHistoric = (name: string, noPoints: string): Championship => ({
+  version: SERIES_FORMAT_VERSION,
+  id: '',
+  name,
+  entries: [],
+  rounds: [{ id: HISTORIC_IDS.round, name, track: { id: '' } }],
+  eventFormats: [{ id: HISTORIC_IDS.format, name, sessions: [] }],
+  defaultEventFormat: HISTORIC_IDS.format,
+  pointsSystems: [{ id: HISTORIC_IDS.points, name: noPoints, positions: [] }],
+  defaultPointsSystem: HISTORIC_IDS.points,
+});
+
+/**
+ * A historic event with its one round and its one format named after it, so
+ * whatever the event is renamed to, a career shows the same name for it.
+ * @param event The historic event
+ * @returns The event, its round and format renamed
+ */
+export const withHistoricNames = (event: Championship): Championship => ({
+  ...event,
+  rounds: event.rounds.map((round) => ({ ...round, name: event.name })),
+  eventFormats: event.eventFormats.map((format) => ({ ...format, name: event.name })),
 });
 
 /**
@@ -864,9 +898,14 @@ export const withEntryPrizes = (
  * Which tabs hold something the draft changed since it was last written.
  * @param draft The championship as edited
  * @param saved The championship as written, or undefined for one never written
+ * @param tabs The editor's tabs - a championship's unless it says otherwise
  * @returns The tabs with a change in them, none at all for a new championship
  */
-export const changedTabs = (draft: Championship, saved: Championship | undefined): Set<EditorTab> => {
+export const changedTabs = (
+  draft: Championship,
+  saved: Championship | undefined,
+  tabs: readonly EditorTab[] = EDITOR_TABS,
+): Set<EditorTab> => {
   if (saved === undefined) return new Set();
   /**
    * Whether one field differs from what is written.
@@ -877,7 +916,7 @@ export const changedTabs = (draft: Championship, saved: Championship | undefined
     JSON.stringify(draft[field]) !== JSON.stringify(saved[field])
   );
 
-  return new Set(EDITOR_TABS.filter((tab) => TAB_FIELDS[tab].some(differs)));
+  return new Set(tabs.filter((tab) => TAB_FIELDS[tab].some(differs)));
 };
 
 /**
@@ -891,18 +930,30 @@ export const problemTab = (code: string): EditorTab => PROBLEM_TAB[code.split('.
  * Which tabs a checked draft has something wrong on: its problems, by the
  * subject each names, and what the install cannot race.
  * @param checked The draft checked against what is installed, or null
+ * @param tabOf Which of the editor's own tabs holds a championship's tab - the
+ * same tab unless it says otherwise
  * @returns The tabs with a problem on them
  */
-export const problemTabs = (checked: SeriesAvailability | null): Set<EditorTab> => {
+export const problemTabs = (
+  checked: SeriesAvailability | null,
+  tabOf: (tab: EditorTab) => EditorTab = (tab) => tab,
+): Set<EditorTab> => {
   const tabs = new Set<EditorTab>();
   if (checked === null) return tabs;
 
-  checked.problems.forEach((problem) => tabs.add(problemTab(problem.code)));
-  if (checked.rounds.some((round) => round.track !== null || round.pitboxes !== null)) tabs.add('calendar');
-  if (checked.entries.some((entry) => !entry.enough)) tabs.add('classes');
+  checked.problems.forEach((problem) => tabs.add(tabOf(problemTab(problem.code))));
+  if (checked.rounds.some((round) => round.track !== null || round.pitboxes !== null)) tabs.add(tabOf('calendar'));
+  if (checked.entries.some((entry) => !entry.enough)) tabs.add(tabOf('classes'));
 
   return tabs;
 };
+
+/**
+ * Which of a historic event's tabs holds what a championship's tab would.
+ * @param tab The championship's tab
+ * @returns The historic event's
+ */
+export const historicTab = (tab: EditorTab): EditorTab => HISTORIC_TAB_OF[tab] ?? tab;
 
 /**
  * Splits a class's seats into runs fielded by one team, in grid order.
@@ -1236,3 +1287,17 @@ export const coeffOf = (conditions: Conditions, weather: readonly Weather[]): nu
 
   return (named ?? typed)?.temperatureCoeff;
 };
+
+/**
+ * Whether a session's name says nothing but what kind of session it is - one of
+ * its kind's labels, or the kind's own word - and so goes when its kind changes.
+ * @param name The session's own name, if it has one
+ * @param type Its kind
+ * @param labels What its kind is called, in every language a name may be in
+ * @returns True for a name that only names its kind
+ */
+export const namesItsType = (
+  name: string | undefined,
+  type: SessionType,
+  labels: readonly string[],
+): boolean => name !== undefined && (labels.includes(name) || name.toLowerCase() === type.toLowerCase());

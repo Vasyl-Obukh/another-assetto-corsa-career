@@ -4,10 +4,12 @@ import { Discipline } from '../../../../../shared/types';
 import type {
   CalendarEntry, Career, CareerCalendar, CareerSeason, Championship, DriverStanding, SeasonEntry, SeasonEvent,
 } from '../../../../../shared/types';
+import { HISTORIC_BEHIND, HISTORIC_SHOWN } from '../constants.ts';
 import {
-  clashingWith, editionAhead, racedLastSeason, recentlyFinished, seasonProgress, upcomingEvent,
+  clashingWith, editionAhead, racedLastSeason, recentlyFinished, seasonProgress, stripRows, upcomingEvent,
 } from '../utils.ts';
 import { makeSeries } from '@/lib/season-results/__tests__/fixtures.ts';
+import type { HistoricRow } from '@/lib/season-review';
 
 /**
  * A calendar event the career is entered in and has still to race.
@@ -210,6 +212,13 @@ describe('renderer/screens/home/utils', () => {
       expect(seasonProgress(after, calendar)[0]).toMatchObject({ marks: ['raced'], next: null });
     });
 
+    // A historic event is a season entry too, with a strip of its own on Home.
+    it("leaves out the season's historic events", () => {
+      const [career, calendar] = careerWith(entered(), entered({ series: 'british-gp', historic: true }));
+
+      expect(seasonProgress(career, calendar).map((one) => one.series)).toEqual(['cup']);
+    });
+
     it('leaves out a championship the career withdrew from', () => {
       const [career, calendar] = careerWith(entered(), entered({ series: 'gone', withdrawn: true }));
 
@@ -261,6 +270,10 @@ describe('renderer/screens/home/utils', () => {
       expect(recentlyFinished(season({ ...over, withdrawn: true }), '2026-03-10')).toEqual([]);
     });
 
+    it('announces no historic event, however lately it ran', () => {
+      expect(recentlyFinished(season({ ...over, series: 'british-gp', historic: true }), '2026-03-10')).toEqual([]);
+    });
+
     it('announces the latest to finish first', () => {
       const earlier = entered({
         series: 'early-cup', championship: makeSeries(), events: [{ ...event('r1', 'raced'), date: '2026-02-25' }],
@@ -281,6 +294,17 @@ describe('renderer/screens/home/utils', () => {
       };
 
       expect(racedLastSeason(season)).toEqual([other, autumn]);
+    });
+
+    // Entering a historic event again is not a thing: the next season draws its own.
+    it("leaves out the season's historic events", () => {
+      const raced = entered({ events: [event('r1', 'raced')] });
+      const drawn = entered({ series: 'british-gp', historic: true, events: [event('r2', 'raced')] });
+      const season: CareerSeason = {
+        index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries: [drawn, raced],
+      };
+
+      expect(racedLastSeason(season)).toEqual([raced]);
     });
   });
 
@@ -309,6 +333,42 @@ describe('renderer/screens/home/utils', () => {
     it('offers nothing once every edition of the season is behind the clock', () => {
       expect(editionAhead(quarters, 'cup', '2027-07-01')).toBeNull();
       expect(editionAhead(quarters, 'other-cup', '2027-01-01')).toBeNull();
+    });
+  });
+
+  describe('stripRows', () => {
+    // Twelve historic events, one on the first of each month.
+    const year = Array.from({ length: 12 }, (unused, at) => ({
+      series: `h${at}`, date: `2026-${String(at + 1).padStart(2, '0')}-01`,
+    }) as HistoricRow);
+    const ids = (rows: readonly HistoricRow[]): string[] => rows.map((one) => one.series);
+
+    it('shows a few behind the clock and the rest of the strip ahead of it', () => {
+      const shown = stripRows(year, '2026-06-15');
+
+      expect(shown).toHaveLength(HISTORIC_SHOWN);
+      expect(shown.filter((one) => one.date < '2026-06-15')).toHaveLength(HISTORIC_BEHIND);
+      expect(ids(shown)[HISTORIC_BEHIND]).toBe('h6');
+    });
+
+    it('counts an event on the day of the clock as still ahead', () => {
+      expect(ids(stripRows(year, '2026-07-01'))[HISTORIC_BEHIND]).toBe('h6');
+    });
+
+    it('starts at the first at the start of the season', () => {
+      expect(ids(stripRows(year, '2026-01-01'))).toEqual(ids(year.slice(0, HISTORIC_SHOWN)));
+    });
+
+    // Near the end of the season there are too few ahead to fill the strip, so
+    // it shows more of what is behind instead of running short.
+    it('fills the strip from behind the clock when little is left ahead', () => {
+      expect(ids(stripRows(year, '2026-12-01'))).toEqual(ids(year.slice(-HISTORIC_SHOWN)));
+      expect(ids(stripRows(year, '2027-01-01'))).toEqual(ids(year.slice(-HISTORIC_SHOWN)));
+    });
+
+    it('shows every one of a season that drew fewer than the strip holds', () => {
+      expect(ids(stripRows(year.slice(0, 3), '2026-02-15'))).toEqual(['h0', 'h1', 'h2']);
+      expect(stripRows([], '2026-02-15')).toEqual([]);
     });
   });
 });

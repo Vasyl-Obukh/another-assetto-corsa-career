@@ -12,12 +12,15 @@ import type {
 import { DEFAULT_STANDINGS, TIER_METAL_KEYS } from '../constants.ts';
 import {
   availabilityState,
+  carsFor,
   contentFacets,
   contentPicks,
   contentValues,
   enterHintOf,
+  fieldSize,
   isListed,
   ladderDepth,
+  missingContent,
   pursesOf,
   raceLabels,
   readStandingsLayout,
@@ -489,6 +492,97 @@ describe('renderer/screens/championships/utils', () => {
       expect(shownRun(null, 'cup', {}, undefined, false)).toEqual({
         season: null, closed: false, edition: undefined, entered: null,
       });
+    });
+  });
+
+  describe('fieldSize', () => {
+    it("counts every seat of every class, the player's included", () => {
+      const series = {
+        entries: [
+          { seats: [{ id: 'a' }, { id: 'b' }] },
+          { seats: [{ id: 'c' }] },
+        ],
+      } as unknown as Championship;
+
+      expect(fieldSize(series)).toBe(3);
+    });
+
+    it('counts nothing for a championship with no classes yet', () => {
+      expect(fieldSize({ entries: [] } as unknown as Championship)).toBe(0);
+    });
+  });
+
+  describe('missingContent', () => {
+    const base = { source: ContentSource.MOD, pack: null, maker: null, distributor: null };
+
+    it('lists every missing car once, whether a class or a round names it', () => {
+      const missing = missingContent(listing({
+        entries: [{
+          entry: 'main', eligible: [], missing: [{ id: 'rss_gt3', provenance: base }], enough: false,
+        }],
+        rounds: [{
+          round: 'spa',
+          track: null,
+          pitboxes: null,
+          races: [],
+          entries: [{
+            entry: 'main',
+            eligible: [],
+            missing: [{ id: 'rss_gt3', provenance: base }, { id: 'rss_gt4', provenance: base }],
+            enough: false,
+          }],
+        }],
+      }));
+
+      expect(missing.cars.map((car) => car.id)).toEqual(['rss_gt3', 'rss_gt4']);
+    });
+
+    it('lists the track of every round that is not installed', () => {
+      const track = {
+        key: 'rt_lusail', id: 'rt_lusail', layout: '', provenance: base,
+      };
+      const missing = missingContent(listing({
+        rounds: [
+          {
+            round: 'lusail', track, pitboxes: null, entries: [], races: [],
+          },
+          {
+            round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+          },
+        ],
+      }));
+
+      expect(missing.tracks).toEqual([track]);
+    });
+
+    it('lists nothing for a championship the install can race', () => {
+      expect(missingContent(listing())).toEqual({ cars: [], tracks: [] });
+    });
+  });
+
+  describe('carsFor', () => {
+    it("answers with the round's own cars where the round changes what a class drives", () => {
+      const one = listing({
+        rounds: [{
+          round: 'magione',
+          track: null,
+          pitboxes: null,
+          races: [],
+          entries: [{
+            entry: 'main', eligible: ['ks_mazda_mx5_nd'], missing: [], enough: true,
+          }],
+        }],
+      });
+
+      expect(carsFor(one, 'main', 'magione')).toEqual(['ks_mazda_mx5_nd']);
+    });
+
+    it("falls back to the season's cars for a round that changes nothing", () => {
+      expect(carsFor(listing(), 'main', 'magione')).toEqual(['ks_mazda_mx5_cup']);
+    });
+
+    it('answers with nothing for a class the championship does not hold', () => {
+      expect(carsFor(listing(), 'other', 'magione')).toEqual([]);
     });
   });
 });

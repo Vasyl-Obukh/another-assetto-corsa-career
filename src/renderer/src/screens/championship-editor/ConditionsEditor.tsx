@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { CONDITION_GROUP_ORDER, CONDITION_SEEDS } from './constants.ts';
@@ -16,6 +16,7 @@ import type {
 import { useSettings } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { offeredTypes, TRACK_STATE_LABEL, TRACK_STATES } from '@/screens/race';
 
@@ -76,7 +77,7 @@ interface ConditionsEditorProps {
 export const ConditionsEditor = ({
   idPrefix, conditions, behind, layout, scope = 'round', weather, controllers, system, locked, onChange,
 }: ConditionsEditorProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { settings } = useSettings();
   const offered = offeredTypes(weather, system, true, settings.allowedWeather);
 

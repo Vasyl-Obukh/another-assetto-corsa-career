@@ -20,6 +20,7 @@ const skipped = (series: string, round: string, reason: SkipReason = 'skipped'):
   ladder: null,
   date: '2026-05-03',
   reason,
+  historic: false,
 });
 
 describe('renderer/components/skip-dialog/utils', () => {

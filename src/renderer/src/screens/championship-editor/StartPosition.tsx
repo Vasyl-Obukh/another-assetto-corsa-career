@@ -1,11 +1,12 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
 
 import { TICKED_SLOTS } from './constants.ts';
 import type { StartClass } from './types.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Slider } from '@/components/ui/slider.tsx';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -36,7 +37,7 @@ interface StartPositionProps {
 export const StartPosition = ({
   value, within, disabled, onChange,
 }: StartPositionProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatNumber } = useFormat();
   const count = Math.max(1, within.count);
   const slot = Math.min(Math.max(1, value), count);

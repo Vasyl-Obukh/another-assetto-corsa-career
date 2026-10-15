@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 
 import type { Championship, Round } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { carsOf } from '../../../../shared/utils/eligibility';
 import { useClasses } from '@/app';
+import { useKindTranslation } from '@/i18n';
 
 interface SwapSummaryProps {
   /**
@@ -29,7 +29,7 @@ interface SwapSummaryProps {
  * read down the calendar rather than opened one dialog at a time.
  */
 export const SwapSummary = ({ series, round, nameOf }: SwapSummaryProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
 
   return (

@@ -37,6 +37,7 @@ const event = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
   eligible: true,
   raceable: true,
   clash: false,
+  historic: false,
   ...overrides,
 });
 
@@ -48,6 +49,7 @@ const event = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
 const criteria = (overrides: Partial<CalendarCriteria> = {}): CalendarCriteria => ({
   status: 'all',
   disciplines: [],
+  kinds: [],
   ...overrides,
 });
 
@@ -62,6 +64,30 @@ describe('renderer/screens/calendar/utils', () => {
 
       expect(passesFilter(event({ ladder: { discipline: Discipline.SINGLE_SEATER, tier: 3 } }), picked)).toBe(true);
       expect(passesFilter(event(), picked)).toBe(false);
+    });
+
+    it('shows only historic events, or only championships, when one kind is picked', () => {
+      const historic = event({ historic: true });
+
+      expect(passesFilter(historic, criteria({ kinds: ['historic'] }))).toBe(true);
+      expect(passesFilter(event(), criteria({ kinds: ['historic'] }))).toBe(false);
+      expect(passesFilter(event(), criteria({ kinds: ['championship'] }))).toBe(true);
+      expect(passesFilter(historic, criteria({ kinds: ['championship'] }))).toBe(false);
+    });
+
+    it('shows both kinds when both are picked', () => {
+      const both = criteria({ kinds: ['championship', 'historic'] });
+
+      expect(passesFilter(event(), both)).toBe(true);
+      expect(passesFilter(event({ historic: true }), both)).toBe(true);
+    });
+
+    it('narrows the kind and the discipline together', () => {
+      const picked = criteria({ kinds: ['historic'], disciplines: [Discipline.SINGLE_SEATER] });
+
+      expect(passesFilter(event({ historic: true }), picked)).toBe(false);
+      expect(passesFilter(event({ historic: true, ladder: { discipline: Discipline.SINGLE_SEATER, tier: 1 } }), picked))
+        .toBe(true);
     });
 
     it('shows only what the career entered under "entered"', () => {
@@ -104,6 +130,14 @@ describe('renderer/screens/calendar/utils', () => {
       const entered = event({ series: 'lotus-cup', enrolled: true });
 
       expect(shownEvents([entered], new Set(['sunday-cup']), criteria())).toEqual([entered]);
+    });
+
+    // No championship switch lists a historic event; the career is entered in
+    // every one it drew, which is what keeps it on the calendar.
+    it('keeps a historic event the career was invited to', () => {
+      const drawn = event({ series: 'british-gp-1967', historic: true, enrolled: true });
+
+      expect(shownEvents([drawn], new Set(['sunday-cup']), criteria())).toEqual([drawn]);
     });
 
     it('narrows what is left by the filters as well', () => {
@@ -308,6 +342,11 @@ describe('renderer/screens/calendar/utils', () => {
       expect(days).toHaveLength(35);
     });
 
+    it('starts on the Monday before a month that opens midweek', () => {
+      // April 2026 opens on a Wednesday.
+      expect(monthGrid('2026-04-01')[0]).toBe('2026-03-30');
+    });
+
     it('draws four weeks for a February that fills them exactly', () => {
       // February 2027 opens on a Monday and has 28 days.
       expect(monthGrid('2027-02-01')).toHaveLength(28);
@@ -337,7 +376,7 @@ describe('renderer/screens/calendar/utils', () => {
   describe('readCriteria', () => {
     it('reads back filters saved whole', () => {
       expect(readCriteria({ status: 'entered', disciplines: [Discipline.ROAD] }))
-        .toEqual({ status: 'entered', disciplines: [Discipline.ROAD] });
+        .toEqual({ status: 'entered', disciplines: [Discipline.ROAD], kinds: [] });
     });
 
     it('opens on the defaults when nothing usable was saved', () => {
@@ -345,9 +384,20 @@ describe('renderer/screens/calendar/utils', () => {
       expect(readCriteria('entered')).toEqual(DEFAULT_CRITERIA);
     });
 
+    it('reads back the kinds of event picked, once each, dropping any it does not know', () => {
+      expect(readCriteria({ status: 'all', kinds: ['historic', 'rally', 'historic', 7] }).kinds).toEqual(['historic']);
+      expect(readCriteria({ status: 'all', kinds: ['championship', 'historic'] }).kinds)
+        .toEqual(['championship', 'historic']);
+    });
+
+    it('reads missing or malformed kinds as nothing picked, which shows both', () => {
+      expect(readCriteria({ status: 'all' }).kinds).toEqual([]);
+      expect(readCriteria({ status: 'all', kinds: 'historic' }).kinds).toEqual([]);
+    });
+
     it('keeps what is still valid and drops the rest', () => {
       expect(readCriteria({ status: 'withdrawn', disciplines: [Discipline.ROAD, 'rally', Discipline.ROAD] }))
-        .toEqual({ status: DEFAULT_CRITERIA.status, disciplines: [Discipline.ROAD] });
+        .toEqual({ status: DEFAULT_CRITERIA.status, disciplines: [Discipline.ROAD], kinds: [] });
     });
   });
 

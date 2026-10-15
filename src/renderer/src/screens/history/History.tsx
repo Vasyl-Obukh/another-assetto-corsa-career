@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { useCareer } from '@/hooks';
 import { EDITION_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
-import { yearReview } from '@/lib/season-review';
+import { historicReview, yearReview } from '@/lib/season-review';
 
 /**
  * Every season of the career, newest first, the current one included: what
@@ -28,6 +28,7 @@ export const History = () => {
     year: seasonYear(season),
     open: season === career.seasons.at(-1),
     review: yearReview(season, career.date),
+    historic: historicReview(season),
   })) : []), [career]);
 
   return (
@@ -45,8 +46,8 @@ export const History = () => {
         <p className="text-sm text-muted-foreground">{t('history.empty')}</p>
       ) : null}
 
-      {years.filter((one) => one.open || one.review.editions.length > 0).map(({
-        season, year, open, review,
+      {years.filter((one) => one.open || one.review.editions.length > 0 || one.historic.raced > 0).map(({
+        season, year, open, review, historic,
       }) => (
         <section key={season.index} className="flex flex-col gap-2">
           <header className="flex flex-wrap items-center gap-2.5 px-0.5">
@@ -59,6 +60,10 @@ export const History = () => {
               <span>{t('history.titles', { count: review.totals.titles })}</span>
               <span>{t('home.wins', { count: review.totals.wins })}</span>
               <span>{t('history.podiums', { count: review.totals.podiums })}</span>
+              {/* Beside the championships, never among them. */}
+              {historic.rows.length > 0 ? (
+                <span>{t('history.historic', { count: historic.raced, wins: historic.wins })}</span>
+              ) : null}
             </span>
             <Button asChild variant="outline" size="sm" className="ml-auto">
               <Link to={path.yearReview({ season: season.index })}>

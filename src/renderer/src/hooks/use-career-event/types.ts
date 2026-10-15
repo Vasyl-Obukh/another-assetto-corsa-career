@@ -33,6 +33,12 @@ export interface CareerEventState {
    */
   enter: (entry: string, car: { model: string; skin?: string }) => Promise<void>;
   /**
+   * Turns down the historic event this is, which leaves its seat to the driver
+   * whose it is and the event to the field.
+   * @returns Resolves once it has been declined, or the refusal shown
+   */
+  decline: () => Promise<void>;
+  /**
    * Runs the next session of the round.
    * @param skip Whether the player confirmed losing the rounds the view's
    * `skips` lists, which main otherwise refuses to

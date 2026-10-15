@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useFocusOnMount } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { CLIMATE_ACCENT, SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
@@ -50,6 +51,12 @@ interface RoundBasicsProps {
    */
   locked: boolean;
   /**
+   * Whether the round is a historic event's only one, which leaves out what
+   * only a calendar of rounds has: a name of its own, a choice of format, an
+   * entry fee and a step on the field's strength.
+   */
+  single?: boolean;
+  /**
    * Called with the round whenever any of it changes.
    * @param next The round
    */
@@ -62,9 +69,9 @@ interface RoundBasicsProps {
  * expects.
  */
 export const RoundBasics = ({
-  series, round, availability, locked, onChange,
+  series, round, availability, locked, single = false, onChange,
 }: RoundBasicsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { formatMoney, formatNumber } = useFormat();
   const [picking, setPicking] = useState(false);
   // Only a pick brings a circuit's name back - no channel resolves a list of
@@ -85,15 +92,17 @@ export const RoundBasics = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <Field id={`${idPrefix}-name`} label={t('editor.calendar.name')}>
-        <Input
-          id={`${idPrefix}-name`}
-          ref={name}
-          value={round.name}
-          disabled={locked}
-          onChange={(event) => onChange({ ...round, name: event.target.value })}
-        />
-      </Field>
+      {single ? null : (
+        <Field id={`${idPrefix}-name`} label={t('editor.calendar.name')}>
+          <Input
+            id={`${idPrefix}-name`}
+            ref={name}
+            value={round.name}
+            disabled={locked}
+            onChange={(event) => onChange({ ...round, name: event.target.value })}
+          />
+        </Field>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium">{t('editor.calendar.track')}</span>
@@ -131,46 +140,48 @@ export const RoundBasics = ({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <Field id={`${idPrefix}-format`} label={t('editor.calendar.format')} hint={t('editor.calendar.formatHint')}>
-          <Select
-            value={round.eventFormat ?? DEFAULT_REF}
+      {single ? null : (
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <Field id={`${idPrefix}-format`} label={t('editor.calendar.format')} hint={t('editor.calendar.formatHint')}>
+            <Select
+              value={round.eventFormat ?? DEFAULT_REF}
+              disabled={locked}
+              onValueChange={(value) => onChange(withRoundLengthsPruned(series, {
+                ...round, eventFormat: value === DEFAULT_REF ? undefined : value,
+              }))}
+            >
+              <SelectTrigger id={`${idPrefix}-format`} className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {series.eventFormats.map((one) => {
+                  const value = one.id === series.defaultEventFormat ? DEFAULT_REF : one.id;
+
+                  return (
+                    <SelectItem key={one.id} value={value}>
+                      <span className="flex items-center gap-2">
+                        <FormatStrip sessions={one.sessions} />
+                        {value === DEFAULT_REF ? t('editor.calendar.defaultNamed', { name: one.name }) : one.name}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <NumberField
+            id={`${idPrefix}-fee`}
+            label={t('editor.calendar.entryFee')}
+            hint={t('editor.calendar.entryFeeHint')}
+            value={round.entryFee}
+            min={MIN_MONEY}
+            placeholder={t('editor.calendar.feeDefault', { fee: formatMoney(series.entryFee ?? 0) })}
             disabled={locked}
-            onValueChange={(value) => onChange(withRoundLengthsPruned(series, {
-              ...round, eventFormat: value === DEFAULT_REF ? undefined : value,
-            }))}
-          >
-            <SelectTrigger id={`${idPrefix}-format`} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {series.eventFormats.map((one) => {
-                const value = one.id === series.defaultEventFormat ? DEFAULT_REF : one.id;
-
-                return (
-                  <SelectItem key={one.id} value={value}>
-                    <span className="flex items-center gap-2">
-                      <FormatStrip sessions={one.sessions} />
-                      {value === DEFAULT_REF ? t('editor.calendar.defaultNamed', { name: one.name }) : one.name}
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <NumberField
-          id={`${idPrefix}-fee`}
-          label={t('editor.calendar.entryFee')}
-          hint={t('editor.calendar.entryFeeHint')}
-          value={round.entryFee}
-          min={MIN_MONEY}
-          placeholder={t('editor.calendar.feeDefault', { fee: formatMoney(series.entryFee ?? 0) })}
-          disabled={locked}
-          onChange={(entryFee) => onChange({ ...round, entryFee })}
-        />
-      </div>
+            onChange={(entryFee) => onChange({ ...round, entryFee })}
+          />
+        </div>
+      )}
 
       {races.length === 0 ? null : (
         <div className="flex flex-col gap-2">
@@ -225,21 +236,23 @@ export const RoundBasics = ({
       <div className="flex flex-col gap-4">
         {/* The field's two figures side by side; the climate's five choices get
             a row of their own rather than wrapping beside them. */}
-        <div className="max-w-3xl">
-          <GridFields
-            grid={round.grid ?? {}}
-            above={[{ label: t('race.ai.championship'), grid: series.grid }]}
-            own={t('race.ai.round')}
-            idPrefix={`${idPrefix}-grid`}
-            locked={locked}
-            // Kept off the document once both are cleared, so a round that says
-            // nothing about its field writes nothing.
-            onChange={(grid) => onChange({
-              ...round,
-              grid: grid.strength === undefined && grid.aggression === undefined ? undefined : grid,
-            })}
-          />
-        </div>
+        {single ? null : (
+          <div className="max-w-3xl">
+            <GridFields
+              grid={round.grid ?? {}}
+              above={[{ label: t('race.ai.championship'), grid: series.grid }]}
+              own={t('race.ai.round')}
+              idPrefix={`${idPrefix}-grid`}
+              locked={locked}
+              // Kept off the document once both are cleared, so a round that says
+              // nothing about its field writes nothing.
+              onChange={(grid) => onChange({
+                ...round,
+                grid: grid.strength === undefined && grid.aggression === undefined ? undefined : grid,
+              })}
+            />
+          </div>
+        )}
 
         {/* Only while the championship generates its weather: a climate means
             nothing to a calendar whose conditions are authored. */}
@@ -251,7 +264,11 @@ export const RoundBasics = ({
                 label={t('editor.calendar.climate')}
                 options={[DEFAULT_REF, ...CLIMATES]}
                 value={round.climate ?? DEFAULT_REF}
-                labelOf={(one) => (one === DEFAULT_REF ? t('editor.calendar.championships') : t(`climate.${one}`))}
+                labelOf={(one) => {
+                  if (one !== DEFAULT_REF) return t(`climate.${one}`);
+
+                  return single ? t('historicEditor.eventClimate') : t('editor.calendar.championships');
+                }}
                 accentOf={(one) => (one === DEFAULT_REF ? 'bg-card text-foreground shadow-sm ring-1 ring-border' : CLIMATE_ACCENT[one])}
                 disabled={locked}
                 onChange={(one) => onChange({ ...round, climate: one === DEFAULT_REF ? undefined : one })}

@@ -1,6 +1,6 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { ClassDialog } from './ClassDialog.tsx';
 import { ClassListItem } from './ClassListItem.tsx';
@@ -15,6 +15,7 @@ import { fieldableCars } from '../../../../shared/utils/eligibility';
 import { useClasses } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import type { RowEditState } from '@/hooks';
+import { useKindTranslation } from '@/i18n';
 import { moveAt } from '@/screens/race';
 
 interface EntriesCardProps {
@@ -74,7 +75,7 @@ interface EntriesCardProps {
 export const EntriesCard = ({
   series, checked, picked, section, onPick, onSection, rows, locked, nameOf, onChange,
 }: EntriesCardProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   // What eligibility changes took off each class, so changing back restores it.
   const [aside, setAside] = useState<SetAside>({});

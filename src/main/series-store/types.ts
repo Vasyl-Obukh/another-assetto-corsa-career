@@ -1,3 +1,5 @@
+import type { ShippedSeries } from '../../core/series-library/index.ts';
+import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   Championship,
   FieldSeat,
@@ -51,6 +53,29 @@ export interface RoundRequest {
      */
     skin?: string;
   };
+}
+
+/**
+ * Which library a store keeps: the championships by default, or the historic
+ * events, which are one-round championships kept the same way in a folder and
+ * a shipped list of their own.
+ */
+export interface SeriesStoreOptions {
+  /**
+   * The folder under the user data folder the user's own files live in.
+   */
+  dir?: string;
+  /**
+   * What the app ships.
+   */
+  shipped?: readonly ShippedSeries[];
+  /**
+   * What the library holds its documents to beyond validateSeries. Anything it
+   * returns makes the document unavailable, as a validation problem does.
+   * @param series The document
+   * @returns Everything wrong with it, empty when nothing is
+   */
+  rules?: (series: Championship) => AppErrorInfo[];
 }
 
 /**

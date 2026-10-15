@@ -1,6 +1,6 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+
 
 import { PointsSparkline } from './PointsSparkline.tsx';
 import { PointsSystemEditor } from './PointsSystemEditor.tsx';
@@ -8,6 +8,7 @@ import { nextPoints, racesPaying } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
 interface PointsSystemsProps {
@@ -31,7 +32,7 @@ interface PointsSystemsProps {
  * one picked opened beside them.
  */
 export const PointsSystems = ({ series, locked, onChange }: PointsSystemsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const [picked, setPicked] = useState<string | null>(null);
   const systems = series.pointsSystems;
   const points = systems.find((one) => one.id === picked) ?? systems[0];

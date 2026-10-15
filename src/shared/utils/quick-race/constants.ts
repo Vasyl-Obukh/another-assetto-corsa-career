@@ -20,7 +20,7 @@ export const CLASS_ID_PREFIX = 'class-';
 /**
  * The sessions a new race event starts with: one short race.
  */
-export const DEFAULT_SESSIONS: readonly SessionDefinition[] = [{ type: 'race', name: 'Race', laps: 5 }];
+export const DEFAULT_SESSIONS: readonly SessionDefinition[] = [{ type: 'race', laps: 5 }];
 
 /**
  * What a new race event runs in until the player says otherwise.

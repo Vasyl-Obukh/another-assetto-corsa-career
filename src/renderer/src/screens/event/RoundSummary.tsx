@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { placeIn, seasonResults, seatNation } from '@/lib/season-results';
+import { prizeFor } from '@/lib/season-review';
+
 
 interface RoundSummaryProps {
   /**
@@ -45,7 +47,9 @@ export const RoundSummary = ({
   view, results, playerName, onFull,
 }: RoundSummaryProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const { formatMoney, formatNumber } = useFormat();
+  // A historic event pays money rather than points, and stands in no table.
+  const historic = view.historic !== null;
 
   const season = useMemo(() => seasonResults(results, view.round), [results, view.round]);
   const column = season.rounds.find((one) => one.round.id === view.round);
@@ -55,6 +59,9 @@ export const RoundSummary = ({
   const races = column?.races.filter((race) => race.score !== null) ?? [];
   const mine = player ? races.map((race) => placeIn(race.score, entry, player.key)) : [];
   const earned = mine.reduce((sum, place) => sum + (place?.points ?? 0), 0);
+  const prize = mine.reduce((sum, place) => (
+    sum + (place && !place.bonusOnly ? prizeFor(results.championship, entry, place.classPosition) ?? 0 : 0)
+  ), 0);
 
   const figures: StripFigure[] = player && mine.some((place) => place) ? [
     {
@@ -75,24 +82,29 @@ export const RoundSummary = ({
         </span>
       ),
     },
-    {
-      label: t('event.summary.points'),
-      value: (
-        <span className="text-result-points-foreground">
-          {t('standings.bonus.plus', { points: formatNumber(earned) })}
-        </span>
-      ),
-    },
-    {
-      label: t('event.summary.championship'),
-      value: (
-        <>
-          <ResultCell position={player.position} scored={player.points > 0} prefixed size="lg" />
-          <Movement move={player.move} />
-        </>
-      ),
-      detail: t('event.summary.total', { count: player.points }),
-    },
+    ...(historic ? [{
+      label: t('event.summary.prize'),
+      value: prize > 0 ? formatMoney(prize) : t('standings.none'),
+    }] : [
+      {
+        label: t('event.summary.points'),
+        value: (
+          <span className="text-result-points-foreground">
+            {t('standings.bonus.plus', { points: formatNumber(earned) })}
+          </span>
+        ),
+      },
+      {
+        label: t('event.summary.championship'),
+        value: (
+          <>
+            <ResultCell position={player.position} scored={player.points > 0} prefixed size="lg" />
+            <Movement move={player.move} />
+          </>
+        ),
+        detail: t('event.summary.total', { count: player.points }),
+      },
+    ]),
   ] : [];
 
   return (
@@ -152,7 +164,7 @@ export const RoundSummary = ({
         </section>
       ) : null}
 
-      {table && season.counted > 0 ? (
+      {table && season.counted > 0 && !historic ? (
         <section className="flex flex-col rounded-xl border">
           <div className="flex items-center justify-between gap-2 px-4 pt-3">
             <h3 className="text-sm font-semibold">

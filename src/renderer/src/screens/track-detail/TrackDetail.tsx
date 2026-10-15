@@ -14,6 +14,7 @@ import { TrackSource } from './TrackSource.tsx';
 import { TrackStage } from './TrackStage.tsx';
 import { circuitChampionships, stagePhotos, worthReading } from './utils.ts';
 import type { Track } from '../../../../shared/types';
+import { championshipEntries } from '../../../../shared/utils/historic';
 import { isCatalogued } from '../../../../shared/utils/library';
 import { useSettings } from '@/app';
 import {
@@ -59,7 +60,9 @@ export const TrackDetail = () => {
   );
   const season = career.career?.seasons.at(-1);
   const entered = useMemo(
-    () => new Set(season?.entries.filter((entry) => !entry.withdrawn).map((entry) => entry.series)),
+    () => new Set((season ? championshipEntries(season) : [])
+      .filter((entry) => !entry.withdrawn)
+      .map((entry) => entry.series)),
     [season],
   );
   // A circuit is the user's to add once any layout of it is a mod the catalogue

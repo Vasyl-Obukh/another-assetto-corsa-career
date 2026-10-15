@@ -17,7 +17,7 @@ import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { SHIPPED } from './shipped/index.ts';
-import type { LoadedLibrary, LoadedSeries } from './types.ts';
+import type { LoadedLibrary, LoadedSeries, ShippedSeries } from './types.ts';
 import {
   assertSafeSeriesId, byLadder, readSeriesDir, seriesFileName,
 } from './utils.ts';
@@ -26,7 +26,9 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { Championship } from '../../shared/types/index.ts';
 import { writeSeries } from '../series-file/index.ts';
 
-export { SHIPPED, SHIPPED_SERIES } from './shipped/index.ts';
+export {
+  seat, SHIPPED, SHIPPED_SERIES, team,
+} from './shipped/index.ts';
 export type { LoadedLibrary, LoadedSeries, ShippedSeries } from './types.ts';
 // Re-exported because callers import the folder, never a file inside it.
 export {
@@ -41,16 +43,21 @@ export {
  * be the reason the list is empty - and the shipped half is compiled in, so it
  * cannot fail to load at all.
  * @param userDir Directory the user's own championships live in, if any
+ * @param shipped What the app ships under the user's half - its championships,
+ * or the historic events, which are kept the same way
  * @returns Every championship, in ladder order, and everything wrong with the
  * user files that did not read
  */
-export const loadSeriesLibrary = async (userDir?: string): Promise<LoadedLibrary> => {
-  const byId = new Map<string, LoadedSeries>(SHIPPED.map((shipped) => [shipped.series.id, {
-    series: shipped.series,
+export const loadSeriesLibrary = async (
+  userDir?: string,
+  shipped: readonly ShippedSeries[] = SHIPPED,
+): Promise<LoadedLibrary> => {
+  const byId = new Map<string, LoadedSeries>(shipped.map((one) => [one.series.id, {
+    series: one.series,
     origin: 'shipped',
     file: null,
-    activeByDefault: shipped.active,
-    filler: shipped.filler ?? false,
+    activeByDefault: one.active,
+    filler: one.filler ?? false,
   }]));
 
   const read = userDir === undefined

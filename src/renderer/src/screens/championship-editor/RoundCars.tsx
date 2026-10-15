@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
 
 import { EligibilityField } from './EligibilityField.tsx';
 import type { Championship, Eligibility, Round } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { useClasses } from '@/app';
 import { Switch } from '@/components/ui/switch.tsx';
+import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { TierMedal } from '@/screens/championships';
 
@@ -43,7 +43,7 @@ interface RoundCarsProps {
 export const RoundCars = ({
   series, round, locked, nameOf, onChange,
 }: RoundCarsProps) => {
-  const { t } = useTranslation();
+  const { t } = useKindTranslation();
   const { catalogue } = useClasses();
 
   return (
