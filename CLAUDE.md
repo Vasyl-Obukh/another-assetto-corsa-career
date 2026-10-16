@@ -438,10 +438,21 @@ describe('core/race-ini/utils', () => {
   which also keeps the test off the real results folder.
 
 **What is covered, and what is deliberately not.** `src/shared`, `src/core`, the
-CLI's pure helpers, the renderer's pure helpers, the settings store, and the
-handful of main-process functions with real logic behind them
+CLI's pure helpers, the renderer's pure helpers, the stores in `src/main/`, and the
+handful of other main-process functions with real logic behind them
 (`isOnSomeDisplay`, `toIpcError`) - those two need a small `electron` fake,
 since outside Electron the module resolves to a path string rather than the API.
+
+**A store is tested through its commands, over fakes of the stores it is
+handed.** Those live once, in `src/main/__tests__/fakes/` - a series store over
+listings held in memory, a race store a test pushes results through, empty
+content and plain settings - each built with `fake()`, which throws on any member
+the test did not give it, so a store reaching for something unexpected fails
+loudly. The file system is `jest.mock('node:fs/promises')` as everywhere else,
+and a store that dates anything runs under fake timers that fake the clock alone,
+leaving its own write debounce real. Assert on what the store answers and writes,
+never on which fake it called: the career store's suite is the model, and the
+race, series and quick race stores are still to follow it.
 
 Out of scope for now: React components, `createWindow` and the app lifecycle, and
 `registerHandlers`. They are mostly orchestration, where the test asserts on its
