@@ -61,6 +61,7 @@ export {
 } from './time.ts';
 
 export {
+  AUTOSAVE_COUNTS,
   DEFAULT_ALLOWED_WEATHER,
   DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,

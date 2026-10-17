@@ -3,7 +3,7 @@
 
 import {
   ActivityIcon, BotIcon, CalendarDaysIcon, CarIcon, CloudIcon, GaugeIcon, LandmarkIcon, LayersIcon, MonitorIcon,
-  PackageIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
+  PackageIcon, SaveIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
 } from 'lucide-react';
 
 import type {
@@ -61,6 +61,7 @@ export const GENERAL_SECTIONS: readonly SectionLink[] = [
   { id: 'opponents', label: 'settings.opponents', icon: BotIcon },
   { id: 'calendar', label: 'settings.calendar', icon: CalendarDaysIcon },
   { id: 'weather', label: 'settings.weather', icon: CloudIcon },
+  { id: 'saves', label: 'settings.saves', icon: SaveIcon },
   { id: 'content-manager', label: 'settings.contentManager', icon: TerminalIcon },
 ];
 

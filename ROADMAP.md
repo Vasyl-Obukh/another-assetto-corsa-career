@@ -64,7 +64,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
 | Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later). **Loading is free and silent**: any save, any time, and the career records no rollback. |
-| Where career state lives        | **Main owns it, in memory.** One live career object, written through to `career.json` continuously so a crash costs nothing; saves are snapshots copied from it. The renderer holds a read-only projection - no client-side store.        |
+| Where career state lives        | **Main owns it, in memory.** One live career object, written through continuously so a crash costs nothing - its profile to `career.json`, its state to `state.json` - and saves are snapshots of the state alone. The renderer holds a read-only projection - no client-side store.        |
 | Changing career state           | **Validated commands, never patches.** The renderer sends intent (`career:buyCar`); main checks the rules, applies, persists and pushes the result back.                                                                                  |
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
 | Content provenance              | **A shipped catalogue, not inference.** Every car and track layout carries a source (base, DLC or mod), the DLC pack where there is one, the mod maker where we recognise one, and any redistributor.                                     |
@@ -573,19 +573,25 @@ boundary already provides the single source of truth.
 **Durability and save slots are different things**, and conflating them gives the
 bad version of both:
 
-- **The working state** (`career.json`) is written through continuously, debounced.
+- **The working state** (`state.json`) is written through continuously, debounced.
   Accepting a contract or buying a car must survive a crash; none of that is worth
   replaying.
 - **Saves** are snapshots copied from the working state at deliberate moments -
-  rolling autosaves at session boundaries, plus named saves. These are restore
-  points, not durability.
+  rolling autosaves at session boundaries and as a season opens, the first as the
+  career is made, plus named saves. These are restore points, not durability - but
+  a `state.json` that is missing or does not read is replaced by the newest save
+  that does, which is why a career always has one.
+- **The profile** (`career.json`) is what every save shares - who races the career,
+  when it started, and its own settings - so loading a save never changes it.
 
 ```
 %APPDATA%/ac-career-mode/careers/<career-id>/
-  career.json          live working state, written debounced after every change
+  career.json          the profile: identity, driver, start date, the slot's settings
+  state.json           live working state, written debounced after every change
   saves/
-    autosave-1.json    snapshots taken at session boundaries, rolling
-    my-f2-run.json     named saves
+    autosave-1.json    snapshots of the state, rolling
+    quicksave.json     the one quick save
+    <uuid>.json        named saves; the name lives inside
   results/             archived race_out.json per round
 ```
 
@@ -2723,7 +2729,11 @@ proof that no layer below learned what a series is.
 
 ## Phase 6 - Career saves
 
-- [ ] Career = a folder; saves = named snapshots of full career state
+- [x] Career = a folder: `career.json` is the profile every save shares -
+      identity, driver, start date and, from slice 3, the slot's settings - and
+      `state.json` is the game. Saves are snapshots of the state alone, a file
+      each under `careers/<id>/saves/`, kept by `src/main/save-files/`, so
+      loading one never touches the profile
 - [x] **Career store in main**, following `createSettingsStore`: one live object,
       `career.json` written through debounced, `career:changed` pushed to the
       renderer. **Landed in Phase 5**, because the calendar had to live
@@ -2735,20 +2745,28 @@ proof that no layer below learned what a series is.
       `recordWeekend` is idempotent, since that push arrives again and again
 - [x] **Command handlers** rather than patches, each validating before it
       applies. Landed with the store
-- [ ] Create, name, overwrite and delete saves. **Only named saves**: an
+- [x] Create, name, overwrite and delete saves. **Only named saves**: an
       autosave or the quick save is never written over by hand nor renamed
-- [ ] Load any older save
-- [ ] Rolling autosaves after every session, 3 deep by default - snapshots copied
-      from the working state, not a second durability mechanism. How many to
+- [x] Load any older save
+- [x] Rolling autosaves after every session **and as each season opens**, the
+      first season included, so a career has a save from the moment it is made -
+      3 deep by default, snapshots copied from the working state. How many to
       keep is an app setting
-- [ ] **One quick save slot**: F5 writes it, F9 loads it - the quick save
+- [x] **A career is never hidden.** One whose `state.json` is missing or does not
+      read carries on from its newest save; one with nothing left to read - or a
+      `career.json` that does not - stays in the Careers list as unreadable, with
+      its folder and Delete
+- [x] **Unsaved changes ask first.** Loading a save or going to the main menu
+      from a page holding unsaved changes - the championship editor - asks before
+      anything is loaded or closed
+- [x] **One quick save slot**: F5 writes it, F9 loads it - the quick save
       itself, not the latest save of any kind. Ctrl+S is Save as, Ctrl+L Load
-- [ ] **Loading asks nothing.** A notification says what was loaded and where
-      the clock now stands - no warning, no undo. A launch in flight blocks
+- [x] **Loading asks nothing** about the career. A notification says what was
+      loaded and where the clock now stands - no warning, no undo. A launch in flight blocks
       loading and Main menu until its result is in
 - [x] **Save-scumming policy: neither.** Loading is free and silent - any save,
       any time, nothing recorded
-- [ ] **Save format with a version field** - the field only. Writing a step that
+- [x] **Save format with a version field** - the field only. Writing a step that
       reads an older save waits for Phase 14, like every other format here: until
       the app is released an out-of-date save is deleted rather than carried
       forward. See *No schema migrations before the first release* in CLAUDE.md
@@ -2784,10 +2802,12 @@ proof that no layer below learned what a series is.
       switches between the slot's own and the app's. A slot's settings live in
       its own `settings.json`, **beside its saves and never in them**, so loading
       a save changes none of them
-- [ ] **A career's results live in its folder**, `careers/<id>/results/`, so
+- [x] **A career's results live in its folder**, `careers/<id>/results/`, so
       deleting a career takes its results with it. **Results are part of the
       save**: after loading an older one, Results, the standings and History show
-      only what was raced up to then. Load and Continue tell
+      only what was raced up to then. A save copies no results: Results lists
+      only the archives the loaded state's launches name, and the abandoned
+      timeline's archives stay in the folder, unlisted, until the career goes. Load and Continue tell
       careers apart by the driver's name and flag, the season, the date and what
       was raced last - a career has no name of its own
 - [ ] Backup and restore

@@ -44,7 +44,9 @@ export const useChampionshipResults = (
   }, [series, season, edition, key]);
 
   useEffect(load, [load]);
-  useEffect(() => subscribe('career:changed', () => { load(); }), [load]);
+  // Null is the career closing on the way to the main menu, with nothing left
+  // to read and the page about to go.
+  useEffect(() => subscribe('career:changed', (career) => { if (career) load(); }), [load]);
   useEffect(() => subscribe('series:changed', () => { load(); }), [load]);
 
   return {

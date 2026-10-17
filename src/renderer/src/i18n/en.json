@@ -245,7 +245,13 @@
       "appNote": "Every career and quick race"
     },
     "careerDriver": "Driver",
-    "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is."
+    "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is.",
+    "saves": "Saves",
+    "savesHint": "What a career keeps of itself along the way, besides the saves you make.",
+    "autosaves": {
+      "label": "Autosaves to keep",
+      "hint": "One is taken after every session and as each season begins, and the oldest goes."
+    }
   },
   "carClasses": {
     "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them. Open a spec to see its cars and put any installed car in it.",
@@ -2419,7 +2425,13 @@
     "mainMenu": "Main menu",
     "exit": "Exit",
     "failed": "That could not be done",
-    "understood": "OK"
+    "understood": "OK",
+    "quickSave": "Quick save",
+    "saveAs": "Save as...",
+    "quickLoad": "Quick load",
+    "quickLoadLine": "Quick save · {{date}} · {{ago}}",
+    "quickLoadNone": "No quick save yet",
+    "load": "Load..."
   },
   "start": {
     "mode": {
@@ -2451,7 +2463,6 @@
     "newRace": "New race",
     "settings": "Settings",
     "exit": "Exit",
-    "found": "Assetto Corsa and Content Manager found",
     "missing": "Assetto Corsa or Content Manager not found - see Settings › Diagnostics"
   },
   "careers": {
@@ -2475,8 +2486,15 @@
     "openFolder": "Open folder",
     "delete": "Delete career",
     "deleteTitle": "Delete {{driver}}'s career?",
-    "deleteHint": "Its working state and every result archived from its races go with it. This cannot be undone.",
-    "nextHistoric": "Next: {{round}}, {{day}}"
+    "deleteHint": "Its saves, its working state and every result archived from its races go with it. This cannot be undone.",
+    "nextHistoric": "Next: {{round}}, {{day}}",
+    "saves": "Saves",
+    "unreadable": {
+      "name": "Unknown driver",
+      "chip": "Can't be read",
+      "title": "This career can't be read",
+      "body": "Neither its progress nor any save of it can be read, so there is nothing to carry on from. Open its folder to look, or delete it."
+    }
   },
   "newCareer": {
     "title": "New career",
@@ -2508,6 +2526,79 @@
       "championships_one": "{{count}} championship",
       "championships_other": "{{count}} championships",
       "note": "Home opens on an empty season. Championships are entered from their own page."
+    }
+  },
+  "saves": {
+    "kind": {
+      "named": "Saved",
+      "quick": "Quick save",
+      "auto": "Autosave"
+    },
+    "filters": {
+      "all": "All",
+      "named": "Saved",
+      "quick": "Quick",
+      "auto": "Autosaves"
+    },
+    "filter": "Which saves to show",
+    "after": "After {{session}} · {{round}}",
+    "newSeason": "Season {{year}} begins",
+    "suggested": "{{round}}, after {{session}}",
+    "line": "{{date}} · saved {{ago}}",
+    "load": "Load",
+    "menu": "Rename or delete",
+    "rename": "Rename",
+    "delete": "Delete",
+    "renameTitle": "Rename save",
+    "name": "Name",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteHint": "The save goes for good. The career and its other saves stay as they are.",
+    "empty": "No saves yet. One is taken after every session, F5 makes a quick save and Ctrl+S one with a name.",
+    "emptyKind": "None of this kind yet.",
+    "saveAsTitle": "Save game",
+    "saveAsLine": "{{driver}} · Career · {{date}}",
+    "nameHint": "Named after what just happened. Type over it, or pick a save below to write over.",
+    "nameHintDate": "Named after the day it is. Type over it, or pick a save below to write over.",
+    "over": "Or save over",
+    "overHint": "Autosaves and the quick save are never written over from here.",
+    "overwrite": "Overwrite",
+    "save": "Save",
+    "loadTitle": "Load",
+    "openFolder": "Open save folder",
+    "close": "Close",
+    "status": {
+      "session": "Autosaved after {{session}} · {{ago}}",
+      "season": "Autosaved as {{year}} began · {{ago}}",
+      "auto": "Autosaved · {{ago}}",
+      "quick": "Quick saved · {{ago}}",
+      "named": "Saved \"{{name}}\" · {{ago}}"
+    },
+    "toast": {
+      "quick": "Quick loaded",
+      "named": "Loaded \"{{name}}\"",
+      "auto": "Loaded autosave: {{title}}",
+      "back": "Back to {{date}} · saved {{ago}}",
+      "racing": "Not while a race is running",
+      "racingHint": "A session is still waiting for its result. Load once it is in.",
+      "failed": "Could not load that save",
+      "quickSaved": "Quick saved",
+      "saveFailed": "Could not save",
+      "noQuick": "No quick save yet",
+      "noQuickHint": "F5 makes one."
+    }
+  },
+  "toast": {
+    "close": "Close"
+  },
+  "unsaved": {
+    "title": "Lose your unsaved changes?",
+    "load": {
+      "body": "This page has changes that are not saved yet. Loading the save leaves it, and they are lost.",
+      "confirm": "Load anyway"
+    },
+    "menu": {
+      "body": "This page has changes that are not saved yet. Going to the main menu leaves it, and they are lost.",
+      "confirm": "Leave anyway"
     }
   }
 }

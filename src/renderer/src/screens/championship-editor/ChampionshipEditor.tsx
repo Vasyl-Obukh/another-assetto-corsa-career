@@ -24,7 +24,7 @@ import {
   changedTabs, emptyHistoric, emptySeries, historicTab, namedCars, problemTabs, withHistoricNames,
 } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
-import { useClasses, useSettings } from '@/app';
+import { useClasses, useSettings, useUnsavedChanges } from '@/app';
 import {
   ConfirmDialog, ErrorCard, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -101,9 +101,10 @@ export const ChampionshipEditor = ({ kind = 'series' }: ChampionshipEditorProps)
   const replace = (next: Championship): void => editor.edit(() => (historic ? withHistoricNames(next) : next));
 
   // Any way off the screen with a draft unwritten asks first - the Back button
-  // and the header's links alike.
+  // and the header's links alike, and loading a save, which asks before it loads.
+  const discarding = useUnsavedChanges(editor.dirty);
   const blocker = useBlocker(({ currentLocation, nextLocation }) => (
-    editor.dirty && currentLocation.pathname !== nextLocation.pathname
+    editor.dirty && !discarding() && currentLocation.pathname !== nextLocation.pathname
   ));
 
   // A new championship now has an id of its own, so the screen moves to that

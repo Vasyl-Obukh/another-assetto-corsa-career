@@ -1,5 +1,7 @@
+import type { LucideIcon } from 'lucide-react';
+
 import type {
-  Career, ClassCatalogue, ClassLayer, NewCareerRequest, Settings,
+  Career, ClassCatalogue, ClassLayer, LoadedSave, NewCareerRequest, Settings,
 } from '../../../shared/types';
 
 /**
@@ -67,6 +69,14 @@ export interface SlotContextValue {
    */
   createCareer(request: NewCareerRequest): Promise<void>;
   /**
+   * Opens a career as one of its saves holds it.
+   * @param id The career's id
+   * @param save The save's id
+   * @returns The career and the save, once loaded, rejecting with why it could
+   * not be
+   */
+  loadSave(id: string, save: string): Promise<LoadedSave>;
+  /**
    * Enters quick race mode.
    */
   enterQuick(): void;
@@ -79,4 +89,68 @@ export interface SlotContextValue {
    * Quits the app.
    */
   quit(): void;
+}
+
+/**
+ * One notification, as a toast shows it.
+ */
+export interface ToastMessage {
+  /**
+   * The icon in its well.
+   */
+  icon: LucideIcon;
+  /**
+   * The well's colour classes, from an accent map.
+   */
+  tone: string;
+  /**
+   * What happened, already translated.
+   */
+  title: string;
+  /**
+   * More about it, already translated, when there is more to say.
+   */
+  detail?: string;
+}
+
+/**
+ * The way to raise a notification from anywhere in the renderer.
+ */
+export interface ToastContextValue {
+  /**
+   * Shows a toast, which goes again on its own.
+   * @param message What it says
+   */
+  show(message: ToastMessage): void;
+}
+
+/**
+ * What takes the player off the page they are on from outside it.
+ */
+export type LeaveAction = 'load' | 'menu';
+
+/**
+ * Whether a page holds changes it has not written, and the way to ask before
+ * leaving it.
+ */
+export interface UnsavedContextValue {
+  /**
+   * Says the page holds unsaved changes, until let go.
+   * @returns Lets go again
+   */
+  hold(): () => void;
+  /**
+   * Runs something that takes the player off the page, asking first while it
+   * holds unsaved changes.
+   * @param action What it is, which the question names
+   * @param go Does it, answering whether the player has left the page
+   * @returns Whether it was done: false when declined or when it failed
+   */
+  leave(action: LeaveAction, go: () => Promise<boolean>): Promise<boolean>;
+  /**
+   * Whether the player has agreed to lose the changes, so the page's own guard
+   * on navigation lets them off without asking twice.
+   * @returns True while they are leaving
+   */
+  discarding(): boolean;
 }

@@ -1,4 +1,4 @@
-import type { CareerSummary } from '../../../../shared/types';
+import type { CareerListing } from '../../../../shared/types';
 import type { DisplayableError } from '@/lib/ipc';
 
 /**
@@ -7,9 +7,10 @@ import type { DisplayableError } from '@/lib/ipc';
  */
 export interface CareersState {
   /**
-   * The careers, played most recently first, or null while they are read.
+   * The careers, played most recently first, or null while they are read -
+   * those that cannot be read among them, so they can still be deleted.
    */
-  careers: readonly CareerSummary[] | null;
+  careers: readonly CareerListing[] | null;
   /**
    * Whether a command is in flight, which holds the buttons.
    */

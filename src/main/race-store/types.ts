@@ -47,6 +47,24 @@ export interface RaceProgress {
 }
 
 /**
+ * The launches of an event the slot holds, and whose event it is.
+ */
+export interface RaceSlot {
+  /**
+   * The career that put it there, or null for a race event of the player's own.
+   */
+  owner: string | null;
+  /**
+   * Which race it is - RaceDefinition.id.
+   */
+  raceId: string;
+  /**
+   * Every launch of it run so far, in order.
+   */
+  completed: readonly LaunchRecord[];
+}
+
+/**
  * The race being set up, the launches it splits into, and the one in flight.
  *
  * Main owns this for the same reason it owns settings: it is persisted, and
@@ -70,10 +88,14 @@ export interface RaceStore {
    * @param owner The career now open, by id, or null for none
    * @param resultsDir The folder that career's archives live in, or null for
    * the race store's own, which holds race events of the player's own
+   * @param listed Which of the folder's archives Results lists, by file name,
+   * asked once per read - every one when absent or answering null. A career
+   * lists only those its state names, so an older save loaded hides the races
+   * of the timeline it left
    * @throws AppError when a launch is in flight, since its result would land
    * in the wrong place
    */
-  scope(owner: string | null, resultsDir: string | null): void;
+  scope(owner: string | null, resultsDir: string | null, listed?: () => ReadonlySet<string> | null): void;
   /**
    * Puts an event in the slot together with whatever of it has already run,
    * so it carries on from there whichever event held the slot before.
@@ -113,6 +135,18 @@ export interface RaceStore {
    * @throws AppError when a launch is in flight
    */
   reset(): Promise<RaceSetup>;
+  /**
+   * Forgets event progress as reset does, without describing the slot after -
+   * so it needs no install.
+   * @throws AppError when a launch is in flight
+   */
+  empty(): void;
+  /**
+   * What the slot holds, read as cheaply as progress and finished events
+   * included.
+   * @returns The slot, or null when no launch of its event has run
+   */
+  slot(): RaceSlot | null;
   /**
    * How far through the current event the app is, or null when nothing has
    * started.

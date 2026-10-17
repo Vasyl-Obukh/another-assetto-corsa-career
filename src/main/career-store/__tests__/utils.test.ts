@@ -19,6 +19,7 @@ import type {
 import {
   advanceSkips,
   advanceStop,
+  archivesOf,
   calendarEntry,
   checkedDriver,
   checkEdition,
@@ -42,13 +43,16 @@ import {
   markMissed,
   materialiseEvents,
   openSeason,
-  readCareer,
+  profileOf,
+  readProfile,
+  readState,
   scheduledEvents,
   seasonEndDate,
   seasonOf,
   seasonSalt,
   simulatedEvent,
   skippedRound,
+  stateOf,
   strengthStep,
   summarise,
   withSeason,
@@ -68,7 +72,7 @@ import {
 
 /**
  * A career with one season, one entry and one dated event in it.
- * @returns The career, whole enough for readCareer to accept
+ * @returns The career, whole enough for readProfile and readState to accept
  */
 const wholeCareer = () => makeCareer({
   seasons: [makeSeason({
@@ -98,46 +102,89 @@ const makeRecord = (index: number, classification: number[] | null = null): Laun
 });
 
 describe('main/career-store/utils', () => {
-  describe('readCareer', () => {
-    it('accepts a career this build wrote', () => {
+  describe('profileOf', () => {
+    it('keeps who races the career and when it began, and nothing of where it has got to', () => {
       const career = wholeCareer();
 
-      expect(readCareer(career)).toBe(career);
+      expect(profileOf(career)).toEqual({
+        version: 1,
+        id: career.id,
+        createdAt: career.createdAt,
+        playedAt: career.playedAt,
+        driver: career.driver,
+        startDate: career.startDate,
+      });
+    });
+  });
+
+  describe('stateOf', () => {
+    it('keeps where the career has got to, and nothing of who races it', () => {
+      const career = wholeCareer();
+
+      expect(stateOf(career)).toEqual({
+        version: 1,
+        date: career.date,
+        money: career.money,
+        rating: career.rating,
+        level: career.level,
+        seasons: career.seasons,
+      });
+    });
+
+    it('joins back with the profile into the career it was split from', () => {
+      const career = wholeCareer();
+
+      expect({ ...profileOf(career), ...stateOf(career) }).toEqual(career);
+    });
+  });
+
+  describe('readState', () => {
+    it('accepts a state this build wrote', () => {
+      const career = wholeCareer();
+
+      expect(readState(career)).toEqual(stateOf(career));
+    });
+
+    // A save is a state, so a driver riding along in one would come back over
+    // the profile when it was loaded.
+    it('leaves out the profile and anything else the file holds', () => {
+      const state = readState({ ...wholeCareer(), stray: true });
+
+      expect(state).not.toHaveProperty('driver');
+      expect(state).not.toHaveProperty('stray');
     });
 
     it('refuses anything that is not an object', () => {
-      expect(readCareer(null)).toBeNull();
-      expect(readCareer('career')).toBeNull();
-      expect(readCareer(42)).toBeNull();
-      expect(readCareer(undefined)).toBeNull();
+      expect(readState(null)).toBeNull();
+      expect(readState('career')).toBeNull();
+      expect(readState(42)).toBeNull();
+      expect(readState(undefined)).toBeNull();
     });
 
     it('refuses a career written against another revision of the format', () => {
-      expect(readCareer({ ...wholeCareer(), version: 2 })).toBeNull();
+      expect(readState({ ...wholeCareer(), version: 2 })).toBeNull();
     });
 
-    it('refuses a career missing anything the clock is read from', () => {
-      expect(readCareer({ ...wholeCareer(), id: undefined })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), date: undefined })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), startDate: undefined })).toBeNull();
+    it('refuses a state missing the day its clock stands at', () => {
+      expect(readState({ ...wholeCareer(), date: undefined })).toBeNull();
     });
 
     // typeof null is "object", so a level of null has to be refused by name or
     // it reads as a whole record of discipline levels.
     it('refuses a career whose ladder levels are missing or null', () => {
-      expect(readCareer({ ...wholeCareer(), level: undefined })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), level: null })).toBeNull();
+      expect(readState({ ...wholeCareer(), level: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), level: null })).toBeNull();
     });
 
     it('refuses a career whose seasons are not a list', () => {
-      expect(readCareer({ ...wholeCareer(), seasons: undefined })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), seasons: {} })).toBeNull();
+      expect(readState({ ...wholeCareer(), seasons: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), seasons: {} })).toBeNull();
     });
 
     it('refuses a season whose entries are not a list', () => {
       const season = { ...makeSeason(), entries: undefined } as unknown as CareerSeason;
 
-      expect(readCareer(makeCareer({ seasons: [season] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [season] }))).toBeNull();
     });
 
     // Checked at load rather than the first time a round is opened, which is
@@ -145,8 +192,8 @@ describe('main/career-store/utils', () => {
     it('refuses an entry carrying no championship of its own', () => {
       const entry = { ...makeEntry(), championship: undefined } as unknown as SeasonEntry;
 
-      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
-      expect(readCareer(makeCareer({
+      expect(readState(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+      expect(readState(makeCareer({
         seasons: [makeSeason({
           entries: [{ ...makeEntry(), championship: null } as unknown as SeasonEntry],
         })],
@@ -156,7 +203,7 @@ describe('main/career-store/utils', () => {
     it('refuses an entry whose events are not a list', () => {
       const entry = { ...makeEntry(), events: undefined } as unknown as SeasonEntry;
 
-      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
     });
 
     it('refuses an event carrying no session records', () => {
@@ -165,7 +212,7 @@ describe('main/career-store/utils', () => {
       } as unknown as SeasonEvent;
       const entry = makeEntry({ events: [event] });
 
-      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
     });
 
     // A career written while an event spanned several days dates its events
@@ -177,20 +224,20 @@ describe('main/career-store/utils', () => {
       } as unknown as SeasonEvent;
       const entry = makeEntry({ events: [event] });
 
-      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
     });
 
     it('refuses an entry whose championship holds no event formats', () => {
       const { eventFormats: unused, ...championship } = makeChampionship();
       const entry = makeEntry({ championship: championship as unknown as SeasonEntry['championship'] });
 
-      expect(readCareer(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toBeNull();
     });
 
     it('accepts a career that has entered nothing yet', () => {
       const career = makeCareer({ seasons: [makeSeason()] });
 
-      expect(readCareer(career)).toBe(career);
+      expect(readState(career)).toEqual(stateOf(career));
     });
 
     // A career written while a season was fifty-two weeks long would close a
@@ -199,24 +246,54 @@ describe('main/career-store/utils', () => {
       const weeks = makeSeason({ startDate: '2026-01-04', endDate: '2027-01-02' });
       const short = makeSeason({ endDate: '2026-12-30' });
 
-      expect(readCareer(makeCareer({ seasons: [weeks] }))).toBeNull();
-      expect(readCareer(makeCareer({ seasons: [short] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [weeks] }))).toBeNull();
+      expect(readState(makeCareer({ seasons: [short] }))).toBeNull();
     });
 
     it('refuses an entry that says nothing of which edition it is', () => {
       const { edition: unused, ...entry } = makeEntry();
 
-      expect(readCareer(makeCareer({
+      expect(readState(makeCareer({
         seasons: [makeSeason({ entries: [entry as SeasonEntry] })],
       }))).toBeNull();
     });
 
-    it('refuses a career missing its driver, money, rating or when it was last played', () => {
-      expect(readCareer({ ...wholeCareer(), driver: undefined })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), driver: { nation: 'GBR' } })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), money: '100000' })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), rating: null })).toBeNull();
-      expect(readCareer({ ...wholeCareer(), playedAt: undefined })).toBeNull();
+    it('refuses a state missing its money or rating', () => {
+      expect(readState({ ...wholeCareer(), money: '100000' })).toBeNull();
+      expect(readState({ ...wholeCareer(), rating: null })).toBeNull();
+    });
+  });
+
+  describe('readProfile', () => {
+    it('accepts a profile this build wrote', () => {
+      const career = wholeCareer();
+
+      expect(readProfile(career)).toEqual(profileOf(career));
+    });
+
+    it('leaves out the state and anything else the file holds', () => {
+      const profile = readProfile({ ...wholeCareer(), stray: true });
+
+      expect(profile).not.toHaveProperty('seasons');
+      expect(profile).not.toHaveProperty('stray');
+    });
+
+    it('refuses anything that is not an object', () => {
+      expect(readProfile(null)).toBeNull();
+      expect(readProfile('career')).toBeNull();
+    });
+
+    it('refuses a profile written against another revision of the format', () => {
+      expect(readProfile({ ...wholeCareer(), version: 2 })).toBeNull();
+    });
+
+    it('refuses a profile missing its id, driver, start or when it was made or last played', () => {
+      expect(readProfile({ ...wholeCareer(), id: undefined })).toBeNull();
+      expect(readProfile({ ...wholeCareer(), driver: undefined })).toBeNull();
+      expect(readProfile({ ...wholeCareer(), driver: { nation: 'GBR' } })).toBeNull();
+      expect(readProfile({ ...wholeCareer(), startDate: undefined })).toBeNull();
+      expect(readProfile({ ...wholeCareer(), createdAt: undefined })).toBeNull();
+      expect(readProfile({ ...wholeCareer(), playedAt: undefined })).toBeNull();
     });
   });
 
@@ -1950,6 +2027,38 @@ describe('main/career-store/utils', () => {
         championship: 0, round: 0, season: 0, step: 0, editable: false,
       });
       expect(strength.classes).toEqual([{ entry: 'main', name: 'Main', offset: 0 }]);
+    });
+  });
+
+  describe('archivesOf', () => {
+    it("names every archive the career's launches wrote, by file name", () => {
+      const career = makeCareer({
+        seasons: [makeSeason({
+          entries: [makeEntry({
+            events: [
+              makeEvent('one', '2026-03-01', {
+                sessions: [
+                  { ...makeRecord(0), archive: 'D:\\careers\\one\\results\\2026-03-01T10-00-00.json' },
+                  { ...makeRecord(1), archive: 'results/2026-03-01T11-00-00.json' },
+                ],
+              }),
+              makeEvent('two', '2026-04-01', { sessions: [makeRecord(0)] }),
+            ],
+          })],
+        })],
+      });
+
+      expect([...archivesOf(career)].sort()).toEqual(['0.json', '2026-03-01T10-00-00.json', '2026-03-01T11-00-00.json']);
+    });
+
+    it('passes over a launch that archived nothing, as a skipped one does', () => {
+      const career = makeCareer({
+        seasons: [makeSeason({
+          entries: [makeEntry({ events: [makeEvent('one', '2026-03-01', { sessions: [{ ...makeRecord(0), archive: '' }] })] })],
+        })],
+      });
+
+      expect(archivesOf(career).size).toBe(0);
     });
   });
 });

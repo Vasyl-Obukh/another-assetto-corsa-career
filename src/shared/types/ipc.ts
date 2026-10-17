@@ -10,7 +10,7 @@ import type {
   CareerCalendar,
   CareerDriver,
   CareerEventView,
-  CareerSummary,
+  CareerListing,
   ChampionshipResults,
   NewCareerRequest,
   SkippedRound,
@@ -32,6 +32,7 @@ import type {
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { QuickRace, QuickRaceArchives, QuickRaceView } from './quick-race.ts';
 import type { LatestResults, RaceSetup, ResultRecord } from './race-run.ts';
+import type { CareerSaves, LoadedSave, SaveSummary } from './saves.ts';
 import type {
   Championship,
   SeriesAvailability,
@@ -384,7 +385,7 @@ export interface IpcContract {
   /**
    * Every career on disk, played most recently first.
    */
-  'career:list': { req: void; res: CareerSummary[] };
+  'career:list': { req: void; res: CareerListing[] };
   /**
    * Start a new career, and open it.
    */
@@ -401,7 +402,7 @@ export interface IpcContract {
   /**
    * Delete a career and its folder, answering with every career left.
    */
-  'career:delete': { req: { id: string }; res: CareerSummary[] };
+  'career:delete': { req: { id: string }; res: CareerListing[] };
   /**
    * Show a career's folder in the system's file browser.
    */
@@ -410,6 +411,36 @@ export interface IpcContract {
    * Rename the open career's driver, or change their nation.
    */
   'career:driver': { req: CareerDriver; res: Career };
+  /**
+   * Every save a career has, newest first.
+   */
+  'career:saves': { req: { id: string }; res: SaveSummary[] };
+  /**
+   * Save the open career under a name - as a save of its own, or over one of
+   * its named saves - answering with its saves.
+   */
+  'career:save': { req: { name: string; over?: string }; res: SaveSummary[] };
+  /**
+   * Write the open career over its quick save, answering with its saves.
+   */
+  'career:quickSave': { req: void; res: SaveSummary[] };
+  /**
+   * Open a career as one of its saves holds it, closing whichever was open.
+   * Asks nothing; refused while a launch is out.
+   */
+  'career:load': { req: { id: string; save: string }; res: LoadedSave };
+  /**
+   * Rename one of a career's named saves, answering with its saves.
+   */
+  'career:renameSave': { req: { id: string; save: string; name: string }; res: SaveSummary[] };
+  /**
+   * Delete one of a career's named saves, answering with its saves.
+   */
+  'career:deleteSave': { req: { id: string; save: string }; res: SaveSummary[] };
+  /**
+   * Show a career's saves folder in the system's file browser.
+   */
+  'career:savesFolder': { req: { id: string }; res: null };
   /**
    * One season's calendar, merged across every championship and dated.
    *
@@ -585,6 +616,11 @@ export interface IpcEvents {
    * calendar screen renders.
    */
   'career:changed': Career | null;
+  /**
+   * A career's saves, whenever one is written, renamed or deleted - by hand or
+   * by an autosave the renderer did not ask for.
+   */
+  'career:savesChanged': CareerSaves;
 }
 
 /**

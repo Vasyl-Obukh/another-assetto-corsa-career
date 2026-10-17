@@ -181,6 +181,18 @@
   --mode-quick-foreground: oklch(0.33 0.1 152);
   --mode-quick-solid: oklch(0.58 0.14 152);
 
+  /* What kind of save a row is. A named save on custom origin's 340 and the
+     quick save on budget independent's 18 - the hues a race's classes also
+     take, none of which a save list sits beside - and an autosave on a slate
+     232 at half chroma, told apart from single-seater's 212 by chroma the way
+     the climate chips are: the one kind the app keeps on its own. */
+  --save-named: oklch(0.92 0.06 340);
+  --save-named-foreground: oklch(0.4 0.13 340);
+  --save-quick: oklch(0.92 0.06 18);
+  --save-quick-foreground: oklch(0.42 0.13 22);
+  --save-auto: oklch(0.925 0.03 232);
+  --save-auto-foreground: oklch(0.4 0.05 235);
+
   /* How far up its discipline a class entry sits. Metals rather than hues,
      because a tier is an order with no fixed length and a ramp of named
      materials reads as a rank while costing the palette almost nothing.
@@ -429,6 +441,13 @@
   --mode-quick-foreground: oklch(0.88 0.13 150);
   --mode-quick-solid: oklch(0.62 0.14 152);
 
+  --save-named: oklch(0.33 0.07 340);
+  --save-named-foreground: oklch(0.86 0.1 340);
+  --save-quick: oklch(0.33 0.07 18);
+  --save-quick-foreground: oklch(0.86 0.09 22);
+  --save-auto: oklch(0.33 0.035 232);
+  --save-auto-foreground: oklch(0.86 0.045 232);
+
   --tier-platinum: oklch(0.34 0.025 210);
   --tier-platinum-foreground: oklch(0.9 0.03 210);
   --tier-gold: oklch(0.36 0.07 88);
@@ -561,6 +580,12 @@
   --color-mode-quick: var(--mode-quick);
   --color-mode-quick-foreground: var(--mode-quick-foreground);
   --color-mode-quick-solid: var(--mode-quick-solid);
+  --color-save-named: var(--save-named);
+  --color-save-named-foreground: var(--save-named-foreground);
+  --color-save-quick: var(--save-quick);
+  --color-save-quick-foreground: var(--save-quick-foreground);
+  --color-save-auto: var(--save-auto);
+  --color-save-auto-foreground: var(--save-auto-foreground);
   --color-tier-platinum: var(--tier-platinum);
   --color-tier-platinum-foreground: var(--tier-platinum-foreground);
   --color-tier-gold: var(--tier-gold);

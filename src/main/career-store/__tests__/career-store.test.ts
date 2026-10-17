@@ -2,8 +2,9 @@ import {
   afterEach, beforeEach, describe, expect, it, jest,
 } from '@jest/globals';
 import {
-  copyFile, readdir, readFile, rename, rm, unlink, writeFile,
+  access, copyFile, mkdir, readdir, readFile, rename, rm, unlink, writeFile,
 } from 'node:fs/promises';
+import path from 'node:path';
 
 import {
   CAREER_ID, makeAvailability, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan, makeRound,
@@ -11,7 +12,7 @@ import {
 } from './fixtures.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type {
-  Career, CareerSeason, LaunchRecord, NewCareerRequest, SeriesListing, SeriesRequirements, Settings,
+  Career, CareerSeason, LaunchRecord, NewCareerRequest, RaceSetup, SeriesListing, SeriesRequirements, Settings,
 } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import {
@@ -20,6 +21,7 @@ import {
 import type { FakeRaceStore, FakeSeriesStore } from '../../__tests__/fakes/index.ts';
 import { createCareerStore } from '../career-store.ts';
 import type { CareerStore } from '../career-store.ts';
+import { profileOf, stateOf } from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
@@ -199,6 +201,17 @@ const record = (index: number): LaunchRecord => ({
 });
 
 /**
+ * What was last written to one of a career's files, as the disk would hold it.
+ * @param name The file's name - career.json or state.json
+ * @returns What it holds, or undefined when nothing was written to it
+ */
+const lastWritten = (name: string): unknown => {
+  const call = writeFileMock.mock.calls.filter(([file]) => String(file).endsWith(`${name}.tmp`)).at(-1);
+
+  return call ? JSON.parse(String(call[1])) : undefined;
+};
+
+/**
  * A second career's id, for the tests that hold more than one.
  */
 const OTHER_ID = '00000000-0000-4000-8000-000000000002';
@@ -225,6 +238,83 @@ const onDisk = (careers: readonly Career[], names: readonly string[] = careers.m
  */
 const settled = (): Promise<void> => new Promise((resolve) => { setImmediate(resolve); });
 
+/**
+ * The folder a career is kept in, as the store names it.
+ * @param id The career's id
+ * @returns The folder
+ */
+const folderOf = (id = CAREER_ID): string => path.join('D:\\userData', 'careers', id);
+
+/**
+ * The file one of a career's saves is kept in.
+ * @param id The save's id
+ * @returns The file
+ */
+const saveFile = (id: string): string => path.join(folderOf(), 'saves', `${id}.json`);
+
+/**
+ * A named save's id.
+ */
+const NAMED_ID = '00000000-0000-4000-8000-0000000000aa';
+
+/**
+ * Holds files in memory for the commands that read back what they wrote:
+ * every write lands in it, and reads, listings and deletes are served from it.
+ * @param careers The careers on disk to start with, each as its two files
+ * @returns The files, by path
+ */
+const memoryDisk = (careers: readonly Career[] = []): Map<string, string> => {
+  const files = new Map<string, string>();
+  for (const career of careers) {
+    files.set(path.join(folderOf(career.id), 'career.json'), JSON.stringify(profileOf(career)));
+    files.set(path.join(folderOf(career.id), 'state.json'), JSON.stringify(stateOf(career)));
+  }
+  writeFileMock.mockImplementation((async (file: unknown, data: unknown) => {
+    files.set(String(file), String(data));
+  }) as typeof writeFile);
+  jest.mocked(rename).mockImplementation(async (from: unknown, to: unknown) => {
+    const held = files.get(String(from));
+    if (held === undefined) throw errno('ENOENT');
+    files.delete(String(from));
+    files.set(String(to), held);
+  });
+  readFileMock.mockImplementation((async (file: unknown) => {
+    const held = files.get(String(file));
+    if (held === undefined) throw errno('ENOENT');
+
+    return held;
+  }) as typeof readFile);
+  // Each file or folder directly inside, so the careers folder lists careers.
+  jest.mocked(readdir).mockImplementation((async (dir: unknown) => [...new Set([...files.keys()]
+    .filter((file) => file.startsWith(`${String(dir)}${path.sep}`))
+    .map((file) => file.slice(String(dir).length + 1).split(path.sep)[0]))]) as typeof readdir);
+  jest.mocked(rm).mockImplementation(async (file: unknown) => {
+    if (!files.delete(String(file))) throw errno('ENOENT');
+  });
+
+  return files;
+};
+
+/**
+ * Puts a save of a career's state on the disk, as a save taken earlier would
+ * have left it.
+ * @param files The disk
+ * @param id The save's id
+ * @param career The career as the save holds it
+ */
+const putSave = (files: Map<string, string>, id: string, career: Career): void => {
+  files.set(saveFile(id), JSON.stringify({
+    version: 1,
+    id,
+    kind: id === 'quicksave' ? 'quick' : 'named',
+    name: id === 'quicksave' ? null : 'Earlier',
+    savedAt: '2026-12-31T10:00:00.000Z',
+    date: career.date,
+    moment: null,
+    state: stateOf(career),
+  }));
+};
+
 describe('main/career-store', () => {
   let open: CareerStore | null = null;
 
@@ -244,6 +334,9 @@ describe('main/career-store', () => {
     jest.mocked(rename).mockResolvedValue(undefined);
     jest.mocked(copyFile).mockResolvedValue(undefined);
     jest.mocked(unlink).mockResolvedValue(undefined);
+    // Set again each time, since a test serving files from memory replaces them.
+    jest.mocked(rm).mockResolvedValue(undefined);
+    jest.mocked(access).mockResolvedValue(undefined);
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -313,7 +406,7 @@ describe('main/career-store', () => {
       ]);
       const { store } = await build({ closed: true });
 
-      expect((await store.list()).map((one) => one.driver.name)).toEqual(['Newer', 'Older']);
+      expect((await store.list()).map((one) => one.driver?.name)).toEqual(['Newer', 'Older']);
     });
 
     it('passes over a folder that is not named by a career id', async () => {
@@ -323,7 +416,8 @@ describe('main/career-store', () => {
       expect((await store.list()).map((one) => one.id)).toEqual([CAREER_ID]);
     });
 
-    it('leaves out a career it cannot read, or whose file names another career', async () => {
+    // A career left out of the list could never be deleted from the app.
+    it('lists a career it cannot read, or whose file names another career, as unreadable', async () => {
       onDisk([makeCareer({ id: OTHER_ID })], [CAREER_ID, OTHER_ID]);
       readFileMock.mockImplementation((async (file: unknown) => {
         if (String(file).includes(CAREER_ID)) return '{ not json';
@@ -332,7 +426,44 @@ describe('main/career-store', () => {
       }) as typeof readFile);
       const { store } = await build({ closed: true });
 
-      expect(await store.list()).toEqual([]);
+      expect(await store.list()).toEqual([
+        {
+          id: CAREER_ID, unreadable: true, driver: null, playedAt: null,
+        },
+        {
+          id: OTHER_ID, unreadable: true, driver: null, playedAt: null,
+        },
+      ]);
+    });
+
+    it('lists a career whose state.json does not read as its newest save holds it', async () => {
+      const career = careerWith({}, '2027-03-01');
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.set(path.join(folderOf(), 'state.json'), '{ not json');
+      putSave(files, 'autosave-1', { ...career, date: '2027-02-01' });
+
+      expect(await store.list()).toEqual([expect.objectContaining({ id: CAREER_ID, date: '2027-02-01' })]);
+    });
+
+    it('lists a career with nothing of its state to read as unreadable, naming its driver', async () => {
+      const career = careerWith({});
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.delete(path.join(folderOf(), 'state.json'));
+
+      expect(await store.list()).toEqual([{
+        id: CAREER_ID, unreadable: true, driver: career.driver, playedAt: career.playedAt,
+      }]);
+    });
+
+    it('lists an unreadable career with nothing to date it after every other', async () => {
+      const career = makeCareer({ id: OTHER_ID, playedAt: '2020-01-01T00:00:00.000Z' });
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.set(path.join(folderOf(), 'career.json'), '{ not json');
+
+      expect((await store.list()).map((one) => one.id)).toEqual([OTHER_ID, CAREER_ID]);
     });
 
     it('lists the career just started before it has been written', async () => {
@@ -346,11 +477,23 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
       await store.setDriver({ name: 'Renamed', nation: null });
 
-      expect((await store.list())[0].driver.name).toBe('Renamed');
+      expect((await store.list())[0].driver?.name).toBe('Renamed');
     });
   });
 
   describe('create', () => {
+    it('takes an autosave as its first season opens, so it always has a save to carry on from', async () => {
+      const { store } = await build({ closed: true });
+      const files = memoryDisk();
+      await store.create({ ...NEW_CAREER, year: 2030 });
+      const id = store.get()?.id ?? '';
+      const autosave = files.get(path.join(folderOf(id), 'saves', 'autosave-1.json'));
+
+      expect(JSON.parse(autosave ?? '{}')).toMatchObject({
+        kind: 'auto', date: '2030-01-01', moment: { kind: 'season', year: 2030 },
+      });
+    });
+
     it('opens a career racing the driver, year, rung and money asked for', async () => {
       const { store } = await build({ closed: true });
       await store.create({
@@ -442,13 +585,61 @@ describe('main/career-store', () => {
       const career = careerWith({});
       const { store } = await build({ career });
       // Reads back whatever was written last, as the disk would.
-      readFileMock.mockImplementation((async () => (
-        String(writeFileMock.mock.calls.at(-1)?.[1] ?? JSON.stringify(career))
+      readFileMock.mockImplementation((async (file: unknown) => JSON.stringify(
+        lastWritten(String(file).endsWith('state.json') ? 'state.json' : 'career.json') ?? career,
       )) as unknown as typeof readFile);
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
       await store.open(career.id);
 
       expect(entryOf(store.get()).series).toBe(CUP.id);
+    });
+
+    it('carries on from the newest save when state.json does not read, setting the file aside', async () => {
+      const career = careerWith({}, '2027-03-01');
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.set(path.join(folderOf(), 'state.json'), '{ not json');
+      putSave(files, 'autosave-1', { ...career, date: '2027-02-01' });
+      files.set(saveFile('quicksave'), JSON.stringify({
+        ...JSON.parse(files.get(saveFile('autosave-1')) ?? '{}'),
+        id: 'quicksave',
+        kind: 'quick',
+        savedAt: '2027-01-01T08:00:00.000Z',
+        date: '2027-02-15',
+        state: stateOf({ ...career, date: '2027-02-15' }),
+      }));
+      await store.open(CAREER_ID);
+      await store.flush();
+
+      expect(store.get()).toMatchObject({ date: '2027-02-15', driver: career.driver });
+      expect(copyFile).toHaveBeenCalledWith(
+        path.join(folderOf(), 'state.json'),
+        path.join(folderOf(), 'state.corrupt-1.json'),
+        expect.any(Number),
+      );
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-02-15');
+    });
+
+    it('carries on from the newest save when state.json is not there', async () => {
+      const career = careerWith({}, '2027-03-01');
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.delete(path.join(folderOf(), 'state.json'));
+      putSave(files, 'autosave-1', { ...career, date: '2027-02-01' });
+      await store.open(CAREER_ID);
+
+      expect(store.get()?.date).toBe('2027-02-01');
+      expect(copyFile).not.toHaveBeenCalled();
+    });
+
+    it('refuses a career with nothing of its state to read', async () => {
+      const career = careerWith({});
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      files.set(path.join(folderOf(), 'state.json'), '{ not json');
+
+      await expect(store.open(CAREER_ID)).rejects.toMatchObject({ code: 'career.unreadable' });
+      expect(store.get()).toBeNull();
     });
 
     it('stamps the career as played the moment it opens', async () => {
@@ -467,8 +658,7 @@ describe('main/career-store', () => {
       await store.open(OTHER_ID);
 
       expect(store.get()?.id).toBe(OTHER_ID);
-      const written = JSON.parse(String(writeFileMock.mock.calls[0]?.[1])) as Career;
-      expect(written).toMatchObject({ id: first.id, driver: { name: 'Renamed' } });
+      expect(lastWritten('career.json')).toMatchObject({ id: first.id, driver: { name: 'Renamed' } });
     });
   });
 
@@ -480,7 +670,7 @@ describe('main/career-store', () => {
       await store.close();
 
       expect(store.get()).toBeNull();
-      expect(JSON.parse(String(writeFileMock.mock.calls[0]?.[1]))).toMatchObject({ driver: { name: 'Renamed' } });
+      expect(lastWritten('career.json')).toMatchObject({ driver: { name: 'Renamed' } });
     });
 
     it('tells everyone watching that no career is open', async () => {
@@ -909,6 +1099,24 @@ describe('main/career-store', () => {
       await expect(store.advanceTo('2027-02-01')).rejects.toMatchObject({ code: 'career.event.inProgress' });
     });
 
+    it('autosaves as the new season opens', async () => {
+      const { store } = await build({ career: entered('2027-12-20') });
+      const files = memoryDisk();
+      await store.advanceTo('2028-01-02', true);
+
+      expect(JSON.parse(files.get(saveFile('autosave-1')) ?? '{}')).toMatchObject({
+        kind: 'auto', date: '2028-01-02', moment: { kind: 'season', year: 2028 },
+      });
+    });
+
+    it('takes no autosave for a move inside the season', async () => {
+      const { store } = await build({ career: entered() });
+      const files = memoryDisk();
+      await store.advanceTo('2027-02-01');
+
+      expect(files.has(saveFile('autosave-1'))).toBe(false);
+    });
+
     it('closes the year on the way past New Year and opens the next one, drawn', async () => {
       const { store } = await build({
         career: entered('2027-12-20'),
@@ -1129,6 +1337,42 @@ describe('main/career-store', () => {
       expect(store.get()).toBe(before);
     });
 
+    it('autosaves once a launch lands, saying which session it followed', async () => {
+      const { store, race } = await build({ career: entered() });
+      const heard: string[][] = [];
+      store.onSaves((saves) => heard.push(saves.saves.map((one) => one.id)));
+      const files = memoryDisk();
+      race.push(landed(1));
+      await store.flush();
+      await settled();
+      const [session] = CUP.eventFormats[0].sessions;
+
+      expect(JSON.parse(files.get(saveFile('autosave-1')) ?? '{}')).toMatchObject({
+        kind: 'auto',
+        moment: {
+          kind: 'session',
+          seriesName: CUP.name,
+          roundName: CUP.rounds[0].name,
+          session: { name: session.name ?? null, type: session.type },
+        },
+      });
+      expect(heard).toEqual([['autosave-1']]);
+    });
+
+    it('keeps no more autosaves than settings ask for', async () => {
+      const { store, race } = await build({ career: entered(), settings: { autosaves: 1 } });
+      const files = memoryDisk();
+      race.push(landed(1));
+      await settled();
+      race.push(landed(2));
+      await settled();
+      await store.flush();
+
+      expect([...files.keys()].filter((file) => file.includes('autosave-'))).toEqual([saveFile('autosave-1')]);
+      expect(JSON.parse(files.get(saveFile('autosave-1')) ?? '{}').state.seasons[0].entries[0].events[0].status)
+        .toBe('raced');
+    });
+
     // Two careers can race a round under the same id, so a result another
     // career put in the slot must never land on this one.
     it('ignores a result another career put in the slot', async () => {
@@ -1151,12 +1395,337 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('saves', () => {
+    it("lists a career's saves, newest first, whether it is open or not", async () => {
+      const { store } = await build({ closed: true });
+      const files = memoryDisk();
+      putSave(files, 'quicksave', careerWith({}));
+      files.set(saveFile(NAMED_ID), JSON.stringify({
+        ...JSON.parse(files.get(saveFile('quicksave')) ?? '{}'),
+        id: NAMED_ID,
+        kind: 'named',
+        name: 'Later',
+        savedAt: '2027-01-01T08:00:00.000Z',
+      }));
+
+      expect((await store.saves(CAREER_ID)).map((one) => one.id)).toEqual([NAMED_ID, 'quicksave']);
+    });
+
+    it('answers none for a career with no saves yet', async () => {
+      const { store } = await build({ closed: true });
+      memoryDisk();
+
+      expect(await store.saves(CAREER_ID)).toEqual([]);
+    });
+  });
+
+  describe('quickSave', () => {
+    it('saves where the career has got to, and nothing of who races it', async () => {
+      const { store } = await build({ career: careerWith({}, '2027-02-14') });
+      const files = memoryDisk();
+      const saves = await store.quickSave();
+      const written = JSON.parse(files.get(saveFile('quicksave')) ?? '{}');
+
+      expect(saves.map((one) => [one.id, one.kind])).toEqual([['quicksave', 'quick']]);
+      expect(written).toMatchObject({ kind: 'quick', date: '2027-02-14', state: { date: '2027-02-14' } });
+      expect(written.state).not.toHaveProperty('driver');
+    });
+
+    it('writes over the one quick save there is', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+      await store.advanceTo('2027-02-01');
+
+      expect(await store.quickSave()).toEqual([expect.objectContaining({ id: 'quicksave', date: '2027-02-01' })]);
+    });
+
+    it('tells everyone watching the saves', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      const heard: string[] = [];
+      store.onSaves((saves) => heard.push(saves.career));
+      await store.quickSave();
+
+      expect(heard).toEqual([CAREER_ID]);
+    });
+
+    it('refuses with no career open', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.quickSave()).rejects.toMatchObject({ code: 'career.none' });
+    });
+  });
+
+  describe('save', () => {
+    it('makes a save of its own under each name', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.save({ name: 'First' });
+      const saves = await store.save({ name: '  Second  ' });
+
+      expect(saves.map((one) => one.name).sort()).toEqual(['First', 'Second']);
+      expect(saves.every((one) => one.kind === 'named' && /^[0-9a-f-]{36}$/.test(one.id))).toBe(true);
+    });
+
+    it('writes over the named save it is asked to, keeping its id', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      const [first] = await store.save({ name: 'First' });
+      await store.advanceTo('2027-02-01');
+      const saves = await store.save({ name: 'Renamed', over: first.id });
+
+      expect(saves).toEqual([expect.objectContaining({ id: first.id, name: 'Renamed', date: '2027-02-01' })]);
+    });
+
+    it('never writes over the quick save or an autosave', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+
+      await expect(store.save({ name: 'Mine', over: 'quicksave' })).rejects.toMatchObject({ code: 'save.protected' });
+      await expect(store.save({ name: 'Mine', over: 'autosave-1' })).rejects.toMatchObject({ code: 'save.protected' });
+    });
+
+    it('refuses to write over a save that is not there', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+
+      await expect(store.save({ name: 'Mine', over: NAMED_ID })).rejects.toMatchObject({ code: 'save.notFound' });
+    });
+
+    it('refuses a name with nothing in it', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+
+      await expect(store.save({ name: '   ' })).rejects.toMatchObject({ code: 'save.unnamed' });
+    });
+  });
+
+  describe('load', () => {
+    it('puts the career back where the save stood, and says which save it was', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+      await store.advanceTo('2027-02-01');
+      const loaded = await store.load(CAREER_ID, 'quicksave');
+
+      expect(loaded.career.date).toBe('2027-01-01');
+      expect(store.get()?.date).toBe('2027-01-01');
+      expect(loaded.save).toMatchObject({ id: 'quicksave', kind: 'quick' });
+      expect(loaded.save).not.toHaveProperty('state');
+    });
+
+    it('keeps the driver as they are now, since a save holds none', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+      await store.setDriver({ name: 'Renamed', nation: null });
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(store.get()?.driver.name).toBe('Renamed');
+    });
+
+    it('writes the state it put back through to state.json', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      const files = memoryDisk();
+      await store.quickSave();
+      await store.advanceTo('2027-02-01');
+      await store.load(CAREER_ID, 'quicksave');
+      await store.flush();
+
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-01-01');
+    });
+
+    it('opens a career that is not open, as the Careers page loads one', async () => {
+      const career = careerWith({}, '2027-03-01');
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([career]);
+      putSave(files, 'quicksave', { ...career, date: '2027-02-01' });
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(store.get()).toMatchObject({ id: CAREER_ID, date: '2027-02-01', driver: career.driver });
+    });
+
+    it('refuses the save of a career that is not there', async () => {
+      const { store } = await build({ closed: true });
+      const files = memoryDisk();
+      putSave(files, 'quicksave', careerWith({}));
+
+      await expect(store.load(CAREER_ID, 'quicksave')).rejects.toMatchObject({ code: 'career.notFound' });
+      expect(store.get()).toBeNull();
+    });
+
+    it('lists only the results the loaded state raced, leaving the others on disk', async () => {
+      const raced = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { sessions: [record(0)] })] })],
+      });
+      const { store, race } = await build({ career: raced });
+      const files = memoryDisk([raced]);
+      putSave(files, 'quicksave', careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01')] })] }));
+
+      expect(race.lists('launch-0.json')).toBe(true);
+
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(race.lists('launch-0.json')).toBe(false);
+      expect(rm).not.toHaveBeenCalledWith(expect.stringContaining('launch-0'), expect.anything());
+    });
+
+    /**
+     * A career part-way through the cup's first round, the race store's slot
+     * holding the same launches.
+     * @returns The career and its harness
+     */
+    const partWay = async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { sessions: [record(0)] })] })],
+      });
+      const built = await build({ career });
+      built.race.push(raceSetup({
+        owner: CAREER_ID,
+        definition: { id: 'test-cup/one' } as RaceSetup['definition'],
+        plan: makePlan(CUP.eventFormats[0].sessions.slice(0, 2)),
+        state: { raceId: 'test-cup/one', launchCount: 2, completed: [record(0)] },
+      }));
+      await settled();
+
+      return { career, ...built };
+    };
+
+    it("empties the race slot when the save holds the slot's event at another point", async () => {
+      const { career, store, race } = await partWay();
+      const files = memoryDisk([career]);
+      putSave(files, 'quicksave', careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01')] })] }));
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(race.slot()).toBeNull();
+    });
+
+    // Counting them was not enough: a timeline left and raced again holds as
+    // many sessions as the save, but not the same ones.
+    it('empties the race slot when the save holds as many launches of the event but other ones', async () => {
+      const { career, store, race } = await partWay();
+      const files = memoryDisk([career]);
+      const other = { ...record(0), completedAt: '2027-01-01T08:00:00.000Z', archive: 'launch-other.json' };
+      putSave(files, 'quicksave', careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { sessions: [other] })] })],
+      }));
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(race.slot()).toBeNull();
+    });
+
+    it('leaves the race slot alone when the save holds the event just where the slot does', async () => {
+      const { career, store, race } = await partWay();
+      const files = memoryDisk([career]);
+      putSave(files, 'quicksave', career);
+      await store.load(CAREER_ID, 'quicksave');
+
+      expect(race.slot()?.completed).toHaveLength(1);
+    });
+
+    it('refuses while a launch is out, leaving the career as it was', async () => {
+      const { store, race } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+      await store.advanceTo('2027-02-01');
+      race.push(raceSetup({ status: { ...raceSetup().status, phase: 'waiting' } }));
+      await settled();
+
+      await expect(store.load(CAREER_ID, 'quicksave')).rejects.toMatchObject({ code: 'run.inFlight' });
+      expect(store.get()?.date).toBe('2027-02-01');
+    });
+
+    it('sets a save that does not read aside rather than loading it', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      const files = memoryDisk();
+      files.set(saveFile('quicksave'), '{ not json');
+
+      await expect(store.load(CAREER_ID, 'quicksave')).rejects.toMatchObject({ code: 'save.unreadable' });
+      expect(copyFile).toHaveBeenCalledWith(
+        saveFile('quicksave'),
+        expect.stringContaining('quicksave.corrupt-1.json'),
+        expect.any(Number),
+      );
+    });
+
+    it('refuses a save that is not there', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+
+      await expect(store.load(CAREER_ID, 'quicksave')).rejects.toMatchObject({ code: 'save.notFound' });
+    });
+  });
+
+  describe('renameSave', () => {
+    it('renames a named save, keeping when it was taken and what it holds', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      const [first] = await store.save({ name: 'First' });
+      jest.setSystemTime(new Date('2027-01-05T09:00:00.000Z'));
+      const saves = await store.renameSave(CAREER_ID, first.id, ' Second ');
+
+      expect(saves).toEqual([{ ...first, name: 'Second' }]);
+    });
+
+    it('never renames the quick save or an autosave', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+
+      await expect(store.renameSave(CAREER_ID, 'quicksave', 'Mine')).rejects.toMatchObject({ code: 'save.protected' });
+      await expect(store.renameSave(CAREER_ID, 'autosave-1', 'Mine')).rejects.toMatchObject({ code: 'save.protected' });
+    });
+  });
+
+  describe('deleteSave', () => {
+    it('deletes a named save and answers with those left', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+      const named = (await store.save({ name: 'First' })).find((one) => one.kind === 'named');
+      if (!named) throw new Error('not saved');
+
+      expect((await store.deleteSave(CAREER_ID, named.id)).map((one) => one.id)).toEqual(['quicksave']);
+    });
+
+    it('never deletes the quick save or an autosave', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      memoryDisk();
+      await store.quickSave();
+
+      await expect(store.deleteSave(CAREER_ID, 'quicksave')).rejects.toMatchObject({ code: 'save.protected' });
+      await expect(store.deleteSave(CAREER_ID, 'autosave-1')).rejects.toMatchObject({ code: 'save.protected' });
+    });
+  });
+
+  describe('savesFolderOf', () => {
+    it("answers the career's saves folder, making it first", async () => {
+      jest.mocked(access).mockResolvedValue(undefined);
+      const { store } = await build({ closed: true });
+      const folder = await store.savesFolderOf(CAREER_ID);
+
+      expect(folder).toBe(path.join(folderOf(), 'saves'));
+      expect(mkdir).toHaveBeenCalledWith(folder, { recursive: true });
+    });
+
+    // A folder made for a career that is not there is one list trips over on
+    // every read after.
+    it('makes nothing for a career that is not there', async () => {
+      jest.mocked(access).mockRejectedValue(errno('ENOENT'));
+      const { store } = await build({ closed: true });
+
+      await expect(store.savesFolderOf(OTHER_ID)).rejects.toMatchObject({ code: 'career.notFound' });
+      expect(mkdir).not.toHaveBeenCalledWith(expect.stringContaining('saves'), expect.anything());
+    });
+  });
+
   describe('flush', () => {
     it('writes a pending change straight away', async () => {
       const { store } = await build();
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
       await store.flush();
-      const written = JSON.parse(String(writeFileMock.mock.calls.at(-1)?.[1])) as Career;
+      const written = lastWritten('state.json') as Career;
 
       expect(written.seasons[0].entries[0].series).toBe(CUP.id);
     });

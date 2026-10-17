@@ -10,7 +10,7 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
-  ClassificationOrigin, Climate, Discipline, EventStatus, LadderPosition, SessionType, TeamBudget,
+  ClassificationOrigin, Climate, Discipline, EventStatus, LadderPosition, SaveKind, SessionType, TeamBudget,
 } from '../../../shared/types';
 
 /**
@@ -264,6 +264,16 @@ export const TEAM_BUDGET_ACCENT = {
 } as const satisfies Record<TeamBudget, string>;
 
 /**
+ * What kind of save a row is, on its icon well and its chip. Read by the
+ * Careers page's saves, the Load dialog and the toast a load raises.
+ */
+export const SAVE_KIND_ACCENT = {
+  named: 'border-transparent bg-save-named text-save-named-foreground',
+  quick: 'border-transparent bg-save-quick text-save-quick-foreground',
+  auto: 'border-transparent bg-save-auto text-save-auto-foreground',
+} as const satisfies Record<SaveKind, string>;
+
+/**
  * The colour each class of a race wears, by its place among the race's
  * classes: a chip's tint, and the solid colour its stripe and dot are drawn in.
  *
@@ -315,6 +325,8 @@ export const SECTION_ACCENT = {
   // platinum well sits beside its own tier chips rather than against them.
   money: 'bg-budget-independent text-budget-independent-foreground',
   ladder: 'bg-tier-platinum text-tier-platinum-foreground',
+  // The quick save's red, which nothing else on the General tab sits near.
+  saves: 'bg-save-quick text-save-quick-foreground',
 } as const;
 
 /**

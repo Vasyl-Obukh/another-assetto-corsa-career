@@ -258,6 +258,11 @@ export interface Settings {
    */
   historicActive: Record<string, boolean>;
   /**
+   * How many autosaves a career keeps, one of `AUTOSAVE_COUNTS`. One is taken
+   * after every session and as each season opens, and the oldest goes.
+   */
+  autosaves: number;
+  /**
    * Paths the user has corrected by hand.
    */
   paths: PathOverrides;

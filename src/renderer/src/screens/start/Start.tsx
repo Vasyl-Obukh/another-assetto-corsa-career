@@ -18,6 +18,7 @@ import { useCareers, useQuickRaces } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
+import { isReadable } from '@/screens/careers';
 
 interface StartProps {
   /**
@@ -41,7 +42,8 @@ export const Start = ({ initialReport }: StartProps) => {
   const careers = useCareers();
   const quick = useQuickRaces();
 
-  const latest = careers.careers?.[0] ?? null;
+  // Continue carries on the newest career that can be opened.
+  const latest = careers.careers?.find(isReadable) ?? null;
   const {races} = quick;
   const newest = races && [...races].sort((a, b) => b.race.updatedAt.localeCompare(a.race.updatedAt))[0];
   const busy = careers.busy || quick.busy;
@@ -134,7 +136,7 @@ export const Start = ({ initialReport }: StartProps) => {
                 </Button>
                 <Button
                   variant="outline"
-                  disabled={!latest}
+                  disabled={careers.careers === null}
                   onClick={() => { void navigate(path.careers(), { state: { pick: latest?.id } }); }}
                 >
                   <FolderOpenIcon />
@@ -184,10 +186,12 @@ export const Start = ({ initialReport }: StartProps) => {
             <LogOutIcon />
             {t('start.exit')}
           </Button>
-          <span className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
-            <span className={cn('size-2 rounded-full', found ? 'bg-success' : 'bg-warning')} />
-            {found ? t('start.found') : t('start.missing')}
-          </span>
+          {found ? null : (
+            <span className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="size-2 rounded-full bg-warning" />
+              {t('start.missing')}
+            </span>
+          )}
         </footer>
       </div>
     </div>

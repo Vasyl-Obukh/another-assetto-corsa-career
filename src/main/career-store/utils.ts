@@ -21,7 +21,9 @@ import type {
   Career,
   CareerCalendar,
   CareerDriver,
+  CareerProfile,
   CareerSeason,
+  CareerState,
   CareerSummary,
   CareerSummaryEvent,
   Championship,
@@ -59,34 +61,81 @@ import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-a
 export const seasonEndDate = (startDate: string): string => `${startDate.slice(0, 4)}-12-31`;
 
 /**
- * Whether a value is a career this build can read.
+ * The part of a career every save shares, as career.json holds it.
+ * @param career The career
+ * @returns Its profile
+ */
+export const profileOf = (career: Career): CareerProfile => ({
+  version: CAREER_VERSION,
+  id: career.id,
+  createdAt: career.createdAt,
+  playedAt: career.playedAt,
+  driver: career.driver,
+  startDate: career.startDate,
+});
+
+/**
+ * The part of a career a save holds, as state.json holds it.
+ * @param career The career
+ * @returns Its state
+ */
+export const stateOf = (career: Career): CareerState => ({
+  version: CAREER_VERSION,
+  date: career.date,
+  money: career.money,
+  rating: career.rating,
+  level: career.level,
+  seasons: career.seasons,
+});
+
+/**
+ * Whether a value is a career's profile this build can read.
  *
  * A shape guard rather than a tolerant reader, and the difference is
  * deliberate: settings.json is coerced field by field because a user may
  * reasonably hand-edit it, while career.json is written by this app alone. One
- * that does not read is quarantined and the career starts empty, rather than
- * being half-understood. Down to each season's own copy of its championship and
- * its formats, and each event's day and session records, since a file missing
- * those would fail the first time a round was opened rather than when it was
- * loaded.
- * @param value Whatever was parsed out of the file
- * @returns The career, or null when it is not one
+ * that does not read is quarantined rather than half-understood.
+ * @param value Whatever was parsed out of career.json
+ * @returns The profile, or null when it is not one
  */
-export const readCareer = (value: unknown): Career | null => {
+export const readProfile = (value: unknown): CareerProfile | null => {
   if (typeof value !== 'object' || value === null) return null;
 
-  const career = value as Partial<Career>;
-  const readable = career.version === CAREER_VERSION
-    && typeof career.id === 'string'
-    && typeof career.playedAt === 'string'
-    && typeof career.driver?.name === 'string'
-    && typeof career.money === 'number'
-    && typeof career.rating === 'object' && career.rating !== null
-    && typeof career.date === 'string'
-    && typeof career.startDate === 'string'
-    && typeof career.level === 'object' && career.level !== null
-    && Array.isArray(career.seasons)
-    && (career.seasons as readonly Partial<CareerSeason>[]).every((season) => (
+  const profile = value as Partial<CareerProfile>;
+  const readable = profile.version === CAREER_VERSION
+    && typeof profile.id === 'string'
+    && typeof profile.createdAt === 'string'
+    && typeof profile.playedAt === 'string'
+    && typeof profile.driver?.name === 'string'
+    && typeof profile.startDate === 'string';
+
+  // Rebuilt rather than cast, so nothing else in the file rides along into the
+  // career it is joined with.
+  return readable ? profileOf(profile as Career) : null;
+};
+
+/**
+ * Whether a value is a career's state this build can read - out of state.json
+ * or a save.
+ *
+ * A shape guard for the reason `readProfile` is one, down to each season's own
+ * copy of its championship and its formats, and each event's day and session
+ * records, since a state missing those would fail the first time a round was
+ * opened rather than when it was loaded.
+ * @param value Whatever was parsed out of the file
+ * @returns The state, or null when it is not one
+ */
+export const readState = (value: unknown): CareerState | null => {
+  if (typeof value !== 'object' || value === null) return null;
+
+  const state = value as Partial<CareerState>;
+  const readable = state.version === CAREER_VERSION
+    && typeof state.money === 'number'
+    && typeof state.rating === 'object' && state.rating !== null
+    && typeof state.date === 'string'
+    && typeof state.level === 'object' && state.level !== null
+    && Array.isArray(state.seasons)
+    && (state.seasons as readonly Partial<CareerSeason>[]).every((season) => (
       // A calendar year, which a career written while a season was fifty-two
       // weeks long is not - it would close a day early, and every season after it
       // would drift a day further.
@@ -107,7 +156,7 @@ export const readCareer = (value: unknown): Career | null => {
       ))
     ));
 
-  return readable ? career as Career : null;
+  return readable ? stateOf(state as Career) : null;
 };
 
 /**
@@ -1004,3 +1053,18 @@ export const summarise = (career: Career): CareerSummary => {
     track,
   };
 };
+
+/**
+ * Every archive a career's launches wrote, by file name - which is what Results
+ * lists of its folder, so loading an older save hides the races of the timeline
+ * it left without deleting them.
+ * @param career The career
+ * @returns The archives' file names
+ */
+export const archivesOf = (career: Career): Set<string> => new Set(career.seasons
+  .flatMap((season) => season.entries)
+  .flatMap((entry) => entry.events)
+  .flatMap((event) => event.sessions)
+  // Recorded as a path, and a skipped launch archived nothing.
+  .map((launch) => launch.archive.split(/[\\/]/).at(-1) ?? '')
+  .filter((name) => name !== ''));

@@ -32,6 +32,12 @@ export const HISTORIC_FREQUENCIES: readonly HistoricFrequency[] = [
 ];
 
 /**
+ * How many autosaves a career may keep, fewest first - the order the setting
+ * offers them in.
+ */
+export const AUTOSAVE_COUNTS = [1, 3, 5, 10] as const;
+
+/**
  * The weather a fresh install lets into the sim, in menu order.
  *
  * Whatever a championship actually races in: skies, the fogs, drizzle, rain and
@@ -86,6 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   allowSameDayEvents: false,
   historicFrequency: 'monthly',
   historicActive: {},
+  autosaves: 3,
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

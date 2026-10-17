@@ -7,9 +7,16 @@
 export const CAREERS_DIR = 'careers';
 
 /**
- * The file a career is kept in, inside its own folder.
+ * The file a career's profile is kept in, inside its own folder: what every
+ * save of it shares.
  */
 export const CAREER_FILE = 'career.json';
+
+/**
+ * The file a career's state is kept in, inside its own folder: where it has
+ * got to, written as it changes, and what every save is a copy of.
+ */
+export const STATE_FILE = 'state.json';
 
 /**
  * The folder a career's archived results are kept in, inside its own folder,
@@ -24,7 +31,8 @@ export const CAREER_RESULTS_DIR = 'results';
 export const CAREER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /**
- * Which revision of the career format this build writes.
+ * Which revision of the career's two formats, its profile and its state, this
+ * build writes.
  *
  * Stays 1 and is never migrated: until the app is released a file written
  * against another revision is deleted rather than carried forward, which is the

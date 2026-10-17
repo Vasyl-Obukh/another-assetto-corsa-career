@@ -66,7 +66,7 @@ import {
 import type { ContentStore } from '../content-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 
-export type { RaceProgress, RaceStore } from './types.ts';
+export type { RaceProgress, RaceSlot, RaceStore } from './types.ts';
 // Re-exported because the quick-race store keeps its races beside the race
 // store's own files, written the same tolerant way, and it and the career both
 // carry an event part-way through on from the race the slot already holds.
@@ -96,6 +96,7 @@ export const createRaceStore = async (
   // Results go to the open career's folder, else to the store's own, which
   // race events of the player's own share.
   let resultsDir = ownResults;
+  let listed: (() => ReadonlySet<string> | null) | null = null;
   let scopeOwner: string | null = null;
 
   let definition = await readJson<RaceDefinition>(draftFile) ?? structuredClone(DEFAULT_DEFINITION);
@@ -223,10 +224,11 @@ export const createRaceStore = async (
    */
   const archiveNames = async (): Promise<string[]> => {
     const names = await readdir(resultsDir).catch(() => [] as string[]);
+    const shown = listed?.() ?? null;
 
     // The names are ISO timestamps, so sorting them descending is newest first
     // without stat-ing anything.
-    return names.filter(isArchiveName).sort().reverse();
+    return names.filter((name) => isArchiveName(name) && (shown?.has(name) ?? true)).sort().reverse();
   };
 
   const describe = async (): Promise<RaceSetup> => {
@@ -448,6 +450,17 @@ export const createRaceStore = async (
     }
   };
 
+  /**
+   * Forgets the event's progress.
+   * @throws AppError when a launch is in flight
+   */
+  const empty = (): void => {
+    if (status.phase !== 'idle') throw new AppError('run.inFlight');
+
+    state = null;
+    schedule();
+  };
+
   return {
     use(next) {
       paths = next;
@@ -458,11 +471,12 @@ export const createRaceStore = async (
 
     get: describe,
 
-    scope(next, results) {
+    scope(next, results, lists) {
       if (status.phase !== 'idle') throw new AppError('run.inFlight');
 
       scopeOwner = next;
       resultsDir = results ?? ownResults;
+      listed = lists ?? null;
     },
 
     // Deliberately off the draft and the event state rather than off a plan:
@@ -574,11 +588,14 @@ export const createRaceStore = async (
       return describe();
     },
 
-    async reset() {
-      if (status.phase !== 'idle') throw new AppError('run.inFlight');
+    empty,
 
-      state = null;
-      schedule();
+    slot: () => (state && state.completed.length > 0
+      ? { owner, raceId: state.raceId, completed: state.completed }
+      : null),
+
+    async reset() {
+      empty();
 
       return describe();
     },

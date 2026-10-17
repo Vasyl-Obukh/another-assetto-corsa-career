@@ -1,3 +1,12 @@
+import type { CareerListing, CareerSummary } from '../../../../shared/types';
+
+/**
+ * Whether a career in the list reads, and so can be opened.
+ * @param career The career
+ * @returns True for one that reads
+ */
+export const isReadable = (career: CareerListing): career is CareerSummary => !('unreadable' in career);
+
 /**
  * The career a link to the Careers list asks to arrive on - the start screen's
  * Load hands over the one played last.

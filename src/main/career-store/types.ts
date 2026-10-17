@@ -3,14 +3,31 @@ import type {
   CareerCalendar,
   CareerDriver,
   CareerEventView,
-  CareerSummary,
+  CareerListing,
+  CareerSaves,
   ChampionshipResults,
+  LoadedSave,
   NewCareerRequest,
   RaceSetup,
+  SaveSummary,
   SeasonEntry,
   SeasonEvent,
   SkippedRound,
 } from '../../shared/types/index.ts';
+
+/**
+ * A save to write by hand.
+ */
+export interface SaveRequest {
+  /**
+   * The name to save under.
+   */
+  name: string;
+  /**
+   * The named save to write over, by id, or absent for a save of its own.
+   */
+  over?: string;
+}
 
 /**
  * One round of a championship the career is in, with the season entry it
@@ -145,7 +162,7 @@ export interface CareerStore {
    * is left out and said so in the log.
    * @returns What the start screen and the Careers list show of each
    */
-  list(): Promise<CareerSummary[]>;
+  list(): Promise<CareerListing[]>;
   /**
    * Starts a new career and opens it.
    * @param request Who races it, the year it opens in, its level and its money
@@ -174,7 +191,7 @@ export interface CareerStore {
    * @returns Every career left
    * @throws When it is the one open, or there is no such career
    */
-  remove(id: string): Promise<CareerSummary[]>;
+  remove(id: string): Promise<CareerListing[]>;
   /**
    * The folder a career is kept in, for the system's file browser.
    * @param id The career's id
@@ -189,6 +206,62 @@ export interface CareerStore {
    * @throws When the name is empty or the nation is none Assetto Corsa has
    */
   setDriver(driver: CareerDriver): Promise<Career>;
+  /**
+   * Every save a career has - none for a career that is not there.
+   * @param id The career's id
+   * @returns Its saves, newest first
+   * @throws When the id is no career's
+   */
+  saves(id: string): Promise<SaveSummary[]>;
+  /**
+   * Saves the open career under a name, as a save of its own or over one of
+   * the named saves it already has.
+   * @param request The name, and the named save to write over, if any
+   * @returns The career's saves
+   * @throws When no career is open, the name is empty, or the save to write
+   * over is no named save of the career's
+   */
+  save(request: SaveRequest): Promise<SaveSummary[]>;
+  /**
+   * Writes the open career over its quick save.
+   * @returns The career's saves
+   * @throws When no career is open
+   */
+  quickSave(): Promise<SaveSummary[]>;
+  /**
+   * Opens a career as one of its saves holds it, closing whichever was open.
+   * What the career held before is replaced, and asked about by no one.
+   * @param id The career's id
+   * @param save The save's id
+   * @returns The career, and the save it came from
+   * @throws When a launch is out, or there is no such save or it cannot be read
+   */
+  load(id: string, save: string): Promise<LoadedSave>;
+  /**
+   * Renames one of a career's named saves.
+   * @param id The career's id
+   * @param save The save's id
+   * @param name Its new name
+   * @returns The career's saves
+   * @throws When the save is no named save, or the name is empty
+   */
+  renameSave(id: string, save: string, name: string): Promise<SaveSummary[]>;
+  /**
+   * Deletes one of a career's named saves.
+   * @param id The career's id
+   * @param save The save's id
+   * @returns The career's saves
+   * @throws When the save is no named save of the career's
+   */
+  deleteSave(id: string, save: string): Promise<SaveSummary[]>;
+  /**
+   * The folder a career's saves are kept in, made if it is not there yet, for
+   * the system's file browser.
+   * @param id The career's id
+   * @returns The folder's path
+   * @throws When there is no such career
+   */
+  savesFolderOf(id: string): Promise<string>;
   /**
    * Composes the calendar for a season, joining the career against the
    * championship library and the installed content.
@@ -285,4 +358,11 @@ export interface CareerStore {
    * @returns A function that removes the listener
    */
   onChange(listener: (career: Career | null) => void): () => void;
+  /**
+   * Subscribes to a career's saves changing.
+   * @param listener Called with the career's saves whenever one is written,
+   * renamed or deleted
+   * @returns A function that removes the listener
+   */
+  onSaves(listener: (saves: CareerSaves) => void): () => void;
 }

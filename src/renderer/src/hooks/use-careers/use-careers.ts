@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { CareersState } from './types.ts';
-import type { CareerSummary } from '../../../../shared/types';
+import type { CareerListing } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import { invoke, toDisplayableError } from '@/lib/ipc';
 import type { DisplayableError } from '@/lib/ipc';
@@ -16,7 +16,7 @@ export type { CareersState } from './types.ts';
  */
 export const useCareers = (): CareersState => {
   const { openCareer } = useSlot();
-  const [careers, setCareers] = useState<readonly CareerSummary[] | null>(null);
+  const [careers, setCareers] = useState<readonly CareerListing[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
 

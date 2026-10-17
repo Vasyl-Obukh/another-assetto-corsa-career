@@ -50,6 +50,11 @@ describe('shared/utils/settings', () => {
       expect(oneOf(undefined, allowed, 'a')).toBe('a');
       expect(oneOf(7, allowed, 'a')).toBe('a');
     });
+
+    it('reads a closed set of numbers the same way, without taking a numeric string for one', () => {
+      expect(oneOf(5, [1, 3, 5], 3)).toBe(5);
+      expect(oneOf('5', [1, 3, 5], 3)).toBe(3);
+    });
   });
 
   describe('finiteNumber', () => {
@@ -315,6 +320,7 @@ describe('shared/utils/settings', () => {
         allowSameDayEvents: true,
         historicFrequency: 'weekly',
         historicActive: { 'british-gp-1967': false },
+        autosaves: 5,
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -337,6 +343,13 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ historicFrequency: 'off' }).historicFrequency).toBe('off');
       expect(readSettings({ historicFrequency: 'daily' }).historicFrequency).toBe('monthly');
       expect(readSettings({}).historicFrequency).toBe(DEFAULT_SETTINGS.historicFrequency);
+    });
+
+    it('keeps a number of autosaves it offers and falls back to the default for any other', () => {
+      expect(readSettings({ autosaves: 10 }).autosaves).toBe(10);
+      expect(readSettings({ autosaves: 4 }).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
+      expect(readSettings({ autosaves: '10' }).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
+      expect(readSettings({}).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
     });
 
     it("reads the historic switches as the championships' are, dropping what is not a switch", () => {

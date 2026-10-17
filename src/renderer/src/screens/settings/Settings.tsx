@@ -7,6 +7,7 @@ import { ContentManagerSection } from './ContentManagerSection.tsx';
 import { DriverSection } from './DriverSection.tsx';
 import { DrivingAidsSection } from './DrivingAidsSection.tsx';
 import { OpponentsSection } from './OpponentsSection.tsx';
+import { SavesSection } from './SavesSection.tsx';
 import { SectionIndex } from './SectionIndex.tsx';
 import { WeatherSection } from './WeatherSection.tsx';
 import { ScreenBody } from '@/components';
@@ -28,6 +29,7 @@ export const Settings = () => {
           <OpponentsSection />
           <CalendarSection />
           <WeatherSection />
+          <SavesSection />
           <ContentManagerSection />
         </div>
       </div>

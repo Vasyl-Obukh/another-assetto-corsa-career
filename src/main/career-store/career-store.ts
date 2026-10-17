@@ -1,7 +1,9 @@
 // The careers: a folder each under careers/, and the one open held in memory -
 // one clock, the championships it has entered, and what came of them. Kept in
-// its folder's career.json, written atomically and debounced, the way the
-// settings store writes its own, with its archived results beside it.
+// two files in its folder, written atomically and debounced the way the
+// settings store writes its own: career.json, what every save shares - who
+// races it and how it is set up - and state.json, where it has got to, with its
+// archived results beside them.
 //
 // A championship the career enters is copied into the season whole, and the
 // season reads only that copy from then on - so the library's championship is a
@@ -9,15 +11,17 @@
 // rather than the one being raced.
 //
 // Nothing is open when the app starts: the start screen opens a career, and
-// going back to it closes one. Saves come next, and are copies of this file.
+// going back to it closes one. Its saves are copies of state.json alone, kept in
+// its saves folder, so loading one puts the career back where it was and
+// leaves its profile as it is.
 
 import {
-  mkdir, readdir, readFile, rename, rm, writeFile,
+  access, mkdir, readdir, readFile, rename, rm, writeFile,
 } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  CAREER_FILE, CAREER_ID_PATTERN, CAREER_RESULTS_DIR, CAREER_VERSION, CAREERS_DIR, WRITE_DEBOUNCE_MS,
+  CAREER_FILE, CAREER_ID_PATTERN, CAREER_RESULTS_DIR, CAREER_VERSION, CAREERS_DIR, STATE_FILE, WRITE_DEBOUNCE_MS,
 } from './constants.ts';
 import type {
   CareerStore, EnrolRequest, EnteredEvent, EventRequest, ResultsRequest,
@@ -25,6 +29,7 @@ import type {
 import {
   advanceSkips,
   advanceStop,
+  archivesOf,
   checkedDriver,
   checkEdition,
   checkedNewCareer,
@@ -46,11 +51,14 @@ import {
   markMissed,
   materialiseEvents,
   openSeason,
-  readCareer,
+  profileOf,
+  readProfile,
+  readState,
   seasonOf,
   seasonSalt,
   simulatedEvent,
   skippedRound,
+  stateOf,
   strengthStep,
   summarise,
   withSeason,
@@ -71,12 +79,17 @@ import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   Career,
   CareerEventView,
+  CareerListing,
+  CareerProfile,
+  CareerSaves,
   CareerSeason,
-  CareerSummary,
+  CareerState,
   Championship,
   EventPlan,
   RaceDefinition,
   RaceSetup,
+  SaveMoment,
+  SaveSummary,
   SeasonEntry,
   SeasonEvent,
   SeriesAvailability,
@@ -96,12 +109,25 @@ import { buildStandings, entryResults, roundResult } from '../../shared/utils/st
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import { slotHolds, withLevelsOf } from '../race-store/index.ts';
+import {
+  autosaveSlot,
+  checkedSaveName,
+  listSaves,
+  QUICK_SAVE_ID,
+  readSave,
+  removeSave,
+  SAVE_VERSION,
+  saveKindOf,
+  SAVES_DIR,
+  summaryOf,
+  writeSave,
+} from '../save-files/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { quarantine } from '../settings-store/index.ts';
 
 export type {
-  CareerStore, EnrolRequest, EventRequest, ResultsRequest, StrengthRequest,
+  CareerStore, EnrolRequest, EventRequest, ResultsRequest, SaveRequest, StrengthRequest,
 } from './types.ts';
 // Re-exported because a quick race's page lists its sessions the way a
 // round's page does.
@@ -162,12 +188,20 @@ export const createCareerStore = async (
     return path.join(root, id);
   };
 
+  /**
+   * The folder a career's saves are kept in.
+   * @param id The career's id
+   * @returns The folder's path
+   */
+  const savesDirOf = (id: string): string => path.join(folderFor(id), SAVES_DIR);
+
   // The career open, and the folder it is kept in - both null on the start
   // screen.
   let current: Career | null = null;
   let dir: string | null = null;
 
   const listeners = new Set<(career: Career | null) => void>();
+  const saveListeners = new Set<(saves: CareerSaves) => void>();
   let timer: NodeJS.Timeout | null = null;
   let pending: Promise<void> = Promise.resolve();
   // Commands run one after another, the way the class store runs its edits.
@@ -191,19 +225,31 @@ export const createCareerStore = async (
   };
 
   /**
-   * Writes the career, replacing the file in one step.
-   * @returns Resolves once it is written or the failure is logged
+   * Writes one of a career's files, replacing it in one step.
+   * @param folder The career's folder
+   * @param name The file's name
+   * @param value What it holds
+   * @returns Resolves once it is written
+   */
+  const writeJson = async (folder: string, name: string, value: unknown): Promise<void> => {
+    const file = path.join(folder, name);
+    const tmp = `${file}.tmp`;
+    await writeFile(tmp, JSON.stringify(value, null, 2), 'utf8');
+    await rename(tmp, file);
+  };
+
+  /**
+   * Writes the career: its state, then its profile.
+   * @returns Resolves once both are written or the failure is logged
    */
   const write = async (): Promise<void> => {
     if (!current || !dir) return;
 
-    const file = path.join(dir, CAREER_FILE);
-    const tmp = `${file}.tmp`;
-    const snapshot = JSON.stringify(current, null, 2);
+    const career = current;
     try {
       await mkdir(dir, { recursive: true });
-      await writeFile(tmp, snapshot, 'utf8');
-      await rename(tmp, file);
+      await writeJson(dir, STATE_FILE, stateOf(career));
+      await writeJson(dir, CAREER_FILE, profileOf(career));
     } catch (error) {
       console.error('Could not save the career.', error);
     }
@@ -228,50 +274,247 @@ export const createCareerStore = async (
    * @throws When a launch is in flight
    */
   const scopeTo = (id: string | null): void => {
-    race.scope(id, id === null ? null : path.join(folderFor(id), CAREER_RESULTS_DIR));
+    if (id === null) {
+      race.scope(null, null);
+
+      return;
+    }
+    // Read when Results asks, by which time the career is the one open.
+    race.scope(id, path.join(folderFor(id), CAREER_RESULTS_DIR), () => (
+      current?.id === id ? archivesOf(current) : null
+    ));
   };
 
   /**
-   * Reads one career's file.
-   * @param id The career's id
-   * @returns The career, or null when the file is not one this build reads or
-   * names another career
+   * Reads one of a career's files.
+   * @param file The file's path
+   * @param read Reads what was parsed out of it
+   * @returns What it holds, or null when it is not something this build reads
    * @throws The file system's error when the file cannot be read at all
    */
-  const parseFrom = async (id: string): Promise<Career | null> => {
-    const text = await readFile(path.join(folderFor(id), CAREER_FILE), 'utf8');
+  const parseFile = async <T>(file: string, read: (value: unknown) => T | null): Promise<T | null> => {
+    const text = await readFile(file, 'utf8');
     try {
-      const career = readCareer(JSON.parse(text));
-
-      return career?.id === id ? career : null;
+      return read(JSON.parse(text));
     } catch {
       return null;
     }
   };
 
   /**
+   * Sets a career's file that does not read aside, rather than leaving it to
+   * be half-understood.
+   * @param file The file
+   * @returns Resolves once it is moved, or the failure is logged
+   */
+  const setAside = async (file: string): Promise<void> => {
+    const moved = await quarantine(file);
+    console.warn(`Career file was not one this build reads; ${moved ? `moved to ${moved}` : 'ignoring it'}.`);
+  };
+
+  /**
+   * Reads a career's profile.
+   * @param id The career's id
+   * @returns The profile, or null when it is not one this build reads or names
+   * another career
+   * @throws The file system's error when the file cannot be read at all
+   */
+  const profileFrom = async (id: string): Promise<CareerProfile | null> => {
+    const profile = await parseFile(path.join(folderFor(id), CAREER_FILE), readProfile);
+
+    return profile?.id === id ? profile : null;
+  };
+
+  /**
+   * Reads a career's state.
+   * @param id The career's id
+   * @returns The state, or null when it is not one this build reads
+   * @throws The file system's error when the file cannot be read at all
+   */
+  const stateFrom = async (id: string): Promise<CareerState | null> => (
+    parseFile(path.join(folderFor(id), STATE_FILE), readState)
+  );
+
+  /**
+   * The state of a career's newest save that reads, for a career whose
+   * state.json does not.
+   * @param id The career's id
+   * @returns The state, or null when no save of it reads
+   */
+  const savedState = async (id: string): Promise<CareerState | null> => {
+    // Listing reads every save through, so the newest listed is one that reads.
+    const [newest] = await listSaves(savesDirOf(id), readState);
+    const save = newest && await readSave(savesDirOf(id), newest.id, readState).catch(() => null);
+
+    return save?.state ?? null;
+  };
+
+  /**
+   * Reads one career's two files and joins them, its newest save standing in
+   * for a state.json that does not read.
+   * @param id The career's id
+   * @returns The career, or null when its profile is not one this build reads
+   * or names another career, or nothing of its state reads
+   * @throws The file system's error when the profile cannot be read at all
+   */
+  const parseFrom = async (id: string): Promise<Career | null> => {
+    const [profile, state] = await Promise.all([profileFrom(id), stateFrom(id).catch(() => null)]);
+    if (!profile) return null;
+
+    const recovered = state ?? await savedState(id);
+
+    return recovered && { ...profile, ...recovered };
+  };
+
+  /**
+   * Turns a career's file going missing into the career not being there.
+   * @param error What reading it threw
+   * @returns Never
+   * @throws career.notFound for a missing file, else the error itself
+   */
+  const missingCareer = (error: unknown): never => {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new AppError('career.notFound');
+    throw error;
+  };
+
+  /**
    * Reads one career off disk.
    * @param id The career's id
-   * @returns The career
+   * @returns The career, carried on from its newest save when its state.json
+   * is missing or does not read
    * @throws When there is no such career, or it is not one this build reads -
-   * in which case it is set aside rather than half-understood
+   * in which case the file that does not read is set aside rather than
+   * half-understood
    */
   const readFrom = async (id: string): Promise<Career> => {
-    let career: Career | null;
-    try {
-      career = await parseFrom(id);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new AppError('career.notFound');
-      throw error;
-    }
-    if (!career) {
-      const file = path.join(folderFor(id), CAREER_FILE);
-      const moved = await quarantine(file);
-      console.warn(`Career file was not one this build reads; ${moved ? `moved to ${moved}` : 'ignoring it'}.`);
+    const profile = await profileFrom(id).catch(missingCareer);
+    if (!profile) {
+      await setAside(path.join(folderFor(id), CAREER_FILE));
       throw new AppError('career.unreadable');
     }
+    // Undefined for a file that could not be read at all, null for one that
+    // does not read as a state.
+    const state = await stateFrom(id).catch(() => undefined);
+    if (state) return { ...profile, ...state };
+    if (state === null) await setAside(path.join(folderFor(id), STATE_FILE));
 
-    return career;
+    const saved = await savedState(id);
+    if (!saved) throw new AppError('career.unreadable');
+    console.warn(`Career ${id} had no state that reads; carrying on from its newest save.`);
+
+    return { ...profile, ...saved };
+  };
+
+  /**
+   * Makes a career the one open, once whatever the one open before still had to
+   * write is written.
+   * @param career The career
+   * @returns Resolves once it is open
+   * @throws When a launch is in flight, before anything has changed
+   */
+  const makeCurrent = async (career: Career): Promise<void> => {
+    scopeTo(career.id);
+    await flushNow();
+    current = career;
+    dir = folderFor(career.id);
+  };
+
+  /**
+   * Tells everyone watching a career's saves what they now are.
+   * @param id The career's id
+   * @param saves Its saves, newest first
+   * @returns The saves
+   */
+  const announceSaves = (id: string, saves: SaveSummary[]): SaveSummary[] => {
+    for (const listener of saveListeners) listener({ career: id, saves });
+
+    return saves;
+  };
+
+  /**
+   * Reads a career's saves and tells everyone watching them.
+   * @param id The career's id
+   * @returns Its saves, newest first
+   */
+  const pushSaves = async (id: string): Promise<SaveSummary[]> => (
+    announceSaves(id, await listSaves(savesDirOf(id), readState))
+  );
+
+  /**
+   * Writes the career as it stands into one of its saves.
+   * @param career The career
+   * @param id The save's id
+   * @param name The name the player gave it, or null
+   * @param moment What an autosave was taken after, or null
+   * @returns The save written
+   */
+  const writeSnapshot = async (
+    career: Career,
+    id: string,
+    name: string | null,
+    moment: SaveMoment | null,
+  ): Promise<SaveSummary> => {
+    const file = {
+      version: SAVE_VERSION,
+      id,
+      kind: saveKindOf(id),
+      name,
+      savedAt: new Date().toISOString(),
+      date: career.date,
+      moment,
+      state: stateOf(career),
+    };
+    await writeSave(savesDirOf(career.id), file);
+
+    return summaryOf(file);
+  };
+
+  /**
+   * Autosaves the open career, the oldest autosave making room once as many are
+   * kept as settings ask. A failure is logged rather than thrown: the command
+   * that took the autosave has already done its work.
+   * @param moment What it is taken after
+   * @returns Resolves once written, or the failure is logged
+   */
+  const autosave = async (moment: SaveMoment): Promise<void> => {
+    if (!current) return;
+
+    const career = current;
+    const saves = savesDirOf(career.id);
+    try {
+      const before = await listSaves(saves, readState);
+      const slot = autosaveSlot(before, settings.get().autosaves);
+      const written = await writeSnapshot(career, slot.id, null, moment);
+      await Promise.all(slot.drop.map((id) => removeSave(saves, id).catch(() => undefined)));
+      // Worked out rather than read again: every save is a whole career.
+      const gone = new Set([slot.id, ...slot.drop]);
+      announceSaves(career.id, [written, ...before.filter((one) => !gone.has(one.id))]);
+    } catch (error) {
+      console.error('Could not autosave the career.', error);
+    }
+  };
+
+  /**
+   * Empties the race store's slot of the career's event when a save just loaded
+   * holds that event at another point, or not at all. Left, the slot would carry
+   * the event on from sessions the save never raced, and its next push would
+   * copy them back onto the career.
+   * @param career The career, with the state the save holds
+   */
+  const releaseSlot = (career: Career): void => {
+    const slot = race.slot();
+    if (slot?.owner !== career.id) return;
+
+    const held = career.seasons
+      .flatMap((season) => season.entries)
+      .flatMap((entry) => entry.events)
+      .find((event) => event.raceId === slot.raceId);
+    // The same launches rather than as many: a timeline left and raced again
+    // holds as many of other ones.
+    const same = held?.sessions.length === slot.completed.length && held.sessions.every((launch, at) => (
+      launch.completedAt === slot.completed[at].completedAt && launch.archive === slot.completed[at].archive
+    ));
+    if (!same) race.empty();
   };
 
   /**
@@ -661,6 +904,17 @@ export const createCareerStore = async (
       await catchUp();
     }
     settle();
+
+    const landed = plan.launches[state.completed[state.completed.length - 1]?.index ?? -1];
+    const round = held.entry.championship.rounds.find((one) => one.id === held.event.round);
+    if (landed) {
+      await autosave({
+        kind: 'session',
+        seriesName: held.entry.championship.name,
+        roundName: round?.name ?? held.event.round,
+        session: { name: landed.session.name ?? null, type: landed.session.type },
+      });
+    }
   };
 
   race.onChange((setup) => {
@@ -689,28 +943,31 @@ export const createCareerStore = async (
    * Every career on disk, played most recently first.
    * @returns Their summaries
    */
-  const list = async (): Promise<CareerSummary[]> => {
+  const list = async (): Promise<CareerListing[]> => {
     const names = (await readdir(root).catch(() => [] as string[])).filter((name) => CAREER_ID_PATTERN.test(name));
-    const read = await Promise.all(names.map(async (name): Promise<CareerSummary | null> => {
+    const read = await Promise.all(names.map(async (name): Promise<CareerListing> => {
       // The open one is read from memory, which is ahead of its file.
       if (current?.id === name) return summarise(current);
 
       try {
         const career = await parseFrom(name);
         if (career) return summarise(career);
-        console.warn(`Career ${name} is not one this build reads; leaving it out.`);
+        console.warn(`Career ${name} is not one this build reads; listing it as unreadable.`);
       } catch (error) {
-        console.warn(`Could not read career ${name}; leaving it out.`, error);
+        console.warn(`Could not read career ${name}; listing it as unreadable.`, error);
       }
+      // Never left out, or it could not be deleted from the app.
+      const profile = await profileFrom(name).catch(() => null);
 
-      return null;
+      return {
+        id: name, unreadable: true, driver: profile?.driver ?? null, playedAt: profile?.playedAt ?? null,
+      };
     }));
     // One just started may not be written yet.
     if (current && !names.includes(current.id)) read.push(summarise(current));
 
-    return read
-      .filter((one): one is CareerSummary => one !== null)
-      .sort((left, right) => right.playedAt.localeCompare(left.playedAt));
+    // One whose career.json does not read either has no time to sort by, so goes last.
+    return read.sort((left, right) => (right.playedAt ?? '').localeCompare(left.playedAt ?? ''));
   };
 
   return {
@@ -745,23 +1002,19 @@ export const createCareerStore = async (
       const ready = first
         ? withSeason(started, issueForecasts(started, await drawHistoric(started, first, startDate), startDate))
         : started;
-      // Scoped next, which refuses while a launch is out.
-      scopeTo(id);
-      await flushNow();
-      current = ready;
-      dir = folderFor(id);
+      await makeCurrent(ready);
+      const made = settle();
+      // Its first season opening, so even a career that never races has a save
+      // to carry on from should its state.json not read.
+      await autosave({ kind: 'season', year });
 
-      return settle();
+      return made;
     }),
 
     open: (id) => commit(async () => {
       // Written first, so reopening the career open reads what it holds now.
       await flushNow();
-      const career = await readFrom(id);
-      scopeTo(id);
-      await flushNow();
-      current = career;
-      dir = folderFor(id);
+      await makeCurrent(await readFrom(id));
       // One whose clock passed rounds it had given up on while this build was
       // not running is brought up to date as it opens.
       await catchUp();
@@ -798,6 +1051,68 @@ export const createCareerStore = async (
 
       return settle();
     }),
+
+    saves: async (id) => listSaves(savesDirOf(id), readState),
+
+    save: ({ name, over }) => commit(async () => {
+      const career = await ensure();
+      const named = checkedSaveName(name);
+      if (over !== undefined) {
+        if (saveKindOf(over) !== 'named') throw new AppError('save.protected');
+        const saves = await listSaves(savesDirOf(career.id), readState);
+        if (!saves.some((one) => one.id === over)) throw new AppError('save.notFound');
+      }
+      await writeSnapshot(career, over ?? crypto.randomUUID(), named, null);
+
+      return pushSaves(career.id);
+    }),
+
+    quickSave: () => commit(async () => {
+      const career = await ensure();
+      await writeSnapshot(career, QUICK_SAVE_ID, null, null);
+
+      return pushSaves(career.id);
+    }),
+
+    load: (id, save) => commit(async () => {
+      const saved = await readSave(savesDirOf(id), save, readState);
+      await flushNow();
+      // The profile alone: the state is the save's.
+      const profile = current?.id === id ? profileOf(current) : await profileFrom(id).catch(missingCareer);
+      if (!profile) throw new AppError('career.unreadable');
+      // Only the state is the save's: who races the career stays as it is.
+      const career: Career = { ...profile, ...saved.state };
+      await makeCurrent(career);
+      releaseSlot(career);
+      await catchUp();
+
+      return { career: settle(), save: summaryOf(saved) };
+    }),
+
+    renameSave: (id, save, name) => commit(async () => {
+      if (saveKindOf(save) !== 'named') throw new AppError('save.protected');
+      const saved = await readSave(savesDirOf(id), save, readState);
+      // Renaming is not saving, so it keeps when the save was taken.
+      await writeSave(savesDirOf(id), { ...saved, name: checkedSaveName(name) });
+
+      return pushSaves(id);
+    }),
+
+    deleteSave: (id, save) => commit(async () => {
+      if (saveKindOf(save) !== 'named') throw new AppError('save.protected');
+      await removeSave(savesDirOf(id), save);
+
+      return pushSaves(id);
+    }),
+
+    savesFolderOf: async (id) => {
+      const saves = savesDirOf(id);
+      // Never a folder for a career that is not there, which list would trip over.
+      await access(folderFor(id)).catch(missingCareer);
+      await mkdir(saves, { recursive: true });
+
+      return saves;
+    },
 
     async calendar(index) {
       const loaded = await ensure();
@@ -997,8 +1312,10 @@ export const createCareerStore = async (
       const next = issueForecasts(working, markMissed(year, advanceSkips(year, stop)), stop);
       current = withSeason({ ...working, date: stop }, next);
       await catchUp();
+      const moved = settle();
+      if (year.index !== season.index) await autosave({ kind: 'season', year: seasonYear(year) });
 
-      return settle();
+      return moved;
     }),
 
     async skips(date) {
@@ -1231,6 +1548,12 @@ export const createCareerStore = async (
       listeners.add(listener);
 
       return () => listeners.delete(listener);
+    },
+
+    onSaves(listener) {
+      saveListeners.add(listener);
+
+      return () => saveListeners.delete(listener);
     },
   };
 };

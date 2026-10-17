@@ -128,10 +128,14 @@ export type {
   CareerCalendar,
   CareerDriver,
   CareerEventView,
+  CareerProfile,
   CareerSeason,
+  CareerState,
+  CareerListing,
   CareerSummary,
   CareerSummaryEntry,
   CareerSummaryEvent,
+  UnreadableCareer,
   ChampionshipResults,
   ChampionshipRun,
   EventClassOption,
@@ -149,6 +153,10 @@ export type {
   SkippedRound,
   SkipReason,
 } from './career.ts';
+
+export type {
+  CareerSaves, LoadedSave, SaveKind, SaveMoment, SaveSummary,
+} from './saves.ts';
 
 export type {
   ClassStandings,

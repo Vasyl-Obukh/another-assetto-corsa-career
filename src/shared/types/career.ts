@@ -254,14 +254,11 @@ export interface CareerSeason {
 }
 
 /**
- * A career.
- *
- * Started on its own the first time anything asks for one, rather than behind a
- * form: everything it would have asked for is already in settings. Phase 6
- * makes this several, with named saves over the top; nothing here assumes it is
- * alone beyond living in a file of its own.
+ * What every save of a career shares: who it is and how it is set up. Kept in
+ * the career's career.json, and never in a save, so loading one leaves it as
+ * it is.
  */
-export interface Career {
+export interface CareerProfile {
   /**
    * Which revision of this format the file was written against.
    *
@@ -288,8 +285,30 @@ export interface Career {
    */
   driver: CareerDriver;
   /**
-   * The money it started with. Stored and shown, and spent on nothing until
-   * the economy (Phase 7) lands.
+   * The day the first season opens, as an ISO date.
+   */
+  startDate: string;
+}
+
+/**
+ * Where a career has got to: its clock, its seasons and what it holds. Kept in
+ * the career's state.json as it changes, and what every save is a copy of.
+ */
+export interface CareerState {
+  /**
+   * Which revision of this format the file was written against.
+   *
+   * Stays 1 and is never migrated: until the app is released, a file written
+   * against another revision is deleted rather than carried forward.
+   */
+  version: number;
+  /**
+   * The day the clock stands at, as an ISO date.
+   */
+  date: string;
+  /**
+   * The money it holds. Stored and shown, and spent on nothing until the
+   * economy (Phase 7) lands.
    */
   money: number;
   /**
@@ -297,14 +316,6 @@ export interface Career {
    * rating (Phase 8) lands, and moved by nothing before then.
    */
   rating: Record<Discipline, number>;
-  /**
-   * The day the first season opens, as an ISO date.
-   */
-  startDate: string;
-  /**
-   * The day the clock stands at, as an ISO date.
-   */
-  date: string;
   /**
    * The highest rung this career may enter, per discipline - 1 being the top,
    * so a larger number is a lower level.
@@ -319,6 +330,12 @@ export interface Career {
    */
   seasons: readonly CareerSeason[];
 }
+
+/**
+ * A career as the store holds it open: its profile joined with its state. The
+ * two are written to files of their own and only ever travel together.
+ */
+export interface Career extends CareerProfile, CareerState {}
 
 /**
  * Who races a career.
@@ -444,6 +461,36 @@ export interface CareerSummary {
    */
   track: { id: string; layout?: string } | null;
 }
+
+/**
+ * A career the Careers list still shows although it cannot be opened: its
+ * state.json and every save of it are unreadable, or its career.json is. Kept
+ * in the list so it can be deleted rather than lingering unseen.
+ */
+export interface UnreadableCareer {
+  /**
+   * The career's id.
+   */
+  id: string;
+  /**
+   * Marks it apart from a career that reads.
+   */
+  unreadable: true;
+  /**
+   * Who races it, or null when its career.json does not read either.
+   */
+  driver: CareerDriver | null;
+  /**
+   * When it was last opened or changed, or null when its career.json does not
+   * read.
+   */
+  playedAt: string | null;
+}
+
+/**
+ * One career in the Careers list: one that reads, or one that does not.
+ */
+export type CareerListing = CareerSummary | UnreadableCareer;
 
 /**
  * One event as the calendar screen reads it.

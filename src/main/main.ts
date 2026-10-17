@@ -114,6 +114,9 @@ if (!app.requestSingleInstanceLock()) {
       if (mainWindow) send(mainWindow, 'quick:changed', next);
     });
 
+    career.onSaves((saves) => {
+      if (mainWindow) send(mainWindow, 'career:savesChanged', saves);
+    });
     career.onChange((next) => {
       if (mainWindow) send(mainWindow, 'career:changed', next);
     });

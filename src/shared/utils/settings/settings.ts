@@ -7,6 +7,7 @@
 
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
+  AUTOSAVE_COUNTS,
   DEFAULT_ALLOWED_WEATHER,
   DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,
@@ -45,7 +46,7 @@ export const cleanString = (value: unknown): string | undefined => {
  * @param fallback Returned when the value is not one of them
  * @returns The value if allowed, otherwise the fallback
  */
-export const oneOf = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T => (
+export const oneOf = <T>(value: unknown, allowed: readonly T[], fallback: T): T => (
   allowed.includes(value as T) ? value as T : fallback
 );
 
@@ -286,6 +287,7 @@ export const readSettings = (raw: unknown): Settings => {
     historicFrequency: oneOf(raw.historicFrequency, HISTORIC_FREQUENCIES, DEFAULT_SETTINGS.historicFrequency),
     // The same shape as the championships' switches, so read the same way.
     historicActive: readSeriesActive(raw.historicActive),
+    autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, DEFAULT_SETTINGS.autosaves),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

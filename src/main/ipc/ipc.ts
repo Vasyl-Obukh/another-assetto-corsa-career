@@ -165,6 +165,18 @@ export const registerHandlers = (
     return null;
   });
   handle('career:driver', async (driver) => career.setDriver(driver));
+  handle('career:saves', async ({ id }) => career.saves(id));
+  handle('career:save', async (request) => career.save(request));
+  handle('career:quickSave', async () => career.quickSave());
+  handle('career:load', async ({ id, save }) => career.load(id, save));
+  handle('career:renameSave', async ({ id, save, name }) => career.renameSave(id, save, name));
+  handle('career:deleteSave', async ({ id, save }) => career.deleteSave(id, save));
+  handle('career:savesFolder', async ({ id }) => {
+    const failure = await shell.openPath(await career.savesFolderOf(id));
+    if (failure) throw new Error(failure);
+
+    return null;
+  });
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
   handle('career:withdraw', async (request) => career.withdraw(request));

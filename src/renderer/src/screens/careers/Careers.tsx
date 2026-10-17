@@ -8,14 +8,17 @@ import { CareerHeroSkeleton } from './CareerHeroSkeleton.tsx';
 import { CareerRow } from './CareerRow.tsx';
 import { CareerRowSkeleton } from './CareerRowSkeleton.tsx';
 import { CAREER_ROWS } from './constants.ts';
+import { SavesPanel } from './SavesPanel.tsx';
 import { SeasonPanel } from './SeasonPanel.tsx';
-import { pickOf } from './utils.ts';
+import { UnreadablePanel } from './UnreadablePanel.tsx';
+import { UnreadableRow } from './UnreadableRow.tsx';
+import { isReadable, pickOf } from './utils.ts';
 import {
   ConfirmDialog, ErrorCard, Loading, ScreenBody, ScreenHeader, Shimmer,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { useCareers } from '@/hooks';
+import { useCareers, useLoadSave, useSaves } from '@/hooks';
 import { path } from '@/lib/routes';
 import { slots } from '@/lib/slots.ts';
 
@@ -34,9 +37,16 @@ export const Careers = () => {
 
   const list = careers.careers;
   const shown = list?.find((one) => one.id === picked) ?? list?.[0] ?? null;
+  const readable = shown && isReadable(shown) ? shown : null;
+  const saves = useSaves(readable?.id ?? null);
+  const { load, loading } = useLoadSave();
 
   const carryOn = async (): Promise<void> => {
-    if (shown && await careers.open(shown.id)) void navigate(path.home());
+    if (readable && await careers.open(readable.id)) void navigate(path.home());
+  };
+
+  const loadSave = async (save: string): Promise<void> => {
+    if (readable && await load(readable.id, save)) void navigate(path.home());
   };
 
   return (
@@ -69,17 +79,27 @@ export const Careers = () => {
           <div className="flex flex-col overflow-hidden rounded-xl border bg-card">
             {list === null ? (
               <Loading>{slots(CAREER_ROWS).map((at) => <CareerRowSkeleton key={at} />)}</Loading>
-            ) : list.map((one) => (
-              <CareerRow key={one.id} career={one} picked={one.id === shown?.id} onPick={() => setPicked(one.id)} />
-            ))}
+            ) : list.map((one) => {
+              const row = { picked: one.id === shown?.id, onPick: () => setPicked(one.id) };
+
+              return isReadable(one)
+                ? <CareerRow key={one.id} career={one} {...row} />
+                : <UnreadableRow key={one.id} career={one} {...row} />;
+            })}
           </div>
 
           <div className="flex min-w-0 flex-col gap-4">
-            {shown ? (
-              <CareerHero career={shown} busy={careers.busy} onContinue={() => { void carryOn(); }} />
-            ) : <Loading><CareerHeroSkeleton /></Loading>}
+            {shown && !isReadable(shown) ? <UnreadablePanel career={shown} /> : (
+              <>
+                {readable ? (
+                  <CareerHero career={readable} busy={careers.busy || loading} onContinue={() => { void carryOn(); }} />
+                ) : <Loading><CareerHeroSkeleton /></Loading>}
 
-            <SeasonPanel championships={shown?.championships ?? null} />
+                <SavesPanel saves={saves} loading={loading} onLoad={(save) => { void loadSave(save); }} />
+
+                <SeasonPanel championships={readable?.championships ?? null} />
+              </>
+            )}
 
             <div className="flex items-center gap-2">
               <Button
@@ -106,7 +126,7 @@ export const Careers = () => {
 
       <ConfirmDialog
         open={deleting && shown !== null}
-        title={t('careers.deleteTitle', { driver: shown?.driver.name ?? '' })}
+        title={t('careers.deleteTitle', { driver: shown?.driver?.name ?? t('careers.unreadable.name') })}
         description={t('careers.deleteHint')}
         confirmLabel={t('careers.delete')}
         busy={careers.busy}

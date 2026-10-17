@@ -28,6 +28,13 @@ export interface FakeRaceStore extends RaceStore {
    * How many launches were sent out, and at which step each was shortened by.
    */
   launches: (number | undefined)[];
+  /**
+   * Whether Results would list an archive, by the filter the store was last
+   * scoped with.
+   * @param archive The archive's file name
+   * @returns True when it is listed
+   */
+  lists(archive: string): boolean;
 }
 
 /**
@@ -54,6 +61,7 @@ export const fakeRaceStore = (): FakeRaceStore => {
   let setup = raceSetup();
   let progress: RaceProgress | null = null;
   let owner: string | null = null;
+  let listed: (() => ReadonlySet<string> | null) | null = null;
   const listeners = new Set<(next: RaceSetup) => void>();
   const loaded: FakeRaceStore['loaded'] = [];
   const launches: FakeRaceStore['launches'] = [];
@@ -62,9 +70,10 @@ export const fakeRaceStore = (): FakeRaceStore => {
     get: async () => setup,
     // Refuses while a launch is out, and owns whatever is loaded next, as the
     // real store does.
-    scope: (next) => {
+    scope: (next, results, lists) => {
       if (setup.status.phase !== 'idle') throw new AppError('run.inFlight');
       owner = next;
+      listed = lists ?? null;
     },
     load: async (definition, completed) => {
       loaded.push({ definition, completed });
@@ -77,6 +86,13 @@ export const fakeRaceStore = (): FakeRaceStore => {
 
       return setup;
     },
+    empty: () => {
+      if (setup.status.phase !== 'idle') throw new AppError('run.inFlight');
+      setup = { ...setup, state: null };
+    },
+    slot: () => (setup.state && setup.state.completed.length > 0
+      ? { owner: setup.owner, raceId: setup.state.raceId, completed: setup.state.completed }
+      : null),
     progress: () => progress,
     launchResults: async () => [],
     onChange: (listener) => {
@@ -91,5 +107,6 @@ export const fakeRaceStore = (): FakeRaceStore => {
     },
     loaded,
     launches,
+    lists: (archive) => listed?.()?.has(archive) ?? true,
   });
 };

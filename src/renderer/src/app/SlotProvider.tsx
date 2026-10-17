@@ -44,6 +44,14 @@ export const SlotProvider = ({ initialCareer, children }: SlotProviderProps) => 
     setQuick(false);
   }, []);
 
+  const loadSave = useCallback<SlotContextValue['loadSave']>(async (id, save) => {
+    const loaded = await invoke('career:load', { id, save });
+    setCareer(loaded.career);
+    setQuick(false);
+
+    return loaded;
+  }, []);
+
   const enterQuick = useCallback((): void => setQuick(true), []);
 
   const toMainMenu = useCallback(async (): Promise<void> => {
@@ -63,10 +71,11 @@ export const SlotProvider = ({ initialCareer, children }: SlotProviderProps) => 
     career,
     openCareer,
     createCareer,
+    loadSave,
     enterQuick,
     toMainMenu,
     quit,
-  }), [career, quick, openCareer, createCareer, enterQuick, toMainMenu, quit]);
+  }), [career, quick, openCareer, createCareer, loadSave, enterQuick, toMainMenu, quit]);
 
   return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
 };
