@@ -5,10 +5,12 @@
 import type { TFunction } from 'i18next';
 
 import {
-  DEFAULT_CURRENCY, FALLBACK_LANGUAGE, HOME_NATION_NAMES, LOCALES,
+  DAYS_PER_MONTH, DAYS_PER_YEAR, DEFAULT_CURRENCY, FALLBACK_LANGUAGE, HOME_NATION_NAMES, LOCALES,
 } from './constants.ts';
 import type { Formatters } from './types.ts';
-import { CONTENT_ISSUE_REASONS, M_PER_KM, MS_PER_SECOND } from '../../../shared/constants';
+import {
+  CONTENT_ISSUE_REASONS, DAYS_PER_WEEK, HOURS_PER_DAY, M_PER_KM, MINUTES_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND,
+} from '../../../shared/constants';
 import type { AppErrorInfo } from '../../../shared/errors';
 import type { ContentIssueReason, Language } from '../../../shared/types';
 import { nationName } from '../../../shared/utils/nations';
@@ -69,7 +71,7 @@ export const formatDayRange = (
 /**
  * Intl formatters are expensive to build and are reused constantly.
  */
-const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator>();
+const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator | Intl.RelativeTimeFormat>();
 
 /**
  * Reads a formatter from the cache, building it on first use.
@@ -77,7 +79,7 @@ const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Col
  * @param build Builds the formatter when it is not already cached
  * @returns The cached formatter
  */
-const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator>(
+const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator | Intl.RelativeTimeFormat>(
   key: string,
   build: () => T,
 ): T => {
@@ -206,5 +208,23 @@ export const formattersFor = (language: Language): Formatters => {
     ).compare(a, b),
 
     formatNation: (code) => HOME_NATION_NAMES[language]?.[code] ?? nationName(code, locale),
+
+    formatAgo: (value, now = Date.now()) => {
+      const format = cached(
+        `r:${locale}`,
+        () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
+      );
+      const minutes = Math.round((new Date(value).getTime() - now) / MS_PER_MINUTE);
+      const hours = Math.round(minutes / MINUTES_PER_HOUR);
+      const days = Math.round(hours / HOURS_PER_DAY);
+
+      if (Math.abs(minutes) < MINUTES_PER_HOUR) return format.format(minutes, 'minute');
+      if (Math.abs(hours) < HOURS_PER_DAY) return format.format(hours, 'hour');
+      if (Math.abs(days) < DAYS_PER_WEEK) return format.format(days, 'day');
+      if (Math.abs(days) < DAYS_PER_MONTH) return format.format(Math.round(days / DAYS_PER_WEEK), 'week');
+      if (Math.abs(days) < DAYS_PER_YEAR) return format.format(Math.round(days / DAYS_PER_MONTH), 'month');
+
+      return format.format(Math.round(days / DAYS_PER_YEAR), 'year');
+    },
   };
 };

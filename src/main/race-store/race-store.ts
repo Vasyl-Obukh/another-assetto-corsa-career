@@ -16,6 +16,7 @@ import {
   MAX_LATEST_ARCHIVES,
   MAX_LISTED_RESULTS,
   OUT_DIR,
+  OWNER_FILE,
   RACE_DIR,
   RACE_INI_FILE,
   RESULT_TIMEOUT_MS,
@@ -89,11 +90,17 @@ export const createRaceStore = async (
   const dir = path.join(userDataDir, RACE_DIR);
   const draftFile = path.join(dir, DRAFT_FILE);
   const stateFile = path.join(dir, STATE_FILE);
+  const ownerFile = path.join(dir, OWNER_FILE);
   const iniFile = path.join(dir, OUT_DIR, RACE_INI_FILE);
-  const resultsDir = path.join(dir, RESULTS_DIR);
+  const ownResults = path.join(dir, RESULTS_DIR);
+  // Results go to the open career's folder, else to the store's own, which
+  // race events of the player's own share.
+  let resultsDir = ownResults;
+  let scopeOwner: string | null = null;
 
   let definition = await readJson<RaceDefinition>(draftFile) ?? structuredClone(DEFAULT_DEFINITION);
   let state = await readJson<EventState>(stateFile);
+  let owner = (await readJson<{ owner: string | null }>(ownerFile))?.owner ?? null;
   let paths: AcPaths | null = null;
   let status: RaceStatus = {
     phase: 'idle', launchIndex: null, startedAt: null, scale: null, failure: null,
@@ -110,6 +117,7 @@ export const createRaceStore = async (
     await mkdir(dir, { recursive: true });
     await writeJson(draftFile, definition);
     await writeJson(stateFile, state);
+    await writeJson(ownerFile, { owner });
   };
 
   const schedule = (): void => {
@@ -243,6 +251,7 @@ export const createRaceStore = async (
       problems,
       defaultController,
       weatherFx,
+      owner,
     };
   };
 
@@ -449,10 +458,19 @@ export const createRaceStore = async (
 
     get: describe,
 
+    scope(next, results) {
+      if (status.phase !== 'idle') throw new AppError('run.inFlight');
+
+      scopeOwner = next;
+      resultsDir = results ?? ownResults;
+    },
+
     // Deliberately off the draft and the event state rather than off a plan:
     // this is asked once per championship listing, and describe() reaches the
     // content scan.
-    progress: () => progressOf(state, definition.id, status.phase !== 'idle'),
+    // Only the event of whoever the store is scoped to: a round another career
+    // left part-way is not under way in this one.
+    progress: () => (owner === scopeOwner ? progressOf(state, definition.id, status.phase !== 'idle') : null),
 
     weatherFx: async () => (await cspSetup()).weatherFx,
 
@@ -460,6 +478,7 @@ export const createRaceStore = async (
       if (status.phase !== 'idle') throw new AppError('run.inFlight');
 
       definition = next;
+      owner = scopeOwner;
       state = null;
       if (completed.length > 0) {
         // The launch count is the plan's, which is what a saved state is

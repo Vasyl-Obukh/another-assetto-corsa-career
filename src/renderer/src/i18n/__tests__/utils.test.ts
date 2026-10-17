@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import type { TFunction } from 'i18next';
 
-import { CONTENT_ISSUE_REASONS } from '../../../../shared/constants';
+import {
+  CONTENT_ISSUE_REASONS, MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE,
+} from '../../../../shared/constants';
 import type { ContentIssueReason } from '../../../../shared/types';
 import { formatContentIssueReason, formatDayRange, formattersFor } from '../utils.ts';
 
@@ -17,6 +19,18 @@ const translator = (catalogue: Record<string, string>) => ((
   key: string,
   options?: { defaultValue?: string },
 ) => catalogue[key] ?? options?.defaultValue ?? key) as unknown as TFunction;
+
+/**
+ * The moment formatAgo measures from in these tests.
+ */
+const NOW = Date.parse('2026-10-17T12:00:00Z');
+
+/**
+ * A moment some time before NOW.
+ * @param ms How long before, in milliseconds; negative for after
+ * @returns The moment as an ISO string
+ */
+const ago = (ms: number): string => new Date(NOW - ms).toISOString();
 
 describe('renderer/i18n/utils', () => {
   describe('formattersFor', () => {
@@ -165,6 +179,46 @@ describe('renderer/i18n/utils', () => {
     it('names the four home nations itself', () => {
       expect(formattersFor('uk').formatNation('SCT')).toBe('Шотландія');
       expect(formattersFor('en').formatNation('SCT')).toBe('Scotland');
+    });
+
+    it('says how long ago in minutes under an hour', () => {
+      const { formatAgo } = formattersFor('en');
+
+      expect(formatAgo(ago(5 * MS_PER_MINUTE), NOW)).toBe('5 minutes ago');
+      expect(formatAgo(ago(59 * MS_PER_MINUTE), NOW)).toBe('59 minutes ago');
+      expect(formatAgo(ago(0), NOW)).toBe('this minute');
+    });
+
+    it('moves up to hours at an hour and to days at a day', () => {
+      const { formatAgo } = formattersFor('en');
+
+      expect(formatAgo(ago(60 * MS_PER_MINUTE), NOW)).toBe('1 hour ago');
+      expect(formatAgo(ago(23 * MS_PER_HOUR), NOW)).toBe('23 hours ago');
+      expect(formatAgo(ago(24 * MS_PER_HOUR), NOW)).toBe('yesterday');
+    });
+
+    it('moves up to weeks, months and years as the days pass', () => {
+      const { formatAgo } = formattersFor('en');
+
+      expect(formatAgo(ago(6 * MS_PER_DAY), NOW)).toBe('6 days ago');
+      expect(formatAgo(ago(7 * MS_PER_DAY), NOW)).toBe('last week');
+      expect(formatAgo(ago(29 * MS_PER_DAY), NOW)).toBe('4 weeks ago');
+      expect(formatAgo(ago(30 * MS_PER_DAY), NOW)).toBe('last month');
+      expect(formatAgo(ago(364 * MS_PER_DAY), NOW)).toBe('12 months ago');
+      expect(formatAgo(ago(365 * MS_PER_DAY), NOW)).toBe('last year');
+      expect(formatAgo(ago(730 * MS_PER_DAY), NOW)).toBe('2 years ago');
+    });
+
+    it('words a moment still to come as the future', () => {
+      const { formatAgo } = formattersFor('en');
+
+      expect(formatAgo(ago(-24 * MS_PER_HOUR), NOW)).toBe('tomorrow');
+      expect(formatAgo(ago(-3 * MS_PER_HOUR), NOW)).toBe('in 3 hours');
+    });
+
+    it('words it in the active language', () => {
+      expect(formattersFor('uk').formatAgo(ago(24 * MS_PER_HOUR), NOW))
+        .not.toBe(formattersFor('en').formatAgo(ago(24 * MS_PER_HOUR), NOW));
     });
   });
   describe('formatContentIssueReason', () => {

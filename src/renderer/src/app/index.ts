@@ -1,7 +1,10 @@
 export { App } from './App.tsx';
 export { ClassesProvider } from './ClassesProvider.tsx';
 export { SettingsProvider } from './SettingsProvider.tsx';
-export type { ClassesContextValue, SettingsContextValue } from './types.ts';
+export { SlotProvider } from './SlotProvider.tsx';
+export type {
+  ClassesContextValue, SettingsContextValue, SlotContextValue, SlotMode,
+} from './types.ts';
 export {
-  ClassesContext, SettingsContext, useClasses, useSettings,
+  ClassesContext, SettingsContext, SlotContext, useClasses, useSettings, useSlot,
 } from './utils.ts';

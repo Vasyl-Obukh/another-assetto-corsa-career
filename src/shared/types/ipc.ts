@@ -6,7 +6,14 @@ import type {
   ClassCommandResult, ClassId, ClassLayer, SpecId,
 } from './car-classes.ts';
 import type {
-  Career, CareerCalendar, CareerEventView, ChampionshipResults, SkippedRound,
+  Career,
+  CareerCalendar,
+  CareerDriver,
+  CareerEventView,
+  CareerSummary,
+  ChampionshipResults,
+  NewCareerRequest,
+  SkippedRound,
 } from './career.ts';
 import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
@@ -371,12 +378,38 @@ export interface IpcContract {
    */
   'classes:deleteSpec': { req: { id: SpecId }; res: ClassCommandResult };
   /**
-   * The career as it stands, or null when nothing has started one yet.
-   *
-   * There is no channel to start one: a career needs nothing settings does not
-   * already hold, so reading the calendar makes it.
+   * The open career as it stands, or null when none is - the start screen.
    */
   'career:get': { req: void; res: Career | null };
+  /**
+   * Every career on disk, played most recently first.
+   */
+  'career:list': { req: void; res: CareerSummary[] };
+  /**
+   * Start a new career, and open it.
+   */
+  'career:create': { req: NewCareerRequest; res: Career };
+  /**
+   * Open a career, closing whichever was open.
+   */
+  'career:open': { req: { id: string }; res: Career };
+  /**
+   * Close the open career, which is going back to the start screen. Refused
+   * while a launch is out.
+   */
+  'career:close': { req: void; res: null };
+  /**
+   * Delete a career and its folder, answering with every career left.
+   */
+  'career:delete': { req: { id: string }; res: CareerSummary[] };
+  /**
+   * Show a career's folder in the system's file browser.
+   */
+  'career:folder': { req: { id: string }; res: null };
+  /**
+   * Rename the open career's driver, or change their nation.
+   */
+  'career:driver': { req: CareerDriver; res: Career };
   /**
    * One season's calendar, merged across every championship and dated.
    *
@@ -469,6 +502,11 @@ export interface IpcContract {
    * The theme actually in force - "system" resolved against the OS by main.
    */
   'theme:get': { req: void; res: ResolvedTheme };
+  /**
+   * Quit the app, which the start screen's Exit and the slot menu's do. Every
+   * store writes what it holds on the way out.
+   */
+  'app:quit': { req: void; res: null };
 }
 
 /**
@@ -539,13 +577,14 @@ export interface IpcEvents {
    */
   'classes:changed': ClassLayer;
   /**
-   * The career, after every command that changes it.
+   * The open career, after every command that changes it, or null once it has
+   * closed.
    *
    * The whole career rather than the part that moved: advancing the clock can
    * mark several events missed at once, and every command changes what the
    * calendar screen renders.
    */
-  'career:changed': Career;
+  'career:changed': Career | null;
 }
 
 /**

@@ -120,10 +120,20 @@ export const progressOf = (
  * @param setup The race store as it stands
  * @param raceId The event's race id
  * @param completed How many of its launches have run
+ * @param owner Whose event it is: a career's id, or null for a race event of
+ * the player's own - two careers can race a round under the same id
  * @returns True when launching can carry on from the slot's race
  */
-export const slotHolds = (setup: RaceSetup, raceId: string, completed: number): boolean => (
-  completed > 0 && setup.definition.id === raceId && (setup.state?.completed.length ?? 0) === completed
+export const slotHolds = (
+  setup: RaceSetup,
+  raceId: string,
+  completed: number,
+  owner: string | null,
+): boolean => (
+  completed > 0
+  && setup.owner === owner
+  && setup.definition.id === raceId
+  && (setup.state?.completed.length ?? 0) === completed
 );
 
 /**

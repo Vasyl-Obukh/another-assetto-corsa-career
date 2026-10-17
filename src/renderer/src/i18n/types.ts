@@ -117,4 +117,12 @@ export interface Formatters {
    * @returns What the nation is called, or the code itself for one AC does not know
    */
   formatNation(code: string): string;
+  /**
+   * Says how long ago something happened, in the largest unit that fits:
+   * "6 minutes ago", "yesterday", "2 weeks ago".
+   * @param value An ISO timestamp
+   * @param now The moment to measure from, in milliseconds; now by default
+   * @returns How long ago, in the active locale
+   */
+  formatAgo(value: string, now?: number): string;
 }

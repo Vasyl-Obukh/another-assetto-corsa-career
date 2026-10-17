@@ -1,27 +1,33 @@
-// The career: one clock, the championships it has entered, and what came of
-// them. Kept in career.json beside settings.json, written atomically and
-// debounced, the way the settings store writes its own.
+// The careers: a folder each under careers/, and the one open held in memory -
+// one clock, the championships it has entered, and what came of them. Kept in
+// its folder's career.json, written atomically and debounced, the way the
+// settings store writes its own, with its archived results beside it.
 //
 // A championship the career enters is copied into the season whole, and the
 // season reads only that copy from then on - so the library's championship is a
 // rulebook the career never touches, and an edit to it reaches the next season
 // rather than the one being raced.
 //
-// Phase 6 turns this into named saves, rolling autosaves and several careers at
-// once. Nothing here is in its way: a save is a copy of this file, and a second
-// career is a second one.
+// Nothing is open when the app starts: the start screen opens a career, and
+// going back to it closes one. Saves come next, and are copies of this file.
 
-import { readFile, rename, writeFile } from 'node:fs/promises';
+import {
+  mkdir, readdir, readFile, rename, rm, writeFile,
+} from 'node:fs/promises';
 import path from 'node:path';
 
-import { CAREER_FILE, CAREER_VERSION, WRITE_DEBOUNCE_MS } from './constants.ts';
+import {
+  CAREER_FILE, CAREER_ID_PATTERN, CAREER_RESULTS_DIR, CAREER_VERSION, CAREERS_DIR, WRITE_DEBOUNCE_MS,
+} from './constants.ts';
 import type {
   CareerStore, EnrolRequest, EnteredEvent, EventRequest, ResultsRequest,
 } from './types.ts';
 import {
   advanceSkips,
   advanceStop,
+  checkedDriver,
   checkEdition,
+  checkedNewCareer,
   closeSeason,
   composeCalendar,
   currentSeason,
@@ -46,6 +52,7 @@ import {
   simulatedEvent,
   skippedRound,
   strengthStep,
+  summarise,
   withSeason,
 } from './utils.ts';
 import { planEvent } from '../../core/event/index.ts';
@@ -65,6 +72,7 @@ import type {
   Career,
   CareerEventView,
   CareerSeason,
+  CareerSummary,
   Championship,
   EventPlan,
   RaceDefinition,
@@ -75,12 +83,13 @@ import type {
   SeriesLibrary,
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
-import { isEligible, startingLevels } from '../../shared/utils/career-eligibility/index.ts';
+import { isEligible, levelsAt, ratingsAt } from '../../shared/utils/career-eligibility/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
   editionEntry, editionsOf, enteredEdition, seasonYear,
 } from '../../shared/utils/editions/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
+import { nationName } from '../../shared/utils/nations/index.ts';
 import { eligibleCarsIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 import { isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import { buildStandings, entryResults, roundResult } from '../../shared/utils/standings/index.ts';
@@ -99,16 +108,6 @@ export type {
 export { eventSessions } from './utils.ts';
 
 /**
- * The first day of the current year, as an ISO calendar date.
- *
- * Where a new career's first season opens. A season is a year of racing, and
- * starting one on whatever day the app happened to be opened would put most of
- * every calendar behind the player before they had raced anything.
- * @returns The ISO YYYY-MM-DD date of 1 January
- */
-const startOfYear = (): string => `${new Date().getUTCFullYear()}-01-01`;
-
-/**
  * The still-scheduled round a race id belongs to, in a season.
  * @param season The season to look in
  * @param raceId The race's id
@@ -124,7 +123,7 @@ const scheduledHeld = (season: CareerSeason, raceId: string): EnteredEvent | nul
 };
 
 /**
- * Loads the career file and returns a store over it.
+ * Returns a store over the careers on disk, none of them open yet.
  *
  * Takes the series store because a round is lowered through it - it holds the
  * weather offer and the class catalogue a race is drawn over - the historic
@@ -132,13 +131,13 @@ const scheduledHeld = (season: CareerSeason, raceId: string): EnteredEvent | nul
  * because that is what runs an event, the content store because the event
  * page plans an event to say what each session is, and settings because they
  * say whether two events on one day clash.
- * @param userDataDir Folder to keep career.json in
+ * @param userDataDir Folder to keep the careers' folders in
  * @param series The championship library
  * @param historic The historic event library
  * @param race The race being set up and run
  * @param content The installed content
  * @param settings The user's settings
- * @returns A store over the career, or over none when no file loaded
+ * @returns A store over the careers
  */
 export const createCareerStore = async (
   userDataDir: string,
@@ -148,25 +147,27 @@ export const createCareerStore = async (
   content: ContentStore,
   settings: SettingsStore,
 ): Promise<CareerStore> => {
-  const file = path.join(userDataDir, CAREER_FILE);
-  const tmp = `${file}.tmp`;
+  const root = path.join(userDataDir, CAREERS_DIR);
 
+  /**
+   * The folder a career is kept in.
+   * @param id The career's id
+   * @returns The folder's path
+   * @throws When the id is no career's, which is what keeps a crafted one from
+   * naming any other folder
+   */
+  const folderFor = (id: string): string => {
+    if (!CAREER_ID_PATTERN.test(id)) throw new AppError('career.notFound');
+
+    return path.join(root, id);
+  };
+
+  // The career open, and the folder it is kept in - both null on the start
+  // screen.
   let current: Career | null = null;
-  try {
-    current = readCareer(JSON.parse(await readFile(file, 'utf8')));
-    if (current === null) {
-      const moved = await quarantine(file);
-      console.warn(`Career file was not one this build reads; ${moved ? `moved to ${moved}` : 'ignoring it'}.`);
-    }
-  } catch (error) {
-    const missing = (error as NodeJS.ErrnoException).code === 'ENOENT';
-    if (!missing) {
-      const moved = await quarantine(file);
-      console.warn(`Career file was unreadable; ${moved ? `moved to ${moved}` : 'ignoring it'}.`, error);
-    }
-  }
+  let dir: string | null = null;
 
-  const listeners = new Set<(career: Career) => void>();
+  const listeners = new Set<(career: Career | null) => void>();
   let timer: NodeJS.Timeout | null = null;
   let pending: Promise<void> = Promise.resolve();
   // Commands run one after another, the way the class store runs its edits.
@@ -176,8 +177,6 @@ export const createCareerStore = async (
   // an event's score landing while a championship is being entered would lose
   // one or the other. Queued, each reads the career when its turn comes.
   let queue: Promise<unknown> = Promise.resolve();
-  // Holds the one in-flight start, so ensure() never runs twice over.
-  let starting: Promise<Career> | null = null;
 
   /**
    * Runs one command once every command before it has finished.
@@ -196,10 +195,13 @@ export const createCareerStore = async (
    * @returns Resolves once it is written or the failure is logged
    */
   const write = async (): Promise<void> => {
-    if (!current) return;
+    if (!current || !dir) return;
 
+    const file = path.join(dir, CAREER_FILE);
+    const tmp = `${file}.tmp`;
     const snapshot = JSON.stringify(current, null, 2);
     try {
+      await mkdir(dir, { recursive: true });
       await writeFile(tmp, snapshot, 'utf8');
       await rename(tmp, file);
     } catch (error) {
@@ -208,12 +210,79 @@ export const createCareerStore = async (
   };
 
   /**
+   * Writes any change still waiting, at once.
+   * @returns Resolves once nothing is left to write
+   */
+  const flushNow = async (): Promise<void> => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      pending = write();
+    }
+    await pending;
+  };
+
+  /**
+   * Points the race store at a career's results, or back at its own.
+   * @param id The career now open, or null for none
+   * @throws When a launch is in flight
+   */
+  const scopeTo = (id: string | null): void => {
+    race.scope(id, id === null ? null : path.join(folderFor(id), CAREER_RESULTS_DIR));
+  };
+
+  /**
+   * Reads one career's file.
+   * @param id The career's id
+   * @returns The career, or null when the file is not one this build reads or
+   * names another career
+   * @throws The file system's error when the file cannot be read at all
+   */
+  const parseFrom = async (id: string): Promise<Career | null> => {
+    const text = await readFile(path.join(folderFor(id), CAREER_FILE), 'utf8');
+    try {
+      const career = readCareer(JSON.parse(text));
+
+      return career?.id === id ? career : null;
+    } catch {
+      return null;
+    }
+  };
+
+  /**
+   * Reads one career off disk.
+   * @param id The career's id
+   * @returns The career
+   * @throws When there is no such career, or it is not one this build reads -
+   * in which case it is set aside rather than half-understood
+   */
+  const readFrom = async (id: string): Promise<Career> => {
+    let career: Career | null;
+    try {
+      career = await parseFrom(id);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new AppError('career.notFound');
+      throw error;
+    }
+    if (!career) {
+      const file = path.join(folderFor(id), CAREER_FILE);
+      const moved = await quarantine(file);
+      console.warn(`Career file was not one this build reads; ${moved ? `moved to ${moved}` : 'ignoring it'}.`);
+      throw new AppError('career.unreadable');
+    }
+
+    return career;
+  };
+
+  /**
    * Schedules a write and tells everyone watching.
    * @returns The career as it now stands
    */
   const settle = (): Career => {
-    const career = current;
-    if (!career) throw new AppError('career.none');
+    if (!current) throw new AppError('career.none');
+    // Played is opened or changed, which every settle is one of.
+    const career: Career = { ...current, playedAt: new Date().toISOString() };
+    current = career;
 
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
@@ -333,53 +402,21 @@ export const createCareerStore = async (
   };
 
   /**
-   * Starts a career, which is what the first thing to want one does.
-   *
-   * A career needs nothing a form could ask for - the driver's name is already
-   * in settings and the season opens at the start of the year - so nothing
-   * refuses to draw until a button is pressed. The clock starts where the
-   * season does, so the whole of it is still ahead.
-   * @returns The career, freshly started
-   */
-  const start = async (): Promise<Career> => {
-    const library = await series.list();
-    const startDate = startOfYear();
-
-    const started: Career = {
-      version: CAREER_VERSION,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      startDate,
-      date: startDate,
-      level: startingLevels(library.series),
-      seasons: [openSeason(0, startDate)],
-    };
-    const first = currentSeason(started);
-    current = first
-      ? withSeason(started, issueForecasts(started, await drawHistoric(started, first, startDate), startDate))
-      : started;
-
-    return settle();
-  };
-
-  /**
-   * The career as it stands, started first if it has not been.
+   * The open career.
    * @returns The career
+   * @throws When none is open
    */
   const ensure = async (): Promise<Career> => {
     if (current) return current;
-    // Latched rather than awaited afresh: reading the calendar starts a career
-    // and is deliberately not queued, so two screens asking at once would
-    // otherwise each start one and the second would throw the first away.
-    starting ??= start();
 
-    return starting;
+    throw new AppError('career.none');
   };
 
   /**
-   * The season a command works on, started first if there is no career yet.
+   * The season a command works on.
    * @returns The career and its current season
-   * @throws When the career somehow has no season, which nothing can reach
+   * @throws When no career is open, or it somehow has no season, which nothing
+   * can reach
    */
   const seasonNow = async (): Promise<{ career: Career; season: CareerSeason }> => {
     const career = await ensure();
@@ -417,7 +454,7 @@ export const createCareerStore = async (
    * @param request.season Which season, when it names one
    * @param request.edition Which edition, when it names one
    * @returns The career, the season, the library's championship and the edition
-   * @throws When the career has no such season
+   * @throws When no career is open, or it has no such season
    */
   const runAsked = async (request: { series: string; season?: number; edition?: number }) => {
     const career = await ensure();
@@ -450,7 +487,22 @@ export const createCareerStore = async (
     request: Parameters<SeriesStore['lowerRound']>[1],
     raceId: string,
     step: number,
-  ): Promise<RaceDefinition> => ({ ...await series.lowerRound(championship, request, step), id: raceId });
+  ): Promise<RaceDefinition> => {
+    const lowered = await series.lowerRound(championship, request, step);
+    // The career's own driver, rather than the default one settings names.
+    const driver = current?.driver;
+    const nation = driver?.nation ?? null;
+
+    return {
+      ...lowered,
+      id: raceId,
+      playerCar: {
+        ...lowered.playerCar,
+        ...(driver ? { driver: driver.name } : {}),
+        ...(nation ? { nationCode: nation, nationality: nationName(nation) } : {}),
+      },
+    };
+  };
 
   /**
    * Replaces one season entry, and the season around it, in the career.
@@ -570,6 +622,9 @@ export const createCareerStore = async (
     const { plan, state } = setup;
     if (!current || !plan || !state) return;
     if (setup.status.phase !== 'idle') return;
+    // Two careers can race a round under the same id, so only an event this
+    // career put in the slot is its own.
+    if (setup.owner !== current.id) return;
 
     const season = currentSeason(current);
     const held = season && scheduledHeld(season, plan.raceId);
@@ -608,16 +663,6 @@ export const createCareerStore = async (
     settle();
   };
 
-  // A career saved before missed rounds were simulated, or one whose clock was
-  // moved while this build was not running, is brought up to date on load.
-  if (current) {
-    const caught = await simulateMissed(current);
-    if (caught !== current) {
-      current = caught;
-      settle();
-    }
-  }
-
   race.onChange((setup) => {
     // Queued with the commands rather than run alongside them: adopting reads
     // archives off disk before it writes, and a championship entered meanwhile
@@ -640,15 +685,126 @@ export const createCareerStore = async (
     )),
   ));
 
+  /**
+   * Every career on disk, played most recently first.
+   * @returns Their summaries
+   */
+  const list = async (): Promise<CareerSummary[]> => {
+    const names = (await readdir(root).catch(() => [] as string[])).filter((name) => CAREER_ID_PATTERN.test(name));
+    const read = await Promise.all(names.map(async (name): Promise<CareerSummary | null> => {
+      // The open one is read from memory, which is ahead of its file.
+      if (current?.id === name) return summarise(current);
+
+      try {
+        const career = await parseFrom(name);
+        if (career) return summarise(career);
+        console.warn(`Career ${name} is not one this build reads; leaving it out.`);
+      } catch (error) {
+        console.warn(`Could not read career ${name}; leaving it out.`, error);
+      }
+
+      return null;
+    }));
+    // One just started may not be written yet.
+    if (current && !names.includes(current.id)) read.push(summarise(current));
+
+    return read
+      .filter((one): one is CareerSummary => one !== null)
+      .sort((left, right) => right.playedAt.localeCompare(left.playedAt));
+  };
+
   return {
     get: () => current,
+
+    list,
+
+    create: (request) => commit(async () => {
+      const {
+        driver, year, level, money,
+      } = checkedNewCareer(request);
+      const id = crypto.randomUUID();
+      const now = new Date().toISOString();
+      const startDate = `${year}-01-01`;
+      const started: Career = {
+        version: CAREER_VERSION,
+        id,
+        createdAt: now,
+        playedAt: now,
+        driver,
+        money,
+        rating: ratingsAt(level),
+        startDate,
+        date: startDate,
+        level: levelsAt(level),
+        seasons: [openSeason(0, startDate)],
+      };
+
+      // Drawn before anything changes, so a draw that fails leaves the career
+      // open before as it was.
+      const first = currentSeason(started);
+      const ready = first
+        ? withSeason(started, issueForecasts(started, await drawHistoric(started, first, startDate), startDate))
+        : started;
+      // Scoped next, which refuses while a launch is out.
+      scopeTo(id);
+      await flushNow();
+      current = ready;
+      dir = folderFor(id);
+
+      return settle();
+    }),
+
+    open: (id) => commit(async () => {
+      // Written first, so reopening the career open reads what it holds now.
+      await flushNow();
+      const career = await readFrom(id);
+      scopeTo(id);
+      await flushNow();
+      current = career;
+      dir = folderFor(id);
+      // One whose clock passed rounds it had given up on while this build was
+      // not running is brought up to date as it opens.
+      await catchUp();
+
+      return settle();
+    }),
+
+    close: () => commit(async () => {
+      scopeTo(null);
+      await flushNow();
+      current = null;
+      dir = null;
+      for (const listener of listeners) listener(null);
+    }),
+
+    remove: (id) => commit(async () => {
+      if (current?.id === id) throw new AppError('career.open');
+
+      try {
+        await rm(folderFor(id), { recursive: true });
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new AppError('career.notFound');
+        throw error;
+      }
+
+      return list();
+    }),
+
+    folderOf: async (id) => folderFor(id),
+
+    setDriver: (driver) => commit(async () => {
+      const career = await ensure();
+      current = { ...career, driver: checkedDriver(driver) };
+
+      return settle();
+    }),
 
     async calendar(index) {
       const loaded = await ensure();
       // Queued, since it can write: a season not drawn yet is drawn on read. A
       // season drawn already reads straight through, as calendar reads do.
       if (!currentSeason(loaded)?.historicDrawn) await commit(drawPending);
-      const career = current ?? await ensure();
+      const career = await ensure();
       const at = index ?? (currentSeason(career)?.index ?? 0);
       const held = career.seasons.find((one) => one.index === at);
       if (!held) throw new AppError('career.season.notFound', { season: at });
@@ -1054,10 +1210,8 @@ export const createCareerStore = async (
         field: held.entry.field,
       }, event.raceId, strengthStep(held));
       const setup = await race.get();
-      await race.load(
-        slotHolds(setup, event.raceId, event.sessions.length) ? withLevelsOf(setup.definition, fresh) : fresh,
-        event.sessions,
-      );
+      const carriedOn = slotHolds(setup, event.raceId, event.sessions.length, career.id);
+      await race.load(carriedOn ? withLevelsOf(setup.definition, fresh) : fresh, event.sessions);
       const launched = await race.launch({ scale: request.scale });
 
       // Kept only once the launch is away, so one that fails to start costs the
@@ -1071,14 +1225,7 @@ export const createCareerStore = async (
       return launched;
     }),
 
-    async flush() {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-        pending = write();
-      }
-      await pending;
-    },
+    flush: flushNow,
 
     onChange(listener) {
       listeners.add(listener);

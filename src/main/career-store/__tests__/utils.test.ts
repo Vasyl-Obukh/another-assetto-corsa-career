@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
+import { MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
 import {
   Climate, Discipline, Hemisphere, SeasonLength, Weekday,
 } from '../../../shared/types/index.ts';
@@ -19,7 +20,9 @@ import {
   advanceSkips,
   advanceStop,
   calendarEntry,
+  checkedDriver,
   checkEdition,
+  checkedNewCareer,
   clockTime,
   closeSeason,
   composeCalendar,
@@ -47,6 +50,7 @@ import {
   simulatedEvent,
   skippedRound,
   strengthStep,
+  summarise,
   withSeason,
 } from '../utils.ts';
 import {
@@ -205,6 +209,175 @@ describe('main/career-store/utils', () => {
       expect(readCareer(makeCareer({
         seasons: [makeSeason({ entries: [entry as SeasonEntry] })],
       }))).toBeNull();
+    });
+
+    it('refuses a career missing its driver, money, rating or when it was last played', () => {
+      expect(readCareer({ ...wholeCareer(), driver: undefined })).toBeNull();
+      expect(readCareer({ ...wholeCareer(), driver: { nation: 'GBR' } })).toBeNull();
+      expect(readCareer({ ...wholeCareer(), money: '100000' })).toBeNull();
+      expect(readCareer({ ...wholeCareer(), rating: null })).toBeNull();
+      expect(readCareer({ ...wholeCareer(), playedAt: undefined })).toBeNull();
+    });
+  });
+
+  describe('checkedDriver', () => {
+    it('trims the name and keeps the nation', () => {
+      expect(checkedDriver({ name: '  Oksana Melnyk ', nation: 'UKR' })).toEqual({ name: 'Oksana Melnyk', nation: 'UKR' });
+    });
+
+    it('lets a driver race under no flag', () => {
+      expect(checkedDriver({ name: 'Eterry', nation: null })).toEqual({ name: 'Eterry', nation: null });
+    });
+
+    it('refuses a driver with no name', () => {
+      expect(() => checkedDriver({ name: '   ', nation: null }))
+        .toThrow(expect.objectContaining({ code: 'career.driver.unnamed' }));
+      expect(() => checkedDriver({ name: 7 as unknown as string, nation: null }))
+        .toThrow(expect.objectContaining({ code: 'career.driver.unnamed' }));
+    });
+
+    it('refuses a nation Assetto Corsa has no flag for', () => {
+      expect(() => checkedDriver({ name: 'Eterry', nation: 'XYZ' }))
+        .toThrow(expect.objectContaining({ code: 'career.driver.nation' }));
+    });
+  });
+
+  describe('checkedNewCareer', () => {
+    const request = {
+      driver: { name: ' Eterry ', nation: 'GBR' }, year: 2027, level: 4, money: 100_000,
+    };
+
+    it('passes a request a career can start from, its driver tidied', () => {
+      expect(checkedNewCareer(request)).toEqual({ ...request, driver: { name: 'Eterry', nation: 'GBR' } });
+    });
+
+    it('refuses a year outside the range a season may open in', () => {
+      for (const year of [MIN_START_YEAR - 1, MAX_START_YEAR + 1, 2027.5]) {
+        expect(() => checkedNewCareer({ ...request, year }))
+          .toThrow(expect.objectContaining({ code: 'career.year.invalid' }));
+      }
+    });
+
+    it('accepts the first and last years a season may open in', () => {
+      expect(checkedNewCareer({ ...request, year: MIN_START_YEAR }).year).toBe(MIN_START_YEAR);
+      expect(checkedNewCareer({ ...request, year: MAX_START_YEAR }).year).toBe(MAX_START_YEAR);
+    });
+
+    it('refuses a level that is no rung of the ladder', () => {
+      for (const level of [0, -1, 2.5]) {
+        expect(() => checkedNewCareer({ ...request, level }))
+          .toThrow(expect.objectContaining({ code: 'career.level.invalid' }));
+      }
+    });
+
+    it('refuses money that is negative or not a number', () => {
+      for (const money of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(() => checkedNewCareer({ ...request, money }))
+          .toThrow(expect.objectContaining({ code: 'career.money.invalid' }));
+      }
+    });
+
+    it('checks the driver too', () => {
+      expect(() => checkedNewCareer({ ...request, driver: { name: '', nation: null } }))
+        .toThrow(expect.objectContaining({ code: 'career.driver.unnamed' }));
+    });
+  });
+
+  describe('summarise', () => {
+    it('says who races it, where its clock stands and how many seasons it has run', () => {
+      const career = makeCareer({
+        date: '2027-05-02',
+        seasons: [makeSeason(), makeSeason({ index: 1, startDate: '2027-01-01', endDate: '2027-12-31' })],
+      });
+
+      expect(summarise(career)).toMatchObject({
+        id: career.id, driver: career.driver, year: 2027, date: '2027-05-02', playedAt: career.playedAt, seasons: 2,
+      });
+    });
+
+    it('names the earliest event still to come as next, and pictures its track', () => {
+      const career = makeCareer({
+        date: '2026-03-10',
+        seasons: [makeSeason({
+          entries: [makeEntry({
+            events: [
+              makeEvent('one', '2026-03-01', { status: 'raced' }),
+              makeEvent('two', '2026-04-05'),
+            ],
+          })],
+        })],
+      });
+
+      expect(summarise(career)).toMatchObject({
+        next: {
+          seriesName: 'Test Cup', roundName: 'Round two', track: { id: 'track_two' }, date: '2026-04-05', historic: false,
+        },
+        track: { id: 'track_two' },
+      });
+    });
+
+    it('says when the next event is a historic one', () => {
+      const career = makeCareer({
+        seasons: [makeSeason({ entries: [makeEntry({ historic: true, events: [makeEvent('one', '2026-03-01')] })] })],
+      });
+
+      expect(summarise(career).next?.historic).toBe(true);
+    });
+
+    it('pictures the last round raced once nothing is left to come', () => {
+      const career = makeCareer({
+        date: '2026-11-01',
+        seasons: [makeSeason({
+          entries: [makeEntry({
+            events: [
+              makeEvent('one', '2026-03-01', { status: 'raced' }),
+              makeEvent('two', '2026-04-05', { status: 'raced' }),
+            ],
+          })],
+        })],
+      });
+
+      expect(summarise(career)).toMatchObject({ next: null, track: { id: 'track_two' } });
+    });
+
+    it('passes over an event behind the clock and a championship pulled out of', () => {
+      const career = makeCareer({
+        date: '2026-03-10',
+        seasons: [makeSeason({
+          entries: [
+            makeEntry({ events: [makeEvent('one', '2026-03-01')] }),
+            makeEntry({ series: 'other-cup', withdrawn: true, events: [makeEvent('two', '2026-03-15')] }),
+          ],
+        })],
+      });
+
+      expect(summarise(career)).toMatchObject({ next: null, track: null });
+    });
+
+    it('lists the championships entered this season at the rung entered, without historic events', () => {
+      const career = makeCareer({
+        seasons: [makeSeason({
+          entries: [
+            makeEntry(),
+            makeEntry({ series: 'old-race', historic: true }),
+            makeEntry({ series: 'gone-cup', withdrawn: true }),
+          ],
+        })],
+      });
+
+      expect(summarise(career).championships).toEqual([
+        { series: 'test-cup', name: 'Test Cup', ladder: { discipline: Discipline.ROAD, tier: 4 } },
+      ]);
+    });
+
+    // A half-year championship is two entries of one season, and was listed
+    // twice before.
+    it('lists a championship once however many of its editions were entered', () => {
+      const career = makeCareer({
+        seasons: [makeSeason({ entries: [makeEntry({ edition: 0 }), makeEntry({ edition: 1 })] })],
+      });
+
+      expect(summarise(career).championships.map((one) => one.series)).toEqual(['test-cup']);
     });
   });
 

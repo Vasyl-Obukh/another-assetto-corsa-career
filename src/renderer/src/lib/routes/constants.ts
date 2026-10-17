@@ -17,6 +17,9 @@ import type { NavEntry, RouteId } from './types.ts';
  * router has nothing to resolve against there.
  */
 export const ROUTE = {
+  start: '/',
+  careers: '/careers',
+  careerNew: '/careers/new',
   home: '/home',
   race: '/race',
   raceEvent: '/race/:id',
@@ -34,6 +37,7 @@ export const ROUTE = {
   tracks: '/tracks',
   track: '/tracks/:id',
   settings: '/settings',
+  settingsCareer: '/settings/career',
   diagnostics: '/settings/diagnostics',
   settingsContent: '/settings/content',
   settingsClasses: '/settings/classes',
@@ -72,24 +76,31 @@ export const RUN_PARAM = {
 export const DETAIL_TAB_PARAM = 'tab';
 
 /**
- * The destinations navigation offers, in the order they are shown.
+ * The destinations a career's navigation offers, in the order they are shown.
  *
  * Only the label lives here. Icons stay with the component that draws them,
  * which is what keeps this module free of React.
  *
- * When the browsers demote out of primary nav into a content area, a `section`
- * field on each entry is where that split belongs.
- *
  * Results and History are deliberately not here: both are reached from Home,
- * and live under its path so Home stays lit while either is open.
+ * and live under its path so Home stays lit while either is open. Settings
+ * opens on the career's own, and stays lit on the app's.
  */
-export const NAV = [
+export const CAREER_NAV = [
   { id: 'home', label: 'nav.home' },
-  { id: 'race', label: 'nav.race' },
   { id: 'calendar', label: 'nav.calendar' },
   { id: 'championships', label: 'nav.championships' },
   { id: 'cars', label: 'nav.cars' },
   { id: 'tracks', label: 'nav.tracks' },
+  { id: 'settings', label: 'nav.settings', to: 'settingsCareer' },
+] as const satisfies readonly NavEntry[];
+
+/**
+ * The destinations quick race mode's navigation offers. Cars and tracks are
+ * picked inside a race, so neither has a tab of its own here.
+ */
+export const QUICK_NAV = [
+  { id: 'race', label: 'nav.races' },
+  { id: 'results', label: 'nav.results' },
   { id: 'settings', label: 'nav.settings' },
 ] as const satisfies readonly NavEntry[];
 
@@ -100,6 +111,9 @@ export const NAV = [
  * stand-in.
  */
 export const BACK_LABEL = {
+  start: 'back.start',
+  careers: 'back.careers',
+  careerNew: 'back.careerNew',
   home: 'back.home',
   race: 'back.race',
   raceEvent: 'back.raceEvent',
@@ -117,6 +131,7 @@ export const BACK_LABEL = {
   tracks: 'back.tracks',
   track: 'back.track',
   settings: 'back.settings',
+  settingsCareer: 'back.settings',
   diagnostics: 'back.diagnostics',
   settingsContent: 'back.settingsContent',
   settingsClasses: 'back.settingsClasses',

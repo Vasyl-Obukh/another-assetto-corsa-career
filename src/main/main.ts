@@ -132,13 +132,18 @@ if (!app.requestSingleInstanceLock()) {
       }
     });
 
-    app.on('before-quit', () => {
-      void settings.flush();
-      void content.flush();
-      void race.flush();
-      void career.flush();
-      void quick.flush();
+    // Quitting waits for every store's pending write, which the process
+    // would otherwise outrun.
+    let flushed = false;
+    app.on('before-quit', (event) => {
+      if (flushed) return;
+      event.preventDefault();
       content.dispose();
+      void Promise.allSettled([settings.flush(), content.flush(), race.flush(), career.flush(), quick.flush()])
+        .then(() => {
+          flushed = true;
+          app.quit();
+        });
     });
   }, (error: unknown) => {
     console.error('Failed to start.', error);

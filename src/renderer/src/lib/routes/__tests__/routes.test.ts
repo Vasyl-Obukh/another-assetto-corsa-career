@@ -108,6 +108,16 @@ describe('renderer/lib/routes/routes', () => {
       expect(Object.keys(path).sort()).toEqual((Object.keys(ROUTE) as RouteId[]).sort());
     });
 
+    it('builds the start screen at the root, with Careers and New career beside it', () => {
+      expect(path.start()).toBe('/');
+      expect(path.careers()).toBe('/careers');
+      expect(path.careerNew()).toBe('/careers/new');
+    });
+
+    it('puts a career\'s own settings under settings', () => {
+      expect(path.settingsCareer()).toBe(`${ROUTE.settings}/career`);
+    });
+
     it('builds the home page and one race event of the player\'s own', () => {
       expect(path.home()).toBe(ROUTE.home);
       expect(path.raceEvent({ id: 'abc' })).toBe('/race/abc');
@@ -214,6 +224,17 @@ describe('renderer/lib/routes/routes', () => {
       expect(routeOf('/settings/historic')).toBe('settingsHistoric');
     });
 
+    it('tells the start screen, Careers and New career apart', () => {
+      expect(routeOf('/')).toBe('start');
+      expect(routeOf('/careers')).toBe('careers');
+      expect(routeOf('/careers/new')).toBe('careerNew');
+    });
+
+    it('reads a career\'s own settings as a page of its own rather than the app\'s', () => {
+      expect(routeOf('/settings/career')).toBe('settingsCareer');
+      expect(routeOf('/settings')).toBe('settings');
+    });
+
     it('finds nothing for a path no route matches', () => {
       expect(routeOf('/nowhere/at/all')).toBeNull();
     });
@@ -230,9 +251,19 @@ describe('renderer/lib/routes/routes', () => {
       expect(sectionOf({ section: 'settings' })).toBe('settings');
     });
 
+    it('reads a section only quick race mode\'s navigation offers', () => {
+      expect(sectionOf({ section: 'race' })).toBe('race');
+      expect(sectionOf({ section: 'results' })).toBe('results');
+    });
+
+    it('reads a section only a career\'s navigation offers', () => {
+      expect(sectionOf({ section: 'calendar' })).toBe('calendar');
+      expect(sectionOf({ section: 'cars' })).toBe('cars');
+    });
+
     it('reads nothing from state that names no section navigation offers', () => {
       expect(sectionOf({ section: 'car' })).toBeNull();
-      expect(sectionOf({ section: 'results' })).toBeNull();
+      expect(sectionOf({ section: 'history' })).toBeNull();
       expect(sectionOf({ other: true })).toBeNull();
       expect(sectionOf(null)).toBeNull();
       expect(sectionOf('settings')).toBeNull();

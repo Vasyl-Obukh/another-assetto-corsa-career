@@ -9,6 +9,7 @@ import {
   byDiscipline, layoutShortName, longestFirst, racingOn,
 } from './utils.ts';
 import type { Discipline, Track, TrackGroup } from '../../../../shared/types';
+import { useSlot } from '@/app';
 import { DetailPanel } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -51,6 +52,11 @@ export const TrackChampionships = ({
   circuit, layout, championships, entered, onChoose,
 }: TrackChampionshipsProps) => {
   const { t } = useTranslation();
+  const { mode } = useSlot();
+  // Outside a career only the library's own page is routed.
+  const championshipPath = (id: string): string => (
+    mode === 'career' ? path.championship({ id }) : path.settingsChampionship({ id })
+  );
   const { formatNumber } = useFormat();
   const [open, setOpen] = useState<ReadonlySet<Discipline>>(new Set());
 
@@ -129,7 +135,7 @@ export const TrackChampionships = ({
               return (
                 <Link
                   key={championship.id}
-                  to={path.championship({ id: championship.id })}
+                  to={championshipPath(championship.id)}
                   className={cn(
                     'group grid grid-cols-[4px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-lg border bg-card',
                     'hover-outline py-2.5 pr-2.5 pl-3 shadow-xs',

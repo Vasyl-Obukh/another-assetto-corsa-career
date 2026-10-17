@@ -131,14 +131,29 @@ export const makeSeason = (over: Partial<CareerSeason> = {}): CareerSeason => ({
 });
 
 /**
+ * The id every career a test builds carries - a UUID, as a career's folder is
+ * named by one.
+ */
+export const CAREER_ID = '00000000-0000-4000-8000-000000000001';
+
+/**
  * Builds a career whose clock stands on its opening day.
  * @param over Whatever the test wants said differently
  * @returns The career
  */
 export const makeCareer = (over: Partial<Career> = {}): Career => ({
   version: CAREER_VERSION,
-  id: 'career-1',
+  id: CAREER_ID,
   createdAt: '2026-01-04T00:00:00.000Z',
+  playedAt: '2026-01-04T00:00:00.000Z',
+  driver: { name: 'Test Driver', nation: 'GBR' },
+  money: 100_000,
+  rating: {
+    [Discipline.SINGLE_SEATER]: 1200,
+    [Discipline.SPORTSCAR]: 1200,
+    [Discipline.TOURING]: 1200,
+    [Discipline.ROAD]: 1200,
+  },
   startDate: '2026-01-04',
   date: '2026-01-04',
   level: {

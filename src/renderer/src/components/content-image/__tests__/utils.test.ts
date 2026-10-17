@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { carBadgeUrl, carLiveryUrl, carSkinUrl } from '../../../../../shared/utils/content-url';
-import { carPictureSources, carSwatchSources } from '../utils.ts';
+import {
+  carBadgeUrl, carLiveryUrl, carSkinUrl, trackPhotoUrl, trackPreviewUrl,
+} from '../../../../../shared/utils/content-url';
+import { carPictureSources, carSwatchSources, trackPictureSources } from '../utils.ts';
 
 describe('renderer/components/content-image/utils', () => {
   describe('carPictureSources', () => {
@@ -47,6 +49,27 @@ describe('renderer/components/content-image/utils', () => {
 
     it('asks for nothing for a car folder the URL grammar refuses', () => {
       expect(carSwatchSources('a/b')).toEqual([]);
+    });
+  });
+
+  describe('trackPictureSources', () => {
+    it('tries the first loading-screen photograph before the preview', () => {
+      expect(trackPictureSources({ id: 'ks_silverstone', layout: 'gp' })).toEqual([
+        trackPhotoUrl('ks_silverstone', 'gp', 'bgr00'),
+        trackPreviewUrl('ks_silverstone', 'gp'),
+      ]);
+    });
+
+    it('asks a circuit with no layouts for its own pictures', () => {
+      expect(trackPictureSources({ id: 'magione' })).toEqual([
+        trackPhotoUrl('magione', '', 'bgr00'),
+        trackPreviewUrl('magione', ''),
+      ]);
+    });
+
+    it('asks for nothing for a circuit or layout the URL grammar refuses', () => {
+      expect(trackPictureSources({ id: '../etc', layout: 'gp' })).toEqual([]);
+      expect(trackPictureSources({ id: 'ks_silverstone', layout: '..' })).toEqual([]);
     });
   });
 });

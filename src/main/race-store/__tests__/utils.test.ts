@@ -269,27 +269,28 @@ describe('main/race-store/utils', () => {
      */
     const holding = (id: string, completed: number | null): RaceSetup => ({
       definition: { id },
+      owner: null,
       state: completed === null ? null : { completed: Array.from({ length: completed }) },
     }) as unknown as RaceSetup;
 
     it('carries on when the slot holds the event exactly as far as it has run', () => {
-      expect(slotHolds(holding('lotus-cup/monza', 2), 'lotus-cup/monza', 2)).toBe(true);
+      expect(slotHolds(holding('lotus-cup/monza', 2), 'lotus-cup/monza', 2, null)).toBe(true);
     });
 
     it('puts the event back when the slot holds another race', () => {
-      expect(slotHolds(holding('quick/race', 2), 'lotus-cup/monza', 2)).toBe(false);
+      expect(slotHolds(holding('quick/race', 2), 'lotus-cup/monza', 2, null)).toBe(false);
     });
 
     it('puts the event back when the slot holds it at another point', () => {
-      expect(slotHolds(holding('lotus-cup/monza', 1), 'lotus-cup/monza', 2)).toBe(false);
-      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 2)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', 1), 'lotus-cup/monza', 2, null)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 2, null)).toBe(false);
     });
 
     // Whatever set the slot up may since have been edited or had its forecast
     // issued, so the first launch always races what the event says now.
     it('always puts an event back before its first launch', () => {
-      expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0)).toBe(false);
-      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', 0), 'lotus-cup/monza', 0, null)).toBe(false);
+      expect(slotHolds(holding('lotus-cup/monza', null), 'lotus-cup/monza', 0, null)).toBe(false);
     });
   });
 

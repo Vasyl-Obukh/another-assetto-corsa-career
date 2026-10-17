@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 
-import { useSettings } from './utils.ts';
+import { useSettings, useSlot } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
@@ -10,6 +10,7 @@ import { Calendar } from '@/screens/calendar';
 import { CarBrowser } from '@/screens/car-browser';
 import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
+import { Careers } from '@/screens/careers';
 import { ChampionshipEditor } from '@/screens/championship-editor';
 import { ChampionshipLibrary } from '@/screens/championship-library';
 import { ChampionshipReview } from '@/screens/championship-review';
@@ -21,10 +22,12 @@ import { HistoricDetail } from '@/screens/historic-detail';
 import { HistoricLibrary } from '@/screens/historic-library';
 import { History } from '@/screens/history';
 import { Home } from '@/screens/home';
+import { NewCareer } from '@/screens/new-career';
 import { Race, RaceEvent } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
-import { Settings, SettingsLayout } from '@/screens/settings';
+import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
+import { Start } from '@/screens/start';
 import { TrackBrowser } from '@/screens/track-browser';
 import { TrackDetail } from '@/screens/track-detail';
 import { YearReview } from '@/screens/year-review';
@@ -39,10 +42,53 @@ interface AppProps {
 
 export const App = ({ initialReport }: AppProps) => {
   const { settings } = useSettings();
+  const { mode } = useSlot();
   // Keeps the window's history for every Back to name the page it returns to.
   useNavHistory();
 
-  return settings.setupCompletedAt ? (
+  if (!settings.setupCompletedAt) return <Setup initialReport={initialReport} />;
+
+  // Settings, the library they manage and the pages those open are the same
+  // in every mode.
+  const shared = [
+    <Route key="settings" path={ROUTE.settings} element={<SettingsLayout />}>
+      <Route index element={<Settings />} />
+      {mode === 'career' ? <Route path={ROUTE.settingsCareer} element={<CareerSettings />} /> : null}
+      <Route path={ROUTE.diagnostics} element={<Diagnostics initialReport={initialReport} />} />
+      <Route path={ROUTE.settingsContent} element={<YourContent />} />
+      <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
+      <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
+      <Route path={ROUTE.settingsSources} element={<ContentSources />} />
+      <Route path={ROUTE.settingsHistoric} element={<HistoricLibrary />} />
+    </Route>,
+    <Route key="settingsChampionship" path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />,
+    <Route key="championshipNew" path={ROUTE.championshipNew} element={<ChampionshipEditor />} />,
+    <Route key="championshipEdit" path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />,
+    <Route key="historicEvent" path={ROUTE.settingsHistoricEvent} element={<HistoricDetail />} />,
+    <Route key="historicNew" path={ROUTE.historicNew} element={<ChampionshipEditor kind="historic" />} />,
+    <Route key="historicEdit" path={ROUTE.historicEdit} element={<ChampionshipEditor kind="historic" />} />,
+    // Your content opens a car or a circuit the library does not hold yet.
+    <Route key="car" path={ROUTE.car} element={<CarDetail />} />,
+    <Route key="track" path={ROUTE.track} element={<TrackDetail />} />,
+  ];
+
+  if (mode === 'start') {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <main className="h-full overflow-hidden">
+          <Routes>
+            <Route path={ROUTE.start} element={<Start initialReport={initialReport} />} />
+            <Route path={ROUTE.careers} element={<Careers />} />
+            <Route path={ROUTE.careerNew} element={<NewCareer />} />
+            {shared}
+            <Route path="*" element={<Navigate to={path.start()} replace />} />
+          </Routes>
+        </main>
+      </TooltipProvider>
+    );
+  }
+
+  return (
     // One provider for the app: Radix wants a Provider above every Tooltip, and
     // its delay is a property of the app rather than of whatever is hovered.
     <TooltipProvider delayDuration={300}>
@@ -50,45 +96,35 @@ export const App = ({ initialReport }: AppProps) => {
         <AppHeader />
 
         <main className="min-h-0 flex-1">
-          <Routes>
-            <Route path={ROUTE.home} element={<Home />} />
-            <Route path={ROUTE.race} element={<Race />} />
-            <Route path={ROUTE.raceEvent} element={<RaceEvent />} />
-            <Route path={ROUTE.calendar} element={<Calendar />} />
-            <Route path={ROUTE.event} element={<Event />} />
-            <Route path={ROUTE.championships} element={<Championships />} />
-            <Route path={ROUTE.championship} element={<ChampionshipDetail />} />
-            <Route path={ROUTE.results} element={<Results />} />
-            <Route path={ROUTE.result} element={<ResultDetail />} />
-            <Route path={ROUTE.history} element={<History />} />
-            <Route path={ROUTE.yearReview} element={<YearReview />} />
-            <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
-            <Route path={ROUTE.cars} element={<CarBrowser />} />
-            <Route path={ROUTE.car} element={<CarDetail />} />
-            <Route path={ROUTE.tracks} element={<TrackBrowser />} />
-            <Route path={ROUTE.track} element={<TrackDetail />} />
-            <Route path={ROUTE.settings} element={<SettingsLayout />}>
-              <Route index element={<Settings />} />
-              <Route
-                path={ROUTE.diagnostics}
-                element={<Diagnostics initialReport={initialReport} />}
-              />
-              <Route path={ROUTE.settingsContent} element={<YourContent />} />
-              <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
-              <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
-              <Route path={ROUTE.settingsSources} element={<ContentSources />} />
-              <Route path={ROUTE.settingsHistoric} element={<HistoricLibrary />} />
-            </Route>
-            <Route path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />
-            <Route path={ROUTE.championshipNew} element={<ChampionshipEditor />} />
-            <Route path={ROUTE.championshipEdit} element={<ChampionshipEditor />} />
-            <Route path={ROUTE.settingsHistoricEvent} element={<HistoricDetail />} />
-            <Route path={ROUTE.historicNew} element={<ChampionshipEditor kind="historic" />} />
-            <Route path={ROUTE.historicEdit} element={<ChampionshipEditor kind="historic" />} />
-            <Route path="*" element={<Navigate to={path.home()} replace />} />
-          </Routes>
+          {mode === 'quick' ? (
+            <Routes>
+              <Route path={ROUTE.race} element={<Race />} />
+              <Route path={ROUTE.raceEvent} element={<RaceEvent />} />
+              <Route path={ROUTE.results} element={<Results />} />
+              <Route path={ROUTE.result} element={<ResultDetail />} />
+              {shared}
+              <Route path="*" element={<Navigate to={path.race()} replace />} />
+            </Routes>
+          ) : (
+            <Routes>
+              <Route path={ROUTE.home} element={<Home />} />
+              <Route path={ROUTE.calendar} element={<Calendar />} />
+              <Route path={ROUTE.event} element={<Event />} />
+              <Route path={ROUTE.championships} element={<Championships />} />
+              <Route path={ROUTE.championship} element={<ChampionshipDetail />} />
+              <Route path={ROUTE.results} element={<Results />} />
+              <Route path={ROUTE.result} element={<ResultDetail />} />
+              <Route path={ROUTE.history} element={<History />} />
+              <Route path={ROUTE.yearReview} element={<YearReview />} />
+              <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
+              <Route path={ROUTE.cars} element={<CarBrowser />} />
+              <Route path={ROUTE.tracks} element={<TrackBrowser />} />
+              {shared}
+              <Route path="*" element={<Navigate to={path.home()} replace />} />
+            </Routes>
+          )}
         </main>
       </div>
     </TooltipProvider>
-  ) : <Setup initialReport={initialReport} />;
+  );
 };

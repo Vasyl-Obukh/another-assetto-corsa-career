@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "Assetto Corsa Career",
-    "subtitle": "Championships you actually drive",
     "backToTop": "Back to top"
   },
   "nav": {
@@ -11,7 +10,9 @@
     "championships": "Championships",
     "cars": "Cars",
     "tracks": "Tracks",
-    "settings": "Settings"
+    "settings": "Settings",
+    "races": "Races",
+    "results": "Results"
   },
   "paths": {
     "title": "Where things are",
@@ -176,8 +177,8 @@
       "winter": "Snow and sleet",
       "effects": "Other"
     },
-    "driver": "Driver",
-    "driverHint": "Who you are on the timing screen. This belongs to you rather than to a race, so it is set once here and used by every session you launch.",
+    "driver": "Default driver",
+    "driverHint": "Fills in a new career, and is who you race as in quick races. A career has a driver of its own, set in its own settings.",
     "driverName": "Your name",
     "driverNamePlaceholder": "Player",
     "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks.",
@@ -234,7 +235,17 @@
       "nextSeason": "Takes effect from next season - this season's historic events stay as they were drawn.",
       "weekly": "Advancing stops at each one. You're invited to every historic event, so weekly means the clock stops every week unless you decline.",
       "pool": "Choose which events can be drawn"
-    }
+    },
+    "driverNation": "Nation",
+    "scope": {
+      "label": "Whose settings",
+      "career": "{{driver}}'s career",
+      "app": "App",
+      "careerNote": "Only this career",
+      "appNote": "Every career and quick race"
+    },
+    "careerDriver": "Driver",
+    "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is."
   },
   "carClasses": {
     "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them. Open a spec to see its cars and put any installed car in it.",
@@ -332,7 +343,7 @@
     }
   },
   "race": {
-    "title": "Race",
+    "title": "Races",
     "subtitle": "Race events of your own, outside any championship.",
     "track": {
       "label": "Track",
@@ -2134,7 +2145,10 @@
     "settingsHistoric": "Settings · Historic events",
     "historicEvent": "Historic event",
     "historicNew": "New historic event",
-    "historicEdit": "Historic event editor"
+    "historicEdit": "Historic event editor",
+    "start": "Main menu",
+    "careers": "Careers",
+    "careerNew": "New career"
   },
   "standings": {
     "title": "Standings",
@@ -2397,6 +2411,103 @@
           "hint": "What the event allows and how it is policed. Your own aids are in Settings and are not shown here."
         }
       }
+    }
+  },
+  "slot": {
+    "careerLine": "Career · {{day}} {{year}}",
+    "quick": "Quick race",
+    "mainMenu": "Main menu",
+    "exit": "Exit",
+    "failed": "That could not be done",
+    "understood": "OK"
+  },
+  "start": {
+    "mode": {
+      "career": "Career",
+      "quick": "Quick race",
+      "championship": "Championship"
+    },
+    "career": {
+      "title": "Career",
+      "description": "Start on a rung of the ladder and climb it, season after season, as many championships at once as the calendar allows.",
+      "line": "{{driver}} · Season {{year}}",
+      "next": "{{day}} · next: {{round}}, {{date}}",
+      "nothingNext": "{{day}} · nothing entered still to run"
+    },
+    "quick": {
+      "title": "Quick race",
+      "description": "Set an event up and drive it - a field of any cars, at any track, with whatever sessions you like.",
+      "count_one": "{{count}} race set up",
+      "count_other": "{{count}} races set up",
+      "changed": "Last changed {{ago}}",
+      "none": "No races set up yet",
+      "noneHint": "Your first one is a track, a car and its sessions"
+    },
+    "continue": "Continue",
+    "new": "New",
+    "load": "Load",
+    "newCareer": "New career",
+    "openRaces": "Open races",
+    "newRace": "New race",
+    "settings": "Settings",
+    "exit": "Exit",
+    "found": "Assetto Corsa and Content Manager found",
+    "missing": "Assetto Corsa or Content Manager not found - see Settings › Diagnostics"
+  },
+  "careers": {
+    "title": "Careers",
+    "newCareer": "New career",
+    "empty": "No careers yet",
+    "emptyHint": "Start one and it is listed here, with the rest.",
+    "season": "Season {{year}}",
+    "dateLine": "Season {{year}} · {{day}}",
+    "seasons_one": "{{day}} · {{count}} season raced",
+    "seasons_other": "{{day}} · {{count}} seasons raced",
+    "next": "Next: {{series}} · {{round}}, {{day}}",
+    "nothingNext": "Nothing entered is still to run this season",
+    "continue": "Continue",
+    "played": "where you left it, played {{ago}}",
+    "championships_one": "{{count}} championship",
+    "championships_other": "{{count}} championships",
+    "noChampionships": "Nothing entered",
+    "thisSeason": "This season",
+    "thisSeasonEmpty": "Nothing entered yet. Championships are entered from their own page.",
+    "openFolder": "Open folder",
+    "delete": "Delete career",
+    "deleteTitle": "Delete {{driver}}'s career?",
+    "deleteHint": "Its working state and every result archived from its races go with it. This cannot be undone.",
+    "nextHistoric": "Next: {{round}}, {{day}}"
+  },
+  "newCareer": {
+    "title": "New career",
+    "cancel": "Cancel",
+    "start": "Start career",
+    "driver": "Driver",
+    "driverHint": "Filled in from your default driver. Changing it here changes this career only.",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "nation": "Nation",
+    "season": "First season",
+    "seasonHint": "The career opens on 1 January of this year.",
+    "thisYear": "This year",
+    "earlier": "A year earlier",
+    "later": "A year later",
+    "money": "Starting money",
+    "moneyHint": "Your first entry fees and car are paid from it.",
+    "level": "Starting level",
+    "levelHint": "Every discipline starts on this rung, at its lowest rating. You can enter championships at your level and below.",
+    "toEnter_one": "{{count}} to enter",
+    "toEnter_other": "{{count}} to enter",
+    "ratingFrom": "Rating from {{rating}}",
+    "summary": {
+      "firstSeason": "First season",
+      "startsOn": "Starts on",
+      "money": "Money",
+      "rating": "Rating",
+      "openAt": "Open to you at",
+      "championships_one": "{{count}} championship",
+      "championships_other": "{{count}} championships",
+      "note": "Home opens on an empty season. Championships are entered from their own page."
     }
   }
 }

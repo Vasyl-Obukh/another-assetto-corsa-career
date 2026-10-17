@@ -1,7 +1,7 @@
 import type { ParseKeys } from 'i18next';
 import type { PathParam } from 'react-router';
 
-import type { NAV, ROUTE } from './constants.ts';
+import type { CAREER_NAV, QUICK_NAV, ROUTE } from './constants.ts';
 
 /**
  * The name of a destination.
@@ -35,6 +35,11 @@ export interface NavEntry {
    * The catalogue key for its label.
    */
   label: ParseKeys;
+  /**
+   * Where it leads, when that is not the destination it stays lit for - a
+   * career's Settings opens on the career's own and stays lit on the app's.
+   */
+  to?: RouteId;
 }
 
 /**
@@ -43,7 +48,7 @@ export interface NavEntry {
  * Narrower than RouteId: only the destinations actually listed in NAV, which is
  * what lets their paths be built without arguments.
  */
-export type NavId = (typeof NAV)[number]['id'];
+export type NavId = (typeof CAREER_NAV | typeof QUICK_NAV)[number]['id'];
 
 /**
  * The router state a link carries when the page it opens belongs, for

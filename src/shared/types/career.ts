@@ -270,13 +270,33 @@ export interface Career {
    */
   version: number;
   /**
-   * Stable identifier.
+   * Stable identifier, and the name of the folder the career is kept in.
    */
   id: string;
   /**
    * When the career was made, as an ISO timestamp.
    */
   createdAt: string;
+  /**
+   * When the career was last opened or changed, as an ISO timestamp - which is
+   * what the start screen's Continue and the Careers list order it by.
+   */
+  playedAt: string;
+  /**
+   * Who races it. The career's own, filled in from the default driver in
+   * settings when it was made and changed only from inside it.
+   */
+  driver: CareerDriver;
+  /**
+   * The money it started with. Stored and shown, and spent on nothing until
+   * the economy (Phase 7) lands.
+   */
+  money: number;
+  /**
+   * The rating it holds per discipline - the lowest of its starting level until
+   * rating (Phase 8) lands, and moved by nothing before then.
+   */
+  rating: Record<Discipline, number>;
   /**
    * The day the first season opens, as an ISO date.
    */
@@ -298,6 +318,131 @@ export interface Career {
    * Its seasons, oldest first.
    */
   seasons: readonly CareerSeason[];
+}
+
+/**
+ * Who races a career.
+ */
+export interface CareerDriver {
+  /**
+   * The name shown wherever the player's own row is, trimmed and never empty.
+   */
+  name: string;
+  /**
+   * Assetto Corsa's nation code for the flag beside it, or null for none.
+   */
+  nation: string | null;
+}
+
+/**
+ * What a new career is asked for.
+ */
+export interface NewCareerRequest {
+  /**
+   * Who races it.
+   */
+  driver: CareerDriver;
+  /**
+   * The year its first season opens, on 1 January.
+   */
+  year: number;
+  /**
+   * The rung every discipline starts on, 1 being the top.
+   */
+  level: number;
+  /**
+   * The money it starts with.
+   */
+  money: number;
+}
+
+/**
+ * One championship a career is in this season, as a list of careers shows it.
+ */
+export interface CareerSummaryEntry {
+  /**
+   * The championship's id.
+   */
+  series: string;
+  /**
+   * Its name.
+   */
+  name: string;
+  /**
+   * The discipline and rung of the class the career entered.
+   */
+  ladder: LadderPosition;
+}
+
+/**
+ * The next event a career is in, as a list of careers shows it.
+ */
+export interface CareerSummaryEvent {
+  /**
+   * The championship's name.
+   */
+  seriesName: string;
+  /**
+   * The round's name.
+   */
+  roundName: string;
+  /**
+   * Which track and layout it runs on.
+   */
+  track: { id: string; layout?: string };
+  /**
+   * Its race day, as an ISO date.
+   */
+  date: string;
+  /**
+   * Whether it is a historic event, whose championship and round are the same
+   * event and are named once.
+   */
+  historic: boolean;
+}
+
+/**
+ * A career as the start screen and the Careers list show it: enough to tell it
+ * from the others without opening it, since a career has no name of its own.
+ */
+export interface CareerSummary {
+  /**
+   * The career's id.
+   */
+  id: string;
+  /**
+   * Who races it.
+   */
+  driver: CareerDriver;
+  /**
+   * The year of the season it is in.
+   */
+  year: number;
+  /**
+   * The day its clock stands at, as an ISO date.
+   */
+  date: string;
+  /**
+   * When it was last opened or changed, as an ISO timestamp.
+   */
+  playedAt: string;
+  /**
+   * How many seasons it has raced, the one under way included.
+   */
+  seasons: number;
+  /**
+   * The championships it is in this season, historic events left out.
+   */
+  championships: CareerSummaryEntry[];
+  /**
+   * The next event it is in, or null when the season holds none still to run.
+   */
+  next: CareerSummaryEvent | null;
+  /**
+   * The track its photograph comes from: the next event's, or else the last
+   * one raced, or null for a career that has neither yet.
+   */
+  track: { id: string; layout?: string } | null;
 }
 
 /**

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import type { CarChampionship } from './types.ts';
+import { useSlot } from '@/app';
 import { DetailPanel } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
@@ -25,6 +26,11 @@ interface CarChampionshipsProps {
  */
 export const CarChampionships = ({ championships }: CarChampionshipsProps) => {
   const { t } = useTranslation();
+  const { mode } = useSlot();
+  // Outside a career only the library's own page is routed.
+  const championshipPath = (id: string): string => (
+    mode === 'career' ? path.championship({ id }) : path.settingsChampionship({ id })
+  );
   const { formatNumber } = useFormat();
 
   return (
@@ -43,7 +49,7 @@ export const CarChampionships = ({ championships }: CarChampionshipsProps) => {
       {championships?.map((championship) => (
         <Link
           key={championship.id}
-          to={path.championship({ id: championship.id })}
+          to={championshipPath(championship.id)}
           className="group grid grid-cols-[4px_minmax(0,1fr)_auto] items-center gap-x-3 border-t py-2.5 first:border-t-0"
         >
           {/* The edge wears the discipline's foreground hue, so it reads as a

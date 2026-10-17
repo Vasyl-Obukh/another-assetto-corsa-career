@@ -4,6 +4,8 @@ export { useCareer } from './use-career/index.ts';
 export { useCareerEvent } from './use-career-event/index.ts';
 export type { CareerEventState } from './use-career-event/index.ts';
 export type { CareerState } from './use-career/index.ts';
+export { useCareers } from './use-careers/index.ts';
+export type { CareersState } from './use-careers/index.ts';
 export { useCarBrowser } from './use-car-browser/index.ts';
 export type { CarBrowser, CarCriteria } from './use-car-browser/index.ts';
 export { useCarDetail } from './use-car-detail/index.ts';

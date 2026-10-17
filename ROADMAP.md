@@ -63,7 +63,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | AI difficulty                   | **The player's to set, never learned.** One strength in settings, and a step of their own for a season or a round of the career. Adaptive difficulty was dropped: pace against the AI moves with the car and the track, which a learned figure would chase rather than answer. |
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
-| Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later).                                                                                      |
+| Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later). **Loading is free and silent**: any save, any time, and the career records no rollback. |
 | Where career state lives        | **Main owns it, in memory.** One live career object, written through to `career.json` continuously so a crash costs nothing; saves are snapshots copied from it. The renderer holds a read-only projection - no client-side store.        |
 | Changing career state           | **Validated commands, never patches.** The renderer sends intent (`career:buyCar`); main checks the rules, applies, persists and pushes the result back.                                                                                  |
 | Presentation                    | **Light and dark themes; English and Ukrainian.** Both foundational, not retrofitted.                                                                                                                                                     |
@@ -601,13 +601,12 @@ ledger falls out of it: each command is what writes the ledger entry.
 tolerant of a corrupt file. A career store is that plus command handlers and
 snapshot/restore.
 
-Two questions this leaves open, to settle in Phase 6:
+Two questions this left open for Phase 6, one now settled:
 
-- **Save-scumming.** Continuous writes do not prevent reloading an autosave after
-  a bad race; only the save-slot policy does. Given that skipping a race is a DNS
-  for the player - the field races it without them - one-way autosaves or a
-  recorded rollback would be more consistent - the way a progression-speed change
-  is recorded.
+- ~~**Save-scumming.**~~ Settled: **free and silent.** Any save loads at any
+  time and the career keeps no note of it - how the player plays is theirs to
+  decide. One-way autosaves and a recorded rollback were both considered and
+  dropped.
 - **What loading an autosave costs.** It discards contracts and purchases made
   since that session boundary. Correct, but it belongs in the confirmation dialog
   rather than being discovered.
@@ -2736,25 +2735,61 @@ proof that no layer below learned what a series is.
       `recordWeekend` is idempotent, since that push arrives again and again
 - [x] **Command handlers** rather than patches, each validating before it
       applies. Landed with the store
-- [ ] Create, name, overwrite and delete saves
+- [ ] Create, name, overwrite and delete saves. **Only named saves**: an
+      autosave or the quick save is never written over by hand nor renamed
 - [ ] Load any older save
 - [ ] Rolling autosaves after every session, 3 deep by default - snapshots copied
-      from the working state, not a second durability mechanism
-- [ ] Warn on load that anything done since that session boundary is discarded
-- [ ] Decide the save-scumming policy: one-way autosaves, a recorded rollback, or
-      neither
+      from the working state, not a second durability mechanism. How many to
+      keep is an app setting
+- [ ] **One quick save slot**: F5 writes it, F9 loads it - the quick save
+      itself, not the latest save of any kind. Ctrl+S is Save as, Ctrl+L Load
+- [ ] **Loading asks nothing.** A notification says what was loaded and where
+      the clock now stands - no warning, no undo. A launch in flight blocks
+      loading and Main menu until its result is in
+- [x] **Save-scumming policy: neither.** Loading is free and silent - any save,
+      any time, nothing recorded
 - [ ] **Save format with a version field** - the field only. Writing a step that
       reads an older save waits for Phase 14, like every other format here: until
       the app is released an out-of-date save is deleted rather than carried
       forward. See *No schema migrations before the first release* in CLAUDE.md
-- [ ] Multiple concurrent careers
-- [ ] **A start screen, and racing without a career.** The app opens on
-      Continue career, New career, Load career, Race, Championships, Settings
-      and Exit. Race and Championships are for anyone who likes how quickly the
-      app sets a weekend or a season up but does not want the career around it:
-      a quick race weekend, or a championship run on its own, with no economy
-      and no ladder to climb. Waits on saves, since a standalone championship
-      needs somewhere to keep its season that is not a career's
+- [x] Multiple concurrent careers, a folder each under `careers/<id>/`
+- [x] **New career setup.** Asks for the driver's name and nation, which move
+      from settings onto the career; the year the first season opens; **one
+      starting level for every discipline**, rather than a level each; and the
+      starting money. The level reaches `Career.level` now. The money and the
+      rating that level implies have nothing to land in until Phases 7 and 8,
+      so their controls ship working and are stored but **drive nothing yet**
+- [ ] **A start screen, and three modes.** The app always opens on it:
+      **Career**, **Quick race** and **Championship**, beside Settings and
+      Exit, with Continue, New and Load under Career. Quick race and
+      Championship are for anyone who likes how quickly the app sets an event
+      or a season up but does not want the career around it - no economy and
+      no ladder to climb. **The Race tab leaves the career**: race events of the
+      player's own become the Quick race mode, one list shared by everything.
+      A standalone championship is a *slot* like a career, with somewhere of its
+      own to keep its season; it waits on saves. It offers only switched-on
+      championships and **runs one season, then it is over** - read-only on its
+      review, which is also what Continue opens, though its saves still load. A tile per mode on the start screen;
+      Load opens **Careers** or **Championships**, two pages alike, with the one
+      played last picked. **Inside a slot** the slot's name heads the window and
+      opens its menu - quick save, save as, quick load, load, Main menu, Exit -
+      and the nav is the career's less the Race tab, or Championship, Results,
+      Settings for a championship and Races, Results, Settings for quick races.
+      Main menu and Exit never ask
+- [ ] **Settings on two levels.** Settings keeps a global driver name and
+      nation, which pre-fills New career and a new championship and is what a
+      quick race races under; inside a slot the same fields edit that slot's own
+      pair. **Opponents and driving aids** follow the app unless a slot sets its
+      own, and a career keeps its own calendar settings. Inside a slot, Settings
+      switches between the slot's own and the app's. A slot's settings live in
+      its own `settings.json`, **beside its saves and never in them**, so loading
+      a save changes none of them
+- [ ] **A career's results live in its folder**, `careers/<id>/results/`, so
+      deleting a career takes its results with it. **Results are part of the
+      save**: after loading an older one, Results, the standings and History show
+      only what was raced up to then. Load and Continue tell
+      careers apart by the driver's name and flag, the season, the date and what
+      was raced last - a career has no name of its own
 - [ ] Backup and restore
 - [ ] Archived results linked to career, season and round
 
@@ -2775,6 +2810,8 @@ proof that no layer below learned what a series is.
 - [ ] Progression speed multiplier applied to all earnings
 - [ ] Forced down the ladder when you can't afford to race
 - [ ] Sell owned cars to recover
+- [ ] **Start a career on the money New career picked.** Phase 6 stores the
+      amount and nothing reads it until there is a balance to open with
 
 ## Phase 8 - Rating and the ladder
 
@@ -2791,6 +2828,9 @@ proof that no layer below learned what a series is.
 - [ ] Discipline levels derived from rating
 - [ ] **Cross-discipline entry at best level minus one**
 - [ ] Rating history with a readable explanation of every change
+- [ ] **Start a career on the rating its starting level implies.** New career
+      picks one level for every discipline, and each discipline's rating opens
+      at the minimum of that level
 
 ## Phase 9 - Contracts, teams and the market
 

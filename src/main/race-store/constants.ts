@@ -17,6 +17,11 @@ export const DRAFT_FILE = 'draft.json';
 export const STATE_FILE = 'event.json';
 
 /**
+ * File saying whose event the slot holds.
+ */
+export const OWNER_FILE = 'owner.json';
+
+/**
  * Folder the generated race.ini is written to, for diagnosing a bad launch.
  */
 export const OUT_DIR = 'out';

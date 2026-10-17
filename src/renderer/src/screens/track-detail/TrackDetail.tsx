@@ -16,7 +16,7 @@ import { circuitChampionships, stagePhotos, worthReading } from './utils.ts';
 import type { Track } from '../../../../shared/types';
 import { championshipEntries } from '../../../../shared/utils/historic';
 import { isCatalogued } from '../../../../shared/utils/library';
-import { useSettings } from '@/app';
+import { useSettings, useSlot } from '@/app';
 import {
   ErrorCard, LibrarySwitch, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -28,6 +28,9 @@ import { isListed } from '@/screens/championships';
 
 export const TrackDetail = () => {
   const { t } = useTranslation();
+  // The library browsers are a career's; elsewhere these pages are opened from
+  // Your content.
+  const { mode } = useSlot();
   const { id = '' } = useParams<PathParam<typeof ROUTE.track>>();
   const [params, setParams] = useSearchParams();
   const detail = useTrackDetail(id);
@@ -73,7 +76,7 @@ export const TrackDetail = () => {
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       <ScreenHeader
-        back={{ to: path.tracks(), label: t('back.tracks') }}
+        back={mode === 'career' ? { to: path.tracks(), label: t('back.tracks') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
         aside={anonymous ? <LibrarySwitch kind="tracks" id={id} /> : undefined}
       />
 

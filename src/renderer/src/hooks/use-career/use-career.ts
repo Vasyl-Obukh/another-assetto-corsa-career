@@ -28,11 +28,12 @@ export const useCareer = (): CareerState => {
   // Steps on the strength still out, while which a push would put back an
   // earlier one over the step on screen.
   const stepping = useRef(0);
+  // Whether a career is open: pages shared with the start screen and quick
+  // races have no calendar to read there.
+  const open = useRef(false);
 
-  // Reading the calendar is also what starts a career the first time, and
-  // starting one pushes career:changed - so the career arrives on its own
-  // subscription rather than being asked for a second time here.
   const loadCalendar = useCallback((): void => {
+    if (!open.current) return;
     invoke('career:calendar', {}).then(
       setCalendar,
       (thrown: unknown) => setError(toDisplayableError(thrown)),
@@ -45,6 +46,7 @@ export const useCareer = (): CareerState => {
     invoke('career:get', undefined).then(
       (next) => {
         if (!live) return;
+        open.current = next !== null;
         setCareer(next);
         setLoading(false);
         loadCalendar();
@@ -61,6 +63,7 @@ export const useCareer = (): CareerState => {
 
   useEffect(load, [load]);
   useEffect(() => subscribe('career:changed', (next) => {
+    open.current = next !== null;
     if (stepping.current === 0) setCareer(next);
     loadCalendar();
   }), [loadCalendar]);

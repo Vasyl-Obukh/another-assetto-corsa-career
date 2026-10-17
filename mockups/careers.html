@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Careers, modes and saves mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The four new families -
+   mode, save kind - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const FLAG = (c) => `${AC}gui/NationFlags/${c}.png`;
+const PH = {
+  nords: `${AC}tracks/ks_nordschleife/ui/endurance/bgr00.jpg`,
+  nords2: `${AC}tracks/ks_nordschleife/ui/endurance/bgr01.jpg`,
+  nords3: `${AC}tracks/ks_nordschleife/ui/endurance/bgr02.jpg`,
+  brands: `${AC}tracks/ks_brands_hatch/ui/gp/bgr00.jpg`,
+  brands2: `${AC}tracks/ks_brands_hatch/ui/gp/bgr01.jpg`,
+  barca: `${AC}tracks/ks_barcelona/ui/layout_gp/bgr00.jpg`,
+  barca2: `${AC}tracks/ks_barcelona/ui/layout_gp/bgr02.jpg`,
+  silver: `${AC}tracks/ks_silverstone/ui/national_osrw/bgr00.jpg`,
+  silver2: `${AC}tracks/ks_silverstone/ui/national_osrw/bgr01.jpg`,
+};
+const CAR = {
+  ferrari: `${AC}cars/ks_ferrari_488_gt3/skins/00_rosso_scuderia/preview.jpg`,
+  porsche: `${AC}cars/ks_porsche_911_gt3_r_2016/skins/01_racing_912/preview.jpg`,
+  f4: `${AC}cars/rss_formula_rss_4_2024/skins/01_project_one_yellow_17/preview.jpg`,
+  mx5: `${AC}cars/ks_mazda_mx5_cup/skins/01_cup_07/preview.jpg`,
+};
+
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  home: P('<path d="m3 11 9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  medal: P('<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 3h4l2 5M15.5 10 18 3h-4l-2 5"/>'),
+  car: P('<path d="M5 17H3v-5l2-5h11l4 5h1v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/>'),
+  map: P('<path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  flag: P('<path d="M4 22V4M4 4h13l-2 4 2 4H4"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  save: P('<path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/>'),
+  load: P('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1H7.5a2 2 0 0 0-1.9 1.4L3 19z"/><path d="M3 19 5.6 11.4A2 2 0 0 1 7.5 10H22l-2.6 7.6a2 2 0 0 1-1.9 1.4H3z"/>'),
+  folder: P('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+  clock: P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  check: P('<path d="M20 6 9 17l-5-5"/>'),
+  plus: P('<path d="M12 5v14M5 12h14"/>'),
+  trash: P('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>'),
+  archive: P('<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>'),
+  upload: P('<path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>'),
+  play: P('<path d="M7 4v16l13-8z"/>'),
+  x: P('<path d="M18 6 6 18M6 6l12 12"/>'),
+  menu: P('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+  exit: P('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'),
+  door: P('<path d="M13 4h4a2 2 0 0 1 2 2v14M3 20h18M13 4 6 6v14h7z"/><path d="M10 12v.01"/>'),
+  grid: P('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+  user: P('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  coins: P('<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3V7M3 12v5c0 1.7 2.7 3 6 3 1.4 0 2.6-.2 3.6-.6"/><circle cx="17" cy="16" r="4"/>'),
+  ladder: P('<path d="M7 3v18M17 3v18M7 7h10M7 12h10M7 17h10"/>'),
+  search: P('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  undo: P('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>'),
+  bolt: P('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
+  sliders: P('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'),
+  palette: P('<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2a10 10 0 0 0 0 20c1 0 1.5-.8 1.5-1.6 0-.5-.2-.8-.5-1.2-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.7-1.7H16a6 6 0 0 0 6-6c0-4.4-4.5-8.2-10-8.2z"/>'),
+  stack: P('<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/>'),
+  pulse: P('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'),
+  cloud: P('<path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 18.9"/><path d="M6 19h11.5"/>'),
+  hand: P('<path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/>'),
+  sparkle: P('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>'),
+  history: P('<path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/>'),
+  results: P('<path d="M4 4v16h16"/><path d="m8 14 3-3 3 3 5-6"/>'),
+  dots: P('<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>'),
+};
+
+const DISC = { single: ['c-single', 'Single-seater'], sports: ['c-sports', 'Sportscar'], touring: ['c-touring', 'Touring'], road: ['c-road', 'Road'] };
+const disc = (d) => `<span class="chip ${DISC[d][0]}">${DISC[d][1]}</span>`;
+const tier = (t) => `<span class="chip c-t${t}">Tier ${t}</span>`;
+const MODE = { career: ['c-career', 'Career'], champ: ['c-champ', 'Championship'], quick: ['c-quick', 'Quick race'] };
+const mode = (m) => `<span class="chip ${MODE[m][0]}">${MODE[m][1]}</span>`;
+const KIND = { named: ['c-named', 'Saved', 'named'], quick: ['c-kquick', 'Quick save', 'kquick'], auto: ['c-auto', 'Autosave', 'auto'] };
+const kind = (k) => `<span class="chip ${KIND[k][0]}">${KIND[k][1]}</span>`;
+const flag = (c, lg) => `<img class="flag${lg ? ' lg' : ''}" src="${FLAG(c)}" alt="">`;
+
+const CAREERS = [
+  { id: 'c1', driver: 'Eterry', nat: 'GBR', season: 2028, date: 'Sat 14 Jun 2028', played: '6 min ago', photo: PH.brands, car: CAR.ferrari,
+    champs: [['GT3 Sprint Series', 'sports', 3, 'P3', '86 pts'], ['Italian F4', 'single', 5, 'P7', '41 pts']],
+    next: ['GT3 Sprint Series', 'Round 5', 'Brands Hatch GP', 'Sat 21 Jun'], saves: 7, seasons: 3 },
+  { id: 'c2', driver: 'Eterry', nat: 'GBR', season: 2026, date: 'Tue 3 Mar 2026', played: '3 days ago', photo: PH.barca, car: CAR.mx5,
+    champs: [['Mazda MX-5 Cup', 'road', 5, 'P2', '18 pts']],
+    next: ['Mazda MX-5 Cup', 'Round 2', 'Barcelona GP', 'Sun 15 Mar'], saves: 3, seasons: 1 },
+  { id: 'c3', driver: 'Oksana Melnyk', nat: 'UKR', season: 2031, date: 'Sun 9 Nov 2031', played: '2 weeks ago', photo: PH.nords, car: CAR.porsche,
+    champs: [['Nürburgring Endurance Series', 'sports', 2, 'P5', '112 pts'], ['TCR Europe', 'touring', 3, 'P1', '240 pts']],
+    next: ['Nürburgring Endurance Series', 'Round 9', 'Nordschleife', 'Sat 15 Nov'], saves: 12, seasons: 6 },
+];
+const SLOTS = [
+  { id: 's1', name: 'GT3 Sprint Series', disc: 'sports', tier: 3, driver: 'Eterry', nat: 'GBR', season: 2027, progress: 'Round 3 of 6', standing: ['P4', '52 pts'], played: 'yesterday', photo: PH.silver, car: CAR.ferrari, next: ['Round 4', 'Silverstone National', 'Sun 18 Jul'], saves: 4 },
+  { id: 's2', name: 'Formula RSS 4 Championship', disc: 'single', tier: 5, driver: 'Eterry', nat: 'GBR', season: 2026, progress: 'Finished', standing: ['Champion', '312 pts'], played: '1 month ago', photo: PH.barca2, car: CAR.f4, next: null, saves: 2,
+    saveList: [{ kind: 'auto', name: 'After Race 2 · Barcelona', date: 'Sun 18 Oct 2026', when: '1 month ago' }, { kind: 'named', name: 'Before the finale', date: 'Sat 10 Oct 2026', when: '1 month ago' }] },
+];
+const SAVES = [
+  { kind: 'auto', name: 'After Race 2 · Spa-Francorchamps', date: 'Sat 14 Jun 2028', when: '6 min ago', sess: 'race' },
+  { kind: 'auto', name: 'After Race 1 · Spa-Francorchamps', date: 'Sat 14 Jun 2028', when: '48 min ago', sess: 'race' },
+  { kind: 'auto', name: 'After Qualifying · Spa-Francorchamps', date: 'Fri 13 Jun 2028', when: '1 h ago', sess: 'qualify' },
+  { kind: 'quick', name: 'Quick save', date: 'Thu 12 Jun 2028', when: 'Yesterday, 22:10' },
+  { kind: 'named', name: 'Before Spa', date: 'Tue 10 Jun 2028', when: 'Yesterday, 21:47' },
+  { kind: 'named', name: 'Halfway through 2028', date: 'Sun 1 Jun 2028', when: '3 days ago' },
+  { kind: 'named', name: 'Start of 2028', date: 'Sat 1 Jan 2028', when: '1 week ago' },
+];
+
+const titlebar = (t = 'Assetto Corsa Career') => `<div class="titlebar"><span>${t}</span><span>—</span><span>☐</span><span>✕</span></div>`;
+const backlink = (to) => `<a class="backlink">${I.back}${to}</a>`;
+const win = (inner, title, h) => `<div class="win"${h ? ` style="height:${h}px"` : ''}>${titlebar(title)}${inner}</div>`;
+// A shimmer block standing in for data still to come, as the app's <Shimmer> draws it.
+const sk = (w, h = 12, r = 5, onPhoto = false) => `<span class="shim${onPhoto ? ' on-photo' : ''}" style="width:${w};height:${h}px;border-radius:${r}px"></span>`;
+const slots = (n, f) => Array.from({ length: n }, f).join('');
+const seg = (opts, on) => `<span class="seg">${opts.map((x) => `<span class="${x === on ? 'on' : ''}">${x}</span>`).join('')}</span>`;
+
+// ======================================================================
+// Overview
+// ======================================================================
+const pageMap = () => `<div class="doc">
+  <div class="panel"><h3>${I.grid} How it fits together</h3><div class="pb">
+    <div class="flow">
+      <div class="lvl" style="grid-template-columns:1fr"><div class="node" style="width:480px;margin:0 auto;align-items:center;text-align:center">
+        <h5>${I.grid} Start screen</h5><p>Where the app always opens. A tile per mode, the career and championship tiles each with a Continue of their own, and Settings and Exit underneath.</p></div></div>
+      <div class="arrow">↓</div>
+      <div class="lvl" style="grid-template-columns:repeat(5,1fr)">
+        <div class="node career"><h5>${I.ladder} Career</h5><div class="pills"><span class="pill">Continue</span><span class="pill">New</span><span class="pill">Load</span></div><p>Several careers side by side, each a folder of its own. Load opens <b>Careers</b> on the one played last.</p></div>
+        <div class="node quick"><h5>${I.flag} Quick race</h5><div class="pills"><span class="pill">Open races</span><span class="pill">New race</span></div><p>Today's Race tab, moved out of the career. One shared list.</p></div>
+        <div class="node champ"><h5>${I.trophy} Championship</h5><div class="pills"><span class="pill">Continue</span><span class="pill">New</span><span class="pill">Load</span></div><p>One switched-on championship for one season, and then it is over - Continue on a finished one opens its review. Load opens <b>Championships</b>.</p></div>
+        <div class="node"><h5>${I.gear} Settings</h5><p>App settings: everything app-wide, the default driver, and the opponents and driving aids every career and championship follows unless it sets its own.</p></div>
+        <div class="node"><h5>${I.exit} Exit</h5><p>Never asks - the working state is always on disk.</p></div>
+      </div>
+      <div class="arrow">↓ opening one ↓</div>
+      <div class="lvl" style="grid-template-columns:repeat(3,1fr)">
+        <div class="node career"><h5>Inside a career</h5><div class="pills"><span class="pill">Home</span><span class="pill">Calendar</span><span class="pill">Championships</span><span class="pill">Cars</span><span class="pill">Tracks</span><span class="pill">Settings</span></div><p>As today, less the Race tab. Results and History still open from Home.</p></div>
+        <div class="node quick"><h5>Quick race mode</h5><div class="pills"><span class="pill">Races</span><span class="pill">Results</span><span class="pill">Settings</span></div><p>Results lists quick races only, and Settings is the app's. Cars and tracks are picked inside a race.</p></div>
+        <div class="node champ"><h5>Inside a championship</h5><div class="pills"><span class="pill">Championship</span><span class="pill">Results</span><span class="pill">Settings</span></div><p>The championship's own page - rounds, standings, classes, rules - is its home.</p></div>
+      </div>
+      <div class="arrow">↓ the slot menu, on the slot's name in the header ↓</div>
+      <div class="lvl" style="grid-template-columns:2fr 1fr">
+        <div class="node"><h5>${I.menu} In a career or a championship</h5><div class="pills"><span class="pill">Quick save · F5</span><span class="pill">Save as… · Ctrl+S</span><span class="pill">Quick load · F9</span><span class="pill">Load… · Ctrl+L</span><span class="pill">Main menu</span><span class="pill">Exit</span></div>
+          <p>Settings is a tab of the nav, so the menu does not repeat it. Main menu and Exit never ask anything.</p></div>
+        <div class="node quick"><h5>In quick race mode</h5><div class="pills"><span class="pill">Main menu</span><span class="pill">Exit</span></div><p>Nothing to save or load.</p></div>
+      </div>
+    </div>
+  </div></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="panel"><h3>${I.folder} Where things are kept</h3><div class="pb">
+<pre class="tree">%APPDATA%/ac-career-mode/
+  settings.json            <i>app settings: default driver, opponents, aids</i>
+  careers/&lt;id&gt;/
+    career.json            <i>working state - written continuously</i>
+    settings.json          <i>its driver, its overrides, its calendar - never saved</i>
+    saves/
+      autosave-1..3.json   <i>rolling, after every session</i>
+      quicksave.json       <i>one slot - F5 writes it, F9 loads it</i>
+      &lt;uuid&gt;.json          <i>named saves; the name lives inside</i>
+    results/               <i>race_out archives - each save lists its own</i>
+  championships/&lt;id&gt;/      <i>a standalone championship: the same shape</i>
+  race/
+    quick/                 <i>quick races, shared by everything</i>
+    results/               <i>quick races' archives</i>
+    slot/                  <i>the launch in flight, whoever owns it</i>
+  series/  historic/  car-classes.json  content-cache.json</pre>
+    </div></div>
+    <div class="panel"><h3>${I.save} How saving works</h3><div class="pb">
+      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <li><b>The working state is not a save.</b> It is written as it changes, so a crash or an Exit costs nothing. Continue opens it.</li>
+        <li><b>Autosaves</b> are taken after every session, three kept and the oldest dropped. Nothing writes over one by hand, and none can be renamed.</li>
+        <li><b>Quick save</b> is one slot: F5 writes over it without asking, and F9 loads it.</li>
+        <li><b>Named saves</b> are as many as you like. Save as can write over one.</li>
+        <li><b>Results are part of the save.</b> Load an older save and Results, the standings and History show only what was raced up to then. Races from the timeline you left are not listed.</li>
+        <li><b>Settings are not.</b> Loading never changes the driver, the opponents or the driving aids.</li>
+        <li><b>Loading is free and silent.</b> Nothing is asked. A notification says what was loaded.</li>
+        <li><b>A launch in flight</b> blocks loading and Main menu until its result is in, the way it already blocks moving the clock.</li>
+      </ul>
+    </div></div>
+  </div>
+
+  <div class="panel"><h3>${I.sliders} Settings, on two levels</h3><div class="pb">
+    <table class="t">
+      <thead><tr><th>Setting</th><th>App settings (main menu)</th><th>A career's settings</th><th>A championship's settings</th><th>Quick races use</th></tr></thead>
+      <tbody>
+        <tr><td><b>Driver name and nation</b></td><td>The default: pre-fills a new career or championship</td><td class="yes">Its own</td><td class="yes">Its own</td><td>The default</td></tr>
+        <tr><td><b>Opponents</b> - strength and aggression</td><td>Used everywhere, unless a slot sets its own</td><td class="yes">Follows the app, or its own</td><td class="yes">Follows the app, or its own</td><td>The app's, under each race's own offset</td></tr>
+        <tr><td><b>Driving aids</b></td><td>Used everywhere, unless a slot sets its own</td><td class="yes">Follows the app, or its own</td><td class="yes">Follows the app, or its own</td><td>The app's</td></tr>
+        <tr><td><b>Calendar</b> - same-day events, historic events per year</td><td class="no">-</td><td class="yes">Its own</td><td class="no">- (one championship never clashes)</td><td class="no">-</td></tr>
+        <tr><td><b>Progression speed</b> (Phase 7)</td><td class="no">-</td><td class="yes">Its own</td><td class="no">- (no economy)</td><td class="no">-</td></tr>
+        <tr><td>Appearance, language, currency, weather system, allowed weather, Content Manager, paths</td><td class="yes">App-wide</td><td class="no">-</td><td class="no">-</td><td class="no">-</td></tr>
+        <tr><td>Your content, Classes, Content sources, Championships, Historic events</td><td class="yes">App-wide</td><td class="no">-</td><td class="no">-</td><td class="no">-</td></tr>
+        <tr><td><b>Saves</b> - how many autosaves to keep</td><td class="yes">App-wide</td><td class="no">-</td><td class="no">-</td><td class="no">-</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:12px">A slot's settings live in its own <b>settings.json</b>, beside its saves rather than in them, so loading a save never changes them.</div>
+  </div></div>
+</div>`;
+
+// ======================================================================
+// Start screen
+// ======================================================================
+const glass = (icon, label, extra = '') => `<button class="btn glass">${icon}${label}${extra}</button>`;
+
+const startFoot = (loading) => `<div class="st-foot">
+  <button class="btn lg">${I.gear}Settings</button><button class="btn lg">${I.exit}Exit</button>
+  <span class="end status">${loading ? sk('290px', 11) : '<span class="dot"></span>Assetto Corsa, Content Manager and CSP found'}</span>
+</div>`;
+
+const startTiles = (firstRun, loading) => {
+  const c = CAREERS[0];
+  const s = SLOTS[0];
+  const first = firstRun && !loading;
+  const tile = (m, photo, title, desc, cont, buttons) => `<div class="st-tile ph shade ${m}"><img class="bg" src="${photo}">
+    <div class="cap">
+      <div class="row"><span class="well ${m}">${m === 'career' ? I.ladder : m === 'champ' ? I.trophy : I.flag}</span>${mode(m)}</div>
+      <h2>${title}</h2><p>${desc}</p>
+      <div class="grow"></div>
+      ${cont}
+      <div class="row" style="flex-wrap:wrap">${buttons}</div>
+    </div></div>`;
+  const cont = (who, line, sub) => (loading
+    ? `<div class="cont"><div class="row">${sk('27px', 18, 3, true)}<div class="grow col" style="gap:6px">${sk('68%', 13, 5, true)}${sk('48%', 10, 5, true)}</div></div></div>`
+    : `<div class="cont"><div class="row">${who}<div class="grow"><b>${line}</b><small>${sub}</small></div></div></div>`);
+  const count = (n) => (loading ? ` ${sk('12px', 10, 3, true)}` : ` <small class="cnt">${n}</small>`);
+  // Continue waits, disabled, until it knows what it continues.
+  const go = (icon, label) => `<button class="btn pri lg${loading ? ' dim' : ''}">${icon}${label}</button>`;
+  return win(`<div class="st-a">
+      <div class="st-title"><h1>Assetto Corsa Career</h1></div>
+      <div class="st-tiles">
+        ${tile('career', PH.brands, 'Career', 'Start at the bottom of the ladder and climb it, season after season, as many championships at once as the calendar allows.',
+          first ? '' : cont(flag(c.nat, 1), `${c.driver} · Season ${c.season}`, `${c.date} · next: ${c.next[2]}, ${c.next[3]}`),
+          first ? `<button class="btn pri lg">${I.plus}New career</button>`
+            : `${go(I.play, 'Continue')}${glass(I.plus, 'New')}${glass(I.load, 'Load', count(3))}`)}
+        ${tile('quick', PH.silver2, 'Quick race', 'Set an event up and drive it - a field of any cars, at any track, with whatever sessions you like.',
+          first ? '' : cont(`<span class="well quick" style="width:27px;height:27px">${I.flag}</span>`, '4 races set up', 'Last driven: Monza, 2 days ago'),
+          first ? `<button class="btn pri lg">${I.plus}New race</button>` : `${go(I.flag, 'Open races')}${glass(I.plus, 'New race')}`)}
+        ${tile('champ', PH.barca2, 'Championship', 'One championship from the library, raced for one season with the car you pick. No ladder and no money - just the title.',
+          first ? '' : cont(flag(s.nat, 1), `${s.name} ${s.season}`, `${s.progress} · ${s.standing[0]}, ${s.standing[1]}`),
+          first ? `<button class="btn pri lg">${I.plus}New championship</button>`
+            : `${go(I.play, 'Continue')}${glass(I.plus, 'New')}${glass(I.load, 'Load', count(2))}`)}
+      </div>
+      ${startFoot(loading)}
+    </div>`);
+};
+
+// ======================================================================
+// Careers, and Championships - Load from the start screen
+// ======================================================================
+const hubHead = (which, loading) => `<div class="shdr">${backlink('Main menu')}<h2>${which === 'careers' ? 'Careers' : 'Championships'}</h2>${loading ? sk('26px', 20, 6) : `<span class="chip c-plain">${which === 'careers' ? CAREERS.length : SLOTS.length}</span>`}
+  <span class="end"></span><button class="btn">${I.upload}Restore from backup…</button><button class="btn pri">${I.plus}${which === 'careers' ? 'New career' : 'New championship'}</button></div>`;
+const slotRowSk = () => `<div class="li">${sk('64px', 40, 6)}<div class="grow col" style="gap:6px"><div class="row">${sk('55%', 13)}<span class="end">${sk('48px', 10)}</span></div>${sk('40%', 10)}<div class="row" style="gap:4px">${sk('72px', 19, 6)}${sk('90px', 10)}</div></div></div>`;
+const heroSk = () => `<div class="panel" style="min-height:200px;padding:18px 22px;display:flex;flex-direction:column;gap:10px">
+  <div class="row" style="gap:6px">${sk('84px', 20, 6)}${sk('70px', 20, 6)}</div>
+  <div class="row">${sk('27px', 18, 3)}${sk('260px', 22)}</div>${sk('320px', 12)}${sk('280px', 12)}
+  <div class="row" style="margin-top:6px">${sk('124px', 40, 8)}</div></div>`;
+
+const finished = (x) => x.standing && !x.next;
+const slotRow = (which, x, sel) => which === 'careers'
+  ? `<div class="li${sel ? ' sel' : ''}"><img class="thumb" src="${x.photo}"><div class="grow">
+      <div class="row t">${flag(x.nat)}${x.driver}<span class="s" style="font-weight:400;margin-left:auto">${x.played}</span></div>
+      <div class="s">Season ${x.season} · ${x.date}</div>
+      <div class="row" style="gap:4px;margin-top:5px;flex-wrap:wrap">${x.champs.map((y) => disc(y[1])).join('')}<span class="s">${x.champs.length === 1 ? x.champs[0][0] : `${x.champs.length} championships`}</span></div></div></div>`
+  : `<div class="li${sel ? ' sel' : ''}"><img class="thumb" src="${x.photo}"><div class="grow">
+      <div class="row t">${x.name} ${x.season}<span class="s" style="font-weight:400;margin-left:auto">${x.played}</span></div>
+      <div class="row s">${flag(x.nat)}${x.driver} · ${x.progress}</div>
+      <div class="row" style="gap:4px;margin-top:5px">${disc(x.disc)}${tier(x.tier)}${finished(x) ? `<span class="chip c-gold">${I.trophy}Champion</span>` : `<span class="s">${x.standing.join(' · ')}</span>`}</div></div></div>`;
+
+const saveIcon = (k) => (k === 'auto' ? I.clock : k === 'quick' ? I.bolt : I.save);
+// Every save row has the same columns: kind, Load and a menu. Only a named save has a menu - rename or
+// delete - so an autosave and the quick save leave that column empty and everything still lines up.
+const saveRow = (s, opts = {}) => `<div class="li save${opts.hover ? ' hover' : ''}">
+  <span class="well ${KIND[s.kind][2]}" style="width:30px;height:30px">${saveIcon(s.kind)}</span>
+  <div style="min-width:0"><div class="t">${s.name}</div><div class="s">${s.date} · saved ${s.when}</div></div>
+  <span class="k">${kind(s.kind)}</span>
+  <button class="btn sm ${opts.hover ? 'pri' : 'ghost'}">${I.load}Load</button>
+  ${s.kind === 'named' ? `<button class="btn sm icon ghost${opts.menu ? ' on' : ''}" title="Rename, delete">${I.dots}</button>` : '<span></span>'}</div>`;
+const saveRowSk = () => `<div class="li save">${sk('30px', 30, 9)}<div class="col" style="gap:6px">${sk('55%', 13)}${sk('35%', 10)}</div><span class="k">${sk('62px', 20, 6)}</span>${sk('70px', 28, 8)}<span></span></div>`;
+
+const slotHero = (which, x) => {
+  const isC = which === 'careers';
+  const done = !isC && finished(x);
+  return `<div class="ph side" style="border-radius:12px;min-height:200px"><img class="bg" src="${x.photo}">
+    <div class="cap" style="padding:18px 22px;display:flex;flex-direction:column;gap:7px;max-width:62%">
+      <div class="row">${mode(isC ? 'career' : 'champ')}${isC ? `<span class="chip c-plain">Season ${x.season}</span>` : `${disc(x.disc)}${tier(x.tier)}`}${done ? `<span class="chip c-gold">${I.trophy}Champion</span>` : ''}</div>
+      <div class="row">${flag(x.nat, 1)}<h2 style="margin:0;font-size:22px">${isC ? x.driver : `${x.name} ${x.season}`}</h2></div>
+      <div style="opacity:.85;font-size:13px">${isC ? `${x.date} · ${x.seasons} seasons raced` : `${x.driver} · ${x.progress} · ${x.standing.join(', ')}`}</div>
+      ${x.next ? `<div style="opacity:.85;font-size:13px">Next: ${isC ? `${x.next[0]} · ${x.next[1]} · ${x.next[2]}, ${x.next[3]}` : `${x.next[0]} · ${x.next[1]}, ${x.next[2]}`}</div>` : ''}
+      <div class="row" style="margin-top:6px">${done
+        ? `<button class="btn pri lg">${I.trophy}Look back</button><span style="opacity:.8;font-size:12.5px">The season is over. It opens on its review, read-only.</span>`
+        : `<button class="btn pri lg">${I.play}Continue</button><span style="opacity:.8;font-size:12.5px">where you left it, played ${x.played}</span>`}</div>
+    </div></div>`;
+};
+
+const slotActions = (which) => `<div class="row" style="padding-top:2px">
+  <button class="btn sm ghost">${I.folder}Open folder</button><button class="btn sm ghost">${I.archive}Back up…</button>
+  <button class="btn sm ghost end" style="color:var(--destructive)">${I.trash}Delete ${which === 'careers' ? 'career' : 'championship'}</button></div>`;
+
+const hubDialog = (which, x, dlg) => {
+  const label = which === 'careers' ? 'career' : 'championship';
+  if (dlg === 'delete') return `<div class="scrim"></div><div class="dlg">
+    <div class="dh"><h3>Delete ${which === 'careers' ? `${x.driver}'s career` : `${x.name} ${x.season}`}?</h3><p>This cannot be undone.</p></div>
+    <div class="db"><div class="panel">${slotRow(which, x)}</div>
+      <div style="font-size:13px">Its <b>${x.saves} saves</b>, its working state and the <b>64 results</b> archived from its races go with it. Back it up first if you might want it again.</div></div>
+    <div class="df"><button class="btn">${I.archive}Back up first…</button><span class="grow"></span><button class="btn">Cancel</button><button class="btn danger">${I.trash}Delete ${label}</button></div></div>`;
+  if (dlg === 'restore') return `<div class="scrim"></div><div class="dlg">
+    <div class="dh"><h3>Restore from backup</h3><p>${which === 'careers' ? 'eterry-career-2028-06-14.zip' : 'gt3-sprint-series-2027.zip'}</p></div>
+    <div class="db"><div class="panel">${slotRow(which, x)}</div>
+      <div class="row" style="font-size:13px;gap:14px"><span>${I.save} ${x.saves} saves</span><span>${I.results} 64 results</span><span class="muted">backed up 14 Jun 2026, 21:40</span></div>
+      <div class="note"><b>This ${label} is already here</b>, played ${x.played}. Keep both, and the backup comes back as a ${label} of its own; replace, and what is here now is gone.</div>
+      <span class="seg"><span class="on">Keep both</span><span>Replace what is here</span></span></div>
+    <div class="df"><button class="btn">Cancel</button><button class="btn pri">${I.upload}Restore</button></div></div>`;
+  if (dlg === 'backedup') return `<div class="toast"><span class="well green" style="width:30px;height:30px">${I.check}</span><div class="grow"><b>Backed up</b><div class="muted" style="font-size:12px">${which === 'careers' ? 'eterry-career-2028-06-14.zip' : 'gt3-sprint-series-2027.zip'} · ${x.saves} saves, 64 results</div></div><button class="btn sm">Show in folder</button></div>`;
+  return '';
+};
+
+const HUB_ROWS = 3;
+const hubPage = (which, selIdx, dlg, loading) => {
+  const list = which === 'careers' ? CAREERS : SLOTS;
+  const x = list[selIdx];
+  const saves = x.saveList || SAVES.slice(0, 5);
+  return win(`${hubHead(which, loading)}<div class="body" style="display:grid;grid-template-columns:400px minmax(0,1fr);gap:16px;padding-top:16px">
+    <div class="panel list" style="align-self:start">${loading ? slots(HUB_ROWS, slotRowSk) : list.map((y, i) => slotRow(which, y, i === selIdx)).join('')}</div>
+    <div class="col" style="gap:12px;min-height:0">
+      ${loading ? heroSk() : slotHero(which, x)}
+      <div class="panel" style="min-height:0;display:flex;flex-direction:column"><h3>${I.save} Saves ${loading ? sk('14px', 12) : `<span class="muted" style="font-weight:400">${x.saves}</span>`}
+        <span class="end" style="font-weight:400">${seg(['All', 'Saved', 'Quick', 'Autosaves'], 'All')}</span></h3>
+        <div class="list" style="padding:6px 2px 4px;overflow:hidden">${loading ? slots(5, saveRowSk) : saves.map((s, i) => saveRow(s, { hover: i === Math.min(4, saves.length - 1) })).join('')}</div></div>
+      ${slotActions(which)}
+    </div></div>${loading ? '' : hubDialog(which, x, dlg)}`);
+};
+
+// ======================================================================
+// New career
+// ======================================================================
+const LEVELS = [
+  { t: 5, n: 16, ex: 'Mazda MX-5 Cup, Italian F4, Abarth Trofeo', rating: '1,000' },
+  { t: 4, n: 42, ex: 'Porsche Carrera Cup, Formula Regional, BTCC 1990s', rating: '1,200' },
+  { t: 3, n: 73, ex: 'GT3 Sprint Series, TCR Europe, Formula 3', rating: '1,400' },
+  { t: 2, n: 120, ex: 'Nürburgring Endurance, DTM, Formula 2', rating: '1,600' },
+  { t: 1, n: 181, ex: 'Formula 1, WEC Hypercar, IMSA GTP', rating: '1,800' },
+];
+const OPEN_AT = { single: 4, sports: 3, touring: 2, road: 7 };
+const MONEY = ['$10k', '$50k', '$100k', '$250k', '$500k', '$1M'];
+
+const nationField = (ld) => `<div class="input">${ld ? `${sk('18px', 12, 2)}${sk('110px')}<span class="grow"></span>` : `${flag('GBR')}<span class="grow">United Kingdom</span>`}${I.down}</div>`;
+const driverFields = (ld) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><span class="lbl">Name</span><div class="input">${ld ? sk('90px') : 'Eterry'}</div></div><div class="field"><span class="lbl">Nation</span>${nationField(ld)}</div></div>`;
+
+const yearField = () => `<div class="row"><button class="btn icon">−</button><div class="input num" style="width:90px;justify-content:center;font-weight:600">2026</div><button class="btn icon">+</button><span class="chip c-plain">This year</span></div>`;
+const levelTiles = () => `<div class="lvl-tiles">${LEVELS.map((l) => `<div class="lvl-tile${l.t === 5 ? ' on' : ''}">
+  <div class="row">${tier(l.t)}<span class="muted" style="font-size:12px">${l.n} to enter</span></div>
+  <div class="ex">${l.ex}</div>
+  <div class="rt">Rating from <b>${l.rating}</b></div></div>`).join('')}</div>`;
+const moneySlider = () => `<div class="col" style="gap:4px">
+  <b style="font-size:22px" class="num">$100,000</b>
+  <div class="slider"><div class="track"></div><div class="fill" style="width:40%"></div><div class="knob" style="left:40%"></div>
+    <div class="stops">${MONEY.map((m, i) => `<span class="${i === 2 ? 'on' : ''}">${m}</span>`).join('')}</div></div></div>`;
+
+const careerSummary = () => `<div class="panel" style="overflow:hidden;align-self:start">
+  <div class="ph shade" style="height:120px"><img class="bg" src="${PH.barca}"><div class="cap" style="position:absolute;left:14px;bottom:12px" ><div class="row">${flag('GBR', 1)}<b style="font-size:18px">Eterry</b></div></div></div>
+  <div class="pb col" style="gap:10px">
+    <div class="kv2"><span>First season</span><b>2026</b><span>Starts on</span><b>Thu 1 Jan 2026</b><span>Money</span><b>$100,000</b><span>Rating</span><b>1,000</b></div>
+    <div class="caps">Open to you at ${tier(5)}</div>
+    ${Object.entries(OPEN_AT).map(([d, n]) => `<div class="row" style="font-size:13px">${disc(d)}<span class="grow"></span><b>${n}</b><span class="muted">championships</span></div>`).join('')}
+    <div class="note">Home opens on an empty season. Championships are entered from their own page, as today.</div>
+  </div></div>`;
+
+const sect = (well, icon, title, hint, body, extra = '') => `<div class="sect"><span class="well ${well}">${icon}</span><h4>${title}${extra}</h4>${hint ? `<div class="sh">${hint}</div>` : ''}<div class="sb">${body}</div></div>`;
+
+const newCareerPage = () => win(`<div class="shdr">${backlink('Main menu')}<h2>New career</h2><span class="end"></span><button class="btn">Cancel</button><button class="btn pri">${I.play}Start career</button></div>
+  <div class="body" style="overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px">
+    <div class="col" style="gap:14px">
+      ${sect('blue', I.user, 'Driver', 'Filled in from your default driver. Changing it here changes this career only.',
+        `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><span class="lbl">Name</span><div class="input">Eterry</div></div><div class="field"><span class="lbl">Nation</span>${nationField()}</div></div>`)}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        ${sect('violet', I.cal, 'First season', 'The career opens on 1 January of this year.', yearField())}
+        ${sect('green', I.coins, 'Starting money', 'Your first entry fees and car are paid from it.', moneySlider())}
+      </div>
+      ${sect('amber', I.ladder, 'Starting level', 'Every discipline starts on this rung, at its lowest rating. You can enter championships at your level and below.', levelTiles())}
+    </div>
+    ${careerSummary()}
+  </div>`);
+
+// ======================================================================
+// New championship - a slot of its own
+// ======================================================================
+const TR = (path) => ({ p: `${AC}tracks/${path}/preview.png`, o: `${AC}tracks/${path}/outline.png` });
+const LIB = [
+  ['GT3 Sprint Series', 'sports', 3, 6, 'GT3 · 1 class', PH.silver],
+  ['Italian F4', 'single', 5, 7, 'Formula RSS 4', PH.barca],
+  ['TCR Europe', 'touring', 3, 7, 'TCR · 1 class', PH.brands2],
+  ['Mazda MX-5 Cup', 'road', 5, 8, 'Mazda MX-5 Cup', PH.barca2],
+  ['Nürburgring Endurance Series', 'sports', 2, 9, '4 classes', PH.nords],
+  ['British GT', 'sports', 3, 5, 'GT3, GT4 · 2 classes', PH.brands],
+];
+const SPRINT = ['Practice', 'Qualifying', 'Race'];
+const CHAMPS = {
+  one: {
+    name: 'GT3 Sprint Series', disc: 'sports', tier: 3, photo: PH.silver, summary: '6 rounds · 18 cars · 1 class', season: 2027,
+    rounds: [
+      ['Monza', 'GP · 5.79 km', 'ITA', 'Sun 4 Apr', TR('monza/ui'), SPRINT, '60 km'],
+      ['Brands Hatch', 'GP · 3.91 km', 'GBR', 'Sun 2 May', TR('ks_brands_hatch/ui/gp'), SPRINT, '60 km'],
+      ['Spa-Francorchamps', '7.00 km', 'BEL', 'Sun 30 May', TR('spa/ui/2022'), ['Practice', 'Qualifying', 'Race 1', 'Race 2'], '2 × 42 km'],
+      ['Silverstone', 'GP · 5.89 km', 'GBR', 'Sun 27 Jun', TR('ks_silverstone/ui/gp'), SPRINT, '60 km'],
+      ['Nürburgring', 'GP · 5.15 km', 'DEU', 'Sun 25 Jul', TR('ks_nurburgring/ui/layout_gp_a'), SPRINT, '60 km'],
+      ['Barcelona', 'GP · 4.66 km', 'ESP', 'Sun 22 Aug', TR('ks_barcelona/ui/layout_gp'), SPRINT, '60 km'],
+    ],
+  },
+  multi: {
+    name: 'British GT', disc: 'sports', tier: 3, photo: PH.brands, summary: '5 rounds · 24 cars · 2 classes', season: 2027,
+    rounds: [
+      ['Oulton Park', 'International · 4.31 km', 'GBR', 'Mon 5 Apr', TR('rt_oulton_park/ui/international'), ['Practice', 'Qualifying', 'Race 1', 'Race 2'], '2 × 36 laps'],
+      ['Silverstone', 'GP · 5.89 km', 'GBR', 'Sun 25 Apr', TR('ks_silverstone/ui/gp'), SPRINT, '88 laps'],
+      ['Spa-Francorchamps', '7.00 km', 'BEL', 'Sat 26 Jun', TR('spa/ui/2022'), SPRINT, '72 laps'],
+      ['Brands Hatch', 'Indy · 1.93 km', 'GBR', 'Sun 25 Jul', TR('ks_brands_hatch/ui/indy'), ['Practice', 'Qualifying', 'Race 1', 'Race 2'], '2 × 52 laps'],
+      ['Brands Hatch', 'GP · 3.91 km', 'GBR', 'Sun 19 Sep', TR('ks_brands_hatch/ui/gp'), SPRINT, '62 laps'],
+    ],
+  },
+};
+const sessChip = (n) => `<span class="chip ${n.startsWith('Race') ? 'c-race' : n === 'Qualifying' ? 'c-qualify' : 'c-practice'}">${n}</span>`;
+const roundsPanel = (ch) => `<div class="panel" style="overflow:hidden"><h3>${I.cal} Calendar <span class="muted" style="font-weight:400">${ch.rounds.length} rounds · ${ch.season}</span></h3>
+  <div class="rounds" style="margin-top:8px">${ch.rounds.map(([t, lay, nat, date, img, sess, len], i) => `<div class="rd">
+    <div class="no">R<b>${i + 1}</b></div>
+    <div class="pic"><img class="p" src="${img.p}"><img class="o" src="${img.o}"></div>
+    <div style="min-width:0"><div class="tn">${flag(nat)}${t}</div><div class="ts">${lay}</div><div class="ss">${sess.map(sessChip).join('')}</div></div>
+    <div class="dt">${date}<small>${len}</small></div></div>`).join('')}</div></div>`;
+
+const champStepper = (at) => `<div class="stepper">${[['pick', 'Championship'], ['seat', 'Your seat']].map(([k, l], i) => `<span class="${i < at ? 'done' : i === at ? 'on' : ''}"><i>${i < at ? '✓' : i + 1}</i>${l}</span>`).join('<b></b>')}</div>`;
+
+const champCardSk = () => `<div class="panel ch-card"><span class="shim block" style="height:110px;border-radius:11px 11px 0 0"></span><div class="pb col" style="gap:8px">${sk('70%', 14)}<div class="row" style="gap:4px">${sk('80px', 19, 6)}${sk('46px', 19, 6)}</div>${sk('55%', 10)}</div></div>`;
+const newChampPick = (loading) => win(`<div class="shdr">${backlink('Main menu')}<h2>New championship</h2>${champStepper(0)}</div>
+  <div class="body" style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;overflow:hidden">
+    <div class="col" style="gap:14px">
+      <div class="input"><span class="muted">${I.search}</span><span class="muted">Search championships</span></div>
+      <div class="col" style="gap:6px"><span class="caps">Discipline</span>${Object.keys(DISC).map((d) => `<div class="row" style="font-size:13px">${disc(d)}<span class="end muted">${loading ? sk('16px', 10) : OPEN_AT[d] * 9}</span></div>`).join('')}</div>
+      <div class="col" style="gap:6px"><span class="caps">Tier</span><div class="row" style="flex-wrap:wrap;gap:4px">${[1, 2, 3, 4, 5].map(tier).join('')}</div></div>
+      <div class="note"><b>Switched-on championships only.</b> The rest are in Settings › Championships.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-content:start">${loading ? slots(6, champCardSk) : LIB.map(([n, d, t, r, cls, ph], i) => `<div class="panel ch-card${i === 0 ? ' on' : ''}">
+      <div class="ph" style="height:110px;border-radius:11px 11px 0 0"><img class="bg" src="${ph}"></div>
+      <div class="pb col" style="gap:6px"><b>${n}</b><div class="row" style="gap:4px">${disc(d)}${tier(t)}</div><div class="muted" style="font-size:12px">${r} rounds · ${cls}</div></div></div>`).join('')}</div>
+  </div>
+  <div class="foot-bar"><span class="muted">${loading ? 'Pick a championship' : 'GT3 Sprint Series picked'}</span><span class="grow"></span><button class="btn lg">Cancel</button><button class="btn pri lg${loading ? ' dim' : ''}">Next ${I.chev}</button></div>`);
+
+const carTile = ([n, img, on]) => `<div class="car-tile${on ? ' on' : ''}"><img src="${img}"><b>${n}</b></div>`;
+const seatOne = () => `<div class="car-tiles">${[['Ferrari 488 GT3', CAR.ferrari, 1], ['Porsche 911 GT3 R', CAR.porsche, 0], ['Audi R8 LMS', `${AC}cars/ks_audi_r8_lms/skins/2015_C_Abt_Racing_1/preview.jpg`, 0]].map(carTile).join('')}</div>`;
+const seatMulti = () => {
+  const gt3 = [CAR.ferrari, CAR.porsche, `${AC}cars/ks_mercedes_amg_gt3/skins/racing_69/preview.jpg`];
+  const gt4 = [`${AC}cars/ks_porsche_cayman_gt4_clubsport/skins/00_clubsport/preview.jpg`, `${AC}cars/ks_maserati_gt_mc_gt4/skins/01_racing_12/preview.jpg`, `${AC}cars/gt4_bmw_m4/skins/13_Castrol_GT4/preview.jpg`];
+  const cls = (n, k, t, cars, models, imgs, on) => `<div class="cls-tile ${k}${on ? ' on' : ''}">
+    <div class="row"><span class="chip c-${k}">${n}</span><span class="muted" style="font-size:12px">${cars} cars · ${models} models</span><span class="end">${tier(t)}</span></div>
+    <div class="models">${imgs.map((i) => `<img src="${i}">`).join('')}<span class="muted" style="font-size:12px;align-self:center;margin-left:4px">+${models - 3}</span></div></div>`;
+  return `<div class="col" style="gap:6px"><span class="lbl">1 · Class</span>
+      <div class="cls-tiles">${cls('GT3', 'cl1', 3, 14, 7, gt3, false)}${cls('GT4', 'cl2', 4, 10, 6, gt4, true)}</div></div>
+    <div class="col" style="gap:6px"><span class="lbl row">2 · Car <span class="chip c-cl2">GT4</span><span class="muted" style="font-weight:400;font-size:12px">6 models</span></span>
+      <div class="car-tiles">${[['Porsche Cayman GT4', gt4[0], 1], ['Maserati GT MC GT4', gt4[1], 0], ['BMW M4 GT4', gt4[2], 0]].map(carTile).join('')}</div></div>`;
+};
+
+const roundsSk = () => `<div class="panel" style="overflow:hidden"><h3>${I.cal} Calendar ${sk('110px', 12)}</h3>
+  <div class="rounds" style="margin-top:8px">${slots(6, () => `<div class="rd"><div class="no">R<b>${sk('12px', 18, 4)}</b></div>${sk('76px', 46, 7)}
+    <div class="col" style="gap:5px">${sk('55%', 13)}${sk('35%', 10)}<div class="row" style="gap:3px">${sk('56px', 19, 6)}${sk('70px', 19, 6)}${sk('40px', 19, 6)}</div></div>
+    <div class="col" style="gap:5px;align-items:flex-end">${sk('62px', 12)}${sk('40px', 10)}</div></div>`)}</div></div>`;
+const newChampSeat = (multi, loading) => {
+  const ch = CHAMPS[multi ? 'multi' : 'one'];
+  const hero = loading
+    ? `<div class="panel" style="min-height:150px;padding:18px;display:flex;flex-direction:column;gap:9px;justify-content:center"><div class="row" style="gap:6px">${sk('80px', 20, 6)}${sk('46px', 20, 6)}</div>${sk('220px', 22)}${sk('260px', 12)}</div>`
+    : `<div class="ph side" style="border-radius:12px;min-height:150px"><img class="bg" src="${ch.photo}"><div class="cap" style="padding:18px;display:flex;flex-direction:column;gap:6px">
+        <div class="row">${disc(ch.disc)}${tier(ch.tier)}</div><h2 style="margin:0;font-size:21px">${ch.name}</h2><div style="opacity:.85;font-size:13px">${ch.summary} · one season</div></div></div>`;
+  // Whether a championship is multiclass is data too, so its skeleton takes the one-class shape.
+  const seat = loading
+    ? `<div class="car-tiles">${slots(3, () => `<div class="car-tile"><span class="shim block" style="height:90px;border-radius:6px"></span>${sk('70%', 13)}</div>`)}</div>`
+    : multi ? seatMulti() : seatOne();
+  return win(`<div class="shdr">${backlink('Main menu')}<h2>New championship</h2>${champStepper(1)}</div>
+  <div class="body" style="display:grid;grid-template-columns:440px minmax(0,1fr);gap:16px;overflow:auto">
+    <div class="col">${hero}${loading ? roundsSk() : roundsPanel(ch)}</div>
+    <div class="col" style="gap:14px">
+      ${sect('blue', I.car, 'Your seat', multi && !loading ? 'Pick a class, then a car from it. Livery and team as the championship page\'s Enter dialog has them.' : 'Car, livery and team, the way the championship page enters one.',
+        `${seat}
+         <div class="placeholder"><b>Livery and team</b>As the championship page's Enter dialog has them today - mockups/championship-enter.html.</div>`)}
+      ${sect('violet', I.user, 'Driver and season', 'Filled in from your default driver. Changing it here changes this championship only.',
+        `<div style="display:grid;grid-template-columns:1fr 1fr 150px;gap:12px"><div class="field"><span class="lbl">Name</span><div class="input">${loading ? sk('90px') : 'Eterry'}</div></div><div class="field"><span class="lbl">Nation</span>${nationField(loading)}</div><div class="field"><span class="lbl">Season</span><div class="input num">${loading ? sk('40px') : ch.season}</div></div></div>
+         <div class="hint">Opponents and driving aids follow your app settings. This championship can set its own in its Settings.</div>`)}
+    </div>
+  </div>
+  <div class="foot-bar"><button class="btn lg">${I.back}Back</button><span class="grow"></span><button class="btn pri lg${loading ? ' dim' : ''}">${I.play}Start championship</button></div>`);
+};
+
+// ======================================================================
+// Inside a slot - the header, the slot menu and the page behind
+// ======================================================================
+const NAVS = {
+  career: [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['championships', 'Championships', I.medal], ['cars', 'Cars', I.car], ['tracks', 'Tracks', I.map], ['settings', 'Settings', I.gear]],
+  champ: [['champ', 'Championship', I.trophy], ['results', 'Results', I.results], ['settings', 'Settings', I.gear]],
+  quick: [['races', 'Races', I.flag], ['results', 'Results', I.results], ['settings', 'Settings', I.gear]],
+};
+const HOME = { career: 'home', champ: 'champ', quick: 'races' };
+const SLOT = {
+  career: { who: flag('GBR', 1), name: 'Eterry', sub: 'Career · Sat 14 Jun 2028' },
+  champ: { who: flag('GBR', 1), name: 'GT3 Sprint Series 2027', sub: 'Championship · Round 3 of 6' },
+  quick: { who: `<span class="well quick" style="width:27px;height:27px">${I.flag}</span>`, name: 'Quick race', sub: '' },
+};
+const navHtml = (m, active) => `<nav class="nav">${NAVS[m].map(([id, l, ic]) => `<a class="${id === active ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>`;
+const saved = (m) => (m === 'quick' ? '' : `<span class="status"><span class="dot"></span>Autosaved after Race 2 · 6 min ago</span>`);
+const QS = SAVES.find((s) => s.kind === 'quick');
+
+const menuItems = (m) => (m === 'quick'
+  ? `<div class="mi hl">${I.grid}Main menu</div><div class="mi">${I.exit}Exit</div>`
+  : `<div class="mi">${I.bolt}Quick save<span class="kbd">F5</span></div>
+     <div class="mi">${I.save}Save as…<span class="kbd">Ctrl+S</span></div>
+     <div class="mi tall hl">${I.undo}<div class="grow">Quick load<small>Quick save · ${QS.date} · ${QS.when}</small></div><span class="kbd">F9</span></div>
+     <div class="mi">${I.load}Load…<span class="kbd">Ctrl+L</span></div>
+     <div class="sep"></div>
+     <div class="mi">${I.grid}Main menu</div><div class="mi">${I.exit}Exit</div>`);
+
+const hdr = (m, active, open, loading) => {
+  // Quick race mode's name is fixed, so only a slot's header has anything to wait for.
+  const ld = loading && m !== 'quick';
+  const who = ld ? `${sk('27px', 18, 3)}<span class="col" style="gap:4px">${sk('90px', 12)}${sk('130px', 9)}</span>`
+    : `${SLOT[m].who}<span><b>${SLOT[m].name}</b>${SLOT[m].sub ? `<small>${SLOT[m].sub}</small>` : ''}</span>`;
+  return `<header class="hd">
+    <button class="slotbtn${open ? ' open' : ''}">${who}${I.down}</button>
+    ${navHtml(m, active)}<span class="end">${ld ? sk('210px', 11) : saved(m)}</span></header>
+  ${open ? `<div class="menu" style="left:28px;top:${SLOT[m].sub ? 100 : 94}px;width:330px">${menuItems(m)}</div>` : ''}`;
+};
+
+const careerHome = () => `<div class="body col" style="gap:14px">
+  <div class="ph side" style="border-radius:14px;min-height:210px"><img class="bg" src="${PH.brands}">
+    <div class="cap" style="padding:20px 24px;display:flex;flex-direction:column;gap:8px;max-width:60%">
+      <span class="caps" style="color:inherit;opacity:.75">Next event · Sat 21 Jun 2028</span>
+      <h2 style="margin:0;font-size:24px">GT3 Sprint Series · Round 5</h2>
+      <div style="opacity:.85">Brands Hatch GP · Practice, Qualifying, Race</div>
+      <div class="row">${disc('sports')}${tier(3)}</div>
+      <div class="row" style="margin-top:4px"><button class="btn pri">Open event ${I.chev}</button></div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="panel"><h3>This season</h3><div class="pb col" style="gap:9px">${CAREERS[0].champs.map(([n, d, t, p, pts]) => `<div class="row" style="font-size:13px">${disc(d)}<span class="grow">${n}</span><b>${p}</b><span class="muted">${pts}</span></div>`).join('')}</div></div>
+    <div class="placeholder"><b>Results and History cards</b>Home as it is today - nothing about it changes.</div>
+  </div></div>`;
+const champHome = () => `<div class="body col" style="gap:14px">
+  <div class="ph side" style="border-radius:14px;min-height:190px"><img class="bg" src="${PH.silver}">
+    <div class="cap" style="padding:20px 24px;display:flex;flex-direction:column;gap:8px;max-width:60%">
+      <div class="row">${disc('sports')}${tier(3)}<span class="chip c-plain">2027</span></div>
+      <h2 style="margin:0;font-size:24px">GT3 Sprint Series</h2>
+      <div style="opacity:.85">Round 3 of 6 · you are P4 with 52 points</div>
+      <div class="row" style="margin-top:4px"><button class="btn pri">Round 4 · Silverstone ${I.chev}</button></div></div></div>
+  <div class="tabs" style="padding:0"><a class="on">Rounds</a><a>Standings</a><a>Classes</a><a>Points, prizes and rules</a></div>
+  <div class="placeholder"><b>The championship page, as it is today</b>Its sidebar's Enter panel is gone - you are in it - and its next-round panel leads the page.</div></div>`;
+const quickHome = () => `<div class="body col" style="gap:14px">
+  <div class="row"><h2 style="margin:0;font-size:20px">Races</h2><button class="btn pri end">${I.plus}New race</button></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">${[['Monza GP', 'GT3 field · 16 cars', PH.barca, 'Race next'], ['Nordschleife', '3 classes · 30 cars', PH.nords, 'Finished'], ['Silverstone National', 'Mazda MX-5 Cup · 12 cars', PH.silver2, 'Not started']].map(([n, s, ph, st]) => `<div class="panel" style="overflow:hidden">
+    <div class="ph shade" style="height:120px"><img class="bg" src="${ph}"><div class="cap" style="position:absolute;left:12px;bottom:10px"><b>${n}</b><div style="font-size:12px;opacity:.85">${s}</div></div></div>
+    <div class="pb row" style="font-size:12.5px"><span class="muted">${st}</span></div></div>`).join('')}</div>
+  <div class="placeholder"><b>The Race tab's page, as it is today</b>Its cards, a race's page and its results - moved, not changed. The car and track pickers inside a race are the only way into the library from here.</div></div>`;
+const homeOf = (m) => ({ career: careerHome, champ: champHome, quick: quickHome }[m])();
+
+// ======================================================================
+// Saving
+// ======================================================================
+const saveDialog = () => `<div class="scrim" style="top:30px"></div><div class="dlg">
+  <div class="dh"><h3>Save game</h3><p>Eterry · Career · Sat 14 Jun 2028</p></div>
+  <div class="db">
+    <div class="field"><span class="lbl">Name</span><div class="input focus">Spa, after Race 2<span class="caret"></span></div><span class="hint">Named after what just happened. Type over it, or pick a save below to write over.</span></div>
+    <div class="caps">Or save over</div>
+    <div class="panel list">${SAVES.filter((s) => s.kind === 'named').map((s, i) => `<div class="li${i === 0 ? ' hover' : ''}">
+      <span class="well named" style="width:28px;height:28px">${I.save}</span>
+      <div class="grow"><div class="t">${s.name}</div><div class="s">${s.date} · saved ${s.when}</div></div>${i === 0 ? '<button class="btn sm">Overwrite</button>' : ''}</div>`).join('')}</div>
+    <div class="hint">Autosaves and the quick save are never written over from here.</div>
+  </div>
+  <div class="df"><button class="btn">Cancel</button><button class="btn pri">${I.save}Save</button></div></div>`;
+const loadDialog = (loading, menu) => `<div class="scrim" style="top:30px"></div><div class="dlg" style="width:640px">
+  <div class="dh row"><h3>Load</h3><span class="end seg">${[['All', 7], ['Saved', 3], ['Quick', 1], ['Autosaves', 3]].map(([l, n], i) => `<span class="${i === 0 ? 'on' : ''}">${l} ${loading ? sk('9px', 9, 3) : `<small>${n}</small>`}</span>`).join('')}</span></div>
+  <div class="db"><div class="panel list">${loading ? slots(5, saveRowSk) : SAVES.map((s, i) => saveRow(s, { hover: i === 4, menu: menu && i === 4 })).join('')}</div></div>
+  <div class="df"><button class="btn ghost">${I.folder}Open save folder</button><span class="grow"></span><button class="btn">Close</button></div></div>`;
+
+const rowMenu = () => `<div class="menu" style="left:calc(50% + 137px);top:482px;min-width:150px"><div class="mi">Rename…</div><div class="mi danger">${I.trash}Delete</div></div>`;
+
+// ======================================================================
+// Loading
+// ======================================================================
+const loadToast = (t) => {
+  if (t === 'racing') return `<div class="toast warn"><span class="well amber" style="width:32px;height:32px">${I.flag}</span>
+    <div class="grow"><b>Not while a race is running</b><div class="muted" style="font-size:12px">Race 2 at Spa is still waiting for its result. Load once it is in.</div></div><button class="btn sm icon ghost">${I.x}</button></div>`;
+  if (t === 'noquick') return `<div class="toast"><span class="well kquick" style="width:32px;height:32px">${I.bolt}</span>
+    <div class="grow"><b>No quick save yet</b><div class="muted" style="font-size:12px">F5 makes one.</div></div><button class="btn sm icon ghost">${I.x}</button></div>`;
+  const q = t === 'quick';
+  return `<div class="toast"><span class="well ${q ? 'kquick' : 'named'}" style="width:32px;height:32px">${q ? I.bolt : I.load}</span>
+    <div class="grow"><b>${q ? 'Quick loaded' : 'Loaded "Before Spa"'}</b><div class="muted" style="font-size:12px">${q ? `Back to ${QS.date} · saved ${QS.when}` : 'Back to Tue 10 Jun 2028 · saved yesterday, 21:47'}</div></div>
+    <button class="btn sm icon ghost">${I.x}</button></div>`;
+};
+
+// ======================================================================
+// Settings
+// ======================================================================
+const slider = (label, v, stops, ld, app) => `<div class="grow"><span class="lbl">${label} ${ld ? sk('22px', 12) : `<b>${v}</b>`}${app && !ld ? ` <span class="muted" style="font-weight:400;font-size:12px">App: ${app}</span>` : ''}</span>
+  <div class="slider"><div class="track"></div>${ld ? '' : `<div class="fill" style="width:${v}%"></div><div class="knob" style="left:${v}%"></div>`}<div class="stops"><span>${stops[0]}</span><span>${stops[1]}</span></div></div></div>`;
+const switchOf = (on, ld) => (ld ? sk('34px', 20, 99) : `<span class="switch${on ? ' on' : ''}"></span>`);
+
+const aidsBody = (own, ld) => {
+  // [label, this slot's value, the app's value]
+  const modes = [['ABS', 'On', 'Factory'], ['Traction control', 'Factory', 'Factory']];
+  const flags = [['Ideal line', true, false], ['Auto blip', true, true], ['Auto brake', false, false], ['Auto shifter', false, false], ['Auto clutch', true, true], ['Visual damage', true, true]];
+  const pick = (mine, app) => (own ? mine : app);
+  const diff = (mine, app) => own && !ld && mine !== app;
+  return `<div class="aid-tiles${own || ld ? '' : ' dimmed'}">
+    ${modes.map(([l, mine, app]) => `<div class="aid${diff(mine, app) ? ' diff' : ''}"><span class="row">${l}${diff(mine, app) ? `<small class="end">App: ${app}</small>` : ''}</span>${seg(['Off', 'Factory', 'On'], ld ? null : pick(mine, app))}</div>`).join('')}
+    <div class="aid"><span class="row">Stability control<span class="end muted" style="font-weight:600">${ld ? sk('24px') : '0%'}</span></span><div class="slider" style="height:20px"><div class="track" style="top:7px"></div>${ld ? '' : '<div class="knob" style="left:0%;top:1px"></div>'}</div></div>
+    ${flags.map(([l, mine, app]) => `<div class="aid sw${diff(mine, app) ? ' diff' : ''}"><span>${l}${diff(mine, app) ? `<small style="display:block">App: ${app ? 'on' : 'off'}</small>` : ''}</span>${switchOf(pick(mine, app), ld)}</div>`).join('')}
+  </div>`;
+};
+
+const followRow = (own, who, ld) => (ld ? `<div class="follow">${sk('34px', 20, 99)}<div class="grow">${sk('170px')}</div></div>`
+  : `<div class="follow"><span class="switch${own ? ' on' : ''}"></span><div class="grow"><span class="lbl">${own ? `${who}'s own` : 'Follows App settings'}</span>
+  <span class="muted"> - ${own ? 'switch off to follow App settings again' : 'switch on to set this one apart'}</span></div></div>`);
+
+const slotSettingsBody = (m, ld) => {
+  const who = m === 'career' ? 'This career' : 'This championship';
+  const oppOwn = m === 'champ';
+  const aidsOwn = m === 'career';
+  return `<div class="col" style="gap:14px;max-width:920px">
+  ${sect('blue', I.user, 'Driver', `${who}'s own. Your default driver${ld ? '' : ' - Eterry, United Kingdom -'} stays as it is.`, driverFields(ld))}
+  ${sect('amber', I.sliders, 'Opponents', 'Every championship\'s offsets sit over these. The steps you take per season and per round stay on their own pages.',
+    `${followRow(oppOwn, who, ld)}
+     <div class="row${oppOwn || ld ? '' : ' dimmed'}" style="gap:24px">${slider('Strength', oppOwn ? 94 : 88, ['0', '100'], ld, oppOwn ? 88 : null)}${slider('Aggression', 30, ['Clean', 'Hard'], ld)}</div>`)}
+  ${sect('green', I.hand, 'Driving aids', '', `${followRow(aidsOwn, who, ld)}${aidsBody(aidsOwn, ld)}`)}
+  ${m === 'career' ? sect('violet', I.cal, 'Calendar', 'Changes reach the next season; this one is drawn already.',
+    `<div class="row" style="justify-content:space-between"><div><div class="lbl">Two events on one day</div><div class="hint">Let entered events share a race day instead of clashing.</div></div>${switchOf(false, ld)}</div>
+     <div class="row" style="justify-content:space-between"><div><div class="lbl">Historic events</div><div class="hint">How often a season invites you to one.</div></div>${seg(['Never', 'Quarterly', 'Monthly', 'Fortnightly', 'Weekly'], ld ? null : 'Monthly')}</div>`) : ''}
+</div>`;
+};
+
+const APP_TABS = [['General', I.sliders], ['Diagnostics', I.pulse], ['Your content', I.stack], ['Classes', I.grid], ['Championships', I.trophy], ['Content sources', I.folder], ['Historic events', I.history]];
+const appTabs = () => `<div class="tabs">${APP_TABS.map(([t, ic]) => `<a class="${t === 'General' ? 'on' : ''}">${ic}${t}</a>`).join('')}</div>`;
+const appGeneralBody = (slotName, ld) => `<div style="display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px">
+  <div class="col" style="gap:4px;font-size:13px">${['Appearance', 'Default driver', 'Opponents', 'Driving aids', 'Weather', 'Saves', 'Content Manager'].map((x, i) => `<a class="idx${i === 1 ? ' on' : ''}">${x}</a>`).join('')}</div>
+  <div class="col" style="gap:14px;max-width:820px">
+    ${sect('violet', I.palette, 'Appearance', '', `<div class="row" style="gap:10px">${seg(['Light', 'Dark', 'System'], ld ? null : 'System')}${seg(['English', 'Українська'], ld ? null : 'English')}</div>`)}
+    ${sect('blue', I.user, 'Default driver', `Fills in a new career or championship, and is who you race as in quick races.${slotName ? ` ${slotName} has a driver of its own.` : ''}`, driverFields(ld))}
+    ${sect('amber', I.sliders, 'Opponents', 'Quick races, and every career and championship that does not set its own.', `<div class="placeholder">${ld ? sk('180px', 13) : '<b>Strength 88 · Aggression 30</b>'}Today's Opponents section, unchanged.</div>`)}
+    ${sect('green', I.hand, 'Driving aids', 'Quick races, and every career and championship that does not set its own.', `<div class="placeholder">${ld ? sk('220px', 13) : '<b>ABS factory · TC factory · auto clutch</b>'}Today's Driving aids section, unchanged.</div>`)}
+    ${sect('violet', I.save, 'Saves', '', `<div class="row" style="justify-content:space-between"><div><div class="lbl">Autosaves to keep</div><div class="hint">One is taken after every session; the oldest goes.</div></div>${seg(['1', '3', '5', '10'], ld ? null : '3')}</div>`, ' <span class="chip c-plain">New</span>')}
+  </div></div>`;
+
+const settingsPage = (where, scope, ld) => {
+  if (where === 'menu') {
+    return win(`<div class="shdr">${backlink('Main menu')}<h2>Settings</h2></div>${appTabs()}<div class="body" style="overflow:hidden">${appGeneralBody(undefined, ld)}</div>`);
+  }
+  const m = where;
+  const label = m === 'career' ? `${flag('GBR')}Eterry's career` : `${I.trophy}GT3 Sprint Series 2027`;
+  const slotName = m === 'career' ? 'Eterry\'s career' : 'GT3 Sprint Series 2027';
+  return win(`${hdr(m, 'settings', false)}<div class="shdr"><h2>Settings</h2><span class="seg" style="margin-left:10px"><span class="${scope === 'slot' ? 'on' : ''}">${label}</span><span class="${scope === 'app' ? 'on' : ''}">${I.grid}App</span></span>
+    <span class="end muted" style="font-size:12.5px">${scope === 'slot' ? `Only this ${m === 'career' ? 'career' : 'championship'}` : 'Every career, championship and quick race'}</span></div>
+    ${scope === 'app' ? appTabs() : ''}<div class="body" style="overflow:hidden">${scope === 'slot' ? slotSettingsBody(m, ld) : appGeneralBody(slotName, ld)}</div>`, undefined, scope === 'slot' ? (m === 'career' ? 1240 : 1000) : 0);
+};
+
+// ======================================================================
+// Picker and what each view is for
+// ======================================================================
+const PAGES = [['map', 'Overview'], ['start', 'Start screen'], ['careers', 'Careers'], ['champs', 'Championships'], ['newcareer', 'New career'], ['newchamp', 'New championship'], ['nav', 'Navigation'], ['saves', 'Saving'], ['loading', 'Loading'], ['settings', 'Settings']];
+const LOADS = ['start', 'careers', 'champs', 'newchamp', 'nav', 'saves', 'settings'];
+const loadingOn = (s) => s.load === 'yes' && LOADS.includes(s.page) && (s.page !== 'saves' || s.saveDlg === 'load');
+const GROUPS = [
+  { k: 'page', label: 'Page', opts: PAGES },
+  { k: 'load', label: 'Data', for: LOADS, when: (s) => s.page !== 'saves' || s.saveDlg === 'load', opts: [['no', 'Loaded'], ['yes', 'Loading']] },
+  { k: 'first', label: 'Player', for: ['start'], when: (s) => !loadingOn(s), opts: [['no', 'Returning'], ['yes', 'First run']] },
+  { k: 'champSel', label: 'Picked', for: ['champs'], when: (s) => !loadingOn(s), opts: [['0', 'Running'], ['1', 'Finished']] },
+  { k: 'dlg', label: 'Dialog', for: ['careers', 'champs'], when: (s) => !loadingOn(s), opts: [['none', 'None'], ['delete', 'Delete'], ['restore', 'Restore'], ['backedup', 'Backed up']] },
+  { k: 'chStep', label: 'Step', for: ['newchamp'], opts: [['pick', '1 · Championship'], ['seat', '2 · Your seat']] },
+  { k: 'classes', label: 'Classes', for: ['newchamp'], when: (s) => s.chStep === 'seat' && !loadingOn(s), opts: [['one', 'One class'], ['multi', 'Multiclass']] },
+  { k: 'mode', label: 'Mode', for: ['nav'], opts: [['career', 'Career'], ['champ', 'Championship'], ['quick', 'Quick race']] },
+  { k: 'open', label: 'Menu', for: ['nav'], when: (s) => !loadingOn(s), opts: [['yes', 'Open'], ['no', 'Closed']] },
+  { k: 'saveDlg', label: 'Dialog', for: ['saves'], opts: [['save', 'Save as'], ['load', 'Load'], ['row', 'Load, a save\'s menu']] },
+  { k: 'trigger', label: 'From', for: ['loading'], opts: [['list', 'A named save'], ['quick', 'Quick load · F9'], ['noquick', 'F9, no quick save'], ['racing', 'During a race']] },
+  { k: 'where', label: 'Opened', for: ['settings'], opts: [['career', 'In a career'], ['champ', 'In a championship'], ['menu', 'From the main menu']] },
+  { k: 'scope', label: 'Showing', for: ['settings'], when: (s) => s.where !== 'menu', opts: [['slot', 'Its own'], ['app', 'App']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+const S = {
+  page: 'map', load: 'no', first: 'no', champSel: '0', dlg: 'none', chStep: 'pick', classes: 'one', mode: 'career', open: 'yes',
+  saveDlg: 'save', trigger: 'list', where: 'career', scope: 'slot', theme: 'light',
+};
+
+const WHY = {
+  map: () => ['<b>The whole of Phase 6 on one page</b>: how the app is laid out once there are modes and slots, where everything is kept, how saving works and which settings live where. The other pages show one part each, with the variants you picked and nothing else.'],
+  start: (s) => ['<b>Tiles.</b> One tile per mode over a track photograph, the career and championship tiles each with a Continue of their own - on a championship that has finished, Continue opens its review. Load opens Careers or Championships with the one played last already picked. Settings and Exit in the footer. The screen itself follows the theme; only the tiles are photographs.'
+    + (s.first === 'yes' ? ' <b>First run:</b> with nothing played, each tile offers only New.' : '')],
+  careers: (s) => ['<b>Careers</b>, a page of its own: the careers on the left and the one picked on the right. Continue opens its working state, any of its saves loads from here, and Open folder, Back up and Delete sit underneath. Load on the start screen arrives here with the career played last picked. Every save row has the same columns - its kind, Load and a ⋮ menu. Only a named save has a menu, so an autosave or the quick save leaves that column empty.'
+    + (s.dlg !== 'none' ? ' <b>Dialogs:</b> Delete names what goes with it. Restore reads the backup before doing anything, and asks only when that career is already here. Back up is a native save dialog, then a toast.' : '')],
+  champs: (s) => ['<b>Championships</b>, the same page for standalone championships.'
+    + (s.champSel === '1' ? ' <b>A finished one</b> opens on its review, read-only - one season and done - and so does the start screen\'s Continue when it was played last. Its saves still load, and loading one from before the end puts it back mid-season.' : ' A running one continues where it was left.')
+    + ' Every save row has the same columns - its kind, Load and a ⋮ menu. Only a named save has a menu, so an autosave or the quick save leaves that column empty.'],
+  newcareer: () => ['<b>New career</b>: the four things a career needs, and a summary of what they add up to, including how many championships the level opens in each discipline. Money and rating are stored and shown, and drive nothing until Phases 7 and 8. The rating figures and money stops are placeholders until those phases set the real ones.'],
+  newchamp: (s) => [s.chStep === 'pick'
+    ? '<b>Pick a championship</b> from the library, with the Championships list\'s own rail. Only the switched-on ones are offered.'
+    : `<b>Your seat.</b> The calendar down the left: each round's track, its shape, its sessions, its date and its length. On the right the seat${s.classes === 'multi' ? ' - <b>a multiclass championship asks for the class first</b>, each in its class colour with its tier and models, then shows that class\'s cars' : ''} - then the driver and the season. Opponents and driving aids follow the app until the championship's own Settings say otherwise.`],
+  nav: (s) => ['<b>The slot menu.</b> The slot\'s name replaces the app title and opens the menu: quick save, save as, quick load (naming the quick save it loads), load, main menu and exit. Settings is a tab, so the menu does not repeat it. On the right, when it last saved.'
+    + (s.mode === 'quick' ? ' <b>Quick race mode</b> has nothing to save, so its menu is Main menu and Exit.' : s.mode === 'champ' ? ' <b>A championship</b> has its own page, its results and its settings - cars and tracks are not a tab here.' : '')],
+  saves: (s) => [s.saveDlg === 'save'
+    ? '<b>Save as</b>, over whatever page is open. A name pre-filled from what just happened, or a named save to write over. Autosaves and the quick save are never offered.'
+    : s.saveDlg === 'load' ? '<b>Load</b>: every save the slot has, filtered by kind. Loading is one click and asks nothing.'
+      : '<b>A named save\'s menu</b>, from the ⋮ column every row has: rename or delete. Autosaves and the quick save have neither, so their ⋮ cell stays empty.'],
+  loading: (s) => [{
+    list: '<b>Loading a save</b> asks nothing. It loads, and a notification says what was loaded and where the clock is now.',
+    quick: '<b>F9</b> loads the quick save, and says so the same way.',
+    noquick: '<b>F9 with no quick save</b> says so rather than doing nothing.',
+    racing: '<b>A launch in flight</b> blocks loading until its result is in, the way it already blocks moving the clock.',
+  }[s.trigger]],
+  settings: (s) => [s.where === 'menu'
+    ? '<b>From the start screen</b>, Settings is the app\'s alone. The driver is the <b>default driver</b>; opponents and driving aids are what quick races use and what every career and championship follows unless it sets its own. Saves is a new section.'
+    : `<b>A switch at the top</b>: this ${s.where === 'career' ? 'career' : 'championship'}'s own settings, or the app's. It opens on its own. ${s.where === 'career'
+      ? 'A career has its driver, opponents, driving aids and calendar. Here the opponents follow the app and the aids are its own - each one it differs on says what the app has.'
+      : 'A championship has its driver, opponents and driving aids. Here it races its own opponents and follows the app\'s aids.'} None of it is part of a save.`],
+};
+
+const SKELETON = {
+  start: 'the tiles\' photographs and wording are fixed, so they render at once. Only each Continue line, the Load counts and the install status shimmer, and Continue waits disabled until it knows what it continues. Whether this is a first run is data too, so the skeleton takes the returning shape.',
+  careers: 'the title, Back, the buttons, the save filters and the actions render at once. The list, the hero, the save count and the save rows shimmer in the size and place of what replaces them.',
+  champs: 'the title, Back, the buttons, the save filters and the actions render at once. The list, the hero, the save count and the save rows shimmer in the size and place of what replaces them.',
+  newchamp: 'the rail\'s disciplines and tiers are a closed set, so they render in their colours with only their counts to come; the cards shimmer. On the seat step the calendar, the cars and the pre-filled driver shimmer, and whether it is multiclass is not known yet, so it takes the one-class shape.',
+  nav: 'opening a slot, its name, its date and when it last saved shimmer in the header while the nav renders at once. Each page below has its own skeleton already. Quick race mode has nothing to wait for in its header.',
+  saves: 'the dialog, its title and its filters render at once; the counts and the rows shimmer.',
+  settings: 'every section, label and hint renders at once. A field still being read shimmers, and a switch or a choice shows no value at all rather than a made-up one.',
+};
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => (!g.for || g.for.includes(S.page)) && (!g.when || g.when(S)))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  const ld = loadingOn(S);
+  const [why, qs] = WHY[S.page](S);
+  const text = ld ? `${why}<div class="q"><b>Loading</b> - ${SKELETON[S.page]}</div>` : why;
+  document.getElementById('why').innerHTML = `<div class="box">${text}${qs && qs.length ? `<div class="q"><b>To decide</b><ul>${qs.map((q) => `<li>${q}</li>`).join('')}</ul></div>` : ''}</div>`;
+  const shellOf = (m, inner = '') => win(`${hdr(m, HOME[m], false)}${homeOf(m)}${inner}`);
+  document.getElementById('stage').innerHTML = {
+    map: pageMap,
+    start: () => startTiles(S.first === 'yes', ld),
+    careers: () => hubPage('careers', 0, S.dlg, ld),
+    champs: () => hubPage('champs', Number(S.champSel), S.dlg, ld),
+    newcareer: newCareerPage,
+    newchamp: () => (S.chStep === 'pick' ? newChampPick(ld) : newChampSeat(S.classes === 'multi', ld)),
+    nav: () => win(ld ? `${hdr(S.mode, HOME[S.mode], false, true)}<div class="body"><div class="placeholder"><b>The page's own skeleton</b>Home, the championship page and the Races list each have one already.</div></div>`
+      : `${hdr(S.mode, HOME[S.mode], S.open === 'yes')}${homeOf(S.mode)}`),
+    saves: () => shellOf('career', S.saveDlg === 'save' ? saveDialog() : S.saveDlg === 'load' ? loadDialog(ld) : loadDialog(false, true) + rowMenu()),
+    loading: () => shellOf('career', loadToast(S.trigger)),
+    settings: () => settingsPage(S.where, S.scope, ld),
+  }[S.page]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+// The hash holds the picker's state, so a view can be linked or reloaded.
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+
+</script>
+</body>
+</html>

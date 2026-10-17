@@ -2,16 +2,16 @@ import {
   afterEach, beforeEach, describe, expect, it, jest,
 } from '@jest/globals';
 import {
-  copyFile, readFile, rename, unlink, writeFile,
+  copyFile, readdir, readFile, rename, rm, unlink, writeFile,
 } from 'node:fs/promises';
 
 import {
-  makeAvailability, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan, makeRound,
+  CAREER_ID, makeAvailability, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan, makeRound,
   makeSeason,
 } from './fixtures.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type {
-  Career, CareerSeason, LaunchRecord, SeriesListing, SeriesRequirements, Settings,
+  Career, CareerSeason, LaunchRecord, NewCareerRequest, SeriesListing, SeriesRequirements, Settings,
 } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import {
@@ -71,10 +71,26 @@ interface HarnessOptions {
    */
   settings?: Partial<Settings>;
   /**
-   * A career already on disk, or nothing for a first run.
+   * A career already on disk, which the harness opens - or, absent, the one it
+   * starts as New career would.
    */
   career?: Career;
+  /**
+   * Leaves every career closed, as the start screen does.
+   */
+  closed?: boolean;
 }
+
+/**
+ * The career a test starts when it has none on disk: the year the clock is in,
+ * on the rung the cup's class sits.
+ */
+const NEW_CAREER: NewCareerRequest = {
+  driver: { name: 'Test Driver', nation: 'GBR' },
+  year: 2027,
+  level: 4,
+  money: 100_000,
+};
 
 /**
  * The championship most tests race: two rounds, one class at the bottom rung.
@@ -121,6 +137,8 @@ const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
     fakeContentStore(),
     fakeSettingsStore({ historicFrequency: 'off', ...options.settings }),
   );
+  if (options.career) await store.open(options.career.id);
+  else if (!options.closed) await store.create(NEW_CAREER);
 
   return {
     store, series, historic, race,
@@ -181,6 +199,26 @@ const record = (index: number): LaunchRecord => ({
 });
 
 /**
+ * A second career's id, for the tests that hold more than one.
+ */
+const OTHER_ID = '00000000-0000-4000-8000-000000000002';
+
+/**
+ * Serves career files off a fake disk, one per career folder.
+ * @param careers The careers on disk, each written under its own folder
+ * @param names The folders readdir lists, the careers' own by default
+ */
+const onDisk = (careers: readonly Career[], names: readonly string[] = careers.map((one) => one.id)): void => {
+  jest.mocked(readdir).mockResolvedValue(names as never);
+  readFileMock.mockImplementation((async (file: unknown) => {
+    const held = careers.find((one) => String(file).includes(one.id));
+    if (!held) throw errno('ENOENT');
+
+    return JSON.stringify(held);
+  }) as typeof readFile);
+};
+
+/**
  * Lets queued work run, as a push from the race store is handled after it
  * returns.
  * @returns Resolves on a later turn of the event loop
@@ -201,6 +239,7 @@ describe('main/career-store', () => {
       ],
     });
     readFileMock.mockRejectedValue(errno('ENOENT'));
+    jest.mocked(readdir).mockResolvedValue([]);
     writeFileMock.mockResolvedValue(undefined);
     jest.mocked(rename).mockResolvedValue(undefined);
     jest.mocked(copyFile).mockResolvedValue(undefined);
@@ -229,13 +268,13 @@ describe('main/career-store', () => {
   };
 
   describe('createCareerStore', () => {
-    it('has no career until something asks for one', async () => {
-      const { store } = await build();
+    it('has no career open until one is opened', async () => {
+      const { store } = await build({ closed: true });
 
       expect(store.get()).toBeNull();
     });
 
-    it('loads the career on disk as it was written', async () => {
+    it('opens the career on disk as it was written', async () => {
       const career = careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-03-07')] })] });
       const { store } = await build({ career });
 
@@ -243,10 +282,11 @@ describe('main/career-store', () => {
       expect(entryOf(store.get()).events[0].date).toBe('2027-03-07');
     });
 
-    it('quarantines a career file that is not JSON and starts afresh on the next read', async () => {
+    it('sets a career file that is not JSON aside rather than opening it', async () => {
       readFileMock.mockResolvedValue('{ not json');
-      const { store } = await build();
+      const { store } = await build({ closed: true });
 
+      await expect(store.open(CAREER_ID)).rejects.toMatchObject({ code: 'career.unreadable' });
       expect(copyFile).toHaveBeenCalledWith(
         expect.stringContaining('career.json'),
         expect.stringContaining('career.corrupt-1.json'),
@@ -255,7 +295,7 @@ describe('main/career-store', () => {
       expect(store.get()).toBeNull();
     });
 
-    it('races the rounds the clock passed without the player as soon as it loads', async () => {
+    it('races the rounds the clock passed without the player as soon as it opens', async () => {
       const career = careerWith({
         entries: [makeEntry({ events: [makeEvent('one', '2027-03-07', { status: 'missed' })] })],
       }, '2027-04-01');
@@ -265,8 +305,267 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('list', () => {
+    it('lists every career on disk, played most recently first', async () => {
+      onDisk([
+        makeCareer({ playedAt: '2026-12-01T10:00:00.000Z', driver: { name: 'Older', nation: null } }),
+        makeCareer({ id: OTHER_ID, playedAt: '2026-12-20T10:00:00.000Z', driver: { name: 'Newer', nation: 'UKR' } }),
+      ]);
+      const { store } = await build({ closed: true });
+
+      expect((await store.list()).map((one) => one.driver.name)).toEqual(['Newer', 'Older']);
+    });
+
+    it('passes over a folder that is not named by a career id', async () => {
+      onDisk([makeCareer()], [CAREER_ID, 'notes', '..']);
+      const { store } = await build({ closed: true });
+
+      expect((await store.list()).map((one) => one.id)).toEqual([CAREER_ID]);
+    });
+
+    it('leaves out a career it cannot read, or whose file names another career', async () => {
+      onDisk([makeCareer({ id: OTHER_ID })], [CAREER_ID, OTHER_ID]);
+      readFileMock.mockImplementation((async (file: unknown) => {
+        if (String(file).includes(CAREER_ID)) return '{ not json';
+
+        return JSON.stringify(makeCareer({ id: CAREER_ID }));
+      }) as typeof readFile);
+      const { store } = await build({ closed: true });
+
+      expect(await store.list()).toEqual([]);
+    });
+
+    it('lists the career just started before it has been written', async () => {
+      const { store } = await build();
+
+      expect((await store.list()).map((one) => one.id)).toEqual([store.get()?.id]);
+    });
+
+    it('answers for the open career from memory, which is ahead of its file', async () => {
+      const career = careerWith({});
+      const { store } = await build({ career });
+      await store.setDriver({ name: 'Renamed', nation: null });
+
+      expect((await store.list())[0].driver.name).toBe('Renamed');
+    });
+  });
+
+  describe('create', () => {
+    it('opens a career racing the driver, year, rung and money asked for', async () => {
+      const { store } = await build({ closed: true });
+      await store.create({
+        driver: { name: ' Oksana ', nation: 'UKR' }, year: 2030, level: 3, money: 250_000,
+      });
+
+      expect(store.get()).toMatchObject({
+        driver: { name: 'Oksana', nation: 'UKR' },
+        startDate: '2030-01-01',
+        date: '2030-01-01',
+        money: 250_000,
+        level: { road: 3, touring: 3 },
+        rating: { road: 1400, sportscar: 1400 },
+        playedAt: NOW.toISOString(),
+      });
+    });
+
+    it('writes it into a folder of its own', async () => {
+      const { store } = await build();
+      await store.flush();
+
+      expect(rename).toHaveBeenCalledWith(
+        expect.stringContaining('career.json.tmp'),
+        expect.stringMatching(new RegExp(`careers[\\\\/]${store.get()?.id}[\\\\/]career\\.json$`)),
+      );
+    });
+
+    // The draw used to run after the career was already open, so a failed one
+    // left an unwritten career open in main.
+    it('leaves nothing open when the season\'s historic events cannot be drawn', async () => {
+      const { store, historic } = await build({
+        closed: true,
+        historic: [historicListing('h1')],
+        settings: { historicFrequency: 'quarterly' },
+      });
+      historic.drawField = async () => { throw new Error('no field'); };
+
+      await expect(store.create(NEW_CAREER)).rejects.toThrow('no field');
+      expect(store.get()).toBeNull();
+    });
+
+    it('refuses a request no career can start from, leaving nothing open', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.create({ ...NEW_CAREER, driver: { name: '', nation: null } }))
+        .rejects.toMatchObject({ code: 'career.driver.unnamed' });
+      expect(store.get()).toBeNull();
+    });
+
+    it('refuses while a launch is out, leaving the open career as it was', async () => {
+      const career = careerWith({});
+      const { store, race } = await build({ career });
+      race.push(raceSetup({ status: { ...raceSetup().status, phase: 'waiting' } }));
+      await settled();
+
+      await expect(store.create(NEW_CAREER)).rejects.toMatchObject({ code: 'run.inFlight' });
+      expect(store.get()?.id).toBe(career.id);
+    });
+  });
+
+  describe('open', () => {
+    it('refuses a career that is not on disk', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.open(OTHER_ID)).rejects.toMatchObject({ code: 'career.notFound' });
+    });
+
+    // The id names a folder, so anything but a career's id could reach outside
+    // the careers folder.
+    it('refuses an id that is no career\'s, without reading anything', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.open('..\\settings')).rejects.toMatchObject({ code: 'career.notFound' });
+      expect(readFileMock).not.toHaveBeenCalled();
+    });
+
+    it('sets aside a file that names another career rather than opening it as this one', async () => {
+      onDisk([makeCareer({ id: OTHER_ID })], [CAREER_ID]);
+      readFileMock.mockResolvedValue(JSON.stringify(makeCareer({ id: OTHER_ID })));
+      const { store } = await build({ closed: true });
+
+      await expect(store.open(CAREER_ID)).rejects.toMatchObject({ code: 'career.unreadable' });
+      expect(store.get()).toBeNull();
+    });
+
+    // Opening read the file before the pending write reached it, so reopening
+    // the open career lost whatever had changed since.
+    it('keeps a change still waiting to be written when the open career is opened again', async () => {
+      const career = careerWith({});
+      const { store } = await build({ career });
+      // Reads back whatever was written last, as the disk would.
+      readFileMock.mockImplementation((async () => (
+        String(writeFileMock.mock.calls.at(-1)?.[1] ?? JSON.stringify(career))
+      )) as unknown as typeof readFile);
+      await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
+      await store.open(career.id);
+
+      expect(entryOf(store.get()).series).toBe(CUP.id);
+    });
+
+    it('stamps the career as played the moment it opens', async () => {
+      const { store } = await build({ career: careerWith({}) });
+
+      expect(store.get()?.playedAt).toBe(NOW.toISOString());
+    });
+
+    it('closes whichever career was open, writing it first', async () => {
+      const first = careerWith({});
+      const second = makeCareer({ ...careerWith({}), id: OTHER_ID });
+      const { store } = await build({ career: first });
+      onDisk([first, second]);
+      await store.setDriver({ name: 'Renamed', nation: null });
+      writeFileMock.mockClear();
+      await store.open(OTHER_ID);
+
+      expect(store.get()?.id).toBe(OTHER_ID);
+      const written = JSON.parse(String(writeFileMock.mock.calls[0]?.[1])) as Career;
+      expect(written).toMatchObject({ id: first.id, driver: { name: 'Renamed' } });
+    });
+  });
+
+  describe('close', () => {
+    it('writes the open career and leaves none open', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setDriver({ name: 'Renamed', nation: null });
+      writeFileMock.mockClear();
+      await store.close();
+
+      expect(store.get()).toBeNull();
+      expect(JSON.parse(String(writeFileMock.mock.calls[0]?.[1]))).toMatchObject({ driver: { name: 'Renamed' } });
+    });
+
+    it('tells everyone watching that no career is open', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      const heard: (Career | null)[] = [];
+      store.onChange((career) => heard.push(career));
+      await store.close();
+
+      expect(heard).toEqual([null]);
+    });
+
+    it('refuses while a launch is out, since its result would land nowhere', async () => {
+      const { store, race } = await build({ career: careerWith({}) });
+      race.push(raceSetup({ status: { ...raceSetup().status, phase: 'waiting' } }));
+      await settled();
+
+      await expect(store.close()).rejects.toMatchObject({ code: 'run.inFlight' });
+      expect(store.get()).not.toBeNull();
+    });
+  });
+
+  describe('remove', () => {
+    it('deletes the career\'s folder and answers with the careers left', async () => {
+      onDisk([makeCareer({ id: OTHER_ID })]);
+      const { store } = await build({ closed: true });
+      const left = await store.remove(CAREER_ID);
+
+      expect(rm).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`careers[\\\\/]${CAREER_ID}$`)), { recursive: true });
+      expect(left.map((one) => one.id)).toEqual([OTHER_ID]);
+    });
+
+    it('refuses the career that is open', async () => {
+      const career = careerWith({});
+      const { store } = await build({ career });
+
+      await expect(store.remove(career.id)).rejects.toMatchObject({ code: 'career.open' });
+      expect(rm).not.toHaveBeenCalled();
+    });
+
+    it('refuses a career that is not there', async () => {
+      jest.mocked(rm).mockRejectedValueOnce(errno('ENOENT'));
+      const { store } = await build({ closed: true });
+
+      await expect(store.remove(OTHER_ID)).rejects.toMatchObject({ code: 'career.notFound' });
+    });
+  });
+
+  describe('folderOf', () => {
+    it('answers with the folder a career is kept in', async () => {
+      const { store } = await build({ closed: true });
+
+      expect(await store.folderOf(CAREER_ID)).toMatch(new RegExp(`careers[\\\\/]${CAREER_ID}$`));
+    });
+
+    it('refuses an id that is no career\'s', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.folderOf('..')).rejects.toMatchObject({ code: 'career.notFound' });
+    });
+  });
+
+  describe('setDriver', () => {
+    it('renames the open career\'s driver and changes their nation', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setDriver({ name: ' Oksana ', nation: 'UKR' });
+
+      expect(store.get()?.driver).toEqual({ name: 'Oksana', nation: 'UKR' });
+    });
+
+    it('refuses a driver with no name, keeping the one it had', async () => {
+      const { store } = await build({ career: careerWith({}) });
+
+      await expect(store.setDriver({ name: ' ', nation: null })).rejects.toMatchObject({ code: 'career.driver.unnamed' });
+      expect(store.get()?.driver.name).toBe('Test Driver');
+    });
+
+    it('refuses with no career open', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.setDriver({ name: 'Oksana', nation: null })).rejects.toMatchObject({ code: 'career.none' });
+    });
+  });
+
   describe('calendar', () => {
-    it('starts a career on 1 January of the current year, the whole season ahead', async () => {
+    it('starts a new career on 1 January of the year it asks for, the whole season ahead', async () => {
       const { store } = await build();
       await store.calendar();
 
@@ -274,13 +573,10 @@ describe('main/career-store', () => {
       expect(store.get()?.seasons).toHaveLength(1);
     });
 
-    it('starts one career when two screens ask at once', async () => {
-      const { store } = await build();
-      await Promise.all([store.calendar(), store.calendar()]);
-      const { id } = store.get() ?? {};
-      await store.calendar();
+    it('refuses with no career open', async () => {
+      const { store } = await build({ closed: true });
 
-      expect(store.get()?.id).toBe(id);
+      await expect(store.calendar()).rejects.toMatchObject({ code: 'career.none' });
     });
 
     it('writes the career in one step, through a file beside it', async () => {
@@ -335,9 +631,10 @@ describe('main/career-store', () => {
       const { store, historic } = await build({
         historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
         settings: { historicFrequency: 'quarterly' },
+        closed: true,
       });
       historic.failList(new Error('install not located'));
-      await store.calendar();
+      await store.create(NEW_CAREER);
 
       expect(store.get()?.seasons[0].historicDrawn).toBeFalsy();
 
@@ -438,7 +735,7 @@ describe('main/career-store', () => {
 
     it('tells everyone watching', async () => {
       const { store } = await build();
-      const seen: Career[] = [];
+      const seen: (Career | null)[] = [];
       store.onChange((career) => seen.push(career));
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
 
@@ -753,6 +1050,19 @@ describe('main/career-store', () => {
       expect(store.get()?.date).toBe('2027-01-01');
     });
 
+    it("races under the career's own driver rather than the default one", async () => {
+      const career = makeCareer({
+        ...careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01')] })] }),
+        driver: { name: 'Oksana Melnyk', nation: 'UKR' },
+      });
+      const { store, race } = await build({ career, settings: { driverName: 'Someone Else' } });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(race.loaded[0].definition.playerCar).toMatchObject({
+        driver: 'Oksana Melnyk', nationCode: 'UKR', nationality: expect.any(String),
+      });
+    });
+
     it('refuses a round of a championship the career is not in', async () => {
       const { store } = await build({ career: careerWith({}) });
 
@@ -777,6 +1087,7 @@ describe('main/career-store', () => {
      * @returns The state
      */
     const landed = (completed: number, launchCount = 2) => raceSetup({
+      owner: CAREER_ID,
       plan: makePlan(CUP.eventFormats[0].sessions.slice(0, launchCount)),
       state: {
         raceId: 'test-cup/one', launchCount, completed: Array.from({ length: completed }, (unused, at) => record(at)),
@@ -813,6 +1124,17 @@ describe('main/career-store', () => {
       await settled();
       const before = store.get();
       race.push(landed(1));
+      await settled();
+
+      expect(store.get()).toBe(before);
+    });
+
+    // Two careers can race a round under the same id, so a result another
+    // career put in the slot must never land on this one.
+    it('ignores a result another career put in the slot', async () => {
+      const { store, race } = await build({ career: entered() });
+      const before = store.get();
+      race.push({ ...landed(2), owner: OTHER_ID });
       await settled();
 
       expect(store.get()).toBe(before);

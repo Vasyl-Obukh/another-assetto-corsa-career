@@ -100,7 +100,13 @@ export interface RaceSetup {
    * happen.
    */
   weatherFx: WeatherFxState;
-
+  /**
+   * The career that put the event in the slot, by id, or null for a race event
+   * of the player's own. Two careers can race a round under the same id, so a
+   * career carries an event on, or takes a result from the slot, only once it
+   * knows the event is its own.
+   */
+  owner: string | null;
 }
 
 /**

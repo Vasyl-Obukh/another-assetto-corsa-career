@@ -17,7 +17,7 @@ export type {
 } from './browser/index.ts';
 export { LanguagePicker, ThemePicker } from './choice-tiles/index.ts';
 export {
-  carPictureSources, CarSwatch, carSwatchSources, ContentImage,
+  carPictureSources, CarSwatch, carSwatchSources, ContentImage, trackPictureSources,
 } from './content-image/index.ts';
 export { CarPicker, CarSetPicker, TrackPicker } from './content-picker/index.ts';
 export type { ContentImageProps } from './content-image/index.ts';

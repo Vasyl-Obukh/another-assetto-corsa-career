@@ -14,6 +14,29 @@ import type {
 } from '../../../shared/types';
 
 /**
+ * A mode of the app a tile or a slot belongs to.
+ */
+export type AppMode = 'career' | 'championship' | 'quick';
+
+/**
+ * The colour each mode is chipped in, on the start screen and the Careers list.
+ */
+export const MODE_ACCENT = {
+  career: 'border-transparent bg-mode-career text-mode-career-foreground',
+  championship: 'border-transparent bg-mode-championship text-mode-championship-foreground',
+  quick: 'border-transparent bg-mode-quick text-mode-quick-foreground',
+} as const satisfies Record<AppMode, string>;
+
+/**
+ * The stripe along the top of a start screen tile, in its mode's solid shade.
+ */
+export const MODE_STRIPE = {
+  career: 'border-t-mode-career-solid',
+  championship: 'border-t-mode-championship-solid',
+  quick: 'border-t-mode-quick-solid',
+} as const satisfies Record<AppMode, string>;
+
+/**
  * The colour each kind of session is chipped in.
  *
  * A record over the type rather than a lookup by string, so adding a session
@@ -286,6 +309,12 @@ export const SECTION_ACCENT = {
   base: 'bg-provenance-base text-provenance-base-foreground',
   dlc: 'bg-provenance-dlc text-provenance-dlc-foreground',
   mod: 'bg-provenance-mod text-provenance-mod-foreground',
+  // New career's own two: what a career starts with to spend, in the budget
+  // family's independent red, and the rung it starts on, in the top rung's
+  // platinum. Neither page they appear on shows a team's budget, and the
+  // platinum well sits beside its own tier chips rather than against them.
+  money: 'bg-budget-independent text-budget-independent-foreground',
+  ladder: 'bg-tier-platinum text-tier-platinum-foreground',
 } as const;
 
 /**

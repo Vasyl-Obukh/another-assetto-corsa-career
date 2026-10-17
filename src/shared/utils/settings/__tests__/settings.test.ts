@@ -377,6 +377,16 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ driverName: 7 })).not.toHaveProperty('driverName');
     });
 
+    it('reads the default driver\'s nation as a code Assetto Corsa has a flag for', () => {
+      expect(readSettings({ driverNation: 'UKR' }).driverNation).toBe('UKR');
+    });
+
+    it('drops a nation Assetto Corsa has no flag for, rather than racing flagless', () => {
+      expect(readSettings({ driverNation: 'XYZ' })).not.toHaveProperty('driverNation');
+      expect(readSettings({ driverNation: '' })).not.toHaveProperty('driverNation');
+      expect(readSettings({ driverNation: 4 })).not.toHaveProperty('driverNation');
+    });
+
     it('always reports version 1', () => {
       expect(readSettings({ version: 99 }).version).toBe(1);
     });

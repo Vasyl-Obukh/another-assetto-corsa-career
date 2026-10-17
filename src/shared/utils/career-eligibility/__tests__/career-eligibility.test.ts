@@ -1,8 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { RATING_PER_TIER, TOP_RATING_FLOOR } from '../../../constants/index.ts';
 import { Discipline } from '../../../types/index.ts';
-import type { LadderPosition, SeriesListing } from '../../../types/index.ts';
-import { isEligible, startingLevels } from '../career-eligibility.ts';
+import type { LadderPosition } from '../../../types/index.ts';
+import {
+  isEligible, levelsAt, ratingFloor, ratingsAt,
+} from '../career-eligibility.ts';
 import type { DisciplineLevels } from '../career-eligibility.ts';
 
 /**
@@ -12,15 +15,6 @@ import type { DisciplineLevels } from '../career-eligibility.ts';
  * @returns The position
  */
 const at = (discipline: Discipline, tier: number): LadderPosition => ({ discipline, tier });
-
-/**
- * A listing carrying only the ladder positions the starting levels are read off.
- * @param ladders Where its class entries sit
- * @returns The listing
- */
-const listing = (ladders: readonly LadderPosition[]): SeriesListing => ({
-  series: { entries: ladders.map((ladder) => ({ ladder })) },
-} as unknown as SeriesListing);
 
 /**
  * A whole set of levels, one per discipline, for a test to move one of.
@@ -58,53 +52,44 @@ describe('shared/utils/career-eligibility', () => {
     });
   });
 
-  describe('startingLevels', () => {
-    it('opens the bottom two rungs a discipline offers', () => {
-      const library = [listing([at(Discipline.TOURING, 1), at(Discipline.TOURING, 5)])];
-
-      expect(startingLevels(library)[Discipline.TOURING]).toBe(4);
+  describe('levelsAt', () => {
+    it('puts every discipline on the one rung picked', () => {
+      expect(levelsAt(4)).toEqual(levels({
+        [Discipline.SINGLE_SEATER]: 4, [Discipline.SPORTSCAR]: 4, [Discipline.TOURING]: 4, [Discipline.ROAD]: 4,
+      }));
     });
 
-    // The bottom rung is a fact about the championships installed, so a mod
-    // that deepens a discipline moves where a career opens.
-    it('reads the bottom rung off the library rather than a fixed number', () => {
-      const shallow = [listing([at(Discipline.SPORTSCAR, 3)])];
-      const deep = [listing([at(Discipline.SPORTSCAR, 3)]), listing([at(Discipline.SPORTSCAR, 7)])];
+    it('lets a career on it enter that rung and below in any discipline, and nothing above', () => {
+      expect(isEligible(at(Discipline.TOURING, 4), levelsAt(4))).toBe(true);
+      expect(isEligible(at(Discipline.SINGLE_SEATER, 5), levelsAt(4))).toBe(true);
+      expect(isEligible(at(Discipline.SPORTSCAR, 3), levelsAt(4))).toBe(false);
+    });
+  });
 
-      expect(startingLevels(shallow)[Discipline.SPORTSCAR]).toBe(2);
-      expect(startingLevels(deep)[Discipline.SPORTSCAR]).toBe(6);
+  describe('ratingFloor', () => {
+    it('starts the top rung at the top floor', () => {
+      expect(ratingFloor(1)).toBe(TOP_RATING_FLOOR);
     });
 
-    it('never opens a rung above the top of the ladder', () => {
-      const library = [listing([at(Discipline.SINGLE_SEATER, 1)])];
-
-      expect(startingLevels(library)[Discipline.SINGLE_SEATER]).toBe(1);
+    it('lowers the floor a fixed step per rung down', () => {
+      expect(ratingFloor(3)).toBe(TOP_RATING_FLOOR - 2 * RATING_PER_TIER);
     });
 
-    // Guards a bug: the fallback was the seed of every discipline's own reduce
-    // rather than the answer for an empty one, so the deepest discipline set the
-    // bottom rung for all of them - one imported tier-7 single-seater series
-    // left a new career unable to enter anything at all.
-    it('reads each discipline\'s bottom rung from its own championships alone', () => {
-      const library = [listing([at(Discipline.SINGLE_SEATER, 7), at(Discipline.TOURING, 3)])];
-
-      expect(startingLevels(library)[Discipline.TOURING]).toBe(2);
-      expect(startingLevels(library)[Discipline.SINGLE_SEATER]).toBe(6);
+    it('never goes below zero, however deep the ladder', () => {
+      expect(ratingFloor(50)).toBe(0);
     });
+  });
 
-    it('falls back to the lowest rung seen anywhere for a discipline with no championship', () => {
-      const library = [listing([at(Discipline.SINGLE_SEATER, 1), at(Discipline.SINGLE_SEATER, 6)])];
+  describe('ratingsAt', () => {
+    it('gives every discipline the floor of the rung picked', () => {
+      const floor = ratingFloor(5);
 
-      expect(startingLevels(library)[Discipline.ROAD]).toBe(5);
-    });
-
-    it('holds a level for every discipline, even off an empty library', () => {
-      expect(startingLevels([])).toEqual({
-        [Discipline.SINGLE_SEATER]: 1,
-        [Discipline.SPORTSCAR]: 1,
-        [Discipline.TOURING]: 1,
-        [Discipline.ROAD]: 1,
-      });
+      expect(ratingsAt(5)).toEqual(levels({
+        [Discipline.SINGLE_SEATER]: floor,
+        [Discipline.SPORTSCAR]: floor,
+        [Discipline.TOURING]: floor,
+        [Discipline.ROAD]: floor,
+      }));
     });
   });
 });

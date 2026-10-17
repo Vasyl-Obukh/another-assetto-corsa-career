@@ -7,6 +7,7 @@ import { ResultCard } from './ResultCard.tsx';
 import { ResultsSkeleton } from './ResultsSkeleton.tsx';
 import type { SessionFilter } from './types.ts';
 import { filterEvents } from './utils.ts';
+import { useSlot } from '@/app';
 import {
   ErrorCard, ScreenBody, ScreenHeader, Segments,
 } from '@/components';
@@ -14,14 +15,14 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
-import { useCareer, useQuickArchives, useResults } from '@/hooks';
+import { useQuickArchives, useResults } from '@/hooks';
 import { archiveOrigins, quickOrigins, resultEvents } from '@/lib/result-events';
 import { path } from '@/lib/routes';
 
 export const Results = () => {
   const { t } = useTranslation();
   const results = useResults();
-  const { career } = useCareer();
+  const { career, mode } = useSlot();
   // Which archives each race event still lists; a list that cannot be read
   // leaves those cards unlinked.
   const quick = useQuickArchives();
@@ -41,14 +42,22 @@ export const Results = () => {
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      {/* Reached from Home's card rather than the navigation, so it heads
-          itself with the way back there. */}
-      <ScreenHeader back={{ to: path.home(), label: t('back.home') }}>
-        <div className="flex flex-col gap-1">
+      {mode === 'career' ? (
+        // Reached from Home's card rather than the navigation, so it heads
+        // itself with the way back there.
+        <ScreenHeader back={{ to: path.home(), label: t('back.home') }}>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold">{t('results.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('results.subtitle')}</p>
+          </div>
+        </ScreenHeader>
+      ) : (
+        // A tab of quick race mode's own, with nothing to go back to.
+        <header className="flex flex-col gap-1 pt-8">
           <h1 className="text-2xl font-semibold">{t('results.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('results.subtitle')}</p>
-        </div>
-      </ScreenHeader>
+        </header>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72">
@@ -70,7 +79,7 @@ export const Results = () => {
         {/* Held open, disabled, while the archives are read: nearly every
             career has a championship to pick, and the toolbar should not
             reflow when they land. */}
-        {championships.length > 0 || loading ? (
+        {championships.length > 0 || (loading && mode === 'career') ? (
           <Select value={championship} onValueChange={setChampionship} disabled={loading}>
             <SelectTrigger className="w-60" aria-label={t('results.championship')}>
               <SelectValue />

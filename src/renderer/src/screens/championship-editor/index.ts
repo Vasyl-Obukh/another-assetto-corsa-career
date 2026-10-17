@@ -11,6 +11,9 @@ export { ChoiceChips } from './ChoiceChips.tsx';
 export { ConditionsEditor } from './ConditionsEditor.tsx';
 export { EligibilityField } from './EligibilityField.tsx';
 export { GridFields } from './GridFields.tsx';
+// A nation picked from the flags Assetto Corsa ships, which New career and a
+// career's own settings ask for the driver's.
+export { NationPicker } from './NationPicker.tsx';
 export { OffsetStepper } from './OffsetStepper.tsx';
 export { RulesCard } from './RulesCard.tsx';
 // The race-control choices the editor offers, which the read-only rules list

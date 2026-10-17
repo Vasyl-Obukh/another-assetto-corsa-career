@@ -14,6 +14,17 @@ export const LOCALES: Record<Language, string> = { en: 'en-GB', uk: 'uk-UA' };
 export const DEFAULT_CURRENCY = 'USD';
 
 /**
+ * How many days "a month ago" stands for. Only how long ago something was is
+ * worded off it, so it rounds rather than counting calendar months.
+ */
+export const DAYS_PER_MONTH = 30;
+
+/**
+ * How many days "a year ago" stands for, rounded the same way.
+ */
+export const DAYS_PER_YEAR = 365;
+
+/**
  * Language every missing translation falls back to.
  */
 export const FALLBACK_LANGUAGE: Language = 'en';

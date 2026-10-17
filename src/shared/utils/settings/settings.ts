@@ -25,6 +25,7 @@ import type {
 } from '../../types/index.ts';
 import { aiFigure } from '../ai-figure/index.ts';
 import { isRecord, memberOf, stringEnumValues } from '../coerce/index.ts';
+import { isNationCode } from '../nations/index.ts';
 
 /**
  * Reads a trimmed, non-empty string. A blank override means "unset".
@@ -259,6 +260,7 @@ export const readSettings = (raw: unknown): Settings => {
 
   const setupCompletedAt = cleanString(raw.setupCompletedAt);
   const driverName = cleanString(raw.driverName);
+  const driverNation = cleanString(raw.driverNation);
 
   return {
     version: 1,
@@ -269,6 +271,7 @@ export const readSettings = (raw: unknown): Settings => {
     // Absent rather than empty, so clearing the field means "let Assetto Corsa
     // decide" rather than racing under a blank name.
     ...(driverName ? { driverName } : {}),
+    ...(driverNation && isNationCode(driverNation) ? { driverNation } : {}),
     drivingAids: readDrivingAids(raw.drivingAids),
     opponents: readOpponents(raw.opponents),
     addedContent: readAddedContent(raw.addedContent),

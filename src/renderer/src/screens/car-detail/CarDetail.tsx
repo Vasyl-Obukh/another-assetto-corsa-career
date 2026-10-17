@@ -13,7 +13,7 @@ import { CarSource } from './CarSource.tsx';
 import { CarStage } from './CarStage.tsx';
 import { carChampionships } from './utils.ts';
 import { isCatalogued } from '../../../../shared/utils/library';
-import { useClasses, useSettings } from '@/app';
+import { useClasses, useSettings, useSlot } from '@/app';
 import {
   ErrorCard, LibrarySwitch, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -23,6 +23,9 @@ import { isListed } from '@/screens/championships';
 
 export const CarDetail = () => {
   const { t } = useTranslation();
+  // The library browsers are a career's; elsewhere these pages are opened from
+  // Your content.
+  const { mode } = useSlot();
   const { id = '' } = useParams<PathParam<typeof ROUTE.car>>();
   const detail = useCarDetail(id);
   const { listings, loading } = useChampionships();
@@ -43,7 +46,7 @@ export const CarDetail = () => {
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       <ScreenHeader
-        back={{ to: path.cars(), label: t('back.cars') }}
+        back={mode === 'career' ? { to: path.cars(), label: t('back.cars') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
         // Only a mod the catalogue does not know can be left out of the library.
         aside={car === null || isCatalogued(car.provenance) ? undefined : <LibrarySwitch kind="cars" id={car.id} />}
       />

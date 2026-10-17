@@ -174,13 +174,20 @@ export interface Settings {
    */
   allowedWeather: WeatherType[];
   /**
-   * The name shown on Assetto Corsa's timing screen.
+   * The default driver's name: what a new career is filled in with, and who a
+   * race event of the player's own is raced as.
    *
    * A property of the person playing rather than of a race, so it is set once
-   * here and written into every launch. Absent means Assetto Corsa's own
-   * default. A race file may still name its own driver, which wins.
+   * here and written into every such launch. Absent means Assetto Corsa's own
+   * default. A race file may still name its own driver, which wins, and a
+   * career races under its own driver whatever this says.
    */
   driverName?: string;
+  /**
+   * The default driver's nation, as Assetto Corsa's flag code - filled into a
+   * new career beside the name. Absent for none.
+   */
+  driverNation?: string;
   /**
    * The driving aids every launch is run with.
    *

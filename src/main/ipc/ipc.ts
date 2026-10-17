@@ -2,7 +2,7 @@
 // boundary - Electron would flatten the Error into something unreadable, and a
 // clear reason is the whole point of failing loudly here.
 
-import { dialog } from 'electron';
+import { app, dialog, shell } from 'electron';
 
 import {
   exportFrom, focusedWindow, handle, importInto,
@@ -148,6 +148,23 @@ export const registerHandlers = (
   handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, usingSpec));
 
   handle('career:get', async () => career.get());
+  handle('career:list', async () => career.list());
+  handle('career:create', async (request) => career.create(request));
+  handle('career:open', async ({ id }) => career.open(id));
+  handle('career:close', async () => {
+    await career.close();
+
+    return null;
+  });
+  handle('career:delete', async ({ id }) => career.remove(id));
+  handle('career:folder', async ({ id }) => {
+    // Answers with an error message rather than throwing when it fails.
+    const failure = await shell.openPath(await career.folderOf(id));
+    if (failure) throw new Error(failure);
+
+    return null;
+  });
+  handle('career:driver', async (driver) => career.setDriver(driver));
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
   handle('career:withdraw', async (request) => career.withdraw(request));
@@ -164,4 +181,10 @@ export const registerHandlers = (
   handle('settings:get', async () => settings.get());
   handle('settings:patch', async (patch) => settings.patch(patch));
   handle('theme:get', async () => resolvedTheme());
+  // before-quit writes every store out first.
+  handle('app:quit', async () => {
+    app.quit();
+
+    return null;
+  });
 };

@@ -10,6 +10,7 @@ import { ResultHero } from './ResultHero.tsx';
 import { editionsOf } from '../../../../shared/utils/editions';
 import { formatGap, formatLapTime } from '../../../../shared/utils/lap-time';
 import { entryResults } from '../../../../shared/utils/standings';
+import { useSlot } from '@/app';
 import {
   BonusPoints, ClassificationTable, ErrorCard, Podium, ResultCell, ResultStrip,
   ScreenBody, ScreenHeader, StandingsTable,
@@ -17,7 +18,7 @@ import {
 import type { StripFigure } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
-  useCareer, useCareerEvent, usePageName, useQuickArchives, useResult,
+  useCareerEvent, usePageName, useQuickArchives, useResult,
 } from '@/hooks';
 import { usePlayerName } from '@/hooks';
 import { useFormat } from '@/i18n';
@@ -37,7 +38,7 @@ export const ResultDetail = () => {
   const { formatMoney, formatNumber } = useFormat();
   const { file = '' } = useParams<PathParam<typeof ROUTE.result>>();
   const detail = useResult(file);
-  const { career } = useCareer();
+  const { career } = useSlot();
 
   const { record } = detail;
   const origin = useMemo(() => archiveOrigins(career).get(file) ?? null, [career, file]);

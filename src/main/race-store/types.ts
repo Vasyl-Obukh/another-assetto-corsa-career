@@ -65,12 +65,23 @@ export interface RaceStore {
    */
   get(): Promise<RaceSetup>;
   /**
+   * Says whose results the store reads and archives from now on, and who owns
+   * an event put in the slot.
+   * @param owner The career now open, by id, or null for none
+   * @param resultsDir The folder that career's archives live in, or null for
+   * the race store's own, which holds race events of the player's own
+   * @throws AppError when a launch is in flight, since its result would land
+   * in the wrong place
+   */
+  scope(owner: string | null, resultsDir: string | null): void;
+  /**
    * Puts an event in the slot together with whatever of it has already run,
    * so it carries on from there whichever event held the slot before.
    *
    * This is what lets several events share the one slot: each keeps its own
    * launches and hands them back on its next turn, rather than finding them
-   * thrown away because another event was raced in between.
+   * thrown away because another event was raced in between. The event is
+   * owned by whoever the store is scoped to.
    * @param definition The event's race
    * @param completed Every launch of it already run, in order
    * @returns The setup after the change

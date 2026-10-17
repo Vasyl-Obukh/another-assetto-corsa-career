@@ -12,7 +12,7 @@ import {
 } from '../../core/series/index.ts';
 import { drawRound } from '../../core/weather-forecast/index.ts';
 import {
-  DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MINUTES_PER_HOUR, SEASON_WEEKS,
+  DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MAX_START_YEAR, MIN_START_YEAR, MINUTES_PER_HOUR, SEASON_WEEKS,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
@@ -20,7 +20,10 @@ import type {
   CalendarEntry,
   Career,
   CareerCalendar,
+  CareerDriver,
   CareerSeason,
+  CareerSummary,
+  CareerSummaryEvent,
   Championship,
   ChampionshipRun,
   ClassEntry,
@@ -29,6 +32,7 @@ import type {
   EventState,
   EventStrength,
   LaunchRecord,
+  NewCareerRequest,
   RoundForecast,
   RoundScore,
   SeasonEntry,
@@ -42,6 +46,7 @@ import type {
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
+import { isNationCode } from '../../shared/utils/nations/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 
@@ -73,6 +78,10 @@ export const readCareer = (value: unknown): Career | null => {
   const career = value as Partial<Career>;
   const readable = career.version === CAREER_VERSION
     && typeof career.id === 'string'
+    && typeof career.playedAt === 'string'
+    && typeof career.driver?.name === 'string'
+    && typeof career.money === 'number'
+    && typeof career.rating === 'object' && career.rating !== null
     && typeof career.date === 'string'
     && typeof career.startDate === 'string'
     && typeof career.level === 'object' && career.level !== null
@@ -884,5 +893,114 @@ export const eventStrength = (held: EnteredEvent, editable: boolean): EventStren
     season: held.entry.strength ?? 0,
     step: held.event.strength ?? 0,
     editable,
+  };
+};
+
+/**
+ * A driver as a career keeps them: the name trimmed, and the nation checked
+ * against the flags Assetto Corsa ships.
+ * @param driver Who the request names
+ * @returns The driver
+ * @throws When the name is empty or the nation is none Assetto Corsa has a
+ * flag for
+ */
+export const checkedDriver = (driver: CareerDriver): CareerDriver => {
+  const name = typeof driver.name === 'string' ? driver.name.trim() : '';
+  if (!name) throw new AppError('career.driver.unnamed');
+  if (driver.nation !== null && !isNationCode(driver.nation)) {
+    throw new AppError('career.driver.nation', { nation: String(driver.nation) });
+  }
+
+  return { name, nation: driver.nation };
+};
+
+/**
+ * Checks what a new career is asked to start from.
+ * @param request The request
+ * @returns The request, its driver tidied
+ * @throws When the year, the level or the money is not one a career can start
+ * with
+ */
+export const checkedNewCareer = (request: NewCareerRequest): NewCareerRequest => {
+  const driver = checkedDriver(request.driver);
+  if (!Number.isInteger(request.year) || request.year < MIN_START_YEAR || request.year > MAX_START_YEAR) {
+    throw new AppError('career.year.invalid', { year: request.year, from: MIN_START_YEAR, to: MAX_START_YEAR });
+  }
+  if (!Number.isInteger(request.level) || request.level < 1) {
+    throw new AppError('career.level.invalid', { level: request.level });
+  }
+  if (!Number.isFinite(request.money) || request.money < 0) {
+    throw new AppError('career.money.invalid', { money: request.money });
+  }
+
+  return { ...request, driver };
+};
+
+/**
+ * The event of a season whose track a career is pictured by, and when it is
+ * still to come, its next: the earliest entered event still to run, or else
+ * the last one raced.
+ * @param season The season
+ * @param clock The ISO date the career's clock stands at
+ * @returns The next event, and the track to picture, either of them null
+ */
+const pictured = (
+  season: CareerSeason | null,
+  clock: string,
+): { next: CareerSummaryEvent | null; track: CareerSummary['track'] } => {
+  const held = (season?.entries ?? [])
+    .filter((entry) => !entry.withdrawn)
+    .flatMap((entry) => entry.events.map((event) => ({ entry, event })));
+  const round = (one: (typeof held)[number]) => one.entry.championship.rounds.find((r) => r.id === one.event.round);
+
+  const coming = season ? scheduledEvents(season).find((one) => one.event.date >= clock) : undefined;
+  const nextRound = coming && round(coming);
+  if (coming && nextRound) {
+    return {
+      next: {
+        seriesName: coming.entry.championship.name,
+        roundName: nextRound.name,
+        track: nextRound.track,
+        date: coming.event.date,
+        historic: isHistoric(coming.entry),
+      },
+      track: nextRound.track,
+    };
+  }
+
+  const last = held
+    .filter((one) => one.event.status === 'raced')
+    .sort((left, right) => right.event.date.localeCompare(left.event.date))[0];
+
+  return { next: null, track: (last && round(last)?.track) ?? null };
+};
+
+/**
+ * A career as the start screen and the Careers list show it.
+ * @param career The career
+ * @returns Its summary
+ */
+export const summarise = (career: Career): CareerSummary => {
+  const season = currentSeason(career);
+  const { next, track } = pictured(season, career.date);
+
+  return {
+    id: career.id,
+    driver: career.driver,
+    year: Number(career.date.slice(0, 4)),
+    date: career.date,
+    playedAt: career.playedAt,
+    seasons: career.seasons.length,
+    championships: (season?.entries ?? [])
+      .filter((entry) => !entry.withdrawn && !isHistoric(entry))
+      .flatMap((entry) => {
+        const ladder = entry.championship.entries.find((one) => one.id === entry.entry)?.ladder;
+
+        return ladder ? [{ series: entry.series, name: entry.championship.name, ladder }] : [];
+      })
+      // Once each, however many of its editions the season entered.
+      .filter((one, at, all) => all.findIndex((other) => other.series === one.series) === at),
+    next,
+    track,
   };
 };

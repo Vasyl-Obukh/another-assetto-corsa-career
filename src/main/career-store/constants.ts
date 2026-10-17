@@ -1,9 +1,27 @@
 // Where a career lives and how long a season is.
 
 /**
- * The file a career is kept in, under the user data folder.
+ * The folder careers are kept in, under the user data folder: a folder each,
+ * named after the career's id.
+ */
+export const CAREERS_DIR = 'careers';
+
+/**
+ * The file a career is kept in, inside its own folder.
  */
 export const CAREER_FILE = 'career.json';
+
+/**
+ * The folder a career's archived results are kept in, inside its own folder,
+ * so deleting the career takes them with it.
+ */
+export const CAREER_RESULTS_DIR = 'results';
+
+/**
+ * What a career's id - and so its folder's name - looks like: a UUID, which is
+ * what keeps a crafted id from naming any other folder.
+ */
+export const CAREER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /**
  * Which revision of the career format this build writes.

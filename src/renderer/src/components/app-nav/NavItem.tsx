@@ -3,7 +3,7 @@ import { NavLink, useLocation, useMatch } from 'react-router';
 
 import { Button } from '@/components/ui/button.tsx';
 import { path, ROUTE, sectionOf } from '@/lib/routes';
-import type { NavId } from '@/lib/routes';
+import type { NavId, RouteId } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
 interface NavItemProps {
@@ -11,6 +11,11 @@ interface NavItemProps {
    * Which destination the item leads to.
    */
   id: NavId;
+  /**
+   * Where it leads, when that is not where it stays lit - a destination with
+   * no parameters, so its pattern is its URL.
+   */
+  to?: RouteId;
   /**
    * The already-translated label.
    */
@@ -21,7 +26,9 @@ interface NavItemProps {
   icon: ReactNode;
 }
 
-export const NavItem = ({ id, label, icon }: NavItemProps) => {
+export const NavItem = ({
+  id, to, label, icon,
+}: NavItemProps) => {
   // The pattern is matched and the URL is linked to, both read off the registry
   // rather than passed in, so a destination whose pattern gains a parameter
   // cannot end up matching one thing and linking to another.
@@ -44,7 +51,7 @@ export const NavItem = ({ id, label, icon }: NavItemProps) => {
       variant="ghost"
       className={cn(active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary')}
     >
-      <NavLink to={path[id]()}>
+      <NavLink to={to ? ROUTE[to] : path[id]()}>
         {icon}
         {label}
       </NavLink>

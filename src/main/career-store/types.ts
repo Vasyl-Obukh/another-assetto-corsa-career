@@ -1,8 +1,11 @@
 import type {
   Career,
   CareerCalendar,
+  CareerDriver,
   CareerEventView,
+  CareerSummary,
   ChampionshipResults,
+  NewCareerRequest,
   RaceSetup,
   SeasonEntry,
   SeasonEvent,
@@ -122,23 +125,70 @@ export interface EnrolRequest {
 }
 
 /**
- * The career held in memory, and the commands that change it.
+ * Every career on disk, the one open held in memory, and the commands that
+ * change it.
  *
  * Commands rather than patches: each one validates before it applies, so the
  * renderer cannot write a career into a state the rules do not allow. Every one
  * of them returns the whole career, because every one of them changes what the
- * calendar screen renders.
+ * calendar screen renders. Every command but the ones that pick a career works
+ * on the one open, and refuses when none is.
  */
 export interface CareerStore {
   /**
-   * Reads the career as it stands.
-   *
-   * Null only before anything has asked for one: reading the calendar or
-   * running any command starts it, since settings already holds everything a
-   * career needs to begin.
-   * @returns The career, or null when nothing has started one yet
+   * Reads the open career as it stands.
+   * @returns The career, or null when none is open - the start screen
    */
   get(): Career | null;
+  /**
+   * Every career on disk, played most recently first. One that cannot be read
+   * is left out and said so in the log.
+   * @returns What the start screen and the Careers list show of each
+   */
+  list(): Promise<CareerSummary[]>;
+  /**
+   * Starts a new career and opens it.
+   * @param request Who races it, the year it opens in, its level and its money
+   * @returns The career, opened
+   * @throws When the request is not one a career can start from, or a launch
+   * is in flight
+   */
+  create(request: NewCareerRequest): Promise<Career>;
+  /**
+   * Opens a career, closing whichever was open.
+   * @param id The career's id
+   * @returns The career, caught up on anything its clock has passed
+   * @throws When there is no such career, it cannot be read, or a launch is in
+   * flight
+   */
+  open(id: string): Promise<Career>;
+  /**
+   * Closes the open career, which is going back to the start screen.
+   * @returns Resolves once it is written
+   * @throws When a launch is in flight, since its result would land nowhere
+   */
+  close(): Promise<void>;
+  /**
+   * Deletes a career and everything in its folder.
+   * @param id The career's id
+   * @returns Every career left
+   * @throws When it is the one open, or there is no such career
+   */
+  remove(id: string): Promise<CareerSummary[]>;
+  /**
+   * The folder a career is kept in, for the system's file browser.
+   * @param id The career's id
+   * @returns The folder's path
+   * @throws When there is no such career
+   */
+  folderOf(id: string): Promise<string>;
+  /**
+   * Renames the open career's driver, or changes their nation.
+   * @param driver Who races it now
+   * @returns The career
+   * @throws When the name is empty or the nation is none Assetto Corsa has
+   */
+  setDriver(driver: CareerDriver): Promise<Career>;
   /**
    * Composes the calendar for a season, joining the career against the
    * championship library and the installed content.
@@ -230,8 +280,9 @@ export interface CareerStore {
   flush(): Promise<void>;
   /**
    * Subscribes to changes.
-   * @param listener Called with the career after every command
+   * @param listener Called with the open career after every command, and with
+   * null when it closes
    * @returns A function that removes the listener
    */
-  onChange(listener: (career: Career) => void): () => void;
+  onChange(listener: (career: Career | null) => void): () => void;
 }

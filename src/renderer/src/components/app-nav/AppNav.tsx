@@ -1,12 +1,11 @@
 import {
-  CalendarDaysIcon, CarIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon,
+  CalendarDaysIcon, CarIcon, ChartLineIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NavItem } from './NavItem.tsx';
-import { NAV } from '@/lib/routes';
-import type { NavId } from '@/lib/routes';
+import type { NavEntry, NavId } from '@/lib/routes';
 
 /**
  * The icon for each destination.
@@ -18,6 +17,7 @@ import type { NavId } from '@/lib/routes';
 const NAV_ICONS: Record<NavId, ReactNode> = {
   home: <HouseIcon />,
   race: <FlagIcon />,
+  results: <ChartLineIcon />,
   calendar: <CalendarDaysIcon />,
   championships: <MedalIcon />,
   cars: <CarIcon />,
@@ -25,13 +25,20 @@ const NAV_ICONS: Record<NavId, ReactNode> = {
   settings: <SettingsIcon />,
 };
 
-export const AppNav = () => {
+interface AppNavProps {
+  /**
+   * The destinations the mode the app is in offers, in order.
+   */
+  entries: readonly (NavEntry & { id: NavId })[];
+}
+
+export const AppNav = ({ entries }: AppNavProps) => {
   const { t } = useTranslation();
 
   return (
     <nav className="flex items-center gap-1">
-      {NAV.map(({ id, label }) => (
-        <NavItem key={id} id={id} label={t(label)} icon={NAV_ICONS[id]} />
+      {entries.map(({ id, label, to }) => (
+        <NavItem key={id} id={id} to={to} label={t(label)} icon={NAV_ICONS[id]} />
       ))}
     </nav>
   );

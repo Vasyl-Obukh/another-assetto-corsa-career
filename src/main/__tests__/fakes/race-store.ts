@@ -1,4 +1,5 @@
 import { fake } from './fake.ts';
+import { AppError } from '../../../shared/errors/index.ts';
 import type {
   LaunchRecord, RaceDefinition, RaceSetup,
 } from '../../../shared/types/index.ts';
@@ -52,15 +53,22 @@ export const raceSetup = (over: Partial<RaceSetup> = {}): RaceSetup => ({
 export const fakeRaceStore = (): FakeRaceStore => {
   let setup = raceSetup();
   let progress: RaceProgress | null = null;
+  let owner: string | null = null;
   const listeners = new Set<(next: RaceSetup) => void>();
   const loaded: FakeRaceStore['loaded'] = [];
   const launches: FakeRaceStore['launches'] = [];
 
   return fake<FakeRaceStore>('race', {
     get: async () => setup,
+    // Refuses while a launch is out, and owns whatever is loaded next, as the
+    // real store does.
+    scope: (next) => {
+      if (setup.status.phase !== 'idle') throw new AppError('run.inFlight');
+      owner = next;
+    },
     load: async (definition, completed) => {
       loaded.push({ definition, completed });
-      setup = raceSetup({ definition });
+      setup = raceSetup({ definition, owner });
 
       return setup;
     },

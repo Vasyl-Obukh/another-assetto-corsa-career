@@ -13,7 +13,7 @@
 // suite. The type-only import in types.ts is erased before either sees it.
 
 import {
-  DETAIL_TAB_PARAM, NAV, OVER_ESCAPED, PARAM_PLACEHOLDER, ROUTE, RUN_PARAM, TRACK_LAYOUT_PARAM,
+  CAREER_NAV, DETAIL_TAB_PARAM, OVER_ESCAPED, PARAM_PLACEHOLDER, QUICK_NAV, ROUTE, RUN_PARAM, TRACK_LAYOUT_PARAM,
 } from './constants.ts';
 import type { NavId, RouteId, RouteParams } from './types.ts';
 import type { ChampionshipRun } from '../../../../shared/types';
@@ -143,7 +143,7 @@ export const sectionOf = (state: unknown): NavId | null => {
   if (typeof state !== 'object' || state === null || !('section' in state)) return null;
   const { section } = state;
 
-  return NAV.find((entry) => entry.id === section)?.id ?? null;
+  return [...CAREER_NAV, ...QUICK_NAV].find((entry) => entry.id === section)?.id ?? null;
 };
 
 /**
@@ -153,6 +153,26 @@ export const sectionOf = (state: unknown): NavId | null => {
  * way to ask for a URL rather than two.
  */
 export const path = {
+  /**
+   * The start screen, where the app always opens.
+   * @returns Its URL
+   */
+  start: (): string => ROUTE.start,
+  /**
+   * Every career, the one picked beside them - what Load opens.
+   * @returns Its URL
+   */
+  careers: (): string => ROUTE.careers,
+  /**
+   * New career.
+   * @returns Its URL
+   */
+  careerNew: (): string => ROUTE.careerNew,
+  /**
+   * The open career's own settings.
+   * @returns Its URL
+   */
+  settingsCareer: (): string => ROUTE.settingsCareer,
   /**
    * The career's home page, where the app opens.
    * @returns Its URL

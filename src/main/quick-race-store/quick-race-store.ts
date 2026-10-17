@@ -365,7 +365,7 @@ export const createQuickRaceStore = async (
       // its AI levels taken afresh; and from its own last launch, whatever raced
       // in between.
       const setup = await race.get();
-      const carriedOn = slotHolds(setup, definition.id, found.completed.length);
+      const carriedOn = slotHolds(setup, definition.id, found.completed.length, null);
       await race.load(carriedOn ? withLevelsOf(setup.definition, definition) : definition, found.completed);
 
       return view(found, await race.launch());
