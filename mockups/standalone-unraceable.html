@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unraceable rounds mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The four new families -
+   mode, save kind - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+/* ---------- This mockup ---------- */
+/* A round that cannot be raced, on the warning family the app already has. */
+.warnbox { border: 1px solid color-mix(in srgb, var(--warning-soft-fg) 35%, var(--border)); background: var(--warning-soft); color: var(--warning-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.warnbox b { color: inherit; }
+.warnbox .txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.warnbox .txt span { opacity: .9; }
+/* Over the banner's photograph the notice is glass with an amber edge. */
+.warnglass { border: 1px solid oklch(0.82 0.12 80 / 55%); background: oklch(0.2 0.03 70 / 55%); color: var(--on-scrim); border-radius: 10px; padding: 9px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; backdrop-filter: blur(6px); }
+.warnglass .i { color: oklch(0.86 0.13 85); margin-top: 1px; }
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.nopic { width: 100%; height: 100%; display: grid; place-items: center; color: var(--muted-foreground); background: repeating-linear-gradient(135deg, var(--muted) 0 6px, transparent 6px 12px); }
+.pos { font-weight: 650; font-size: 13px; min-width: 30px; text-align: right; }
+.c-stand { background: var(--k-auto); color: var(--k-auto-fg); }
+.mapbox { height: 170px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.dlg .rows { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.dlg .rows .li { padding: 8px 12px; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const FLAG = (c) => `${AC}gui/NationFlags/${c}.png`;
+const PH = {
+  brands: `${AC}tracks/ks_brands_hatch/ui/gp/bgr00.jpg`,
+  brandsIndy: `${AC}tracks/ks_brands_hatch/ui/indy/bgr00.jpg`,
+  barca: `${AC}tracks/ks_barcelona/ui/layout_gp/bgr00.jpg`,
+  barca2: `${AC}tracks/ks_barcelona/ui/layout_gp/bgr02.jpg`,
+  silver: `${AC}tracks/ks_silverstone/ui/national_osrw/bgr00.jpg`,
+  silver2: `${AC}tracks/ks_silverstone/ui/national_osrw/bgr01.jpg`,
+  nords: `${AC}tracks/ks_nordschleife/ui/endurance/bgr00.jpg`,
+};
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  results: P('<path d="M4 4v16h16"/><path d="m8 14 3-3 3 3 5-6"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  warn: P('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+  skip: P('<path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/>'),
+  play: P('<path d="M7 4v16l13-8z"/>'),
+  mapoff: P('<path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M3 3l18 18"/>'),
+  flagI: P('<path d="M4 22V4M4 4h13l-2 4 2 4H4"/>'),
+  user: P('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+};
+const flag = (c, lg) => `<img class="flag${lg ? ' lg' : ''}" src="${FLAG(c)}" alt="">`;
+const sess = '<span class="chip c-practice">P</span><span class="chip c-qualify">Q</span><span class="chip c-race">R</span>';
+
+// Six rounds raced; the last two at circuits this install does not have, or
+// only the seventh in the middle case.
+const roundsOf = (s) => [
+  { n: 1, name: 'Brands Hatch GP', track: 'ks_brands_hatch/gp', date: 'Sun 13 Apr', pic: PH.brands, done: 'P3', pts: 15 },
+  { n: 2, name: 'Barcelona GP', track: 'ks_barcelona/layout_gp', date: 'Sun 4 May', pic: PH.barca, done: 'P5', pts: 10 },
+  { n: 3, name: 'Silverstone National', track: 'ks_silverstone/national_osrw', date: 'Sun 25 May', pic: PH.silver, done: 'P2', pts: 18 },
+  { n: 4, name: 'Nordschleife', track: 'ks_nordschleife/endurance', date: 'Sun 15 Jun', pic: PH.nords, done: 'P4', pts: 12 },
+  { n: 5, name: 'Brands Hatch Indy', track: 'ks_brands_hatch/indy', date: 'Sun 6 Jul', pic: PH.brandsIndy, done: 'P1', pts: 25 },
+  { n: 6, name: 'Barcelona National', track: 'ks_barcelona/layout_national', date: 'Sun 27 Jul', pic: PH.barca2, done: 'P2', pts: 18 },
+  { n: 7, name: 'Monza GP', track: 'monza/gp', date: 'Sun 17 Aug', pic: null, stuck: true },
+  s.where === 'tail'
+    ? { n: 8, name: 'Imola', track: 'imola/gp', date: 'Sun 7 Sep', pic: null, stuck: true }
+    : { n: 8, name: 'Silverstone GP', track: 'ks_silverstone/gp', date: 'Sun 7 Sep', pic: PH.silver2 },
+];
+const stuckOf = (s) => roundsOf(s).filter((r) => r.stuck);
+
+const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
+const NAV = [['champ', 'Championship', I.trophy], ['results', 'Results', I.results], ['settings', 'Settings', I.gear]];
+const hdr = (sub) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR', 1)}<span><b>GT4 European Series 2027</b><small>${sub}</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === 'champ' ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>
+  <span class="end status"><span class="dot"></span>Autosaved after Race · Barcelona National · 2 days ago</span></header>`;
+
+// ---------- The championship page's banner ----------
+const banner = (s, over) => {
+  const stuck = stuckOf(s);
+  const tail = s.where === 'tail';
+  const warns = s.variant !== 'a';
+  let line = 'Round 6 of 8 · you are P2 with 98 points';
+  let buttons = `<button class="btn pri lg">Round 7 · Monza GP ${I.chev}</button>`;
+  let notice = '';
+  if (over) {
+    line = 'The season is over: you finished P2 with 98 points';
+    buttons = `<button class="btn pri lg">${I.trophy}Look back</button>`;
+  } else if (warns && tail) {
+    notice = `<div class="warnglass">${I.warn}<div class="txt"><b>Rounds 7 and 8 can't be raced</b><span>Their tracks are not installed. Install them and the season carries on, or skip them: a stand-in races each in your seat, and the season is over.</span></div></div>`;
+    buttons = `<button class="btn pri lg">${I.skip}Skip the last 2 rounds and finish</button><button class="btn glass lg">Round 7 · Monza GP</button>`;
+  } else if (warns) {
+    notice = `<div class="warnglass">${I.warn}<div class="txt"><b>Round 7 · Monza GP can't be raced</b><span>Its track is not installed. Starting round 8 skips it, and a stand-in races it in your seat.</span></div></div>`;
+    buttons = `<button class="btn pri lg">Round 8 · Silverstone GP ${I.chev}</button><button class="btn glass lg">Round 7 · Monza GP</button>`;
+  }
+  const photo = over || (warns && !tail) ? PH.silver2 : PH.barca2;
+  return `<div class="ph side" style="border-radius:16px;min-height:200px"><img class="bg" src="${photo}">
+    <div class="cap" style="padding:20px 24px;display:flex;flex-direction:column;gap:9px;max-width:66%">
+      <div class="row"><span class="chip c-sports">Sportscar</span><span class="chip c-t4">Tier 4</span><span class="chip c-plain">2027</span>${over ? '' : ''}</div>
+      <h2 style="margin:0;font-size:24px">GT4 European Series</h2>
+      <div style="opacity:.85">${line}</div>
+      ${notice}
+      <div class="row" style="margin-top:2px;gap:8px">${buttons}</div></div></div>`;
+};
+
+// ---------- The Rounds tab ----------
+const roundRow = (r, over) => {
+  const pic = r.pic ? `<img class="p" src="${r.pic}">` : `<div class="nopic">${I.mapoff}</div>`;
+  let right;
+  if (r.done) right = `<span class="chip c-done">Raced</span><span class="pos">${r.done}</span>`;
+  else if (r.stuck && over) right = `<span class="chip c-stand">Stood in for you</span><span class="pos muted">${r.n === 7 ? 'P9' : 'P6'}</span>`;
+  else if (r.stuck) right = '<span class="chip c-warn">Can\'t be raced</span><span class="pos"></span>';
+  else right = '<span class="chip c-later">Next</span><span class="pos"></span>';
+  const sub = r.stuck && !over
+    ? `<span class="ts" style="color:var(--warning-soft-fg)">Track not installed · ${r.track}</span>`
+    : `<span class="ts">${r.track}</span>`;
+  return `<div class="rd"><div class="no">R<b>${r.n}</b></div><div class="pic">${pic}</div>
+    <div class="col" style="gap:2px"><span class="tn">${r.name}</span>${sub}<div class="ss">${sess}</div></div>
+    <div class="row" style="gap:10px"><span class="dt">${r.date}<small>2027</small></span>${right}</div></div>`;
+};
+const champPage = (s, over) => win(`${hdr(over ? 'Championship · Finished' : 'Championship · Round 6 of 8')}<div class="body col" style="gap:14px;overflow:auto">
+  ${banner(s, over)}
+  <div class="tabs" style="padding:0"><a class="on">Rounds</a><a>Standings</a><a>Classes</a><a>Points, prizes and rules</a></div>
+  <div class="panel"><div class="rounds">${roundsOf(s).map((r) => roundRow(r, over)).join('')}</div></div></div>`);
+
+// ---------- A round's page ----------
+const roundPage = (s) => {
+  const tail = s.where === 'tail';
+  const offers = s.variant !== 'b';
+  const launch = offers
+    ? `<div class="warnbox">${I.warn}<div class="txt"><b>This round can't be raced as things stand</b><span>Monza GP (monza/gp) is not installed. Install it and come back, or skip the round: a stand-in races it in your seat, as for any round you miss.</span></div></div>
+       <div class="row"><button class="btn lg">${I.skip}Skip round 7</button>${tail ? '' : '<span class="hint">Or start round 8, which skips this one too.</span>'}</div>`
+    : `<p class="muted" style="margin:0;font-size:13px">Round 7 of GT4 European Series cannot be raced as things stand.</p>
+       <div class="row"><button class="btn pri lg dim">${I.play}Launch practice</button></div>`;
+  return win(`${hdr('Championship · Round 6 of 8')}
+  <div class="shdr"><span class="backlink">${I.back}GT4 European Series</span></div>
+  <div class="body" style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;overflow:auto">
+    <div class="col">
+      <div class="mapbox"><div class="nopic" style="flex-direction:column;gap:6px">${I.mapoff}<span style="font-size:12px">Not installed</span></div></div>
+      <div class="panel"><h3>Round 7 · Monza GP</h3><div class="pb col" style="gap:6px;font-size:13px">
+        <div class="row">${I.cal}<span>Sun 17 Aug 2027</span></div><div class="row">${sess}</div>
+        <span class="chip c-warn" style="align-self:flex-start">Can't be raced</span></div></div>
+    </div>
+    <div class="col" style="gap:14px">
+      <div><span class="caps">GT4 European Series · Round 7 of 8</span><h2 style="margin:4px 0 0;font-size:22px">Monza GP</h2></div>
+      <div class="panel"><h3>Practice · Qualifying · Race</h3><div class="pb col" style="gap:10px">${launch}</div></div>
+      <div class="placeholder"><b>The event list and each session's briefing</b>As today - nothing changes there.</div>
+    </div></div>`);
+};
+
+// ---------- The skip dialog ----------
+const skipDialog = (s) => {
+  const fromBanner = s.variant !== 'a' && s.where === 'tail';
+  const rows = fromBanner ? stuckOf(s) : [stuckOf(s)[0]];
+  const finishes = s.where === 'tail' && rows.length === stuckOf(s).length;
+  const count = rows.length;
+  const title = count === 1 ? 'Skip round 7?' : `Skip the last ${count} rounds?`;
+  const confirm = finishes ? `${I.skip}Skip ${count === 1 ? 'it' : `${count} rounds`} and finish` : `${I.skip}Skip 1 round`;
+  const backdrop = s.variant === 'a' || !fromBanner ? roundPage(s) : champPage(s, false);
+  return backdrop.replace(/<\/div>$/, `<div class="scrim"></div><div class="dlg">
+    <div class="dh"><h3>${title}</h3><p>${count === 1 ? 'It can\'t be raced as things stand, so' : 'They can\'t be raced as things stand, so'} a stand-in races ${count === 1 ? 'it' : 'each'} in your seat. Points you have already scored stay.${finishes ? ' With nothing left to race, the season is over and opens on its review.' : ''}</p></div>
+    <div class="db"><div class="rows">${rows.map((r) => `<div class="li"><span class="grow"><span class="t">R${r.n} · ${r.name}</span><div class="s">${r.date} 2027 · Track not installed</div></span><span class="chip c-warn">Can't be raced</span></div>`).join('')}</div></div>
+    <div class="df"><button class="btn">Cancel</button><button class="btn pri">${confirm}</button></div></div></div>`);
+};
+
+// ---------- New championship, before it is started ----------
+const newChamp = (s) => {
+  const stuck = stuckOf(s);
+  const names = stuck.map((r) => r.name).join(' and ');
+  return win(`<header class="hd"><h1>Assetto Corsa Career</h1></header>
+  <div class="shdr"><span class="backlink">${I.back}Main menu</span><h2 style="margin-left:12px">New championship</h2>
+    <div class="stepper"><span class="done"><i>✓</i>Championship</span><b></b><span class="on"><i>2</i>Your seat</span></div></div>
+  <div class="body" style="display:grid;grid-template-columns:420px minmax(0,1fr);gap:18px;overflow:auto">
+    <div class="panel"><h3>Calendar <span class="muted" style="font-weight:400">8 rounds · 2027</span></h3><div class="rounds" style="margin-top:8px">${roundsOf(s).map((r) => `<div class="rd" style="grid-template-columns:22px 64px minmax(0,1fr) auto"><div class="no"><b style="font-size:14px">${r.n}</b></div><div class="pic" style="width:64px;height:40px">${r.pic ? `<img class="p" src="${r.pic}">` : `<div class="nopic">${I.mapoff}</div>`}</div><div class="col" style="gap:1px"><span class="tn" style="font-size:13px">${r.name}</span>${r.stuck ? '<span class="ts" style="color:var(--warning-soft-fg)">Can\'t be raced as things stand</span>' : `<span class="ts">${r.track}</span>`}</div><span class="dt">${r.date}</span></div>`).join('')}</div></div>
+    <div class="col" style="gap:14px">
+      <div class="placeholder"><b>Your seat and Driver</b>As today.</div>
+      <div class="warnbox">${I.warn}<div class="txt"><b>${stuck.length === 1 ? '1 round can\'t' : `${stuck.length} rounds can't`} be raced as things stand</b><span>${names}: ${stuck.length === 1 ? 'its track is' : 'their tracks are'} not installed. Install ${stuck.length === 1 ? 'it' : 'them'} before the season gets there, or skip ${stuck.length === 1 ? 'it' : 'them'} when it does - a stand-in races ${stuck.length === 1 ? 'it' : 'each'} in your seat.</span></div></div>
+      <div class="row"><button class="btn pri lg end">${I.flagI}Start championship</button></div>
+    </div></div>`);
+};
+
+const GROUPS = [
+  { k: 'view', label: 'Screen', opts: [['page', 'Championship page'], ['round', 'Round page'], ['dialog', 'Skip dialog'], ['after', 'After skipping'], ['new', 'New championship']] },
+  { k: 'variant', label: 'Skip lives', for: ['page', 'round', 'dialog'], opts: [['a', 'A · On the round'], ['b', 'B · On the banner'], ['c', 'C · Both']] },
+  { k: 'where', label: 'Case', opts: [['tail', 'Last rounds'], ['middle', 'One mid-season']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+const S = { view: 'page', variant: 'c', where: 'tail', theme: 'light' };
+
+const VARIANT = {
+  a: '<b>A · On the round.</b> The banner is as today and still leads to round 7. The round\'s own page says why it can\'t be raced and offers <b>Skip round 7</b> where Launch would be. Skipping the last two is done twice, a round at a time.',
+  b: '<b>B · On the banner.</b> The banner says which rounds can\'t be raced and offers to skip them from there. The round\'s page is as today: a disabled Launch and the reason.',
+  c: '<b>C · Both</b> (recommended). The banner warns and offers the whole skip; the round\'s page offers skipping that one round, for whoever opens it first.',
+};
+const CASE = {
+  tail: 'Rounds 7 and 8 are at circuits this install does not have, and nothing comes after them - today nothing can move the season past them, so it never ends.',
+  middle: 'Only round 7 can\'t be raced and round 8 can. Starting round 8 already skips round 7 through the skip dialog - the banner just points at round 8 instead of the round that cannot run.',
+};
+const WHY = {
+  page: (s) => [`${CASE[s.where]} ${VARIANT[s.variant]}`],
+  round: (s) => [`${VARIANT[s.variant]} ${s.where === 'middle' ? 'Mid-season, the page also says that starting round 8 skips this one.' : ''}`],
+  dialog: (s) => ['<b>The skip dialog you already have</b>, with one more reason - <b>Can\'t be raced</b>, in amber - beside Non-start, Unfinished and Clash. It names every round it skips; when those are the last, it says the season is over and confirms with <b>Skip and finish</b>.'],
+  after: () => ['<b>After skipping</b> the rounds read as any round you missed: <b>Stood in for you</b>, with where the stand-in finished, and the standings count them the same way. With nothing left, the banner turns into the season\'s end and <b>Look back</b> opens the review.'],
+  new: (s) => [`<b>Before it starts</b>, New championship already marks each round it can't race in the calendar. This adds one line beside Start saying what happens when the season gets there. Start is not refused: a track may well be installed by then.${s.where === 'middle' ? '' : ''}`],
+};
+const QUESTIONS = [
+  'Which variant - A, B or C?',
+  'Under the hood skipping moves the clock to the skipped round\'s day, the way the calendar\'s Go to does in a career - a standalone championship\'s clock may move that far and never past its last round. Should <b>a career\'s</b> round page offer the same Skip, or stay with the calendar\'s Go to there?',
+  'Mid-season, should the banner point at the next round that <b>can</b> be raced (shown), or keep pointing at the next one by date?',
+];
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => !g.for || g.for.includes(S.view))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  const [why] = WHY[S.view](S);
+  document.getElementById('why').innerHTML = `<div class="box">${why}<div class="q"><b>To decide</b><ul>${QUESTIONS.map((q) => `<li>${q}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('stage').innerHTML = {
+    page: () => champPage(S, false),
+    round: () => roundPage(S),
+    dialog: () => skipDialog(S),
+    after: () => champPage({ ...S, where: 'tail' }, true),
+    new: () => newChamp(S),
+  }[S.view]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+// The hash holds the picker's state, so a view can be linked or reloaded.
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+</script>
+</body>
+</html>

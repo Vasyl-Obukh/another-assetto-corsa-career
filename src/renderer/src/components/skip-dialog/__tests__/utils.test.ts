@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import type { SkippedRound, SkipReason } from '../../../../../shared/types';
-import { skipGroups } from '../utils.ts';
+import type {
+  SeasonEntry, SeasonEvent, SkippedRound, SkipReason,
+} from '../../../../../shared/types';
+import { finishesSeason, skipGroups } from '../utils.ts';
 
 /**
  * One round a move would cost.
@@ -22,6 +24,18 @@ const skipped = (series: string, round: string, reason: SkipReason = 'skipped'):
   reason,
   historic: false,
 });
+
+/**
+ * The edition a standalone championship races, holding only what the season's
+ * end is read from.
+ * @param statuses Each round's status, by its id
+ * @returns The edition
+ */
+const edition = (statuses: Record<string, SeasonEvent['status']>): SeasonEntry => ({
+  series: 'f2',
+  edition: 0,
+  events: Object.entries(statuses).map(([round, status]) => ({ round, status })),
+}) as unknown as SeasonEntry;
 
 describe('renderer/components/skip-dialog/utils', () => {
   describe('skipGroups', () => {
@@ -45,6 +59,30 @@ describe('renderer/components/skip-dialog/utils', () => {
 
     it('lists nothing for a move that costs nothing', () => {
       expect(skipGroups([])).toEqual([]);
+    });
+  });
+
+  describe('finishesSeason', () => {
+    it('finishes the season when every round still to run is skipped', () => {
+      const entry = edition({ r1: 'raced', r2: 'scheduled', r3: 'scheduled' });
+
+      expect(finishesSeason(entry, [skipped('f2', 'r2'), skipped('f2', 'r3', 'unraceable')])).toBe(true);
+    });
+
+    it('leaves the season open while a round is left to race', () => {
+      const entry = edition({ r1: 'scheduled', r2: 'scheduled' });
+
+      expect(finishesSeason(entry, [skipped('f2', 'r1', 'unraceable')])).toBe(false);
+    });
+
+    it("counts only the edition's own rounds, not another championship's of the same id", () => {
+      const entry = edition({ r1: 'scheduled' });
+
+      expect(finishesSeason(entry, [skipped('gt3', 'r1', 'unraceable')])).toBe(false);
+    });
+
+    it('finishes nothing outside a standalone championship', () => {
+      expect(finishesSeason(null, [skipped('f2', 'r1', 'unraceable')])).toBe(false);
     });
   });
 });

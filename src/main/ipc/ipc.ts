@@ -148,8 +148,10 @@ export const registerHandlers = (
   handle('classes:deleteClass', async ({ id }) => classes.deleteClass(id, usingSpec));
 
   handle('career:get', async () => career.get());
-  handle('career:list', async () => career.list());
+  handle('career:list', async ({ kind }) => career.list(kind));
   handle('career:create', async (request) => career.create(request));
+  handle('career:createChampionship', async (request) => career.createChampionship(request));
+  handle('career:preview', async ({ series: id, year }) => career.preview(id, year));
   handle('career:open', async ({ id }) => career.open(id));
   handle('career:close', async () => {
     await career.close();
@@ -174,14 +176,14 @@ export const registerHandlers = (
 
     return career.backup(id, result.filePath);
   });
-  handle('career:openBackup', async () => {
+  handle('career:openBackup', async ({ kind }) => {
     const result = await dialog.showOpenDialog(focusedWindow(), {
       properties: ['openFile'],
       filters: [{ name: 'Zip', extensions: ['zip'] }],
     });
     const file = result.canceled ? null : result.filePaths[0] ?? null;
 
-    return file === null ? null : career.readBackup(file);
+    return file === null ? null : career.readBackup(file, kind);
   });
   handle('career:restore', async ({ file, replace }) => career.restore(file, replace));
   handle('career:showBackup', async ({ file }) => {
@@ -211,6 +213,8 @@ export const registerHandlers = (
   handle('career:skips', async ({ date }) => career.skips(date));
   handle('career:event', async (request) => career.event(request));
   handle('career:results', async (request) => career.results(request));
+  handle('career:skipping', async (request) => career.skipping(request));
+  handle('career:skip', async (request) => career.skip(request));
   handle('career:launch', async (request) => career.launch(request));
 
   handle('cm:arguments', readCmArguments);

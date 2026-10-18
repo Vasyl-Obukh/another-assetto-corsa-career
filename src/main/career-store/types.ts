@@ -4,14 +4,17 @@ import type {
   CareerCalendar,
   CareerDriver,
   CareerEventView,
+  CareerKind,
   CareerListing,
   CareerProfile,
   CareerSaves,
   CareerSettings,
   CareerState,
+  ChampionshipPreview,
   ChampionshipResults,
   LoadedSave,
   NewCareerRequest,
+  NewChampionshipRequest,
   RaceSetup,
   RestoredCareer,
   SaveSummary,
@@ -195,11 +198,12 @@ export interface CareerStore {
    */
   get(): Career | null;
   /**
-   * Every career on disk, played most recently first. One that cannot be read
-   * is left out and said so in the log.
+   * Every career of one kind on disk, played most recently first. One that
+   * cannot be read is listed as unreadable and said so in the log.
+   * @param kind Careers, or standalone championships
    * @returns What the start screen and the Careers list show of each
    */
-  list(): Promise<CareerListing[]>;
+  list(kind: CareerKind): Promise<CareerListing[]>;
   /**
    * Starts a new career and opens it.
    * @param request Who races it, the year it opens in, its level and its money
@@ -208,6 +212,26 @@ export interface CareerStore {
    * is in flight
    */
   create(request: NewCareerRequest): Promise<Career>;
+  /**
+   * Starts a standalone championship and opens it: the year's first edition of
+   * the championship asked for, entered in the class and car asked for, and
+   * nothing else on its calendar.
+   * @param request Who races it, the year, the championship, the class and the
+   * car
+   * @returns The championship, opened
+   * @throws When the championship is not one that can be raced, the class or
+   * the car is not one of it, or a launch is in flight
+   */
+  createChampionship(request: NewChampionshipRequest): Promise<Career>;
+  /**
+   * Dates a championship's rounds as a standalone championship would race them
+   * in a year, making nothing.
+   * @param series The championship's id
+   * @param year The year
+   * @returns Each round's race day
+   * @throws When there is no such championship, or the year is out of range
+   */
+  preview(series: string, year: number): Promise<ChampionshipPreview>;
   /**
    * Opens a career, closing whichever was open.
    * @param id The career's id
@@ -225,7 +249,7 @@ export interface CareerStore {
   /**
    * Deletes a career and everything in its folder.
    * @param id The career's id
-   * @returns Every career left
+   * @returns Every career of its kind left
    * @throws When it is the one open, or there is no such career
    */
   remove(id: string): Promise<CareerListing[]>;
@@ -255,16 +279,18 @@ export interface CareerStore {
   /**
    * Reads a backup without restoring anything of it.
    * @param file The zip
+   * @param kind The kind of career the page asking restores
    * @returns The career it holds, and whether that career is here already
-   * @throws When it is not a zip, or holds no career that reads
+   * @throws When it is not a zip, holds no career that reads, or holds one of
+   * the other kind
    */
-  readBackup(file: string): Promise<CareerBackup>;
+  readBackup(file: string, kind: CareerKind): Promise<CareerBackup>;
   /**
    * Restores a career from its backup.
    * @param file The zip
    * @param replace Whether a copy of the career already here is replaced -
    * otherwise the backup comes back beside it, as a career of its own
-   * @returns The career's id, and every career
+   * @returns The career's id, and every career of its kind
    * @throws When the backup does not read, or the career it would replace is
    * the one open
    */
@@ -410,6 +436,26 @@ export interface CareerStore {
    * @throws When neither the career nor the library holds the championship
    */
   results(request: ResultsRequest): Promise<ChampionshipResults>;
+  /**
+   * What skipping a round the install cannot race would cost, for the player
+   * to confirm.
+   * @param request Which championship, round and edition
+   * @returns The round, and every round of the career's skipping it leaves
+   * unraced
+   * @throws When the career is not in the round
+   */
+  skipping(request: Omit<EventRequest, 'season'>): Promise<SkippedRound[]>;
+  /**
+   * Skips a round the install cannot race: the clock moves to its day, and it
+   * and every round `skipping` listed become non-starts, raced by the field
+   * with a stand-in in the player's seat. A standalone championship's clock
+   * moves this way and no other, so it never leaves its one season.
+   * @param request Which championship, round and edition
+   * @returns The career, with the clock on the round's day
+   * @throws When the career is not in the round, it can be raced or is over,
+   * or a launch is out
+   */
+  skip(request: Omit<EventRequest, 'season'>): Promise<Career>;
   /**
    * Runs the next session of a round the career is in.
    *

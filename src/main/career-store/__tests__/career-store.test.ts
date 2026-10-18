@@ -18,13 +18,16 @@ import type {
   CareerSettings,
   DrivingAids,
   LaunchRecord,
+  MissingTrack,
   NewCareerRequest,
+  NewChampionshipRequest,
   RaceSetup,
   SeriesListing,
   SeriesRequirements,
   Settings,
 } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
+import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
   fakeContentStore, fakeRaceStore, fakeSeriesStore, fakeSettingsStore, raceSetup,
 } from '../../__tests__/fakes/index.ts';
@@ -112,6 +115,18 @@ const NEW_CAREER: NewCareerRequest = {
 };
 
 /**
+ * What New championship asks for: the cup's one class in its one car, raced in
+ * a year of its own.
+ */
+const NEW_CHAMPIONSHIP: NewChampionshipRequest = {
+  driver: { name: ' Oksana ', nation: 'UKR' },
+  year: 2030,
+  series: 'test-cup',
+  entry: 'main',
+  car: { model: 'test_car' },
+};
+
+/**
  * New career's request, with the career's own settings a test asks for.
  * @param settings The settings beyond the defaults
  * @returns The request
@@ -125,6 +140,17 @@ const newCareer = (settings: Partial<CareerSettings>): NewCareerRequest => ({
  * The championship most tests race: two rounds, one class at the bottom rung.
  */
 const CUP = makeChampionship();
+
+/**
+ * The cup with its second round out of reach, its track not installed.
+ */
+const UNRACEABLE_TWO = makeListing(CUP, {
+  availability: makeAvailability(CUP, {
+    rounds: makeAvailability(CUP).rounds.map((one) => (one.round === 'two'
+      ? { ...one, track: { key: 'track_two', id: 'track_two', layout: '' } as MissingTrack }
+      : one)),
+  }),
+});
 
 /**
  * What a championship racing the base game alone needs, which the draw asks
@@ -273,6 +299,24 @@ const settled = (): Promise<void> => new Promise((resolve) => { setImmediate(res
  * @returns The folder
  */
 const folderOf = (id = CAREER_ID): string => path.join('D:\\userData', 'careers', id);
+
+/**
+ * The folder a standalone championship is kept in, as the store names it.
+ * @param id Its id
+ * @returns The folder
+ */
+const standaloneFolderOf = (id: string): string => path.join('D:\\userData', 'championships', id);
+
+/**
+ * Puts a standalone championship's two files on a disk held in memory.
+ * @param files The disk
+ * @param career The standalone championship
+ * @param profile What its career.json holds, its own profile by default
+ */
+const putStandalone = (files: Map<string, string>, career: Career, profile: object = profileOf(career)): void => {
+  files.set(path.join(standaloneFolderOf(career.id), 'career.json'), JSON.stringify(profile));
+  files.set(path.join(standaloneFolderOf(career.id), 'state.json'), JSON.stringify(stateOf(career)));
+};
 
 /**
  * The file one of a career's saves is kept in.
@@ -505,14 +549,23 @@ describe('main/career-store', () => {
       ]);
       const { store } = await build({ closed: true });
 
-      expect((await store.list()).map((one) => one.driver?.name)).toEqual(['Newer', 'Older']);
+      expect((await store.list('career')).map((one) => one.driver?.name)).toEqual(['Newer', 'Older']);
     });
 
     it('passes over a folder that is not named by a career id', async () => {
       onDisk([makeCareer()], [CAREER_ID, 'notes', '..']);
       const { store } = await build({ closed: true });
 
-      expect((await store.list()).map((one) => one.id)).toEqual([CAREER_ID]);
+      expect((await store.list('career')).map((one) => one.id)).toEqual([CAREER_ID]);
+    });
+
+    it('lists only the careers of the kind asked for', async () => {
+      const { store } = await build({ closed: true });
+      const files = memoryDisk([makeCareer()]);
+      putStandalone(files, makeCareer({ id: OTHER_ID, kind: 'championship' }));
+
+      expect((await store.list('career')).map((one) => one.id)).toEqual([CAREER_ID]);
+      expect((await store.list('championship')).map((one) => one.id)).toEqual([OTHER_ID]);
     });
 
     // A career left out of the list could never be deleted from the app.
@@ -525,7 +578,7 @@ describe('main/career-store', () => {
       }) as typeof readFile);
       const { store } = await build({ closed: true });
 
-      expect(await store.list()).toEqual([
+      expect(await store.list('career')).toEqual([
         {
           id: CAREER_ID, unreadable: true, driver: null, playedAt: null,
         },
@@ -542,7 +595,7 @@ describe('main/career-store', () => {
       files.set(path.join(folderOf(), 'state.json'), '{ not json');
       putSave(files, 'autosave-1', { ...career, date: '2027-02-01' });
 
-      expect(await store.list()).toEqual([expect.objectContaining({ id: CAREER_ID, date: '2027-02-01' })]);
+      expect(await store.list('career')).toEqual([expect.objectContaining({ id: CAREER_ID, date: '2027-02-01' })]);
     });
 
     it('lists a career with nothing of its state to read as unreadable, naming its driver', async () => {
@@ -551,7 +604,7 @@ describe('main/career-store', () => {
       const files = memoryDisk([career]);
       files.delete(path.join(folderOf(), 'state.json'));
 
-      expect(await store.list()).toEqual([{
+      expect(await store.list('career')).toEqual([{
         id: CAREER_ID, unreadable: true, driver: career.driver, playedAt: career.playedAt,
       }]);
     });
@@ -562,13 +615,13 @@ describe('main/career-store', () => {
       const files = memoryDisk([career]);
       files.set(path.join(folderOf(), 'career.json'), '{ not json');
 
-      expect((await store.list()).map((one) => one.id)).toEqual([OTHER_ID, CAREER_ID]);
+      expect((await store.list('career')).map((one) => one.id)).toEqual([OTHER_ID, CAREER_ID]);
     });
 
     it('lists the career just started before it has been written', async () => {
       const { store } = await build();
 
-      expect((await store.list()).map((one) => one.id)).toEqual([store.get()?.id]);
+      expect((await store.list('career')).map((one) => one.id)).toEqual([store.get()?.id]);
     });
 
     it('answers for the open career from memory, which is ahead of its file', async () => {
@@ -576,7 +629,7 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
       await store.setDriver({ name: 'Renamed', nation: null });
 
-      expect((await store.list())[0].driver?.name).toBe('Renamed');
+      expect((await store.list('career'))[0].driver?.name).toBe('Renamed');
     });
   });
 
@@ -664,7 +717,98 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('createChampionship', () => {
+    it("opens the year's first edition in the class and car asked for, with nothing else on its calendar", async () => {
+      const { store } = await build({ closed: true, historic: [historicListing('old-race')] });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+      const career = store.get();
+
+      expect(career).toMatchObject({
+        kind: 'championship', driver: { name: 'Oksana', nation: 'UKR' }, date: '2030-01-01', money: 0,
+      });
+      expect(career?.seasons.map((season) => season.entries.length)).toEqual([1]);
+      expect(entryOf(career)).toMatchObject({
+        edition: 0, entry: 'main', playerSeat: 'seat-2', car: { model: 'test_car' },
+      });
+      expect(entryOf(career).events.every((event) => event.date.startsWith('2030-'))).toBe(true);
+    });
+
+    it('keeps it with the standalone championships, its first autosave beside it', async () => {
+      const { store } = await build({ closed: true });
+      const files = memoryDisk();
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+      await store.flush();
+      const folder = standaloneFolderOf(store.get()?.id ?? '');
+
+      expect(files.has(path.join(folder, 'career.json'))).toBe(true);
+      expect(files.has(path.join(folder, 'saves', 'autosave-1.json'))).toBe(true);
+      expect([...files.keys()].some((file) => file.includes(`${path.sep}careers${path.sep}`))).toBe(false);
+    });
+
+    it('refuses a car the class does not race', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.createChampionship({ ...NEW_CHAMPIONSHIP, car: { model: 'other_car' } }))
+        .rejects.toMatchObject({ code: 'standalone.car' });
+      expect(store.get()).toBeNull();
+    });
+
+    it('refuses a class the championship does not have, and a championship that cannot be raced', async () => {
+      const { store } = await build({
+        closed: true,
+        listings: [makeListing(CUP, { availability: makeAvailability(CUP, { available: false }) })],
+      });
+
+      await expect(store.createChampionship({ ...NEW_CHAMPIONSHIP, entry: 'none' }))
+        .rejects.toMatchObject({ code: 'series.entry.unknown' });
+      await expect(store.createChampionship(NEW_CHAMPIONSHIP))
+        .rejects.toMatchObject({ code: 'career.series.unavailable' });
+    });
+
+    it('refuses a year a season may not open in', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.createChampionship({ ...NEW_CHAMPIONSHIP, year: 2030.5 }))
+        .rejects.toMatchObject({ code: 'career.year.invalid' });
+    });
+  });
+
+  describe('preview', () => {
+    it('dates each round in the year asked for, making nothing', async () => {
+      const { store } = await build({ closed: true });
+      const preview = await store.preview(CUP.id, 2030);
+
+      expect(preview.year).toBe(2030);
+      expect(preview.events.map((one) => one.round)).toEqual(['one', 'two']);
+      expect(preview.events.every((one) => one.date.startsWith('2030-'))).toBe(true);
+      expect(store.get()).toBeNull();
+      expect(writeFileMock).not.toHaveBeenCalled();
+    });
+
+    it('refuses a championship the library does not hold, and a year out of range', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.preview('no-cup', 2030)).rejects.toMatchObject({ code: 'series.notFound' });
+      await expect(store.preview(CUP.id, 2030.5)).rejects.toMatchObject({ code: 'career.year.invalid' });
+    });
+  });
+
   describe('open', () => {
+    // A career.json under championships/ that said no kind was opened as a
+    // career, and its next write went to careers/ - a second copy, in the
+    // other list.
+    it('opens a career as the kind its folder says, whatever its file says', async () => {
+      const { store } = await build({ closed: true });
+      const { files } = folderDisk();
+      const standalone = makeCareer({ id: OTHER_ID, kind: 'championship' });
+      putStandalone(files, standalone, { ...profileOf(standalone), kind: undefined });
+      await store.open(OTHER_ID);
+      await store.flush();
+
+      expect(store.get()?.kind).toBe('championship');
+      expect([...files.keys()].some((file) => file.includes(`${path.sep}careers${path.sep}`))).toBe(false);
+    });
+
     it('refuses a career that is not on disk', async () => {
       const { store } = await build({ closed: true });
 
@@ -810,6 +954,16 @@ describe('main/career-store', () => {
 
       expect(rm).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`careers[\\\\/]${CAREER_ID}$`)), { recursive: true });
       expect(left.map((one) => one.id)).toEqual([OTHER_ID]);
+    });
+
+    it('deletes a standalone championship from its own folder, answering with those left', async () => {
+      const { store } = await build({ closed: true });
+      const { files } = folderDisk([makeCareer()]);
+      putStandalone(files, makeCareer({ id: OTHER_ID, kind: 'championship' }));
+
+      expect(await store.remove(OTHER_ID)).toEqual([]);
+      expect([...files.keys()].some((file) => file.includes(OTHER_ID))).toBe(false);
+      expect(files.has(path.join(folderOf(), 'career.json'))).toBe(true);
     });
 
     it('refuses the career that is open', async () => {
@@ -1007,6 +1161,14 @@ describe('main/career-store', () => {
   });
 
   describe('enrol', () => {
+    it('refuses a standalone championship anything but the championship it races', async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      await expect(store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } }))
+        .rejects.toMatchObject({ code: 'standalone.enter' });
+    });
+
     it("enters the class in the player's seat and dates every round of the edition", async () => {
       const { store } = await build();
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
@@ -1083,6 +1245,13 @@ describe('main/career-store', () => {
   });
 
   describe('withdraw', () => {
+    it('refuses to give a standalone championship up', async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      await expect(store.withdraw({ series: CUP.id, entry: 'main' })).rejects.toMatchObject({ code: 'standalone.withdraw' });
+    });
+
     it('gives up every round still to come and keeps what was raced', async () => {
       const career = careerWith({
         entries: [makeEntry({
@@ -1208,6 +1377,13 @@ describe('main/career-store', () => {
       entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')] })],
     }, date);
 
+    it("refuses to move a standalone championship's clock", async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      await expect(store.advanceTo('2030-02-01')).rejects.toMatchObject({ code: 'standalone.clock' });
+    });
+
     it('refuses to move the clock backwards', async () => {
       const { store } = await build({ career: entered('2027-02-01') });
 
@@ -1293,6 +1469,94 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('skipping', () => {
+    it('lists every round skipping one would lose, the round itself last', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')] })],
+      });
+      const { store } = await build({ career, listings: [UNRACEABLE_TWO] });
+
+      expect((await store.skipping({ series: CUP.id, round: 'two' })).map((one) => [one.round, one.reason]))
+        .toEqual([['one', 'skipped'], ['two', 'unraceable']]);
+    });
+  });
+
+  describe('skip', () => {
+    /**
+     * A career entered in the cup, its rounds in March and June.
+     * @returns The career
+     */
+    const entered = (): Career => careerWith({
+      entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')] })],
+    });
+
+    it("moves the clock to the round's day, and the field races it and every round lost with it", async () => {
+      const { store } = await build({ career: entered(), listings: [UNRACEABLE_TWO] });
+      await store.skip({ series: CUP.id, round: 'two' });
+      const { events } = entryOf(store.get());
+
+      expect(store.get()?.date).toBe('2027-06-06');
+      expect(events.map((event) => event.status)).toEqual(['missed', 'missed']);
+      expect(events.every((event) => event.simulated)).toBe(true);
+    });
+
+    it("skips a round the player's own car can no longer race, though the round races without it", async () => {
+      const career = careerWith({
+        entries: [makeEntry({
+          car: { model: 'gone_car' },
+          events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')],
+        })],
+      });
+      const { store } = await build({ career });
+      await store.skip({ series: CUP.id, round: 'one' });
+
+      expect(entryOf(store.get()).events.map((event) => event.status)).toEqual(['missed', 'scheduled']);
+    });
+
+    it('refuses a round the install can race', async () => {
+      const { store } = await build({ career: entered() });
+
+      await expect(store.skip({ series: CUP.id, round: 'two' }))
+        .rejects.toMatchObject({ code: 'career.skip.raceable' });
+      expect(store.get()?.date).toBe('2027-01-01');
+    });
+
+    it('refuses a round already behind it', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06', { status: 'missed' })] })],
+      });
+      const { store } = await build({ career, listings: [UNRACEABLE_TWO] });
+
+      await expect(store.skip({ series: CUP.id, round: 'two' }))
+        .rejects.toMatchObject({ code: 'career.event.closed' });
+    });
+
+    it('refuses while a session is out at the game', async () => {
+      const { store, race } = await build({ career: entered(), listings: [UNRACEABLE_TWO] });
+      race.setProgress({ raceId: 'test-cup/one', completed: 0, inFlight: true });
+
+      await expect(store.skip({ series: CUP.id, round: 'two' })).rejects.toMatchObject({ code: 'run.inFlight' });
+    });
+
+    it('refuses a round of a championship the career is not in', async () => {
+      const { store } = await build({ career: careerWith({}), listings: [UNRACEABLE_TWO] });
+
+      await expect(store.skip({ series: CUP.id, round: 'two' }))
+        .rejects.toMatchObject({ code: 'career.event.notEntered' });
+    });
+
+    it("finishes a standalone championship whose last rounds can't be raced", async () => {
+      const { store } = await build({ closed: true, listings: [UNRACEABLE_TWO] });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+      const last = entryOf(store.get()).events[1].date;
+      await store.skip({ series: CUP.id, round: 'two' });
+      const career = store.get();
+
+      expect(career?.date).toBe(last);
+      expect(career && standaloneStanding(career)?.over).toBe(true);
+    });
+  });
+
   describe('event', () => {
     it('reads a round the career is in as entered, in its own seat', async () => {
       const career = careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-03-07')] })] });
@@ -1302,6 +1566,17 @@ describe('main/career-store', () => {
       expect(view).toMatchObject({
         series: CUP.id, round: 'one', date: '2027-03-07', entered: { entry: 'main' }, historic: null,
       });
+    });
+
+    it("says a round the player's own car can no longer race cannot be raced, which is what offers its skip", async () => {
+      const career = careerWith({
+        entries: [makeEntry({ car: { model: 'gone_car' }, events: [makeEvent('one', '2027-03-07')] })],
+      });
+      const { store } = await build({ career });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.blocked?.code).toBe('series.round.unavailable');
+      expect(view.sessions).toEqual([]);
     });
 
     it('says a round of a championship the career is not in has to be entered first', async () => {
@@ -1995,7 +2270,7 @@ describe('main/career-store', () => {
       const { files, zips } = folderDisk();
       zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
 
-      expect(await store.readBackup(BACKUP_FILE)).toMatchObject({
+      expect(await store.readBackup(BACKUP_FILE, 'career')).toMatchObject({
         file: BACKUP_FILE,
         career: { id: CAREER_ID, date: '2027-06-14' },
         saves: 0,
@@ -2011,7 +2286,30 @@ describe('main/career-store', () => {
       const { zips } = folderDisk([careerWith({})]);
       zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
 
-      expect((await store.readBackup(BACKUP_FILE)).here).toMatchObject({ id: CAREER_ID, date: '2027-01-01' });
+      expect((await store.readBackup(BACKUP_FILE, 'career')).here).toMatchObject({ id: CAREER_ID, date: '2027-01-01' });
+    });
+
+    // Fixed: a career listed once was taken to be here for good, so one
+    // deleted outside the app still read as the copy a restore would replace.
+    it('finds no career here once its folder is deleted outside the app', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk([careerWith({})]);
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+      await store.list('career');
+      [...files.keys()].filter((file) => file.startsWith(folderOf())).forEach((file) => files.delete(file));
+
+      expect((await store.readBackup(BACKUP_FILE, 'career')).here).toBeNull();
+    });
+
+    it('refuses a backup of the other kind, saying where it is restored from', async () => {
+      const { store } = await build({ closed: true });
+      const { zips } = folderDisk();
+      const standaloneFile = 'D:\\backups\\championship.zip';
+      zips.set(BACKUP_FILE, await backupOf(careerWith({})));
+      zips.set(standaloneFile, await backupOf({ ...careerWith({}), kind: 'championship' }));
+
+      await expect(store.readBackup(BACKUP_FILE, 'championship')).rejects.toMatchObject({ code: 'backup.isCareer' });
+      await expect(store.readBackup(standaloneFile, 'career')).rejects.toMatchObject({ code: 'backup.isChampionship' });
     });
 
     it('refuses a zip holding no career that reads, and a file that is no zip', async () => {
@@ -2020,8 +2318,8 @@ describe('main/career-store', () => {
       zips.set(BACKUP_FILE, await packZip([{ name: 'readme.txt', data: Buffer.from('hello') }]));
       zips.set('D:\\backups\\photo.zip', Buffer.from('not a zip at all, not even close'));
 
-      await expect(store.readBackup(BACKUP_FILE)).rejects.toMatchObject({ code: 'backup.notCareer' });
-      await expect(store.readBackup('D:\\backups\\photo.zip')).rejects.toMatchObject({ code: 'zip.unreadable' });
+      await expect(store.readBackup(BACKUP_FILE, 'career')).rejects.toMatchObject({ code: 'backup.notCareer' });
+      await expect(store.readBackup('D:\\backups\\photo.zip', 'career')).rejects.toMatchObject({ code: 'zip.unreadable' });
     });
   });
 

@@ -20,7 +20,10 @@ export const ROUTE = {
   start: '/',
   careers: '/careers',
   careerNew: '/careers/new',
+  standalones: '/standalones',
+  standaloneNew: '/standalones/new',
   home: '/home',
+  standalone: '/championship',
   race: '/race',
   raceEvent: '/race/:id',
   calendar: '/calendar',
@@ -95,6 +98,17 @@ export const CAREER_NAV = [
 ] as const satisfies readonly NavEntry[];
 
 /**
+ * The destinations a standalone championship's navigation offers. Its own page
+ * is its home, and stays lit on its rounds' pages and on its review, which are
+ * the career's own pages under paths of their own.
+ */
+export const CHAMPIONSHIP_NAV = [
+  { id: 'standalone', label: 'nav.championship', also: ['championship', 'event', 'championshipReview'] },
+  { id: 'results', label: 'nav.results' },
+  { id: 'settings', label: 'nav.settings', to: 'settingsCareer' },
+] as const satisfies readonly NavEntry[];
+
+/**
  * The destinations quick race mode's navigation offers. Cars and tracks are
  * picked inside a race, so neither has a tab of its own here.
  */
@@ -114,7 +128,10 @@ export const BACK_LABEL = {
   start: 'back.start',
   careers: 'back.careers',
   careerNew: 'back.careerNew',
+  standalones: 'back.standalones',
+  standaloneNew: 'back.standaloneNew',
   home: 'back.home',
+  standalone: 'back.standalone',
   race: 'back.race',
   raceEvent: 'back.raceEvent',
   calendar: 'back.calendar',

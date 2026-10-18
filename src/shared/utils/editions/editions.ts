@@ -1,5 +1,5 @@
 // How often a championship runs in a career's season, which year a season is,
-// and which of a season's editions a page means. Shared because main dates and
+// which of a season's editions a page means, and whether one is over. Shared because main dates and
 // reads each edition and the renderer names and shows the same one.
 
 import { DEFAULT_SEASON_LENGTH, EDITIONS_PER_YEAR } from '../../constants/index.ts';
@@ -54,3 +54,15 @@ export const editionEntry = (season: CareerSeason, series: string, edition: numb
 
   return held.find((one) => !one.withdrawn) ?? held[0] ?? null;
 };
+
+/**
+ * Whether an edition is over: every round run, raced or passed by, and the last
+ * of them behind the clock. A round given up by withdrawing is simulated on its
+ * own day, so an edition left early is over only once that day has come.
+ * @param entry The edition
+ * @param today The ISO date the career's clock stands at
+ * @returns True once nothing of it is left to run
+ */
+export const editionOver = (entry: SeasonEntry, today: string): boolean => entry.events.every((event) => (
+  event.status !== 'scheduled' && event.date <= today
+));

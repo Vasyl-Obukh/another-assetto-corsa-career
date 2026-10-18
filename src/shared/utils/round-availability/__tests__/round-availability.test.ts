@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { appErrorInfo } from '../../../errors/index.ts';
-import type { SeriesAvailability, SeriesListing } from '../../../types/index.ts';
+import type { MissingTrack, SeriesAvailability, SeriesListing } from '../../../types/index.ts';
 import {
-  eligibleCarsIn, roundAvailability, roundAvailabilityIn, roundRaceable, roundRaceableIn,
+  eligibleCarsIn, firstRaceable, roundAvailability, roundAvailabilityIn, roundRaceable, roundRaceableIn, seatRaceableIn,
 } from '../index.ts';
 
 /**
@@ -46,6 +46,13 @@ const listing = (overrides: Partial<SeriesAvailability> = {}): SeriesListing => 
   filler: false,
   event: null,
 });
+
+/**
+ * A track the install does not hold, as a round's availability names it.
+ * @param id The circuit
+ * @returns The missing track
+ */
+const missingTrack = (id: string): MissingTrack => ({ key: id, id, layout: '' }) as MissingTrack;
 
 describe('shared/utils/round-availability', () => {
   describe('roundAvailabilityIn', () => {
@@ -161,6 +168,62 @@ describe('shared/utils/round-availability', () => {
 
     it('answers with no cars for a class the championship does not hold', () => {
       expect(eligibleCarsIn(override, 'magione', 'pro')).toEqual([]);
+    });
+  });
+
+  describe('seatRaceableIn', () => {
+    it('races a round in a car its class may race there', () => {
+      expect(seatRaceableIn(availability(), 'magione', 'main', 'ks_mazda_mx5_cup')).toBe(true);
+    });
+
+    it('refuses a car that is no longer installed, though the round races without it', () => {
+      expect(seatRaceableIn(availability(), 'magione', 'main', 'ks_mazda_mx5_nd')).toBe(false);
+    });
+
+    it('refuses a round the install cannot race in any car', () => {
+      const missing = availability({
+        rounds: [{
+          round: 'magione', track: missingTrack('magione'), pitboxes: null, entries: [], races: [],
+        }],
+      });
+
+      expect(seatRaceableIn(missing, 'magione', 'main', 'ks_mazda_mx5_cup')).toBe(false);
+    });
+  });
+
+  describe('firstRaceable', () => {
+    /**
+     * A championship of two rounds, Monza first.
+     * @param monza Whether Monza's track is installed
+     * @returns The listing
+     */
+    const twoRounds = (monza: boolean): SeriesListing => ({
+      ...listing({
+        rounds: [
+          {
+            round: 'monza', track: monza ? null : missingTrack('monza'), pitboxes: null, entries: [], races: [],
+          },
+          {
+            round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+          },
+        ],
+      }),
+      series: { id: 'sunday-cup', rounds: [{ id: 'monza' }, { id: 'magione' }] } as unknown as SeriesListing['series'],
+    });
+
+    it('is the first round when it can be raced', () => {
+      expect(firstRaceable(twoRounds(true))).toBe('monza');
+    });
+
+    it('passes over a round the install cannot race', () => {
+      expect(firstRaceable(twoRounds(false))).toBe('magione');
+    });
+
+    it('is undefined when no round can be raced', () => {
+      const broken = twoRounds(true);
+      const problems = [appErrorInfo('series.format.defaultUnknown', { series: 'sunday-cup', format: 'nope' })];
+
+      expect(firstRaceable({ ...broken, availability: { ...broken.availability, problems } })).toBeUndefined();
     });
   });
 });

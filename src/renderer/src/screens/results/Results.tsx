@@ -44,7 +44,8 @@ export const Results = () => {
     <ScreenBody className="flex flex-col gap-4 pb-8">
       {mode === 'career' ? (
         // Reached from Home's card rather than the navigation, so it heads
-        // itself with the way back there.
+        // itself with the way back there. A standalone championship's Results
+        // is a tab, as quick race mode's is.
         <ScreenHeader back={{ to: path.home(), label: t('back.home') }}>
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold">{t('results.title')}</h1>

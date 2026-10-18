@@ -16,19 +16,23 @@ import { RoundTable } from './RoundTable.tsx';
 import { SeasonRules } from './SeasonRules.tsx';
 import { SeasonStrength } from './SeasonStrength.tsx';
 import { SeasonSummary } from './SeasonSummary.tsx';
+import { StandaloneBanner } from './StandaloneBanner.tsx';
 import { StandingsSection } from './StandingsSection.tsx';
 import type { DetailTab, NextRound } from './types.ts';
 import { enterHintOf, entryAvailability, shownRun } from './utils.ts';
-import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import { seatRaceableIn } from '../../../../shared/utils/round-availability';
+import { standaloneEntry, standaloneStanding } from '../../../../shared/utils/standalone';
+import { useSlot } from '@/app';
 import {
-  ErrorCard, ResultCell, ScreenBody, ScreenHeader,
+  ErrorCard, ResultCell, ScreenBody, ScreenHeader, SkipRoundDialog,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs.tsx';
 import {
-  useCareer, useChampionship, useChampionshipResults, usePageName, useSeriesCommands,
+  useCareer, useChampionship, useChampionshipResults, usePageName, useSeasonListing, useSeriesCommands, useSkipRound,
 } from '@/hooks';
 import { usePlayerName } from '@/hooks';
 import { editionName } from '@/lib/edition-names';
@@ -36,7 +40,6 @@ import {
   DETAIL_TAB_PARAM, linkRun, path, ROUTE, RUN_PARAM, runOf,
 } from '@/lib/routes';
 import { seasonResults } from '@/lib/season-results';
-import { editionOver } from '@/lib/season-review';
 import { cn } from '@/lib/utils.ts';
 
 interface ChampionshipDetailProps {
@@ -45,13 +48,23 @@ interface ChampionshipDetailProps {
    * the whole menu and the switch, and nothing that races a round.
    */
   manage?: boolean;
+  /**
+   * Whether the page is the open standalone championship's own, which is its
+   * home: the championship it races rather than the one the URL names, headed
+   * by where it stands rather than by Back.
+   */
+  standalone?: boolean;
 }
 
 // Read-only either way: every change is made in the editor the menu opens.
-export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) => {
+export const ChampionshipDetail = ({ manage = false, standalone = false }: ChampionshipDetailProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id = '' } = useParams<PathParam<typeof ROUTE.championship>>();
+  const params = useParams<PathParam<typeof ROUTE.championship>>();
+  const slot = useSlot().career;
+  const own = standalone && slot ? standaloneEntry(slot) : null;
+  const standing = standalone && slot ? standaloneStanding(slot) : null;
+  const id = own?.series ?? params.id ?? '';
   const championship = useChampionship(id);
   // The open tab lives in the URL, so Back from a round returns to it - and so
   // does the run, for an earlier season or one edition of several.
@@ -59,6 +72,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const asked = manage ? {} : runOf(search);
   const results = useChampionshipResults(id, asked);
   const commands = useSeriesCommands();
+  const skip = useSkipRound(path.championship({ id }, asked));
   // The season this championship is being raced in, when the career has entered
   // it: what dates its rounds and what its standings are. The settings tab
   // manages the library rather than running a season in it, so it never shows.
@@ -66,37 +80,51 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   // A class and car a link asked the Enter panel to start from.
   const hint = enterHintOf(useLocation().state);
 
-  const { listing } = championship;
   const {
     season, closed, edition, entered,
   } = shownRun(career.career, id, asked, results.results?.edition, manage);
+  // An edition entered shows the season's own copy, which is what it races.
+  const raced = useSeasonListing(manage ? null : entered, championship.listing);
+  const { listing } = raced;
+  const loading = championship.loading || raced.loading;
   const editions = listing ? editionsOf(listing.series) : 1;
   const run = season && edition !== undefined
     ? linkRun({ season: season.index, edition }, career.career?.seasons.at(-1)?.index, editions)
     : {};
-  // In a career, its own next round; otherwise the next one still to come on
-  // the calendar, since that round's page is where the championship is entered.
-  const next = ((): NextRound | undefined => {
+  /**
+   * A round of the championship as the page points at it.
+   * @param event The round's day, and what of it has run
+   * @param event.round The round's id
+   * @param event.date Its race day
+   * @param event.sessions What of it has run, where the career is in it
+   * @returns The round, numbered, or undefined for one the championship lacks
+   */
+  const pointAt = (event: { round: string; date: string; sessions?: readonly unknown[] }): NextRound | undefined => {
     const rounds = listing?.series.rounds ?? [];
-    const clock = career.calendar?.date;
-    const event = entered
-      ? entered.events.find((one) => one.status === 'scheduled')
-      : career.calendar?.events.find((one) => (
-        one.series === id
-        && (edition === undefined || one.edition === edition)
-        && clock !== undefined
-        && one.date >= clock
-      ));
-    const at = rounds.findIndex((round) => round.id === event?.round);
-    if (manage || closed || !event || at < 0) return undefined;
+    const at = rounds.findIndex((round) => round.id === event.round);
 
-    return {
-      round: rounds[at],
-      number: at + 1,
-      date: event.date,
-      underway: 'sessions' in event && event.sessions.length > 0,
+    return at < 0 ? undefined : {
+      round: rounds[at], number: at + 1, date: event.date, underway: (event.sessions?.length ?? 0) > 0,
     };
-  })();
+  };
+  const live = !manage && !closed;
+  const ahead = live && entered ? entered.events.filter((one) => one.status === 'scheduled') : [];
+  // In a career, its own next round the install can race, past any it cannot;
+  // otherwise the next one still to come on the calendar, since that round's
+  // page is where the championship is entered.
+  const clock = career.calendar?.date;
+  const raceable = ahead.find((one) => !listing || !entered
+    || seatRaceableIn(listing.availability, one.round, entered.entry, entered.car.model));
+  const upcoming = entered ? raceable : career.calendar?.events.find((one) => (
+    one.series === id
+    && (edition === undefined || one.edition === edition)
+    && clock !== undefined
+    && one.date >= clock
+  ));
+  const next = live && upcoming ? pointAt(upcoming) : undefined;
+  // The rounds still to come that cannot be raced before it - or, with none to
+  // race, every round left.
+  const stuck = (raceable ? ahead.slice(0, ahead.indexOf(raceable)) : ahead).flatMap((one) => pointAt(one) ?? []);
   // Back with nowhere earlier to return to leads to the list each is opened
   // from: a championship on the settings tab may be switched off, and then the
   // Championships page does not list it.
@@ -105,7 +133,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
     : { to: path.championships(), label: t('back.championships') };
   usePageName(listing?.series.name ?? null);
   // One card rather than two, as on the settings tab.
-  const error = championship.error ?? commands.error;
+  const error = championship.error ?? commands.error ?? skip.error;
   // The table carries the name the championship's document gave the seat, so
   // the player's own is laid over it wherever they are listed.
   const playerName = usePlayerName();
@@ -146,20 +174,31 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
   const mixed = new Set(listing?.series.entries.map((one) => one.ladder.discipline)).size > 1;
 
   return (
-    <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={back} />
+    <ScreenBody className={cn('flex flex-col gap-4 pb-8', own && 'pt-6')}>
+      {own && standing && slot ? (
+        <StandaloneBanner
+          entry={own}
+          standing={standing}
+          year={seasonYear(slot)}
+          next={next}
+          stuck={stuck}
+          busy={skip.busy}
+          onOpen={(round) => openRound?.(round)}
+          onSkip={(round) => skip.ask({ series: id, round, edition: own.edition })}
+        />
+      ) : <ScreenHeader back={back} />}
 
       {error ? (
         <ErrorCard
           error={error}
-          onDismiss={() => { championship.dismissError(); commands.dismissError(); }}
+          onDismiss={() => { championship.dismissError(); commands.dismissError(); skip.dismissError(); }}
         />
       ) : null}
 
       {/* The career is usually read already, from Home, and then the page
           takes its own shape before the championship arrives; until then it
           takes a not-entered one. */}
-      {championship.loading ? (
+      {loading ? (
         <DetailSkeleton
           entered={entered !== null}
           enterable={!manage && entered === null}
@@ -169,7 +208,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
         />
       ) : null}
 
-      {!championship.loading && listing === null && !championship.error ? (
+      {!loading && listing === null && !championship.error ? (
         <p className="text-sm text-muted-foreground">{t('championships.notFound')}</p>
       ) : null}
 
@@ -184,7 +223,8 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
               commands={commands}
               onDeleted={() => navigate(back.to, { replace: true })}
               entered={entered}
-              next={entered ? next : undefined}
+              // A standalone championship's banner already leads with it.
+              next={entered && !own ? next : undefined}
               onOpen={openRound}
             />
             {reviewable && season && entered ? (
@@ -224,7 +264,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
             {!manage && closed && named ? (
               <p className="text-sm text-muted-foreground">{t('championships.detail.pastSeason', { edition: named })}</p>
             ) : null}
-            {!manage && !closed && editions > 1 && season && career.calendar && edition !== undefined ? (
+            {!manage && !own && !closed && editions > 1 && season && career.calendar && edition !== undefined ? (
               <EditionSwitcher
                 series={id}
                 editions={editions}
@@ -303,6 +343,7 @@ export const ChampionshipDetail = ({ manage = false }: ChampionshipDetailProps) 
           </Tabs>
         </div>
       ) : null}
+      <SkipRoundDialog skip={skip} />
     </ScreenBody>
   );
 };

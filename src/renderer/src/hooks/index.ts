@@ -22,6 +22,7 @@ export { useChampionship } from './use-championship/index.ts';
 export { useChampionshipResults } from './use-championship-results/index.ts';
 export type { ChampionshipResultsDetail } from './use-championship-results/index.ts';
 export { useChampionshipBrowser } from './use-championship-browser/index.ts';
+export { useChampionshipPreview } from './use-championship-preview/index.ts';
 export type {
   ChampionshipBrowser, ChampionshipCriteria, ChampionshipDimension, ChampionshipSortKey,
 } from './use-championship-browser/index.ts';
@@ -70,6 +71,9 @@ export type { OffscreenDirection } from './use-offscreen-direction/index.ts';
 export { useSaves } from './use-saves/index.ts';
 export type { SavesState } from './use-saves/index.ts';
 export { useScrolledPast } from './use-scrolled-past/index.ts';
+export { useSeasonListing } from './use-season-listing/index.ts';
+export { useSkipRound } from './use-skip-round/index.ts';
+export type { PendingSkip, SkipRequest, SkipRound } from './use-skip-round/index.ts';
 export { useSpecCounts } from './use-spec-counts/index.ts';
 export { useSeriesCommands } from './use-series-commands/index.ts';
 export type { SeriesCommandsState } from './use-series-commands/index.ts';
@@ -78,5 +82,6 @@ export type { SeriesEditorState } from './use-series-editor/index.ts';
 export type { PagedList } from './use-paged-content/index.ts';
 export { useTrackBrowser } from './use-track-browser/index.ts';
 export type { TrackBrowser, TrackCriteria } from './use-track-browser/index.ts';
+export { useViewportScale } from './use-viewport-scale/index.ts';
 export { useWeatherContent } from './use-weather-content/index.ts';
 export type { WeatherContent } from './use-weather-content/index.ts';

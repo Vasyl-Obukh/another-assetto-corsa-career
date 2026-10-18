@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { ROUTE } from '../constants.ts';
 import {
-  buildPath, linkRun, path, routeOf, runOf, sectionOf,
+  buildPath, homeOf, linkRun, path, routeOf, runOf, sectionOf,
 } from '../routes.ts';
 import type { RouteId } from '../types.ts';
 
@@ -261,12 +261,26 @@ describe('renderer/lib/routes/routes', () => {
       expect(sectionOf({ section: 'cars' })).toBe('cars');
     });
 
+    it('reads a section only a standalone championship\'s navigation offers', () => {
+      expect(sectionOf({ section: 'standalone' })).toBe('standalone');
+    });
+
     it('reads nothing from state that names no section navigation offers', () => {
       expect(sectionOf({ section: 'car' })).toBeNull();
       expect(sectionOf({ section: 'history' })).toBeNull();
       expect(sectionOf({ other: true })).toBeNull();
       expect(sectionOf(null)).toBeNull();
       expect(sectionOf('settings')).toBeNull();
+    });
+  });
+
+  describe('homeOf', () => {
+    it('opens a career on its Home', () => {
+      expect(homeOf('career')).toBe('/home');
+    });
+
+    it('opens a standalone championship on its own page', () => {
+      expect(homeOf('championship')).toBe('/championship');
     });
   });
 });

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { DrivingAidsFields } from './DrivingAidsFields.tsx';
 import { FollowSwitch } from './FollowSwitch.tsx';
 import type { CareerSettings, DrivingAids } from '../../../../shared/types';
-import { useSettings } from '@/app';
+import { useSettings, useSlot } from '@/app';
 import { SettingsSection } from '@/components';
 
 interface CareerAidsSectionProps {
@@ -22,6 +22,7 @@ interface CareerAidsSectionProps {
 export const CareerAidsSection = ({ own, onChange }: CareerAidsSectionProps) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const championship = useSlot().mode === 'championship';
 
   return (
     <SettingsSection
@@ -29,7 +30,7 @@ export const CareerAidsSection = ({ own, onChange }: CareerAidsSectionProps) => 
       icon={GaugeIcon}
       tone="you"
       title={t('settings.drivingAids')}
-      hint={t('settings.careerAidsHint')}
+      hint={championship ? t('settings.championshipAidsHint') : t('settings.careerAidsHint')}
     >
       <div className="flex flex-col gap-5">
         {/* Setting its own starts from where the app's stand. */}

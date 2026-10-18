@@ -10,8 +10,8 @@ export { ChampionshipMenu } from './ChampionshipMenu.tsx';
 export { Championships } from './Championships.tsx';
 export { ChampionshipRail } from './ChampionshipRail.tsx';
 export {
-  CARD_TITLE, CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, SEASON_SKELETON, TABLE_HEADING, TEAM_BUDGET_LABEL,
-  UNDERLINE_TAB,
+  CARD_TITLE, CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, SEASON_GRID, SEASON_SKELETON, TABLE_HEADING,
+  TEAM_BUDGET_LABEL, UNDERLINE_TAB,
 } from './constants.ts';
 export { championshipFilters } from './filters.ts';
 export { championshipPills } from './pills.ts';
@@ -31,6 +31,7 @@ export { OriginBadge } from './OriginBadge.tsx';
 export { PlaceBadge } from './PlaceBadge.tsx';
 export { PurseHeading } from './PurseHeading.tsx';
 export { Requirements } from './Requirements.tsx';
+export { RoundRaces } from './RoundRaces.tsx';
 export { RoundTicks } from './RoundTicks.tsx';
 export { SeasonBand } from './SeasonBand.tsx';
 export { SeasonCard } from './SeasonCard.tsx';

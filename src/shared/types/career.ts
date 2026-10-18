@@ -255,6 +255,17 @@ export interface CareerSeason {
 }
 
 /**
+ * What a career is: one that climbs the ladder season after season, or a
+ * standalone championship - one championship raced for one season, with no
+ * ladder and no money, and then over.
+ *
+ * Both are kept, saved, backed up and raced the same way, which is why a
+ * standalone championship is a career of its own kind rather than something
+ * else: its one season holds the one edition it entered when it was made.
+ */
+export type CareerKind = 'career' | 'championship';
+
+/**
  * What every save of a career shares: who it is and how it is set up. Kept in
  * the career's career.json, and never in a save, so loading one leaves it as
  * it is.
@@ -271,6 +282,11 @@ export interface CareerProfile {
    * Stable identifier, and the name of the folder the career is kept in.
    */
   id: string;
+  /**
+   * Which kind of career it is, which decides the folder it is kept under and
+   * the mode the app is in while it is open.
+   */
+  kind: CareerKind;
   /**
    * When the career was made, as an ISO timestamp.
    */
@@ -415,6 +431,92 @@ export interface NewCareerRequest {
 }
 
 /**
+ * What a standalone championship is asked for.
+ */
+export interface NewChampionshipRequest {
+  /**
+   * Who races it.
+   */
+  driver: CareerDriver;
+  /**
+   * The year it is raced in, whose first edition of the championship it enters.
+   */
+  year: number;
+  /**
+   * Which championship, by its id.
+   */
+  series: string;
+  /**
+   * Which class of it, by its class entry id.
+   */
+  entry: string;
+  /**
+   * The car the season is raced in.
+   */
+  car: {
+    /**
+     * Car folder ID.
+     */
+    model: string;
+    /**
+     * Skin folder ID, when one was picked.
+     */
+    skin?: string;
+  };
+}
+
+/**
+ * A championship's rounds dated as a standalone championship would race them
+ * in a given year, before one is made.
+ */
+export interface ChampionshipPreview {
+  /**
+   * The year it would be raced in.
+   */
+  year: number;
+  /**
+   * Each round's race day, in the order they run.
+   */
+  events: readonly {
+    /**
+     * Which round, by its id.
+     */
+    round: string;
+    /**
+     * Its race day, as an ISO date.
+     */
+    date: string;
+  }[];
+}
+
+/**
+ * Where a standalone championship stands, as the list of them shows it.
+ */
+export interface ChampionshipStanding {
+  /**
+   * How many rounds it has.
+   */
+  rounds: number;
+  /**
+   * How many of them are behind it, raced or missed.
+   */
+  done: number;
+  /**
+   * Where the player stands in their class, or null before any round has
+   * scored.
+   */
+  position: number | null;
+  /**
+   * The points the player holds.
+   */
+  points: number;
+  /**
+   * Whether every round is behind it, which is when it is over.
+   */
+  over: boolean;
+}
+
+/**
  * One championship a career is in this season, as a list of careers shows it.
  */
 export interface CareerSummaryEntry {
@@ -469,6 +571,10 @@ export interface CareerSummary {
    */
   id: string;
   /**
+   * Which kind of career it is.
+   */
+  kind: CareerKind;
+  /**
    * Who races it.
    */
   driver: CareerDriver;
@@ -501,6 +607,10 @@ export interface CareerSummary {
    * one raced, or null for a career that has neither yet.
    */
   track: { id: string; layout?: string } | null;
+  /**
+   * Where a standalone championship stands, or null for a career.
+   */
+  standing: ChampionshipStanding | null;
 }
 
 /**
@@ -1128,10 +1238,11 @@ export interface HistoricView {
  *
  * "skipped" is a round passed by unraced, "partway" an event left with
  * sessions still to run, "behind" a round already gone by when its championship
- * is entered, and "clash" an event on the same day as the one being raced,
- * which is given up for it unless settings allow two events on one day.
+ * is entered, "clash" an event on the same day as the one being raced,
+ * which is given up for it unless settings allow two events on one day, and
+ * "unraceable" a round skipped because the install cannot race it.
  */
-export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash';
+export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash' | 'unraceable';
 
 /**
  * One round that moving on would cost, as the confirmation lists it.

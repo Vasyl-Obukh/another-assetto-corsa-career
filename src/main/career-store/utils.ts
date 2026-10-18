@@ -45,6 +45,7 @@ import type {
   EventStrength,
   LaunchRecord,
   NewCareerRequest,
+  NewChampionshipRequest,
   RoundForecast,
   RoundScore,
   SeasonEntry,
@@ -62,7 +63,8 @@ import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
 import { isNationCode } from '../../shared/utils/nations/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
-import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
+import { roundAvailabilityIn, roundRaceableIn, seatRaceableIn } from '../../shared/utils/round-availability/index.ts';
+import { standaloneStanding } from '../../shared/utils/standalone/index.ts';
 import { isArchiveName } from '../race-store/index.ts';
 import { readSaveFile, SAVE_ID_PATTERN, SAVES_DIR } from '../save-files/index.ts';
 import type { ZipEntry } from '../zip-archive/index.ts';
@@ -83,6 +85,7 @@ export const seasonEndDate = (startDate: string): string => `${startDate.slice(0
 export const profileOf = (career: Career): CareerProfile => ({
   version: CAREER_VERSION,
   id: career.id,
+  kind: career.kind,
   createdAt: career.createdAt,
   playedAt: career.playedAt,
   driver: career.driver,
@@ -127,8 +130,13 @@ export const readProfile = (value: unknown): CareerProfile | null => {
 
   // Rebuilt rather than cast, so nothing else in the file rides along into the
   // career it is joined with. Its settings are read the tolerant way, as
-  // settings are everywhere.
-  return readable ? profileOf({ ...profile, settings: readCareerSettings(profile.settings) } as Career) : null;
+  // settings are everywhere, and so is its kind: a career made before there
+  // were standalone championships says none.
+  return readable ? profileOf({
+    ...profile,
+    kind: profile.kind === 'championship' ? 'championship' : 'career',
+    settings: readCareerSettings(profile.settings),
+  } as Career) : null;
 };
 
 /**
@@ -512,6 +520,18 @@ export const launchBlock = (
 };
 
 /**
+ * Whether the install can race a round the career is in, in the player's own
+ * car: one that is no longer installed, or that the round does not run, stops
+ * it as surely as a missing track.
+ * @param availability What the install can race of the season's championship
+ * @param held The entry and the round
+ * @returns True when it can be launched for want of nothing installed
+ */
+export const heldRaceable = (availability: SeriesAvailability, held: EnteredEvent): boolean => (
+  seatRaceableIn(availability, held.event.round, held.entry.entry, held.entry.car.model)
+);
+
+/**
  * One round of a championship as a confirmation lists it.
  * @param championship The championship, as the career holds it
  * @param entry The class the career is in, or would enter, by its id
@@ -608,6 +628,26 @@ export const launchSkips = (
       return [];
     })
 );
+
+/**
+ * What skipping a round the install cannot race costs: the round itself, and
+ * everything launching it would, less any clash - the clock moves to its day,
+ * and an event on that day is still there to be raced.
+ * @param season The season it belongs to
+ * @param held The entry and the round being skipped
+ * @returns The rounds, the skipped one last
+ */
+export const skipCost = (season: CareerSeason, held: EnteredEvent): SkippedRound[] => [
+  ...launchSkips(season, held, true),
+  skippedRound(
+    held.entry.championship,
+    held.entry.entry,
+    held.entry.edition,
+    held.event,
+    'unraceable',
+    isHistoric(held.entry),
+  ),
+];
 
 /**
  * What a refusal calls a lost round: its championship and its name.
@@ -981,6 +1021,33 @@ export const checkedDriver = (driver: CareerDriver): CareerDriver => {
 };
 
 /**
+ * Checks the year a career or a standalone championship opens in.
+ * @param year The year asked for
+ * @returns The year
+ * @throws When it is not a whole year within the range a career may start in
+ */
+export const checkedYear = (year: number): number => {
+  if (!Number.isInteger(year) || year < MIN_START_YEAR || year > MAX_START_YEAR) {
+    throw new AppError('career.year.invalid', { year, from: MIN_START_YEAR, to: MAX_START_YEAR });
+  }
+
+  return year;
+};
+
+/**
+ * Checks what a new standalone championship is asked to start from, as far as
+ * it can be without the library.
+ * @param request The request
+ * @returns The request, its driver tidied
+ * @throws When the driver or the year is not one a career can start with
+ */
+export const checkedNewChampionship = (request: NewChampionshipRequest): NewChampionshipRequest => ({
+  ...request,
+  driver: checkedDriver(request.driver),
+  year: checkedYear(request.year),
+});
+
+/**
  * Checks what a new career is asked to start from.
  * @param request The request
  * @returns The request, its driver tidied
@@ -989,9 +1056,7 @@ export const checkedDriver = (driver: CareerDriver): CareerDriver => {
  */
 export const checkedNewCareer = (request: NewCareerRequest): NewCareerRequest => {
   const driver = checkedDriver(request.driver);
-  if (!Number.isInteger(request.year) || request.year < MIN_START_YEAR || request.year > MAX_START_YEAR) {
-    throw new AppError('career.year.invalid', { year: request.year, from: MIN_START_YEAR, to: MAX_START_YEAR });
-  }
+  checkedYear(request.year);
   if (!Number.isInteger(request.level) || request.level < 1) {
     throw new AppError('career.level.invalid', { level: request.level });
   }
@@ -1052,6 +1117,7 @@ export const summarise = (career: Career): CareerSummary => {
 
   return {
     id: career.id,
+    kind: career.kind,
     driver: career.driver,
     year: Number(career.date.slice(0, 4)),
     date: career.date,
@@ -1068,6 +1134,7 @@ export const summarise = (career: Career): CareerSummary => {
       .filter((one, at, all) => all.findIndex((other) => other.series === one.series) === at),
     next,
     track,
+    standing: standaloneStanding(career),
   };
 };
 
@@ -1156,9 +1223,17 @@ export const readBackup = (entries: readonly ZipEntry[]): BackupContents | null 
  * @returns The file's name
  */
 export const backupName = (career: CareerSummary): string => {
-  // Letters of any script are kept, since a file name may hold them; anything
-  // else runs together into one hyphen.
-  const driver = career.driver.name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  /**
+   * A name as part of a file name: letters of any script kept, since a file
+   * name may hold them, and anything else run together into one hyphen.
+   * @param text The name
+   * @returns It, lower-cased and hyphenated
+   */
+  const slug = (text: string): string => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  // A standalone championship is known by its championship and year instead.
+  const championship = career.kind === 'championship' ? career.championships[0] : undefined;
+  if (championship) return `${slug(championship.name) || 'championship'}-${career.year}.zip`;
+  const driver = slug(career.driver.name);
 
   return `${driver ? `${driver}-` : ''}career-${career.date}.zip`;
 };

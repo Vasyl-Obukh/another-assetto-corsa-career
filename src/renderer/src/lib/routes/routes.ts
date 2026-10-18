@@ -13,10 +13,18 @@
 // suite. The type-only import in types.ts is erased before either sees it.
 
 import {
-  CAREER_NAV, DETAIL_TAB_PARAM, OVER_ESCAPED, PARAM_PLACEHOLDER, QUICK_NAV, ROUTE, RUN_PARAM, TRACK_LAYOUT_PARAM,
+  CAREER_NAV,
+  CHAMPIONSHIP_NAV,
+  DETAIL_TAB_PARAM,
+  OVER_ESCAPED,
+  PARAM_PLACEHOLDER,
+  QUICK_NAV,
+  ROUTE,
+  RUN_PARAM,
+  TRACK_LAYOUT_PARAM,
 } from './constants.ts';
 import type { NavId, RouteId, RouteParams } from './types.ts';
-import type { ChampionshipRun } from '../../../../shared/types';
+import type { CareerKind, ChampionshipRun } from '../../../../shared/types';
 
 /**
  * Encodes one path segment the way a URL wants it.
@@ -135,6 +143,14 @@ export const linkRun = (
 });
 
 /**
+ * Where a career of a kind opens: a career's Home, or a standalone
+ * championship's own page.
+ * @param kind The career's kind
+ * @returns The URL
+ */
+export const homeOf = (kind: CareerKind): string => (kind === 'championship' ? ROUTE.standalone : ROUTE.home);
+
+/**
  * The section a page's router state says navigation should light.
  * @param state The location's state, whatever pushed it
  * @returns The section a `NavState` names, or null for any other state
@@ -143,7 +159,7 @@ export const sectionOf = (state: unknown): NavId | null => {
   if (typeof state !== 'object' || state === null || !('section' in state)) return null;
   const { section } = state;
 
-  return [...CAREER_NAV, ...QUICK_NAV].find((entry) => entry.id === section)?.id ?? null;
+  return [...CAREER_NAV, ...CHAMPIONSHIP_NAV, ...QUICK_NAV].find((entry) => entry.id === section)?.id ?? null;
 };
 
 /**
@@ -168,6 +184,22 @@ export const path = {
    * @returns Its URL
    */
   careerNew: (): string => ROUTE.careerNew,
+  /**
+   * Every standalone championship, the one picked beside them - what the
+   * Championship tile's Load opens.
+   * @returns Its URL
+   */
+  standalones: (): string => ROUTE.standalones,
+  /**
+   * New championship.
+   * @returns Its URL
+   */
+  standaloneNew: (): string => ROUTE.standaloneNew,
+  /**
+   * The open standalone championship's own page, which is its home.
+   * @returns Its URL
+   */
+  standalone: (): string => ROUTE.standalone,
   /**
    * The open career's own settings.
    * @returns Its URL

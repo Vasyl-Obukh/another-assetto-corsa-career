@@ -7,6 +7,7 @@ import { RoundRaces } from './RoundRaces.tsx';
 import { trackKeyOf } from './utils.ts';
 import type { Round, SeasonEvent, SeriesListing } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
+import { seatRaceableIn } from '../../../../shared/utils/round-availability';
 import { ClimateBadge, ResultCell } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -55,6 +56,11 @@ interface RoundTableRowProps {
    */
   playerSeat?: string;
   /**
+   * The car the player races, by its folder ID, when the career is in the
+   * championship.
+   */
+  car?: string;
+  /**
    * What the player is called.
    */
   playerName: string;
@@ -70,7 +76,7 @@ interface RoundTableRowProps {
 }
 
 export const RoundTableRow = ({
-  listing, round, number, career, event, column, entry, playerSeat, playerName, next, onOpen,
+  listing, round, number, career, event, column, entry, playerSeat, car, playerName, next, onOpen,
 }: RoundTableRowProps) => {
   const { t } = useTranslation();
   const { formatDay, formatMoney, formatNumber } = useFormat();
@@ -182,6 +188,10 @@ export const RoundTableRow = ({
             {/* A missed round has no results to show, so it says why. */}
             {event?.status === 'missed' ? (
               <Badge className={EVENT_ACCENT.missed}>{t('calendar.status.missed')}</Badge>
+            ) : null}
+            {/* Still to come and out of reach: its page says why, and skips it. */}
+            {event?.status === 'scheduled' && car && !seatRaceableIn(listing.availability, round.id, entry, car) ? (
+              <Badge variant="warning">{t('championships.calendar.unraceable')}</Badge>
             ) : null}
           </div>
         </td>

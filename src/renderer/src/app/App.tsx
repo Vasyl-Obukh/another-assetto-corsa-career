@@ -23,6 +23,7 @@ import { HistoricLibrary } from '@/screens/historic-library';
 import { History } from '@/screens/history';
 import { Home } from '@/screens/home';
 import { NewCareer } from '@/screens/new-career';
+import { NewChampionship } from '@/screens/new-championship';
 import { Race, RaceEvent } from '@/screens/race';
 import { ResultDetail, Results } from '@/screens/results';
 import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
@@ -53,7 +54,9 @@ export const App = ({ initialReport }: AppProps) => {
   const shared = [
     <Route key="settings" path={ROUTE.settings} element={<SettingsLayout />}>
       <Route index element={<Settings />} />
-      {mode === 'career' ? <Route path={ROUTE.settingsCareer} element={<CareerSettings />} /> : null}
+      {mode === 'career' || mode === 'championship'
+        ? <Route path={ROUTE.settingsCareer} element={<CareerSettings />} />
+        : null}
       <Route path={ROUTE.diagnostics} element={<Diagnostics initialReport={initialReport} />} />
       <Route path={ROUTE.settingsContent} element={<YourContent />} />
       <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
@@ -80,6 +83,8 @@ export const App = ({ initialReport }: AppProps) => {
             <Route path={ROUTE.start} element={<Start initialReport={initialReport} />} />
             <Route path={ROUTE.careers} element={<Careers />} />
             <Route path={ROUTE.careerNew} element={<NewCareer />} />
+            <Route path={ROUTE.standalones} element={<Careers kind="championship" />} />
+            <Route path={ROUTE.standaloneNew} element={<NewChampionship />} />
             {shared}
             <Route path="*" element={<Navigate to={path.start()} replace />} />
           </Routes>
@@ -105,7 +110,24 @@ export const App = ({ initialReport }: AppProps) => {
               {shared}
               <Route path="*" element={<Navigate to={path.race()} replace />} />
             </Routes>
-          ) : (
+          ) : null}
+          {/* One championship's own page, its rounds, its results and its
+              review: a career's pages, less the calendar and the library. */}
+          {mode === 'championship' ? (
+            <Routes>
+              <Route path={ROUTE.standalone} element={<ChampionshipDetail standalone />} />
+              {/* Where every link to a championship's page leads - only ever
+                  its own - with the tab it asks for. */}
+              <Route path={ROUTE.championship} element={<ChampionshipDetail standalone />} />
+              <Route path={ROUTE.event} element={<Event />} />
+              <Route path={ROUTE.results} element={<Results />} />
+              <Route path={ROUTE.result} element={<ResultDetail />} />
+              <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
+              {shared}
+              <Route path="*" element={<Navigate to={path.standalone()} replace />} />
+            </Routes>
+          ) : null}
+          {mode === 'career' ? (
             <Routes>
               <Route path={ROUTE.home} element={<Home />} />
               <Route path={ROUTE.calendar} element={<Calendar />} />
@@ -122,7 +144,7 @@ export const App = ({ initialReport }: AppProps) => {
               {shared}
               <Route path="*" element={<Navigate to={path.home()} replace />} />
             </Routes>
-          )}
+          ) : null}
         </main>
       </div>
     </TooltipProvider>

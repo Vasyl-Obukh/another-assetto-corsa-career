@@ -15,7 +15,8 @@ import { NationPicker } from '@/screens/championship-editor';
 
 /**
  * The open career's own settings: its driver, its opponents and driving aids
- * where it sets them apart from the app's, and its calendar.
+ * where it sets them apart from the app's, and its calendar - which a
+ * standalone championship, racing one championship alone, has none of.
  */
 export const CareerSettings = () => {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export const CareerSettings = () => {
           icon={UserIcon}
           tone="you"
           title={t('settings.careerDriver')}
-          hint={t('settings.careerDriverHint')}
+          hint={career.kind === 'championship' ? t('settings.championshipDriverHint') : t('settings.careerDriverHint')}
         >
           <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
@@ -91,7 +92,7 @@ export const CareerSettings = () => {
 
         <CareerOpponentsSection own={settings.opponents} onChange={change} />
         <CareerAidsSection own={settings.drivingAids} onChange={change} />
-        <CalendarSection settings={settings} onChange={change} />
+        {career.kind === 'career' ? <CalendarSection settings={settings} onChange={change} /> : null}
       </div>
     </ScreenBody>
   );

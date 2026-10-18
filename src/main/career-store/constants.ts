@@ -1,10 +1,17 @@
 // Where a career lives and how long a season is.
 
+import type { CareerKind } from '../../shared/types/index.ts';
+
 /**
- * The folder careers are kept in, under the user data folder: a folder each,
- * named after the career's id.
+ * The folder each kind of career is kept in, under the user data folder: a
+ * folder each, named after the career's id. The first is where an id no folder
+ * holds is looked for, so a career that is not there is reported missing from
+ * the careers.
  */
-export const CAREERS_DIR = 'careers';
+export const CAREER_DIRS = {
+  career: 'careers',
+  championship: 'championships',
+} as const satisfies Record<CareerKind, string>;
 
 /**
  * The file a career's profile is kept in, inside its own folder: what every
@@ -28,12 +35,6 @@ export const CAREER_RESULTS_DIR = 'results';
  * The file a backup says what it is in, beside the career's own files.
  */
 export const BACKUP_MANIFEST = 'backup.json';
-
-/**
- * What a backup's kind says, for when a standalone championship is backed up
- * the same way.
- */
-export const BACKUP_KIND = 'career';
 
 /**
  * The suffix of the folder a career is restored into before it takes its

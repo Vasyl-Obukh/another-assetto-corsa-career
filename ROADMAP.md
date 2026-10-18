@@ -2777,7 +2777,7 @@ proof that no layer below learned what a series is.
       starting money. The level reaches `Career.level` now. The money and the
       rating that level implies have nothing to land in until Phases 7 and 8,
       so their controls ship working and are stored but **drive nothing yet**
-- [ ] **A start screen, and three modes.** The app always opens on it:
+- [x] **A start screen, and three modes.** The app always opens on it:
       **Career**, **Quick race** and **Championship**, beside Settings and
       Exit, with Continue, New and Load under Career. Quick race and
       Championship are for anyone who likes how quickly the app sets an event
@@ -2794,6 +2794,19 @@ proof that no layer below learned what a series is.
       and the nav is the career's less the Race tab, or Championship, Results,
       Settings for a championship and Races, Results, Settings for quick races.
       Main menu and Exit never ask
+      **A standalone championship is a career of its own kind** -
+      `CareerProfile.kind` - kept under `championships/<id>/` rather than
+      `careers/<id>/`, so it saves, autosaves, backs up and races exactly as a
+      career does. Made by `createChampionship`, it holds one season with the
+      year's **first edition** of the championship entered and nothing else on
+      its calendar: no historic events, no ladder (it stands on the top rung
+      everywhere), no money. Entering, withdrawing and moving the clock are
+      refused; launching a later round skips the earlier ones through
+      `SkipDialog`, as in a career, and a stand-in races them. A backup restores
+      only from the list of its own kind. **A round the install cannot race is
+      skipped** from its page, in a career as in a standalone championship, and
+      the banner points past it to the next round that can be raced - or, with
+      none left, offers to skip the rest and finish
 - [x] **Settings on two levels.** Settings keeps a global driver name and
       nation, which pre-fills New career and a new championship and is what a
       quick race races under; inside a slot the same fields edit that slot's own

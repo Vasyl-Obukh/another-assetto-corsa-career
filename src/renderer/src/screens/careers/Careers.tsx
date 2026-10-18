@@ -9,14 +9,16 @@ import { CareerHero } from './CareerHero.tsx';
 import { CareerHeroSkeleton } from './CareerHeroSkeleton.tsx';
 import { CareerRow } from './CareerRow.tsx';
 import { CareerRowSkeleton } from './CareerRowSkeleton.tsx';
-import { CAREER_ROWS } from './constants.ts';
+import { CAREER_ROWS, HUB_WORDING } from './constants.ts';
 import { RestoreDialog } from './RestoreDialog.tsx';
 import { SavesPanel } from './SavesPanel.tsx';
 import { SeasonPanel } from './SeasonPanel.tsx';
+import { StandaloneHero } from './StandaloneHero.tsx';
+import { StandaloneRow } from './StandaloneRow.tsx';
 import { UnreadablePanel } from './UnreadablePanel.tsx';
 import { UnreadableRow } from './UnreadableRow.tsx';
-import { isReadable, pickOf } from './utils.ts';
-import type { CareerBackup } from '../../../../shared/types';
+import { continuePath, isReadable, pickOf } from './utils.ts';
+import type { CareerBackup, CareerKind, CareerSummary } from '../../../../shared/types';
 import { useToast } from '@/app';
 import {
   ConfirmDialog, ErrorCard, Loading, ScreenBody, ScreenHeader, Shimmer,
@@ -24,21 +26,44 @@ import {
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareers, useLoadSave, useSaves } from '@/hooks';
+import { useFormat } from '@/i18n';
 import { DONE_ACCENT } from '@/lib/accents';
 import { fileNameOf } from '@/lib/file-name';
 import { invoke } from '@/lib/ipc';
-import { path } from '@/lib/routes';
+import { homeOf, path } from '@/lib/routes';
 import { slots } from '@/lib/slots.ts';
+import { standaloneName } from '@/lib/standalone-wording';
+
+interface CareersProps {
+  /**
+   * Which kind of career the page lists: careers, or standalone championships.
+   */
+  kind?: CareerKind;
+}
 
 /**
- * Every career, what Load on the start screen opens: the list down the left,
- * the one picked beside it with the way back into it, its season and the
- * commands on it. Arrives on the career played last.
+ * Every career of one kind, what Load on the start screen opens: the list down
+ * the left, the one picked beside it with the way back into it, a career's
+ * season and the commands on it. Arrives on the one played last.
  */
-export const Careers = () => {
+export const Careers = ({ kind = 'career' }: CareersProps) => {
   const { t } = useTranslation();
+  const { formatYear } = useFormat();
   const navigate = useNavigate();
-  const careers = useCareers();
+  const careers = useCareers(kind);
+  const wording = HUB_WORDING[kind];
+  const championship = kind === 'championship';
+  const Row = championship ? StandaloneRow : CareerRow;
+  const Hero = championship ? StandaloneHero : CareerHero;
+  /**
+   * What a career is called where it is named: its driver, or a standalone
+   * championship's championship and year.
+   * @param one The career
+   * @returns Its name
+   */
+  const nameOf = (one: CareerSummary): string => (championship
+    ? standaloneName(one, t, formatYear)
+    : one.driver.name);
   const asked = pickOf(useLocation().state);
   const [picked, setPicked] = useState<string | null>(asked);
   const [deleting, setDeleting] = useState(false);
@@ -52,11 +77,11 @@ export const Careers = () => {
   const { load, loading } = useLoadSave();
 
   const carryOn = async (): Promise<void> => {
-    if (readable && await careers.open(readable.id)) void navigate(path.home());
+    if (readable && await careers.open(readable.id)) void navigate(continuePath(readable));
   };
 
   const loadSave = async (save: string): Promise<void> => {
-    if (readable && await load(readable.id, save)) void navigate(path.home());
+    if (readable && await load(readable.id, save)) void navigate(homeOf(kind));
   };
 
   const backUp = async (id: string): Promise<boolean> => {
@@ -88,7 +113,7 @@ export const Careers = () => {
     show({
       icon: ArchiveRestoreIcon,
       tone: DONE_ACCENT,
-      title: t('careers.restore.done', { driver: restoring.career.driver.name }),
+      title: t(wording.restored, { driver: restoring.career.driver.name, name: nameOf(restoring.career) }),
       detail: fileNameOf(restoring.file),
     });
     setRestoring(null);
@@ -108,15 +133,15 @@ export const Careers = () => {
         aside={(
           <div className="flex items-center gap-2">
             {restoreButton}
-            <Button onClick={() => { void navigate(path.careerNew()); }}>
+            <Button onClick={() => { void navigate(championship ? path.standaloneNew() : path.careerNew()); }}>
               <PlusIcon />
-              {t('careers.newCareer')}
+              {t(wording.create)}
             </Button>
           </div>
         )}
       >
         <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl font-semibold">{t('careers.title')}</h1>
+          <h1 className="text-2xl font-semibold">{t(wording.title)}</h1>
           {/* A count, neutral on purpose. */}
           {list === null ? <Shimmer className="h-5 w-7 rounded-md" /> : <Badge variant="secondary">{list.length}</Badge>}
         </div>
@@ -126,8 +151,8 @@ export const Careers = () => {
 
       {list?.length === 0 ? (
         <div className="flex flex-col items-start gap-1 rounded-xl border border-dashed p-6">
-          <p className="font-semibold">{t('careers.empty')}</p>
-          <p className="text-sm text-muted-foreground">{t('careers.emptyHint')}</p>
+          <p className="font-semibold">{t(wording.empty)}</p>
+          <p className="text-sm text-muted-foreground">{t(wording.emptyHint)}</p>
           <div className="mt-2">{restoreButton}</div>
         </div>
       ) : (
@@ -139,21 +164,23 @@ export const Careers = () => {
               const row = { picked: one.id === shown?.id, onPick: () => setPicked(one.id) };
 
               return isReadable(one)
-                ? <CareerRow key={one.id} career={one} {...row} />
-                : <UnreadableRow key={one.id} career={one} {...row} />;
+                ? <Row key={one.id} career={one} {...row} />
+                : <UnreadableRow key={one.id} kind={kind} career={one} {...row} />;
             })}
           </div>
 
           <div className="flex min-w-0 flex-col gap-4">
-            {shown && !isReadable(shown) ? <UnreadablePanel career={shown} /> : (
+            {shown && !isReadable(shown) ? <UnreadablePanel kind={kind} career={shown} /> : (
               <>
                 {readable ? (
-                  <CareerHero career={readable} busy={careers.busy || loading} onContinue={() => { void carryOn(); }} />
+                  <Hero career={readable} busy={careers.busy || loading} onContinue={() => { void carryOn(); }} />
                 ) : <Loading><CareerHeroSkeleton /></Loading>}
 
                 <SavesPanel saves={saves} loading={loading} onLoad={(save) => { void loadSave(save); }} />
 
-                <SeasonPanel championships={readable?.championships ?? null} />
+                {/* A standalone championship races one championship, which
+                    its hero already names. */}
+                {championship ? null : <SeasonPanel championships={readable?.championships ?? null} />}
               </>
             )}
 
@@ -180,7 +207,7 @@ export const Careers = () => {
                 onClick={() => setDeleting(true)}
               >
                 <Trash2Icon />
-                {t('careers.delete')}
+                {t(wording.delete)}
               </Button>
             </div>
           </div>
@@ -189,9 +216,12 @@ export const Careers = () => {
 
       <ConfirmDialog
         open={deleting && shown !== null}
-        title={t('careers.deleteTitle', { driver: shown?.driver?.name ?? t('careers.unreadable.name') })}
-        description={t('careers.deleteHint')}
-        confirmLabel={t('careers.delete')}
+        title={t(wording.deleteTitle, {
+          driver: shown?.driver?.name ?? t(wording.unreadableName),
+          name: readable ? nameOf(readable) : t(wording.unreadableName),
+        })}
+        description={t(wording.deleteHint)}
+        confirmLabel={t(wording.delete)}
         busy={careers.busy}
         aside={readable ? (
           <Button variant="outline" disabled={careers.busy} onClick={() => { void backUp(readable.id); }}>
@@ -210,6 +240,7 @@ export const Careers = () => {
       <RestoreDialog
         // Remounted per backup, so each opens on keeping both.
         key={restoring?.file ?? 'none'}
+        kind={kind}
         backup={restoring}
         busy={careers.busy}
         onRestore={(replace) => { void restore(replace); }}

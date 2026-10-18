@@ -1,5 +1,5 @@
 import {
-  CalendarDaysIcon, CarIcon, ChartLineIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon,
+  CalendarDaysIcon, CarIcon, ChartLineIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ import type { NavEntry, NavId } from '@/lib/routes';
  */
 const NAV_ICONS: Record<NavId, ReactNode> = {
   home: <HouseIcon />,
+  standalone: <TrophyIcon />,
   race: <FlagIcon />,
   results: <ChartLineIcon />,
   calendar: <CalendarDaysIcon />,
@@ -37,8 +38,15 @@ export const AppNav = ({ entries }: AppNavProps) => {
 
   return (
     <nav className="flex items-center gap-1">
-      {entries.map(({ id, label, to }) => (
-        <NavItem key={id} id={id} to={to} label={t(label)} icon={NAV_ICONS[id]} />
+      {entries.map((entry) => (
+        <NavItem
+          key={entry.id}
+          id={entry.id}
+          to={entry.to}
+          also={entry.also}
+          label={t(entry.label)}
+          icon={NAV_ICONS[entry.id]}
+        />
       ))}
     </nav>
   );

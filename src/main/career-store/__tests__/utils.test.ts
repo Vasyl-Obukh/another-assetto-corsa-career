@@ -25,6 +25,8 @@ import {
   checkedDriver,
   checkEdition,
   checkedNewCareer,
+  checkedNewChampionship,
+  checkedYear,
   clockTime,
   closeSeason,
   composeCalendar,
@@ -35,6 +37,7 @@ import {
   eventName,
   eventSessions,
   eventStrength,
+  heldRaceable,
   inProgressEvent,
   issueForecast,
   issueForecasts,
@@ -54,6 +57,7 @@ import {
   seasonOf,
   seasonSalt,
   simulatedEvent,
+  skipCost,
   skippedRound,
   stateOf,
   strengthStep,
@@ -112,6 +116,7 @@ describe('main/career-store/utils', () => {
       expect(profileOf(career)).toEqual({
         version: 1,
         id: career.id,
+        kind: career.kind,
         createdAt: career.createdAt,
         playedAt: career.playedAt,
         driver: career.driver,
@@ -307,6 +312,17 @@ describe('main/career-store/utils', () => {
       expect(readProfile({ ...wholeCareer(), settings: { historicFrequency: 'daily', allowSameDayEvents: true } })?.settings)
         .toEqual({ ...DEFAULT_CAREER_SETTINGS, allowSameDayEvents: true });
     });
+
+    it("keeps a standalone championship's kind", () => {
+      expect(readProfile({ ...wholeCareer(), kind: 'championship' })?.kind).toBe('championship');
+    });
+
+    // A career.json written before there were standalone championships says
+    // no kind, and is a career.
+    it('reads a profile with no kind, or one it does not know, as a career', () => {
+      expect(readProfile({ ...wholeCareer(), kind: undefined })?.kind).toBe('career');
+      expect(readProfile({ ...wholeCareer(), kind: 'ladder' })?.kind).toBe('career');
+    });
   });
 
   describe('checkedDriver', () => {
@@ -368,6 +384,39 @@ describe('main/career-store/utils', () => {
 
     it('checks the driver too', () => {
       expect(() => checkedNewCareer({ ...request, driver: { name: '', nation: null } }))
+        .toThrow(expect.objectContaining({ code: 'career.driver.unnamed' }));
+    });
+  });
+
+  describe('checkedYear', () => {
+    it('passes a whole year within the range a season may open in', () => {
+      expect(checkedYear(MIN_START_YEAR)).toBe(MIN_START_YEAR);
+      expect(checkedYear(MAX_START_YEAR)).toBe(MAX_START_YEAR);
+    });
+
+    it('refuses a year outside the range, or one that is not whole', () => {
+      for (const year of [MIN_START_YEAR - 1, MAX_START_YEAR + 1, 2027.5, Number.NaN]) {
+        expect(() => checkedYear(year)).toThrow(expect.objectContaining({ code: 'career.year.invalid' }));
+      }
+    });
+  });
+
+  describe('checkedNewChampionship', () => {
+    const request = {
+      driver: { name: ' Eterry ', nation: 'GBR' }, year: 2027, series: 'test-cup', entry: 'main', car: { model: 'test_car' },
+    };
+
+    it('passes a request a standalone championship can start from, its driver tidied', () => {
+      expect(checkedNewChampionship(request)).toEqual({ ...request, driver: { name: 'Eterry', nation: 'GBR' } });
+    });
+
+    it('refuses a year outside the range a season may open in', () => {
+      expect(() => checkedNewChampionship({ ...request, year: MAX_START_YEAR + 1 }))
+        .toThrow(expect.objectContaining({ code: 'career.year.invalid' }));
+    });
+
+    it('checks the driver too', () => {
+      expect(() => checkedNewChampionship({ ...request, driver: { name: '', nation: null } }))
         .toThrow(expect.objectContaining({ code: 'career.driver.unnamed' }));
     });
   });
@@ -467,6 +516,16 @@ describe('main/career-store/utils', () => {
       });
 
       expect(summarise(career).championships.map((one) => one.series)).toEqual(['test-cup']);
+    });
+
+    it('says which kind of career it is, and where a standalone championship stands', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-04-05')] });
+
+      expect(summarise(makeCareer({ seasons: [makeSeason({ entries: [entry] })] }))).toMatchObject({
+        kind: 'career', standing: null,
+      });
+      expect(summarise(makeCareer({ kind: 'championship', seasons: [makeSeason({ entries: [entry] })] })))
+        .toMatchObject({ kind: 'championship', standing: { rounds: 2, done: 0, over: false } });
     });
   });
 
@@ -946,6 +1005,32 @@ describe('main/career-store/utils', () => {
     });
   });
 
+  describe('heldRaceable', () => {
+    it("races a round the install can race in the player's own car", () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+
+      expect(heldRaceable(makeAvailability(entry.championship), { entry, event: entry.events[0] })).toBe(true);
+    });
+
+    it("refuses a round in a car of the player's that is no longer installed", () => {
+      const entry = makeEntry({ car: { model: 'gone_car' }, events: [makeEvent('one', '2026-03-01')] });
+
+      expect(heldRaceable(makeAvailability(entry.championship), { entry, event: entry.events[0] })).toBe(false);
+    });
+
+    it('refuses a round the install cannot race in any car', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      // Too few of the class's cars installed to field it.
+      const availability = makeAvailability(entry.championship, {
+        entries: [{
+          entry: 'main', eligible: ['test_car'], missing: [], enough: false,
+        }],
+      });
+
+      expect(heldRaceable(availability, { entry, event: entry.events[0] })).toBe(false);
+    });
+  });
+
   describe('launchBlock', () => {
     /**
      * A season holding one championship over the events given.
@@ -1232,6 +1317,46 @@ describe('main/career-store/utils', () => {
       const season = makeSeason({ entries: [entry] });
 
       expect(launchSkips(season, { entry, event: entry.events[1] }, false)[0].historic).toBe(false);
+    });
+  });
+
+  describe('skipCost', () => {
+    it('costs the round itself last, after every earlier round still unraced', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(skipCost(season, { entry, event: entry.events[1] }).map((one) => [one.round, one.reason]))
+        .toEqual([['one', 'skipped'], ['two', 'unraceable']]);
+    });
+
+    it('costs an event left part-way, as launching would', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03', { sessions: [makeRecord(0)] })],
+      });
+      const season = makeSeason({ entries: [entry] });
+
+      expect(skipCost(season, { entry, event: entry.events[0] }).map((one) => [one.round, one.reason]))
+        .toEqual([['two', 'partway'], ['one', 'unraceable']]);
+    });
+
+    it('leaves an event on the same day to be raced, whatever the settings say', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const other = makeEntry({
+        series: 'other-cup',
+        championship: makeChampionship({ id: 'other-cup', name: 'Other Cup' }),
+        events: [makeEvent('one', '2026-03-01')],
+      });
+      const season = makeSeason({ entries: [entry, other] });
+
+      expect(skipCost(season, { entry, event: entry.events[0] }).map((one) => one.series)).toEqual(['test-cup']);
+    });
+
+    it('marks a historic event skipped as historic', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')], historic: true });
+
+      expect(skipCost(makeSeason({ entries: [entry] }), { entry, event: entry.events[0] })[0].historic).toBe(true);
     });
   });
 
@@ -2160,7 +2285,9 @@ describe('main/career-store/utils', () => {
   });
 
   describe('backupName', () => {
-    const summary = summarise(makeCareer({ date: '2028-06-14', driver: { name: 'Eterry', nation: 'GBR' } }));
+    const summary = summarise(makeCareer({
+      date: '2028-06-14', driver: { name: 'Eterry', nation: 'GBR' }, seasons: [makeSeason({ entries: [makeEntry()] })],
+    }));
 
     it("names a backup after its driver and the day the career's clock stands at", () => {
       expect(backupName(summary)).toBe('eterry-career-2028-06-14.zip');
@@ -2173,6 +2300,18 @@ describe('main/career-store/utils', () => {
 
     it('leaves the driver out of a name with nothing in it a file name could keep', () => {
       expect(backupName({ ...summary, driver: { name: '?!', nation: null } })).toBe('career-2028-06-14.zip');
+    });
+
+    it("names a standalone championship's backup after its championship and its year", () => {
+      expect(backupName({ ...summary, kind: 'championship', year: 2028 })).toBe('test-cup-2028.zip');
+    });
+
+    it("falls back to a word when the championship's name holds nothing a file name could keep", () => {
+      const championships = [{ ...summary.championships[0], name: '?!' }];
+
+      expect(backupName({
+        ...summary, kind: 'championship', year: 2028, championships,
+      })).toBe('championship-2028.zip');
     });
   });
 });

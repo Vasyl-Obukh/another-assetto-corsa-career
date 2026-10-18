@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { NavLink, useLocation, useMatch } from 'react-router';
+import { matchPath, NavLink, useLocation } from 'react-router';
 
 import { Button } from '@/components/ui/button.tsx';
 import { path, ROUTE, sectionOf } from '@/lib/routes';
@@ -17,6 +17,10 @@ interface NavItemProps {
    */
   to?: RouteId;
   /**
+   * Other destinations it stays lit on.
+   */
+  also?: readonly RouteId[];
+  /**
    * The already-translated label.
    */
   label: string;
@@ -27,7 +31,7 @@ interface NavItemProps {
 }
 
 export const NavItem = ({
-  id, to, label, icon,
+  id, to, also = [], label, icon,
 }: NavItemProps) => {
   // The pattern is matched and the URL is linked to, both read off the registry
   // rather than passed in, so a destination whose pattern gains a parameter
@@ -36,8 +40,9 @@ export const NavItem = ({
   // Not an exact match: a section stays lit while one of its own pages is open,
   // so opening a car from the browser does not darken the Cars tab. A page
   // opened as part of another section says so in its state, and that wins.
-  const matched = useMatch({ path: ROUTE[id], end: false }) !== null;
-  const section = sectionOf(useLocation().state);
+  const location = useLocation();
+  const matched = [id, ...also].some((one) => matchPath({ path: ROUTE[one], end: false }, location.pathname) !== null);
+  const section = sectionOf(location.state);
   const active = section === null ? matched : section === id;
 
   // Tinted with the app's own accent rather than the grey a secondary button

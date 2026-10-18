@@ -12,7 +12,14 @@ export const CAREER_TILE_TRACK = { id: 'ks_brands_hatch', layout: 'gp' };
 export const QUICK_TILE_TRACK = { id: 'ks_silverstone', layout: 'gp' };
 
 /**
- * How wide the start screen runs: two tiles of about 420px each, so a card
- * keeps the proportions of its photograph band whatever the window.
+ * The track the Championship tile shows before any standalone championship
+ * has an event to picture.
  */
-export const START_WIDTH = 'max-w-[54rem]';
+export const CHAMPIONSHIP_TILE_TRACK = { id: 'ks_barcelona', layout: 'layout_gp' };
+
+/**
+ * The window's shorter side the start screen is designed at - a maximised
+ * 1080p window less its title bar - and how far it may scale either way, so
+ * 4K reads like 1080p and a laptop like a slightly smaller one.
+ */
+export const START_SCALE = { design: 1050, min: 0.75, max: 2.2 } as const;

@@ -8,7 +8,7 @@ import {
   makeResults, makeSeries, place, race, roundScore,
 } from '../../season-results/__tests__/fixtures.ts';
 import {
-  championshipReview, editionOver, editionSummary, historicReview, nextRun, prizeFor, yearReview,
+  championshipReview, editionSummary, historicReview, nextRun, prizeFor, yearReview,
 } from '../season-review.ts';
 
 /**
@@ -90,27 +90,6 @@ const unscored = (date: string, status: SeasonEvent['status']): SeasonEvent => (
 });
 
 describe('renderer/lib/season-review/season-review', () => {
-  describe('editionOver', () => {
-    it('is over once every round has run and the last is behind the clock', () => {
-      expect(editionOver(entry(), '2026-05-17')).toBe(true);
-    });
-
-    it('is not over while a round is still to run', () => {
-      const running = entry({ events: [...entry().events.slice(0, 1), { ...entry().events[1], status: 'scheduled' }] });
-
-      expect(editionOver(running, '2026-06-01')).toBe(false);
-    });
-
-    // A round given up by withdrawing is missed at once, and simulated only on
-    // its own day - so the edition is over only once that day has come.
-    it('is not over before the day of a round given up', () => {
-      const left = entry({ events: [entry().events[0], { ...entry().events[1], status: 'missed' }] });
-
-      expect(editionOver(left, '2026-05-10')).toBe(false);
-      expect(editionOver(left, '2026-05-17')).toBe(true);
-    });
-  });
-
   describe('nextRun', () => {
     it('runs a year-long championship again in the next season', () => {
       expect(nextRun(entry(), 3)).toEqual({ season: 4, edition: 0 });

@@ -1,4 +1,5 @@
 import type { CareerListing, CareerSummary } from '../../../../shared/types';
+import { homeOf, path } from '@/lib/routes';
 
 /**
  * Whether a career in the list reads, and so can be opened.
@@ -18,4 +19,18 @@ export const pickOf = (state: unknown): string | null => {
   const { pick } = state;
 
   return typeof pick === 'string' ? pick : null;
+};
+
+/**
+ * Where Continue on a career leads once it is open: a career's Home, a
+ * standalone championship's own page - or its review, once its one season is
+ * over.
+ * @param career The career
+ * @returns The URL
+ */
+export const continuePath = (career: CareerSummary): string => {
+  const series = career.championships[0]?.series;
+  if (career.standing?.over && series) return path.championshipReview({ series, season: 0, edition: 0 });
+
+  return homeOf(career.kind);
 };

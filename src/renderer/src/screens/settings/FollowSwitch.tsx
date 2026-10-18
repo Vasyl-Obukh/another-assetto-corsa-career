@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { useSlot } from '@/app';
 import { SwitchTile } from '@/components';
 
 interface FollowSwitchProps {
@@ -20,12 +21,18 @@ interface FollowSwitchProps {
  */
 export const FollowSwitch = ({ own, onChange }: FollowSwitchProps) => {
   const { t } = useTranslation();
+  // Said of a standalone championship as of a career.
+  const championship = useSlot().mode === 'championship';
+  const ownLabel = championship ? t('settings.followChampionship.own') : t('settings.follow.own');
+  const followingHint = championship
+    ? t('settings.followChampionship.followingHint')
+    : t('settings.follow.followingHint');
 
   return (
     <div className="max-w-xl">
       <SwitchTile
-        label={t(own ? 'settings.follow.own' : 'settings.follow.following')}
-        hint={t(own ? 'settings.follow.ownHint' : 'settings.follow.followingHint')}
+        label={own ? ownLabel : t('settings.follow.following')}
+        hint={own ? t('settings.follow.ownHint') : followingHint}
         checked={own}
         onChange={onChange}
       />

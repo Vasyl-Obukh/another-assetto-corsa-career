@@ -5,7 +5,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CareerRow } from './CareerRow.tsx';
-import type { CareerBackup } from '../../../../shared/types';
+import { HUB_WORDING } from './constants.ts';
+import { StandaloneRow } from './StandaloneRow.tsx';
+import type { CareerBackup, CareerKind } from '../../../../shared/types';
 import { Segments } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -15,6 +17,10 @@ import { useFormat } from '@/i18n';
 import { fileNameOf } from '@/lib/file-name';
 
 interface RestoreDialogProps {
+  /**
+   * Which kind of career the page restores, which decides how it is shown.
+   */
+  kind: CareerKind;
   /**
    * The backup read, or null while none is.
    */
@@ -39,9 +45,11 @@ interface RestoreDialogProps {
  * when that career is here already - whether to keep both or replace it.
  */
 export const RestoreDialog = ({
-  backup, busy, onRestore, onClose,
+  kind, backup, busy, onRestore, onClose,
 }: RestoreDialogProps) => {
   const { t } = useTranslation();
+  const wording = HUB_WORDING[kind];
+  const Row = kind === 'championship' ? StandaloneRow : CareerRow;
   const { formatAgo, formatDateTime } = useFormat();
   const [mode, setMode] = useState<'keep' | 'replace'>('keep');
 
@@ -56,7 +64,7 @@ export const RestoreDialog = ({
 
           <div className="flex flex-col gap-3">
             <div className="overflow-hidden rounded-lg border bg-card">
-              <CareerRow career={backup.career} />
+              <Row career={backup.career} />
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -81,13 +89,13 @@ export const RestoreDialog = ({
                   <InfoIcon className="mt-0.5 size-4 shrink-0" />
                   <span>
                     {backup.here.playedAt
-                      ? t('careers.restore.here', { ago: formatAgo(backup.here.playedAt) })
-                      : t('careers.restore.hereUnread')}
+                      ? t(wording.here, { ago: formatAgo(backup.here.playedAt) })
+                      : t(wording.hereUnread)}
                   </span>
                 </div>
                 <div className="self-start">
                   <Segments
-                    label={t('careers.restore.mode')}
+                    label={t(wording.restoreMode)}
                     items={[
                       { id: 'keep', label: t('careers.restore.keep') },
                       { id: 'replace', label: t('careers.restore.replace') },

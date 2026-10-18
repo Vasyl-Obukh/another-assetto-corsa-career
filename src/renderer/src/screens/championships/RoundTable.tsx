@@ -55,6 +55,7 @@ export const RoundTable = ({
               column={season?.rounds.find((one) => one.round.id === round.id)}
               entry={entered?.entry ?? listing.series.entries[0]?.id ?? ''}
               playerSeat={entered?.playerSeat}
+              car={entered?.car.model}
               playerName={playerName}
               next={round.id === next}
               onOpen={onOpen ? () => onOpen(round.id) : undefined}

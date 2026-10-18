@@ -10,6 +10,8 @@ import { SAVE_SHORTCUT } from './constants.ts';
 import { MenuFailure } from './MenuFailure.tsx';
 import type { SaveCommand } from './types.ts';
 import { isTyping, saveCommandOf } from './utils.ts';
+import { seasonYear } from '../../../../shared/utils/editions';
+import { standaloneEntry, standaloneStanding } from '../../../../shared/utils/standalone';
 import { useSlot, useToast, useUnsaved } from '@/app';
 import { NationFlag } from '@/components/NationFlag.tsx';
 import { LoadDialog, SaveAsDialog } from '@/components/saves';
@@ -24,7 +26,8 @@ import { useFormat } from '@/i18n';
 import { CAUTION_ACCENT, SAVE_KIND_ACCENT } from '@/lib/accents';
 import { toDisplayableError } from '@/lib/ipc';
 import type { DisplayableError } from '@/lib/ipc';
-import { path } from '@/lib/routes';
+import { homeOf, path } from '@/lib/routes';
+import { progressLine } from '@/lib/standalone-wording';
 
 interface SlotMenuProps {
   /**
@@ -51,6 +54,10 @@ export const SlotMenu = ({ saves }: SlotMenuProps) => {
   const [dialog, setDialog] = useState<'save' | 'load' | null>(null);
 
   const quick = saves.saves?.find((one) => one.kind === 'quick') ?? null;
+  // A standalone championship is named by its championship, a career by its
+  // driver.
+  const championship = career && standaloneEntry(career);
+  const standing = career && standaloneStanding(career);
 
   // Asked before the career closes: the page's own guard would only ask once
   // it had.
@@ -73,7 +80,7 @@ export const SlotMenu = ({ saves }: SlotMenuProps) => {
     // Home, since the page open may be of something the save never had.
     if (await load(career.id, save)) {
       setDialog(null);
-      void navigate(path.home());
+      void navigate(homeOf(career.kind));
     }
   };
 
@@ -135,9 +142,15 @@ export const SlotMenu = ({ saves }: SlotMenuProps) => {
               <>
                 <NationFlag code={career.driver.nation ?? undefined} className="h-4 w-6" />
                 <span className="flex flex-col">
-                  <span className="text-sm leading-tight font-semibold">{career.driver.name}</span>
+                  <span className="text-sm leading-tight font-semibold">
+                    {championship
+                      ? t('standalone.name', {
+                        name: championship.championship.name, year: formatYear(seasonYear(career)),
+                      })
+                      : career.driver.name}
+                  </span>
                   <span className="text-xs leading-tight font-normal text-muted-foreground">
-                    {t('slot.careerLine', {
+                    {standing ? t('slot.championshipLine', { progress: progressLine(standing, t) }) : t('slot.careerLine', {
                       day: formatDayShort(career.date), year: formatYear(Number(career.date.slice(0, 4))),
                     })}
                   </span>

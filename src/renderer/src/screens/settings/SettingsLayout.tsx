@@ -5,6 +5,7 @@ import {
 } from 'react-router';
 
 import { SETTINGS_TABS } from './constants.ts';
+import { standaloneEntry } from '../../../../shared/utils/standalone';
 import { useSlot } from '@/app';
 import {
   BackLink, NationFlag, ScreenStrip, Segments,
@@ -17,6 +18,9 @@ export const SettingsLayout = () => {
   const navigate = useNavigate();
   const { mode, career } = useSlot();
   const onCareer = useMatch(ROUTE.settingsCareer) !== null;
+  // A standalone championship is named by its championship, a career by its
+  // driver.
+  const championship = career && standaloneEntry(career);
 
   return (
     <div className="flex h-full flex-col">
@@ -36,7 +40,9 @@ export const SettingsLayout = () => {
                 items={[
                   {
                     id: 'career',
-                    label: t('settings.scope.career', { driver: career.driver.name }),
+                    label: championship
+                      ? t('settings.scope.championship', { name: championship.championship.name })
+                      : t('settings.scope.career', { driver: career.driver.name }),
                     icon: <NationFlag code={career.driver.nation ?? undefined} className="h-3 w-4.5" />,
                   },
                   { id: 'app', label: t('settings.scope.app'), icon: <LayoutGridIcon /> },
@@ -45,7 +51,9 @@ export const SettingsLayout = () => {
                 onChange={(next) => { void navigate(next === 'career' ? path.settingsCareer() : path.settings()); }}
               />
               <span className="ml-auto text-sm text-muted-foreground">
-                {onCareer ? t('settings.scope.careerNote') : t('settings.scope.appNote')}
+                {onCareer && championship ? t('settings.scope.championshipNote') : null}
+                {onCareer && !championship ? t('settings.scope.careerNote') : null}
+                {onCareer ? null : t('settings.scope.appNote')}
               </span>
             </>
           ) : null}

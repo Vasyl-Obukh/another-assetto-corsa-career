@@ -12,7 +12,8 @@
     "tracks": "Tracks",
     "settings": "Settings",
     "races": "Races",
-    "results": "Results"
+    "results": "Results",
+    "championship": "Championship"
   },
   "paths": {
     "title": "Where things are",
@@ -242,7 +243,9 @@
       "career": "{{driver}}'s career",
       "app": "App",
       "careerNote": "Only this career",
-      "appNote": "Every career and quick race"
+      "appNote": "Every career, championship and quick race",
+      "championship": "{{name}}",
+      "championshipNote": "Only this championship"
     },
     "careerDriver": "Driver",
     "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is.",
@@ -262,6 +265,12 @@
     "autosaves": {
       "label": "Autosaves to keep",
       "hint": "One is taken after every session and as each season begins, and the oldest goes."
+    },
+    "championshipDriverHint": "This championship's own. Your default driver, in the app's settings, stays as it is.",
+    "championshipAidsHint": "The aids this championship's sessions launch with. A championship may still ask for something stricter, and what it names wins.",
+    "followChampionship": {
+      "followingHint": "Switch on to set this championship apart.",
+      "own": "This championship's own"
     }
   },
   "carClasses": {
@@ -732,6 +741,13 @@
       "total_other": "{{count}} pts",
       "winners": "Race winners",
       "prize": "Prize"
+    },
+    "skip": {
+      "title": "This round can't be raced as things stand.",
+      "titleEvent": "This event can't be raced as things stand.",
+      "hint": "What it needs is not installed. Install it and come back, or skip it: a stand-in races it in your seat, as for any round you miss.",
+      "action": "Skip round {{number}}",
+      "actionEvent": "Skip this event"
     }
   },
   "championships": {
@@ -786,7 +802,8 @@
       "ownConditions": "Own conditions",
       "underway": "Event under way",
       "lapUnknown": "{{name}}: lap length unknown",
-      "openTrack": "Open the track"
+      "openTrack": "Open the track",
+      "unraceable": "Can't be raced"
     },
     "format": {
       "default": "Default",
@@ -2101,7 +2118,8 @@
       "skipped": "Non-start",
       "partway": "Unfinished",
       "behind": "Non-start",
-      "clash": "Clash"
+      "clash": "Clash",
+      "unraceable": "Can't be raced"
     },
     "clashHeading": "Same day - you can only drive one",
     "advanceTitle": "Advance to {{day}}?",
@@ -2131,7 +2149,14 @@
     "enterTitle": "Enter part-way through?",
     "enterHint_one": "{{series}} is already {{count}} round in. That round counts as a non-start.",
     "enterHint_other": "{{series}} is already {{count}} rounds in. Those rounds count as non-starts.",
-    "enterConfirm": "Enter from round {{number}}"
+    "enterConfirm": "Enter from round {{number}}",
+    "skipTitle": "Skip {{round}}?",
+    "skipHint": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and a stand-in races it in your seat. Points you have already scored stay.",
+    "skipHintMany": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and every round listed becomes a non-start, raced by a stand-in in your seat. Points you have already scored stay.",
+    "skipFinishNote": "With nothing left to race, the season is over.",
+    "skipConfirm_one": "Skip {{count}} round",
+    "skipConfirm_other": "Skip {{count}} rounds",
+    "skipFinish": "Skip and finish"
   },
   "back": {
     "home": "Home",
@@ -2165,7 +2190,10 @@
     "historicEdit": "Historic event editor",
     "start": "Main menu",
     "careers": "Careers",
-    "careerNew": "New career"
+    "careerNew": "New career",
+    "standalones": "Championships",
+    "standaloneNew": "New championship",
+    "standalone": "Championship"
   },
   "standings": {
     "title": "Standings",
@@ -2442,7 +2470,8 @@
     "quickLoad": "Quick load",
     "quickLoadLine": "Quick save · {{date}} · {{ago}}",
     "quickLoadNone": "No quick save yet",
-    "load": "Load..."
+    "load": "Load...",
+    "championshipLine": "Championship · {{progress}}"
   },
   "start": {
     "mode": {
@@ -2474,7 +2503,15 @@
     "newRace": "New race",
     "settings": "Settings",
     "exit": "Exit",
-    "missing": "Assetto Corsa or Content Manager not found - see Settings › Diagnostics"
+    "missing": "Assetto Corsa or Content Manager not found - see Settings › Diagnostics",
+    "championship": {
+      "title": "Championship",
+      "description": "One championship from the library, raced for one season with the car you pick. No ladder and no money - just the title.",
+      "line": "{{progress}} · {{standing}}"
+    },
+    "newChampionship": "New championship",
+    "lastPlayed": "Last played · {{mode}} · {{ago}}",
+    "nextRound": "Next: {{round}}, {{date}}"
   },
   "careers": {
     "title": "Careers",
@@ -2634,5 +2671,96 @@
       "body": "This page has changes that are not saved yet. Going to the main menu leaves it, and they are lost.",
       "confirm": "Leave anyway"
     }
+  },
+  "standalone": {
+    "name": "{{name}} {{year}}",
+    "progress": {
+      "toRace_one": "{{count}} round to race",
+      "toRace_other": "{{count}} rounds to race",
+      "at": "Round {{done}} of {{rounds}}",
+      "over": "Finished"
+    },
+    "standing": "P{{position}} · {{points}} pts",
+    "champion": "Champion",
+    "finishedAt": "Finished P{{position}} · {{points}} pts",
+    "next": "Next: {{round}}, {{day}}",
+    "driverLine": "{{driver}} · {{progress}}",
+    "lookBack": "Look back",
+    "overNote": "The season is over. It opens on its review, read-only.",
+    "heroNext": "Round {{number}} · {{round}}",
+    "heroStanding": "You are P{{position}} with {{points}} points",
+    "heroUnscored": "Nothing scored yet",
+    "heroOver": "The season is over: you finished P{{position}} with {{points}} points",
+    "driverStanding": "{{driver}} · {{progress}} · {{standing}}",
+    "stuck": {
+      "tailTitle_one": "Round {{number}} · {{round}} can't be raced",
+      "tailTitle_other": "The last {{count}} rounds can't be raced",
+      "tailHint_one": "What it needs is not installed. Install it and the season carries on, or skip it: a stand-in races it in your seat, and the season is over.",
+      "tailHint_other": "What they need is not installed. Install it and the season carries on, or skip them: a stand-in races each in your seat, and the season is over.",
+      "aheadTitle_one": "Round {{number}} · {{round}} can't be raced",
+      "aheadTitle_other": "{{count}} rounds before round {{next}} can't be raced",
+      "aheadHint_one": "What it needs is not installed. Starting round {{next}} skips it, and a stand-in races it in your seat.",
+      "aheadHint_other": "What they need is not installed. Starting round {{next}} skips them, and a stand-in races each in your seat.",
+      "skip_one": "Skip the last round and finish",
+      "skip_other": "Skip the last {{count}} rounds and finish"
+    }
+  },
+  "standalones": {
+    "title": "Championships",
+    "newChampionship": "New championship",
+    "empty": "No championships yet",
+    "emptyHint": "Start one, or restore one from a backup, and it is listed here with the rest.",
+    "delete": "Delete championship",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteHint": "Its saves, its working state and every result archived from its races go with it. This cannot be undone, so back it up first if you might want it again.",
+    "unreadable": {
+      "name": "Unknown championship",
+      "title": "This championship can't be read",
+      "body": "Neither its progress nor any save of it can be read, so there is nothing to carry on from. Open its folder to look, or delete it."
+    },
+    "restore": {
+      "here": "This championship is already here, played {{ago}}. Keep both, and the backup comes back as a championship of its own; replace, and what is here now is gone.",
+      "hereUnread": "This championship is already here, though it cannot be read. Keep both, and the backup comes back as a championship of its own; replace, and what is here now is gone.",
+      "mode": "What happens to the championship already here",
+      "done": "Restored {{name}}"
+    }
+  },
+  "newChampionship": {
+    "title": "New championship",
+    "cancel": "Cancel",
+    "back": "Back",
+    "start": "Start championship",
+    "steps": {
+      "pick": "Championship",
+      "seat": "Your seat"
+    },
+    "stepNumber": "Step {{number}} of {{count}}",
+    "search": "Search championships",
+    "switchedOn": "Only switched-on championships are offered. Switch more on, or make one of your own, in the library.",
+    "rounds_one": "{{count}} round",
+    "rounds_other": "{{count}} rounds",
+    "classes_one": "{{count}} class",
+    "classes_other": "{{count}} classes",
+    "cars_one": "{{count}} car",
+    "cars_other": "{{count}} cars",
+    "summary": "{{rounds}} · {{cars}} · {{classes}} · one season",
+    "calendar": "Calendar",
+    "calendarYear": "{{rounds}} · {{year}}",
+    "seat": "Your seat",
+    "seatHint": "The car you race all season, and its livery.",
+    "seatHintMulti": "Pick a class, then a car from it, and its livery.",
+    "noCars": "Nothing installed can race in this class.",
+    "driver": "Driver and season",
+    "driverHint": "Filled in from your default driver. Changing it here changes this championship only.",
+    "season": "Season",
+    "aidsHint": "Opponents and driving aids follow your app settings. This championship can set its own in its Settings.",
+    "unraceable": "This round can't be raced with what is installed, and is raced without you.",
+    "pair": "{{first}} · {{second}}",
+    "pickCar": "No car picked yet - pick the one you race all season.",
+    "library": "Settings › Championships",
+    "stuckTitle_one": "{{count}} round can't be raced as things stand.",
+    "stuckTitle_other": "{{count}} rounds can't be raced as things stand.",
+    "stuckHint_one": "Install what it needs before the season gets there, or skip it when it does - a stand-in races it in your seat.",
+    "stuckHint_other": "Install what they need before the season gets there, or skip them when it does - a stand-in races each in your seat."
   }
 }

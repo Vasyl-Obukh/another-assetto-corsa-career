@@ -21,7 +21,8 @@ interface SlotProviderProps {
 }
 
 /**
- * Which mode the app is in: the start screen, a career, or quick race mode.
+ * Which mode the app is in: the start screen, a career, a standalone
+ * championship - which is a career of its own kind - or quick race mode.
  *
  * A career is open in main, so it is what main says - pushed on every change
  * and set straight from what opening one answers, so a page navigated to the
@@ -41,6 +42,11 @@ export const SlotProvider = ({ initialCareer, children }: SlotProviderProps) => 
 
   const createCareer = useCallback<SlotContextValue['createCareer']>(async (request) => {
     setCareer(await invoke('career:create', request));
+    setQuick(false);
+  }, []);
+
+  const createChampionship = useCallback<SlotContextValue['createChampionship']>(async (request) => {
+    setCareer(await invoke('career:createChampionship', request));
     setQuick(false);
   }, []);
 
@@ -66,16 +72,22 @@ export const SlotProvider = ({ initialCareer, children }: SlotProviderProps) => 
     void invoke('app:quit', undefined);
   }, []);
 
-  const value = useMemo((): SlotContextValue => ({
-    mode: career ? 'career' : quick ? 'quick' : 'start',
-    career,
-    openCareer,
-    createCareer,
-    loadSave,
-    enterQuick,
-    toMainMenu,
-    quit,
-  }), [career, quick, openCareer, createCareer, loadSave, enterQuick, toMainMenu, quit]);
+  const value = useMemo((): SlotContextValue => {
+    let mode: SlotContextValue['mode'] = quick ? 'quick' : 'start';
+    if (career) mode = career.kind === 'championship' ? 'championship' : 'career';
+
+    return {
+      mode,
+      career,
+      openCareer,
+      createCareer,
+      createChampionship,
+      loadSave,
+      enterQuick,
+      toMainMenu,
+      quit,
+    };
+  }, [career, quick, openCareer, createCareer, createChampionship, loadSave, enterQuick, toMainMenu, quit]);
 
   return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
 };

@@ -17,15 +17,17 @@ import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
+import { SkipPanel } from './SkipPanel.tsx';
 import { defaultSession, scaleName, shortLaps } from './utils.ts';
 import { scalesFor } from '../../../../shared/utils/race-scale';
+import { useSlot } from '@/app';
 import {
-  ClimateBadge, ErrorCard, HistoricChip, ScreenBody, ScreenHeader, SkipDialog,
+  ClimateBadge, ErrorCard, HistoricChip, ScreenBody, ScreenHeader, SkipDialog, SkipRoundDialog,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import {
-  useCareerEvent, useChampionshipResults, usePageName, usePlayerName, useRaceStatus,
+  useCareerEvent, useChampionshipResults, usePageName, usePlayerName, useRaceStatus, useSkipRound,
 } from '@/hooks';
 import { useFormat, WordingKind } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
@@ -40,6 +42,11 @@ import { LayoutMap } from '@/screens/track-browser';
 export const Event = () => {
   const { t } = useTranslation();
   const { formatDay, formatDayShort, formatMoney } = useFormat();
+  // A standalone championship has no calendar, so a round with nowhere earlier
+  // to go back to returns to the championship's own page.
+  const back = useSlot().mode === 'championship'
+    ? { to: path.standalone(), label: t('back.standalone') }
+    : { to: path.calendar(), label: t('back.calendar') };
   const { series = '', round = '' } = useParams<PathParam<typeof ROUTE.event>>();
   // A round of an earlier season, or of one edition of several, names its run
   // in the URL; otherwise main picks the edition the career is racing.
@@ -68,8 +75,13 @@ export const Event = () => {
   // picked for: once that session has run, the next race starts at full length.
   const [length, setLength] = useState<{ key: string; scale: number } | null>(null);
   const race = useRaceStatus();
+  const skip = useSkipRound(path.event({ series, round }, asked));
 
   const { view } = event;
+  // One card for the page and its skip alike.
+  const error = event.error ?? skip.error;
+  // Exactly where main would refuse the launch for want of the content.
+  const skippable = !!view?.entered && view.blocked?.code === 'series.round.unavailable';
   const historic = view?.historic ?? null;
   // A historic event is named by itself alone, having no championship around it.
   usePageName(view ? (historic ? view.seriesName : t('back.round', { round: view.roundName, series: view.seriesName }))
@@ -107,10 +119,17 @@ export const Event = () => {
   const status = view?.live ? race.setup?.status : undefined;
   const running = status !== undefined && status.phase !== 'idle';
   const scale = running ? status.scale ?? 1 : picks;
+  const skipPanel = view && skippable ? (
+    <SkipPanel
+      view={view}
+      busy={event.busy || skip.busy}
+      onSkip={() => skip.ask({ series, round, edition: view.edition })}
+    />
+  ) : null;
 
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
-      <ScreenHeader back={{ to: path.calendar(), label: t('back.calendar') }}>
+      <ScreenHeader back={back}>
         {view ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 flex-col gap-1.5">
@@ -170,9 +189,9 @@ export const Event = () => {
         {!view && event.loading ? <EventHeadSkeleton /> : null}
       </ScreenHeader>
 
-      {event.error ? (
+      {error ? (
         <WordingKind.Provider value={historic ? 'historic' : 'series'}>
-          <ErrorCard error={event.error} onDismiss={event.dismissError} />
+          <ErrorCard error={error} onDismiss={() => { event.dismissError(); skip.dismissError(); }} />
         </WordingKind.Provider>
       ) : null}
       {event.loading ? <EventSkeleton /> : null}
@@ -224,13 +243,22 @@ export const Event = () => {
           </aside>
 
           {selected === ABOUT && historic ? (
-            <Card className="py-4">
-              <CardContent className="flex flex-col gap-4 px-4">
-                {/* Untitled: the event's own description heads it, under the
-                    same words the list beside it uses. */}
-                <HistoricAbout event={historic.event} availability={historic.availability} playerSeat={historic.seat} />
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-4">
+              {/* A historic event opens here and has no sessions to open
+                  instead, so its skip heads what it is about. */}
+              {skipPanel}
+              <Card className="py-4">
+                <CardContent className="flex flex-col gap-4 px-4">
+                  {/* Untitled: the event's own description heads it, under the
+                      same words the list beside it uses. */}
+                  <HistoricAbout
+                    event={historic.event}
+                    availability={historic.availability}
+                    playerSeat={historic.seat}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           ) : null}
           {selected === SUMMARY && summary ? (
             <Card className="py-4">
@@ -278,7 +306,10 @@ export const Event = () => {
               }}
             />
           ) : null}
-          {selected !== SUMMARY && selected !== ABOUT && !session ? (
+          {/* A round the install cannot race plans no sessions, so skipping
+              it stands where they would. */}
+          {selected !== SUMMARY && selected !== ABOUT && !session ? skipPanel : null}
+          {selected !== SUMMARY && selected !== ABOUT && !session && !skippable ? (
             <p className="text-sm text-muted-foreground">{t('event.noSessions')}</p>
           ) : null}
         </div>
@@ -310,6 +341,7 @@ export const Event = () => {
           onClose={() => setConfirming(false)}
         />
       ) : null}
+      <SkipRoundDialog skip={skip} />
     </ScreenBody>
   );
 };

@@ -4,11 +4,11 @@ import { Link } from 'react-router';
 import { useSlot } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import { useKindTranslation } from '@/i18n';
-import { path } from '@/lib/routes';
+import { homeOf, path } from '@/lib/routes';
 
 export const EditorLockNotice = () => {
   const { t } = useKindTranslation();
-  const { mode, enterQuick } = useSlot();
+  const { mode, career, enterQuick } = useSlot();
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-md border border-warning/50 p-3">
@@ -20,9 +20,9 @@ export const EditorLockNotice = () => {
       </div>
 
       <Button asChild size="sm" variant="outline">
-        {/* A career's event is reached from Home; a race of the player's own
-            from quick race mode, entered on the way if need be. */}
-        <Link to={mode === 'career' ? path.home() : path.race()} onClick={mode === 'start' ? enterQuick : undefined}>
+        {/* A career's event is reached from its home; a race of the player's
+            own from quick race mode, entered on the way if need be. */}
+        <Link to={career ? homeOf(career.kind) : path.race()} onClick={mode === 'start' ? enterQuick : undefined}>
           {t('editor.locked.race')}
         </Link>
       </Button>

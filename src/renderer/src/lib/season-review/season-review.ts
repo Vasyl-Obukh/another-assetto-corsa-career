@@ -19,23 +19,11 @@ import type {
 import type {
   CareerSeason, Championship, ChampionshipResults, ChampionshipRun, RacePlace, RaceScore, SeasonEntry,
 } from '../../../../shared/types';
-import { editionsOf } from '../../../../shared/utils/editions';
+import { editionOver, editionsOf } from '../../../../shared/utils/editions';
 import { championshipEntries, historicEntries } from '../../../../shared/utils/historic';
 import { entryResults } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
 import { seasonResults } from '@/lib/season-results';
-
-/**
- * Whether an edition is over: every round run, raced or passed by, and the last
- * of them behind the clock. A round given up by withdrawing is simulated on its
- * own day, so an edition left early is over only once that day has come.
- * @param entry The edition
- * @param today The ISO date the career's clock stands at
- * @returns True once nothing of it is left to run
- */
-export const editionOver = (entry: SeasonEntry, today: string): boolean => entry.events.every((event) => (
-  event.status !== 'scheduled' && event.date <= today
-));
 
 /**
  * The run of a championship after one edition: the next edition of the same

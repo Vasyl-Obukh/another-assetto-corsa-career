@@ -10,7 +10,10 @@ import { NextEditionCard } from './NextEditionCard.tsx';
 import { ReviewHero } from './ReviewHero.tsx';
 import { RoundPathCard } from './RoundPathCard.tsx';
 import { TeammateCard } from './TeammateCard.tsx';
-import { editionEntry, editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import {
+  editionEntry, editionOver, editionsOf, seasonYear,
+} from '../../../../shared/utils/editions';
+import { useSlot } from '@/app';
 import {
   ErrorCard, ResultCell, ResultStrip, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -21,9 +24,7 @@ import { useFormat } from '@/i18n';
 import { editionName } from '@/lib/edition-names';
 import { linkRun, path, ROUTE } from '@/lib/routes';
 import { teamName } from '@/lib/season-results';
-import {
-  championshipReview, editionOver, nextRun,
-} from '@/lib/season-review';
+import { championshipReview, nextRun } from '@/lib/season-review';
 
 /**
  * One edition of a championship the career raced, looked back on: where the
@@ -37,6 +38,9 @@ export const ChampionshipReview = () => {
   const params = useParams<PathParam<typeof ROUTE.championshipReview>>();
   const { career, calendar, error, dismissError } = useCareer();
   const playerName = usePlayerName();
+  // A standalone championship's review is where its one season ends: Back
+  // falls back to its own page, and it has no next edition to enter.
+  const standalone = useSlot().mode === 'championship';
 
   const index = Number(params.season);
   const edition = Number(params.edition);
@@ -51,7 +55,9 @@ export const ChampionshipReview = () => {
     ? editionName({ year, edition: entry.edition, editions: editionsOf(entry.championship) }, t)
     : null;
   usePageName(entry && name ? `${entry.championship.name} ${name}` : null);
-  const back = { to: path.history(), label: t('back.history') };
+  const back = standalone
+    ? { to: path.standalone(), label: t('back.standalone') }
+    : { to: path.history(), label: t('back.history') };
 
   if (!career) {
     return (
@@ -90,7 +96,7 @@ export const ChampionshipReview = () => {
     : [];
   // Offered only while the next run is still to come: one of a season gone by,
   // or one whose rounds are all behind the clock, can no longer be entered.
-  const nextAhead = current !== undefined
+  const nextAhead = !standalone && current !== undefined
     && (next.season > current || (next.season === current && (nextDates.at(-1) ?? career.date) >= career.date));
   const line = [
     t('review.rounds', { count: entry.events.length }),

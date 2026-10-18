@@ -2,10 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 
 import { SeasonLength } from '../../../types/index.ts';
 import type {
-  CareerSeason, Championship, EventStatus, SeasonEntry,
+  CareerSeason, Championship, EventStatus, SeasonEntry, SeasonEvent,
 } from '../../../types/index.ts';
 import {
-  editionEntry, editionsOf, enteredEdition, seasonYear,
+  editionEntry, editionOver, editionsOf, enteredEdition, seasonYear,
 } from '../editions.ts';
 
 /**
@@ -106,6 +106,32 @@ describe('shared/utils/editions', () => {
 
     it('is null for an edition the season never entered', () => {
       expect(editionEntry(season(entry(0, ['raced'])), 'cup', 3)).toBeNull();
+    });
+  });
+
+  describe('editionOver', () => {
+    /**
+     * An edition of two rounds, on 10 and 17 May.
+     * @param statuses Each round's state
+     * @returns The entry
+     */
+    const dated = (...statuses: EventStatus[]): SeasonEntry => entry(0, statuses, {
+      events: statuses.map((status, at) => ({ round: `r${at}`, status, date: `2026-05-${10 + at * 7}` }) as SeasonEvent),
+    });
+
+    it('is over once every round has run and the last is behind the clock', () => {
+      expect(editionOver(dated('raced', 'raced'), '2026-05-17')).toBe(true);
+    });
+
+    it('is not over while a round is still to run', () => {
+      expect(editionOver(dated('raced', 'scheduled'), '2026-06-01')).toBe(false);
+    });
+
+    // A round given up by withdrawing is missed at once, and simulated only on
+    // its own day - so the edition is over only once that day has come.
+    it('is not over before the day of a round given up', () => {
+      expect(editionOver(dated('raced', 'missed'), '2026-05-10')).toBe(false);
+      expect(editionOver(dated('raced', 'missed'), '2026-05-17')).toBe(true);
     });
   });
 });

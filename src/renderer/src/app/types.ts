@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 
 import type {
-  Career, ClassCatalogue, ClassLayer, LoadedSave, NewCareerRequest, Settings,
+  Career, ClassCatalogue, ClassLayer, LoadedSave, NewCareerRequest, NewChampionshipRequest, Settings,
 } from '../../../shared/types';
 
 /**
@@ -39,10 +39,10 @@ export interface ClassesContextValue {
 }
 
 /**
- * Which mode the app is in: the start screen, a career open, or quick race
- * mode, which has nothing open.
+ * Which mode the app is in: the start screen, a career or a standalone
+ * championship open, or quick race mode, which has nothing open.
  */
-export type SlotMode = 'start' | 'career' | 'quick';
+export type SlotMode = 'start' | 'career' | 'championship' | 'quick';
 
 /**
  * The mode the app is in, and the ways in and out of each.
@@ -53,7 +53,7 @@ export interface SlotContextValue {
    */
   mode: SlotMode;
   /**
-   * The open career, or null outside one.
+   * The open career or standalone championship, or null outside one.
    */
   career: Career | null;
   /**
@@ -68,6 +68,12 @@ export interface SlotContextValue {
    * @returns Resolves once it is open, rejecting with why it could not start
    */
   createCareer(request: NewCareerRequest): Promise<void>;
+  /**
+   * Starts a standalone championship and opens it.
+   * @param request What New championship asked for
+   * @returns Resolves once it is open, rejecting with why it could not start
+   */
+  createChampionship(request: NewChampionshipRequest): Promise<void>;
   /**
    * Opens a career as one of its saves holds it.
    * @param id The career's id

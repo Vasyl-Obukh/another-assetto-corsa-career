@@ -1,5 +1,5 @@
 export {
-  championshipReview, editionOver, editionSummary, historicReview, nextRun, prizeFor, yearReview,
+  championshipReview, editionSummary, historicReview, nextRun, prizeFor, yearReview,
 } from './season-review.ts';
 export type {
   ChampionshipReview,

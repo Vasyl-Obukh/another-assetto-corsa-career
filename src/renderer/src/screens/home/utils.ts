@@ -4,10 +4,10 @@ import type {
   CalendarEntry, Career, CareerCalendar, CareerSeason, SeasonEntry,
 } from '../../../../shared/types';
 import { addDays } from '../../../../shared/utils/calendar-days';
-import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/editions';
 import { championshipEntries } from '../../../../shared/utils/historic';
 import type { EditionSummary, HistoricRow } from '@/lib/season-review';
-import { editionOver, editionSummary } from '@/lib/season-review';
+import { editionSummary } from '@/lib/season-review';
 
 /**
  * The next event the career is entered in, still to be raced - including one

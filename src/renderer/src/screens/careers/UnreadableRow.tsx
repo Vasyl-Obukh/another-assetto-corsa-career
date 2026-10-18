@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import type { UnreadableCareer } from '../../../../shared/types';
+import { HUB_WORDING } from './constants.ts';
+import type { CareerKind, UnreadableCareer } from '../../../../shared/types';
 import { NationFlag } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
@@ -8,6 +9,10 @@ import { CAUTION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
 interface UnreadableRowProps {
+  /**
+   * Which kind of career it is.
+   */
+  kind: CareerKind;
   /**
    * The career.
    */
@@ -26,7 +31,9 @@ interface UnreadableRowProps {
  * A career that cannot be read, in the list beside the rest: who races it where
  * that still reads, and an amber chip saying it cannot be opened.
  */
-export const UnreadableRow = ({ career, picked, onPick }: UnreadableRowProps) => {
+export const UnreadableRow = ({
+  kind, career, picked, onPick,
+}: UnreadableRowProps) => {
   const { t } = useTranslation();
   const { formatAgo } = useFormat();
 
@@ -44,7 +51,7 @@ export const UnreadableRow = ({ career, picked, onPick }: UnreadableRowProps) =>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-center gap-2">
           {career.driver ? <NationFlag code={career.driver.nation ?? undefined} /> : null}
-          <span className="truncate text-sm font-semibold">{career.driver?.name ?? t('careers.unreadable.name')}</span>
+          <span className="truncate text-sm font-semibold">{career.driver?.name ?? t(HUB_WORDING[kind].unreadableName)}</span>
           {career.playedAt ? (
             <span className="ml-auto shrink-0 text-xs text-muted-foreground">{formatAgo(career.playedAt)}</span>
           ) : null}

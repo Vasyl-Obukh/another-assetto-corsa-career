@@ -52,7 +52,7 @@ export { EditionState, Sparkline } from './season-review/index.ts';
 export { SettingsSection } from './SettingsSection.tsx';
 export { Shimmer } from './Shimmer.tsx';
 export {
-  AdvanceDialog, SKIP_ACCENT, SkipDialog, skipGroups, SkipNote,
+  AdvanceDialog, finishesSeason, SKIP_ACCENT, SkipDialog, skipGroups, SkipNote, SkipRoundDialog,
 } from './skip-dialog/index.ts';
 export type { SkipGroup } from './skip-dialog/index.ts';
 export { SourceChips } from './SourceChips.tsx';

@@ -83,3 +83,31 @@ export const roundRaceableIn = (availability: SeriesAvailability, round: string)
 export const roundRaceable = (listing: SeriesListing, round: string): boolean => (
   roundRaceableIn(listing.availability, round)
 );
+
+/**
+ * Whether one round can be raced in one car of one class: the round itself,
+ * and the car among those the class may race there, which is what lowering the
+ * round for that seat asks.
+ * @param availability What seriesAvailability said about the championship
+ * @param round The round's id
+ * @param entry The class entry's id
+ * @param car The car's folder ID
+ * @returns True when it can be
+ */
+export const seatRaceableIn = (
+  availability: SeriesAvailability,
+  round: string,
+  entry: string,
+  car: string,
+): boolean => roundRaceableIn(availability, round) && eligibleCarsIn(availability, round, entry).includes(car);
+
+/**
+ * The first round of a championship this install can race - the round a
+ * standalone championship is entered at, so the one its classes' cars are read
+ * from, as a career's Enter panel reads them off the round it enters at.
+ * @param listing The championship
+ * @returns The round's id, or undefined when none can be raced
+ */
+export const firstRaceable = (listing: SeriesListing): string | undefined => (
+  listing.series.rounds.find((round) => roundRaceableIn(listing.availability, round.id))?.id
+);

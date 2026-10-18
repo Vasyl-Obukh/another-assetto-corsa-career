@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { CareerSummary } from '../../../../../shared/types';
-import { isReadable, pickOf } from '../utils.ts';
+import { continuePath, isReadable, pickOf } from '../utils.ts';
 
 describe('renderer/screens/careers/utils', () => {
   describe('isReadable', () => {
@@ -28,6 +28,32 @@ describe('renderer/screens/careers/utils', () => {
     it('reads nothing from a pick that is not an id', () => {
       expect(pickOf({ pick: 7 })).toBeNull();
       expect(pickOf({ pick: undefined })).toBeNull();
+    });
+  });
+
+  describe('continuePath', () => {
+    /**
+     * A career of a kind, entered in one championship.
+     * @param kind Which kind of career
+     * @param over Whether its standing says it is over, for a standalone one
+     * @returns The career
+     */
+    const summary = (kind: CareerSummary['kind'], over?: boolean): CareerSummary => ({
+      kind,
+      championships: [{ series: 'lotus-cup' }],
+      standing: over === undefined ? null : { over },
+    } as unknown as CareerSummary);
+
+    it('carries a career on at its Home', () => {
+      expect(continuePath(summary('career'))).toBe('/home');
+    });
+
+    it('carries a standalone championship on at its own page while it runs', () => {
+      expect(continuePath(summary('championship', false))).toBe('/championship');
+    });
+
+    it('opens a standalone championship that is over on its review', () => {
+      expect(continuePath(summary('championship', true))).toBe('/home/history/0/lotus-cup/0');
     });
   });
 });

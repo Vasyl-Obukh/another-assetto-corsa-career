@@ -195,6 +195,12 @@ export const FORMAT_SKELETON_BLOCKS = 4;
 export const SEASON_SKELETON = 6;
 
 /**
+ * The grid season cards are laid out in, on the settings library and in New
+ * championship, shared with their skeleton so nothing moves when they land.
+ */
+export const SEASON_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4';
+
+/**
  * How many rounds a skeleton's season holds, for its round ticks and table.
  */
 export const ROUND_SKELETON = 5;
@@ -240,3 +246,11 @@ export const STANDINGS_SKELETON = 5;
  * historic events' tables.
  */
 export const TABLE_HEADING = 'px-2.5 py-2 text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase';
+
+/**
+ * An outline button laid over a photograph: translucent on-scrim glass in
+ * either theme, since the scrim under it is dark in both. The dark variants
+ * restate it, or the outline variant's own dark fill would win.
+ */
+export const GLASS_BUTTON = 'border-on-scrim/25 bg-on-scrim/10 text-on-scrim backdrop-blur-sm hover:bg-on-scrim/20 '
+  + 'hover:text-on-scrim dark:border-on-scrim/25 dark:bg-on-scrim/10 dark:hover:bg-on-scrim/20';

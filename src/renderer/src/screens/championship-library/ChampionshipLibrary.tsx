@@ -21,13 +21,12 @@ import { slots } from '@/lib/slots.ts';
 import { readPreference, writePreference } from '@/lib/stored-preference';
 import {
   CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, championshipFilters, championshipPills, ChampionshipRail, NoneMatch,
-  SEASON_SKELETON, SeasonCard, SeasonCardSkeleton,
+  SEASON_GRID, SEASON_SKELETON, SeasonCard, SeasonCardSkeleton,
 } from '@/screens/championships';
 
 /**
  * The cards' grid.
  */
-const GRID = 'grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-4';
 
 export const ChampionshipLibrary = () => {
   const { t } = useTranslation();
@@ -163,7 +162,7 @@ export const ChampionshipLibrary = () => {
         />
 
         {championships.loading && view === 'cards' ? (
-          <Loading className={GRID}>
+          <Loading className={SEASON_GRID}>
             {slots(SEASON_SKELETON).map((at) => <SeasonCardSkeleton key={at} />)}
           </Loading>
         ) : null}
@@ -182,7 +181,7 @@ export const ChampionshipLibrary = () => {
         {offered.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
 
         {browser.shown.length > 0 && view === 'cards' ? (
-          <div className={GRID}>
+          <div className={SEASON_GRID}>
             {browser.shown.map((listing) => (
               <SeasonCard key={listing.series.id} listing={listing} commands={commands} />
             ))}

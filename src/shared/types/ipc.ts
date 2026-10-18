@@ -11,10 +11,13 @@ import type {
   CareerCalendar,
   CareerDriver,
   CareerEventView,
+  CareerKind,
   CareerListing,
   CareerSettings,
+  ChampionshipPreview,
   ChampionshipResults,
   NewCareerRequest,
+  NewChampionshipRequest,
   RestoredCareer,
   SkippedRound,
   WrittenBackup,
@@ -387,13 +390,23 @@ export interface IpcContract {
    */
   'career:get': { req: void; res: Career | null };
   /**
-   * Every career on disk, played most recently first.
+   * Every career of one kind on disk, played most recently first.
    */
-  'career:list': { req: void; res: CareerListing[] };
+  'career:list': { req: { kind: CareerKind }; res: CareerListing[] };
   /**
    * Start a new career, and open it.
    */
   'career:create': { req: NewCareerRequest; res: Career };
+  /**
+   * Start a standalone championship, entered in the class and car asked for,
+   * and open it.
+   */
+  'career:createChampionship': { req: NewChampionshipRequest; res: Career };
+  /**
+   * A championship's rounds dated as a standalone championship would race
+   * them in the year asked for.
+   */
+  'career:preview': { req: { series: string; year: number }; res: ChampionshipPreview };
   /**
    * Open a career, closing whichever was open.
    */
@@ -404,7 +417,8 @@ export interface IpcContract {
    */
   'career:close': { req: void; res: null };
   /**
-   * Delete a career and its folder, answering with every career left.
+   * Delete a career and its folder, answering with every career of its kind
+   * left.
    */
   'career:delete': { req: { id: string }; res: CareerListing[] };
   /**
@@ -418,9 +432,10 @@ export interface IpcContract {
   'career:backup': { req: { id: string }; res: WrittenBackup | null };
   /**
    * Pick a backup with the system's own dialog and read it, restoring nothing
-   * yet. Null when the dialog was cancelled.
+   * yet - refused when it holds a career of another kind than the one asked
+   * for. Null when the dialog was cancelled.
    */
-  'career:openBackup': { req: void; res: CareerBackup | null };
+  'career:openBackup': { req: { kind: CareerKind }; res: CareerBackup | null };
   /**
    * Restore a career from a backup `career:openBackup` read.
    */
@@ -524,6 +539,17 @@ export interface IpcContract {
    * `career:event` does.
    */
   'career:results': { req: { series: string; season?: number; edition?: number }; res: ChampionshipResults };
+  /**
+   * The rounds skipping a round the install cannot race would cost - the
+   * round itself last.
+   */
+  'career:skipping': { req: { series: string; round: string; edition?: number }; res: SkippedRound[] };
+  /**
+   * Skip a round the install cannot race, after `career:skipping` listed what
+   * it costs: the clock moves to its day, and every round listed becomes a
+   * non-start.
+   */
+  'career:skip': { req: { series: string; round: string; edition?: number }; res: Career };
   /**
    * Run the next session of a round the career is in, setting the round up
    * first when the race being run is another event. A round that would leave

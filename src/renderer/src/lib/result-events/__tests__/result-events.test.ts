@@ -83,6 +83,7 @@ const seasonEntry = (): SeasonEntry => ({
 const career = (seasons = 1): Career => ({
   version: 1,
   id: 'career',
+  kind: 'career',
   createdAt: '',
   playedAt: '',
   driver: { name: 'Driver', nation: null },
