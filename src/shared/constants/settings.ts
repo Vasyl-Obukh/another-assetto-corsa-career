@@ -2,7 +2,7 @@
 
 import { WeatherType } from './weather-types.ts';
 import type {
-  AiBase, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
+  AiBase, CareerSettings, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
 } from '../types/index.ts';
 
 /**
@@ -75,6 +75,17 @@ export const DEFAULT_ALLOWED_WEATHER: readonly WeatherType[] = [
 export const DEFAULT_OPPONENTS: AiBase = { strength: 88, aggression: 30 };
 
 /**
+ * What a new career's settings start as: following the app's opponents and
+ * driving aids, two events on one day clashing, and a historic event a month.
+ */
+export const DEFAULT_CAREER_SETTINGS: CareerSettings = {
+  opponents: null,
+  drivingAids: null,
+  allowSameDayEvents: false,
+  historicFrequency: 'monthly',
+};
+
+/**
  * What a fresh install starts with, and what any unreadable field falls back to.
  */
 export const DEFAULT_SETTINGS: Settings = {
@@ -89,8 +100,6 @@ export const DEFAULT_SETTINGS: Settings = {
   hiddenContentSources: { packs: [], makers: [], distributors: [] },
   seriesActive: {},
   showFillerSeries: true,
-  allowSameDayEvents: false,
-  historicFrequency: 'monthly',
   historicActive: {},
   autosaves: 3,
   paths: {},

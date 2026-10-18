@@ -251,6 +251,15 @@ export const EDITION_ACCENT = {
 export const CAUTION_ACCENT = 'border-transparent bg-warning text-warning-foreground';
 
 /**
+ * Green, for something the player asked for that is done and worth a second
+ * look - a backup written, a career restored. The traffic light's other end
+ * from `CAUTION_ACCENT`.
+ *
+ * Read by the toasts the Careers page raises.
+ */
+export const DONE_ACCENT = 'border-transparent bg-success text-success-foreground';
+
+/**
  * The colour each budget is chipped in.
  *
  * A hue each, with chroma stepping down from works to privateer. It was one

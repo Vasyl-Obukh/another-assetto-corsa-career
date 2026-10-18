@@ -1,6 +1,7 @@
 import type { ParseKeys } from 'i18next';
 import type { LucideIcon } from 'lucide-react';
 
+import type { ASSIST_MODES } from './constants.ts';
 import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
 
 /**
@@ -68,3 +69,9 @@ export type AidMode = Exclude<DrivingAidNumber, 'stabilityControl'>;
  * translations drop its wording too.
  */
 export type SettingsCmFlag = Exclude<CmFlag, '--enable-race-ini-test-mode'>;
+
+/**
+ * One of Assetto Corsa's three modes for an aid: off, as the car has it,
+ * forced on.
+ */
+export type AssistMode = (typeof ASSIST_MODES)[number];

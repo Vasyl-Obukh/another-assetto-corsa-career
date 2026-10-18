@@ -119,10 +119,18 @@ export const Start = ({ initialReport }: StartProps) => {
             line={careerLine}
           >
             {careers.careers !== null && careers.careers.length === 0 ? (
-              <Button onClick={() => { void navigate(path.careerNew()); }}>
-                <PlusIcon />
-                {t('start.newCareer')}
-              </Button>
+              <>
+                <Button onClick={() => { void navigate(path.careerNew()); }}>
+                  <PlusIcon />
+                  {t('start.newCareer')}
+                </Button>
+                {/* Still offered with nothing to load, since the Careers page is
+                    where a backup is restored from. */}
+                <Button variant="outline" onClick={() => { void navigate(path.careers()); }}>
+                  <FolderOpenIcon />
+                  {t('start.load')}
+                </Button>
+              </>
             ) : (
               <>
                 {/* Waits, disabled, until it knows what it continues. */}

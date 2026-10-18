@@ -1,19 +1,56 @@
 import type {
   Career,
+  CareerBackup,
   CareerCalendar,
   CareerDriver,
   CareerEventView,
   CareerListing,
+  CareerProfile,
   CareerSaves,
+  CareerSettings,
+  CareerState,
   ChampionshipResults,
   LoadedSave,
   NewCareerRequest,
   RaceSetup,
+  RestoredCareer,
   SaveSummary,
   SeasonEntry,
   SeasonEvent,
   SkippedRound,
+  WrittenBackup,
 } from '../../shared/types/index.ts';
+import type { ZipEntry } from '../zip-archive/index.ts';
+
+/**
+ * What a career's backup holds, read and checked.
+ */
+export interface BackupContents {
+  /**
+   * The career's profile, as its career.json holds it.
+   */
+  profile: CareerProfile;
+  /**
+   * Where it had got to: its state.json, or else its newest save that reads.
+   */
+  state: CareerState;
+  /**
+   * When it was backed up, or null when the backup does not say.
+   */
+  backedUpAt: string | null;
+  /**
+   * How many of its saves read.
+   */
+  saves: number;
+  /**
+   * How many archived results it holds.
+   */
+  results: number;
+  /**
+   * Every file of it a career's folder keeps, by its path in the folder.
+   */
+  files: ZipEntry[];
+}
 
 /**
  * A save to write by hand.
@@ -200,12 +237,52 @@ export interface CareerStore {
    */
   folderOf(id: string): Promise<string>;
   /**
+   * The name a career's backup is offered under.
+   * @param id The career's id
+   * @returns The file's name
+   * @throws When there is no such career, or it does not read
+   */
+  backupName(id: string): Promise<string>;
+  /**
+   * Backs a career up into one zip: its profile, its state, its saves and its
+   * archived results.
+   * @param id The career's id
+   * @param file Where to write the zip
+   * @returns What was written
+   * @throws When there is no such career
+   */
+  backup(id: string, file: string): Promise<WrittenBackup>;
+  /**
+   * Reads a backup without restoring anything of it.
+   * @param file The zip
+   * @returns The career it holds, and whether that career is here already
+   * @throws When it is not a zip, or holds no career that reads
+   */
+  readBackup(file: string): Promise<CareerBackup>;
+  /**
+   * Restores a career from its backup.
+   * @param file The zip
+   * @param replace Whether a copy of the career already here is replaced -
+   * otherwise the backup comes back beside it, as a career of its own
+   * @returns The career's id, and every career
+   * @throws When the backup does not read, or the career it would replace is
+   * the one open
+   */
+  restore(file: string, replace: boolean): Promise<RestoredCareer>;
+  /**
    * Renames the open career's driver, or changes their nation.
    * @param driver Who races it now
    * @returns The career
    * @throws When the name is empty or the nation is none Assetto Corsa has
    */
   setDriver(driver: CareerDriver): Promise<Career>;
+  /**
+   * Changes the open career's own settings - following the app's opponents or
+   * driving aids again with null, or setting its own.
+   * @param patch The settings to replace
+   * @returns The career
+   */
+  setSettings(patch: Partial<CareerSettings>): Promise<Career>;
   /**
    * Every save a career has - none for a career that is not there.
    * @param id The career's id

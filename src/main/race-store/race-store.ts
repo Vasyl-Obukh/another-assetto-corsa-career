@@ -49,6 +49,7 @@ import { AppError, isAppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   AcPaths,
+  DrivingAids,
   EventPlan,
   EventState,
   RaceDefinition,
@@ -72,7 +73,7 @@ export type { RaceProgress, RaceSlot, RaceStore } from './types.ts';
 // carry an event part-way through on from the race the slot already holds.
 export { RACE_DIR } from './constants.ts';
 export {
-  readJson, slotHolds, withLevelsOf, writeJson,
+  isArchiveName, readJson, slotHolds, withLevelsOf, writeJson,
 } from './utils.ts';
 
 /**
@@ -287,18 +288,20 @@ export const createRaceStore = async (
   };
 
   /**
-   * Fills in the driving aids the player chose in settings.
+   * Fills in the driving aids the player chose - a career's own, or else the
+   * app's.
    *
    * The same arrangement `withDriver` uses, and for the same reason: aids belong
    * to the person playing, while damage, fuel rate, tyre wear and slipstream are
    * regulations and belong to the race. A race naming any of them keeps it,
    * field by field, so a spike can still pin the lot.
    * @param race The launch, already prepared
+   * @param aids The aids the launch was asked to run with, if any
    * @returns The launch with its assists filled in
    */
-  const withAssists = (race: RaceDefinition): RaceDefinition => ({
+  const withAssists = (race: RaceDefinition, aids?: DrivingAids): RaceDefinition => ({
     ...race,
-    assists: { ...settings.get().drivingAids, ...defined(race.assists) },
+    assists: { ...(aids ?? settings.get().drivingAids), ...defined(race.assists) },
   });
 
   /**
@@ -535,7 +538,7 @@ export const createRaceStore = async (
       let raceIni: string;
       let assists: string;
       try {
-        const prepared = await withWeatherSystem(withAssists(withDriver(launched)));
+        const prepared = await withWeatherSystem(withAssists(withDriver(launched), options.aids));
         raceIni = buildRaceIni(prepared, installed);
         // Sent on every launch, never omitted: with no assistsData at all,
         // Content Manager applies whatever its own Quick Drive last held, which

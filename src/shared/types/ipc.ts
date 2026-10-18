@@ -7,13 +7,17 @@ import type {
 } from './car-classes.ts';
 import type {
   Career,
+  CareerBackup,
   CareerCalendar,
   CareerDriver,
   CareerEventView,
   CareerListing,
+  CareerSettings,
   ChampionshipResults,
   NewCareerRequest,
+  RestoredCareer,
   SkippedRound,
+  WrittenBackup,
 } from './career.ts';
 import type { CmArguments, CmFlag } from './cm-arguments.ts';
 import type {
@@ -408,9 +412,31 @@ export interface IpcContract {
    */
   'career:folder': { req: { id: string }; res: null };
   /**
+   * Back a career up into a zip, asking where with the system's own dialog.
+   * Null when the dialog was cancelled.
+   */
+  'career:backup': { req: { id: string }; res: WrittenBackup | null };
+  /**
+   * Pick a backup with the system's own dialog and read it, restoring nothing
+   * yet. Null when the dialog was cancelled.
+   */
+  'career:openBackup': { req: void; res: CareerBackup | null };
+  /**
+   * Restore a career from a backup `career:openBackup` read.
+   */
+  'career:restore': { req: { file: string; replace: boolean }; res: RestoredCareer };
+  /**
+   * Show a backup just written in the system's file browser.
+   */
+  'career:showBackup': { req: { file: string }; res: null };
+  /**
    * Rename the open career's driver, or change their nation.
    */
   'career:driver': { req: CareerDriver; res: Career };
+  /**
+   * Change the open career's own settings.
+   */
+  'career:settings': { req: Partial<CareerSettings>; res: Career };
   /**
    * Every save a career has, newest first.
    */

@@ -1,8 +1,18 @@
 // The decidable parts of the career store, kept pure so they can be read and
 // tested without a disk or an Electron fake behind them.
 
-import { CAREER_SEASON_WEEKS, CAREER_VERSION, FORECAST_LEAD_DAYS } from './constants.ts';
-import type { EnteredEvent } from './types.ts';
+import path from 'node:path';
+
+import {
+  BACKUP_MANIFEST,
+  CAREER_FILE,
+  CAREER_RESULTS_DIR,
+  CAREER_SEASON_WEEKS,
+  CAREER_VERSION,
+  FORECAST_LEAD_DAYS,
+  STATE_FILE,
+} from './constants.ts';
+import type { BackupContents, EnteredEvent } from './types.ts';
 import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
@@ -46,11 +56,16 @@ import type {
   SkipReason,
 } from '../../shared/types/index.ts';
 import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
+import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
+import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
 import { isNationCode } from '../../shared/utils/nations/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
+import { isArchiveName } from '../race-store/index.ts';
+import { readSaveFile, SAVE_ID_PATTERN, SAVES_DIR } from '../save-files/index.ts';
+import type { ZipEntry } from '../zip-archive/index.ts';
 
 /**
  * The last day a season covers, given the day it opens on: the 31 December of
@@ -72,6 +87,7 @@ export const profileOf = (career: Career): CareerProfile => ({
   playedAt: career.playedAt,
   driver: career.driver,
   startDate: career.startDate,
+  settings: career.settings,
 });
 
 /**
@@ -110,8 +126,9 @@ export const readProfile = (value: unknown): CareerProfile | null => {
     && typeof profile.startDate === 'string';
 
   // Rebuilt rather than cast, so nothing else in the file rides along into the
-  // career it is joined with.
-  return readable ? profileOf(profile as Career) : null;
+  // career it is joined with. Its settings are read the tolerant way, as
+  // settings are everywhere.
+  return readable ? profileOf({ ...profile, settings: readCareerSettings(profile.settings) } as Career) : null;
 };
 
 /**
@@ -1068,3 +1085,80 @@ export const archivesOf = (career: Career): Set<string> => new Set(career.season
   // Recorded as a path, and a skipped launch archived nothing.
   .map((launch) => launch.archive.split(/[\\/]/).at(-1) ?? '')
   .filter((name) => name !== ''));
+
+/**
+ * Whether a file of a backup belongs in a career's folder: its two files, a
+ * save, or an archived result - nothing else, and nothing outside the folder.
+ * @param name The file's path inside the backup
+ * @returns Whether it is restored
+ */
+export const keptInBackup = (name: string): boolean => {
+  if (name === CAREER_FILE || name === STATE_FILE) return true;
+
+  const [folder, file, ...deeper] = name.split('/');
+  if (deeper.length > 0 || !file) return false;
+  if (folder === SAVES_DIR) return file.endsWith('.json') && SAVE_ID_PATTERN.test(file.slice(0, -'.json'.length));
+
+  return folder === CAREER_RESULTS_DIR && isArchiveName(file);
+};
+
+/**
+ * Reads one file of a backup as JSON.
+ * @param entry The file, if the backup holds it
+ * @returns What it parses to, or undefined when it is missing or not JSON
+ */
+const parsedEntry = (entry: ZipEntry | undefined): unknown => {
+  if (!entry) return undefined;
+  try {
+    return JSON.parse(entry.data.toString('utf8'));
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Reads what a backup holds, the way a career's folder is read: its profile,
+ * and its state - carried on from its newest save when its state.json does not
+ * read, as a career on disk would be.
+ * @param entries Every file in the backup
+ * @returns What it holds, or null when it holds no career that reads
+ */
+export const readBackup = (entries: readonly ZipEntry[]): BackupContents | null => {
+  const named = new Map(entries.map((entry) => [entry.name, entry]));
+  const profile = readProfile(parsedEntry(named.get(CAREER_FILE)));
+  if (!profile) return null;
+
+  const files = entries.filter((entry) => keptInBackup(entry.name));
+  const saves = files
+    .filter((entry) => entry.name.startsWith(`${SAVES_DIR}/`))
+    .map((entry) => readSaveFile(parsedEntry(entry), path.posix.basename(entry.name, '.json'), readState))
+    .filter((save) => save !== null)
+    .sort((left, right) => right.savedAt.localeCompare(left.savedAt));
+  const state = readState(parsedEntry(named.get(STATE_FILE))) ?? saves[0]?.state ?? null;
+  if (!state) return null;
+
+  const manifest = parsedEntry(named.get(BACKUP_MANIFEST));
+
+  return {
+    profile,
+    state,
+    backedUpAt: isRecord(manifest) && typeof manifest.backedUpAt === 'string' ? manifest.backedUpAt : null,
+    saves: saves.length,
+    results: files.filter((entry) => entry.name.startsWith(`${CAREER_RESULTS_DIR}/`)).length,
+    files,
+  };
+};
+
+/**
+ * The name a career's backup is offered under: the driver's, the word career
+ * and the day its clock stands at.
+ * @param career The career
+ * @returns The file's name
+ */
+export const backupName = (career: CareerSummary): string => {
+  // Letters of any script are kept, since a file name may hold them; anything
+  // else runs together into one hyphen.
+  const driver = career.driver.name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+
+  return `${driver ? `${driver}-` : ''}career-${career.date}.zip`;
+};

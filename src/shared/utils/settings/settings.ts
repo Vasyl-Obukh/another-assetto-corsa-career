@@ -13,7 +13,6 @@ import {
   DEFAULT_SETTINGS,
   DRIVING_AID_FLAGS,
   DRIVING_AID_NUMBERS,
-  HISTORIC_FREQUENCIES,
   LANGUAGES,
   THEME_CHOICES,
   WEATHER_SYSTEMS,
@@ -281,10 +280,6 @@ export const readSettings = (raw: unknown): Settings => {
     showFillerSeries: typeof raw.showFillerSeries === 'boolean'
       ? raw.showFillerSeries
       : DEFAULT_SETTINGS.showFillerSeries,
-    allowSameDayEvents: typeof raw.allowSameDayEvents === 'boolean'
-      ? raw.allowSameDayEvents
-      : DEFAULT_SETTINGS.allowSameDayEvents,
-    historicFrequency: oneOf(raw.historicFrequency, HISTORIC_FREQUENCIES, DEFAULT_SETTINGS.historicFrequency),
     // The same shape as the championships' switches, so read the same way.
     historicActive: readSeriesActive(raw.historicActive),
     autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, DEFAULT_SETTINGS.autosaves),

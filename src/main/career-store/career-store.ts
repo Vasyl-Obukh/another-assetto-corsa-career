@@ -21,15 +21,26 @@ import {
 import path from 'node:path';
 
 import {
-  CAREER_FILE, CAREER_ID_PATTERN, CAREER_RESULTS_DIR, CAREER_VERSION, CAREERS_DIR, STATE_FILE, WRITE_DEBOUNCE_MS,
+  BACKUP_KIND,
+  BACKUP_MANIFEST,
+  CAREER_FILE,
+  CAREER_ID_PATTERN,
+  CAREER_RESULTS_DIR,
+  CAREER_VERSION,
+  CAREERS_DIR,
+  REPLACED_SUFFIX,
+  RESTORING_SUFFIX,
+  STATE_FILE,
+  WRITE_DEBOUNCE_MS,
 } from './constants.ts';
 import type {
-  CareerStore, EnrolRequest, EnteredEvent, EventRequest, ResultsRequest,
+  BackupContents, CareerStore, EnrolRequest, EnteredEvent, EventRequest, ResultsRequest,
 } from './types.ts';
 import {
   advanceSkips,
   advanceStop,
   archivesOf,
+  backupName,
   checkedDriver,
   checkEdition,
   checkedNewCareer,
@@ -45,6 +56,7 @@ import {
   inProgressEvent,
   issueForecast,
   issueForecasts,
+  keptInBackup,
   launchBlock,
   launchSkips,
   lostName,
@@ -52,6 +64,7 @@ import {
   materialiseEvents,
   openSeason,
   profileOf,
+  readBackup,
   readProfile,
   readState,
   seasonOf,
@@ -97,6 +110,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { isEligible, levelsAt, ratingsAt } from '../../shared/utils/career-eligibility/index.ts';
+import { careerDrivingAids, careerOpponents, readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
   editionEntry, editionsOf, enteredEdition, seasonYear,
@@ -125,6 +139,8 @@ import {
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { quarantine } from '../settings-store/index.ts';
+import { packZip, unpackZip } from '../zip-archive/index.ts';
+import type { ZipEntry } from '../zip-archive/index.ts';
 
 export type {
   CareerStore, EnrolRequest, EventRequest, ResultsRequest, SaveRequest, StrengthRequest,
@@ -556,8 +572,8 @@ export const createCareerStore = async (
   const drawHistoric = async (career: Career, season: CareerSeason, from: string): Promise<CareerSeason> => {
     if (season.historicDrawn) return season;
 
-    const { historicFrequency, historicActive, hiddenContentSources } = settings.get();
-    const slots = historicSlots(season, historicFrequency);
+    const { historicActive, hiddenContentSources } = settings.get();
+    const slots = historicSlots(season, career.settings.historicFrequency);
     if (slots.length === 0) return { ...season, historicDrawn: true };
 
     let library: SeriesLibrary;
@@ -731,7 +747,12 @@ export const createCareerStore = async (
     raceId: string,
     step: number,
   ): Promise<RaceDefinition> => {
-    const lowered = await series.lowerRound(championship, request, step);
+    const lowered = await series.lowerRound(
+      championship,
+      request,
+      step,
+      careerOpponents(settings.get(), current?.settings ?? null),
+    );
     // The career's own driver, rather than the default one settings names.
     const driver = current?.driver;
     const nation = driver?.nation ?? null;
@@ -940,29 +961,83 @@ export const createCareerStore = async (
   ));
 
   /**
+   * Every file of a career's folder a backup holds, by its path in the folder.
+   * @param id The career's id
+   * @returns The files
+   */
+  const folderEntries = async (id: string): Promise<ZipEntry[]> => {
+    const folder = folderFor(id);
+    const inside = async (sub: string): Promise<string[]> => (
+      (await readdir(path.join(folder, sub)).catch(() => [] as string[])).map((name) => `${sub}/${name}`)
+    );
+    const names = [CAREER_FILE, STATE_FILE, ...await inside(SAVES_DIR), ...await inside(CAREER_RESULTS_DIR)]
+      .filter(keptInBackup);
+    const read = await Promise.all(names.map(async (name): Promise<ZipEntry | null> => {
+      try {
+        return { name, data: await readFile(path.join(folder, ...name.split('/'))) };
+      } catch (error) {
+        // A career with no state.json yet is backed up without one.
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+        throw error;
+      }
+    }));
+
+    return read.filter((entry) => entry !== null);
+  };
+
+  /**
+   * Reads a backup off disk.
+   * @param file The zip
+   * @returns What it holds
+   * @throws When it is not a zip, or holds no career that reads
+   */
+  const backupFrom = async (file: string): Promise<BackupContents> => {
+    const contents = readBackup(await unpackZip(await readFile(file)));
+    if (!contents) throw new AppError('backup.notCareer');
+
+    return contents;
+  };
+
+  /**
+   * Whether a folder is kept for a career.
+   * @param id The career's id, which may be no career's at all
+   * @returns Whether it is there
+   */
+  const isHere = async (id: string): Promise<boolean> => (
+    CAREER_ID_PATTERN.test(id) && access(folderFor(id)).then(() => true, () => false)
+  );
+
+  /**
+   * One career as the Careers list shows it, whether it reads or not.
+   * @param id The career's id, whose folder is there
+   * @returns Its listing
+   */
+  const listingOf = async (id: string): Promise<CareerListing> => {
+    // The open one is read from memory, which is ahead of its file.
+    if (current?.id === id) return summarise(current);
+
+    try {
+      const career = await parseFrom(id);
+      if (career) return summarise(career);
+      console.warn(`Career ${id} is not one this build reads; listing it as unreadable.`);
+    } catch (error) {
+      console.warn(`Could not read career ${id}; listing it as unreadable.`, error);
+    }
+    // Never left out, or it could not be deleted from the app.
+    const profile = await profileFrom(id).catch(() => null);
+
+    return {
+      id, unreadable: true, driver: profile?.driver ?? null, playedAt: profile?.playedAt ?? null,
+    };
+  };
+
+  /**
    * Every career on disk, played most recently first.
    * @returns Their summaries
    */
   const list = async (): Promise<CareerListing[]> => {
     const names = (await readdir(root).catch(() => [] as string[])).filter((name) => CAREER_ID_PATTERN.test(name));
-    const read = await Promise.all(names.map(async (name): Promise<CareerListing> => {
-      // The open one is read from memory, which is ahead of its file.
-      if (current?.id === name) return summarise(current);
-
-      try {
-        const career = await parseFrom(name);
-        if (career) return summarise(career);
-        console.warn(`Career ${name} is not one this build reads; listing it as unreadable.`);
-      } catch (error) {
-        console.warn(`Could not read career ${name}; listing it as unreadable.`, error);
-      }
-      // Never left out, or it could not be deleted from the app.
-      const profile = await profileFrom(name).catch(() => null);
-
-      return {
-        id: name, unreadable: true, driver: profile?.driver ?? null, playedAt: profile?.playedAt ?? null,
-      };
-    }));
+    const read = await Promise.all(names.map(listingOf));
     // One just started may not be written yet.
     if (current && !names.includes(current.id)) read.push(summarise(current));
 
@@ -977,7 +1052,7 @@ export const createCareerStore = async (
 
     create: (request) => commit(async () => {
       const {
-        driver, year, level, money,
+        driver, year, level, money, settings: own,
       } = checkedNewCareer(request);
       const id = crypto.randomUUID();
       const now = new Date().toISOString();
@@ -991,6 +1066,7 @@ export const createCareerStore = async (
         money,
         rating: ratingsAt(level),
         startDate,
+        settings: readCareerSettings(own),
         date: startDate,
         level: levelsAt(level),
         seasons: [openSeason(0, startDate)],
@@ -1045,9 +1121,107 @@ export const createCareerStore = async (
 
     folderOf: async (id) => folderFor(id),
 
+    backupName: async (id) => {
+      const career = current?.id === id ? current : await parseFrom(id).catch(missingCareer);
+      if (!career) throw new AppError('career.unreadable');
+
+      return backupName(summarise(career));
+    },
+
+    backup: (id, file) => commit(async () => {
+      if (current?.id === id) await flushNow();
+      const entries = await folderEntries(id);
+      const contents = readBackup(entries);
+      if (!contents) throw new AppError(entries.length === 0 ? 'career.notFound' : 'career.unreadable');
+
+      const manifest = { version: CAREER_VERSION, kind: BACKUP_KIND, backedUpAt: new Date().toISOString() };
+      await writeFile(file, await packZip([
+        { name: BACKUP_MANIFEST, data: Buffer.from(JSON.stringify(manifest, null, 2)) },
+        ...entries,
+      ]));
+
+      return { file, saves: contents.saves, results: contents.results };
+    }),
+
+    readBackup: async (file) => {
+      const contents = await backupFrom(file);
+      const { id } = contents.profile;
+      const here = await isHere(id) ? await listingOf(id) : null;
+
+      return {
+        file,
+        career: summarise({ ...contents.profile, ...contents.state }),
+        saves: contents.saves,
+        results: contents.results,
+        backedUpAt: contents.backedUpAt,
+        here,
+      };
+    },
+
+    restore: (file, replace) => commit(async () => {
+      const contents = await backupFrom(file);
+      const own = contents.profile.id;
+      const here = await isHere(own);
+      // Beside the copy here, or from a backup whose id no folder could be
+      // named after, it comes back as a career of its own.
+      const id = CAREER_ID_PATTERN.test(own) && !(here && !replace) ? own : crypto.randomUUID();
+      const replacing = here && id === own;
+      if (replacing && current?.id === id) throw new AppError('career.open');
+
+      const career: Career = { ...contents.profile, ...contents.state, id };
+      const target = folderFor(id);
+      // Written whole beside the careers first, so a restore that fails part
+      // of the way leaves the career here as it was.
+      const staging = `${target}${RESTORING_SUFFIX}`;
+      const aside = `${target}${REPLACED_SUFFIX}`;
+      await rm(staging, { recursive: true, force: true });
+      try {
+        await Promise.all(contents.files.map(async (entry) => {
+          const to = path.join(staging, ...entry.name.split('/'));
+          await mkdir(path.dirname(to), { recursive: true });
+          // Written afresh, since a career of its own names its new id.
+          await writeFile(to, entry.name === CAREER_FILE ? JSON.stringify(profileOf(career), null, 2) : entry.data);
+        }));
+        if (replacing) {
+          await rm(aside, { recursive: true, force: true });
+          await rename(target, aside);
+          try {
+            await rename(staging, target);
+          } catch (error) {
+            // Put back, or the career would sit where the list never looks.
+            await rename(aside, target);
+            throw error;
+          }
+        } else {
+          await rename(staging, target);
+        }
+      } catch (error) {
+        await rm(staging, { recursive: true, force: true }).catch(() => undefined);
+        throw error;
+      }
+
+      if (replacing) {
+        await rm(aside, { recursive: true, force: true });
+        // The race slot may hold an event of the career it replaced, and a
+        // page showing its saves still shows the old ones.
+        releaseSlot(career);
+        await pushSaves(id);
+      }
+
+      return { id, careers: await list() };
+    }),
+
     setDriver: (driver) => commit(async () => {
       const career = await ensure();
       current = { ...career, driver: checkedDriver(driver) };
+
+      return settle();
+    }),
+
+    setSettings: (patch) => commit(async () => {
+      const career = await ensure();
+      // Merged and read back the tolerant way, as a patch to settings.json is.
+      current = { ...career, settings: readCareerSettings({ ...career.settings, ...patch }) };
 
       return settle();
     }),
@@ -1131,7 +1305,7 @@ export const createCareerStore = async (
         held,
         library.series,
         await enteredAvailability(held),
-        settings.get().allowSameDayEvents,
+        career.settings.allowSameDayEvents,
       );
     },
 
@@ -1392,7 +1566,7 @@ export const createCareerStore = async (
 
       let blocked: AppErrorInfo | null = appErrorInfo('career.event.notEntered', { series: championship.name });
       if (closed) blocked = appErrorInfo('career.season.closed', { year: seasonYear(season) });
-      else if (held) blocked = launchBlock(season, held, raceable, settings.get().allowSameDayEvents);
+      else if (held) blocked = launchBlock(season, held, raceable, career.settings.allowSameDayEvents);
 
       const view: CareerEventView = {
         series: championship.id,
@@ -1439,7 +1613,7 @@ export const createCareerStore = async (
         ) : [],
         blocked,
         skips: !closed && held && event.status === 'scheduled'
-          ? launchSkips(season, held, settings.get().allowSameDayEvents)
+          ? launchSkips(season, held, career.settings.allowSameDayEvents)
           : [],
         // Whatever is already over is a non-start from the moment it is entered.
         behind: closed ? [] : dated
@@ -1491,14 +1665,14 @@ export const createCareerStore = async (
         season,
         held,
         roundRaceableIn(availability, request.round),
-        settings.get().allowSameDayEvents,
+        career.settings.allowSameDayEvents,
       );
       if (block) throw new AppError(block.code, block.params);
 
       // What this event costs the rest of the season, which the player has to
       // have been shown and agreed to - an event on the same day included,
-      // unless settings allow two on one day.
-      const lost = launchSkips(season, held, settings.get().allowSameDayEvents);
+      // unless the career allows two on one day.
+      const lost = launchSkips(season, held, career.settings.allowSameDayEvents);
       if (lost.length > 0 && !request.skip) {
         const partway = lost.find((one) => one.reason === 'partway');
         if (partway) throw new AppError('career.event.otherInProgress', { event: lostName(partway) });
@@ -1529,7 +1703,10 @@ export const createCareerStore = async (
       const setup = await race.get();
       const carriedOn = slotHolds(setup, event.raceId, event.sessions.length, career.id);
       await race.load(carriedOn ? withLevelsOf(setup.definition, fresh) : fresh, event.sessions);
-      const launched = await race.launch({ scale: request.scale });
+      const launched = await race.launch({
+        scale: request.scale,
+        aids: careerDrivingAids(settings.get(), career.settings),
+      });
 
       // Kept only once the launch is away, so one that fails to start costs the
       // season nothing.

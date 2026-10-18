@@ -111,6 +111,19 @@ export interface ToastMessage {
    * More about it, already translated, when there is more to say.
    */
   detail?: string;
+  /**
+   * One thing to do about it, offered as a button beside it.
+   */
+  action?: {
+    /**
+     * The button's wording, already translated.
+     */
+    label: string;
+    /**
+     * Does it.
+     */
+    run(): void;
+  };
 }
 
 /**

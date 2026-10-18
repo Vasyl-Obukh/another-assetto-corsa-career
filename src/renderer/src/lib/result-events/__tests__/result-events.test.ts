@@ -86,6 +86,9 @@ const career = (seasons = 1): Career => ({
   createdAt: '',
   playedAt: '',
   driver: { name: 'Driver', nation: null },
+  settings: {
+    opponents: null, drivingAids: null, allowSameDayEvents: false, historicFrequency: 'off',
+  },
   money: 0,
   rating: {} as Career['rating'],
   startDate: '2026-01-01',

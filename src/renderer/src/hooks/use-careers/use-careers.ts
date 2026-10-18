@@ -33,23 +33,33 @@ export const useCareers = (): CareersState => {
   /**
    * Runs one command, holding the buttons while it is in flight.
    * @param command What to run
-   * @returns Whether it worked
+   * @returns What it answered, or undefined when it failed and the failure is
+   * shown
    */
-  const run = useCallback(async (command: () => Promise<void>): Promise<boolean> => {
+  const attempt = useCallback(async <T>(command: () => Promise<T>): Promise<T | undefined> => {
     setBusy(true);
     try {
-      await command();
+      const answer = await command();
       setError(null);
 
-      return true;
+      return answer;
     } catch (thrown: unknown) {
       setError(toDisplayableError(thrown));
 
-      return false;
+      return undefined;
     } finally {
       setBusy(false);
     }
   }, []);
+
+  /**
+   * Runs one command that answers nothing.
+   * @param command What to run
+   * @returns Whether it worked
+   */
+  const run = useCallback(async (command: () => Promise<void>): Promise<boolean> => (
+    await attempt(async () => { await command(); return true; }) ?? false
+  ), [attempt]);
 
   return {
     careers,
@@ -62,6 +72,15 @@ export const useCareers = (): CareersState => {
     },
     showFolder: async (id) => {
       await run(async () => { await invoke('career:folder', { id }); });
+    },
+    backup: async (id) => await attempt(() => invoke('career:backup', { id })) ?? null,
+    openBackup: async () => await attempt(() => invoke('career:openBackup', undefined)) ?? null,
+    restore: async (file, replace) => {
+      const restored = await attempt(() => invoke('career:restore', { file, replace }));
+      if (!restored) return null;
+      setCareers(restored.careers);
+
+      return restored.id;
     },
   };
 };

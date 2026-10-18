@@ -4,13 +4,24 @@ import { Link } from 'react-router';
 
 import { HISTORIC_PER_YEAR } from './constants.ts';
 import { HISTORIC_FREQUENCIES } from '../../../../shared/constants';
-import { useSettings } from '@/app';
+import type { CareerSettings } from '../../../../shared/types';
 import { Segments, SettingsSection, SwitchTile } from '@/components';
 import { path } from '@/lib/routes';
 
-export const CalendarSection = () => {
+interface CalendarSectionProps {
+  /**
+   * The career's settings, whose calendar this is.
+   */
+  settings: CareerSettings;
+  /**
+   * Changes them.
+   * @param patch What changes
+   */
+  onChange(patch: Partial<CareerSettings>): void;
+}
+
+export const CalendarSection = ({ settings, onChange }: CalendarSectionProps) => {
   const { t } = useTranslation();
-  const { settings, patch } = useSettings();
   const frequency = settings.historicFrequency;
 
   return (
@@ -27,7 +38,7 @@ export const CalendarSection = () => {
             label={t('settings.sameDayEvents')}
             hint={t('settings.sameDayEventsHint')}
             checked={settings.allowSameDayEvents}
-            onChange={(next) => patch({ allowSameDayEvents: next })}
+            onChange={(next) => onChange({ allowSameDayEvents: next })}
           />
         </div>
 
@@ -42,7 +53,7 @@ export const CalendarSection = () => {
               label={t('settings.historic.label')}
               items={HISTORIC_FREQUENCIES.map((one) => ({ id: one, label: t(`settings.historic.frequency.${one}`) }))}
               value={frequency}
-              onChange={(next) => patch({ historicFrequency: next })}
+              onChange={(next) => onChange({ historicFrequency: next })}
             />
           </div>
 

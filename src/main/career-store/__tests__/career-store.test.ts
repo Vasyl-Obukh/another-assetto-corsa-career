@@ -10,15 +10,26 @@ import {
   CAREER_ID, makeAvailability, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan, makeRound,
   makeSeason,
 } from './fixtures.ts';
+import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type {
-  Career, CareerSeason, LaunchRecord, NewCareerRequest, RaceSetup, SeriesListing, SeriesRequirements, Settings,
+  Career,
+  CareerSeason,
+  CareerSettings,
+  DrivingAids,
+  LaunchRecord,
+  NewCareerRequest,
+  RaceSetup,
+  SeriesListing,
+  SeriesRequirements,
+  Settings,
 } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import {
   fakeContentStore, fakeRaceStore, fakeSeriesStore, fakeSettingsStore, raceSetup,
 } from '../../__tests__/fakes/index.ts';
 import type { FakeRaceStore, FakeSeriesStore } from '../../__tests__/fakes/index.ts';
+import { packZip, unpackZip } from '../../zip-archive/index.ts';
 import { createCareerStore } from '../career-store.ts';
 import type { CareerStore } from '../career-store.ts';
 import { profileOf, stateOf } from '../utils.ts';
@@ -68,10 +79,15 @@ interface HarnessOptions {
    */
   historic?: readonly SeriesListing[];
   /**
-   * Settings beyond the defaults. Historic events are off unless a test turns
-   * them on, so a season holds only what the test entered.
+   * Settings beyond the defaults.
    */
   settings?: Partial<Settings>;
+  /**
+   * The career's own settings beyond the defaults, for the career it starts
+   * or opens. Historic events are off unless a test turns them on, so a season
+   * holds only what the test entered.
+   */
+  careerSettings?: Partial<CareerSettings>;
   /**
    * A career already on disk, which the harness opens - or, absent, the one it
    * starts as New career would.
@@ -92,7 +108,18 @@ const NEW_CAREER: NewCareerRequest = {
   year: 2027,
   level: 4,
   money: 100_000,
+  settings: { historicFrequency: 'off' },
 };
+
+/**
+ * New career's request, with the career's own settings a test asks for.
+ * @param settings The settings beyond the defaults
+ * @returns The request
+ */
+const newCareer = (settings: Partial<CareerSettings>): NewCareerRequest => ({
+  ...NEW_CAREER,
+  settings: { ...NEW_CAREER.settings, ...settings },
+});
 
 /**
  * The championship most tests race: two rounds, one class at the bottom rung.
@@ -126,7 +153,9 @@ const errno = (code: string): NodeJS.ErrnoException => Object.assign(new Error(c
  * @returns The store and the fakes it was handed
  */
 const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
-  if (options.career) readFileMock.mockResolvedValue(JSON.stringify(options.career));
+  const own = options.careerSettings ?? {};
+  const career = options.career && { ...options.career, settings: { ...options.career.settings, ...own } };
+  if (career) readFileMock.mockResolvedValue(JSON.stringify(career));
 
   const series = fakeSeriesStore(options.listings ?? [makeListing(CUP)]);
   const historic = fakeSeriesStore(options.historic ?? []);
@@ -137,10 +166,10 @@ const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
     historic,
     race,
     fakeContentStore(),
-    fakeSettingsStore({ historicFrequency: 'off', ...options.settings }),
+    fakeSettingsStore(options.settings),
   );
-  if (options.career) await store.open(options.career.id);
-  else if (!options.closed) await store.create(NEW_CAREER);
+  if (career) await store.open(career.id);
+  else if (!options.closed) await store.create(newCareer(own));
 
   return {
     store, series, historic, race,
@@ -314,6 +343,76 @@ const putSave = (files: Map<string, string>, id: string, career: Career): void =
     state: stateOf(career),
   }));
 };
+
+/**
+ * Holds a career's folder in memory the way a backup and a restore use it:
+ * `memoryDisk`'s files, plus the zips written beside them as bytes, and
+ * folders renamed, removed and checked for whole.
+ * @param careers The careers on disk to start with, each as its two files
+ * @returns The files, by path, and the zips, by path
+ */
+const folderDisk = (careers: readonly Career[] = []): { files: Map<string, string>; zips: Map<string, Buffer> } => {
+  const files = memoryDisk(careers);
+  const zips = new Map<string, Buffer>();
+  const inside = (folder: string): string[] => [...files.keys()]
+    .filter((file) => file === folder || file.startsWith(`${folder}${path.sep}`));
+
+  writeFileMock.mockImplementation((async (file: unknown, data: unknown) => {
+    if (String(file).endsWith('.zip')) zips.set(String(file), data as Buffer);
+    else files.set(String(file), Buffer.isBuffer(data) ? data.toString() : String(data));
+  }) as typeof writeFile);
+  // Bytes when asked for no encoding, as a backup reads its files.
+  readFileMock.mockImplementation((async (file: unknown, encoding?: unknown) => {
+    const zip = zips.get(String(file));
+    if (zip) return zip;
+    const held = files.get(String(file));
+    if (held === undefined) throw errno('ENOENT');
+
+    return encoding ? held : Buffer.from(held);
+  }) as typeof readFile);
+  jest.mocked(rename).mockImplementation(async (from: unknown, to: unknown) => {
+    const moved = inside(String(from));
+    if (moved.length === 0) throw errno('ENOENT');
+    for (const file of moved) {
+      const held = files.get(file) ?? '';
+      files.delete(file);
+      files.set(`${String(to)}${file.slice(String(from).length)}`, held);
+    }
+  });
+  jest.mocked(rm).mockImplementation(async (target: unknown, options?: unknown) => {
+    const gone = inside(String(target));
+    if (gone.length === 0 && !(options as { force?: boolean } | undefined)?.force) throw errno('ENOENT');
+    for (const file of gone) files.delete(file);
+  });
+  jest.mocked(access).mockImplementation(async (target: unknown) => {
+    if (inside(String(target)).length === 0) throw errno('ENOENT');
+  });
+
+  return { files, zips };
+};
+
+/**
+ * A career's backup, as Back up writes one.
+ * @param career The career it holds
+ * @param over Files to add, or to put in place of the career's own, by path
+ * @returns The zip
+ */
+const backupOf = (career: Career, over: Record<string, string> = {}): Promise<Buffer> => {
+  const held: Record<string, string> = {
+    'backup.json': JSON.stringify({ version: 1, kind: 'career', backedUpAt: '2027-06-14T21:40:00.000Z' }),
+    'career.json': JSON.stringify(profileOf(career)),
+    'state.json': JSON.stringify(stateOf(career)),
+    'results/2027-03-07T10-00-00.json': '{}',
+    ...over,
+  };
+
+  return packZip(Object.entries(held).map(([name, data]) => ({ name, data: Buffer.from(data) })));
+};
+
+/**
+ * Where a backup a test restores is kept.
+ */
+const BACKUP_FILE = 'D:\\backups\\career.zip';
 
 describe('main/career-store', () => {
   let open: CareerStore | null = null;
@@ -527,11 +626,11 @@ describe('main/career-store', () => {
       const { store, historic } = await build({
         closed: true,
         historic: [historicListing('h1')],
-        settings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'quarterly' },
       });
       historic.drawField = async () => { throw new Error('no field'); };
 
-      await expect(store.create(NEW_CAREER)).rejects.toThrow('no field');
+      await expect(store.create(newCareer({ historicFrequency: 'quarterly' }))).rejects.toThrow('no field');
       expect(store.get()).toBeNull();
     });
 
@@ -551,6 +650,17 @@ describe('main/career-store', () => {
 
       await expect(store.create(NEW_CAREER)).rejects.toMatchObject({ code: 'run.inFlight' });
       expect(store.get()?.id).toBe(career.id);
+    });
+
+    it('starts a career on the default settings, but for any New career was handed', async () => {
+      const { store } = await build({ closed: true });
+      await store.create({ ...NEW_CAREER, settings: undefined });
+
+      expect(store.get()?.settings).toEqual(DEFAULT_CAREER_SETTINGS);
+
+      await store.create({ ...NEW_CAREER, settings: { allowSameDayEvents: true } });
+
+      expect(store.get()?.settings).toEqual({ ...DEFAULT_CAREER_SETTINGS, allowSameDayEvents: true });
     });
   });
 
@@ -754,6 +864,44 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('setSettings', () => {
+    it("sets the open career's own opponents, and follows the app's again on null", async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ opponents: { strength: 72, aggression: 55 } });
+
+      expect(store.get()?.settings.opponents).toEqual({ strength: 72, aggression: 55 });
+
+      await store.setSettings({ opponents: null });
+
+      expect(store.get()?.settings.opponents).toBeNull();
+    });
+
+    it('changes only what the patch names, read back the tolerant way', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ drivingAids: { abs: 0 } });
+      await store.setSettings({ opponents: { strength: 140, aggression: 30 } });
+
+      expect(store.get()?.settings).toMatchObject({
+        drivingAids: { abs: 0 }, opponents: { strength: 100, aggression: 30 }, historicFrequency: 'off',
+      });
+    });
+
+    it('writes them to career.json, beside the driver rather than in the state', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ allowSameDayEvents: true });
+      await store.flush();
+
+      expect((lastWritten('career.json') as Career).settings.allowSameDayEvents).toBe(true);
+      expect(lastWritten('state.json')).not.toHaveProperty('settings');
+    });
+
+    it('refuses with no career open', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.setSettings({ allowSameDayEvents: true })).rejects.toMatchObject({ code: 'career.none' });
+    });
+  });
+
   describe('calendar', () => {
     it('starts a new career on 1 January of the year it asks for, the whole season ahead', async () => {
       const { store } = await build();
@@ -792,7 +940,7 @@ describe('main/career-store', () => {
     it("draws the season's historic events when the career starts, on weekdays only", async () => {
       const { store } = await build({
         historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
-        settings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'quarterly' },
       });
       await store.calendar();
       const season = store.get()?.seasons[0];
@@ -808,7 +956,7 @@ describe('main/career-store', () => {
     it('never draws a season twice', async () => {
       const { store } = await build({
         historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
-        settings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'quarterly' },
       });
       await store.calendar();
       const first = store.get()?.seasons[0].entries.map((one) => one.events[0].date);
@@ -820,11 +968,11 @@ describe('main/career-store', () => {
     it('draws a season it could not read the pool for on a later read', async () => {
       const { store, historic } = await build({
         historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
-        settings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'quarterly' },
         closed: true,
       });
       historic.failList(new Error('install not located'));
-      await store.create(NEW_CAREER);
+      await store.create(newCareer({ historicFrequency: 'quarterly' }));
 
       expect(store.get()?.seasons[0].historicDrawn).toBeFalsy();
 
@@ -838,7 +986,8 @@ describe('main/career-store', () => {
     it('leaves out a historic event switched off', async () => {
       const { store } = await build({
         historic: ['h1', 'h2'].map(historicListing),
-        settings: { historicFrequency: 'quarterly', historicActive: { h1: false } },
+        careerSettings: { historicFrequency: 'quarterly' },
+        settings: { historicActive: { h1: false } },
       });
       await store.calendar();
 
@@ -1121,7 +1270,7 @@ describe('main/career-store', () => {
       const { store } = await build({
         career: entered('2027-12-20'),
         historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
-        settings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'quarterly' },
       });
       await store.advanceTo('2028-01-02', true);
       const seasons = store.get()?.seasons ?? [];
@@ -1276,6 +1425,63 @@ describe('main/career-store', () => {
 
       await expect(store.launch({ series: CUP.id, round: 'one' }))
         .rejects.toMatchObject({ code: 'career.event.notEntered' });
+    });
+
+    it("lowers the round over the career's own opponents, or the app's while it follows them", async () => {
+      const career = careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01')] })] });
+      const { store, series } = await build({ career, settings: { opponents: { strength: 90, aggression: 20 } } });
+      const seen: unknown[] = [];
+      const lower = series.lowerRound;
+      series.lowerRound = async (championship, request, step, opponents) => {
+        seen.push(opponents);
+
+        return lower(championship, request, step, opponents);
+      };
+      await store.event({ series: CUP.id, round: 'one' });
+      await store.setSettings({ opponents: { strength: 70, aggression: 60 } });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(seen[0]).toEqual({ strength: 90, aggression: 20 });
+      expect(seen.at(-1)).toEqual({ strength: 70, aggression: 60 });
+    });
+
+    it("launches with the career's own driving aids, or the app's while it follows them", async () => {
+      const career = careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01')] })] });
+      const { store, race } = await build({ career, settings: { drivingAids: { abs: 2 } } });
+      const aids: (DrivingAids | undefined)[] = [];
+      race.launch = async (options) => {
+        aids.push(options?.aids);
+
+        return race.get();
+      };
+      await store.launch({ series: CUP.id, round: 'one' });
+      await store.setSettings({ drivingAids: { abs: 0, autoClutch: true } });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(aids).toEqual([{ abs: 2 }, { abs: 0, autoClutch: true }]);
+    });
+
+    it('clashes two events on one day unless the career allows them', async () => {
+      const other = makeChampionship({ id: 'other-cup', name: 'Other Cup' });
+      const career = careerWith({
+        entries: [
+          makeEntry({ events: [makeEvent('one', '2027-03-07')] }),
+          makeEntry({
+            series: other.id,
+            championship: other,
+            events: [makeEvent('one', '2027-03-07', { raceId: 'other-cup/one' })],
+          }),
+        ],
+      });
+      const { store } = await build({ career });
+
+      await expect(store.launch({ series: CUP.id, round: 'one' }))
+        .rejects.toMatchObject({ code: 'career.event.sameDay' });
+
+      await store.setSettings({ allowSameDayEvents: true });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.date).toBe('2027-03-07');
     });
   });
 
@@ -1717,6 +1923,221 @@ describe('main/career-store', () => {
 
       await expect(store.savesFolderOf(OTHER_ID)).rejects.toMatchObject({ code: 'career.notFound' });
       expect(mkdir).not.toHaveBeenCalledWith(expect.stringContaining('saves'), expect.anything());
+    });
+  });
+
+  describe('backupName', () => {
+    it('names the backup after the driver and the day the clock stands at', async () => {
+      onDisk([makeCareer({ date: '2027-06-14', driver: { name: 'Eterry', nation: 'GBR' } })]);
+      const { store } = await build({ closed: true });
+
+      expect(await store.backupName(CAREER_ID)).toBe('eterry-career-2027-06-14.zip');
+    });
+
+    it('reads the open career from memory, which is ahead of its file', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setDriver({ name: 'Oksana', nation: 'UKR' });
+
+      expect(await store.backupName(CAREER_ID)).toBe('oksana-career-2027-01-01.zip');
+    });
+
+    it('refuses a career that is not there', async () => {
+      const { store } = await build({ closed: true });
+
+      await expect(store.backupName(OTHER_ID)).rejects.toMatchObject({ code: 'career.notFound' });
+    });
+  });
+
+  describe('backup', () => {
+    it("writes the career's folder as one zip, saying when, and how many saves and results went in", async () => {
+      const { store } = await build({ closed: true });
+      const career = careerWith({});
+      const { files, zips } = folderDisk([career]);
+      putSave(files, 'quicksave', career);
+      files.set(path.join(folderOf(), 'results', '2027-03-07T10-00-00.json'), '{}');
+      files.set(path.join(folderOf(), 'notes.txt'), 'not a career file');
+
+      const written = await store.backup(CAREER_ID, 'D:\\out\\career.zip');
+      const entries = await unpackZip(zips.get('D:\\out\\career.zip') ?? Buffer.alloc(0));
+
+      expect(written).toEqual({ file: 'D:\\out\\career.zip', saves: 1, results: 1 });
+      expect(entries.map((one) => one.name)).toEqual([
+        'backup.json', 'career.json', 'state.json', 'saves/quicksave.json', 'results/2027-03-07T10-00-00.json',
+      ]);
+      expect(JSON.parse(entries[0].data.toString())).toEqual({
+        version: 1, kind: 'career', backedUpAt: NOW.toISOString(),
+      });
+    });
+
+    it('writes whatever the open career still had to write first', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      const { zips } = folderDisk([careerWith({})]);
+      await store.setDriver({ name: 'Oksana', nation: 'UKR' });
+      await store.backup(CAREER_ID, 'D:\\out\\career.zip');
+      const entries = await unpackZip(zips.get('D:\\out\\career.zip') ?? Buffer.alloc(0));
+      const profile = JSON.parse(entries.find((one) => one.name === 'career.json')?.data.toString() ?? '{}');
+
+      expect(profile.driver.name).toBe('Oksana');
+    });
+
+    it('refuses a career that is not there, writing nothing', async () => {
+      const { store } = await build({ closed: true });
+      const { zips } = folderDisk();
+
+      await expect(store.backup(OTHER_ID, 'D:\\out\\career.zip')).rejects.toMatchObject({ code: 'career.notFound' });
+      expect(zips.size).toBe(0);
+    });
+  });
+
+  describe('readBackup', () => {
+    it('says what a backup holds, restoring nothing of it', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk();
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+
+      expect(await store.readBackup(BACKUP_FILE)).toMatchObject({
+        file: BACKUP_FILE,
+        career: { id: CAREER_ID, date: '2027-06-14' },
+        saves: 0,
+        results: 1,
+        backedUpAt: '2027-06-14T21:40:00.000Z',
+        here: null,
+      });
+      expect(files.size).toBe(0);
+    });
+
+    it('says when the career it holds is here already', async () => {
+      const { store } = await build({ closed: true });
+      const { zips } = folderDisk([careerWith({})]);
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+
+      expect((await store.readBackup(BACKUP_FILE)).here).toMatchObject({ id: CAREER_ID, date: '2027-01-01' });
+    });
+
+    it('refuses a zip holding no career that reads, and a file that is no zip', async () => {
+      const { store } = await build({ closed: true });
+      const { zips } = folderDisk();
+      zips.set(BACKUP_FILE, await packZip([{ name: 'readme.txt', data: Buffer.from('hello') }]));
+      zips.set('D:\\backups\\photo.zip', Buffer.from('not a zip at all, not even close'));
+
+      await expect(store.readBackup(BACKUP_FILE)).rejects.toMatchObject({ code: 'backup.notCareer' });
+      await expect(store.readBackup('D:\\backups\\photo.zip')).rejects.toMatchObject({ code: 'zip.unreadable' });
+    });
+  });
+
+  describe('restore', () => {
+    it('restores a career that is not here under its own id, its saves and results with it', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk();
+      const career = careerWith({}, '2027-06-14');
+      zips.set(BACKUP_FILE, await backupOf(career, {
+        'saves/quicksave.json': JSON.stringify({
+          version: 1, savedAt: '2027-06-01T10:00:00.000Z', date: '2027-06-01', state: stateOf(career),
+        }),
+      }));
+
+      const restored = await store.restore(BACKUP_FILE, false);
+
+      expect(restored.id).toBe(CAREER_ID);
+      expect(restored.careers.map((one) => one.id)).toEqual([CAREER_ID]);
+      expect([...files.keys()].sort()).toEqual([
+        path.join(folderOf(), 'career.json'),
+        path.join(folderOf(), 'results', '2027-03-07T10-00-00.json'),
+        path.join(folderOf(), 'saves', 'quicksave.json'),
+        path.join(folderOf(), 'state.json'),
+      ].sort());
+    });
+
+    it('keeps both, the backup coming back as a career of its own that names its new id', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk([careerWith({})]);
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+
+      const { id, careers } = await store.restore(BACKUP_FILE, false);
+      const profile = JSON.parse(files.get(path.join(folderOf(id), 'career.json')) ?? '{}');
+
+      expect(id).not.toBe(CAREER_ID);
+      expect(profile.id).toBe(id);
+      expect(careers.map((one) => one.id).sort()).toEqual([CAREER_ID, id].sort());
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-01-01');
+    });
+
+    // Fixed: replacing the career a page was showing left its saves panel on
+    // the saves of the career it replaced, since its id had not changed.
+    it('replaces the career here when asked, and says what its saves now are', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk([careerWith({})]);
+      putSave(files, 'quicksave', careerWith({}));
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+      const heard: string[][] = [];
+      store.onSaves((saves) => heard.push(saves.saves.map((one) => one.id)));
+
+      const { id } = await store.restore(BACKUP_FILE, true);
+
+      expect(id).toBe(CAREER_ID);
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-06-14');
+      // A save the backup did not hold goes with the career it replaced.
+      expect(files.has(saveFile('quicksave'))).toBe(false);
+      expect(heard).toEqual([[]]);
+    });
+
+    it('refuses to replace the career that is open, leaving it as it was', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      const { files, zips } = folderDisk([careerWith({})]);
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+
+      await expect(store.restore(BACKUP_FILE, true)).rejects.toMatchObject({ code: 'career.open' });
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-01-01');
+    });
+
+    it('gives a career whose id no folder could be named after a new one', async () => {
+      const { store } = await build({ closed: true });
+      const { zips } = folderDisk();
+      zips.set(BACKUP_FILE, await backupOf({ ...careerWith({}), id: '../elsewhere' }));
+
+      const { id } = await store.restore(BACKUP_FILE, false);
+
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    });
+
+    // Fixed: a failed swap used to leave the career replaced in a folder the
+    // Careers list never reads, so it vanished.
+    it('puts the career here back when the backup cannot be moved into its place', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk([careerWith({})]);
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}, '2027-06-14')));
+      const move = jest.mocked(rename).getMockImplementation();
+      jest.mocked(rename).mockImplementation(async (from, to) => {
+        if (String(from).endsWith('.restoring')) throw errno('EPERM');
+        await move?.(from, to);
+      });
+
+      await expect(store.restore(BACKUP_FILE, true)).rejects.toThrow('EPERM');
+      expect(JSON.parse(files.get(path.join(folderOf(), 'state.json')) ?? '{}').date).toBe('2027-01-01');
+      expect([...files.keys()].every((file) => !file.includes('.restoring') && !file.includes('.replaced'))).toBe(true);
+    });
+
+    it('leaves nothing half written when a file of the backup cannot be written', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk();
+      zips.set(BACKUP_FILE, await backupOf(careerWith({})));
+      const write = writeFileMock.getMockImplementation();
+      writeFileMock.mockImplementation((async (file: unknown, data: unknown) => {
+        if (String(file).endsWith('state.json')) throw errno('ENOSPC');
+        await write?.(file as never, data as never);
+      }) as typeof writeFile);
+
+      await expect(store.restore(BACKUP_FILE, false)).rejects.toThrow('ENOSPC');
+      expect(files.size).toBe(0);
+    });
+
+    it('restores nothing from a backup holding no career that reads', async () => {
+      const { store } = await build({ closed: true });
+      const { files, zips } = folderDisk();
+      zips.set(BACKUP_FILE, await backupOf(careerWith({}), { 'career.json': '{"version":2}' }));
+
+      await expect(store.restore(BACKUP_FILE, false)).rejects.toMatchObject({ code: 'backup.notCareer' });
+      expect(files.size).toBe(0);
     });
   });
 

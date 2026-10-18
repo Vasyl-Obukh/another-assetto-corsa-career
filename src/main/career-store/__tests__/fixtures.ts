@@ -3,6 +3,7 @@
 // three-session event plan. Everything the function under test does not read
 // is cast rather than written out.
 
+import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
   Career,
@@ -147,6 +148,7 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   createdAt: '2026-01-04T00:00:00.000Z',
   playedAt: '2026-01-04T00:00:00.000Z',
   driver: { name: 'Test Driver', nation: 'GBR' },
+  settings: { ...DEFAULT_CAREER_SETTINGS, historicFrequency: 'off' },
   money: 100_000,
   rating: {
     [Discipline.SINGLE_SEATER]: 1200,

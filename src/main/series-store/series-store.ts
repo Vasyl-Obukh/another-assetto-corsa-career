@@ -158,11 +158,12 @@ export const createSeriesStore = async (
    * @param request Which class, which round, the player's car, and the weather
    * a career has already drawn for it
    * @param step The player's own steps on the AI's strength for this round
+   * @param opponents The AI's strength and aggression before anything moves
+   * them, the app's when omitted
    * @returns The race the round runs as
    */
-  const lowerRound: SeriesStore['lowerRound'] = async (series, request, step = 0) => {
+  const lowerRound: SeriesStore['lowerRound'] = async (series, request, step = 0, opponents = settings.get().opponents) => {
     const installed = await content.content();
-    const { opponents } = settings.get();
 
     return roundRace(
       { series, ...request },

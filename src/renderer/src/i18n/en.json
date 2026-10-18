@@ -183,7 +183,7 @@
     "driverNamePlaceholder": "Player",
     "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks.",
     "drivingAids": "Driving aids",
-    "drivingAidsHint": "The aids you drive with, set once here and used by every session you launch. A race or a championship may still ask for something stricter, and what it names wins.",
+    "drivingAidsHint": "The aids you drive with in quick races, and in every career that does not set its own. A race or a championship may still ask for something stricter, and what it names wins.",
     "contentManager": "Content Manager",
     "contentManagerHint": "Flags Content Manager reads when it starts. They live in its own Arguments.txt, so anything you put there by hand stays where it is.",
     "contentManagerRestart": "Content Manager reads these the next time it starts.",
@@ -202,7 +202,7 @@
     "calendarHint": "Every championship races on a day of the week of its own: the top tier on Sunday, the next on Saturday, and the rest on a weekday.",
     "sameDayEvents": "Race two events on one day",
     "sameDayEventsHint": "Off, two of your events on the same day clash and racing one gives the other up. On, you can race both.",
-    "opponentsHint": "How strong and how aggressive the AI are. This is your difficulty, and every championship states its field as a step up or down from it.",
+    "opponentsHint": "How strong and how aggressive the AI are - your difficulty in quick races, and in every career that does not set its own. Every championship states its field as a step up or down from it.",
     "opponentsStrength": "AI strength",
     "opponentsAggression": "AI aggression",
     "opponentsOffsets": "A championship, a class and a round may each move these, and so may you, for a season or a round of your career on its own page. Every driver sits a little either side of their class for the season. A change reaches the next session launched, an event part-way through included, and each session records the strength it ran at.",
@@ -246,6 +246,17 @@
     },
     "careerDriver": "Driver",
     "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is.",
+    "careerOpponentsHint": "Every championship's offsets sit over these. The steps you take per season and per round stay on their own pages.",
+    "careerAidsHint": "The aids this career's sessions launch with. A race or a championship may still ask for something stricter, and what it names wins.",
+    "follow": {
+      "following": "Follows App settings",
+      "followingHint": "Switch on to set this career apart.",
+      "own": "This career's own",
+      "ownHint": "Switch off to follow App settings again.",
+      "app": "App: {{value}}",
+      "on": "on",
+      "off": "off"
+    },
     "saves": "Saves",
     "savesHint": "What a career keeps of itself along the way, besides the saves you make.",
     "autosaves": {
@@ -2469,7 +2480,7 @@
     "title": "Careers",
     "newCareer": "New career",
     "empty": "No careers yet",
-    "emptyHint": "Start one and it is listed here, with the rest.",
+    "emptyHint": "Start one, or restore one from a backup, and it is listed here with the rest.",
     "season": "Season {{year}}",
     "dateLine": "Season {{year}} · {{day}}",
     "seasons_one": "{{day}} · {{count}} season raced",
@@ -2486,7 +2497,7 @@
     "openFolder": "Open folder",
     "delete": "Delete career",
     "deleteTitle": "Delete {{driver}}'s career?",
-    "deleteHint": "Its saves, its working state and every result archived from its races go with it. This cannot be undone.",
+    "deleteHint": "Its saves, its working state and every result archived from its races go with it. This cannot be undone, so back it up first if you might want it again.",
     "nextHistoric": "Next: {{round}}, {{day}}",
     "saves": "Saves",
     "unreadable": {
@@ -2494,6 +2505,29 @@
       "chip": "Can't be read",
       "title": "This career can't be read",
       "body": "Neither its progress nor any save of it can be read, so there is nothing to carry on from. Open its folder to look, or delete it."
+    },
+    "backup": {
+      "action": "Back up…",
+      "first": "Back up first…",
+      "done": "Backed up",
+      "detail": "{{file}} · {{saves}}, {{results}}",
+      "show": "Show in folder"
+    },
+    "restore": {
+      "open": "Restore from backup…",
+      "title": "Restore from backup",
+      "saves_one": "{{count}} save",
+      "saves_other": "{{count}} saves",
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "backedUp": "backed up {{when}}",
+      "here": "This career is already here, played {{ago}}. Keep both, and the backup comes back as a career of its own; replace, and what is here now is gone.",
+      "hereUnread": "This career is already here, though it cannot be read. Keep both, and the backup comes back as a career of its own; replace, and what is here now is gone.",
+      "mode": "What happens to the career already here",
+      "keep": "Keep both",
+      "replace": "Replace what is here",
+      "confirm": "Restore",
+      "done": "Restored {{driver}}'s career"
     }
   },
   "newCareer": {

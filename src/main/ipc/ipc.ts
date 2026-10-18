@@ -164,7 +164,33 @@ export const registerHandlers = (
 
     return null;
   });
+  handle('career:backup', async ({ id }) => {
+    // No title, as for a championship's export: Windows names its own dialog.
+    const result = await dialog.showSaveDialog(focusedWindow(), {
+      defaultPath: await career.backupName(id),
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+    });
+    if (result.canceled || !result.filePath) return null;
+
+    return career.backup(id, result.filePath);
+  });
+  handle('career:openBackup', async () => {
+    const result = await dialog.showOpenDialog(focusedWindow(), {
+      properties: ['openFile'],
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+    });
+    const file = result.canceled ? null : result.filePaths[0] ?? null;
+
+    return file === null ? null : career.readBackup(file);
+  });
+  handle('career:restore', async ({ file, replace }) => career.restore(file, replace));
+  handle('career:showBackup', async ({ file }) => {
+    shell.showItemInFolder(file);
+
+    return null;
+  });
   handle('career:driver', async (driver) => career.setDriver(driver));
+  handle('career:settings', async (patch) => career.setSettings(patch));
   handle('career:saves', async ({ id }) => career.saves(id));
   handle('career:save', async (request) => career.save(request));
   handle('career:quickSave', async () => career.quickSave());

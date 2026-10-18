@@ -1,6 +1,7 @@
 import type { ShippedSeries } from '../../core/series-library/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
+  AiBase,
   Championship,
   FieldSeat,
   RaceDefinition,
@@ -106,13 +107,16 @@ export interface SeriesStore {
    * @param request Which class, which round, the player's car, and the weather
    * and the field a career has already drawn for it
    * @param step The player's own steps on the AI's strength for this round,
-   * laid over the difficulty in settings - none by default
+   * laid over the difficulty - none by default
+   * @param opponents The difficulty those steps are laid over - a career's
+   * own where it sets one, the app's when omitted
    * @returns The race the round runs as
    */
   lowerRound: (
     series: Championship,
     request: RoundRequest & CareerDraws,
     step?: number,
+    opponents?: AiBase,
   ) => Promise<RaceDefinition>;
   /**
    * Draws a season's AI field over the installed content: every seat's car,

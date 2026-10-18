@@ -20,7 +20,7 @@ export {
 } from './constants.ts';
 export type { AutosaveSlot, SaveFile } from './types.ts';
 export {
-  autosaveSlot, checkedSaveName, saveKindOf, summaryOf,
+  autosaveSlot, checkedSaveName, readSaveFile, saveKindOf, summaryOf,
 } from './utils.ts';
 
 /**

@@ -17,8 +17,9 @@ import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { GridEntry, SessionType } from './race.ts';
 import type {
-  Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability,
+  AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability,
 } from './series.ts';
+import type { DrivingAids, HistoricFrequency } from './settings.ts';
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
 } from './standings.ts';
@@ -288,6 +289,41 @@ export interface CareerProfile {
    * The day the first season opens, as an ISO date.
    */
   startDate: string;
+  /**
+   * How it is set up: the app's settings it lays its own over, and the ones
+   * that are its alone.
+   */
+  settings: CareerSettings;
+}
+
+/**
+ * A career's own settings. Kept in career.json beside its driver, so loading a
+ * save changes none of them.
+ */
+export interface CareerSettings {
+  /**
+   * How strong and how aggressive the AI are before any championship moves
+   * them, or null to follow the app's.
+   */
+  opponents: AiBase | null;
+  /**
+   * The driving aids its launches run with, or null to follow the app's.
+   */
+  drivingAids: DrivingAids | null;
+  /**
+   * Whether two of its events may fall on one day and both be raced.
+   *
+   * Off, two such events clash: racing one gives the other up. On, nothing
+   * clashes and the career can race as many championships as it likes.
+   */
+  allowSameDayEvents: boolean;
+  /**
+   * How often a season draws a historic event onto its calendar.
+   *
+   * Read when a season draws its historic events, which is when it opens, so a
+   * change reaches the next season and never re-draws the one being raced.
+   */
+  historicFrequency: HistoricFrequency;
 }
 
 /**
@@ -371,6 +407,11 @@ export interface NewCareerRequest {
    * The money it starts with.
    */
   money: number;
+  /**
+   * Any of its settings it starts with other than the defaults, which New
+   * career leaves to the career's own settings page.
+   */
+  settings?: Partial<CareerSettings>;
 }
 
 /**
@@ -491,6 +532,71 @@ export interface UnreadableCareer {
  * One career in the Careers list: one that reads, or one that does not.
  */
 export type CareerListing = CareerSummary | UnreadableCareer;
+
+/**
+ * A career's backup, read before anything of it is restored.
+ */
+export interface CareerBackup {
+  /**
+   * The backup's path, which restoring it is handed back.
+   */
+  file: string;
+  /**
+   * The career it holds, as the Careers list would show it.
+   */
+  career: CareerSummary;
+  /**
+   * How many saves it holds that read.
+   */
+  saves: number;
+  /**
+   * How many archived results it holds.
+   */
+  results: number;
+  /**
+   * When it was backed up, as an ISO timestamp, or null when the backup does
+   * not say.
+   */
+  backedUpAt: string | null;
+  /**
+   * The same career as it is here already, or null when it is not - which is
+   * when restoring asks whether to keep both or replace it.
+   */
+  here: CareerListing | null;
+}
+
+/**
+ * A backup just written.
+ */
+export interface WrittenBackup {
+  /**
+   * Where it was written.
+   */
+  file: string;
+  /**
+   * How many saves went into it.
+   */
+  saves: number;
+  /**
+   * How many archived results went into it.
+   */
+  results: number;
+}
+
+/**
+ * A career just restored, and the list it now sits in.
+ */
+export interface RestoredCareer {
+  /**
+   * The career's id - its own, or a new one when it was restored beside the
+   * copy already here.
+   */
+  id: string;
+  /**
+   * Every career, the restored one among them.
+   */
+  careers: CareerListing[];
+}
 
 /**
  * One event as the calendar screen reads it.

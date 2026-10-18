@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
-import { MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
+import { DEFAULT_CAREER_SETTINGS, MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
 import {
   Climate, Discipline, Hemisphere, SeasonLength, Weekday,
 } from '../../../shared/types/index.ts';
@@ -20,6 +20,7 @@ import {
   advanceSkips,
   advanceStop,
   archivesOf,
+  backupName,
   calendarEntry,
   checkedDriver,
   checkEdition,
@@ -37,6 +38,7 @@ import {
   inProgressEvent,
   issueForecast,
   issueForecasts,
+  keptInBackup,
   launchBlock,
   launchSkips,
   lostName,
@@ -44,6 +46,7 @@ import {
   materialiseEvents,
   openSeason,
   profileOf,
+  readBackup,
   readProfile,
   readState,
   scheduledEvents,
@@ -103,7 +106,7 @@ const makeRecord = (index: number, classification: number[] | null = null): Laun
 
 describe('main/career-store/utils', () => {
   describe('profileOf', () => {
-    it('keeps who races the career and when it began, and nothing of where it has got to', () => {
+    it('keeps who races the career, when it began and how it is set up, and nothing of where it has got to', () => {
       const career = wholeCareer();
 
       expect(profileOf(career)).toEqual({
@@ -113,6 +116,7 @@ describe('main/career-store/utils', () => {
         playedAt: career.playedAt,
         driver: career.driver,
         startDate: career.startDate,
+        settings: career.settings,
       });
     });
   });
@@ -294,6 +298,14 @@ describe('main/career-store/utils', () => {
       expect(readProfile({ ...wholeCareer(), startDate: undefined })).toBeNull();
       expect(readProfile({ ...wholeCareer(), createdAt: undefined })).toBeNull();
       expect(readProfile({ ...wholeCareer(), playedAt: undefined })).toBeNull();
+    });
+
+    // A career.json written before a career had settings of its own still
+    // reads, on the defaults, rather than going unreadable.
+    it('reads its settings field by field, falling back rather than refusing the profile', () => {
+      expect(readProfile({ ...wholeCareer(), settings: undefined })?.settings).toEqual(DEFAULT_CAREER_SETTINGS);
+      expect(readProfile({ ...wholeCareer(), settings: { historicFrequency: 'daily', allowSameDayEvents: true } })?.settings)
+        .toEqual({ ...DEFAULT_CAREER_SETTINGS, allowSameDayEvents: true });
     });
   });
 
@@ -2059,6 +2071,108 @@ describe('main/career-store/utils', () => {
       });
 
       expect(archivesOf(career).size).toBe(0);
+    });
+  });
+  describe('keptInBackup', () => {
+    it("keeps a career's two files, its saves and its archived results", () => {
+      ['career.json', 'state.json', 'saves/quicksave.json', 'saves/autosave-2.json',
+        'saves/00000000-0000-4000-8000-000000000009.json', 'results/2027-03-01T10-00-00.json']
+        .forEach((name) => expect(keptInBackup(name)).toBe(true));
+    });
+
+    it('leaves out anything else, and anything that would land outside its folder', () => {
+      ['backup.json', 'career.json.tmp', 'saves/notes.txt', 'saves/hand-named.json', 'results/.hidden.json',
+        'results/hand-copied.json', 'results/nested/one.json', 'other/one.json', '../career.json', 'saves/../../career.json', 'saves', 'saves/']
+        .forEach((name) => expect(keptInBackup(name)).toBe(false));
+    });
+  });
+
+  describe('readBackup', () => {
+    const career = wholeCareer();
+
+    /**
+     * One file of a backup, holding JSON.
+     * @param name Its path in the backup
+     * @param value What it holds
+     * @returns The entry
+     */
+    const entry = (name: string, value: unknown) => ({ name, data: Buffer.from(JSON.stringify(value)) });
+
+    /**
+     * A save's file holding the career's state, taken at a given moment.
+     * @param savedAt When it was taken
+     * @param date Where the clock stood
+     * @returns What the save's file holds
+     */
+    const save = (savedAt: string, date: string) => ({
+      version: 1, savedAt, date, name: null, state: stateOf({ ...career, date }),
+    });
+
+    it('reads the profile, the state and how many saves and results it holds', () => {
+      const read = readBackup([
+        entry('backup.json', { version: 1, kind: 'career', backedUpAt: '2027-06-14T21:40:00.000Z' }),
+        entry('career.json', profileOf(career)),
+        entry('state.json', stateOf(career)),
+        entry('saves/quicksave.json', save('2027-01-02T00:00:00.000Z', '2027-01-02')),
+        entry('results/2027-03-07T10-00-00.json', {}),
+        entry('results/2027-04-04T10-00-00.json', {}),
+        entry('stray.txt', 'nothing'),
+      ]);
+
+      expect(read).toMatchObject({
+        profile: profileOf(career),
+        state: stateOf(career),
+        backedUpAt: '2027-06-14T21:40:00.000Z',
+        saves: 1,
+        results: 2,
+      });
+      expect(read?.files.map((one) => one.name))
+        .toEqual([
+          'career.json', 'state.json', 'saves/quicksave.json',
+          'results/2027-03-07T10-00-00.json', 'results/2027-04-04T10-00-00.json',
+        ]);
+    });
+
+    it("carries on from its newest save that reads when its state.json does not, as a career's folder is read", () => {
+      const read = readBackup([
+        entry('career.json', profileOf(career)),
+        entry('state.json', { version: 2 }),
+        entry('saves/autosave-1.json', save('2027-01-02T00:00:00.000Z', '2027-01-02')),
+        entry('saves/autosave-2.json', save('2027-03-02T00:00:00.000Z', '2027-03-02')),
+        entry('saves/quicksave.json', { version: 1 }),
+      ]);
+
+      expect(read?.state.date).toBe('2027-03-02');
+      expect(read?.saves).toBe(2);
+    });
+
+    it('says nothing of when it was backed up when the backup does not', () => {
+      expect(readBackup([entry('career.json', profileOf(career)), entry('state.json', stateOf(career))])?.backedUpAt)
+        .toBeNull();
+    });
+
+    it('refuses a backup with no profile that reads, or nothing of its state', () => {
+      expect(readBackup([entry('state.json', stateOf(career))])).toBeNull();
+      expect(readBackup([entry('career.json', { version: 2 }), entry('state.json', stateOf(career))])).toBeNull();
+      expect(readBackup([entry('career.json', profileOf(career))])).toBeNull();
+      expect(readBackup([{ name: 'career.json', data: Buffer.from('{ not json') }])).toBeNull();
+    });
+  });
+
+  describe('backupName', () => {
+    const summary = summarise(makeCareer({ date: '2028-06-14', driver: { name: 'Eterry', nation: 'GBR' } }));
+
+    it("names a backup after its driver and the day the career's clock stands at", () => {
+      expect(backupName(summary)).toBe('eterry-career-2028-06-14.zip');
+    });
+
+    it('keeps letters of any script and runs everything else together into one hyphen', () => {
+      expect(backupName({ ...summary, driver: { name: " Оксана  O'Brien / Мельник! ", nation: null } }))
+        .toBe('оксана-o-brien-мельник-career-2028-06-14.zip');
+    });
+
+    it('leaves the driver out of a name with nothing in it a file name could keep', () => {
+      expect(backupName({ ...summary, driver: { name: '?!', nation: null } })).toBe('career-2028-06-14.zip');
     });
   });
 });

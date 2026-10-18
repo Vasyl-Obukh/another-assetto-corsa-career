@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button.tsx';
@@ -29,6 +30,11 @@ interface ConfirmDialogProps {
    */
   busy?: boolean;
   /**
+   * Something else to do instead, at the far end of the footer from the two
+   * buttons - backing a career up before deleting it.
+   */
+  aside?: ReactNode;
+  /**
    * Called when the user confirms.
    */
   onConfirm: () => void;
@@ -39,7 +45,7 @@ interface ConfirmDialogProps {
 }
 
 export const ConfirmDialog = ({
-  open, title, description, confirmLabel, busy, onConfirm, onClose,
+  open, title, description, confirmLabel, busy, aside, onConfirm, onClose,
 }: ConfirmDialogProps) => {
   const { t } = useTranslation();
 
@@ -52,6 +58,7 @@ export const ConfirmDialog = ({
         </DialogHeader>
 
         <DialogFooter>
+          {aside ? <div className="sm:mr-auto">{aside}</div> : null}
           <Button variant="ghost" disabled={busy} onClick={onClose}>
             {t('confirm.cancel')}
           </Button>

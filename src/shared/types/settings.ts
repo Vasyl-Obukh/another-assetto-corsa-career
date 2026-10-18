@@ -237,20 +237,6 @@ export interface Settings {
    */
   showFillerSeries: boolean;
   /**
-   * Whether two of the career's events may fall on one day and both be raced.
-   *
-   * Off, two such events clash: racing one gives the other up. On, nothing
-   * clashes and the career can race as many championships as it likes.
-   */
-  allowSameDayEvents: boolean;
-  /**
-   * How often a career season draws a historic event onto its calendar.
-   *
-   * Read when a season draws its historic events, which is when it opens, so a
-   * change reaches the next season and never re-draws the one being raced.
-   */
-  historicFrequency: HistoricFrequency;
-  /**
    * The historic events the user switched on or off, by id - only those, the
    * way `seriesActive` keeps the championships' switches. One switched off is
    * never drawn. Read it through src/shared/utils/series-toggles/, handing it

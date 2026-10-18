@@ -16,18 +16,19 @@ interface CareerRowProps {
   /**
    * Whether it is the one picked.
    */
-  picked: boolean;
+  picked?: boolean;
   /**
-   * Called when it is picked.
+   * Called when it is picked, or absent for a row shown rather than picked
+   * from - a backup's, in the restore dialog.
    */
-  onPick: () => void;
+  onPick?: () => void;
 }
 
 /**
  * One career in the list: its track, its driver, where its clock stands and
  * what it is in - enough to tell it from the others, since it has no name.
  */
-export const CareerRow = ({ career, picked, onPick }: CareerRowProps) => {
+export const CareerRow = ({ career, picked = false, onPick }: CareerRowProps) => {
   const { t } = useTranslation();
   const { formatAgo, formatDay, formatYear } = useFormat();
   const only = career.championships.length === 1 ? career.championships[0] : null;
@@ -37,16 +38,8 @@ export const CareerRow = ({ career, picked, onPick }: CareerRowProps) => {
   if (only) entered = only.name;
   else if (career.championships.length === 0) entered = t('careers.noChampionships');
 
-  return (
-    <button
-      type="button"
-      aria-pressed={picked}
-      onClick={onPick}
-      className={cn(
-        'flex w-full items-center gap-3 border-b px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-accent',
-        picked && 'bg-primary/8 shadow-[inset_3px_0_0_var(--color-primary)] hover:bg-primary/10',
-      )}
-    >
+  const body = (
+    <>
       <span className="relative h-10 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
         {career.track ? (
           <ContentImage sources={trackPictureSources(career.track)} alt="" className="object-cover" fallback={null} />
@@ -68,6 +61,22 @@ export const CareerRow = ({ career, picked, onPick }: CareerRowProps) => {
           <span className="truncate text-xs text-muted-foreground">{entered}</span>
         </span>
       </span>
+    </>
+  );
+
+  if (!onPick) return <div className="flex w-full items-center gap-3 px-3 py-2.5">{body}</div>;
+
+  return (
+    <button
+      type="button"
+      aria-pressed={picked}
+      onClick={onPick}
+      className={cn(
+        'flex w-full items-center gap-3 border-b px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-accent',
+        picked && 'bg-primary/8 shadow-[inset_3px_0_0_var(--color-primary)] hover:bg-primary/10',
+      )}
+    >
+      {body}
     </button>
   );
 };

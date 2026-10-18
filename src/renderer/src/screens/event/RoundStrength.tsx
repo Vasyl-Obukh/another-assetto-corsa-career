@@ -9,7 +9,8 @@ import { StrengthNote } from './StrengthNote.tsx';
 import { AI_RANGE, DRIVER_STRENGTH_SPREAD } from '../../../../shared/constants';
 import type { CareerEventView, EventEntry, EventStrength } from '../../../../shared/types';
 import { aiFigure } from '../../../../shared/utils/ai-figure';
-import { useSettings } from '@/app';
+import { careerOpponents } from '../../../../shared/utils/career-settings';
+import { useSettings, useSlot } from '@/app';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
@@ -52,8 +53,10 @@ export const RoundStrength = ({
   const { t } = useTranslation();
   const { formatNumber, formatSigned } = useFormat();
   const { settings } = useSettings();
+  const { career } = useSlot();
 
-  const yours = settings.opponents.strength;
+  // The career's own difficulty where it sets one.
+  const yours = careerOpponents(settings, career?.settings ?? null).strength;
   const own = strength.classes.find((one) => one.entry === entered.entry)?.offset ?? 0;
   // Everything every class shares: the championship's, the round's and the season's.
   const under = strength.championship + strength.round + strength.season;

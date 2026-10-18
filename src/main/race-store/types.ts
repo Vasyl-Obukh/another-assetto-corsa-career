@@ -1,6 +1,6 @@
 import type { LaunchResult } from '../../core/season-scoring/index.ts';
 import type {
-  AcPaths, LatestResults, LaunchRecord, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
+  AcPaths, DrivingAids, LatestResults, LaunchRecord, RaceDefinition, RaceSetup, ResultRecord, WeatherFxState,
 } from '../../shared/types/index.ts';
 
 /**
@@ -118,11 +118,12 @@ export interface RaceStore {
    * @param options How the launch runs, when it differs from the event
    * @param options.scale The factor its race is shortened by, one or absent
    * for the full race
+   * @param options.aids The driving aids it runs with, the app's when absent
    * @returns The setup, with a launch now in flight
    * @throws AppError when one is already in flight, the race is not runnable,
    * or the next launch cannot be shortened by that much
    */
-  launch(options?: { scale?: number }): Promise<RaceSetup>;
+  launch(options?: { scale?: number; aids?: DrivingAids }): Promise<RaceSetup>;
   /**
    * Stops waiting for a result, without advancing the event.
    * @returns The setup, back to idle

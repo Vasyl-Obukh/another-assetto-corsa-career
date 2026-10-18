@@ -1,8 +1,11 @@
 import { UserIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { CareerDriver } from '../../../../shared/types';
+import { CalendarSection } from './CalendarSection.tsx';
+import { CareerAidsSection } from './CareerAidsSection.tsx';
+import { CareerOpponentsSection } from './CareerOpponentsSection.tsx';
+import type { CareerDriver, CareerSettings as OwnSettings } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import { ErrorCard, ScreenBody, SettingsSection } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
@@ -11,21 +14,38 @@ import type { DisplayableError } from '@/lib/ipc';
 import { NationPicker } from '@/screens/championship-editor';
 
 /**
- * The open career's own settings - its driver, for now. Opponents, driving
- * aids and the calendar join it as overrides of the app's.
+ * The open career's own settings: its driver, its opponents and driving aids
+ * where it sets them apart from the app's, and its calendar.
  */
 export const CareerSettings = () => {
   const { t } = useTranslation();
   const { career } = useSlot();
   const [name, setName] = useState(career?.driver.name ?? '');
   const [error, setError] = useState<DisplayableError | null>(null);
+  // What the settings come to with every change still on its way to main, so a
+  // second change is made over the first rather than over what main last said.
+  const [pending, setPending] = useState<OwnSettings | null>(null);
+  const sent = useRef(0);
 
   if (!career) return null;
+  const settings = pending ?? career.settings;
 
   const save = (driver: CareerDriver): void => {
     invoke('career:driver', driver).then(
       () => setError(null),
       (thrown: unknown) => setError(toDisplayableError(thrown)),
+    );
+  };
+
+  const change = (patch: Partial<OwnSettings>): void => {
+    setPending({ ...settings, ...patch });
+    sent.current += 1;
+    const mine = sent.current;
+    // Main runs them in order, so the last to answer has all of them.
+    const settle = (): void => { if (mine === sent.current) setPending(null); };
+    invoke('career:settings', patch).then(
+      () => { setError(null); settle(); },
+      (thrown: unknown) => { setError(toDisplayableError(thrown)); settle(); },
     );
   };
 
@@ -68,6 +88,10 @@ export const CareerSettings = () => {
             </div>
           </div>
         </SettingsSection>
+
+        <CareerOpponentsSection own={settings.opponents} onChange={change} />
+        <CareerAidsSection own={settings.drivingAids} onChange={change} />
+        <CalendarSection settings={settings} onChange={change} />
       </div>
     </ScreenBody>
   );

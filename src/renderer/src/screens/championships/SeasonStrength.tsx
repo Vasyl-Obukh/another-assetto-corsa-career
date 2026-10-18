@@ -5,7 +5,8 @@ import { Link } from 'react-router';
 import { AI_RANGE, DRIVER_STRENGTH_SPREAD } from '../../../../shared/constants';
 import type { ChampionshipRun, SeasonEntry } from '../../../../shared/types';
 import { aiFigure } from '../../../../shared/utils/ai-figure';
-import { useSettings } from '@/app';
+import { careerOpponents } from '../../../../shared/utils/career-settings';
+import { useSettings, useSlot } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -47,9 +48,11 @@ export const SeasonStrength = ({
   const { t } = useTranslation();
   const { formatNumber, formatSigned } = useFormat();
   const { settings } = useSettings();
+  const { career } = useSlot();
 
   const { championship } = entry;
-  const yours = settings.opponents.strength;
+  // The career's own difficulty where it sets one.
+  const yours = careerOpponents(settings, career?.settings ?? null).strength;
   const champ = championship.grid?.strength ?? 0;
   const own = championship.entries.find((one) => one.id === entry.entry)?.grid?.strength ?? 0;
   const season = entry.strength ?? 0;

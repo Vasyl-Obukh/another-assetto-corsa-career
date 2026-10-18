@@ -25,6 +25,29 @@ export const STATE_FILE = 'state.json';
 export const CAREER_RESULTS_DIR = 'results';
 
 /**
+ * The file a backup says what it is in, beside the career's own files.
+ */
+export const BACKUP_MANIFEST = 'backup.json';
+
+/**
+ * What a backup's kind says, for when a standalone championship is backed up
+ * the same way.
+ */
+export const BACKUP_KIND = 'career';
+
+/**
+ * The suffix of the folder a career is restored into before it takes its
+ * place, which the Careers list never reads, not being a career's id.
+ */
+export const RESTORING_SUFFIX = '.restoring';
+
+/**
+ * The suffix a career being replaced by its backup is moved aside under, until
+ * the backup is in its place.
+ */
+export const REPLACED_SUFFIX = '.replaced';
+
+/**
  * What a career's id - and so its folder's name - looks like: a UUID, which is
  * what keeps a crafted id from naming any other folder.
  */

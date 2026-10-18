@@ -317,8 +317,6 @@ describe('shared/utils/settings', () => {
         hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,
-        allowSameDayEvents: true,
-        historicFrequency: 'weekly',
         historicActive: { 'british-gp-1967': false },
         autosaves: 5,
         paths: { acRoot: 'D:\\ac' },
@@ -339,12 +337,6 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ language: 'fr' }).language).toBe('en');
     });
 
-    it('keeps a historic frequency it knows and falls back to monthly for one it does not', () => {
-      expect(readSettings({ historicFrequency: 'off' }).historicFrequency).toBe('off');
-      expect(readSettings({ historicFrequency: 'daily' }).historicFrequency).toBe('monthly');
-      expect(readSettings({}).historicFrequency).toBe(DEFAULT_SETTINGS.historicFrequency);
-    });
-
     it('keeps a number of autosaves it offers and falls back to the default for any other', () => {
       expect(readSettings({ autosaves: 10 }).autosaves).toBe(10);
       expect(readSettings({ autosaves: 4 }).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
@@ -362,14 +354,6 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ weatherSystem: 'sol' }).weatherSystem).toBe('sol');
       expect(readSettings({ weatherSystem: 'seasons' }).weatherSystem)
         .toBe(DEFAULT_SETTINGS.weatherSystem);
-    });
-
-    // Two events on one day clash unless the player has said otherwise, which
-    // is the calendar's design rather than a convenience.
-    it('clashes two events on one day unless switched on, and only by a real switch', () => {
-      expect(DEFAULT_SETTINGS.allowSameDayEvents).toBe(false);
-      expect(readSettings({ allowSameDayEvents: true }).allowSameDayEvents).toBe(true);
-      expect(readSettings({ allowSameDayEvents: 'yes' }).allowSameDayEvents).toBe(false);
     });
 
     // An install with neither mod is the only thing we can assume, and plain

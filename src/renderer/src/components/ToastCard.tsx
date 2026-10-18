@@ -29,6 +29,11 @@ export const ToastCard = ({ message, onClose }: ToastCardProps) => {
         <span className="font-semibold">{message.title}</span>
         {message.detail ? <span className="text-xs text-muted-foreground">{message.detail}</span> : null}
       </div>
+      {message.action ? (
+        <Button variant="outline" size="sm" className="shrink-0" onClick={message.action.run}>
+          {message.action.label}
+        </Button>
+      ) : null}
       <Button variant="ghost" size="icon" className="size-7 shrink-0" aria-label={t('toast.close')} onClick={onClose}>
         <XIcon />
       </Button>

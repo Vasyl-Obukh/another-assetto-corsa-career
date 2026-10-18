@@ -2794,14 +2794,19 @@ proof that no layer below learned what a series is.
       and the nav is the career's less the Race tab, or Championship, Results,
       Settings for a championship and Races, Results, Settings for quick races.
       Main menu and Exit never ask
-- [ ] **Settings on two levels.** Settings keeps a global driver name and
+- [x] **Settings on two levels.** Settings keeps a global driver name and
       nation, which pre-fills New career and a new championship and is what a
       quick race races under; inside a slot the same fields edit that slot's own
-      pair. **Opponents and driving aids** follow the app unless a slot sets its
-      own, and a career keeps its own calendar settings. Inside a slot, Settings
-      switches between the slot's own and the app's. A slot's settings live in
-      its own `settings.json`, **beside its saves and never in them**, so loading
-      a save changes none of them
+      pair. **Opponents and driving aids** follow the app unless a career sets
+      its own - a switch heading each section, the figures shown dimmed while it
+      follows and saying where they part from the app's once it does not - and
+      **the calendar is the career's alone**: same-day events and how often a
+      season draws historic events left App settings, and a new career starts
+      them on the defaults. Inside a slot, Settings switches between the slot's
+      own and the app's. A career's settings live in its `career.json`, **beside
+      its saves and never in them**, so loading a save changes none of them; a
+      standalone championship takes the same opponents and aids switch when it
+      lands
 - [x] **A career's results live in its folder**, `careers/<id>/results/`, so
       deleting a career takes its results with it. **Results are part of the
       save**: after loading an older one, Results, the standings and History show
@@ -2810,8 +2815,19 @@ proof that no layer below learned what a series is.
       timeline's archives stay in the folder, unlisted, until the career goes. Load and Continue tell
       careers apart by the driver's name and flag, the season, the date and what
       was raced last - a career has no name of its own
-- [ ] Backup and restore
-- [ ] Archived results linked to career, season and round
+- [x] **Backup and restore**, a career at a time. Back up writes its folder
+      as one zip - profile, state, saves and archived results, which Explorer
+      opens - offered from the Careers page and from Delete. Restore is on the
+      Careers page - in its header, and in its empty state on a first run,
+      which the start screen's Load still reaches with no career to load. It reads the
+      backup first and shows what it holds, and asks only when that career is
+      here already: keep both, and it comes back as a career of its own, or
+      replace what is here. Written whole beside the careers before it moves
+      into place, so a restore that fails leaves nothing half done. The zip is
+      our own, over `node:zlib`, in `src/main/zip-archive/`
+- [x] Archived results linked to career, season and round: a career's archives
+      live in its folder, each launch of a round records the archive it wrote,
+      and a career's race ids name their season and edition
 
 ## Phase 7 - Economy
 
