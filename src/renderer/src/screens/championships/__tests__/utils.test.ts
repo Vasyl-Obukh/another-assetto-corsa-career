@@ -202,6 +202,14 @@ describe('renderer/screens/championships/utils', () => {
 
     it('is one purse of nothing for a championship paying nothing', () => {
       expect(pursesOf(undefined, [entry('Main')])).toEqual([{ prizes: undefined, classes: ['Main'] }]);
+      expect(pursesOf(undefined, [entry('Main')], 2)).toEqual([{ prizes: undefined, classes: ['Main'] }]);
+    });
+
+    it('pays every table at the progression speed it is handed, grouped as the purses are written', () => {
+      expect(pursesOf(championship, [entry('Am', { positions: [70] }), entry('Pro')], 1.5)).toEqual([
+        { prizes: { positions: [105], standings: [1500] }, classes: ['Am'] },
+        { prizes: { positions: [150, 75], standings: [1500] }, classes: ['Pro'] },
+      ]);
     });
   });
 

@@ -27,6 +27,10 @@ interface RoundSummarySkeletonProps {
    * stands in no table.
    */
   historic?: boolean;
+  /**
+   * Whether the round is a career's, whose money it shows beside the points.
+   */
+  paid?: boolean;
 }
 
 /**
@@ -36,12 +40,17 @@ interface RoundSummarySkeletonProps {
  * already says it will take.
  */
 export const RoundSummarySkeleton = ({
-  entered, races, round, historic = false,
+  entered, races, round, historic = false, paid = false,
 }: RoundSummarySkeletonProps) => {
   const { t } = useTranslation();
   const figures = historic
     ? ['event.summary.races', 'event.summary.prize'] as const
-    : ['event.summary.races', 'event.summary.points', 'event.summary.championship'] as const;
+    : [
+      'event.summary.races',
+      'event.summary.points',
+      'event.summary.championship',
+      ...(paid ? ['event.summary.prize'] as const : []),
+    ] as const;
 
   return (
     <Loading className="flex flex-col gap-4">

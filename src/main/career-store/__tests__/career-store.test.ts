@@ -21,6 +21,7 @@ import type {
   MissingTrack,
   NewCareerRequest,
   NewChampionshipRequest,
+  RacePlace,
   RaceSetup,
   SeriesListing,
   SeriesRequirements,
@@ -663,6 +664,16 @@ describe('main/career-store', () => {
       });
     });
 
+    it('opens its ledger on the money it starts with, at the speed asked for', async () => {
+      const { store } = await build({ closed: true });
+      await store.create({ ...NEW_CAREER, year: 2030, settings: { progression: 2 } });
+
+      expect(store.get()?.ledger).toEqual([{
+        key: 'opening', kind: 'opening', date: '2030-01-01', season: 0, amount: 100_000,
+      }]);
+      expect(store.get()?.settings.progression).toBe(2);
+    });
+
     it('writes it into a folder of its own', async () => {
       const { store } = await build();
       await store.flush();
@@ -724,7 +735,7 @@ describe('main/career-store', () => {
       const career = store.get();
 
       expect(career).toMatchObject({
-        kind: 'championship', driver: { name: 'Oksana', nation: 'UKR' }, date: '2030-01-01', money: 0,
+        kind: 'championship', driver: { name: 'Oksana', nation: 'UKR' }, date: '2030-01-01', money: 0, ledger: [],
       });
       expect(career?.seasons.map((season) => season.entries.length)).toEqual([1]);
       expect(entryOf(career)).toMatchObject({
@@ -1053,6 +1064,26 @@ describe('main/career-store', () => {
       const { store } = await build({ closed: true });
 
       await expect(store.setSettings({ allowSameDayEvents: true })).rejects.toMatchObject({ code: 'career.none' });
+    });
+
+    it('notes a change of progression speed in the ledger, moving no money', async () => {
+      const { store } = await build({ career: careerWith({}, '2027-04-01') });
+      await store.setSettings({ progression: 2 });
+
+      expect(store.get()?.settings.progression).toBe(2);
+      expect(store.get()?.money).toBe(100_000);
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        kind: 'speed', date: '2027-04-01', amount: 0, speed: { from: 1, to: 2 },
+      })]);
+    });
+
+    it('notes nothing when the speed stays as it was, a speed it cannot run at included', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ progression: 1 });
+      await store.setSettings({ progression: 7 });
+
+      expect(store.get()?.settings.progression).toBe(1);
+      expect(store.get()?.ledger).toEqual([]);
     });
   });
 
@@ -1579,12 +1610,45 @@ describe('main/career-store', () => {
       expect(view.sessions).toEqual([]);
     });
 
+    it('says what the round costs and what the career holds', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-03-07', { entryFee: 1500 })] })],
+      });
+      const { store } = await build({ career });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.money).toEqual({ fee: 1500, paid: false, balance: 100_000 });
+      expect(view.blocked).toBeNull();
+    });
+
+    it('refuses a round the career cannot pay to enter', async () => {
+      const career = makeCareer({
+        ...careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-03-07', { entryFee: 1500 })] })] }),
+        money: 1000,
+      });
+      const { store } = await build({ career });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.blocked).toMatchObject({ code: 'career.money.short', params: { fee: 1500, money: 1000 } });
+    });
+
+    it("shows a round's prize at the career's progression speed", async () => {
+      const championship = makeChampionship({ prizes: { positions: [1000] } });
+      const career = careerWith({
+        entries: [makeEntry({ championship, events: [makeEvent('one', '2027-03-07')] })],
+      });
+      const { store } = await build({ career, careerSettings: { progression: 1.5 } });
+
+      expect((await store.event({ series: CUP.id, round: 'one' })).prize).toBe(1500);
+    });
+
     it('says a round of a championship the career is not in has to be entered first', async () => {
       const { store } = await build({ career: careerWith({}) });
       const view = await store.event({ series: CUP.id, round: 'one' });
 
       expect(view.entered).toBeNull();
       expect(view.blocked?.code).toBe('career.event.notEntered');
+      expect(view.money).toBeNull();
     });
 
     it("reads a historic event off the season's own copy, with the seat it invited the player to", async () => {
@@ -1680,6 +1744,44 @@ describe('main/career-store', () => {
       await expect(store.launch({ series: CUP.id, round: 'two', skip: true })).rejects.toThrow('Content Manager');
       expect(entryOf(store.get()).events[0].status).toBe('scheduled');
       expect(store.get()?.date).toBe('2027-01-01');
+    });
+
+    it('pays the entry fee as the first session goes out, and only once', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })] })],
+      });
+      const { store } = await build({ career });
+      await store.launch({ series: CUP.id, round: 'one' });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.money).toBe(98_500);
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        key: 'fee:test-cup/one', kind: 'fee', amount: -1500, round: 'one',
+      })]);
+    });
+
+    it('refuses a launch the career cannot pay for, sending nothing out', async () => {
+      const career = makeCareer({
+        ...careerWith({ entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })] })] }),
+        money: 1000,
+      });
+      const { store, race } = await build({ career });
+
+      await expect(store.launch({ series: CUP.id, round: 'one' }))
+        .rejects.toMatchObject({ code: 'career.money.short', params: { fee: 1500, money: 1000 } });
+      expect(race.launches).toEqual([]);
+    });
+
+    it('charges nothing when the launch fails to start', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })] })],
+      });
+      const { store, race } = await build({ career });
+      race.launch = async () => { throw new Error('Content Manager is not there'); };
+
+      await expect(store.launch({ series: CUP.id, round: 'one' })).rejects.toThrow('Content Manager');
+      expect(store.get()?.money).toBe(100_000);
+      expect(store.get()?.ledger).toEqual([]);
     });
 
     it("races under the career's own driver rather than the default one", async () => {
@@ -1873,6 +1975,45 @@ describe('main/career-store', () => {
       await settled();
 
       expect(store.get()).toBe(before);
+    });
+  });
+
+  describe('settling up', () => {
+    it('pays a prize the career has earned whatever command settles it, and only once', async () => {
+      const championship = makeChampionship({ prizes: { positions: [1000, 600] } });
+      const place: RacePlace = {
+        seat: 'seat-2',
+        entry: 'main',
+        team: null,
+        driver: 'Test Driver',
+        position: 2,
+        classPosition: 2,
+        qualifyingPosition: null,
+        fastestLap: false,
+        finishPoints: 18,
+        fastestLapPoints: 0,
+        qualifyingPoints: 0,
+        points: 18,
+      };
+      const raced = makeEvent('one', '2027-03-07', {
+        status: 'raced',
+        score: {
+          round: 'one',
+          recordedAt: '2027-03-07T18:00:00.000Z',
+          races: [{
+            launch: 2, session: null, name: 'Race', pointsSystem: 'standard', places: [place],
+          }],
+        },
+      });
+      const career = careerWith({ entries: [makeEntry({ championship, events: [raced] })] }, '2027-03-07');
+      const { store } = await build({ career });
+      await store.setSettings({ allowSameDayEvents: true });
+      await store.setSettings({ allowSameDayEvents: false });
+
+      expect(store.get()?.money).toBe(100_600);
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        key: 'race:test-cup/one:2', kind: 'race', amount: 600, place: 2,
+      })]);
     });
   });
 

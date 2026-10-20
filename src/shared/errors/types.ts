@@ -72,6 +72,7 @@ export type ErrorCode =
   | 'career.year.invalid'
   | 'career.level.invalid'
   | 'career.money.invalid'
+  | 'career.money.short'
   | 'save.notFound'
   | 'save.unreadable'
   | 'save.protected'

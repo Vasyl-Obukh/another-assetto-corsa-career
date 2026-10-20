@@ -1,9 +1,10 @@
-import { InfoIcon, TriangleAlertIcon } from 'lucide-react';
+import { InfoIcon, TriangleAlertIcon, WalletIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SkipRow } from './SkipRow.tsx';
 import { skipGroups } from './utils.ts';
 import type { SkippedRound } from '../../../../shared/types';
+import { useSlot } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -58,6 +59,8 @@ export const SkipDialog = ({
   open, title, description, rounds, note, confirmLabel, busy, onConfirm, onClose,
 }: SkipDialogProps) => {
   const { t } = useTranslation();
+  // Only a career has money that skipping might be thought to cost.
+  const inCareer = useSlot().mode === 'career';
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
@@ -91,6 +94,12 @@ export const SkipDialog = ({
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <InfoIcon className="size-4 shrink-0" />
             {note}
+          </p>
+        ) : null}
+        {inCareer ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <WalletIcon className="size-4 shrink-0" />
+            {t('skip.free')}
           </p>
         ) : null}
 

@@ -19,6 +19,7 @@ import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
 import { SessionDetail } from './SessionDetail.tsx';
 import { SkipPanel } from './SkipPanel.tsx';
 import { defaultSession, scaleName, shortLaps } from './utils.ts';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { scalesFor } from '../../../../shared/utils/race-scale';
 import { useSlot } from '@/app';
 import {
@@ -44,7 +45,8 @@ export const Event = () => {
   const { formatDay, formatDayShort, formatMoney } = useFormat();
   // A standalone championship has no calendar, so a round with nowhere earlier
   // to go back to returns to the championship's own page.
-  const back = useSlot().mode === 'championship'
+  const slot = useSlot();
+  const back = slot.mode === 'championship'
     ? { to: path.standalone(), label: t('back.standalone') }
     : { to: path.calendar(), label: t('back.calendar') };
   const { series = '', round = '' } = useParams<PathParam<typeof ROUTE.event>>();
@@ -174,6 +176,9 @@ export const Event = () => {
                 {view.prize === null ? null : (
                   <span>{t('calendar.prize', { amount: formatMoney(view.prize) })}</span>
                 )}
+                {view.money?.fee ? (
+                  <span>{t('event.money.fee', { amount: formatMoney(view.money.fee) })}</span>
+                ) : null}
               </p>
             </div>
 
@@ -255,6 +260,7 @@ export const Event = () => {
                     event={historic.event}
                     availability={historic.availability}
                     playerSeat={historic.seat}
+                    speed={prizeSpeed(slot.career)}
                   />
                 </CardContent>
               </Card>
@@ -278,6 +284,7 @@ export const Event = () => {
                     races={view.sessions.filter((one) => one.type === 'race').length}
                     round={view.number}
                     historic={historic !== null}
+                    paid={view.money !== null}
                   />
                 ) : null}
               </CardContent>

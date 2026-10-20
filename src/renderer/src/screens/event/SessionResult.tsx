@@ -11,6 +11,8 @@ import type {
 } from '../../../../shared/types';
 import { aiFigure } from '../../../../shared/utils/ai-figure';
 import { formatGap, formatLapTime } from '../../../../shared/utils/lap-time';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
+import { useSlot } from '@/app';
 import {
   BonusPoints, ClassificationTable, ErrorCard, Podium, ResultCell, ResultStrip, Segments,
 } from '@/components';
@@ -52,11 +54,13 @@ export const SessionResult = ({
 }: SessionResultProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
-  const detail = useResult(record.archive);
+  const speed = prizeSpeed(useSlot().career);
+  const simulated = record.skipped === true;
+  // A simulated session archived nothing, so there is no file to ask for.
+  const detail = useResult(simulated ? null : record.archive);
 
   const [shown, setShown] = useState<string>(ALL_CLASSES);
 
-  const simulated = record.skipped === true;
   const race = session.type === 'race';
   const summary = simulated ? null : detail.record?.summary.sessions.at(-1) ?? null;
   const source = {
@@ -229,7 +233,9 @@ export const SessionResult = ({
             // A historic event pays money and no points, so its places say
             // what they were worth.
             prizeOf={view.historic && series ? (row) => (
-              row.place && !row.place.bonusOnly ? prizeFor(series, row.place.entry, row.place.classPosition) : null
+              row.place && !row.place.bonusOnly
+                ? prizeFor(series, row.place.entry, row.place.classPosition, speed)
+                : null
             ) : undefined}
           />
         </div>

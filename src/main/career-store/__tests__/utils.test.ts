@@ -62,6 +62,7 @@ import {
   stateOf,
   strengthStep,
   summarise,
+  winnerPrize,
   withSeason,
 } from '../utils.ts';
 import {
@@ -134,6 +135,7 @@ describe('main/career-store/utils', () => {
         version: 1,
         date: career.date,
         money: career.money,
+        ledger: career.ledger,
         rating: career.rating,
         level: career.level,
         seasons: career.seasons,
@@ -270,6 +272,13 @@ describe('main/career-store/utils', () => {
     it('refuses a state missing its money or rating', () => {
       expect(readState({ ...wholeCareer(), money: '100000' })).toBeNull();
       expect(readState({ ...wholeCareer(), rating: null })).toBeNull();
+    });
+
+    // A state written before the economy holds money and no ledger saying
+    // where it came from.
+    it('refuses a state whose ledger is not a list', () => {
+      expect(readState({ ...wholeCareer(), ledger: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), ledger: {} })).toBeNull();
     });
   });
 
@@ -1814,6 +1823,54 @@ describe('main/career-store/utils', () => {
       expect(calendarEntry(
         series, makeAvailability(series), series.entries[0], 2, makeEvent('one', '2026-07-05'), career, false,
       )).toMatchObject({ edition: 2, editions: 4 });
+    });
+
+    it("pays the prize at the career's progression speed", () => {
+      const series = makeChampionship({ prizes: { positions: [1000] } });
+      const fast = makeCareer({ settings: { ...career.settings, progression: 2 } });
+
+      expect(calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), fast, true,
+      ).prize).toBe(2000);
+    });
+
+    it("says what a round costs to enter, and nothing for a historic event, which the invitation covers", () => {
+      const series = makeChampionship();
+      const event = makeEvent('one', '2026-05-03', { entryFee: 1500 });
+      const row = (historic: boolean) => calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, event, career, true, historic,
+      );
+
+      expect(row(false).entryFee).toBe(1500);
+      expect(row(true).entryFee).toBeUndefined();
+    });
+  });
+
+  describe('winnerPrize', () => {
+    const series = makeChampionship({ prizes: { positions: [1000, 500] } });
+
+    it("pays a win at the career's progression speed", () => {
+      const career = makeCareer({ settings: { ...makeCareer().settings, progression: 1.5 } });
+
+      expect(winnerPrize(career, series, 'main')).toBe(1500);
+    });
+
+    it('reads the purse as it stands in a standalone championship, which has no money', () => {
+      const career = makeCareer({ kind: 'championship', settings: { ...makeCareer().settings, progression: 1.5 } });
+
+      expect(winnerPrize(career, series, 'main')).toBe(1000);
+    });
+
+    it("pays a class its own purse over the championship's", () => {
+      const own = makeChampionship({
+        prizes: { positions: [100] }, entries: [makeClassEntry({ prizes: { positions: [9000] } })],
+      });
+
+      expect(winnerPrize(makeCareer(), own, 'main')).toBe(9000);
+    });
+
+    it('says nothing where the championship pays nothing', () => {
+      expect(winnerPrize(makeCareer(), makeChampionship(), 'main')).toBeNull();
     });
   });
 

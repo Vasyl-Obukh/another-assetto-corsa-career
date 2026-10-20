@@ -19,7 +19,7 @@ import type { GridEntry, SessionType } from './race.ts';
 import type {
   AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability,
 } from './series.ts';
-import type { DrivingAids, HistoricFrequency } from './settings.ts';
+import type { Currency, DrivingAids, HistoricFrequency } from './settings.ts';
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
 } from './standings.ts';
@@ -29,8 +29,8 @@ import type { AppErrorInfo } from '../errors/types.ts';
  * What became of one event on the calendar.
  *
  * "missed" is a non-start: the clock was moved past the event without it
- * being raced. It pays nothing and costs the entry fee, which is recorded
- * rather than debited, since there is no money anywhere until Phase 7.
+ * being raced. It pays nothing and costs nothing - an entry fee is paid only
+ * for a round launched.
  */
 export type EventStatus = 'scheduled' | 'raced' | 'missed';
 
@@ -74,7 +74,8 @@ export interface SeasonEvent {
    */
   date: string;
   /**
-   * What entering it costs, frozen when the season was entered.
+   * What entering it costs, frozen when the season was entered, and paid as
+   * its first session launches.
    */
   entryFee?: number;
   /**
@@ -327,6 +328,10 @@ export interface CareerSettings {
    */
   drivingAids: DrivingAids | null;
   /**
+   * Which currency its money is shown in, or null to follow the app's.
+   */
+  currency: Currency | null;
+  /**
    * Whether two of its events may fall on one day and both be raced.
    *
    * Off, two such events clash: racing one gives the other up. On, nothing
@@ -340,6 +345,114 @@ export interface CareerSettings {
    * change reaches the next season and never re-draws the one being raced.
    */
   historicFrequency: HistoricFrequency;
+  /**
+   * What every prize it earns is multiplied by, one of `PROGRESSION_SPEEDS`.
+   * Entry fees are not.
+   */
+  progression: number;
+}
+
+/**
+ * What moved a career's money: the money it opened with, a round's entry fee,
+ * a race's prize, a championship's final standing, a historic event's purse, or
+ * a change of progression speed, which moves none.
+ */
+export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed';
+
+/**
+ * One change of a career's money, and what it was for.
+ *
+ * Names are copied in rather than looked up, so a line reads the same once the
+ * championship behind it is edited or gone.
+ */
+export interface LedgerLine {
+  /**
+   * What it settles, so the same thing is never paid twice: the event's race
+   * id for a fee, that and the launch for a race, the run for a final standing.
+   */
+  key: string;
+  /**
+   * What kind of change it is.
+   */
+  kind: LedgerKind;
+  /**
+   * The day it falls on, as an ISO date - the event's for a fee or a prize,
+   * the edition's last race day for a final standing.
+   */
+  date: string;
+  /**
+   * Which season it falls in, counting from zero.
+   */
+  season: number;
+  /**
+   * What it added, negative for what it took. Zero for a change of speed.
+   */
+  amount: number;
+  /**
+   * The championship or historic event it came from, by id.
+   */
+  series?: string;
+  /**
+   * That championship's name.
+   */
+  seriesName?: string;
+  /**
+   * Which of the season's editions.
+   */
+  edition?: number;
+  /**
+   * The round, by id.
+   */
+  round?: string;
+  /**
+   * The round's name.
+   */
+  roundName?: string;
+  /**
+   * The round's number in its championship, counting from one.
+   */
+  number?: number;
+  /**
+   * The race that paid it, by the name its format gives it.
+   */
+  race?: string;
+  /**
+   * The place it paid for: in the class in a race, or in the class's table at
+   * the end of an edition.
+   */
+  place?: number;
+  /**
+   * The speed before and after, for a change of progression speed.
+   */
+  speed?: {
+    /**
+     * The speed it ran at until then.
+     */
+    from: number;
+    /**
+     * The speed it runs at from then on.
+     */
+    to: number;
+  };
+}
+
+/**
+ * What a round costs and what the career holds, as its page shows them.
+ */
+export interface EventMoney {
+  /**
+   * What entering it costs, or null when it costs nothing - a historic event
+   * the player is invited to included.
+   */
+  fee: number | null;
+  /**
+   * Whether that fee has been paid, which it is as the first session launches.
+   */
+  paid: boolean;
+  /**
+   * The money the career holds.
+   */
+  balance: number;
 }
 
 /**
@@ -359,10 +472,14 @@ export interface CareerState {
    */
   date: string;
   /**
-   * The money it holds. Stored and shown, and spent on nothing until the
-   * economy (Phase 7) lands.
+   * The money it holds: every line of its ledger, summed, and never below
+   * zero, since a launch it cannot pay for is refused.
    */
   money: number;
+  /**
+   * Every change of its money, oldest first, each saying what moved it.
+   */
+  ledger: readonly LedgerLine[];
   /**
    * The rating it holds per discipline - the lowest of its starting level until
    * rating (Phase 8) lands, and moved by nothing before then.
@@ -778,7 +895,8 @@ export interface CalendarEntry {
    */
   gridSize: number;
   /**
-   * What winning the round pays, or null when the championship says nothing.
+   * What winning a race of the round pays, as the career would be paid it, or
+   * null when the championship says nothing.
    */
   prize: number | null;
   /**
@@ -1138,7 +1256,8 @@ export interface CareerEventView {
    */
   climate: Climate | null;
   /**
-   * What winning it pays, or null when the championship says nothing.
+   * What winning a race of it pays, as the career would be paid it, or null
+   * when the championship says nothing.
    */
   prize: number | null;
   /**
@@ -1188,6 +1307,11 @@ export interface CareerEventView {
    * Why the next session cannot be launched, or null when it can.
    */
   blocked: AppErrorInfo | null;
+  /**
+   * What the round costs and what the career holds, or null where there is no
+   * money at all: a standalone championship, or a round the career is not in.
+   */
+  money: EventMoney | null;
   /**
    * What launching the next session would cost the rest of the season: the
    * rounds it leaves unraced, and any event on the same day, which can no

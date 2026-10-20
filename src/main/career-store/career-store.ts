@@ -77,8 +77,12 @@ import {
   stateOf,
   strengthStep,
   summarise,
+  winnerPrize,
   withSeason,
 } from './utils.ts';
+import {
+  feeLine, feeOf, feeOwed, feePaid, openingLine, payOut, post, speedLine,
+} from '../../core/career-money/index.ts';
 import { planEvent } from '../../core/event/index.ts';
 import {
   historicSeat, historicSlots, planHistoric, withPlayerSeat,
@@ -583,13 +587,18 @@ export const createCareerStore = async (
   };
 
   /**
-   * Schedules a write and tells everyone watching.
+   * Pays whatever the career is owed, schedules a write and tells everyone
+   * watching.
+   *
+   * Every change ends here, so every prize lands as soon as anything has earned
+   * it - a race recorded, an edition run out by the clock - whichever command
+   * got it there.
    * @returns The career as it now stands
    */
   const settle = (): Career => {
     if (!current) throw new AppError('career.none');
     // Played is opened or changed, which every settle is one of.
-    const career: Career = { ...current, playedAt: new Date().toISOString() };
+    const career: Career = { ...payOut(current), playedAt: new Date().toISOString() };
     current = career;
 
     if (timer) clearTimeout(timer);
@@ -1180,6 +1189,7 @@ export const createCareerStore = async (
         playedAt: now,
         driver,
         money,
+        ledger: [openingLine(startDate, money)],
         rating: ratingsAt(level),
         startDate,
         settings: readCareerSettings(own),
@@ -1227,6 +1237,7 @@ export const createCareerStore = async (
         playedAt: now,
         driver,
         money: 0,
+        ledger: [],
         rating: ratingsAt(1),
         startDate,
         settings: readCareerSettings(undefined),
@@ -1398,7 +1409,13 @@ export const createCareerStore = async (
     setSettings: (patch) => commit(async () => {
       const career = await ensure();
       // Merged and read back the tolerant way, as a patch to settings.json is.
-      current = { ...career, settings: readCareerSettings({ ...career.settings, ...patch }) };
+      const next = readCareerSettings({ ...career.settings, ...patch });
+      // A change of speed is written down, so a run played at more than one
+      // says so. Only a career has money for it to change.
+      const noted = career.kind === 'career' && next.progression !== career.settings.progression
+        ? post(career, [speedLine(career, next.progression)])
+        : career;
+      current = { ...noted, settings: next };
 
       return settle();
     }),
@@ -1745,11 +1762,15 @@ export const createCareerStore = async (
       const forecast = event.forecast ? offerForecast(event.forecast, await series.offer()) : null;
       const playerSeat = held?.entry.playerSeat ?? null;
       const seat = classEntry.seats.find((one) => one.id === playerSeat);
-      const prizes = classEntry.prizes ?? championship.prizes;
 
       let blocked: AppErrorInfo | null = appErrorInfo('career.event.notEntered', { series: championship.name });
       if (closed) blocked = appErrorInfo('career.season.closed', { year: seasonYear(season) });
       else if (held) blocked = launchBlock(season, held, raceable, career.settings.allowSameDayEvents);
+      // Exactly where the launch would refuse it, once nothing else does.
+      const fee = held ? feeOwed(career, held.entry, held.event) : 0;
+      if (held && !closed && blocked === null && fee > career.money) {
+        blocked = appErrorInfo('career.money.short', { fee, money: career.money });
+      }
 
       const view: CareerEventView = {
         series: championship.id,
@@ -1764,7 +1785,7 @@ export const createCareerStore = async (
         track: round.track,
         date: event.date,
         climate,
-        prize: prizes?.positions?.[0] ?? null,
+        prize: winnerPrize(career, championship, classEntry.id),
         gridSize: classEntry.seats.length,
         status: event.status,
         clock: career.date,
@@ -1795,6 +1816,11 @@ export const createCareerStore = async (
           !closed && !!held && event.status === 'scheduled',
         ) : [],
         blocked,
+        money: held && career.kind === 'career' ? {
+          fee: feeOf(held.entry, held.event),
+          paid: feePaid(career, held.event),
+          balance: career.money,
+        } : null,
         skips: !closed && held && event.status === 'scheduled'
           ? launchSkips(season, held, career.settings.allowSameDayEvents)
           : [],
@@ -1846,6 +1872,9 @@ export const createCareerStore = async (
       const availability = await series.validate(held.entry.championship);
       const block = launchBlock(season, held, heldRaceable(availability, held), career.settings.allowSameDayEvents);
       if (block) throw new AppError(block.code, block.params);
+      // Paid as the first session goes out, and never into debt.
+      const fee = feeOwed(career, held.entry, held.event);
+      if (fee > career.money) throw new AppError('career.money.short', { fee, money: career.money });
 
       // What this event costs the rest of the season, which the player has to
       // have been shown and agreed to - an event on the same day included,
@@ -1887,10 +1916,12 @@ export const createCareerStore = async (
       });
 
       // Kept only once the launch is away, so one that fails to start costs the
-      // season nothing.
-      if (date !== career.date || lost.length > 0 || event.forecast !== held.event.forecast) {
-        current = withSeason({ ...career, date }, moved);
-        await catchUp();
+      // season nothing - its entry fee included.
+      const changed = date !== career.date || lost.length > 0 || event.forecast !== held.event.forecast;
+      if (changed || fee > 0) {
+        const next = changed ? withSeason({ ...career, date }, moved) : career;
+        current = fee > 0 ? post(next, [feeLine(season, held.entry, event, fee)]) : next;
+        if (changed) await catchUp();
         settle();
       }
 

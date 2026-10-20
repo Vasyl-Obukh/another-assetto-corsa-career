@@ -29,6 +29,7 @@ import type {
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
+import { scaledPrize } from '../../../../shared/utils/prizes';
 import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { ProvenancePicks } from '@/components';
@@ -122,11 +123,14 @@ export const pointsOf = (
  * as repeats. A table a class leaves out is the championship's.
  * @param prizes What the championship pays
  * @param entries Its classes, any of which may pay its own
+ * @param speed The progression speed the amounts are paid at - `prizeSpeed`'s
+ * answer in a career, 1 for the purse as written
  * @returns One per distinct purse, in class order
  */
 export const pursesOf = (
   prizes: PrizeMoney | undefined,
   entries: readonly ClassEntry[],
+  speed = 1,
 ): Purse[] => {
   const purses = new Map<string, Purse>();
 
@@ -140,8 +144,12 @@ export const pursesOf = (
     purse.classes.push(entry.name);
     purses.set(key, purse);
   });
+  const scaled = (table: readonly number[] | undefined) => table?.map((amount) => scaledPrize(amount, speed));
 
-  return [...purses.values()];
+  return [...purses.values()].map((purse) => (speed === 1 || !purse.prizes ? purse : {
+    ...purse,
+    prizes: { positions: scaled(purse.prizes.positions), standings: scaled(purse.prizes.standings) },
+  }));
 };
 
 /**

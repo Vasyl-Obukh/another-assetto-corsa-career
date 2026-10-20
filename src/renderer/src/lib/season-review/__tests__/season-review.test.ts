@@ -330,6 +330,21 @@ describe('renderer/lib/season-review/season-review', () => {
       expect(prizeFor(series, 'main', 9)).toBeNull();
       expect(prizeFor(makeSeries(), 'main', 1)).toBeNull();
     });
+
+    it('pays at the progression speed it is handed', () => {
+      expect(prizeFor(series, 'main', 1, 1.5)).toBe(750);
+    });
+
+    // Fixed: a class stating only its final-standings table read as paying
+    // nothing per race, though the event's race purse covers it.
+    it("pays a class out of the event's race purse where it states only a final-standings table", () => {
+      const standingsOnly = makeSeries({
+        prizes: { positions: [100] },
+        entries: [{ ...makeSeries().entries[0], prizes: { standings: [5000] } }],
+      });
+
+      expect(prizeFor(standingsOnly, 'main', 1)).toBe(100);
+    });
   });
 
   describe('historicReview', () => {
@@ -375,6 +390,10 @@ describe('renderer/lib/season-review/season-review', () => {
         multiClass: false,
         prize: 1000,
       });
+    });
+
+    it('pays its prize at the progression speed it is handed', () => {
+      expect(historicReview(season(won), 2).rows[0].prize).toBe(2000);
     });
 
     it('pays every race of an event and finishes it where its last race did', () => {

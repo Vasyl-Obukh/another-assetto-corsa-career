@@ -9,14 +9,19 @@ interface HistoricPrizesProps {
    * The historic event.
    */
   event: Championship;
+  /**
+   * The progression speed its prize money is shown at, 1 for the purse as
+   * written.
+   */
+  speed?: number;
 }
 
 // What a historic event pays a place, in money alone: its points table pays
 // nothing, so it is left out of the table rather than shown as a column of
 // zeroes.
-export const HistoricPrizes = ({ event }: HistoricPrizesProps) => {
+export const HistoricPrizes = ({ event, speed = 1 }: HistoricPrizesProps) => {
   const { t } = useTranslation();
-  const purses = pursesOf(event.prizes, event.entries);
+  const purses = pursesOf(event.prizes, event.entries, speed);
   const paid = purses.some((purse) => (purse.prizes?.positions?.length ?? 0) > 0);
 
   if (!paid) return <p className="text-sm text-muted-foreground">{t('historic.about.noPrizes')}</p>;

@@ -21,6 +21,7 @@ import type {
 } from '../../../../shared/types';
 import { editionOver, editionsOf } from '../../../../shared/utils/editions';
 import { championshipEntries, historicEntries } from '../../../../shared/utils/historic';
+import { prizeTable, scaledPrize } from '../../../../shared/utils/prizes';
 import { entryResults } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
 import { seasonResults } from '@/lib/season-results';
@@ -272,15 +273,16 @@ export const yearReview = (season: CareerSeason, today: string): YearReview => {
  * @param series The championship or historic event
  * @param entry The class entry's id
  * @param classPosition The place within the class, counting from one
+ * @param speed The progression speed it is paid at - `prizeSpeed`'s answer
  * @returns The prize, or null for a place that pays nothing
  */
 export const prizeFor = (
   series: Championship,
   entry: string | null | undefined,
   classPosition: number,
+  speed = 1,
 ): number | null => {
-  const held = series.entries.find((one) => one.id === entry);
-  const prize = (held?.prizes?.positions ?? series.prizes?.positions ?? [])[classPosition - 1] ?? 0;
+  const prize = scaledPrize(prizeTable(series, entry, 'positions')[classPosition - 1] ?? 0, speed);
 
   return prize > 0 ? prize : null;
 };
@@ -300,9 +302,10 @@ const outcomeOf = (entry: SeasonEntry): HistoricOutcome => {
 /**
  * One historic event of a season, as a list of them reads it.
  * @param entry The historic event, as the season holds it
+ * @param speed The progression speed its prizes are paid at
  * @returns Its row
  */
-const historicRow = (entry: SeasonEntry): HistoricRow => {
+const historicRow = (entry: SeasonEntry, speed: number): HistoricRow => {
   const event = entry.events[0];
   const round = entry.championship.rounds.find((one) => one.id === event?.round);
   const held = entry.championship.entries.find((one) => one.id === entry.entry);
@@ -315,7 +318,7 @@ const historicRow = (entry: SeasonEntry): HistoricRow => {
   const last = places.at(-1);
   // Per race, as a purse pays.
   const prize = places.reduce((sum, place) => (
-    sum + (prizeFor(entry.championship, entry.entry, place.classPosition) ?? 0)
+    sum + (prizeFor(entry.championship, entry.entry, place.classPosition, speed) ?? 0)
   ), 0);
 
   return {
@@ -340,11 +343,13 @@ const historicRow = (entry: SeasonEntry): HistoricRow => {
 /**
  * A season's historic events, looked back on.
  * @param season The season
+ * @param speed The progression speed their prizes are paid at - `prizeSpeed`'s
+ * answer
  * @returns Every one it drew, and what the player made of them
  */
-export const historicReview = (season: CareerSeason): HistoricReview => {
+export const historicReview = (season: CareerSeason, speed = 1): HistoricReview => {
   const rows = historicEntries(season)
-    .map(historicRow)
+    .map((entry) => historicRow(entry, speed))
     .sort((left, right) => left.date.localeCompare(right.date));
   const raced = rows.filter((row) => row.finished !== null);
 

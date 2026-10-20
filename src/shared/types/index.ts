@@ -147,11 +147,14 @@ export type {
   ChampionshipStanding,
   EventClassOption,
   EventEntry,
+  EventMoney,
   EventSession,
   EventSessionStatus,
   EventStatus,
   EventStrength,
   HistoricView,
+  LedgerKind,
+  LedgerLine,
   NewCareerRequest,
   NewChampionshipRequest,
   PositionPoints,
@@ -234,6 +237,7 @@ export type {
 
 export type {
   AddedContent,
+  Currency,
   DrivingAidFlag,
   DrivingAidNumber,
   DrivingAids,

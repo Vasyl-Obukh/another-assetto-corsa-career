@@ -1,7 +1,8 @@
 import i18next from 'i18next';
+import { useContext, useMemo } from 'react';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
-import { FALLBACK_LANGUAGE } from './constants.ts';
+import { FALLBACK_LANGUAGE, MoneyCurrency } from './constants.ts';
 import en from './en.json';
 import type { Formatters } from './types.ts';
 import uk from './uk.json';
@@ -14,7 +15,7 @@ export type { Formatters } from './types.ts';
 export {
   formatAppError, formatContentIssueReason, formatDayRange, formattersFor,
 } from './utils.ts';
-export { WordingKind } from './constants.ts';
+export { MoneyCurrency, WordingKind } from './constants.ts';
 export { useAppError } from './use-app-error.ts';
 export { useContentIssueReason } from './use-content-issue-reason.ts';
 export { useKindTranslation } from './use-kind-translation.ts';
@@ -62,11 +63,18 @@ export const setLanguage = async (language: Language): Promise<void> => {
 };
 
 /**
- * Reads formatters bound to the language currently in force.
+ * Reads formatters bound to the language currently in force, money shown in
+ * the currency in force where a caller names none.
  * @returns Formatters for dates, numbers, money and durations
  */
 export const useFormat = (): Formatters => {
   const { i18n } = useTranslation();
+  const currency = useContext(MoneyCurrency);
+  const language = (i18n.language.split('-')[0] as Language) ?? FALLBACK_LANGUAGE;
 
-  return formattersFor((i18n.language.split('-')[0] as Language) ?? FALLBACK_LANGUAGE);
+  return useMemo<Formatters>(() => {
+    const formatters = formattersFor(language);
+
+    return { ...formatters, formatMoney: (value, code = currency) => formatters.formatMoney(value, code) };
+  }, [language, currency]);
 };

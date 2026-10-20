@@ -2,7 +2,7 @@
 
 import { WeatherType } from './weather-types.ts';
 import type {
-  AiBase, CareerSettings, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
+  AiBase, CareerSettings, Currency, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
 } from '../types/index.ts';
 
 /**
@@ -36,6 +36,17 @@ export const HISTORIC_FREQUENCIES: readonly HistoricFrequency[] = [
  * offers them in.
  */
 export const AUTOSAVE_COUNTS = [1, 3, 5, 10] as const;
+
+/**
+ * Every currency money may be shown in, in menu order.
+ */
+export const CURRENCIES: readonly Currency[] = ['USD', 'EUR', 'GBP'];
+
+/**
+ * The progression speeds a career may run at, slowest first - what every prize
+ * it earns is multiplied by.
+ */
+export const PROGRESSION_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4] as const;
 
 /**
  * The weather a fresh install lets into the sim, in menu order.
@@ -75,14 +86,17 @@ export const DEFAULT_ALLOWED_WEATHER: readonly WeatherType[] = [
 export const DEFAULT_OPPONENTS: AiBase = { strength: 88, aggression: 30 };
 
 /**
- * What a new career's settings start as: following the app's opponents and
- * driving aids, two events on one day clashing, and a historic event a month.
+ * What a new career's settings start as: following the app's opponents,
+ * driving aids and currency, two events on one day clashing, a historic event a
+ * month, and prizes paid as they stand.
  */
 export const DEFAULT_CAREER_SETTINGS: CareerSettings = {
   opponents: null,
   drivingAids: null,
+  currency: null,
   allowSameDayEvents: false,
   historicFrequency: 'monthly',
+  progression: 1,
 };
 
 /**
@@ -102,6 +116,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showFillerSeries: true,
   historicActive: {},
   autosaves: 3,
+  currency: 'USD',
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

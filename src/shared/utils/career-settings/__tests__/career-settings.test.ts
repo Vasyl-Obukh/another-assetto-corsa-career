@@ -2,7 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DEFAULT_CAREER_SETTINGS, DEFAULT_SETTINGS } from '../../../constants/index.ts';
 import type { CareerSettings, Settings } from '../../../types/index.ts';
-import { careerDrivingAids, careerOpponents, readCareerSettings } from '../career-settings.ts';
+import {
+  careerCurrency, careerDrivingAids, careerOpponents, readCareerSettings,
+} from '../career-settings.ts';
 
 /**
  * The app's settings, with opponents and aids a test can tell apart from a
@@ -27,8 +29,10 @@ describe('shared/utils/career-settings', () => {
       const stored: CareerSettings = {
         opponents: { strength: 95, aggression: 40 },
         drivingAids: { abs: 2, autoClutch: true },
+        currency: 'EUR',
         allowSameDayEvents: true,
         historicFrequency: 'weekly',
+        progression: 1.5,
       };
 
       expect(readCareerSettings(stored)).toEqual(stored);
@@ -71,6 +75,19 @@ describe('shared/utils/career-settings', () => {
       expect(readCareerSettings({ historicFrequency: 'daily' }).historicFrequency).toBe('monthly');
       expect(readCareerSettings({}).historicFrequency).toBe(DEFAULT_CAREER_SETTINGS.historicFrequency);
     });
+
+    it("keeps a currency it offers and follows the app's for any other", () => {
+      expect(readCareerSettings({ currency: 'GBP' }).currency).toBe('GBP');
+      expect(readCareerSettings({ currency: 'JPY' }).currency).toBeNull();
+      expect(readCareerSettings({}).currency).toBeNull();
+    });
+
+    it('keeps a progression speed it offers and pays prizes as they stand for any other', () => {
+      expect(readCareerSettings({ progression: 3 }).progression).toBe(3);
+      expect(readCareerSettings({ progression: 1.1 }).progression).toBe(1);
+      expect(readCareerSettings({ progression: '2' }).progression).toBe(1);
+      expect(readCareerSettings({}).progression).toBe(DEFAULT_CAREER_SETTINGS.progression);
+    });
   });
 
   describe('careerOpponents', () => {
@@ -94,6 +111,17 @@ describe('shared/utils/career-settings', () => {
     it("drives with the app's while the career follows them, and outside a career", () => {
       expect(careerDrivingAids(APP, own())).toBe(APP.drivingAids);
       expect(careerDrivingAids(APP, null)).toBe(APP.drivingAids);
+    });
+  });
+
+  describe('careerCurrency', () => {
+    it("shows the career's own where it sets one", () => {
+      expect(careerCurrency(APP, own({ currency: 'EUR' }))).toBe('EUR');
+    });
+
+    it("shows the app's while the career follows it, and outside a career", () => {
+      expect(careerCurrency({ ...APP, currency: 'GBP' }, own())).toBe('GBP');
+      expect(careerCurrency({ ...APP, currency: 'GBP' }, null)).toBe('GBP');
     });
   });
 });

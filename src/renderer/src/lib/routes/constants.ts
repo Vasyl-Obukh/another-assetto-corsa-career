@@ -33,6 +33,7 @@ export const ROUTE = {
   results: '/home/results',
   result: '/home/results/:file',
   history: '/home/history',
+  finances: '/home/finances',
   yearReview: '/home/history/:season',
   championshipReview: '/home/history/:season/:series/:edition',
   cars: '/cars',
@@ -84,9 +85,9 @@ export const DETAIL_TAB_PARAM = 'tab';
  * Only the label lives here. Icons stay with the component that draws them,
  * which is what keeps this module free of React.
  *
- * Results and History are deliberately not here: both are reached from Home,
- * and live under its path so Home stays lit while either is open. Settings
- * opens on the career's own, and stays lit on the app's.
+ * Results, History and Finances are deliberately not here: all three are
+ * reached from Home, and live under its path so Home stays lit while any is
+ * open. Settings opens on the career's own, and stays lit on the app's.
  */
 export const CAREER_NAV = [
   { id: 'home', label: 'nav.home' },
@@ -141,6 +142,7 @@ export const BACK_LABEL = {
   results: 'back.results',
   result: 'back.result',
   history: 'back.history',
+  finances: 'back.finances',
   yearReview: 'back.yearReview',
   championshipReview: 'back.championshipReview',
   cars: 'back.cars',

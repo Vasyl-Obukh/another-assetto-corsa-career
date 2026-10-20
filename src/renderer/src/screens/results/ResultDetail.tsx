@@ -9,6 +9,7 @@ import { ResultDetailSkeleton } from './ResultDetailSkeleton.tsx';
 import { ResultHero } from './ResultHero.tsx';
 import { editionsOf } from '../../../../shared/utils/editions';
 import { formatGap, formatLapTime } from '../../../../shared/utils/lap-time';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { entryResults } from '../../../../shared/utils/standings';
 import { useSlot } from '@/app';
 import {
@@ -39,6 +40,7 @@ export const ResultDetail = () => {
   const { file = '' } = useParams<PathParam<typeof ROUTE.result>>();
   const detail = useResult(file);
   const { career } = useSlot();
+  const speed = prizeSpeed(career);
 
   const { record } = detail;
   const origin = useMemo(() => archiveOrigins(career).get(file) ?? null, [career, file]);
@@ -146,7 +148,7 @@ export const ResultDetail = () => {
     // A place the player's stand-in drove pays nothing, as the table beside it says.
     ...(mine.place && !mine.place.bonusOnly && historic && championship && race ? [{
       label: t('event.summary.prize'),
-      value: formatMoney(prizeFor(championship, mine.place.entry, mine.place.classPosition) ?? 0),
+      value: formatMoney(prizeFor(championship, mine.place.entry, mine.place.classPosition, speed) ?? 0),
     }] : []),
     ...(mine.place && !historic ? [{
       label: t('event.result.points'),
@@ -250,7 +252,7 @@ export const ResultDetail = () => {
                   classes={classes}
                   prizeOf={historic && championship ? (row) => (
                     row.place && !row.place.bonusOnly
-                      ? prizeFor(championship, row.place.entry, row.place.classPosition)
+                      ? prizeFor(championship, row.place.entry, row.place.classPosition, speed)
                       : null
                   ) : undefined}
                   footnote={session.order === 'raceResult' ? (
@@ -271,7 +273,7 @@ export const ResultDetail = () => {
             {historic && origin && championship ? (
               <HistoricResultCard
                 prize={mine?.place && !mine.place.bonusOnly && race
-                  ? prizeFor(championship, mine.place.entry, mine.place.classPosition)
+                  ? prizeFor(championship, mine.place.entry, mine.place.classPosition, speed)
                   : null}
                 place={race ? mine?.place?.classPosition ?? null : null}
                 to={path.event({ series: origin.entry.series, round: origin.round }, run)}

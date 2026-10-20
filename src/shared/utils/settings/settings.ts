@@ -8,6 +8,7 @@
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH } from './constants.ts';
 import {
   AUTOSAVE_COUNTS,
+  CURRENCIES,
   DEFAULT_ALLOWED_WEATHER,
   DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,
@@ -283,6 +284,7 @@ export const readSettings = (raw: unknown): Settings => {
     // The same shape as the championships' switches, so read the same way.
     historicActive: readSeriesActive(raw.historicActive),
     autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, DEFAULT_SETTINGS.autosaves),
+    currency: oneOf(raw.currency, CURRENCIES, DEFAULT_SETTINGS.currency),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

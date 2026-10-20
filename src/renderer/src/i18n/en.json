@@ -271,7 +271,18 @@
     "followChampionship": {
       "followingHint": "Switch on to set this championship apart.",
       "own": "This championship's own"
-    }
+    },
+    "currency": {
+      "title": "Currency",
+      "label": "Show money in",
+      "hint": "Display only: {{amount}} is the same amount whichever you pick, and nothing is converted.",
+      "appHint": "Dollars, euros or pounds - what every career shows unless it sets its own.",
+      "careerHint": "Dollars, euros or pounds - what this career's money is shown in.",
+      "USD": "$ US dollar",
+      "EUR": "€ Euro",
+      "GBP": "£ Pound sterling"
+    },
+    "progressionHint": "How fast this career earns. Every prize from the next one on is multiplied by it, what is already paid stays, and each change is a line in Finances."
   },
   "carClasses": {
     "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them. Open a spec to see its cars and put any installed car in it.",
@@ -740,7 +751,8 @@
       "total_one": "{{count}} pt",
       "total_other": "{{count}} pts",
       "winners": "Race winners",
-      "prize": "Prize"
+      "prize": "Prize",
+      "fee": "Entry fee {{amount}} paid"
     },
     "skip": {
       "title": "This round can't be raced as things stand.",
@@ -748,6 +760,12 @@
       "hint": "What it needs is not installed. Install it and come back, or skip it: a stand-in races it in your seat, as for any round you miss.",
       "action": "Skip round {{number}}",
       "actionEvent": "Skip this event"
+    },
+    "money": {
+      "fee": "Entry fee {{amount}}",
+      "feeNote": "The entry fee of {{fee}} is paid as {{session}} launches. A round you skip or miss costs nothing.",
+      "short": "You can't pay this round's entry fee",
+      "shortHint": "It costs {{fee}} and you have {{money}}, {{missing}} short. Earn the rest first - a historic event or another championship pays - or skip the round, which costs nothing."
     }
   },
   "championships": {
@@ -1949,6 +1967,12 @@
         "titles_other": "{{count}} titles",
         "running_one": "+ {{count}} running",
         "running_other": "+ {{count}} running"
+      },
+      "finances": {
+        "title": "Finances",
+        "hint": "Your money, and every change of it",
+        "latest": "Latest",
+        "season": "this season"
       }
     },
     "historic": {
@@ -2156,7 +2180,8 @@
     "skipFinishNote": "With nothing left to race, the season is over.",
     "skipConfirm_one": "Skip {{count}} round",
     "skipConfirm_other": "Skip {{count}} rounds",
-    "skipFinish": "Skip and finish"
+    "skipFinish": "Skip and finish",
+    "free": "Costs no money: an entry fee is paid only for a round you launch."
   },
   "back": {
     "home": "Home",
@@ -2193,7 +2218,8 @@
     "careerNew": "New career",
     "standalones": "Championships",
     "standaloneNew": "New championship",
-    "standalone": "Championship"
+    "standalone": "Championship",
+    "finances": "Finances"
   },
   "standings": {
     "title": "Standings",
@@ -2596,8 +2622,10 @@
       "openAt": "Open to you at",
       "championships_one": "{{count}} championship",
       "championships_other": "{{count}} championships",
-      "note": "Home opens on an empty season. Championships are entered from their own page."
-    }
+      "note": "Home opens on an empty season. Championships are entered from their own page.",
+      "progression": "Progression"
+    },
+    "progressionHint": "Multiplies every prize the career earns. Entry fees stay what each championship says. It can be changed later in the career's own settings."
   },
   "saves": {
     "kind": {
@@ -2762,5 +2790,77 @@
     "stuckTitle_other": "{{count}} rounds can't be raced as things stand.",
     "stuckHint_one": "Install what it needs before the season gets there, or skip it when it does - a stand-in races it in your seat.",
     "stuckHint_other": "Install what they need before the season gets there, or skip them when it does - a stand-in races each in your seat."
+  },
+  "finances": {
+    "open": "Finances",
+    "title": "Finances",
+    "subtitle": "Your money, and every change of it",
+    "season": "Season",
+    "everySeason": "Every season",
+    "show": "Show",
+    "filter": {
+      "all": "Everything",
+      "prizes": "Prizes",
+      "fees": "Fees"
+    },
+    "tile": {
+      "balance": "Balance",
+      "on": "On {{date}}",
+      "earned": {
+        "season": "Earned this season",
+        "all": "Earned in all"
+      },
+      "spent": {
+        "season": "Spent this season",
+        "all": "Spent in all"
+      },
+      "net": {
+        "season": "Net this season",
+        "all": "Net in all"
+      },
+      "prizes_one": "Prize money from {{count}} race",
+      "prizes_other": "Prize money from {{count}} races",
+      "fees_one": "{{count}} entry fee",
+      "fees_other": "{{count}} entry fees",
+      "since": "Since {{date}}",
+      "opened": "Opened the season on {{amount}}"
+    },
+    "ledger": "Ledger",
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines",
+    "empty": "Nothing has moved your money here yet.",
+    "nothing": "Nothing yet.",
+    "breakdown": "Where it came from",
+    "bySeries": "By championship",
+    "kind": {
+      "opening": "Opening balance",
+      "fee": "Entry fee",
+      "race": "Race prize",
+      "standings": "Championship prize",
+      "historic": "Historic purse",
+      "speed": "Progression speed"
+    },
+    "speed": "×{{speed}}",
+    "progression": "Progression speed",
+    "table": {
+      "date": "Date",
+      "kind": "Kind",
+      "what": "What",
+      "amount": "Amount",
+      "balance": "Balance"
+    },
+    "line": {
+      "round": "R{{number}} · {{round}}",
+      "opening": "Opening balance",
+      "openingDetail": "The money the career started with",
+      "feeDetail": "{{series}} · paid as its first session launched",
+      "race": "{{round}} · {{race}}",
+      "place": "{{series}} · P{{place}} in your class",
+      "historicDetail": "{{race}} · P{{place}}, invited, so no entry fee",
+      "standings": "{{series}} {{edition}}",
+      "standingsDetail": "P{{place}} in the championship",
+      "speed": "Progression speed {{from}} → {{to}}",
+      "speedDetail": "Every prize from here on is multiplied by {{to}}"
+    }
   }
 }

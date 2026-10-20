@@ -11,17 +11,20 @@ export type { ResultDetail } from './types.ts';
  * An archive never changes once written, so unlike the content hooks there is
  * nothing to subscribe to: the only reason to read it again is the route
  * naming a different file.
- * @param file The archive's file name, from the route
+ * @param file The archive's file name, from the route, or null where nothing
+ * was archived - a simulated session - which reads nothing
  * @returns The record and what is stopping it loading
  */
-export const useResult = (file: string): ResultDetail => {
+export const useResult = (file: string | null): ResultDetail => {
   // Keyed by the file the state was loaded for, so the record of the previous
   // route is never rendered as this one's while the new read is in flight.
   const [state, setState] = useState<ResultState>({ key: '', record: null, error: null });
 
-  const loading = state.key !== file;
+  const loading = file !== null && state.key !== file;
 
   useEffect(() => {
+    if (file === null) return undefined;
+
     let live = true;
 
     invoke('race:result', { file }).then(

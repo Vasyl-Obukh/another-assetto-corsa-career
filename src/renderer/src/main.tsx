@@ -4,7 +4,7 @@ import { createHashRouter, RouterProvider } from 'react-router';
 
 import './globals.css';
 import {
-  App, ClassesProvider, SettingsProvider, SlotProvider, ToastProvider, UnsavedProvider,
+  App, ClassesProvider, CurrencyProvider, SettingsProvider, SlotProvider, ToastProvider, UnsavedProvider,
 } from '@/app';
 import { initI18n } from '@/i18n';
 import { invoke } from '@/lib/ipc';
@@ -42,11 +42,13 @@ const start = async (): Promise<void> => {
       <SettingsProvider initialSettings={settings} initialTheme={theme}>
         <ClassesProvider initialLayer={classes}>
           <SlotProvider initialCareer={career}>
-            <ToastProvider>
-              <UnsavedProvider>
-                <RouterProvider router={router} />
-              </UnsavedProvider>
-            </ToastProvider>
+            <CurrencyProvider>
+              <ToastProvider>
+                <UnsavedProvider>
+                  <RouterProvider router={router} />
+                </UnsavedProvider>
+              </ToastProvider>
+            </CurrencyProvider>
           </SlotProvider>
         </ClassesProvider>
       </SettingsProvider>

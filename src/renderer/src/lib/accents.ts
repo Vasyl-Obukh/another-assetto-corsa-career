@@ -10,7 +10,15 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
-  ClassificationOrigin, Climate, Discipline, EventStatus, LadderPosition, SaveKind, SessionType, TeamBudget,
+  ClassificationOrigin,
+  Climate,
+  Discipline,
+  EventStatus,
+  LadderPosition,
+  LedgerKind,
+  SaveKind,
+  SessionType,
+  TeamBudget,
 } from '../../../shared/types';
 
 /**
@@ -201,6 +209,36 @@ export const EVENT_ACCENT = {
  * rather than a map. globals.css says why leather.
  */
 export const HISTORIC_ACCENT = 'border-transparent bg-historic text-historic-foreground';
+
+/**
+ * The colour each kind of ledger line is chipped in - Finances, Home's door
+ * into it and a round's own money. Each is the colour of what paid it: a race
+ * in the race green, a final standing in the podium gold, a historic event in
+ * its leather, the opening balance in the career's own blue. A change of speed
+ * moves no money and is the catch-all grey on purpose. globals.css says why
+ * the fee's.
+ */
+export const LEDGER_ACCENT = {
+  opening: 'border-transparent bg-mode-career text-mode-career-foreground',
+  fee: 'border-transparent bg-ledger-fee text-ledger-fee-foreground',
+  race: 'border-transparent bg-session-race text-session-race-foreground',
+  standings: 'border-transparent bg-podium-gold text-podium-gold-foreground',
+  historic: 'border-transparent bg-historic text-historic-foreground',
+  speed: 'border-transparent bg-session-other text-session-other-foreground',
+} as const satisfies Record<LedgerKind, string>;
+
+/**
+ * The deep tone of each kind of ledger line, for the bars that weigh them
+ * against each other.
+ */
+export const LEDGER_BAR = {
+  opening: 'bg-mode-career-foreground',
+  fee: 'bg-ledger-fee-foreground',
+  race: 'bg-session-race-foreground',
+  standings: 'bg-podium-gold-foreground',
+  historic: 'bg-historic-foreground',
+  speed: 'bg-session-other-foreground',
+} as const satisfies Record<LedgerKind, string>;
 
 /**
  * A historic event as a dot - the leather's own deep tone - for where the

@@ -35,6 +35,9 @@ export type { StandingsView, StripFigure } from './results/index.ts';
 export { HistoricChip } from './HistoricChip.tsx';
 export { LibrarySwitch, withId } from './library-switch/index.ts';
 export { LiveryPlate } from './LiveryPlate.tsx';
+export {
+  BalanceLink, LedgerBadge, MoneyAmount, ProgressionSlider,
+} from './money/index.ts';
 export { Loading } from './Loading.tsx';
 export { NameDialog } from './NameDialog.tsx';
 export { NationFlag } from './NationFlag.tsx';

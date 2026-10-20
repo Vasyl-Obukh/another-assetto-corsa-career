@@ -10,14 +10,19 @@ interface SeasonRulesProps {
    * The championship whose points, prize money and events are laid out.
    */
   series: Championship;
+  /**
+   * The progression speed its prize money is shown at, 1 for the purse as
+   * written.
+   */
+  speed?: number;
 }
 
 // Points, prize money and the event formats, as cards laid out to what there
 // is to show rather than tables stretched across the page. Up to two ways of
 // paying fit side by side; a lone format stacks under the season prizes, the
 // shorter of the two; anything wider takes a row of its own.
-export const SeasonRules = ({ series }: SeasonRulesProps) => {
-  const purses = pursesOf(series.prizes, series.entries);
+export const SeasonRules = ({ series, speed = 1 }: SeasonRulesProps) => {
+  const purses = pursesOf(series.prizes, series.entries, speed);
   const race = purses.filter((purse) => purse.prizes?.positions?.length);
   const season = purses.filter((purse) => purse.prizes?.standings?.length);
   const split = purses.length > 1;

@@ -53,13 +53,13 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Live weather                    | **Dropped.** A career should not depend on the internet, so the `base-live` controller is not offered.                                                                                                                       |
 | Grid when qualifying is skipped | **The race says where the player starts** - last unless it names pole, a slot or a seeded random one, always among their own class. The AI stand on pace class by class with slight seeded randomness, so skipped sessions don't produce identical grids. |
 | Simulating rounds               | **Every round nobody drove.** A missed round, one run before the player entered and every round of a championship they are not in are raced by the field off each driver's pace and a seeded draw, with a stand-in in the player's seat. A weekend left part-way keeps what was driven and simulates the rest. |
-| DNS                             | Entry fee lost, no points, **rating untouched**.                                                                                                                                                                                          |
+| DNS                             | No points, **no fee** and **rating untouched**. An entry fee is paid as a round's first session launches, so a round skipped or missed costs nothing; a fine for missing one belongs to a contract that pays per championship (Phase 9). |
 | Car pricing                     | **Curated for Kunos + DLC, derived for everything else.** Real-world-ish values for official content; specs-derived suggestions for mods; user override on any car.                                                                       |
 | Running out of money            | **Forced down the ladder.** Recoverable, never a hard fail.                                                                                                                                                                               |
 | Rating                          | **Global + per-discipline**, with cross-discipline entry one tier below your best.                                                                                                                                                        |
 | AI economy                      | **None.** Teams have budget tiers that shape their offers; AI drivers have no wallet.                                                                                                                                                     |
-| Currency                        | **Real currency, $ by default.** € and £ selectable later as display only - no conversion.                                                                                                                                                |
-| Progression speed               | **0.5x-2x multiplier on money and rating**, separate from AI difficulty. Changeable any time; the career records that it changed.                                                                                                         |
+| Currency                        | **Real currency, $ by default.** € and £ as display only - no conversion. An app setting a career may override.                                                                                                                          |
+| Progression speed               | **0.5x-4x multiplier on money and rating**, separate from AI difficulty. A career's own, changeable any time; the ledger records each change.                                                                                            |
 | AI difficulty                   | **The player's to set, never learned.** One strength in settings, and a step of their own for a season or a round of the career. Adaptive difficulty was dropped: pace against the AI moves with the car and the track, which a learned figure would chase rather than answer. |
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
@@ -2480,7 +2480,8 @@ proof that no layer below learned what a series is.
       of them, so a P3 looks the same wherever it is listed
 - [x] DNS handling: no points, and the entry fee **recorded rather than
       debited**, because there is no money anywhere until Phase 7. Rating is
-      untouched because there is no rating until Phase 8
+      untouched because there is no rating until Phase 8. **Phase 7 dropped
+      the fee altogether**: a fee is paid only for a round launched
 - [x] **A season races its own copy of the championship.** Entering one copies
       the whole document into the season, and everything about that season -
       its dates, setting a round up, scoring, standings - reads the copy. The
@@ -2844,8 +2845,18 @@ proof that no layer below learned what a series is.
 
 ## Phase 7 - Economy
 
-- [ ] Money and a transaction ledger, so every change is explainable
-- [ ] Currency display: `$` default, `€` and `£` as alternatives, no conversion
+- [x] Money and a transaction ledger, so every change is explainable.
+      `CareerState.ledger`, a line per change, each keyed by what it settles
+      so nothing is paid twice, and `money` its sum. **Prizes are owed rather
+      than paid by a command**: `payOut` in `src/core/career-money/` works out
+      afresh whatever the career has earned and not been paid, and the career
+      store's `settle` - which every change ends in - posts it. Read on
+      Finances, a Home door at `/home/finances`, with the balance at the
+      right of the header on every page of a career
+- [x] Currency display: `$` default, `€` and `£` as alternatives, no conversion.
+      An app setting in General that a career may override, the way it does
+      opponents and driving aids; `useFormat` formats money in whichever is
+      in force, so every amount follows it
 - [ ] **Curated price list for Kunos base and DLC cars**
 - [ ] **Derived price suggestions for mod cars**, overridable
 - [ ] **Store page**: every car, its price, and the championships it can enter -
@@ -2853,14 +2864,24 @@ proof that no layer below learned what a series is.
       browsers end up*
 - [ ] Buy, sell and own cars
 - [ ] **Rent a car for an event**, from the event screen
-- [ ] Entry fees charged per round, with contract coverage applied
-- [ ] Prize money per event and per final championship standing - a
-      historic event's purse included, which is recorded until then
-- [ ] Progression speed multiplier applied to all earnings
+- [x] Entry fees charged per round, **as its first session launches** and
+      only then: a round skipped or missed costs nothing. A launch the career
+      cannot pay for is refused, so the balance never goes below zero. A
+      historic event costs nothing while the player is invited, which every
+      one is until the inbox (Phase 11) brings uninvited entries. Contract
+      coverage waits for Phase 9
+- [x] Prize money per event and per final championship standing - a
+      historic event's purse included. A race pays the player's place in their
+      class's purse, a line per race; an edition pays its standing once it has
+      run its course; a race the player did not drive pays them nothing
+- [x] Progression speed multiplier applied to all earnings. ×0.5 to ×4, a
+      career's own - picked in New career, changed in its settings - and
+      never applied to fees. Amounts are shown as paid; only the ledger's
+      line for a change of speed names the speed
 - [ ] Forced down the ladder when you can't afford to race
 - [ ] Sell owned cars to recover
-- [ ] **Start a career on the money New career picked.** Phase 6 stores the
-      amount and nothing reads it until there is a balance to open with
+- [x] **Start a career on the money New career picked.** The ledger's first
+      line
 
 ## Phase 8 - Rating and the ladder
 

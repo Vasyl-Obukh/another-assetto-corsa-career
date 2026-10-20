@@ -319,6 +319,7 @@ describe('shared/utils/settings', () => {
         showFillerSeries: false,
         historicActive: { 'british-gp-1967': false },
         autosaves: 5,
+        currency: 'EUR',
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -342,6 +343,12 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ autosaves: 4 }).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
       expect(readSettings({ autosaves: '10' }).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
       expect(readSettings({}).autosaves).toBe(DEFAULT_SETTINGS.autosaves);
+    });
+
+    it('keeps a currency it offers and falls back to the default for any other', () => {
+      expect(readSettings({ currency: 'EUR' }).currency).toBe('EUR');
+      expect(readSettings({ currency: 'eur' }).currency).toBe(DEFAULT_SETTINGS.currency);
+      expect(readSettings({}).currency).toBe(DEFAULT_SETTINGS.currency);
     });
 
     it("reads the historic switches as the championships' are, dropping what is not a switch", () => {

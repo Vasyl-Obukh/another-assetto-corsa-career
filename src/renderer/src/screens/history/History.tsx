@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import { HistorySkeleton } from './HistorySkeleton.tsx';
 import { HistoryTable } from './HistoryTable.tsx';
 import { seasonYear } from '../../../../shared/utils/editions';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { ErrorCard, ScreenBody, ScreenHeader } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -28,7 +29,7 @@ export const History = () => {
     year: seasonYear(season),
     open: season === career.seasons.at(-1),
     review: yearReview(season, career.date),
-    historic: historicReview(season),
+    historic: historicReview(season, prizeSpeed(career)),
   })) : []), [career]);
 
   return (

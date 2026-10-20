@@ -1,4 +1,6 @@
-import { ChartLineIcon, ChevronRightIcon, TrophyIcon } from 'lucide-react';
+import {
+  ChartLineIcon, ChevronRightIcon, TrophyIcon, WalletIcon,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -17,7 +19,7 @@ interface DoorProps {
   /**
    * Which icon it carries.
    */
-  icon: 'results' | 'history';
+  icon: 'results' | 'history' | 'finances';
   /**
    * Its name.
    */
@@ -37,8 +39,8 @@ interface DoorProps {
 }
 
 /**
- * One of Home's two ways into what the career has done - Results and History,
- * neither of which is in the navigation - drawn large and with a preview of
+ * One of Home's ways into what the career has done - Results, History and
+ * Finances, none of which is in the navigation - drawn large and with a preview of
  * what is behind it, so it reads as a place rather than a link.
  */
 export const Door = ({
@@ -53,7 +55,9 @@ export const Door = ({
     >
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', accent)}>
-          {icon === 'results' ? <ChartLineIcon className="size-5" /> : <TrophyIcon className="size-5" />}
+          {icon === 'results' ? <ChartLineIcon className="size-5" /> : null}
+          {icon === 'history' ? <TrophyIcon className="size-5" /> : null}
+          {icon === 'finances' ? <WalletIcon className="size-5" /> : null}
         </span>
         <div className="flex min-w-0 flex-col">
           <span className="text-base font-semibold">{title}</span>

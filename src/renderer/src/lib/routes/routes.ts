@@ -272,6 +272,11 @@ export const path = {
    */
   history: (): string => ROUTE.history,
   /**
+   * The career's money and every change of it, reached from Home.
+   * @returns Its URL
+   */
+  finances: (): string => ROUTE.finances,
+  /**
    * One season of the career, looked back on.
    * @param params Which season, counting from zero
    * @param params.season The season's index

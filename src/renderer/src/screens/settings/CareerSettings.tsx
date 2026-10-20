@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 
 import { CalendarSection } from './CalendarSection.tsx';
 import { CareerAidsSection } from './CareerAidsSection.tsx';
+import { CareerCurrencySection } from './CareerCurrencySection.tsx';
 import { CareerOpponentsSection } from './CareerOpponentsSection.tsx';
+import { ProgressionSection } from './ProgressionSection.tsx';
 import type { CareerDriver, CareerSettings as OwnSettings } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import { ErrorCard, ScreenBody, SettingsSection } from '@/components';
@@ -14,9 +16,10 @@ import type { DisplayableError } from '@/lib/ipc';
 import { NationPicker } from '@/screens/championship-editor';
 
 /**
- * The open career's own settings: its driver, its opponents and driving aids
- * where it sets them apart from the app's, and its calendar - which a
- * standalone championship, racing one championship alone, has none of.
+ * The open career's own settings: its driver, its opponents, driving aids and
+ * currency where it sets them apart from the app's, and its calendar and
+ * progression speed - which a standalone championship, racing one
+ * championship alone and for no money, has none of.
  */
 export const CareerSettings = () => {
   const { t } = useTranslation();
@@ -93,6 +96,8 @@ export const CareerSettings = () => {
         <CareerOpponentsSection own={settings.opponents} onChange={change} />
         <CareerAidsSection own={settings.drivingAids} onChange={change} />
         {career.kind === 'career' ? <CalendarSection settings={settings} onChange={change} /> : null}
+        {career.kind === 'career' ? <ProgressionSection value={settings.progression} onChange={change} /> : null}
+        <CareerCurrencySection own={settings.currency} onChange={change} />
       </div>
     </ScreenBody>
   );

@@ -62,6 +62,7 @@ import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
 import { isNationCode } from '../../shared/utils/nations/index.ts';
+import { prizeSpeed, prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import { roundAvailabilityIn, roundRaceableIn, seatRaceableIn } from '../../shared/utils/round-availability/index.ts';
 import { standaloneStanding } from '../../shared/utils/standalone/index.ts';
@@ -102,6 +103,7 @@ export const stateOf = (career: Career): CareerState => ({
   version: CAREER_VERSION,
   date: career.date,
   money: career.money,
+  ledger: career.ledger,
   rating: career.rating,
   level: career.level,
   seasons: career.seasons,
@@ -156,6 +158,7 @@ export const readState = (value: unknown): CareerState | null => {
   const state = value as Partial<CareerState>;
   const readable = state.version === CAREER_VERSION
     && typeof state.money === 'number'
+    && Array.isArray(state.ledger)
     && typeof state.rating === 'object' && state.rating !== null
     && typeof state.date === 'string'
     && typeof state.level === 'object' && state.level !== null
@@ -685,8 +688,9 @@ export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]
  * Every round of the career's still to run in it becomes a non-start - the
  * player has been shown and confirmed what moving past the year costs - and the
  * clock stands on 31 December, so simulating the missed rounds reaches every
- * one of them. What a season's end pays out - prize money for a final
- * standing, the ladder moving - lands here too, once Phases 7 and 8 bring it.
+ * one of them - after which each edition's final standing is paid like any
+ * other edition's that has run its course. The ladder moving lands here too,
+ * once Phase 8 brings it.
  * @param career The career
  * @param season The season to close
  * @returns The career, its clock on the season's last day
@@ -787,6 +791,19 @@ export const eventSessions = (
 };
 
 /**
+ * What winning a race of a class pays, as the career would be paid it.
+ * @param career The career reading it
+ * @param championship The championship
+ * @param entry The class entry's id
+ * @returns The prize, or null when the championship says nothing
+ */
+export const winnerPrize = (career: Career, championship: Championship, entry: string): number | null => {
+  const [winner] = prizeTable(championship, entry, 'positions');
+
+  return winner === undefined ? null : scaledPrize(winner, prizeSpeed(career));
+};
+
+/**
  * Reads one dated event into the row the calendar shows.
  * @param series The championship the row is read from - a season's own copy
  * for a class the career entered, the library's otherwise
@@ -815,9 +832,6 @@ export const calendarEntry = (
   // have been raced.
   const at = series.rounds.findIndex((one) => one.id === event.round);
   const round = series.rounds[at];
-  // A class's own purse where it has one, the championship's otherwise - which
-  // is exactly what PrizeMoney says a class table left out means.
-  const prizes = entry.prizes ?? series.prizes;
 
   return {
     series: series.id,
@@ -833,8 +847,10 @@ export const calendarEntry = (
     track: round?.track ?? { id: '' },
     races: roundAvailabilityIn(availability, event.round)?.races ?? [],
     gridSize: entry.seats.length,
-    prize: prizes?.positions?.[0] ?? null,
-    entryFee: event.entryFee,
+    prize: winnerPrize(career, series, entry.id),
+    // An invitation covers a historic event's fee, and a standalone
+    // championship has no money to pay one in.
+    entryFee: historic || career.kind !== 'career' ? undefined : event.entryFee,
     multiClass: series.entries.length > 1,
     date: event.date,
     status: event.status,

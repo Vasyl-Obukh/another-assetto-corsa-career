@@ -320,6 +320,17 @@
   --historic: oklch(0.915 0.04 40);
   --historic-foreground: oklch(0.42 0.075 38);
 
+  /* An entry fee on a career's ledger, beside its other kinds of line: a race's
+     prize in the race session's green (150), a final standing in the podium
+     gold (88), a historic purse in the leather above (40), the opening balance
+     in the primary (262), and a change of speed in the catch-all grey. That
+     leaves the fee the redistribution hue (235), which no ledger shows, since
+     nothing on one is content - and which sits clear of every other kind on
+     it. The amounts carry the traffic light, so this one says what, not how
+     much. */
+  --ledger-fee: oklch(0.93 0.05 235);
+  --ledger-fee-foreground: oklch(0.38 0.12 250);
+
   /* What is laid over a photograph - the fade under a card's name, the
      backing behind a livery count or a circuit's outline - and the text on it.
      The same in both themes on purpose: it sits on a picture, not on the page,
@@ -488,6 +499,8 @@
   --event-missed-foreground: oklch(0.86 0.075 12);
   --historic: oklch(0.33 0.04 40);
   --historic-foreground: oklch(0.86 0.06 45);
+  --ledger-fee: oklch(0.32 0.06 235);
+  --ledger-fee-foreground: oklch(0.86 0.08 245);
   --curve-power: oklch(0.7 0.16 262);
   --curve-torque: oklch(0.76 0.13 50);
 
@@ -630,6 +643,8 @@
   --color-event-missed-foreground: var(--event-missed-foreground);
   --color-historic: var(--historic);
   --color-historic-foreground: var(--historic-foreground);
+  --color-ledger-fee: var(--ledger-fee);
+  --color-ledger-fee-foreground: var(--ledger-fee-foreground);
   --color-scrim: var(--scrim);
   --color-on-scrim: var(--on-scrim);
   --color-curve-power: var(--curve-power);

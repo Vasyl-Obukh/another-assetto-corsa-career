@@ -1,5 +1,6 @@
 export { App } from './App.tsx';
 export { ClassesProvider } from './ClassesProvider.tsx';
+export { CurrencyProvider } from './CurrencyProvider.tsx';
 export { SettingsProvider } from './SettingsProvider.tsx';
 export { SlotProvider } from './SlotProvider.tsx';
 export { ToastProvider } from './ToastProvider.tsx';

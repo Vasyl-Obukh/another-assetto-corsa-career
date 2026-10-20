@@ -29,6 +29,12 @@ export type Language = 'en' | 'uk';
 export type HistoricFrequency = 'off' | 'quarterly' | 'monthly' | 'fortnightly' | 'weekly';
 
 /**
+ * Which currency money is shown in, as its ISO 4217 code. Display only: an
+ * amount is the same number whichever is picked, and nothing is converted.
+ */
+export type Currency = 'USD' | 'EUR' | 'GBP';
+
+/**
  * Where the window was last time, so it can be put back.
  */
 export interface WindowState {
@@ -248,6 +254,10 @@ export interface Settings {
    * after every session and as each season opens, and the oldest goes.
    */
   autosaves: number;
+  /**
+   * Which currency money is shown in, unless a career sets its own.
+   */
+  currency: Currency;
   /**
    * Paths the user has corrected by hand.
    */

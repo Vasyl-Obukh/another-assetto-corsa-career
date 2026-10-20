@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { AppearanceSection } from './AppearanceSection.tsx';
 import { GENERAL_SECTIONS } from './constants.ts';
 import { ContentManagerSection } from './ContentManagerSection.tsx';
+import { CurrencySection } from './CurrencySection.tsx';
 import { DriverSection } from './DriverSection.tsx';
 import { DrivingAidsSection } from './DrivingAidsSection.tsx';
 import { OpponentsSection } from './OpponentsSection.tsx';
@@ -28,6 +29,7 @@ export const Settings = () => {
           <OpponentsSection />
           <WeatherSection />
           <SavesSection />
+          <CurrencySection />
           <ContentManagerSection />
         </div>
       </div>

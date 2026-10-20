@@ -151,6 +151,7 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   driver: { name: 'Test Driver', nation: 'GBR' },
   settings: { ...DEFAULT_CAREER_SETTINGS, historicFrequency: 'off' },
   money: 100_000,
+  ledger: [],
   rating: {
     [Discipline.SINGLE_SEATER]: 1200,
     [Discipline.SPORTSCAR]: 1200,

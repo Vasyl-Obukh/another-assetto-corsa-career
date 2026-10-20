@@ -1,4 +1,4 @@
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, WalletIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { launchNote, scaleName } from './utils.ts';
@@ -6,7 +6,7 @@ import type { CareerEventView, EventSession } from '../../../../shared/types';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useRaceStatus } from '@/hooks';
-import { useAppError } from '@/i18n';
+import { useAppError, useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
 
 interface LaunchAreaProps {
@@ -44,7 +44,12 @@ export const LaunchArea = ({
 }: LaunchAreaProps) => {
   const { t } = useTranslation();
   const describe = useAppError();
+  const { formatMoney } = useFormat();
   const race = useRaceStatus();
+  const { money } = view;
+  // Said with the amounts in the career's own currency, which the shared
+  // English template cannot do.
+  const short = view.blocked?.code === 'career.money.short' && money?.fee ? money : null;
 
   const status = view.live ? race.setup?.status : undefined;
   const running = status !== undefined && status.phase !== 'idle';
@@ -70,8 +75,27 @@ export const LaunchArea = ({
       {status?.failure ? (
         <p className="text-sm text-destructive">{describe(status.failure)}</p>
       ) : null}
-      {view.blocked ? (
+      {short?.fee ? (
+        <div className="flex flex-col gap-0.5 rounded-md border border-destructive/35 bg-destructive/10 p-3 text-sm">
+          <span className="font-semibold text-destructive">{t('event.money.short')}</span>
+          <span className="text-muted-foreground">
+            {t('event.money.shortHint', {
+              fee: formatMoney(short.fee),
+              money: formatMoney(short.balance),
+              missing: formatMoney(short.fee - short.balance),
+            })}
+          </span>
+        </div>
+      ) : null}
+      {view.blocked && !short ? (
         <p className="text-sm text-muted-foreground">{describe(view.blocked)}</p>
+      ) : null}
+      {/* Said before it is paid, so launching never costs money unannounced. */}
+      {view.blocked === null && money?.fee && !money.paid ? (
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <WalletIcon className="mt-0.5 size-4 shrink-0" />
+          {t('event.money.feeNote', { fee: formatMoney(money.fee), session: name })}
+        </p>
       ) : null}
       {/* The launch is offered regardless, and asks before it goes - this says
           what it will ask about before it is pressed. */}

@@ -11,7 +11,7 @@ import { ConfirmDialog, HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
-import { DISCIPLINE_ACCENT } from '@/lib/accents';
+import { DISCIPLINE_ACCENT, LEDGER_ACCENT } from '@/lib/accents';
 import { linkRun, path } from '@/lib/routes';
 import type { HistoricRow } from '@/lib/season-review';
 import { tierAccent } from '@/screens/championships';
@@ -93,11 +93,15 @@ export const NextEvent = ({
           <Badge className={tierAccent(event.ladder.tier)}>
             {t('championships.tier', { tier: event.ladder.tier })}
           </Badge>
-          {/* Neutral on purpose: a grid size and a prize are quantities, not
-              one of a set. */}
+          {/* Neutral on purpose: a grid size is a quantity, not one of a set. */}
           <Badge variant="outline">{t('calendar.grid', { count: event.gridSize })}</Badge>
+          {/* The money in the colours the ledger writes it in: a fee as a fee,
+              a prize as a race's. */}
+          {event.entryFee ? (
+            <Badge className={LEDGER_ACCENT.fee}>{t('event.money.fee', { amount: formatMoney(event.entryFee) })}</Badge>
+          ) : null}
           {event.prize === null ? null : (
-            <Badge variant="outline">{t('home.prize', { amount: formatMoney(event.prize) })}</Badge>
+            <Badge className={LEDGER_ACCENT.race}>{t('home.prize', { amount: formatMoney(event.prize) })}</Badge>
           )}
         </div>
 

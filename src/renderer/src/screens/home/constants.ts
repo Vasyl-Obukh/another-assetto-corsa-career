@@ -21,14 +21,21 @@ export const ROW_SKELETON = [
 export const RECENT_FINISH_DAYS = 14;
 
 /**
- * The colour each of Home's two doors wears in its icon's well: Results a
- * race's green, History a title's gold - each the colour of what it holds, so
- * the two read apart before their names do.
+ * The colour each of Home's doors wears in its icon's well: Results a race's
+ * green, History a title's gold, Finances the career's own blue, which its
+ * opening balance wears on the ledger - each the colour of what it holds, so
+ * they read apart before their names do.
  */
 export const DOOR_ACCENT = {
   results: 'bg-session-race text-session-race-foreground',
   history: 'bg-podium-gold text-podium-gold-foreground',
+  finances: 'bg-mode-career text-mode-career-foreground',
 } as const;
+
+/**
+ * How many of the ledger's newest lines Finances' door previews.
+ */
+export const DOOR_LINES = 3;
 
 /**
  * How many historic events Home's strip shows at once.

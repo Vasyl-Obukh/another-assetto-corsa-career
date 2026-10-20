@@ -152,6 +152,11 @@ describe('renderer/lib/routes/routes', () => {
         .forEach((url) => expect(url.startsWith(`${ROUTE.settings}/`)).toBe(true));
     });
 
+    it('builds Finances under Home', () => {
+      expect(path.finances()).toBe('/home/finances');
+      expect(routeOf(path.finances())).toBe('finances');
+    });
+
     it('builds History and the reviews it opens under Home', () => {
       expect(path.history()).toBe('/home/history');
       expect(path.yearReview({ season: 2 })).toBe('/home/history/2');

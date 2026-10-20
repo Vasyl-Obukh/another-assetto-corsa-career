@@ -18,6 +18,7 @@ import { YourChampionships } from './YourChampionships.tsx';
 import { addDays } from '../../../../shared/utils/calendar-days';
 import { seasonYear } from '../../../../shared/utils/editions';
 import { championshipEntries } from '../../../../shared/utils/historic';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { AdvanceDialog, ErrorCard, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareer, useClockMove } from '@/hooks';
@@ -45,7 +46,8 @@ export const Home = () => {
     () => (season && calendar ? recentlyFinished(season, calendar.date) : []),
     [season, calendar],
   );
-  const historic = useMemo(() => (season ? historicReview(season) : null), [season]);
+  const speed = prizeSpeed(career.career);
+  const historic = useMemo(() => (season ? historicReview(season, speed) : null), [season, speed]);
 
   if (!calendar || !career.career || !season) {
     return (

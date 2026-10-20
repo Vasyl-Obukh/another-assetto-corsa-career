@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-import type { Language } from '../../../shared/types';
+import type { Currency, Language } from '../../../shared/types';
 import type { SeriesKind } from '@/lib/series-kind';
 
 /**
@@ -11,7 +11,13 @@ export const LOCALES: Record<Language, string> = { en: 'en-GB', uk: 'uk-UA' };
 /**
  * Currency shown when nothing else is specified. Display only, never converted.
  */
-export const DEFAULT_CURRENCY = 'USD';
+export const DEFAULT_CURRENCY: Currency = 'USD';
+
+/**
+ * The currency money is shown in wherever nothing names one - the career's
+ * own, or the app's - which `useFormat` reads, so every amount follows it.
+ */
+export const MoneyCurrency = createContext<Currency>(DEFAULT_CURRENCY);
 
 /**
  * How many days "a month ago" stands for. Only how long ago something was is

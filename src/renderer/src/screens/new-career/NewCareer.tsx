@@ -10,11 +10,11 @@ import { LevelTiles } from './LevelTiles.tsx';
 import { SummaryPanel } from './SummaryPanel.tsx';
 import { levelOptions, openPerDiscipline } from './utils.ts';
 import {
-  DEFAULT_STARTING_MONEY, MAX_START_YEAR, MIN_START_YEAR, STARTING_MONEY_STOPS,
+  DEFAULT_CAREER_SETTINGS, DEFAULT_STARTING_MONEY, MAX_START_YEAR, MIN_START_YEAR, STARTING_MONEY_STOPS,
 } from '../../../../shared/constants';
 import { useSettings, useSlot } from '@/app';
 import {
-  ErrorCard, ScreenBody, ScreenHeader, SettingsSection,
+  ErrorCard, ProgressionSlider, ScreenBody, ScreenHeader, SettingsSection,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -46,6 +46,7 @@ export const NewCareer = () => {
   // What the year field holds while it is typed in, which may be no year yet.
   const [yearText, setYearText] = useState(String(thisYear));
   const [moneyAt, setMoneyAt] = useState(Math.max(0, STARTING_MONEY_STOPS.indexOf(DEFAULT_STARTING_MONEY)));
+  const [progression, setProgression] = useState(DEFAULT_CAREER_SETTINGS.progression);
   const [picked, setPicked] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
@@ -80,7 +81,7 @@ export const NewCareer = () => {
     setBusy(true);
     try {
       await createCareer({
-        driver: { name: name.trim(), nation }, year, level, money,
+        driver: { name: name.trim(), nation }, year, level, money, settings: { progression },
       });
       void navigate(path.home());
     } catch (thrown: unknown) {
@@ -193,6 +194,11 @@ export const NewCareer = () => {
                   <span>{formatMoney(STARTING_MONEY_STOPS[STARTING_MONEY_STOPS.length - 1])}</span>
                 </div>
               </div>
+              <div className="mt-4 flex flex-col gap-1.5 border-t pt-4">
+                <span className="text-sm font-medium">{t('finances.progression')}</span>
+                <ProgressionSlider value={progression} onChange={setProgression} />
+                <span className="text-sm text-muted-foreground">{t('newCareer.progressionHint')}</span>
+              </div>
             </SettingsSection>
           </div>
 
@@ -206,6 +212,7 @@ export const NewCareer = () => {
           nation={nation}
           year={year}
           money={money}
+          progression={progression}
           level={level}
           open={level === null || library.loading ? null : openPerDiscipline(listings, level)}
         />

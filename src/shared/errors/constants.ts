@@ -98,6 +98,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'career.year.invalid': 'A career\'s first season opens in a year from {{from}} to {{to}}',
   'career.level.invalid': '{{level}} is not a rung of the ladder',
   'career.money.invalid': 'A career cannot start with {{money}}',
+  'career.money.short': 'This round costs {{fee}} to enter and the career holds {{money}}',
   'save.notFound': 'That save is no longer here',
   'save.unreadable': 'That save could not be read, so it has been set aside',
   'save.protected': 'Autosaves and the quick save cannot be written over, renamed or deleted',

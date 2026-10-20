@@ -10,6 +10,7 @@ import { YearHeadSkeleton } from './YearHeadSkeleton.tsx';
 import { YearReviewSkeleton } from './YearReviewSkeleton.tsx';
 import { addDays } from '../../../../shared/utils/calendar-days';
 import { seasonYear } from '../../../../shared/utils/editions';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import {
   AdvanceDialog, ErrorCard, ResultStrip, ScreenBody, ScreenHeader,
 } from '@/components';
@@ -40,7 +41,8 @@ export const YearReview = () => {
   const index = Number(param);
   const season = career?.seasons.find((one) => one.index === index) ?? null;
   const review = useMemo(() => (season && career ? yearReview(season, career.date) : null), [season, career]);
-  const historic = useMemo(() => (season ? historicReview(season) : null), [season]);
+  const speed = prizeSpeed(career);
+  const historic = useMemo(() => (season ? historicReview(season, speed) : null), [season, speed]);
   const year = season ? seasonYear(season) : null;
   usePageName(year === null ? null : String(year));
   const back = { to: path.history(), label: t('back.history') };

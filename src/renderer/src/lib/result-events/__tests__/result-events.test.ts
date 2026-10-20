@@ -88,9 +88,10 @@ const career = (seasons = 1): Career => ({
   playedAt: '',
   driver: { name: 'Driver', nation: null },
   settings: {
-    opponents: null, drivingAids: null, allowSameDayEvents: false, historicFrequency: 'off',
+    opponents: null, drivingAids: null, currency: null, allowSameDayEvents: false, historicFrequency: 'off', progression: 1,
   },
   money: 0,
+  ledger: [],
   rating: {} as Career['rating'],
   startDate: '2026-01-01',
   date: '2026-06-01',

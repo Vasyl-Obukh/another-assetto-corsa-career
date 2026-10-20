@@ -21,6 +21,7 @@ import { StandingsSection } from './StandingsSection.tsx';
 import type { DetailTab, NextRound } from './types.ts';
 import { enterHintOf, entryAvailability, shownRun } from './utils.ts';
 import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { seatRaceableIn } from '../../../../shared/utils/round-availability';
 import { standaloneEntry, standaloneStanding } from '../../../../shared/utils/standalone';
 import { useSlot } from '@/app';
@@ -338,7 +339,9 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
             </TabsContent>
 
             <TabsContent value="rules">
-              <SeasonRules series={listing.series} />
+              {/* The library's own page shows the purse as written; a
+                  career's shows what it would be paid. */}
+              <SeasonRules series={listing.series} speed={manage ? 1 : prizeSpeed(slot)} />
             </TabsContent>
           </Tabs>
         </div>

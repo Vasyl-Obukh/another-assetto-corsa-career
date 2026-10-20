@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { CareerEventView, ChampionshipResults } from '../../../../shared/types';
+import { useSlot } from '@/app';
 import {
-  DriverName, Movement, ResultCell, ResultStrip, StandingsTable,
+  DriverName, MoneyAmount, Movement, ResultCell, ResultStrip, StandingsTable,
 } from '@/components';
 import type { StripFigure } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -48,6 +49,7 @@ export const RoundSummary = ({
 }: RoundSummaryProps) => {
   const { t } = useTranslation();
   const { formatMoney, formatNumber } = useFormat();
+  const { mode, career } = useSlot();
   // A historic event pays money rather than points, and stands in no table.
   const historic = view.historic !== null;
 
@@ -59,9 +61,23 @@ export const RoundSummary = ({
   const races = column?.races.filter((race) => race.score !== null) ?? [];
   const mine = player ? races.map((race) => placeIn(race.score, entry, player.key)) : [];
   const earned = mine.reduce((sum, place) => sum + (place?.points ?? 0), 0);
-  const prize = mine.reduce((sum, place) => (
-    sum + (place && !place.bonusOnly ? prizeFor(results.championship, entry, place.classPosition) ?? 0 : 0)
-  ), 0);
+  // What a career was actually paid, off its ledger; elsewhere there is no
+  // money, so a historic event's purse is read off the event itself.
+  const paid = mode === 'career' && view.entered ? (career?.ledger ?? []).filter((line) => (
+    line.season === view.season && line.series === view.series
+    && line.edition === view.edition && line.round === view.round
+  )) : null;
+  const fee = paid?.find((line) => line.kind === 'fee');
+  const prize = paid
+    ? paid.filter((line) => line.kind !== 'fee').reduce((sum, line) => sum + line.amount, 0)
+    : mine.reduce((sum, place) => (
+      sum + (place && !place.bonusOnly ? prizeFor(results.championship, entry, place.classPosition) ?? 0 : 0)
+    ), 0);
+  const money = {
+    label: t('event.summary.prize'),
+    value: prize > 0 ? <MoneyAmount amount={prize} /> : t('standings.none'),
+    detail: fee ? t('event.summary.fee', { amount: formatMoney(-fee.amount) }) : undefined,
+  };
 
   const figures: StripFigure[] = player && mine.some((place) => place) ? [
     {
@@ -82,10 +98,7 @@ export const RoundSummary = ({
         </span>
       ),
     },
-    ...(historic ? [{
-      label: t('event.summary.prize'),
-      value: prize > 0 ? formatMoney(prize) : t('standings.none'),
-    }] : [
+    ...(historic ? [money] : [
       {
         label: t('event.summary.points'),
         value: (
@@ -104,6 +117,8 @@ export const RoundSummary = ({
         ),
         detail: t('event.summary.total', { count: player.points }),
       },
+      // Only a career has money to show.
+      ...(paid ? [money] : []),
     ]),
   ] : [];
 

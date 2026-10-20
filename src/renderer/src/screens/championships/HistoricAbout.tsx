@@ -21,6 +21,11 @@ interface HistoricAboutProps {
    * class it is in and names the player in it.
    */
   playerSeat?: string;
+  /**
+   * The progression speed its prize money is shown at, 1 for the purse as
+   * written.
+   */
+  speed?: number;
 }
 
 /**
@@ -30,7 +35,9 @@ const PART_HEADING = 'text-xs font-semibold tracking-wide text-muted-foreground 
 
 // The whole of a historic event in one panel, as a career's event page shows
 // it; its settings page shows the same parts a tab each.
-export const HistoricAbout = ({ event, availability, playerSeat }: HistoricAboutProps) => {
+export const HistoricAbout = ({
+  event, availability, playerSeat, speed = 1,
+}: HistoricAboutProps) => {
   const { t } = useTranslation();
 
   return (
@@ -49,7 +56,7 @@ export const HistoricAbout = ({ event, availability, playerSeat }: HistoricAbout
         <div className="grid items-start gap-4 @5xl:grid-cols-2">
           <div className="flex flex-col gap-3">
             <h3 className={PART_HEADING}>{t('historic.about.prizes')}</h3>
-            <HistoricPrizes event={event} />
+            <HistoricPrizes event={event} speed={speed} />
           </div>
 
           <div className="flex flex-col gap-3">
