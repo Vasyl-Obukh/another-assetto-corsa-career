@@ -7,7 +7,6 @@ import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { useNavHistory } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { Calendar } from '@/screens/calendar';
-import { CarBrowser } from '@/screens/car-browser';
 import { CarClasses } from '@/screens/car-classes';
 import { CarDetail } from '@/screens/car-detail';
 import { Careers } from '@/screens/careers';
@@ -19,6 +18,7 @@ import { ContentSources } from '@/screens/content-sources';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
 import { Finances } from '@/screens/finances';
+import { Garage } from '@/screens/garage';
 import { HistoricDetail } from '@/screens/historic-detail';
 import { HistoricLibrary } from '@/screens/historic-library';
 import { History } from '@/screens/history';
@@ -30,7 +30,7 @@ import { ResultDetail, Results } from '@/screens/results';
 import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
 import { Start } from '@/screens/start';
-import { TrackBrowser } from '@/screens/track-browser';
+import { Store } from '@/screens/store';
 import { TrackDetail } from '@/screens/track-detail';
 import { YearReview } from '@/screens/year-review';
 import { YourContent } from '@/screens/your-content';
@@ -141,8 +141,8 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.finances} element={<Finances />} />
               <Route path={ROUTE.yearReview} element={<YearReview />} />
               <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
-              <Route path={ROUTE.cars} element={<CarBrowser />} />
-              <Route path={ROUTE.tracks} element={<TrackBrowser />} />
+              <Route path={ROUTE.store} element={<Store />} />
+              <Route path={ROUTE.garage} element={<Garage />} />
               {shared}
               <Route path="*" element={<Navigate to={path.home()} replace />} />
             </Routes>

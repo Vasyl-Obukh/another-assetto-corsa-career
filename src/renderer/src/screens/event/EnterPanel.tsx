@@ -2,9 +2,12 @@ import { CarIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { Car, CareerEventView, Skin } from '../../../../shared/types';
+import type {
+  Car, CareerEventView, CarSource, Skin,
+} from '../../../../shared/types';
+import { rentOf } from '../../../../shared/utils/car-prices';
 import {
-  CarPicker, carPictureSources, ContentImage, SkipDialog, SkipNote,
+  CarPicker, carPictureSources, CarSourceBadge, ContentImage, PurchaseDialog, SkipDialog, SkipNote,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -14,6 +17,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useGarage } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { CAUTION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
@@ -55,7 +59,8 @@ interface EnterPanelProps {
    * Called with the class, car and livery chosen, once the player has
    * confirmed whatever entering now costs.
    * @param entry The class entry's id
-   * @param car The car and livery to race all season
+   * @param car The car and livery to race all season - the career's own where
+   * it has the car, which main then races in the garage's livery
    */
   onEnter: (entry: string, car: { model: string; skin?: string }) => void;
 }
@@ -64,7 +69,8 @@ export const EnterPanel = ({
   view, busy, showFirstRound = false, initial, onEnter,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
-  const { formatDayShort } = useFormat();
+  const { formatDayShort, formatMoney } = useFormat();
+  const garage = useGarage();
   // The first class the career may enter, not merely the first listed: a
   // multi-class championship's top class is usually the one out of reach.
   const [entry, setEntry] = useState(() => (
@@ -78,9 +84,18 @@ export const EnterPanel = ({
   // Entering a championship already rounds in asks first, here rather than in
   // each page that shows the panel.
   const [confirming, setConfirming] = useState(false);
+  // A car picked to buy rather than rent, and its livery, while it is bought.
+  const [buying, setBuying] = useState<{ car: Car; skin: Skin | null } | null>(null);
 
   const chosen = view.classes.find((one) => one.id === entry);
   const ready = !!chosen?.eligible && view.raceable && car !== null && !busy;
+  // A car the career owns races in the livery it wears, whatever was picked.
+  const owned = car && garage ? garage.owned(car.id) : null;
+  const source: CarSource = owned ? 'owned' : 'rented';
+  const livery = owned && car ? car.skins.find((one) => one.id === owned.skin) ?? skin : skin;
+  const enter = (): void => {
+    if (car) onEnter(entry, { model: car.id, skin: livery?.id });
+  };
 
   return (
     <Card className="gap-3 border-dashed border-primary py-3">
@@ -125,7 +140,7 @@ export const EnterPanel = ({
           {car ? (
             <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
               <ContentImage
-                sources={carPictureSources(car.id, skin?.id)}
+                sources={carPictureSources(car.id, livery?.id)}
                 alt={car.name}
                 className="object-cover"
                 fallback={(
@@ -140,7 +155,10 @@ export const EnterPanel = ({
             {car ? (
               <>
                 <span className="truncate font-medium">{car.name}</span>
-                {skin ? <span className="truncate text-xs text-muted-foreground">{skin.name}</span> : null}
+                <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                  {garage ? <CarSourceBadge source={source} /> : null}
+                  {livery ? <span className="truncate">{livery.name}</span> : null}
+                </span>
               </>
             ) : <span className="text-muted-foreground">{t('event.enter.noCar')}</span>}
           </span>
@@ -154,6 +172,18 @@ export const EnterPanel = ({
             {car ? t('event.enter.change') : t('event.enter.pick')}
           </Button>
         </div>
+
+        {/* A rented car costs a round's rent beside its fee; the fee is said
+            in the championship's summary. */}
+        {car && garage && !owned ? (
+          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-t pt-2.5 text-xs">
+            <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
+            <dd className="text-right font-semibold tabular-nums">
+              {t('event.enter.perRound', { amount: formatMoney(rentOf(garage.priceOf(car))) })}
+            </dd>
+            <dd className="col-span-2 text-muted-foreground">{t('event.enter.rentHint')}</dd>
+          </dl>
+        ) : null}
 
         {/* Said before Enter is pressed as well as asked after, so what
             entering now costs is never a surprise. */}
@@ -170,7 +200,7 @@ export const EnterPanel = ({
           onClick={() => {
             if (!car) return;
             if (view.behind.length > 0) setConfirming(true);
-            else onEnter(entry, { model: car.id, skin: skin?.id });
+            else enter();
           }}
         >
           {t('event.enter.action')}
@@ -198,7 +228,7 @@ export const EnterPanel = ({
         busy={busy}
         onConfirm={() => {
           setConfirming(false);
-          if (car) onEnter(entry, { model: car.id, skin: skin?.id });
+          enter();
         }}
         onClose={() => setConfirming(false)}
       />
@@ -210,9 +240,26 @@ export const EnterPanel = ({
         // An empty id list would offer the whole library, so a class with no
         // installed car is not offered the picker at all.
         baseQuery={chosen && chosen.cars.length > 0 ? { ids: [...chosen.cars] } : undefined}
+        trade={garage ? { mode: 'pick', garage } : undefined}
         onOpenChange={setPicking}
         onPick={(picked, pickedSkin) => { setCar(picked); setSkin(pickedSkin); setPicking(false); }}
+        onPurchase={(picked, pickedSkin) => setBuying({ car: picked, skin: pickedSkin })}
       />
+      {garage ? (
+        <PurchaseDialog
+          car={buying?.car ?? null}
+          skin={buying?.skin ?? null}
+          garage={garage}
+          onClose={(bought) => {
+            // Bought, it is the career's own and the car the panel enters in.
+            if (bought !== undefined && buying) {
+              setCar(buying.car);
+              setSkin(bought);
+            }
+            setBuying(null);
+          }}
+        />
+      ) : null}
     </Card>
   );
 };

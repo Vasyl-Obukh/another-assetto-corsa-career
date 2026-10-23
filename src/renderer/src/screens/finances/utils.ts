@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 
 import type { Career, LedgerLine } from '../../../../shared/types';
 import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
+import type { Formatters } from '@/i18n';
 import { editionName } from '@/lib/edition-names';
 
 /**
@@ -9,23 +10,41 @@ import { editionName } from '@/lib/edition-names';
  * @param line The line
  * @param career The career, whose seasons name the year an edition ran in
  * @param t The translator
- * @param formatNumber Formats a number, a progression speed's
+ * @param format Formats a progression speed, and what a car sold was bought
+ * for and when
  * @returns The two lines
  */
 export const describeLine = (
   line: LedgerLine,
   career: Career,
   t: TFunction,
-  formatNumber: (value: number) => string,
+  format: Pick<Formatters, 'formatNumber' | 'formatMoney' | 'formatDay'>,
 ): { title: string; detail: string } => {
   const round = t('finances.line.round', { number: line.number ?? 1, round: line.roundName ?? '' });
   const series = line.seriesName ?? '';
+  const car = line.car?.name ?? '';
 
   switch (line.kind) {
     case 'opening':
       return { title: t('finances.line.opening'), detail: t('finances.line.openingDetail') };
     case 'fee':
       return { title: round, detail: t('finances.line.feeDetail', { series }) };
+    case 'rent':
+      return { title: round, detail: t('finances.line.rentDetail', { car, series }) };
+    case 'purchase':
+      return {
+        title: car,
+        detail: line.car?.livery === undefined ? t('finances.line.bought') : t('finances.line.boughtIn', { livery: line.car.livery }),
+      };
+    case 'sale':
+      return {
+        title: car,
+        detail: t('finances.line.sold', {
+          paid: format.formatMoney(line.car?.paid ?? 0), day: format.formatDay(line.car?.bought ?? line.date),
+        }),
+      };
+    case 'repaint':
+      return { title: car, detail: t('finances.line.repainted', { from: line.car?.from ?? '', to: line.car?.livery ?? '' }) };
     case 'race':
       return {
         title: t('finances.line.race', { round, race: line.race ?? '' }),
@@ -51,7 +70,7 @@ export const describeLine = (
       };
     }
     default: {
-      const speed = (value: number): string => t('finances.speed', { speed: formatNumber(value) });
+      const speed = (value: number): string => t('finances.speed', { speed: format.formatNumber(value) });
 
       return {
         title: t('finances.line.speed', { from: speed(line.speed?.from ?? 1), to: speed(line.speed?.to ?? 1) }),

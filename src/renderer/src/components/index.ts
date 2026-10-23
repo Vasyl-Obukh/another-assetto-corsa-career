@@ -6,15 +6,20 @@ export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
 export { BackToTop } from './BackToTop.tsx';
 export {
-  ActiveFilters, BrowserGrid, BrowserLayout, CARD_LINK, FigureLine, FilterRail, PosterCaption, PosterSkeleton,
-  RacedIn, RailList, RailOption, RailRange, RailSearch, RailSection, RailSkeleton, RailSwitch, RangeSkeleton,
-  SearchField, SKELETON_COUNT, SortHeader, SortMenu, SourceTree, SWITCH_TRACK, ToggleCard, TOOLBAR_SEARCH,
-  ViewToggle, provenanceNames, provenancePills,
-  rangeName, toggledIn,
+  ActiveFilters, BrowserGrid, BrowserLayout, CARD_COVER, CARD_LINK, FigureLine, FilterRail, PosterCaption,
+  PosterSkeleton, RacedIn, RailList, RailOption, RailRange, RailSearch, RailSection, RailSkeleton, RailSwitch,
+  RangeSkeleton, SearchField, SKELETON_COUNT, SortHeader, SortMenu, SourceTree, SWITCH_TRACK, ToggleCard,
+  TOOLBAR_SEARCH, ViewToggle, provenanceNames, provenancePills, rangeName, toggledIn,
 } from './browser/index.ts';
 export type {
   ActiveFilter, BrowserToggle, ProvenancePicks, RailItem, RangeValue, SortItem,
 } from './browser/index.ts';
+export {
+  CarSourceBadge, GarageFoot, PriceFoot, PurchaseButton, PurchaseDialog, RepaintDialog, SellDialog, TradeButton,
+} from './car-trade/index.ts';
+export { AppraiseFoot, PriceOriginBadge } from './car-pricing/index.ts';
+export type { CarAppraise } from './car-pricing/index.ts';
+export type { CarTrade } from './car-trade/index.ts';
 export { LanguagePicker, ThemePicker } from './choice-tiles/index.ts';
 export {
   carPictureSources, CarSwatch, carSwatchSources, ContentImage, trackPictureSources,

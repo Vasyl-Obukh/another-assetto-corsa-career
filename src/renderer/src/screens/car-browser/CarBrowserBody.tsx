@@ -1,18 +1,19 @@
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CarCard } from './CarCard.tsx';
 import { CarCardSkeleton } from './CarCardSkeleton.tsx';
 import { CarRail } from './CarRail.tsx';
 import { CarTable } from './CarTable.tsx';
-import { CAR_SORTS } from './constants.ts';
+import { CAR_SORTS, PRICE_SORT } from './constants.ts';
 import { carPills } from './pills.ts';
 import type { Car, CarQuery } from '../../../../shared/types';
 import { useClasses, useSettings } from '@/app';
 import {
   ActiveFilters, BrowserGrid, BrowserLayout, SearchField, SortMenu, TOOLBAR_SEARCH, ViewToggle,
 } from '@/components';
-import type { BrowserToggle } from '@/components';
+import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { useCarBrowser, useInfiniteScroll, useRacingIndex } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { isListed } from '@/screens/championships';
@@ -48,13 +49,31 @@ interface CarBrowserBodyProps {
    */
   toggle?: BrowserToggle;
   /**
-   * Whether it is the Cars page itself, which heads itself with its title.
+   * What the browser does with money, inside a career: the Store, the Garage,
+   * or a picker that shows what each car costs. Every card and row says it, the
+   * list sorts and filters by price, and the Garage shows its own table.
    */
-  heading?: boolean;
+  trade?: CarTrade;
+  /**
+   * What the browser does with prices, in Your content: every car switched on
+   * shows its price, where that comes from and Edit price, the list sorts by
+   * price, and the rail filters on where a price comes from.
+   */
+  appraise?: CarAppraise;
+  /**
+   * Filters of the page's own, at the head of the rail - the Store's switches
+   * for the cars the career owns and can afford.
+   */
+  railTop?: ReactNode;
+  /**
+   * The page's title and what it is, for a browser that is a page - left out,
+   * it heads nothing.
+   */
+  heading?: { title: string; subtitle: string };
 }
 
 export const CarBrowserBody = ({
-  onSelect, selectedId, baseQuery, memoryId, toggle, heading = false,
+  onSelect, selectedId, baseQuery, memoryId, toggle, trade, appraise, railTop, heading,
 }: CarBrowserBodyProps) => {
   const { t } = useTranslation();
   const format = useFormat();
@@ -80,12 +99,15 @@ export const CarBrowserBody = ({
     <BrowserLayout
       heading={heading ? (
         <header className="flex flex-col gap-1 pt-8">
-          <h1 className="text-2xl font-semibold">{t('cars.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('cars.subtitle')}</p>
+          <h1 className="text-2xl font-semibold">{heading.title}</h1>
+          <p className="text-sm text-muted-foreground">{heading.subtitle}</p>
         </header>
       ) : undefined}
       rail={(
         <CarRail
+          top={railTop}
+          priced={trade !== undefined}
+          appraised={appraise !== undefined}
           criteria={criteria}
           facets={browser.facets}
           filtered={browser.filtered}
@@ -103,7 +125,7 @@ export const CarBrowserBody = ({
               onChange={browser.setSearch}
             />
             <SortMenu
-              items={CAR_SORTS}
+              items={trade || appraise ? [...CAR_SORTS, PRICE_SORT] : CAR_SORTS}
               value={sort}
               direction={direction}
               onChange={(next) => browser.setCriteria({ ...criteria, sort: next })}
@@ -123,12 +145,12 @@ export const CarBrowserBody = ({
         </>
       )}
       scrollRef={scrollRef}
-      backToTop={heading}
+      backToTop={heading !== undefined}
     >
       <BrowserGrid
         list={list}
         view={view}
-        cardSkeleton={<CarCardSkeleton />}
+        cardSkeleton={<CarCardSkeleton trade={trade?.mode} />}
         filtered={browser.filtered}
         sentinelRef={sentinelRef}
         onClear={browser.clear}
@@ -141,6 +163,8 @@ export const CarBrowserBody = ({
             onSelect={onSelect}
             selected={car.id === selectedId}
             toggle={toggle}
+            trade={trade}
+            appraise={appraise}
           />
       )) : (
         <CarTable
@@ -153,6 +177,8 @@ export const CarBrowserBody = ({
           onSelect={onSelect}
           selectedId={selectedId}
           toggle={toggle}
+          trade={trade}
+          appraise={appraise}
         />
       )}
       </BrowserGrid>

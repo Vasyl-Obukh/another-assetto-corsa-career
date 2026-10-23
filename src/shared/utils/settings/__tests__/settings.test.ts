@@ -12,6 +12,7 @@ import {
   optionalBoolean,
   readAddedContent,
   readAllowedWeather,
+  readCarPrices,
   readDrivingAids,
   readHiddenContentSources,
   readOpponents,
@@ -106,6 +107,31 @@ describe('shared/utils/settings', () => {
     it('returns both lists empty for anything that is not an object', () => {
       expect(readAddedContent(undefined)).toEqual({ cars: [], tracks: [] });
       expect(readAddedContent(['a_car'])).toEqual({ cars: [], tracks: [] });
+    });
+  });
+
+  describe('readCarPrices', () => {
+    it('reads every price through, keyed in order', () => {
+      const prices = readCarPrices({ zeta_car: 85_000, alpha_car: 12_000 });
+
+      expect(prices).toEqual({ alpha_car: 12_000, zeta_car: 85_000 });
+      expect(Object.keys(prices)).toEqual(['alpha_car', 'zeta_car']);
+    });
+
+    it('trims each ID and drops a row with no usable one', () => {
+      expect(readCarPrices({ ' a_car ': 85_000, '  ': 12_000 })).toEqual({ a_car: 85_000 });
+    });
+
+    it('drops a price that is not a whole number within bounds', () => {
+      expect(readCarPrices({
+        cheap: 999, dear: 100_000_001, fraction: 85_000.5, text: '85000', fine: 85_000,
+      })).toEqual({ fine: 85_000 });
+    });
+
+    it('returns no prices for anything that is not an object', () => {
+      expect(readCarPrices(undefined)).toEqual({});
+      expect(readCarPrices([85_000])).toEqual({});
+      expect(readCarPrices('a_car')).toEqual({});
     });
   });
 
@@ -314,6 +340,7 @@ describe('shared/utils/settings', () => {
         drivingAids: { abs: 2, idealLine: true },
         opponents: { strength: 95, aggression: 40 },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
+        carPrices: { my_car: 85_000 },
         hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,

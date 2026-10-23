@@ -92,6 +92,7 @@ const career = (seasons = 1): Career => ({
   },
   money: 0,
   ledger: [],
+  garage: [],
   rating: {} as Career['rating'],
   startDate: '2026-01-01',
   date: '2026-06-01',

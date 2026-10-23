@@ -77,6 +77,7 @@ export const registerHandlers = (
   handle('content:scan', async ({ force }) => content.summary(force));
   handle('content:cars', async (query) => content.cars(query));
   handle('content:car', async ({ id, installed }) => content.car(id, installed));
+  handle('content:appraisal', async ({ id }) => content.appraisal(id));
   handle('content:tracks', async (query) => content.tracks(query));
   handle('content:carFacets', async ({ query }) => content.carFacets(query));
   handle('content:trackFacets', async ({ query }) => content.trackFacets(query));
@@ -207,6 +208,9 @@ export const registerHandlers = (
   });
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
+  handle('career:buyCar', async (request) => career.buyCar(request));
+  handle('career:sellCar', async ({ model }) => career.sellCar(model));
+  handle('career:repaintCar', async (request) => career.repaintCar(request));
   handle('career:withdraw', async (request) => career.withdraw(request));
   handle('career:strength', async (request) => career.strength(request));
   handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));

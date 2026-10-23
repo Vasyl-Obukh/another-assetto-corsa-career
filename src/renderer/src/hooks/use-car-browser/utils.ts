@@ -41,12 +41,16 @@ export const toCarQuery = (
 ): CarQuery => {
   const { raced: onlyRaced, view, ...rest } = criteria;
   const ids = onlyRaced === true && raced !== undefined ? racedIds(base?.ids, raced) : base?.ids;
+  // A ceiling of the page's own, such as what the career can afford, narrows
+  // the slider's rather than replacing it.
+  const ceilings = [rest.priceTo, base?.priceTo].filter((one) => one !== undefined);
 
   return {
     ...rest,
     ...(search.trim() === '' ? {} : { search: search.trim() }),
     ...base,
     ...(ids === undefined ? {} : { ids }),
+    ...(ceilings.length === 0 ? {} : { priceTo: Math.min(...ceilings) }),
   };
 };
 

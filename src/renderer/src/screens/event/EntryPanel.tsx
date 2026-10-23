@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { dotted } from './utils.ts';
 import type { EventEntry } from '../../../../shared/types';
-import { carPictureSources, ContentImage } from '@/components';
+import { carPictureSources, CarSourceBadge, ContentImage } from '@/components';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
@@ -41,7 +41,10 @@ export const EntryPanel = ({ entry }: EntryPanelProps) => {
           />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-medium">{carName(entry.car.model)}</span>
+          <span className="flex items-center gap-2">
+            <span className="min-w-0 truncate font-medium">{carName(entry.car.model)}</span>
+            {entry.car.source ? <CarSourceBadge source={entry.car.source} /> : null}
+          </span>
           <span className="text-xs text-muted-foreground">{dotted([entry.team, entry.entryName])}</span>
           <span className="text-xs text-muted-foreground">{t('event.entry.season')}</span>
         </div>

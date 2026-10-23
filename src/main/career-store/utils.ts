@@ -104,6 +104,7 @@ export const stateOf = (career: Career): CareerState => ({
   date: career.date,
   money: career.money,
   ledger: career.ledger,
+  garage: career.garage,
   rating: career.rating,
   level: career.level,
   seasons: career.seasons,
@@ -159,6 +160,7 @@ export const readState = (value: unknown): CareerState | null => {
   const readable = state.version === CAREER_VERSION
     && typeof state.money === 'number'
     && Array.isArray(state.ledger)
+    && Array.isArray(state.garage)
     && typeof state.rating === 'object' && state.rating !== null
     && typeof state.date === 'string'
     && typeof state.level === 'object' && state.level !== null

@@ -7,12 +7,20 @@ import { Card } from '@/components/ui/card.tsx';
 import { slots } from '@/lib/slots.ts';
 import { cn } from '@/lib/utils.ts';
 
+interface CarDetailSkeletonProps {
+  /**
+   * Whether the page heads its sidebar with the car's price, as it does in a
+   * career.
+   */
+  priced?: boolean;
+}
+
 /**
  * A car's page while it is read: the stage with its name and chips where they
  * will land, a livery strip, the six figures under their real labels, and the
- * panels beside them.
+ * panels beside them - in a career, its price and Purchase first.
  */
-export const CarDetailSkeleton = () => {
+export const CarDetailSkeleton = ({ priced = false }: CarDetailSkeletonProps) => {
   const { t } = useTranslation();
 
   return (
@@ -67,6 +75,15 @@ export const CarDetailSkeleton = () => {
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
+          {/* In a career, its price and Purchase; outside one, its price and
+              what renting and repainting it cost. */}
+          <Card className={priced ? 'gap-3 px-4 py-4' : 'gap-2 px-4 py-4'}>
+            <div className="flex flex-col">
+              <span className="text-[0.6875rem] font-semibold tracking-wide text-muted-foreground uppercase">{t('trade.price')}</span>
+              <Shimmer className="my-1 h-7 w-36" />
+            </div>
+            {priced ? <Shimmer className="h-10 w-full rounded-md" /> : <Shimmer className="h-3 w-52" />}
+          </Card>
           <DetailPanel title={t('cars.detail.racedIn')} icon={<TrophyIcon />} className="flex flex-col pt-1">
             <div className="grid grid-cols-[4px_minmax(0,1fr)_auto] items-center gap-x-3 py-2.5">
               <Shimmer className="self-stretch rounded-full" />

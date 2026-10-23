@@ -123,14 +123,12 @@ export interface SeriesStore {
    * livery and own offsets, for a career to freeze when it enters.
    * @param series The championship, as the caller holds it
    * @param entry The class the player enters, by its id
-   * @param car The player's car
    * @param salt What makes this season's draw its own
    * @returns One frozen seat per AI seat
    */
   drawField: (
     series: Championship,
     entry: string,
-    car: RoundRequest['car'],
     salt: string,
   ) => Promise<FieldSeat[]>;
   /**

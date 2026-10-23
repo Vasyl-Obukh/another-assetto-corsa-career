@@ -1,5 +1,5 @@
 import {
-  CalendarDaysIcon, CarIcon, ChartLineIcon, FlagIcon, HouseIcon, MapIcon, MedalIcon, SettingsIcon, TrophyIcon,
+  CalendarDaysIcon, ChartLineIcon, FlagIcon, HouseIcon, MedalIcon, SettingsIcon, StoreIcon, TrophyIcon, WarehouseIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,8 +21,8 @@ const NAV_ICONS: Record<NavId, ReactNode> = {
   results: <ChartLineIcon />,
   calendar: <CalendarDaysIcon />,
   championships: <MedalIcon />,
-  cars: <CarIcon />,
-  tracks: <MapIcon />,
+  store: <StoreIcon />,
+  garage: <WarehouseIcon />,
   settings: <SettingsIcon />,
 };
 

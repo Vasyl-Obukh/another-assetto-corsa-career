@@ -22,7 +22,8 @@ interface FinancesDoorProps {
  */
 export const FinancesDoor = ({ career }: FinancesDoorProps) => {
   const { t } = useTranslation();
-  const { formatMoney, formatNumber } = useFormat();
+  const format = useFormat();
+  const { formatMoney } = format;
   const season = career.seasons.at(-1)?.index ?? 0;
   const figures = moneyFigures(ledgerRows(career.ledger), season);
   // What moved money, so a change of speed does not crowd a prize out.
@@ -47,7 +48,7 @@ export const FinancesDoor = ({ career }: FinancesDoorProps) => {
       </p>
       {latest.map((line) => (
         <p key={line.key} className="flex min-w-0 items-baseline justify-between gap-3 text-sm">
-          <span className="truncate text-muted-foreground">{describeLine(line, career, t, formatNumber).title}</span>
+          <span className="truncate text-muted-foreground">{describeLine(line, career, t, format).title}</span>
           <MoneyAmount amount={line.amount} className="text-sm" />
         </p>
       ))}

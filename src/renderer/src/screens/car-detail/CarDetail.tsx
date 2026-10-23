@@ -9,15 +9,19 @@ import { CarClassification } from './CarClassification.tsx';
 import { CarCurves } from './CarCurves.tsx';
 import { CarDetailSkeleton } from './CarDetailSkeleton.tsx';
 import { CarFigures } from './CarFigures.tsx';
+import { CarPricePanel } from './CarPricePanel.tsx';
 import { CarSource } from './CarSource.tsx';
 import { CarStage } from './CarStage.tsx';
+import { CarTradePanel } from './CarTradePanel.tsx';
 import { carChampionships } from './utils.ts';
 import { isCatalogued } from '../../../../shared/utils/library';
 import { useClasses, useSettings, useSlot } from '@/app';
 import {
   ErrorCard, LibrarySwitch, ScreenBody, ScreenHeader,
 } from '@/components';
-import { useCarDetail, useChampionships, usePageName } from '@/hooks';
+import {
+  useCarDetail, useChampionships, useGarage, usePageName,
+} from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { isListed } from '@/screens/championships';
 
@@ -31,11 +35,15 @@ export const CarDetail = () => {
   const { listings, loading } = useChampionships();
   const { catalogue } = useClasses();
   const { settings } = useSettings();
-  // Keyed on the car, so moving to another car starts on its first livery.
-  const [shown, setShown] = useState({ id, index: 0 });
-  const index = shown.id === id ? shown.index : 0;
-
+  const garage = useGarage();
   const { car } = detail;
+  // Keyed on the car, so moving to another car starts on its first livery -
+  // or on the one it wears, for a car the career owns.
+  const owned = car && garage ? garage.owned(car.id) : null;
+  const wears = Math.max(0, car?.skins.findIndex((one) => one.id === owned?.skin) ?? 0);
+  const [shown, setShown] = useState<{ id: string; index: number } | null>(null);
+  const index = shown?.id === id ? shown.index : wears;
+
   usePageName(car?.name ?? null);
   // The championships the Championships page lists, as the browser's cards count them.
   const championships = useMemo(
@@ -46,7 +54,7 @@ export const CarDetail = () => {
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       <ScreenHeader
-        back={mode === 'career' ? { to: path.cars(), label: t('back.cars') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
+        back={mode === 'career' ? { to: path.store(), label: t('back.store') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
         // Only a mod the catalogue does not know can be left out of the library.
         aside={car === null || isCatalogued(car.provenance) ? undefined : <LibrarySwitch kind="cars" id={car.id} />}
       />
@@ -55,7 +63,7 @@ export const CarDetail = () => {
         <ErrorCard error={detail.error} onDismiss={detail.dismissError} />
       ) : null}
 
-      {detail.loading ? <CarDetailSkeleton /> : null}
+      {detail.loading ? <CarDetailSkeleton priced={garage !== null} /> : null}
 
       {detail.missing ? (
         <p className="py-12 text-center text-muted-foreground">
@@ -75,6 +83,7 @@ export const CarDetail = () => {
             </div>
 
             <div className="flex min-w-0 flex-col gap-4">
+              {garage ? <CarTradePanel car={car} garage={garage} /> : <CarPricePanel car={car} />}
               <CarChampionships championships={championships} />
               <CarClassification carId={car.id} />
               <CarSource car={car} />

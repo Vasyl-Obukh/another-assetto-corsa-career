@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car prices mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The new families -
+   ledger kinds below - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.875 0.022 250); --t5-fg: oklch(0.36 0.035 255);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.315 0.028 250); --t5-fg: oklch(0.82 0.035 255);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+/* ---------- This mockup ---------- */
+/* Proposed: whose a car is. Owned on 320, the budget-works magenta, which no
+   car card, garage or ledger shows - a car card already spends 155, 75, 295
+   and 235 on provenance and 195 and 340 on its spec's origin. The ledger's
+   garage lines - bought, sold, repainted - wear the same family, because what
+   paid them is the garage; the word says which. A rental is a per-round cost
+   of racing like the fee, on 195, the modified-origin hue, which no ledger
+   shows. */
+:root {
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --l-fee: oklch(0.93 0.05 235); --l-fee-fg: oklch(0.38 0.12 250);
+  --own: oklch(0.92 0.06 320); --own-fg: oklch(0.4 0.14 320); --own-solid: oklch(0.55 0.17 320);
+  --l-rent: oklch(0.92 0.055 195); --l-rent-fg: oklch(0.38 0.09 200);
+  --p-base: oklch(0.93 0.05 155); --p-base-fg: oklch(0.34 0.09 155);
+  --p-dlc: oklch(0.94 0.06 75); --p-dlc-fg: oklch(0.42 0.1 70);
+  --p-mod: oklch(0.93 0.05 295); --p-mod-fg: oklch(0.4 0.14 295);
+}
+:root[data-theme="dark"] {
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --l-fee: oklch(0.32 0.06 235); --l-fee-fg: oklch(0.86 0.08 245);
+  --own: oklch(0.33 0.07 320); --own-fg: oklch(0.87 0.1 320); --own-solid: oklch(0.62 0.16 320);
+  --l-rent: oklch(0.33 0.06 195); --l-rent-fg: oklch(0.86 0.09 195);
+  --p-base: oklch(0.32 0.06 155); --p-base-fg: oklch(0.86 0.11 155);
+  --p-dlc: oklch(0.34 0.06 75); --p-dlc-fg: oklch(0.88 0.1 80);
+  --p-mod: oklch(0.33 0.07 295); --p-mod-fg: oklch(0.87 0.1 295);
+}
+.c-historic { background: var(--historic); color: var(--historic-fg); }
+.c-fee { background: var(--l-fee); color: var(--l-fee-fg); }
+.c-own { background: var(--own); color: var(--own-fg); }
+.c-rent { background: var(--l-rent); color: var(--l-rent-fg); }
+.c-base { background: var(--p-base); color: var(--p-base-fg); }
+.c-dlc { background: var(--p-dlc); color: var(--p-dlc-fg); }
+.c-mod { background: var(--p-mod); color: var(--p-mod-fg); }
+.in { color: var(--success); font-weight: 600; }
+.out { color: var(--destructive-soft-fg); font-weight: 600; }
+.bal { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.bal .i { color: var(--success); }
+.tiles4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.tile b { font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.tile.hero { border-top: 3px solid var(--success); }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: 140px minmax(0, 1fr) 90px; align-items: center; gap: 10px; font-size: 12.5px; }
+.bar .tr { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.bar .tr i { display: block; height: 100%; border-radius: 99px; }
+.bar .amt { text-align: right; }
+.led td.amt, .led th.amt { text-align: right; white-space: nowrap; }
+.led td { vertical-align: middle; }
+.panel.ledger { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.panel.ledger .pb { flex: 1; min-height: 0; overflow: auto; padding-top: 0; margin-top: 8px; }
+.led thead th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+.led .w { font-weight: 600; }
+.led .s { font-size: 12px; color: var(--muted-foreground); }
+.feebox { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.feebox .k { color: var(--muted-foreground); }
+.feebox .v { text-align: right; font-weight: 600; }
+.feebox .tot { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
+.errbox { border: 1px solid color-mix(in srgb, var(--destructive) 35%, var(--border)); background: var(--destructive-soft); color: var(--destructive-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.errbox .txt { display: flex; flex-direction: column; gap: 3px; }
+.warnbox { border: 1px solid color-mix(in srgb, var(--warning-soft-fg) 30%, var(--border)); background: var(--warning-soft); color: var(--warning-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.warnbox .txt { display: flex; flex-direction: column; gap: 3px; }
+
+/* Cards, as CarCard draws them. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); grid-auto-rows: max-content; align-content: start; gap: 14px; }
+.cc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.cc.sel { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); }
+.cc .pic { position: relative; flex: none; aspect-ratio: 4 / 3; background: var(--muted); overflow: hidden; }
+.cc .pic img.p { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cc .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, oklch(0.14 0.012 265 / .85)); }
+.cc .tl { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 1; }
+.cc .tr { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 4px; }
+.cc .cap { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; color: var(--on-scrim); }
+.cc .cap .ov { display: flex; align-items: center; gap: 6px; font-size: 11.5px; opacity: .9; }
+.cc .cap .ov img.b { width: 18px; height: 18px; border-radius: 4px; background: oklch(1 0 0 / .9); padding: 1px; object-fit: contain; }
+.cc .cap .nm { font-size: 15px; font-weight: 650; line-height: 1.2; margin-top: 2px; }
+.cc .bd { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.fig { display: flex; gap: 10px; font-size: 12px; color: var(--muted-foreground); }
+.fig b { color: var(--foreground); font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 99px; padding: 2px 8px; font-size: 11.5px; font-weight: 500; background: oklch(0.14 0.012 265 / .6); color: var(--on-scrim); backdrop-filter: blur(4px); }
+.raced { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 5px; align-items: center; }
+.short-p { color: var(--muted-foreground) !important; }
+
+/* Price, four ways. */
+.pa { display: flex; align-items: baseline; gap: 8px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border); }
+.pa b { font-size: 16px; font-weight: 650; }
+.pa .r { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.pa .r b { font-size: 12.5px; color: var(--foreground); font-weight: 600; }
+.pb2 { display: grid; grid-template-columns: 1fr 1fr; margin: auto -12px -12px; border-top: 1px solid var(--border); }
+.pb2 > div { padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 1px; }
+.pb2 > div + div { border-left: 1px solid var(--border); }
+.pb2 b { font-size: 15px; font-weight: 650; }
+.pc { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; flex-wrap: wrap; }
+.pc span { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 600; background: var(--muted); }
+.pc span.rent { background: var(--l-rent); color: var(--l-rent-fg); }
+.pc span.own { background: var(--own); color: var(--own-fg); }
+.pc span small { font-weight: 500; opacity: .8; font-size: 11.5px; }
+.pd { margin: auto -12px -12px; padding: 10px 12px; background: var(--muted); display: flex; align-items: center; gap: 10px; }
+.pd.own { background: var(--own); color: var(--own-fg); }
+.pd .l { display: flex; flex-direction: column; }
+.pd .l b { font-size: 17px; font-weight: 650; line-height: 1.15; }
+.pd .r { margin-left: auto; text-align: right; display: flex; flex-direction: column; font-size: 12px; }
+.pd .r b { font-size: 13.5px; font-weight: 600; }
+.pd .caps { color: inherit; opacity: .75; }
+
+/* The browser's rail, reduced to what this slice adds. */
+.rail { width: 236px; flex: none; display: flex; flex-direction: column; gap: 14px; }
+.rail .grp { display: flex; flex-direction: column; gap: 6px; }
+.rail .ropt { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
+.rail .ropt .n { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.cbx { width: 15px; height: 15px; border-radius: 4px; border: 1px solid var(--input); background: var(--card); flex: none; display: grid; place-items: center; }
+.cbx.on { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.cbx.on .i { width: 11px; height: 11px; stroke-width: 3; }
+.new { outline: 2px dashed color-mix(in srgb, var(--own-solid) 60%, transparent); outline-offset: 4px; border-radius: 8px; }
+.vt { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+.vt span { width: 32px; height: 30px; display: grid; place-items: center; color: var(--muted-foreground); }
+.vt span.on { background: var(--accent); color: var(--foreground); }
+
+/* The table view. */
+table.ct { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); }
+.ct th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; background: var(--card); }
+.ct td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ct td.n, .ct th.n { text-align: right; white-space: nowrap; }
+.ct img.th { width: 72px; height: 44px; object-fit: cover; border-radius: 6px; display: block; }
+.ct .nm { font-weight: 600; }
+.ct .sb { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.tablewrap { border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
+
+/* Liveries, as SkinTile draws them. */
+.liv { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.lv { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); display: flex; flex-direction: column; position: relative; }
+.lv img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--muted); }
+.lv span { padding: 7px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); }
+.lv.cur::before { content: 'Wears it now'; position: absolute; top: 6px; left: 6px; font-size: 11px; font-weight: 600; background: var(--own); color: var(--own-fg); border-radius: 6px; padding: 2px 6px; }
+.swatch { width: 34px; height: 22px; border-radius: 5px; object-fit: cover; background: var(--muted); box-shadow: 0 0 0 1px var(--border); flex: none; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12.5px; }
+.kv span { color: var(--muted-foreground); }
+.kv b { text-align: right; font-weight: 600; }
+
+/* The car page. */
+.stage-img { position: relative; border-radius: 14px; overflow: hidden; background: var(--scrim); aspect-ratio: 16 / 9; }
+.stage-img > img { width: 100%; height: 100%; object-fit: cover; }
+.stage-img .nav-arrows { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+.stage-img .nav-arrows span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: oklch(0.14 0.012 265 / .5); color: var(--on-scrim); }
+.stage-img .lbl2 { position: absolute; left: 14px; bottom: 12px; color: var(--on-scrim); font-size: 13px; }
+.strip { display: flex; gap: 6px; overflow: hidden; }
+.strip img { width: 84px; height: 52px; border-radius: 7px; object-fit: cover; flex: none; opacity: .65; }
+.strip img.on { opacity: 1; outline: 2px solid var(--primary); outline-offset: 2px; }
+.big { font-size: 28px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+
+/* Purchase buttons when the money is not there, three ways. */
+.btn.blk { width: 100%; }
+.btn.cant { background: var(--destructive-soft); color: var(--destructive-soft-fg); border-color: color-mix(in srgb, var(--destructive) 30%, transparent); cursor: not-allowed; }
+.btn small { font-weight: 500; opacity: .8; }
+
+/* A dialog laid over the whole window, as the car picker is. */
+.bigdlg { position: absolute; z-index: 21; inset: 36px 40px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; overflow: hidden; }
+.bigdlg .dh { padding: 18px 24px 8px; }
+.bigdlg .dh h3 { margin: 0; font-size: 17px; font-weight: 650; }
+.bigdlg .dh p { margin: 3px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.bigdlg .db { flex: 1; min-height: 0; overflow: auto; padding: 8px 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.bigdlg .df { padding: 12px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+.carhead { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; }
+.carhead img { width: 96px; height: 54px; object-fit: cover; border-radius: 7px; }
+
+/* The championship page around the Enter panel. */
+.enter-card { border: 1px dashed var(--primary); border-radius: 12px; background: var(--card); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.enter-card h4 { margin: 0; font-size: 14.5px; font-weight: 600; }
+.enter-card .desc { font-size: 12.5px; color: var(--muted-foreground); margin-top: -8px; }
+.carrow { display: flex; align-items: center; gap: 12px; }
+.carrow img { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; object-fit: cover; flex: none; }
+.carrow .t { font-size: 13.5px; font-weight: 500; }
+.carrow .s { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; }
+.select { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.select .i:last-child { margin-left: auto; color: var(--muted-foreground); }
+.costs { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 12.5px; padding-top: 10px; border-top: 1px solid var(--border); }
+.costs span { color: var(--muted-foreground); }
+.costs b { text-align: right; font-weight: 600; }
+.ctabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.ctabs a { padding: 9px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ctabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sum { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.sum .stripe { height: 6px; border-radius: 99px; background: var(--d-sports-fg); opacity: .8; }
+.sum h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; }
+.fact { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; font-size: 13px; align-items: center; }
+.fact > span:first-child { color: var(--muted-foreground); font-size: 12px; }
+
+/* Proposed: the three things money does to a car, each its own button.
+   Purchase is green 150, money turning into a car - the success hue, which no
+   card or dialog showing these buttons spends on anything else. Repaint is
+   paint: a gradient across 340-290-220, or a solid violet 300. Sell is amber 65,
+   money coming back, or the garage's magenta 320. The same solid fill wherever
+   the button appears - a card, a row's menu, the car page, the dialog. */
+:root { --buy: oklch(0.54 0.14 150); --paint-solid: oklch(0.54 0.18 300); --sell-gold: oklch(0.6 0.15 62); --sell-own: oklch(0.55 0.17 320);
+  --paint-grad: linear-gradient(100deg, oklch(0.58 0.2 345), oklch(0.54 0.2 295) 52%, oklch(0.56 0.14 225)); }
+:root[data-theme="dark"] { --buy: oklch(0.58 0.14 152); --paint-solid: oklch(0.58 0.17 300); --sell-gold: oklch(0.64 0.14 64); --sell-own: oklch(0.6 0.16 320);
+  --paint-grad: linear-gradient(100deg, oklch(0.62 0.19 345), oklch(0.58 0.19 295) 52%, oklch(0.6 0.13 225)); }
+.btn.go, .btn.paint, .btn.sell { color: white; border-color: transparent; }
+.btn.go { background: var(--buy); }
+.btn.paint { background: var(--paint-grad); }
+:root[data-paint="solid"] .btn.paint { background: var(--paint-solid); }
+.btn.sell { background: var(--sell-gold); }
+:root[data-sell="own"] .btn.sell { background: var(--sell-own); }
+.menu .mi .ic-paint { color: oklch(0.56 0.2 300); }
+.menu .mi .ic-sell { color: var(--sell-gold); }
+:root[data-sell="own"] .menu .mi .ic-sell { color: var(--sell-own); }
+
+/* Purchase on a card and in a row. */
+.cc .buy { margin-top: 8px; }
+.pd .btn { margin-left: 4px; }
+.ct td.act { width: 1%; white-space: nowrap; text-align: right; }
+.ct .btn.fw { width: 116px; }
+.ct .btn.fw2 { width: 132px; justify-content: space-between; }
+.ct .btn.fw2 b, .ct .btn.fw b { font-weight: 600; }
+.kebab { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; color: var(--muted-foreground); }
+.kebab.on { background: var(--accent); color: var(--foreground); }
+.ct tr.hl td { background: color-mix(in oklch, var(--accent) 60%, transparent); }
+
+/* ---------- This mockup ---------- */
+/* Proposed: where a price comes from. Your price on the custom origin's 340,
+   the colour a spec of your own already wears, so "yours" reads one way across
+   Settings. Suggested on the warning amber 80: a price nobody set, worth a
+   look - it only ever shows on a car the user added, so it never meets the
+   DLC chip's 75. A catalogue car's price wears no chip at all: it has only
+   the one. */
+:root { --po-yours: oklch(0.93 0.05 340); --po-yours-fg: oklch(0.38 0.12 340); }
+:root[data-theme="dark"] { --po-yours: oklch(0.33 0.07 340); --po-yours-fg: oklch(0.86 0.1 340); }
+.c-yours { background: var(--po-yours); color: var(--po-yours-fg); }
+.c-sugg { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.c-spec-own { background: var(--po-yours); color: var(--po-yours-fg); }
+.cc .pic .swp { position: absolute; top: 7px; right: 7px; z-index: 2; display: grid; place-items: center; padding: 4px; border-radius: 99px; background: oklch(0.14 0.012 265 / .55); backdrop-filter: blur(4px); }
+.cc.off .pic img.p { filter: saturate(.6); opacity: .8; }
+.pd .l .row { margin-top: 3px; }
+.pd .btn.edit { margin-left: auto; }
+.inp-err { border-color: var(--destructive) !important; box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent) !important; }
+.err { font-size: 12px; color: var(--destructive-soft-fg); font-weight: 500; }
+.sugg { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-size: 13px; }
+.sugg b { font-size: 14px; }
+.near { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.near .li { padding: 7px 12px; gap: 10px; }
+.near .li img { width: 56px; height: 32px; border-radius: 5px; object-fit: cover; flex: none; background: var(--muted); }
+.near .li .t { font-size: 13px; font-weight: 600; }
+.near .li .s { font-size: 11.5px; }
+.near .li .p { margin-left: auto; font-weight: 600; font-size: 13px; }
+.lead { font-size: 13.5px; }
+.lead p { margin: 0 0 6px; }
+.lead code { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; background: var(--muted); padding: 1px 5px; border-radius: 4px; }
+.order { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.order .arr { color: var(--muted-foreground); }
+.ct td.ed { width: 1%; }
+.pricecell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; white-space: nowrap; }
+.rail .ropt .chip { font-size: 11px; }
+.ct .switch { display: inline-block; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const FLAG = (c) => `${AC}gui/NationFlags/${c}.png`;
+const PREV = (car, skin) => `${AC}cars/${car}/skins/${encodeURIComponent(skin)}/preview.jpg`;
+const BADGE = (car) => `${AC}cars/${car}/ui/badge.png`;
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  home: P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  store: P('<path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/>'),
+  garage: P('<path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  wallet: P('<path d="M4 7h15a1 1 0 0 1 1 1v11H5a1 1 0 0 1-1-1z"/><path d="M4 7V6a2 2 0 0 1 2-2h11v3"/><circle cx="16" cy="13" r="1.2"/>'),
+  check: P('<path d="m5 12 5 5 9-10"/>'),
+  tag: P('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'),
+  search: P('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
+  grid: P('<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>'),
+  list: P('<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'),
+  x: P('<path d="M18 6 6 18M6 6l12 12"/>'),
+  lock: P('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  pen: P('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'),
+  undo: P('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>'),
+  sliders: P('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
+  plug: P('<path d="M9 7V3M15 7V3M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>'),
+  stack: P('<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>'),
+  pulse: P('<path d="M3 12h4l3-7 4 14 3-7h4"/>'),
+  hist: P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  src: P('<path d="M4 4h16v6H4zM4 14h16v6H4z"/>'),
+};
+const flag = (c, lg) => `<img class="flag${lg ? ' lg' : ''}" src="${FLAG(c)}" alt="">`;
+
+const GROUPS = [
+  { k: 'view', label: 'Screen', opts: [['content', 'Your content'], ['dialog', 'Edit price'], ['car', 'Car page']] },
+  { k: 'layout', label: 'View', for: ['content'], opts: [['cards', 'Cards'], ['table', 'Table']] },
+  { k: 'cCase', label: 'Case', for: ['content'], opts: [['browse', 'Browsing'], ['added', 'Just switched on']] },
+  { k: 'dCase', label: 'Case', for: ['dialog'], opts: [['curve', 'Suggested · no spec'], ['spec', 'Suggested · from its spec'], ['mine', 'Your price set'], ['invalid', 'Out of range']] },
+  { k: 'carCase', label: 'Case', for: ['car'], opts: [['settings', 'From Your content'], ['career', 'In a career\'s Store']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+const S = { view: 'content', layout: 'cards', cCase: 'browse', dCase: 'curve', carCase: 'settings', theme: 'light' };
+
+// ---------- Money ----------
+const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+const RENT = 0.02;
+const REPAINT = 0.015;
+const BALANCE = 214000;
+
+// ---------- Cars ----------
+// Mods the user added through Your content, each with what the app suggests:
+// the middle of the catalogue's cars in its spec, else the power-to-weight curve.
+const MODS = [
+  { id: '2022_detomaso_p72', name: 'De Tomaso P72', brand: 'De Tomaso', nat: 'ITA', year: 2022, bhp: 700, kg: null, spec: null, on: true, mine: null, sugg: 415000, how: 'curve',
+    skins: [['10dark_red', 'Dark red'], ['11bright', 'Bright'], ['12garnet', 'Garnet']] },
+  { id: 'Mercedes_DTM_1995', name: 'Mercedes AMG DTM 95', brand: 'Mercedes-Benz', nat: 'DEU', year: 1995, bhp: 420, kg: 1050, spec: 'DTM 1990s', on: true, mine: null, sugg: 1300000, how: 'spec',
+    skins: [['skin0', 'D2 #1'], ['skin1', 'AMG #3'], ['skin2', 'Sonax #8']] },
+  { id: '430_scuderia_acp', name: 'Ferrari F430 Scuderia', brand: 'Ferrari', nat: 'ITA', year: 2007, bhp: 513, kg: 1350, spec: null, on: true, mine: 250000, sugg: 165000, how: 'curve',
+    skins: [['00_rosso_scuderia', 'Rosso Scuderia'], ['giallo', 'Giallo']] },
+  { id: 'Yzd_Nissan_GTR_R35_GT1', name: 'Nissan GT-R NISMO GT1 (R35) 2010', brand: 'Nissan', nat: 'JPN', year: 2010, bhp: 600, kg: 1250, spec: null, on: true, mine: null, sugg: 320000, how: 'curve',
+    skins: [['#22 JR Motorsports', 'JR Motorsports #22'], ['#22 Sumo Power GT', 'Sumo Power #22']] },
+  { id: 'aventador_svj_acpursuit', name: 'Lamborghini Aventador SVJ', brand: 'Lamborghini', nat: 'ITA', year: 2019, bhp: 751, kg: 1450, spec: null, on: false, mine: null, sugg: 385000, how: 'curve',
+    skins: [['arancio_atlas', 'Arancio Atlas'], ['bianco_phanes', 'Bianco Phanes'], ['blue', 'Blue']] },
+  { id: 'dodge_ram_1500', name: 'Dodge RAM 1500', brand: 'Dodge', nat: 'USA', year: 2026, bhp: 365, kg: 1741, spec: null, on: false, mine: null, sugg: 52000, how: 'curve',
+    skins: [['#10 Kauling Racing', 'Kauling Racing #10']] },
+];
+const mod = (id) => MODS.find((m) => m.id === id);
+const priceOf = (m) => m.mine ?? m.sugg;
+const perTonne = (m) => Math.round(m.bhp / ((m.kg ?? 1300) / 1000));
+
+// Catalogue cars a dialog compares against, at their fixed prices. Figures are
+// illustrative until the catalogue's prices are researched again.
+const K = {
+  ks_porsche_918_spyder: { name: 'Porsche 918 Spyder', skin: '00_salzburg_racing_03', price: 1600000, pt: 541, year: 2013 },
+  ks_mclaren_p1: { name: 'McLaren P1', skin: '0_mclaren_orange', price: 1500000, pt: 623, year: 2013 },
+  ks_lamborghini_aventador_sv: { name: 'Lamborghini Aventador SV', skin: '00_rosso_bia_glittered', price: 500000, pt: 492, year: 2015 },
+  ferrari_laferrari: { name: 'Ferrari LaFerrari', skin: '00_rosso_scuderia', price: 3500000, pt: 741, year: 2013 },
+  ks_alfa_romeo_155_v6: { name: 'Alfa Romeo 155 V6 TI', skin: '0_racing_8', price: 1500000, year: 1993 },
+  ks_mercedes_190_evo2: { name: 'Mercedes 190E Evo II DTM', skin: '0_Sonax_3', price: 1100000, year: 1992 },
+  ks_ferrari_488_gtb: { name: 'Ferrari 488 GTB', skin: '00_rosso_scuderia', price: 260000, pt: 482, year: 2015 },
+  ks_lamborghini_huracan_performante: { name: 'Lamborghini Huracán Performante', skin: '00_arancio_anthaeus', price: 275000, pt: 463, year: 2017 },
+  ks_mclaren_570s: { name: 'McLaren 570S', skin: '00_mclaren_orange', price: 195000, pt: 428, year: 2015 },
+  ks_audi_r8_plus: { name: 'Audi R8 V10 Plus', skin: '00_brilliant_red_t', price: 190000, pt: 340, year: 2013 },
+};
+// Which catalogue cars each car's dialog lists: its spec-mates when it has a
+// spec, else the nearest in power to weight and age.
+const NEAR = {
+  '2022_detomaso_p72': ['ks_porsche_918_spyder', 'ks_mclaren_p1', 'ks_lamborghini_aventador_sv', 'ferrari_laferrari'],
+  Mercedes_DTM_1995: ['ks_alfa_romeo_155_v6', 'ks_mercedes_190_evo2'],
+  '430_scuderia_acp': ['ks_ferrari_488_gtb', 'ks_lamborghini_huracan_performante', 'ks_mclaren_570s', 'ks_audi_r8_plus'],
+};
+
+// ---------- Chips ----------
+// Only a car the user added has a price that can be anything but the one we
+// ship, so only it wears where its price comes from.
+const ORIGIN = { yours: ['Your price', 'c-yours'], sugg: ['Suggested', 'c-sugg'] };
+const originOf = (m) => (m.mine ? 'yours' : 'sugg');
+const ochip = (o) => `<span class="chip ${ORIGIN[o][1]}">${o === 'yours' ? I.pen : ''}${ORIGIN[o][0]}</span>`;
+// A spec of the user's own wears the custom origin.
+const specChip = (m) => (m.spec ? `<span class="chip c-spec-own">${m.spec}</span>` : '');
+const srcChip = () => '<span class="chip c-mod">Mod</span>';
+
+// ---------- The window ----------
+const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
+const NAV = [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
+const hdr = (on) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR', 1)}<span><b>Sam Whitaker</b><small>Career · 2027 · Sun 6 Jul</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>
+  <span class="end row" style="gap:14px"><a class="bal" title="Finances">${I.wallet}<span class="num">${fmt(BALANCE)}</span></a></span></header>`;
+const scrim = (html, w = 600) => `<div class="scrim"></div><div class="dlg" style="width:${w}px;max-height:calc(100% - 40px);overflow:auto">${html}</div>`;
+const TABS = [['General', I.sliders], ['Diagnostics', I.pulse], ['Your content', I.plug], ['Classes', I.stack], ['Content sources', I.src], ['Championships', I.trophy], ['Historic events', I.hist]];
+const tabs = () => `<div class="tabs">${TABS.map(([l, ic]) => `<a class="${l === 'Your content' ? 'on' : ''}">${ic}${l}</a>`).join('')}</div>`;
+const sw = (on) => `<span class="switch${on ? ' on' : ''}"></span>`;
+
+// ---------- Your content ----------
+const figs = (m) => `${m.spec ? `<div class="row" style="gap:4px">${specChip(m)}</div>` : ''}
+  <div class="fig"><span><b class="num">${m.bhp}</b> bhp</span><span><b class="num">${m.kg ? m.kg.toLocaleString('en-US') : '-'}</b> kg</span><span><b class="num">${perTonne(m)}</b> bhp/t</span></div>`;
+// A switched-on mod closes on its price, where it comes from and Edit price;
+// one still off is not in the library and has no price to show.
+const priceFoot = (m) => (m.on
+  ? `<div class="pd"><div class="l"><b class="num">${fmt(priceOf(m))}</b><span class="row">${ochip(originOf(m))}</span></div><button class="btn sm edit">${I.pen}Edit price</button></div>`
+  : '');
+const contentCard = (m) => `<div class="cc${m.on ? '' : ' off'}"><div class="pic"><img class="p" src="${PREV(m.id, m.skins[0][0])}">
+  <div class="tl">${srcChip(m)}</div><span class="swp">${sw(m.on)}</span>
+  <div class="cap"><div class="ov"><img class="b" src="${BADGE(m.id)}">${m.brand}${flag(m.nat)}<span class="end num">${m.year}</span></div><div class="nm">${m.name}</div></div></div>
+  <div class="bd">${figs(m)}${priceFoot(m)}</div></div>`;
+const ropt = (on, label, n) => `<div class="ropt"><span class="cbx${on ? ' on' : ''}">${on ? I.check : ''}</span>${label}<span class="n">${n}</span></div>`;
+const contentTable = () => `<div class="tablewrap"><table class="ct"><thead><tr><th></th><th></th><th>Car</th><th>Spec</th><th class="n">bhp</th><th class="n">kg</th><th class="n">Price</th><th></th></tr></thead><tbody>
+  ${MODS.map((m) => `<tr><td style="width:48px">${sw(m.on)}</td><td style="width:84px"><img class="th" src="${PREV(m.id, m.skins[0][0])}"></td>
+    <td><div class="nm">${m.name}</div><div class="sb">${flag(m.nat)}${m.brand} · ${m.year}${srcChip(m)}</div></td>
+    <td>${specChip(m) || '<span class="muted">-</span>'}</td><td class="n num">${m.bhp}</td><td class="n num">${m.kg ? m.kg.toLocaleString('en-US') : '-'}</td>
+    <td class="n">${m.on ? `<span class="pricecell">${ochip(originOf(m))}<b class="num">${fmt(priceOf(m))}</b></span>` : '<span class="muted">-</span>'}</td>
+    <td class="ed">${m.on ? `<button class="btn sm icon" title="Edit price">${I.pen}</button>` : ''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+const yourContent = (overlay = '') => {
+  const added = S.view === 'content' && S.cCase === 'added';
+  const svj = mod('aventador_svj_acpursuit');
+  svj.on = added;
+  const counts = { sugg: MODS.filter((m) => m.on && !m.mine).length, yours: MODS.filter((m) => m.on && m.mine).length };
+  const table = S.layout === 'table' && S.view === 'content';
+  const html = win(`${hdr('settings')}${tabs()}
+  <div style="padding:14px 28px 0;display:flex;align-items:center;gap:12px;flex:none"><p class="hint" style="margin:0;max-width:640px;font-size:13px">Mods our catalogue does not know. Switch one on to put it in the car and track libraries, the race screen's pickers and the championship editor.</p>
+    <div class="seg end"><span class="on">Cars</span><span>Tracks</span></div></div>
+  <div class="body" style="display:flex;gap:22px;overflow:hidden">
+    <aside class="rail"><div class="grp new"><span class="caps">Price</span>${ropt(false, ochip('sugg'), counts.sugg)}${ropt(false, ochip('yours'), counts.yours)}</div>
+      <div class="placeholder"><b>Source, class and spec, brand, country, year, bhp</b>As the browser has them today.</div></aside>
+    <div class="col grow" style="overflow:hidden"><div class="row"><span class="input" style="width:260px">${I.search}<span class="muted">Search cars</span></span>
+      <span class="end row"><button class="btn">Sort: Name ${I.down}</button><span class="vt"><span class="${table ? '' : 'on'}">${I.grid}</span><span class="${table ? 'on' : ''}">${I.list}</span></span></span></div>
+      ${table ? contentTable() : `<div class="grid" style="overflow:auto;padding-bottom:20px">${MODS.map(contentCard).join('')}</div>`}</div></div>
+  ${added ? `<div class="toast"><span class="well amber">${I.tag}</span><div class="grow"><b>Lamborghini Aventador SVJ is in your library</b><div class="hint">At a suggested ${fmt(svj.sugg)}</div></div><button class="btn sm pri">${I.pen}Set its price</button><span class="kebab">${I.x}</span></div>` : ''}${overlay}`);
+  svj.on = false;
+  return html;
+};
+
+// ---------- Edit price ----------
+const nearList = (m) => {
+  const bySpec = m.how === 'spec';
+  return `<div class="field"><span class="caps">${bySpec ? `Cars in its spec, ${m.spec}` : 'Cars nearest it in power to weight'}</span>
+    <div class="near">${NEAR[m.id].map((k) => { const c = K[k]; return `<div class="li"><img src="${PREV(k, c.skin)}"><div style="min-width:0"><div class="t">${c.name}</div><div class="s">${bySpec ? `${c.year}` : `${c.pt} bhp/t · ${c.year}`}</div></div><span class="p num">${fmt(c.price)}</span><button class="btn sm ghost">Use</button></div>`; }).join('')}</div></div>`;
+};
+const editDialog = (m, typed, opts = {}) => {
+  const value = Number(String(typed).replace(/,/g, ''));
+  const bad = opts.invalid;
+  const becomes = value === m.sugg ? 'sugg' : 'yours';
+  const why = m.how === 'spec' ? `The middle of the cars in its spec, ${m.spec}` : 'From its power to weight and its year';
+  return scrim(`<div class="dh"><h3>Price of the ${m.name}</h3><p>What every career pays to buy it. Its rent and its repaint follow from it.</p></div>
+  <div class="db">
+    <div class="carhead"><img src="${PREV(m.id, m.skins[0][0])}"><div><div style="font-weight:600;font-size:13.5px">${m.name}</div><div class="row hint" style="gap:6px">${m.brand} · ${m.year}${srcChip(m)}${specChip(m)}</div></div></div>
+    <div class="field"><span class="lbl">Price</span>
+      <div class="row"><span class="input focus${bad ? ' inp-err' : ''}" style="width:240px"><span class="muted">$</span><span class="num" style="font-weight:600">${typed}</span><span class="caret" style="margin-left:-6px"></span></span>${bad ? '' : ochip(becomes)}</div>
+      ${bad ? `<span class="err">A price is from ${fmt(1000)} to ${fmt(100000000)}.</span>` : `<span class="hint">Rent <b class="num" style="color:var(--foreground)">${fmt(Math.round(value * RENT))}</b> a round · Repaint <b class="num" style="color:var(--foreground)">${fmt(Math.round(value * REPAINT))}</b></span>`}</div>
+    <div class="sugg">${ochip('sugg')}<b class="num">${fmt(m.sugg)}</b><span class="hint grow">${why}</span>${value === m.sugg ? '' : `<button class="btn sm">${I.undo}Use it</button>`}</div>
+    ${nearList(m)}
+    <div class="note">Every career pays the new price from now on, in the Store and in rent for rounds still to launch. <b>A car already bought keeps what was paid for it</b>: it sells and repaints on that.</div>
+  </div>
+  <div class="df"><button class="btn ghost">Cancel</button><button class="btn pri${bad ? ' dim' : ''}">Save</button></div>`);
+};
+const dialog = () => {
+  const m = { curve: mod('2022_detomaso_p72'), spec: mod('Mercedes_DTM_1995'), mine: mod('430_scuderia_acp'), invalid: mod('2022_detomaso_p72') }[S.dCase];
+  const typed = { curve: '1,300,000', spec: '1,300,000', mine: '250,000', invalid: '500' }[S.dCase];
+  return yourContent(editDialog(m, typed, { invalid: S.dCase === 'invalid' }));
+};
+
+// ---------- Car page ----------
+// The car page only ever shows a price; it is changed in Your content alone.
+const carPage = () => {
+  const m = { ...mod('2022_detomaso_p72'), mine: 1300000 };
+  const career = S.carCase === 'career';
+  const price = priceOf(m);
+  const panel = career
+    ? `<div class="panel"><div class="pb col" style="gap:12px;padding-top:14px">
+        <div><span class="caps">Price</span><div class="big num">${fmt(price)}</div></div>
+        <button class="btn lg blk cant">${I.lock}Can't afford</button></div></div>`
+    : `<div class="panel"><div class="pb col" style="gap:12px;padding-top:14px">
+        <div><span class="caps">Price</span><div class="big num">${fmt(price)}</div></div>
+        <div class="hint">Rent <b class="num" style="color:var(--foreground)">${fmt(price * RENT)}</b> a round · Repaint <b class="num" style="color:var(--foreground)">${fmt(price * REPAINT)}</b></div></div></div>`;
+  return win(`${hdr(career ? 'store' : 'settings')}<div class="shdr"><span class="backlink">${I.back}${career ? 'Store' : 'Your content'}</span>
+    <span class="row" style="margin-left:12px"><img src="${BADGE(m.id)}" style="width:26px;height:26px;object-fit:contain"><h2>${m.name}</h2>${flag(m.nat)}${srcChip(m)}${specChip(m)}</span>
+    ${career ? '' : `<span class="end row"><span class="status">In your library</span>${sw(true)}</span>`}</div>
+  <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;overflow:auto">
+    <div class="col"><div class="stage-img"><img src="${PREV(m.id, m.skins[0][0])}"><div class="nav-arrows"><span>${I.back}</span><span>${I.chev}</span></div><div class="lbl2">${m.skins[0][1]} · 1 of ${m.skins.length}</div></div>
+      <div class="strip">${m.skins.map(([k], i) => `<img class="${i === 0 ? 'on' : ''}" src="${PREV(m.id, k)}">`).join('')}</div>
+      <div class="placeholder"><b>Figures, description and curves</b>As the car page has them today.</div></div>
+    <div class="col">${panel}<div class="placeholder"><b>Championships racing it, its classification, where it comes from</b>As today.</div></div>
+  </div>`);
+};
+
+// ---------- Explanations ----------
+const LEAD = `<div class="lead"><p><b>Two kinds of price.</b> Every car in the app's catalogue - Kunos' and the mods we know alike - has one fixed price, researched from the real car, and nothing in the app changes it. A car you added through Your content costs:</p>
+  <div class="order">${ochip('yours')}<span class="arr">else</span>${ochip('sugg')}<span class="hint">the middle of the catalogue's cars in its spec, else the power-to-weight curve</span></div>
+  <p>Your prices are kept app-wide in <code>%APPDATA%/ac-career-mode/car-prices.json</code>, beside <code>car-classes.json</code> and read the same tolerant way, so every career and the Race tab read the same price. Nothing goes in the content cache.</p></div>`;
+const WHY = {
+  content: () => (S.cCase === 'added'
+    ? '<b>Switching a mod on never stops to ask.</b> It goes in at the suggested price, and a notification offers <b>Set its price</b>, which opens Edit price.'
+    : (S.layout === 'table'
+      ? '<b>The table</b> gains a Price column - where it comes from, then the amount - and a pencil at the end of the row. A mod still off has no price.'
+      : '<b>Your content is the one place a price is changed.</b> Every mod switched on closes on the Store\'s tinted foot: its price, where that comes from, and <b>Edit price</b>. The rail gains <b>Price</b> (dashed), so the mods still on a suggestion are one tick away.')),
+  dialog: () => ({
+    curve: '<b>Edit price</b>: you type the price; under it, the rent and the repaint it comes to. The suggestion sits below with what it rests on and <b>Use it</b>, then the catalogue\'s cars nearest it in power to weight - it has no spec - each with Use.',
+    spec: '<b>A mod in a spec</b> is suggested the middle of the catalogue\'s cars in that spec, and the dialog lists them.',
+    mine: '<b>A price of your own</b> goes back with <b>Use it</b> and Save: a price equal to the suggestion is no price of yours, so the file drops it, as a car list equal to ours does in Classes.',
+    invalid: '<b>Out of range:</b> from $1,000 to $100M, whole units, in the app\'s currency with no conversion. Save stays off until it reads.',
+  })[S.dCase],
+  car: () => (S.carCase === 'career'
+    ? '<b>Inside a career</b> the car page is as it is today: the price and Purchase.'
+    : '<b>Opened from Your content</b>, the car page shows the price, the rent and the repaint - no chip and no Edit price, since prices change in Your content alone.'),
+};
+const PROPOSED = [
+  '<b>Every catalogue car is priced again from the real world</b>, Kunos\' and catalogued mods alike: new from the maker while it is still built, otherwise what one sells for. Within a real-world class and its generation - GT3 before and after 2016, LMP2 2017 on, TCR - a price far from the class\'s middle is pulled towards it.',
+  '<b>Only a car you added has a price you can change</b>, and only in <b>Settings › Your content</b> - never on the car page, never in a career.',
+  '<b>Switching a mod on</b> sets the suggested price and shows a notification with Set its price.',
+  '<b>The suggestion</b> is the middle of the catalogue\'s cars in its spec, else the power-to-weight curve; the dialog lists those cars, or the nearest in power to weight.',
+  '<b>Saving the suggested amount removes your price</b> - Use it, then Save - as Revert does in Classes.',
+  '<b>Changing a price reaches the Store and the rent</b> of rounds still to launch. A car already bought keeps what was paid for it: it sells and repaints on that.',
+  'Your price on 340, as a spec of your own; Suggested on amber. Shown in Your content and its dialog alone.',
+  'From <b>$1,000 to $100M</b>, whole units.',
+];
+const OPEN = [
+  '<b>How close to the middle?</b> Recommended: a price more than a quarter away from its class\'s median is pulled to that quarter, so a GT3 of one generation spans about 0.75 to 1.25 of its middle.',
+];
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => !g.for || g.for.includes(S.view))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = `<div class="box">${LEAD}<div class="q" style="margin-top:4px">${WHY[S.view]()}</div><div class="q"><b>Proposed</b><ul>${PROPOSED.map((q) => `<li>${q}</li>`).join('')}</ul></div><div class="q"><b>To decide</b><ul>${OPEN.map((q) => `<li>${q}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('stage').innerHTML = { content: () => yourContent(), dialog, car: carPage }[S.view]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+// The hash holds the picker's state, so a view can be linked or reloaded.
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+</script>
+</body>
+</html>

@@ -36,9 +36,9 @@ export const ROUTE = {
   finances: '/home/finances',
   yearReview: '/home/history/:season',
   championshipReview: '/home/history/:season/:series/:edition',
-  cars: '/cars',
+  store: '/store',
+  garage: '/garage',
   car: '/cars/:id',
-  tracks: '/tracks',
   track: '/tracks/:id',
   settings: '/settings',
   settingsCareer: '/settings/career',
@@ -87,14 +87,17 @@ export const DETAIL_TAB_PARAM = 'tab';
  *
  * Results, History and Finances are deliberately not here: all three are
  * reached from Home, and live under its path so Home stays lit while any is
- * open. Settings opens on the career's own, and stays lit on the app's.
+ * open. Settings opens on the career's own, and stays lit on the app's. A
+ * car's page belongs to the Store, unless the Garage opened it. There is no
+ * Tracks: a track browser is only ever a picker, and a circuit's page is
+ * reached through a link.
  */
 export const CAREER_NAV = [
   { id: 'home', label: 'nav.home' },
   { id: 'calendar', label: 'nav.calendar' },
   { id: 'championships', label: 'nav.championships' },
-  { id: 'cars', label: 'nav.cars' },
-  { id: 'tracks', label: 'nav.tracks' },
+  { id: 'store', label: 'nav.store', also: ['car'] },
+  { id: 'garage', label: 'nav.garage' },
   { id: 'settings', label: 'nav.settings', to: 'settingsCareer' },
 ] as const satisfies readonly NavEntry[];
 
@@ -145,9 +148,9 @@ export const BACK_LABEL = {
   finances: 'back.finances',
   yearReview: 'back.yearReview',
   championshipReview: 'back.championshipReview',
-  cars: 'back.cars',
+  store: 'back.store',
+  garage: 'back.garage',
   car: 'back.car',
-  tracks: 'back.tracks',
   track: 'back.track',
   settings: 'back.settings',
   settingsCareer: 'back.settings',

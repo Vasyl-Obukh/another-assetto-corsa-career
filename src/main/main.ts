@@ -36,6 +36,7 @@ if (!app.requestSingleInstanceLock()) {
     const settings = await createSettingsStore(app.getPath('userData'));
     const content = await createContentStore(app.getPath('userData'));
     content.include(settings.get().addedContent);
+    content.priceWith(settings.get().carPrices);
     const classes = await createClassStore(app.getPath('userData'));
     content.classify(classes.catalogue());
     const race = await createRaceStore(app.getPath('userData'), content, settings);
@@ -83,6 +84,7 @@ if (!app.requestSingleInstanceLock()) {
     settings.onChange((next) => {
       applyThemeChoice(next.theme);
       content.include(next.addedContent);
+      content.priceWith(next.carPrices);
       if (mainWindow) send(mainWindow, 'settings:changed', next);
     });
 

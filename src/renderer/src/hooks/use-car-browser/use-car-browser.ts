@@ -10,7 +10,7 @@ import {
 import type { CarFacets, CarQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
-import { useClasses } from '@/app';
+import { useClasses, useSettings } from '@/app';
 import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 import { invoke, subscribe } from '@/lib/ipc';
 
@@ -46,6 +46,9 @@ export const useCarBrowser = (
   // the user's can be deleted while this browser has it ticked.
   const { catalogue } = useClasses();
   const criteria = useMemo(() => withKnownClasses(picked, catalogue), [picked, catalogue]);
+  // What main prices the cars the user added over, which moves the counts on
+  // where a price comes from without the query changing.
+  const { settings: { carPrices, addedContent } } = useSettings();
 
   const settled = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   // Serialised rather than depended on directly, since a picker rebuilds its
@@ -56,7 +59,17 @@ export const useCarBrowser = (
     // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
     [criteria, settled, baseKey, raced],
   );
-  const key = useMemo(() => carQueryKey(query), [query]);
+  // A price changed in settings, or a car added on its suggestion, moves a car
+  // only where the list is ordered or narrowed by price, so only there does it
+  // start the list again; anywhere else the card already reads the new one.
+  const byPrice = query.sort === 'price' || (query.priceOrigins ?? []).length > 0
+    || query.priceFrom !== undefined || query.priceTo !== undefined;
+  const key = useMemo(
+    () => (byPrice
+      ? `${carQueryKey(query)}|${JSON.stringify([carPrices, addedContent.cars])}`
+      : carQueryKey(query)),
+    [query, byPrice, carPrices, addedContent.cars],
+  );
 
   const load = useCallback(
     (offset: number, limit: number) => invoke('content:cars', { ...query, offset, limit }),
@@ -76,7 +89,7 @@ export const useCarBrowser = (
     );
 
     return () => { live = false; };
-  }, [query, classified]);
+  }, [query, classified, carPrices, addedContent]);
 
   // Written to a module store rather than lifted into a provider: nothing
   // renders from it, and the only reader is the next mount of this browser.

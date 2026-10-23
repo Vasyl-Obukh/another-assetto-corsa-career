@@ -1,10 +1,13 @@
 import { PaintbrushIcon, UserIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import type { Skin } from '../../../../shared/types';
 import { CARD_LINK } from '@/components/browser/index.ts';
 import { carPictureSources, ContentImage } from '@/components/content-image/index.ts';
 import { LiveryPlate } from '@/components/LiveryPlate.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
+import { CAR_SOURCE_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
 interface SkinTileProps {
@@ -21,6 +24,10 @@ interface SkinTileProps {
    */
   selected: boolean;
   /**
+   * Whether the player's own car wears it now.
+   */
+  current?: boolean;
+  /**
    * Called when the tile is picked.
    */
   onPick: () => void;
@@ -31,8 +38,9 @@ interface SkinTileProps {
  * page's carousel shows it, then its name and whoever the author credited.
  */
 export const SkinTile = ({
-  carId, skin, selected, onPick,
+  carId, skin, selected, current = false, onPick,
 }: SkinTileProps) => {
+  const { t } = useTranslation();
   // Most of the base game credits nobody, so the line is left out rather than
   // filled with the folder name.
   const credit = [skin.driver, skin.team].filter((part): part is string => part !== null).join(' · ');
@@ -61,6 +69,9 @@ export const SkinTile = ({
             )}
           />
           {skin.number === null ? null : <LiveryPlate number={skin.number} className="absolute top-2 left-2" />}
+          {current ? (
+            <Badge className={cn('absolute top-2 right-2 shadow-sm', CAR_SOURCE_ACCENT.owned)}>{t('trade.wearsNow')}</Badge>
+          ) : null}
         </div>
 
         <div className="flex min-w-0 flex-col gap-0.5 px-3 py-2.5">

@@ -20,6 +20,10 @@ export type {
   UserCarSpec,
 } from './car-classes.ts';
 
+export type {
+  CarAppraisal, CarPricing, PriceBasis, PriceOrigin, UserPrices,
+} from './car-prices.ts';
+
 export {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
@@ -125,6 +129,7 @@ export type {
 export type {
   CalendarEntry,
   Career,
+  CarSource,
   CareerBackup,
   CareerCalendar,
   CareerDriver,
@@ -157,6 +162,7 @@ export type {
   LedgerLine,
   NewCareerRequest,
   NewChampionshipRequest,
+  OwnedCar,
   PositionPoints,
   RoundResult,
   SeasonEntry,

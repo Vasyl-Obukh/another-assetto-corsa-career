@@ -5,8 +5,8 @@
  * The amounts of money a new career may start with, smallest first - the stops
  * of the New career page's slider.
  *
- * Placeholders until the economy (Phase 7) prices the cars and entries they
- * have to pay for.
+ * Set against the car prices: the default buys a club racer such as the MX-5
+ * Cup with money left for its fees, and the top stop a GT3 car.
  */
 export const STARTING_MONEY_STOPS: readonly number[] = [10_000, 50_000, 100_000, 250_000, 500_000, 1_000_000];
 

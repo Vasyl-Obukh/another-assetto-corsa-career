@@ -10,6 +10,7 @@ import type { SortValue } from './utils.ts';
 import type {
   Car,
   CarFacets,
+  CarPricing,
   CarQuery,
   CarSortKey,
   ClassCatalogue,
@@ -21,6 +22,7 @@ import type {
   TrackSortKey,
 } from '../../shared/types/index.ts';
 import { carClassesOf, carSpecsOf, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
+import { carPrice, priceOrigin } from '../../shared/utils/car-prices/index.ts';
 import { nationOfCountry } from '../../shared/utils/nations/index.ts';
 
 /**
@@ -29,16 +31,56 @@ import { nationOfCountry } from '../../shared/utils/nations/index.ts';
 type Filters<T> = Record<string, (item: T) => boolean>;
 
 /**
- * What each car sort key reads off a car.
+ * Nothing priced by the user and nothing added.
  */
-const CAR_SORTS: Record<CarSortKey, (car: Car) => SortValue> = {
+const NO_PRICING: CarPricing = { prices: {}, added: [] };
+
+/**
+ * Where a car's price comes from, for the filter on it.
+ * @param car The car
+ * @param pricing The user's prices and the cars they added
+ * @returns The price list's or the user's, a suggestion for a car they added,
+ * or null for one they have not added
+ */
+const pricedAs = (car: Car, pricing: CarPricing): string | null => {
+  const origin = priceOrigin(car.id, pricing.prices);
+
+  return origin === 'suggested' && !pricing.added.includes(car.id) ? null : origin;
+};
+
+/**
+ * What each car costs, worked out once per car for one query: a sort reads it
+ * on every comparison and the facets once per filter, and a mod's derivation
+ * walks the class catalogue.
+ * @param catalogue The class catalogue a mod's price is derived over
+ * @param pricing The user's prices and the cars they added
+ * @returns A car's price
+ */
+const pricesFor = (catalogue: ClassCatalogue, pricing: CarPricing): ((car: Car) => number) => {
+  const known = new Map<string, number>();
+
+  return (car) => {
+    const price = known.get(car.id) ?? carPrice(car, catalogue, pricing.prices);
+    known.set(car.id, price);
+
+    return price;
+  };
+};
+
+/**
+ * What each car sort key reads off a car.
+ * @param priceOf What a car costs
+ * @returns The readers, by key
+ */
+const carSorts = (priceOf: (car: Car) => number): Record<CarSortKey, (car: Car) => SortValue> => ({
   name: (car) => car.name,
   brand: (car) => car.brand,
   year: (car) => car.year,
   bhp: (car) => car.performance.bhp,
   weight: (car) => car.performance.weightKg,
   powerToWeight: (car) => car.performance.powerToWeight,
-};
+  price: priceOf,
+});
 
 /**
  * What each track sort key reads off a track.
@@ -58,9 +100,16 @@ const TRACK_SORTS: Record<TrackSortKey, (group: TrackGroup) => SortValue> = {
  * Builds the tests a car has to pass, one per filter the query can set.
  * @param query What the caller asked for
  * @param catalogue The class catalogue classes and specs resolve against
+ * @param pricing The user's prices and the cars they added
+ * @param priceOf What a car costs
  * @returns The tests, keyed by the filter they come from
  */
-const carFilters = (query: CarQuery, catalogue: ClassCatalogue): Filters<Car> => {
+const carFilters = (
+  query: CarQuery,
+  catalogue: ClassCatalogue,
+  pricing: CarPricing,
+  priceOf: (car: Car) => number,
+): Filters<Car> => {
   const terms = searchTerms(query.search);
 
   return {
@@ -77,6 +126,8 @@ const carFilters = (query: CarQuery, catalogue: ClassCatalogue): Filters<Car> =>
     provenance: (car) => fromAnyOf(car.provenance, query),
     year: (car) => inBounds(car.year, query.yearFrom, query.yearTo),
     bhp: (car) => inBounds(car.performance.bhp, query.bhpFrom, query.bhpTo),
+    price: (car) => inBounds(priceOf(car), query.priceFrom, query.priceTo),
+    priceOrigin: (car) => isOneOf(pricedAs(car, pricing), query.priceOrigins),
   };
 };
 
@@ -122,15 +173,18 @@ const applyFilters = <T>(
  * @param cars Every installed car
  * @param query What to search, filter, sort and page by
  * @param catalogue The class catalogue classes and specs resolve against
+ * @param pricing The user's prices and the cars they added
  * @returns One page, with the full match count beside it
  */
 export const queryCars = (
   cars: readonly Car[],
   query: CarQuery = {},
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+  pricing: CarPricing = NO_PRICING,
 ): Page<Car> => {
-  const matched = applyFilters(cars, carFilters(query, catalogue));
-  const sorted = sortBy(matched, CAR_SORTS[query.sort ?? 'name'], (car) => car.name, query.direction);
+  const priceOf = pricesFor(catalogue, pricing);
+  const matched = applyFilters(cars, carFilters(query, catalogue, pricing, priceOf));
+  const sorted = sortBy(matched, carSorts(priceOf)[query.sort ?? 'name'], (car) => car.name, query.direction);
 
   return paginate(sorted, query.offset, query.limit);
 };
@@ -180,15 +234,18 @@ export const circuitOf = (tracks: readonly Track[], id: string): TrackGroup | nu
  * @param cars Every installed car
  * @param query The filters currently applied
  * @param catalogue The class catalogue classes and specs resolve against
- * @returns Counts per brand, country, class, spec and provenance, and how year
- *   and power are spread
+ * @param pricing The user's prices and the cars they added
+ * @returns Counts per brand, country, class, spec, provenance and where a price
+ *   comes from, and how year, power and price are spread
  */
 export const carFacets = (
   cars: readonly Car[],
   query: CarQuery = {},
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
+  pricing: CarPricing = NO_PRICING,
 ): CarFacets => {
-  const filters = carFilters(query, catalogue);
+  const priceOf = pricesFor(catalogue, pricing);
+  const filters = carFilters(query, catalogue, pricing, priceOf);
   const without = (except: string): Car[] => applyFilters(cars, filters, except);
 
   return {
@@ -202,6 +259,10 @@ export const carFacets = (
     distributors: countValues(without('provenance'), (car) => [car.provenance.distributor]),
     years: spreadOf(cars, without('year'), (car) => car.year),
     power: spreadOf(cars, without('bhp'), (car) => car.performance.bhp),
+    priceOrigins: countValues(without('priceOrigin'), (car) => [pricedAs(car, pricing)]),
+    // Over the price's logarithm, since prices run from thousands to tens of
+    // millions and a linear scale would crowd every road car into one bar.
+    prices: spreadOf(cars, without('price'), (car) => Math.log10(priceOf(car))),
   };
 };
 

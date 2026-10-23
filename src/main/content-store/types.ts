@@ -2,6 +2,7 @@ import type { ContentFingerprints } from '../../core/content/index.ts';
 import type {
   AddedContent,
   Car,
+  CarAppraisal,
   CarFacets,
   CarQuery,
   ClassCatalogue,
@@ -14,6 +15,7 @@ import type {
   TrackFacets,
   TrackGroup,
   TrackQuery,
+  UserPrices,
 } from '../../shared/types/index.ts';
 
 /**
@@ -120,6 +122,14 @@ export interface ContentStore {
    */
   classify(catalogue: ClassCatalogue): void;
   /**
+   * Hands the store the prices the user set on cars they added.
+   *
+   * Called with whatever settings hold, at startup and on every change, and
+   * silent like include().
+   * @param prices The prices, by folder ID
+   */
+  priceWith(prices: UserPrices): void;
+  /**
    * The install the store is pointed at.
    * @returns The AC content directory, or null when it is not located
    */
@@ -147,6 +157,23 @@ export interface ContentStore {
    * @throws AppError when no install has been located
    */
   car(id: string, installed?: boolean): Promise<Car | null>;
+  /**
+   * What an installed car costs to buy: its listed price, the user's own on a
+   * car they added, or else one derived over the class catalogue the store was
+   * last handed.
+   * @param id The car's folder name
+   * @returns The price, or null when no such car is installed
+   * @throws AppError when no install has been located
+   */
+  price(id: string): Promise<number | null>;
+  /**
+   * A car the user added as the Edit price dialog shows it: its price, the
+   * suggestion and what that rests on, and the listed cars to compare it with.
+   * @param id The car's folder name
+   * @returns The appraisal, or null when no such car is installed
+   * @throws AppError when no install has been located
+   */
+  appraisal(id: string): Promise<CarAppraisal | null>;
   /**
    * The whole scan.
    *

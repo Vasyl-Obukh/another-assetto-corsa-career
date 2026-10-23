@@ -51,6 +51,7 @@ export {
 
 export {
   DAYS_PER_WEEK,
+  DAYS_PER_YEAR,
   HOURS_PER_DAY,
   MINUTES_PER_HOUR,
   MS_PER_DAY,

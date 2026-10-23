@@ -3,6 +3,7 @@
 // copy of a mod library that runs to thousands of entries.
 
 import type { ClassId, SpecId } from './car-classes.ts';
+import type { PriceOrigin } from './car-prices.ts';
 import type {
   ContentSource, DLCPack, ModDistributor, ModMaker,
 } from './content.ts';
@@ -71,7 +72,7 @@ export interface Spread {
 /**
  * What a car list can be sorted by.
  */
-export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerToWeight';
+export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerToWeight' | 'price';
 
 /**
  * A filtered, searched, sorted and paged request for cars.
@@ -145,6 +146,20 @@ export interface CarQuery {
    * when set.
    */
   bhpTo?: number;
+  /**
+   * Lowest price, inclusive.
+   */
+  priceFrom?: number;
+  /**
+   * Highest price, inclusive - what the career holds, for the cars it can
+   * afford.
+   */
+  priceTo?: number;
+  /**
+   * Keep only cars priced this way. Only a car the user added is ever priced
+   * by them or suggested; one they have not added is neither.
+   */
+  priceOrigins?: PriceOrigin[];
   /**
    * Keep only cars from these sources - base game, DLC or mod.
    */
@@ -321,6 +336,17 @@ export interface CarFacets {
    * How power in bhp is spread, or null when no car states it.
    */
   power: Spread | null;
+  /**
+   * How many of the cars the user added carry a price of theirs and how many
+   * a suggestion.
+   */
+  priceOrigins: Facet[];
+  /**
+   * How prices are spread, over their base-10 logarithm, or null when there
+   * are no cars - prices run from thousands to tens of millions, which only a
+   * logarithmic slider can take.
+   */
+  prices: Spread | null;
 }
 
 /**

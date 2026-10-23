@@ -1,11 +1,18 @@
+import { KeyRoundIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SkinStep } from './SkinStep.tsx';
 import type { Car, CarQuery, Skin } from '../../../../shared/types';
+import { rentOf } from '../../../../shared/utils/car-prices';
+import { PurchaseButton } from '@/components/car-trade/index.ts';
+import type { CarTrade } from '@/components/car-trade/index.ts';
+import { CarSwatch } from '@/components/content-image/index.ts';
+import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import { useFormat } from '@/i18n';
 import { CarBrowserBody } from '@/screens/car-browser';
 
 interface CarPickerProps {
@@ -38,6 +45,20 @@ interface CarPickerProps {
    */
   pickSkin?: boolean;
   /**
+   * The career's garage, for a picker choosing the car a championship is
+   * entered in: every card says what the car costs, a car the career owns is
+   * picked in the livery it wears, and any other ends its livery step in Rent
+   * or Purchase.
+   */
+  trade?: CarTrade;
+  /**
+   * Called with a car and livery to buy rather than rent, from the livery
+   * step of a picker given the garage. The dialog closes itself first.
+   * @param car The chosen car
+   * @param skin The chosen livery, or null when the car ships none
+   */
+  onPurchase?: (car: Car, skin: Skin | null) => void;
+  /**
    * Called when the dialog opens or closes itself - Escape, the close button,
    * or a click outside.
    * @param open Whether it should now be showing
@@ -53,17 +74,24 @@ interface CarPickerProps {
 }
 
 export const CarPicker = ({
-  open, selectedId, selectedSkinId, baseQuery, pickSkin = true, onOpenChange, onPick,
+  open, selectedId, selectedSkinId, baseQuery, pickSkin = true, trade, onPurchase, onOpenChange, onPick,
 }: CarPickerProps) => {
   const { t } = useTranslation();
+  const { formatMoney } = useFormat();
 
   // Which car's liveries are being chosen between, or null while the library is
   // showing. A one-livery car never sets this: confirming it would be a step
   // with only one answer.
   const [chosen, setChosen] = useState<Car | null>(null);
+  // The livery picked in the livery step of a car to rent or buy, which waits
+  // for one of the two buttons rather than answering at once.
+  const [livery, setLivery] = useState<Skin | null>(null);
 
   const close = (next: boolean): void => {
-    if (!next) setChosen(null);
+    if (!next) {
+      setChosen(null);
+      setLivery(null);
+    }
     onOpenChange(next);
   };
 
@@ -94,12 +122,21 @@ export const CarPicker = ({
             <CarBrowserBody
               selectedId={selectedId}
               baseQuery={baseQuery}
+              trade={trade ? { ...trade, mode: 'pick' } : undefined}
               onSelect={(car) => {
                 const [only] = car.skins;
+                const owned = trade?.garage.owned(car.id);
+                // A car the career owns races in the livery it wears; any other
+                // asks which, and whether to rent it or buy it, however few
+                // liveries it ships.
+                if (owned) pick(car, car.skins.find((one) => one.id === owned.skin) ?? only ?? null);
+                else if (trade) {
+                  setChosen(car);
+                  setLivery(car.skins.find((one) => one.id === selectedSkinId) ?? only ?? null);
                 // A car with no livery at all is refused at launch by
                 // race.car.noSkins rather than here, which is where every other
                 // "that cannot race" answer is given.
-                if (!pickSkin) pick(car, null);
+                } else if (!pickSkin) pick(car, null);
                 else if (car.skins.length < 2) pick(car, only ?? null);
                 else setChosen(car);
               }}
@@ -107,13 +144,40 @@ export const CarPicker = ({
           </div>
 
           {chosen ? (
-            <div className="absolute inset-0 z-20 bg-background">
-              <SkinStep
-                car={chosen}
-                selectedId={selectedSkinId}
-                onBack={() => setChosen(null)}
-                onPick={(skin) => pick(chosen, skin)}
-              />
+            <div className="absolute inset-0 z-20 flex flex-col bg-background">
+              <div className="min-h-0 flex-1">
+                <SkinStep
+                  car={chosen}
+                  selectedId={trade ? livery?.id : selectedSkinId}
+                  onBack={() => setChosen(null)}
+                  onPick={(skin) => (trade ? setLivery(skin) : pick(chosen, skin))}
+                />
+              </div>
+              {trade ? (
+                <div className="flex shrink-0 flex-wrap items-center gap-3 border-t px-6 pt-4">
+                  {livery ? (
+                    <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                      <CarSwatch model={chosen.id} skin={livery.id} />
+                      <span className="truncate">{livery.name}</span>
+                    </span>
+                  ) : null}
+                  <span className="ml-auto flex gap-2">
+                    <PurchaseButton
+                      withPrice
+                      price={trade.garage.priceOf(chosen)}
+                      balance={trade.garage.balance}
+                      onPurchase={() => {
+                        close(false);
+                        onPurchase?.(chosen, livery);
+                      }}
+                    />
+                    <Button type="button" onClick={() => pick(chosen, livery)}>
+                      <KeyRoundIcon />
+                      {t('trade.rent', { rent: formatMoney(rentOf(trade.garage.priceOf(chosen))) })}
+                    </Button>
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

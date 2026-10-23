@@ -1,5 +1,6 @@
 // App settings, as persisted to settings.json in the user data folder.
 
+import type { UserPrices } from './car-prices.ts';
 import type { DLCPack, ModDistributor, ModMaker } from './content.ts';
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
@@ -220,6 +221,14 @@ export interface Settings {
    * the way back in for everything else. See src/shared/utils/library/.
    */
   addedContent: AddedContent;
+  /**
+   * The prices the user set on cars they added, by folder ID.
+   *
+   * A car they added and never priced is not here: it costs what it is
+   * suggested to. Kept beside the list of what they added, since a price
+   * belongs to a car of theirs. See src/shared/utils/car-prices/.
+   */
+  carPrices: UserPrices;
   /**
    * The content sources whose championships are not offered.
    *

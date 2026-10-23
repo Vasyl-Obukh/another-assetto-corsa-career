@@ -375,7 +375,7 @@ describe('core/series', () => {
      * @returns The frozen field
      */
     const draw = (series: Championship, salt = '') => drawField(
-      series, 'main', { model: 'test_car', skin: 'red' }, makeContent(), SHIPPED_CATALOGUE, salt,
+      series, 'main', makeContent(), SHIPPED_CATALOGUE, salt,
     );
 
     /**
@@ -391,10 +391,6 @@ describe('core/series', () => {
         expect(one.model).toBe('test_car');
         expect(one.skin).toBeDefined();
       });
-    });
-
-    it('holds the player\'s livery back while the car has others to hand out', () => {
-      expect(draw(makeSeries()).map((one) => one.skin)).not.toContain('red');
     });
 
     it('keeps every driver within a small spread of their class', () => {

@@ -5,8 +5,8 @@ import type {
   EventSession, EventSessionStatus, LaunchRecord, SkippedRound,
 } from '../../../../../shared/types';
 import {
-  defaultSession, dotted, launchNote, playerPosition, racedStrength, scaleName, sessionDay, sessionLength,
-  shareOf, shortLaps,
+  defaultSession, dotted, launchNote, moneyNote, playerPosition, racedStrength, scaleName, sessionDay,
+  sessionLength, shareOf, shortLaps,
 } from '../utils.ts';
 
 /**
@@ -199,6 +199,20 @@ describe('renderer/screens/event/utils', () => {
     // together as rounds coming before this one.
     it('says neither when earlier rounds and same-day ones are both lost', () => {
       expect(launchNote([lost('skipped'), lost('clash')])).toBe('skip.launchNoteMixed');
+    });
+  });
+
+  describe('moneyNote', () => {
+    it('names the fee alone where nothing is rented', () => {
+      expect(moneyNote(1500, 0)).toBe('event.money.feeNote');
+    });
+
+    it('names the rent alone once the fee is paid', () => {
+      expect(moneyNote(0, 800)).toBe('event.money.rentNote');
+    });
+
+    it('names both where both are still to pay', () => {
+      expect(moneyNote(1500, 800)).toBe('event.money.bothNote');
     });
   });
 

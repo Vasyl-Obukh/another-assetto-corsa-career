@@ -1,12 +1,14 @@
-// A career's money: what a round costs to enter, what its races and its final
-// standing pay, and the ledger every change of it is written into. Pure, so the
-// career store decides when and this decides what. Every line is keyed by what
-// it settles, so working out what is owed again pays nothing twice.
+// A career's money: what a round costs to enter and to rent a car for, what
+// its races and its final standing pay, what its cars cost, and the ledger
+// every change of it is written into. Pure, so the career store decides when
+// and this decides what. Every line is keyed by what it settles, so working out
+// what is owed again pays nothing twice.
 
 import type {
   Career,
   CareerSeason,
   LedgerLine,
+  OwnedCar,
   SeasonEntry,
   SeasonEvent,
 } from '../../shared/types/index.ts';
@@ -102,6 +104,142 @@ export const feeLine = (
   date: event.date,
   amount: -fee,
   ...roundOf(season, entry, event),
+});
+
+/**
+ * The key a round's rent is posted under.
+ * @param event The round
+ * @returns The key
+ */
+const rentKey = (event: SeasonEvent): string => `rent:${event.raceId}`;
+
+/**
+ * Whether a round's rent has been paid.
+ * @param career The career
+ * @param event The round
+ * @returns True once it is on the ledger
+ */
+export const rentPaid = (career: Career, event: SeasonEvent): boolean => (
+  career.ledger.some((line) => line.key === rentKey(event))
+);
+
+/**
+ * What launching a round's next session costs in rent: the round's, when its
+ * car is rented and the rent is still to be paid.
+ * @param career The career
+ * @param entry The season's entry the round belongs to
+ * @param event The round
+ * @param rent What a round of the car costs to rent
+ * @returns What is owed, zero for nothing
+ */
+export const rentOwed = (career: Career, entry: SeasonEntry, event: SeasonEvent, rent: number): number => (
+  career.kind === 'career' && entry.car.source === 'rented' && !rentPaid(career, event) ? rent : 0
+);
+
+/**
+ * The line paying a round's rent.
+ * @param season The season it falls in
+ * @param entry The season's entry
+ * @param event The round
+ * @param rent What it costs
+ * @param name The car's name
+ * @returns The line
+ */
+export const rentLine = (
+  season: CareerSeason,
+  entry: SeasonEntry,
+  event: SeasonEvent,
+  rent: number,
+  name: string,
+): LedgerLine => ({
+  key: rentKey(event),
+  kind: 'rent',
+  date: event.date,
+  amount: -rent,
+  ...roundOf(season, entry, event),
+  car: { model: entry.car.model, name },
+});
+
+/**
+ * What every line about a car shares: a key numbered like a change of speed's,
+ * since the same car may be bought, sold and repainted any number of times,
+ * and the day and season it falls on.
+ * @param career The career, before the line
+ * @param kind What kind of line
+ * @param model The car's folder ID
+ * @returns The line's fields
+ */
+const carLine = (
+  career: Career,
+  kind: 'purchase' | 'sale' | 'repaint',
+  model: string,
+): Pick<LedgerLine, 'key' | 'kind' | 'date' | 'season'> => ({
+  key: `${kind}:${model}:${career.ledger.length}`,
+  kind,
+  date: career.date,
+  season: career.seasons[career.seasons.length - 1]?.index ?? 0,
+});
+
+/**
+ * The line buying a car.
+ * @param career The career, before the purchase
+ * @param model The car's folder ID
+ * @param name The car's name
+ * @param livery The livery it is bought in, by name
+ * @param price What it costs
+ * @returns The line
+ */
+export const purchaseLine = (
+  career: Career,
+  model: string,
+  name: string,
+  livery: string | undefined,
+  price: number,
+): LedgerLine => ({
+  ...carLine(career, 'purchase', model),
+  amount: -price,
+  car: { model, name, ...(livery === undefined ? {} : { livery }) },
+});
+
+/**
+ * The line selling a car.
+ * @param career The career, before the sale
+ * @param owned The car as the garage holds it
+ * @param name The car's name
+ * @param value What it sells for
+ * @returns The line
+ */
+export const saleLine = (career: Career, owned: OwnedCar, name: string, value: number): LedgerLine => ({
+  ...carLine(career, 'sale', owned.model),
+  amount: value,
+  car: {
+    model: owned.model, name, paid: owned.paid, bought: owned.bought,
+  },
+});
+
+/**
+ * The line repainting a car.
+ * @param career The career, before the repaint
+ * @param model The car's folder ID
+ * @param name The car's name
+ * @param from The livery it wore, by name
+ * @param livery The livery it wears now, by name
+ * @param cost What the repaint costs
+ * @returns The line
+ */
+export const repaintLine = (
+  career: Career,
+  model: string,
+  name: string,
+  from: string | undefined,
+  livery: string | undefined,
+  cost: number,
+): LedgerLine => ({
+  ...carLine(career, 'repaint', model),
+  amount: -cost,
+  car: {
+    model, name, ...(from === undefined ? {} : { from }), ...(livery === undefined ? {} : { livery }),
+  },
 });
 
 /**

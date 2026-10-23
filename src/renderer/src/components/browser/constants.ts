@@ -51,6 +51,12 @@ export const SOURCE_DOT = {
 export const CARD_LINK = 'block h-full w-full rounded-xl text-left focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none';
 
 /**
+ * The same link laid over a card from inside it, for a card holding buttons of
+ * its own, which sit above it - so nothing interactive is nested in the link.
+ */
+export const CARD_COVER = 'absolute inset-0 rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none';
+
+/**
  * The search box of a browser with a filter rail, matched to the sort button
  * and the layout switch beside it: card-coloured, as tall and as round.
  */

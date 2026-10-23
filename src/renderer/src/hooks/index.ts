@@ -15,6 +15,8 @@ export type { TrackDetail } from './use-track-detail/index.ts';
 export { useCarNames } from './use-car-names/index.ts';
 export { useCars } from './use-cars/index.ts';
 export { useClockMove } from './use-clock-move/index.ts';
+export { useGarage } from './use-garage/index.ts';
+export type { Garage } from './use-garage/index.ts';
 export type { ClockMove, PendingMove } from './use-clock-move/index.ts';
 export { useClassCommands } from './use-class-commands/index.ts';
 export type { ClassCommandsState } from './use-class-commands/index.ts';

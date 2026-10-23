@@ -176,9 +176,16 @@ export interface SeasonEntry {
      */
     model: string;
     /**
-     * Skin folder ID, when one was picked.
+     * Skin folder ID, when one was picked - the garage's livery while the car
+     * is owned, so a repaint reaches every round still to come.
      */
     skin?: string;
+    /**
+     * Whether the player owns it or rents it, which decides whether each round
+     * charges a rent. Absent where the car comes with the seat: a historic
+     * event's invitation, or a standalone championship, which has no money.
+     */
+    source?: CarSource;
   };
   /**
    * Every AI seat's car, livery and own offsets, drawn once when the season
@@ -353,11 +360,41 @@ export interface CareerSettings {
 }
 
 /**
- * What moved a career's money: the money it opened with, a round's entry fee,
- * a race's prize, a championship's final standing, a historic event's purse, or
- * a change of progression speed, which moves none.
+ * How the player has the car a season entry races: bought, or rented a round
+ * at a time.
  */
-export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed';
+export type CarSource = 'owned' | 'rented';
+
+/**
+ * A car in a career's garage. One per model.
+ */
+export interface OwnedCar {
+  /**
+   * Car folder ID.
+   */
+  model: string;
+  /**
+   * The livery it wears, by skin folder ID, when one was picked.
+   */
+  skin?: string;
+  /**
+   * What was paid for it, which is what selling it is worked out from.
+   */
+  paid: number;
+  /**
+   * The day it was bought, as an ISO date.
+   */
+  bought: string;
+}
+
+/**
+ * What moved a career's money: the money it opened with, a round's entry fee,
+ * a race's prize, a championship's final standing, a historic event's purse, a
+ * change of progression speed, which moves none, a car bought, sold or
+ * repainted, or a round's rent.
+ */
+export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed'
+  | 'purchase' | 'sale' | 'repaint' | 'rent';
 
 /**
  * One change of a career's money, and what it was for.
@@ -422,6 +459,35 @@ export interface LedgerLine {
    */
   place?: number;
   /**
+   * The car it was for - bought, sold, repainted or rented.
+   */
+  car?: {
+    /**
+     * Car folder ID.
+     */
+    model: string;
+    /**
+     * The car's name.
+     */
+    name: string;
+    /**
+     * The livery it was bought in, or repainted into, by name.
+     */
+    livery?: string;
+    /**
+     * The livery a repaint took it out of, by name.
+     */
+    from?: string;
+    /**
+     * What was paid for it, on a sale.
+     */
+    paid?: number;
+    /**
+     * The day it was bought, as an ISO date, on a sale.
+     */
+    bought?: string;
+  };
+  /**
    * The speed before and after, for a change of progression speed.
    */
   speed?: {
@@ -449,6 +515,14 @@ export interface EventMoney {
    * Whether that fee has been paid, which it is as the first session launches.
    */
   paid: boolean;
+  /**
+   * What the round's rent comes to, or null when the car is not rented.
+   */
+  rent: number | null;
+  /**
+   * Whether that rent has been paid, which it is beside the fee.
+   */
+  rentPaid: boolean;
   /**
    * The money the career holds.
    */
@@ -480,6 +554,10 @@ export interface CareerState {
    * Every change of its money, oldest first, each saying what moved it.
    */
   ledger: readonly LedgerLine[];
+  /**
+   * The cars it owns, in the order they were bought.
+   */
+  garage: readonly OwnedCar[];
   /**
    * The rating it holds per discipline - the lowest of its starting level until
    * rating (Phase 8) lands, and moved by nothing before then.
@@ -1127,18 +1205,10 @@ export interface EventEntry {
    */
   ladder: LadderPosition;
   /**
-   * The car and livery the season is raced in.
+   * The car and livery the season is raced in, and whether it is owned or
+   * rented.
    */
-  car: {
-    /**
-     * Car folder ID.
-     */
-    model: string;
-    /**
-     * Skin folder ID, when one was picked.
-     */
-    skin?: string;
-  };
+  car: SeasonEntry['car'];
   /**
    * The team fielding the player's seat, by its display name, or null.
    */

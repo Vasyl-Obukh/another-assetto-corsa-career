@@ -35,6 +35,18 @@ const LEDGER: readonly LedgerLine[] = [
   line('standings', 30_000, { season: 1, series: 'cup', seriesName: 'Cup', edition: 0 }),
 ];
 
+/**
+ * A season of a career's cars: one bought, raced rented and repainted, and
+ * another sold.
+ */
+const GARAGE: readonly LedgerLine[] = [
+  line('purchase', -40_000, { key: 'purchase:mx5:0' }),
+  line('fee', -1500, { series: 'cup', seriesName: 'Cup' }),
+  line('rent', -800, { series: 'cup', seriesName: 'Cup' }),
+  line('repaint', -600, { key: 'repaint:mx5:3' }),
+  line('sale', 30_000, { key: 'sale:gt86:4' }),
+];
+
 describe('renderer/lib/finances/finances', () => {
   describe('ledgerRows', () => {
     it('carries the money held once each line landed', () => {
@@ -59,6 +71,16 @@ describe('renderer/lib/finances/finances', () => {
       expect(LEDGER.filter((one) => shownBy(one, 'prizes')).map((one) => one.kind))
         .toEqual(['race', 'historic', 'standings']);
       expect(LEDGER.filter((one) => shownBy(one, 'fees')).map((one) => one.kind)).toEqual(['fee', 'fee']);
+    });
+
+    it("counts a round's rent among what racing it cost", () => {
+      expect(GARAGE.filter((one) => shownBy(one, 'fees')).map((one) => one.kind)).toEqual(['fee', 'rent']);
+    });
+
+    it('shows what the garage bought, sold and repainted to cars, and nothing else', () => {
+      expect(GARAGE.filter((one) => shownBy(one, 'cars')).map((one) => one.kind))
+        .toEqual(['purchase', 'repaint', 'sale']);
+      expect(LEDGER.filter((one) => shownBy(one, 'cars'))).toEqual([]);
     });
   });
 
@@ -100,6 +122,16 @@ describe('renderer/lib/finances/finances', () => {
       ]);
     });
 
+    it('lists a sale among what paid, and the garage after the fees and rent it paid', () => {
+      expect(kindTotals(GARAGE)).toEqual([
+        { kind: 'sale', amount: 30_000 },
+        { kind: 'fee', amount: -1500 },
+        { kind: 'rent', amount: -800 },
+        { kind: 'purchase', amount: -40_000 },
+        { kind: 'repaint', amount: -600 },
+      ]);
+    });
+
     it('leaves out a kind that came to nothing', () => {
       expect(kindTotals([line('fee', -100), line('race', 100)]).map((one) => one.kind)).toEqual(['race', 'fee']);
       expect(kindTotals([line('opening', 10_000), line('speed', 0)])).toEqual([]);
@@ -116,6 +148,12 @@ describe('renderer/lib/finances/finances', () => {
           series: 'spa-1966', name: 'Spa 1966', season: 0, edition: 0, historic: true, amount: 6000,
         },
       ]);
+    });
+
+    it("charges a round's rent to its championship, and the garage to none", () => {
+      expect(seriesTotals(GARAGE)).toEqual([{
+        series: 'cup', name: 'Cup', season: 0, edition: 0, historic: false, amount: -2300,
+      }]);
     });
 
     it('leaves out the lines that came from no championship', () => {

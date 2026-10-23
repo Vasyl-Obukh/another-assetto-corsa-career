@@ -7,13 +7,15 @@ import type { Car } from '../../../../shared/types';
 import { carBadgeUrl, isSafeSegment } from '../../../../shared/utils/content-url';
 import { nationOfCountry } from '../../../../shared/utils/nations';
 import {
-  CARD_LINK, ContentImage, FigureLine, NationFlag, PosterCaption, ProvenanceBadges, RacedIn, SpecBadge, ToggleCard,
+  AppraiseFoot, CARD_COVER, CARD_LINK, carPictureSources, ContentImage, FigureLine, GarageFoot, NationFlag,
+  PosterCaption, PriceFoot, ProvenanceBadges, RacedIn, SpecBadge, ToggleCard,
 } from '@/components';
-import type { BrowserToggle } from '@/components';
+import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
 import { useFormat } from '@/i18n';
 import type { Racing } from '@/lib/racing-index';
 import { path } from '@/lib/routes';
+import type { NavState } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
 interface CarCardProps {
@@ -44,6 +46,17 @@ interface CarCardProps {
    * where the toggle names a section, rather than answering.
    */
   toggle?: BrowserToggle;
+  /**
+   * What the browser does with money, inside a career: the card closes on what
+   * the car costs, or on what the career's own is worth, and shows the livery
+   * an owned car wears.
+   */
+  trade?: CarTrade;
+  /**
+   * What the browser does with prices, in Your content: a car switched on
+   * closes on what it costs and Edit price.
+   */
+  appraise?: CarAppraise;
 }
 
 /**
@@ -51,7 +64,7 @@ interface CarCardProps {
  * one car from another below it.
  */
 export const CarCard = ({
-  car, racing, onSelect, selected = false, toggle,
+  car, racing, onSelect, selected = false, toggle, trade, appraise,
 }: CarCardProps) => {
   const { t } = useTranslation();
   const { formatNation, formatNumber, formatYear } = useFormat();
@@ -60,10 +73,15 @@ export const CarCard = ({
   const on = toggle?.isOn(car.id) ?? false;
   const nation = nationOfCountry(car.country);
   const figure = (value: number | null): string | null => (value === null ? null : formatNumber(Math.round(value)));
+  const owned = trade?.garage.owned(car.id) ?? null;
+  // A card with buttons of its own is not one link: the link covers the card
+  // from inside it, and the buttons sit above it.
+  const buttons = trade !== undefined && trade.mode !== 'pick' && toggle === undefined && onSelect === undefined;
+  const priced = appraise !== undefined && on;
 
   const card = (
     <Card className={cn(
-      'hover-outline h-full gap-0 overflow-hidden py-0',
+      'hover-outline relative h-full gap-0 overflow-hidden py-0',
       '[contain-intrinsic-size:auto_22rem] [content-visibility:auto]',
       selected && '[--outline-rest:var(--color-primary)]',
       on && 'border-primary',
@@ -71,7 +89,7 @@ export const CarCard = ({
     >
       <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-muted">
         <ContentImage
-          sources={carImageSources(car)}
+          sources={owned ? [...carPictureSources(car.id, owned.skin), ...carImageSources(car)] : carImageSources(car)}
           alt={car.name}
           className="object-cover"
           fallback={(
@@ -129,12 +147,26 @@ export const CarCard = ({
         ]}
         />
 
-        <div className="mt-auto pt-0.5">
-          <RacedIn racing={racing} />
-        </div>
+        {trade?.mode === 'garage' ? <GarageFoot car={car} trade={trade} /> : (
+          <div className="mt-auto pt-0.5">
+            <RacedIn racing={racing} />
+          </div>
+        )}
+        {trade && trade.mode !== 'garage' ? <PriceFoot car={car} trade={trade} /> : null}
+        {priced ? <AppraiseFoot car={car} appraise={appraise} /> : null}
       </div>
+      {buttons ? (
+        <Link
+          to={path.car({ id: car.id })}
+          state={trade.mode === 'garage' ? { section: 'garage' } satisfies NavState : undefined}
+          aria-label={car.name}
+          className={CARD_COVER}
+        />
+      ) : null}
     </Card>
   );
+
+  if (buttons) return card;
 
   if (toggle) {
     return (
@@ -144,6 +176,7 @@ export const CarCard = ({
         onChange={(next) => toggle.onToggle(car.id, next)}
         to={path.car({ id: car.id })}
         section={toggle.section}
+        buttons={priced}
       >
         {card}
       </ToggleCard>

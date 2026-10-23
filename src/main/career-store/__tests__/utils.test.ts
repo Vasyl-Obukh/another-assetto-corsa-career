@@ -136,6 +136,7 @@ describe('main/career-store/utils', () => {
         date: career.date,
         money: career.money,
         ledger: career.ledger,
+        garage: career.garage,
         rating: career.rating,
         level: career.level,
         seasons: career.seasons,
@@ -185,6 +186,13 @@ describe('main/career-store/utils', () => {
     it('refuses a career whose ladder levels are missing or null', () => {
       expect(readState({ ...wholeCareer(), level: undefined })).toBeNull();
       expect(readState({ ...wholeCareer(), level: null })).toBeNull();
+    });
+
+    // A state written before cars cost money has no garage, and reads as a
+    // career to be deleted rather than one with nothing bought.
+    it('refuses a state whose garage is not a list', () => {
+      expect(readState({ ...wholeCareer(), garage: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), garage: {} })).toBeNull();
     });
 
     it('refuses a career whose seasons are not a list', () => {

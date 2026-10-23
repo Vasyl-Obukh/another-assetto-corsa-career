@@ -376,21 +376,21 @@ export const path = {
     params: RouteParams<typeof ROUTE.historicEdit>,
   ): string => buildPath(ROUTE.historicEdit, params),
   /**
-   * The car browser.
+   * A career's Store, which sells every car in the library.
    * @returns Its URL
    */
-  cars: (): string => ROUTE.cars,
+  store: (): string => ROUTE.store,
+  /**
+   * A career's Garage, the cars it owns.
+   * @returns Its URL
+   */
+  garage: (): string => ROUTE.garage,
   /**
    * One car's page.
    * @param params The car's folder name
    * @returns Its URL, with the folder name encoded
    */
   car: (params: RouteParams<typeof ROUTE.car>): string => buildPath(ROUTE.car, params),
-  /**
-   * The track browser.
-   * @returns Its URL
-   */
-  tracks: (): string => ROUTE.tracks,
   /**
    * One circuit's page.
    * @param params The circuit's folder name

@@ -8,12 +8,12 @@
     "race": "Race",
     "calendar": "Calendar",
     "championships": "Championships",
-    "cars": "Cars",
-    "tracks": "Tracks",
     "settings": "Settings",
     "races": "Races",
     "results": "Results",
-    "championship": "Championship"
+    "championship": "Championship",
+    "store": "Store",
+    "garage": "Garage"
   },
   "paths": {
     "title": "Where things are",
@@ -694,7 +694,10 @@
       "noCars": "No installed car can race this class.",
       "unraceable": "This round cannot be raced with what is installed.",
       "firstRound": "Your first round",
-      "firstRoundDay": " · {{day}}"
+      "firstRoundDay": " · {{day}}",
+      "rent": "Rent",
+      "perRound": "{{amount}} a round",
+      "rentHint": "Paid with the entry fee as each round launches."
     },
     "brief": {
       "length": "Length",
@@ -752,7 +755,8 @@
       "total_other": "{{count}} pts",
       "winners": "Race winners",
       "prize": "Prize",
-      "fee": "Entry fee {{amount}} paid"
+      "fee": "Entry fee {{amount}} paid",
+      "rent": "Rental {{amount}} paid"
     },
     "skip": {
       "title": "This round can't be raced as things stand.",
@@ -764,8 +768,10 @@
     "money": {
       "fee": "Entry fee {{amount}}",
       "feeNote": "The entry fee of {{fee}} is paid as {{session}} launches. A round you skip or miss costs nothing.",
-      "short": "You can't pay this round's entry fee",
-      "shortHint": "It costs {{fee}} and you have {{money}}, {{missing}} short. Earn the rest first - a historic event or another championship pays - or skip the round, which costs nothing."
+      "short": "You can't pay for this round",
+      "shortHint": "It costs {{fee}} and you have {{money}}, {{missing}} short. Earn the rest first - a historic event or another championship pays - or skip the round, which costs nothing.",
+      "rentNote": "The rental of {{rent}} is paid as {{session}} launches. A round you skip or miss costs nothing.",
+      "bothNote": "The entry fee of {{fee}} and the rental of {{rent}} are paid as {{session}} launches. A round you skip or miss costs nothing."
     }
   },
   "championships": {
@@ -1676,7 +1682,8 @@
       "year": "Year",
       "bhp": "Power",
       "weight": "Weight",
-      "powerToWeight": "Power to weight"
+      "powerToWeight": "Power to weight",
+      "price": "Price"
     },
     "filter": {
       "brands": "Brand",
@@ -1690,7 +1697,8 @@
       "allCountries_one": "All {{shown}} countries",
       "allCountries_other": "All {{shown}} countries",
       "findClass": "Find a class or spec",
-      "years": "Year"
+      "years": "Year",
+      "price": "Price"
     },
     "subtitle": "Every car in your library, and which championships race it.",
     "unitBhp": "bhp",
@@ -2193,9 +2201,7 @@
     "championship": "Championship",
     "results": "All results",
     "result": "Result",
-    "cars": "All cars",
     "car": "Car",
-    "tracks": "All tracks",
     "track": "Track",
     "settings": "Settings",
     "diagnostics": "Settings · Diagnostics",
@@ -2219,7 +2225,9 @@
     "standalones": "Championships",
     "standaloneNew": "New championship",
     "standalone": "Championship",
-    "finances": "Finances"
+    "finances": "Finances",
+    "store": "Store",
+    "garage": "Garage"
   },
   "standings": {
     "title": "Standings",
@@ -2801,7 +2809,8 @@
     "filter": {
       "all": "Everything",
       "prizes": "Prizes",
-      "fees": "Fees"
+      "fees": "Fees and rentals",
+      "cars": "Cars"
     },
     "tile": {
       "balance": "Balance",
@@ -2838,7 +2847,11 @@
       "race": "Race prize",
       "standings": "Championship prize",
       "historic": "Historic purse",
-      "speed": "Progression speed"
+      "speed": "Progression speed",
+      "purchase": "Car bought",
+      "sale": "Car sold",
+      "repaint": "Repaint",
+      "rent": "Car rental"
     },
     "speed": "×{{speed}}",
     "progression": "Progression speed",
@@ -2860,7 +2873,99 @@
       "standings": "{{series}} {{edition}}",
       "standingsDetail": "P{{place}} in the championship",
       "speed": "Progression speed {{from}} → {{to}}",
-      "speedDetail": "Every prize from here on is multiplied by {{to}}"
+      "speedDetail": "Every prize from here on is multiplied by {{to}}",
+      "rentDetail": "{{car}} · {{series}}",
+      "bought": "Bought",
+      "boughtIn": "Bought in {{livery}}",
+      "sold": "Bought for {{paid}} on {{day}}",
+      "repainted": "{{from}} → {{to}}"
     }
+  },
+  "store": {
+    "title": "Store",
+    "subtitle": "Every car in your library, to buy or to rent as you enter a championship",
+    "yours": "Yours",
+    "owned": "Owned",
+    "affordable": "Can afford to purchase"
+  },
+  "garage": {
+    "title": "Garage",
+    "subtitle": "The cars you own, in the liveries they wear",
+    "empty": "Nothing in your garage yet",
+    "toStore": "Go to the Store"
+  },
+  "trade": {
+    "purchase": "Purchase",
+    "purchaseAt": "Purchase · {{price}}",
+    "cantAfford": "Can't afford",
+    "cantAffordAt": "Can't afford · {{price}}",
+    "short": "{{amount}} short",
+    "repaint": "Repaint",
+    "sell": "Sell",
+    "withAmount": "{{label}} · {{amount}}",
+    "rent": "Rent · {{rent}} a round",
+    "source": {
+      "owned": "Owned",
+      "rented": "Rented"
+    },
+    "price": "Price",
+    "rentRound": "Rent a round",
+    "orRent": "or {{rent}} a round",
+    "sellsFor": "Sells for",
+    "balanceAfter": "Your balance after",
+    "livery": "Livery",
+    "bought": "Bought",
+    "racingIn": "Racing in",
+    "racingNothing": "Nothing this season",
+    "wearsNow": "Wears it now",
+    "pickLivery": "Pick its livery",
+    "pickLiveryHint": "It is yours in the one you pick.",
+    "purchaseTitle": "Purchase the {{car}}?",
+    "purchaseIn": "In {{livery}}.",
+    "purchaseHint": "It goes in your garage.",
+    "anotherLivery": "Another livery",
+    "repaintTitle": "Repaint the {{car}}",
+    "repaintHint": "It races in the new livery from now on.",
+    "sellTitle": "Sell the {{car}}?",
+    "boughtFor": "Bought for {{paid}} on {{day}}.",
+    "underWay": "{{round}} is under way in this car.",
+    "underWayHint": "Finish the round, then sell it.",
+    "rentedAfter": "{{series}} still races it: you race the rounds left in a rented one, {{rent}} a round, in the livery it wears now.",
+    "keep": "Keep it",
+    "close": "Close",
+    "actions": "What to do with the {{car}}",
+    "openCar": "Open the car's page",
+    "paidOn": "Bought for {{paid}} · {{day}}"
+  },
+  "prices": {
+    "origin": {
+      "yours": "Your price",
+      "suggested": "Suggested",
+      "catalogue": "Listed"
+    },
+    "edit": "Edit price",
+    "editFor": "Edit the price of the {{car}}",
+    "title": "Price of the {{car}}",
+    "hint": "What every career pays to buy it. Its rent and its repaint follow from it.",
+    "label": "Price",
+    "costs": "Rent {{rent}} a round · Repaint {{repaint}}",
+    "range": "A price is from {{min}} to {{max}}.",
+    "fromSpec": "The middle of the cars in its spec, {{spec}}",
+    "fromCurve": "From its power to weight and its year",
+    "useIt": "Use it",
+    "use": "Use",
+    "useFor": "Use the price of the {{car}}",
+    "kinSpec": "Cars in its spec, {{spec}}",
+    "kinCurve": "Cars nearest it in power to weight",
+    "kinFigures": "{{power}} bhp/t · {{year}}",
+    "noKin": "No priced car is close enough to compare it with.",
+    "note": "Every career pays the new price from now on, in the Store and in rent for rounds still to launch. A car already bought keeps what was paid for it: it sells and repaints on that.",
+    "save": "Save",
+    "toast": {
+      "added": "{{car}} is in your library",
+      "price": "At a suggested {{price}}",
+      "set": "Set its price"
+    },
+    "kinPower": "{{power}} bhp/t"
   }
 }

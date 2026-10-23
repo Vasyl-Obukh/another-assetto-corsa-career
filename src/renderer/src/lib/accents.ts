@@ -10,12 +10,14 @@
 // beside that screen - a team's budget is in the editor's own constants.
 
 import type {
+  CarSource,
   ClassificationOrigin,
   Climate,
   Discipline,
   EventStatus,
   LadderPosition,
   LedgerKind,
+  PriceOrigin,
   SaveKind,
   SessionType,
   TeamBudget,
@@ -225,6 +227,10 @@ export const LEDGER_ACCENT = {
   standings: 'border-transparent bg-podium-gold text-podium-gold-foreground',
   historic: 'border-transparent bg-historic text-historic-foreground',
   speed: 'border-transparent bg-session-other text-session-other-foreground',
+  purchase: 'border-transparent bg-owned text-owned-foreground',
+  sale: 'border-transparent bg-owned text-owned-foreground',
+  repaint: 'border-transparent bg-owned text-owned-foreground',
+  rent: 'border-transparent bg-ledger-rent text-ledger-rent-foreground',
 } as const satisfies Record<LedgerKind, string>;
 
 /**
@@ -238,7 +244,58 @@ export const LEDGER_BAR = {
   standings: 'bg-podium-gold-foreground',
   historic: 'bg-historic-foreground',
   speed: 'bg-session-other-foreground',
+  purchase: 'bg-owned-foreground',
+  sale: 'bg-owned-foreground',
+  repaint: 'bg-owned-foreground',
+  rent: 'bg-ledger-rent-foreground',
 } as const satisfies Record<LedgerKind, string>;
+
+/**
+ * Whose a car is, as a chip - owned on the garage's magenta, rented on the
+ * rental's teal - wherever a car a career races is shown with it.
+ */
+export const CAR_SOURCE_ACCENT = {
+  owned: 'border-transparent bg-owned text-owned-foreground',
+  rented: 'border-transparent bg-ledger-rent text-ledger-rent-foreground',
+} as const satisfies Record<CarSource, string>;
+
+/**
+ * The tinted foot of a Store card - the garage's magenta for a car the
+ * career owns, the muted grey for one it could buy.
+ */
+export const PRICE_FOOT = {
+  owned: 'bg-owned text-owned-foreground',
+  forSale: 'bg-muted',
+} as const;
+
+/**
+ * The buttons that spend or raise money on a car, each the same solid fill
+ * wherever it appears: on a card, the car's page, a dialog. Can't afford is
+ * the soft red of a refusal, never a solid one. globals.css says why each.
+ */
+export const TRADE_BUTTON = {
+  purchase: 'border-transparent bg-success text-success-foreground shadow-xs hover:bg-success/90',
+  repaint: 'border-transparent bg-linear-to-r from-paint-from via-paint-via to-paint-to text-paint-foreground shadow-xs hover:opacity-90',
+  sell: 'border-transparent bg-sell text-sell-foreground shadow-xs hover:bg-sell/90',
+  cantAfford: 'cursor-not-allowed border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/10',
+} as const;
+
+/**
+ * Where the price of a car the user added comes from, as a chip in Your
+ * content: their own on the custom origin, a suggestion on amber.
+ */
+export const PRICE_ORIGIN_ACCENT = {
+  yours: 'border-transparent bg-origin-custom text-origin-custom-foreground',
+  suggested: 'border-transparent bg-price-suggested text-price-suggested-foreground',
+} as const satisfies Record<Exclude<PriceOrigin, 'catalogue'>, string>;
+
+/**
+ * The same as a dot, for the rail's filter on it.
+ */
+export const PRICE_ORIGIN_DOT = {
+  yours: 'bg-origin-custom-foreground',
+  suggested: 'bg-price-suggested-foreground',
+} as const satisfies Record<Exclude<PriceOrigin, 'catalogue'>, string>;
 
 /**
  * A historic event as a dot - the leather's own deep tone - for where the

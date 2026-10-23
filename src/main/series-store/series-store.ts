@@ -314,8 +314,8 @@ export const createSeriesStore = async (
 
     lowerRound,
 
-    async drawField(series, entry, car, salt) {
-      return drawField(series, entry, car, await content.content(), classes.catalogue(), salt);
+    async drawField(series, entry, salt) {
+      return drawField(series, entry, await content.content(), classes.catalogue(), salt);
     },
 
     async offer() {

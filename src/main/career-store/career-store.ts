@@ -81,7 +81,20 @@ import {
   withSeason,
 } from './utils.ts';
 import {
-  feeLine, feeOf, feeOwed, feePaid, openingLine, payOut, post, speedLine,
+  feeLine,
+  feeOf,
+  feeOwed,
+  feePaid,
+  openingLine,
+  payOut,
+  post,
+  purchaseLine,
+  rentLine,
+  rentOwed,
+  rentPaid,
+  repaintLine,
+  saleLine,
+  speedLine,
 } from '../../core/career-money/index.ts';
 import { planEvent } from '../../core/event/index.ts';
 import {
@@ -119,12 +132,16 @@ import type {
   SeriesListing,
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
+import { rentOf, repaintOf, resaleValue } from '../../shared/utils/car-prices/index.ts';
 import { isEligible, levelsAt, ratingsAt } from '../../shared/utils/career-eligibility/index.ts';
 import { careerDrivingAids, careerOpponents, readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
   editionEntry, editionsOf, enteredEdition, seasonYear,
 } from '../../shared/utils/editions/index.ts';
+import {
+  liveryName, ownedCar, racingIn, roundUnderWay, withCarIn,
+} from '../../shared/utils/garage/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
 import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
@@ -685,7 +702,7 @@ export const createCareerStore = async (
         entry: seat.entry,
         playerSeat: seat.seat,
         car: seat.car,
-        field: await historic.drawField(championship, seat.entry, seat.car, salt),
+        field: await historic.drawField(championship, seat.entry, salt),
         events: [{
           round: round.id,
           raceId: runRaceId(championship.id, round.id, { season: season.index, edition: 0 }),
@@ -1122,9 +1139,67 @@ export const createCareerStore = async (
       car,
       // Salted like the forecasts, so two careers, two seasons and two
       // editions of one championship field different drivers.
-      field: await series.drawField(championship, entry.id, car, seasonSalt(career, season.index, edition)),
+      field: await series.drawField(championship, entry.id, seasonSalt(career, season.index, edition)),
       events: materialiseEvents(championship, season, edition, career.date),
       standings: buildStandings(championship, [], new Date().toISOString()),
+    };
+  };
+
+  /**
+   * What a round of an entry's car costs to rent, whether or not it is rented.
+   * @param entry The season's entry
+   * @returns The rent, zero for a car the install no longer has
+   */
+  const rentFor = async (entry: SeasonEntry): Promise<number> => rentOf(await content.price(entry.car.model) ?? 0);
+
+  /**
+   * What a round still owes before its next session launches: its entry fee,
+   * and its rent when the car is rented - each only until it is paid.
+   * @param career The career
+   * @param held The entry and the round
+   * @returns The fee and the rent owed, each zero for nothing, and what a
+   * round of the car rents for, paid or not - null for a car not rented
+   */
+  const owedFor = async (
+    career: Career,
+    held: EnteredEvent,
+  ): Promise<{ fee: number; rent: number; roundRent: number | null }> => {
+    // Priced only when rented, which spares every other car the lookup.
+    const roundRent = held.entry.car.source === 'rented' ? await rentFor(held.entry) : null;
+
+    return {
+      fee: feeOwed(career, held.entry, held.event),
+      rent: roundRent === null ? 0 : rentOwed(career, held.entry, held.event, roundRent),
+      roundRent,
+    };
+  };
+
+  /**
+   * The car a garage command is about, and the career and season it is made in.
+   * @param model The car's folder ID
+   * @returns The career, its season and the car as the garage holds it - null
+   * when it is not owned
+   * @throws When the career is a standalone championship, which has no money
+   */
+  const garageNow = async (model: string) => {
+    const { career, season } = await seasonNow();
+    if (career.kind === 'championship') throw new AppError('standalone.garage');
+
+    return { career, season, owned: ownedCar(career, model) };
+  };
+
+  /**
+   * A car's name and its liveries' names, off the install.
+   * @param model The car's folder ID
+   * @returns What to call it, and a livery by its skin ID
+   */
+  const namesOf = async (model: string) => {
+    const car = await content.car(model, true);
+
+    return {
+      car,
+      name: car?.name ?? model,
+      livery: (skin: string | undefined): string | undefined => liveryName(car, skin),
     };
   };
 
@@ -1190,6 +1265,7 @@ export const createCareerStore = async (
         driver,
         money,
         ledger: [openingLine(startDate, money)],
+        garage: [],
         rating: ratingsAt(level),
         startDate,
         settings: readCareerSettings(own),
@@ -1238,6 +1314,7 @@ export const createCareerStore = async (
         driver,
         money: 0,
         ledger: [],
+        garage: [],
         rating: ratingsAt(1),
         startDate,
         settings: readCareerSettings(undefined),
@@ -1521,10 +1598,21 @@ export const createCareerStore = async (
       // Every round already behind the clock would be a season raced entirely
       // without the player.
       const events = materialiseEvents(listing.series, season, edition, career.date);
-      if (events.every((one) => one.status === 'missed')) {
-        throw new AppError('career.edition.over', { series: listing.series.name });
+      const opener = events.find((one) => one.status !== 'missed');
+      if (!opener) throw new AppError('career.edition.over', { series: listing.series.name });
+
+      // The cars the Enter panel offered: the class's at the round it starts at.
+      const { model } = request.car;
+      if (!eligibleCarsIn(listing.availability, opener.round, entry.id).includes(model)) {
+        throw new AppError('career.car.ineligible', { car: (await namesOf(model)).name, entry: entry.name });
       }
-      const enrolled = await entering(career, season, listing, entry, edition, request.car);
+      // A car in the garage races owned, in the garage's livery; any other is
+      // rented, in whichever livery was picked.
+      const owned = ownedCar(career, model);
+      const car: SeasonEntry['car'] = owned
+        ? { model, ...(owned.skin === undefined ? {} : { skin: owned.skin }), source: 'owned' }
+        : { ...request.car, source: 'rented' };
+      const enrolled = await entering(career, season, listing, entry, edition, car);
 
       // Entering a championship whose opener is this week forecasts it at once,
       // rather than leaving it blank until the clock next happens to move.
@@ -1535,6 +1623,78 @@ export const createCareerStore = async (
       ));
       // The rounds already behind the clock happened without the player.
       await catchUp();
+
+      return settle();
+    }),
+
+    buyCar: ({ model, skin }) => commit(async () => {
+      const { career, season, owned } = await garageNow(model);
+      const names = await namesOf(model);
+      if (owned) throw new AppError('career.car.owned', { car: names.name });
+      // Bought from the library alone, which is what the Store sells.
+      const price = await content.car(model) ? await content.price(model) : null;
+      if (price === null || !names.car) throw new AppError('career.car.unknown', { car: model });
+      if (skin !== undefined && !names.car.skins.some((one) => one.id === skin)) {
+        throw new AppError('career.car.livery', { car: names.name, livery: skin });
+      }
+      if (price > career.money) throw new AppError('career.car.short', { price, money: career.money });
+
+      const livery = skin ?? names.car.skins[0]?.id;
+      const painted = livery === undefined ? {} : { skin: livery };
+      const paid = post(career, [purchaseLine(career, model, names.name, names.livery(livery), price)]);
+      // A car being rented is the player's own from its next round, in the
+      // livery bought - the round already paid for keeps its rent.
+      current = withSeason(
+        { ...paid, garage: [...career.garage, { model, ...painted, paid: price, bought: career.date }] },
+        withCarIn(season, racingIn(season, model, 'rented'), { model, ...painted, source: 'owned' }),
+      );
+
+      return settle();
+    }),
+
+    sellCar: (model) => commit(async () => {
+      const { career, season, owned } = await garageNow(model);
+      const { name } = await namesOf(model);
+      if (!owned) throw new AppError('career.car.notOwned', { car: name });
+      // A round part-way through is raced in the car it started in.
+      const racing = racingIn(season, model, 'owned');
+      const busy = roundUnderWay(racing);
+      if (busy) throw new AppError('career.car.racing', { car: name, event: eventName(busy) });
+
+      const value = resaleValue(owned.paid, owned.bought, career.date);
+      const sold = post(career, [saleLine(career, owned, name, value)]);
+      // Whatever still races it races the rest of its rounds rented, in the
+      // livery it wears.
+      const painted = owned.skin === undefined ? {} : { skin: owned.skin };
+      current = withSeason(
+        { ...sold, garage: career.garage.filter((one) => one !== owned) },
+        withCarIn(season, racing, { model, ...painted, source: 'rented' }),
+      );
+
+      return settle();
+    }),
+
+    repaintCar: ({ model, skin }) => commit(async () => {
+      const { career, season, owned } = await garageNow(model);
+      const names = await namesOf(model);
+      if (!owned) throw new AppError('career.car.notOwned', { car: names.name });
+      if (skin === owned.skin) throw new AppError('career.car.sameLivery', { car: names.name });
+      if (!names.car?.skins.some((one) => one.id === skin)) {
+        throw new AppError('career.car.livery', { car: names.name, livery: skin });
+      }
+      // Priced off what was paid for it, as its sale is, so a price changed
+      // since in settings never reaches a car already bought.
+      const cost = repaintOf(owned.paid);
+      if (cost > career.money) throw new AppError('career.car.short', { price: cost, money: career.money });
+
+      const painted = post(career, [
+        repaintLine(career, model, names.name, names.livery(owned.skin), names.livery(skin), cost),
+      ]);
+      // At once, for every round still to come.
+      current = withSeason(
+        { ...painted, garage: career.garage.map((one) => (one === owned ? { ...one, skin } : one)) },
+        withCarIn(season, racingIn(season, model, 'owned'), { model, skin, source: 'owned' }),
+      );
 
       return settle();
     }),
@@ -1720,6 +1880,9 @@ export const createCareerStore = async (
       // A championship the career is not in is dated as if entered today.
       const dated = held ? [] : materialiseEvents(championship, season, edition, career.date);
       const found = dated.find((one) => one.round === request.round);
+      // Entering offers the cars of the round it would start from, which are
+      // the ones enrol accepts.
+      const enterAt = dated.find((one) => one.status !== 'missed')?.round ?? request.round;
       const listed = held?.event ?? (found && simulatedEvent(championship, found, salt));
       // Drawn on read as well as stored as the clock moves, so an event inside
       // the lead has its weather whether or not it has been entered yet.
@@ -1767,9 +1930,9 @@ export const createCareerStore = async (
       if (closed) blocked = appErrorInfo('career.season.closed', { year: seasonYear(season) });
       else if (held) blocked = launchBlock(season, held, raceable, career.settings.allowSameDayEvents);
       // Exactly where the launch would refuse it, once nothing else does.
-      const fee = held ? feeOwed(career, held.entry, held.event) : 0;
-      if (held && !closed && blocked === null && fee > career.money) {
-        blocked = appErrorInfo('career.money.short', { fee, money: career.money });
+      const owed = held ? await owedFor(career, held) : null;
+      if (owed && !closed && blocked === null && owed.fee + owed.rent > career.money) {
+        blocked = appErrorInfo('career.money.short', { fee: owed.fee + owed.rent, money: career.money });
       }
 
       const view: CareerEventView = {
@@ -1802,7 +1965,7 @@ export const createCareerStore = async (
           name: one.name,
           ladder: one.ladder,
           eligible: isEligible(one.ladder, career.level),
-          cars: eligibleCarsIn(availability, request.round, one.id),
+          cars: eligibleCarsIn(availability, enterAt, one.id),
         })),
         raceable,
         sessions: plan ? eventSessions(
@@ -1819,6 +1982,8 @@ export const createCareerStore = async (
         money: held && career.kind === 'career' ? {
           fee: feeOf(held.entry, held.event),
           paid: feePaid(career, held.event),
+          rent: owed?.roundRent ?? null,
+          rentPaid: rentPaid(career, held.event),
           balance: career.money,
         } : null,
         skips: !closed && held && event.status === 'scheduled'
@@ -1873,8 +2038,8 @@ export const createCareerStore = async (
       const block = launchBlock(season, held, heldRaceable(availability, held), career.settings.allowSameDayEvents);
       if (block) throw new AppError(block.code, block.params);
       // Paid as the first session goes out, and never into debt.
-      const fee = feeOwed(career, held.entry, held.event);
-      if (fee > career.money) throw new AppError('career.money.short', { fee, money: career.money });
+      const { fee, rent } = await owedFor(career, held);
+      if (fee + rent > career.money) throw new AppError('career.money.short', { fee: fee + rent, money: career.money });
 
       // What this event costs the rest of the season, which the player has to
       // have been shown and agreed to - an event on the same day included,
@@ -1916,11 +2081,15 @@ export const createCareerStore = async (
       });
 
       // Kept only once the launch is away, so one that fails to start costs the
-      // season nothing - its entry fee included.
+      // season nothing - its entry fee and its rent included.
       const changed = date !== career.date || lost.length > 0 || event.forecast !== held.event.forecast;
-      if (changed || fee > 0) {
+      if (changed || fee > 0 || rent > 0) {
         const next = changed ? withSeason({ ...career, date }, moved) : career;
-        current = fee > 0 ? post(next, [feeLine(season, held.entry, event, fee)]) : next;
+        const name = rent > 0 ? (await namesOf(held.entry.car.model)).name : '';
+        current = post(next, [
+          ...(fee > 0 ? [feeLine(season, held.entry, event, fee)] : []),
+          ...(rent > 0 ? [rentLine(season, held.entry, event, rent, name)] : []),
+        ]);
         if (changed) await catchUp();
         settle();
       }

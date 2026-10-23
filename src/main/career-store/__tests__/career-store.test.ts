@@ -7,12 +7,13 @@ import {
 import path from 'node:path';
 
 import {
-  CAREER_ID, makeAvailability, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan, makeRound,
-  makeSeason,
+  CAREER_ID, makeAvailability, makeCar, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan,
+  makeRound, makeSeason,
 } from './fixtures.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type {
+  Car,
   Career,
   CareerSeason,
   CareerSettings,
@@ -23,6 +24,7 @@ import type {
   NewChampionshipRequest,
   RacePlace,
   RaceSetup,
+  SeasonEntry,
   SeriesListing,
   SeriesRequirements,
   Settings,
@@ -101,6 +103,14 @@ interface HarnessOptions {
    * Leaves every career closed, as the start screen does.
    */
   closed?: boolean;
+  /**
+   * The cars installed, which are the whole library.
+   */
+  cars?: readonly Car[];
+  /**
+   * What each installed car costs, by folder ID.
+   */
+  prices?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -192,7 +202,7 @@ const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
     series,
     historic,
     race,
-    fakeContentStore(),
+    fakeContentStore({ cars: [...options.cars ?? []] }, options.prices),
     fakeSettingsStore(options.settings),
   );
   if (career) await store.open(career.id);
@@ -246,6 +256,31 @@ const entryOf = (career: Career | null, series = CUP.id) => {
 
   return entry;
 };
+
+/**
+ * The cup's car, installed in two liveries.
+ */
+const TEST_CAR = makeCar('test_car');
+
+/**
+ * What the cup's car costs, which rents at 800 a round and repaints for 600.
+ */
+const PRICES = { test_car: 40_000 };
+
+/**
+ * A career holding the cup's car, bought a year before the clock in blue, with
+ * a season entered in it as given.
+ * @param entries The season's entries
+ * @param money What the career holds
+ * @returns The career
+ */
+const garaged = (entries: SeasonEntry[] = [], money = 100_000): Career => makeCareer({
+  ...careerWith({ entries }),
+  money,
+  garage: [{
+    model: 'test_car', skin: 'blue', paid: 40_000, bought: '2026-01-01',
+  }],
+});
 
 /**
  * A record of one launch that has run.
@@ -1205,7 +1240,9 @@ describe('main/career-store', () => {
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
       const entry = entryOf(store.get());
 
-      expect(entry).toMatchObject({ entry: 'main', playerSeat: 'seat-2', car: { model: 'test_car' } });
+      expect(entry).toMatchObject({
+        entry: 'main', playerSeat: 'seat-2', car: { model: 'test_car', source: 'rented' },
+      });
       expect(entry.events.map((event) => event.round)).toEqual(['one', 'two']);
       expect(entry.events.every((event) => event.status === 'scheduled')).toBe(true);
     });
@@ -1265,6 +1302,38 @@ describe('main/career-store', () => {
         .rejects.toMatchObject({ code: 'career.edition.over' });
     });
 
+    it("enters a car the garage holds owned, in the garage's livery whatever was asked", async () => {
+      const { store } = await build({ career: garaged() });
+      await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car', skin: 'red' } });
+
+      expect(entryOf(store.get()).car).toEqual({ model: 'test_car', skin: 'blue', source: 'owned' });
+    });
+
+    it('enters any other car rented, in the livery picked', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car', skin: 'red' } });
+
+      expect(entryOf(store.get()).car).toEqual({ model: 'test_car', skin: 'red', source: 'rented' });
+    });
+
+    it('refuses a car the class cannot race at the round entering starts from', async () => {
+      const availability = makeAvailability(CUP);
+      const { store } = await build({
+        career: careerWith({}),
+        listings: [makeListing(CUP, {
+          availability: {
+            ...availability,
+            rounds: availability.rounds.map((one) => (one.round === 'one' ? {
+              ...one, entries: [{ entry: 'main', eligible: ['other_car'], missing: [], enough: true }],
+            } : one)),
+          },
+        })],
+      });
+
+      await expect(store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } }))
+        .rejects.toMatchObject({ code: 'career.car.ineligible' });
+    });
+
     it('tells everyone watching', async () => {
       const { store } = await build();
       const seen: (Career | null)[] = [];
@@ -1272,6 +1341,163 @@ describe('main/career-store', () => {
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
 
       expect(seen.at(-1)?.seasons[0].entries).toHaveLength(1);
+    });
+  });
+
+  describe('buyCar', () => {
+    it('buys a car into the garage in the livery picked, and writes what it cost', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car', skin: 'blue' });
+
+      expect(store.get()?.money).toBe(60_000);
+      expect(store.get()?.garage).toEqual([{
+        model: 'test_car', skin: 'blue', paid: 40_000, bought: '2027-01-01',
+      }]);
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        kind: 'purchase', amount: -40_000, car: { model: 'test_car', name: 'Car test_car', livery: 'Livery blue' },
+      })]);
+    });
+
+    it('buys a car in its first livery when none is picked', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car' });
+
+      expect(store.get()?.garage[0].skin).toBe('red');
+    });
+
+    it('races a car being rented owned from then on, in the livery bought', async () => {
+      const career = careerWith({
+        entries: [makeEntry({
+          car: { model: 'test_car', skin: 'red', source: 'rented' }, events: [makeEvent('one', '2027-03-07')],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car', skin: 'blue' });
+
+      expect(entryOf(store.get()).car).toEqual({ model: 'test_car', skin: 'blue', source: 'owned' });
+    });
+
+    it('refuses a car the garage holds already', async () => {
+      const { store } = await build({ career: garaged(), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.buyCar({ model: 'test_car' })).rejects.toMatchObject({ code: 'career.car.owned' });
+    });
+
+    it('refuses a car the library does not hold', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.buyCar({ model: 'gone_car' }))
+        .rejects.toMatchObject({ code: 'career.car.unknown', params: { car: 'gone_car' } });
+    });
+
+    it('refuses a livery the car does not have', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.buyCar({ model: 'test_car', skin: 'gold' }))
+        .rejects.toMatchObject({ code: 'career.car.livery' });
+    });
+
+    it('refuses a car the career cannot pay for, spending nothing', async () => {
+      const career = makeCareer({ ...careerWith({}), money: 30_000 });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.buyCar({ model: 'test_car' }))
+        .rejects.toMatchObject({ code: 'career.car.short', params: { price: 40_000, money: 30_000 } });
+      expect(store.get()?.money).toBe(30_000);
+      expect(store.get()?.garage).toEqual([]);
+    });
+
+    it('refuses a standalone championship, which has no money', async () => {
+      const { store } = await build({ closed: true, cars: [TEST_CAR], prices: PRICES });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      await expect(store.buyCar({ model: 'test_car' })).rejects.toMatchObject({ code: 'standalone.garage' });
+    });
+  });
+
+  describe('sellCar', () => {
+    it('sells a car for what it is worth today and takes it out of the garage', async () => {
+      const { store } = await build({ career: garaged(), cars: [TEST_CAR], prices: PRICES });
+      await store.sellCar('test_car');
+
+      // A year after it was bought, 7.5% under what was paid.
+      expect(store.get()?.money).toBe(137_000);
+      expect(store.get()?.garage).toEqual([]);
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        kind: 'sale', amount: 37_000, car: expect.objectContaining({ paid: 40_000, bought: '2026-01-01' }),
+      })]);
+    });
+
+    it('races the rest of the rounds rented, in the livery the car wore', async () => {
+      const career = garaged([makeEntry({
+        car: { model: 'test_car', skin: 'blue', source: 'owned' }, events: [makeEvent('one', '2027-03-07')],
+      })]);
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.sellCar('test_car');
+
+      expect(entryOf(store.get()).car).toEqual({ model: 'test_car', skin: 'blue', source: 'rented' });
+    });
+
+    it('refuses a car the garage does not hold', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.sellCar('test_car')).rejects.toMatchObject({ code: 'career.car.notOwned' });
+    });
+
+    it('refuses a car a round is under way in, until the round is over', async () => {
+      const career = garaged([makeEntry({
+        car: { model: 'test_car', skin: 'blue', source: 'owned' },
+        events: [makeEvent('one', '2027-01-01', { sessions: [record(0)] })],
+      })]);
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.sellCar('test_car')).rejects.toMatchObject({ code: 'career.car.racing' });
+      expect(store.get()?.garage).toHaveLength(1);
+    });
+  });
+
+  describe('repaintCar', () => {
+    it('charges a repaint off what was paid and paints the car at once, every round to come included', async () => {
+      const career = garaged([makeEntry({
+        car: { model: 'test_car', skin: 'blue', source: 'owned' }, events: [makeEvent('one', '2027-03-07')],
+      })]);
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.repaintCar({ model: 'test_car', skin: 'red' });
+
+      expect(store.get()?.money).toBe(99_400);
+      expect(store.get()?.garage[0].skin).toBe('red');
+      expect(entryOf(store.get()).car).toEqual({ model: 'test_car', skin: 'red', source: 'owned' });
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        kind: 'repaint', amount: -600, car: expect.objectContaining({ from: 'Livery blue', livery: 'Livery red' }),
+      })]);
+    });
+
+    it('refuses the livery the car wears already', async () => {
+      const { store } = await build({ career: garaged(), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.repaintCar({ model: 'test_car', skin: 'blue' }))
+        .rejects.toMatchObject({ code: 'career.car.sameLivery' });
+    });
+
+    it('refuses a livery the car does not have', async () => {
+      const { store } = await build({ career: garaged(), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.repaintCar({ model: 'test_car', skin: 'gold' }))
+        .rejects.toMatchObject({ code: 'career.car.livery' });
+    });
+
+    it('refuses a repaint the career cannot pay for', async () => {
+      const { store } = await build({ career: garaged([], 500), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.repaintCar({ model: 'test_car', skin: 'red' }))
+        .rejects.toMatchObject({ code: 'career.car.short', params: { price: 600, money: 500 } });
+    });
+
+    it('refuses a car the garage does not hold', async () => {
+      const { store } = await build({ career: careerWith({}), cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.repaintCar({ model: 'test_car', skin: 'red' }))
+        .rejects.toMatchObject({ code: 'career.car.notOwned' });
     });
   });
 
@@ -1617,7 +1843,7 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
       const view = await store.event({ series: CUP.id, round: 'one' });
 
-      expect(view.money).toEqual({ fee: 1500, paid: false, balance: 100_000 });
+      expect(view.money).toEqual({ fee: 1500, paid: false, rent: null, rentPaid: false, balance: 100_000 });
       expect(view.blocked).toBeNull();
     });
 
@@ -1630,6 +1856,60 @@ describe('main/career-store', () => {
       const view = await store.event({ series: CUP.id, round: 'one' });
 
       expect(view.blocked).toMatchObject({ code: 'career.money.short', params: { fee: 1500, money: 1000 } });
+    });
+
+    it('says what a round of a rented car rents for', async () => {
+      const career = careerWith({
+        entries: [makeEntry({
+          car: { model: 'test_car', source: 'rented' }, events: [makeEvent('one', '2027-03-07')],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      expect((await store.event({ series: CUP.id, round: 'one' })).money).toMatchObject({ rent: 800, rentPaid: false });
+    });
+
+    it('says an owned car rents for nothing', async () => {
+      const career = garaged([makeEntry({
+        car: { model: 'test_car', skin: 'blue', source: 'owned' }, events: [makeEvent('one', '2027-03-07')],
+      })]);
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      expect((await store.event({ series: CUP.id, round: 'one' })).money?.rent).toBeNull();
+    });
+
+    it('counts the rent beside the fee in what the career cannot pay', async () => {
+      const career = makeCareer({
+        ...careerWith({
+          entries: [makeEntry({
+            car: { model: 'test_car', source: 'rented' },
+            events: [makeEvent('one', '2027-03-07', { entryFee: 1500 })],
+          })],
+        }),
+        money: 2000,
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.blocked).toMatchObject({ code: 'career.money.short', params: { fee: 2300, money: 2000 } });
+    });
+
+    it('offers the cars of the round entering would start from', async () => {
+      const availability = makeAvailability(CUP);
+      const { store } = await build({
+        career: careerWith({}),
+        listings: [makeListing(CUP, {
+          availability: {
+            ...availability,
+            rounds: availability.rounds.map((one) => (one.round === 'one' ? {
+              ...one, entries: [{ entry: 'main', eligible: ['other_car'], missing: [], enough: true }],
+            } : one)),
+          },
+        })],
+      });
+      const view = await store.event({ series: CUP.id, round: 'two' });
+
+      expect(view.classes[0].cars).toEqual(['other_car']);
     });
 
     it("shows a round's prize at the career's progression speed", async () => {
@@ -1769,6 +2049,54 @@ describe('main/career-store', () => {
 
       await expect(store.launch({ series: CUP.id, round: 'one' }))
         .rejects.toMatchObject({ code: 'career.money.short', params: { fee: 1500, money: 1000 } });
+      expect(race.launches).toEqual([]);
+    });
+
+    it("pays a rented car's rent beside the fee, and only once", async () => {
+      const career = careerWith({
+        entries: [makeEntry({
+          car: { model: 'test_car', source: 'rented' },
+          events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.launch({ series: CUP.id, round: 'one' });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.money).toBe(97_700);
+      expect(store.get()?.ledger).toEqual([
+        expect.objectContaining({ key: 'fee:test-cup/one', kind: 'fee', amount: -1500 }),
+        expect.objectContaining({
+          key: 'rent:test-cup/one', kind: 'rent', amount: -800, car: { model: 'test_car', name: 'Car test_car' },
+        }),
+      ]);
+    });
+
+    it('charges an owned car no rent', async () => {
+      const career = garaged([makeEntry({
+        car: { model: 'test_car', skin: 'blue', source: 'owned' },
+        events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })],
+      })]);
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.ledger.map((line) => line.kind)).toEqual(['fee']);
+    });
+
+    it('refuses a launch the fee and the rent together come to more than the career holds', async () => {
+      const career = makeCareer({
+        ...careerWith({
+          entries: [makeEntry({
+            car: { model: 'test_car', source: 'rented' },
+            events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })],
+          })],
+        }),
+        money: 2000,
+      });
+      const { store, race } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      await expect(store.launch({ series: CUP.id, round: 'one' }))
+        .rejects.toMatchObject({ code: 'career.money.short', params: { fee: 2300, money: 2000 } });
       expect(race.launches).toEqual([]);
     });
 

@@ -331,6 +331,43 @@
   --ledger-fee: oklch(0.93 0.05 235);
   --ledger-fee-foreground: oklch(0.38 0.12 250);
 
+  /* Whose a car is. Owned on 320, the budget-works magenta: a team's budget
+     chip lives on the championship editor and a championship's entry list,
+     neither of which shows a car's price, a garage or a ledger, while a car
+     card already spends 155, 75, 295 and 235 on provenance and 195 and 340 on
+     its spec's origin. The ledger's car lines - bought, sold, repainted - wear
+     it too, since what paid them is the garage; the word says which. A rental
+     is a cost of racing a round like the fee, on 195, the modified origin: no
+     ledger and no round page shows a spec's origin, and on the Enter panel the
+     chip stands beside a car's name rather than its spec. */
+  --owned: oklch(0.92 0.06 320);
+  --owned-foreground: oklch(0.4 0.14 320);
+  --ledger-rent: oklch(0.92 0.055 195);
+  --ledger-rent-foreground: oklch(0.38 0.09 200);
+
+  /* The three things money does to a car, each a solid button of its own so
+     they are never mistaken for one another or for the primary. Purchase is
+     the success green, money turning into a car. Repaint is paint, a gradient
+     across 345, 295 and 225 - a sweep rather than a hue, so it borrows no
+     family's meaning. Sell is amber at 62, money coming back, clear of the
+     warning yellow (80) by hue and of bronze (52) by chroma; neither stands
+     beside a car's buttons. */
+  --paint-from: oklch(0.58 0.2 345);
+  --paint-via: oklch(0.54 0.2 295);
+  --paint-to: oklch(0.56 0.14 225);
+  --paint-foreground: oklch(0.985 0.005 295);
+  --sell: oklch(0.6 0.15 62);
+  --sell-foreground: oklch(0.985 0.005 62);
+
+  /* Where the price of a car the user added comes from, shown in Your content
+     alone. A price of their own wears the custom origin's 340, the colour a
+     spec of theirs already does there, so "yours" reads one way across
+     Settings. A suggestion is amber at 80, a price nobody set and worth a
+     look: it only ever stands on a car the catalogue does not know, so it
+     never meets the DLC chip's 75. A listed car's price has no chip at all. */
+  --price-suggested: oklch(0.94 0.06 80);
+  --price-suggested-foreground: oklch(0.42 0.1 70);
+
   /* What is laid over a photograph - the fade under a card's name, the
      backing behind a livery count or a circuit's outline - and the text on it.
      The same in both themes on purpose: it sits on a picture, not on the page,
@@ -501,6 +538,18 @@
   --historic-foreground: oklch(0.86 0.06 45);
   --ledger-fee: oklch(0.32 0.06 235);
   --ledger-fee-foreground: oklch(0.86 0.08 245);
+  --owned: oklch(0.33 0.07 320);
+  --owned-foreground: oklch(0.87 0.1 320);
+  --ledger-rent: oklch(0.33 0.06 195);
+  --ledger-rent-foreground: oklch(0.86 0.09 195);
+  --paint-from: oklch(0.62 0.19 345);
+  --paint-via: oklch(0.58 0.19 295);
+  --paint-to: oklch(0.6 0.13 225);
+  --paint-foreground: oklch(0.985 0.005 295);
+  --sell: oklch(0.66 0.14 64);
+  --sell-foreground: oklch(0.18 0.03 60);
+  --price-suggested: oklch(0.34 0.06 80);
+  --price-suggested-foreground: oklch(0.88 0.1 85);
   --curve-power: oklch(0.7 0.16 262);
   --curve-torque: oklch(0.76 0.13 50);
 
@@ -645,6 +694,18 @@
   --color-historic-foreground: var(--historic-foreground);
   --color-ledger-fee: var(--ledger-fee);
   --color-ledger-fee-foreground: var(--ledger-fee-foreground);
+  --color-owned: var(--owned);
+  --color-owned-foreground: var(--owned-foreground);
+  --color-ledger-rent: var(--ledger-rent);
+  --color-ledger-rent-foreground: var(--ledger-rent-foreground);
+  --color-paint-from: var(--paint-from);
+  --color-paint-via: var(--paint-via);
+  --color-paint-to: var(--paint-to);
+  --color-paint-foreground: var(--paint-foreground);
+  --color-sell: var(--sell);
+  --color-sell-foreground: var(--sell-foreground);
+  --color-price-suggested: var(--price-suggested);
+  --color-price-suggested-foreground: var(--price-suggested-foreground);
   --color-scrim: var(--scrim);
   --color-on-scrim: var(--on-scrim);
   --color-curve-power: var(--curve-power);

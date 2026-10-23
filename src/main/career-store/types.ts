@@ -162,7 +162,8 @@ export interface EnrolRequest {
    */
   entry: string;
   /**
-   * The car the season will be raced in.
+   * The car the season will be raced in - owned, in the garage's livery, when
+   * the career has it, and rented otherwise.
    */
   car: {
     /**
@@ -170,7 +171,7 @@ export interface EnrolRequest {
      */
     model: string;
     /**
-     * Skin folder ID, when one was picked.
+     * Skin folder ID, when one was picked - a rented car's alone.
      */
     skin?: string;
   };
@@ -379,6 +380,31 @@ export interface CareerStore {
    * @throws When the championship cannot be entered
    */
   enrol(request: EnrolRequest): Promise<Career>;
+  /**
+   * Buys a car into the garage. Every entry renting it races it owned, in the
+   * livery bought, from its next round.
+   * @param request Which car, and which livery
+   * @returns The career
+   * @throws When the car is owned already, is not in the library, or costs
+   * more than the career holds
+   */
+  buyCar(request: { model: string; skin?: string }): Promise<Career>;
+  /**
+   * Sells a car out of the garage, at what it is worth today. Every entry
+   * still racing it races the rest of its rounds rented.
+   * @param model Which car
+   * @returns The career
+   * @throws When it is not owned, or a round is under way in it
+   */
+  sellCar(model: string): Promise<Career>;
+  /**
+   * Repaints a car in the garage, which every round still to come races in.
+   * @param request Which car, and its new livery
+   * @returns The career
+   * @throws When it is not owned, already wears that livery, or the repaint
+   * costs more than the career holds
+   */
+  repaintCar(request: { model: string; skin: string }): Promise<Career>;
   /**
    * Pulls out of an edition of a championship, marking everything still to
    * come as missed.

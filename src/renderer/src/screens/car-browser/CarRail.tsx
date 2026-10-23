@@ -1,18 +1,34 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ClassTree } from './ClassTree.tsx';
-import { carRanges } from './pills.ts';
+import { carRanges, fromPriceScale, toPriceScale } from './pills.ts';
 import type { CarFacets } from '../../../../shared/types';
 import { carClassName, carSpecName } from '../../../../shared/utils/car-classes';
 import { useClasses } from '@/app';
 import {
-  FilterRail, NationFlag, provenanceNames, RailList, RailRange, RailSection, RailSkeleton, RailSwitch, RangeSkeleton,
-  SourceTree, toggledIn,
+  FilterRail, NationFlag, provenanceNames, RailList, RailOption, RailRange, RailSection, RailSkeleton, RailSwitch,
+  RangeSkeleton, SourceTree, toggledIn,
 } from '@/components';
 import type { CarCriteria } from '@/hooks';
 import { useFormat } from '@/i18n';
+import { PRICE_ORIGIN_DOT } from '@/lib/accents';
+import { cn } from '@/lib/utils.ts';
 
 interface CarRailProps {
+  /**
+   * Filters of the page's own, ahead of the rest.
+   */
+  top?: ReactNode;
+  /**
+   * Whether the browser prices its cars, which adds a price range.
+   */
+  priced?: boolean;
+  /**
+   * Whether the browser prices the cars the user added, which adds a filter
+   * on where each price comes from.
+   */
+  appraised?: boolean;
   /**
    * The filters currently applied.
    */
@@ -40,7 +56,7 @@ interface CarRailProps {
  * Every filter the car browser offers, open beside the results.
  */
 export const CarRail = ({
-  criteria, facets, filtered, onChange, onClear,
+  top, priced = false, appraised = false, criteria, facets, filtered, onChange, onClear,
 }: CarRailProps) => {
   const { t } = useTranslation();
   const format = useFormat();
@@ -51,10 +67,48 @@ export const CarRail = ({
   const pickedSpecs = criteria.specs ?? [];
   const brands = criteria.brands ?? [];
   const countries = criteria.countries ?? [];
-  const { formatPower, years, power } = carRanges(criteria, facets, t, format);
+  const origins = criteria.priceOrigins ?? [];
+  const {
+    formatPower, formatPrice, years, power, price,
+  } = carRanges(criteria, facets, t, format);
 
   return (
     <FilterRail filtered={filtered} onClear={onClear}>
+      {top}
+
+      {priced ? (
+        <RailSection title={t('cars.filter.price')} picked={price === null ? [] : [price]}>
+          {facets === null ? <RangeSkeleton /> : (
+            // Over the price's logarithm, the scale the spread is drawn on.
+            <RailRange
+              spread={facets.prices}
+              value={{ from: toPriceScale(criteria.priceFrom), to: toPriceScale(criteria.priceTo) }}
+              step={0.01}
+              label={t('cars.filter.price')}
+              format={formatPrice}
+              onChange={(range) => onChange({
+                ...criteria, priceFrom: fromPriceScale(range.from), priceTo: fromPriceScale(range.to),
+              })}
+            />
+          )}
+        </RailSection>
+      ) : null}
+
+      {appraised ? (
+        <RailSection title={t('cars.filter.price')} picked={origins.map((one) => t(`prices.origin.${one}`))}>
+          {(['suggested', 'yours'] as const).map((origin) => (
+            <RailOption
+              key={origin}
+              label={t(`prices.origin.${origin}`)}
+              lead={<span aria-hidden className={cn('size-2 rounded-full', PRICE_ORIGIN_DOT[origin])} />}
+              count={facets === null ? null : facets.priceOrigins.find((one) => one.value === origin)?.count ?? 0}
+              checked={origins.includes(origin)}
+              onToggle={() => onChange({ ...criteria, priceOrigins: toggledIn(origins, origin) })}
+            />
+          ))}
+        </RailSection>
+      ) : null}
+
       <RailSection>
         <RailSwitch
           label={t('browse.raced')}

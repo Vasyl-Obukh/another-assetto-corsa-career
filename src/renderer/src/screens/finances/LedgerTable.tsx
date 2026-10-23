@@ -25,7 +25,8 @@ interface LedgerTableProps {
  */
 export const LedgerTable = ({ rows, career }: LedgerTableProps) => {
   const { t } = useTranslation();
-  const { formatDayShort, formatMoney, formatNumber } = useFormat();
+  const format = useFormat();
+  const { formatDayShort, formatMoney } = format;
 
   return (
     <table className="w-full border-separate border-spacing-0 text-sm">
@@ -40,7 +41,7 @@ export const LedgerTable = ({ rows, career }: LedgerTableProps) => {
       </thead>
       <tbody>
         {rows.map(({ line, balance }) => {
-          const { title, detail } = describeLine(line, career, t, formatNumber);
+          const { title, detail } = describeLine(line, career, t, format);
 
           return (
             <tr key={line.key} className={cn(line.kind === 'speed' && 'bg-muted/50')}>

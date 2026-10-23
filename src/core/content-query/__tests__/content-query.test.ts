@@ -2,8 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 
 import { makeCars, makeTrackEntry, makeTracks } from './fixtures.ts';
 import { CarClass, ContentSource, DLCPack } from '../../../shared/types/index.ts';
-import type { Track } from '../../../shared/types/index.ts';
+import type { CarPricing, Track } from '../../../shared/types/index.ts';
 import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
+import { CAR_PRICES, PRICE_FLOOR } from '../../../shared/utils/car-prices/index.ts';
 import {
   carFacets, circuitOf, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
@@ -28,6 +29,12 @@ const USER_CATALOGUE = resolveCatalogue({
  * @returns The IDs, in page order
  */
 const ids = (page: { items: { id: string }[] }): string[] => page.items.map((item) => item.id);
+
+/**
+ * The user added the mod and the Citroën and priced the mod themselves, which
+ * leaves the Citroën on its suggestion and the Ferrari GT3 off the library.
+ */
+const PRICING: CarPricing = { prices: { nameless_mod: 250_000 }, added: ['nameless_mod', 'citroen_ds3'] };
 
 describe('core/content-query', () => {
   describe('queryCars', () => {
@@ -131,6 +138,24 @@ describe('core/content-query', () => {
 
     it('keeps only the cars it is asked for by id', () => {
       expect(ids(queryCars(makeCars(), { ids: ['ferrari_f40', 'not_installed'] }))).toEqual(['ferrari_f40']);
+    });
+
+    it("sorts by price - listed, the user's own or suggested - cheapest first", () => {
+      expect(ids(queryCars(makeCars(), { sort: 'price' }, undefined, PRICING))).toEqual([
+        'citroen_ds3', 'ks_porsche_911_gt3_r_2016', 'nameless_mod', 'ferrari_488_gt3', 'ferrari_f40',
+      ]);
+    });
+
+    it('filters by a price range, its bounds included', () => {
+      expect(ids(queryCars(makeCars(), { priceFrom: 200_000, priceTo: 250_000 }, undefined, PRICING)))
+        .toEqual(['nameless_mod', 'ks_porsche_911_gt3_r_2016']);
+    });
+
+    it('filters by where a price comes from, a suggestion counting only for a car the user added', () => {
+      expect(ids(queryCars(makeCars(), { priceOrigins: ['suggested'] }, undefined, PRICING))).toEqual(['citroen_ds3']);
+      expect(ids(queryCars(makeCars(), { priceOrigins: ['yours'] }, undefined, PRICING))).toEqual(['nameless_mod']);
+      expect(ids(queryCars(makeCars(), { priceOrigins: ['catalogue'] }, undefined, PRICING)))
+        .toEqual(['ferrari_f40', 'ks_porsche_911_gt3_r_2016']);
     });
   });
 
@@ -303,6 +328,23 @@ describe('core/content-query', () => {
 
       expect(picked.sources).toEqual(all.sources);
       expect(picked.makers).toEqual(all.makers);
+    });
+
+    it('counts where each price comes from, against every filter but its own', () => {
+      const counts = (pricing: CarPricing, query = {}): string[] => carFacets(makeCars(), query, undefined, pricing)
+        .priceOrigins.map((one) => `${one.value}:${one.count}`).sort();
+
+      expect(counts(PRICING)).toEqual(['catalogue:2', 'suggested:1', 'yours:1']);
+      expect(counts(PRICING, { priceOrigins: ['yours'] })).toEqual(counts(PRICING));
+      expect(counts(PRICING, { brands: ['Ferrari'] })).toEqual(['catalogue:1']);
+    });
+
+    it('spreads prices over their logarithm, from the cheapest car to the dearest', () => {
+      const { prices } = carFacets(makeCars(), {}, undefined, PRICING);
+
+      expect(prices?.min).toBeCloseTo(Math.log10(PRICE_FLOOR));
+      expect(prices?.max).toBeCloseTo(Math.log10(CAR_PRICES.ferrari_f40));
+      expect(prices?.counts.reduce((sum, count) => sum + count, 0)).toBe(5);
     });
 
     it('spreads power over every car installed, counting what the other filters leave', () => {

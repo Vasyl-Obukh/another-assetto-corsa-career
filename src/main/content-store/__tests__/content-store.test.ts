@@ -10,6 +10,7 @@ import {
 import { contentWatchDirs, rescanContent } from '../../../core/content/index.ts';
 import { CONTENT_CATALOGUE_VERSION } from '../../../core/content-catalogue/index.ts';
 import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
+import { CAR_PRICES, PRICE_FLOOR } from '../../../shared/utils/car-prices/index.ts';
 import { CONTENT_CACHE_VERSION, WATCH_DEBOUNCE_MS } from '../constants.ts';
 import { createContentStore } from '../content-store.ts';
 
@@ -460,6 +461,75 @@ describe('main/content-store', () => {
       store.use(DIR);
 
       await expect(store.circuit('never_installed')).resolves.toBeNull();
+    });
+  });
+
+  describe('price', () => {
+    it("answers a listed car's price", async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.price('bmw_m3_e30')).resolves.toBe(CAR_PRICES.bmw_m3_e30);
+    });
+
+    // A car rented for a round may have left the library since it was entered.
+    it('prices a car outside the library, over everything installed', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.price('my_mod')).resolves.toBe(PRICE_FLOOR);
+    });
+
+    it('answers the price the user set on a car they added, once handed it', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.priceWith({ my_mod: 42_000 });
+
+      await expect(store.price('my_mod')).resolves.toBe(42_000);
+    });
+
+    it("never lets a price of the user's override a listed one", async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.priceWith({ bmw_m3_e30: 1_000 });
+
+      await expect(store.price('bmw_m3_e30')).resolves.toBe(CAR_PRICES.bmw_m3_e30);
+    });
+
+    it('answers null for a car that is not installed', async () => {
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.price('never_installed')).resolves.toBeNull();
+    });
+  });
+
+  describe('appraisal', () => {
+    it('says what an added car costs, what it is suggested to and what that rests on', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['my_mod', 'bmw_m3_e30'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.priceWith({ my_mod: 42_000 });
+
+      await expect(store.appraisal('my_mod')).resolves.toMatchObject({
+        car: { id: 'my_mod' }, price: 42_000, suggested: PRICE_FLOOR, basis: 'curve', spec: null, kin: [],
+      });
+    });
+
+    it('answers null for a car that is not installed', async () => {
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+
+      await expect(store.appraisal('never_installed')).resolves.toBeNull();
     });
   });
 

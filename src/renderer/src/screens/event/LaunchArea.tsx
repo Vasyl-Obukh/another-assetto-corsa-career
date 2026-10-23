@@ -1,7 +1,7 @@
 import { Loader2Icon, WalletIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { launchNote, scaleName } from './utils.ts';
+import { launchNote, moneyNote, scaleName } from './utils.ts';
 import type { CareerEventView, EventSession } from '../../../../shared/types';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -47,9 +47,12 @@ export const LaunchArea = ({
   const { formatMoney } = useFormat();
   const race = useRaceStatus();
   const { money } = view;
+  // What the next launch pays: the fee and the rent, each until it is paid.
+  const fee = money?.fee && !money.paid ? money.fee : 0;
+  const rent = money?.rent && !money.rentPaid ? money.rent : 0;
   // Said with the amounts in the career's own currency, which the shared
   // English template cannot do.
-  const short = view.blocked?.code === 'career.money.short' && money?.fee ? money : null;
+  const short = view.blocked?.code === 'career.money.short' && money && fee + rent > 0 ? money : null;
 
   const status = view.live ? race.setup?.status : undefined;
   const running = status !== undefined && status.phase !== 'idle';
@@ -75,14 +78,14 @@ export const LaunchArea = ({
       {status?.failure ? (
         <p className="text-sm text-destructive">{describe(status.failure)}</p>
       ) : null}
-      {short?.fee ? (
+      {short ? (
         <div className="flex flex-col gap-0.5 rounded-md border border-destructive/35 bg-destructive/10 p-3 text-sm">
           <span className="font-semibold text-destructive">{t('event.money.short')}</span>
           <span className="text-muted-foreground">
             {t('event.money.shortHint', {
-              fee: formatMoney(short.fee),
+              fee: formatMoney(fee + rent),
               money: formatMoney(short.balance),
-              missing: formatMoney(short.fee - short.balance),
+              missing: formatMoney(fee + rent - short.balance),
             })}
           </span>
         </div>
@@ -91,10 +94,10 @@ export const LaunchArea = ({
         <p className="text-sm text-muted-foreground">{describe(view.blocked)}</p>
       ) : null}
       {/* Said before it is paid, so launching never costs money unannounced. */}
-      {view.blocked === null && money?.fee && !money.paid ? (
+      {view.blocked === null && fee + rent > 0 ? (
         <p className="flex items-start gap-2 text-sm text-muted-foreground">
           <WalletIcon className="mt-0.5 size-4 shrink-0" />
-          {t('event.money.feeNote', { fee: formatMoney(money.fee), session: name })}
+          {t(moneyNote(fee, rent), { fee: formatMoney(fee), rent: formatMoney(rent), session: name })}
         </p>
       ) : null}
       {/* The launch is offered regardless, and asks before it goes - this says

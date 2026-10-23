@@ -19,7 +19,7 @@ export { SortHeader } from './SortHeader.tsx';
 export { SortMenu } from './SortMenu.tsx';
 export { SourceTree } from './SourceTree.tsx';
 export {
-  CARD_LINK, SKELETON_COUNT, SWITCH_TRACK, TOOLBAR_SEARCH,
+  CARD_COVER, CARD_LINK, SKELETON_COUNT, SWITCH_TRACK, TOOLBAR_SEARCH,
 } from './constants.ts';
 export { ToggleCard } from './ToggleCard.tsx';
 export type {

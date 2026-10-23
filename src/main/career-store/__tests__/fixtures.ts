@@ -6,6 +6,7 @@
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
 import { Discipline } from '../../../shared/types/index.ts';
 import type {
+  Car,
   Career,
   CareerSeason,
   Championship,
@@ -36,6 +37,18 @@ export const makeClassEntry = (over: Partial<ClassEntry> = {}): ClassEntry => ({
   eligibility: { kind: 'cars', cars: ['test_car'] },
   ...over,
 });
+
+/**
+ * Builds an installed car, with only what its name and its liveries read.
+ * @param id Its folder ID
+ * @param skins Its liveries' folder IDs, each named after its own
+ * @returns The car
+ */
+export const makeCar = (id: string, skins: readonly string[] = ['red', 'blue']): Car => ({
+  id,
+  name: `Car ${id}`,
+  skins: skins.map((skin) => ({ id: skin, name: `Livery ${skin}` })),
+} as Car);
 
 /**
  * Builds a round running on a track of its own name.
@@ -152,6 +165,7 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   settings: { ...DEFAULT_CAREER_SETTINGS, historicFrequency: 'off' },
   money: 100_000,
   ledger: [],
+  garage: [],
   rating: {
     [Discipline.SINGLE_SEATER]: 1200,
     [Discipline.SPORTSCAR]: 1200,

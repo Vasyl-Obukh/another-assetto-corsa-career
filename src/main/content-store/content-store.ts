@@ -28,9 +28,10 @@ import {
 } from '../../core/content-query/index.ts';
 import { AppError } from '../../shared/errors/index.ts';
 import type {
-  AddedContent, CarQuery, ClassCatalogue, Content, ContentChange, TrackQuery,
+  AddedContent, CarPricing, CarQuery, ClassCatalogue, Content, ContentChange, TrackQuery, UserPrices,
 } from '../../shared/types/index.ts';
 import { SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
+import { appraise, carPrice } from '../../shared/utils/car-prices/index.ts';
 
 export type { ContentCache, ContentStore } from './types.ts';
 
@@ -62,6 +63,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
   let cached: boolean | null = null;
   let added: AddedContent = { cars: [], tracks: [] };
   let catalogue: ClassCatalogue = SHIPPED_CATALOGUE;
+  let prices: UserPrices = {};
   let checked = false;
   let checkedAt = 0;
   let running: Promise<ContentScan> | null = null;
@@ -146,6 +148,12 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
   const collection = (content: Content, query?: CarQuery | TrackQuery): ContentLibrary => (
     query?.anonymous === true ? anonymousOf(content) : libraryOf(content, added)
   );
+
+  /**
+   * What the car queries price over beyond the catalogue.
+   * @returns The user's prices and the cars they added
+   */
+  const pricing = (): CarPricing => ({ prices, added: added.cars });
 
   const emit = (change: ContentChange): void => {
     for (const listener of listeners) listener(change);
@@ -238,6 +246,10 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       catalogue = next;
     },
 
+    priceWith(next) {
+      prices = next;
+    },
+
     contentDir: () => dir,
 
     async summary(force = false) {
@@ -248,7 +260,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async cars(query) {
-      return queryCars(collection((await current()).content, query).cars, query, catalogue);
+      return queryCars(collection((await current()).content, query).cars, query, catalogue, pricing());
     },
 
     async car(id, installed = false) {
@@ -257,6 +269,22 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       const cars = installed ? content.cars : libraryOf(content, added).cars;
 
       return cars.find((entry) => entry.id === id) ?? null;
+    },
+
+    async price(id) {
+      const { content } = await current();
+      // Over everything installed: a car renting for a round may have left the
+      // library since it was entered, and still costs what it did.
+      const car = content.cars.find((entry) => entry.id === id);
+
+      return car ? carPrice(car, catalogue, prices) : null;
+    },
+
+    async appraisal(id) {
+      const { content } = await current();
+      const car = content.cars.find((entry) => entry.id === id);
+
+      return car ? appraise(car, content.cars, catalogue, prices) : null;
     },
 
     async content() {
@@ -277,7 +305,7 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
     },
 
     async carFacets(query) {
-      return carFacets(collection((await current()).content, query).cars, query, catalogue);
+      return carFacets(collection((await current()).content, query).cars, query, catalogue, pricing());
     },
 
     async trackFacets(query) {

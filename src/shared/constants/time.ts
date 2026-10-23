@@ -27,6 +27,11 @@ export const HOURS_PER_DAY = 24;
 export const DAYS_PER_WEEK = 7;
 
 /**
+ * Days in one year, leap days aside.
+ */
+export const DAYS_PER_YEAR = 365;
+
+/**
  * Milliseconds in one minute.
  */
 export const MS_PER_MINUTE = MS_PER_SECOND * SECONDS_PER_MINUTE;

@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   CUP, makeCareer, makeEntry, makeEvent, makePlace, makeRace, makeSeason, makeStanding,
 } from './fixtures.ts';
-import type { Career, SeasonEntry } from '../../../shared/types/index.ts';
+import type { Career, OwnedCar, SeasonEntry } from '../../../shared/types/index.ts';
 import {
   feeLine,
   feeOf,
@@ -13,6 +13,12 @@ import {
   owedPrizes,
   payOut,
   post,
+  purchaseLine,
+  rentLine,
+  rentOwed,
+  rentPaid,
+  repaintLine,
+  saleLine,
   speedLine,
 } from '../career-money.ts';
 
@@ -120,6 +126,145 @@ describe('core/career-money', () => {
       const line = feeLine(makeSeason(), makeEntry(), makeEvent('gone', '2027-06-06'), 1500);
 
       expect(line).toMatchObject({ round: 'gone', roundName: 'gone', number: 0 });
+    });
+  });
+
+  describe('rentPaid', () => {
+    it("is paid once the round's rent is on the ledger", () => {
+      const entry = makeEntry({ car: { model: 'test_car', source: 'rented' } });
+      const event = makeEvent('one', '2027-03-07');
+      const career = careerIn(entry);
+
+      expect(rentPaid(career, event)).toBe(false);
+      expect(rentPaid(post(career, [rentLine(makeSeason(), entry, event, 300, 'Test Car')]), event)).toBe(true);
+    });
+
+    it("is not paid by the round's entry fee", () => {
+      const entry = makeEntry();
+      const event = makeEvent('one', '2027-03-07');
+
+      expect(rentPaid(post(careerIn(entry), [feeLine(makeSeason(), entry, event, 1500)]), event)).toBe(false);
+    });
+  });
+
+  describe('rentOwed', () => {
+    const rented = makeEntry({ car: { model: 'test_car', source: 'rented' } });
+    const event = makeEvent('one', '2027-03-07');
+
+    it('owes the rent of a rented car until it is paid, and nothing after', () => {
+      const career = careerIn(rented);
+
+      expect(rentOwed(career, rented, event, 300)).toBe(300);
+      expect(rentOwed(post(career, [rentLine(makeSeason(), rented, event, 300, 'Test Car')]), rented, event, 300))
+        .toBe(0);
+    });
+
+    it('owes nothing for a car the career owns, or one that came with the seat', () => {
+      const owned = makeEntry({ car: { model: 'test_car', source: 'owned' } });
+      const supplied = makeEntry();
+
+      expect(rentOwed(careerIn(owned), owned, event, 300)).toBe(0);
+      expect(rentOwed(careerIn(supplied), supplied, event, 300)).toBe(0);
+    });
+
+    it('owes nothing in a standalone championship, which has no money', () => {
+      expect(rentOwed(careerIn(rented, { kind: 'championship' }), rented, event, 300)).toBe(0);
+    });
+  });
+
+  describe('rentLine', () => {
+    it('takes the rent out, keyed by the round and naming it and the car', () => {
+      const entry = makeEntry({ car: { model: 'test_car', source: 'rented' } });
+      const event = makeEvent('two', '2027-06-06');
+
+      expect(rentLine(makeSeason(), entry, event, 300, 'Test Car')).toEqual({
+        key: 'rent:test-cup/two@0.0',
+        kind: 'rent',
+        date: '2027-06-06',
+        amount: -300,
+        season: 0,
+        series: 'test-cup',
+        seriesName: 'Test Cup',
+        edition: 0,
+        round: 'two',
+        roundName: 'Round two',
+        number: 2,
+        car: { model: 'test_car', name: 'Test Car' },
+      });
+    });
+  });
+
+  describe('purchaseLine', () => {
+    it('takes the price out on the day, in the latest season, naming the car and its livery', () => {
+      const career = makeCareer({ date: '2027-04-01', seasons: [makeSeason(), { ...makeSeason(), index: 1 }] });
+
+      expect(purchaseLine(career, 'test_car', 'Test Car', 'Red', 40_000)).toEqual({
+        key: 'purchase:test_car:0',
+        kind: 'purchase',
+        date: '2027-04-01',
+        season: 1,
+        amount: -40_000,
+        car: { model: 'test_car', name: 'Test Car', livery: 'Red' },
+      });
+    });
+
+    it('leaves the livery out for a car bought in none', () => {
+      expect(purchaseLine(makeCareer(), 'test_car', 'Test Car', undefined, 40_000).car)
+        .toEqual({ model: 'test_car', name: 'Test Car' });
+    });
+
+    it('falls in the first season of a career with none yet', () => {
+      expect(purchaseLine(makeCareer({ seasons: [] }), 'test_car', 'Test Car', undefined, 40_000).season).toBe(0);
+    });
+
+    it('keys each purchase of one car apart from the ones before it', () => {
+      const career = makeCareer({ seasons: [makeSeason()] });
+      const first = purchaseLine(career, 'test_car', 'Test Car', undefined, 40_000);
+
+      expect(purchaseLine(post(career, [first]), 'test_car', 'Test Car', undefined, 40_000).key)
+        .toBe('purchase:test_car:1');
+    });
+  });
+
+  describe('saleLine', () => {
+    it('pays what the car sells for, saying what was paid for it and when', () => {
+      const owned: OwnedCar = {
+        model: 'test_car', skin: 'red', paid: 40_000, bought: '2027-02-01',
+      };
+      const career = makeCareer({ date: '2027-08-01', seasons: [makeSeason()] });
+
+      expect(saleLine(career, owned, 'Test Car', 38_000)).toEqual({
+        key: 'sale:test_car:0',
+        kind: 'sale',
+        date: '2027-08-01',
+        season: 0,
+        amount: 38_000,
+        car: {
+          model: 'test_car', name: 'Test Car', paid: 40_000, bought: '2027-02-01',
+        },
+      });
+    });
+  });
+
+  describe('repaintLine', () => {
+    it('takes the cost out, naming the livery it went from and to', () => {
+      const career = makeCareer({ date: '2027-05-01', seasons: [makeSeason()] });
+
+      expect(repaintLine(career, 'test_car', 'Test Car', 'Red', 'Blue', 600)).toEqual({
+        key: 'repaint:test_car:0',
+        kind: 'repaint',
+        date: '2027-05-01',
+        season: 0,
+        amount: -600,
+        car: {
+          model: 'test_car', name: 'Test Car', from: 'Red', livery: 'Blue',
+        },
+      });
+    });
+
+    it('leaves out either livery it has no name for', () => {
+      expect(repaintLine(makeCareer(), 'test_car', 'Test Car', undefined, undefined, 600).car)
+        .toEqual({ model: 'test_car', name: 'Test Car' });
     });
   });
 

@@ -15,9 +15,10 @@ export interface LedgerRow {
 }
 
 /**
- * Which lines a ledger shows: every one, what paid the career, or what it paid.
+ * Which lines a ledger shows: every one, what paid the career, what racing a
+ * round cost it, or what its garage moved.
  */
-export type LedgerFilter = 'all' | 'prizes' | 'fees';
+export type LedgerFilter = 'all' | 'prizes' | 'fees' | 'cars';
 
 /**
  * A stretch of a career's money in figures.

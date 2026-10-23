@@ -361,15 +361,15 @@ export const seriesForecast = (series: Championship, offer: WeatherOffer): Round
  * car, their colours and their pace from the opener to the finale. Drawn over
  * the championship's own eligibility rather than any round's, since a season
  * is not one round; a round that runs other cars draws its own for that round.
- * Liveries are handed out the way buildGrid would, pinned ones first and the
- * player's held back, so nobody shares colours the library had spare.
+ * Liveries are handed out the way buildGrid would, pinned ones first, so no two
+ * AI cars share colours the library had spare. The player's livery plays no
+ * part: they may repaint at any time, and the field never moves for it.
  *
  * Seeded on the seat, the championship and the salt - a career and season, or
  * nothing outside one - so two careers field different drivers and a round
  * raced outside a career fields the same ones every time.
  * @param series The championship
  * @param playerEntry The class the player races in, by its id
- * @param car The player's car, whose livery nobody else is given
  * @param content Installed content to resolve cars and liveries against
  * @param catalogue The class catalogue specs resolve against
  * @param salt What makes this season's draw its own, empty outside a career
@@ -378,7 +378,6 @@ export const seriesForecast = (series: Championship, offer: WeatherOffer): Round
 export const drawField = (
   series: Championship,
   playerEntry: string,
-  car: RoundRaceRequest['car'],
   content: Content,
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
   salt = '',
@@ -400,10 +399,9 @@ export const drawField = (
     });
   });
 
-  // Every pinned livery and the player's are reserved before any is handed
-  // out, which is the order buildGrid reserves them in too.
-  const playerSkin = car.skin ?? content.cars.find((one) => one.id === car.model)?.skins[0]?.id;
-  const used = new Set<string>(playerSkin === undefined ? [] : [skinKey(car.model, playerSkin)]);
+  // Every pinned livery is reserved before any is handed out, which is the
+  // order buildGrid reserves them in too.
+  const used = new Set<string>();
   const pinnedSkins = draws.map(({ seat, model }) => (
     model === undefined ? undefined : seatSkin(content, model, seat.car?.skin)
   ));
@@ -411,7 +409,7 @@ export const drawField = (
     const { model } = draws[at];
     if (skin !== undefined && model !== undefined) used.add(skinKey(model, skin));
   });
-  const placed = new Map<string, number>([[car.model, 1]]);
+  const placed = new Map<string, number>();
 
   return draws.map(({ seat, model, ...rest }, at) => {
     if (model === undefined) return { seat: seat.id, ...rest };
@@ -479,7 +477,7 @@ export const roundRace = (
     throw new AppError('series.car.notEligible', { car: car.model, entry: playerEntry.name });
   }
 
-  const frozen = request.field ?? drawField(series, playerEntry.id, car, content, catalogue);
+  const frozen = request.field ?? drawField(series, playerEntry.id, content, catalogue);
   // Keyed on the seat alone, since validateSeries holds seat ids unique across
   // the championship.
   const field = new Map(frozen.map((one) => [one.seat, one]));

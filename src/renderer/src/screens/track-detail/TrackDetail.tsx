@@ -76,7 +76,7 @@ export const TrackDetail = () => {
   return (
     <ScreenBody className="flex flex-col gap-4 pb-8">
       <ScreenHeader
-        back={mode === 'career' ? { to: path.tracks(), label: t('back.tracks') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
+        back={mode === 'career' ? { to: path.championships(), label: t('back.championships') } : { to: path.settingsContent(), label: t('back.settingsContent') }}
         aside={anonymous ? <LibrarySwitch kind="tracks" id={id} /> : undefined}
       />
 

@@ -22,9 +22,10 @@ import {
 import type { WeatherType } from '../../constants/index.ts';
 import { DLCPack, ModDistributor, ModMaker } from '../../types/index.ts';
 import type {
-  AddedContent, AiBase, DrivingAids, HiddenContentSources, PathOverrides, Settings, WindowState,
+  AddedContent, AiBase, DrivingAids, HiddenContentSources, PathOverrides, Settings, UserPrices, WindowState,
 } from '../../types/index.ts';
 import { aiFigure } from '../ai-figure/index.ts';
+import { isCarPrice } from '../car-prices/index.ts';
 import { isRecord, memberOf, stringEnumValues } from '../coerce/index.ts';
 import { isNationCode } from '../nations/index.ts';
 
@@ -115,6 +116,22 @@ export const readAddedContent = (raw: unknown): AddedContent => {
   if (!isRecord(raw)) return { cars: [], tracks: [] };
 
   return { cars: readIds(raw.cars), tracks: readIds(raw.tracks) };
+};
+
+/**
+ * Reads the prices the user set on cars they added.
+ * @param raw The value read from disk
+ * @returns Every row naming a car and a price within bounds, keyed in order so
+ * settings.json diffs cleanly whatever order the prices were set in
+ */
+export const readCarPrices = (raw: unknown): UserPrices => {
+  if (!isRecord(raw)) return {};
+
+  const rows = Object.entries(raw)
+    .map(([id, price]) => [cleanString(id), price] as const)
+    .filter((row): row is readonly [string, number] => row[0] !== undefined && isCarPrice(row[1]));
+
+  return Object.fromEntries([...rows].sort(([left], [right]) => left.localeCompare(right)));
 };
 
 /**
@@ -276,6 +293,7 @@ export const readSettings = (raw: unknown): Settings => {
     drivingAids: readDrivingAids(raw.drivingAids),
     opponents: readOpponents(raw.opponents),
     addedContent: readAddedContent(raw.addedContent),
+    carPrices: readCarPrices(raw.carPrices),
     hiddenContentSources: readHiddenContentSources(raw.hiddenContentSources),
     seriesActive: readSeriesActive(raw.seriesActive),
     showFillerSeries: typeof raw.showFillerSeries === 'boolean'

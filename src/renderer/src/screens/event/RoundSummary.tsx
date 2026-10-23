@@ -68,15 +68,19 @@ export const RoundSummary = ({
     && line.edition === view.edition && line.round === view.round
   )) : null;
   const fee = paid?.find((line) => line.kind === 'fee');
+  const rent = paid?.find((line) => line.kind === 'rent');
   const prize = paid
-    ? paid.filter((line) => line.kind !== 'fee').reduce((sum, line) => sum + line.amount, 0)
+    ? paid.filter((line) => line.kind !== 'fee' && line.kind !== 'rent').reduce((sum, line) => sum + line.amount, 0)
     : mine.reduce((sum, place) => (
       sum + (place && !place.bonusOnly ? prizeFor(results.championship, entry, place.classPosition) ?? 0 : 0)
     ), 0);
   const money = {
     label: t('event.summary.prize'),
     value: prize > 0 ? <MoneyAmount amount={prize} /> : t('standings.none'),
-    detail: fee ? t('event.summary.fee', { amount: formatMoney(-fee.amount) }) : undefined,
+    detail: [
+      ...(fee ? [t('event.summary.fee', { amount: formatMoney(-fee.amount) })] : []),
+      ...(rent ? [t('event.summary.rent', { amount: formatMoney(-rent.amount) })] : []),
+    ].join(' · ') || undefined,
   };
 
   const figures: StripFigure[] = player && mine.some((place) => place) ? [

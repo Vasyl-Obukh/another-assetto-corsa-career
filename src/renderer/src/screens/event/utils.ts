@@ -141,6 +141,22 @@ export const launchNote = (
 };
 
 /**
+ * Which note says what the next launch pays: the entry fee, the rent of a
+ * rented car, or both.
+ * @param fee The fee still to pay, zero for none
+ * @param rent The rent still to pay, zero for none
+ * @returns The note's translation key
+ */
+export const moneyNote = (
+  fee: number,
+  rent: number,
+): 'event.money.feeNote' | 'event.money.rentNote' | 'event.money.bothNote' => {
+  if (rent === 0) return 'event.money.feeNote';
+
+  return fee === 0 ? 'event.money.rentNote' : 'event.money.bothNote';
+};
+
+/**
  * The sessions of an event that recorded the strength they raced the player's
  * class at, each with that figure - which a simulated session, and one run
  * before strength was recorded, did not.

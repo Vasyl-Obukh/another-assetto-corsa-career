@@ -5,6 +5,7 @@
 import type {
   ClassCommandResult, ClassId, ClassLayer, SpecId,
 } from './car-classes.ts';
+import type { CarAppraisal } from './car-prices.ts';
 import type {
   Career,
   CareerBackup,
@@ -96,6 +97,11 @@ export interface IpcContract {
    * library does not hold yet.
    */
   'content:car': { req: { id: string; installed?: boolean }; res: Car | null };
+  /**
+   * A car the user added as the Edit price dialog shows it. Null when it is not
+   * installed, as content:car is.
+   */
+  'content:appraisal': { req: { id: string }; res: CarAppraisal | null };
   /**
    * Counts behind the car browser's filter lists, for the filters now applied.
    */
@@ -492,12 +498,26 @@ export interface IpcContract {
   'career:calendar': { req: { season?: number }; res: CareerCalendar };
   /**
    * Enter an edition of a championship for the current season - the one named,
-   * or the one still to come when none is.
+   * or the one still to come when none is - in a car the career owns, or else
+   * rents.
    */
   'career:enrol': {
     req: { series: string; entry: string; car: { model: string; skin?: string }; edition?: number };
     res: Career;
   };
+  /**
+   * Buy a car into the career's garage, in a livery. A car the career is
+   * renting races in it, owned, from its next round.
+   */
+  'career:buyCar': { req: { model: string; skin?: string }; res: Career };
+  /**
+   * Sell a car out of the garage. Whatever still races it races it rented.
+   */
+  'career:sellCar': { req: { model: string }; res: Career };
+  /**
+   * Repaint a car in the garage, which every round still to come races in.
+   */
+  'career:repaintCar': { req: { model: string; skin: string }; res: Career };
   /**
    * Pull out of an edition of a championship, marking everything still to come
    * as missed.

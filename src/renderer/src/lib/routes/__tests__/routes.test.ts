@@ -92,8 +92,8 @@ describe('renderer/lib/routes/routes', () => {
     it('returns the pattern itself where a destination takes no parameters', () => {
       expect(path.race()).toBe(ROUTE.race);
       expect(path.results()).toBe(ROUTE.results);
-      expect(path.cars()).toBe(ROUTE.cars);
-      expect(path.tracks()).toBe(ROUTE.tracks);
+      expect(path.store()).toBe(ROUTE.store);
+      expect(path.garage()).toBe(ROUTE.garage);
       expect(path.diagnostics()).toBe(ROUTE.diagnostics);
       expect(path.settings()).toBe(ROUTE.settings);
       expect(path.settingsContent()).toBe(ROUTE.settingsContent);
@@ -204,13 +204,13 @@ describe('renderer/lib/routes/routes', () => {
 
   describe('routeOf', () => {
     it('finds the destination a path is', () => {
-      expect(routeOf('/cars')).toBe('cars');
+      expect(routeOf('/store')).toBe('store');
       expect(routeOf('/cars/ks_audi_r8')).toBe('car');
       expect(routeOf('/calendar/lotus-cup/r1')).toBe('event');
     });
 
     it('allows a trailing slash', () => {
-      expect(routeOf('/tracks/')).toBe('tracks');
+      expect(routeOf('/garage/')).toBe('garage');
     });
 
     // `/settings/championships/new` also fits `/settings/championships/:id`;
@@ -263,7 +263,7 @@ describe('renderer/lib/routes/routes', () => {
 
     it('reads a section only a career\'s navigation offers', () => {
       expect(sectionOf({ section: 'calendar' })).toBe('calendar');
-      expect(sectionOf({ section: 'cars' })).toBe('cars');
+      expect(sectionOf({ section: 'garage' })).toBe('garage');
     });
 
     it('reads a section only a standalone championship\'s navigation offers', () => {

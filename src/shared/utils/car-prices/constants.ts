@@ -1,0 +1,545 @@
+/**
+ * What every car the catalogue names costs, in whole units of the career's
+ * currency, by folder ID: the Kunos cars and every catalogued mod alike, a
+ * renamed replica priced as the real car it copies.
+ *
+ * What one costs to acquire today - new while it is still built, what a
+ * typical example sells for once it is not, and what building one cost for a
+ * works car never sold - researched car by car, then pulled to within a
+ * quarter of the median of its class and generation. car-price-review.md
+ * traces each figure to its sources. Nothing in the app changes these.
+ */
+export const CAR_PRICES: Readonly<Record<string, number>> = {
+  // Base game.
+  abarth500: 14_000,
+  abarth500_s1: 16_000,
+  alfa_romeo_giulietta_qv: 12_000,
+  alfa_romeo_giulietta_qv_le: 12_000,
+  bmw_1m: 75_000,
+  bmw_1m_s3: 87_000,
+  bmw_m3_e30: 90_000,
+  bmw_m3_e30_drift: 120_000,
+  bmw_m3_e30_dtm: 540_000,
+  bmw_m3_e30_gra: 200_000,
+  bmw_m3_e30_s1: 93_000,
+  bmw_m3_e92: 35_000,
+  bmw_m3_e92_drift: 50_000,
+  bmw_m3_e92_s1: 38_000,
+  bmw_m3_gt2: 400_000,
+  bmw_z4: 22_000,
+  bmw_z4_drift: 36_000,
+  bmw_z4_gt3: 190_000,
+  bmw_z4_s1: 25_000,
+  ferrari_312t: 2_800_000,
+  ferrari_458: 250_000,
+  ferrari_458_gt2: 400_000,
+  ferrari_458_s3: 310_000,
+  ferrari_599xxevo: 1_500_000,
+  ferrari_f40: 3_300_000,
+  ferrari_f40_s3: 2_850_000,
+  ferrari_laferrari: 4_000_000,
+  ks_abarth_595ss: 45_000,
+  ks_abarth_595ss_s1: 48_000,
+  ks_abarth_595ss_s2: 55_000,
+  ks_abarth500_assetto_corse: 40_000,
+  ks_alfa_33_stradale: 10_000_000,
+  ks_alfa_giulia_qv: 85_000,
+  ks_alfa_mito_qv: 7_000,
+  ks_audi_a1s1: 16_000,
+  ks_audi_r8_lms: 230_000,
+  ks_audi_r8_plus: 90_000,
+  ks_audi_sport_quattro: 600_000,
+  ks_audi_sport_quattro_rally: 1_500_000,
+  ks_audi_sport_quattro_s1: 615_000,
+  ks_bmw_m4: 38_000,
+  ks_bmw_m4_akrapovic: 45_000,
+  ks_corvette_c7_stingray: 43_000,
+  ks_ford_escort_mk1: 110_000,
+  ks_ford_gt40: 8_250_000,
+  ks_ford_mustang_2015: 26_000,
+  ks_glickenhaus_scg003: 2_000_000,
+  ks_lamborghini_countach: 500_000,
+  ks_lamborghini_countach_s1: 510_000,
+  ks_lamborghini_gallardo_sl: 150_000,
+  ks_lamborghini_gallardo_sl_s3: 245_000,
+  ks_lamborghini_huracan_gt3: 165_000,
+  ks_lamborghini_huracan_performante: 290_000,
+  ks_lamborghini_huracan_st: 150_000,
+  ks_lamborghini_miura_sv: 4_000_000,
+  ks_lamborghini_sesto_elemento: 3_000_000,
+  ks_lotus_25: 1_500_000,
+  ks_lotus_72d: 2_500_000,
+  ks_maserati_alfieri: 160_000,
+  ks_maserati_levante: 17_000,
+  ks_maserati_quattroporte: 22_000,
+  ks_mazda_787b: 4_000_000,
+  ks_mazda_miata: 10_000,
+  ks_mclaren_650_gt3: 220_000,
+  ks_mercedes_amg_gt3: 320_000,
+  ks_nissan_gtr: 150_000,
+  ks_pagani_huayra_bc: 4_250_000,
+  ks_porsche_cayenne: 38_000,
+  ks_porsche_macan: 19_000,
+  ks_porsche_panamera: 50_000,
+  ks_ruf_rt12r: 650_000,
+  ks_ruf_rt12r_awd: 700_000,
+  ks_toyota_gt86: 17_000,
+  ktm_xbow_r: 75_000,
+  lotus_2_eleven: 58_000,
+  lotus_2_eleven_gt4: 57_000,
+  lotus_49: 2_000_000,
+  lotus_98t: 7_500_000,
+  lotus_elise_sc: 45_000,
+  lotus_elise_sc_s1: 50_000,
+  lotus_elise_sc_s2: 55_000,
+  lotus_evora_gtc: 165_000,
+  lotus_evora_gte: 450_000,
+  lotus_evora_gte_carbon: 450_000,
+  lotus_evora_gx: 100_000,
+  lotus_evora_s: 52_000,
+  lotus_evora_s_s2: 60_000,
+  lotus_exige_240: 53_000,
+  lotus_exige_240_s3: 63_000,
+  lotus_exige_s: 70_000,
+  lotus_exige_s_roadster: 64_000,
+  lotus_exige_scura: 80_000,
+  lotus_exige_v6_cup: 90_000,
+  lotus_exos_125: 350_000,
+  lotus_exos_125_s1: 400_000,
+  mclaren_mp412c: 85_000,
+  mclaren_mp412c_gt3: 220_000,
+  mercedes_sls: 220_000,
+  mercedes_sls_gt3: 220_000,
+  'p4-5_2011': 2_500_000,
+  pagani_huayra: 3_000_000,
+  pagani_zonda_r: 5_000_000,
+  ruf_yellowbird: 4_000_000,
+  shelby_cobra_427sc: 3_000_000,
+  tatuusfa1: 35_000,
+
+  // DLC.
+  ks_alfa_romeo_155_v6: 620_000,
+  ks_alfa_romeo_4c: 45_000,
+  ks_alfa_romeo_gta: 350_000,
+  ks_audi_r18_etron_quattro: 3_000_000,
+  ks_audi_r8_lms_2016: 280_000,
+  ks_audi_tt_cup: 110_000,
+  ks_audi_tt_vln: 100_000,
+  ks_bmw_m235i_racing: 50_000,
+  ks_corvette_c7r: 530_000,
+  ks_ferrari_250_gto: 45_000_000,
+  ks_ferrari_288_gto: 6_500_000,
+  ks_ferrari_312_67: 2_800_000,
+  ks_ferrari_330_p4: 35_000_000,
+  ks_ferrari_488_gt3: 320_000,
+  ks_ferrari_488_gtb: 230_000,
+  ks_ferrari_812_superfast: 320_000,
+  ks_ferrari_f138: 3_500_000,
+  ks_ferrari_f2004: 4_200_000,
+  ks_ferrari_fxx_k: 5_000_000,
+  ks_ferrari_sf15t: 15_000_000,
+  ks_ferrari_sf70h: 15_000_000,
+  ks_lamborghini_aventador_sv: 450_000,
+  ks_lotus_3_eleven: 125_000,
+  ks_maserati_250f_12cyl: 5_000_000,
+  ks_maserati_250f_6cyl: 3_000_000,
+  ks_maserati_gt_mc_gt4: 96_000,
+  ks_maserati_mc12_gt1: 875_000,
+  ks_mazda_mx5_cup: 59_000,
+  ks_mazda_mx5_nd: 32_000,
+  ks_mazda_rx7_spirit_r: 65_000,
+  ks_mazda_rx7_tuned: 90_000,
+  ks_mclaren_570s: 125_000,
+  ks_mclaren_f1_gtr: 8_750_000,
+  ks_mclaren_p1: 1_900_000,
+  ks_mclaren_p1_gtr: 1_450_000,
+  ks_mercedes_190_evo2: 520_000,
+  ks_mercedes_c9: 3_500_000,
+  ks_nissan_370z: 28_000,
+  ks_nissan_gtr_gt3: 250_000,
+  ks_nissan_skyline_r34: 200_000,
+  ks_porsche_718_boxster_s: 51_000,
+  ks_porsche_718_boxster_s_pdk: 53_000,
+  ks_porsche_718_cayman_s: 52_000,
+  ks_porsche_718_spyder_rs: 3_500_000,
+  ks_porsche_908_lh: 3_500_000,
+  ks_porsche_911_carrera_rsr: 1_750_000,
+  ks_porsche_911_gt1: 7_000_000,
+  ks_porsche_911_gt3_cup_2017: 190_000,
+  ks_porsche_911_gt3_r_2016: 200_000,
+  ks_porsche_911_gt3_rs: 185_000,
+  ks_porsche_911_r: 600_000,
+  ks_porsche_911_rsr_2017: 1_250_000,
+  ks_porsche_917_30: 4_400_000,
+  ks_porsche_917_k: 13_750_000,
+  ks_porsche_918_spyder: 2_500_000,
+  ks_porsche_919_hybrid_2015: 4_000_000,
+  ks_porsche_919_hybrid_2016: 4_000_000,
+  ks_porsche_935_78_moby_dick: 6_000_000,
+  ks_porsche_962c_longtail: 3_000_000,
+  ks_porsche_962c_shorttail: 3_000_000,
+  ks_porsche_991_carrera_s: 83_000,
+  ks_porsche_991_turbo_s: 135_000,
+  ks_porsche_cayman_gt4_clubsport: 100_000,
+  ks_porsche_cayman_gt4_std: 100_000,
+  ks_praga_r1: 130_000,
+  ks_toyota_ae86: 28_000,
+  ks_toyota_ae86_drift: 40_000,
+  ks_toyota_ae86_tuned: 43_000,
+  ks_toyota_celica_st185: 230_000,
+  ks_toyota_supra_mkiv: 70_000,
+  ks_toyota_supra_mkiv_drift: 105_000,
+  ks_toyota_supra_mkiv_tuned: 120_000,
+  ks_toyota_ts040: 4_000_000,
+
+  // Mod: guerilla.
+  gt4_alpine_a110: 130_000,
+  gt4_aston_martin_vantage: 145_000,
+  gt4_audi_r8: 175_000,
+  gt4_bmw_m4: 160_000,
+  gt4_bmw_m4_g82: 235_000,
+  gt4_camaro: 140_000,
+  gt4_ford_mustang: 140_000,
+  gt4_ginetta_g55: 75_000,
+  gt4_ktm_xbow: 78_000,
+  gt4_mclaren_570s: 150_000,
+  gt4_mercedes_amg: 150_000,
+  gt4_mercedes_amg_evo: 235_000,
+  gt4_panoz_avezzano: 150_000,
+  gt4_porsche_cayman_718: 160_000,
+  gt4_saleen_s1: 150_000,
+  gt4_sin_r1: 110_000,
+  gt4_toyota_supra: 145_000,
+  gue_935_gt2: 545_000,
+  gue_amg_gt2: 470_000,
+  gue_audi_r8_lms_gt2: 325_000,
+  gue_bmw_m2_cs: 115_000,
+  gue_bmw_m2_gt2: 420_000,
+  gue_bmw_m3_e46_gtr: 525_000,
+  gue_brabham_bt63_gt2: 545_000,
+  gue_ferrari_488_challange_gt2: 210_000,
+  gue_gt2_rs_clubsport: 545_000,
+  gue_ktm_xbow_gt2: 325_000,
+  gue_lamborghini_huracan_st_evo2: 290_000,
+  gue_liana_gt_v6_cup: 95_000,
+  gue_liana_gt2: 420_000,
+  gue_maserati_mc20_gt2: 450_000,
+  gue_nissan_skyline_r34_24h: 300_000,
+  gue_porsche_911_gt3_cup_992: 250_000,
+  gue_porsche_cayman_rsr: 420_000,
+  'gue_toyota_s-fr_cup': 150_000,
+
+  // Mod: rss.
+  rss_formula_1986: 7_500_000,
+  rss_formula_1990: 4_500_000,
+  rss_formula_1990_v10: 5_650_000,
+  rss_formula_2000: 4_200_000,
+  rss_formula_2010: 3_500_000,
+  rss_formula_2013: 3_000_000,
+  rss_formula_70: 2_000_000,
+  rss_formula_70_s: 2_000_000,
+  rss_formula_79: 1_200_000,
+  rss_formula_americas_2020: 550_000,
+  rss_formula_americas_2020_oval: 550_000,
+  rss_formula_hybrid_2017: 15_000_000,
+  rss_formula_hybrid_2018: 15_000_000,
+  rss_formula_hybrid_2018_s1: 15_000_000,
+  rss_formula_hybrid_2019: 15_000_000,
+  rss_formula_hybrid_2020: 15_000_000,
+  rss_formula_hybrid_2021: 15_000_000,
+  rss_formula_hybrid_2022: 16_000_000,
+  rss_formula_hybrid_2022_s: 16_000_000,
+  rss_formula_hybrid_2023: 16_000_000,
+  rss_formula_hybrid_2024: 16_000_000,
+  rss_formula_hybrid_2025_alpine: 16_000_000,
+  rss_formula_hybrid_2026: 16_000_000,
+  'rss_formula_hybrid_v12-r': 16_000_000,
+  rss_formula_hybrid_x: 20_000_000,
+  rss_formula_hybrid_x_2026: 16_000_000,
+  rss_formula_hybrid_x_evo: 20_000_000,
+  rss_formula_rss_2_v6_2020: 350_000,
+  rss_formula_rss_2_v6_2024: 650_000,
+  rss_formula_rss_2_v8: 200_000,
+  rss_formula_rss_3_v6: 200_000,
+  rss_formula_rss_3_v6_2026: 350_000,
+  rss_formula_rss_4: 34_000,
+  rss_formula_rss_4_2024: 85_000,
+  rss_formula_rss_supreme: 300_000,
+  rss_formula_rss_supreme_25: 500_000,
+  rss_gt_adonis_d9_v12: 750_000,
+  rss_gt_ferruccio_55: 875_000,
+  rss_gt_ferruccio_57: 650_000,
+  rss_gt_lanzo_v12: 600_000,
+  rss_gt_shadow_v8: 850_000,
+  rss_gt_tornado_v12: 525_000,
+  rss_gt_vortex_v10: 550_000,
+  rss_gtm_adonis_v8_evo: 725_000,
+  rss_gtm_aero_v10_evo2: 270_000,
+  rss_gtm_akuro_v6_evo2: 255_000,
+  rss_gtm_bayer_i6_evo: 665_000,
+  rss_gtm_bayer_v8: 225_000,
+  rss_gtm_cortex_v8: 735_000,
+  rss_gtm_furiano_96_v6: 650_000,
+  rss_gtm_hyperion_v8: 650_000,
+  rss_gtm_lanzo_v10: 300_000,
+  rss_gtm_lanzo_v10_evo2: 360_000,
+  rss_gtm_lanzo_v8: 600_000,
+  rss_gtm_lux_v8: 250_000,
+  rss_gtm_lux_v8_evo: 260_000,
+  rss_gtm_macca_72_evo_v8: 600_000,
+  rss_gtm_mercer_v8: 415_000,
+  rss_gtm_protech_p92_f6: 600_000,
+  rss_gtmx_macca_v8: 900_000,
+  rss_gtmx_protech_p92_f6_renn: 1_150_000,
+  rss_gtn_ferruccio_36: 420_000,
+  rss_gtn_furiano_36: 420_000,
+  rss_gtn_protech_96: 330_000,
+  rss_hyperion_2020: 90_000,
+  rss_lmgt_nisumo_r39_v8: 5_250_000,
+  rss_lmgt_toyama_2zero_v8: 6_000_000,
+  rss_lmp_ferruccio_33_v12: 4_000_000,
+  rss_lmp1_protech_p91_evo: 5_000_000,
+  rss_mph_bayer_hybrid_v8: 2_900_000,
+  rss_mph_callahan_v8: 2_900_000,
+  rss_mph_lanzo_v8_evo: 2_900_000,
+  rss_mph_protech_p96_v8: 2_900_000,
+
+  // Mod: urd.
+  urd_amr_egt_2019_v2: 975_000,
+  urd_bayro_egt_2018: 1_200_000,
+  urd_darche_cup_2021: 250_000,
+  urd_darche_egt_2020: 1_300_000,
+  urd_darche_egt_2020_sprint: 1_300_000,
+  urd_darche_egt_2021: 1_300_000,
+  urd_darche_egt_2021_sprint: 1_300_000,
+  urd_detroit_egt_2019: 1_300_000,
+  urd_ferrucci_448t_egt: 1_400_000,
+  urd_loire07_21: 545_000,
+  urd_mercedes_clr_lm: 5_000_000,
+  urd_michigan_egt: 1_400_000,
+  urd_radical_sr10xxr_2023: 180_000,
+  urd_radical_sr3xxr_2023: 115_000,
+
+  // Mod: vrc.
+  'vrc_1988_mclaren_mp4-4_r02': 10_000_000,
+  'vrc_1988_mclaren_mp4-4_r04': 10_000_000,
+  'vrc_1988_mclaren_mp4-4_r09': 10_000_000,
+  'vrc_1988_mclaren_mp4-4_r10': 10_000_000,
+  vrc_1991_jordan_191: 3_400_000,
+  vrc_1997_ferrari_f310b: 4_700_000,
+  vrc_1997_williams_fw19: 2_800_000,
+  vrc_2005_mclaren_mp420: 2_550_000,
+  vrc_2005_renault_r25: 2_550_000,
+  vrc_2009_williams_fw31: 2_250_000,
+  vrc_2009_williams_fw31_s1: 2_250_000,
+  vrc_2015_williams_fw37: 15_000_000,
+  vrc_2019_formula_lithium: 300_000,
+  vrc_arc_ta2_chevrette: 165_000,
+  vrc_arc_ta2_chevrette_csp: 165_000,
+  vrc_arc_ta2_dagger: 165_000,
+  vrc_arc_ta2_dagger_csp: 165_000,
+  vrc_arc_ta2_mare: 165_000,
+  vrc_arc_ta2_mare_csp: 165_000,
+  vrc_erc_1994_vokker: 220_000,
+  vrc_erc_1994_vokker_csp: 220_000,
+  vrc_erc_1997_beamer: 170_000,
+  vrc_erc_1997_beamer_csp: 170_000,
+  vrc_erc_1998_alfio: 200_000,
+  vrc_erc_1998_alfio_csp: 200_000,
+  vrc_erc_1998_auriel: 175_000,
+  vrc_erc_1998_auriel_csp: 175_000,
+  vrc_erc_1998_pageau: 150_000,
+  vrc_erc_1998_pageau_csp: 150_000,
+  vrc_erc_1999_fortix: 175_000,
+  vrc_erc_1999_fortix_csp: 175_000,
+  vrc_erc_1999_gojira: 175_000,
+  vrc_erc_1999_gojira_csp: 175_000,
+  vrc_erc_1999_renoir: 150_000,
+  vrc_erc_1999_renoir_csp: 150_000,
+  vrc_erc_1999_vorax: 140_000,
+  vrc_erc_1999_vorax_csp: 140_000,
+  vrc_formula_alpha_2007_f07: 4_000_000,
+  vrc_formula_alpha_2007_mc22: 2_750_000,
+  vrc_formula_alpha_2022: 16_000_000,
+  vrc_formula_alpha_2023: 20_000_000,
+  vrc_formula_alpha_2023_csp: 16_000_000,
+  vrc_formula_alpha_2024: 20_000_000,
+  vrc_formula_alpha_2024_csp: 16_000_000,
+  vrc_formula_alpha_2025: 20_000_000,
+  vrc_formula_alpha_2025_csp: 16_000_000,
+  vrc_formula_alpha_2026: 16_000_000,
+  vrc_formula_alpha_2026_csp: 16_000_000,
+  vrc_formula_beta_2024: 650_000,
+  vrc_formula_beta_2024_csp: 650_000,
+  vrc_formula_lithium_2023: 975_000,
+  vrc_formula_lithium_2023_csp: 975_000,
+  vrc_formula_na_2012_oval: 250_000,
+  vrc_formula_na_2012_road: 250_000,
+  vrc_formula_na_2018_oval: 415_000,
+  vrc_formula_na_2018_road: 415_000,
+  vrc_formula_na_2018_short: 415_000,
+  vrc_formula_na_2021_oval: 550_000,
+  vrc_formula_na_2021_road: 550_000,
+  vrc_formula_na_2021_short: 550_000,
+  vrc_pt_2023_pageau_98: 4_500_000,
+  vrc_pt_2023_pageau_98_csp: 4_500_000,
+  vrc_pt_2024_arden: 2_900_000,
+  vrc_pt_2024_arden_csp: 2_900_000,
+  vrc_pt_2024_cadenza: 2_900_000,
+  vrc_pt_2024_cadenza_csp: 2_900_000,
+  vrc_pt_2024_ferrenzo: 5_400_000,
+  vrc_pt_2024_ferrenzo_csp: 5_400_000,
+  vrc_pt_2024_isola: 3_500_000,
+  vrc_pt_2024_isola_csp: 3_500_000,
+
+  // Mod: yezhrod.
+  Yzd_Aston_Martin_V8_Vantage_GTE: 320_000,
+  yzd_audi_r18_etron_2012: 2_500_000,
+  yzd_cadillac_v_lmdh: 2_900_000,
+  yzd_ferrari_488_gte: 1_300_000,
+  yzd_ferrari_488_gte_evo: 1_400_000,
+  yzd_ferrari_488_gte_evo_lm: 1_400_000,
+  yzd_ferrari_488_gte_lm: 1_300_000,
+  yzd_ligier_jsp2: 300_000,
+  Yzd_Nissan_GTR_R35_GT1: 850_000,
+  Yzd_Nissan_GTR_R35_GT1_2009: 850_000,
+  Yzd_Nissan_GTR_R35_GT1_2009_Endu: 850_000,
+  Yzd_Nissan_GTR_R35_GT1_2011: 850_000,
+  Yzd_Nissan_GTR_R35_GT1_2011_Endu: 850_000,
+  Yzd_Nissan_GTR_R35_GT1_Endu: 850_000,
+  yzd_oreca_07_2017: 410_000,
+  yzd_oreca_07_2021: 545_000,
+  yzd_oreca_07_2022: 545_000,
+  yzd_oreca_07_imsa: 410_000,
+  yzd_porsche_911_rsr_gte_2018: 1_250_000,
+  yzd_vanwall_vandervell_680: 3_400_000,
+
+  // Redistributed: lfm.
+  ac_friends_honda_nsx_gt3_evo: 250_000,
+  acf_aston_martin_vantage_gt3_evo: 725_000,
+  acf_oreca_07: 545_000,
+  alpine_a424: 2_900_000,
+  bentley_continental_gt3_18: 265_000,
+  bm_amg_evo_2020_gt3: 415_000,
+  bm_nissan_gtr_gt3: 250_000,
+  bmw_m_hybrid_v8_2023: 2_900_000,
+  cadillac_v_series_r_2023: 2_900_000,
+  corvette_z06_gt3_2024: 735_000,
+  ferrari_499p_2023: 5_400_000,
+  ford_mustang_gt3_2024: 650_000,
+  fsr_audi_lms_evo_2_gt3: 270_000,
+  fw_audi_rs3_tcr_2024: 165_000,
+  fw_cupra_tcr_2024: 170_000,
+  fw_elantra_tcr_2024: 150_000,
+  ks_bmw_m4_gt3_2022: 415_000,
+  ks_ferrari_296_gt3_2023: 650_000,
+  lamborghini_huracan_evo2_gt3: 360_000,
+  lamborghini_sc63: 2_900_000,
+  lmp2_ligier_jsp217: 410_000,
+  lrs_porsche_911_992_gt3_cup: 250_000,
+  mclaren_720s_gt3_evo: 600_000,
+  ng_lexus_r_cf_gt3: 250_000,
+  peugeot_9x8: 4_500_000,
+  porsche_963_2023: 2_900_000,
+  porsche_992_gt3_r_2023: 600_000,
+  toyota_gr010: 4_500_000,
+  toyota_supra_gt4_cup_2019: 145_000,
+};
+
+/**
+ * What renting a car costs each round, as a share of its price.
+ */
+export const RENT_SHARE = 0.02;
+
+/**
+ * What repainting a car costs, as a share of its price.
+ */
+export const REPAINT_SHARE = 0.015;
+
+/**
+ * How much of what was paid for a car selling it loses each year, a day at a
+ * time.
+ */
+export const DEPRECIATION_PER_YEAR = 0.075;
+
+/**
+ * The share of what was paid that selling a car never falls below.
+ */
+export const RESALE_FLOOR = 0.7;
+
+/**
+ * What a sale pays is rounded to this, so a price falling a day at a time does
+ * not read as a string of odd amounts.
+ */
+export const RESALE_STEP = 100;
+
+/**
+ * The least a car without a curated price can cost.
+ */
+export const PRICE_FLOOR = 5_000;
+
+/**
+ * The least a price the user sets may be.
+ */
+export const MIN_CAR_PRICE = 1_000;
+
+/**
+ * The most a price the user sets may be.
+ */
+export const MAX_CAR_PRICE = 100_000_000;
+
+/**
+ * How many priced cars the Edit price dialog compares a car against.
+ */
+export const KIN_COUNT = 5;
+
+/**
+ * The `class` values in ui_car.json that mark a road car, lower-cased. Every
+ * other value a mod writes - "race", "GT3", "LMP2" - is a racing car of some
+ * kind, so a road car is compared with road cars and a racer with racers.
+ */
+export const ROAD_CAR_CLASSES: readonly string[] = ['street', 'supercar', 'suv'];
+
+/**
+ * The formula a car without a curated price or a priced spec falls back to:
+ * what a car of `REFERENCE_POWER` bhp a tonne costs, and how steeply the price
+ * rises with power to weight. Fitted by eye against the curated road cars.
+ */
+export const REFERENCE_PRICE = 25_000;
+
+/**
+ * The power to weight, in bhp a tonne, that costs `REFERENCE_PRICE`.
+ */
+export const REFERENCE_POWER = 150;
+
+/**
+ * The exponent power to weight is raised to.
+ */
+export const POWER_EXPONENT = 2.2;
+
+/**
+ * The weight assumed for a car that states none, in kilograms.
+ */
+export const ASSUMED_WEIGHT_KG = 1300;
+
+/**
+ * What a car's age leaves of the formula's price, by the decade it was made in
+ * - older first, each entry the first year it applies from. Cars made before
+ * the first entry take its share.
+ */
+export const AGE_SHARES: readonly { from: number; share: number }[] = [
+  { from: 0, share: 0.7 },
+  { from: 1990, share: 0.75 },
+  { from: 2000, share: 0.85 },
+  { from: 2010, share: 1 },
+];
+
+/**
+ * How a derived price is rounded: to the step of the first band it falls
+ * under, so it reads like a price somebody set.
+ */
+export const PRICE_STEPS: readonly { under: number; step: number }[] = [
+  { under: 100_000, step: 1_000 },
+  { under: 1_000_000, step: 5_000 },
+  { under: Infinity, step: 50_000 },
+];

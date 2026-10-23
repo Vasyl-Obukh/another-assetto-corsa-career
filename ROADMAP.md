@@ -54,7 +54,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Grid when qualifying is skipped | **The race says where the player starts** - last unless it names pole, a slot or a seeded random one, always among their own class. The AI stand on pace class by class with slight seeded randomness, so skipped sessions don't produce identical grids. |
 | Simulating rounds               | **Every round nobody drove.** A missed round, one run before the player entered and every round of a championship they are not in are raced by the field off each driver's pace and a seeded draw, with a stand-in in the player's seat. A weekend left part-way keeps what was driven and simulates the rest. |
 | DNS                             | No points, **no fee** and **rating untouched**. An entry fee is paid as a round's first session launches, so a round skipped or missed costs nothing; a fine for missing one belongs to a contract that pays per championship (Phase 9). |
-| Car pricing                     | **Curated for Kunos + DLC, derived for everything else.** Real-world-ish values for official content; specs-derived suggestions for mods; user override on any car.                                                                       |
+| Car pricing                     | **Real-world for the whole catalogue, suggested for what the user adds.** Every catalogued car, Kunos' and mods alike, at what the real car costs, pulled towards its class's median; a car the user adds starts on a suggestion they can change in Your content, and nothing else is adjustable. |
 | Running out of money            | **Forced down the ladder.** Recoverable, never a hard fail.                                                                                                                                                                               |
 | Rating                          | **Global + per-discipline**, with cross-discipline entry one tier below your best.                                                                                                                                                        |
 | AI economy                      | **None.** Teams have budget tiers that shape their offers; AI drivers have no wallet.                                                                                                                                                     |
@@ -2857,13 +2857,40 @@ proof that no layer below learned what a series is.
       An app setting in General that a career may override, the way it does
       opponents and driving aids; `useFormat` formats money in whichever is
       in force, so every amount follows it
-- [ ] **Curated price list for Kunos base and DLC cars**
-- [ ] **Derived price suggestions for mod cars**, overridable
-- [ ] **Store page**: every car, its price, and the championships it can enter -
-      the car browser with a price on the card and a buy action; see *Where the
-      browsers end up*
-- [ ] Buy, sell and own cars
-- [ ] **Rent a car for an event**, from the event screen
+- [x] **Real-world price list for the whole catalogue**. `CAR_PRICES` in
+      `src/shared/utils/car-prices/`, all 419 cars the catalogue names - the
+      Kunos cars and every catalogued mod, a renamed replica priced as the
+      real car it copies - at what one costs to acquire today: new while it
+      is built, what a typical example sells for once it is not, and the cost
+      of building one for a works car never sold. Researched car by car, then
+      every price pulled to within a quarter of the median of its class and
+      generation, so one GT3 generation cannot span $200k to $700k. Each
+      figure and its sources are in `car-price-review.md`. Looked up at
+      runtime, never cached, and not adjustable
+- [x] **Prices for the cars the user adds**: a car switched on in Your
+      content goes in at a suggestion - the median of the listed cars sharing
+      a spec, else power to weight and age - and a notification offers to set
+      its own. Edit price, in Your content alone, shows the rent and repaint a
+      price comes to, the suggestion and the listed cars nearest it. Kept in
+      `settings.carPrices`; a car already bought sells and repaints on what
+      was paid
+- [x] **Store page**: the car browser with every card closing on its price
+      and its rent a round, Purchase on the card and the row, a price sort,
+      a logarithmic price range and switches for what the career owns and
+      can afford. The livery is picked, then the purchase confirmed. Tracks
+      left a career's navigation: the track browser is only ever a picker
+- [x] Buy, sell and own cars. One per model, in a livery the player picks;
+      **the Garage** is the car browser over them. A repaint costs 1.5% of the
+      price and reaches every round still to come at once. Selling pays the
+      price on the day it was bought, 7.5% a year less, a day at a time, never
+      under 70%; it is refused while a round is under way in the car, and
+      otherwise the rounds left are raced rented. The AI field's liveries no
+      longer depend on the player's
+- [x] **Rent a car for an event**: entering a championship is owning or renting
+      an eligible car. Rent is 2% of the price a round, charged at launch beside
+      the entry fee under the same rule - refused when short, nothing for a
+      round skipped. Buying the car being rented ends the rent from its next
+      round
 - [x] Entry fees charged per round, **as its first session launches** and
       only then: a round skipped or missed costs nothing. A launch the career
       cannot pay for is refused, so the balance never goes below zero. A

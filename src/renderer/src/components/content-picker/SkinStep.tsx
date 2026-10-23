@@ -23,6 +23,16 @@ interface SkinStepProps {
    */
   selectedId?: string;
   /**
+   * Folder name of the livery the car wears now, for one the player owns,
+   * which its tile says.
+   */
+  currentId?: string;
+  /**
+   * What the back button says, when it leads somewhere other than the list of
+   * cars - a purchase or a repaint opened on its own cancels instead.
+   */
+  backLabel?: string;
+  /**
    * Called to go back to the list of cars.
    */
   onBack: () => void;
@@ -34,7 +44,7 @@ interface SkinStepProps {
 }
 
 export const SkinStep = ({
-  car, selectedId, onBack, onPick,
+  car, selectedId, currentId, backLabel, onBack, onPick,
 }: SkinStepProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
@@ -54,7 +64,7 @@ export const SkinStep = ({
       <div className="flex shrink-0 flex-wrap items-center gap-2 px-6 pb-3">
         <Button type="button" size="sm" variant="ghost" onClick={onBack}>
           <ChevronLeftIcon />
-          {t('race.pick.allCars')}
+          {backLabel ?? t('race.pick.allCars')}
         </Button>
         <div className="ml-auto w-full max-w-sm">
           <SearchField
@@ -95,6 +105,7 @@ export const SkinStep = ({
                 carId={car.id}
                 skin={skin}
                 selected={skin.id === selectedId}
+                current={skin.id === currentId}
                 onPick={() => onPick(skin)}
               />
             ))}
