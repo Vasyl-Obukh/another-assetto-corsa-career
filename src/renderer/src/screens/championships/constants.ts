@@ -155,6 +155,7 @@ export const RAIL_KEY = {
   origins: 'origins',
   switched: 'switched',
   availability: 'availability',
+  affordable: 'affordable',
 } as const;
 
 /**

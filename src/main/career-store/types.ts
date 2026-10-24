@@ -17,6 +17,7 @@ import type {
   NewChampionshipRequest,
   RaceSetup,
   RestoredCareer,
+  RoundCost,
   SaveSummary,
   SeasonEntry,
   SeasonEvent,
@@ -443,6 +444,13 @@ export interface CareerStore {
    * @returns Every round of the career's it would leave unraced
    */
   skips(date: string): Promise<SkippedRound[]>;
+  /**
+   * What a round of each class of each championship that can be raced costs
+   * the career to race.
+   * @returns A cost per class, none for a class nothing installed can enter,
+   * and none at all in a standalone championship
+   */
+  roundCosts(): Promise<RoundCost[]>;
   /**
    * One round as the event page shows it, of any season - a closed one's
    * read-only.

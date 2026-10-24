@@ -975,7 +975,9 @@
       "off": "Вимкнено",
       "availability": "Доступність",
       "shipped": "Вбудований",
-      "switchedOnOnly": "Лише увімкнені"
+      "switchedOnOnly": "Лише увімкнені",
+      "yours": "Ваше",
+      "affordable": "Наступний етап по кишені"
     },
     "sort": {
       "ladder": "Драбина",

@@ -905,7 +905,9 @@
       "off": "Off",
       "availability": "Availability",
       "shipped": "The app’s own",
-      "switchedOnOnly": "Switched on only"
+      "switchedOnOnly": "Switched on only",
+      "yours": "Yours",
+      "affordable": "Can afford next round"
     },
     "sort": {
       "ladder": "Ladder",

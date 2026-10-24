@@ -27,6 +27,12 @@ export interface ChampionshipDimension {
    * @returns Its values, which may be empty
    */
   values(listing: SeriesListing): readonly string[];
+  /**
+   * Values that stay picked whether any championship carries them or not, as
+   * a switch's does - one that nothing passes empties the list rather than
+   * quietly switching itself off.
+   */
+  known?: readonly string[];
 }
 
 /**

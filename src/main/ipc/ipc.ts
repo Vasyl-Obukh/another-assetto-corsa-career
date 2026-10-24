@@ -215,6 +215,7 @@ export const registerHandlers = (
   handle('career:strength', async (request) => career.strength(request));
   handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));
   handle('career:skips', async ({ date }) => career.skips(date));
+  handle('career:roundCosts', async () => career.roundCosts());
   handle('career:event', async (request) => career.event(request));
   handle('career:results', async (request) => career.results(request));
   handle('career:skipping', async (request) => career.skipping(request));

@@ -20,6 +20,7 @@ import type {
   NewCareerRequest,
   NewChampionshipRequest,
   RestoredCareer,
+  RoundCost,
   SkippedRound,
   WrittenBackup,
 } from './career.ts';
@@ -543,6 +544,12 @@ export interface IpcContract {
    * The rounds of the career's that moving the clock to a date would cost.
    */
   'career:skips': { req: { date: string }; res: SkippedRound[] };
+  /**
+   * What a round of each class of each championship that can be raced costs
+   * the career, for the Championships page to say which it can afford. Empty
+   * for a standalone championship, which has no money.
+   */
+  'career:roundCosts': { req: void; res: RoundCost[] };
   /**
    * One round as the event page shows it: its sessions, what has run of them,
    * and what the career can do next. Of any season and edition - the current

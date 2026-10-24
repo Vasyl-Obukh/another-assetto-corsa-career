@@ -2905,8 +2905,19 @@ proof that no layer below learned what a series is.
       career's own - picked in New career, changed in its settings - and
       never applied to fees. Amounts are shown as paid; only the ledger's
       line for a change of speed names the speed
-- [ ] Forced down the ladder when you can't afford to race
-- [ ] Sell owned cars to recover
+- [x] **Down the ladder when you can't afford to race** - chosen, never
+      forced: nothing throws a career out of a championship, and with no
+      levels until Phase 8 any cheaper championship is already open to it.
+      The Championships page's rail ends in **Can afford next round**, which
+      keeps every rung whose next round the career can pay for - its fee and
+      the cheapest rent its class allows, nothing for the car when the garage
+      holds one it may race - off `career:roundCosts`. Per rung, since rent
+      follows the class's cars. A championship with nothing left this year is
+      priced on its opening round, which is its next one
+- [x] Sell owned cars to recover - the Garage's Sell, which slice 2 already
+      allows at any time but while a round is under way in the car. Nothing
+      more was wanted: a link to it from a refused launch was built and
+      dropped as redundant
 - [x] **Start a career on the money New career picked.** The ledger's first
       line
 
@@ -2939,6 +2950,11 @@ proof that no layer below learned what a series is.
 - [ ] Offer deadlines and a decision window
 - [ ] Contract expiry and renewal
 - [ ] Buying a seat as a pay driver
+- [ ] **A way back from bankruptcy.** A career with no car, less money than
+      the cheapest round and historic events switched off can never launch
+      anything again - an invited historic event charges neither fee nor rent,
+      so they are the only way out today. Free and salaried seats with their
+      fees covered are the natural answer, as in Zero to Apex
 - [ ] **How you are entered decides your car and your rounds.** Season end
       deliberately left this alone: a new season opens empty, `openSeason` is
       where a contract running into the next year will enter its championship,

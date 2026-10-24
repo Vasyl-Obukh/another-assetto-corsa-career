@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { LadderCell } from './LadderCell.tsx';
 import { LadderGrid } from './LadderGrid.tsx';
+import type { Rung } from './types.ts';
 import { disciplineKey, rungsAt } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
 import type { SeriesListing } from '../../../../shared/types';
@@ -19,12 +20,17 @@ interface LadderBoardProps {
    * the filtered one, so narrowing it never changes the board's shape.
    */
   depth: number;
+  /**
+   * Which rungs to stand, where a filter answers per class rather than per
+   * championship - every rung of a championship shown when absent.
+   */
+  keepRung?: (rung: Rung) => boolean;
 }
 
 // The career ladder itself: a column per tier, climbing left to right from the
 // lowest rung to the top one, a row per discipline, and each championship on
 // every rung one of its classes enters at.
-export const LadderBoard = ({ listings, depth }: LadderBoardProps) => {
+export const LadderBoard = ({ listings, depth, keepRung = () => true }: LadderBoardProps) => {
   const { t } = useTranslation();
   const tiers = Array.from({ length: depth }, (_, index) => depth - index);
 
@@ -33,7 +39,7 @@ export const LadderBoard = ({ listings, depth }: LadderBoardProps) => {
       <LadderGrid tiers={tiers}>
         {DISCIPLINES.map((discipline) => {
           const count = listings.filter((listing) => listing.series.entries.some(
-            (entry) => entry.ladder.discipline === discipline,
+            (entry) => entry.ladder.discipline === discipline && keepRung({ listing, entry }),
           )).length;
 
           return (
@@ -50,7 +56,7 @@ export const LadderBoard = ({ listings, depth }: LadderBoardProps) => {
                 </span>
               </div>
               {tiers.map((tier) => (
-                <LadderCell key={tier} rungs={rungsAt(listings, discipline, tier)} />
+                <LadderCell key={tier} rungs={rungsAt(listings, discipline, tier).filter(keepRung)} />
               ))}
             </Fragment>
           );

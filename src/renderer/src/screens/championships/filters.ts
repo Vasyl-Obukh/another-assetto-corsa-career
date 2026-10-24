@@ -9,6 +9,7 @@ import type {
   Discipline, SeriesOrigin, Settings,
 } from '../../../../shared/types';
 import { isSeriesActive } from '../../../../shared/utils/series-toggles';
+import type { RoundCosts } from '@/hooks';
 
 /**
  * What each origin is called in the filter. The app's own has a name of its
@@ -97,3 +98,20 @@ export const championshipFilters = (
     },
   ];
 };
+
+/**
+ * Whether the career can pay for a round of a championship: of any of its
+ * classes, since a championship stands on the ladder once per class and each
+ * rung answers for itself.
+ * @param costs What a round of each class costs the career
+ * @returns The filter, which the filter column draws as a switch
+ */
+export const affordableFilter = (costs: RoundCosts): ChampionshipFilter => ({
+  key: RAIL_KEY.affordable,
+  label: 'championships.filter.affordable',
+  values: (listing) => [
+    listing.series.entries.some((entry) => costs.affordable(listing.series.id, entry.id)) ? 'yes' : 'no',
+  ],
+  known: ['yes'],
+  format: (value, t) => t('championships.filter.affordable'),
+});

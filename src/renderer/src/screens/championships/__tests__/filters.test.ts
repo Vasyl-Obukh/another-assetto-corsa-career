@@ -4,7 +4,7 @@ import type { TFunction } from 'i18next';
 import { appErrorInfo } from '../../../../../shared/errors';
 import { ContentSource, Discipline, DLCPack } from '../../../../../shared/types';
 import type { Championship, SeriesAvailability, SeriesListing } from '../../../../../shared/types';
-import { championshipFilters } from '../filters.ts';
+import { affordableFilter, championshipFilters } from '../filters.ts';
 
 /**
  * A translator that echoes the key it was handed and whatever it interpolates.
@@ -111,6 +111,30 @@ describe('renderer/screens/championships/filters', () => {
       expect(disciplines.format(Discipline.ROAD, t)).toBe('championships.discipline.road');
       expect(tiers.format('2', t)).toBe('championships.tier {"tier":"2"}');
       expect(origins.format('shipped', t)).toBe('championships.filter.shipped');
+    });
+  });
+
+  describe('affordableFilter', () => {
+    /**
+     * The filter over costs that let the career afford only the classes named.
+     * @param classes The class entry ids it can afford a round of
+     * @returns The filter
+     */
+    const affording = (...classes: string[]) => affordableFilter({
+      affordable: (series, entry) => series === 'sunday-cup' && classes.includes(entry),
+    });
+
+    it('passes a championship when a round of any one of its classes is affordable', () => {
+      expect(affording('gt4').values(listing())).toEqual(['yes']);
+      expect(affording().values(listing())).toEqual(['no']);
+    });
+
+    it('always knows the switch is on, so a pick nothing passes stays picked', () => {
+      expect(affording().known).toEqual(['yes']);
+    });
+
+    it('names itself through the translator', () => {
+      expect(affording().format('yes', t)).toBe('championships.filter.affordable');
     });
   });
 });

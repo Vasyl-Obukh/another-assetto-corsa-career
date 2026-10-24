@@ -1439,6 +1439,27 @@ export interface HistoricView {
 export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash' | 'unraceable';
 
 /**
+ * What one round of a class of a championship costs the career to race: the
+ * entry fee and the rent a launch charges.
+ */
+export interface RoundCost {
+  /**
+   * The championship's id.
+   */
+  series: string;
+  /**
+   * The class entry's id.
+   */
+  entry: string;
+  /**
+   * The fee of its next round plus the rent of the cheapest car the class may
+   * be entered in - nothing for the car when the garage holds one it may race.
+   * For every class of an edition the career is in, what its next launch owes.
+   */
+  cost: number;
+}
+
+/**
  * One round that moving on would cost, as the confirmation lists it.
  */
 export interface SkippedRound {

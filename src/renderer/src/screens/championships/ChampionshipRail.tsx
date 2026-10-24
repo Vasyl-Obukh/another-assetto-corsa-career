@@ -1,3 +1,4 @@
+import type { ParseKeys } from 'i18next';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,7 +37,8 @@ interface ChampionshipRailProps {
  * A championship list's filters, laid out as the car and track browsers lay
  * theirs out: a section per filter, with what each needs as the browsers' own
  * source tree. A filter the list was not handed has no section - the
- * Championships page has neither the switch nor availability.
+ * Championships page has neither the switch nor availability, and only a
+ * career's has what it can afford.
  */
 export const ChampionshipRail = ({ browser, filters, loading = false }: ChampionshipRailProps) => {
   const { t } = useTranslation();
@@ -78,18 +80,27 @@ export const ChampionshipRail = ({ browser, filters, loading = false }: Champion
     );
   };
 
+  /**
+   * A filter drawn as one switch, on while its one value is picked.
+   * @param key The filter's key
+   * @param on The value the switch picks
+   * @param label The catalogue key for what the switch says
+   * @returns The switch
+   */
+  const switchFor = (key: string, on: string, label: ParseKeys) => (
+    <RailSwitch
+      label={t(label)}
+      checked={pickedOf(key).includes(on)}
+      onChange={(next) => setPicked(key, next ? [on] : [])}
+    />
+  );
+
   const content = contentPicks(pickedOf(RAIL_KEY.content));
 
   return (
     <FilterRail filtered={browser.filtered} onClear={browser.clear}>
       {filterOf(RAIL_KEY.switched) ? (
-        <RailSection>
-          <RailSwitch
-            label={t('championships.filter.switchedOnOnly')}
-            checked={pickedOf(RAIL_KEY.switched).includes('on')}
-            onChange={(on) => setPicked(RAIL_KEY.switched, on ? ['on'] : [])}
-          />
-        </RailSection>
+        <RailSection>{switchFor(RAIL_KEY.switched, 'on', 'championships.filter.switchedOnOnly')}</RailSection>
       ) : null}
 
       {listSection(RAIL_KEY.disciplines, (value) => (
@@ -110,6 +121,12 @@ export const ChampionshipRail = ({ browser, filters, loading = false }: Champion
 
       {listSection(RAIL_KEY.origins)}
       {listSection(RAIL_KEY.availability)}
+
+      {filterOf(RAIL_KEY.affordable) ? (
+        <RailSection title={t('championships.filter.yours')}>
+          {switchFor(RAIL_KEY.affordable, 'yes', 'championships.filter.affordable')}
+        </RailSection>
+      ) : null}
     </FilterRail>
   );
 };

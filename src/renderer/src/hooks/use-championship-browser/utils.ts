@@ -57,7 +57,7 @@ export const withKnownValues = (
   dimensions: readonly ChampionshipDimension[],
 ): ChampionshipCriteria => {
   const picked = Object.fromEntries(dimensions.map((dimension) => {
-    const carried = new Set(listings.flatMap((listing) => dimension.values(listing)));
+    const carried = new Set([...listings.flatMap((listing) => dimension.values(listing)), ...dimension.known ?? []]);
 
     return [dimension.key, (criteria.picked[dimension.key] ?? []).filter((value) => carried.has(value))];
   }));

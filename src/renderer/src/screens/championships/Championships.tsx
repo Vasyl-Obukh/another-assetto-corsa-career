@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ChampionshipRail } from './ChampionshipRail.tsx';
-import { CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS } from './constants.ts';
-import { championshipFilters } from './filters.ts';
+import { CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, RAIL_KEY } from './constants.ts';
+import { affordableFilter, championshipFilters } from './filters.ts';
 import { LadderBoard } from './LadderBoard.tsx';
 import { LadderSkeleton } from './LadderSkeleton.tsx';
 import { NoneMatch } from './NoneMatch.tsx';
@@ -13,7 +13,7 @@ import { useSettings } from '@/app';
 import {
   ActiveFilters, BrowserLayout, ErrorCard, SearchField, SortMenu, TOOLBAR_SEARCH,
 } from '@/components';
-import { useChampionshipBrowser, useChampionships } from '@/hooks';
+import { useChampionshipBrowser, useChampionships, useRoundCosts } from '@/hooks';
 
 export const Championships = () => {
   const { t } = useTranslation();
@@ -27,7 +27,12 @@ export const Championships = () => {
     [championships.listings, settings],
   );
   const depth = useMemo(() => ladderDepth(listed), [listed]);
-  const filters = useMemo(() => championshipFilters(), []);
+  // What a round costs is a career's alone, so only a career can filter on it.
+  const costs = useRoundCosts(championships.listings);
+  const filters = useMemo(
+    () => (costs ? [...championshipFilters(), affordableFilter(costs)] : championshipFilters()),
+    [costs],
+  );
   const browser = useChampionshipBrowser(
     listed,
     filters,
@@ -35,6 +40,9 @@ export const Championships = () => {
     !championships.loading,
   );
   const { criteria } = browser;
+  // A championship passes when a round of any class is affordable, and the
+  // board then stands only the classes that are.
+  const affordableOnly = costs !== null && (criteria.picked[RAIL_KEY.affordable] ?? []).includes('yes');
 
   return (
     // The whole window rather than the shared column: the ladder is a board,
@@ -93,7 +101,15 @@ export const Championships = () => {
 
         {listed.length > 0 && browser.shown.length === 0 ? <NoneMatch onClear={browser.clear} /> : null}
 
-        {browser.shown.length > 0 ? <LadderBoard listings={browser.shown} depth={depth} /> : null}
+        {browser.shown.length > 0 ? (
+          <LadderBoard
+            listings={browser.shown}
+            depth={depth}
+            keepRung={affordableOnly
+              ? ({ listing, entry }) => costs.affordable(listing.series.id, entry.id)
+              : undefined}
+          />
+        ) : null}
       </div>
     </BrowserLayout>
   );

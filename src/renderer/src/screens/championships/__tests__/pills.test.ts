@@ -3,7 +3,7 @@ import {
 } from '@jest/globals';
 import type { TFunction } from 'i18next';
 
-import { championshipFilters } from '../filters.ts';
+import { affordableFilter, championshipFilters } from '../filters.ts';
 import { championshipPills } from '../pills.ts';
 import { provenancePills } from '@/components';
 import type { ChampionshipBrowser, ChampionshipCriteria } from '@/hooks';
@@ -56,6 +56,20 @@ describe('renderer/screens/championships/pills', () => {
 
       pills[0].onRemove();
       expect(set()).toEqual({ switched: [], origins: ['user'] });
+    });
+
+    it('ends with the affordable switch, which lifts as a whole', () => {
+      const { browser, set } = browserWith({ affordable: ['yes'], tiers: ['2'] });
+      const filters = [...championshipFilters(), affordableFilter({ affordable: () => true })];
+      const pills = championshipPills(browser, filters, t);
+
+      expect(pills.map((pill) => [pill.key, pill.value])).toEqual([
+        ['tiers-2', 'championships.tier'],
+        ['affordable', 'championships.filter.affordable'],
+      ]);
+
+      pills[1].onRemove();
+      expect(set()).toEqual({ affordable: [], tiers: ['2'] });
     });
 
     it('hands the content picks to the source tree\'s own pills, and writes their changes back prefixed', () => {

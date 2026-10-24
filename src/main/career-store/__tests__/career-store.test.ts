@@ -7,8 +7,8 @@ import {
 import path from 'node:path';
 
 import {
-  CAREER_ID, makeAvailability, makeCar, makeCareer, makeChampionship, makeEntry, makeEvent, makeListing, makePlan,
-  makeRound, makeSeason,
+  CAREER_ID, makeAvailability, makeCar, makeCareer, makeChampionship, makeClassEntry, makeEntry, makeEvent, makeListing,
+  makePlan, makeRound, makeSeason,
 } from './fixtures.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
@@ -1723,6 +1723,124 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
 
       expect((await store.skips('2027-04-01')).map((one) => one.round)).toEqual(['one']);
+    });
+  });
+
+  describe('roundCosts', () => {
+    // The cup at 1,000 a round, its class racing the cup's car at 800 a round's
+    // rent or a cheaper one at 200.
+    const PRICED = makeChampionship({
+      entryFee: 1_000,
+      entries: [makeClassEntry({ eligibility: { kind: 'cars', cars: ['test_car', 'cheap_car'] } })],
+    });
+    const PRICED_LISTING = makeListing(PRICED, {
+      availability: makeAvailability(PRICED, {
+        entries: [{
+          entry: 'main', eligible: ['test_car', 'cheap_car'], missing: [], enough: true,
+        }],
+      }),
+    });
+    const CARS = [TEST_CAR, makeCar('cheap_car')];
+    const CAR_PRICES = { ...PRICES, cheap_car: 10_000 };
+
+    it("prices a round of a class as its next round's fee and the cheapest rent the class allows", async () => {
+      const { store } = await build({
+        career: careerWith({}), listings: [PRICED_LISTING], cars: CARS, prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 1_200 }]);
+    });
+
+    it('charges nothing for the car when the garage holds one the class may race', async () => {
+      const { store } = await build({
+        career: garaged(), listings: [PRICED_LISTING], cars: CARS, prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 1_000 }]);
+    });
+
+    it("prices every class of an edition the career is in at its next launch's fee and rent", async () => {
+      const championship = makeChampionship({
+        entryFee: 1_000,
+        entries: [makeClassEntry(), makeClassEntry({ id: 'other' })],
+      });
+      const career = careerWith({
+        entries: [makeEntry({
+          championship,
+          car: { model: 'test_car', source: 'rented' },
+          events: [
+            makeEvent('one', '2027-03-07', { status: 'raced', entryFee: 1_000 }),
+            makeEvent('two', '2027-06-06', { entryFee: 3_000 }),
+          ],
+        })],
+      });
+      const { store } = await build({
+        career, listings: [makeListing(championship)], cars: [TEST_CAR], prices: PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([
+        { series: championship.id, entry: 'main', cost: 3_800 },
+        { series: championship.id, entry: 'other', cost: 3_800 },
+      ]);
+    });
+
+    it('prices an edition the career is in in the car it races, at only what is still owed', async () => {
+      const career = makeCareer({
+        ...careerWith({
+          entries: [makeEntry({
+            championship: PRICED,
+            car: { model: 'test_car', source: 'rented' },
+            events: [makeEvent('one', '2027-03-07', { entryFee: 1_000 })],
+          })],
+        }),
+        // The fee is paid already, so only the rent is still owed.
+        ledger: [{
+          key: 'fee:test-cup/one', kind: 'fee', date: '2027-01-01', amount: -1_000, season: 0,
+        }],
+      });
+      const { store } = await build({
+        career, listings: [PRICED_LISTING], cars: CARS, prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 800 }]);
+    });
+
+    it('lets the opening round stand for an edition with nothing left this season', async () => {
+      const championship = { ...PRICED, rounds: [makeRound('one', { entryFee: 500 }), makeRound('two', { entryFee: 2_000 })] };
+      const { store } = await build({
+        career: careerWith({}, '2027-12-30'),
+        listings: [{ ...PRICED_LISTING, series: championship }],
+        cars: CARS,
+        prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 700 }]);
+    });
+
+    it('leaves out a class nothing installed can enter, and a championship the install cannot race', async () => {
+      const unraceable = makeChampionship({ id: 'unraceable' });
+      const { store } = await build({
+        career: careerWith({}),
+        listings: [
+          makeListing(CUP, {
+            availability: makeAvailability(CUP, {
+              entries: [{
+                entry: 'main', eligible: [], missing: [], enough: false,
+              }],
+            }),
+          }),
+          makeListing(unraceable, { availability: makeAvailability(unraceable, { available: false }) }),
+        ],
+      });
+
+      expect(await store.roundCosts()).toEqual([]);
+    });
+
+    it('prices nothing in a standalone championship, which has no money', async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      expect(await store.roundCosts()).toEqual([]);
     });
   });
 

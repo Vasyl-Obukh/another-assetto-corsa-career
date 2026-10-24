@@ -1,7 +1,7 @@
 // The pills above a championship list, one per filter in force. Apart from
 // utils.ts, which is tested and so may not reach the component barrel.
 
-import type { TFunction } from 'i18next';
+import type { ParseKeys, TFunction } from 'i18next';
 
 import { RAIL_KEY } from './constants.ts';
 import type { ChampionshipFilter } from './types.ts';
@@ -27,9 +27,15 @@ export const championshipPills = (
     browser.setCriteria(withPicked(criteria, key, next));
   };
   const picked = (key: string): readonly string[] => criteria.picked[key] ?? [];
+  // A switch is one pick, lifted as a whole.
+  const switchPill = (key: string, on: string, label: ParseKeys): ActiveFilter[] => (
+    picked(key).includes(on) ? [{ key, value: t(label), onRemove: () => set(key, []) }] : []
+  );
 
   const lists = filters
-    .filter((filter) => filter.key !== RAIL_KEY.content && filter.key !== RAIL_KEY.switched)
+    .filter((filter) => (
+      filter.key !== RAIL_KEY.content && filter.key !== RAIL_KEY.switched && filter.key !== RAIL_KEY.affordable
+    ))
     .flatMap((filter) => picked(filter.key).map((value) => ({
       key: `${filter.key}-${value}`,
       name: t(filter.label),
@@ -38,16 +44,14 @@ export const championshipPills = (
     })));
 
   return [
-    ...(picked(RAIL_KEY.switched).includes('on') ? [{
-      key: 'switched',
-      value: t('championships.filter.switchedOnOnly'),
-      onRemove: () => set(RAIL_KEY.switched, []),
-    }] : []),
+    ...switchPill(RAIL_KEY.switched, 'on', 'championships.filter.switchedOnOnly'),
     ...lists,
     ...provenancePills(
       contentPicks(picked(RAIL_KEY.content)),
       t,
       (next) => set(RAIL_KEY.content, contentValues(next)),
     ),
+    // Last, as its switch is last in the column.
+    ...switchPill(RAIL_KEY.affordable, 'yes', 'championships.filter.affordable'),
   ];
 };

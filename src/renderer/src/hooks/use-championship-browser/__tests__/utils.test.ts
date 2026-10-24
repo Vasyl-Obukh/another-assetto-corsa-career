@@ -70,6 +70,12 @@ describe('renderer/hooks/use-championship-browser/utils', () => {
       expect(withKnownValues(picking(['road', 'rally']), LIST, [DISCIPLINE]).picked)
         .toEqual({ discipline: ['road'] });
     });
+
+    // A switch nothing passes has to empty the list, not quietly switch off.
+    it('keeps a pick the dimension always knows, though nothing carries it', () => {
+      expect(withKnownValues(picking(['rally']), LIST, [{ ...DISCIPLINE, known: ['rally'] }]).picked)
+        .toEqual({ discipline: ['rally'] });
+    });
   });
 
   describe('filterChampionships', () => {

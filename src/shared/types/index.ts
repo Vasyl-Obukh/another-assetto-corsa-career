@@ -164,6 +164,7 @@ export type {
   NewChampionshipRequest,
   OwnedCar,
   PositionPoints,
+  RoundCost,
   RoundResult,
   SeasonEntry,
   SeasonEvent,

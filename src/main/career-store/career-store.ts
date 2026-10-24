@@ -123,6 +123,7 @@ import type {
   EventPlan,
   RaceDefinition,
   RaceSetup,
+  RoundCost,
   SaveMoment,
   SaveSummary,
   SeasonEntry,
@@ -1828,6 +1829,63 @@ export const createCareerStore = async (
       const { season } = await seasonNow();
 
       return advanceSkips(season, date);
+    },
+
+    async roundCosts() {
+      const { career, season } = await seasonNow();
+      if (career.kind !== 'career') return [];
+
+      const owned = new Set(career.garage.map((car) => car.model));
+      // The lookups, not their answers, are kept: every class is priced at
+      // once, so an answer would arrive too late to spare any of them.
+      const rents = new Map<string, Promise<number>>();
+      /**
+       * What a round of a car rents for, looked up once per call.
+       * @param model The car's folder ID
+       * @returns The rent
+       */
+      const rentOfCar = (model: string): Promise<number> => {
+        const rent = rents.get(model) ?? content.price(model).then((price) => rentOf(price ?? 0));
+        rents.set(model, rent);
+
+        return rent;
+      };
+
+      const { series: listings } = await series.list();
+      const perListing = await Promise.all(listings
+        .filter((listing) => listing.availability.available)
+        .map(async (listing): Promise<RoundCost[]> => {
+          const championship = listing.series;
+          const edition = enteredEdition(season, championship.id) ?? editionAt(championship, season, career.date);
+          const held = enteredEntry(season, championship.id, edition);
+          const events = held?.events ?? materialiseEvents(championship, season, edition, career.date);
+          // With nothing left of it this season, its opening round stands for a
+          // round of it.
+          const next = events.find((event) => event.status === 'scheduled') ?? events[0];
+          if (!next) return [];
+
+          // An edition the career is in is raced in the class it entered, so
+          // every class of it answers with what that class's next launch owes.
+          if (held && next.status === 'scheduled') {
+            const owed = await owedFor(career, { entry: held, event: next });
+
+            return championship.entries.map((entry) => (
+              { series: championship.id, entry: entry.id, cost: owed.fee + owed.rent }
+            ));
+          }
+
+          const priced = await Promise.all(championship.entries.map(async (entry): Promise<RoundCost | null> => {
+            const cars = eligibleCarsIn(listing.availability, next.round, entry.id);
+            if (cars.length === 0) return null;
+            const rent = cars.some((car) => owned.has(car)) ? 0 : Math.min(...await Promise.all(cars.map(rentOfCar)));
+
+            return { series: championship.id, entry: entry.id, cost: (next.entryFee ?? 0) + rent };
+          }));
+
+          return priced.filter((cost) => cost !== null);
+        }));
+
+      return perListing.flat();
     },
 
     async skipping(request) {
