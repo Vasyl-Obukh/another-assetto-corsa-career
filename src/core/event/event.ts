@@ -85,6 +85,7 @@ export const planEvent = (race: RaceDefinition, content: Content): EventPlan => 
     grid,
     launches,
     ...(race.classStrength ? { classStrength: race.classStrength } : {}),
+    ...(race.aiBase === undefined ? {} : { aiBase: race.aiBase }),
   };
 };
 
@@ -218,6 +219,20 @@ export const carClassesOf = (plan: EventPlan): Pick<LaunchRecord, 'carClasses'> 
   const classes = plan.grid.flatMap((car) => (car.entry ? [car.entry] : []));
 
   return classes.length === plan.grid.length && new Set(classes).size > 1 ? { carClasses: classes } : {};
+};
+
+/**
+ * How far over the player's own setting each car raced, as a launch records
+ * it: the plan in flight's figures, which are the ones the launch went out with.
+ * @param plan The event plan
+ * @returns The record's field, or nothing when the race names no setting
+ */
+const strengthOverOf = (plan: EventPlan): Pick<LaunchRecord, 'strengthOver'> => {
+  const { aiBase } = plan;
+
+  return aiBase === undefined
+    ? {}
+    : { strengthOver: plan.grid.map((car) => (car.aiLevel === undefined ? 0 : car.aiLevel - aiBase)) };
 };
 
 /**
@@ -427,6 +442,7 @@ export const advanceEvent = (
       // The plan in flight is the one this launch went out with, whatever the
       // difficulty says by the time its result lands.
       ...(plan.classStrength ? { classStrength: plan.classStrength } : {}),
+      ...strengthOverOf(plan),
       ...carClassesOf(plan),
       // Kept only for a race that ran short, so a full one reads as it always has.
       ...(record.scale !== undefined && record.scale > 1 ? { scale: record.scale } : {}),

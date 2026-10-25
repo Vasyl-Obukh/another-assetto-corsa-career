@@ -2,8 +2,9 @@ import type { ParseKeys, TFunction } from 'i18next';
 import type { ComponentType, ReactNode } from 'react';
 
 import type {
-  CareerSeason, ClassEntry, MissingCar, MissingTrack, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
+  Career, CareerSeason, ClassEntry, MissingCar, MissingTrack, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
 } from '../../../../shared/types';
+import type { DisciplineLevels } from '../../../../shared/utils/career-eligibility';
 import type { StandingsView } from '@/components';
 import type { ChampionshipDimension } from '@/hooks';
 
@@ -22,6 +23,25 @@ export interface ChampionshipFilter extends ChampionshipDimension {
    * @returns What the filter list shows
    */
   format(value: string, t: TFunction): string;
+}
+
+/**
+ * Where a career stands on the ladder, for the board to show it.
+ */
+export interface CareerLadder {
+  /**
+   * The career.
+   */
+  career: Career;
+  /**
+   * The rung each discipline may be entered at.
+   */
+  open: DisciplineLevels;
+  /**
+   * Whether only what is open is shown, so a locked rung says what opens it
+   * in place of its championships.
+   */
+  openOnly: boolean;
 }
 
 /**

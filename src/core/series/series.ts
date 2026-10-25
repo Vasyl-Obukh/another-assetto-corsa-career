@@ -573,5 +573,6 @@ export const roundRace = (
     classStrength: Object.fromEntries(series.entries
       .filter((entry) => aiSeats(entry, playerEntry.id).length > 0)
       .map((entry) => [entry.id, aiFigure(base.strength, classOffset(series, entry, round).strength)])),
+    aiBase: base.strength,
   };
 };

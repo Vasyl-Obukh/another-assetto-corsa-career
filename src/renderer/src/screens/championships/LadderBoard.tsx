@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { LadderCell } from './LadderCell.tsx';
 import { LadderGrid } from './LadderGrid.tsx';
-import type { Rung } from './types.ts';
+import { LadderRowHead } from './LadderRowHead.tsx';
+import type { CareerLadder, Rung } from './types.ts';
 import { disciplineKey, rungsAt } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
 import type { SeriesListing } from '../../../../shared/types';
@@ -25,12 +26,19 @@ interface LadderBoardProps {
    * championship - every rung of a championship shown when absent.
    */
   keepRung?: (rung: Rung) => boolean;
+  /**
+   * Where the career stands on the ladder, when there is a career: what each
+   * discipline's row heads with, and which rungs are not open to it yet.
+   */
+  ladder?: CareerLadder;
 }
 
 // The career ladder itself: a column per tier, climbing left to right from the
 // lowest rung to the top one, a row per discipline, and each championship on
 // every rung one of its classes enters at.
-export const LadderBoard = ({ listings, depth, keepRung = () => true }: LadderBoardProps) => {
+export const LadderBoard = ({
+  listings, depth, keepRung = () => true, ladder,
+}: LadderBoardProps) => {
   const { t } = useTranslation();
   const tiers = Array.from({ length: depth }, (_, index) => depth - index);
 
@@ -54,9 +62,17 @@ export const LadderBoard = ({ listings, depth, keepRung = () => true }: LadderBo
                 <span className="text-xs font-normal opacity-75">
                   {t('championships.ladder.championships', { count })}
                 </span>
+                {ladder ? <LadderRowHead career={ladder.career} discipline={discipline} /> : null}
               </div>
               {tiers.map((tier) => (
-                <LadderCell key={tier} rungs={rungsAt(listings, discipline, tier).filter(keepRung)} />
+                <LadderCell
+                  key={tier}
+                  rungs={rungsAt(listings, discipline, tier).filter(keepRung)}
+                  locked={ladder ? tier < ladder.open[discipline] : false}
+                  folded={ladder?.openOnly ?? false}
+                  discipline={discipline}
+                  tier={tier}
+                />
               ))}
             </Fragment>
           );

@@ -38,7 +38,7 @@ interface ChampionshipRailProps {
  * theirs out: a section per filter, with what each needs as the browsers' own
  * source tree. A filter the list was not handed has no section - the
  * Championships page has neither the switch nor availability, and only a
- * career's has what it can afford.
+ * career's has what is open to it and what it can afford.
  */
 export const ChampionshipRail = ({ browser, filters, loading = false }: ChampionshipRailProps) => {
   const { t } = useTranslation();
@@ -122,9 +122,10 @@ export const ChampionshipRail = ({ browser, filters, loading = false }: Champion
       {listSection(RAIL_KEY.origins)}
       {listSection(RAIL_KEY.availability)}
 
-      {filterOf(RAIL_KEY.affordable) ? (
+      {filterOf(RAIL_KEY.open) || filterOf(RAIL_KEY.affordable) ? (
         <RailSection title={t('championships.filter.yours')}>
-          {switchFor(RAIL_KEY.affordable, 'yes', 'championships.filter.affordable')}
+          {filterOf(RAIL_KEY.open) ? switchFor(RAIL_KEY.open, 'yes', 'championships.filter.open') : null}
+          {filterOf(RAIL_KEY.affordable) ? switchFor(RAIL_KEY.affordable, 'yes', 'championships.filter.affordable') : null}
         </RailSection>
       ) : null}
     </FilterRail>

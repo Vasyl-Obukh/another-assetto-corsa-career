@@ -8,6 +8,8 @@ import { availabilityState, contentValues, disciplineKey } from './utils.ts';
 import type {
   Discipline, SeriesOrigin, Settings,
 } from '../../../../shared/types';
+import { isEligible } from '../../../../shared/utils/career-eligibility';
+import type { DisciplineLevels } from '../../../../shared/utils/career-eligibility';
 import { isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { RoundCosts } from '@/hooks';
 
@@ -98,6 +100,21 @@ export const championshipFilters = (
     },
   ];
 };
+
+/**
+ * Whether a championship is open to the career: in any of its classes, since
+ * a championship stands on the ladder once per class and each rung answers
+ * for itself.
+ * @param levels The rung each discipline may be entered at
+ * @returns The filter, which the filter column draws as a switch
+ */
+export const openFilter = (levels: DisciplineLevels): ChampionshipFilter => ({
+  key: RAIL_KEY.open,
+  label: 'championships.filter.open',
+  values: (listing) => [listing.series.entries.some((entry) => isEligible(entry.ladder, levels)) ? 'yes' : 'no'],
+  known: ['yes'],
+  format: (value, t) => t('championships.filter.open'),
+});
 
 /**
  * Whether the career can pay for a round of a championship: of any of its

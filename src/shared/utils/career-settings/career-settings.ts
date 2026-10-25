@@ -29,7 +29,8 @@ export const readCareerSettings = (raw: unknown): CareerSettings => {
       ? raw.allowSameDayEvents
       : DEFAULT_CAREER_SETTINGS.allowSameDayEvents,
     historicFrequency: oneOf(raw.historicFrequency, HISTORIC_FREQUENCIES, DEFAULT_CAREER_SETTINGS.historicFrequency),
-    progression: oneOf<number>(raw.progression, PROGRESSION_SPEEDS, DEFAULT_CAREER_SETTINGS.progression),
+    prizeSpeed: oneOf<number>(raw.prizeSpeed, PROGRESSION_SPEEDS, DEFAULT_CAREER_SETTINGS.prizeSpeed),
+    ratingSpeed: oneOf<number>(raw.ratingSpeed, PROGRESSION_SPEEDS, DEFAULT_CAREER_SETTINGS.ratingSpeed),
   };
 };
 

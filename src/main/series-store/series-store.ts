@@ -164,8 +164,7 @@ export const createSeriesStore = async (
    */
   const lowerRound: SeriesStore['lowerRound'] = async (series, request, step = 0, opponents = settings.get().opponents) => {
     const installed = await content.content();
-
-    return roundRace(
+    const lowered = roundRace(
       { series, ...request },
       installed,
       classes.catalogue(),
@@ -174,6 +173,10 @@ export const createSeriesStore = async (
       // sum: every offset only adds before the figure is rounded and clamped.
       { ...opponents, strength: opponents.strength + step },
     );
+
+    // The setting the step was taken over, so a launch records the step as
+    // raced - which is what a career's rating reads.
+    return { ...lowered, aiBase: opponents.strength };
   };
 
   /**

@@ -1,4 +1,4 @@
-import type { ParseKeys } from 'i18next';
+import type { ParseKeys, TFunction } from 'i18next';
 
 import {
   CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
@@ -27,6 +27,7 @@ import type {
   Settings,
   Team,
 } from '../../../../shared/types';
+import { ratingFloor } from '../../../../shared/utils/career-eligibility';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
 import { scaledPrize } from '../../../../shared/utils/prizes';
@@ -498,4 +499,27 @@ export const shownRun = (
   return {
     season, closed, edition, entered,
   };
+};
+
+/**
+ * What opens a rung of a discipline: its floor in that discipline, or - for
+ * any rung but the top - the rung above it anywhere, which the rung below the
+ * career's best brings down to this one.
+ * @param discipline The discipline
+ * @param tier The rung, 1 being the top
+ * @param t The translator
+ * @param formatNumber Formats the floor
+ * @returns The line
+ */
+export const opensWith = (
+  discipline: Discipline,
+  tier: number,
+  t: TFunction,
+  formatNumber: (value: number) => string,
+): string => {
+  const own = t('championships.ladder.opensAt', {
+    tier, rating: formatNumber(ratingFloor(tier)), discipline: t(disciplineKey(discipline)),
+  });
+
+  return tier > 1 ? t('championships.ladder.orAnywhere', { own, tier: tier - 1 }) : own;
 };

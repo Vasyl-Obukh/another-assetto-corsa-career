@@ -159,6 +159,7 @@ export const withLevelsOf = (held: RaceDefinition, fresh: RaceDefinition): RaceD
     ...held,
     ...(held.grid && opponents ? { grid: { ...held.grid, opponents } } : {}),
     ...(fresh.classStrength ? { classStrength: fresh.classStrength } : {}),
+    ...(fresh.aiBase === undefined ? {} : { aiBase: fresh.aiBase }),
   };
 };
 

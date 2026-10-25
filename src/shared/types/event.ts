@@ -60,6 +60,11 @@ export interface EventPlan {
    * launch can record it.
    */
   classStrength?: Record<string, number>;
+  /**
+   * The player's own AI strength the field was lowered over, carried from the
+   * definition so a launch can record each driver against it.
+   */
+  aiBase?: number;
 }
 
 /**
@@ -125,6 +130,17 @@ export interface LaunchRecord {
    * classes, and on one simulated rather than driven.
    */
   classStrength?: Record<string, number>;
+  /**
+   * How far over the player's own Opponents setting each car of the event's
+   * grid raced this launch, by car index - 0 for the player's own car, and
+   * negative for a driver raced under it.
+   *
+   * What a career's rating reads a field's strength off: what was actually
+   * raced, held inside 0-100, since the setting and the player's steps may move
+   * between sessions. Absent where the race was not lowered over a setting,
+   * and on a launch simulated rather than driven.
+   */
+  strengthOver?: number[];
   /**
    * The class entry each car of the event's grid raced in, by car index - what
    * places a car in its class wherever only this record and an archive are to

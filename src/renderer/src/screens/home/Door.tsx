@@ -1,5 +1,5 @@
 import {
-  ChartLineIcon, ChevronRightIcon, TrophyIcon, WalletIcon,
+  ChartLineIcon, ChevronRightIcon, MedalIcon, TrophyIcon, WalletIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,7 @@ interface DoorProps {
   /**
    * Which icon it carries.
    */
-  icon: 'results' | 'history' | 'finances';
+  icon: 'results' | 'history' | 'finances' | 'rating';
   /**
    * Its name.
    */
@@ -39,9 +39,9 @@ interface DoorProps {
 }
 
 /**
- * One of Home's ways into what the career has done - Results, History and
- * Finances, none of which is in the navigation - drawn large and with a preview of
- * what is behind it, so it reads as a place rather than a link.
+ * One of Home's ways into what the career has done - Results, History, Finances
+ * and Rating, none of which is in the navigation - drawn large and with a
+ * preview of what is behind it, so it reads as a place rather than a link.
  */
 export const Door = ({
   to, accent, icon, title, hint, kicker, children,
@@ -58,6 +58,7 @@ export const Door = ({
           {icon === 'results' ? <ChartLineIcon className="size-5" /> : null}
           {icon === 'history' ? <TrophyIcon className="size-5" /> : null}
           {icon === 'finances' ? <WalletIcon className="size-5" /> : null}
+          {icon === 'rating' ? <MedalIcon className="size-5" /> : null}
         </span>
         <div className="flex min-w-0 flex-col">
           <span className="text-base font-semibold">{title}</span>

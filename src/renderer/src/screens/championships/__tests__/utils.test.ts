@@ -1,6 +1,7 @@
 import {
   beforeEach, describe, expect, it, jest,
 } from '@jest/globals';
+import type { TFunction } from 'i18next';
 
 import { appErrorInfo } from '../../../../../shared/errors';
 import {
@@ -21,6 +22,7 @@ import {
   isListed,
   ladderDepth,
   missingContent,
+  opensWith,
   pursesOf,
   raceLabels,
   readStandingsLayout,
@@ -35,6 +37,16 @@ import { TIER_ACCENT } from '@/lib/accents';
 import { readPreference } from '@/lib/stored-preference';
 
 jest.mock('@/lib/stored-preference', () => ({ readPreference: jest.fn() }));
+
+/**
+ * A translator that echoes the key it was handed and whatever it interpolates.
+ * @param key The catalogue key
+ * @param options What it interpolates
+ * @returns The key, with the options beside it where there are any
+ */
+const t = ((key: string, options?: object) => (
+  options ? `${key} ${JSON.stringify(options)}` : key
+)) as unknown as TFunction;
 
 /**
  * An availability with nothing wrong with it, for a test to spoil one field of.
@@ -591,6 +603,22 @@ describe('renderer/screens/championships/utils', () => {
 
     it('answers with nothing for a class the championship does not hold', () => {
       expect(carsFor(listing(), 'other', 'magione')).toEqual([]);
+    });
+  });
+
+  describe('opensWith', () => {
+    it('opens the top rung on its own floor alone', () => {
+      expect(opensWith(Discipline.SPORTSCAR, 1, t, String)).toBe(t('championships.ladder.opensAt', {
+        tier: 1, rating: '8000', discipline: t('championships.discipline.sportscar'),
+      }));
+    });
+
+    it('opens any other rung on its own floor or the rung above it anywhere', () => {
+      const own = t('championships.ladder.opensAt', {
+        tier: 3, rating: '3500', discipline: t('championships.discipline.road'),
+      });
+
+      expect(opensWith(Discipline.ROAD, 3, t, String)).toBe(t('championships.ladder.orAnywhere', { own, tier: 2 }));
     });
   });
 });

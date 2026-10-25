@@ -35,5 +35,5 @@ export const scaledPrize = (amount: number, speed: number): number => Math.round
  * @returns The speed
  */
 export const prizeSpeed = (career: Pick<Career, 'kind' | 'settings'> | null): number => (
-  career?.kind === 'career' ? career.settings.progression : 1
+  career?.kind === 'career' ? career.settings.prizeSpeed : 1
 );

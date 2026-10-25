@@ -557,8 +557,9 @@ the discipline ladder**, so the two systems need to agree on how far that goes.
 
 ### Progression speed
 
-A multiplier on money and rating earned, independent of AI difficulty. 0.5x for a
-hard, slow career; 2x for a fast one. Changeable mid-career, with the career
+Two multipliers, independent of AI difficulty and of each other: one on prize
+money, one on every change of rating, up and down alike. 0.5x for a hard, slow
+career; 2x for a fast one. Each is changeable mid-career, with the career
 recording that it happened so a finished run is honest about it.
 
 ### Career state, and where it lives
@@ -2923,22 +2924,52 @@ proof that no layer below learned what a series is.
 
 ## Phase 8 - Rating and the ladder
 
-- [ ] Global rating plus per-discipline ratings
-- [ ] Elo-style update weighted by series tier and per-entry `AI_LEVEL` spread
-- [ ] **Who a historic event invites.** Today every one invites the player;
-      level, rating and experience should decide it once there is a rating,
-      and how far a historic event moves the rating
-- [ ] **Weigh a shortened race.** `LaunchRecord.scale` says how far a race was
-      shortened, and it pays full points; whether 1/48 of a 24-hour race should
-      move a rating as far as the whole of one is this phase's to decide
-- [ ] Rating from both who you beat and who beat you
-- [ ] Progression speed multiplier applied to rating gains
-- [ ] Discipline levels derived from rating
-- [ ] **Cross-discipline entry at best level minus one**
-- [ ] Rating history with a readable explanation of every change
-- [ ] **Start a career on the rating its starting level implies.** New career
+Designed in `mockups/rating.html` and agreed with the user before any code.
+
+- [x] **Global rating plus per-discipline ratings** - `src/core/career-rating/`.
+      Every race and qualifying driven moves its discipline's rating and a
+      global one of its own, each against the same field. Only the player's
+      own classmates count, and only sessions the player drove: a stand-in's,
+      a simulated round's and a knockout segment invented after elimination
+      never move it
+- [x] **Elo against a rung-rated field.** A rung's field is rated at the middle
+      of its band, and each classmate 75 a point over or under it for the
+      strength they raced at **over the player's own Opponents setting** - the
+      setting itself never counts, so a comfortable difficulty is not a
+      handicap. Each launch records that offset per car as `strengthOver`,
+      what was actually raced. K is 300 a race and a qualifying counts a
+      quarter, a knockout once, on the order it ends in. **No session takes
+      more than a third of what it could give** - 100 a race at ×1 - so a crash
+      costs an afternoon rather than a season. A rating never falls below 1 and
+      has no ceiling
+- [x] **Who a historic event invites.** Anyone, as before - 36 of the 46 events
+      are Tier 1, so gating on level would leave a new career none - but its
+      race is rated as one on the player's own rung in its discipline, in full,
+      so a guest seat is a treat rather than a shortcut, and lifts nothing
+- [x] **Weigh a shortened race.** It counts in full: race length moves neither
+      the money nor the rating. The log still says a race ran short
+- [x] Rating from both who you beat and who beat you
+- [x] **Progression speed split in two.** `prizeSpeed` and `ratingSpeed` are
+      separate career settings, each ×0.5 to ×4; the rating speed scales every
+      change both ways, and each change of it is a line in the rating log
+- [x] **Discipline levels derived from rating.** The ladder's floors are
+      1,000, 2,000, 3,500, 5,500 and 8,000, each rung 500 wider than the one
+      below, so leaving Rookie takes months and Platinum years. A rung opens the
+      moment its floor is passed; it is lost only as a season closes below the
+      middle of the rung beneath, and an entry already made stands
+- [x] **Cross-discipline entry at best level minus one** - `openLevels`,
+      derived and never stored. Entering a championship through it lifts that
+      discipline's rating to the rung's floor, once, as a line in the log
+- [x] **Rating history with a readable explanation of every change** - the
+      Rating page at `/home/rating`, Home's fourth door, the header beside the
+      balance, a round's own Rating panel with the working behind each line,
+      the ladder's row heads and its *Open to you* switch, locked cards greyed
+      with what opens them in a tooltip, and a toast when a race opens a rung
+- [x] **Start a career on the rating its starting level implies.** New career
       picks one level for every discipline, and each discipline's rating opens
       at the minimum of that level
+- [x] **Steel is Rookie**, and a deep green rather than a slate that read as a
+      second silver
 
 ## Phase 9 - Contracts, teams and the market
 

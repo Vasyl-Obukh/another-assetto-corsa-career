@@ -282,7 +282,11 @@
       "EUR": "€ Euro",
       "GBP": "£ Pound sterling"
     },
-    "progressionHint": "How fast this career earns. Every prize from the next one on is multiplied by it, what is already paid stays, and each change is a line in Finances."
+    "progressionHint": "How fast this career earns and how fast it climbs - two speeds, set apart.",
+    "prizeSpeed": "Prize money",
+    "prizeSpeedHint": "Scales every prize from the next one on; what is already paid stays. Entry fees stay what each championship says. Each change is a line in Finances.",
+    "ratingSpeed": "Rating speed",
+    "ratingSpeedHint": "Scales every change of rating, up and down alike - a faster career, not an easier one. Each change is a line in the rating log."
   },
   "carClasses": {
     "subtitle": "A spec is a grid of cars that can race each other, and a class is the family it belongs to. The app ships its own; add classes and specs of yours beside them. Open a spec to see its cars and put any installed car in it.",
@@ -772,6 +776,45 @@
       "shortHint": "It costs {{fee}} and you have {{money}}, {{missing}} short. Earn the rest first - a historic event or another championship pays - or skip the round, which costs nothing.",
       "rentNote": "The rental of {{rent}} is paid as {{session}} launches. A round you skip or miss costs nothing.",
       "bothNote": "The entry fee of {{fee}} and the rental of {{rent}} are paid as {{session}} launches. A round you skip or miss costs nothing."
+    },
+    "ladder": {
+      "locked": "Opens at Tier {{tier}} in {{discipline}}",
+      "you": "You are Tier {{open}} in {{discipline}}. Either opens it:",
+      "youThrough": "You are Tier {{open}} in {{discipline}}, through your {{through}} Tier {{best}}. Either opens it:",
+      "of": "{{rating}} of {{floor}}",
+      "toGo": "{{rating}} to go",
+      "anywhere": "Tier {{tier}} anywhere: {{rating}} of {{floor}}",
+      "through": "Open through {{discipline}}",
+      "throughDetail": "{{discipline}} is Tier {{own}} on its own rating. Your {{through}} Tier {{best}} opens it one rung below.",
+      "lift": "Entering lifts your {{discipline}} rating from {{from}} to {{to}}, {{metal}}'s floor."
+    },
+    "rating": {
+      "title": "Rating",
+      "racePlace": "P{{place}} of {{of}}",
+      "qualifyingPlace": "Q{{place}} of {{of}}",
+      "working": "How it moved",
+      "from": "Your {{discipline}} rating",
+      "classmates": "Classmates",
+      "offsets_one": "{{count}}, {{low}} to {{high}}",
+      "offsets_other": "{{count}}, {{low}} to {{high}}",
+      "rated": "Rated, on average",
+      "rung": "{{metal}}'s field is {{field}} at your own Opponents setting; each point of strength a driver races over it adds 75.",
+      "rungHistoric": "A historic event is rated on your own rung: {{metal}}'s field is {{field}} at your own Opponents setting, and each point over it adds 75.",
+      "expectedLabel": "Expected",
+      "finished": "Finished",
+      "beat": "{{place}} · beat {{share}}%",
+      "weight": "Session",
+      "full": "Race · counts in full",
+      "quarter": "Qualifying · counts ¼",
+      "sum": "({{beaten}} − {{expected}}) × {{k}} × {{speed}}",
+      "held": "Held from {{from}}: no race takes more than a third of what it could give.",
+      "global": "Global moves on the same field, off its own {{from}}: {{change}}.",
+      "fromTo": "{{from}} → {{to}}",
+      "promoted": "Promoted to Tier {{tier}}",
+      "promotedDetail": "{{metal}} opens.",
+      "session": "{{name}} · ",
+      "expectedRace": "expected P{{expected}} · field {{field}}",
+      "expectedQualifying": "expected Q{{expected}} · field {{field}}"
     }
   },
   "championships": {
@@ -907,7 +950,8 @@
       "shipped": "The app’s own",
       "switchedOnOnly": "Switched on only",
       "yours": "Yours",
-      "affordable": "Can afford next round"
+      "affordable": "Can afford next round",
+      "open": "Open to you"
     },
     "sort": {
       "ladder": "Ladder",
@@ -919,14 +963,19 @@
       "more": "{{count}} more",
       "fewer": "Show fewer",
       "enters": "Enters you in {{name}}",
-      "alsoOnGrid": "Also on the grid, at tier {{tier}}"
+      "alsoOnGrid": "Also on the grid, at tier {{tier}}",
+      "opensAt": "Tier {{tier}}: {{rating}} in {{discipline}}",
+      "orAnywhere": "{{own}}, or Tier {{tier}} anywhere",
+      "locked": "Not open to you yet",
+      "through": "through {{discipline}}",
+      "toNext": "{{rating}} to Tier {{tier}}"
     },
     "metal": {
       "platinum": "Platinum",
       "gold": "Gold",
       "silver": "Silver",
       "bronze": "Bronze",
-      "steel": "Steel"
+      "rookie": "Rookie"
     },
     "sessionShort": {
       "practice": "P",
@@ -1983,6 +2032,11 @@
         "hint": "Your money, and every change of it",
         "latest": "Latest",
         "season": "this season"
+      },
+      "rating": {
+        "title": "Rating",
+        "hint": "Where you stand on the ladder",
+        "levels": "Your rungs"
       }
     },
     "historic": {
@@ -1995,6 +2049,14 @@
       "invited": "You're invited to drive it at this event",
       "declined": "Declined",
       "missed": "Missed"
+    },
+    "rating": {
+      "promoted": "Promoted to Tier {{tier}} in {{discipline}}",
+      "promotedDetail": "Your {{discipline}} rating reached {{rating}}, past {{metal}}'s {{floor}} - its championships are open to you.",
+      "dropped": "{{discipline}} is back to Tier {{tier}}",
+      "droppedDetail": "The season closed with it at {{rating}}, under the middle of {{metal}}. Your entries stand; the rungs above reopen at {{floor}}.",
+      "ladder": "Show on the ladder",
+      "open": "Rating"
     }
   },
   "edition": {
@@ -2229,7 +2291,8 @@
     "standalone": "Championship",
     "finances": "Finances",
     "store": "Store",
-    "garage": "Garage"
+    "garage": "Garage",
+    "rating": "Rating"
   },
   "standings": {
     "title": "Standings",
@@ -2374,6 +2437,14 @@
     },
     "strength": {
       "event": "Event"
+    },
+    "rating": {
+      "guest": "A guest invitation",
+      "invited": "Invited",
+      "guestDetail_one": "This event races at Tier {{tier}}, a rung above your {{discipline}} Tier {{own}}. The organisers invite guests from every rung.",
+      "guestDetail_other": "This event races at Tier {{tier}}, {{count}} rungs above your {{discipline}} Tier {{own}}. The organisers invite guests from every rung.",
+      "invitedDetail": "This event races at Tier {{tier}} in {{discipline}}; you are Tier {{own}} there.",
+      "counts": "It counts as a Tier {{own}} race in {{discipline}} - your own rung - with its field rated {{field}} rather than {{event}}, and a guest seat lifts nothing."
     }
   },
   "historicLibrary": {
@@ -2633,9 +2704,11 @@
       "championships_one": "{{count}} championship",
       "championships_other": "{{count}} championships",
       "note": "Home opens on an empty season. Championships are entered from their own page.",
-      "progression": "Progression"
+      "prizeSpeed": "Prize money",
+      "ratingSpeed": "Rating speed"
     },
-    "progressionHint": "Multiplies every prize the career earns. Entry fees stay what each championship says. It can be changed later in the career's own settings."
+    "prizeSpeedHint": "Multiplies every prize the career earns. Entry fees stay what each championship says.",
+    "ratingSpeedHint": "Multiplies every change of its rating, up and down alike. Both can be changed later in the career's own settings."
   },
   "saves": {
     "kind": {
@@ -2969,5 +3042,98 @@
       "set": "Set its price"
     },
     "kinPower": "{{power}} bhp/t"
+  },
+  "rating": {
+    "open": "Your rating",
+    "title": "Rating",
+    "subtitle": "Every race and qualifying you drive, against the field you drove it against",
+    "global": "Global",
+    "globalHint": "Every session moves it, whatever the discipline - your form across everything you race.",
+    "thisSeason": "this season",
+    "neverRaced": "Never raced",
+    "season": "Season",
+    "everySeason": "Every season",
+    "show": "Show",
+    "filter": {
+      "all": "Every kind",
+      "sessions": "Sessions",
+      "levels": "Levels"
+    },
+    "log": "Every change",
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines",
+    "empty": "Nothing moved the rating in this stretch.",
+    "bySeries": "By championship",
+    "nothing": "Nothing raced yet.",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "bar": "Rating {{rating}} on its rung",
+    "kind": {
+      "opening": "Opened",
+      "race": "Race",
+      "qualifying": "Qualifying",
+      "promotion": "Promoted",
+      "drop": "Dropped",
+      "lift": "Lifted",
+      "speed": "Speed",
+      "historic": "Historic"
+    },
+    "table": {
+      "date": "Date",
+      "kind": "Kind",
+      "what": "What",
+      "discipline": "Discipline",
+      "global": "Global",
+      "tier": "Tier {{tier}} · {{metal}}"
+    },
+    "tile": {
+      "through": "Tier {{tier}} open through {{discipline}}.",
+      "lift": "Its own level is Tier {{own}}; entering a Tier {{tier}} championship lifts it to {{floor}}.",
+      "toNext": "{{rating}} to {{metal}},",
+      "opens": "which opens Tier {{tier}}.",
+      "drops": "Drops to {{metal}} only if a season closes under {{under}}.",
+      "top": "The top of the ladder."
+    },
+    "line": {
+      "opening": "Career opened at Tier {{tier}}",
+      "openingDetail": "Every rating opens at {{metal}}'s floor, {{floor}}",
+      "promotion": "Promoted to Tier {{tier}} in {{discipline}}",
+      "promotionDetail": "{{rating}} passed {{metal}}'s floor of {{floor}}",
+      "drop": "Dropped to Tier {{tier}} in {{discipline}}",
+      "dropDetail": "The season closed at {{rating}}, under {{under}} - the middle of {{metal}}",
+      "lift": "Lifted to Tier {{tier}} in {{discipline}}",
+      "liftDetail": "Entering {{series}} lifted it to {{metal}}'s floor, {{floor}}",
+      "speed": "Rating speed {{from}} → {{to}}",
+      "speedDetail": "Every session from here on moves the rating at the new speed, up and down alike",
+      "session": "{{round}} · {{session}}",
+      "racePlace": "P{{place}} of {{of}}, expected P{{expected}}",
+      "qualifyingPlace": "Q{{place}} of {{of}}, expected Q{{expected}}",
+      "historicRung": "Historic, rated on your Tier {{tier}}",
+      "quarter": "counts ¼",
+      "shortened": "raced at 1/{{scale}}, counts in full",
+      "field": "field {{field}}",
+      "held": "held from {{from}}"
+    },
+    "chart": {
+      "title": "Over the career",
+      "label": "Every rating over the career, a point per session",
+      "rung": "T{{tier}} {{metal}}",
+      "unraced": "{{disciplines}} not raced",
+      "opened": "Career opened · {{year}}"
+    },
+    "how": {
+      "title": "How it moves",
+      "moves": "Each race you drive moves its discipline and your global rating, on who you beat and who beat you in your class, against what the field's strength expected. Qualifying counts a quarter.",
+      "cap": "No race takes more than {{most}} at your speed.",
+      "levels": "A rung opens the moment its floor is passed. It is lost only when a season closes below the middle of the rung beneath.",
+      "through": "Every discipline opens one rung below your best.",
+      "speed": "Rating speed",
+      "settings": "Settings"
+    },
+    "toast": {
+      "promoted": "Promoted to Tier {{tier}} in {{discipline}}",
+      "detail": "{{change}} to {{rating}}",
+      "open": "Rating"
+    }
   }
 }

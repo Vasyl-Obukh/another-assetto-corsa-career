@@ -10,6 +10,7 @@ import { HomeSkeleton } from './HomeSkeleton.tsx';
 import { NewSeason } from './NewSeason.tsx';
 import { NextEvent } from './NextEvent.tsx';
 import { NoEvent } from './NoEvent.tsx';
+import { RatingNews } from './RatingNews.tsx';
 import {
   clashingWith, recentlyFinished, seasonProgress, upcomingEvent,
 } from './utils.ts';
@@ -130,6 +131,8 @@ export const Home = () => {
       {finished.map((one) => (
         <EditionFinished key={`${one.series}-${one.edition}-${one.entry}`} summary={one} year={year} />
       ))}
+
+      <RatingNews career={career.career} />
 
       <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {next ? (

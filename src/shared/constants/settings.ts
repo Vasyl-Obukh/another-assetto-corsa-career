@@ -44,7 +44,7 @@ export const CURRENCIES: readonly Currency[] = ['USD', 'EUR', 'GBP'];
 
 /**
  * The progression speeds a career may run at, slowest first - what every prize
- * it earns is multiplied by.
+ * it earns, or every change of its rating, is multiplied by.
  */
 export const PROGRESSION_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4] as const;
 
@@ -88,7 +88,7 @@ export const DEFAULT_OPPONENTS: AiBase = { strength: 88, aggression: 30 };
 /**
  * What a new career's settings start as: following the app's opponents,
  * driving aids and currency, two events on one day clashing, a historic event a
- * month, and prizes paid as they stand.
+ * month, and prizes and rating both moving at ×1.
  */
 export const DEFAULT_CAREER_SETTINGS: CareerSettings = {
   opponents: null,
@@ -96,7 +96,8 @@ export const DEFAULT_CAREER_SETTINGS: CareerSettings = {
   currency: null,
   allowSameDayEvents: false,
   historicFrequency: 'monthly',
-  progression: 1,
+  prizeSpeed: 1,
+  ratingSpeed: 1,
 };
 
 /**

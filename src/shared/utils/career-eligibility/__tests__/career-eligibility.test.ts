@@ -1,10 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { RATING_PER_TIER, TOP_RATING_FLOOR } from '../../../constants/index.ts';
+import { RATING_FLOORS, TOP_RUNG_WIDTH } from '../../../constants/index.ts';
 import { Discipline } from '../../../types/index.ts';
 import type { LadderPosition } from '../../../types/index.ts';
 import {
-  isEligible, levelsAt, ratingFloor, ratingsAt,
+  bestDiscipline, dropRating, fieldRating, isEligible, levelOfRating, levelsAt, LOWEST_RUNG, openLevels, ratingFloor,
+  ratingsAt, rungWidth,
 } from '../career-eligibility.ts';
 import type { DisciplineLevels } from '../career-eligibility.ts';
 
@@ -68,15 +69,15 @@ describe('shared/utils/career-eligibility', () => {
 
   describe('ratingFloor', () => {
     it('starts the top rung at the top floor', () => {
-      expect(ratingFloor(1)).toBe(TOP_RATING_FLOOR);
+      expect(ratingFloor(1)).toBe(RATING_FLOORS[0]);
     });
 
-    it('lowers the floor a fixed step per rung down', () => {
-      expect(ratingFloor(3)).toBe(TOP_RATING_FLOOR - 2 * RATING_PER_TIER);
+    it('reads each rung its own floor', () => {
+      expect(ratingFloor(3)).toBe(RATING_FLOORS[2]);
     });
 
-    it('never goes below zero, however deep the ladder', () => {
-      expect(ratingFloor(50)).toBe(0);
+    it('gives every rung below the lowest named the lowest floor', () => {
+      expect(ratingFloor(50)).toBe(RATING_FLOORS[RATING_FLOORS.length - 1]);
     });
   });
 
@@ -90,6 +91,105 @@ describe('shared/utils/career-eligibility', () => {
         [Discipline.TOURING]: floor,
         [Discipline.ROAD]: floor,
       }));
+    });
+  });
+
+  describe('LOWEST_RUNG', () => {
+    it('is the lowest rung the floors name', () => {
+      expect(LOWEST_RUNG).toBe(RATING_FLOORS.length);
+      expect(LOWEST_RUNG).toBe(5);
+    });
+  });
+
+  describe('rungWidth', () => {
+    it('takes the top rung to be as wide as the figures say', () => {
+      expect(rungWidth(1)).toBe(TOP_RUNG_WIDTH);
+    });
+
+    it('measures every other rung from its floor to the floor above it', () => {
+      expect([2, 3, 4, 5].map(rungWidth)).toEqual([2500, 2000, 1500, 1000]);
+    });
+
+    it('reads a rung below the lowest named as the lowest, and one above the top as the top', () => {
+      expect(rungWidth(9)).toBe(1000);
+      expect(rungWidth(0)).toBe(TOP_RUNG_WIDTH);
+    });
+  });
+
+  describe('fieldRating', () => {
+    it("rates a rung's field at the middle of the rung", () => {
+      expect([1, 2, 3, 4, 5].map(fieldRating)).toEqual([9500, 6750, 4500, 2750, 1500]);
+    });
+
+    it("rates a field below the lowest rung named as that rung's", () => {
+      expect(fieldRating(7)).toBe(fieldRating(LOWEST_RUNG));
+    });
+  });
+
+  describe('dropRating', () => {
+    it('loses a rung under the middle of the rung beneath it', () => {
+      expect(dropRating(1)).toBe(fieldRating(2));
+      expect(dropRating(4)).toBe(1500);
+    });
+
+    it('never loses the lowest rung, nor any below it', () => {
+      expect(dropRating(LOWEST_RUNG)).toBeNull();
+      expect(dropRating(8)).toBeNull();
+    });
+  });
+
+  describe('levelOfRating', () => {
+    it('reaches a rung on its floor exactly', () => {
+      expect(levelOfRating(8000)).toBe(1);
+      expect(levelOfRating(3500)).toBe(3);
+      expect(levelOfRating(2000)).toBe(4);
+    });
+
+    it('stays a rung down until the floor is reached', () => {
+      expect(levelOfRating(7999)).toBe(2);
+      expect(levelOfRating(1999)).toBe(5);
+    });
+
+    it('holds a rating above the top floor at the top', () => {
+      expect(levelOfRating(12_000)).toBe(1);
+    });
+
+    it('holds a rating under the lowest floor on the lowest rung', () => {
+      expect(levelOfRating(400)).toBe(LOWEST_RUNG);
+    });
+  });
+
+  describe('bestDiscipline', () => {
+    it('finds the discipline on the highest rung', () => {
+      expect(bestDiscipline(levels({ [Discipline.ROAD]: 1 }))).toBe(Discipline.ROAD);
+    });
+
+    it('picks the first in ladder order where several share the best', () => {
+      expect(bestDiscipline(levels())).toBe(Discipline.SINGLE_SEATER);
+      expect(bestDiscipline(levels({ [Discipline.SPORTSCAR]: 2, [Discipline.TOURING]: 2 })))
+        .toBe(Discipline.SPORTSCAR);
+    });
+  });
+
+  describe('openLevels', () => {
+    // An IndyCar driver can step into Formula 2, not straight into F1.
+    it('opens each discipline at its own rung or one below the best, whichever is higher', () => {
+      expect(openLevels(levels({
+        [Discipline.SINGLE_SEATER]: 5, [Discipline.SPORTSCAR]: 2, [Discipline.TOURING]: 3, [Discipline.ROAD]: 4,
+      }))).toEqual(levels({
+        [Discipline.SINGLE_SEATER]: 3, [Discipline.SPORTSCAR]: 2, [Discipline.TOURING]: 3, [Discipline.ROAD]: 3,
+      }));
+    });
+
+    it('leaves levels that all sit together as they are', () => {
+      expect(openLevels(levels())).toEqual(levels());
+    });
+
+    it('lets a career enter a rung of another discipline only through the best', () => {
+      const open = openLevels(levels({ [Discipline.SPORTSCAR]: 1, [Discipline.ROAD]: 5 }));
+
+      expect(isEligible(at(Discipline.ROAD, 2), open)).toBe(true);
+      expect(isEligible(at(Discipline.ROAD, 1), open)).toBe(false);
     });
   });
 });

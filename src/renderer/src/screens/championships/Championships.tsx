@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next';
 
 import { ChampionshipRail } from './ChampionshipRail.tsx';
 import { CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, RAIL_KEY } from './constants.ts';
-import { affordableFilter, championshipFilters } from './filters.ts';
+import { affordableFilter, championshipFilters, openFilter } from './filters.ts';
 import { LadderBoard } from './LadderBoard.tsx';
 import { LadderSkeleton } from './LadderSkeleton.tsx';
 import { NoneMatch } from './NoneMatch.tsx';
 import { championshipPills } from './pills.ts';
+import type { CareerLadder } from './types.ts';
 import { isListed, ladderDepth } from './utils.ts';
-import { useSettings } from '@/app';
+import { isEligible, openLevels } from '../../../../shared/utils/career-eligibility';
+import { useSettings, useSlot } from '@/app';
 import {
   ActiveFilters, BrowserLayout, ErrorCard, SearchField, SortMenu, TOOLBAR_SEARCH,
 } from '@/components';
@@ -19,6 +21,12 @@ export const Championships = () => {
   const { t } = useTranslation();
   const championships = useChampionships();
   const { settings } = useSettings();
+  const { mode, career } = useSlot();
+  // A career's own ladder: a standalone championship has none to climb.
+  const levels = useMemo(
+    () => (mode === 'career' && career ? openLevels(career.level) : null),
+    [mode, career],
+  );
 
   // What a career can race today. Everything else - and everything that manages
   // the library - lives on the settings tab.
@@ -29,10 +37,11 @@ export const Championships = () => {
   const depth = useMemo(() => ladderDepth(listed), [listed]);
   // What a round costs is a career's alone, so only a career can filter on it.
   const costs = useRoundCosts(championships.listings);
-  const filters = useMemo(
-    () => (costs ? [...championshipFilters(), affordableFilter(costs)] : championshipFilters()),
-    [costs],
-  );
+  const filters = useMemo(() => [
+    ...championshipFilters(),
+    ...(levels ? [openFilter(levels)] : []),
+    ...(costs ? [affordableFilter(costs)] : []),
+  ], [costs, levels]);
   const browser = useChampionshipBrowser(
     listed,
     filters,
@@ -43,6 +52,11 @@ export const Championships = () => {
   // A championship passes when a round of any class is affordable, and the
   // board then stands only the classes that are.
   const affordableOnly = costs !== null && (criteria.picked[RAIL_KEY.affordable] ?? []).includes('yes');
+  const ladder: CareerLadder | undefined = levels && career ? {
+    career,
+    open: levels,
+    openOnly: (criteria.picked[RAIL_KEY.open] ?? []).includes('yes'),
+  } : undefined;
 
   return (
     // The whole window rather than the shared column: the ladder is a board,
@@ -105,9 +119,11 @@ export const Championships = () => {
           <LadderBoard
             listings={browser.shown}
             depth={depth}
-            keepRung={affordableOnly
-              ? ({ listing, entry }) => costs.affordable(listing.series.id, entry.id)
+            keepRung={affordableOnly || ladder?.openOnly
+              ? ({ listing, entry }) => (!affordableOnly || costs.affordable(listing.series.id, entry.id))
+                && (!ladder?.openOnly || isEligible(entry.ladder, ladder.open))
               : undefined}
+            ladder={ladder}
           />
         ) : null}
       </div>

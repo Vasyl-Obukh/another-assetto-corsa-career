@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rating and ladder mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The new families -
+   ledger kinds below - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.8 0.14 142); --t5-fg: oklch(0.27 0.08 145);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.48 0.12 142); --t5-fg: oklch(0.96 0.03 142);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+/* ---------- This mockup ---------- */
+/* Proposed: what a ledger line is. A race prize on the race session's green and
+   a championship prize on the podium gold, because that is what paid them; a
+   historic purse in the historic leather it already wears; the opening balance
+   on the career's own primary; an entry fee on 235, the redistribution hue,
+   which no ledger shows since nothing on it is content. A change of progression
+   speed moves no money and is the catch-all grey on purpose. */
+:root {
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --l-fee: oklch(0.93 0.05 235); --l-fee-fg: oklch(0.38 0.12 250);
+  --l-other: oklch(0.93 0.006 255); --l-other-fg: oklch(0.42 0.012 260);
+}
+:root[data-theme="dark"] {
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --l-fee: oklch(0.32 0.06 235); --l-fee-fg: oklch(0.86 0.08 245);
+  --l-other: oklch(0.3 0.006 260); --l-other-fg: oklch(0.82 0.01 260);
+}
+.c-historic { background: var(--historic); color: var(--historic-fg); }
+.c-fee { background: var(--l-fee); color: var(--l-fee-fg); }
+.c-other { background: var(--l-other); color: var(--l-other-fg); }
+/* Money in is the success green, money out the destructive red's soft
+   foreground - a traffic light on the amount, never on the row. */
+.in { color: var(--success); font-weight: 600; }
+.out { color: var(--destructive-soft-fg); font-weight: 600; }
+.bal { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.bal .i { color: var(--success); }
+.bal.short { border-color: color-mix(in srgb, var(--destructive) 45%, var(--border)); }
+.bal.short .i { color: var(--destructive); }
+.tiles4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.tile b { font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.tile.hero { border-top: 3px solid var(--success); }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: 140px minmax(0, 1fr) 90px; align-items: center; gap: 10px; font-size: 12.5px; }
+.bar .tr { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.bar .tr i { display: block; height: 100%; border-radius: 99px; }
+.bar .amt { text-align: right; }
+.led td.amt, .led th.amt { text-align: right; white-space: nowrap; }
+.led td { vertical-align: middle; }
+/* The page holds still and only the ledger scrolls, under headings that stay put. */
+.panel.ledger { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.panel.ledger .pb { flex: 1; min-height: 0; overflow: auto; padding-top: 0; margin-top: 8px; }
+.led thead th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+.led .w { font-weight: 600; }
+.led .s { font-size: 12px; color: var(--muted-foreground); }
+.led tr.note td { background: color-mix(in srgb, var(--muted) 55%, transparent); }
+.door { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.door h4 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.door .ln { display: flex; justify-content: space-between; font-size: 12.5px; gap: 8px; }
+.door .ln span:first-child { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feebox { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.feebox .k { color: var(--muted-foreground); }
+.feebox .v { text-align: right; font-weight: 600; }
+.errbox { border: 1px solid color-mix(in srgb, var(--destructive) 35%, var(--border)); background: var(--destructive-soft); color: var(--destructive-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.errbox .txt { display: flex; flex-direction: column; gap: 3px; }
+.goldbar { border-radius: 12px; padding: 12px 16px; background: var(--gold); color: var(--gold-fg); display: flex; align-items: center; gap: 12px; font-size: 13.5px; }
+.goldbar b { font-size: 15px; }
+.sumrows { display: flex; flex-direction: column; }
+.sumrows .li { padding: 8px 0; }
+.sumrows .li:last-child { border-top: 1px solid var(--border); border-bottom: 0; font-weight: 650; }
+.rail { width: 248px; flex: none; display: flex; flex-direction: column; gap: 4px; padding-right: 18px; border-right: 1px solid var(--border); overflow: hidden; }
+.rsec { padding: 10px 0 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.rsec:last-child { border-bottom: 0; }
+.rsw { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.rsw .switch { margin-left: auto; }
+.ropt { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.ropt .cb { width: 15px; height: 15px; border-radius: 4px; border: 1px solid var(--input); background: var(--card); flex: none; }
+.ropt .cnt { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dot.single { background: var(--d-single-fg); } .dot.sports { background: var(--d-sports-fg); }
+.dot.touring { background: var(--d-touring-fg); }
+.medal { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; flex: none; }
+.m2 { background: var(--t2); color: var(--t2-fg); } .m3 { background: var(--t3); color: var(--t3-fg); }
+.m4 { background: var(--t4); color: var(--t4-fg); } .m5 { background: var(--t5); color: var(--t5-fg); }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding-left: 22px; }
+.toolbar { display: flex; align-items: center; gap: 8px; }
+.pills { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.pill { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: 99px; background: color-mix(in oklch, var(--primary) 12%, var(--card)); color: var(--primary); font-weight: 500; }
+.grid { display: grid; grid-template-columns: 8rem repeat(4, minmax(0, 1fr)); }
+.gh { display: flex; align-items: center; gap: 8px; border-left: 1px solid var(--border); padding: 10px 12px; font-size: 13px; font-weight: 500; }
+.dh { border-top: 1px solid var(--border); padding: 12px 10px; display: flex; align-items: flex-start; gap: 7px; font-size: 13px; font-weight: 600; }
+.cell { border-top: 1px solid var(--border); border-left: 1px solid var(--border); padding: 9px; display: flex; flex-direction: column; gap: 8px; min-height: 90px; }
+.cell.empty { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in oklch, var(--border) 50%, transparent) 8px 9px); }
+.rung { position: relative; background: var(--card); border: 1px solid var(--border); border-left-width: 3px; border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; }
+.rung.single { border-left-color: var(--d-single-fg); } .rung.sports { border-left-color: var(--d-sports-fg); }
+.rung.touring { border-left-color: var(--d-touring-fg); }
+.rung h5 { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.3; }
+.rung .ft { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11.5px; color: var(--muted-foreground); }
+.strip { display: inline-flex; gap: 2px; }
+.strip i { width: 12px; height: 6px; border-radius: 2px; }
+.strip .p { background: var(--s-practice-fg); opacity: .55; } .strip .q { background: var(--s-qualify-fg); opacity: .6; } .strip .r { background: var(--s-race-fg); opacity: .7; }
+.c-origin { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-mod { background: oklch(0.93 0.05 295); color: oklch(0.42 0.14 295); }
+:root[data-theme="dark"] .c-mod { background: oklch(0.33 0.07 295); color: oklch(0.87 0.1 295); }
+/* ---------- Rating and the ladder ---------- */
+.m1 { background: var(--t1); color: var(--t1-fg); }
+.rung.road { border-left-color: var(--d-road-fg); }
+.dot.road { background: var(--d-road-fg); }
+/* Proposed: a discipline's line in a chart. The chips' own hues, stepped to a
+   chart's mid-lightness and validated as a categorical set in both modes
+   (sportscar lifted and touring darkened, since 112 and 175 sit too close at
+   one lightness). The global rating is the foreground ink, as a total is. */
+:root { --ln-single: oklch(0.56 0.12 215); --ln-sports: oklch(0.68 0.15 118); --ln-touring: oklch(0.52 0.12 172); --ln-road: oklch(0.5 0.17 270); --ln-global: var(--foreground);
+  --sim-1: #2a78d6; --sim-2: #eb6834; --sim-3: #1baf7a; --sim-4: #eda100; }
+:root[data-theme="dark"] { --ln-single: oklch(0.66 0.12 212); --ln-sports: oklch(0.67 0.15 112); --ln-touring: oklch(0.58 0.11 175); --ln-road: oklch(0.64 0.15 270);
+  --sim-1: #3987e5; --sim-2: #d95926; --sim-3: #199e70; --sim-4: #c98500; }
+/* Proposed: what a rating line is. A race on the race session's green and a
+   historic event in its leather, as Finances has them; a promotion on the
+   podium gold, since it is the season's other trophy; a drop on the
+   destructive soft red rather than amber, which would sit beside the gold; a
+   rating set by a rule rather than earned - the opening one, and the lift on
+   entering a new discipline - on the career's primary. Speed is the grey
+   catch-all, as in Finances. */
+.c-up { background: var(--gold); color: var(--gold-fg); }
+.c-down { background: var(--destructive-soft); color: var(--destructive-soft-fg); }
+.c-set { background: var(--m-career); color: var(--m-career-fg); }
+.c-tier1 { background: var(--t1); color: var(--t1-fg); } .c-tier2 { background: var(--t2); color: var(--t2-fg); }
+.c-tier3 { background: var(--t3); color: var(--t3-fg); } .c-tier4 { background: var(--t4); color: var(--t4-fg); }
+.c-tier5 { background: var(--t5); color: var(--t5-fg); }
+.zero { color: var(--muted-foreground); }
+
+/* The rating beside the balance, when the header carries it. */
+.bal.rat .i { color: var(--d-sports-fg); }
+
+/* Rating cards. */
+.rtiles { display: grid; grid-template-columns: 1.1fr repeat(4, minmax(0, 1fr)); gap: 12px; flex: none; }
+.dcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--border); min-width: 0; }
+.dcard.single { border-top-color: var(--d-single-fg); } .dcard.sports { border-top-color: var(--d-sports-fg); }
+.dcard.touring { border-top-color: var(--d-touring-fg); } .dcard.road { border-top-color: var(--d-road-fg); }
+.dcard.global { border-top-color: var(--foreground); }
+.dcard .big { font-size: 24px; font-weight: 650; letter-spacing: -.01em; line-height: 1.1; }
+.dcard .hint { line-height: 1.35; }
+.prog { position: relative; height: 26px; margin-top: 2px; }
+.prog .tr { position: absolute; left: 0; right: 0; top: 4px; height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; display: flex; }
+.prog .tr .drop { background: repeating-linear-gradient(135deg, var(--destructive-soft) 0 4px, transparent 4px 7px); }
+.prog .tr .band { flex: none; }
+.prog .mk { position: absolute; top: 0; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: var(--foreground); box-shadow: 0 0 0 2px var(--card); }
+.prog .tk { position: absolute; top: 15px; font-size: 10.5px; color: var(--muted-foreground); transform: translateX(-50%); white-space: nowrap; }
+.prog .tk.l { transform: none; } .prog .tk.r { transform: translateX(-100%); }
+
+/* Variant B: a ladder per discipline. */
+.ladders { display: grid; grid-template-columns: 150px repeat(4, minmax(0, 1fr)); gap: 0; }
+.ladders .lh { padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; border-left: 1px solid var(--border); }
+.ladders .lh:first-child { border-left: 0; }
+.lcol { position: relative; border-left: 1px solid var(--border); height: 230px; }
+.lscale { position: relative; height: 230px; }
+.lscale > span { position: absolute; left: 0; right: 8px; display: flex; align-items: center; gap: 6px; font-size: 11.5px; transform: translateY(-50%); }
+.lband { position: absolute; left: 10px; right: 10px; border-radius: 6px; opacity: .55; }
+.lfloor { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--border); }
+.lme { position: absolute; left: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 99px; background: var(--card); border: 2px solid var(--foreground); font-size: 12px; font-weight: 650; white-space: nowrap; z-index: 2; box-shadow: 0 2px 6px oklch(0 0 0 / .15); }
+.lme.via { border-style: dashed; border-color: var(--muted-foreground); font-weight: 500; }
+.lopen { position: absolute; left: 10px; right: 10px; border-radius: 6px; border: 2px solid var(--d-sports-fg); z-index: 1; }
+.lopen.via { border-style: dashed; }
+
+/* Charts: thin lines, a recessive grid, a crosshair readout. */
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .gl { stroke: var(--border); stroke-width: 1; }
+.chart .fl { stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
+.chart .ax { font-size: 10.5px; fill: var(--muted-foreground); font-family: inherit; }
+.chart .lb { font-size: 11px; font-weight: 600; fill: var(--foreground); font-family: inherit; }
+.chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .ln.dash { stroke-dasharray: 5 4; }
+.chart .xh { stroke: var(--foreground); stroke-width: 1; opacity: .35; }
+.chart .dt { stroke: var(--card); stroke-width: 2; }
+.ctip { position: absolute; z-index: 5; pointer-events: none; background: var(--card); border: 1px solid var(--border); border-radius: 9px; box-shadow: 0 10px 30px oklch(0 0 0 / .18); padding: 8px 10px; font-size: 12px; min-width: 170px; display: none; }
+.ctip .tt { font-weight: 600; margin-bottom: 4px; }
+.ctip .tr { display: flex; align-items: center; gap: 7px; }
+.ctip .tr b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.sw { width: 10px; height: 3px; border-radius: 2px; flex: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted-foreground); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* The rating log, which scrolls on its own like the ledger. */
+.panel.log { min-height: 0; display: flex; flex-direction: column; }
+.panel.log .pb { flex: 1; min-height: 0; overflow: auto; padding-top: 0; margin-top: 8px; }
+.led td.d, .led th.d { text-align: right; white-space: nowrap; }
+.dl { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; }
+
+/* Banners: a promotion wears the discipline it happened in, with the rung's
+   medal; a drop is the warning amber. */
+.banner { border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; font-size: 13.5px; flex: none; }
+.banner b { font-size: 15px; }
+.banner.sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.banner.down { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.banner .medal { width: 34px; height: 34px; font-size: 15px; box-shadow: 0 0 0 3px var(--card); }
+
+/* Locked rungs on the ladder. */
+.cell.above { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in oklch, var(--border) 35%, transparent) 8px 9px); }
+.lockcell { border: 1px dashed var(--border); border-radius: 9px; padding: 10px; font-size: 12px; color: var(--muted-foreground); display: flex; flex-direction: column; gap: 3px; }
+.lockcell b { color: var(--foreground); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.dh .lvl { display: flex; flex-direction: column; gap: 4px; font-weight: 400; font-size: 12px; color: var(--muted-foreground); margin-top: 4px; }
+.mini { height: 5px; border-radius: 99px; background: var(--muted); overflow: hidden; width: 86px; }
+.mini i { display: block; height: 100%; border-radius: 99px; background: var(--foreground); opacity: .55; }
+.gh.you { box-shadow: inset 0 -2px 0 var(--primary); }
+
+/* A popover over a rating line. */
+.pop { position: absolute; z-index: 30; width: 360px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 18px 46px oklch(0 0 0 / .25); padding: 12px 14px; font-size: 12.5px; display: flex; flex-direction: column; gap: 8px; }
+.pop h4 { margin: 0; font-size: 13.5px; }
+.pop .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.pop .kv span { color: var(--muted-foreground); }
+.pop .kv b { text-align: right; font-weight: 600; }
+.pop .sum { border-top: 1px solid var(--border); padding-top: 8px; display: flex; align-items: center; gap: 8px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; }
+.strip2 { display: flex; gap: 2px; align-items: flex-end; height: 28px; }
+.strip2 i { flex: 1; border-radius: 2px 2px 0 0; background: var(--muted-foreground); opacity: .35; }
+.strip2 i.me { background: var(--d-sports-fg); opacity: 1; }
+.rrow { display: grid; grid-template-columns: minmax(0, 1fr) auto 26px; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rrow:last-child { border-bottom: 0; }
+.rrow .s { font-size: 12px; color: var(--muted-foreground); }
+.btn.icon.xs { width: 24px; height: 24px; border-radius: 6px; }
+.btn.icon.xs .i { width: 13px; height: 13px; }
+
+/* The Enter panel. */
+.enter { border: 1px dashed var(--primary); }
+.lockbox { border: 1px solid color-mix(in srgb, var(--warning-soft-fg) 30%, var(--border)); background: var(--warning-soft); color: var(--warning-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.lockbox b { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.path { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-size: 12px; color: var(--foreground); }
+.viabox { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; background: color-mix(in srgb, var(--d-sports) 45%, var(--card)); }
+
+/* The concept page. */
+.doc { gap: 16px; }
+.doc .panel > h3 { font-size: 15px; padding: 14px 18px 0; }
+.doc p { margin: 0 0 8px; font-size: 13.5px; }
+.doc p:last-child { margin-bottom: 0; }
+.rules3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rule { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.rule h5 { margin: 0; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.formula { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; background: var(--muted); border-radius: 10px; padding: 12px 14px; line-height: 1.7; }
+.formula i { color: var(--muted-foreground); font-style: normal; }
+.dec { border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.dec h4 { margin: 0; font-size: 14.5px; display: flex; align-items: center; gap: 8px; }
+.dec h4 .no { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--primary-foreground); font-size: 11.5px; flex: none; }
+.dec .q { font-size: 13px; color: var(--muted-foreground); margin-top: -4px; }
+.opts { display: grid; gap: 8px; }
+.opt2 { border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 8px; font-size: 12.5px; }
+.opt2 .k { grid-row: span 2; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; background: var(--muted); font-weight: 700; font-size: 12px; }
+.opt2 b { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.opt2 span.t { color: var(--muted-foreground); line-height: 1.4; }
+.opt2.rec { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); }
+.opt2.rec .k { background: var(--success); color: white; }
+.c-rec { background: var(--success-soft); color: var(--success-soft-fg); }
+.decs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.cmp td.n, .cmp th.n { text-align: center; font-variant-numeric: tabular-nums; }
+.cmp td.z { color: var(--muted-foreground); }
+.t th.d, .t td.d { text-align: right; }
+/* A rung not open to you: the card as it is, held still and greyed, a lock on
+   it and what opens it in a tooltip. */
+.rung.locked { background: color-mix(in oklch, var(--muted) 55%, var(--card)); border-left-color: var(--border); cursor: not-allowed; }
+.rung.locked > *:not(.lk):not(.ltip) { opacity: .5; filter: grayscale(.7); }
+.rung .lk { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--border); color: var(--muted-foreground); }
+.rung .lk .i { width: 12px; height: 12px; }
+.rung.locked h5 { padding-right: 24px; }
+.rung .ltip { display: none; position: absolute; z-index: 20; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; background: var(--foreground); color: var(--background); font-size: 12px; font-weight: 500; padding: 6px 9px; border-radius: 7px; box-shadow: 0 6px 18px oklch(0 0 0 / .2); }
+.rung .ltip::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--foreground); }
+.rung.locked:hover .ltip, .rung.locked.tipped .ltip { display: block; }
+/* A decision taken, or a figure still open: no option letter, so one column. */
+.opt2.one { grid-template-columns: minmax(0, 1fr); }
+.opt2.one b { justify-content: space-between; }
+.opt2 span.t b { display: inline; font-size: inherit; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+
+<script>
+// ---------- The model ----------
+// A career opens at 1,000, Rookie's floor, and Platinum opens at 8,000. Each
+// rung is 500 wider than the one below it, so the first climbs come quickest.
+// A rung's field is rated at its middle, and a level is lost below the middle
+// of the rung beneath.
+const START = 1000;
+const FLOORS = { 1: 8000, 2: 5500, 3: 3500, 4: 2000, 5: 1000 };
+const WIDTH = { 1: 3000, 2: 2500, 3: 2000, 4: 1500, 5: 1000 };
+const FLOOR = (t) => FLOORS[t];
+const FIELD = (t) => FLOOR(t) + WIDTH[t] / 2;
+const DROP = (t) => FIELD(t + 1);
+const SPREAD = 3500;
+const PER_POINT = 75;
+const K = 300;
+const CAP = K / 3;
+const QUALI = 0.25;
+const TIER = { 1: 'Platinum', 2: 'Gold', 3: 'Silver', 4: 'Bronze', 5: 'Rookie' };
+const levelOf = (r) => { for (let t = 1; t <= 5; t += 1) if (r >= FLOOR(t)) return t; return 5; };
+const seeded = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const expectOf = (r, o) => 1 / (1 + 10 ** ((o - r) / SPREAD));
+// A classmate's offset over the player's own base: the championship's and
+// the class's, the player's steps, and the driver's own seeded spread.
+const fieldOf = (seed, n, over) => { const rnd = seeded(seed); return Array.from({ length: n - 1 }, () => over + Math.round(rnd() * 8 - 4)); };
+// One session against the player's classmates: the share of them beaten
+// against the share expected, times K, the session's weight and the rating
+// speed - and never more than a third of that taken away.
+const rateSession = (rating, s) => {
+  const opp = s.field.map((o) => FIELD(s.rung) + o * PER_POINT);
+  const n = s.field.length + 1;
+  const S = (n - s.p) / (n - 1);
+  const Es = opp.map((o) => expectOf(rating, o));
+  const E = Es.reduce((a, b) => a + b, 0) / Es.length;
+  const exp = 1 + Es.reduce((a, e) => a + (1 - e), 0);
+  const k = K * s.weight * s.speed;
+  const raw = k * (S - E);
+  const cap = k / 3;
+  const capped = raw < -cap;
+  return {
+    d: Math.round(capped ? -cap : raw), raw, S, E, k, cap, capped, exp: Math.round(exp),
+    mean: Math.round(opp.reduce((a, b) => a + b, 0) / opp.length), lo: Math.min(...s.field), hi: Math.max(...s.field),
+  };
+};
+
+// ---------- The career ----------
+// Sam races with the opponents at 90. That figure counts for nothing; only
+// what a field races at over it does.
+const BASE = 90;
+const CH = {
+  cup10: { name: 'GT4 European Cup 2010', disc: 'sports', tier: 5, cls: 'GT4', n: 16, over: 0 },
+  gt4: { name: 'GT4 European Series 2027', disc: 'sports', tier: 4, cls: 'GT4', n: 18, over: 2, step: 2 },
+  abarth: { name: 'Trofeo Abarth 500 Italia 2009', disc: 'touring', tier: 5, cls: 'Abarth 500', n: 20, over: 0 },
+  ginetta: { name: 'Ginetta GT4 Supercup 2027', disc: 'sports', tier: 4, cls: 'G55', n: 16, over: 0 },
+  spa: { name: 'Spa 1000 km 1966', disc: 'sports', tier: 1, cls: 'GT', n: 14, over: 0, historic: true },
+};
+// Each round: its qualifying place, then a place per race.
+const SCHEDULE = [
+  [2026, 'Sun 12 Apr', 'cup10', 'R1 · Brands Hatch GP', 7, [5, 4]],
+  [2026, 'Sun 3 May', 'cup10', 'R2 · Barcelona GP', 3, [2, 3]],
+  [2026, 'Sun 24 May', 'cup10', 'R3 · Silverstone National', 2, [1, 3]],
+  [2026, 'Sun 14 Jun', 'cup10', 'R4 · Nordschleife', 4, [2, 1]],
+  [2026, 'Sun 5 Jul', 'cup10', 'R5 · Brands Hatch Indy', 5, [4, 2]],
+  [2026, 'Sun 26 Jul', 'cup10', 'R6 · Barcelona National', 4, [4, 5]],
+  [2026, 'Sun 23 Aug', 'cup10', 'R7 · Monza', 6, [6, 4]],
+  [2026, 'Sun 13 Sep', 'cup10', 'R8 · Spa', 3, [5, 3]],
+  [2027, 'Sun 13 Apr', 'gt4', 'R1 · Brands Hatch GP', 8, [7, 6]],
+  [2027, 'Sat 19 Apr', 'abarth', 'R1 · Vallelunga', 12, [9]],
+  [2027, 'Sat 26 Apr', 'ginetta', 'R1 · Silverstone National', 5, [5]],
+  [2027, 'Sun 4 May', 'gt4', 'R2 · Barcelona GP', 4, [2, 18]],
+  [2027, 'Sat 17 May', 'abarth', 'R2 · Imola', 8, [7]],
+  [2027, 'Sat 24 May', 'ginetta', 'R2 · Donington Park', 1, [1]],
+  [2027, 'Sun 25 May', 'gt4', 'R3 · Silverstone National', 6, [5, 4]],
+  [2027, 'Sat 7 Jun', 'abarth', 'R3 · Mugello', 10, [11]],
+  [2027, 'Sun 15 Jun', 'gt4', 'R4 · Nordschleife', 4, [4, 3]],
+  [2027, 'Wed 18 Jun', 'spa', 'Spa-Francorchamps', 9, [8], { scale: 4 }],
+  [2027, 'Sat 21 Jun', 'ginetta', 'R3 · Brands Hatch GP', 5, [6]],
+  [2027, 'Tue 1 Jul', 'speed'],
+  [2027, 'Sun 6 Jul', 'gt4', 'R5 · Brands Hatch Indy', 4, [7, 1]],
+];
+const DISCS = ['single', 'sports', 'touring', 'road'];
+const DNAME = { single: 'Single-seater', sports: 'Sportscar', touring: 'Touring', road: 'Road' };
+// Every line the rating log holds, oldest first, each carrying the ratings it left.
+const buildLog = () => {
+  const R = { single: START, sports: START, touring: START, road: START, g: START };
+  const L = { single: 5, sports: 5, touring: 5, road: 5 };
+  let speed = 1;
+  let seed = 7;
+  const log = [{ y: 2026, d: 'Thu 1 Jan', kind: 'start', what: 'Career opened at Tier 5', sub: `Every rating opens at Rookie's floor, ${START.toLocaleString('en-US')}`, R: { ...R } }];
+  SCHEDULE.forEach(([y, d, id, round, q, places, opts = {}]) => {
+    if (id === 'speed') {
+      speed = 1.5;
+      log.push({ y, d, kind: 'speed', what: 'Rating speed ×1 → ×1.5', sub: 'Every session from here on moves the rating half as far again, both ways. Prize money stays at ×1', R: { ...R } });
+      return;
+    }
+    const c = CH[id];
+    // A historic event is rated as a race on the player's own rung.
+    const rung = c.historic ? Math.min(L[c.disc], Math.min(...DISCS.map((x) => L[x])) + 1) : c.tier;
+    const sessions = [[q, 'quali'], ...places.map((p) => [p, 'race'])];
+    sessions.forEach(([p, type], i) => {
+      seed += 1;
+      const s = { ...c, ...opts, rung, p, speed, type, weight: type === 'quali' ? QUALI : 1, field: fieldOf(seed, c.n, c.over) };
+      const a = rateSession(R[c.disc], s);
+      const b = rateSession(R.g, s);
+      R[c.disc] += a.d; R.g += b.d;
+      const name = type === 'quali' ? 'Qualifying' : places.length > 1 ? `Race ${i}` : 'Race';
+      const label = c.historic ? `${c.name} · ${name}` : `${round} · ${name}`;
+      log.push({ y, d, kind: c.historic ? 'historic' : type, id, c, s, a, b, disc: c.disc, what: label, champ: c.name, sub: `${type === 'quali' ? 'Q' : 'P'}${p} of ${c.n} in ${c.cls}, expected ${type === 'quali' ? 'Q' : 'P'}${a.exp}`, R: { ...R } });
+      const t = levelOf(R[c.disc]);
+      if (t < L[c.disc]) {
+        L[c.disc] = t;
+        log.push({ y, d, kind: 'up', disc: c.disc, what: `Promoted to Tier ${t} in ${DNAME[c.disc]}`, sub: `${R[c.disc].toLocaleString('en-US')} passed ${TIER[t]}'s floor of ${FLOOR(t).toLocaleString('en-US')}`, R: { ...R }, tier: t });
+      }
+    });
+  });
+  return { log, R, L };
+};
+// ---------- Atoms ----------
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const FLAG = (c) => `${AC}gui/NationFlags/${c}.png`;
+const PH = {
+  barca2: `${AC}tracks/ks_barcelona/ui/layout_gp/bgr02.jpg`,
+  brandsIndy: `${AC}tracks/ks_brands_hatch/ui/indy/bgr00.jpg`,
+  spa: `${AC}tracks/spa/ui/preview.png`,
+  vallelunga: `${AC}tracks/ks_vallelunga/ui/extended_circuit/bgr00.jpg`,
+};
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  home: P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  store: P('<path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/>'),
+  garage: P('<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  wallet: P('<path d="M4 7h15a1 1 0 0 1 1 1v11H5a1 1 0 0 1-1-1z"/><path d="M4 7V6a2 2 0 0 1 2-2h11v3"/><circle cx="16" cy="13" r="1.2"/>'),
+  results: P('<path d="M4 4v16h16"/><path d="m8 14 3-3 3 3 5-6"/>'),
+  history: P('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>'),
+  play: P('<path d="M7 4v16l13-8z"/>'),
+  gauge: P('<path d="m12 14 4-5"/><path d="M3.5 17a9 9 0 1 1 17 0"/><circle cx="12" cy="14" r="1.3"/>'),
+  lock: P('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  up: P('<path d="m6 15 6-6 6 6"/>'),
+  dn: P('<path d="m6 9 6 6 6-6"/>'),
+  info: P('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  speed: P('<path d="M12 14 16 8"/><path d="M3.5 17a9 9 0 1 1 17 0"/>'),
+  flagi: P('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
+  search: P('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  sort: P('<path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/>'),
+  star: P('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'),
+  check: P('<path d="m5 12 5 5 9-10"/>'),
+  car: P('<path d="M5 16h14l-1.5-6h-11z"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/>'),
+};
+const flag = (c, lg) => `<img class="flag${lg ? ' lg' : ''}" src="${FLAG(c)}" alt="">`;
+const n0 = (n) => Math.round(n).toLocaleString('en-US');
+const sgn = (n) => (n > 0 ? `+${n0(n)}` : n < 0 ? `−${n0(-n)}` : '±0');
+const dlt = (n) => `<span class="${n > 0 ? 'in' : n < 0 ? 'out' : 'zero'} num">${sgn(n)}</span>`;
+const medal = (t, sz) => `<span class="medal m${t}"${sz ? ` style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz * 0.5)}px"` : ''}>${t}</span>`;
+const tierChip = (t) => `<span class="chip c-tier${t}">${medal(t, 14)}Tier ${t} · ${TIER[t]}</span>`;
+const DCHIP = { single: 'c-single', sports: 'c-sports', touring: 'c-touring', road: 'c-road' };
+const dchip = (d) => `<span class="chip ${DCHIP[d]}">${DNAME[d]}</span>`;
+
+// ---------- The state this mockup stands at: right after R5 of 2027 ----------
+const { log: LOG, R: NOW, L: OWN } = buildLog();
+const BEST = Math.min(...DISCS.map((d) => OWN[d]));
+const OPEN = Object.fromEntries(DISCS.map((d) => [d, Math.min(OWN[d], BEST + 1)]));
+const VIA = (d) => OPEN[d] < OWN[d];
+const at = (y) => LOG.filter((l) => l.y === y);
+const seasonStart = (y, key) => { const before = LOG.filter((l) => l.y < y); return before.length ? before.at(-1).R[key] : 1000; };
+// R5's qualifying, Race 1 and Race 2.
+const R5 = LOG.filter((l) => l.id === 'gt4' && l.a && l.what.startsWith('R5'));
+const R5_WIN = R5[2];
+const BEFORE_R5 = LOG[LOG.indexOf(R5[0]) - 1].R;
+const prevOf = (l) => LOG[LOG.indexOf(l) - 1].R;
+const BALANCE = 63350;
+// What the R5 promotion opened: Silver in Sportscar, and Bronze elsewhere through it.
+const NEWLY = () => LADDER.sports[3].length + DISCS.filter((d) => d !== 'sports' && OWN[d] === 5).reduce((a, d) => a + LADDER[d][4].length, 0);
+
+// ---------- The window ----------
+const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const win = (inner, h) => `<div class="win"${h ? ` style="height:${h}px"` : ''}>${titlebar()}${inner}</div>`;
+const NAV = [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
+const hdr = (on, opts = {}) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR', 1)}<span><b>Sam Whitaker</b><small>Career · ${opts.year || 2027} · ${opts.date || 'Sun 6 Jul'}</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>
+  <span class="end row" style="gap:10px"><span class="status"><span class="dot"></span>Autosaved after Race 2 · just now</span>
+  <a class="bal rat" title="Rating · global">${I.gauge}<span class="num">${n0(opts.rating ?? NOW.g)}</span></a>
+  <a class="bal" title="Finances">${I.wallet}<span class="num">$${n0(BALANCE)}</span></a></span></header>`;
+const back = (to, title) => `<div class="shdr"><span class="backlink">${I.back}${to}</span>${title ? `<h2 style="margin-left:12px">${title}</h2>` : ''}</div>`;
+
+// ---------- Charts ----------
+const CHARTS = {};
+const lineChart = (id, { series, labels, ymin, ymax, w = 760, h = 230, xticks = [], tiers = true }) => {
+  CHARTS[id] = { series, labels, w, h };
+  const pl = 52; const pr = 104; const pt = 8; const pb = 22;
+  const n = labels.length - 1;
+  const X = (i) => pl + (i / n) * (w - pl - pr);
+  const Y = (v) => pt + (1 - (v - ymin) / (ymax - ymin)) * (h - pt - pb);
+  CHARTS[id].X = X; CHARTS[id].Y = Y; CHARTS[id].pl = pl; CHARTS[id].pr = pr;
+  let g = '';
+  if (tiers) {
+    for (let t = 5; t >= 1; t -= 1) {
+      const lo = Math.max(ymin, FLOOR(t)); const hi = t === 1 ? ymax : Math.min(ymax, FLOOR(t - 1));
+      if (hi <= ymin || lo >= ymax) continue;
+      g += `<rect x="${pl}" y="${Y(hi)}" width="${w - pl - pr}" height="${Y(lo) - Y(hi)}" fill="var(--t${t})" opacity=".45"/>`;
+      if (FLOOR(t) > ymin) g += `<line class="fl" x1="${pl}" x2="${w - pr}" y1="${Y(FLOOR(t))}" y2="${Y(FLOOR(t))}"/><text class="ax" x="${pl - 6}" y="${Y(FLOOR(t)) + 3.5}" text-anchor="end">${n0(FLOOR(t))}</text>`;
+      g += `<text class="ax" x="${pl + 6}" y="${(Y(lo) + Y(hi)) / 2 + 3.5}">T${t} ${TIER[t]}</text>`;
+    }
+  }
+  xticks.forEach(([i, label]) => { g += `<line class="gl" x1="${X(i)}" x2="${X(i)}" y1="${pt}" y2="${h - pb}"/><text class="ax" x="${X(i) + 4}" y="${h - 6}">${label}</text>`; });
+  g += `<line class="gl" x1="${pl}" x2="${w - pr}" y1="${h - pb}" y2="${h - pb}"/>`;
+  series.forEach((s) => { g += `<path class="ln${s.dash ? ' dash' : ''}" stroke="${s.color}" d="${s.pts.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}"/>`; });
+  // Direct labels at the line ends, nudged apart so none overlap.
+  const ends = series.map((s) => ({ s, y: Y(s.pts.at(-1)) })).sort((a, b) => a.y - b.y);
+  ends.forEach((e, i) => { if (i && e.y - ends[i - 1].y < 13) e.y = ends[i - 1].y + 13; });
+  ends.forEach((e) => { g += `<text class="lb" x="${w - pr + 8}" y="${e.y + 4}">${e.s.short || e.s.name} <tspan class="ax">${n0(e.s.pts.at(-1))}</tspan></text>`; });
+  g += `<line class="xh" id="${id}-xh" x1="0" x2="0" y1="${pt}" y2="${h - pb}" style="display:none"/><g id="${id}-dots"></g>`;
+  g += `<rect x="${pl}" y="0" width="${w - pl - pr}" height="${h}" fill="transparent" data-chart="${id}"/>`;
+  return `<div class="chart" id="${id}"><svg viewBox="0 0 ${w} ${h}">${g}</svg><div class="ctip" id="${id}-tip"></div></div>`;
+};
+const legend = (series, extra = '') => `<div class="legend">${series.map((s) => `<span><i class="sw" style="background:${s.color}${s.dash ? ';height:2px' : ''}"></i>${s.name}</span>`).join('')}${extra}</div>`;
+document.addEventListener('pointermove', (e) => {
+  document.querySelectorAll('.ctip').forEach((t) => { t.style.display = 'none'; });
+  document.querySelectorAll('.xh').forEach((t) => { t.style.display = 'none'; });
+  document.querySelectorAll('[id$="-dots"]').forEach((t) => { t.innerHTML = ''; });
+  const id = e.target.dataset && e.target.dataset.chart;
+  if (!id) return;
+  const c = CHARTS[id];
+  const svg = e.target.ownerSVGElement;
+  const box = svg.getBoundingClientRect();
+  const sx = ((e.clientX - box.left) / box.width) * c.w;
+  const n = c.labels.length - 1;
+  const i = Math.max(0, Math.min(n, Math.round(((sx - c.pl) / (c.w - c.pl - c.pr)) * n)));
+  const xh = document.getElementById(`${id}-xh`);
+  xh.setAttribute('x1', c.X(i)); xh.setAttribute('x2', c.X(i)); xh.style.display = '';
+  document.getElementById(`${id}-dots`).innerHTML = c.series.map((s) => `<circle class="dt" cx="${c.X(i)}" cy="${c.Y(s.pts[i])}" r="4.5" fill="${s.color}"/>`).join('');
+  const tip = document.getElementById(`${id}-tip`);
+  tip.innerHTML = `<div class="tt">${c.labels[i]}</div>${c.series.map((s) => `<div class="tr"><i class="sw" style="background:${s.color}"></i>${s.name}<b>${n0(s.pts[i])}</b></div>`).join('')}`;
+  const host = document.getElementById(id).getBoundingClientRect();
+  const px = (c.X(i) / c.w) * box.width;
+  tip.style.display = 'block';
+  tip.style.left = `${px > host.width * 0.6 ? px - tip.offsetWidth - 12 : px + 12}px`;
+  tip.style.top = '6px';
+});
+
+// The career's own chart: a point per race, the disciplines raced and the global rating.
+const careerChart = (id, opts = {}) => {
+  const pts = LOG.filter((l) => ['race', 'quali', 'historic', 'start'].includes(l.kind));
+  const series = [
+    { name: 'Sportscar', short: 'Sportscar', color: 'var(--ln-sports)', pts: pts.map((l) => l.R.sports) },
+    { name: 'Touring', short: 'Touring', color: 'var(--ln-touring)', pts: pts.map((l) => l.R.touring) },
+    { name: 'Global', short: 'Global', color: 'var(--ln-global)', dash: true, pts: pts.map((l) => l.R.g) },
+  ];
+  const labels = pts.map((l) => (l.kind === 'start' ? `${l.d} ${l.y} · career opened` : l.kind === 'historic' ? `${l.d} ${l.y} · ${l.what}` : `${l.d} ${l.y} · ${l.c.name.replace(/ 20\d\d$/, '')} ${l.what}`));
+  const first27 = pts.findIndex((l) => l.y === 2027);
+  return { html: lineChart(id, { series, labels, ymin: 500, ymax: 5400, xticks: [[0, '2026'], [first27, '2027']], ...opts }), series };
+};
+
+// ---------- The concept ----------
+// Eight rounds a season, each a qualifying and two races; one race in twenty
+// ends in a crash, last of the class.
+const PER_SEASON = 24;
+const simulate = (from = 4, seasons = 8) => [['Front-runner · podiums', 2190, 'var(--sim-1)'], ['Top third', 1050, 'var(--sim-2)'], ['Mid-pack', 0, 'var(--sim-3)'], ['Back of the grid', -1925, 'var(--sim-4)']]
+  .map(([name, s, color], k) => {
+    const rnd = seeded(101 + k);
+    let r = FLOOR(from); let level = from;
+    const pts = [r];
+    for (let season = 0; season < seasons; season += 1) {
+      const raced = level;
+      for (let round = 0; round < 8; round += 1) {
+        [QUALI, 1, 1].forEach((w) => {
+          const field = FIELD(raced);
+          const truth = expectOf(field + s, field);
+          const crash = w === 1 && rnd() < 0.05;
+          const got = crash ? 0 : Math.max(0, Math.min(1, truth + (rnd() - 0.5) * 0.5));
+          r = Math.max(1, r + Math.max(-K * w / 3, K * w * (got - expectOf(r, field))));
+          level = Math.min(level, levelOf(r));
+          pts.push(Math.round(r));
+        });
+      }
+      if (level < 5 && r < DROP(level)) level += 1;
+    }
+    return { name, short: name.split(' · ')[0], color, pts };
+  });
+
+// What each simulated driver came to, read off its own run.
+const simStory = (sim) => sim.map((d) => {
+  const levels = d.pts.map(levelOf);
+  const end = levels.at(-1);
+  const first = levels.findIndex((l) => l === end);
+  const season = Math.max(1, Math.ceil(first / PER_SEASON));
+  if (end === 4) return `${d.short} holds Bronze throughout`;
+  return end < 4 ? `${d.short} reaches ${TIER[end]} in season ${season}` : `${d.short} drops to ${TIER[end]} as season ${season} closes`;
+}).join('; ').replace(/^./, (c) => c) + '.';
+
+// A decision taken: the pick, and what it now means.
+const decided = (no, title, pick, text, wide) => `<div class="dec"${wide ? ' style="grid-column:1 / -1"' : ''}><h4><span class="no">${no}</span>${title}</h4>
+  <div class="opt2 rec one"><b>${pick}<span class="chip c-rec">${I.check}Decided</span></b><span class="t">${text}</span></div></div>`;
+
+// Of the 46 historic events, the lowest rung any of its classes enters at.
+const HISTORIC_MIN = { 1: 36, 2: 5, 3: 4, 4: 1, 5: 0 };
+
+// When each simulated driver first reached each rung, in seasons, from Rookie.
+const climbTimes = () => simulate(5, 10).map((d) => {
+  const levels = d.pts.map(levelOf);
+  const at = [4, 3, 2, 1].map((t) => { const i = levels.findIndex((l) => l <= t); return i < 0 ? null : i / PER_SEASON; });
+  const reached = [0, ...at.filter((s) => s !== null)];
+  return { ...d, at, gaps: reached.slice(1).map((s, i) => s - reached[i]) };
+});
+
+const concept = () => {
+  const climb = climbTimes();
+  const win = R5_WIN;
+  const crash = LOG.find((l) => l.a && l.a.capped && l.disc === 'sports');
+  const same = [3000, 3500, 4000, 4500].map((r) => [r, rateSession(r, { ...win.s, speed: 1 }), rateSession(r, { ...win.s, speed: 1, p: win.c.n })]);
+  const sim = simulate();
+  return `<div class="doc">
+  <div class="panel"><h3>${I.gauge}Rating and the ladder, in one paragraph</h3><div class="pb">
+    <p>Every race and qualifying you drive moves <b>two ratings</b>: the one of its discipline and your <b>global</b> one. Each moves on <b>who you beat and who beat you</b> among your classmates, against what the field's strength said to expect - and <b>no single session can take more than a third of what one can give</b>, so a crash costs a bad afternoon, not a season. A discipline's <b>level</b> is the highest rung whose floor its rating has reached: you may enter that rung and any below it, and <b>every discipline opens one rung below your best</b>. A career opens at <b>1,000</b>, Rookie's floor; Platinum opens at <b>8,000</b>.</p>
+    <div class="rules3" style="margin-top:12px">
+      <div class="rule"><h5><span class="chip c-up">${I.up}Climb</span>Beat the top third</h5><span class="muted">Finish in the top third of your class more often than not and the rating rises past the next floor. The first rungs come quickly; each one up is wider, so it asks for more seasons and better results.</span></div>
+      <div class="rule"><h5><span class="chip c-plain">Hold</span>Mid-pack holds</h5><span class="muted">A rung's field is rated at the middle of its band, so an average result there keeps you where you are - with room either side.</span></div>
+      <div class="rule"><h5><span class="chip c-down">${I.dn}Drop</span>The back quarter drops</h5><span class="muted">A level is lost only when a season closes below the middle of the rung beneath - its field. Never mid-season, and an entry already made always stands.</span></div>
+    </div></div></div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+  <div class="panel"><h3>The ladder in numbers</h3><div class="pb">
+    <table class="t"><thead><tr><th>Rung</th><th class="d">Opens at</th><th class="d">Its field</th><th class="d">Dropped below</th></tr></thead><tbody>
+    ${[1, 2, 3, 4, 5].map((t) => `<tr><td>${tierChip(t)}</td><td class="d num"><b>${n0(FLOOR(t))}</b></td><td class="d num">${n0(FIELD(t))}</td><td class="d num muted">${t === 5 ? 'Never' : n0(DROP(t))}</td></tr>`).join('')}
+    </tbody></table>
+    <p class="hint" style="margin-top:10px">Each rung is <b>500 wider</b> than the one below it - 1,000, 1,500, 2,000, 2,500 - so leaving Rookie takes a few months and reaching Platinum takes years. A rung's field is rated at <b>its middle</b>, and a level is lost below <b>the middle of the rung beneath</b>, which is that rung's field: two columns, the same numbers. A rating never falls below 1, and has no ceiling: high enough, a win earns next to nothing while a crash still costs up to 100.</p>
+  </div></div>
+
+  <div class="panel"><h3>How one session moves it</h3><div class="pb col" style="gap:10px">
+    <div class="formula">Δ = K × weight × speed × (beaten − expected)<br>&nbsp;&nbsp;but never under −⅓ × K × weight × speed<br>
+      <i>K</i> ${K} · <i>weight</i> 1 for a race, ¼ for qualifying · <i>speed</i> the career's rating speed<br>
+      <i>beaten</i> the share of classmates you finished ahead of<br>
+      <i>expected</i> the mean over them of 1 / (1 + 10<sup>(their rating − yours) / ${n0(SPREAD)}</sup>)<br>
+      <i>their rating</i> the rung's field + ${PER_POINT} × (their strength − your Opponents setting)</div>
+    <p><b>Worked: R5 Race 2 at Brands Hatch Indy.</b> Sportscar at ${n0(prevOf(win).sports)}, ${win.c.n - 1} GT4 classmates at ${sgn(win.a.lo)} to ${sgn(win.a.hi)} over your own ${BASE} - the season's +2 step included - rated ${n0(win.a.mean)} on average. Expected to beat ${Math.round(win.a.E * 100)}% of them, which is P${win.a.exp}; won, beating all of them. (1.00 − ${win.a.E.toFixed(2)}) × ${K} × 1.5 = <b>${sgn(win.a.d)}</b>.</p>
+    <p><b>Capped: R2 Race 2 at Barcelona.</b> P${crash.s.p} of ${crash.c.n} after a spin, expected P${crash.a.exp}: (${crash.a.S.toFixed(2)} − ${crash.a.E.toFixed(2)}) × ${K} = ${n0(crash.a.raw)}, held to <b>${sgn(crash.a.d)}</b>. The win at Donington three weeks later gave ${sgn(LOG.find((l) => l.id === 'ginetta' && l.s.p === 1 && l.kind === 'race').a.d)}.</p>
+    <table class="t"><thead><tr><th>At ×1, from a rating of</th>${same.map(([r]) => `<th class="d">${n0(r)}</th>`).join('')}</tr></thead>
+      <tbody><tr><td class="muted">A win moves it</td>${same.map(([, a]) => `<td class="d">${dlt(a.d)}</td>`).join('')}</tr>
+      <tr><td class="muted">Last place moves it</td>${same.map(([, , c]) => `<td class="d">${dlt(c.d)}${c.capped ? `<div class="s hint num">not ${n0(c.raw)}</div>` : ''}</td>`).join('')}</tr></tbody></table>
+    <span class="hint">The further above a field you already are, the less beating it proves - so a rung you have outgrown stops paying, and the next one up is where the rating grows. Losing is held to ${n0(CAP)} a race at ×1, and ${n0(CAP * QUALI)} a qualifying.</span>
+  </div></div></div>
+
+  <div class="panel"><h3>Over a career: four drivers from Tier 4, eight seasons of eight rounds</h3><div class="pb col" style="gap:8px">
+    ${legend(sim)}
+    ${lineChart('sim', { series: sim, labels: sim[0].pts.map((_, i) => (i ? `Season ${Math.floor((i - 1) / PER_SEASON) + 1} · session ${((i - 1) % PER_SEASON) + 1}` : 'Career opens at Tier 4')), ymin: 0, ymax: 11500, w: 1180, h: 280, xticks: Array.from({ length: 8 }, (_, s) => [s * PER_SEASON, `Season ${s + 1}`]) })}
+    <span class="hint">Each enters the highest rung open to it when a season starts and races it all season: a qualifying and two races a round. Each result is the share it beats on a fixed pace against the field, plus or minus a quarter at random, and one race in twenty ends last after a crash. ${simStory(sim)}</span>
+  </div></div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+  <div class="panel"><h3>What moves it</h3><div class="pb"><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7">
+    <li><b>A race you drove</b>, in full, against your own class only - a GT3 driver in a WEC round is rated against the GT3 field, on the GT3 class's rung.</li>
+    <li><b>A qualifying you drove</b>, at a quarter. A knockout counts once, on the order it ends in: whoever went through beat you.</li>
+    <li><b>A historic event</b>, as a race on your own rung - see 9.</li>
+    <li>The part of a round you drove before leaving it. Its rest is a stand-in's.</li>
+    <li>The field's strength <b>over your own Opponents setting, as raced</b>: the championship's and the class's offsets, each driver's own, and your steps - a step taken before Race 2 counts from Race 2.</li></ul></div></div>
+  <div class="panel"><h3>What never moves it</h3><div class="pb"><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7">
+    <li><b>Your Opponents setting itself.</b> At 80 or at 98, a field at your setting is rated at its rung.</li>
+    <li><b>How long the race ran.</b> A race shortened to a 48th counts as the whole one, as it pays.</li>
+    <li>Practice. A round skipped, missed, withdrawn from or raced by a stand-in - <b>a DNS leaves the rating untouched</b>.</li>
+    <li>A simulated round. Quick races and standalone championships, which have no ladder.</li>
+    <li>Loading a save - the rating is in the save, like the money.</li></ul></div></div></div>
+
+  <h2 style="margin:6px 0 0">Decided</h2>
+  <div class="decs">
+  ${decided(1, 'What the rating measures', 'A · Elo against a rung-rated field, with losses held', `Classmates are rated off their rung and their strength; you gain for beating more of them than expected. A session can take at most a third of what it could give: ${n0(CAP)} a race at ×1, against a win's ${n0(K)} at most.`)}
+  ${decided(2, 'What AI strength counts', 'Only what a field races at over your own setting', `Your Opponents setting is where a field is rated at its rung, whatever it is set to. Every point a driver races over it - offsets and your steps alike - adds ${PER_POINT}; every point under takes as much. A field you step up to +10 is rated 750 higher.`)}
+  ${decided(3, 'Which sessions count', 'B · Races, and qualifying at a quarter', 'One-lap pace counts for something. A knockout is one qualifying, on its final order.')}
+  ${decided(4, 'A shortened race', 'A · Counts in full', 'Race length moves neither the money nor the rating. The log still says a race ran short.')}
+  ${decided(5, 'Progression speed', 'A · Scales every change - and the rating has its own', 'K × speed, both ways. <b>Prize money speed</b> and <b>Rating speed</b> are two settings of the career, each ×0.5 to ×4, each changed on its own and each a line in its own log.')}
+  ${decided(6, 'The global rating', 'C · A rating of its own', 'Moved by every session, whatever the discipline, against the same field: your form across everything you race.')}
+  ${decided(7, 'Losing a level', 'B · Only when a season closes', `…and only below the middle of the rung beneath: Silver is lost under ${n0(DROP(3))}, Bronze's field. Promotion is immediate. An entry already made always stands.`)}
+  ${decided(8, 'Entering a new discipline', 'B · Lifted to that rung\'s floor on entering', `Once, as you enter: touring at ${n0(NOW.touring)} entering a Tier 4 championship jumps to ${n0(FLOOR(4))} and races from there. A line in the log says why.`)}
+  ${decided(9, 'Historic events', 'C · Invited as a guest, rated on your rung', `Any event invites you, as today - <b>${HISTORIC_MIN[1]} of the 46 are Tier 1</b>, so gating on level would leave a new career none. It moves your rating as a race on your own rung in its discipline would, in full, so a 1967 Grand Prix is a treat, not a shortcut.`, true)}
+  </div>
+
+  <h2 style="margin:6px 0 0">The figures</h2>
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+  <div class="panel"><h3>Every number the rules use</h3><div class="pb">
+    <table class="t"><tbody>
+      <tr><td>A career opens at</td><td class="d num"><b>${n0(START)}</b></td><td class="hint">Rookie's floor</td></tr>
+      <tr><td>Each rung's width</td><td class="d num"><b>${[5, 4, 3, 2].map((t) => n0(WIDTH[t])).join(' · ')}</b></td><td class="hint">500 wider each rung up</td></tr>
+      <tr><td>K, the most a race can give</td><td class="d num"><b>${K}</b></td><td class="hint">×weight ×rating speed</td></tr>
+      <tr><td>The most a race can take</td><td class="d num"><b>${n0(CAP)}</b></td><td class="hint">a third of K; ${n0(CAP * QUALI)} for a qualifying</td></tr>
+      <tr><td>Qualifying's weight</td><td class="d num"><b>¼</b></td><td class="hint">of a race</td></tr>
+      <tr><td>A point of AI strength over your setting</td><td class="d num"><b>${PER_POINT}</b></td><td class="hint">+10 rates a field 750 higher</td></tr>
+      <tr><td>Elo's spread</td><td class="d num"><b>${n0(SPREAD)}</b></td><td class="hint">inside the formula only</td></tr>
+    </tbody></table></div></div>
+  <div class="panel"><h3>How long each rung takes, from a Rookie start</h3><div class="pb col" style="gap:8px">
+    <table class="t"><thead><tr><th>Seasons until</th>${[4, 3, 2, 1].map((t) => `<th class="d">${tierChip(t)}</th>`).join('')}</tr></thead><tbody>
+    ${climb.map((d) => `<tr><td><span class="row" style="gap:6px"><i class="sw" style="background:${d.color}"></i>${d.short}</span></td>${d.at.map((s) => `<td class="d num">${s === null ? '<span class="muted">-</span>' : s.toFixed(1)}</td>`).join('')}</tr>`).join('')}
+    </tbody></table>
+    <span class="hint">The same four drivers over ten seasons, started at Rookie. Each rung up is wider and its field faster, so the front-runner's rungs take ${climb[0].gaps.map((g) => g.toFixed(1)).join(', ')} seasons in turn: Bronze in months, Platinum in years.</span>
+  </div></div></div>
+
+  <div class="panel"><h3>What it stores</h3><div class="pb">
+    <pre class="tree">CareerState
+  rating     { global, single-seater, sportscar, touring, road }   <i>was per discipline only</i>
+  level      { single-seater, sportscar, touring, road }           <i>its own rungs, 1 the top - as today</i>
+  ratingLog  RatingLine[]                                          <i>a line per change, oldest first</i>
+
+CareerSettings
+  progression   →  prizeSpeed, ratingSpeed                         <i>two speeds, each one of PROGRESSION_SPEEDS</i>
+
+RatingLine
+  key        race:&lt;raceId&gt;:&lt;launch&gt; | level:&lt;season&gt;:&lt;discipline&gt; | start | lift:&lt;season&gt;:&lt;series&gt; | speed:&lt;n&gt;
+  date, kind, discipline, before, after, globalBefore, globalAfter
+  why        { session, place, of, expected, field, offsetLow, offsetHigh, weight, speed, uncapped }</pre>
+    <p class="hint" style="margin-top:10px">Posted from the career store's <code>settle</code>, as prizes are, keyed by what it settles so nothing counts twice - qualifying and races alike, a launch each - but in date order, since each change depends on the rating before it. The cross-discipline allowance is derived, never stored. <b>Existing careers' state.json will no longer read</b> - they lack <code>ratingLog</code> and the global rating - so they need deleting, as the economy's did. Their <code>career.json</code> still reads: the tolerant reader gives both speeds ×1.</p>
+  </div></div>
+</div>`;
+};
+
+// ---------- Home ----------
+const ratingDoor = () => {
+  const s27 = (k) => NOW[k] - seasonStart(2027, k);
+  return `<div class="door"><h4><span class="well amber" style="width:28px;height:28px">${I.gauge}</span>Rating<span class="end muted" style="font-weight:400">${I.chev}</span></h4>
+    <div class="row" style="align-items:baseline;gap:10px"><b style="font-size:22px" class="num">${n0(NOW.g)}</b><span class="hint">${dlt(s27('g'))} this season</span></div>
+    ${DISCS.map((d) => `<div class="ln"><span class="row" style="gap:6px;color:var(--foreground)"><span class="dot ${d}"></span>${DNAME[d]}</span><span class="row" style="gap:6px">${medal(OPEN[d], 16)}<span class="num" style="min-width:38px;text-align:right">${n0(NOW[d])}</span></span></div>`).join('')}</div>`;
+};
+const door = (icon, well, title, lines) => `<div class="door"><h4><span class="well ${well}" style="width:28px;height:28px">${icon}</span>${title}<span class="end muted" style="font-weight:400">${I.chev}</span></h4>${lines}</div>`;
+const home = () => {
+  const banner = {
+    up: `<div class="banner sports">${medal(3)}<div class="grow"><b>Promoted to Tier 3 in Sportscar</b><div>Your sportscar rating reached ${n0(NOW.sports)}, past Silver's ${n0(FLOOR(3))}. ${NEWLY()} more championships are open to you, and Single-seater, Touring and Road now open at Tier 4 through it.</div></div><button class="btn sm">Show on the ladder</button><button class="btn sm">Rating</button></div>`,
+    down: `<div class="banner down">${medal(4)}<div class="grow"><b>Sportscar is back to Tier 4 for 2028</b><div>2027 closed with your sportscar rating at 2,690, under ${n0(DROP(3))} - the middle of Bronze. Your entries stand; the rungs above Bronze reopen at ${n0(FLOOR(3))}.</div></div><button class="btn sm">Rating</button></div>`,
+    none: '',
+  }[S.home];
+  return win(`${hdr('home', S.home === 'down' ? { year: 2028, date: 'Thu 1 Jan', rating: 3610 } : {})}<div class="body col" style="gap:14px;overflow:auto">
+  ${banner}
+  <div class="ph side" style="border-radius:16px;min-height:${S.home === 'none' ? 200 : 170}px;flex:none"><img class="bg" src="${PH.barca2}">
+    <div class="cap" style="padding:20px 24px;display:flex;flex-direction:column;gap:8px;max-width:62%">
+      <span class="caps" style="color:inherit;opacity:.8">Next event · Sun 27 Jul</span>
+      <h2 style="margin:0;font-size:24px">R6 · Barcelona National</h2>
+      <div style="opacity:.85">GT4 European Series 2027 · Practice, Qualifying, Race 1, Race 2</div>
+      <div class="row"><button class="btn pri lg">${I.play}Go to round</button></div></div></div>
+  <div class="placeholder"><b>Your championships</b>As today - a segment per round.</div>
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+    ${door(I.results, 'blue', 'Results', '<div class="ln"><span>R5 · Brands Hatch Indy · Race 2</span><span class="chip c-gold">P1</span></div><div class="ln"><span>R5 · Brands Hatch Indy · Race 1</span><span class="chip" style="background:var(--bronze);color:var(--bronze-fg)">P3</span></div>')}
+    ${door(I.history, 'violet', 'History', '<div class="ln"><span>2026 · GT4 European Cup 2010</span><span class="chip c-gold">P1</span></div><div class="ln"><span>1 season finished</span><span></span></div>')}
+    ${door(I.wallet, 'green', 'Finances', `<div class="row" style="align-items:baseline;gap:10px"><b style="font-size:22px" class="num">$${n0(BALANCE)}</b></div><div class="ln"><span>R5 · Race 2 prize</span><span class="in num">+$9,000</span></div><div class="ln"><span>R5 · Race 1 prize</span><span class="in num">+$5,250</span></div>`)}
+    ${ratingDoor()}
+  </div></div>
+  ${S.home === 'up' ? `<div class="toast"><span class="well sports" style="background:var(--d-sports);color:var(--d-sports-fg)">${I.up}</span><div class="grow"><b>Promoted to Tier 3 in Sportscar</b><div class="muted" style="font-size:12.5px">R5 · Race 2 · sportscar ${sgn(R5_WIN.a.d)} to ${n0(NOW.sports)}</div></div>${medal(3, 26)}</div>` : ''}`);
+};
+
+// ---------- The rating page ----------
+const prog = (r, t) => {
+  const lo = t === 5 ? FLOOR(5) : DROP(t);
+  const hi = t === 1 ? FLOOR(1) + WIDTH[1] : FLOOR(t - 1);
+  const pct = (v) => Math.max(0, Math.min(100, ((v - lo) / (hi - lo)) * 100));
+  const dropW = pct(FLOOR(t));
+  return `<div class="prog"><div class="tr">${t === 5 ? '' : `<span class="drop" style="width:${dropW}%"></span>`}<span class="band" style="background:var(--t${t});width:${Math.max(0, pct(r) - dropW)}%"></span></div>
+    <span class="mk" style="left:${pct(r)}%"></span>
+    ${t === 5 ? '' : `<span class="tk l" style="left:0">${n0(lo)}</span>`}<span class="tk" style="left:${dropW}%;${t === 5 ? 'transform:none' : ''}">${n0(FLOOR(t))}</span>${t === 1 ? '' : `<span class="tk r" style="left:100%">${n0(hi)}</span>`}</div>`;
+};
+const dcard = (d) => {
+  const raced = LOG.some((l) => l.disc === d && (l.kind === 'race' || l.kind === 'historic'));
+  const t = OWN[d];
+  const season = NOW[d] - seasonStart(2027, d);
+  const toGo = t > 1 ? FLOOR(t - 1) - NOW[d] : 0;
+  return `<div class="dcard ${d}"><div class="row">${dchip(d)}<span class="end">${medal(OPEN[d], 22)}</span></div>
+    <div class="row" style="align-items:baseline;gap:8px"><b class="big num">${n0(NOW[d])}</b>${raced ? `<span class="hint">${dlt(season)} this season</span>` : '<span class="hint">Never raced</span>'}</div>
+    ${prog(NOW[d], t)}
+    <span class="hint">${VIA(d)
+    ? `<b style="color:var(--foreground)">Tier ${OPEN[d]} open through Sportscar.</b> Its own level is Tier ${t}; entering a Tier ${OPEN[d]} championship lifts it to ${n0(FLOOR(OPEN[d]))}.`
+    : `<b style="color:var(--foreground)">${n0(toGo)} to ${TIER[t - 1]}</b>, which opens Tier ${t - 1}. Drops to ${TIER[t + 1]} only if a season closes under ${n0(DROP(t))}.`}</span></div>`;
+};
+const KINDS = { start: ['Opened', 'c-set'], race: ['Race', 'c-race'], quali: ['Qualifying', 'c-qualify'], historic: ['Historic', 'c-historic'], up: ['Promoted', 'c-up'], down: ['Dropped', 'c-down'], speed: ['Speed', 'c-other'] };
+const logTable = (lines) => `<table class="t led"><thead><tr><th style="width:90px">Date</th><th style="width:104px">Kind</th><th>What</th><th class="d" style="width:150px">Discipline</th><th class="d" style="width:70px">Global</th></tr></thead>
+  <tbody>${[...lines].reverse().map((l) => {
+    const prev = LOG[LOG.indexOf(l) - 1];
+    const dd = l.disc && prev ? l.R[l.disc] - prev.R[l.disc] : 0;
+    const gd = prev ? l.R.g - prev.R.g : 0;
+    const discCell = l.kind === 'up' ? `<span class="dl">${tierChip(l.tier)}</span>` : l.disc ? `<span class="dl"><span class="chip ${DCHIP[l.disc]}">${DNAME[l.disc]}</span>${dlt(dd)}</span>` : '<span class="muted">-</span>';
+    const why = l.a && [
+      l.kind === 'historic' ? `a Tier ${l.c.tier} event, rated on your Tier ${l.s.rung}` : l.champ.replace(/ 20\d\d$/, ''),
+      l.sub,
+      l.s.type === 'quali' ? 'counts ¼' : '',
+      l.s.scale ? `raced at 1/${l.s.scale}, counts in full` : '',
+      l.s.speed > 1 ? `×${l.s.speed}` : '',
+      `field ${n0(l.a.mean)}`,
+      l.a.capped ? `held from ${n0(l.a.raw)}` : '',
+    ].filter(Boolean).join(' · ');
+    const sub = l.a ? why : l.sub;
+    return `<tr class="${['speed', 'start'].includes(l.kind) ? 'note' : ''}"><td class="num">${l.d}</td><td><span class="chip ${KINDS[l.kind][1]}">${l.kind === 'up' ? I.up : l.kind === 'speed' ? I.speed : ''}${KINDS[l.kind][0]}</span></td>
+      <td><div class="w">${l.what}</div><div class="s">${sub}</div></td><td class="d">${discCell}${l.kind === 'up' ? '' : `<div class="s num">${l.disc ? n0(l.R[l.disc]) : ''}</div>`}</td><td class="d">${l.a ? dlt(gd) : '<span class="muted">-</span>'}<div class="s num">${l.a ? n0(l.R.g) : ''}</div></td></tr>`;
+  }).join('')}</tbody></table>`;
+const byChamp = () => {
+  const lines = at(2027).filter((l) => l.a);
+  const groups = {};
+  lines.forEach((l) => { const g = groups[l.champ] || (groups[l.champ] = { c: l.c, n: 0, d: 0 }); g.n += 1; g.d += l.a.d; });
+  return Object.entries(groups).map(([name, g]) => `<div class="row" style="font-size:13px"><span class="chip ${g.c.historic ? 'c-historic' : DCHIP[g.c.disc]}">${g.c.historic ? 'Historic' : DNAME[g.c.disc]}</span><span class="grow">${name.replace(/ 20\d\d$/, '')}<div class="s hint">${g.n} session${g.n > 1 ? 's' : ''}</div></span>${dlt(g.d)}</div>`).join('');
+};
+const ratingPage = () => {
+  const ch = careerChart('career', { w: 880, h: 200 });
+  const lines = S.season === 'all' ? LOG : at(Number(S.season));
+  const head = `${hdr('home')}${back('Home', 'Rating')}`;
+  const segs = `<div class="row"><div class="seg">${[['2027', '2027'], ['2026', '2026'], ['all', 'Every season']].map(([k, l]) => `<span class="${S.season === k ? 'on' : ''}">${l}</span>`).join('')}</div>
+    <div class="seg" style="margin-left:8px"><span class="on">Every kind</span><span>Sessions</span><span>Levels</span></div></div>`;
+  const chartPanel = `<div class="panel" style="flex:none"><h3>Over the career<span class="end">${legend(ch.series, '<span class="muted">Single-seater and Road not raced</span>')}</span></h3><div class="pb">${ch.html}</div></div>`;
+  const logPanel = `<div class="panel log" style="flex:1"><h3>Every change <span class="muted" style="font-weight:400">${lines.length} lines · ${S.season === 'all' ? 'every season' : S.season}</span></h3><div class="pb">${logTable(lines)}</div></div>`;
+  const side = `<div class="col" style="gap:12px">
+    <div class="panel"><h3>2027 by championship</h3><div class="pb col" style="gap:10px">${byChamp()}</div></div>
+    <div class="panel"><h3>How it moves</h3><div class="pb col hint" style="gap:6px;font-size:12.5px"><span>Each race you drive moves its discipline and your global rating, on who you beat and who beat you in your class, against what the field's strength expected. Qualifying counts a quarter.</span><span>No race takes more than ${n0(CAP * 1.5)} at your speed.</span><span>A rung opens the moment its floor is passed. It is lost only when a season closes below the middle of the rung beneath.</span><span>Every discipline opens one rung below your best.</span>
+      <span class="row" style="gap:6px;margin-top:4px;color:var(--foreground)">${I.speed}Rating speed <b>×1.5</b><a class="end" style="color:var(--primary)">Settings</a></span></div></div></div>`;
+  return win(`${head}<div class="body col" style="gap:14px;overflow:hidden">${segs}
+    <div class="rtiles"><div class="dcard global"><span class="caps">Global</span><b class="big num">${n0(NOW.g)}</b><span class="hint">${dlt(NOW.g - seasonStart(2027, 'g'))} this season</span><span class="hint">Every session moves it, whatever the discipline - your form across everything you race.</span></div>${DISCS.map(dcard).join('')}</div>
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px">
+      <div class="col" style="gap:14px;min-height:0">${chartPanel}${logPanel}</div>${side}</div></div>`, 1000);
+};
+
+// ---------- Championships: the ladder ----------
+const LADDER = {
+  single: { 5: ['Italian F4 Championship', 'Formula Abarth'], 4: [], 3: ['FIA Formula 3 2024'], 2: ['FIA Formula 2 2024 (RSS)', 'Super Formula 2023', 'Formula E 2023-24', 'Formula UK'], 1: ['Formula 1 2026 (VRC)', 'IndyCar 2021', 'Formula 1 2007'] },
+  sports: { 5: ['Radical Cup UK', 'GT4 European Cup 2010'], 4: ['GT4 European Series', 'Ginetta GT4 Supercup', 'Porsche Supercup 2025'], 3: ['GT World Challenge Europe Sprint Cup', 'ADAC GT Masters', 'European Le Mans Series 2025'], 2: ['European Le Mans Series 2025', 'EGT Championship', 'FIA GT1 World Championship 2010'], 1: ['World Endurance Championship 2025', 'IMSA SportsCar Championship 2017'] },
+  touring: { 5: ['Trofeo Abarth 500 Italia 2009'], 4: ['Audi Sport TT Cup 2016', 'BMW M2 CS Racing Cup Italy', 'Mazda MX-5 Cup 2024'], 3: ['TCR Europe', 'Trans-Am TA2'], 2: ['DTM 2025 (LFM)', 'DTM 2021'], 1: [] },
+  road: { 5: ['GT86 Cup', 'Hot Hatch Trophy', 'Mk1 MX-5 Championship'], 4: ['Liana GT Cup', 'Lotus Cup'], 3: ['Porsche Club Race', 'Production Car Endurance'], 2: ['Supercar Series'], 1: ['Hypercar Invitational', 'XX Programme Invitational'] },
+};
+const MODS = ['Formula 4', 'FIA', 'Super Formula', 'Formula E', 'IndyCar', 'Formula 1', 'DTM', 'TCR', 'Trans-Am', 'Porsche Supercup', 'IMSA', 'European Le Mans'];
+// What opens a rung: its floor in its own discipline, or the rung above it in
+// any, which the allowance brings down one.
+const opensWith = (d, t) => `Tier ${t}: ${n0(FLOOR(t))} in ${DNAME[d]}${t > 1 ? `, or Tier ${t - 1} anywhere` : ''}`;
+// The card the mockup holds its tooltip open on, as if hovered.
+const TIPPED = ['single', 'FIA Formula 3 2024'];
+const rungCard = (d, name, t, locked) => {
+  const rounds = 5 + (name.length % 5);
+  const mod = MODS.some((m) => name.includes(m));
+  const tipped = locked && d === TIPPED[0] && name === TIPPED[1];
+  return `<div class="rung ${d}${locked ? ' locked' : ''}${tipped ? ' tipped' : ''}"${locked ? ` aria-disabled="true"` : ''}>
+    ${locked ? `<span class="lk">${I.lock}</span><span class="ltip">${opensWith(d, t)}</span>` : ''}
+    <h5>${name}</h5><div class="row" style="gap:4px">${name === 'GT4 European Series' ? '<span class="chip c-named">Yours</span>' : '<span class="chip c-origin">Ours</span>'}${mod ? '<span class="chip c-mod">Mod</span>' : ''}${name === 'GT4 European Series' ? '<span class="chip c-done">Entered</span>' : ''}</div>
+    <div class="ft"><span class="num">${rounds} rounds</span><span class="strip"><i class="p"></i><i class="q"></i><i class="r"></i></span></div></div>`;
+};
+const cellOf = (d, t) => {
+  const names = LADDER[d][t];
+  const locked = t < OPEN[d];
+  if (locked && S.open === 'on') {
+    return `<div class="cell above">${names.length ? `<div class="lockcell"><b>${I.lock}${names.length} locked</b><span>${opensWith(d, t)}</span></div>` : ''}</div>`;
+  }
+  if (!names.length) return '<div class="cell empty"></div>';
+  const shown = names.slice(0, 3).map((n) => rungCard(d, n, t, locked)).join('');
+  return `<div class="cell">${shown}${names.length > 3 ? `<span class="hint" style="padding-left:4px">+${names.length - 3} more</span>` : ''}</div>`;
+};
+const ladder = () => {
+  const openCount = DISCS.reduce((a, d) => a + [1, 2, 3, 4, 5].filter((t) => t >= OPEN[d]).reduce((b, t) => b + LADDER[d][t].length, 0), 0);
+  const all = DISCS.reduce((a, d) => a + [1, 2, 3, 4, 5].reduce((b, t) => b + LADDER[d][t].length, 0), 0);
+  const filtered = S.open === 'on';
+  const row = (d) => {
+    const t = OWN[d];
+    const span = (t > 1 ? FLOOR(t - 1) : FLOOR(1) + WIDTH[1]) - FLOOR(t);
+    const pct = Math.max(4, Math.min(100, ((NOW[d] - FLOOR(t)) / span) * 100));
+    return `<div class="dh" style="flex-direction:column;gap:2px"><span class="row" style="gap:7px"><span class="dot ${d}"></span>${DNAME[d]}</span>
+      <div class="lvl"><span class="row" style="gap:5px">${medal(OPEN[d], 16)}<span>Tier ${OPEN[d]} · <b class="num" style="color:var(--foreground)">${n0(NOW[d])}</b></span></span>
+      ${VIA(d) ? '<span class="chip c-sports" style="align-self:flex-start;font-size:10.5px;padding:3px 6px">through Sportscar</span>' : `<span class="mini"><i style="width:${pct}%"></i></span><span>${n0(FLOOR(t - 1) - NOW[d])} to Tier ${t - 1}</span>`}</div></div>
+      ${[5, 4, 3, 2, 1].map((tt) => cellOf(d, tt)).join('')}`;
+  };
+  return win(`${hdr('champs')}<div class="body" style="display:flex;flex-direction:column;gap:14px;overflow:hidden">
+<header><div style="font-size:22px;font-weight:600">Championships</div><div class="muted" style="font-size:13px">The championships you can race today.</div></header>
+<div style="display:flex;flex:1;min-height:0"><div class="rail">
+  <div class="rsec"><span class="caps">Discipline</span>${DISCS.map((d) => `<div class="ropt"><span class="cb"></span><span class="dot ${d}"></span>${DNAME[d]}<span class="cnt num">${[1, 2, 3, 4, 5].reduce((b, t) => b + LADDER[d][t].length, 0)}</span></div>`).join('')}</div>
+  <div class="rsec"><span class="caps">Tier</span>${[5, 4, 3, 2, 1].map((t) => `<div class="ropt"><span class="cb"></span>${medal(t, 17)}${TIER[t]}<span class="cnt num">${DISCS.reduce((b, d) => b + LADDER[d][t].length, 0)}</span></div>`).join('')}</div>
+  <div class="rsec"><span class="caps">Needs</span><div class="ropt"><span class="cb"></span>Base game<span class="cnt">21</span></div><div class="ropt"><span class="cb"></span>Mods<span class="cnt">14</span></div></div>
+  <div class="rsec"><span class="caps">Yours</span><label class="rsw">Open to you <span class="switch${S.open === 'on' ? ' on' : ''}"></span></label><label class="rsw">Can afford next round <span class="switch"></span></label></div></div>
+<div class="main" style="overflow:auto"><div class="toolbar"><div class="input" style="width:280px">${I.search}<span class="muted">Search championships</span></div><button class="btn">${I.sort}Ladder</button></div>
+<div class="pills"><span class="num">${filtered ? `${openCount} of ${all}` : `${all} of ${all}`}</span>${filtered ? `<span class="pill">Open to you ✕</span>` : ''}</div>
+<div class="grid" style="flex:none;grid-template-columns:9.5rem repeat(5,minmax(0,1fr));border:1px solid var(--border);border-radius:12px;background:var(--card)"><div></div>${[5, 4, 3, 2, 1].map((t) => `<div class="gh">${medal(t)}${TIER[t]}<span class="end muted num" style="font-size:11.5px">${n0(FLOOR(t))}</span></div>`).join('')}
+${DISCS.map(row).join('')}</div></div></div></div>`, 960);
+};
+
+// ---------- A championship's Enter panel ----------
+const enter = () => {
+  const locked = S.enter === 'locked';
+  const name = locked ? 'DTM 2025 (LFM)' : 'Audi Sport TT Cup 2016';
+  const t = locked ? 2 : 4;
+  const panel = locked
+    ? `<div class="panel enter"><h3>Enter ${name}</h3><div class="pb col" style="gap:10px">
+        <div class="lockbox"><b>${I.lock}Opens at Tier 2 in Touring</b><span>You are Tier ${OPEN.touring} in Touring, through your Sportscar Tier ${BEST}. Either opens it:</span>
+          <div class="path"><span class="chip c-touring">Touring</span><span>${n0(NOW.touring)} of ${n0(FLOOR(2))}</span><b class="num">${n0(FLOOR(2) - NOW.touring)} to go</b>
+            <span class="chip c-sports">Sportscar</span><span>Tier 1 anywhere: ${n0(NOW.sports)} of ${n0(FLOOR(1))}</span><b class="num">${n0(FLOOR(1) - NOW.sports)} to go</b></div></div>
+        <div class="row muted" style="font-size:12.5px">${I.car}<span>A car is picked once the class is open.</span></div>
+        <button class="btn pri dim">Enter</button></div></div>`
+    : `<div class="panel enter"><h3>Enter ${name}</h3><div class="pb col" style="gap:10px">
+        <div class="viabox"><span class="row" style="gap:6px"><b>Open through Sportscar</b><span class="end">${medal(4, 18)}</span></span><span class="muted">Touring is Tier ${OWN.touring} on its own rating. Your Sportscar Tier ${BEST} opens it one rung below.</span>
+          <span class="row" style="gap:6px;font-size:12.5px"><span class="chip c-set">Lifted</span>Entering lifts your touring rating from ${n0(NOW.touring)} to <b>${n0(FLOOR(4))}</b>, Bronze's floor.</span></div>
+        <div class="row" style="gap:10px"><div style="width:64px;height:40px;border-radius:6px;background:var(--muted);display:grid;place-items:center" class="muted">${I.car}</div><span class="grow" style="font-size:13px"><b style="font-weight:500">Audi TT Cup</b><div class="hint">Rented · Livery 07</div></span><button class="btn sm">Change</button></div>
+        <div class="feebox"><span class="k">Rent</span><span class="v num">$2,600 a round</span></div>
+        <button class="btn pri">Enter</button></div></div>`;
+  return win(`${hdr('champs')}${back('Championships')}<div class="body" style="display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;overflow:auto">
+    <div class="col" style="gap:14px">
+      <div class="panel"><div class="pb col" style="gap:8px;padding-top:14px"><div class="row"><span class="chip c-touring">Touring</span><span class="chip c-tier${t}">${medal(t, 14)}Tier ${t} · ${TIER[t]}</span></div>
+        <h2 style="margin:0;font-size:20px">${name}</h2><div class="kv2"><span>Rounds</span><b>${locked ? 8 : 6}</b><span>Entry fee</span><b class="num">$${locked ? '18,000' : '3,500'}</b><span>Field</span><b>${locked ? '20 cars' : '22 cars'}</b></div></div></div>
+      ${panel}</div>
+    <div class="col" style="gap:14px">
+      <div class="tabs" style="padding:0;background:transparent"><a class="on">Rounds</a><a>Standings</a><a>Classes</a><a>Points, prizes and rules</a></div>
+      <div class="placeholder"><b>Rounds</b>As today.</div></div></div>`);
+};
+
+// ---------- After a race ----------
+const result = () => {
+  const b = R5_WIN;
+  const pop = S.pop === 'on';
+  const before = BEFORE_R5;
+  const name = (l) => (l.s.type === 'quali' ? 'Qualifying' : l.what.split(' · ').at(-1));
+  const rrow = (l) => `<div class="rrow"><span>${name(l)} · <b>${l.s.type === 'quali' ? 'Q' : 'P'}${l.s.p}</b> of ${l.c.n}<div class="s">expected ${l.s.type === 'quali' ? 'Q' : 'P'}${l.a.exp} · field ${n0(l.a.mean)}${l.s.type === 'quali' ? ' · counts ¼' : ''}</div></span>${dlt(l.a.d)}<button class="btn icon xs${pop && l === b ? ' on' : ''}">${I.info}</button></div>`;
+  const mine = prevOf(b).sports;
+  const field = [...b.s.field].sort((x, y) => x - y);
+  const H = (v) => 18 + (v + 3) * 9;
+  const popover = pop ? `<div class="pop" style="right:380px;top:250px"><h4>Race 2 · ${dlt(b.a.d)} sportscar</h4>
+    <div class="kv"><span>Your sportscar rating</span><b class="num">${n0(mine)}</b>
+      <span>Classmates</span><b>${b.c.n - 1} in GT4, ${sgn(b.a.lo)} to ${sgn(b.a.hi)}</b>
+      <span>Rated, on average</span><b class="num">${n0(b.a.mean)}</b>
+      <span class="hint" style="grid-column:1 / -1;margin-top:-2px">Bronze's field is ${n0(FIELD(4))} at your own Opponents setting, ${BASE}; each point a driver races over it adds ${PER_POINT}. Your season step of +2 is in theirs.</span>
+      <span>Expected</span><b>P${b.a.exp} · beat ${Math.round(b.a.E * 100)}%</b>
+      <span>Finished</span><b>P${b.s.p} · beat ${Math.round(b.a.S * 100)}%</b>
+      <span>Session</span><b>Race · counts in full</b>
+      <span>Rating speed</span><b>×1.5</b></div>
+    <span class="hint">Each classmate's strength over your setting, lowest first:</span><div class="strip2" title="Each classmate's offset over your Opponents setting">${field.map((v) => `<i style="height:${H(v)}%"></i>`).join('')}</div>
+    <div class="sum">(${b.a.S.toFixed(2)} − ${b.a.E.toFixed(2)}) × ${K} × 1.5 = ${b.a.raw.toFixed(1)}<span class="end">${dlt(b.a.d)}</span></div>
+    <span class="hint">Had it gone wrong, it could have taken at most ${n0(b.a.cap)}. Global moves on the same field, off its own ${n0(prevOf(b).g)}: ${sgn(b.b.d)}.</span></div>` : '';
+  return win(`${hdr('champs')}${back('GT4 European Series')}
+  <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;overflow:auto">
+    <div class="col">
+      <div><span class="caps">GT4 European Series · Round 5 of 8</span><h2 style="margin:4px 0 0;font-size:22px">Brands Hatch Indy</h2></div>
+      <div class="placeholder"><b>Round results, the event list and each session's result</b>As today.</div>
+    </div>
+    <div class="col">
+      <div class="placeholder"><b>Round money</b>As today.</div>
+      <div class="panel"><h3>${I.gauge}Rating</h3><div class="pb">
+        ${R5.map(rrow).join('')}
+        <div class="rrow" style="font-weight:600"><span class="row" style="gap:6px">${dchip('sports')}<span class="num">${n0(before.sports)} → ${n0(NOW.sports)}</span></span>${dlt(NOW.sports - before.sports)}<span></span></div>
+        <div class="rrow"><span class="row" style="gap:6px"><span class="chip c-plain">Global</span><span class="num">${n0(before.g)} → ${n0(NOW.g)}</span></span>${dlt(NOW.g - before.g)}<span></span></div>
+        <div class="banner sports" style="margin-top:8px;padding:9px 11px;font-size:12.5px">${medal(3, 26)}<div class="grow"><b style="font-size:13px">Promoted to Tier 3</b><div>Silver opens: ${NEWLY()} more championships.</div></div></div>
+      </div></div>
+      <div class="placeholder"><b>Your step on the AI's strength</b>As today.</div>
+    </div></div>${popover}
+    <div class="toast"><span class="well" style="background:var(--d-sports);color:var(--d-sports-fg)">${I.gauge}</span><div class="grow"><b>Race 2 · P1</b><div class="muted" style="font-size:12.5px">Sportscar ${sgn(b.a.d)} to ${n0(NOW.sports)} · promoted to Tier 3</div></div>${medal(3, 26)}</div>`);
+};
+
+// ---------- A historic event ----------
+const historic = () => {
+  const guest = S.hist === 'guest';
+  const name = guest ? '1000 km of Spa 1969' : 'Spa 24 Hours 1987';
+  const disc = guest ? 'sports' : 'touring';
+  const t = guest ? 1 : 3;
+  const yourTier = OPEN[disc];
+  const field = FIELD(yourTier);
+  return win(`${hdr('calendar')}${back('Calendar')}
+  <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;overflow:auto">
+    <div class="col" style="gap:14px">
+      <div class="ph shade" style="height:200px;border-radius:14px;flex:none"><img class="bg" src="${PH.spa}"><div class="cap" style="position:absolute;left:20px;bottom:16px"><span class="chip c-historic">Historic</span><h2 style="margin:6px 0 0;font-size:24px">${name}</h2><div style="opacity:.85">Wed 20 Aug 2027 · Spa-Francorchamps</div></div></div>
+      <div class="panel"><h3>About this event</h3><div class="pb"><div class="placeholder"><b>HistoricAbout</b>As today - the story, the classes, the format and the purse.</div></div></div>
+    </div>
+    <div class="col" style="gap:14px">
+      <div class="panel"><h3>Your seat</h3><div class="pb col" style="gap:10px">
+        <div class="row" style="gap:10px"><div style="width:64px;height:40px;border-radius:6px;background:var(--muted);display:grid;place-items:center" class="muted">${I.car}</div><span class="grow" style="font-size:13px"><b style="font-weight:500">${guest ? 'Porsche 908/3' : 'BMW M3 E30 Gr.A'}</b><div class="hint">${guest ? 'Porsche System Engineering · #26' : 'CiBiEmme · #46'}</div></span></div>
+        <div class="viabox"><span class="row" style="gap:6px"><b>${guest ? 'A guest invitation' : 'Invited'}</b><span class="end row" style="gap:4px">${dchip(disc)}${medal(t, 18)}</span></span>
+          <span class="muted">${guest
+    ? `This event races at Tier 1, three rungs above your Sportscar Tier ${yourTier}. The organisers invite guests from every rung.`
+    : `This event races at Tier 3 in Touring; you are Tier ${yourTier} there, through your Sportscar Tier ${BEST}.`}</span>
+          <span class="row" style="gap:6px;font-size:12.5px;align-items:flex-start">${I.gauge}<span>It counts as a <b>Tier ${yourTier} race in ${DNAME[disc]}</b> - your own rung - with its field rated ${n0(field)} rather than ${n0(FIELD(t))}${disc === 'touring' ? ', and it lifts nothing: a guest seat is not an entry' : ''}.</span></span></div>
+        <div class="row"><button class="btn">Decline</button><span class="hint">Declining is withdrawing; it leaves the rating untouched.</span></div></div></div>
+    </div></div>`);
+};
+
+// ---------- Settings: the two speeds ----------
+const STOPS = ['×0.5', '×0.75', '×1', '×1.25', '×1.5', '×2', '×3', '×4'];
+const slider = (on) => `<div class="slider" style="margin-bottom:12px"><span class="track"></span><span class="fill" style="width:${on / (STOPS.length - 1) * 100}%"></span><span class="knob" style="left:${on / (STOPS.length - 1) * 100}%"></span>
+  <div class="stops">${STOPS.map((s, i) => `<span class="${i === on ? 'on' : ''}">${s}</span>`).join('')}</div></div>`;
+const speedField = (icon, well, label, on, hint) => `<div class="field"><span class="lbl row" style="gap:8px"><span class="well ${well}" style="width:22px;height:22px">${icon}</span>${label}<b class="end num" style="font-size:18px">${STOPS[on]}</b></span>${slider(on)}<span class="hint">${hint}</span></div>`;
+const speeds = (money, rating, career) => `<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px">
+  ${speedField(I.wallet, 'green', 'Prize money', money, `Scales every prize${career ? ' from the next one on; what is already paid stays' : ' the career earns'}. Entry fees stay what each championship says.${career ? ' Each change is a line in Finances.' : ''}`)}
+  ${speedField(I.gauge, 'amber', 'Rating', rating, `Scales every change of rating, up and down alike - a faster career, not an easier one.${career ? ' Each change is a line in the rating log.' : ''}`)}</div>`;
+const settings = () => {
+  if (S.set === 'new') {
+    return win(`<header class="hd"><h1>Assetto Corsa Career</h1></header>
+  <div class="shdr"><span class="backlink">${I.back}Main menu</span><h2 style="margin-left:12px">New career</h2></div>
+  <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;overflow:auto">
+    <div class="col" style="gap:14px">
+      <div class="placeholder"><b>Driver, start year, starting level and starting money</b>As today.</div>
+      <div class="sect"><span class="well green">${I.speed}</span><h4>Progression</h4><div class="sh">How fast this career earns and climbs. Both can be changed later in the career's own settings.</div>
+        <div class="sb">${speeds(2, 2, false)}</div></div>
+    </div>
+    <div class="panel" style="align-self:start"><h3>Summary</h3><div class="pb kv2"><span>Driver</span><b>${flag('GBR')}Sam Whitaker</b><span>First season</span><b>2026</b><span>Level</span><b>${tierChip(5)}</b><span>Rating</span><b class="num">${n0(START)}</b><span>Money</span><b class="num">$50,000</b><span>Prize money</span><b>×1</b><span>Rating speed</span><b>×1</b></div></div>
+  </div>`);
+  }
+  return win(`${hdr('settings')}<div class="tabs"><a class="on">${I.gear}General</a><a>Diagnostics</a><a>Your content</a><a>Car classes</a><a>Content sources</a><a>Championships</a></div>
+    <div class="body col" style="gap:14px;overflow:auto;max-width:1000px">
+      <div class="seg" style="align-self:flex-start"><span class="on">This career</span><span>App</span></div>
+      <div class="placeholder"><b>Driver, Opponents, Driving aids and Calendar</b>As today.</div>
+      <div class="sect"><span class="well green">${I.speed}</span><h4>Progression</h4><div class="sh">How fast this career earns and how fast it climbs - two speeds, set apart</div>
+        <div class="sb">${speeds(2, 4, true)}</div></div>
+      <div class="placeholder"><b>Currency</b>As today.</div></div>`);
+};
+
+// ---------- Explanations ----------
+const WHY = {
+  concept: () => '<b>The concept, with your decisions in.</b> How one session moves a rating, how a level follows it, what was decided and every figure it runs on. Every number on every screen comes from these rules, computed live from one career: Sam Whitaker, from Tier 5 in 2026 to Tier 3 in Sportscar after R5 of GT4 European Series 2027.',
+  home: () => `<b>Home gains a fourth door, Rating</b>, beside Results, History and Finances: the global rating, its change this season, and each discipline's open rung and rating. It opens <code>/home/rating</code>. ${S.home === 'up' ? 'A <b>promotion</b> is a banner in the discipline\'s own colour, carrying the new rung\'s medal - beside the toast the race already raised. It stays until the next event is raced.' : S.home === 'down' ? 'A <b>drop</b> is only ever announced as a season opens, in the warning amber, since that is the only moment it can happen.' : 'With nothing to announce, Home is as today plus the door.'} The <b>global rating sits in the header</b> beside the balance on every page of a career, and opens the Rating page.`,
+  rating: () => '<b>Rating</b> at <code>/home/rating</code>, laid out like Finances: the figures up top, the log below, and only the log scrolls. The global rating and a card per discipline: the rating, the open rung\'s medal, and a bar from where it would drop to the next floor, the drop zone hatched. A discipline open through Sportscar says so and says what entering it would do. Every line of the log says what moved it - the place, the place expected, the field - and a qualifying line says it counts a quarter, a race held by the cap says from what.',
+  ladder: () => `<b>The Championships ladder</b> marks what is above you. Each discipline's row heads with its open rung, rating and the distance to the next. <i>Open to you</i> joins Can afford next round under Yours. ${S.open === 'on' ? 'Switched on, every locked cell folds into one line saying what opens it.' : 'Switched off, a locked championship is its ordinary card held still and greyed, with a lock; what opens it is a tooltip on hover - held open here on FIA Formula 3.'}`,
+  enter: () => (S.enter === 'locked'
+    ? '<b>A locked class</b> says which rung it needs and every way there - its own discipline\'s rating, or a rung higher anywhere, which the allowance turns into this one. Today it is a bare amber Locked chip.'
+    : '<b>A class open through another discipline</b> says so, and says what entering does to its rating. The lift is a line in the log.'),
+  result: () => '<b>After a race</b>, the round page gains a Rating panel under Round money: a line per session - qualifying at a quarter - with the place against the place expected, the round\'s total for the discipline and the global rating, and a promotion where one happened. The <b>ⓘ</b> opens the full working of a line, the same figures the log keeps. A toast says it as the race lands.',
+  historic: () => `<b>A historic event's seat</b> says why you are invited and what the race counts for. ${S.hist === 'guest' ? 'A guest seat three rungs up is still rated on your own rung, so it cannot shortcut the ladder.' : 'An event inside your reach reads the same way, and a seat in a discipline open only through another lifts nothing.'}`,
+  settings: () => (S.set === 'new'
+    ? '<b>New career</b> asks for both speeds where it asked for one, side by side, ×1 each by default. The summary names both.'
+    : '<b>The career\'s own settings</b>: Progression becomes two sliders in one section - Prize money and Rating - each ×0.5 to ×4, each changed on its own. A change of prize speed is a line in Finances, as today; a change of rating speed is a line in the rating log. Both live in <code>career.json</code>, so loading a save does not change them.'),
+};
+const QUESTIONS = [
+  'Nothing left - the mockup is agreed and the code is under way.',
+];
+
+// ---------- The picker ----------
+const GROUPS = [
+  { k: 'view', label: 'Screen', opts: [['concept', 'Concept'], ['home', 'Home'], ['rating', 'Rating page'], ['ladder', 'Championships'], ['enter', 'Enter panel'], ['result', 'After a race'], ['historic', 'Historic event'], ['settings', 'Settings']] },
+  { k: 'home', label: 'Case', for: ['home'], opts: [['up', 'Just promoted'], ['down', 'Dropped at season close'], ['none', 'Nothing to say']] },
+  { k: 'season', label: 'Season', for: ['rating'], opts: [['2027', '2027'], ['2026', '2026'], ['all', 'Every season']] },
+  { k: 'open', label: 'Open to you', for: ['ladder'], opts: [['on', 'On'], ['off', 'Off']] },
+  { k: 'enter', label: 'Case', for: ['enter'], opts: [['locked', 'Locked'], ['via', 'Open through Sportscar']] },
+  { k: 'pop', label: 'Working', for: ['result'], opts: [['on', 'Open'], ['off', 'Closed']] },
+  { k: 'hist', label: 'Case', for: ['historic'], opts: [['guest', 'A guest, three rungs up'], ['reach', 'Inside your reach']] },
+  { k: 'set', label: 'Case', for: ['settings'], opts: [['career', 'This career'], ['new', 'New career']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+const S = { view: 'concept', home: 'up', season: '2027', open: 'off', enter: 'locked', pop: 'on', hist: 'guest', set: 'career', theme: 'light' };
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => !g.for || g.for.includes(S.view))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = `<div class="box">${WHY[S.view]()}<div class="q"><b>To decide</b><ul>${QUESTIONS.map((q) => `<li>${q}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('stage').innerHTML = {
+    concept, home, rating: ratingPage, ladder, enter, result, historic, settings,
+  }[S.view]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+// The hash holds the picker's state, so a view can be linked or reloaded.
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+</script>
+</body>
+</html>

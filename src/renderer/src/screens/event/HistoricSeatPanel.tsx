@@ -2,8 +2,10 @@ import { CarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { HistoricRatingNote } from './HistoricRatingNote.tsx';
 import { dotted } from './utils.ts';
 import type { CareerEventView, EventEntry, HistoricView } from '../../../../shared/types';
+import { useSlot } from '@/app';
 import { carPictureSources, ConfirmDialog, ContentImage } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -45,6 +47,7 @@ export const HistoricSeatPanel = ({
   const { formatDayShort } = useFormat();
   const carName = useCarNames([entered.car.model]);
   const [declining, setDeclining] = useState(false);
+  const { mode, career } = useSlot();
 
   const driver = historic.event.entries.flatMap((entry) => entry.seats)
     .find((seat) => seat.id === historic.seat)?.driver?.name ?? null;
@@ -82,6 +85,7 @@ export const HistoricSeatPanel = ({
             </span>
           ) : null}
         </div>
+        {mode === 'career' && career ? <HistoricRatingNote career={career} ladder={entered.ladder} /> : null}
         {declinable ? (
           <Button
             variant="ghost"

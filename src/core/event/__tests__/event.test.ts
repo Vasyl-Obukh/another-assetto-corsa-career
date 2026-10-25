@@ -257,6 +257,14 @@ describe('core/event', () => {
     it('carries no strength for a race with no classes', () => {
       expect(plan()).not.toHaveProperty('classStrength');
     });
+
+    it("carries the player's own strength setting, for its launches to measure the field against", () => {
+      expect(plan({ ...makeEvent(), aiBase: 85 }).aiBase).toBe(85);
+    });
+
+    it('carries no strength setting for a race lowered over none', () => {
+      expect(plan()).not.toHaveProperty('aiBase');
+    });
   });
 
   describe('initEventState', () => {
@@ -743,6 +751,39 @@ describe('core/event', () => {
       const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
 
       expect(after.completed[0]).not.toHaveProperty('classStrength');
+    });
+
+    it("records how far over the player's setting each car raced, the player's own car at none", () => {
+      const eventPlan = { ...plan({ ...makeEvent(), aiBase: 85 }) };
+      eventPlan.grid = eventPlan.grid.map((car, at) => {
+        if (at === 0) return car;
+
+        return { ...car, aiLevel: [90, 80, 85, 100, 75][at - 1] };
+      });
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0].strengthOver).toEqual([0, 5, -5, 0, 15, -10]);
+    });
+
+    it('counts a car with no level of its own as racing at the setting', () => {
+      const eventPlan = { ...plan({ ...makeEvent(), aiBase: 85 }) };
+      eventPlan.grid = eventPlan.grid.map((car, at) => {
+        if (at === 0) return car;
+        const { aiLevel, ...rest } = car;
+
+        return at === 2 ? rest : { ...rest, aiLevel: 90 };
+      });
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0].strengthOver?.[2]).toBe(0);
+      expect(after.completed[0].strengthOver?.[1]).toBe(5);
+    });
+
+    it('records no strength over the setting for a race lowered over none', () => {
+      const eventPlan = plan();
+      const after = complete(eventPlan, initEventState(eventPlan), [makeSession(1, 'Practice')]);
+
+      expect(after.completed[0]).not.toHaveProperty('strengthOver');
     });
 
     it('records the class each car raced in, where the grid held several', () => {

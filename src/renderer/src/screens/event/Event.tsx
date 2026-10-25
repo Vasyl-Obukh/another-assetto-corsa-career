@@ -13,6 +13,7 @@ import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
 import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
 import { HistoricSeatPanel } from './HistoricSeatPanel.tsx';
+import { RoundRating } from './RoundRating.tsx';
 import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
@@ -32,8 +33,9 @@ import {
 } from '@/hooks';
 import { useFormat, WordingKind } from '@/i18n';
 import { DISCIPLINE_ACCENT, DISCIPLINE_DOT } from '@/lib/accents';
+import { roundRatingLines } from '@/lib/rating';
 import {
-  linkRun, path, ROUTE, runOf,
+  linkRun, path, ROUTE, runOf, SESSION_PARAM, sessionOf,
 } from '@/lib/routes';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -52,7 +54,7 @@ export const Event = () => {
   const { series = '', round = '' } = useParams<PathParam<typeof ROUTE.event>>();
   // A round of an earlier season, or of one edition of several, names its run
   // in the URL; otherwise main picks the edition the career is racing.
-  const [search] = useSearchParams();
+  const [search, setSearch] = useSearchParams();
   const asked = runOf(search);
   const event = useCareerEvent(series, round, asked);
   // Main picks the same default for both reads, so the results ask what the
@@ -98,11 +100,26 @@ export const Event = () => {
       : null,
     complete: view.status !== 'scheduled',
   } : null;
-  // A historic event opens on what it is about until anything of it has run.
+  // A historic event opens on what it is about until anything of it has run,
+  // and a link naming one of the round's sessions opens on that.
+  const linked = sessionOf(search);
   let opening = view ? defaultSession(view.sessions) : 0;
-  if (summary?.complete) opening = SUMMARY;
+  if (linked !== null && view?.sessions.some((one) => one.index === linked)) opening = linked;
+  else if (summary?.complete) opening = SUMMARY;
   else if (historic && !raced) opening = ABOUT;
   const selected = picked ?? opening;
+  // Launching hands the page back to the event, which a linked session would
+  // otherwise hold on to after it has run.
+  const follow = (): void => {
+    setPicked(null);
+    if (linked !== null) {
+      setSearch((now) => {
+        now.delete(SESSION_PARAM);
+
+        return now;
+      }, { replace: true });
+    }
+  };
   const session = view?.sessions.find((one) => one.index === selected) ?? view?.sessions[0];
   const playerName = usePlayerName();
   const openStandings = (): void => {
@@ -236,6 +253,13 @@ export const Event = () => {
             />
             {/* Under the sessions rather than above them, since the list is how
                 the page is moved around. */}
+            {slot.mode === 'career' && slot.career ? (
+              <RoundRating
+                lines={roundRatingLines(slot.career.ratingLog, {
+                  series: view.series, season: view.season, edition: view.edition, round: view.round,
+                })}
+              />
+            ) : null}
             {view.entered && view.strength ? (
               <RoundStrength
                 view={view}
@@ -308,7 +332,7 @@ export const Event = () => {
                   return;
                 }
 
-                setPicked(null);
+                follow();
                 void event.launch(false, scale);
               }}
             />
@@ -342,7 +366,7 @@ export const Event = () => {
           busy={event.busy}
           onConfirm={() => {
             setConfirming(false);
-            setPicked(null);
+            follow();
             void event.launch(true, scale);
           }}
           onClose={() => setConfirming(false)}

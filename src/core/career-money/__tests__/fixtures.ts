@@ -164,11 +164,12 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   ledger: [],
   garage: [],
   rating: {
-    [Discipline.SINGLE_SEATER]: 1200,
-    [Discipline.SPORTSCAR]: 1200,
-    [Discipline.TOURING]: 1200,
-    [Discipline.ROAD]: 1200,
+    [Discipline.SINGLE_SEATER]: 2000,
+    [Discipline.SPORTSCAR]: 2000,
+    [Discipline.TOURING]: 2000,
+    [Discipline.ROAD]: 2000,
   },
+  globalRating: 2000,
   startDate: '2027-01-01',
   date: '2027-01-01',
   level: {
@@ -177,6 +178,7 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
     [Discipline.TOURING]: 4,
     [Discipline.ROAD]: 4,
   },
+  ratingLog: [],
   seasons: [],
   ...over,
 });

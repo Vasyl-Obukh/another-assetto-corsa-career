@@ -34,6 +34,7 @@ export const ROUTE = {
   result: '/home/results/:file',
   history: '/home/history',
   finances: '/home/finances',
+  rating: '/home/rating',
   yearReview: '/home/history/:season',
   championshipReview: '/home/history/:season/:series/:edition',
   store: '/store',
@@ -78,6 +79,12 @@ export const RUN_PARAM = {
  * from a round returns to the tab it left.
  */
 export const DETAIL_TAB_PARAM = 'tab';
+
+/**
+ * The search parameter a round's page is opened on one of its sessions with,
+ * by launch index, so a line about a session can lead straight to it.
+ */
+export const SESSION_PARAM = 'session';
 
 /**
  * The destinations a career's navigation offers, in the order they are shown.
@@ -146,6 +153,7 @@ export const BACK_LABEL = {
   result: 'back.result',
   history: 'back.history',
   finances: 'back.finances',
+  rating: 'back.rating',
   yearReview: 'back.yearReview',
   championshipReview: 'back.championshipReview',
   store: 'back.store',

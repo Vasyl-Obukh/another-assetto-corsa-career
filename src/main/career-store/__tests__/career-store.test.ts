@@ -11,7 +11,7 @@ import {
   makePlan, makeRound, makeSeason,
 } from './fixtures.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
-import { ContentSource } from '../../../shared/types/index.ts';
+import { ContentSource, Discipline } from '../../../shared/types/index.ts';
 import type {
   Car,
   Career,
@@ -30,6 +30,7 @@ import type {
   Settings,
 } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
+import { dropRating, ratingFloor } from '../../../shared/utils/career-eligibility/index.ts';
 import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
   fakeContentStore, fakeRaceStore, fakeSeriesStore, fakeSettingsStore, raceSetup,
@@ -694,19 +695,40 @@ describe('main/career-store', () => {
         date: '2030-01-01',
         money: 250_000,
         level: { road: 3, touring: 3 },
-        rating: { road: 1400, sportscar: 1400 },
+        rating: { road: 3500, sportscar: 3500 },
+        globalRating: 3500,
         playedAt: NOW.toISOString(),
       });
     });
 
     it('opens its ledger on the money it starts with, at the speed asked for', async () => {
       const { store } = await build({ closed: true });
-      await store.create({ ...NEW_CAREER, year: 2030, settings: { progression: 2 } });
+      await store.create({ ...NEW_CAREER, year: 2030, settings: { prizeSpeed: 2 } });
 
       expect(store.get()?.ledger).toEqual([{
         key: 'opening', kind: 'opening', date: '2030-01-01', season: 0, amount: 100_000,
       }]);
-      expect(store.get()?.settings.progression).toBe(2);
+      expect(store.get()?.settings.prizeSpeed).toBe(2);
+    });
+
+    it('opens its rating on the floor of the rung asked for, at the speed asked for', async () => {
+      const { store } = await build({ closed: true });
+      await store.create({
+        ...NEW_CAREER, year: 2030, level: 3, settings: { ratingSpeed: 2 },
+      });
+
+      expect(store.get()?.globalRating).toBe(ratingFloor(3));
+      expect(store.get()?.ratingLog).toEqual([{
+        key: 'opening',
+        kind: 'opening',
+        date: '2030-01-01',
+        season: 0,
+        change: 0,
+        globalChange: 0,
+        global: ratingFloor(3),
+        tier: 3,
+      }]);
+      expect(store.get()?.settings.ratingSpeed).toBe(2);
     });
 
     it('writes it into a folder of its own', async () => {
@@ -777,6 +799,13 @@ describe('main/career-store', () => {
         edition: 0, entry: 'main', playerSeat: 'seat-2', car: { model: 'test_car' },
       });
       expect(entryOf(career).events.every((event) => event.date.startsWith('2030-'))).toBe(true);
+    });
+
+    it('opens with nothing in its rating log, since a standalone championship is never rated', async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      expect(store.get()?.ratingLog).toEqual([]);
     });
 
     it('keeps it with the standalone championships, its first autosave beside it', async () => {
@@ -1103,9 +1132,9 @@ describe('main/career-store', () => {
 
     it('notes a change of progression speed in the ledger, moving no money', async () => {
       const { store } = await build({ career: careerWith({}, '2027-04-01') });
-      await store.setSettings({ progression: 2 });
+      await store.setSettings({ prizeSpeed: 2 });
 
-      expect(store.get()?.settings.progression).toBe(2);
+      expect(store.get()?.settings.prizeSpeed).toBe(2);
       expect(store.get()?.money).toBe(100_000);
       expect(store.get()?.ledger).toEqual([expect.objectContaining({
         kind: 'speed', date: '2027-04-01', amount: 0, speed: { from: 1, to: 2 },
@@ -1114,11 +1143,40 @@ describe('main/career-store', () => {
 
     it('notes nothing when the speed stays as it was, a speed it cannot run at included', async () => {
       const { store } = await build({ career: careerWith({}) });
-      await store.setSettings({ progression: 1 });
-      await store.setSettings({ progression: 7 });
+      await store.setSettings({ prizeSpeed: 1 });
+      await store.setSettings({ prizeSpeed: 7 });
 
-      expect(store.get()?.settings.progression).toBe(1);
+      expect(store.get()?.settings.prizeSpeed).toBe(1);
       expect(store.get()?.ledger).toEqual([]);
+    });
+
+    it('notes a change of rating speed in the rating log, moving no rating', async () => {
+      const career = careerWith({}, '2027-04-01');
+      const { store } = await build({ career });
+      await store.setSettings({ ratingSpeed: 2 });
+
+      expect(store.get()?.settings.ratingSpeed).toBe(2);
+      expect(store.get()?.rating).toEqual(career.rating);
+      expect(store.get()?.globalRating).toBe(career.globalRating);
+      expect(store.get()?.ratingLog).toEqual([expect.objectContaining({
+        kind: 'speed', date: '2027-04-01', change: 0, globalChange: 0, speed: { from: 1, to: 2 },
+      })]);
+      // The prize speed stood still, so the ledger has nothing to say.
+      expect(store.get()?.ledger).toEqual([]);
+    });
+
+    it('notes nothing in the rating log when the rating speed stays as it was', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ ratingSpeed: 1 });
+
+      expect(store.get()?.ratingLog).toEqual([]);
+    });
+
+    it('notes no rating line for a change of prize speed alone', async () => {
+      const { store } = await build({ career: careerWith({}) });
+      await store.setSettings({ prizeSpeed: 2 });
+
+      expect(store.get()?.ratingLog).toEqual([]);
     });
   });
 
@@ -1284,6 +1342,60 @@ describe('main/career-store', () => {
 
       await expect(store.enrol({ series: 'ladder', entry: 'pro', car: { model: 'test_car' } }))
         .rejects.toMatchObject({ code: 'career.entry.ineligible' });
+    });
+
+    describe('on the rung below the career\'s best', () => {
+      /**
+       * The cup with a road class at each of tiers 2 and 3.
+       */
+      const ladder = makeChampionship({
+        entries: [
+          { ...CUP.entries[0], id: 'two', ladder: { discipline: Discipline.ROAD, tier: 2 } },
+          { ...CUP.entries[0], id: 'three', ladder: { discipline: Discipline.ROAD, tier: 3 } },
+        ],
+      });
+
+      /**
+       * A career on the bottom rung in road but tier 2 in sportscar.
+       */
+      const career = makeCareer({
+        ...careerWith({}),
+        level: { ...careerWith({}).level, [Discipline.SPORTSCAR]: 2 },
+        rating: { ...careerWith({}).rating, [Discipline.SPORTSCAR]: ratingFloor(2) },
+      });
+
+      it('enters a class a rung above the discipline\'s own level, one below the best', async () => {
+        const { store } = await build({ career, listings: [makeListing(ladder)] });
+        await store.enrol({ series: CUP.id, entry: 'three', car: { model: 'test_car' } });
+
+        expect(entryOf(store.get()).entry).toBe('three');
+      });
+
+      it('lifts the discipline to the floor of the rung it entered at, saying so', async () => {
+        const { store } = await build({ career, listings: [makeListing(ladder)] });
+        await store.enrol({ series: CUP.id, entry: 'three', car: { model: 'test_car' } });
+
+        expect(store.get()?.rating.road).toBe(ratingFloor(3));
+        expect(store.get()?.level.road).toBe(3);
+        expect(store.get()?.globalRating).toBe(career.globalRating);
+        expect(store.get()?.ratingLog).toEqual([expect.objectContaining({
+          key: `lift:0:${CUP.id}:0`,
+          kind: 'lift',
+          discipline: Discipline.ROAD,
+          change: ratingFloor(3) - career.rating.road,
+          rating: ratingFloor(3),
+          tier: 3,
+        })]);
+      });
+
+      it('refuses a class higher than the rung below the best, lifting nothing', async () => {
+        const { store } = await build({ career, listings: [makeListing(ladder)] });
+
+        await expect(store.enrol({ series: CUP.id, entry: 'two', car: { model: 'test_car' } }))
+          .rejects.toMatchObject({ code: 'career.entry.ineligible' });
+        expect(store.get()?.rating).toEqual(career.rating);
+        expect(store.get()?.ratingLog).toEqual([]);
+      });
     });
 
     it('refuses to enter one edition twice', async () => {
@@ -1713,6 +1825,43 @@ describe('main/career-store', () => {
       // A confirmed move draws nothing behind where it lands.
       expect(seasons[1].entries.every((one) => one.events[0].date >= '2028-01-02')).toBe(true);
     });
+
+    it('drops a level the year closed under, rung by rung, and keeps every other', async () => {
+      const career = entered('2027-12-20');
+      const road = dropRating(3) ?? 0;
+      const { store } = await build({
+        career: {
+          ...career,
+          level: { ...career.level, [Discipline.ROAD]: 3, [Discipline.SPORTSCAR]: 3 },
+          // Road ends the year a point under what tier 3 is kept at, sportscar on it.
+          rating: { ...career.rating, [Discipline.ROAD]: road - 1, [Discipline.SPORTSCAR]: road },
+        },
+      });
+      await store.advanceTo('2028-01-02', true);
+
+      expect(store.get()?.level).toMatchObject({ [Discipline.ROAD]: 4, [Discipline.SPORTSCAR]: 3 });
+      expect(store.get()?.rating.road).toBe(road - 1);
+      expect(store.get()?.ratingLog).toEqual([expect.objectContaining({
+        key: `drop:0:${Discipline.ROAD}`,
+        kind: 'drop',
+        date: '2027-12-31',
+        season: 0,
+        discipline: Discipline.ROAD,
+        change: 0,
+        tier: 4,
+      })]);
+    });
+
+    it('drops nothing on a move inside the year', async () => {
+      const career = entered();
+      const { store } = await build({
+        career: { ...career, level: { ...career.level, [Discipline.ROAD]: 3 } },
+      });
+      await store.advanceTo('2027-02-01');
+
+      expect(store.get()?.level.road).toBe(3);
+      expect(store.get()?.ratingLog).toEqual([]);
+    });
   });
 
   describe('skips', () => {
@@ -2035,7 +2184,7 @@ describe('main/career-store', () => {
       const career = careerWith({
         entries: [makeEntry({ championship, events: [makeEvent('one', '2027-03-07')] })],
       });
-      const { store } = await build({ career, careerSettings: { progression: 1.5 } });
+      const { store } = await build({ career, careerSettings: { prizeSpeed: 1.5 } });
 
       expect((await store.event({ series: CUP.id, round: 'one' })).prize).toBe(1500);
     });
@@ -2421,6 +2570,57 @@ describe('main/career-store', () => {
       await settled();
 
       expect(store.get()).toBe(before);
+    });
+
+    describe('rating it', () => {
+      /**
+       * What the race store pushes once the cup's first round has run whole:
+       * practice and qualifying with nothing read back, then a race the player
+       * won from the four cars on the grid.
+       * @returns The state
+       */
+      const won = () => raceSetup({
+        owner: CAREER_ID,
+        plan: makePlan(CUP.eventFormats[0].sessions),
+        state: {
+          raceId: 'test-cup/one',
+          launchCount: 3,
+          completed: [record(0), record(1), { ...record(2), gridOrder: [0, 1, 2, 3], classification: [0, 1, 2, 3] }],
+        },
+      });
+
+      it('rates the race the player drove, moving its discipline and the global rating', async () => {
+        const career = entered();
+        const { store, race } = await build({ career });
+        race.push(won());
+        await settled();
+        const rated = store.get();
+        const [line] = rated?.ratingLog ?? [];
+
+        expect(rated?.ratingLog).toEqual([expect.objectContaining({
+          key: 'session:test-cup/one:2', kind: 'race', discipline: Discipline.ROAD, series: CUP.id, round: 'one',
+        })]);
+        // A win from a field rated above the player can only gain.
+        expect(line.change).toBeGreaterThan(0);
+        expect(line.globalChange).toBeGreaterThan(0);
+        expect(rated?.rating.road).toBe(career.rating.road + line.change);
+        expect(rated?.globalRating).toBe(career.globalRating + line.globalChange);
+        expect(rated?.rating.sportscar).toBe(career.rating.sportscar);
+      });
+
+      it('rates a session once, however many times the career settles after it', async () => {
+        const { store, race } = await build({ career: entered() });
+        race.push(won());
+        await settled();
+        const rated = store.get();
+        await store.setSettings({ allowSameDayEvents: true });
+        race.push(won());
+        await settled();
+
+        expect(store.get()?.ratingLog).toEqual(rated?.ratingLog);
+        expect(store.get()?.rating).toEqual(rated?.rating);
+        expect(store.get()?.globalRating).toBe(rated?.globalRating);
+      });
     });
   });
 

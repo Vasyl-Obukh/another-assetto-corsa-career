@@ -467,6 +467,14 @@ export interface RaceDefinition {
    * absent from a race written by hand, which has no classes.
    */
   classStrength?: Record<string, number>;
+  /**
+   * The player's own AI strength the field was lowered over - their Opponents
+   * setting - which every figure in the grid is that plus its offsets.
+   *
+   * Carried so each launch can record how far over it each driver raced,
+   * which is what a career's rating reads; absent from a race written by hand.
+   */
+  aiBase?: number;
 }
 
 /**

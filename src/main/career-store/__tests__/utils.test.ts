@@ -138,7 +138,9 @@ describe('main/career-store/utils', () => {
         ledger: career.ledger,
         garage: career.garage,
         rating: career.rating,
+        globalRating: career.globalRating,
         level: career.level,
+        ratingLog: career.ratingLog,
         seasons: career.seasons,
       });
     });
@@ -193,6 +195,15 @@ describe('main/career-store/utils', () => {
     it('refuses a state whose garage is not a list', () => {
       expect(readState({ ...wholeCareer(), garage: undefined })).toBeNull();
       expect(readState({ ...wholeCareer(), garage: {} })).toBeNull();
+    });
+
+    // A state written before the rating has neither, and reads as a career to
+    // be deleted rather than one rated nowhere.
+    it('refuses a state missing its global rating or its rating log', () => {
+      expect(readState({ ...wholeCareer(), globalRating: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), globalRating: '2000' })).toBeNull();
+      expect(readState({ ...wholeCareer(), ratingLog: undefined })).toBeNull();
+      expect(readState({ ...wholeCareer(), ratingLog: {} })).toBeNull();
     });
 
     it('refuses a career whose seasons are not a list', () => {
@@ -1835,7 +1846,7 @@ describe('main/career-store/utils', () => {
 
     it("pays the prize at the career's progression speed", () => {
       const series = makeChampionship({ prizes: { positions: [1000] } });
-      const fast = makeCareer({ settings: { ...career.settings, progression: 2 } });
+      const fast = makeCareer({ settings: { ...career.settings, prizeSpeed: 2 } });
 
       expect(calendarEntry(
         series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), fast, true,
@@ -1858,13 +1869,13 @@ describe('main/career-store/utils', () => {
     const series = makeChampionship({ prizes: { positions: [1000, 500] } });
 
     it("pays a win at the career's progression speed", () => {
-      const career = makeCareer({ settings: { ...makeCareer().settings, progression: 1.5 } });
+      const career = makeCareer({ settings: { ...makeCareer().settings, prizeSpeed: 1.5 } });
 
       expect(winnerPrize(career, series, 'main')).toBe(1500);
     });
 
     it('reads the purse as it stands in a standalone championship, which has no money', () => {
-      const career = makeCareer({ kind: 'championship', settings: { ...makeCareer().settings, progression: 1.5 } });
+      const career = makeCareer({ kind: 'championship', settings: { ...makeCareer().settings, prizeSpeed: 1.5 } });
 
       expect(winnerPrize(career, series, 'main')).toBe(1000);
     });

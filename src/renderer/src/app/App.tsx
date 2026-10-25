@@ -4,7 +4,7 @@ import { useSettings, useSlot } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
-import { useNavHistory } from '@/hooks';
+import { useNavHistory, useRatingToasts } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { Calendar } from '@/screens/calendar';
 import { CarClasses } from '@/screens/car-classes';
@@ -26,6 +26,7 @@ import { Home } from '@/screens/home';
 import { NewCareer } from '@/screens/new-career';
 import { NewChampionship } from '@/screens/new-championship';
 import { Race, RaceEvent } from '@/screens/race';
+import { Rating } from '@/screens/rating';
 import { ResultDetail, Results } from '@/screens/results';
 import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
@@ -47,6 +48,8 @@ export const App = ({ initialReport }: AppProps) => {
   const { mode } = useSlot();
   // Keeps the window's history for every Back to name the page it returns to.
   useNavHistory();
+  // Says when a race opens a rung, on whichever page it lands.
+  useRatingToasts();
 
   if (!settings.setupCompletedAt) return <Setup initialReport={initialReport} />;
 
@@ -139,6 +142,7 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.result} element={<ResultDetail />} />
               <Route path={ROUTE.history} element={<History />} />
               <Route path={ROUTE.finances} element={<Finances />} />
+              <Route path={ROUTE.rating} element={<Rating />} />
               <Route path={ROUTE.yearReview} element={<YearReview />} />
               <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
               <Route path={ROUTE.store} element={<Store />} />

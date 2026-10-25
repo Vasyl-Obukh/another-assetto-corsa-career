@@ -33,7 +33,11 @@ interface SummaryPanelProps {
   /**
    * What every prize it earns is multiplied by.
    */
-  progression: number;
+  prizeSpeed: number;
+  /**
+   * What every change of its rating is multiplied by.
+   */
+  ratingSpeed: number;
   /**
    * The rung it starts on, or null while the library is read.
    */
@@ -50,7 +54,7 @@ interface SummaryPanelProps {
  * the ladder that opens in each discipline.
  */
 export const SummaryPanel = ({
-  name, nation, year, money, progression, level, open,
+  name, nation, year, money, prizeSpeed, ratingSpeed, level, open,
 }: SummaryPanelProps) => {
   const { t } = useTranslation();
   const { formatDay, formatMoney, formatNumber } = useFormat();
@@ -74,8 +78,10 @@ export const SummaryPanel = ({
           <dd className="font-semibold">{formatDay(`${year}-01-01`)}</dd>
           <dt className="text-muted-foreground">{t('newCareer.summary.money')}</dt>
           <dd className="font-semibold tabular-nums">{formatMoney(money)}</dd>
-          <dt className="text-muted-foreground">{t('newCareer.summary.progression')}</dt>
-          <dd className="font-semibold tabular-nums">{t('finances.speed', { speed: formatNumber(progression) })}</dd>
+          <dt className="text-muted-foreground">{t('newCareer.summary.prizeSpeed')}</dt>
+          <dd className="font-semibold tabular-nums">{t('finances.speed', { speed: formatNumber(prizeSpeed) })}</dd>
+          <dt className="text-muted-foreground">{t('newCareer.summary.ratingSpeed')}</dt>
+          <dd className="font-semibold tabular-nums">{t('finances.speed', { speed: formatNumber(ratingSpeed) })}</dd>
           <dt className="text-muted-foreground">{t('newCareer.summary.rating')}</dt>
           <dd className="font-semibold tabular-nums">
             {level === null ? <Shimmer className="h-4 w-12" /> : formatNumber(ratingFloor(level))}

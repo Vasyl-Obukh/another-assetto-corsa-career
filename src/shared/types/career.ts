@@ -356,7 +356,12 @@ export interface CareerSettings {
    * What every prize it earns is multiplied by, one of `PROGRESSION_SPEEDS`.
    * Entry fees are not.
    */
-  progression: number;
+  prizeSpeed: number;
+  /**
+   * What every change of its rating is multiplied by, up and down alike, one
+   * of `PROGRESSION_SPEEDS`.
+   */
+  ratingSpeed: number;
 }
 
 /**
@@ -390,7 +395,7 @@ export interface OwnedCar {
 /**
  * What moved a career's money: the money it opened with, a round's entry fee,
  * a race's prize, a championship's final standing, a historic event's purse, a
- * change of progression speed, which moves none, a car bought, sold or
+ * change of prize speed, which moves none, a car bought, sold or
  * repainted, or a round's rent.
  */
 export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed'
@@ -488,7 +493,7 @@ export interface LedgerLine {
     bought?: string;
   };
   /**
-   * The speed before and after, for a change of progression speed.
+   * The speed before and after, for a change of prize speed.
    */
   speed?: {
     /**
@@ -530,6 +535,176 @@ export interface EventMoney {
 }
 
 /**
+ * What moved a career's rating or a level: the rating it opened on, a race or
+ * a qualifying driven, a rung gained or lost, a discipline lifted to a rung's
+ * floor on entering it, or a change of rating speed, which moves none.
+ */
+export type RatingKind = 'opening' | 'race' | 'qualifying' | 'promotion' | 'drop' | 'lift' | 'speed';
+
+/**
+ * How one session moved a rating, as its line explains it.
+ */
+export interface RatingWorking {
+  /**
+   * Where the player finished among their classmates, counting from one.
+   */
+  place: number;
+  /**
+   * How many cars the class ran, the player's included.
+   */
+  of: number;
+  /**
+   * The place the field's ratings expected, counting from one.
+   */
+  expected: number;
+  /**
+   * The share of classmates beaten, from 0 to 1.
+   */
+  beaten: number;
+  /**
+   * The share the field's ratings expected to be beaten.
+   */
+  expectedShare: number;
+  /**
+   * The classmates' ratings, on average.
+   */
+  field: number;
+  /**
+   * The lowest strength a classmate raced at, over the player's own Opponents
+   * setting.
+   */
+  offsetLow: number;
+  /**
+   * The highest.
+   */
+  offsetHigh: number;
+  /**
+   * The rung it was rated on - the class's, or for a historic event the
+   * player's own in its discipline.
+   */
+  rung: number;
+  /**
+   * The session's weight: 1 for a race, a quarter for a qualifying.
+   */
+  weight: number;
+  /**
+   * The rating speed it was rated at.
+   */
+  speed: number;
+  /**
+   * What the discipline's rating would have lost, when the cap held it.
+   */
+  uncapped?: number;
+  /**
+   * What the global rating would have lost, when the cap held it.
+   */
+  globalUncapped?: number;
+  /**
+   * The factor a race was shortened by, which counts for nothing.
+   */
+  scale?: number;
+}
+
+/**
+ * One change of a career's ratings or levels, and what it was for.
+ *
+ * Names are copied in rather than looked up, as a ledger line's are, so a line
+ * reads the same once the championship behind it is edited or gone.
+ */
+export interface RatingLine {
+  /**
+   * What it settles, so nothing is rated twice: the event's race id and the
+   * launch for a session, the season and discipline for a drop.
+   */
+  key: string;
+  /**
+   * What kind of change it is.
+   */
+  kind: RatingKind;
+  /**
+   * The day it falls on, as an ISO date.
+   */
+  date: string;
+  /**
+   * Which season it falls in, counting from zero.
+   */
+  season: number;
+  /**
+   * The discipline it moved, absent for the opening and a change of speed.
+   */
+  discipline?: Discipline;
+  /**
+   * What it did to that discipline's rating.
+   */
+  change: number;
+  /**
+   * What it did to the global rating.
+   */
+  globalChange: number;
+  /**
+   * The discipline's rating once it landed.
+   */
+  rating?: number;
+  /**
+   * The global rating once it landed.
+   */
+  global: number;
+  /**
+   * The rung it reached, for a promotion, a drop, a lift and the opening.
+   */
+  tier?: number;
+  /**
+   * The championship or historic event it came from, by id.
+   */
+  series?: string;
+  /**
+   * That championship's name.
+   */
+  seriesName?: string;
+  /**
+   * Which of the season's editions.
+   */
+  edition?: number;
+  /**
+   * The round, by id.
+   */
+  round?: string;
+  /**
+   * The round's name.
+   */
+  roundName?: string;
+  /**
+   * The round's number in its championship, counting from one.
+   */
+  number?: number;
+  /**
+   * Whether it came from a historic event.
+   */
+  historic?: boolean;
+  /**
+   * The session's own name, where its format gives it one.
+   */
+  sessionName?: string;
+  /**
+   * How a session moved it.
+   */
+  working?: RatingWorking;
+  /**
+   * The speed before and after, for a change of rating speed.
+   */
+  speed?: {
+    /**
+     * The speed it ran at until then.
+     */
+    from: number;
+    /**
+     * The speed it runs at from then on.
+     */
+    to: number;
+  };
+}
+
+/**
  * Where a career has got to: its clock, its seasons and what it holds. Kept in
  * the career's state.json as it changes, and what every save is a copy of.
  */
@@ -559,19 +734,30 @@ export interface CareerState {
    */
   garage: readonly OwnedCar[];
   /**
-   * The rating it holds per discipline - the lowest of its starting level until
-   * rating (Phase 8) lands, and moved by nothing before then.
+   * The rating it holds per discipline, moved by every race and qualifying
+   * driven in that discipline.
    */
   rating: Record<Discipline, number>;
   /**
-   * The highest rung this career may enter, per discipline - 1 being the top,
-   * so a larger number is a lower level.
+   * Its global rating, moved by every race and qualifying driven, whatever the
+   * discipline.
+   */
+  globalRating: number;
+  /**
+   * The rung each discipline has earned on its own rating, 1 being the top, so
+   * a larger number is a lower level.
    *
-   * Stored rather than derived from the library, because a derived level would
-   * move whenever a championship with a lower rung was installed. Phase 8
-   * writes to this as rating moves; nothing else about eligibility changes.
+   * Stored rather than derived from the rating, because a level is gained the
+   * moment a floor is passed and lost only as a season closes. The rung one
+   * below the best of them, which every discipline may also enter, is derived
+   * - `openLevels` - and never stored.
    */
   level: Record<Discipline, number>;
+  /**
+   * Every change of its ratings and levels, oldest first, each saying what
+   * moved it.
+   */
+  ratingLog: readonly RatingLine[];
   /**
    * Its seasons, oldest first.
    */

@@ -253,7 +253,7 @@ export const openingLine = (date: string, money: number): LedgerLine => ({
 });
 
 /**
- * The line saying a career's progression speed changed, which moves no money
+ * The line saying a career's prize speed changed, which moves no money
  * and is kept so a run played at more than one speed says so.
  * @param career The career, before the change
  * @param to The speed it runs at from now on
@@ -265,7 +265,7 @@ export const speedLine = (career: Career, to: number): LedgerLine => ({
   date: career.date,
   season: career.seasons[career.seasons.length - 1]?.index ?? 0,
   amount: 0,
-  speed: { from: career.settings.progression, to },
+  speed: { from: career.settings.prizeSpeed, to },
 });
 
 /**
@@ -291,7 +291,7 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
   if (career.kind !== 'career') return [];
 
   const paid = new Set(career.ledger.map((line) => line.key));
-  const speed = career.settings.progression;
+  const speed = career.settings.prizeSpeed;
   const owed: LedgerLine[] = [];
 
   for (const season of career.seasons) {

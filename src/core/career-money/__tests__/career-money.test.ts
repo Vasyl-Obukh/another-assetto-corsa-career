@@ -97,7 +97,7 @@ describe('core/career-money', () => {
     });
 
     it("is never scaled by the career's progression speed", () => {
-      const career = careerIn(entry, { settings: { ...makeCareer().settings, progression: 2 } });
+      const career = careerIn(entry, { settings: { ...makeCareer().settings, prizeSpeed: 2 } });
 
       expect(feeOwed(career, entry, event)).toBe(1500);
     });
@@ -308,7 +308,7 @@ describe('core/career-money', () => {
 
     it("pays at the career's progression speed", () => {
       const entry = makeEntry({ events: [makeEvent('one', '2027-03-07', [makeRace(1, [makePlace(2)])])] });
-      const career = careerIn(entry, { settings: { ...makeCareer().settings, progression: 1.5 } });
+      const career = careerIn(entry, { settings: { ...makeCareer().settings, prizeSpeed: 1.5 } });
 
       expect(owedPrizes(career).map((line) => line.amount)).toEqual([900]);
     });

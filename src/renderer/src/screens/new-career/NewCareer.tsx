@@ -46,7 +46,8 @@ export const NewCareer = () => {
   // What the year field holds while it is typed in, which may be no year yet.
   const [yearText, setYearText] = useState(String(thisYear));
   const [moneyAt, setMoneyAt] = useState(Math.max(0, STARTING_MONEY_STOPS.indexOf(DEFAULT_STARTING_MONEY)));
-  const [progression, setProgression] = useState(DEFAULT_CAREER_SETTINGS.progression);
+  const [prizeSpeed, setPrizeSpeed] = useState(DEFAULT_CAREER_SETTINGS.prizeSpeed);
+  const [ratingSpeed, setRatingSpeed] = useState(DEFAULT_CAREER_SETTINGS.ratingSpeed);
   const [picked, setPicked] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<DisplayableError | null>(null);
@@ -81,7 +82,7 @@ export const NewCareer = () => {
     setBusy(true);
     try {
       await createCareer({
-        driver: { name: name.trim(), nation }, year, level, money, settings: { progression },
+        driver: { name: name.trim(), nation }, year, level, money, settings: { prizeSpeed, ratingSpeed },
       });
       void navigate(path.home());
     } catch (thrown: unknown) {
@@ -195,9 +196,14 @@ export const NewCareer = () => {
                 </div>
               </div>
               <div className="mt-4 flex flex-col gap-1.5 border-t pt-4">
-                <span className="text-sm font-medium">{t('finances.progression')}</span>
-                <ProgressionSlider value={progression} onChange={setProgression} />
-                <span className="text-sm text-muted-foreground">{t('newCareer.progressionHint')}</span>
+                <span className="text-sm font-medium">{t('settings.prizeSpeed')}</span>
+                <ProgressionSlider value={prizeSpeed} label={t('settings.prizeSpeed')} onChange={setPrizeSpeed} />
+                <span className="text-sm text-muted-foreground">{t('newCareer.prizeSpeedHint')}</span>
+              </div>
+              <div className="mt-4 flex flex-col gap-1.5 border-t pt-4">
+                <span className="text-sm font-medium">{t('settings.ratingSpeed')}</span>
+                <ProgressionSlider value={ratingSpeed} label={t('settings.ratingSpeed')} onChange={setRatingSpeed} />
+                <span className="text-sm text-muted-foreground">{t('newCareer.ratingSpeedHint')}</span>
               </div>
             </SettingsSection>
           </div>
@@ -212,7 +218,8 @@ export const NewCareer = () => {
           nation={nation}
           year={year}
           money={money}
-          progression={progression}
+          prizeSpeed={prizeSpeed}
+          ratingSpeed={ratingSpeed}
           level={level}
           open={level === null || library.loading ? null : openPerDiscipline(listings, level)}
         />

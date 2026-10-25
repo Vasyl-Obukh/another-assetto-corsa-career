@@ -96,6 +96,9 @@ import {
   saleLine,
   speedLine,
 } from '../../core/career-money/index.ts';
+import {
+  closeLevels, liftOnEntering, noteRatingSpeed, openingRatingLine, rateCareer,
+} from '../../core/career-rating/index.ts';
 import { planEvent } from '../../core/event/index.ts';
 import {
   historicSeat, historicSlots, planHistoric, withPlayerSeat,
@@ -134,7 +137,9 @@ import type {
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { rentOf, repaintOf, resaleValue } from '../../shared/utils/car-prices/index.ts';
-import { isEligible, levelsAt, ratingsAt } from '../../shared/utils/career-eligibility/index.ts';
+import {
+  isEligible, levelsAt, openLevels, ratingFloor, ratingsAt,
+} from '../../shared/utils/career-eligibility/index.ts';
 import { careerDrivingAids, careerOpponents, readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
@@ -605,18 +610,18 @@ export const createCareerStore = async (
   };
 
   /**
-   * Pays whatever the career is owed, schedules a write and tells everyone
-   * watching.
+   * Pays whatever the career is owed, rates every session it has driven,
+   * schedules a write and tells everyone watching.
    *
    * Every change ends here, so every prize lands as soon as anything has earned
-   * it - a race recorded, an edition run out by the clock - whichever command
-   * got it there.
+   * it - a race recorded, an edition run out by the clock - and every session
+   * is rated as soon as it lands, whichever command got it there.
    * @returns The career as it now stands
    */
   const settle = (): Career => {
     if (!current) throw new AppError('career.none');
     // Played is opened or changed, which every settle is one of.
-    const career: Career = { ...payOut(current), playedAt: new Date().toISOString() };
+    const career: Career = { ...rateCareer(payOut(current)), playedAt: new Date().toISOString() };
     current = career;
 
     if (timer) clearTimeout(timer);
@@ -1268,10 +1273,12 @@ export const createCareerStore = async (
         ledger: [openingLine(startDate, money)],
         garage: [],
         rating: ratingsAt(level),
+        globalRating: ratingFloor(level),
         startDate,
         settings: readCareerSettings(own),
         date: startDate,
         level: levelsAt(level),
+        ratingLog: [openingRatingLine(startDate, level)],
         seasons: [openSeason(0, startDate)],
       };
 
@@ -1317,10 +1324,12 @@ export const createCareerStore = async (
         ledger: [],
         garage: [],
         rating: ratingsAt(1),
+        globalRating: ratingFloor(1),
         startDate,
         settings: readCareerSettings(undefined),
         date: startDate,
         level: levelsAt(1),
+        ratingLog: [],
         seasons: [season],
       };
       const enrolled = await entering(base, season, listing, entry, 0, car);
@@ -1489,10 +1498,13 @@ export const createCareerStore = async (
       // Merged and read back the tolerant way, as a patch to settings.json is.
       const next = readCareerSettings({ ...career.settings, ...patch });
       // A change of speed is written down, so a run played at more than one
-      // says so. Only a career has money for it to change.
-      const noted = career.kind === 'career' && next.progression !== career.settings.progression
-        ? post(career, [speedLine(career, next.progression)])
+      // says so. Only a career has money and a rating for it to change.
+      const paid = career.kind === 'career' && next.prizeSpeed !== career.settings.prizeSpeed
+        ? post(career, [speedLine(career, next.prizeSpeed)])
         : career;
+      const noted = career.kind === 'career' && next.ratingSpeed !== career.settings.ratingSpeed
+        ? noteRatingSpeed(paid, next.ratingSpeed)
+        : paid;
       current = { ...noted, settings: next };
 
       return settle();
@@ -1587,7 +1599,7 @@ export const createCareerStore = async (
       if (career.kind === 'championship') throw new AppError('standalone.enter');
 
       const { listing, entry } = await raceableEntry(request.series, request.entry);
-      if (!isEligible(entry.ladder, career.level)) {
+      if (!isEligible(entry.ladder, openLevels(career.level))) {
         throw new AppError('career.entry.ineligible', { entry: entry.name });
       }
       const edition = request.edition ?? editionAt(listing.series, season, career.date);
@@ -1616,8 +1628,10 @@ export const createCareerStore = async (
       const enrolled = await entering(career, season, listing, entry, edition, car);
 
       // Entering a championship whose opener is this week forecasts it at once,
-      // rather than leaving it blank until the clock next happens to move.
-      current = withSeason(career, issueForecasts(
+      // rather than leaving it blank until the clock next happens to move. A
+      // discipline entered on the rung below the career's best is lifted to
+      // that rung's floor as it is.
+      current = withSeason(liftOnEntering(career, season, enrolled), issueForecasts(
         career,
         { ...season, entries: [...season.entries, enrolled] },
         career.date,
@@ -1805,7 +1819,8 @@ export const createCareerStore = async (
       // A move past 31 December closes the year on the way: whatever of it was
       // still to run is given up and raced by the field, and the next opens empty.
       while (stop > year.endDate) {
-        working = await simulateMissed(closeSeason(working, year));
+        // Every session of the year is rated by now, each by the settle it landed in.
+        working = closeLevels(await simulateMissed(closeSeason(working, year)), year);
         const opened = openSeason(year.index + 1, addDays(year.endDate, 1));
         working = { ...working, date: opened.startDate, seasons: [...working.seasons, opened] };
         // A confirmed move draws nothing before where it lands, since nothing
@@ -2022,7 +2037,7 @@ export const createCareerStore = async (
           id: one.id,
           name: one.name,
           ladder: one.ladder,
-          eligible: isEligible(one.ladder, career.level),
+          eligible: isEligible(one.ladder, openLevels(career.level)),
           cars: eligibleCarsIn(availability, enterAt, one.id),
         })),
         raceable,

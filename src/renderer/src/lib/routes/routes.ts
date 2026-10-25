@@ -21,6 +21,7 @@ import {
   QUICK_NAV,
   ROUTE,
   RUN_PARAM,
+  SESSION_PARAM,
   TRACK_LAYOUT_PARAM,
 } from './constants.ts';
 import type { NavId, RouteId, RouteParams } from './types.ts';
@@ -88,14 +89,19 @@ export const routeOf = (pathname: string): RouteId | null => {
 /**
  * The query string that names a run, for a page that shows one.
  * @param run Which season and edition, either of which may be left out
- * @param tab The tab to open the page on, for a page that keeps one
+ * @param opened What else the page is opened on, each left out when undefined
  * @returns The query, with its leading `?`, or nothing when it names nothing
  */
-const runQuery = (run: Partial<ChampionshipRun> | undefined, tab?: string): string => {
+const runQuery = (
+  run: Partial<ChampionshipRun> | undefined,
+  opened: Record<string, string | number | undefined> = {},
+): string => {
   const query = new URLSearchParams();
   if (run?.season !== undefined) query.set(RUN_PARAM.season, String(run.season));
   if (run?.edition !== undefined) query.set(RUN_PARAM.edition, String(run.edition));
-  if (tab !== undefined) query.set(DETAIL_TAB_PARAM, tab);
+  Object.entries(opened).forEach(([name, value]) => {
+    if (value !== undefined) query.set(name, String(value));
+  });
   const text = query.toString();
 
   return text === '' ? '' : `?${text}`;
@@ -122,6 +128,19 @@ export const runOf = (search: URLSearchParams): Partial<ChampionshipRun> => {
     ...(season === undefined ? {} : { season }),
     ...(edition === undefined ? {} : { edition }),
   };
+};
+
+/**
+ * Which session a round's query string opens it on.
+ * @param search The page's search parameters
+ * @returns The launch index, or null when it names none or not a whole number
+ */
+export const sessionOf = (search: URLSearchParams): number | null => {
+  const text = search.get(SESSION_PARAM);
+  // Number('') is 0, so an empty value has to be told from session 0.
+  const value = text === null || text === '' ? Number.NaN : Number(text);
+
+  return Number.isInteger(value) && value >= 0 ? value : null;
 };
 
 /**
@@ -232,12 +251,14 @@ export const path = {
    * One round of the career's season, where its sessions are run.
    * @param params The championship's and the round's ids
    * @param run Which season and edition, where the page should not pick its own
+   * @param session The launch to open it on, where not the one it would pick
    * @returns Its URL, with both ids encoded
    */
   event: (
     params: RouteParams<typeof ROUTE.event>,
     run?: Partial<ChampionshipRun>,
-  ): string => buildPath(ROUTE.event, params) + runQuery(run),
+    session?: number,
+  ): string => buildPath(ROUTE.event, params) + runQuery(run, { [SESSION_PARAM]: session }),
   /**
    * The list of shipped championships.
    * @returns Its URL
@@ -254,7 +275,7 @@ export const path = {
     params: RouteParams<typeof ROUTE.championship>,
     run?: Partial<ChampionshipRun>,
     tab?: string,
-  ): string => buildPath(ROUTE.championship, params) + runQuery(run, tab),
+  ): string => buildPath(ROUTE.championship, params) + runQuery(run, { [DETAIL_TAB_PARAM]: tab }),
   /**
    * The list of archived results, reached from Home.
    * @returns Its URL
@@ -276,6 +297,12 @@ export const path = {
    * @returns Its URL
    */
   finances: (): string => ROUTE.finances,
+  /**
+   * The career's ratings and every change of them, reached from Home and the
+   * header.
+   * @returns Its URL
+   */
+  rating: (): string => ROUTE.rating,
   /**
    * One season of the career, looked back on.
    * @param params Which season, counting from zero

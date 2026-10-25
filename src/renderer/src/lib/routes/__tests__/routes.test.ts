@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { ROUTE } from '../constants.ts';
 import {
-  buildPath, homeOf, linkRun, path, routeOf, runOf, sectionOf,
+  buildPath, homeOf, linkRun, path, routeOf, runOf, sectionOf, sessionOf,
 } from '../routes.ts';
 import type { RouteId } from '../types.ts';
 
@@ -140,6 +140,17 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.event({ series: 'cup', round: 'r1' }, { season: 0 })).toBe('/calendar/cup/r1?season=0');
     });
 
+    it("builds a round's page on a session when given one, after the run it names", () => {
+      expect(path.event({ series: 'cup', round: 'r1' }, undefined, 2)).toBe('/calendar/cup/r1?session=2');
+      expect(path.event({ series: 'cup', round: 'r1' }, { season: 0, edition: 1 }, 0))
+        .toBe('/calendar/cup/r1?season=0&edition=1&session=0');
+    });
+
+    it('opens a round on a session and a championship on a tab, never the other way round', () => {
+      expect(path.event({ series: 'cup', round: 'r1' }, {}, 3)).not.toContain('tab=');
+      expect(path.championship({ id: 'cup' }, {}, 'rounds')).toBe('/championships/cup?tab=rounds');
+    });
+
     it('builds the page and the editor of a historic event under settings, with the id encoded', () => {
       expect(path.settingsHistoricEvent({ id: 'british gp 1967' })).toBe('/settings/historic/british%20gp%201967');
       expect(path.historicEdit({ id: 'british-gp-1967' })).toBe('/settings/historic/british-gp-1967/edit');
@@ -199,6 +210,31 @@ describe('renderer/lib/routes/routes', () => {
     it('names nothing for a value that is not a whole number of zero or more', () => {
       expect(runOf(new URLSearchParams('season=two&edition=-1'))).toEqual({});
       expect(runOf(new URLSearchParams('season=1.5'))).toEqual({});
+    });
+  });
+
+  describe('sessionOf', () => {
+    it("reads back the session a round's URL opens on", () => {
+      const query = path.event({ series: 'cup', round: 'r1' }, { season: 1 }, 2).split('?')[1];
+
+      expect(sessionOf(new URLSearchParams(query))).toBe(2);
+      expect(sessionOf(new URLSearchParams('session=0'))).toBe(0);
+    });
+
+    it('names none a URL leaves out', () => {
+      expect(sessionOf(new URLSearchParams('season=1'))).toBeNull();
+    });
+
+    // A hand-edited URL opens the session the page would pick itself.
+    it('names none for a value that is not a whole number of zero or more', () => {
+      expect(sessionOf(new URLSearchParams('session=-1'))).toBeNull();
+      expect(sessionOf(new URLSearchParams('session=1.5'))).toBeNull();
+      expect(sessionOf(new URLSearchParams('session=race'))).toBeNull();
+    });
+
+    // Fixed: an empty value read as session 0, since Number('') is 0.
+    it('names none for an empty value', () => {
+      expect(sessionOf(new URLSearchParams('session='))).toBeNull();
     });
   });
 

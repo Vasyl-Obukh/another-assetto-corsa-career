@@ -354,6 +354,13 @@ describe('main/race-store/utils', () => {
       expect(withLevelsOf(held, fresh).classStrength).toEqual({ main: 77 });
     });
 
+    it("takes the player's own strength setting from the race lowered afresh", () => {
+      const held = lowered([['a', 80, 20]], { aiBase: 80 });
+      const fresh = lowered([['a', 77, 20]], { aiBase: 77 });
+
+      expect(withLevelsOf(held, fresh).aiBase).toBe(77);
+    });
+
     it('leaves a car the fresh race does not field as it was', () => {
       const held = lowered([['a', 80, 20], ['gone', 82, 30]]);
       const fresh = lowered([['a', 77, 25]]);

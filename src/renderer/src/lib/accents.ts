@@ -18,6 +18,7 @@ import type {
   LadderPosition,
   LedgerKind,
   PriceOrigin,
+  RatingKind,
   SaveKind,
   SessionType,
   TeamBudget,
@@ -161,17 +162,17 @@ export const CLIMATE_ACCENT = {
 /**
  * The metal each rung of a discipline is chipped in, the top rung first.
  *
- * Platinum, gold, silver, bronze, then steel for every rung below the fourth -
- * so the ramp ends rather than fading into the card, and a championship five
- * tiers down still says so. Read through `tierAccent`, which does the clamping,
- * because a tier is 1-based and has no fixed maximum.
+ * Platinum, gold, silver, bronze, then Rookie's deep green for every rung below
+ * the fourth - so the ramp ends rather than fading into the card, and a
+ * championship five tiers down still says so. Read through `tierAccent`,
+ * which does the clamping, because a tier is 1-based and has no fixed maximum.
  */
 export const TIER_ACCENT: readonly string[] = [
   'border-transparent bg-tier-platinum text-tier-platinum-foreground',
   'border-transparent bg-tier-gold text-tier-gold-foreground',
   'border-transparent bg-tier-silver text-tier-silver-foreground',
   'border-transparent bg-tier-bronze text-tier-bronze-foreground',
-  'border-transparent bg-tier-steel text-tier-steel-foreground',
+  'border-transparent bg-tier-rookie text-tier-rookie-foreground',
 ];
 
 /**
@@ -232,6 +233,36 @@ export const LEDGER_ACCENT = {
   repaint: 'border-transparent bg-owned text-owned-foreground',
   rent: 'border-transparent bg-ledger-rent text-ledger-rent-foreground',
 } as const satisfies Record<LedgerKind, string>;
+
+/**
+ * The colour each kind of rating line is chipped in - the Rating page's log and
+ * a round's own rating. A session wears its session's colour, so a race is the
+ * race green and a qualifying the qualifying violet; a rung gained wears the
+ * podium gold and one lost the destructive red; the opening and a lift, which
+ * set a rating rather than earn it, wear the career's own blue; and a change
+ * of speed moves nothing and is the catch-all grey, as it is in Finances. A
+ * historic event's sessions are chipped by `HISTORIC_ACCENT` in their place.
+ */
+export const RATING_ACCENT = {
+  opening: 'border-transparent bg-mode-career text-mode-career-foreground',
+  race: 'border-transparent bg-session-race text-session-race-foreground',
+  qualifying: 'border-transparent bg-session-qualify text-session-qualify-foreground',
+  promotion: 'border-transparent bg-podium-gold text-podium-gold-foreground',
+  drop: 'border-transparent bg-destructive/15 text-destructive',
+  lift: 'border-transparent bg-mode-career text-mode-career-foreground',
+  speed: 'border-transparent bg-session-other text-session-other-foreground',
+} as const satisfies Record<RatingKind, string>;
+
+/**
+ * The colour each discipline's line is drawn in on the rating chart: its
+ * chip's own deep tone, so a line and the card above it say the same thing.
+ */
+export const DISCIPLINE_STROKE = {
+  'single-seater': 'var(--discipline-single-seater-foreground)',
+  sportscar: 'var(--discipline-sportscar-foreground)',
+  touring: 'var(--discipline-touring-foreground)',
+  road: 'var(--discipline-road-foreground)',
+} as const satisfies Record<Discipline, string>;
 
 /**
  * The deep tone of each kind of ledger line, for the bars that weigh them
@@ -417,7 +448,7 @@ export const SECTION_ACCENT = {
   you: 'bg-primary/12 text-primary',
   opponents: 'bg-budget-works text-budget-works-foreground',
   weather: 'bg-weather-wet text-weather-wet-foreground',
-  look: 'bg-tier-steel text-tier-steel-foreground',
+  look: 'bg-tier-silver text-tier-silver-foreground',
   tools: 'bg-tier-gold text-tier-gold-foreground',
   calendar: 'bg-session-race text-session-race-foreground',
   base: 'bg-provenance-base text-provenance-base-foreground',

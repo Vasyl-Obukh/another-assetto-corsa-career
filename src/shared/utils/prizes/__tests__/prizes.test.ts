@@ -68,7 +68,7 @@ describe('shared/utils/prizes', () => {
   });
 
   describe('prizeSpeed', () => {
-    const settings = { ...DEFAULT_CAREER_SETTINGS, progression: 2 };
+    const settings = { ...DEFAULT_CAREER_SETTINGS, prizeSpeed: 2 };
 
     it("pays a career at its own progression speed", () => {
       expect(prizeSpeed({ kind: 'career', settings })).toBe(2);

@@ -56,7 +56,7 @@ import type {
   SkippedRound,
   SkipReason,
 } from '../../shared/types/index.ts';
-import { isEligible } from '../../shared/utils/career-eligibility/index.ts';
+import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
@@ -106,7 +106,9 @@ export const stateOf = (career: Career): CareerState => ({
   ledger: career.ledger,
   garage: career.garage,
   rating: career.rating,
+  globalRating: career.globalRating,
   level: career.level,
+  ratingLog: career.ratingLog,
   seasons: career.seasons,
 });
 
@@ -162,6 +164,8 @@ export const readState = (value: unknown): CareerState | null => {
     && Array.isArray(state.ledger)
     && Array.isArray(state.garage)
     && typeof state.rating === 'object' && state.rating !== null
+    && typeof state.globalRating === 'number'
+    && Array.isArray(state.ratingLog)
     && typeof state.date === 'string'
     && typeof state.level === 'object' && state.level !== null
     && Array.isArray(state.seasons)
@@ -859,7 +863,7 @@ export const calendarEntry = (
     enrolled,
     // Whatever the career's level, but only while the invitation stands: one
     // declined is no longer open to enter.
-    eligible: historic ? enrolled : isEligible(entry.ladder, career.level),
+    eligible: historic ? enrolled : isEligible(entry.ladder, openLevels(career.level)),
     raceable: roundRaceableIn(availability, event.round),
     clash: false,
     historic,

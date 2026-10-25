@@ -16,19 +16,6 @@ export const STARTING_MONEY_STOPS: readonly number[] = [10_000, 50_000, 100_000,
 export const DEFAULT_STARTING_MONEY = 100_000;
 
 /**
- * The lowest rating of the ladder's top rung.
- *
- * A placeholder, like `RATING_PER_TIER`, until rating (Phase 8) sets the real
- * figures. Nothing reads a rating yet.
- */
-export const TOP_RATING_FLOOR = 1800;
-
-/**
- * How much lower each rung's lowest rating is than the rung above it.
- */
-export const RATING_PER_TIER = 200;
-
-/**
  * The earliest year a career's first season may open in.
  */
 export const MIN_START_YEAR = 1950;

@@ -2,10 +2,12 @@ import { CarIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LadderNote } from './LadderNote.tsx';
 import type {
   Car, CareerEventView, CarSource, Skin,
 } from '../../../../shared/types';
 import { rentOf } from '../../../../shared/utils/car-prices';
+import { useSlot } from '@/app';
 import {
   CarPicker, carPictureSources, CarSourceBadge, ContentImage, PurchaseDialog, SkipDialog, SkipNote,
 } from '@/components';
@@ -71,6 +73,7 @@ export const EnterPanel = ({
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
   const garage = useGarage();
+  const { mode, career } = useSlot();
   // The first class the career may enter, not merely the first listed: a
   // multi-class championship's top class is usually the one out of reach.
   const [entry, setEntry] = useState(() => (
@@ -122,7 +125,10 @@ export const EnterPanel = ({
           </Field>
         ) : null}
 
-        {chosen && !chosen.eligible ? (
+        {/* What the ladder says of the class: how to open it, or what entering
+            it through the career's best discipline does to its own rating. */}
+        {chosen && career && mode === 'career' ? <LadderNote career={career} ladder={chosen.ladder} /> : null}
+        {chosen && !chosen.eligible && mode !== 'career' ? (
           <Badge className={cn('gap-1 self-start', CAUTION_ACCENT)}>
             <LockIcon className="size-3" />
             {t('calendar.locked')}

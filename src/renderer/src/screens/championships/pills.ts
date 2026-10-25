@@ -35,6 +35,7 @@ export const championshipPills = (
   const lists = filters
     .filter((filter) => (
       filter.key !== RAIL_KEY.content && filter.key !== RAIL_KEY.switched && filter.key !== RAIL_KEY.affordable
+      && filter.key !== RAIL_KEY.open
     ))
     .flatMap((filter) => picked(filter.key).map((value) => ({
       key: `${filter.key}-${value}`,
@@ -51,7 +52,8 @@ export const championshipPills = (
       t,
       (next) => set(RAIL_KEY.content, contentValues(next)),
     ),
-    // Last, as its switch is last in the column.
+    // Last, as their switches are last in the column.
+    ...switchPill(RAIL_KEY.open, 'yes', 'championships.filter.open'),
     ...switchPill(RAIL_KEY.affordable, 'yes', 'championships.filter.affordable'),
   ];
 };

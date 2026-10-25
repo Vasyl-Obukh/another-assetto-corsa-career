@@ -69,7 +69,7 @@ export const TIER_METAL_KEYS: readonly ParseKeys[] = [
   'championships.metal.gold',
   'championships.metal.silver',
   'championships.metal.bronze',
-  'championships.metal.steel',
+  'championships.metal.rookie',
 ];
 
 /**
@@ -156,6 +156,7 @@ export const RAIL_KEY = {
   switched: 'switched',
   availability: 'availability',
   affordable: 'affordable',
+  open: 'open',
 } as const;
 
 /**

@@ -20,13 +20,19 @@ interface ProgressionSliderProps {
    * Whether it is held still.
    */
   disabled?: boolean;
+  /**
+   * What it sets, for assistive technology - the prize speed unless said.
+   */
+  label?: string;
 }
 
 /**
- * A career's progression speed as a slider over the speeds it may run at,
- * every one named under it - the range is known, so it is never typed.
+ * One of a career's progression speeds as a slider over the speeds it may run
+ * at, every one named under it - the range is known, so it is never typed.
  */
-export const ProgressionSlider = ({ value, onChange, disabled = false }: ProgressionSliderProps) => {
+export const ProgressionSlider = ({
+  value, onChange, disabled = false, label,
+}: ProgressionSliderProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
   // Held while it is dragged, so a drag across several speeds is one change
@@ -44,7 +50,7 @@ export const ProgressionSlider = ({ value, onChange, disabled = false }: Progres
         step={1}
         value={[at]}
         disabled={disabled}
-        aria-label={t('finances.progression')}
+        aria-label={label ?? t('finances.progression')}
         onValueChange={([next]) => setDragged(next)}
         onValueCommit={([next]) => {
           setDragged(null);

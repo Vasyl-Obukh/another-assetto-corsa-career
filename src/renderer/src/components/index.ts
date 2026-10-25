@@ -48,6 +48,7 @@ export { NameDialog } from './NameDialog.tsx';
 export { NationFlag } from './NationFlag.tsx';
 export { PATH_KINDS, PathList, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
+export { RatingBadge, RatingChange, RatingLink } from './rating/index.ts';
 export type { PathKind } from './paths-card/index.ts';
 export {
   DistributorBadge, distributorNameKey, makerNameKey, packNameKey, ProvenanceBadges,

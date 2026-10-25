@@ -23,13 +23,15 @@ export const RECENT_FINISH_DAYS = 14;
 /**
  * The colour each of Home's doors wears in its icon's well: Results a race's
  * green, History a title's gold, Finances the career's own blue, which its
- * opening balance wears on the ledger - each the colour of what it holds, so
- * they read apart before their names do.
+ * opening balance wears on the ledger, and Rating the bronze of the ladder's
+ * metals, which its rungs wear - each the colour of what it holds, so they
+ * read apart before their names do.
  */
 export const DOOR_ACCENT = {
   results: 'bg-session-race text-session-race-foreground',
   history: 'bg-podium-gold text-podium-gold-foreground',
   finances: 'bg-mode-career text-mode-career-foreground',
+  rating: 'bg-tier-bronze text-tier-bronze-foreground',
 } as const;
 
 /**

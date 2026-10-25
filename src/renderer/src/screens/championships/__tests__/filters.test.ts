@@ -4,7 +4,8 @@ import type { TFunction } from 'i18next';
 import { appErrorInfo } from '../../../../../shared/errors';
 import { ContentSource, Discipline, DLCPack } from '../../../../../shared/types';
 import type { Championship, SeriesAvailability, SeriesListing } from '../../../../../shared/types';
-import { affordableFilter, championshipFilters } from '../filters.ts';
+import type { DisciplineLevels } from '../../../../../shared/utils/career-eligibility';
+import { affordableFilter, championshipFilters, openFilter } from '../filters.ts';
 
 /**
  * A translator that echoes the key it was handed and whatever it interpolates.
@@ -71,6 +72,19 @@ const valuesOf = (
   settings?: Parameters<typeof championshipFilters>[0],
 ): readonly string[] => championshipFilters(settings).find((filter) => filter.key === key)?.values(of) ?? [];
 
+/**
+ * The rung each discipline may be entered at, the fifth wherever not named.
+ * @param over The disciplines open higher
+ * @returns The levels
+ */
+const levels = (over: Partial<DisciplineLevels> = {}): DisciplineLevels => ({
+  [Discipline.SINGLE_SEATER]: 5,
+  [Discipline.SPORTSCAR]: 5,
+  [Discipline.TOURING]: 5,
+  [Discipline.ROAD]: 5,
+  ...over,
+});
+
 describe('renderer/screens/championships/filters', () => {
   describe('championshipFilters', () => {
     it('offers the Championships page its four filters and nothing about switches or availability', () => {
@@ -111,6 +125,26 @@ describe('renderer/screens/championships/filters', () => {
       expect(disciplines.format(Discipline.ROAD, t)).toBe('championships.discipline.road');
       expect(tiers.format('2', t)).toBe('championships.tier {"tier":"2"}');
       expect(origins.format('shipped', t)).toBe('championships.filter.shipped');
+    });
+  });
+
+  describe('openFilter', () => {
+    it('passes a championship when any one of its classes is open at the levels handed in', () => {
+      expect(openFilter(levels({ [Discipline.SPORTSCAR]: 3 })).values(listing())).toEqual(['yes']);
+      expect(openFilter(levels({ [Discipline.TOURING]: 1 })).values(listing())).toEqual(['yes']);
+    });
+
+    it('fails a championship whose every class sits above the levels handed in', () => {
+      expect(openFilter(levels()).values(listing())).toEqual(['no']);
+      expect(openFilter(levels({ [Discipline.ROAD]: 1 })).values(listing())).toEqual(['no']);
+    });
+
+    it('always knows the switch is on, so a pick nothing passes stays picked', () => {
+      expect(openFilter(levels()).known).toEqual(['yes']);
+    });
+
+    it('names itself through the translator', () => {
+      expect(openFilter(levels()).format('yes', t)).toBe('championships.filter.open');
     });
   });
 

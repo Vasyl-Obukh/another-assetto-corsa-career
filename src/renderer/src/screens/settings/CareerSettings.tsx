@@ -96,7 +96,7 @@ export const CareerSettings = () => {
         <CareerOpponentsSection own={settings.opponents} onChange={change} />
         <CareerAidsSection own={settings.drivingAids} onChange={change} />
         {career.kind === 'career' ? <CalendarSection settings={settings} onChange={change} /> : null}
-        {career.kind === 'career' ? <ProgressionSection value={settings.progression} onChange={change} /> : null}
+        {career.kind === 'career' ? <ProgressionSection settings={settings} onChange={change} /> : null}
         <CareerCurrencySection own={settings.currency} onChange={change} />
       </div>
     </ScreenBody>

@@ -678,6 +678,16 @@ describe('core/series', () => {
       expect(lowerWith(series).classStrength).toEqual({ second: DEFAULT_OPPONENTS.strength });
     });
 
+    it("records the player's own strength setting as the base, before any championship offset", () => {
+      const series = makeSeries({ grid: { strength: 10 } });
+
+      expect(lowerWith(series, undefined, { strength: 72, aggression: 30 }).aiBase).toBe(72);
+    });
+
+    it('records the default opponents as the base where it is handed none', () => {
+      expect(lowerWith(makeSeries()).aiBase).toBe(DEFAULT_OPPONENTS.strength);
+    });
+
     it('holds a recorded class strength inside the range Assetto Corsa accepts', () => {
       const series = makeSeries({ grid: { strength: 10 } });
 

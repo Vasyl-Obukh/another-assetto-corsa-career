@@ -1,5 +1,6 @@
 import { AppNav } from './app-nav/index.ts';
 import { BalanceLink } from './money/index.ts';
+import { RatingLink } from './rating/index.ts';
 import { SaveStatus } from './saves/index.ts';
 import { SlotMenu } from './slot-menu/index.ts';
 import { useSlot } from '@/app';
@@ -19,7 +20,8 @@ export const AppHeader = () => {
       {career ? (
         <div className="ml-auto flex min-w-0 items-center gap-4">
           <SaveStatus saves={saves.saves} />
-          {/* A standalone championship has no money. */}
+          {/* A standalone championship has no money and no ladder. */}
+          {mode === 'career' ? <RatingLink rating={career.globalRating} /> : null}
           {mode === 'career' ? <BalanceLink money={career.money} /> : null}
         </div>
       ) : null}

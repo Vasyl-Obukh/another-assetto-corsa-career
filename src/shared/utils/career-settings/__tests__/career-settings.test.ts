@@ -32,7 +32,8 @@ describe('shared/utils/career-settings', () => {
         currency: 'EUR',
         allowSameDayEvents: true,
         historicFrequency: 'weekly',
-        progression: 1.5,
+        prizeSpeed: 1.5,
+        ratingSpeed: 2,
       };
 
       expect(readCareerSettings(stored)).toEqual(stored);
@@ -83,10 +84,23 @@ describe('shared/utils/career-settings', () => {
     });
 
     it('keeps a progression speed it offers and pays prizes as they stand for any other', () => {
-      expect(readCareerSettings({ progression: 3 }).progression).toBe(3);
-      expect(readCareerSettings({ progression: 1.1 }).progression).toBe(1);
-      expect(readCareerSettings({ progression: '2' }).progression).toBe(1);
-      expect(readCareerSettings({}).progression).toBe(DEFAULT_CAREER_SETTINGS.progression);
+      expect(readCareerSettings({ prizeSpeed: 3 }).prizeSpeed).toBe(3);
+      expect(readCareerSettings({ prizeSpeed: 1.1 }).prizeSpeed).toBe(1);
+      expect(readCareerSettings({ prizeSpeed: '2' }).prizeSpeed).toBe(1);
+      expect(readCareerSettings({}).prizeSpeed).toBe(DEFAULT_CAREER_SETTINGS.prizeSpeed);
+    });
+
+    it('keeps a rating speed it offers and rates at the default for any other', () => {
+      expect(readCareerSettings({ ratingSpeed: 0.5 }).ratingSpeed).toBe(0.5);
+      expect(readCareerSettings({ ratingSpeed: 4 }).ratingSpeed).toBe(4);
+      expect(readCareerSettings({ ratingSpeed: 5 }).ratingSpeed).toBe(DEFAULT_CAREER_SETTINGS.ratingSpeed);
+      expect(readCareerSettings({ ratingSpeed: '2' }).ratingSpeed).toBe(DEFAULT_CAREER_SETTINGS.ratingSpeed);
+      expect(readCareerSettings({}).ratingSpeed).toBe(DEFAULT_CAREER_SETTINGS.ratingSpeed);
+    });
+
+    it('reads the rating speed apart from the prize speed', () => {
+      expect(readCareerSettings({ prizeSpeed: 3, ratingSpeed: 0.75 }))
+        .toMatchObject({ prizeSpeed: 3, ratingSpeed: 0.75 });
     });
   });
 
