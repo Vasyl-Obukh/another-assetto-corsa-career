@@ -68,6 +68,13 @@ describe('core/career-money', () => {
 
       expect(feeOf(makeEntry({ historic: true }), event)).toBeNull();
     });
+
+    it('charges a historic event entered at the player\'s own cost, in a car of their own or rented', () => {
+      const event = makeEvent('one', '2027-03-07', undefined, { entryFee: 1500 });
+
+      expect(feeOf(makeEntry({ historic: true, car: { model: 'test_car', source: 'rented' } }), event)).toBe(1500);
+      expect(feeOf(makeEntry({ historic: true, car: { model: 'test_car', source: 'owned' } }), event)).toBe(1500);
+    });
   });
 
   describe('feePaid', () => {

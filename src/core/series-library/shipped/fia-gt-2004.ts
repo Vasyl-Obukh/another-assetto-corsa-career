@@ -94,6 +94,7 @@ export const FIA_GT_2004: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.N_GT, minModels: 2 },
       grid: { strength: -3 },
+      entryFee: 7200,
       prizes: {
         positions: [27000, 18900, 13500, 10250, 7850, 5950, 4300, 3250, 2150, 1350],
         standings: [216000, 135000, 86500, 56500, 35000],

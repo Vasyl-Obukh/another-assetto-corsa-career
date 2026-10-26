@@ -5,7 +5,7 @@ import type { Championship, ClassEntry } from '../../../shared/types/index.ts';
 import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import {
-  historicSeat, historicSlots, planHistoric, withPlayerSeat,
+  historicRung, historicSeat, historicSlots, invitationDrawn, planHistoric, withPlayerSeat,
 } from '../index.ts';
 import type { HistoricDrawRequest } from '../index.ts';
 import { daysFrom } from '../utils.ts';
@@ -47,6 +47,25 @@ const entry = (id: string, seats: ClassEntry['seats']): ClassEntry => ({
  * @param entries Its classes
  * @returns The event
  */
+const LEVELS: Record<Discipline, number> = {
+  [Discipline.SINGLE_SEATER]: 4,
+  [Discipline.SPORTSCAR]: 2,
+  [Discipline.TOURING]: 5,
+  [Discipline.ROAD]: 5,
+};
+
+/**
+ * A class of a historic event on a rung of its own.
+ * @param id Its id
+ * @param discipline Its discipline
+ * @param tier Its tier
+ * @returns The class entry, one seat
+ */
+const rung = (id: string, discipline: Discipline, tier: number): ClassEntry => ({
+  ...entry(id, [{ id: `${id}-seat` }]),
+  ladder: { discipline, tier },
+});
+
 const event = (entries: ClassEntry[]): Championship => ({
   version: SERIES_FORMAT_VERSION,
   id: 'british-gp-1967',
@@ -173,6 +192,14 @@ describe('core/historic-draw', () => {
       expect(planHistoric(request({ salt: 'career-2/0' }))).not.toEqual(planHistoric(request()));
     });
 
+    // Guards a fix: the salt ended the seed, so one career's seasons - salts
+    // differing in their last character - drew the same events year after year.
+    it('draws the next season of one career apart from the last', () => {
+      const ids = (salt: string): string[] => planHistoric(request({ salt })).map((pick) => pick.id);
+
+      expect(ids('career-1/1')).not.toEqual(ids('career-1/0'));
+    });
+
     it('draws a stretch the same from the same pool, whatever came before it', () => {
       const full = planHistoric(request());
       const later = planHistoric(request({
@@ -233,6 +260,73 @@ describe('core/historic-draw', () => {
       const field = event([entry('f1', [{ id: 'clark' }, { id: 'hill' }, { id: 'surtees' }])]);
 
       expect(historicSeat(field, eligible, 'career/3')).toEqual(historicSeat(field, eligible, 'career/3'));
+    });
+
+    it('given the rungs of the player, offers a class of the discipline they rank highest in', () => {
+      const mixed = event([rung('f1', Discipline.SINGLE_SEATER, 4), rung('gt', Discipline.SPORTSCAR, 2)]);
+      const cars = new Map([['f1', ['lotus_49']], ['gt', ['ford_gt40']]]);
+
+      ['a', 'b', 'c', 'd', 'e', 'f'].forEach((salt) => {
+        expect(historicSeat(mixed, cars, salt, LEVELS)?.entry).toBe('gt');
+      });
+    });
+
+    it('among the classes of that discipline, offers the one whose tier is nearest the rung', () => {
+      const mixed = event([rung('gt1', Discipline.SPORTSCAR, 1), rung('gt3', Discipline.SPORTSCAR, 3), rung('gt2', Discipline.SPORTSCAR, 2)]);
+      const cars = new Map([['gt1', ['a']], ['gt2', ['b']], ['gt3', ['c']]]);
+
+      ['a', 'b', 'c', 'd', 'e', 'f'].forEach((salt) => {
+        expect(historicSeat(mixed, cars, salt, LEVELS)?.entry).toBe('gt2');
+      });
+    });
+  });
+
+  describe('historicRung', () => {
+    it('is the highest rung the player holds among the disciplines of the event', () => {
+      const mixed = event([rung('f1', Discipline.SINGLE_SEATER, 4), rung('gt', Discipline.SPORTSCAR, 1)]);
+      const cars = new Map([['f1', ['lotus_49']], ['gt', ['ford_gt40']]]);
+
+      expect(historicRung(mixed, cars, LEVELS)).toEqual({ discipline: Discipline.SPORTSCAR, rung: 2 });
+    });
+
+    it('leaves out a discipline whose classes cannot field a car', () => {
+      const mixed = event([rung('f1', Discipline.SINGLE_SEATER, 4), rung('gt', Discipline.SPORTSCAR, 1)]);
+      const cars = new Map([['f1', ['lotus_49']], ['gt', []]]);
+
+      expect(historicRung(mixed, cars, LEVELS)).toEqual({ discipline: Discipline.SINGLE_SEATER, rung: 4 });
+    });
+
+    it('is nothing for an event no class of which can field a car', () => {
+      expect(historicRung(event([rung('f1', Discipline.SINGLE_SEATER, 4)]), new Map(), LEVELS)).toBeNull();
+    });
+  });
+
+  describe('invitationDrawn', () => {
+    const lotus = event([entry('f1', [{ id: 'clark' }])]);
+    const salts = Array.from({ length: 200 }, (unused, at) => `career/${at}`);
+
+    it('always comes at a certain chance, and never at none', () => {
+      expect(salts.every((salt) => invitationDrawn(lotus, 100, salt))).toBe(true);
+      expect(salts.some((salt) => invitationDrawn(lotus, 0, salt))).toBe(false);
+    });
+
+    // Guards a fix: the salt ended the seed, so seasons of one career - salts
+    // differing in their last character - all drew within a hair of each other.
+    it('comes about as often as its chance says, season after season', () => {
+      const hits = salts.filter((salt) => invitationDrawn(lotus, 40, salt)).length;
+
+      expect(hits / salts.length).toBeGreaterThan(0.3);
+      expect(hits / salts.length).toBeLessThan(0.5);
+    });
+
+    it('draws the same season the same way every time', () => {
+      expect(salts.map((salt) => invitationDrawn(lotus, 50, salt)))
+        .toEqual(salts.map((salt) => invitationDrawn(lotus, 50, salt)));
+    });
+
+    it('comes at a higher chance whenever it comes at a lower one', () => {
+      salts.filter((salt) => invitationDrawn(lotus, 20, salt))
+        .forEach((salt) => expect(invitationDrawn(lotus, 60, salt)).toBe(true));
     });
   });
 

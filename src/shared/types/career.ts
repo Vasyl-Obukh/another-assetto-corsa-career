@@ -14,6 +14,7 @@
 
 import type { LaunchRecord } from './event.ts';
 import type { RoundDraw, SessionForecast } from './forecast.ts';
+import type { Mail } from './inbox.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { GridEntry, SessionType } from './race.ts';
 import type {
@@ -220,14 +221,91 @@ export interface SeasonEntry {
   strength?: number;
   /**
    * Set on a historic event rather than a championship: a single event the
-   * season drew onto its calendar, with the player invited to it.
+   * season drew onto its calendar, which the player is in - invited, or
+   * entered at their own cost.
    *
    * Its `series` is the historic event's own id, its `edition` is always zero,
-   * and its `championship` is a copy of the event with the seat the player was
-   * given moved to the end of its class - which is where every lowering and
-   * every simulation already takes the player's seat from.
+   * and its `championship` is the season's copy of the event. An invitation
+   * moves the seat it offers to the end of its class, which is where every
+   * lowering and every simulation already takes the player's seat from; an
+   * entry paid for takes the last seat as it stands. A car with no `source`
+   * came with an invitation, and costs neither fee nor rent.
    */
   historic?: true;
+}
+
+/**
+ * What the draw for a historic event's invitation came to: an invitation sent,
+ * none sent, or none drawn for since the player had already entered it.
+ */
+export type InvitationOutcome = 'invited' | 'uninvited' | 'entered';
+
+/**
+ * A historic event's invitations, once they have gone out.
+ */
+export interface InvitationDraw {
+  /**
+   * The career's date they went out on, as an ISO date.
+   */
+  on: string;
+  /**
+   * What came of them.
+   */
+  outcome: InvitationOutcome;
+  /**
+   * The discipline whose rung decided the chance - the highest of the event's
+   * disciplines the player held. Absent where nothing was drawn for.
+   */
+  discipline?: Discipline;
+  /**
+   * That rung, 1 being the top.
+   */
+  rung?: number;
+  /**
+   * The chance of an invitation it gave, as a percentage.
+   */
+  chance?: number;
+}
+
+/**
+ * One historic event a season drew onto its calendar, which anyone may enter.
+ *
+ * Kept on the season whether or not the player is in it, so the calendar shows
+ * it, the field races it without them, and its invitation goes out on its day.
+ * The player being in it is a season entry of its own, made by accepting the
+ * invitation or by paying to enter.
+ */
+export interface HistoricDraw {
+  /**
+   * The historic event, by its id.
+   */
+  series: string;
+  /**
+   * The event as it stood when it was drawn, whole - which every entry into it
+   * is copied from, and what it is simulated off when the player is not in it.
+   */
+  championship: Championship;
+  /**
+   * Its one round, by its id.
+   */
+  round: string;
+  /**
+   * The race id that round lowers to this season.
+   */
+  raceId: string;
+  /**
+   * The day it is raced on, as an ISO date.
+   */
+  date: string;
+  /**
+   * The day its invitations go out, as an ISO date: four weeks before its
+   * own, or the day it was drawn when that is sooner.
+   */
+  invitations: string;
+  /**
+   * What the invitations came to, once they have gone out.
+   */
+  invitation?: InvitationDraw;
 }
 
 /**
@@ -260,6 +338,11 @@ export interface CareerSeason {
    * historic events existed draws its own the first time it is read.
    */
   historicDrawn?: true;
+  /**
+   * The historic events it drew, earliest first - absent on a season that drew
+   * none, or drew them as entries, before anyone could enter one unasked.
+   */
+  historicEvents?: readonly HistoricDraw[];
 }
 
 /**
@@ -762,6 +845,10 @@ export interface CareerState {
    * Its seasons, oldest first.
    */
   seasons: readonly CareerSeason[];
+  /**
+   * Every mail it has been sent, oldest first, across all its seasons.
+   */
+  inbox: readonly Mail[];
 }
 
 /**
@@ -1202,6 +1289,50 @@ export interface CalendarEntry {
    * Whether it is a historic event rather than a round of a championship.
    */
   historic: boolean;
+  /**
+   * Where its invitation stands, for a historic event.
+   */
+  invitation?: CalendarInvitation;
+}
+
+/**
+ * Where a historic event's invitation stands for the player.
+ *
+ * "pending" is before invitations go out, "awaiting" one sent and still to be
+ * answered, "accepted" and "declined" one answered, "lapsed" one left
+ * unanswered past its day, "uninvited" none sent, "closed" none drawn for
+ * because the player had entered already, and "entered" the player in it at
+ * their own cost.
+ */
+export type InvitationState = 'pending' | 'awaiting' | 'accepted' | 'declined' | 'lapsed' | 'uninvited' | 'closed'
+  | 'entered';
+
+/**
+ * A historic event's invitation, as the calendar shows it.
+ */
+export interface CalendarInvitation {
+  /**
+   * Where it stands.
+   */
+  state: InvitationState;
+  /**
+   * The day invitations go out, or went out, as an ISO date.
+   */
+  invitations: string;
+  /**
+   * The chance of one, as a percentage: the one drawn on once they have gone
+   * out, the player's rung now while they are still to, and null where there
+   * was nothing to draw.
+   */
+  chance: number | null;
+  /**
+   * The team offering the seat, for an invitation sent.
+   */
+  team: string | null;
+  /**
+   * The car offered, by folder ID, for an invitation sent.
+   */
+  car: string | null;
 }
 
 /**
@@ -1372,6 +1503,11 @@ export interface EventClassOption {
    * override where it has one. Empty when nothing installed qualifies.
    */
   cars: readonly string[];
+  /**
+   * What entering it costs a round, or null for nothing - and for a career
+   * with no money, a standalone championship.
+   */
+  fee: number | null;
 }
 
 /**
@@ -1608,9 +1744,65 @@ export interface HistoricView {
    */
   availability: SeriesAvailability;
   /**
-   * The seat the player was given, by its id.
+   * The seat the player is in, or is offered, by its id - null while they have
+   * neither.
    */
-  seat: string;
+  seat: string | null;
+  /**
+   * Where its invitation stands, and what it offers.
+   */
+  invitation: HistoricInvitation;
+}
+
+/**
+ * A historic event's invitation, as its page shows it.
+ */
+export interface HistoricInvitation extends CalendarInvitation {
+  /**
+   * The mail it came in, by id, once one did.
+   */
+  mail: string | null;
+  /**
+   * The discipline whose rung sets the chance, or null where there is none.
+   */
+  discipline: Discipline | null;
+  /**
+   * That rung, 1 being the top, or null where there is none.
+   */
+  rung: number | null;
+  /**
+   * The seat an invitation offers, or null where none was sent.
+   */
+  offer: {
+    /**
+     * The class, by its class entry id.
+     */
+    entry: string;
+    /**
+     * The class's display name.
+     */
+    entryName: string;
+    /**
+     * The seat, by its id.
+     */
+    seat: string;
+    /**
+     * Whose seat it is, by the driver's name.
+     */
+    driver: string | null;
+    /**
+     * The car it races.
+     */
+    car: SeasonEntry['car'];
+  } | null;
+  /**
+   * The day it was answered, once it was.
+   */
+  answered: string | null;
+  /**
+   * What entering it without an invitation costs, or null when nothing.
+   */
+  fee: number | null;
 }
 
 /**
@@ -1619,10 +1811,11 @@ export interface HistoricView {
  * "skipped" is a round passed by unraced, "partway" an event left with
  * sessions still to run, "behind" a round already gone by when its championship
  * is entered, "clash" an event on the same day as the one being raced,
- * which is given up for it unless settings allow two events on one day, and
- * "unraceable" a round skipped because the install cannot race it.
+ * which is given up for it unless settings allow two events on one day,
+ * "unraceable" a round skipped because the install cannot race it, and
+ * "unanswered" a historic event whose invitation lapses unanswered.
  */
-export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash' | 'unraceable';
+export type SkipReason = 'skipped' | 'partway' | 'behind' | 'clash' | 'unraceable' | 'unanswered';
 
 /**
  * What one round of a class of a championship costs the career to race: the

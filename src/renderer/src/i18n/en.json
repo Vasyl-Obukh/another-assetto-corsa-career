@@ -13,7 +13,8 @@
     "results": "Results",
     "championship": "Championship",
     "store": "Store",
-    "garage": "Garage"
+    "garage": "Garage",
+    "inbox": "Inbox"
   },
   "paths": {
     "title": "Where things are",
@@ -668,7 +669,8 @@
     "seriesRound": "{{series}} {{round}}",
     "advanceHere": "Advance to this day",
     "advanceShort": "Go here",
-    "invited": "Invited"
+    "answer": "Answer",
+    "feeToEnter": "{{amount}} to enter"
   },
   "event": {
     "roundOf": "Round {{number}} of {{rounds}}",
@@ -701,7 +703,14 @@
       "firstRoundDay": " · {{day}}",
       "rent": "Rent",
       "perRound": "{{amount}} a round",
-      "rentHint": "Paid with the entry fee as each round launches."
+      "rentHint": "Paid with the entry fee as each round launches.",
+      "historicBody": "Entering puts you in the last seat of its class, and the event goes onto your calendar.",
+      "historicAction": "Enter event",
+      "perEvent": "{{amount}} for the event",
+      "historicRentHint": "Paid with the entry fee as the event launches.",
+      "fee": "Entry fee",
+      "feeHint": "Paid as each round launches.",
+      "historicFeeHint": "Paid as the event launches."
     },
     "brief": {
       "length": "Length",
@@ -890,7 +899,8 @@
       "entryFee": "Entry fee",
       "free": "Free to enter",
       "roundPrizes": "Race prize money",
-      "seasonPrizes": "Championship prize money"
+      "seasonPrizes": "Championship prize money",
+      "byClass": "{{low}} - {{high}} by class"
     },
     "missing": {
       "cars": "Cars",
@@ -1524,7 +1534,9 @@
       "make": "Make its own",
       "dropTitle": "Pay {{name}} what the championship pays?",
       "dropBody": "The prize money {{name}} pays of its own is dropped.",
-      "drop": "Share the championship's"
+      "drop": "Share the championship's",
+      "fee": "Entry fee",
+      "feeHint": "What entering {{name}} costs a round, in place of the championship's fee. Leave it empty to charge that."
     },
     "prizeMoney": {
       "hint": "What the championship pays. A class may pay its own instead, on its own tab.",
@@ -2042,13 +2054,15 @@
     "historic": {
       "heading": "Historic events",
       "title": "Historic events in {{year}}",
-      "counts_one": "{{count}} · {{raced}} raced · {{declined}} declined",
-      "counts_other": "{{count}} · {{raced}} raced · {{declined}} declined",
+      "counts_one": "{{count}} · {{raced}} raced · {{missed}} missed",
+      "counts_other": "{{count}} · {{raced}} raced · {{missed}} missed",
       "all": "All in the year review",
       "seatOf": "{{team}} · in {{driver}}'s seat",
       "invited": "You're invited to drive it at this event",
-      "declined": "Declined",
-      "missed": "Missed"
+      "missed": "Missed",
+      "open": "Open to enter",
+      "notEntered": "Raced without you",
+      "entered": "Entered at your own cost"
     },
     "rating": {
       "promoted": "Promoted to Tier {{tier}} in {{discipline}}",
@@ -2135,7 +2149,7 @@
       "of_other": "of {{count}}",
       "podiums": "Podiums",
       "prize": "Prize money",
-      "notRaced": "Declined or missed",
+      "notRaced": "Missed",
       "byField": "raced by the field",
       "inClass": "in class",
       "column": {
@@ -2215,7 +2229,8 @@
       "partway": "Unfinished",
       "behind": "Non-start",
       "clash": "Clash",
-      "unraceable": "Can't be raced"
+      "unraceable": "Can't be raced",
+      "unanswered": "Unanswered"
     },
     "clashHeading": "Same day - you can only drive one",
     "advanceTitle": "Advance to {{day}}?",
@@ -2253,7 +2268,8 @@
     "skipConfirm_one": "Skip {{count}} round",
     "skipConfirm_other": "Skip {{count}} rounds",
     "skipFinish": "Skip and finish",
-    "free": "Costs no money: an entry fee is paid only for a round you launch."
+    "free": "Costs no money: an entry fee is paid only for a round you launch.",
+    "answer": "Answer it"
   },
   "back": {
     "home": "Home",
@@ -2292,7 +2308,8 @@
     "finances": "Finances",
     "store": "Store",
     "garage": "Garage",
-    "rating": "Rating"
+    "rating": "Rating",
+    "inbox": "Inbox"
   },
   "standings": {
     "title": "Standings",
@@ -2419,7 +2436,10 @@
       "prizes": "Prizes",
       "noPrizes": "This event pays no prize money.",
       "hint": "Classes, field and prizes",
-      "rules": "Rules"
+      "rules": "Rules",
+      "fee": "Entering without an invitation costs {{amount}}.",
+      "fees": "Entering without an invitation costs {{fees}}.",
+      "classFee": "{{amount}} in {{name}}"
     },
     "seat": {
       "title": "Your seat",
@@ -2432,7 +2452,7 @@
       "action": "Decline",
       "event": "Decline this event",
       "title": "Decline {{name}}?",
-      "body": "{{driver}} goes back in the seat, and the field races it on {{day}} without you. You can't take it back.",
+      "body": "{{driver}} goes back in the seat. You can still enter the event yourself, paying its entry fee and bringing a car of its class.",
       "confirm": "Decline"
     },
     "strength": {
@@ -2444,7 +2464,9 @@
       "guestDetail_one": "This event races at Tier {{tier}}, a rung above your {{discipline}} Tier {{own}}. The organisers invite guests from every rung.",
       "guestDetail_other": "This event races at Tier {{tier}}, {{count}} rungs above your {{discipline}} Tier {{own}}. The organisers invite guests from every rung.",
       "invitedDetail": "This event races at Tier {{tier}} in {{discipline}}; you are Tier {{own}} there.",
-      "counts": "It counts as a Tier {{own}} race in {{discipline}} - your own rung - with its field rated {{field}} rather than {{event}}, and a guest seat lifts nothing."
+      "counts": "It counts as a Tier {{own}} race in {{discipline}} - your own rung - with its field rated {{field}} rather than {{event}}, and a guest seat lifts nothing.",
+      "paid": "Your own entry",
+      "paidDetail": "This event races at Tier {{tier}} in {{discipline}}; you are Tier {{own}} there. It is open to anyone who pays their way."
     }
   },
   "historicLibrary": {
@@ -2563,7 +2585,8 @@
           "hint": "What the event allows and how it is policed. Your own aids are in Settings and are not shown here."
         }
       }
-    }
+    },
+    "entryFeeHint": "What entering costs without an invitation. An invitation's seat is free."
   },
   "slot": {
     "careerLine": "Career · {{day}} {{year}}",
@@ -3135,5 +3158,144 @@
       "detail": "{{change}} to {{rating}}",
       "open": "Rating"
     }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "search": "Search mail",
+    "folder": {
+      "all": "All mail",
+      "unread": "Unread",
+      "awaiting": "Awaiting reply"
+    },
+    "kinds": "Kinds",
+    "kind": {
+      "invitation": "Invitations"
+    },
+    "chip": {
+      "invitation": "Invitation"
+    },
+    "empty": "No mail yet",
+    "emptyHint": "Invitations to historic events arrive here four weeks before their day.",
+    "emptyFolder": "Nothing here.",
+    "noMatch": "No mail matches the search.",
+    "pick": "Pick a mail to read it.",
+    "pager": "{{from}}-{{to}} of {{count}}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "subject": {
+      "invitation": "Invitation: {{event}}"
+    },
+    "status": {
+      "awaiting": "Reply by {{day}}",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "lapsed": "Lapsed"
+    },
+    "organisers": "The organisers",
+    "to": "to {{driver}}",
+    "letter": {
+      "greeting": "Dear {{name}},",
+      "offer": "{{team}} would like you in their {{car}} for the {{event}} on {{day}}, in {{driver}}'s seat for this event alone.",
+      "offerSeat": "{{team}} would like you in their {{car}} for the {{event}} on {{day}}, for this event alone.",
+      "terms": "The car and the entry are on the team, so there is no entry fee and no rent. The prize money for your finish is yours.",
+      "reply": "Let us know by the day of the race.",
+      "offerAt": "{{team}} would like you in their {{car}} for the {{event}} at {{track}} on {{day}}, in {{driver}}'s seat for this event alone.",
+      "offerSeatAt": "{{team}} would like you in their {{car}} for the {{event}} at {{track}} on {{day}}, for this event alone."
+    },
+    "card": {
+      "seat": "Your seat",
+      "field": "Field",
+      "cars_one": "{{count}} car",
+      "cars_other": "{{count}} cars",
+      "classes_one": "one class",
+      "classes_other": "{{count}} classes",
+      "format": "Format",
+      "sessions_one": "{{count}} session",
+      "sessions_other": "{{count}} sessions",
+      "winner": "To the winner",
+      "free": "no fee, no rent",
+      "noPrize": "No prize money"
+    },
+    "clash": "Same day as {{event}}.",
+    "clashHint": "Accepting puts both on {{day}}, and racing one gives the other up.",
+    "reply": {
+      "awaiting": "Reply by {{day}}, the day of the event",
+      "left_one": "{{count}} day left",
+      "left_other": "{{count}} days left",
+      "today": "today is the last day",
+      "awaitingHint": "Unanswered by then, it lapses and {{driver}} races the seat.",
+      "accept": "Accept invitation",
+      "decline": "Decline",
+      "accepted": "You accepted on {{day}}",
+      "acceptedHint": "It is on your calendar, and stops the clock like any round of yours.",
+      "declined": "You declined on {{day}}",
+      "declinedAhead": "You can still enter it yourself, paying the entry fee and bringing a car of its class.",
+      "declinedPast": "{{driver}} raced the seat on {{day}}.",
+      "lapsed": "Lapsed on {{day}}, unanswered",
+      "lapsedHint": "You moved on past it, and {{driver}} raced the seat.",
+      "open": "Open the event",
+      "enter": "Enter the event"
+    },
+    "menu": {
+      "label": "Mail actions",
+      "unread": "Mark as unread",
+      "open": "Open the event"
+    },
+    "decline": {
+      "title": "Decline the {{event}}?",
+      "body": "{{team}} gives the seat back to {{driver}}. You can still enter the event yourself, paying its {{fee}} fee and bringing a car of its class.",
+      "bodyFree": "{{team}} gives the seat back to {{driver}}. You can still enter the event yourself, bringing a car of its class.",
+      "keep": "Keep it",
+      "confirm": "Decline"
+    },
+    "toast": {
+      "one": "New mail",
+      "oneDetail": "{{team}} invites you to the {{event}}",
+      "read": "Read",
+      "many": "{{count}} new emails",
+      "two": "{{first}} and {{second}}",
+      "more_one": "{{first}}, {{second}} and {{count}} more",
+      "more_other": "{{first}}, {{second}} and {{count}} more",
+      "open": "Open the inbox"
+    },
+    "banner": {
+      "title_one": "{{count}} invitation awaits a reply",
+      "title_other": "{{count}} invitations await a reply",
+      "item": "{{event}} by {{day}}",
+      "open": "Open the inbox"
+    },
+    "markAllRead": "Mark all as read"
+  },
+  "invitation": {
+    "state": {
+      "pending": "Invitations go out {{day}}",
+      "awaiting": "Reply by {{day}}",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "lapsed": "Lapsed",
+      "uninvited": "Not invited",
+      "closed": "No invitation",
+      "entered": "Entered"
+    },
+    "chance": "Your chance of an invitation",
+    "pendingHint": "At {{metal}} in {{discipline}}. Entering now means paying, and no invitation comes after.",
+    "uninvitedHint": "No invitation came when they went out on {{day}} - {{chance}}% at {{metal}} in {{discipline}}. You can still enter, paying your own way.",
+    "uninvitedPlain": "No invitation came. You can still enter, paying your own way.",
+    "closedHint": "You were entered when invitations went out on {{day}}, so none came. You can still enter, paying your own way.",
+    "declinedHint": "You declined {{team}}'s invitation on {{day}}. Their seat is gone, but you can still enter in a car of your own.",
+    "lapsedHint": "The invitation lapsed on {{day}}, unanswered. Its seat is gone, but you can still enter in a car of your own.",
+    "title": "Your invitation",
+    "free": "No entry fee and no rent - the team covers both.",
+    "accept": "Accept invitation",
+    "read": "Read the invitation",
+    "acceptedOn": "Accepted on {{day}}. It stops the clock like any round of yours.",
+    "entered": "Entered in the last seat of {{class}}.",
+    "withdraw": "Withdraw",
+    "withdrawTitle": "Withdraw from {{event}}?",
+    "withdrawBody": "You leave the last seat of {{class}}, and the field races it without you. Nothing has been paid yet, and you can enter again before its day.",
+    "withdrawConfirm": "Withdraw",
+    "launch": "Accept and launch {{name}}",
+    "launchHint": "Launching it accepts the invitation.",
+    "percent": "{{value}}%"
   }
 }

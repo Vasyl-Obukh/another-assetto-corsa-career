@@ -66,6 +66,7 @@ export const PETIT_LE_MANS_2001: Championship = {
         spec: CarSpec.GT1_2000S,
         minModels: 2,
       },
+      entryFee: 3000,
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
       },
@@ -101,6 +102,7 @@ export const PETIT_LE_MANS_2001: Championship = {
       grid: {
         strength: -3,
       },
+      entryFee: 1800,
       prizes: {
         positions: [18000, 12600, 9000, 6850, 5200, 3950, 2900, 2150, 1450, 900],
       },
@@ -170,6 +172,7 @@ export const PETIT_LE_MANS_2001: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 5000,
   prizes: {
     positions: [50000, 35000, 25000, 19000, 14500, 11000, 8000, 6000, 4000, 2500],
   },

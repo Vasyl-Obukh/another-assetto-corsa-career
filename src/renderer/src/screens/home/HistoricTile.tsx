@@ -25,8 +25,8 @@ interface HistoricTileProps {
 export const HistoricTile = ({ row, next }: HistoricTileProps) => {
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
-  const carName = useCarNames([row.car]);
-  const past = row.outcome !== 'scheduled';
+  const carName = useCarNames(row.car ? [row.car] : []);
+  const past = row.outcome !== 'scheduled' && row.outcome !== 'open';
 
   return (
     <Link
@@ -39,7 +39,9 @@ export const HistoricTile = ({ row, next }: HistoricTileProps) => {
       <span aria-hidden className={cn('absolute inset-y-0 left-0 w-1', disciplineDot(row.ladder))} />
       <span className="text-xs text-muted-foreground tabular-nums">{formatDayShort(row.date)}</span>
       <span className="truncate text-sm font-semibold">{row.name}</span>
-      <span className="truncate text-xs text-muted-foreground">{carName(row.car)}</span>
+      <span className="truncate text-xs text-muted-foreground">
+        {row.car ? carName(row.car) : t(`home.historic.${row.outcome === 'open' ? 'open' : 'notEntered'}`)}
+      </span>
       <span className="flex flex-wrap items-center gap-1 pt-0.5">
         {row.outcome === 'raced' ? (
           <>
@@ -54,7 +56,7 @@ export const HistoricTile = ({ row, next }: HistoricTileProps) => {
             )}
           </>
         ) : null}
-        {row.outcome === 'declined' || row.outcome === 'missed' ? (
+        {row.outcome === 'missed' ? (
           <Badge className={cn('px-1.5 py-0 text-[0.65rem]', EVENT_ACCENT.missed)}>
             {t(`home.historic.${row.outcome}`)}
           </Badge>

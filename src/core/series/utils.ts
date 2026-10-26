@@ -680,6 +680,7 @@ export const validateMoney = (series: Championship): AppErrorInfo[] => {
   // otherwise reported as a number with nowhere to go and look for it.
   const fees = [
     { scope: 'the championship', fee: series.entryFee },
+    ...series.entries.map((entry) => ({ scope: `class ${entry.id}`, fee: entry.entryFee })),
     ...series.rounds.map((round) => ({ scope: `round ${round.id}`, fee: round.entryFee })),
   ];
   fees.forEach(({ scope, fee }) => {

@@ -130,6 +130,7 @@ export const TURKISH_GP_2005: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 10000,
   prizes: {
     positions: [100000, 70000, 50000, 36000, 27000, 20000, 15000, 10000, 6000, 3000],
   },

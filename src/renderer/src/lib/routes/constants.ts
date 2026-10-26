@@ -23,6 +23,7 @@ export const ROUTE = {
   standalones: '/standalones',
   standaloneNew: '/standalones/new',
   home: '/home',
+  inbox: '/inbox',
   standalone: '/championship',
   race: '/race',
   raceEvent: '/race/:id',
@@ -81,6 +82,12 @@ export const RUN_PARAM = {
 export const DETAIL_TAB_PARAM = 'tab';
 
 /**
+ * The search parameter the inbox keeps the mail it shows open in, so a link
+ * can open one and Back returns to it.
+ */
+export const MAIL_PARAM = 'mail';
+
+/**
  * The search parameter a round's page is opened on one of its sessions with,
  * by launch index, so a line about a session can lead straight to it.
  */
@@ -92,6 +99,9 @@ export const SESSION_PARAM = 'session';
  * Only the label lives here. Icons stay with the component that draws them,
  * which is what keeps this module free of React.
  *
+ * The inbox is second, beside Home, since it is where offers arrive to be
+ * answered and its entry carries how many are unread.
+ *
  * Results, History and Finances are deliberately not here: all three are
  * reached from Home, and live under its path so Home stays lit while any is
  * open. Settings opens on the career's own, and stays lit on the app's. A
@@ -101,6 +111,7 @@ export const SESSION_PARAM = 'session';
  */
 export const CAREER_NAV = [
   { id: 'home', label: 'nav.home' },
+  { id: 'inbox', label: 'nav.inbox' },
   { id: 'calendar', label: 'nav.calendar' },
   { id: 'championships', label: 'nav.championships' },
   { id: 'store', label: 'nav.store', also: ['car'] },
@@ -142,6 +153,7 @@ export const BACK_LABEL = {
   standalones: 'back.standalones',
   standaloneNew: 'back.standaloneNew',
   home: 'back.home',
+  inbox: 'back.inbox',
   standalone: 'back.standalone',
   race: 'back.race',
   raceEvent: 'back.raceEvent',

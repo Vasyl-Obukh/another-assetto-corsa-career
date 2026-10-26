@@ -94,6 +94,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       // The Evora is the light car of the three.
       bop: [{ car: 'lotus_evora_s', ballast: 60, restrictor: 5 }],
       grid: { strength: -4 },
+      entryFee: 1500,
       prizes: {
         positions: [4800, 3350, 2400, 1800, 1300, 950, 700, 550, 350, 200],
         standings: [36000, 21500, 14500, 9500, 6000],

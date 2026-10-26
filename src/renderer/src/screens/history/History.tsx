@@ -29,7 +29,7 @@ export const History = () => {
     year: seasonYear(season),
     open: season === career.seasons.at(-1),
     review: yearReview(season, career.date),
-    historic: historicReview(season, prizeSpeed(career)),
+    historic: historicReview(season, prizeSpeed(career), career.date),
   })) : []), [career]);
 
   return (

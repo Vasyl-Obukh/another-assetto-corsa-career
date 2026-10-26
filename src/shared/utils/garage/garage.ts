@@ -5,7 +5,6 @@
 import type {
   Car, Career, CareerSeason, CarSource, OwnedCar, SeasonEntry, SeasonEvent,
 } from '../../types/index.ts';
-import { isHistoric } from '../historic/index.ts';
 
 /**
  * A car the career owns.
@@ -18,8 +17,9 @@ export const ownedCar = (career: Pick<Career, 'garage'>, model: string): OwnedCa
 );
 
 /**
- * Every entry of a season still to race a car: not withdrawn, not a historic
- * event, whose car comes with the seat, and with a round left to run.
+ * Every entry of a season still to race a car: not withdrawn, the player's own
+ * or rented rather than one that came with an invitation's seat, and with a
+ * round left to run.
  * @param season The season
  * @param model The car's folder ID
  * @param source Only entries racing it owned, or rented, when given
@@ -29,7 +29,7 @@ export const racingIn = (season: CareerSeason, model: string, source?: CarSource
   season.entries.filter((entry) => (
     entry.car.model === model
     && !entry.withdrawn
-    && !isHistoric(entry)
+    && entry.car.source !== undefined
     && (source === undefined || entry.car.source === source)
     && entry.events.some((event) => event.status === 'scheduled')
   ))

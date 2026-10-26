@@ -61,6 +61,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
         { car: 'rss_gtmx_macca_v8', restrictor: 15 },
       ],
       grid: { strength: -2 },
+      entryFee: 15000,
       prizes: {
         positions: [54000, 37800, 27000, 20500, 15650, 11900, 8650, 6500, 4300, 2700],
         standings: [432000, 270000, 173000, 113500, 70000],

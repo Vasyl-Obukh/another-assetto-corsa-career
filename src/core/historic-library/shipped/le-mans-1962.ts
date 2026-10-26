@@ -113,6 +113,7 @@ export const LE_MANS_1962: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 2800,
   prizes: {
     positions: [28000, 19600, 14000, 10650, 8100, 6150, 4500, 3350, 2250, 1400],
   },

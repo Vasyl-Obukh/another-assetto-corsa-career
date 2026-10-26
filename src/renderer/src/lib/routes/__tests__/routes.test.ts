@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { ROUTE } from '../constants.ts';
+import { MAIL_PARAM, ROUTE } from '../constants.ts';
 import {
   buildPath, homeOf, linkRun, path, routeOf, runOf, sectionOf, sessionOf,
 } from '../routes.ts';
@@ -161,6 +161,21 @@ describe('renderer/lib/routes/routes', () => {
       expect(path.historicNew()).toBe(ROUTE.historicNew);
       [path.settingsHistoric(), path.historicNew()]
         .forEach((url) => expect(url.startsWith(`${ROUTE.settings}/`)).toBe(true));
+    });
+
+    it('builds the inbox, on one mail when given one', () => {
+      expect(path.inbox()).toBe(ROUTE.inbox);
+      expect(path.inbox('invite:monaco-1967/r1@0.0')).toBe('/inbox?mail=invite%3Amonaco-1967%2Fr1%400.0');
+      expect(routeOf(path.inbox())).toBe('inbox');
+    });
+
+    // A mail's id carries the race id it is about, so it has to come back out
+    // of the query exactly as it went in.
+    it('reads the mail an inbox link names back unchanged', () => {
+      const id = 'invite:monaco 1967/r1@0.0&x=1';
+      const query = path.inbox(id).split('?')[1];
+
+      expect(new URLSearchParams(query).get(MAIL_PARAM)).toBe(id);
     });
 
     it('builds Finances under Home', () => {

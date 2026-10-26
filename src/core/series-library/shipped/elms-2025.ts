@@ -69,6 +69,7 @@ export const ELMS_2025: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
       grid: { strength: -3 },
+      entryFee: 11200,
       prizes: {
         positions: [37500, 26250, 18750, 14250, 10900, 8250, 6000, 4500, 3000, 1900],
         standings: [300000, 187500, 120000, 79000, 49000],
@@ -94,6 +95,7 @@ export const ELMS_2025: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
       grid: { strength: -2 },
+      entryFee: 9000,
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
         standings: [240000, 150000, 96000, 63000, 39000],

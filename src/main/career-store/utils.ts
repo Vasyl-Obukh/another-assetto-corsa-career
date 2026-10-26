@@ -14,6 +14,7 @@ import {
 } from './constants.ts';
 import type { BackupContents, EnteredEvent } from './types.ts';
 import { chainOf, startingGrid } from '../../core/event/index.ts';
+import { historicRung } from '../../core/historic-draw/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
@@ -28,6 +29,7 @@ import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type {
   CalendarEntry,
+  CalendarInvitation,
   Career,
   CareerCalendar,
   CareerDriver,
@@ -43,7 +45,12 @@ import type {
   EventSession,
   EventState,
   EventStrength,
+  HistoricDraw,
+  HistoricInvitation,
+  InvitationState,
   LaunchRecord,
+  Mail,
+  MailAnswer,
   NewCareerRequest,
   NewChampionshipRequest,
   RoundForecast,
@@ -60,11 +67,15 @@ import { isEligible, openLevels } from '../../shared/utils/career-eligibility/in
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
-import { isHistoric } from '../../shared/utils/historic/index.ts';
+import { entryFeeOf } from '../../shared/utils/entry-fees/index.ts';
+import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
+import { invitationChance, invitationId, mailStatus } from '../../shared/utils/inbox/index.ts';
 import { isNationCode } from '../../shared/utils/nations/index.ts';
 import { prizeSpeed, prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
-import { roundAvailabilityIn, roundRaceableIn, seatRaceableIn } from '../../shared/utils/round-availability/index.ts';
+import {
+  eligibleCarsIn, roundAvailabilityIn, roundRaceableIn, seatRaceableIn,
+} from '../../shared/utils/round-availability/index.ts';
 import { standaloneStanding } from '../../shared/utils/standalone/index.ts';
 import { isArchiveName } from '../race-store/index.ts';
 import { readSaveFile, SAVE_ID_PATTERN, SAVES_DIR } from '../save-files/index.ts';
@@ -110,6 +121,7 @@ export const stateOf = (career: Career): CareerState => ({
   level: career.level,
   ratingLog: career.ratingLog,
   seasons: career.seasons,
+  inbox: career.inbox,
 });
 
 /**
@@ -179,6 +191,9 @@ export const readState = (value: unknown): CareerState | null => {
       && Array.isArray(season.entries)
       && (season.entries as readonly Partial<SeasonEntry>[]).every((entry) => (
         typeof entry?.edition === 'number'
+        // A historic event is entered from the season's draw of it, which an
+        // entry from before seasons kept their draws has none of.
+        && (entry.historic !== true || (season.historicEvents ?? []).some((draw) => draw?.series === entry.series))
         && typeof entry.championship === 'object'
         && entry.championship !== null
         && Array.isArray(entry.championship.eventFormats)
@@ -188,7 +203,8 @@ export const readState = (value: unknown): CareerState | null => {
           && Array.isArray(event.sessions)
         ))
       ))
-    ));
+    ))
+    && Array.isArray(state.inbox);
 
   return readable ? stateOf(state as Career) : null;
 };
@@ -238,6 +254,8 @@ export const openSeason = (index: number, startDate: string): CareerSeason => ({
  * @param season The season it is entered in
  * @param edition Which of the season's editions, counting from zero
  * @param today The ISO date the career's clock stands at
+ * @param entry The class entered, by its class entry id, whose fee each round
+ * charges - the championship's own fee where none is named
  * @returns Its rounds, dated
  */
 export const materialiseEvents = (
@@ -245,6 +263,7 @@ export const materialiseEvents = (
   season: CareerSeason,
   edition: number,
   today: string,
+  entry = '',
 ): SeasonEvent[] => {
   const length = series.seasonLength ?? DEFAULT_SEASON_LENGTH;
   const share = Math.floor(CAREER_SEASON_WEEKS / editionsOf(series));
@@ -261,11 +280,11 @@ export const materialiseEvents = (
     seedFrom(series.id) % Math.max(1, share - SEASON_WEEKS[length] + 1),
   );
 
-  return dated.map((round, at) => ({
+  return dated.map((round) => ({
     round: round.id,
     raceId: runRaceId(series.id, round.id, { season: season.index, edition }),
     date: round.date,
-    entryFee: series.rounds[at]?.entryFee ?? series.entryFee,
+    entryFee: entryFeeOf(series, round.id, entry),
     status: round.date < today ? 'missed' : 'scheduled',
     sessions: [],
   }));
@@ -554,7 +573,7 @@ export const skippedRound = (
   championship: Championship,
   entry: string,
   edition: number,
-  event: SeasonEvent,
+  event: Pick<SeasonEvent, 'round' | 'date'>,
   reason: SkipReason,
   historic = false,
 ): SkippedRound => {
@@ -810,6 +829,252 @@ export const winnerPrize = (career: Career, championship: Championship, entry: s
 };
 
 /**
+ * The historic events a season drew.
+ * @param season The season
+ * @returns Them, earliest first - none for a season that drew none
+ */
+export const historicDraws = (season: CareerSeason): readonly HistoricDraw[] => season.historicEvents ?? [];
+
+/**
+ * One historic event a season drew, by its id.
+ * @param season The season
+ * @param series The historic event's id
+ * @returns The draw, or null when the season drew no such event
+ */
+export const drawOf = (season: CareerSeason, series: string): HistoricDraw | null => (
+  historicDraws(season).find((one) => one.series === series) ?? null
+);
+
+/**
+ * What entering a historic event at the player's own cost charges in one of
+ * its classes.
+ * @param event The historic event
+ * @param entry The class, by its class entry id
+ * @returns The fee, or null for nothing
+ */
+export const historicFee = (event: Championship, entry: string): number | null => (
+  entryFeeOf(event, event.rounds[0]?.id ?? '', entry) || null
+);
+
+/**
+ * A historic event the season drew, as the event its one round is - dated,
+ * charging its fee, and passed by once its day is behind the clock.
+ * @param draw The historic event
+ * @param today The ISO date the career's clock stands at
+ * @param entry The class it is entered in, or shown through, by its class
+ * entry id - whose fee it charges
+ * @returns The event, run by nobody yet
+ */
+export const drawnEvent = (draw: HistoricDraw, today: string, entry: string): SeasonEvent => {
+  const fee = historicFee(draw.championship, entry);
+
+  return {
+    round: draw.round,
+    raceId: draw.raceId,
+    date: draw.date,
+    ...(fee === null ? {} : { entryFee: fee }),
+    status: draw.date < today ? 'missed' : 'scheduled',
+    sessions: [],
+  };
+};
+
+/**
+ * The mail inviting the player to a historic event, once one came.
+ * @param career The career
+ * @param draw The historic event
+ * @returns The mail, or null
+ */
+export const invitationMail = (career: Career, draw: Pick<HistoricDraw, 'raceId'>): Mail | null => (
+  career.inbox.find((one) => one.id === invitationId(draw.raceId)) ?? null
+);
+
+/**
+ * A career with one of its mail answered, which opens it too.
+ * @param career The career
+ * @param mail The mail
+ * @param answer The answer
+ * @returns The career, answered on the day its clock stands at
+ */
+export const withReply = (career: Career, mail: Mail, answer: MailAnswer): Career => ({
+  ...career,
+  inbox: career.inbox.map((one) => (one.id === mail.id
+    ? { ...one, opened: true, reply: { answer, on: career.date } }
+    : one)),
+});
+
+/**
+ * Where a historic event's invitation stands for the player.
+ * @param career The career
+ * @param season The season it was drawn in
+ * @param draw The historic event
+ * @returns Its state
+ */
+export const invitationState = (career: Career, season: CareerSeason, draw: HistoricDraw): InvitationState => {
+  const entry = enteredEntry(season, draw.series, 0);
+  if (entry) return isInvited(entry) ? 'accepted' : 'entered';
+
+  const mail = invitationMail(career, draw);
+  const status = mail && mailStatus(mail, career.date);
+  if (status) return status;
+  if (draw.invitation?.outcome === 'entered') return 'closed';
+
+  return draw.invitation ? 'uninvited' : 'pending';
+};
+
+/**
+ * The installed cars each class of a historic event may race.
+ * @param draw The historic event
+ * @param availability What the install can race of it
+ * @returns The cars, by class entry id
+ */
+export const drawnCars = (
+  draw: Pick<HistoricDraw, 'championship' | 'round'>,
+  availability: SeriesAvailability,
+): Map<string, readonly string[]> => new Map(draw.championship.entries.map((entry) => [
+  entry.id, eligibleCarsIn(availability, draw.round, entry.id),
+]));
+
+/**
+ * The chance of a historic event's invitation: the one it was drawn on once
+ * they have gone out, and otherwise the one the player's rungs give now.
+ * @param career The career
+ * @param draw The historic event
+ * @param availability What the install can race of it
+ * @returns The chance and the rung behind it, each null where there is none
+ */
+const chanceOf = (
+  career: Career,
+  draw: HistoricDraw,
+  availability: SeriesAvailability,
+): Pick<HistoricInvitation, 'chance' | 'discipline' | 'rung'> => {
+  if (draw.invitation) {
+    return {
+      chance: draw.invitation.chance ?? null,
+      discipline: draw.invitation.discipline ?? null,
+      rung: draw.invitation.rung ?? null,
+    };
+  }
+  const rung = historicRung(draw.championship, drawnCars(draw, availability), career.level);
+
+  return rung
+    ? { chance: invitationChance(rung.rung), discipline: rung.discipline, rung: rung.rung }
+    : { chance: null, discipline: null, rung: null };
+};
+
+/**
+ * A historic event's invitation, as its page shows it.
+ * @param career The career
+ * @param season The season it was drawn in
+ * @param draw The historic event
+ * @param availability What the install can race of it
+ * @param held The player's entry into it, when they are in it
+ * @returns The invitation
+ */
+export const historicInvitation = (
+  career: Career,
+  season: CareerSeason,
+  draw: HistoricDraw,
+  availability: SeriesAvailability,
+  held: SeasonEntry | null,
+): HistoricInvitation => {
+  const mail = invitationMail(career, draw);
+  const event = held?.championship ?? draw.championship;
+  // The seat an invitation offers - none once the player paid their own way
+  // in, which a declined invitation's seat is not.
+  const offer = held && !isInvited(held) ? null : mail?.invitation ?? null;
+  const entry = event.entries.find((one) => one.id === offer?.entry);
+  const seat = entry?.seats.find((one) => one.id === offer?.seat);
+
+  return {
+    state: invitationState(career, season, draw),
+    invitations: draw.invitations,
+    ...chanceOf(career, draw, availability),
+    team: event.teams?.find((one) => one.id === seat?.team)?.name ?? null,
+    car: offer?.car.model ?? null,
+    mail: mail?.id ?? null,
+    offer: offer && entry ? {
+      entry: entry.id,
+      entryName: entry.name,
+      seat: offer.seat,
+      driver: seat?.driver?.name ?? null,
+      car: offer.car,
+    } : null,
+    answered: mail?.reply?.on ?? null,
+    // The class it is shown through: the one entered or offered, else the first.
+    fee: historicFee(event, offer?.entry ?? held?.entry ?? event.entries[0]?.id ?? ''),
+  };
+};
+
+/**
+ * A historic event's invitation, as the calendar shows it.
+ * @param career The career
+ * @param season The season it was drawn in
+ * @param draw The historic event
+ * @param availability What the install can race of it
+ * @param held The player's entry into it, when they are in it
+ * @returns The invitation
+ */
+export const calendarInvitation = (
+  career: Career,
+  season: CareerSeason,
+  draw: HistoricDraw,
+  availability: SeriesAvailability,
+  held: SeasonEntry | null,
+): CalendarInvitation => {
+  const {
+    state, invitations, chance, team, car,
+  } = historicInvitation(career, season, draw, availability, held);
+
+  return {
+    state, invitations, chance, team, car,
+  };
+};
+
+/**
+ * Every invitation still to be answered whose event a move would pass by,
+ * as a confirmation lists it - it lapses, unanswered.
+ * @param career The career
+ * @param season The season being moved through
+ * @param to The ISO date the clock would move to, or the day of the event
+ * being launched
+ * @param sameDay Whether an event on that day itself is lost too, as one on
+ * the day of an event launched is while two events on one day clash
+ * @param except The race id of an event the move answers rather than passes -
+ * an invitation accepted by launching it
+ * @returns The events, earliest first
+ */
+export const unansweredSkips = (
+  career: Career,
+  season: CareerSeason,
+  to: string,
+  sameDay = false,
+  except?: string,
+): SkippedRound[] => historicDraws(season)
+  .filter((draw) => (
+    draw.raceId !== except
+    && (draw.date < to || (sameDay && draw.date === to))
+    && invitationState(career, season, draw) === 'awaiting'
+  ))
+  .map((draw) => skippedRound(
+    draw.championship,
+    invitationMail(career, draw)?.invitation?.entry ?? '',
+    0,
+    draw,
+    'unanswered',
+    true,
+  ));
+
+/**
+ * Two lists of what a move costs, as one, earliest first.
+ * @param rounds What it loses of the career's rounds
+ * @param lapsed The invitations it leaves to lapse
+ * @returns Both, by date
+ */
+export const withLapsed = (rounds: readonly SkippedRound[], lapsed: readonly SkippedRound[]): SkippedRound[] => (
+  lapsed.length === 0 ? [...rounds] : [...rounds, ...lapsed].sort((left, right) => left.date.localeCompare(right.date))
+);
+
+/**
  * Reads one dated event into the row the calendar shows.
  * @param series The championship the row is read from - a season's own copy
  * for a class the career entered, the library's otherwise
@@ -819,8 +1084,8 @@ export const winnerPrize = (career: Career, championship: Championship, entry: s
  * @param event The dated round
  * @param career The career reading it
  * @param enrolled Whether the career is in this class of this edition
- * @param historic Whether it is a historic event, which the career may race
- * only while it holds the invitation
+ * @param invitation Where a historic event's invitation stands, which says the
+ * row is one - absent for a round of a championship
  * @returns The row
  */
 export const calendarEntry = (
@@ -831,7 +1096,7 @@ export const calendarEntry = (
   event: SeasonEvent,
   career: Career,
   enrolled: boolean,
-  historic = false,
+  invitation?: CalendarInvitation,
 ): CalendarEntry => {
   // A round a season's copy no longer matches keeps its id as its name rather
   // than vanishing off the calendar, which would lose a round that may already
@@ -854,19 +1119,19 @@ export const calendarEntry = (
     races: roundAvailabilityIn(availability, event.round)?.races ?? [],
     gridSize: entry.seats.length,
     prize: winnerPrize(career, series, entry.id),
-    // An invitation covers a historic event's fee, and a standalone
-    // championship has no money to pay one in.
-    entryFee: historic || career.kind !== 'career' ? undefined : event.entryFee,
+    // A standalone championship has no money to pay one in. An invitation's
+    // event carries no fee, since the team covers it.
+    entryFee: career.kind !== 'career' ? undefined : event.entryFee,
     multiClass: series.entries.length > 1,
     date: event.date,
     status: event.status,
     enrolled,
-    // Whatever the career's level, but only while the invitation stands: one
-    // declined is no longer open to enter.
-    eligible: historic ? enrolled : isEligible(entry.ladder, openLevels(career.level)),
+    // A historic event is open to anyone, whatever their level.
+    eligible: invitation !== undefined || isEligible(entry.ladder, openLevels(career.level)),
     raceable: roundRaceableIn(availability, event.round),
     clash: false,
-    historic,
+    historic: invitation !== undefined,
+    ...(invitation ? { invitation } : {}),
   };
 };
 
@@ -882,6 +1147,8 @@ export const calendarEntry = (
  * @param season The season to draw
  * @param listings Every championship the library holds
  * @param entered What the install can race of each entered season's own copy
+ * @param drawn What the install can race of each historic event the season
+ * drew
  * @param allowSameDay Whether settings allow two events on one day, which is
  * when nothing clashes
  * @returns The merged, dated calendar
@@ -891,6 +1158,7 @@ export const composeCalendar = (
   season: CareerSeason,
   listings: readonly SeriesListing[],
   entered: ReadonlyMap<SeasonEntry, SeriesAvailability>,
+  drawn: ReadonlyMap<HistoricDraw, SeriesAvailability>,
   allowSameDay: boolean,
 ): CareerCalendar => {
   const key = (series: string, entry: string, edition: number): string => (
@@ -902,11 +1170,36 @@ export const composeCalendar = (
     const entry = held.championship.entries.find((one) => one.id === held.entry);
     const availability = entered.get(held);
     if (!entry || !availability) return [];
+    const draw = isHistoric(held) ? drawOf(season, held.series) : null;
+    const invitation = draw ? calendarInvitation(career, season, draw, availability, held) : undefined;
 
     return held.events.map((event) => calendarEntry(
-      held.championship, availability, entry, held.edition, event, career, !held.withdrawn, isHistoric(held),
+      held.championship, availability, entry, held.edition, event, career, !held.withdrawn, invitation,
     ));
   });
+
+  // Every historic event drawn and not entered is on the calendar for anyone
+  // to enter, shown through the class an invitation offers, or else its first.
+  const open = historicDraws(season)
+    .filter((draw) => !season.entries.some((one) => one.series === draw.series))
+    .flatMap((draw): CalendarEntry[] => {
+      const availability = drawn.get(draw);
+      const mail = invitationMail(career, draw);
+      const entry = draw.championship.entries.find((one) => one.id === mail?.invitation?.entry)
+        ?? draw.championship.entries[0];
+      if (!availability || !entry) return [];
+
+      return [calendarEntry(
+        draw.championship,
+        availability,
+        entry,
+        0,
+        drawnEvent(draw, career.date, entry.id),
+        career,
+        false,
+        calendarInvitation(career, season, draw, availability, null),
+      )];
+    });
 
   const library = listings.flatMap((listing) => Array.from(
     { length: editionsOf(listing.series) },
@@ -920,13 +1213,19 @@ export const composeCalendar = (
       // is a hundred-odd championships deep.
       const events = materialiseEvents(listing.series, season, edition, career.date);
 
-      return entries.flatMap((entry) => events.map((event) => (
-        calendarEntry(listing.series, listing.availability, entry, edition, event, career, false)
+      return entries.flatMap((entry) => events.map((event) => calendarEntry(
+        listing.series,
+        listing.availability,
+        entry,
+        edition,
+        { ...event, entryFee: entryFeeOf(listing.series, event.round, entry.id) },
+        career,
+        false,
       )));
     },
   ).flat());
 
-  const events = [...own, ...library];
+  const events = [...own, ...open, ...library];
   // A pair settled by giving one up has nothing left to choose between.
   const enrolled = allowSameDay ? [] : events.filter((event) => event.enrolled && event.status !== 'missed');
   const clashing = clashes(enrolled.map((event) => event.date));

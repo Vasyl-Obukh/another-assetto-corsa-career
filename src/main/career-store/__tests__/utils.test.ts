@@ -6,8 +6,12 @@ import {
   Climate, Discipline, Hemisphere, SeasonLength, Weekday,
 } from '../../../shared/types/index.ts';
 import type {
+  CalendarInvitation,
   CareerSeason,
+  HistoricDraw,
+  InvitationDraw,
   LaunchRecord,
+  Mail,
   RacePlace,
   RoundForecast,
   RoundScore,
@@ -16,12 +20,14 @@ import type {
   SeriesSession,
   SessionForecast,
 } from '../../../shared/types/index.ts';
+import { invitationId } from '../../../shared/utils/inbox/index.ts';
 import {
   advanceSkips,
   advanceStop,
   archivesOf,
   backupName,
   calendarEntry,
+  calendarInvitation,
   checkedDriver,
   checkEdition,
   checkedNewCareer,
@@ -31,6 +37,9 @@ import {
   closeSeason,
   composeCalendar,
   currentSeason,
+  drawnCars,
+  drawnEvent,
+  drawOf,
   editionAt,
   enteredEntry,
   enteredEvent,
@@ -38,7 +47,12 @@ import {
   eventSessions,
   eventStrength,
   heldRaceable,
+  historicDraws,
+  historicFee,
+  historicInvitation,
   inProgressEvent,
+  invitationMail,
+  invitationState,
   issueForecast,
   issueForecasts,
   keptInBackup,
@@ -62,7 +76,10 @@ import {
   stateOf,
   strengthStep,
   summarise,
+  unansweredSkips,
   winnerPrize,
+  withLapsed,
+  withReply,
   withSeason,
 } from '../utils.ts';
 import {
@@ -109,6 +126,74 @@ const makeRecord = (index: number, classification: number[] | null = null): Laun
   classification,
 });
 
+// The historic event the invitation tests draw: one round and two classes, the
+// first at the career's own rung and its first seat a named driver's.
+const HISTORIC = makeChampionship({
+  id: 'british-gp-1967',
+  name: 'British Grand Prix 1967',
+  rounds: [makeRound('one')],
+  teams: [{ id: 'lotus', name: 'Team Lotus' }],
+  entries: [
+    makeClassEntry({ seats: [{ id: 'seat-1', team: 'lotus', driver: { name: 'Jim Clark' } }, { id: 'seat-2' }] }),
+    makeClassEntry({ id: 'pro', name: 'Pro', ladder: { discipline: Discipline.SPORTSCAR, tier: 2 }, entryFee: 900 }),
+  ],
+});
+
+// Invitations sent, drawn on a rung other than the career's own, so a test can
+// tell the chance recorded from the one the career's rungs give now.
+const INVITED: InvitationDraw = {
+  on: '2026-06-14', outcome: 'invited', discipline: Discipline.ROAD, rung: 3, chance: 60,
+};
+
+/**
+ * Builds the season's draw of the historic event.
+ * @param over Whatever the test wants said differently
+ * @returns The draw
+ */
+const makeDraw = (over: Partial<HistoricDraw> = {}): HistoricDraw => ({
+  series: 'british-gp-1967',
+  championship: HISTORIC,
+  round: 'one',
+  raceId: 'british-gp-1967/one@0.0',
+  date: '2026-07-12',
+  invitations: '2026-06-14',
+  ...over,
+});
+
+/**
+ * Builds the mail inviting the player to a drawn event, still to be answered.
+ * @param draw The event it invites to
+ * @param over Whatever the test wants said differently
+ * @returns The mail
+ */
+const makeMail = (draw: HistoricDraw, over: Partial<Mail> = {}): Mail => ({
+  id: invitationId(draw.raceId),
+  kind: 'invitation',
+  season: 0,
+  arrived: draw.invitations,
+  opened: false,
+  deadline: draw.date,
+  invitation: {
+    series: draw.series, raceId: draw.raceId, entry: 'main', seat: 'seat-1', car: { model: 'test_car' },
+  },
+  ...over,
+});
+
+/**
+ * Builds the player's entry into the historic event, in the seat an
+ * invitation offers unless the test says otherwise.
+ * @param over Whatever the test wants said differently
+ * @returns The entry
+ */
+const makeHistoricEntry = (over: Partial<SeasonEntry> = {}): SeasonEntry => makeEntry({
+  series: 'british-gp-1967',
+  championship: HISTORIC,
+  playerSeat: 'seat-1',
+  events: [makeEvent('one', '2026-07-12', { raceId: 'british-gp-1967/one@0.0' })],
+  historic: true,
+  ...over,
+});
+
 describe('main/career-store/utils', () => {
   describe('profileOf', () => {
     it('keeps who races the career, when it began and how it is set up, and nothing of where it has got to', () => {
@@ -142,6 +227,7 @@ describe('main/career-store/utils', () => {
         level: career.level,
         ratingLog: career.ratingLog,
         seasons: career.seasons,
+        inbox: career.inbox,
       });
     });
 
@@ -298,6 +384,29 @@ describe('main/career-store/utils', () => {
     it('refuses a state whose ledger is not a list', () => {
       expect(readState({ ...wholeCareer(), ledger: undefined })).toBeNull();
       expect(readState({ ...wholeCareer(), ledger: {} })).toBeNull();
+    });
+
+    // No migration: a state written before the inbox is out of date, and
+    // refused like any other.
+    it('refuses a state with no inbox, or one that is not a list', () => {
+      const { inbox: unused, ...career } = wholeCareer();
+
+      expect(readState(career)).toBeNull();
+      expect(readState({ ...wholeCareer(), inbox: {} })).toBeNull();
+    });
+
+    it('refuses a historic event its season holds no draw of, as seasons kept before draws were', () => {
+      const held = makeHistoricEntry();
+      const season = (draws: HistoricDraw[]) => makeSeason({ entries: [held], historicEvents: draws });
+
+      expect(readState({ ...wholeCareer(), seasons: [season([])] })).toBeNull();
+      expect(readState({ ...wholeCareer(), seasons: [season([makeDraw()])] })).not.toBeNull();
+    });
+
+    it('keeps the mail a state holds', () => {
+      const mail = makeMail(makeDraw());
+
+      expect(readState({ ...wholeCareer(), inbox: [mail] })?.inbox).toEqual([mail]);
     });
   });
 
@@ -653,6 +762,19 @@ describe('main/career-store/utils', () => {
 
       expect(materialiseEvents(series, season, 0, season.startDate).map((one) => one.entryFee))
         .toEqual([500, 750]);
+    });
+
+    it("charges the class entered its own fee over the championship's, and a round's over both", () => {
+      const series = makeChampionship({
+        entryFee: 500,
+        entries: [makeClassEntry({ entryFee: 650 }), makeClassEntry({ id: 'second', name: 'Second' })],
+        rounds: [makeRound('one'), makeRound('two', { entryFee: 750 })],
+      });
+      const fees = (entry: string) => materialiseEvents(series, season, 0, season.startDate, entry)
+        .map((one) => one.entryFee);
+
+      expect(fees('main')).toEqual([650, 750]);
+      expect(fees('second')).toEqual([500, 750]);
     });
 
     // The offset is seeded off the championship's id, so the forecast shown and
@@ -1688,6 +1810,9 @@ describe('main/career-store/utils', () => {
 
   describe('calendarEntry', () => {
     const career = makeCareer();
+    const INVITATION: CalendarInvitation = {
+      state: 'accepted', invitations: '2026-04-05', chance: 60, team: null, car: null,
+    };
 
     it('reads a round into the row the calendar shows', () => {
       const series = makeChampionship();
@@ -1816,16 +1941,17 @@ describe('main/career-store/utils', () => {
       const series = makeChampionship({ entries: [entry] });
 
       expect(calendarEntry(
-        series, makeAvailability(series), entry, 0, makeEvent('one', '2026-05-03'), career, true, true,
-      )).toMatchObject({ historic: true, eligible: true });
+        series, makeAvailability(series), entry, 0, makeEvent('one', '2026-05-03'), career, true, INVITATION,
+      )).toMatchObject({ historic: true, eligible: true, invitation: INVITATION });
     });
 
-    it('says a historic event the career declined is no longer one it may race', () => {
+    it('keeps a historic event open to enter whatever became of its invitation', () => {
       const series = makeChampionship();
 
       expect(calendarEntry(
-        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, false, true,
-      ).eligible).toBe(false);
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, false,
+        { ...INVITATION, state: 'declined' },
+      ).eligible).toBe(true);
     });
 
     it('leaves a championship round unmarked', () => {
@@ -1834,6 +1960,14 @@ describe('main/career-store/utils', () => {
       expect(calendarEntry(
         series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, true,
       ).historic).toBe(false);
+    });
+
+    it('carries no invitation on a championship round', () => {
+      const series = makeChampionship();
+
+      expect(calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, true,
+      )).not.toHaveProperty('invitation');
     });
 
     it('says which edition the round belongs to and how many the championship runs', () => {
@@ -1853,15 +1987,15 @@ describe('main/career-store/utils', () => {
       ).prize).toBe(2000);
     });
 
-    it("says what a round costs to enter, and nothing for a historic event, which the invitation covers", () => {
+    it('says what a round costs to enter, a historic event entered at its own cost included', () => {
       const series = makeChampionship();
       const event = makeEvent('one', '2026-05-03', { entryFee: 1500 });
-      const row = (historic: boolean) => calendarEntry(
-        series, makeAvailability(series), series.entries[0], 0, event, career, true, historic,
+      const row = (invitation?: CalendarInvitation) => calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, event, career, true, invitation,
       );
 
-      expect(row(false).entryFee).toBe(1500);
-      expect(row(true).entryFee).toBeUndefined();
+      expect(row().entryFee).toBe(1500);
+      expect(row({ ...INVITATION, state: 'entered' }).entryFee).toBe(1500);
     });
   });
 
@@ -1893,6 +2027,432 @@ describe('main/career-store/utils', () => {
     });
   });
 
+  describe('historicDraws', () => {
+    it('lists the historic events the season drew', () => {
+      const draws = [makeDraw(), makeDraw({ series: 'italian-gp-1967', date: '2026-09-06' })];
+
+      expect(historicDraws(makeSeason({ historicEvents: draws }))).toEqual(draws);
+    });
+
+    it('lists none for a season that drew none', () => {
+      expect(historicDraws(makeSeason())).toEqual([]);
+    });
+  });
+
+  describe('drawOf', () => {
+    const draw = makeDraw();
+    const season = makeSeason({ historicEvents: [makeDraw({ series: 'italian-gp-1967' }), draw] });
+
+    it('finds a historic event the season drew by its id', () => {
+      expect(drawOf(season, 'british-gp-1967')).toBe(draw);
+    });
+
+    it('says nothing of an event the season did not draw', () => {
+      expect(drawOf(season, 'monaco-gp-1961')).toBeNull();
+      expect(drawOf(makeSeason(), 'british-gp-1967')).toBeNull();
+    });
+  });
+
+  describe('historicFee', () => {
+    it("charges a class its own fee over the event's, and the round's over both", () => {
+      const event = { ...HISTORIC, entryFee: 300 };
+
+      expect(historicFee(event, 'pro')).toBe(900);
+      expect(historicFee(event, 'main')).toBe(300);
+      expect(historicFee({ ...event, rounds: [makeRound('one', { entryFee: 1200 })] }, 'pro')).toBe(1200);
+    });
+
+    it('says nothing where entering costs nothing', () => {
+      expect(historicFee(HISTORIC, 'main')).toBeNull();
+      expect(historicFee({ ...HISTORIC, entryFee: 0 }, 'main')).toBeNull();
+    });
+  });
+
+  describe('drawnEvent', () => {
+    it('reads a drawn event as the event its one round is, charging the fee of its class', () => {
+      expect(drawnEvent(makeDraw(), '2026-06-20', 'pro')).toEqual({
+        round: 'one',
+        raceId: 'british-gp-1967/one@0.0',
+        date: '2026-07-12',
+        entryFee: 900,
+        status: 'scheduled',
+        sessions: [],
+      });
+    });
+
+    it('carries no fee for a class that enters for nothing', () => {
+      expect(drawnEvent(makeDraw(), '2026-06-20', 'main')).not.toHaveProperty('entryFee');
+    });
+
+    it('passes the event by once its day is behind the clock, and not on the day itself', () => {
+      expect(drawnEvent(makeDraw(), '2026-07-12', 'main').status).toBe('scheduled');
+      expect(drawnEvent(makeDraw(), '2026-07-13', 'main').status).toBe('missed');
+    });
+  });
+
+  describe('invitationMail', () => {
+    const draw = makeDraw();
+
+    it('finds the mail inviting the player to the event', () => {
+      const mail = makeMail(draw);
+      const other = makeMail(makeDraw({ raceId: 'italian-gp-1967/one@0.0' }));
+
+      expect(invitationMail(makeCareer({ inbox: [other, mail] }), draw)).toBe(mail);
+    });
+
+    it('says nothing while no invitation to it came', () => {
+      const other = makeMail(makeDraw({ raceId: 'italian-gp-1967/one@0.0' }));
+
+      expect(invitationMail(makeCareer({ inbox: [other] }), draw)).toBeNull();
+    });
+  });
+
+  describe('withReply', () => {
+    it('answers the mail on the day the clock stands at and opens it, leaving the rest alone', () => {
+      const mail = makeMail(makeDraw());
+      const other = makeMail(makeDraw({ raceId: 'italian-gp-1967/one@0.0' }));
+      const career = makeCareer({ date: '2026-06-20', inbox: [mail, other] });
+
+      expect(withReply(career, mail, 'declined').inbox).toEqual([
+        { ...mail, opened: true, reply: { answer: 'declined', on: '2026-06-20' } },
+        other,
+      ]);
+      expect(career.inbox[0]).toBe(mail);
+    });
+  });
+
+  describe('invitationState', () => {
+    const draw = makeDraw();
+    const sent = makeDraw({ invitation: INVITED });
+    const season = makeSeason({ historicEvents: [sent] });
+
+    it('is pending until invitations go out', () => {
+      expect(invitationState(makeCareer(), makeSeason({ historicEvents: [draw] }), draw)).toBe('pending');
+    });
+
+    it('awaits an answer to an invitation sent, up to and on its day', () => {
+      const inbox = [makeMail(sent)];
+
+      expect(invitationState(makeCareer({ date: '2026-06-20', inbox }), season, sent)).toBe('awaiting');
+      expect(invitationState(makeCareer({ date: '2026-07-12', inbox }), season, sent)).toBe('awaiting');
+    });
+
+    it('says how an invitation was answered', () => {
+      const answered = (answer: 'accepted' | 'declined') => makeCareer({
+        date: '2026-06-20', inbox: [makeMail(sent, { reply: { answer, on: '2026-06-18' } })],
+      });
+
+      expect(invitationState(answered('accepted'), season, sent)).toBe('accepted');
+      expect(invitationState(answered('declined'), season, sent)).toBe('declined');
+    });
+
+    it('lapses an invitation left unanswered past its day', () => {
+      expect(invitationState(makeCareer({ date: '2026-07-13', inbox: [makeMail(sent)] }), season, sent))
+        .toBe('lapsed');
+    });
+
+    it('says none came where the draw sent none', () => {
+      const missed = makeDraw({ invitation: { ...INVITED, outcome: 'uninvited' } });
+
+      expect(invitationState(makeCareer({ date: '2026-06-20' }), makeSeason({ historicEvents: [missed] }), missed))
+        .toBe('uninvited');
+    });
+
+    it('is closed where none was drawn for because the player had entered, once they are no longer in it', () => {
+      const closed = makeDraw({ invitation: { on: '2026-06-14', outcome: 'entered' } });
+
+      expect(invitationState(makeCareer({ date: '2026-06-20' }), makeSeason({ historicEvents: [closed] }), closed))
+        .toBe('closed');
+    });
+
+    it('says the player is in it at their own cost, whatever an invitation still waiting says', () => {
+      const paid = makeSeason({
+        historicEvents: [sent],
+        entries: [makeHistoricEntry({ car: { model: 'test_car', source: 'rented' } })],
+      });
+
+      expect(invitationState(makeCareer({ date: '2026-06-20', inbox: [makeMail(sent)] }), paid, sent))
+        .toBe('entered');
+    });
+
+    it('reads the player in it in a car that came with an invitation as accepted', () => {
+      const invited = makeSeason({ historicEvents: [sent], entries: [makeHistoricEntry()] });
+
+      expect(invitationState(makeCareer({ date: '2026-06-20' }), invited, sent)).toBe('accepted');
+    });
+  });
+
+  describe('drawnCars', () => {
+    it("lists the installed cars each class may race, the round's own over the event's", () => {
+      const availability = makeAvailability(HISTORIC, {
+        entries: [
+          {
+            entry: 'main', eligible: ['a', 'b'], missing: [], enough: true,
+          },
+          {
+            entry: 'pro', eligible: ['c'], missing: [], enough: true,
+          },
+        ],
+        rounds: [{
+          round: 'one',
+          track: null,
+          pitboxes: null,
+          entries: [{
+            entry: 'main', eligible: ['a'], missing: [], enough: true,
+          }],
+          races: [],
+        }],
+      });
+
+      expect(drawnCars(makeDraw(), availability)).toEqual(new Map([['main', ['a']], ['pro', ['c']]]));
+    });
+
+    it('lists no cars for a class the install cannot field', () => {
+      expect(drawnCars(makeDraw(), makeAvailability(HISTORIC, { entries: [] })))
+        .toEqual(new Map([['main', []], ['pro', []]]));
+    });
+  });
+
+  describe('historicInvitation', () => {
+    const availability = makeAvailability(HISTORIC);
+
+    it("gives the chance the player's rung gives now, before invitations go out", () => {
+      const draw = makeDraw();
+
+      expect(historicInvitation(makeCareer(), makeSeason({ historicEvents: [draw] }), draw, availability, null))
+        .toEqual({
+          state: 'pending',
+          invitations: '2026-06-14',
+          chance: 40,
+          discipline: Discipline.ROAD,
+          rung: 4,
+          team: null,
+          car: null,
+          mail: null,
+          offer: null,
+          answered: null,
+          fee: null,
+        });
+    });
+
+    it('keeps the chance the invitations were drawn on once they have gone out', () => {
+      const missed = makeDraw({ invitation: { ...INVITED, outcome: 'uninvited' } });
+
+      expect(historicInvitation(
+        makeCareer({ date: '2026-06-20' }), makeSeason({ historicEvents: [missed] }), missed, availability, null,
+      )).toMatchObject({
+        state: 'uninvited', chance: 60, discipline: Discipline.ROAD, rung: 3, offer: null,
+      });
+    });
+
+    it('gives no chance where no class of the event can field a car', () => {
+      const draw = makeDraw();
+
+      expect(historicInvitation(
+        makeCareer(), makeSeason({ historicEvents: [draw] }), draw, makeAvailability(HISTORIC, { entries: [] }), null,
+      )).toMatchObject({ chance: null, discipline: null, rung: null });
+    });
+
+    it('names the seat an invitation offers - its class, driver, team and car', () => {
+      const sent = makeDraw({ invitation: INVITED });
+      const career = makeCareer({ date: '2026-06-20', inbox: [makeMail(sent)] });
+
+      expect(historicInvitation(career, makeSeason({ historicEvents: [sent] }), sent, availability, null))
+        .toMatchObject({
+          state: 'awaiting',
+          mail: invitationId(sent.raceId),
+          team: 'Team Lotus',
+          car: 'test_car',
+          offer: {
+            entry: 'main', entryName: 'Main', seat: 'seat-1', driver: 'Jim Clark', car: { model: 'test_car' },
+          },
+          answered: null,
+        });
+    });
+
+    it('says the day an invitation was answered', () => {
+      const sent = makeDraw({ invitation: INVITED });
+      const career = makeCareer({
+        date: '2026-06-20', inbox: [makeMail(sent, { reply: { answer: 'declined', on: '2026-06-18' } })],
+      });
+
+      expect(historicInvitation(career, makeSeason({ historicEvents: [sent] }), sent, availability, null))
+        .toMatchObject({ state: 'declined', answered: '2026-06-18' });
+    });
+
+    it('reads the seat of an invitation accepted as the one offered', () => {
+      const draw = makeDraw({ invitation: INVITED });
+      const accepted = makeMail(draw, { reply: { answer: 'accepted', on: '2026-06-15' } });
+      const held = makeHistoricEntry();
+
+      expect(historicInvitation(
+        makeCareer({ date: '2026-06-20', inbox: [accepted] }),
+        makeSeason({ historicEvents: [draw], entries: [held] }),
+        draw,
+        availability,
+        held,
+      )).toMatchObject({
+        state: 'accepted',
+        team: 'Team Lotus',
+        car: 'test_car',
+        mail: accepted.id,
+        answered: '2026-06-15',
+        offer: {
+          entry: 'main', seat: 'seat-1', driver: 'Jim Clark', car: { model: 'test_car' },
+        },
+      });
+    });
+
+    it('offers no seat to a player in it at their own cost', () => {
+      const closed = makeDraw({ invitation: { on: '2026-06-14', outcome: 'entered' } });
+      const held = makeHistoricEntry({ car: { model: 'test_car', source: 'owned' } });
+
+      expect(historicInvitation(
+        makeCareer({ date: '2026-06-20' }), makeSeason({ historicEvents: [closed], entries: [held] }), closed,
+        availability, held,
+      )).toMatchObject({
+        state: 'entered', team: null, car: null, offer: null, chance: null,
+      });
+    });
+
+    it('charges the fee of the class offered, else the class entered, else the first', () => {
+      const event = { ...HISTORIC, entryFee: 300 };
+      const draw = makeDraw({ championship: event, invitation: INVITED });
+      const season = makeSeason({ historicEvents: [draw] });
+      const offered = makeMail(draw, {
+        invitation: {
+          series: draw.series, raceId: draw.raceId, entry: 'pro', seat: 'seat-1', car: { model: 'test_car' },
+        },
+      });
+      const held = makeHistoricEntry({ championship: event, entry: 'pro', car: { model: 'test_car', source: 'rented' } });
+
+      expect(historicInvitation(makeCareer({ inbox: [offered] }), season, draw, availability, null).fee).toBe(900);
+      expect(historicInvitation(makeCareer(), season, draw, availability, held).fee).toBe(900);
+      expect(historicInvitation(makeCareer(), season, draw, availability, null).fee).toBe(300);
+    });
+
+    // Guards a fix: the declined invitation's seat and class fee were reported
+    // over the class the player went on to pay their way into.
+    it('says nothing of a declined seat once the player paid into another class', () => {
+      const event = { ...HISTORIC, entryFee: 300 };
+      const draw = makeDraw({ championship: event, invitation: INVITED });
+      const declined = makeMail(draw, { reply: { answer: 'declined', on: '2026-06-15' } });
+      const held = makeHistoricEntry({ championship: event, entry: 'pro', car: { model: 'test_car', source: 'rented' } });
+      const season = makeSeason({ historicEvents: [draw], entries: [held] });
+
+      expect(historicInvitation(makeCareer({ inbox: [declined] }), season, draw, availability, held)).toMatchObject({
+        state: 'entered', team: null, car: null, offer: null, fee: 900,
+      });
+    });
+  });
+
+  describe('calendarInvitation', () => {
+    it("narrows the page's invitation to what the calendar shows", () => {
+      const sent = makeDraw({ invitation: INVITED });
+      const career = makeCareer({ date: '2026-06-20', inbox: [makeMail(sent)] });
+      const season = makeSeason({ historicEvents: [sent] });
+      const availability = makeAvailability(HISTORIC);
+      const {
+        state, invitations, chance, team, car,
+      } = historicInvitation(career, season, sent, availability, null);
+
+      expect(calendarInvitation(career, season, sent, availability, null)).toEqual({
+        state, invitations, chance, team, car,
+      });
+      expect(state).toBe('awaiting');
+    });
+  });
+
+  describe('unansweredSkips', () => {
+    const british = makeDraw({ invitation: INVITED });
+    const italian = makeDraw({
+      series: 'italian-gp-1967',
+      championship: { ...HISTORIC, id: 'italian-gp-1967', name: 'Italian Grand Prix 1967' },
+      raceId: 'italian-gp-1967/one@0.0',
+      date: '2026-09-06',
+      invitations: '2026-08-09',
+      invitation: INVITED,
+    });
+    const season = makeSeason({ historicEvents: [british, italian] });
+    const toPro = makeMail(british, {
+      invitation: {
+        series: british.series, raceId: british.raceId, entry: 'pro', seat: 'seat-1', car: { model: 'test_car' },
+      },
+    });
+    const career = makeCareer({ date: '2026-06-20', inbox: [toPro, makeMail(italian)] });
+
+    it('lists every invitation still to be answered whose event the move passes by, earliest first', () => {
+      const lost = unansweredSkips(career, season, '2026-12-01');
+
+      expect(lost.map((one) => one.series)).toEqual(['british-gp-1967', 'italian-gp-1967']);
+      expect(lost[0]).toEqual({
+        series: 'british-gp-1967',
+        edition: 0,
+        seriesName: 'British Grand Prix 1967',
+        round: 'one',
+        roundName: 'Round one',
+        number: 1,
+        ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
+        date: '2026-07-12',
+        reason: 'unanswered',
+        historic: true,
+      });
+    });
+
+    it('loses nothing on the day itself, unless an event that day is lost too', () => {
+      expect(unansweredSkips(career, season, '2026-07-12')).toEqual([]);
+      expect(unansweredSkips(career, season, '2026-07-12', true).map((one) => one.series))
+        .toEqual(['british-gp-1967']);
+    });
+
+    it('leaves out the event the move answers rather than passes', () => {
+      expect(unansweredSkips(career, season, '2026-12-01', true, british.raceId).map((one) => one.series))
+        .toEqual(['italian-gp-1967']);
+    });
+
+    it('leaves out an invitation answered, one never sent, and an event the player is in', () => {
+      const pending = makeDraw({ series: 'monaco-gp-1961', raceId: 'monaco-gp-1961/one@0.0', date: '2026-08-02' });
+      const answered = makeCareer({
+        date: '2026-06-20',
+        inbox: [makeMail(british, { reply: { answer: 'declined', on: '2026-06-18' } }), makeMail(italian)],
+      });
+      const entered = makeSeason({
+        historicEvents: [british, italian, pending],
+        entries: [makeHistoricEntry({
+          series: 'italian-gp-1967', championship: italian.championship, car: { model: 'test_car', source: 'rented' },
+        })],
+      });
+
+      expect(unansweredSkips(answered, entered, '2026-12-01')).toEqual([]);
+    });
+  });
+
+  describe('withLapsed', () => {
+    const round = (date: string) => skippedRound(makeChampionship(), 'main', 0, makeEvent('one', date), 'skipped');
+    const lapsed = (date: string) => skippedRound(HISTORIC, 'main', 0, { round: 'one', date }, 'unanswered', true);
+
+    it('keeps the rounds as they are when nothing lapses', () => {
+      const rounds = [round('2026-03-01'), round('2026-05-03')];
+
+      expect(withLapsed(rounds, [])).toEqual(rounds);
+    });
+
+    it('merges what lapses in among the rounds by date', () => {
+      const merged = withLapsed([round('2026-03-01'), round('2026-09-06')], [lapsed('2026-07-12')]);
+
+      expect(merged.map((one) => [one.date, one.reason])).toEqual([
+        ['2026-03-01', 'skipped'],
+        ['2026-07-12', 'unanswered'],
+        ['2026-09-06', 'skipped'],
+      ]);
+    });
+
+    it('lists a round lost ahead of an invitation lapsing on the same day', () => {
+      expect(withLapsed([round('2026-07-12')], [lapsed('2026-07-12')]).map((one) => one.reason))
+        .toEqual(['skipped', 'unanswered']);
+    });
+  });
+
   describe('composeCalendar', () => {
     it('draws a class the career entered from the season own copy of it', () => {
       const entered = makeChampionship({ name: 'Test Cup (as entered)' });
@@ -1906,7 +2466,7 @@ describe('main/career-store/utils', () => {
         makeCareer({ seasons: [season] }),
         season,
         library,
-        new Map([[held, makeAvailability(entered)]]),
+        new Map([[held, makeAvailability(entered)]]), new Map(),
         false,
       );
 
@@ -1921,10 +2481,10 @@ describe('main/career-store/utils', () => {
       const held = makeEntry({
         series: 'british-gp-1967', championship: event, events: [makeEvent('one', '2026-03-01')], historic: true,
       });
-      const season = makeSeason({ entries: [held] });
+      const season = makeSeason({ entries: [held], historicEvents: [makeDraw({ championship: event })] });
 
       const calendar = composeCalendar(
-        makeCareer({ seasons: [season] }), season, [], new Map([[held, makeAvailability(event)]]), false,
+        makeCareer({ seasons: [season] }), season, [], new Map([[held, makeAvailability(event)]]), new Map(), false,
       );
 
       expect(calendar.events.map((one) => [one.series, one.historic])).toEqual([['british-gp-1967', true]]);
@@ -1935,7 +2495,7 @@ describe('main/career-store/utils', () => {
       const other = makeChampionship({ id: 'other-cup', name: 'Other Cup' });
 
       const calendar = composeCalendar(
-        makeCareer({ seasons: [season] }), season, [makeListing(other)], new Map(), false,
+        makeCareer({ seasons: [season] }), season, [makeListing(other)], new Map(), new Map(), false,
       );
 
       expect(calendar.events).toHaveLength(2);
@@ -1955,7 +2515,7 @@ describe('main/career-store/utils', () => {
         makeCareer({ seasons: [season] }),
         season,
         [makeListing(series)],
-        new Map([[held, makeAvailability(series)]]),
+        new Map([[held, makeAvailability(series)]]), new Map(),
         false,
       );
 
@@ -1968,7 +2528,7 @@ describe('main/career-store/utils', () => {
       const season = makeSeason({ index: 2 });
       const career = makeCareer({ date: '2026-06-07', seasons: [season] });
 
-      expect(composeCalendar(career, season, [], new Map(), false)).toMatchObject({
+      expect(composeCalendar(career, season, [], new Map(), new Map(), false)).toMatchObject({
         season: 2, from: '2026-01-01', to: '2026-12-31', date: '2026-06-07', events: [],
       });
     });
@@ -1993,7 +2553,7 @@ describe('main/career-store/utils', () => {
         new Map([
           [zebra, makeAvailability(zebra.championship)],
           [alpha, makeAvailability(alpha.championship)],
-        ]),
+        ]), new Map(),
         false,
       );
 
@@ -2022,7 +2582,7 @@ describe('main/career-store/utils', () => {
         new Map([
           [first, makeAvailability(first.championship)],
           [second, makeAvailability(second.championship)],
-        ]),
+        ]), new Map(),
         false,
       );
 
@@ -2050,7 +2610,7 @@ describe('main/career-store/utils', () => {
         new Map([
           [first, makeAvailability(first.championship)],
           [second, makeAvailability(second.championship)],
-        ]),
+        ]), new Map(),
         false,
       );
 
@@ -2073,7 +2633,7 @@ describe('main/career-store/utils', () => {
         new Map([
           [first, makeAvailability(first.championship)],
           [second, makeAvailability(second.championship)],
-        ]),
+        ]), new Map(),
         true,
       );
 
@@ -2099,7 +2659,7 @@ describe('main/career-store/utils', () => {
         new Map([
           [kept, makeAvailability(kept.championship)],
           [left, makeAvailability(left.championship)],
-        ]),
+        ]), new Map(),
         false,
       );
 
@@ -2114,7 +2674,7 @@ describe('main/career-store/utils', () => {
         makeCareer({ seasons: [season] }),
         season,
         [],
-        new Map([[held, makeAvailability(held.championship)]]),
+        new Map([[held, makeAvailability(held.championship)]]), new Map(),
         false,
       );
 
@@ -2126,7 +2686,7 @@ describe('main/career-store/utils', () => {
       const quarterly = makeChampionship({ id: 'quarterly', seasonLength: SeasonLength.QUARTER });
 
       const calendar = composeCalendar(
-        makeCareer({ seasons: [season] }), season, [makeListing(quarterly)], new Map(), false,
+        makeCareer({ seasons: [season] }), season, [makeListing(quarterly)], new Map(), new Map(), false,
       );
 
       expect(calendar.events.map((event) => event.edition)).toEqual([0, 0, 1, 1, 2, 2, 3, 3]);
@@ -2141,12 +2701,104 @@ describe('main/career-store/utils', () => {
         makeCareer({ seasons: [season] }),
         season,
         [makeListing(quarterly)],
-        new Map([[held, makeAvailability(quarterly)]]),
+        new Map([[held, makeAvailability(quarterly)]]), new Map(),
         false,
       );
 
       expect(calendar.events.map((event) => [event.edition, event.enrolled]))
         .toEqual([[0, true], [1, false], [2, false], [3, false]]);
+    });
+
+    it('charges each class of a library championship its own fee', () => {
+      const series = makeChampionship({
+        entryFee: 200,
+        rounds: [makeRound('one')],
+        entries: [makeClassEntry(), makeClassEntry({ id: 'second', name: 'Second', entryFee: 900 })],
+      });
+      const season = makeSeason();
+
+      const calendar = composeCalendar(
+        makeCareer({ seasons: [season] }), season, [makeListing(series)], new Map(), new Map(), false,
+      );
+
+      expect(calendar.events.map((event) => [event.entry, event.entryFee]))
+        .toEqual(expect.arrayContaining([['main', 200], ['second', 900]]));
+    });
+
+    it('puts a historic event drawn and not entered on the calendar for anyone to enter, through its first class', () => {
+      const draw = makeDraw({ championship: { ...HISTORIC, entryFee: 300 } });
+      const season = makeSeason({ historicEvents: [draw] });
+
+      const calendar = composeCalendar(
+        makeCareer({ seasons: [season] }), season, [], new Map(),
+        new Map([[draw, makeAvailability(draw.championship)]]), false,
+      );
+
+      expect(calendar.events).toHaveLength(1);
+      expect(calendar.events[0]).toMatchObject({
+        series: 'british-gp-1967',
+        edition: 0,
+        entry: 'main',
+        date: '2026-07-12',
+        status: 'scheduled',
+        entryFee: 300,
+        enrolled: false,
+        eligible: true,
+        historic: true,
+        clash: false,
+        invitation: { state: 'pending', chance: 40 },
+      });
+    });
+
+    it('shows a drawn event through the class its invitation offers', () => {
+      const draw = makeDraw({ invitation: INVITED });
+      const season = makeSeason({ historicEvents: [draw] });
+      const mail = makeMail(draw, {
+        invitation: {
+          series: draw.series, raceId: draw.raceId, entry: 'pro', seat: 'seat-1', car: { model: 'test_car' },
+        },
+      });
+
+      const calendar = composeCalendar(
+        makeCareer({ date: '2026-06-20', seasons: [season], inbox: [mail] }), season, [], new Map(),
+        new Map([[draw, makeAvailability(HISTORIC)]]), false,
+      );
+
+      expect(calendar.events.map((event) => [event.entry, event.entryFee, event.invitation?.state]))
+        .toEqual([['pro', 900, 'awaiting']]);
+    });
+
+    it('lists a drawn event the player is in once, as their own', () => {
+      const draw = makeDraw({ invitation: INVITED });
+      const held = makeHistoricEntry();
+      const season = makeSeason({ historicEvents: [draw], entries: [held] });
+
+      const calendar = composeCalendar(
+        makeCareer({ date: '2026-06-20', seasons: [season] }), season, [],
+        new Map([[held, makeAvailability(HISTORIC)]]), new Map([[draw, makeAvailability(HISTORIC)]]), false,
+      );
+
+      expect(calendar.events.map((event) => [event.series, event.enrolled, event.invitation?.state]))
+        .toEqual([['british-gp-1967', true, 'accepted']]);
+    });
+
+    it('passes a drawn event by once its day is behind the clock', () => {
+      const draw = makeDraw();
+      const season = makeSeason({ historicEvents: [draw] });
+
+      const calendar = composeCalendar(
+        makeCareer({ date: '2026-07-13', seasons: [season] }), season, [], new Map(),
+        new Map([[draw, makeAvailability(HISTORIC)]]), false,
+      );
+
+      expect(calendar.events[0].status).toBe('missed');
+    });
+
+    it('leaves off a drawn event the install says nothing of', () => {
+      const season = makeSeason({ historicEvents: [makeDraw()] });
+
+      expect(composeCalendar(makeCareer({ seasons: [season] }), season, [], new Map(), new Map(), false).events)
+        .toEqual([]);
     });
   });
 

@@ -6,7 +6,7 @@ import { HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import {
-  CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_DOT, EVENT_ACCENT,
+  CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_DOT, EVENT_ACCENT, INVITATION_ACCENT,
 } from '@/lib/accents';
 import { editionName } from '@/lib/edition-names';
 import { raceLength } from '@/lib/session-labels';
@@ -28,7 +28,12 @@ interface EventCardProps {
 
 export const EventCard = ({ event, onOpen }: EventCardProps) => {
   const { t } = useTranslation();
-  const { formatMoney, formatNumber } = useFormat();
+  const { formatDayShort, formatMoney, formatNumber } = useFormat();
+  // Where a historic event's invitation stands, which its chip says - an
+  // event entered at the player's own cost says Entered as any round does.
+  const state = event.invitation?.state;
+  const invitation = event.invitation && state && state !== 'entered' ? { ...event.invitation, state } : null;
+  const answering = state === 'awaiting';
 
   const labels = raceLabels(event.races.map((race) => race.name), t('calendar.raceFallback'));
   const lengths = event.races.map((race, at) => {
@@ -39,7 +44,10 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
       : length;
   });
 
-  const open = !event.enrolled && event.eligible && event.raceable;
+  // A historic event is one day: behind the clock, there is nothing left of it
+  // to enter.
+  const open = !event.enrolled && event.eligible && event.raceable
+    && (!event.historic || event.status === 'scheduled');
   const yours = event.enrolled && event.status === 'scheduled';
 
   return (
@@ -52,6 +60,8 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
         'hover-outline',
         // A ring rather than a fill for an event you are in, so it stays legible.
         event.enrolled ? 'border-primary/60 ring-1 ring-primary/60' : '',
+        // An invitation still to be answered, dashed in the leather until it is.
+        answering ? 'border-dashed border-historic-foreground/60' : '',
         // A rung not reached yet is shown, just without a card's full weight.
         event.eligible ? '' : 'border-dashed bg-transparent',
       )}
@@ -131,12 +141,27 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
             {t(`calendar.status.${event.status}`)}
           </Badge>
         ) : null}
+        {invitation && (event.status === 'scheduled' || invitation.state === 'accepted') ? (
+          <Badge className={cn('px-1.5 py-0 text-[0.65rem]', INVITATION_ACCENT[invitation.state])}>
+            {t(`invitation.state.${invitation.state}`, {
+              day: formatDayShort(invitation.state === 'pending' ? invitation.invitations : event.date),
+            })}
+          </Badge>
+        ) : null}
+        {/* What anyone pays to enter a historic event they hold no invitation
+            to, beside where that invitation stands. Neutral on purpose: an
+            amount, as the prize beside it is. */}
+        {open && event.historic && !answering && event.entryFee ? (
+          <span className="text-xs text-muted-foreground">
+            {t('calendar.feeToEnter', { amount: formatMoney(event.entryFee) })}
+          </span>
+        ) : null}
         {/* Neutral on purpose: the card's ring already carries primary for a
             event you are in, and primary is kept off chips so the two cannot
-            be confused. */}
-        {yours && !event.clash ? (
+            be confused. An invitation accepted says so in its own chip. */}
+        {yours && !event.clash && !invitation ? (
           <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem]">
-            {t(event.historic ? 'calendar.invited' : 'calendar.enrolled')}
+            {t('calendar.enrolled')}
           </Badge>
         ) : null}
         {event.clash ? (
@@ -163,7 +188,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
 
         {open || yours ? (
           <span className="ml-auto flex items-center gap-1 text-xs font-medium text-primary">
-            {t(open ? 'calendar.enter' : 'calendar.open')}
+            {t(answering ? 'calendar.answer' : (open && 'calendar.enter') || 'calendar.open')}
             <ArrowRightIcon className="size-3" />
           </span>
         ) : null}

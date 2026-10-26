@@ -73,6 +73,7 @@ export const WEC_2012: Championship = {
         seat('gte-fr-3', 'gte-fr', 'Clément Voisard', 'FRA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2011, minModels: 1 },
+      entryFee: 12000,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
         standings: [384000, 240000, 153500, 101000, 62500],
@@ -92,6 +93,7 @@ export const WEC_2012: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2011, minModels: 1 },
       grid: { strength: -5 },
+      entryFee: 9000,
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
         standings: [288000, 180000, 115000, 75500, 47000],

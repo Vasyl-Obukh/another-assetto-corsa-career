@@ -69,6 +69,7 @@ export const TUNER_INVITATIONAL: Championship = {
           'ks_audi_sport_quattro_s1',
         ],
       },
+      entryFee: 1200,
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],
@@ -97,6 +98,7 @@ export const TUNER_INVITATIONAL: Championship = {
         ],
       },
       grid: { strength: -3 },
+      entryFee: 700,
       prizes: {
         positions: [3600, 2500, 1800, 1350, 1050, 800, 600, 450, 300, 200],
         standings: [29000, 18000, 11500, 7500, 4500],

@@ -122,6 +122,7 @@ export const A1_RING_1997: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4500,
   prizes: {
     positions: [45000, 31500, 22500, 17100, 13050, 9900, 7200, 5400, 3600, 2250],
   },

@@ -130,6 +130,7 @@ export const HUNGARIAN_GP_1986: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 7000,
   prizes: {
     positions: [70000, 45000, 30000, 21000, 15000, 11000],
   },

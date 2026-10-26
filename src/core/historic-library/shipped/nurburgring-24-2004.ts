@@ -74,6 +74,7 @@ export const NURBURGRING_24_2004: Championship = {
       grid: {
         strength: -1,
       },
+      entryFee: 1500,
       prizes: {
         positions: [15000, 10500, 7500, 5700, 4350, 3300, 2400, 1800, 1200, 750],
       },
@@ -102,6 +103,7 @@ export const NURBURGRING_24_2004: Championship = {
       grid: {
         strength: -4,
       },
+      entryFee: 900,
       prizes: {
         positions: [9000, 6300, 4500, 3400, 2600, 2000, 1450, 1100, 700, 450],
       },
@@ -170,6 +172,7 @@ export const NURBURGRING_24_2004: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 2500,
   prizes: {
     positions: [25000, 17500, 12500, 9500, 7250, 5500, 4000, 3000, 2000, 1250],
   },

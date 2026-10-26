@@ -16,6 +16,7 @@ import {
   CAREER_NAV,
   CHAMPIONSHIP_NAV,
   DETAIL_TAB_PARAM,
+  MAIL_PARAM,
   OVER_ESCAPED,
   PARAM_PLACEHOLDER,
   QUICK_NAV,
@@ -229,6 +230,14 @@ export const path = {
    * @returns Its URL
    */
   home: (): string => ROUTE.home,
+  /**
+   * The career's inbox, showing one mail when one is named.
+   * @param mail The mail to open, by its id
+   * @returns Its URL
+   */
+  inbox: (mail?: string): string => (
+    mail === undefined ? ROUTE.inbox : `${ROUTE.inbox}?${new URLSearchParams({ [MAIL_PARAM]: mail }).toString()}`
+  ),
   /**
    * Every race event of the player's own.
    * @returns Its URL

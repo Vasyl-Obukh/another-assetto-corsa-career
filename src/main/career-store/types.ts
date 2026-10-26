@@ -13,6 +13,7 @@ import type {
   ChampionshipPreview,
   ChampionshipResults,
   LoadedSave,
+  MailAnswer,
   NewCareerRequest,
   NewChampionshipRequest,
   RaceSetup,
@@ -148,6 +149,40 @@ export interface ResultsRequest {
    * `EventRequest.edition` does.
    */
   edition?: number;
+}
+
+/**
+ * What answering a mail is asked with.
+ */
+export interface AnswerRequest {
+  /**
+   * The mail, by its id.
+   */
+  mail: string;
+  /**
+   * The answer.
+   */
+  answer: MailAnswer;
+}
+
+/**
+ * What launching a round's next session is asked with.
+ */
+export interface LaunchRequest extends Omit<EventRequest, 'season'> {
+  /**
+   * Whether the player confirmed losing the rounds the event view's `skips`
+   * lists.
+   */
+  skip?: boolean;
+  /**
+   * The factor the race is shortened by, one or absent for the full race.
+   */
+  scale?: number;
+  /**
+   * Whether launching accepts the invitation to a historic event still to be
+   * answered, which enters it in the seat offered first.
+   */
+  accept?: boolean;
 }
 
 /**
@@ -416,6 +451,29 @@ export interface CareerStore {
    */
   withdraw(request: { series: string; entry: string; edition?: number }): Promise<Career>;
   /**
+   * Answers a mail that wants an answer. Accepting an invitation enters its
+   * event in the seat it offers; declining one gives the seat back, and an
+   * invitation already accepted may still be declined until its first session
+   * has run, which takes the player out of the event again.
+   * @param request Which mail, and the answer
+   * @returns The career
+   * @throws When there is no such mail, it has been answered that way or can
+   * no longer be, or a launch of its event is out
+   */
+  answer(request: AnswerRequest): Promise<Career>;
+  /**
+   * Marks a mail opened, or unread again.
+   * @param request Which mail, and whether it is opened
+   * @returns The career
+   * @throws When there is no such mail
+   */
+  markMail(request: { mail: string; opened: boolean }): Promise<Career>;
+  /**
+   * Marks every mail in the inbox opened, whatever season it came in.
+   * @returns The career - the same one when nothing was unread
+   */
+  markAllRead(): Promise<Career>;
+  /**
    * Sets the player's own step on the AI's strength for an edition the career
    * is in: for every round of it, or for the one round named. Read at every
    * launch, so it reaches the next session and never one already run.
@@ -496,13 +554,14 @@ export interface CareerStore {
    * Sets the round up first when the race being run is some other event, and
    * moves the clock to the event when it is still ahead.
    * @param request Which championship, round and edition, whether the player
-   * confirmed losing the rounds `skips` on its event view lists, and the factor
-   * a race is shortened by - one or absent for the full race
+   * confirmed losing the rounds `skips` on its event view lists, the factor
+   * a race is shortened by - one or absent for the full race - and whether
+   * launching accepts the invitation to a historic event still to be answered
    * @returns The race as it stands once the launch has started
    * @throws When the round cannot be raced now, saying why, or the next launch
    * cannot be shortened by that much
    */
-  launch(request: Omit<EventRequest, 'season'> & { skip?: boolean; scale?: number }): Promise<RaceSetup>;
+  launch(request: LaunchRequest): Promise<RaceSetup>;
   /**
    * Forces any pending write to complete. Call before quitting.
    * @returns Resolves once nothing is left to write

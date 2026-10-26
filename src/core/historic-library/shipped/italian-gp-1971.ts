@@ -119,6 +119,7 @@ export const ITALIAN_GP_1971: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 5000,
   prizes: {
     positions: [50000, 32000, 21000, 15000, 11000, 8000],
   },

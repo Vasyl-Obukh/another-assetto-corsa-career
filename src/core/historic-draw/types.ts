@@ -1,3 +1,5 @@
+import type { Discipline } from '../../shared/types/index.ts';
+
 /**
  * One stretch of a season that draws at most one historic event.
  */
@@ -58,6 +60,20 @@ export interface HistoricDrawRequest {
    * What makes this season's draw its own: the career and the season.
    */
   salt: string;
+}
+
+/**
+ * The rung that decides a historic event's invitation, and its discipline.
+ */
+export interface HistoricRung {
+  /**
+   * The discipline the player holds it in.
+   */
+  discipline: Discipline;
+  /**
+   * The rung, 1 being the top.
+   */
+  rung: number;
 }
 
 /**

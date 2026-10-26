@@ -78,6 +78,7 @@ export const SPA_24_2004: Championship = {
       grid: {
         strength: -3,
       },
+      entryFee: 2700,
       prizes: {
         positions: [27000, 18900, 13500, 10250, 7850, 5950, 4300, 3250, 2150, 1350],
       },
@@ -146,6 +147,7 @@ export const SPA_24_2004: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4500,
   prizes: {
     positions: [45000, 31500, 22500, 17100, 13050, 9900, 7200, 5400, 3600, 2250],
   },

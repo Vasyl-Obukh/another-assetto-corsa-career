@@ -15,6 +15,7 @@ import type {
   Climate,
   Discipline,
   EventStatus,
+  InvitationState,
   LadderPosition,
   LedgerKind,
   PriceOrigin,
@@ -327,6 +328,32 @@ export const PRICE_ORIGIN_DOT = {
   yours: 'bg-origin-custom-foreground',
   suggested: 'bg-price-suggested-foreground',
 } as const satisfies Record<Exclude<PriceOrigin, 'catalogue'>, string>;
+
+/**
+ * Where a historic event's invitation stands, as a chip on the inbox, the
+ * event's page, the calendar and Home. An event entered at the player's own
+ * cost has no chip of this set: the calendar's ring and its neutral Entered
+ * already say it, and globals.css says why each of the rest wears its own.
+ */
+export const INVITATION_ACCENT = {
+  pending: 'border-dashed border-historic-foreground/50 bg-transparent text-historic-foreground',
+  awaiting: 'border-transparent bg-mail-awaiting text-mail-awaiting-foreground',
+  accepted: 'border-transparent bg-mail-accepted text-mail-accepted-foreground',
+  declined: 'border-transparent bg-mail-declined text-mail-declined-foreground',
+  lapsed: 'border-transparent bg-event-missed text-event-missed-foreground',
+  uninvited: 'border-transparent bg-mail-declined text-mail-declined-foreground',
+  closed: 'border-transparent bg-mail-declined text-mail-declined-foreground',
+} as const satisfies Record<Exclude<InvitationState, 'entered'>, string>;
+
+/**
+ * The same, as the well a mail's icon sits in.
+ */
+export const INVITATION_WELL = {
+  awaiting: 'bg-mail-awaiting text-mail-awaiting-foreground',
+  accepted: 'bg-mail-accepted text-mail-accepted-foreground',
+  declined: 'bg-mail-declined text-mail-declined-foreground',
+  lapsed: 'bg-event-missed text-event-missed-foreground',
+} as const;
 
 /**
  * A historic event as a dot - the leather's own deep tone - for where the

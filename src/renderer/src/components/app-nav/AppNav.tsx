@@ -1,10 +1,12 @@
 import {
-  CalendarDaysIcon, ChartLineIcon, FlagIcon, HouseIcon, MedalIcon, SettingsIcon, StoreIcon, TrophyIcon, WarehouseIcon,
+  CalendarDaysIcon, ChartLineIcon, FlagIcon, HouseIcon, MailIcon, MedalIcon, SettingsIcon, StoreIcon, TrophyIcon,
+  WarehouseIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NavItem } from './NavItem.tsx';
+import { useSlot } from '@/app';
 import type { NavEntry, NavId } from '@/lib/routes';
 
 /**
@@ -16,6 +18,7 @@ import type { NavEntry, NavId } from '@/lib/routes';
  */
 const NAV_ICONS: Record<NavId, ReactNode> = {
   home: <HouseIcon />,
+  inbox: <MailIcon />,
   standalone: <TrophyIcon />,
   race: <FlagIcon />,
   results: <ChartLineIcon />,
@@ -35,6 +38,9 @@ interface AppNavProps {
 
 export const AppNav = ({ entries }: AppNavProps) => {
   const { t } = useTranslation();
+  const { career } = useSlot();
+  // What the inbox holds unopened, which its entry carries.
+  const unread = career?.inbox.filter((mail) => !mail.opened).length ?? 0;
 
   return (
     <nav className="flex items-center gap-1">
@@ -46,6 +52,7 @@ export const AppNav = ({ entries }: AppNavProps) => {
           also={entry.also}
           label={t(entry.label)}
           icon={NAV_ICONS[entry.id]}
+          badge={entry.id === 'inbox' ? unread : 0}
         />
       ))}
     </nav>

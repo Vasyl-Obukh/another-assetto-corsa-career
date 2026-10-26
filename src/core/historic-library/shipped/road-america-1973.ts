@@ -106,6 +106,7 @@ export const ROAD_AMERICA_1973: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4000,
   prizes: {
     positions: [40000, 28000, 20000, 15200, 11600, 8800, 6400, 4800, 3200, 2000],
   },

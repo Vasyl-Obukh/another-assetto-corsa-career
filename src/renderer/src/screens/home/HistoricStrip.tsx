@@ -42,7 +42,7 @@ export const HistoricStrip = ({
           {t('home.historic.title', { year })}
         </h2>
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          {t('home.historic.counts', { count: review.rows.length, raced: review.raced, declined: review.notRaced })}
+          {t('home.historic.counts', { count: review.rows.length, raced: review.raced, missed: review.notRaced })}
           <Link to={path.yearReview({ season })} className="flex items-center font-medium text-primary hover:underline">
             {t('home.historic.all')}
             <ChevronRightIcon className="size-3.5" />

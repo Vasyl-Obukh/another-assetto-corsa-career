@@ -31,7 +31,7 @@ interface HistoricEventRowProps {
 export const HistoricEventRow = ({ row, season, current }: HistoricEventRowProps) => {
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
-  const carName = useCarNames([row.car]);
+  const carName = useCarNames(row.car ? [row.car] : []);
 
   return (
     <tr className="border-t">
@@ -49,7 +49,10 @@ export const HistoricEventRow = ({ row, season, current }: HistoricEventRowProps
         </Link>
       </td>
       <td className="py-2 pr-3 text-muted-foreground">
-        {[carName(row.car), row.team].filter((part) => part).join(' · ')}
+        {[
+          row.car ? carName(row.car) : t(`home.historic.${row.outcome === 'open' ? 'open' : 'notEntered'}`),
+          row.team,
+        ].filter((part) => part).join(' · ')}
       </td>
       <td className="py-2 pr-3 tabular-nums">
         {row.qualified === null
@@ -66,7 +69,7 @@ export const HistoricEventRow = ({ row, season, current }: HistoricEventRowProps
               : null}
           </span>
         )}
-        {row.outcome === 'declined' || row.outcome === 'missed' ? (
+        {row.outcome === 'missed' ? (
           <Badge className={EVENT_ACCENT.missed}>{t(`home.historic.${row.outcome}`)}</Badge>
         ) : null}
         {row.outcome === 'scheduled' ? (

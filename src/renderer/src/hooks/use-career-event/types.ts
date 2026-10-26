@@ -33,8 +33,15 @@ export interface CareerEventState {
    */
   enter: (entry: string, car: { model: string; skin?: string }) => Promise<void>;
   /**
-   * Turns down the historic event this is, which leaves its seat to the driver
-   * whose it is and the event to the field.
+   * Accepts the invitation to the historic event this is, which enters it in
+   * the seat offered.
+   * @returns Resolves once it has been accepted, or the refusal shown
+   */
+  accept: () => Promise<void>;
+  /**
+   * Turns down the historic event this is - its invitation, or the entry
+   * accepted or paid for - which leaves its seat to the driver whose it is and
+   * the event to the field.
    * @returns Resolves once it has been declined, or the refusal shown
    */
   decline: () => Promise<void>;

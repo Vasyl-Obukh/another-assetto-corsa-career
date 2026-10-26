@@ -77,6 +77,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
         seat('cup2-kar-2', 'karussell', 'Philipp Koenen', 'DEU'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_gt3_cup_2017'] },
+      entryFee: 3000,
       prizes: {
         positions: [12000, 8400, 6000, 4550, 3500, 2650, 1900, 1450, 950, 600],
         standings: [96000, 60000, 38500, 25000, 15500],
@@ -93,6 +94,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
         seat('cup3-grn-2', 'ring-nl', 'Bart Hendriksen', 'NLD'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_cayman_gt4_clubsport'] },
+      entryFee: 3000,
       prizes: {
         positions: [12000, 8400, 6000, 4550, 3500, 2650, 1900, 1450, 950, 600],
         standings: [96000, 60000, 38500, 25000, 15500],
@@ -110,6 +112,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
         seat('bmw-vla-1', 'flemish-ring', 'Jens De Wulf', 'BEL'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_bmw_m235i_racing'] },
+      entryFee: 1800,
       prizes: {
         positions: [7200, 5050, 3600, 2750, 2100, 1600, 1150, 850, 600, 350],
         standings: [57500, 36000, 23000, 15000, 9500],
@@ -125,6 +128,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
         seat('sp3t-bru-1', 'brunnchen', 'Heiko Gehlen', 'DEU'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_audi_tt_vln'] },
+      entryFee: 1800,
       prizes: {
         positions: [7200, 5050, 3600, 2750, 2100, 1600, 1150, 850, 600, 350],
         standings: [57500, 36000, 23000, 15000, 9500],

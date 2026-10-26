@@ -327,10 +327,11 @@ export interface YearReview {
 /**
  * What became of a historic event the season drew, as the player sees it.
  *
- * "declined" is one the player turned down ahead of its day, and "missed" one
- * the clock simply went past.
+ * "missed" is one the clock went past with the player in it; "open" one the
+ * player is not in and may still enter, and "notEntered" one the field raced
+ * without them.
  */
-export type HistoricOutcome = 'scheduled' | 'raced' | 'declined' | 'missed';
+export type HistoricOutcome = 'scheduled' | 'raced' | 'missed' | 'open' | 'notEntered';
 
 /**
  * One historic event of a season, as a list of them reads it.
@@ -370,9 +371,15 @@ export interface HistoricRow {
    */
   ladder: LadderPosition | null;
   /**
-   * The car the player was invited to drive, by its folder ID.
+   * The car the player raced it in, or was invited to, by its folder ID - null
+   * for one they are not in.
    */
-  car: string;
+  car: string | null;
+  /**
+   * Whether the player is in it by invitation, in a team's seat, rather than
+   * at their own cost.
+   */
+  invited: boolean;
   /**
    * The team behind the seat, by its display name, or null.
    */

@@ -473,6 +473,13 @@ describe('core/series-file', () => {
         .toEqual(['seriesFile.field.invalid']);
     });
 
+    it('reads a class entry fee, and rejects one that is not a number', () => {
+      const [entry] = raw().entries as Record<string, unknown>[];
+
+      expect(parseSeries(raw({ entries: [{ ...entry, entryFee: 900 }] }), 'test.json').series?.entries[0].entryFee).toBe(900);
+      expect(fieldsFor(raw({ entries: [{ ...entry, entryFee: 'free' }] }))).toEqual(['entries[0].entryFee']);
+    });
+
     it('rejects a description that is not a string', () => {
       expect(codesFor(raw({ description: 42 }))).toEqual(['seriesFile.field.invalid']);
     });

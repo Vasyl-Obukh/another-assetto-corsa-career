@@ -73,6 +73,16 @@ export const DetailSummary = ({
   const yourSeat = yours?.seats.find((seat) => seat.id === entered?.playerSeat);
   const yourTeam = series.teams?.find((team) => team.id === yourSeat?.team);
 
+  // A class may charge its own fee: the one raced in where there is one, or
+  // the spread across the classes where they differ.
+  const fees = [...new Set((yours ? [yours] : series.entries).map((one) => one.entryFee ?? series.entryFee ?? 0))];
+  const low = Math.min(...fees);
+  const high = Math.max(...fees);
+  let feeText = high > 0 ? formatMoney(high) : t('championships.money.free');
+  if (fees.length > 1) {
+    feeText = t('championships.money.byClass', { low: formatMoney(low), high: formatMoney(high) });
+  }
+
   return (
     <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
       {/* The discipline's colour as a stripe, split for a grid mixing them. */}
@@ -155,7 +165,7 @@ export const DetailSummary = ({
         {/* A free championship says so rather than showing nothing: an absent
             fee and a fee of zero are different facts. */}
         <SummaryFact label={t('championships.money.entryFee')}>
-          {series.entryFee ? formatMoney(series.entryFee) : t('championships.money.free')}
+          {feeText}
         </SummaryFact>
         {yours ? (
           <SummaryFact label={t('championships.detail.youRace')}>

@@ -124,6 +124,7 @@ export const BRITISH_GP_1954: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 3500,
   prizes: {
     positions: [35000, 22000, 15000, 10000, 7000],
   },

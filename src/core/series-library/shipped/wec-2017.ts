@@ -76,6 +76,7 @@ export const WEC_2017: Championship = {
         seat('p2-war-2', 'warta', 'Mikołaj Szczepanik', 'POL'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2017, minModels: 1 },
+      entryFee: 10800,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
         standings: [384000, 240000, 153500, 101000, 62500],
@@ -99,6 +100,7 @@ export const WEC_2017: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
       grid: { strength: -1 },
+      entryFee: 10800,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
         standings: [384000, 240000, 153500, 101000, 62500],

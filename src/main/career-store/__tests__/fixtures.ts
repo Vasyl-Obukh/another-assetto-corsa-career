@@ -183,6 +183,7 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   },
   ratingLog: [],
   seasons: [],
+  inbox: [],
   ...over,
 });
 

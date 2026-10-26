@@ -7,6 +7,7 @@ import { EditionFinished } from './EditionFinished.tsx';
 import { HistoricStrip } from './HistoricStrip.tsx';
 import { HomeDoors } from './HomeDoors.tsx';
 import { HomeSkeleton } from './HomeSkeleton.tsx';
+import { InvitationsBanner } from './InvitationsBanner.tsx';
 import { NewSeason } from './NewSeason.tsx';
 import { NextEvent } from './NextEvent.tsx';
 import { NoEvent } from './NoEvent.tsx';
@@ -48,7 +49,8 @@ export const Home = () => {
     [season, calendar],
   );
   const speed = prizeSpeed(career.career);
-  const historic = useMemo(() => (season ? historicReview(season, speed) : null), [season, speed]);
+  const clock = calendar?.date;
+  const historic = useMemo(() => (season ? historicReview(season, speed, clock) : null), [season, speed, clock]);
 
   if (!calendar || !career.career || !season) {
     return (
@@ -131,6 +133,8 @@ export const Home = () => {
       {finished.map((one) => (
         <EditionFinished key={`${one.series}-${one.edition}-${one.entry}`} summary={one} year={year} />
       ))}
+
+      <InvitationsBanner career={career.career} />
 
       <RatingNews career={career.career} />
 

@@ -78,6 +78,7 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
       // The Step 2 has twice the others' power.
       bop: [{ car: 'ks_abarth_595ss_s2', restrictor: 45 }],
       grid: { strength: -4 },
+      entryFee: 1800,
       prizes: {
         positions: [5400, 3800, 2700, 2000, 1450, 1100, 800, 600, 400, 200],
         standings: [36000, 21500, 14500, 9500, 6000],

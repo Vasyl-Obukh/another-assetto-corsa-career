@@ -31,9 +31,9 @@ interface DetailsCardProps {
    */
   locked: boolean;
   /**
-   * Whether it is a historic event, which has no season to run: no entry fee,
-   * no length and no race day of its own, since a career places it - only
-   * where its weather comes from.
+   * Whether it is a historic event, which has no season to run: no length and
+   * no race day of its own, since a career places it - only what entering it
+   * without an invitation costs, and where its weather comes from.
    */
   historic?: boolean;
   /**
@@ -83,7 +83,19 @@ export const DetailsCard = ({
       <div className="flex flex-col gap-4 border-t p-6 lg:border-t-0 lg:border-l">
         <PaneHeading>{t(historic ? 'historicEditor.weather' : 'editor.details.season')}</PaneHeading>
 
-        {historic ? null : (
+        {/* What entering costs without an invitation, the one figure of a
+            season a historic event keeps. */}
+        {historic ? (
+          <NumberField
+            id="editor-entry-fee"
+            label={t('editor.details.entryFee')}
+            hint={t('historicEditor.entryFeeHint')}
+            value={series.entryFee}
+            min={MIN_MONEY}
+            disabled={locked}
+            onChange={(entryFee) => onChange({ ...series, entryFee })}
+          />
+        ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               id="editor-entry-fee"

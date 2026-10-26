@@ -111,6 +111,7 @@ export const WEC_2024_LFM: Championship = {
         ],
       },
       grid: { strength: -5 },
+      entryFee: 7200,
       prizes: {
         positions: [28800, 20150, 14400, 10950, 8350, 6350, 4600, 3450, 2300, 1450],
         standings: [230500, 144000, 92000, 60500, 37500],

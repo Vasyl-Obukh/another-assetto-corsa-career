@@ -2971,6 +2971,49 @@ Designed in `mockups/rating.html` and agreed with the user before any code.
 - [x] **Steel is Rookie**, and a deep green rather than a slate that read as a
       second silver
 
+## Phase 11a - Inbox base
+
+Brought forward from Phase 11, because a contract offer needs somewhere to
+arrive and something to answer it from. Built with one real kind of mail behind
+it - the historic event invitation - so the model is proven before Phase 9 leans
+on it. Designed in `mockups/inbox.html`, agreed on 2026-10-25.
+
+- [x] **Mail is stored in the career's state** and saved and loaded with it:
+      when each arrived, whether it has been opened, and for anything that
+      wants an answer, the answer and its deadline
+- [x] **Inbox is its own entry in the career's navigation**, with an unread
+      count on it
+- [x] **Every historic event drawn is on the calendar and open to enter**,
+      paying its entry fee and bringing a car of its class, rented or bought,
+      through the championship round's own Enter panel. It takes the last seat
+      of its class, and an event the player is not in is raced without them
+- [x] **Historic events gain an entry fee**: a tenth of the winner's purse for
+      the ones we ship, and a figure the author enters for their own
+- [x] **A class may charge its own fee** over its championship's, as it may pay
+      its own purse - a round's own fee still wins over both. The historic
+      events we ship charge each class a tenth of its own winner's purse; the
+      championships we ship charge each class with a purse of its own the
+      championship's fee scaled by that purse's winner against its own, to the
+      nearest hundred, so every championship keeps the ratio it was set at
+- [x] **An invitation is the free way in**: a team's seat with no fee and no
+      rent. It arrives four weeks before the event's day - at once, as the
+      year opens, for one falling sooner - and comes with a chance by rung:
+      20% at Rookie, 20 more a rung, 100% at Platinum. It offers one car in
+      one class, in whichever of the event's disciplines the player holds the
+      highest rung, and that rung sets the chance. Classes tied on that rung
+      go to the one whose own tier is nearest it, then to the seeded seat draw.
+      Entering before invitations go out means paying, and no invitation comes
+      after
+- [x] **Answering it**: accepting enters it, and so does launching it;
+      an accepted one can still be declined until its first session runs. A
+      declined or lapsed invitation leaves the event open to enter at full
+      cost
+- [x] **An unanswered invitation is listed by `SkipDialog`** when moving on
+      would pass its day. A declined one stops nothing
+- [x] **Mark as unread** is the one action besides answering
+- [x] **Every season's mail in one list**, newest first, thirty to a page
+- [x] **New mail raises a toast on any page**, one for however many arrived
+
 ## Phase 9 - Contracts, teams and the market
 
 - [ ] Contract model: pay driver, free, salary, prize share, standings bonus
@@ -3019,11 +3062,10 @@ Design to be settled before building - see Open questions.
 
 ## Phase 11 - Inbox
 
-- [ ] Message model with read/unread, categories and expiry
+The message model, the screen and event invitations moved ahead of Phase 9 as
+*Phase 11a - Inbox base*. What is left builds on it.
+
 - [ ] Seat and sponsor offers with accept/decline and deadlines
-- [ ] Event invitations: a historic event arrives as an invitation a few
-      weeks ahead, to accept or decline by its day, replacing today's
-      acceptance of every one
 - [ ] Session, race and championship results from engineer and team owner
 - [ ] Contract and market news
 - [ ] Earlier phases emit events into this bus as they land

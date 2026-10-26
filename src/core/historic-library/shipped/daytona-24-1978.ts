@@ -110,6 +110,7 @@ export const DAYTONA_24_1978: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 3500,
   prizes: {
     positions: [35000, 24500, 17500, 13300, 10150, 7700, 5600, 4200, 2800, 1750],
   },

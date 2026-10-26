@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { SeasonLength } from '../../../../../shared/types';
+import { Discipline, SeasonLength } from '../../../../../shared/types';
 import type {
-  CareerSeason, RacePlace, SeasonEntry, SeasonEvent,
+  CareerSeason, HistoricDraw, RacePlace, SeasonEntry, SeasonEvent,
 } from '../../../../../shared/types';
 import {
   makeResults, makeSeries, place, race, roundScore,
@@ -87,6 +87,32 @@ const historic = (id: string, event: SeasonEvent, overrides: Partial<SeasonEntry
  */
 const unscored = (date: string, status: SeasonEvent['status']): SeasonEvent => ({
   round: 'r1', raceId: `h/r1@0.0`, date, status, sessions: [],
+});
+
+/**
+ * A historic event as the season drew it: the test championship under another
+ * id, its invitations going out on its own day.
+ * @param id Its id
+ * @param date The ISO date it runs
+ * @returns The draw
+ */
+const drawOf = (id: string, date: string): HistoricDraw => ({
+  series: id,
+  championship: makeSeries({ id, name: id }),
+  round: 'r1',
+  raceId: `${id}/r1@0.0`,
+  date,
+  invitations: date,
+});
+
+/**
+ * A season holding the entries given, having drawn the historic events given.
+ * @param draws What it drew
+ * @param entries Its entries
+ * @returns The season
+ */
+const drew = (draws: HistoricDraw[], ...entries: SeasonEntry[]): CareerSeason => ({
+  ...season(...entries), historicDrawn: true, historicEvents: draws,
 });
 
 describe('renderer/lib/season-review/season-review', () => {
@@ -350,21 +376,20 @@ describe('renderer/lib/season-review/season-review', () => {
   describe('historicReview', () => {
     const won = historic('won', scored('r1', '2026-06-03', [place('main-1', 1, { qualifyingPosition: 2 }), place('main-2', 2)]));
     const third = historic('third', scored('r1', '2026-03-04', [place('main-2', 1), place('main-3', 2), place('main-1', 3)]));
-    const declined = historic('declined', unscored('2026-04-08', 'missed'), { withdrawn: true });
     const missed = historic('missed', unscored('2026-05-06', 'missed'));
     const ahead = historic('ahead', unscored('2026-09-09', 'scheduled'));
 
     it("lists the season's historic events earliest first, and nothing else of it", () => {
-      expect(historicReview(season(entry(), ahead, won, third, declined, missed)).rows.map((row) => row.series))
-        .toEqual(['third', 'declined', 'missed', 'won', 'ahead']);
+      expect(historicReview(season(entry(), ahead, won, third, missed)).rows.map((row) => row.series))
+        .toEqual(['third', 'missed', 'won', 'ahead']);
     });
 
     it('says what became of each one', () => {
-      const outcomes = historicReview(season(won, declined, missed, ahead)).rows
+      const outcomes = historicReview(season(won, missed, ahead)).rows
         .map((row) => [row.series, row.outcome]);
 
       expect(outcomes).toEqual([
-        ['declined', 'declined'], ['missed', 'missed'], ['won', 'raced'], ['ahead', 'scheduled'],
+        ['missed', 'missed'], ['won', 'raced'], ['ahead', 'scheduled'],
       ]);
     });
 
@@ -416,10 +441,64 @@ describe('renderer/lib/season-review/season-review', () => {
     });
 
     it('adds up the starts, wins, podiums, prize money and events not raced', () => {
-      const review = historicReview(season(won, third, declined, missed, ahead));
+      const review = historicReview(season(won, third, missed, ahead));
 
       expect(review).toMatchObject({
-        raced: 2, wins: 1, podiums: 2, prize: 1250, notRaced: 2,
+        raced: 2, wins: 1, podiums: 2, prize: 1250, notRaced: 1,
+      });
+    });
+
+    it('reads one the player was invited to as invited, and one they pay for as not', () => {
+      const bought = historic('bought', unscored('2026-09-09', 'scheduled'), { car: { model: 'test_car', source: 'owned' } });
+      const { rows } = historicReview(season(ahead, bought));
+
+      expect(rows.map((row) => [row.series, row.invited])).toEqual([['ahead', true], ['bought', false]]);
+    });
+
+    it('lists the events it drew that the player is not in beside the rest, earliest first, each once', () => {
+      const draws = [drawOf('won', '2026-06-03'), drawOf('later', '2026-11-04'), drawOf('earlier', '2026-02-04')];
+
+      expect(historicReview(drew(draws, won)).rows.map((row) => row.series)).toEqual(['earlier', 'won', 'later']);
+    });
+
+    it('reads one the player is not in as open from the clock on, and as raced without them before it', () => {
+      const draws = [drawOf('past', '2026-03-04'), drawOf('today', '2026-07-01'), drawOf('future', '2026-08-05')];
+
+      expect(historicReview(drew(draws), 1, '2026-07-01').rows.map((row) => [row.series, row.outcome])).toEqual([
+        ['past', 'notEntered'], ['today', 'open'], ['future', 'open'],
+      ]);
+    });
+
+    it('reads every one the player is not in as raced without them when handed no clock', () => {
+      expect(historicReview(drew([drawOf('future', '2026-08-05')])).rows[0].outcome).toBe('notEntered');
+    });
+
+    it('reads one the player is not in off the draw, with no car, seat or result of theirs', () => {
+      expect(historicReview(drew([drawOf('drawn', '2026-08-05')]), 1, '2026-07-01').rows[0]).toEqual({
+        series: 'drawn',
+        round: 'r1',
+        name: 'drawn',
+        date: '2026-08-05',
+        track: { id: 'magione' },
+        ladder: { discipline: Discipline.ROAD, tier: 6 },
+        car: null,
+        invited: false,
+        team: null,
+        driver: null,
+        outcome: 'open',
+        started: false,
+        qualified: null,
+        finished: null,
+        multiClass: false,
+        prize: null,
+      });
+    });
+
+    it('counts none the player is not in as raced or as not raced', () => {
+      const draws = [drawOf('past', '2026-03-04'), drawOf('future', '2026-08-05')];
+
+      expect(historicReview(drew(draws, won, missed), 1, '2026-07-01')).toMatchObject({
+        raced: 1, wins: 1, podiums: 1, prize: 1000, notRaced: 1,
       });
     });
 

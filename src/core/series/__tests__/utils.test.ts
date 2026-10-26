@@ -475,6 +475,15 @@ describe('core/series/utils', () => {
       expect(problem.params).toMatchObject({ scope: 'round magione', amount: -5 });
     });
 
+    it('names the class a bad entry fee is on', () => {
+      const { series } = withSessions([{ type: 'race', name: 'Race', laps: 8 }]);
+      const entries = [{ ...series.entries[0], entryFee: -5 }];
+      const [problem] = validateMoney({ ...series, entries });
+
+      expect(problem.code).toBe('series.entryFee.invalid');
+      expect(problem.params).toMatchObject({ scope: `class ${series.entries[0].id}`, amount: -5 });
+    });
+
     it('accepts a free championship, which is not the same as charging nothing', () => {
       expect(moneyCodes({ entryFee: 0 })).toEqual([]);
     });

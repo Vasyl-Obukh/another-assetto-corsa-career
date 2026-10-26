@@ -129,6 +129,7 @@ export const BRITISH_GP_1967: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4500,
   prizes: {
     positions: [45000, 29000, 19000, 13500, 10000, 7000],
   },

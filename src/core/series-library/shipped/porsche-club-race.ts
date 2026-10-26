@@ -92,6 +92,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
         { car: 'ks_porsche_cayman_gt4_std', ballast: 60 },
       ],
       grid: { strength: -1 },
+      entryFee: 1500,
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],

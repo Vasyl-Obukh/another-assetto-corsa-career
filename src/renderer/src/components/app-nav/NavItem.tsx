@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router';
 
 import { Button } from '@/components/ui/button.tsx';
+import { useFormat } from '@/i18n';
 import { path, ROUTE, sectionOf } from '@/lib/routes';
 import type { NavId, RouteId } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
@@ -28,11 +29,17 @@ interface NavItemProps {
    * The icon shown beside the label.
    */
   icon: ReactNode;
+  /**
+   * How many things it holds that are waiting to be seen, shown beside the
+   * label - none for zero.
+   */
+  badge?: number;
 }
 
 export const NavItem = ({
-  id, to, also = [], label, icon,
+  id, to, also = [], label, icon, badge = 0,
 }: NavItemProps) => {
+  const { formatNumber } = useFormat();
   // The pattern is matched and the URL is linked to, both read off the registry
   // rather than passed in, so a destination whose pattern gains a parameter
   // cannot end up matching one thing and linking to another.
@@ -59,6 +66,13 @@ export const NavItem = ({
       <NavLink to={to ? ROUTE[to] : path[id]()}>
         {icon}
         {label}
+        {/* Primary, the colour of what is new, and solid so it reads at the
+            size of the header's text. */}
+        {badge > 0 ? (
+          <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.65rem] font-semibold text-primary-foreground tabular-nums">
+            {formatNumber(badge)}
+          </span>
+        ) : null}
       </NavLink>
     </Button>
   );

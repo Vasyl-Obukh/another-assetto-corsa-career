@@ -73,6 +73,7 @@ export const ALMS_2001: Championship = {
         seat('gts-rhe-1', 'rheintal', 'Uwe Kellersmann', 'DEU'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S, minModels: 2 },
+      entryFee: 9000,
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
         standings: [240000, 150000, 96000, 63000, 39000],
@@ -104,6 +105,7 @@ export const ALMS_2001: Championship = {
         ],
       },
       grid: { strength: -3 },
+      entryFee: 5400,
       prizes: {
         positions: [18000, 12600, 9000, 6850, 5200, 3950, 2900, 2150, 1450, 900],
         standings: [144000, 90000, 57500, 38000, 23500],

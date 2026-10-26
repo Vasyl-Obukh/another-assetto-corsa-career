@@ -300,10 +300,11 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     : report.bad(`${field}.seats`, value.seats);
 
   const prizes = readPrizes(value.prizes, `${field}.prizes`, report);
+  const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);
   const grid = readGrid(value.grid, `${field}.grid`, report);
 
   const rule = value.eligibility;
-  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats && prizes && grid;
+  if (!isRecord(rule)) return report.bad(`${field}.eligibility`, rule) && seats && prizes && fee && grid;
 
   // Only the shape of a spec is checked here. It may be one the user made, so
   // the set it belongs to is the resolved class catalogue rather than anything
@@ -313,7 +314,7 @@ export const readEntry = (value: unknown, field: string, report: Reporter): bool
     ? (typeof rule.spec === 'string' && rule.spec !== '') || report.bad(`${field}.eligibility.spec`, rule.spec)
     : Array.isArray(rule.cars) || report.bad(`${field}.eligibility.cars`, rule.cars);
 
-  return ladder && seats && prizes && grid && eligibility;
+  return ladder && seats && prizes && fee && grid && eligibility;
 };
 
 /**

@@ -248,6 +248,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'quick.started': '{{race}} has started. Start it over to change it.',
 
   'historic.started': '{{event}} has already begun, so it can no longer be declined.',
+  'historic.invited': 'You are invited to {{event}}. Answer the invitation before entering it at your own cost.',
+  'mail.notFound': 'There is no such mail in the inbox.',
+  'mail.closed': 'The invitation to {{event}} can no longer be answered that way.',
   'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
   'historic.points':
     'Points system "{{system}}" of {{event}} pays points, but a historic event pays only its prize money.',

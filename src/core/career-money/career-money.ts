@@ -13,20 +13,20 @@ import type {
   SeasonEvent,
 } from '../../shared/types/index.ts';
 import { editionOver } from '../../shared/utils/editions/index.ts';
-import { isHistoric } from '../../shared/utils/historic/index.ts';
+import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 
 /**
  * What entering one of a career's rounds costs.
  *
- * A historic event costs nothing while the player is invited, which every one
- * is today, and a fee of zero is nothing to pay.
+ * A historic event costs nothing while the player is invited - the car comes
+ * with the seat, and so does the entry - and a fee of zero is nothing to pay.
  * @param entry The season's entry the round belongs to
  * @param event The round
  * @returns The fee, or null when it costs nothing
  */
 export const feeOf = (entry: SeasonEntry, event: SeasonEvent): number | null => (
-  isHistoric(entry) || !event.entryFee ? null : event.entryFee
+  isInvited(entry) || !event.entryFee ? null : event.entryFee
 );
 
 /**

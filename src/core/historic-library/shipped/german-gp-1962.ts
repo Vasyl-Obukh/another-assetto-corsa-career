@@ -127,6 +127,7 @@ export const GERMAN_GP_1962: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4000,
   prizes: {
     positions: [40000, 26000, 17000, 12000, 9000, 6000],
   },

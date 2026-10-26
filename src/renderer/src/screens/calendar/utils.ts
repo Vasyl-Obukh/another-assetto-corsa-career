@@ -54,8 +54,10 @@ export const shownEvents = (
   criteria: CalendarCriteria,
 ): CalendarEntry[] => events.filter((event) => (
   // A championship switched off after it was entered keeps its place, or a
-  // season under way would vanish from the calendar it is being raced on.
-  (listed.has(event.series) || event.enrolled) && passesFilter(event, criteria)
+  // season under way would vanish from the calendar it is being raced on. A
+  // historic event is in no championship library: the season drew it from the
+  // ones switched on, so it stays.
+  (event.historic || listed.has(event.series) || event.enrolled) && passesFilter(event, criteria)
 ));
 
 /**

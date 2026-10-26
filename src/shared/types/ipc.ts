@@ -38,6 +38,7 @@ import type {
   Weather,
   WeatherController,
 } from './content.ts';
+import type { MailAnswer } from './inbox.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { QuickRace, QuickRaceArchives, QuickRaceView } from './quick-race.ts';
 import type { LatestResults, RaceSetup, ResultRecord } from './race-run.ts';
@@ -525,6 +526,20 @@ export interface IpcContract {
    */
   'career:withdraw': { req: { series: string; entry: string; edition?: number }; res: Career };
   /**
+   * Answer a mail that wants an answer: accepting an invitation enters its
+   * event in the seat offered, and declining gives the seat back - one already
+   * accepted until the event's first session runs.
+   */
+  'career:answer': { req: { mail: string; answer: MailAnswer }; res: Career };
+  /**
+   * Mark a mail opened, or unread again.
+   */
+  'career:markMail': { req: { mail: string; opened: boolean }; res: Career };
+  /**
+   * Mark every mail in the inbox opened.
+   */
+  'career:markAllRead': { req: void; res: Career };
+  /**
    * Set the player's own step on the AI's strength for an edition the career is
    * in - for every round of it, or for the one round named. Reaches the next
    * session launched, never one already run.
@@ -582,10 +597,11 @@ export interface IpcContract {
    * first when the race being run is another event. A round that would leave
    * others unraced is refused unless `skip` says the player confirmed it.
    * `scale` shortens a race by one of the steps its length offers, for this
-   * launch alone.
+   * launch alone, and `accept` accepts the invitation to a historic event still
+   * to be answered on the way.
    */
   'career:launch': {
-    req: { series: string; round: string; edition?: number; skip?: boolean; scale?: number };
+    req: { series: string; round: string; edition?: number; skip?: boolean; scale?: number; accept?: boolean };
     res: RaceSetup;
   };
   /**

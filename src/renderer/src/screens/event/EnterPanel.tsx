@@ -2,6 +2,7 @@ import { CarIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { InvitationNote } from './InvitationNote.tsx';
 import { LadderNote } from './LadderNote.tsx';
 import type {
   Car, CareerEventView, CarSource, Skin,
@@ -58,6 +59,12 @@ interface EnterPanelProps {
     skin: Skin | null;
   };
   /**
+   * Whether the panel enters a historic event, which a career enters for that
+   * event alone, at its own cost, whatever its level - and which says where its
+   * invitation stands.
+   */
+  historic?: boolean;
+  /**
    * Called with the class, car and livery chosen, once the player has
    * confirmed whatever entering now costs.
    * @param entry The class entry's id
@@ -68,7 +75,7 @@ interface EnterPanelProps {
 }
 
 export const EnterPanel = ({
-  view, busy, showFirstRound = false, initial, onEnter,
+  view, busy, showFirstRound = false, initial, historic = false, onEnter,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
@@ -96,6 +103,9 @@ export const EnterPanel = ({
   const owned = car && garage ? garage.owned(car.id) : null;
   const source: CarSource = owned ? 'owned' : 'rented';
   const livery = owned && car ? car.skins.find((one) => one.id === owned.skin) ?? skin : skin;
+  // What entering costs a round: the class's fee, and a rented car's rent.
+  const fee = chosen?.fee ?? null;
+  const rent = car && garage && !owned ? rentOf(garage.priceOf(car)) : null;
   const enter = (): void => {
     if (car) onEnter(entry, { model: car.id, skin: livery?.id });
   };
@@ -104,7 +114,7 @@ export const EnterPanel = ({
     <Card className="gap-3 border-dashed border-primary py-3">
       <CardHeader className="px-3">
         <CardTitle>{t('event.enter.title', { series: view.seriesName })}</CardTitle>
-        <CardDescription>{t('event.enter.body')}</CardDescription>
+        <CardDescription>{t(historic ? 'event.enter.historicBody' : 'event.enter.body')}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 px-3">
         {view.classes.length > 1 ? (
@@ -126,8 +136,11 @@ export const EnterPanel = ({
         ) : null}
 
         {/* What the ladder says of the class: how to open it, or what entering
-            it through the career's best discipline does to its own rating. */}
-        {chosen && career && mode === 'career' ? <LadderNote career={career} ladder={chosen.ladder} /> : null}
+            it through the career's best discipline does to its own rating. A
+            historic event is open to anyone and rated on the player's own rung,
+            so it says where its invitation stands instead. */}
+        {view.historic && historic ? <InvitationNote invitation={view.historic.invitation} date={view.date} /> : null}
+        {chosen && career && mode === 'career' && !historic ? <LadderNote career={career} ladder={chosen.ladder} /> : null}
         {chosen && !chosen.eligible && mode !== 'career' ? (
           <Badge className={cn('gap-1 self-start', CAUTION_ACCENT)}>
             <LockIcon className="size-3" />
@@ -179,15 +192,31 @@ export const EnterPanel = ({
           </Button>
         </div>
 
-        {/* A rented car costs a round's rent beside its fee; the fee is said
-            in the championship's summary. */}
-        {car && garage && !owned ? (
+        {/* What the class costs a round to enter, which may be its own, and
+            a rented car's rent beside it. */}
+        {fee || rent ? (
           <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-t pt-2.5 text-xs">
-            <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
-            <dd className="text-right font-semibold tabular-nums">
-              {t('event.enter.perRound', { amount: formatMoney(rentOf(garage.priceOf(car))) })}
+            {fee ? (
+              <>
+                <dt className="text-muted-foreground">{t('event.enter.fee')}</dt>
+                <dd className="text-right font-semibold tabular-nums">
+                  {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(fee) })}
+                </dd>
+              </>
+            ) : null}
+            {rent ? (
+              <>
+                <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
+                <dd className="text-right font-semibold tabular-nums">
+                  {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(rent) })}
+                </dd>
+              </>
+            ) : null}
+            <dd className="col-span-2 text-muted-foreground">
+              {rent
+                ? t(historic ? 'event.enter.historicRentHint' : 'event.enter.rentHint')
+                : t(historic ? 'event.enter.historicFeeHint' : 'event.enter.feeHint')}
             </dd>
-            <dd className="col-span-2 text-muted-foreground">{t('event.enter.rentHint')}</dd>
           </dl>
         ) : null}
 
@@ -209,7 +238,7 @@ export const EnterPanel = ({
             else enter();
           }}
         >
-          {t('event.enter.action')}
+          {t(historic ? 'event.enter.historicAction' : 'event.enter.action')}
         </Button>
 
         {showFirstRound ? (

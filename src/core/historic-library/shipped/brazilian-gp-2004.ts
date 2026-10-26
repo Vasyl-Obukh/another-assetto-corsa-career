@@ -137,6 +137,7 @@ export const BRAZILIAN_GP_2004: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 9000,
   prizes: {
     positions: [90000, 60000, 42000, 30000, 22000, 16000, 12000, 8000],
   },

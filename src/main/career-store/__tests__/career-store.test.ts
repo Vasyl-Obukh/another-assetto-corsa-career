@@ -18,7 +18,9 @@ import type {
   CareerSeason,
   CareerSettings,
   DrivingAids,
+  HistoricDraw,
   LaunchRecord,
+  Mail,
   MissingTrack,
   NewCareerRequest,
   NewChampionshipRequest,
@@ -29,7 +31,7 @@ import type {
   SeriesRequirements,
   Settings,
 } from '../../../shared/types/index.ts';
-import { weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
+import { addDays, weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import { dropRating, ratingFloor } from '../../../shared/utils/career-eligibility/index.ts';
 import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
@@ -257,6 +259,105 @@ const entryOf = (career: Career | null, series = CUP.id) => {
 
   return entry;
 };
+
+/**
+ * The race id the historic event the inbox tests draw is raced under this
+ * season.
+ */
+const H1_RACE = 'h1/only@0.0';
+
+/**
+ * The id of the mail inviting the player to that event.
+ */
+const H1_INVITE = `invite:${H1_RACE}`;
+
+/**
+ * A historic event the season drew: raced on 3 February, its class entering
+ * at a fee of its own over the event's, and its invitations going out four
+ * weeks before.
+ * @param over Whatever the test wants said differently
+ * @returns The draw
+ */
+const drawnHistoric = (over: Partial<HistoricDraw> = {}): HistoricDraw => ({
+  series: 'h1',
+  championship: {
+    ...historicListing('h1').series,
+    entryFee: 1_000,
+    entries: [makeClassEntry({ entryFee: 2_500 })],
+  },
+  round: 'only',
+  raceId: H1_RACE,
+  date: '2027-02-03',
+  invitations: '2027-01-06',
+  ...over,
+});
+
+/**
+ * The mail inviting the player to a drawn historic event, sent and unopened:
+ * the class's first seat, in the class's car.
+ * @param draw The historic event
+ * @param over Whatever the test wants said differently
+ * @returns The mail
+ */
+const invitationTo = (draw: HistoricDraw, over: Partial<Mail> = {}): Mail => ({
+  id: `invite:${draw.raceId}`,
+  kind: 'invitation',
+  season: 0,
+  arrived: draw.invitations,
+  opened: false,
+  deadline: draw.date,
+  invitation: {
+    series: draw.series, raceId: draw.raceId, entry: 'main', seat: 'seat-1', car: { model: 'test_car' },
+  },
+  ...over,
+});
+
+/**
+ * A career on the top rung of road racing, which is certain of an invitation
+ * to every road event, whose season drew one historic event.
+ * @param draw The historic event
+ * @param date Where the clock stands
+ * @param inbox The mail it holds
+ * @returns The career
+ */
+const topRung = (draw = drawnHistoric(), date = '2027-01-01', inbox: Mail[] = []): Career => {
+  const career = careerWith({ historicEvents: [draw] }, date);
+
+  return makeCareer({ ...career, level: { ...career.level, [Discipline.ROAD]: 1 }, inbox });
+};
+
+/**
+ * A career holding an invitation to the drawn event still to be answered.
+ * @param date Where the clock stands
+ * @returns The career
+ */
+const invited = (date = '2027-01-10'): Career => {
+  const draw = drawnHistoric({
+    invitation: {
+      on: '2027-01-06', outcome: 'invited', discipline: Discipline.ROAD, rung: 1, chance: 100,
+    },
+  });
+
+  return topRung(draw, date, [invitationTo(draw)]);
+};
+
+/**
+ * The historic event a career's current season drew.
+ * @param career The career
+ * @param series The historic event's id
+ * @returns The draw, or undefined when the season drew no such event
+ */
+const drawOn = (career: Career | null, series = 'h1') => (
+  career?.seasons.at(-1)?.historicEvents?.find((one) => one.series === series)
+);
+
+/**
+ * One of a career's mail.
+ * @param career The career
+ * @param id The mail's id
+ * @returns The mail, or undefined when the inbox holds no such mail
+ */
+const mailOf = (career: Career | null, id = H1_INVITE) => career?.inbox.find((one) => one.id === id);
 
 /**
  * The cup's car, installed in two liveries.
@@ -743,15 +844,15 @@ describe('main/career-store', () => {
 
     // The draw used to run after the career was already open, so a failed one
     // left an unwritten career open in main.
-    it('leaves nothing open when the season\'s historic events cannot be drawn', async () => {
+    it('leaves nothing open when the season\'s first invitations cannot be sent', async () => {
       const { store, historic } = await build({
         closed: true,
         historic: [historicListing('h1')],
-        careerSettings: { historicFrequency: 'quarterly' },
+        careerSettings: { historicFrequency: 'weekly' },
       });
-      historic.drawField = async () => { throw new Error('no field'); };
+      historic.validate = async () => { throw new Error('no install'); };
 
-      await expect(store.create(newCareer({ historicFrequency: 'quarterly' }))).rejects.toThrow('no field');
+      await expect(store.create(newCareer({ historicFrequency: 'weekly' }))).rejects.toThrow('no install');
       expect(store.get()).toBeNull();
     });
 
@@ -1222,13 +1323,14 @@ describe('main/career-store', () => {
       });
       await store.calendar();
       const season = store.get()?.seasons[0];
-      const drawn = season?.entries.filter((one) => one.historic) ?? [];
+      const drawn = season?.historicEvents ?? [];
 
       expect(season?.historicDrawn).toBe(true);
       expect(drawn).toHaveLength(4);
-      expect(drawn.every((one) => [1, 2, 3, 4, 5].includes(weekdayOf(one.events[0].date)))).toBe(true);
-      // Entered as it is drawn, in the seat the draw picked.
-      expect(drawn.every((one) => one.playerSeat !== '' && !one.withdrawn)).toBe(true);
+      expect(drawn.every((one) => [1, 2, 3, 4, 5].includes(weekdayOf(one.date)))).toBe(true);
+      // Open to enter rather than entered: only an invitation accepted, or an
+      // entry paid for, puts the player in one.
+      expect(season?.entries.filter((one) => one.historic)).toEqual([]);
     });
 
     it('never draws a season twice', async () => {
@@ -1237,10 +1339,10 @@ describe('main/career-store', () => {
         careerSettings: { historicFrequency: 'quarterly' },
       });
       await store.calendar();
-      const first = store.get()?.seasons[0].entries.map((one) => one.events[0].date);
+      const first = store.get()?.seasons[0].historicEvents?.map((one) => one.date);
       await store.calendar();
 
-      expect(store.get()?.seasons[0].entries.map((one) => one.events[0].date)).toEqual(first);
+      expect(store.get()?.seasons[0].historicEvents?.map((one) => one.date)).toEqual(first);
     });
 
     it('draws a season it could not read the pool for on a later read', async () => {
@@ -1258,7 +1360,7 @@ describe('main/career-store', () => {
       await store.calendar();
 
       expect(store.get()?.seasons[0].historicDrawn).toBe(true);
-      expect(store.get()?.seasons[0].entries.filter((one) => one.historic)).toHaveLength(4);
+      expect(store.get()?.seasons[0].historicEvents).toHaveLength(4);
     });
 
     it('leaves out a historic event switched off', async () => {
@@ -1269,7 +1371,31 @@ describe('main/career-store', () => {
       });
       await store.calendar();
 
-      expect(store.get()?.seasons[0].entries.map((one) => one.series)).toEqual(['h2']);
+      expect(store.get()?.seasons[0].historicEvents?.map((one) => one.series)).toEqual(['h2']);
+    });
+
+    it("sends each drawn event's invitations four weeks ahead of it, or as the season is drawn when sooner", async () => {
+      const { store } = await build({
+        historic: ['h1', 'h2', 'h3', 'h4'].map(historicListing),
+        careerSettings: { historicFrequency: 'quarterly' },
+      });
+      await store.calendar();
+      const drawn = store.get()?.seasons[0].historicEvents ?? [];
+
+      expect(drawn.map((one) => one.invitations)).toEqual(drawn.map((one) => {
+        const lead = addDays(one.date, -28);
+
+        return lead > '2027-01-01' ? lead : '2027-01-01';
+      }));
+    });
+
+    it('lists a drawn event nobody has entered, saying where its invitation stands', async () => {
+      const { store } = await build({ career: invited() });
+      const calendar = await store.calendar();
+
+      expect(calendar.events.find((event) => event.series === 'h1')).toMatchObject({
+        round: 'only', date: '2027-02-03', enrolled: false, historic: true, invitation: { state: 'awaiting', chance: 100 },
+      });
     });
 
     // Fixed: every read used to queue behind whatever command was running, so
@@ -1453,6 +1579,83 @@ describe('main/career-store', () => {
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
 
       expect(seen.at(-1)?.seasons[0].entries).toHaveLength(1);
+    });
+
+    describe('a historic event the season drew', () => {
+      it("enters it at its own cost in the class's last seat, the class's fee over the event's", async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car', skin: 'red' } });
+
+        expect(entryOf(store.get(), 'h1')).toMatchObject({
+          historic: true,
+          edition: 0,
+          entry: 'main',
+          playerSeat: 'seat-2',
+          car: { model: 'test_car', skin: 'red', source: 'rented' },
+          events: [{
+            round: 'only', raceId: H1_RACE, date: '2027-02-03', entryFee: 2_500, status: 'scheduled',
+          }],
+        });
+      });
+
+      it("enters a car the garage holds owned, in the garage's livery", async () => {
+        const career = garaged();
+        const { store } = await build({
+          career: makeCareer({ ...career, seasons: [{ ...career.seasons[0], historicEvents: [drawnHistoric()] }] }),
+        });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car', skin: 'red' } });
+
+        expect(entryOf(store.get(), 'h1').car).toEqual({ model: 'test_car', skin: 'blue', source: 'owned' });
+      });
+
+      it("enters a class above the career's level, since a historic event is open to anyone", async () => {
+        const draw = drawnHistoric();
+        const top = {
+          ...draw.championship,
+          entries: [makeClassEntry({ ladder: { discipline: Discipline.SINGLE_SEATER, tier: 1 } })],
+        };
+        const { store } = await build({ career: careerWith({ historicEvents: [{ ...draw, championship: top }] }) });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+
+        expect(entryOf(store.get(), 'h1').entry).toBe('main');
+      });
+
+      it('refuses while an invitation to it waits to be answered, which is the way in for nothing', async () => {
+        const { store } = await build({ career: invited() });
+
+        await expect(store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } }))
+          .rejects.toMatchObject({ code: 'historic.invited' });
+      });
+
+      it('enters it at its own cost once its invitation is declined', async () => {
+        const { store } = await build({ career: invited() });
+        await store.answer({ mail: H1_INVITE, answer: 'declined' });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+
+        expect(entryOf(store.get(), 'h1').car.source).toBe('rented');
+      });
+
+      it('refuses an event the career is in already', async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+
+        await expect(store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } }))
+          .rejects.toMatchObject({ code: 'career.entry.enrolled' });
+      });
+
+      it('refuses an event whose day is behind the clock', async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }, '2027-02-10') });
+
+        await expect(store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } }))
+          .rejects.toMatchObject({ code: 'career.edition.over' });
+      });
+
+      it('refuses a car the class cannot race', async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+
+        await expect(store.enrol({ series: 'h1', entry: 'main', car: { model: 'other_car' } }))
+          .rejects.toMatchObject({ code: 'career.car.ineligible' });
+      });
     });
   });
 
@@ -1664,24 +1867,12 @@ describe('main/career-store', () => {
       expect(entryOf(store.get()).withdrawn).toBe(true);
     });
 
-    it('declines a historic event that has not begun', async () => {
-      const event = historicListing('h1').series;
-      const career = careerWith({
-        entries: [makeEntry({
-          series: 'h1', championship: event, historic: true, events: [makeEvent('only', '2027-02-03')],
-        })],
-      });
-      const { store } = await build({ career });
-      await store.withdraw({ series: 'h1', entry: 'main' });
-
-      expect(entryOf(store.get(), 'h1')).toMatchObject({ withdrawn: true, events: [{ status: 'missed' }] });
-    });
-
     // Fixed: Decline was offered part-way through an event, and taking it threw
     // away the sessions the player had driven.
     it('refuses to decline a historic event already begun', async () => {
       const event = historicListing('h1').series;
       const career = careerWith({
+        historicEvents: [drawnHistoric()],
         entries: [makeEntry({
           series: 'h1',
           championship: event,
@@ -1693,6 +1884,236 @@ describe('main/career-store', () => {
 
       await expect(store.withdraw({ series: 'h1', entry: 'main' }))
         .rejects.toMatchObject({ code: 'historic.started' });
+    });
+
+    it('leaves a drawn historic event altogether, open to enter again', async () => {
+      const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+      await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+      await store.withdraw({ series: 'h1', entry: 'main' });
+
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+      expect(drawOn(store.get())).toBeDefined();
+
+      await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+
+      expect(entryOf(store.get(), 'h1').withdrawn).toBeUndefined();
+    });
+
+    it('declines the invitation to a drawn historic event it accepted', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'accepted' });
+      await store.withdraw({ series: 'h1', entry: 'main' });
+
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+      expect(mailOf(store.get())?.reply).toEqual({ answer: 'declined', on: '2027-01-10' });
+    });
+  });
+
+  describe('sending invitations', () => {
+    it("sends one as its day comes, at the chance the player's best rung in it gives", async () => {
+      const { store } = await build({ career: topRung(drawnHistoric(), '2027-01-06') });
+
+      expect(store.get()?.inbox).toEqual([{
+        id: H1_INVITE,
+        kind: 'invitation',
+        season: 0,
+        arrived: '2027-01-06',
+        opened: false,
+        deadline: '2027-02-03',
+        invitation: {
+          series: 'h1', raceId: H1_RACE, entry: 'main', seat: expect.stringMatching(/^seat-/), car: { model: 'test_car' },
+        },
+      }]);
+      expect(drawOn(store.get())?.invitation).toEqual({
+        on: '2027-01-06', outcome: 'invited', discipline: Discipline.ROAD, rung: 1, chance: 100,
+      });
+    });
+
+    it('sends nothing before its day, and sends it once the clock reaches it', async () => {
+      const { store } = await build({ career: topRung() });
+
+      expect(store.get()?.inbox).toEqual([]);
+      expect(drawOn(store.get())?.invitation).toBeUndefined();
+
+      await store.advanceTo('2027-01-08');
+
+      expect(store.get()?.inbox.map((one) => [one.id, one.arrived])).toEqual([[H1_INVITE, '2027-01-06']]);
+    });
+
+    it('never sends one twice', async () => {
+      const { store } = await build({ career: topRung(drawnHistoric(), '2027-01-06') });
+      await store.advanceTo('2027-01-08');
+
+      expect(store.get()?.inbox).toHaveLength(1);
+    });
+
+    it('draws for none once the player has entered at their own cost', async () => {
+      const { store } = await build({ career: topRung() });
+      await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+      await store.advanceTo('2027-01-08');
+
+      expect(store.get()?.inbox).toEqual([]);
+      expect(drawOn(store.get())?.invitation).toEqual({ on: '2027-01-06', outcome: 'entered' });
+    });
+
+    it('invites nobody to an event the clock has already passed', async () => {
+      const { store } = await build({ career: topRung(drawnHistoric(), '2027-02-10') });
+
+      expect(store.get()?.inbox).toEqual([]);
+      expect(drawOn(store.get())?.invitation).toEqual({ on: '2027-01-06', outcome: 'uninvited' });
+    });
+
+    it('invites nobody to an event no class of which has a car installed', async () => {
+      const event = drawnHistoric().championship;
+      const { store } = await build({
+        career: topRung(drawnHistoric(), '2027-01-06'),
+        historic: [makeListing(event, {
+          availability: makeAvailability(event, {
+            entries: [{
+              entry: 'main', eligible: [], missing: [], enough: false,
+            }],
+          }),
+        })],
+      });
+
+      expect(store.get()?.inbox).toEqual([]);
+      expect(drawOn(store.get())?.invitation).toEqual({ on: '2027-01-06', outcome: 'uninvited' });
+    });
+  });
+
+  describe('answer', () => {
+    it('enters the event in the seat offered, at no fee, on accepting', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'accepted' });
+      const entry = entryOf(store.get(), 'h1');
+
+      expect(entry).toMatchObject({
+        historic: true, edition: 0, entry: 'main', playerSeat: 'seat-1',
+      });
+      // No source is what says it came with an invitation, costing neither
+      // fee nor rent.
+      expect(entry.car).toEqual({ model: 'test_car' });
+      expect(entry.events).toEqual([{
+        round: 'only', raceId: H1_RACE, date: '2027-02-03', status: 'scheduled', sessions: [],
+      }]);
+      // The seat offered moves to where every lowering takes the player's from.
+      expect(entry.championship.entries[0].seats.map((one) => one.id)).toEqual(['seat-2', 'seat-1']);
+      expect(mailOf(store.get())).toMatchObject({ opened: true, reply: { answer: 'accepted', on: '2027-01-10' } });
+    });
+
+    it('turns an invitation down, leaving the event to the field', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'declined' });
+
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+      expect(mailOf(store.get())).toMatchObject({ opened: true, reply: { answer: 'declined', on: '2027-01-10' } });
+    });
+
+    it('takes the player back out of an event accepted before it has begun', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'accepted' });
+      await store.answer({ mail: H1_INVITE, answer: 'declined' });
+
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+      expect(drawOn(store.get())).toBeDefined();
+      expect(mailOf(store.get())?.reply?.answer).toBe('declined');
+    });
+
+    it('refuses to take the player out of an event accepted once a session of it has run', async () => {
+      const draw = drawnHistoric({ invitation: { on: '2027-01-06', outcome: 'invited' } });
+      const career = makeCareer({
+        ...careerWith({
+          historicEvents: [draw],
+          entries: [makeEntry({
+            series: 'h1',
+            championship: draw.championship,
+            historic: true,
+            playerSeat: 'seat-1',
+            events: [makeEvent('only', '2027-02-03', { raceId: H1_RACE, sessions: [record(0)] })],
+          })],
+        }, '2027-02-03'),
+        inbox: [invitationTo(draw, { opened: true, reply: { answer: 'accepted', on: '2027-01-10' } })],
+      });
+      const { store } = await build({ career });
+
+      await expect(store.answer({ mail: H1_INVITE, answer: 'declined' }))
+        .rejects.toMatchObject({ code: 'historic.started' });
+      expect(entryOf(store.get(), 'h1').events[0].sessions).toHaveLength(1);
+    });
+
+    it('refuses to accept an invitation twice', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'accepted' });
+
+      await expect(store.answer({ mail: H1_INVITE, answer: 'accepted' }))
+        .rejects.toMatchObject({ code: 'mail.closed' });
+      expect(store.get()?.seasons[0].entries).toHaveLength(1);
+    });
+
+    it('refuses to decline an invitation already declined', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'declined' });
+
+      await expect(store.answer({ mail: H1_INVITE, answer: 'declined' }))
+        .rejects.toMatchObject({ code: 'mail.closed' });
+    });
+
+    it('refuses an invitation left unanswered past its event', async () => {
+      const { store } = await build({ career: invited('2027-02-10') });
+
+      await expect(store.answer({ mail: H1_INVITE, answer: 'accepted' }))
+        .rejects.toMatchObject({ code: 'mail.closed' });
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+    });
+
+    it('refuses a mail the inbox does not hold', async () => {
+      const { store } = await build({ career: invited() });
+
+      await expect(store.answer({ mail: 'invite:nowhere', answer: 'accepted' }))
+        .rejects.toMatchObject({ code: 'mail.notFound' });
+    });
+  });
+
+  describe('markMail', () => {
+    it('marks a mail opened, and unread again', async () => {
+      const { store } = await build({ career: invited() });
+      await store.markMail({ mail: H1_INVITE, opened: true });
+
+      expect(mailOf(store.get())?.opened).toBe(true);
+
+      await store.markMail({ mail: H1_INVITE, opened: false });
+
+      expect(mailOf(store.get())?.opened).toBe(false);
+    });
+
+    it('refuses a mail the inbox does not hold', async () => {
+      const { store } = await build({ career: invited() });
+
+      await expect(store.markMail({ mail: 'invite:nowhere', opened: true }))
+        .rejects.toMatchObject({ code: 'mail.notFound' });
+    });
+  });
+
+  describe('markAllRead', () => {
+    it('opens every mail in the inbox', async () => {
+      const draw = drawnHistoric({ invitation: { on: '2027-01-06', outcome: 'invited' } });
+      const older = invitationTo({ ...draw, raceId: 'h0/only@0.0' }, { opened: true });
+      const career = makeCareer({ ...topRung(draw, '2027-01-10'), inbox: [older, invitationTo(draw)] });
+      const { store } = await build({ career });
+      await store.markAllRead();
+
+      expect(store.get()?.inbox.map((one) => [one.id, one.opened])).toEqual([
+        ['invite:h0/only@0.0', true],
+        [H1_INVITE, true],
+      ]);
+    });
+
+    it('answers with the career as it was when nothing is unread', async () => {
+      const { store } = await build({ career: invited() });
+      await store.markAllRead();
+      const before = store.get();
+
+      expect(await store.markAllRead()).toBe(before);
     });
   });
 
@@ -1737,6 +2158,17 @@ describe('main/career-store', () => {
   });
 
   describe('advanceTo', () => {
+    // Guards a fix: a move past New Year left the closing year's unsent
+    // invitations unsent for good, since only the current season sends.
+    it('sends no one the closing year\'s invitations a confirmed move past New Year passes', async () => {
+      const draw = drawnHistoric({ date: '2027-12-29', invitations: '2027-12-01' });
+      const { store } = await build({ career: topRung(draw, '2027-11-01') });
+      await store.advanceTo('2028-01-05', true);
+
+      expect(store.get()?.seasons[0].historicEvents?.[0].invitation).toEqual({ on: '2027-12-01', outcome: 'uninvited' });
+      expect(store.get()?.inbox).toEqual([]);
+    });
+
     /**
      * A career entered in the cup, its rounds in March and June.
      * @param date Where the clock stands
@@ -1862,6 +2294,25 @@ describe('main/career-store', () => {
       expect(store.get()?.level.road).toBe(3);
       expect(store.get()?.ratingLog).toEqual([]);
     });
+
+    it('refuses to pass an invitation still to be answered unasked, and lets it lapse once confirmed', async () => {
+      const { store } = await build({ career: invited() });
+
+      await expect(store.advanceTo('2027-02-10')).rejects.toMatchObject({ code: 'career.event.earlierPending' });
+      expect(store.get()?.date).toBe('2027-01-10');
+
+      await store.advanceTo('2027-02-10', true);
+
+      expect(store.get()?.date).toBe('2027-02-10');
+      expect((await store.event({ series: 'h1', round: 'only' })).historic?.invitation.state).toBe('lapsed');
+    });
+
+    it('moves up to the day of an invitation still to be answered, which can still be answered on it', async () => {
+      const { store } = await build({ career: invited() });
+      await store.advanceTo('2027-02-03');
+
+      expect(store.get()?.date).toBe('2027-02-03');
+    });
   });
 
   describe('skips', () => {
@@ -1872,6 +2323,33 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
 
       expect((await store.skips('2027-04-01')).map((one) => one.round)).toEqual(['one']);
+    });
+
+    it('lists an invitation a move would leave unanswered, among the rounds, by date', async () => {
+      const career = invited();
+      const { store } = await build({
+        career: makeCareer({
+          ...career,
+          seasons: [{
+            ...career.seasons[0],
+            entries: [makeEntry({ events: [makeEvent('one', '2027-01-20'), makeEvent('two', '2027-03-07')] })],
+          }],
+        }),
+      });
+
+      expect((await store.skips('2027-04-01')).map((one) => [one.series, one.round, one.reason, one.historic]))
+        .toEqual([
+          [CUP.id, 'one', 'skipped', false],
+          ['h1', 'only', 'unanswered', true],
+          [CUP.id, 'two', 'skipped', false],
+        ]);
+    });
+
+    it('lists nothing for an invitation already answered', async () => {
+      const { store } = await build({ career: invited() });
+      await store.answer({ mail: H1_INVITE, answer: 'declined' });
+
+      expect(await store.skips('2027-04-01')).toEqual([]);
     });
   });
 
@@ -1906,6 +2384,15 @@ describe('main/career-store', () => {
       });
 
       expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 1_000 }]);
+    });
+
+    it("prices a class that states a fee of its own at that fee over the championship's", async () => {
+      const own = { ...PRICED, entries: [{ ...PRICED.entries[0], entryFee: 2_500 }] };
+      const { store } = await build({
+        career: careerWith({}), listings: [{ ...PRICED_LISTING, series: own }], cars: CARS, prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 2_700 }]);
     });
 
     it("prices every class of an edition the career is in at its next launch's fee and rent", async () => {
@@ -2002,6 +2489,23 @@ describe('main/career-store', () => {
 
       expect((await store.skipping({ series: CUP.id, round: 'two' })).map((one) => [one.round, one.reason]))
         .toEqual([['one', 'skipped'], ['two', 'unraceable']]);
+    });
+
+    it('lists an invitation skipping one would leave unanswered, the round itself still last', async () => {
+      const career = invited();
+      const { store } = await build({
+        career: makeCareer({
+          ...career,
+          seasons: [{
+            ...career.seasons[0],
+            entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')] })],
+          }],
+        }),
+        listings: [UNRACEABLE_TWO],
+      });
+
+      expect((await store.skipping({ series: CUP.id, round: 'two' })).map((one) => [one.round, one.reason]))
+        .toEqual([['only', 'unanswered'], ['one', 'skipped'], ['two', 'unraceable']]);
     });
   });
 
@@ -2201,6 +2705,7 @@ describe('main/career-store', () => {
     it("reads a historic event off the season's own copy, with the seat it invited the player to", async () => {
       const event = historicListing('h1').series;
       const career = careerWith({
+        historicEvents: [drawnHistoric()],
         entries: [makeEntry({
           series: 'h1', championship: event, historic: true, events: [makeEvent('only', '2027-02-03')],
         })],
@@ -2211,22 +2716,73 @@ describe('main/career-store', () => {
       expect(view.historic).toMatchObject({ seat: 'seat-2', event: { id: 'h1' } });
     });
 
-    // Fixed: a declined historic event is in no library a career reads, and its
-    // page said the championship could not be found.
-    it('reads a declined historic event back off its own entry', async () => {
-      const event = historicListing('h1').series;
-      const career = careerWith({
-        entries: [makeEntry({
-          series: 'h1',
-          championship: event,
-          historic: true,
-          withdrawn: true,
-          events: [makeEvent('only', '2027-02-03', { status: 'missed' })],
-        })],
-      });
-      const { store } = await build({ career });
+    describe('a historic event the season drew', () => {
+      it('shows an invitation still to be answered in the seat it offers, launching it for nothing', async () => {
+        const { store } = await build({ career: invited() });
+        const view = await store.event({ series: 'h1', round: 'only' });
 
-      await expect(store.event({ series: 'h1', round: 'only' })).resolves.toMatchObject({ status: 'missed' });
+        expect(view).toMatchObject({ series: 'h1', round: 'only', date: '2027-02-03' });
+        expect(view.historic).toMatchObject({
+          seat: 'seat-1',
+          invitation: {
+            state: 'awaiting',
+            mail: H1_INVITE,
+            chance: 100,
+            rung: 1,
+            discipline: Discipline.ROAD,
+            offer: { entry: 'main', seat: 'seat-1', car: { model: 'test_car' } },
+            answered: null,
+          },
+        });
+        expect(view.blocked).toBeNull();
+        expect(view.money).toEqual({
+          fee: null, paid: false, rent: null, rentPaid: false, balance: 100_000,
+        });
+      });
+
+      it("says its invitations are still to go out, at the chance the career's rung gives now", async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+        const view = await store.event({ series: 'h1', round: 'only' });
+
+        expect(view.historic?.invitation).toMatchObject({
+          state: 'pending', invitations: '2027-01-06', chance: 40, rung: 4, mail: null, offer: null,
+        });
+        expect(view.historic?.seat).toBeNull();
+        expect(view.blocked?.code).toBe('career.event.notEntered');
+      });
+
+      it('says none came', async () => {
+        const draw = drawnHistoric({
+          invitation: {
+            on: '2027-01-06', outcome: 'uninvited', discipline: Discipline.ROAD, rung: 4, chance: 40,
+          },
+        });
+        const { store } = await build({ career: careerWith({ historicEvents: [draw] }, '2027-01-10') });
+
+        expect((await store.event({ series: 'h1', round: 'only' })).historic?.invitation)
+          .toMatchObject({ state: 'uninvited', chance: 40 });
+      });
+
+      it('reads one entered at its own cost off its entry, with what it charges', async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car' } });
+        const view = await store.event({ series: 'h1', round: 'only' });
+
+        expect(view.historic).toMatchObject({ seat: 'seat-2', invitation: { state: 'entered' } });
+        expect(view.money?.fee).toBe(2_500);
+      });
+
+      it("offers every class whatever the career's level, with what entering it costs", async () => {
+        const draw = drawnHistoric();
+        const top = {
+          ...draw.championship,
+          entries: [makeClassEntry({ ladder: { discipline: Discipline.SINGLE_SEATER, tier: 1 }, entryFee: 2_500 })],
+        };
+        const { store } = await build({ career: careerWith({ historicEvents: [{ ...draw, championship: top }] }) });
+        const view = await store.event({ series: 'h1', round: 'only' });
+
+        expect(view.classes).toEqual([expect.objectContaining({ id: 'main', eligible: true, fee: 2_500 })]);
+      });
     });
   });
 
@@ -2246,6 +2802,16 @@ describe('main/career-store', () => {
       expect(first.playerSeat).toBeNull();
       expect(first.rounds).toHaveLength(2);
       expect(await store.results({ series: CUP.id })).toEqual(first);
+    });
+
+    it("races a drawn historic event the career is not in off the season's own copy", async () => {
+      const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }, '2027-02-10') });
+      const results = await store.results({ series: 'h1' });
+
+      expect(results).toMatchObject({
+        championship: { id: 'h1' }, season: 0, edition: 0, playerSeat: null, playerEntry: null,
+      });
+      expect(results.rounds).toHaveLength(1);
     });
   });
 
@@ -2454,6 +3020,110 @@ describe('main/career-store', () => {
       await store.launch({ series: CUP.id, round: 'one' });
 
       expect(store.get()?.date).toBe('2027-03-07');
+    });
+
+    describe('a historic event the season drew', () => {
+      it('accepts an invitation still to be answered on the way, charging nothing', async () => {
+        const { store, race } = await build({ career: invited() });
+        await store.launch({
+          series: 'h1', round: 'only', accept: true,
+        });
+
+        expect(race.loaded.map((one) => one.definition.id)).toEqual([H1_RACE]);
+        expect(entryOf(store.get(), 'h1')).toMatchObject({ playerSeat: 'seat-1', car: { model: 'test_car' } });
+        expect(mailOf(store.get())?.reply?.answer).toBe('accepted');
+        expect(store.get()?.date).toBe('2027-02-03');
+        expect(store.get()?.money).toBe(100_000);
+        expect(store.get()?.ledger).toEqual([]);
+      });
+
+      it('refuses an invitation still to be answered unless the launch accepts it', async () => {
+        const { store, race } = await build({ career: invited() });
+
+        await expect(store.launch({ series: 'h1', round: 'only' }))
+          .rejects.toMatchObject({ code: 'career.event.notEntered' });
+        expect(race.launches).toEqual([]);
+      });
+
+      it('leaves the invitation unanswered when the launch fails to start', async () => {
+        const { store, race } = await build({ career: invited() });
+        race.launch = async () => { throw new Error('Content Manager is not there'); };
+
+        await expect(store.launch({
+          series: 'h1', round: 'only', accept: true,
+        })).rejects.toThrow('Content Manager');
+        expect(mailOf(store.get())?.reply).toBeUndefined();
+        expect(store.get()?.seasons[0].entries).toEqual([]);
+      });
+
+      it("pays the class's fee for an event entered at its own cost", async () => {
+        const { store } = await build({ career: careerWith({ historicEvents: [drawnHistoric()] }) });
+        await store.enrol({ series: 'h1', entry: 'main', car: { model: 'test_car', skin: 'red' } });
+        await store.launch({ series: 'h1', round: 'only' });
+
+        expect(store.get()?.money).toBe(97_500);
+        expect(store.get()?.ledger).toEqual([
+          expect.objectContaining({ key: `fee:${H1_RACE}`, kind: 'fee', amount: -2_500 }),
+        ]);
+      });
+
+      it('refuses to race past an invitation still to be answered unasked', async () => {
+        const career = invited();
+        const { store } = await build({
+          career: makeCareer({
+            ...career,
+            seasons: [{ ...career.seasons[0], entries: [makeEntry({ events: [makeEvent('one', '2027-03-07')] })] }],
+          }),
+        });
+
+        await expect(store.launch({ series: CUP.id, round: 'one' }))
+          .rejects.toMatchObject({ code: 'career.event.earlierPending' });
+
+        await store.launch({ series: CUP.id, round: 'one', skip: true });
+
+        expect(store.get()?.date).toBe('2027-03-07');
+        expect(mailOf(store.get())?.reply).toBeUndefined();
+      });
+
+      /**
+       * A career holding an invitation still to be answered, entered in the
+       * cup with a round on the invited event's own day.
+       * @returns The career
+       */
+      const sameDay = (): Career => {
+        const career = invited();
+
+        return makeCareer({
+          ...career,
+          seasons: [{ ...career.seasons[0], entries: [makeEntry({ events: [makeEvent('one', '2027-02-03')] })] }],
+        });
+      };
+
+      // Guards a fix: an invitation on the launched event's own day was refused
+      // as an earlier event pending, rather than as the clash it is.
+      it('refuses to race over an invitation on the same day as a clash', async () => {
+        const { store } = await build({ career: sameDay() });
+
+        await expect(store.launch({ series: CUP.id, round: 'one' }))
+          .rejects.toMatchObject({ code: 'career.event.sameDay' });
+      });
+
+      it('leaves an invitation on the same day alone when the career allows two events a day', async () => {
+        const { store } = await build({ career: sameDay(), careerSettings: { allowSameDayEvents: true } });
+        await store.launch({ series: CUP.id, round: 'one' });
+
+        expect(mailOf(store.get())?.reply).toBeUndefined();
+      });
+
+      // Guards a fix: an invitation on the launched event's own day was listed
+      // as given up, yet left waiting - answerable after the clash it lost to.
+      it('declines an invitation on the same day once the launch is confirmed', async () => {
+        const { store } = await build({ career: sameDay() });
+        await store.launch({ series: CUP.id, round: 'one', skip: true });
+
+        expect(mailOf(store.get())?.reply).toEqual({ answer: 'declined', on: '2027-02-03' });
+        expect(store.get()?.seasons[0].entries.map((one) => one.series)).toEqual([CUP.id]);
+      });
     });
   });
 

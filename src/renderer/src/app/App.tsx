@@ -4,7 +4,7 @@ import { useSettings, useSlot } from './utils.ts';
 import type { PathsReport } from '../../../shared/types';
 import { AppHeader } from '@/components';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
-import { useNavHistory, useRatingToasts } from '@/hooks';
+import { useMailToasts, useNavHistory, useRatingToasts } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { Calendar } from '@/screens/calendar';
 import { CarClasses } from '@/screens/car-classes';
@@ -23,6 +23,7 @@ import { HistoricDetail } from '@/screens/historic-detail';
 import { HistoricLibrary } from '@/screens/historic-library';
 import { History } from '@/screens/history';
 import { Home } from '@/screens/home';
+import { Inbox } from '@/screens/inbox';
 import { NewCareer } from '@/screens/new-career';
 import { NewChampionship } from '@/screens/new-championship';
 import { Race, RaceEvent } from '@/screens/race';
@@ -50,6 +51,8 @@ export const App = ({ initialReport }: AppProps) => {
   useNavHistory();
   // Says when a race opens a rung, on whichever page it lands.
   useRatingToasts();
+  // Says when mail arrives, on whichever page the clock moved from.
+  useMailToasts();
 
   if (!settings.setupCompletedAt) return <Setup initialReport={initialReport} />;
 
@@ -134,6 +137,7 @@ export const App = ({ initialReport }: AppProps) => {
           {mode === 'career' ? (
             <Routes>
               <Route path={ROUTE.home} element={<Home />} />
+              <Route path={ROUTE.inbox} element={<Inbox />} />
               <Route path={ROUTE.calendar} element={<Calendar />} />
               <Route path={ROUTE.event} element={<Event />} />
               <Route path={ROUTE.championships} element={<Championships />} />

@@ -80,6 +80,7 @@ export const IMSA_2025: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
       grid: { strength: -1 },
+      entryFee: 10800,
       prizes: {
         positions: [42000, 29400, 21000, 15950, 12200, 9250, 6700, 5050, 3350, 2100],
         standings: [336000, 210000, 134500, 88000, 54500],
@@ -101,6 +102,7 @@ export const IMSA_2025: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
       grid: { strength: -2 },
+      entryFee: 6500,
       prizes: {
         positions: [25200, 17650, 12600, 9600, 7300, 5550, 4050, 3000, 2000, 1250],
         standings: [201500, 126000, 80500, 53000, 33000],
@@ -122,6 +124,7 @@ export const IMSA_2025: Championship = {
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
       grid: { strength: -7 },
+      entryFee: 4900,
       prizes: {
         positions: [18900, 13250, 9450, 7200, 5500, 4150, 3000, 2250, 1500, 950],
         standings: [151000, 94500, 60500, 39500, 24500],

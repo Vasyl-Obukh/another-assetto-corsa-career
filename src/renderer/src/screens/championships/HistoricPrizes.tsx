@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { RacePrizes } from './RacePrizes.tsx';
 import { pursesOf } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
+import { entryFeeOf } from '../../../../shared/utils/entry-fees';
+import { useFormat } from '@/i18n';
 
 interface HistoricPrizesProps {
   /**
@@ -21,10 +23,41 @@ interface HistoricPrizesProps {
 // zeroes.
 export const HistoricPrizes = ({ event, speed = 1 }: HistoricPrizesProps) => {
   const { t } = useTranslation();
+  const { formatMoney } = useFormat();
   const purses = pursesOf(event.prizes, event.entries, speed);
   const paid = purses.some((purse) => (purse.prizes?.positions?.length ?? 0) > 0);
 
-  if (!paid) return <p className="text-sm text-muted-foreground">{t('historic.about.noPrizes')}</p>;
+  // What entering costs without an invitation, a class at a time where the
+  // classes are charged differently.
+  const fees = event.entries.map((entry) => ({
+    entry, fee: entryFeeOf(event, event.rounds[0]?.id ?? '', entry.id) ?? 0,
+  }));
+  const shared = fees.every((one) => one.fee === fees[0]?.fee);
+  const feeLine = (
+    <p className="text-sm text-muted-foreground">
+      {shared
+        ? t('historic.about.fee', { amount: formatMoney(fees[0]?.fee ?? 0) })
+        : t('historic.about.fees', {
+          fees: fees.map((one) => t('historic.about.classFee', {
+            name: one.entry.name, amount: formatMoney(one.fee),
+          })).join(' · '),
+        })}
+    </p>
+  );
 
-  return <RacePrizes series={{ ...event, pointsSystems: [] }} purses={purses} split={purses.length > 1} />;
+  if (!paid) {
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-muted-foreground">{t('historic.about.noPrizes')}</p>
+        {feeLine}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <RacePrizes series={{ ...event, pointsSystems: [] }} purses={purses} split={purses.length > 1} />
+      {feeLine}
+    </div>
+  );
 };

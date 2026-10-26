@@ -73,6 +73,7 @@ export const RADICAL_CUP_UK: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['urd_radical_sr3xxr_2023'] },
       grid: { strength: -2 },
+      entryFee: 1500,
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
         standings: [48000, 30000, 19000, 12500, 8000],

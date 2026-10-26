@@ -17,10 +17,10 @@ import type {
   YearReview,
 } from './types.ts';
 import type {
-  CareerSeason, Championship, ChampionshipResults, ChampionshipRun, RacePlace, RaceScore, SeasonEntry,
+  CareerSeason, Championship, ChampionshipResults, ChampionshipRun, HistoricDraw, RacePlace, RaceScore, SeasonEntry,
 } from '../../../../shared/types';
 import { editionOver, editionsOf } from '../../../../shared/utils/editions';
-import { championshipEntries, historicEntries } from '../../../../shared/utils/historic';
+import { championshipEntries, historicEntries, isInvited } from '../../../../shared/utils/historic';
 import { prizeTable, scaledPrize } from '../../../../shared/utils/prizes';
 import { entryResults } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
@@ -292,12 +292,7 @@ export const prizeFor = (
  * @param entry The historic event, as the season holds it
  * @returns The outcome
  */
-const outcomeOf = (entry: SeasonEntry): HistoricOutcome => {
-  const status = entry.events[0]?.status ?? 'scheduled';
-  if (status === 'missed') return entry.withdrawn ? 'declined' : 'missed';
-
-  return status;
-};
+const outcomeOf = (entry: SeasonEntry): HistoricOutcome => entry.events[0]?.status ?? 'scheduled';
 
 /**
  * One historic event of a season, as a list of them reads it.
@@ -329,6 +324,7 @@ const historicRow = (entry: SeasonEntry, speed: number): HistoricRow => {
     track: round?.track ?? { id: '' },
     ladder: held?.ladder ?? null,
     car: entry.car.model,
+    invited: isInvited(entry),
     team: entry.championship.teams?.find((one) => one.id === seat?.team)?.name ?? null,
     driver: seat?.driver?.name ?? null,
     outcome: outcomeOf(entry),
@@ -341,16 +337,52 @@ const historicRow = (entry: SeasonEntry, speed: number): HistoricRow => {
 };
 
 /**
+ * One historic event a season drew and the player is not in, as a list of
+ * them reads it.
+ * @param draw The historic event, as the season drew it
+ * @param clock The ISO date the career's clock stands at
+ * @returns Its row
+ */
+const drawnRow = (draw: HistoricDraw, clock: string): HistoricRow => {
+  const round = draw.championship.rounds.find((one) => one.id === draw.round);
+
+  return {
+    series: draw.series,
+    round: draw.round,
+    name: draw.championship.name,
+    date: draw.date,
+    track: round?.track ?? { id: '' },
+    ladder: draw.championship.entries[0]?.ladder ?? null,
+    car: null,
+    invited: false,
+    team: null,
+    driver: null,
+    outcome: clock !== '' && draw.date >= clock ? 'open' : 'notEntered',
+    started: false,
+    qualified: null,
+    finished: null,
+    multiClass: draw.championship.entries.length > 1,
+    prize: null,
+  };
+};
+
+/**
  * A season's historic events, looked back on.
  * @param season The season
  * @param speed The progression speed their prizes are paid at - `prizeSpeed`'s
  * answer
+ * @param clock The ISO date the career's clock stands at, which says whether
+ * one the player is not in may still be entered
  * @returns Every one it drew, and what the player made of them
  */
-export const historicReview = (season: CareerSeason, speed = 1): HistoricReview => {
-  const rows = historicEntries(season)
-    .map((entry) => historicRow(entry, speed))
-    .sort((left, right) => left.date.localeCompare(right.date));
+export const historicReview = (season: CareerSeason, speed = 1, clock = ''): HistoricReview => {
+  const entries = historicEntries(season);
+  const rows = [
+    ...entries.map((entry) => historicRow(entry, speed)),
+    ...(season.historicEvents ?? [])
+      .filter((draw) => !entries.some((entry) => entry.series === draw.series))
+      .map((draw) => drawnRow(draw, clock)),
+  ].sort((left, right) => left.date.localeCompare(right.date));
   const raced = rows.filter((row) => row.finished !== null);
 
   return {
@@ -359,6 +391,6 @@ export const historicReview = (season: CareerSeason, speed = 1): HistoricReview 
     wins: raced.filter((row) => row.finished === 1).length,
     podiums: raced.filter((row) => (row.finished ?? 0) <= 3).length,
     prize: rows.reduce((sum, row) => sum + (row.prize ?? 0), 0),
-    notRaced: rows.filter((row) => row.outcome === 'declined' || row.outcome === 'missed').length,
+    notRaced: rows.filter((row) => row.outcome === 'missed').length,
   };
 };

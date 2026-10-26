@@ -78,6 +78,7 @@ export const TOUR_AUTO: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['ks_alfa_romeo_gta'] },
       grid: { strength: -4 },
+      entryFee: 3600,
       prizes: {
         positions: [14400, 10100, 7200, 5450, 4150, 3200, 2300, 1750, 1150, 700],
         standings: [115000, 72000, 46000, 30500, 18500],

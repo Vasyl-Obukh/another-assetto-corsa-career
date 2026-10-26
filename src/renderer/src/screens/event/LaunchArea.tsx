@@ -58,6 +58,8 @@ export const LaunchArea = ({
   const running = status !== undefined && status.phase !== 'idle';
   const name = sessionName(session, t);
   const lost = view.skips.length;
+  // Launching an invitation still to be answered accepts it on the way.
+  const accepting = view.historic?.invitation.state === 'awaiting';
 
   if (running) {
     return (
@@ -100,6 +102,9 @@ export const LaunchArea = ({
           {t(moneyNote(fee, rent), { fee: formatMoney(fee), rent: formatMoney(rent), session: name })}
         </p>
       ) : null}
+      {view.blocked === null && accepting ? (
+        <p className="text-sm text-muted-foreground">{t('invitation.launchHint')}</p>
+      ) : null}
       {/* The launch is offered regardless, and asks before it goes - this says
           what it will ask about before it is pressed. */}
       {view.blocked === null && lost > 0 ? (
@@ -118,7 +123,7 @@ export const LaunchArea = ({
           </span>
         ) : null}
         <Button type="button" size="lg" disabled={busy || view.blocked !== null} onClick={onLaunch}>
-          {t('race.launch.actionNamed', { name })}
+          {t(accepting ? 'invitation.launch' : 'race.launch.actionNamed', { name })}
         </Button>
       </div>
     </div>

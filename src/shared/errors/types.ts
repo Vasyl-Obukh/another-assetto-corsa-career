@@ -195,6 +195,9 @@ export type ErrorCode =
   | 'historic.points'
   | 'historic.calendar'
   | 'historic.started'
+  | 'historic.invited'
+  | 'mail.notFound'
+  | 'mail.closed'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'
   // src/main/ipc

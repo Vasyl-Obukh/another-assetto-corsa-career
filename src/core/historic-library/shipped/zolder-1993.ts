@@ -125,6 +125,7 @@ export const ZOLDER_1993: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 2000,
   prizes: {
     positions: [20000, 14000, 10000, 7500, 5500, 4000, 3000, 2200, 1500, 800],
   },

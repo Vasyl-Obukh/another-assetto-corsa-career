@@ -27,24 +27,13 @@ export interface RaceContent {
 }
 
 /**
- * What has been fetched, stamped with what it was fetched for.
+ * The player's car as fetched, stamped with what it was fetched for.
  *
- * The stamps are what let the hook derive its answer during render: an answer
- * whose stamp no longer matches the definition is simply not shown, so a track
+ * The stamp is what lets the hook derive its answer during render: an answer
+ * whose stamp no longer matches the definition is simply not shown, so a car
  * the user has just replaced never lingers under the new one.
- *
- * Only the two the definition points at: the weather menus are the same
- * whatever race is being set up, so they come from useWeatherContent instead.
  */
 export interface ResolvedContent {
-  /**
-   * The key `track` was fetched for.
-   */
-  trackKey: string;
-  /**
-   * What came back for it.
-   */
-  track: Track | null;
   /**
    * The folder ID `car` was fetched for.
    */

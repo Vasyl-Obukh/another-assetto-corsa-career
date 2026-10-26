@@ -77,6 +77,7 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['lotus_2_eleven_gt4', 'ktm_xbow_r'] },
       grid: { strength: -6 },
+      entryFee: 1100,
       prizes: {
         positions: [3000, 2100, 1500, 1150, 850, 600, 450, 300, 200, 100],
         standings: [21500, 13000, 9000, 6000, 3500],

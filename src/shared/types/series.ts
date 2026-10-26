@@ -462,6 +462,12 @@ export interface ClassEntry {
    * table stands alone: one left out pays what the championship's does.
    */
   prizes?: PrizeMoney;
+  /**
+   * What entering this class costs, in place of the championship's own fee - a
+   * class paid more is charged more to race. A round's own fee still wins over
+   * it, being the fee for that round whichever class enters it.
+   */
+  entryFee?: number;
 }
 
 /**

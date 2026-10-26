@@ -93,6 +93,7 @@ export const LOTUS_CUP: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['lotus_elise_sc'] },
       grid: { strength: -4 },
+      entryFee: 1200,
       prizes: {
         positions: [3600, 2500, 1800, 1300, 950, 700, 550, 350, 250, 100],
         standings: [27000, 16000, 11000, 7000, 4500],

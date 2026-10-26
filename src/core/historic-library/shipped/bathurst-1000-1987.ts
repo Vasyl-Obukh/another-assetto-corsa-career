@@ -111,6 +111,7 @@ export const BATHURST_1000_1987: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 1400,
   prizes: {
     positions: [14000, 9500, 7000, 5200, 4000, 3000, 2200, 1600, 1100, 600],
   },

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 
 import { SKIP_ACCENT } from './constants.ts';
 import type { SkippedRound } from '../../../../shared/types';
@@ -6,6 +7,7 @@ import { HistoricChip } from '../HistoricChip.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import { disciplineDot } from '@/lib/accents';
+import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
 interface SkipRowProps {
@@ -48,7 +50,18 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
           {formatDayShort(round.date)}
         </span>
       </span>
-      <Badge className={SKIP_ACCENT[round.reason]}>{t(`skip.reason.${round.reason}`)}</Badge>
+      <span className="flex items-center gap-2">
+        {/* An invitation can still be answered before the move is made. */}
+        {round.reason === 'unanswered' ? (
+          <Link
+            to={path.event({ series: round.series, round: round.round })}
+            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            {t('skip.answer')}
+          </Link>
+        ) : null}
+        <Badge className={SKIP_ACCENT[round.reason]}>{t(`skip.reason.${round.reason}`)}</Badge>
+      </span>
     </li>
   );
 };

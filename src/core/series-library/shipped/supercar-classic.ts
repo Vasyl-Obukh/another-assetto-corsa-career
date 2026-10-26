@@ -73,6 +73,7 @@ export const SUPERCAR_CLASSIC: Championship = {
         { car: 'ks_alfa_33_stradale', ballast: 100, restrictor: 5 },
       ],
       grid: { strength: -3 },
+      entryFee: 3600,
       prizes: {
         positions: [13200, 9000, 6600, 4800, 3600, 2700, 2100, 1500, 1000, 600],
         standings: [90000, 54000, 36000, 23000, 14500],

@@ -115,6 +115,7 @@ export const SPA_4_HOURS_1996: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 4000,
   prizes: {
     positions: [40000, 28000, 20000, 15200, 11600, 8800, 6400, 4800, 3200, 2000],
   },

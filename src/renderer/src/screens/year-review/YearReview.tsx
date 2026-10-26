@@ -42,7 +42,8 @@ export const YearReview = () => {
   const season = career?.seasons.find((one) => one.index === index) ?? null;
   const review = useMemo(() => (season && career ? yearReview(season, career.date) : null), [season, career]);
   const speed = prizeSpeed(career);
-  const historic = useMemo(() => (season ? historicReview(season, speed) : null), [season, speed]);
+  const clock = career?.date;
+  const historic = useMemo(() => (season ? historicReview(season, speed, clock) : null), [season, speed, clock]);
   const year = season ? seasonYear(season) : null;
   usePageName(year === null ? null : String(year));
   const back = { to: path.history(), label: t('back.history') };

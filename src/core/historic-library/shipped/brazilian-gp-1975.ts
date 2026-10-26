@@ -124,6 +124,7 @@ export const BRAZILIAN_GP_1975: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 5500,
   prizes: {
     positions: [55000, 35000, 23000, 16000, 12000, 8500],
   },

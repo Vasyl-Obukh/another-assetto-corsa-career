@@ -64,14 +64,20 @@ describe('shared/utils/garage', () => {
       expect(racingIn(season([cup, other]), 'test_car')).toEqual([cup]);
     });
 
-    it('leaves out an entry withdrawn from, a historic event and one with nothing left to run', () => {
+    it('leaves out an entry withdrawn from, a car an invitation came with and one with nothing left to run', () => {
       const entries = [
         entry('withdrawn', { withdrawn: true }),
-        entry('historic', { historic: true }),
+        entry('invited', { historic: true, car: { model: 'test_car' } }),
         entry('over', { events: [event('one', 'raced'), event('two', 'missed')] }),
       ];
 
       expect(racingIn(season(entries), 'test_car')).toEqual([]);
+    });
+
+    it('keeps a historic event entered at the player\'s own cost', () => {
+      const paid = entry('paid', { historic: true, car: { model: 'test_car', source: 'rented' } });
+
+      expect(racingIn(season([paid]), 'test_car')).toEqual([paid]);
     });
 
     it('keeps to the entries racing it owned, or rented, when asked', () => {

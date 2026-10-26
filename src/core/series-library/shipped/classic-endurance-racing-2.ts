@@ -57,6 +57,7 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_carrera_rsr'] },
       grid: { strength: -3 },
+      entryFee: 4200,
       prizes: {
         positions: [15600, 10900, 7800, 5950, 4550, 3400, 2500, 1850, 1250, 800],
         standings: [125000, 78000, 50000, 32500, 20500],

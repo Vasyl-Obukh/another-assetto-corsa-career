@@ -102,6 +102,7 @@ const career = (seasons = 1): Career => ({
   seasons: Array.from({ length: seasons }, (unused, index) => ({
     index, startDate: '', endDate: '', entries: [seasonEntry()],
   })),
+  inbox: [],
 });
 
 /**

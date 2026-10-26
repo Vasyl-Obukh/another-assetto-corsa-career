@@ -48,6 +48,9 @@ import {
   closeSeason,
   composeCalendar,
   currentSeason,
+  drawnCars,
+  drawnEvent,
+  drawOf,
   editionAt,
   enteredEntry,
   enteredEvent,
@@ -55,7 +58,11 @@ import {
   eventSessions,
   eventStrength,
   heldRaceable,
+  historicDraws,
+  historicInvitation,
   inProgressEvent,
+  invitationMail,
+  invitationState,
   issueForecast,
   issueForecasts,
   keptInBackup,
@@ -77,7 +84,10 @@ import {
   stateOf,
   strengthStep,
   summarise,
+  unansweredSkips,
   winnerPrize,
+  withLapsed,
+  withReply,
   withSeason,
 } from './utils.ts';
 import {
@@ -101,7 +111,7 @@ import {
 } from '../../core/career-rating/index.ts';
 import { planEvent } from '../../core/event/index.ts';
 import {
-  historicSeat, historicSlots, planHistoric, withPlayerSeat,
+  historicRung, historicSeat, historicSlots, invitationDrawn, planHistoric, withPlayerSeat,
 } from '../../core/historic-draw/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, toDayNumber } from '../../core/season-calendar/index.ts';
@@ -124,6 +134,8 @@ import type {
   Championship,
   ClassEntry,
   EventPlan,
+  HistoricDraw,
+  Mail,
   RaceDefinition,
   RaceSetup,
   RoundCost,
@@ -145,10 +157,12 @@ import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
   editionEntry, editionsOf, enteredEdition, seasonYear,
 } from '../../shared/utils/editions/index.ts';
+import { entryFeeOf } from '../../shared/utils/entry-fees/index.ts';
 import {
   liveryName, ownedCar, racingIn, roundUnderWay, withCarIn,
 } from '../../shared/utils/garage/index.ts';
 import { isHistoric } from '../../shared/utils/historic/index.ts';
+import { invitationChance, invitationDay, invitationId } from '../../shared/utils/inbox/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
 import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 import { isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
@@ -640,10 +654,10 @@ export const createCareerStore = async (
    *
    * Over the historic events switched on that this install can race and the
    * content sources leave in, as often as settings ask - read now, which is
-   * why a change reaches the next season rather than this one. The player is
-   * invited to every one, in a seat the draw picks, so each is entered as it
-   * is drawn. Nothing is placed before the day given, so a season drawn
-   * part-way through dates nothing behind the clock.
+   * why a change reaches the next season rather than this one. Each is kept on
+   * the season as drawn, open for anyone to enter, and its invitation goes out
+   * four weeks before its day. Nothing is placed before the day given, so a
+   * season drawn part-way through dates nothing behind the clock.
    * @param career The career
    * @param season The season to draw
    * @param from The ISO date the draw places nothing before
@@ -684,44 +698,86 @@ export const createCareerStore = async (
       salt,
     });
 
-    const at = new Date().toISOString();
-    const drawn: SeasonEntry[] = [];
-    for (const pick of picks) {
+    const drawn = picks.flatMap((pick): HistoricDraw[] => {
       const listing = offered.find((one) => one.series.id === pick.id);
       const round = listing?.series.rounds[0];
-      if (!listing || !round) continue;
+      if (!listing || !round) return [];
 
-      const eligible = new Map(listing.series.entries.map((entry) => [
-        entry.id,
-        eligibleCarsIn(listing.availability, round.id, entry.id),
-      ]));
-      const seat = historicSeat(listing.series, eligible, salt);
-      if (!seat) continue;
+      return [{
+        series: listing.series.id,
+        // A copy, as a championship entered is, so an edit to the library
+        // reaches next season's draw rather than this one.
+        championship: structuredClone(listing.series),
+        round: round.id,
+        raceId: runRaceId(listing.series.id, round.id, { season: season.index, edition: 0 }),
+        date: pick.date,
+        invitations: invitationDay(pick.date, from),
+      }];
+    });
 
-      // A copy, as a championship entered is, with the seat the player was
-      // invited to moved to where every lowering takes the player's from.
-      const championship = withPlayerSeat(structuredClone(listing.series), seat.entry, seat.seat);
-      drawn.push({
-        series: championship.id,
-        edition: 0,
-        championship,
-        entry: seat.entry,
-        playerSeat: seat.seat,
-        car: seat.car,
-        field: await historic.drawField(championship, seat.entry, salt),
-        events: [{
-          round: round.id,
-          raceId: runRaceId(championship.id, round.id, { season: season.index, edition: 0 }),
-          date: pick.date,
-          status: 'scheduled',
-          sessions: [],
-        }],
-        standings: buildStandings(championship, [], at),
-        historic: true,
+    return { ...season, historicEvents: [...historicDraws(season), ...drawn], historicDrawn: true };
+  };
+
+  /**
+   * Sends every historic event's invitation whose day has come, once each.
+   *
+   * Whether one comes is a seeded draw at the chance of the player's highest
+   * rung among the event's disciplines, read as they go out, and it offers a
+   * seat in that discipline's class nearest the rung. None is drawn for once
+   * the player has entered the event at their own cost, and none sent for an
+   * event whose day the clock has already passed.
+   * @param career The career
+   * @param today The ISO date to send them as of - the clock's own, or the day
+   * after its season ends for a move closing that season on the way
+   * @returns The career, every invitation due sent - the same one when none was
+   */
+  const sendInvitations = async (career: Career, today = career.date): Promise<Career> => {
+    const season = currentSeason(career);
+    const due = season
+      ? historicDraws(season).filter((draw) => !draw.invitation && draw.invitations <= today)
+      : [];
+    if (!season || due.length === 0) return career;
+
+    const salt = seasonSalt(career, season.index);
+    const sent: Mail[] = [];
+    const draws = await Promise.all(historicDraws(season).map(async (draw): Promise<HistoricDraw> => {
+      if (!due.includes(draw)) return draw;
+      const on = draw.invitations;
+      if (enteredEntry(season, draw.series, 0)) return { ...draw, invitation: { on, outcome: 'entered' } };
+      // Passed by while the clock jumped, it has nobody left to invite.
+      if (draw.date < today) return { ...draw, invitation: { on, outcome: 'uninvited' } };
+
+      const cars = drawnCars(draw, await historic.validate(draw.championship));
+      const rung = historicRung(draw.championship, cars, career.level);
+      if (!rung) return { ...draw, invitation: { on, outcome: 'uninvited' } };
+      const chance = invitationChance(rung.rung);
+      const drawnOn = {
+        on, discipline: rung.discipline, rung: rung.rung, chance,
+      };
+      const seat = invitationDrawn(draw.championship, chance, salt)
+        ? historicSeat(draw.championship, cars, salt, career.level)
+        : null;
+      if (!seat) return { ...draw, invitation: { ...drawnOn, outcome: 'uninvited' } };
+
+      sent.push({
+        id: invitationId(draw.raceId),
+        kind: 'invitation',
+        season: season.index,
+        arrived: on,
+        opened: false,
+        deadline: draw.date,
+        invitation: {
+          series: draw.series, raceId: draw.raceId, entry: seat.entry, seat: seat.seat, car: seat.car,
+        },
       });
-    }
 
-    return { ...season, entries: [...season.entries, ...drawn], historicDrawn: true };
+      return { ...draw, invitation: { ...drawnOn, outcome: 'invited' } };
+    }));
+
+    return {
+      ...withSeason(career, { ...season, historicEvents: draws }),
+      inbox: [...career.inbox, ...sent.sort((left, right) => left.arrived.localeCompare(right.arrived))],
+    };
   };
 
   /**
@@ -737,7 +793,7 @@ export const createCareerStore = async (
     const drawn = await drawHistoric(current, season, current.date);
     if (drawn === season) return;
 
-    current = withSeason(current, issueForecasts(current, drawn, current.date));
+    current = await sendInvitations(withSeason(current, issueForecasts(current, drawn, current.date)));
     settle();
   };
 
@@ -944,11 +1000,11 @@ export const createCareerStore = async (
   };
 
   /**
-   * Brings the career's missed rounds up to date, after anything that can have
-   * passed or given one up.
+   * Brings the career's missed rounds and its mail up to date, after anything
+   * that can have moved the clock or given a round up.
    */
   const catchUp = async (): Promise<void> => {
-    if (current) current = await simulateMissed(current);
+    if (current) current = await sendInvitations(await simulateMissed(current));
   };
 
   /**
@@ -1146,7 +1202,7 @@ export const createCareerStore = async (
       // Salted like the forecasts, so two careers, two seasons and two
       // editions of one championship field different drivers.
       field: await series.drawField(championship, entry.id, seasonSalt(career, season.index, edition)),
-      events: materialiseEvents(championship, season, edition, career.date),
+      events: materialiseEvents(championship, season, edition, career.date, entry.id),
       standings: buildStandings(championship, [], new Date().toISOString()),
     };
   };
@@ -1207,6 +1263,164 @@ export const createCareerStore = async (
       name: car?.name ?? model,
       livery: (skin: string | undefined): string | undefined => liveryName(car, skin),
     };
+  };
+
+  /**
+   * The car a career enters in: owned, in the garage's livery, when the garage
+   * holds it, and otherwise rented in whichever livery was picked.
+   * @param career The career
+   * @param picked The car and livery picked
+   * @returns The car as the entry races it
+   */
+  const enteredCar = (career: Career, picked: { model: string; skin?: string }): SeasonEntry['car'] => {
+    const owned = ownedCar(career, picked.model);
+
+    return owned
+      ? { model: picked.model, ...(owned.skin === undefined ? {} : { skin: owned.skin }), source: 'owned' }
+      : { ...picked, source: 'rented' };
+  };
+
+  /**
+   * A career entered in a historic event the season drew, its field drawn and
+   * its forecast issued as any entry's are.
+   * @param career The career
+   * @param season The season the event was drawn in
+   * @param draw The historic event
+   * @param held The championship it races, the class, seat and car, and its
+   * one event
+   * @returns The career
+   */
+  const withHistoricEntry = async (
+    career: Career,
+    season: CareerSeason,
+    draw: HistoricDraw,
+    held: Pick<SeasonEntry, 'championship' | 'entry' | 'playerSeat' | 'car' | 'events'>,
+  ): Promise<Career> => {
+    const entry: SeasonEntry = {
+      series: draw.series,
+      edition: 0,
+      ...held,
+      field: await historic.drawField(held.championship, held.entry, seasonSalt(career, season.index)),
+      standings: buildStandings(held.championship, [], new Date().toISOString()),
+      historic: true,
+    };
+
+    return withSeason(career, issueForecasts(career, { ...season, entries: [...season.entries, entry] }, career.date));
+  };
+
+  /**
+   * A career entered in a historic event in the seat its invitation offers,
+   * the invitation answered.
+   * @param career The career
+   * @param season The season the event was drawn in
+   * @param draw The historic event
+   * @param mail The invitation
+   * @returns The career
+   * @throws When the mail offers no seat
+   */
+  const joinInvitation = async (
+    career: Career,
+    season: CareerSeason,
+    draw: HistoricDraw,
+    mail: Mail,
+  ): Promise<Career> => {
+    const offer = mail.invitation;
+    if (!offer) throw new AppError('mail.notFound');
+
+    return withHistoricEntry(withReply(career, mail, 'accepted'), season, draw, {
+      // A copy, with the seat offered moved to where every lowering takes the
+      // player's from.
+      championship: withPlayerSeat(structuredClone(draw.championship), offer.entry, offer.seat),
+      entry: offer.entry,
+      playerSeat: offer.seat,
+      car: offer.car,
+      // No fee, which the team covers.
+      events: [{
+        round: draw.round, raceId: draw.raceId, date: draw.date, status: 'scheduled', sessions: [],
+      }],
+    });
+  };
+
+  /**
+   * A career entered in a historic event at its own cost: the event's fee, and
+   * a car of the class, owned or rented, in the class's last seat.
+   * @param career The career
+   * @param season The season the event was drawn in
+   * @param draw The historic event
+   * @param request Which class, and in what
+   * @returns The career
+   * @throws When the career is in it already, holds an invitation to it still
+   * to be answered, its day is behind the clock, or the car is not one of the
+   * class's
+   */
+  const enterHistoric = async (
+    career: Career,
+    season: CareerSeason,
+    draw: HistoricDraw,
+    request: EnrolRequest,
+  ): Promise<Career> => {
+    const { name } = draw.championship;
+    if (enteredEntry(season, draw.series, 0)) throw new AppError('career.entry.enrolled', { entry: name });
+    // An invitation still open is the way in at no cost, so it is answered first.
+    if (invitationState(career, season, draw) === 'awaiting') throw new AppError('historic.invited', { event: name });
+    if (draw.date < career.date) throw new AppError('career.edition.over', { series: name });
+    const entry = draw.championship.entries.find((one) => one.id === request.entry);
+    if (!entry) throw new AppError('series.entry.unknown', { entry: request.entry });
+    const availability = await historic.validate(draw.championship);
+    if (!eligibleCarsIn(availability, draw.round, entry.id).includes(request.car.model)) {
+      throw new AppError('career.car.ineligible', { car: (await namesOf(request.car.model)).name, entry: entry.name });
+    }
+
+    return withHistoricEntry(career, season, draw, {
+      championship: structuredClone(draw.championship),
+      entry: entry.id,
+      // The last seat of the class, which is the one roundRace gives up.
+      playerSeat: entry.seats[entry.seats.length - 1]?.id ?? '',
+      car: enteredCar(career, request.car),
+      events: [drawnEvent(draw, career.date, entry.id)],
+    });
+  };
+
+  /**
+   * A career out of a historic event it was in, as though it had never
+   * entered: the field races it without the player, and it is open to enter
+   * again at the player's own cost - an invitation given back stays given back.
+   * @param career The career
+   * @param season The season the event was drawn in
+   * @param held The player's entry into it
+   * @returns The career
+   * @throws When a session of it is out at the game, or it has begun or gone by
+   */
+  const leaveHistoric = (career: Career, season: CareerSeason, held: SeasonEntry): Career => {
+    const progress = race.progress();
+    if (progress?.inFlight && held.events.some((event) => event.raceId === progress.raceId)) {
+      throw new AppError('run.inFlight');
+    }
+    // Leaving is turning it down, which an event already begun is past.
+    if (held.events.some((event) => event.status !== 'scheduled' || event.sessions.length > 0)) {
+      throw new AppError('historic.started', { event: held.championship.name });
+    }
+
+    const left = withSeason(career, { ...season, entries: season.entries.filter((one) => one !== held) });
+    const mail = held.events[0] ? invitationMail(career, held.events[0]) : null;
+
+    return mail?.reply?.answer === 'accepted' ? withReply(left, mail, 'declined') : left;
+  };
+
+  /**
+   * A career with the invitation to a historic event accepted, when it holds
+   * one still to be answered - which is what launching that event does.
+   * @param career The career
+   * @param season The season
+   * @param seriesId The historic event's id
+   * @returns The career, or null when there is no such invitation to accept
+   */
+  const acceptOnLaunch = async (career: Career, season: CareerSeason, seriesId: string): Promise<Career | null> => {
+    const draw = drawOf(season, seriesId);
+    const mail = draw && invitationMail(career, draw);
+    if (!draw || !mail || invitationState(career, season, draw) !== 'awaiting') return null;
+
+    return joinInvitation(career, season, draw, mail);
   };
 
   /**
@@ -1280,13 +1494,18 @@ export const createCareerStore = async (
         level: levelsAt(level),
         ratingLog: [openingRatingLine(startDate, level)],
         seasons: [openSeason(0, startDate)],
+        inbox: [],
       };
 
       // Drawn before anything changes, so a draw that fails leaves the career
-      // open before as it was.
+      // open before as it was - and an event early in January has its
+      // invitation as the year opens.
       const first = currentSeason(started);
       const ready = first
-        ? withSeason(started, issueForecasts(started, await drawHistoric(started, first, startDate), startDate))
+        ? await sendInvitations(withSeason(
+          started,
+          issueForecasts(started, await drawHistoric(started, first, startDate), startDate),
+        ))
         : started;
       await makeCurrent(ready);
       const made = settle();
@@ -1331,6 +1550,7 @@ export const createCareerStore = async (
         level: levelsAt(1),
         ratingLog: [],
         seasons: [season],
+        inbox: [],
       };
       const enrolled = await entering(base, season, listing, entry, 0, car);
 
@@ -1584,12 +1804,16 @@ export const createCareerStore = async (
       if (!held) throw new AppError('career.season.notFound', { season: at });
 
       const library = await series.list();
+      const drawn = new Map(await Promise.all(historicDraws(held).map(async (draw): Promise<
+        [HistoricDraw, SeriesAvailability]
+      > => [draw, await historic.validate(draw.championship)])));
 
       return composeCalendar(
         career,
         held,
         library.series,
         await enteredAvailability(held),
+        drawn,
         career.settings.allowSameDayEvents,
       );
     },
@@ -1597,6 +1821,14 @@ export const createCareerStore = async (
     enrol: (request: EnrolRequest) => commit(async () => {
       const { career, season } = await seasonNow();
       if (career.kind === 'championship') throw new AppError('standalone.enter');
+      // A historic event the season drew is entered off the season's own copy.
+      const draw = drawOf(season, request.series);
+      if (draw) {
+        current = await enterHistoric(career, season, draw, request);
+        await catchUp();
+
+        return settle();
+      }
 
       const { listing, entry } = await raceableEntry(request.series, request.entry);
       if (!isEligible(entry.ladder, openLevels(career.level))) {
@@ -1619,13 +1851,7 @@ export const createCareerStore = async (
       if (!eligibleCarsIn(listing.availability, opener.round, entry.id).includes(model)) {
         throw new AppError('career.car.ineligible', { car: (await namesOf(model)).name, entry: entry.name });
       }
-      // A car in the garage races owned, in the garage's livery; any other is
-      // rented, in whichever livery was picked.
-      const owned = ownedCar(career, model);
-      const car: SeasonEntry['car'] = owned
-        ? { model, ...(owned.skin === undefined ? {} : { skin: owned.skin }), source: 'owned' }
-        : { ...request.car, source: 'rented' };
-      const enrolled = await entering(career, season, listing, entry, edition, car);
+      const enrolled = await entering(career, season, listing, entry, edition, enteredCar(career, request.car));
 
       // Entering a championship whose opener is this week forecasts it at once,
       // rather than leaving it blank until the clock next happens to move. A
@@ -1729,6 +1955,12 @@ export const createCareerStore = async (
         ))
         .sort((left, right) => left.edition - right.edition)[0];
       if (!held) throw new AppError('career.entry.notEnrolled', { entry: request.entry });
+      // A historic event the season drew is left altogether, open to enter again.
+      if (isHistoric(held)) {
+        current = leaveHistoric(career, season, held);
+
+        return settle();
+      }
       // A session out at the game would land on a round already given up.
       const progress = race.progress();
       if (progress?.inFlight && held.events.some((event) => event.raceId === progress.raceId)) {
@@ -1751,6 +1983,46 @@ export const createCareerStore = async (
       });
       // Only what is already behind the clock; the rest is simulated as it comes.
       await catchUp();
+
+      return settle();
+    }),
+
+    answer: ({ mail: id, answer }) => commit(async () => {
+      const { career, season } = await seasonNow();
+      const mail = career.inbox.find((one) => one.id === id);
+      if (!mail) throw new AppError('mail.notFound');
+      // Only an invitation of the season being raced can still be answered.
+      const draw = historicDraws(season).find((one) => one.raceId === mail.invitation?.raceId) ?? null;
+      const state = draw ? invitationState(career, season, draw) : null;
+      const closed = new AppError('mail.closed', { event: draw?.championship.name ?? mail.invitation?.series ?? id });
+
+      if (answer === 'accepted') {
+        if (!draw || state !== 'awaiting') throw closed;
+        current = await joinInvitation(career, season, draw, mail);
+      } else if (state === 'awaiting') {
+        current = withReply(career, mail, 'declined');
+      } else {
+        // Declining one already accepted takes the player out of the event.
+        const held = draw && state === 'accepted' ? enteredEntry(season, draw.series, 0) : null;
+        if (!held) throw closed;
+        current = leaveHistoric(career, season, held);
+      }
+
+      return settle();
+    }),
+
+    markAllRead: () => commit(async () => {
+      const career = await ensure();
+      if (career.inbox.every((one) => one.opened)) return career;
+      current = { ...career, inbox: career.inbox.map((one) => (one.opened ? one : { ...one, opened: true })) };
+
+      return settle();
+    }),
+
+    markMail: ({ mail: id, opened }) => commit(async () => {
+      const career = await ensure();
+      if (!career.inbox.some((one) => one.id === id)) throw new AppError('mail.notFound');
+      current = { ...career, inbox: career.inbox.map((one) => (one.id === id ? { ...one, opened } : one)) };
 
       return settle();
     }),
@@ -1813,12 +2085,16 @@ export const createCareerStore = async (
       let stop = skip ? date : advanceStop(year, working.date, date);
       // An event on the clock's own day is no stop, so moving on unconfirmed
       // would still lose it - and nothing is lost unasked.
-      const unasked = skip ? undefined : advanceSkips(year, stop)[0];
+      const unasked = skip ? undefined : advanceSkips(year, stop)[0] ?? unansweredSkips(working, year, stop)[0];
       if (unasked) throw new AppError('career.event.earlierPending', { event: lostName(unasked) });
 
       // A move past 31 December closes the year on the way: whatever of it was
       // still to run is given up and raced by the field, and the next opens empty.
       while (stop > year.endDate) {
+        // Whatever of the year's invitations the move passes goes out to no one,
+        // so none is left waiting on a season gone by.
+        working = await sendInvitations(working, addDays(year.endDate, 1));
+        year = currentSeason(working) ?? year;
         // Every session of the year is rated by now, each by the settle it landed in.
         working = closeLevels(await simulateMissed(closeSeason(working, year)), year);
         const opened = openSeason(year.index + 1, addDays(year.endDate, 1));
@@ -1841,9 +2117,9 @@ export const createCareerStore = async (
     }),
 
     async skips(date) {
-      const { season } = await seasonNow();
+      const { career, season } = await seasonNow();
 
-      return advanceSkips(season, date);
+      return withLapsed(advanceSkips(season, date), unansweredSkips(career, season, date));
     },
 
     async roundCosts() {
@@ -1894,7 +2170,9 @@ export const createCareerStore = async (
             if (cars.length === 0) return null;
             const rent = cars.some((car) => owned.has(car)) ? 0 : Math.min(...await Promise.all(cars.map(rentOfCar)));
 
-            return { series: championship.id, entry: entry.id, cost: (next.entryFee ?? 0) + rent };
+            const fee = entryFeeOf(championship, next.round, entry.id) ?? 0;
+
+            return { series: championship.id, entry: entry.id, cost: fee + rent };
           }));
 
           return priced.filter((cost) => cost !== null);
@@ -1904,9 +2182,15 @@ export const createCareerStore = async (
     },
 
     async skipping(request) {
-      const { season } = await seasonNow();
+      const { career, season } = await seasonNow();
+      const held = await heldEvent(season, request);
+      const cost = skipCost(season, held);
 
-      return skipCost(season, await heldEvent(season, request));
+      // The round skipped stays last, as the confirmation reads it.
+      return [
+        ...withLapsed(cost.slice(0, -1), unansweredSkips(career, season, held.event.date)),
+        ...cost.slice(-1),
+      ];
     },
 
     skip: (request) => commit(async () => {
@@ -1938,20 +2222,31 @@ export const createCareerStore = async (
       // A season behind the current one is history: read back, never raced.
       const closed = season !== currentSeason(career);
       const setup = await race.get();
-      // A historic event is in no library a career reads from, so one declined
-      // is read back off its own entry rather than offered to be entered again.
-      const declined = editionEntry(season, request.series, edition)?.historic === true;
-      const held = enteredEvent(season, request.series, request.round, edition, closed || declined);
+      // A historic event is in no library a career reads from: the season's
+      // draw holds it.
+      const draw = drawOf(season, request.series);
+      const held = enteredEvent(season, request.series, request.round, edition, closed);
+      // An invitation still to be answered is shown in the seat it offers, so
+      // the page plans the event the player would race on accepting it.
+      const offer = draw && !held && !closed && invitationState(career, season, draw) === 'awaiting'
+        ? invitationMail(career, draw)?.invitation ?? null
+        : null;
+      const drawnChampionship = draw && offer
+        ? withPlayerSeat(structuredClone(draw.championship), offer.entry, offer.seat)
+        : draw?.championship;
 
-      const championship = held?.entry.championship ?? listing?.series;
+      const championship = held?.entry.championship ?? drawnChampionship ?? listing?.series;
       if (!championship) throw new AppError('series.notFound', { series: request.series });
       if (!held) checkEdition(championship, edition);
 
-      const classEntry = championship.entries.find((one) => one.id === (held?.entry.entry ?? ''))
+      const classEntry = championship.entries.find((one) => one.id === (held?.entry.entry ?? offer?.entry ?? ''))
         ?? championship.entries[0];
       const salt = seasonSalt(career, season.index, edition);
-      // A championship the career is not in is dated as if entered today.
-      const dated = held ? [] : materialiseEvents(championship, season, edition, career.date);
+      // A championship the career is not in is dated as if entered today, and
+      // a historic event on the day it was drawn for.
+      let dated: SeasonEvent[] = [];
+      if (draw && !held) dated = [drawnEvent(draw, career.date, classEntry.id)];
+      else if (!held) dated = materialiseEvents(championship, season, edition, career.date, classEntry.id);
       const found = dated.find((one) => one.round === request.round);
       // Entering offers the cars of the round it would start from, which are
       // the ones enrol accepts.
@@ -1972,18 +2267,37 @@ export const createCareerStore = async (
       }
 
       const availability = held || !listing ? await series.validate(championship) : listing.availability;
-      const raceable = held ? heldRaceable(availability, held) : roundRaceableIn(availability, request.round);
+      // An invitation still to be answered, as the entry accepting it would
+      // make - its field drawn as accepting draws it - which is what launching
+      // it does.
+      const invited: EnteredEvent | null = offer && draw ? {
+        entry: {
+          series: draw.series,
+          edition: 0,
+          championship,
+          entry: offer.entry,
+          playerSeat: offer.seat,
+          car: offer.car,
+          field: await historic.drawField(championship, offer.entry, salt),
+          events: [event],
+          standings: buildStandings(championship, [], new Date().toISOString()),
+          historic: true,
+        },
+        event,
+      } : null;
+      const launching = held ?? invited;
+      const raceable = launching ? heldRaceable(availability, launching) : roundRaceableIn(availability, request.round);
       // A career not yet in the championship has no car, so its event is
       // planned in the first one the class could field - the sessions, their
       // lengths and their weather do not depend on which.
       const firstCar = eligibleCarsIn(availability, request.round, classEntry.id)[0];
-      const car = held?.entry.car ?? (firstCar ? { model: firstCar } : null);
+      const car = launching?.entry.car ?? (firstCar ? { model: firstCar } : null);
 
       let plan: EventPlan | null = null;
       if (car && raceable) {
         try {
           const definition = await lowerEvent(championship, {
-            entry: classEntry.id, round: request.round, car, draw: event.forecast, field: held?.entry.field,
+            entry: classEntry.id, round: request.round, car, draw: event.forecast, field: launching?.entry.field,
           }, event.raceId, held ? strengthStep(held) : 0);
           plan = planEvent(definition, await content.content());
         } catch (error) {
@@ -1998,10 +2312,11 @@ export const createCareerStore = async (
       const forecast = event.forecast ? offerForecast(event.forecast, await series.offer()) : null;
       const playerSeat = held?.entry.playerSeat ?? null;
       const seat = classEntry.seats.find((one) => one.id === playerSeat);
+      const allowSameDay = career.settings.allowSameDayEvents;
 
       let blocked: AppErrorInfo | null = appErrorInfo('career.event.notEntered', { series: championship.name });
       if (closed) blocked = appErrorInfo('career.season.closed', { year: seasonYear(season) });
-      else if (held) blocked = launchBlock(season, held, raceable, career.settings.allowSameDayEvents);
+      else if (launching) blocked = launchBlock(season, launching, raceable, allowSameDay);
       // Exactly where the launch would refuse it, once nothing else does.
       const owed = held ? await owedFor(career, held) : null;
       if (owed && !closed && blocked === null && owed.fee + owed.rent > career.money) {
@@ -2037,8 +2352,10 @@ export const createCareerStore = async (
           id: one.id,
           name: one.name,
           ladder: one.ladder,
-          eligible: isEligible(one.ladder, openLevels(career.level)),
+          // A historic event is open to anyone, whatever their level.
+          eligible: draw !== null || isEligible(one.ladder, openLevels(career.level)),
           cars: eligibleCarsIn(availability, enterAt, one.id),
+          fee: career.kind === 'career' ? entryFeeOf(championship, enterAt, one.id) || null : null,
         })),
         raceable,
         sessions: plan ? eventSessions(
@@ -2049,18 +2366,25 @@ export const createCareerStore = async (
           climate !== null && forecast === null,
           event.score,
           playerSeat,
-          !closed && !!held && event.status === 'scheduled',
+          // An invitation still to be answered launches too, accepting it.
+          !closed && !!launching && event.status === 'scheduled',
         ) : [],
         blocked,
-        money: held && career.kind === 'career' ? {
-          fee: feeOf(held.entry, held.event),
-          paid: feePaid(career, held.event),
+        // An invitation still to be answered costs nothing, which the team covers.
+        money: launching && career.kind === 'career' ? {
+          fee: held ? feeOf(held.entry, held.event) : null,
+          paid: held ? feePaid(career, held.event) : false,
           rent: owed?.roundRent ?? null,
-          rentPaid: rentPaid(career, held.event),
+          rentPaid: held ? rentPaid(career, held.event) : false,
           balance: career.money,
         } : null,
-        skips: !closed && held && event.status === 'scheduled'
-          ? launchSkips(season, held, career.settings.allowSameDayEvents)
+        // An invitation still to be answered that is not this event's lapses
+        // on the way, as the rounds lost do.
+        skips: !closed && launching && event.status === 'scheduled'
+          ? withLapsed(
+            launchSkips(season, launching, allowSameDay),
+            unansweredSkips(career, season, launching.event.date, !allowSameDay, launching.event.raceId),
+          )
           : [],
         // Whatever is already over is a non-start from the moment it is entered.
         behind: closed ? [] : dated
@@ -2071,11 +2395,12 @@ export const createCareerStore = async (
         // Not the player in a round they were not there for, nor in any round
         // of a championship they are not in.
         substituted: event.status === 'missed',
-        historic: held && isHistoric(held.entry) ? {
+        historic: draw ? {
           description: championship.description ?? null,
           event: championship,
           availability,
-          seat: held.entry.playerSeat,
+          seat: held?.entry.playerSeat ?? offer?.seat ?? null,
+          invitation: historicInvitation(career, season, draw, availability, held?.entry ?? null),
         } : null,
       };
 
@@ -2088,6 +2413,24 @@ export const createCareerStore = async (
       } = await runAsked(request);
       const held = editionEntry(season, request.series, edition);
       if (held) return entryResults(held, season.index);
+
+      // A historic event the player is not in, raced by its field on the day
+      // the season drew it for.
+      const draw = drawOf(season, request.series);
+      if (draw) {
+        return {
+          championship: draw.championship,
+          season: season.index,
+          edition: 0,
+          rounds: [roundResult(simulatedEvent(
+            draw.championship,
+            drawnEvent(draw, career.date, draw.championship.entries[0]?.id ?? ''),
+            seasonSalt(career, season.index),
+          ))],
+          playerSeat: null,
+          playerEntry: null,
+        };
+      }
 
       if (!listing) throw new AppError('series.notFound', { series: request.series });
       checkEdition(listing.series, edition);
@@ -2104,11 +2447,17 @@ export const createCareerStore = async (
     },
 
     launch: (request) => commit(async () => {
-      const { career, season } = await seasonNow();
+      const now = await seasonNow();
+      // Launching an invitation still to be answered accepts it on the way -
+      // kept, as everything a launch changes is, only once the launch is away.
+      const accepted = request.accept ? await acceptOnLaunch(now.career, now.season, request.series) : null;
+      const career = accepted ?? now.career;
+      const season = currentSeason(career) ?? now.season;
       const held = await heldEvent(season, request);
+      const allowSameDay = career.settings.allowSameDayEvents;
 
       const availability = await series.validate(held.entry.championship);
-      const block = launchBlock(season, held, heldRaceable(availability, held), career.settings.allowSameDayEvents);
+      const block = launchBlock(season, held, heldRaceable(availability, held), allowSameDay);
       if (block) throw new AppError(block.code, block.params);
       // Paid as the first session goes out, and never into debt.
       const { fee, rent } = await owedFor(career, held);
@@ -2117,11 +2466,17 @@ export const createCareerStore = async (
       // What this event costs the rest of the season, which the player has to
       // have been shown and agreed to - an event on the same day included,
       // unless the career allows two on one day.
-      const lost = launchSkips(season, held, career.settings.allowSameDayEvents);
+      const lost = withLapsed(
+        launchSkips(season, held, allowSameDay),
+        unansweredSkips(career, season, held.event.date, !allowSameDay, held.event.raceId),
+      );
       if (lost.length > 0 && !request.skip) {
         const partway = lost.find((one) => one.reason === 'partway');
         if (partway) throw new AppError('career.event.otherInProgress', { event: lostName(partway) });
-        const earlier = lost.find((one) => one.reason !== 'clash');
+        // An invitation on the event's own day is lost to the clash, not earlier.
+        const earlier = lost.find((one) => one.reason !== 'clash' && !(
+          one.reason === 'unanswered' && one.date === held.event.date
+        ));
         throw earlier
           ? new AppError('career.event.earlierPending', { event: lostName(earlier) })
           : new AppError('career.event.sameDay', { event: lostName(lost[0]) });
@@ -2156,8 +2511,19 @@ export const createCareerStore = async (
       // Kept only once the launch is away, so one that fails to start costs the
       // season nothing - its entry fee and its rent included.
       const changed = date !== career.date || lost.length > 0 || event.forecast !== held.event.forecast;
-      if (changed || fee > 0 || rent > 0) {
-        const next = changed ? withSeason({ ...career, date }, moved) : career;
+      if (changed || fee > 0 || rent > 0 || accepted) {
+        // An invitation on the launched event's own day would still be waiting
+        // with the clock on that day, so giving it up declines it.
+        const given = lost.flatMap((one) => {
+          const draw = one.reason === 'unanswered' && one.date === date ? drawOf(season, one.series) : null;
+          const mail = draw && invitationMail(career, draw);
+
+          return mail ? [mail] : [];
+        });
+        const next = given.reduce(
+          (answered, mail) => withReply(answered, mail, 'declined'),
+          changed ? withSeason({ ...career, date }, moved) : career,
+        );
         const name = rent > 0 ? (await namesOf(held.entry.car.model)).name : '';
         current = post(next, [
           ...(fee > 0 ? [feeLine(season, held.entry, event, fee)] : []),

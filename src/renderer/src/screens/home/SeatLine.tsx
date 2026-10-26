@@ -13,17 +13,19 @@ interface SeatLineProps {
 }
 
 // The seat a historic event invites the player into: the car, the team behind
-// it and whose seat it is.
+// it and whose seat it is - or the car they entered it in at their own cost.
 export const SeatLine = ({ seat }: SeatLineProps) => {
   const { t } = useTranslation();
-  const carName = useCarNames([seat.car]);
+  const carName = useCarNames(seat.car ? [seat.car] : []);
+  const { car } = seat;
+  if (!car) return null;
 
   return (
     <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 rounded-lg border p-2">
       <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
         <ContentImage
-          sources={carPictureSources(seat.car)}
-          alt={carName(seat.car)}
+          sources={carPictureSources(car)}
+          alt={carName(car)}
           className="object-cover"
           fallback={(
             <div className="absolute inset-0 flex items-center justify-center">
@@ -33,13 +35,17 @@ export const SeatLine = ({ seat }: SeatLineProps) => {
         />
       </div>
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate font-medium">{carName(seat.car)}</span>
-        <span className="truncate text-xs text-muted-foreground">
-          {seat.driver
-            ? t('home.historic.seatOf', { team: seat.team ?? '', driver: seat.driver })
-            : seat.team}
+        <span className="truncate font-medium">{carName(car)}</span>
+        {seat.invited ? (
+          <span className="truncate text-xs text-muted-foreground">
+            {seat.driver
+              ? t('home.historic.seatOf', { team: seat.team ?? '', driver: seat.driver })
+              : seat.team}
+          </span>
+        ) : null}
+        <span className="text-xs text-muted-foreground">
+          {t(seat.invited ? 'home.historic.invited' : 'home.historic.entered')}
         </span>
-        <span className="text-xs text-muted-foreground">{t('home.historic.invited')}</span>
       </div>
     </div>
   );

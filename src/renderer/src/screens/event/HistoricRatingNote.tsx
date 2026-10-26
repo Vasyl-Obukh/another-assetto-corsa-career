@@ -17,6 +17,11 @@ interface HistoricRatingNoteProps {
    * Where the seat's class sits on the ladder.
    */
   ladder: LadderPosition;
+  /**
+   * Whether the player is in it at their own cost rather than by invitation,
+   * which any rung may do.
+   */
+  paid?: boolean;
 }
 
 /**
@@ -25,7 +30,7 @@ interface HistoricRatingNoteProps {
  * discipline, so a guest seat three rungs up is a treat rather than a
  * shortcut.
  */
-export const HistoricRatingNote = ({ career, ladder }: HistoricRatingNoteProps) => {
+export const HistoricRatingNote = ({ career, ladder, paid = false }: HistoricRatingNoteProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
   const { discipline, tier } = ladder;
@@ -37,14 +42,16 @@ export const HistoricRatingNote = ({ career, ladder }: HistoricRatingNoteProps) 
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border bg-muted/40 p-2.5 text-xs">
       <span className="flex items-center gap-1.5 font-semibold">
-        {t(guest ? 'historic.rating.guest' : 'historic.rating.invited')}
+        {t((paid && 'historic.rating.paid') || (guest ? 'historic.rating.guest' : 'historic.rating.invited'))}
         <Badge className={`ml-auto ${DISCIPLINE_ACCENT[discipline]}`}>{name}</Badge>
         <TierMedal tier={tier} className="size-5 text-[0.65rem]" />
       </span>
       <span className="text-muted-foreground">
-        {guest
-          ? t('historic.rating.guestDetail', { tier, count: own - tier, own, discipline: name })
-          : t('historic.rating.invitedDetail', { tier, own, discipline: name })}
+        {paid ? t('historic.rating.paidDetail', { tier, own, discipline: name }) : null}
+        {!paid && guest ? t('historic.rating.guestDetail', {
+          tier, count: own - tier, own, discipline: name,
+        }) : null}
+        {!paid && !guest ? t('historic.rating.invitedDetail', { tier, own, discipline: name }) : null}
       </span>
       <span className="flex items-start gap-1.5">
         <MedalIcon className="mt-0.5 size-3.5 shrink-0 text-podium-gold-foreground" />

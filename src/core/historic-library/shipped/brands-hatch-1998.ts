@@ -145,6 +145,7 @@ export const BRANDS_HATCH_1998: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
+  entryFee: 3000,
   prizes: {
     positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
   },

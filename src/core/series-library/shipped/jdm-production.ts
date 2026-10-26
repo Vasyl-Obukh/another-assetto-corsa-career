@@ -70,6 +70,7 @@ export const JDM_PRODUCTION: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['ks_toyota_ae86'] },
       grid: { strength: -3 },
+      entryFee: 900,
       prizes: {
         positions: [4800, 3350, 2400, 1850, 1400, 1050, 800, 550, 400, 250],
         standings: [38500, 24000, 15500, 10000, 6500],

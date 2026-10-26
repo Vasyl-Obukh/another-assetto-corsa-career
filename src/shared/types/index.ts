@@ -128,6 +128,7 @@ export type {
 
 export type {
   CalendarEntry,
+  CalendarInvitation,
   Career,
   CarSource,
   CareerBackup,
@@ -157,7 +158,12 @@ export type {
   EventSessionStatus,
   EventStatus,
   EventStrength,
+  HistoricDraw,
+  HistoricInvitation,
   HistoricView,
+  InvitationDraw,
+  InvitationOutcome,
+  InvitationState,
   LedgerKind,
   LedgerLine,
   NewCareerRequest,
@@ -178,6 +184,10 @@ export type {
 export type {
   CareerSaves, LoadedSave, SaveKind, SaveMoment, SaveSummary,
 } from './saves.ts';
+
+export type {
+  Invitation, Mail, MailAnswer, MailKind, MailReply, MailStatus,
+} from './inbox.ts';
 
 export type {
   ClassStandings,

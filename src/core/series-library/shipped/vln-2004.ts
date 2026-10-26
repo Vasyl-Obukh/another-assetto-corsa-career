@@ -83,6 +83,7 @@ export const VLN_2004: Championship = {
         ],
       },
       grid: { strength: -1 },
+      entryFee: 3600,
       prizes: {
         positions: [15000, 10500, 7500, 5700, 4350, 3300, 2400, 1800, 1200, 750],
         standings: [120000, 75000, 48000, 31500, 19500],
@@ -104,6 +105,7 @@ export const VLN_2004: Championship = {
       ],
       eligibility: { kind: 'cars', cars: ['gue_nissan_skyline_r34_24h'] },
       grid: { strength: -4 },
+      entryFee: 2200,
       prizes: {
         positions: [9000, 6300, 4500, 3400, 2600, 2000, 1450, 1100, 700, 450],
         standings: [72000, 45000, 29000, 19000, 11500],

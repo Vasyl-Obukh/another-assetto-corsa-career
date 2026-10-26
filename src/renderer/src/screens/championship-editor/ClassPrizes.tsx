@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 
 import { ChoiceChips } from './ChoiceChips.tsx';
-import { PURSE_SCALES } from './constants.ts';
+import { MIN_MONEY, PURSE_SCALES } from './constants.ts';
+import { NumberField } from './NumberField.tsx';
 import { PurseEditor } from './PurseEditor.tsx';
 import { paysInAll, withEntryPrizes } from './utils.ts';
 import type { Championship, ClassEntry } from '../../../../shared/types';
@@ -50,6 +51,20 @@ export const ClassPrizes = ({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* First, since the purse below and the choice heading it belong together. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <NumberField
+          id={`${entry.id}-entry-fee`}
+          label={t('editor.classPrizes.fee')}
+          hint={t('editor.classPrizes.feeHint', { name: entry.name })}
+          value={entry.entryFee}
+          min={MIN_MONEY}
+          placeholder={t('editor.calendar.feeDefault', { fee: formatMoney(series.entryFee ?? 0) })}
+          disabled={locked}
+          onChange={(entryFee) => onChange({ ...entry, entryFee })}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <b className="text-sm">{t('editor.classPrizes.paid', { name: entry.name })}</b>
         {/* Neutral on purpose: which of two purses, not a set with a colour. */}

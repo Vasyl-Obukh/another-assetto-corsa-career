@@ -87,6 +87,9 @@ export const Event = () => {
   // Exactly where main would refuse the launch for want of the content.
   const skippable = !!view?.entered && view.blocked?.code === 'series.round.unavailable';
   const historic = view?.historic ?? null;
+  // An invitation still to be answered, which the seat panel answers and
+  // launching accepts.
+  const invited = historic?.invitation.state === 'awaiting';
   // A historic event is named by itself alone, having no championship around it.
   usePageName(view ? (historic ? view.seriesName : t('back.round', { round: view.roundName, series: view.seriesName }))
     : null);
@@ -196,6 +199,13 @@ export const Event = () => {
                 {view.money?.fee ? (
                   <span>{t('event.money.fee', { amount: formatMoney(view.money.fee) })}</span>
                 ) : null}
+                {/* What a historic event of one class costs anyone entering it
+                    without an invitation; several classes' fees are said in
+                    the Enter panel, as each is picked. */}
+                {historic && !view.money && historic.invitation.fee !== null && view.classes.length === 1
+                  && historic.invitation.state !== 'awaiting' && view.status === 'scheduled' ? (
+                    <span>{t('event.money.fee', { amount: formatMoney(historic.invitation.fee) })}</span>
+                  ) : null}
               </p>
             </div>
 
@@ -221,25 +231,28 @@ export const Event = () => {
       {view ? (
         <div className="grid items-start gap-4 lg:grid-cols-[300px_1fr]">
           <aside className="flex flex-col gap-4">
-            {/* A historic event the player was invited to has a seat rather
-                than an entry. A round of a closed season, or of an edition
-                already over, can only be read back - entering would be
-                refused. */}
-            {historic && view.entered ? (
+            {/* A historic event the player is in, or is invited to, has a seat
+                rather than an entry. One they are not in is entered at their
+                own cost, like a championship. A round of a closed season, or
+                of an edition already over, can only be read back - entering
+                would be refused. */}
+            {historic && (view.entered || invited) ? (
               <HistoricSeatPanel
                 view={view}
                 entered={view.entered}
                 historic={historic}
                 busy={event.busy || running}
+                onAccept={() => { void event.accept(); }}
                 onDecline={() => { void event.decline(); }}
               />
             ) : null}
             {!historic && view.entered ? <EntryPanel entry={view.entered} /> : null}
-            {historic || view.entered || view.blocked?.code === 'career.season.closed'
+            {invited || view.entered || view.blocked?.code === 'career.season.closed'
               || view.behind.length === view.rounds ? null : (
                 <EnterPanel
                   view={view}
                   busy={event.busy}
+                  historic={historic !== null}
                   onEnter={(entry, car) => { void event.enter(entry, car); }}
                 />
               )}
@@ -283,7 +296,7 @@ export const Event = () => {
                   <HistoricAbout
                     event={historic.event}
                     availability={historic.availability}
-                    playerSeat={historic.seat}
+                    playerSeat={historic.seat ?? undefined}
                     speed={prizeSpeed(slot.career)}
                   />
                 </CardContent>

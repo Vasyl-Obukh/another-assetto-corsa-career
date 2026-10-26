@@ -22,3 +22,8 @@ export const SLOT_MONTHS: Readonly<Partial<Record<HistoricFrequency, number>>> =
  * them: Monday to Friday, which keeps them off the weekends the top rungs race.
  */
 export const HISTORIC_WEEKDAYS: ReadonlySet<number> = new Set([1, 2, 3, 4, 5]);
+
+/**
+ * What a chance is out of: a percentage, so a chance of this is certain.
+ */
+export const INVITATION_CERTAIN = 100;

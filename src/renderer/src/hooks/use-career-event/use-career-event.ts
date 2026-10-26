@@ -95,14 +95,29 @@ export const useCareerEvent = (
     enter: (entry, car) => command(() => invoke('career:enrol', {
       series, entry, car, edition: view?.edition ?? edition,
     })),
-    // Declining is withdrawing from it: the event's one round becomes a
-    // non-start, raced by the field.
-    decline: () => command(async () => {
-      if (!view?.entered) return;
-      await invoke('career:withdraw', { series, entry: view.entered.entry, edition: view.edition });
+    accept: () => command(async () => {
+      const mail = view?.historic?.invitation.mail;
+      if (mail) await invoke('career:answer', { mail, answer: 'accepted' });
     }),
+    // Declining an invitation still to be answered answers it; leaving an
+    // event entered, by invitation or at the player's own cost, is
+    // withdrawing from it, which leaves it to the field.
+    decline: () => command(async () => {
+      const mail = view?.historic?.invitation.mail;
+      if (view?.entered) {
+        await invoke('career:withdraw', { series, entry: view.entered.entry, edition: view.edition });
+      } else if (mail) {
+        await invoke('career:answer', { mail, answer: 'declined' });
+      }
+    }),
+    // Launching an invitation still to be answered accepts it on the way.
     launch: (skip, scale) => command(() => invoke('career:launch', {
-      series, round, edition: view?.edition ?? edition, skip, scale,
+      series,
+      round,
+      edition: view?.edition ?? edition,
+      skip,
+      scale,
+      accept: view?.historic?.invitation.state === 'awaiting',
     })),
     // Shown at once and kept behind it, never holding the buttons, so a step
     // can be typed or clicked through; the round is read once the last lands.
