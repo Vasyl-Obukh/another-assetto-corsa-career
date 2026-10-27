@@ -140,7 +140,7 @@ export const FORMULA_1_1962: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
-  entryFee: 0,
+  entryFee: 10000,
   prizes: {
     positions: [40000, 26000, 17000, 12000, 9000, 6000],
     standings: [300000, 180000, 120000, 80000, 50000],

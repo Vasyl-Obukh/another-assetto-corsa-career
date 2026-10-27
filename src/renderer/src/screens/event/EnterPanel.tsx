@@ -1,5 +1,6 @@
 import { CarIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { InvitationNote } from './InvitationNote.tsx';
@@ -10,7 +11,8 @@ import type {
 import { rentOf } from '../../../../shared/utils/car-prices';
 import { useSlot } from '@/app';
 import {
-  CarPicker, carPictureSources, CarSourceBadge, ContentImage, PurchaseDialog, SkipDialog, SkipNote,
+  BudgetBadge, CarPicker, carPictureSources, CarSourceBadge, ContentImage, NationFlag, PurchaseDialog, SkipDialog,
+  SkipNote,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -65,6 +67,11 @@ interface EnterPanelProps {
    */
   historic?: boolean;
   /**
+   * Anything the page has to say about entering before Enter is pressed - the
+   * seat offers it would turn down, or when they go out.
+   */
+  note?: ReactNode;
+  /**
    * Called with the class, car and livery chosen, once the player has
    * confirmed whatever entering now costs.
    * @param entry The class entry's id
@@ -75,7 +82,7 @@ interface EnterPanelProps {
 }
 
 export const EnterPanel = ({
-  view, busy, showFirstRound = false, initial, historic = false, onEnter,
+  view, busy, showFirstRound = false, initial, historic = false, note, onEnter,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
@@ -154,6 +161,22 @@ export const EnterPanel = ({
           <p className="text-sm text-muted-foreground">{t('event.enter.noCars')}</p>
         ) : null}
 
+        {/* The team entering puts the player in, drawn for the edition. */}
+        {chosen?.team && !historic ? (
+          <div className="flex items-center gap-3">
+            <span className="grid aspect-[16/10] w-16 shrink-0 place-items-center rounded-md bg-muted">
+              {chosen.team.nation ? <NationFlag code={chosen.team.nation} /> : null}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col text-sm">
+              <span className="truncate font-medium">{chosen.team.name}</span>
+              <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                {chosen.team.budget ? <BudgetBadge budget={chosen.team.budget} /> : null}
+                <span className="truncate">{t('event.enter.team')}</span>
+              </span>
+            </span>
+          </div>
+        ) : null}
+
         <div className="flex items-center gap-3">
           {/* The car as it will look all season, once there is one. */}
           {car ? (
@@ -217,8 +240,12 @@ export const EnterPanel = ({
                 ? t(historic ? 'event.enter.historicRentHint' : 'event.enter.rentHint')
                 : t(historic ? 'event.enter.historicFeeHint' : 'event.enter.feeHint')}
             </dd>
+            {/* Racing on the player's own, against what a contract asks. */}
+            {historic ? null : <dd className="col-span-2 text-muted-foreground">{t('event.enter.own')}</dd>}
           </dl>
         ) : null}
+
+        {note}
 
         {/* Said before Enter is pressed as well as asked after, so what
             entering now costs is never a surprise. */}

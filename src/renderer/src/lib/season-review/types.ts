@@ -385,10 +385,6 @@ export interface HistoricRow {
    */
   team: string | null;
   /**
-   * The driver whose seat it is, who races it when the player does not.
-   */
-  driver: string | null;
-  /**
    * What became of it.
    */
   outcome: HistoricOutcome;

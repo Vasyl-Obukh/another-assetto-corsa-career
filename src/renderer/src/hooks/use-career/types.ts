@@ -49,6 +49,15 @@ export interface CareerState {
    */
   withdraw: (series: string, entry: string) => Promise<void>;
   /**
+   * Terminates the contract an edition is raced under, paying its release fee
+   * - or taking a paid seat's refund - and leaving it to the field.
+   * @param series Which championship
+   * @param entry Which class of it
+   * @param edition Which of the season's editions
+   * @returns Resolves once it has been terminated
+   */
+  terminate: (series: string, entry: string, edition: number) => Promise<void>;
+  /**
    * Sets the player's own step on the AI's strength for every round of an
    * edition the career is in.
    * @param series Which championship

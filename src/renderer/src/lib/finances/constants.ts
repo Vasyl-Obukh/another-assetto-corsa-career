@@ -5,7 +5,8 @@ import type { LedgerKind } from '../../../../shared/types';
  * career, then what it paid.
  */
 export const BREAKDOWN: readonly LedgerKind[] = [
-  'race', 'standings', 'historic', 'sale', 'fee', 'rent', 'purchase', 'repaint',
+  'race', 'standings', 'historic', 'salary', 'bonus', 'sale', 'refund',
+  'fee', 'rent', 'seat', 'fine', 'release', 'purchase', 'repaint',
 ];
 
 /**
@@ -22,3 +23,9 @@ export const ROUND_COST_KINDS: readonly LedgerKind[] = ['fee', 'rent'];
  * The kinds of line the garage moved: a car bought, sold or repainted.
  */
 export const CAR_KINDS: readonly LedgerKind[] = ['purchase', 'sale', 'repaint'];
+
+/**
+ * The kinds of line a team's contract moved: what it paid, what was paid for
+ * its seat, and what it fined or charged.
+ */
+export const CONTRACT_KINDS: readonly LedgerKind[] = ['salary', 'bonus', 'seat', 'refund', 'fine', 'release'];

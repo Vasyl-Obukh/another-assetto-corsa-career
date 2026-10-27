@@ -6,7 +6,7 @@ import type { SkippedRound } from '../../../../shared/types';
 import { HistoricChip } from '../HistoricChip.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { disciplineDot } from '@/lib/accents';
+import { disciplineDot, LEDGER_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
@@ -24,7 +24,7 @@ interface SkipRowProps {
 
 export const SkipRow = ({ round, named }: SkipRowProps) => {
   const { t } = useTranslation();
-  const { formatDayShort } = useFormat();
+  const { formatDayShort, formatMoney } = useFormat();
   const title = t('skip.round', { number: round.number, name: round.roundName });
 
   return (
@@ -59,6 +59,10 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
           >
             {t('skip.answer')}
           </Link>
+        ) : null}
+        {/* What its contract fines it, in the fine's own red. */}
+        {round.fine ? (
+          <Badge className={LEDGER_ACCENT.fine}>{t('skip.fine', { amount: formatMoney(round.fine) })}</Badge>
         ) : null}
         <Badge className={SKIP_ACCENT[round.reason]}>{t(`skip.reason.${round.reason}`)}</Badge>
       </span>

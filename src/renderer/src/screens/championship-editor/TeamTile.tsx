@@ -4,15 +4,12 @@ import { useRef } from 'react';
 
 import { RowActions } from './RowActions.tsx';
 import type { Team } from '../../../../shared/types';
-import { NationFlag } from '@/components';
-import { Badge } from '@/components/ui/badge.tsx';
+import { BudgetBadge, NationFlag } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import type { RowDrag } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
-import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
-import { TEAM_BUDGET_LABEL } from '@/screens/championships';
 
 interface TeamTileProps {
   /**
@@ -142,11 +139,7 @@ export const TeamTile = ({
       </div>
 
       <div className="flex min-w-0 items-center gap-2 pl-8 text-xs text-muted-foreground">
-        {team.budget === undefined ? null : (
-          <Badge className={cn('shrink-0', TEAM_BUDGET_ACCENT[team.budget])}>
-            {t(TEAM_BUDGET_LABEL[team.budget])}
-          </Badge>
-        )}
+        {team.budget === undefined ? null : <BudgetBadge budget={team.budget} className="shrink-0" />}
         <span className="truncate">{fields}</span>
       </div>
     </div>

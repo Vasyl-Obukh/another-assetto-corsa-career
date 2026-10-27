@@ -190,6 +190,10 @@ export type {
 } from './inbox.ts';
 
 export type {
+  Contract, ContractBonus, ContractPay, ContractTerms, OfferPick, SeatOffer,
+} from './contract.ts';
+
+export type {
   ClassStandings,
   DriverStanding,
   RacePlace,

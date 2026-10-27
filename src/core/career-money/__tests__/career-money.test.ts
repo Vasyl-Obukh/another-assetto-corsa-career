@@ -1,9 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  CUP, makeCareer, makeEntry, makeEvent, makePlace, makeRace, makeSeason, makeStanding,
+  CUP, makeCareer, makeContract, makeEntry, makeEvent, makeOffer, makePlace, makeRace, makeSeason, makeStanding,
 } from './fixtures.ts';
-import type { Career, OwnedCar, SeasonEntry } from '../../../shared/types/index.ts';
+import type {
+  Career, Contract, OwnedCar, SeasonEntry, SeasonEvent,
+} from '../../../shared/types/index.ts';
 import {
   feeLine,
   feeOf,
@@ -14,11 +16,15 @@ import {
   payOut,
   post,
   purchaseLine,
+  refundLine,
+  releaseLine,
   rentLine,
   rentOwed,
   rentPaid,
   repaintLine,
+  salaryPaid,
   saleLine,
+  seatLine,
   speedLine,
 } from '../career-money.ts';
 
@@ -74,6 +80,24 @@ describe('core/career-money', () => {
 
       expect(feeOf(makeEntry({ historic: true, car: { model: 'test_car', source: 'rented' } }), event)).toBe(1500);
       expect(feeOf(makeEntry({ historic: true, car: { model: 'test_car', source: 'owned' } }), event)).toBe(1500);
+    });
+
+    it('costs nothing under a contract whose team covers every fee', () => {
+      const event = makeEvent('one', '2027-03-07', undefined, { entryFee: 1500 });
+
+      expect(feeOf(makeEntry({ contract: makeContract() }), event)).toBeNull();
+    });
+
+    it('charges the half a contract covering half of each fee leaves the player', () => {
+      const event = makeEvent('one', '2027-03-07', undefined, { entryFee: 1500 });
+
+      expect(feeOf(makeEntry({ contract: makeContract({ feeCover: 0.5 }) }), event)).toBe(750);
+    });
+
+    it('charges the whole fee once the contract is terminated', () => {
+      const event = makeEvent('one', '2027-03-07', undefined, { entryFee: 1500 });
+
+      expect(feeOf(makeEntry({ contract: makeContract({ ended: '2027-02-01' }) }), event)).toBe(1500);
     });
   });
 
@@ -275,6 +299,83 @@ describe('core/career-money', () => {
     });
   });
 
+  describe('salaryPaid', () => {
+    it("is paid once the round's salary is on the ledger", () => {
+      const event = makeEvent('one', '2027-03-07');
+      const line = { ...openingLine('2027-03-07', 5000), key: `salary:${event.raceId}` };
+
+      expect(salaryPaid(makeCareer(), event)).toBe(false);
+      expect(salaryPaid(makeCareer({ ledger: [line] }), event)).toBe(true);
+    });
+
+    it("is not paid by the round's entry fee", () => {
+      const event = makeEvent('one', '2027-03-07');
+      const line = { ...openingLine('2027-03-07', -1500), key: `fee:${event.raceId}` };
+
+      expect(salaryPaid(makeCareer({ ledger: [line] }), event)).toBe(false);
+    });
+  });
+
+  describe('seatLine', () => {
+    it("takes the seat's price out on the day, keyed by the offer and naming the team", () => {
+      const career = makeCareer({ date: '2027-01-15' });
+
+      expect(seatLine(career, 'offer:test-cup:0.0', makeOffer())).toEqual({
+        key: 'seat:offer:test-cup:0.0',
+        kind: 'seat',
+        date: '2027-01-15',
+        season: 0,
+        amount: -8000,
+        series: 'test-cup',
+        seriesName: 'Test Cup',
+        edition: 0,
+        team: 'Test Racing',
+      });
+    });
+  });
+
+  describe('releaseLine', () => {
+    it('takes the release fee out on the day, saying how many rounds were left', () => {
+      const career = makeCareer({ date: '2027-04-01' });
+      const contract = makeContract();
+      const entry = makeEntry({ contract, edition: 1 });
+
+      expect(releaseLine(career, makeSeason([entry]), entry, contract, 1500, 2)).toEqual({
+        key: 'release:offer:test-cup:0.0',
+        kind: 'release',
+        date: '2027-04-01',
+        season: 0,
+        amount: -1500,
+        place: 2,
+        series: 'test-cup',
+        seriesName: 'Test Cup',
+        edition: 1,
+        team: 'Test Racing',
+      });
+    });
+  });
+
+  describe('refundLine', () => {
+    it('pays part of the seat back on the day, saying how many rounds were left', () => {
+      const career = makeCareer({ date: '2027-04-01' });
+      const contract = makeContract({ pay: 'seat', amount: 8000 });
+      const entry = makeEntry({ contract });
+
+      expect(refundLine(career, makeSeason([entry]), entry, contract, 2000, 1)).toEqual({
+        key: 'refund:offer:test-cup:0.0',
+        kind: 'refund',
+        date: '2027-04-01',
+        season: 0,
+        amount: 2000,
+        place: 1,
+        series: 'test-cup',
+        seriesName: 'Test Cup',
+        edition: 0,
+        team: 'Test Racing',
+      });
+    });
+  });
+
   describe('openingLine', () => {
     it('opens the ledger on the money the career starts with', () => {
       expect(openingLine('2027-01-01', 50_000)).toEqual({
@@ -428,6 +529,166 @@ describe('core/career-money', () => {
 
     it('pays nothing in a standalone championship', () => {
       expect(owedPrizes(careerIn(finished(), { kind: 'championship', date: '2027-07-01' }))).toEqual([]);
+    });
+
+    describe('under a contract', () => {
+      /**
+       * The cup's entry under a contract, round one raced and won and round
+       * two still to come.
+       * @param over Whatever the test wants said differently of the contract
+       * @returns The entry
+       */
+      const signedTo = (over: Partial<Contract> = {}): SeasonEntry => makeEntry({
+        contract: makeContract(over),
+        events: [makeEvent('one', '2027-03-07', [makeRace(1, [makePlace(1)])]), makeEvent('two', '2027-06-06')],
+      });
+
+      /**
+       * The cup's entry under a contract, round one given up and round two
+       * still to come, each with a fee.
+       * @param over Whatever the test wants said differently of the contract
+       * @param event Whatever the test wants said differently of the round given up
+       * @returns The entry
+       */
+      const missedUnder = (over: Partial<Contract> = {}, event: Partial<SeasonEvent> = {}): SeasonEntry => makeEntry({
+        contract: makeContract(over),
+        events: [
+          makeEvent('one', '2027-03-07', undefined, { status: 'missed', entryFee: 1500, ...event }),
+          makeEvent('two', '2027-06-06', undefined, { entryFee: 1500 }),
+        ],
+      });
+
+      it("pays each round raced its share of the salary, beside the player's share of the purse", () => {
+        const career = careerIn(signedTo({ pay: 'salary', amount: 10_000, prizeShare: 25 }), { date: '2027-04-01' });
+
+        expect(owedPrizes(career)).toEqual([
+          {
+            key: 'salary:test-cup/one@0.0',
+            kind: 'salary',
+            date: '2027-03-07',
+            amount: 5000,
+            team: 'Test Racing',
+            season: 0,
+            series: 'test-cup',
+            seriesName: 'Test Cup',
+            edition: 0,
+            round: 'one',
+            roundName: 'Round one',
+            number: 1,
+          },
+          expect.objectContaining({
+            key: 'race:test-cup/one@0.0:1',
+            kind: 'race',
+            amount: 250,
+            share: { percent: 25, purse: 1000 },
+            team: 'Test Racing',
+          }),
+        ]);
+      });
+
+      it('pays no salary under a contract that pays none', () => {
+        const career = careerIn(signedTo(), { date: '2027-04-01' });
+
+        expect(owedPrizes(career).map((line) => line.kind)).toEqual(['race']);
+      });
+
+      it('pays no salary twice', () => {
+        const career = careerIn(signedTo({ pay: 'salary', amount: 10_000 }), { date: '2027-04-01' });
+
+        expect(owedPrizes(post(career, owedPrizes(career)))).toEqual([]);
+      });
+
+      it("pays the whole purse, saying no share, when every purse is the player's", () => {
+        const career = careerIn(signedTo({ pay: 'seat', amount: 8000, prizeShare: 100 }), { date: '2027-04-01' });
+        const [line] = owedPrizes(career);
+
+        expect(line.amount).toBe(1000);
+        expect(line).not.toHaveProperty('share');
+      });
+
+      it('fines a round given up its entry fee, which the team paid for an empty seat', () => {
+        const career = careerIn(missedUnder(), { date: '2027-04-01' });
+
+        expect(owedPrizes(career)).toEqual([expect.objectContaining({
+          key: 'fine:test-cup/one@0.0', kind: 'fine', date: '2027-03-07', amount: -1500, team: 'Test Racing', number: 1,
+        })]);
+      });
+
+      it('fines no round already behind the clock as the contract was signed', () => {
+        const career = careerIn(missedUnder({ signed: '2027-04-01' }), { date: '2027-04-01' });
+
+        expect(owedPrizes(career)).toEqual([]);
+      });
+
+      it('fines no paid seat, no round the install could not race and none after the contract ended', () => {
+        const unfined = [
+          missedUnder({ pay: 'seat', amount: 8000 }),
+          missedUnder({}, { unraceable: true }),
+          missedUnder({ ended: '2027-03-01' }),
+        ];
+
+        expect(unfined.flatMap((entry) => owedPrizes(careerIn(entry, { date: '2027-04-01' })))).toEqual([]);
+      });
+
+      it('fines nothing twice', () => {
+        const career = careerIn(missedUnder(), { date: '2027-04-01' });
+
+        expect(owedPrizes(post(career, owedPrizes(career)))).toEqual([]);
+      });
+
+      it("pays the player's share of the final standing", () => {
+        const career = careerIn(finished({ contract: makeContract() }), { date: '2027-07-01' });
+
+        expect(owedPrizes(career).at(-1)).toEqual({
+          key: 'standings:0:test-cup:0',
+          kind: 'standings',
+          date: '2027-06-06',
+          season: 0,
+          amount: 2000,
+          share: { percent: 50, purse: 4000 },
+          team: 'Test Racing',
+          series: 'test-cup',
+          seriesName: 'Test Cup',
+          edition: 0,
+          place: 3,
+        });
+      });
+
+      it('pays the standings bonus the final place earns once the edition has run its course', () => {
+        const contract = makeContract({ bonus: [{ upTo: 1, amount: 5000 }, { upTo: 3, amount: 2000 }] });
+        const career = careerIn(finished({ contract }), { date: '2027-07-01' });
+
+        expect(owedPrizes(career).at(-1)).toEqual({
+          key: 'bonus:0:test-cup:0',
+          kind: 'bonus',
+          date: '2027-06-06',
+          season: 0,
+          amount: 2000,
+          team: 'Test Racing',
+          series: 'test-cup',
+          seriesName: 'Test Cup',
+          edition: 0,
+          place: 3,
+        });
+      });
+
+      it('pays no bonus while a round is still to run, nor for a place it does not reach', () => {
+        const early = finished({
+          contract: makeContract({ bonus: [{ upTo: 3, amount: 2000 }] }),
+          events: [makeEvent('one', '2027-03-07', [makeRace(1, [makePlace(1)])]), makeEvent('two', '2027-06-06')],
+        });
+        const third = finished({ contract: makeContract({ bonus: [{ upTo: 1, amount: 5000 }] }) });
+
+        expect(owedPrizes(careerIn(early, { date: '2027-04-01' })).map((line) => line.kind)).not.toContain('bonus');
+        expect(owedPrizes(careerIn(third, { date: '2027-07-01' })).map((line) => line.kind)).not.toContain('bonus');
+      });
+
+      it('pays no bonus twice', () => {
+        const contract = makeContract({ bonus: [{ upTo: 3, amount: 2000 }] });
+        const career = careerIn(finished({ contract }), { date: '2027-07-01' });
+
+        expect(owedPrizes(post(career, owedPrizes(career)))).toEqual([]);
+      });
     });
   });
 

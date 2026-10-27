@@ -3016,38 +3016,104 @@ on it. Designed in `mockups/inbox.html`, agreed on 2026-10-25.
 
 ## Phase 9 - Contracts, teams and the market
 
-- [ ] Contract model: pay driver, free, salary, prize share, standings bonus
-- [ ] Entry fee coverage: full, partial, none
-- [ ] Car source per seat: team-supplied, owned, rented
-- [ ] **Exclusivity**: forbidden, permission required, or free to race elsewhere
-- [ ] Offer generation driven by rating, discipline level and experience
-- [ ] Offer deadlines and a decision window
-- [ ] Contract expiry and renewal
-- [ ] Buying a seat as a pay driver
-- [ ] **A way back from bankruptcy.** A career with no car, less money than
-      the cheapest round and historic events switched off can never launch
-      anything again - an invited historic event charges neither fee nor rent,
-      so they are the only way out today. Free and salaried seats with their
-      fees covered are the natural answer, as in Zero to Apex
-- [ ] **How you are entered decides your car and your rounds.** Season end
-      deliberately left this alone: a new season opens empty, `openSeason` is
-      where a contract running into the next year will enter its championship,
-      and re-entering goes through the championship page's own Enter panel. Undecided, and
-      the user's own framing: under a contract the team supplies the car and
-      you race the whole championship, with a fine for a missed round; as a pay
-      driver you enter only the rounds you choose, in a car you own or rent.
-      Today every entry is the first kind without the fine - one car, set for
-      the season, chosen on entering. The season model already has room for
-      the second: a pay driver's season would carry a car per event and rounds
-      marked not entered, over the same copy of the championship
-- [ ] Team budgets shaping offers
-- [ ] **Which seat the player takes comes from their contract.** Today it is
-      always the last seat of the class they enter, which is what the driver it
-      names gives up - and who stands in for the player in a round they miss.
-      A contract with a team should name the seat instead, and with it which
-      driver the player replaces. A historic event's invitation names a seat
-      already, and gets there by moving that seat to the end of its class in
-      the season's copy; a real seat in the lowering would replace that trick
+Designed in `mockups/contracts.html`, every decision agreed on 2026-10-26, and
+the offers' volume and grouping reworked in `mockups/offer-groups.html` on
+2026-10-27. In two slices: the first is the whole loop from an offer arriving to a season's
+last round, the second what only matters once contracts exist.
+
+### Slice 1 - Seats and contracts
+
+- [x] **Contract model: a basis and extras.** The basis is a salary, a free
+      seat or a seat the player pays for; a prize share and a standings bonus
+      on the player's final class place are terms any contract may carry. One
+      season of one championship's edition. Kept on the career as
+      `CareerState.contracts`, a season entry raced under one naming it
+- [x] **Prize money under contract is the team's, less the player's share** -
+      0-100%, posted as the share alone, saying what the whole purse was.
+      Racing on your own keeps every dollar
+- [x] **Team budgets shaping offers**: each offer's terms are drawn inside its
+      budget's ranges. Works teams pay a salary and 20-30% of prizes, often
+      with a standings bonus; independents give a free seat, fees covered in
+      full or half, 40-60%; privateers sell the seat and leave every prize to
+      the player. Amounts scale off the class's own fee and purse; a salary
+      follows the prize speed, a seat's price does not
+- [x] **Entry fee coverage: full or half.** A fee the team covers moves no
+      money and is no line on the ledger
+- [x] **Car source per seat: always the team's under contract**, in the seat's
+      own livery. The garage stays for racing on your own and historic events
+- [x] **Offer generation driven by rating, level and experience**, only from
+      classes the ladder already opens - never a rung above:
+      - works teams: the top half of the rung and a full edition finished at it,
+        15% rising to 45% across that half; 5% short of either
+      - independents: from a quarter of the way into the rung, 25% to 50%; 5%
+        in the bottom quarter
+      - privateers: anyone, 50%
+      - a rung below, while the player is in the bottom half of their own rung:
+        works 45%, independent 50%, privateer 30%; from halfway up, none
+      **How many seats a class has going is drawn first** - 0 to 3 in a
+      single-class championship (30/35/25/10%), 0 to 2 in each class of a
+      multi-class one (40/40/20%) - then every team draws once at its chance,
+      and the best funded of those that call fill them, a seeded draw between
+      two of one budget. Seeded on the career and the edition
+- [x] **Offer deadlines and a decision window**: offers arrive eight weeks
+      before an edition's opener as mail of a new kind, with a fortnight to
+      answer; a new career or year gets every offer already due at once.
+      **One mail per edition holds all of its offers**, across its classes;
+      accepting one declines the rest, and Decline all declines the mail. **Contracts never
+      exclude each other** - one in a championship stops no offer in another,
+      and several may run at once
+- [x] **Paying it**: the salary a round at a time, once the round's last race
+      finishes, and nothing for a round not raced; race prizes still land race
+      by race. A paid seat is paid in full on signing, refused when short
+- [x] **A round not raced under contract** pays no salary and costs a fine of
+      its entry fee, listed by `SkipDialog` before moving on. A pay driver is
+      never fined, and neither is a round that cannot be raced with what is
+      installed
+- [x] **Which seat the player takes comes from their contract**: the team's
+      slower driver's - the lower season strength of its two, seeded on a tie -
+      who stands in for any round the player misses. **Never shown as anyone's
+      seat**: to the player it is the team's car
+- [x] **Terminate contract**, in place of Withdraw: a release fee of a quarter
+      of the fine for each round left, never less than one whole fine, and no
+      more salary. A pay driver pays none and gets back half of what the rounds
+      left were worth: the seat x rounds left / rounds x 0.5
+- [x] **How you are entered decides your car and your rounds.** Through a
+      team: its car, every round, fined for missing one. On your own - open in
+      every championship, as today through its Enter panel: your car, owned or
+      rented, every fee yours, every prize yours, a skipped round free. Entering
+      on your own before offers go out means none come for that edition, and
+      declines any waiting
+- [x] **On your own you race for a team drawn for you**: one of the class's
+      teams with two or more cars, drawn per edition and seeded on the career,
+      so the Enter panel names it first. The player takes its slower driver's
+      seat, and that driver stands in for a round the player misses. A team of
+      the player's own was weighed and dropped: its points would be theirs
+      alone, and a second car means a driver and a car to pay for
+- [x] **A way back from bankruptcy**: whenever offers go out and the player can
+      afford no round and owns no car to race, one team at the lowest rung open
+      to them offers a free seat with its fees covered
+- [x] **No championship is free to enter**: Formula 1, every season, and IROC
+      1974 charge a quarter of their race winner's prize a round, as the rest of
+      the top rung roughly does
+- [x] **Screens**: an edition's seat offers in the inbox side by side - a
+      column per team and a row per term, with Before prizes and a last column
+      for racing it on your own, one table per class - under a strip opening
+      the championship's page; once signed, the signed column tinted and the
+      rest muted. Seats on offer heading a championship's sidebar, and the
+      contract in place of its Enter panel; who pays the fee and the round's
+      salary on a round's page; a banner on Home counting the championships
+      with offers waiting, and a contract's team chip on its championship row; Salary, Standings bonus, Seat bought, Seat
+      refund, Fine and Release fee as ledger lines of their own, the contract's
+      in a violet of their own and the fine in red
+- [x] **Budget chips explain themselves** in a tooltip, wherever a team's
+      budget shows
+- [x] **A historic invitation names the team alone**, never whose seat it is
+
+### Slice 2 - The market
+
+- [ ] Contract expiry and renewal - contracts over more than a season
+- [ ] Buying a seat as a pay driver - asking a team yourself
+- [ ] A Contracts page, once there is a history of them
 
 ## Phase 10 - Sponsors
 
@@ -3065,7 +3131,8 @@ Design to be settled before building - see Open questions.
 The message model, the screen and event invitations moved ahead of Phase 9 as
 *Phase 11a - Inbox base*. What is left builds on it.
 
-- [ ] Seat and sponsor offers with accept/decline and deadlines
+- [ ] Sponsor offers with accept/decline and deadlines - seat offers are
+      Phase 9's
 - [ ] Session, race and championship results from engineer and team owner
 - [ ] Contract and market news
 - [ ] Earlier phases emit events into this bus as they land

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import { useFormat } from '@/i18n';
 
 interface SkipDialogProps {
   /**
@@ -59,8 +60,11 @@ export const SkipDialog = ({
   open, title, description, rounds, note, confirmLabel, busy, onConfirm, onClose,
 }: SkipDialogProps) => {
   const { t } = useTranslation();
-  // Only a career has money that skipping might be thought to cost.
+  const { formatMoney } = useFormat();
+  // Only a career has money that skipping might be thought to cost - and under
+  // a contract it does.
   const inCareer = useSlot().mode === 'career';
+  const fines = rounds.reduce((sum, round) => sum + (round.fine ?? 0), 0);
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
@@ -99,7 +103,7 @@ export const SkipDialog = ({
         {inCareer ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <WalletIcon className="size-4 shrink-0" />
-            {t('skip.free')}
+            {fines > 0 ? t('skip.fines', { amount: formatMoney(fines) }) : t('skip.free')}
           </p>
         ) : null}
 

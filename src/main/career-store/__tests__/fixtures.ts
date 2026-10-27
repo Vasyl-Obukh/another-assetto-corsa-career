@@ -19,7 +19,6 @@ import type {
   SeasonEvent,
   SeriesAvailability,
   SeriesListing,
-  SeriesRequirements,
   SessionDefinition,
 } from '../../../shared/types/index.ts';
 import { CAREER_VERSION } from '../constants.ts';
@@ -210,8 +209,12 @@ export const makeAvailability = (
     entries: [],
     races: [{ name: 'Race', laps: 10 }],
   })),
-  // Nothing here reads what a championship needs of the content catalogue.
-  requires: {} as SeriesRequirements,
+  // Needing nothing, so no content source switched off ever hides it.
+  requires: {
+    sources: [], packs: [], makers: [], distributors: [], pools: [],
+    rounds: { packs: [], makers: [], distributors: [] },
+    widenedBy: { packs: [], makers: [], distributors: [] },
+  },
   ...over,
 });
 

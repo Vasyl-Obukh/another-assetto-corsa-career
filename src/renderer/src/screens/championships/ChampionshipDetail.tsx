@@ -7,19 +7,23 @@ import {
 } from 'react-router';
 
 import { ClassRow } from './ClassRow.tsx';
-import { DETAIL_TABS, UNDERLINE_TAB } from './constants.ts';
+import { CONTRACT_NOTE, DETAIL_TABS, UNDERLINE_TAB } from './constants.ts';
+import { ContractCard } from './ContractCard.tsx';
 import { DetailSkeleton } from './DetailSkeleton.tsx';
 import { DetailSummary } from './DetailSummary.tsx';
 import { EditionSwitcher } from './EditionSwitcher.tsx';
 import { EnterChampionship } from './EnterChampionship.tsx';
+import { OfferNote } from './OfferNote.tsx';
 import { RoundTable } from './RoundTable.tsx';
 import { SeasonRules } from './SeasonRules.tsx';
 import { SeasonStrength } from './SeasonStrength.tsx';
 import { SeasonSummary } from './SeasonSummary.tsx';
+import { SeatOfferList } from './SeatOfferList.tsx';
 import { StandaloneBanner } from './StandaloneBanner.tsx';
 import { StandingsSection } from './StandingsSection.tsx';
 import type { DetailTab, NextRound } from './types.ts';
-import { enterHintOf, entryAvailability, shownRun } from './utils.ts';
+import { editionOffers, enterHintOf, entryAvailability, shownRun } from './utils.ts';
+import { activeContract, offerDay } from '../../../../shared/utils/contracts';
 import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/editions';
 import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { seatRaceableIn } from '../../../../shared/utils/round-availability';
@@ -170,6 +174,18 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
     () => (results.results && !manage ? seasonResults(results.results) : null),
     [results.results, manage],
   );
+  // The contract an edition entered is raced under, and the seats teams offer in
+  // one not entered yet - and when they go out, while they have not.
+  const contract = !manage && entered && !entered.withdrawn ? activeContract(entered) : null;
+  const offers = !manage && !entered && career.career && season && edition !== undefined
+    ? editionOffers(career.career, season.index, id, edition)
+    : null;
+  const waiting = offers?.offers?.length ?? 0;
+  const offersDay = !manage && !entered && next?.number === 1 && career.career?.kind === 'career'
+    && season && edition !== undefined && !season.offersDrawn?.includes(`${id}:${edition}`)
+    && clock !== undefined && offerDay(next.date) > clock
+    ? offerDay(next.date)
+    : null;
   const mine = table?.classes.find((one) => one.entry === results.results?.playerEntry) ?? table?.classes[0];
   const player = mine?.drivers.find((row) => row.player);
   const mixed = new Set(listing?.series.entries.map((one) => one.ladder.discipline)).size > 1;
@@ -236,10 +252,29 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
                 </Link>
               </Button>
             ) : null}
-            {/* Entering comes before anything else this page offers: the
-                round page's own panel, set at the round entering starts from. */}
+            {contract && entered && season && career.career ? (
+              <ContractCard
+                career={career.career}
+                season={season}
+                entry={entered}
+                contract={contract}
+                live={live && entered.events.some((one) => one.status === 'scheduled')}
+                busy={career.busy}
+                onTerminate={() => { void career.terminate(id, entered.entry, entered.edition); }}
+              />
+            ) : null}
+            {/* Teams' seats come first, read beside racing it on the player's
+                own - which the round page's own panel enters, set at the round
+                entering starts from. */}
+            {offers ? <SeatOfferList mail={offers} /> : null}
             {!manage && !entered && next ? (
-              <EnterChampionship series={id} round={next.round.id} edition={edition} hint={hint} />
+              <EnterChampionship
+                series={id}
+                round={next.round.id}
+                edition={edition}
+                hint={hint}
+                note={waiting > 0 || offersDay ? <OfferNote waiting={waiting} day={offersDay} /> : null}
+              />
             ) : null}
             {adjustable && entered ? (
               <SeasonStrength
@@ -298,7 +333,12 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
               ))}
             </TabsList>
 
-            <TabsContent value="rounds">
+            <TabsContent value="rounds" className="flex flex-col gap-3">
+              {contract ? (
+                <p className="rounded-md border-l-3 border-contract-foreground bg-contract/30 px-3 py-2 text-sm text-muted-foreground">
+                  {t(CONTRACT_NOTE[contract.pay])}
+                </p>
+              ) : null}
               <RoundTable
                 listing={listing}
                 entered={entered}

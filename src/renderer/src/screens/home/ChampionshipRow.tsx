@@ -1,10 +1,11 @@
+import { BriefcaseIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import type { SeasonProgress } from './types.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
-import { disciplineDot, ROUND_MARK } from '@/lib/accents';
+import { CONTRACT_ACCENT, disciplineDot, ROUND_MARK } from '@/lib/accents';
 import { editionName } from '@/lib/edition-names';
 import { linkRun, path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
@@ -49,6 +50,14 @@ export const ChampionshipRow = ({ progress }: ChampionshipRowProps) => {
           {progress.editions > 1 ? (
             <Badge variant="secondary" className="shrink-0">
               {editionName({ year: progress.year, edition: progress.edition, editions: progress.editions }, t)}
+            </Badge>
+          ) : null}
+          {/* The team a contract races it for, and nothing more: what it pays
+              is the championship page's to say. */}
+          {progress.team ? (
+            <Badge className={cn('shrink-0 gap-1', CONTRACT_ACCENT)}>
+              <BriefcaseIcon />
+              {progress.team}
             </Badge>
           ) : null}
           {progress.className ? (

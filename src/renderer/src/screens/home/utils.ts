@@ -4,6 +4,7 @@ import type {
   CalendarEntry, Career, CareerCalendar, CareerSeason, SeasonEntry,
 } from '../../../../shared/types';
 import { addDays } from '../../../../shared/utils/calendar-days';
+import { activeContract } from '../../../../shared/utils/contracts';
 import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/editions';
 import { championshipEntries } from '../../../../shared/utils/historic';
 import type { EditionSummary, HistoricRow } from '@/lib/season-review';
@@ -70,6 +71,7 @@ export const seasonProgress = (career: Career, calendar: CareerCalendar): Season
       entry: entry.entry,
       name: entry.championship.name,
       className: entry.championship.entries.length > 1 ? held?.name ?? null : null,
+      team: activeContract(entry)?.teamName ?? null,
       ladder: held?.ladder ?? null,
       marks: entry.events.map((event, at): RoundMark => {
         if (event.status === 'raced') return 'raced';

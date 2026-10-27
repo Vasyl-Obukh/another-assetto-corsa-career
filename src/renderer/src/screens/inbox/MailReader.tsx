@@ -76,9 +76,7 @@ export const MailReader = ({
   // The layout's own name, once the install has said it - the letter reads
   // without one until then, or for a track no longer installed.
   const track = useInstalledTrack(round?.track ?? null)?.name ?? null;
-  let offerKey: 'inbox.letter.offer' | 'inbox.letter.offerAt' | 'inbox.letter.offerSeat' | 'inbox.letter.offerSeatAt';
-  if (item.seat?.driver?.name) offerKey = track ? 'inbox.letter.offerAt' : 'inbox.letter.offer';
-  else offerKey = track ? 'inbox.letter.offerSeatAt' : 'inbox.letter.offerSeat';
+  const offerKey = track ? 'inbox.letter.offerSeatAt' : 'inbox.letter.offerSeat';
   const format = item.event && round ? formatOf(item.event, round) : null;
   const [winner] = item.event && entry ? prizeTable(item.event, entry.id, 'positions') : [];
   // Another event of the career's on the same day, which accepting would put
@@ -143,7 +141,7 @@ export const MailReader = ({
             <p>{t('inbox.letter.greeting', { name: career.driver.name })}</p>
             <p>
               {t(offerKey, {
-                team, car, event: name, day, track: track ?? '', driver: item.seat?.driver?.name ?? '',
+                team, car, event: name, day, track: track ?? '',
               })}
             </p>
             <p>{t('inbox.letter.terms')}</p>

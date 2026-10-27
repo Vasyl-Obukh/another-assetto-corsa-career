@@ -17,7 +17,7 @@ export const PAGE_PARAM = 'page';
  * The folders down the rail that list mail by where it stands, in order, each
  * with its icon. The kinds of mail follow under a heading of their own.
  */
-export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation'>; icon: LucideIcon }[] = [
+export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | 'offer'>; icon: LucideIcon }[] = [
   { id: 'all', icon: InboxIcon },
   { id: 'unread', icon: MailWarningIcon },
   { id: 'awaiting', icon: ReplyIcon },
@@ -26,4 +26,24 @@ export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation'>; i
 /**
  * Every folder the inbox opens on, for reading one back out of its URL.
  */
-export const INBOX_FOLDERS: readonly InboxFolder[] = ['all', 'unread', 'awaiting', 'invitation'];
+export const INBOX_FOLDERS: readonly InboxFolder[] = ['all', 'unread', 'awaiting', 'invitation', 'offer'];
+
+/**
+ * How a cell of a seat offer's comparison is drawn: a term's value and the
+ * line under it, the column heads with their car, the signed column washed in
+ * the accepted green - the head a shade deeper - the row's best in a paler
+ * one, and racing on your own on the muted wash of something no team offers.
+ */
+export const COMPARE_COLUMN = {
+  cell: 'flex min-w-0 flex-col gap-0.5 border-t border-l px-3 py-2',
+  head: 'flex min-w-0 flex-col gap-1.5 border-l bg-muted/40 p-3',
+  signed: 'bg-mail-accepted/50',
+  signedHead: 'bg-mail-accepted/70',
+  best: 'bg-mail-accepted/40',
+  own: 'bg-muted/30',
+} as const;
+
+/**
+ * The label column of a seat offer's comparison.
+ */
+export const COMPARE_LABEL = 'border-t bg-muted/30 px-3 py-2 text-xs text-muted-foreground';

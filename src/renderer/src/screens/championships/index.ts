@@ -11,7 +11,7 @@ export { Championships } from './Championships.tsx';
 export { ChampionshipRail } from './ChampionshipRail.tsx';
 export {
   CARD_TITLE, CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, SEASON_GRID, SEASON_SKELETON, TABLE_HEADING,
-  TEAM_BUDGET_LABEL, UNDERLINE_TAB,
+  UNDERLINE_TAB,
 } from './constants.ts';
 export { championshipFilters } from './filters.ts';
 export { championshipPills } from './pills.ts';

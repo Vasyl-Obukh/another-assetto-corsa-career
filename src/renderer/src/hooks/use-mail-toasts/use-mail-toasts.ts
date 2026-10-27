@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import { useSlot, useToast } from '@/app';
-import { HISTORIC_ACCENT } from '@/lib/accents';
+import { CONTRACT_ACCENT, HISTORIC_ACCENT } from '@/lib/accents';
 import { inboxItem } from '@/lib/inbox';
 import { path } from '@/lib/routes';
 
@@ -39,15 +39,22 @@ export const useMailToasts = (): void => {
     const [first, second] = arrived;
     if (!first) return;
 
-    const eventOf = (item: typeof first): string => item.event?.name ?? item.mail.invitation?.series ?? '';
+    const eventOf = (item: typeof first): string => (
+      item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.invitation?.series ?? ''
+    );
     if (!second) {
+      const offer = first.offers[0];
+      let detail = t('inbox.toast.oneDetail', { team: first.team?.name ?? t('inbox.organisers'), event: eventOf(first) });
+      if (offer) {
+        detail = first.offers.length > 1
+          ? t('inbox.toast.offersDetail', { count: first.offers.length, series: offer.seriesName })
+          : t('inbox.toast.offerDetail', { team: offer.teamName, series: offer.seriesName });
+      }
       show({
         icon: MailIcon,
-        tone: HISTORIC_ACCENT,
+        tone: offer ? CONTRACT_ACCENT : HISTORIC_ACCENT,
         title: t('inbox.toast.one'),
-        detail: t('inbox.toast.oneDetail', {
-          team: first.team?.name ?? t('inbox.organisers'), event: eventOf(first),
-        }),
+        detail,
         action: { label: t('inbox.toast.read'), run: () => { void navigate(path.inbox(first.mail.id)); } },
       });
 
@@ -56,7 +63,7 @@ export const useMailToasts = (): void => {
 
     show({
       icon: MailIcon,
-      tone: HISTORIC_ACCENT,
+      tone: arrived.every((item) => item.offers.length > 0) ? CONTRACT_ACCENT : HISTORIC_ACCENT,
       title: t('inbox.toast.many', { count: arrived.length }),
       detail: arrived.length === 2
         ? t('inbox.toast.two', { first: eventOf(first), second: eventOf(second) })

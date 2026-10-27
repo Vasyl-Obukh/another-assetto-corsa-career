@@ -74,7 +74,6 @@ export const HistoricSeatPanel = ({
   const team = entered?.team ?? invitation.team;
   const ladder = entered?.ladder
     ?? historic.event.entries.find((one) => one.id === offer?.entry)?.ladder;
-  const driver = offer?.driver ?? null;
   const missed = view.status === 'missed';
   // Only before it has started, and only in the season being raced.
   const declinable = view.status === 'scheduled' && view.sessions.every((one) => one.record === null)
@@ -128,9 +127,9 @@ export const HistoricSeatPanel = ({
           {paid ? (
             <span className="text-xs text-muted-foreground">{t('invitation.entered', { class: entryName })}</span>
           ) : null}
-          {!paid && driver ? (
+          {!paid && offer ? (
             <span className="text-xs text-muted-foreground">
-              {t(missed ? 'historic.seat.racedBy' : 'historic.seat.inSeat', { driver })}
+              {t(missed ? 'historic.seat.racedBy' : 'historic.seat.inSeat')}
             </span>
           ) : null}
         </div>
@@ -188,7 +187,7 @@ export const HistoricSeatPanel = ({
           : t('historic.decline.title', { name: view.roundName })}
         description={paid
           ? t('invitation.withdrawBody', { class: entryName })
-          : t('historic.decline.body', { driver: driver ?? '' })}
+          : t('historic.decline.body')}
         confirmLabel={t(paid ? 'invitation.withdrawConfirm' : 'historic.decline.confirm')}
         onClose={() => setDeclining(false)}
         onConfirm={() => {

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type { EnterHint } from './types.ts';
 import type { CareerEventView } from '../../../../shared/types';
 import { useCarDetail } from '@/hooks';
@@ -17,6 +19,10 @@ interface EnterWithHintProps {
    */
   busy: boolean;
   /**
+   * What the page says about entering before Enter is pressed.
+   */
+  note?: ReactNode;
+  /**
    * Called with the class, car and livery chosen.
    * @param entry The class entry's id
    * @param car The car and livery to race all season
@@ -31,7 +37,7 @@ interface EnterWithHintProps {
  * player to pick again.
  */
 export const EnterWithHint = ({
-  view, hint, busy, onEnter,
+  view, hint, busy, note, onEnter,
 }: EnterWithHintProps) => {
   const detail = useCarDetail(hint.car.model);
 
@@ -50,6 +56,7 @@ export const EnterWithHint = ({
         car,
         skin: car?.skins.find((one) => one.id === hint.car.skin) ?? null,
       }}
+      note={note}
       onEnter={onEnter}
     />
   );

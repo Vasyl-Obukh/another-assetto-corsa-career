@@ -5,7 +5,7 @@ import type {
   AvailabilityState, ContentList, DetailTab, StandingsLayout,
 } from './types.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
-import type { Discipline, SessionType, TeamBudget } from '../../../../shared/types';
+import type { ContractPay, Discipline, SessionType } from '../../../../shared/types';
 import type { SortItem } from '@/components';
 import type { badgeVariants } from '@/components/ui/badge.tsx';
 import type { ChampionshipSortKey } from '@/hooks';
@@ -97,18 +97,6 @@ export const RUNG_EDGE = {
   touring: 'border-l-discipline-touring-foreground',
   road: 'border-l-discipline-road-foreground',
 } as const satisfies Record<Discipline, string>;
-
-/**
- * The label for each budget.
- *
- * A record over the enum rather than a lookup by string, so adding a budget
- * fails to compile until it has been named.
- */
-export const TEAM_BUDGET_LABEL = {
-  works: 'editor.teams.budget.works',
-  independent: 'editor.teams.budget.independent',
-  privateer: 'editor.teams.budget.privateer',
-} as const satisfies Record<TeamBudget, ParseKeys>;
 
 /**
  * How many of a class's cars its row pictures before the row is opened: one
@@ -256,3 +244,14 @@ export const TABLE_HEADING = 'px-2.5 py-2 text-left text-xs font-semibold tracki
  */
 export const GLASS_BUTTON = 'border-on-scrim/25 bg-on-scrim/10 text-on-scrim backdrop-blur-sm hover:bg-on-scrim/20 '
   + 'hover:text-on-scrim dark:border-on-scrim/25 dark:bg-on-scrim/10 dark:hover:bg-on-scrim/20';
+
+/**
+ * What a championship raced under contract says of every round above its
+ * rounds, by what the contract pays on: a salary forfeits its pay and is
+ * fined, a free seat is fined, a paid seat is neither.
+ */
+export const CONTRACT_NOTE = {
+  salary: 'championships.contract.note',
+  free: 'championships.contract.noteFree',
+  seat: 'championships.contract.notePaid',
+} as const satisfies Record<ContractPay, ParseKeys>;

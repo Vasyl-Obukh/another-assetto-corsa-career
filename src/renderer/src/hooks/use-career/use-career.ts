@@ -96,6 +96,7 @@ export const useCareer = (): CareerState => {
     dismissError: () => setError(null),
     enrol: (series, entry, car) => run(() => invoke('career:enrol', { series, entry, car })),
     withdraw: (series, entry) => run(() => invoke('career:withdraw', { series, entry })),
+    terminate: (series, entry, edition) => run(() => invoke('career:withdraw', { series, entry, edition })),
     // Shown at once and kept behind it, never holding the buttons, so a step can
     // be typed or clicked through; only the last answer is taken, holding them all.
     setStrength: (series, edition, strength) => {

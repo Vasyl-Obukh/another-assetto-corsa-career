@@ -159,6 +159,7 @@ describe('renderer/screens/home/utils', () => {
         entry: 'main',
         name: 'Sunday Cup',
         className: null,
+        team: null,
         ladder: { discipline: Discipline.TOURING, tier: 4 },
         marks: ['raced', 'next', 'later'],
         position: 2,
@@ -223,6 +224,19 @@ describe('renderer/screens/home/utils', () => {
       const [career, calendar] = careerWith(entered(), entered({ series: 'gone', withdrawn: true }));
 
       expect(seasonProgress(career, calendar).map((one) => one.series)).toEqual(['cup']);
+    });
+
+    it('names the team a championship is raced for while its contract stands', () => {
+      const contract = { teamName: 'Alpha Racing', signed: '2026-01-10' } as SeasonEntry['contract'];
+      const [career, calendar] = careerWith(
+        entered({ contract }),
+        entered({ series: 'gt', contract: { ...contract, ended: '2026-02-01' } as SeasonEntry['contract'] }),
+      );
+
+      expect(seasonProgress(career, calendar).map((one) => [one.series, one.team])).toEqual([
+        ['cup', 'Alpha Racing'],
+        ['gt', null],
+      ]);
     });
 
     // Found in review: the stand-in who raced the player's seat has a row under

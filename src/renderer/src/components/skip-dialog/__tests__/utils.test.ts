@@ -23,6 +23,7 @@ const skipped = (series: string, round: string, reason: SkipReason = 'skipped'):
   date: '2026-05-03',
   reason,
   historic: false,
+  fine: null,
 });
 
 /**

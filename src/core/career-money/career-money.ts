@@ -1,33 +1,44 @@
 // A career's money: what a round costs to enter and to rent a car for, what
-// its races and its final standing pay, what its cars cost, and the ledger
-// every change of it is written into. Pure, so the career store decides when
-// and this decides what. Every line is keyed by what it settles, so working out
-// what is owed again pays nothing twice.
+// its races and its final standing pay, what its cars cost, what a contract
+// pays, fines and charges, and the ledger every change of it is written into.
+// Pure, so the career store decides when and this decides what. Every line is
+// keyed by what it settles, so working out what is owed again pays nothing
+// twice.
 
 import type {
   Career,
   CareerSeason,
+  Contract,
   LedgerLine,
   OwnedCar,
   SeasonEntry,
   SeasonEvent,
+  SeatOffer,
 } from '../../shared/types/index.ts';
+import {
+  activeContract, bonusFor, coveredFee, roundFine, roundSalary,
+} from '../../shared/utils/contracts/index.ts';
 import { editionOver } from '../../shared/utils/editions/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 
 /**
- * What entering one of a career's rounds costs.
+ * What entering one of a career's rounds costs the player.
  *
  * A historic event costs nothing while the player is invited - the car comes
- * with the seat, and so does the entry - and a fee of zero is nothing to pay.
+ * with the seat, and so does the entry - a contract's team pays what it
+ * covers, and a fee of zero is nothing to pay.
  * @param entry The season's entry the round belongs to
  * @param event The round
  * @returns The fee, or null when it costs nothing
  */
-export const feeOf = (entry: SeasonEntry, event: SeasonEvent): number | null => (
-  isInvited(entry) || !event.entryFee ? null : event.entryFee
-);
+export const feeOf = (entry: SeasonEntry, event: SeasonEvent): number | null => {
+  if (isInvited(entry) || !event.entryFee) return null;
+  const contract = activeContract(entry);
+  const owed = contract ? event.entryFee - coveredFee(contract, event.entryFee) : event.entryFee;
+
+  return owed > 0 ? owed : null;
+};
 
 /**
  * The key a round's entry fee is posted under.
@@ -243,6 +254,103 @@ export const repaintLine = (
 });
 
 /**
+ * Whether a round's salary has been paid, which it is once the round finishes.
+ * @param career The career
+ * @param event The round
+ * @returns True once it is on the ledger
+ */
+export const salaryPaid = (career: Career, event: SeasonEvent): boolean => (
+  career.ledger.some((line) => line.key === `salary:${event.raceId}`)
+);
+
+/**
+ * What every line about a contract shares: the championship, its edition and
+ * the team.
+ * @param contract The contract, or the offer it was signed from
+ * @param run The championship and the edition
+ * @param run.series The championship's id
+ * @param run.seriesName Its display name
+ * @param run.edition Which of the season's editions
+ * @returns The line's fields
+ */
+const contractOf = (
+  contract: Pick<Contract, 'teamName'>,
+  run: { series: string; seriesName: string; edition: number },
+): Pick<LedgerLine, 'series' | 'seriesName' | 'edition' | 'team'> => ({
+  series: run.series, seriesName: run.seriesName, edition: run.edition, team: contract.teamName,
+});
+
+/**
+ * The line paying for a seat as its contract is signed.
+ * @param career The career, before it is signed
+ * @param id The offer's mail id, which the contract keeps
+ * @param offer The offer
+ * @returns The line
+ */
+export const seatLine = (career: Career, id: string, offer: SeatOffer): LedgerLine => ({
+  key: `seat:${id}`,
+  kind: 'seat',
+  date: career.date,
+  season: offer.season,
+  amount: -offer.amount,
+  ...contractOf(offer, offer),
+});
+
+/**
+ * The line charging a contract's release fee as it is terminated.
+ * @param career The career, before it is terminated
+ * @param season The season it falls in
+ * @param entry The season's entry raced under it
+ * @param contract The contract
+ * @param release What terminating it costs
+ * @param left How many rounds were still to race
+ * @returns The line
+ */
+export const releaseLine = (
+  career: Career,
+  season: CareerSeason,
+  entry: SeasonEntry,
+  contract: Contract,
+  release: number,
+  left: number,
+): LedgerLine => ({
+  key: `release:${contract.offer}`,
+  kind: 'release',
+  date: career.date,
+  season: season.index,
+  amount: -release,
+  place: left,
+  ...contractOf(contract, { ...entry, seriesName: entry.championship.name }),
+});
+
+/**
+ * The line giving back part of a paid seat as its contract is terminated.
+ * @param career The career, before it is terminated
+ * @param season The season it falls in
+ * @param entry The season's entry raced under it
+ * @param contract The contract
+ * @param refund What it gives back
+ * @param left How many rounds were still to race
+ * @returns The line
+ */
+export const refundLine = (
+  career: Career,
+  season: CareerSeason,
+  entry: SeasonEntry,
+  contract: Contract,
+  refund: number,
+  left: number,
+): LedgerLine => ({
+  key: `refund:${contract.offer}`,
+  kind: 'refund',
+  date: career.date,
+  season: season.index,
+  amount: refund,
+  place: left,
+  ...contractOf(contract, { ...entry, seriesName: entry.championship.name }),
+});
+
+/**
  * The line a career opens on.
  * @param date The day it starts, as an ISO date
  * @param money What it starts with
@@ -280,10 +388,30 @@ const settled = (entry: SeasonEntry, today: string): boolean => (
 );
 
 /**
+ * A purse as a contract shares it: the player's share alone, saying what the
+ * whole was.
+ * @param entry The season's entry
+ * @param purse The whole purse, at the career's prize speed
+ * @returns What the player is paid, and the share it is, when under contract
+ */
+const shareOf = (entry: SeasonEntry, purse: number): Pick<LedgerLine, 'amount' | 'share' | 'team'> => {
+  const { contract } = entry;
+  if (!contract || contract.prizeShare >= 100) return { amount: purse };
+
+  return {
+    amount: Math.round((purse * contract.prizeShare) / 100),
+    share: { percent: contract.prizeShare, purse },
+    team: contract.teamName,
+  };
+};
+
+/**
  * Every prize a career has earned and not yet been paid: the player's place in
  * each race they drove, and their place in the table of every edition that has
  * run its course - a historic event paying its purse per race and standing in
- * no table.
+ * no table. Under a contract, the player's share of each, and beside them the
+ * salary of every round raced, the fine of every round not raced and the bonus
+ * on the final place.
  * @param career The career
  * @returns The lines owed, dated by the event that earned each
  */
@@ -299,7 +427,38 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
       const positions = prizeTable(entry.championship, entry.entry, 'positions');
       const historic = isHistoric(entry);
 
+      const { contract } = entry;
+      const salary = contract ? roundSalary(contract, entry.events.length) : null;
+
       for (const event of entry.events) {
+        const salaryKey = `salary:${event.raceId}`;
+        if (contract && salary && event.status === 'raced' && !paid.has(salaryKey)) {
+          owed.push({
+            key: salaryKey,
+            kind: 'salary',
+            date: event.date,
+            amount: salary,
+            team: contract.teamName,
+            ...roundOf(season, entry, event),
+          });
+        }
+        // Only a round the contract was signed for: one already behind the
+        // clock as it was signed was never the player's to race.
+        const fine = contract && event.status === 'missed' && event.date >= contract.signed
+          ? roundFine(entry, event)
+          : null;
+        const fineKey = `fine:${event.raceId}`;
+        if (contract && fine && !paid.has(fineKey)) {
+          owed.push({
+            key: fineKey,
+            kind: 'fine',
+            date: event.date,
+            amount: -fine,
+            team: contract.teamName,
+            ...roundOf(season, entry, event),
+          });
+        }
+
         for (const race of event.score?.races ?? []) {
           const key = `race:${event.raceId}:${race.launch}`;
           // The player's own place alone: a race simulated, or raced in their
@@ -307,13 +466,13 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
           const place = race.simulated || paid.has(key) ? undefined : race.places.find((one) => (
             one.entry === entry.entry && one.seat === entry.playerSeat && !one.substitute && !one.bonusOnly
           ));
-          const amount = place ? scaledPrize(positions[place.classPosition - 1] ?? 0, speed) : 0;
-          if (place && amount > 0) {
+          const purse = place ? scaledPrize(positions[place.classPosition - 1] ?? 0, speed) : 0;
+          if (place && purse > 0) {
             owed.push({
               key,
               kind: historic ? 'historic' : 'race',
               date: event.date,
-              amount,
+              ...shareOf(entry, purse),
               ...roundOf(season, entry, event),
               race: race.name,
               place: place.classPosition,
@@ -329,19 +488,25 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
         .find((one) => one.entry === entry.entry)?.drivers
         .find((one) => one.seat === entry.playerSeat && !one.substitute);
       const standings = prizeTable(entry.championship, entry.entry, 'standings');
-      const amount = row && row.races > 0 ? scaledPrize(standings[row.position - 1] ?? 0, speed) : 0;
+      const purse = row && row.races > 0 ? scaledPrize(standings[row.position - 1] ?? 0, speed) : 0;
       const last = entry.events.reduce<string>((latest, event) => (event.date > latest ? event.date : latest), '');
-      if (row && amount > 0) {
+      const run = {
+        date: last,
+        season: season.index,
+        series: entry.series,
+        seriesName: entry.championship.name,
+        edition: entry.edition,
+      };
+      if (row && purse > 0) {
         owed.push({
-          key,
-          kind: 'standings',
-          date: last,
-          season: season.index,
-          amount,
-          series: entry.series,
-          seriesName: entry.championship.name,
-          edition: entry.edition,
-          place: row.position,
+          key, kind: 'standings', ...run, ...shareOf(entry, purse), place: row.position,
+        });
+      }
+      const bonus = row && row.races > 0 && contract ? bonusFor(contract, row.position) : 0;
+      const bonusKey = `bonus:${season.index}:${entry.series}:${entry.edition}`;
+      if (row && contract && bonus > 0 && !paid.has(bonusKey)) {
+        owed.push({
+          key: bonusKey, kind: 'bonus', ...run, amount: bonus, team: contract.teamName, place: row.position,
         });
       }
     }

@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { TEAM_BUDGET_LABEL } from './constants.ts';
 import type { TeamGroup } from './types.ts';
-import { Badge } from '@/components/ui/badge.tsx';
-import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
+import { BudgetBadge } from '@/components';
 
 interface ClassTeamsProps {
   /**
@@ -31,9 +29,7 @@ export const ClassTeams = ({ groups, playerSeat, playerName }: ClassTeamsProps) 
         <div key={team?.id ?? ''} className="flex flex-col gap-0.5 border-t py-2 text-sm">
           <div className="flex items-center justify-between gap-2">
             <span className="min-w-0 truncate font-medium">{team?.name ?? t('championships.detail.noTeam')}</span>
-            {team?.budget ? (
-              <Badge className={TEAM_BUDGET_ACCENT[team.budget]}>{t(TEAM_BUDGET_LABEL[team.budget])}</Badge>
-            ) : null}
+            {team?.budget ? <BudgetBadge budget={team.budget} /> : null}
           </div>
           <span className="text-xs text-muted-foreground">
             {seats.map((seat, index) => (

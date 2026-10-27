@@ -9,8 +9,11 @@ import { FOLDER_PARAM, PAGE_PARAM } from './constants.ts';
 import { InboxRail } from './InboxRail.tsx';
 import { MailList } from './MailList.tsx';
 import { MailReader } from './MailReader.tsx';
-import { eventLink, folderOf, pageNumber } from './utils.ts';
-import type { MailAnswer } from '../../../../shared/types';
+import { OfferReader } from './OfferReader.tsx';
+import {
+  carModels, eventLink, folderOf, offerEdition, offerLink, pageNumber,
+} from './utils.ts';
+import type { MailAnswer, OfferPick } from '../../../../shared/types';
 import { entryFeeOf } from '../../../../shared/utils/entry-fees';
 import { useSlot } from '@/app';
 import { ConfirmDialog, ErrorCard, ScreenBody } from '@/components';
@@ -48,8 +51,9 @@ export const Inbox = () => {
   const listed = items.filter((item) => inFolder(item, folder) && matchesSearch(item, search));
   const selected = items.find((item) => item.mail.id === open) ?? null;
   const unread = items.filter((item) => !item.mail.opened).length;
-  const offered = selected?.mail.invitation?.car.model;
-  const carName = useCarNames(offered ? [offered] : []);
+  const offered = selected ? carModels(selected) : [];
+  const carName = useCarNames(offered);
+  const seat = selected?.offers[0] ?? null;
 
   // Opening a mail reads it. Marked unread again, it is closed as it is, so
   // this never opens it straight back.
@@ -90,7 +94,9 @@ export const Inbox = () => {
       (thrown: unknown) => setError(toDisplayableError(thrown)),
     ).finally(() => setBusy(false));
   };
-  const answer = (id: string, reply: MailAnswer): void => command(() => invoke('career:answer', { mail: id, answer: reply }));
+  const answer = (id: string, reply: MailAnswer, offer?: OfferPick): void => command(() => invoke('career:answer', {
+    mail: id, answer: reply, ...(offer ? { offer } : {}),
+  }));
 
   // What entering the class it offers costs without it.
   const fee = selected?.event && selected.round
@@ -129,11 +135,27 @@ export const Inbox = () => {
           onPage={(next) => show({ [PAGE_PARAM]: next === 1 ? null : String(next) })}
           onOpen={(id) => show({ [MAIL_PARAM]: id })}
         />
-        {selected ? (
+        {selected && seat ? (
+          <OfferReader
+            career={career}
+            item={selected}
+            carName={carName}
+            edition={offerEdition(career, seat, t)}
+            link={offerLink(career, seat)}
+            busy={busy}
+            onAccept={(offer) => answer(selected.mail.id, 'accepted', { entry: offer.entry, team: offer.team })}
+            onDecline={() => setDeclining(true)}
+            onUnread={() => {
+              show({ [MAIL_PARAM]: null });
+              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
+            }}
+          />
+        ) : null}
+        {selected && !seat ? (
           <MailReader
             career={career}
             item={selected}
-            car={offered ? carName(offered) : ''}
+            car={offered[0] ? carName(offered[0]) : ''}
             event={eventLink(career, selected)}
             busy={busy}
             onAccept={() => answer(selected.mail.id, 'accepted')}
@@ -143,7 +165,8 @@ export const Inbox = () => {
               command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
             }}
           />
-        ) : (
+        ) : null}
+        {selected ? null : (
           <section className="hidden flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-sm text-muted-foreground lg:flex">
             <MailOpenIcon className="size-6" />
             {t('inbox.pick')}
@@ -155,12 +178,17 @@ export const Inbox = () => {
         <ConfirmDialog
           open={declining}
           busy={busy}
-          title={t('inbox.decline.title', { event: selected.event?.name ?? '' })}
-          description={t(fee ? 'inbox.decline.body' : 'inbox.decline.bodyFree', {
-            team: selected.team?.name ?? t('inbox.organisers'),
-            driver: selected.seat?.driver?.name ?? '',
-            fee: formatMoney(fee ?? 0),
-          })}
+          title={seat
+            ? t(selected.offers.length > 1 ? 'inbox.offers.decline.title' : 'inbox.offer.decline.title', {
+              team: seat.teamName, series: seat.seriesName,
+            })
+            : t('inbox.decline.title', { event: selected.event?.name ?? '' })}
+          description={seat
+            ? t(selected.offers.length > 1 ? 'inbox.offers.decline.body' : 'inbox.offer.decline.body', { series: seat.seriesName })
+            : t(fee ? 'inbox.decline.body' : 'inbox.decline.bodyFree', {
+              team: selected.team?.name ?? t('inbox.organisers'),
+              fee: formatMoney(fee ?? 0),
+            })}
           confirmLabel={t('inbox.decline.confirm')}
           onClose={() => setDeclining(false)}
           onConfirm={() => {

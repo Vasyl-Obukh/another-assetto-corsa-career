@@ -63,21 +63,21 @@ export const ReplyBar = ({
   const Icon = ICONS[status];
   const deadline = mail.deadline ?? '';
   const day = formatDayShort(deadline);
-  const driver = item.seat?.driver?.name ?? '';
+  const team = item.team?.name ?? t('inbox.organisers');
   const left = daysBetween(career.date, deadline);
   const ahead = deadline >= career.date;
 
   let title = t('inbox.reply.lapsed', { day });
-  let hint = t('inbox.reply.lapsedHint', { driver });
+  let hint = t('inbox.reply.lapsedHint');
   if (status === 'awaiting') {
     title = `${t('inbox.reply.awaiting', { day })} · ${left > 0 ? t('inbox.reply.left', { count: left }) : t('inbox.reply.today')}`;
-    hint = t('inbox.reply.awaitingHint', { driver });
+    hint = t('inbox.reply.awaitingHint');
   } else if (status === 'accepted') {
     title = t('inbox.reply.accepted', { day: formatDayShort(mail.reply?.on ?? '') });
     hint = t('inbox.reply.acceptedHint');
   } else if (status === 'declined') {
     title = t('inbox.reply.declined', { day: formatDayShort(mail.reply?.on ?? '') });
-    hint = ahead ? t('inbox.reply.declinedAhead') : t('inbox.reply.declinedPast', { driver, day });
+    hint = ahead ? t('inbox.reply.declinedAhead') : t('inbox.reply.declinedPast', { team, day });
   }
 
   return (

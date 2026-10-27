@@ -198,6 +198,10 @@ export type ErrorCode =
   | 'historic.invited'
   | 'mail.notFound'
   | 'mail.closed'
+  | 'contract.closed'
+  | 'contract.short'
+  | 'contract.gone'
+  | 'contract.release.short'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'
   // src/main/ipc

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { EnterWithHint } from './EnterWithHint.tsx';
 import type { EnterHint } from './types.ts';
 import { ErrorCard } from '@/components';
@@ -21,6 +23,10 @@ interface EnterChampionshipProps {
    * A class and car a link asked the panel to start from, or null.
    */
   hint?: EnterHint | null;
+  /**
+   * What the page says about entering before Enter is pressed.
+   */
+  note?: ReactNode;
 }
 
 /**
@@ -29,7 +35,7 @@ interface EnterChampionshipProps {
  * same answer on both pages.
  */
 export const EnterChampionship = ({
-  series, round, edition, hint = null,
+  series, round, edition, hint = null, note,
 }: EnterChampionshipProps) => {
   const event = useCareerEvent(series, round, { edition });
 
@@ -41,6 +47,7 @@ export const EnterChampionship = ({
       view={event.view}
       hint={hint}
       busy={event.busy}
+      note={note}
       onEnter={(entry, car) => { void event.enter(entry, car); }}
     />
   ) : (
@@ -48,6 +55,7 @@ export const EnterChampionship = ({
       view={event.view}
       busy={event.busy}
       showFirstRound
+      note={note}
       onEnter={(entry, car) => { void event.enter(entry, car); }}
     />
   );

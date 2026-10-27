@@ -87,6 +87,7 @@ export const Finances = () => {
             { id: 'prizes', label: t('finances.filter.prizes') },
             { id: 'fees', label: t('finances.filter.fees') },
             { id: 'cars', label: t('finances.filter.cars') },
+            { id: 'contracts', label: t('finances.filter.contracts') },
           ]}
         />
       </div>

@@ -12,13 +12,14 @@
 // own field, standings and review, entered separately. So "season end" still
 // means one date, while a short championship comes round again within it.
 
+import type { Contract } from './contract.ts';
 import type { LaunchRecord } from './event.ts';
 import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Mail } from './inbox.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { GridEntry, SessionType } from './race.ts';
 import type {
-  AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability,
+  AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability, TeamBudget,
 } from './series.ts';
 import type { Currency, DrivingAids, HistoricFrequency } from './settings.ts';
 import type {
@@ -113,6 +114,11 @@ export interface SeasonEvent {
    */
   simulated?: boolean;
   /**
+   * Set on a round skipped because the install could not race it, which a
+   * contract never fines.
+   */
+  unraceable?: true;
+  /**
    * The player's own step on the AI's strength for this round alone, laid over
    * the season's step - absent for none.
    *
@@ -158,10 +164,12 @@ export interface SeasonEntry {
   /**
    * The seat the player took, by its id, frozen when the class was entered.
    *
-   * The last seat of the class, which is the one `roundRace` gives up to the
-   * player. Frozen for the same reason the event list is: the championship
-   * stays editable, and a seat added to the class would otherwise move which
-   * one the player is held to have been driving all season.
+   * A team's slower driver's - the contract's, or one drawn for a career
+   * racing on its own - moved to the end of the class in the season's copy,
+   * which is the seat `roundRace` gives up to the player. Frozen for the same
+   * reason the event list is: the championship stays editable, and a seat
+   * added to the class would otherwise move which one the player is held to
+   * have been driving all season.
    *
    * What that driver is *called* is deliberately not here. It is
    * `settings.driverName`, read where the name is shown, so renaming yourself
@@ -183,8 +191,9 @@ export interface SeasonEntry {
     skin?: string;
     /**
      * Whether the player owns it or rents it, which decides whether each round
-     * charges a rent. Absent where the car comes with the seat: a historic
-     * event's invitation, or a standalone championship, which has no money.
+     * charges a rent. Absent where the car comes with the seat: a contract, a
+     * historic event's invitation, or a standalone championship, which has no
+     * money.
      */
     source?: CarSource;
   };
@@ -219,6 +228,11 @@ export interface SeasonEntry {
    * none. Each round may add a step of its own.
    */
   strength?: number;
+  /**
+   * The team's contract it is raced under - absent for a championship entered
+   * on the player's own.
+   */
+  contract?: Contract;
   /**
    * Set on a historic event rather than a championship: a single event the
    * season drew onto its calendar, which the player is in - invited, or
@@ -343,6 +357,11 @@ export interface CareerSeason {
    * none, or drew them as entries, before anyone could enter one unasked.
    */
   historicEvents?: readonly HistoricDraw[];
+  /**
+   * Every edition whose teams' seat offers have gone out, as
+   * `<series>:<edition>` - so each draws once, whatever came of it.
+   */
+  offersDrawn?: readonly string[];
 }
 
 /**
@@ -479,10 +498,13 @@ export interface OwnedCar {
  * What moved a career's money: the money it opened with, a round's entry fee,
  * a race's prize, a championship's final standing, a historic event's purse, a
  * change of prize speed, which moves none, a car bought, sold or
- * repainted, or a round's rent.
+ * repainted, or a round's rent - and under a contract, a round's salary, a seat
+ * paid for or partly refunded, a standings bonus, a round missed and fined, or
+ * the fee for terminating it.
  */
 export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed'
-  | 'purchase' | 'sale' | 'repaint' | 'rent';
+  | 'purchase' | 'sale' | 'repaint' | 'rent'
+  | 'salary' | 'seat' | 'refund' | 'bonus' | 'fine' | 'release';
 
 /**
  * One change of a career's money, and what it was for.
@@ -576,6 +598,24 @@ export interface LedgerLine {
     bought?: string;
   };
   /**
+   * The team behind a contract's line, by its display name.
+   */
+  team?: string;
+  /**
+   * A prize under contract: the share of the purse that is the player's, as a
+   * percentage, and the whole purse it was a share of.
+   */
+  share?: {
+    /**
+     * The player's share, as a percentage.
+     */
+    percent: number;
+    /**
+     * The whole purse, at the career's prize speed.
+     */
+    purse: number;
+  };
+  /**
    * The speed before and after, for a change of prize speed.
    */
   speed?: {
@@ -611,6 +651,36 @@ export interface EventMoney {
    * Whether that rent has been paid, which it is beside the fee.
    */
   rentPaid: boolean;
+  /**
+   * What the round's contract pays and covers, or null when the career races
+   * it on its own.
+   */
+  contract: {
+    /**
+     * The team, by its display name.
+     */
+    team: string;
+    /**
+     * How much of the round's entry fee the team covers.
+     */
+    covered: number;
+    /**
+     * The round's salary, or null for a contract paying none.
+     */
+    salary: number | null;
+    /**
+     * Whether that salary has been paid, which it is once the round finishes.
+     */
+    salaryPaid: boolean;
+    /**
+     * The share of every purse that is the player's, as a percentage.
+     */
+    share: number;
+    /**
+     * What missing the round costs, or null for nothing.
+     */
+    fine: number | null;
+  } | null;
   /**
    * The money the career holds.
    */
@@ -1508,6 +1578,25 @@ export interface EventClassOption {
    * with no money, a standalone championship.
    */
   fee: number | null;
+  /**
+   * The team entering it on the player's own would put them in - drawn for the
+   * edition, so it is the same team every time it is asked - or null where no
+   * team of the class fields two cars.
+   */
+  team: {
+    /**
+     * Its display name.
+     */
+    name: string;
+    /**
+     * How well funded it is, when the championship says.
+     */
+    budget: TeamBudget | null;
+    /**
+     * Its nation, as Assetto Corsa's code, when it has one.
+     */
+    nation: string | null;
+  } | null;
 }
 
 /**
@@ -1787,10 +1876,6 @@ export interface HistoricInvitation extends CalendarInvitation {
      */
     seat: string;
     /**
-     * Whose seat it is, by the driver's name.
-     */
-    driver: string | null;
-    /**
      * The car it races.
      */
     car: SeasonEntry['car'];
@@ -1883,6 +1968,12 @@ export interface SkippedRound {
    * Whether it is a historic event rather than a round of a championship.
    */
   historic: boolean;
+  /**
+   * What losing it costs under the contract it is raced under, or null when
+   * nothing: a round raced on the player's own, a seat paid for, or a round
+   * the install cannot race.
+   */
+  fine: number | null;
 }
 
 /**

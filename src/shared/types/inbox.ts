@@ -5,11 +5,12 @@
 // A mail is stored as fields and worded when it is shown, so it reads in the
 // user's language and names the season's own copy of what it is about.
 
+import type { OfferPick, SeatOffer } from './contract.ts';
+
 /**
- * What a mail is: today only a historic event's invitation. Phase 9's seat
- * offers arrive as a kind of their own.
+ * What a mail is: a historic event's invitation, or a team's seat offer.
  */
-export type MailKind = 'invitation';
+export type MailKind = 'invitation' | 'offer';
 
 /**
  * How a mail that wants an answer was answered.
@@ -34,6 +35,10 @@ export interface MailReply {
    * The career's date it was given on, as an ISO date.
    */
   on: string;
+  /**
+   * On a seat offer accepted, which of its offers was signed.
+   */
+  offer?: OfferPick;
 }
 
 /**
@@ -78,7 +83,8 @@ export interface Invitation {
 export interface Mail {
   /**
    * Stable identifier, keyed by what it is about - `invite:<raceId>` for an
-   * invitation - so nothing arrives twice.
+   * invitation, `offer:<series>:<season>.<edition>` for an edition's seat offers -
+   * so nothing arrives twice.
    */
   id: string;
   /**
@@ -100,7 +106,7 @@ export interface Mail {
   opened: boolean;
   /**
    * The last day it can be answered, as an ISO date - an invitation's race
-   * day. Absent on a mail that wants no answer.
+   * day, a seat offer's fortnight. Absent on a mail that wants no answer.
    */
   deadline?: string;
   /**
@@ -111,4 +117,9 @@ export interface Mail {
    * The seat offered, on an invitation.
    */
   invitation?: Invitation;
+  /**
+   * Every seat offered for one edition, on a seat offer - its classes in the
+   * championship's order, the best funded team first within each.
+   */
+  offers?: SeatOffer[];
 }

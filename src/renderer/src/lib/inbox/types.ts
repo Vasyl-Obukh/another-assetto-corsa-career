@@ -1,12 +1,12 @@
 import type {
-  Championship, ClassEntry, HistoricDraw, Mail, MailStatus, Round, SeasonEntry, Seat, Team,
+  Championship, ClassEntry, HistoricDraw, Mail, MailStatus, Round, SeasonEntry, Seat, SeatOffer, Team,
 } from '../../../../shared/types';
 
 /**
  * Which mail the inbox lists: all of it, what is unopened, what still wants an
  * answer, or one kind.
  */
-export type InboxFolder = 'all' | 'unread' | 'awaiting' | 'invitation';
+export type InboxFolder = 'all' | 'unread' | 'awaiting' | 'invitation' | 'offer';
 
 /**
  * One mail, joined to what it is about, as every screen that shows mail reads
@@ -48,9 +48,15 @@ export interface InboxItem {
    */
   team: Team | null;
   /**
-   * The player's entry into the event, while they are in it.
+   * The player's entry into the event, while they are in it - or for a seat
+   * offer, the edition raced under the contract it signed.
    */
   entered: SeasonEntry | null;
+  /**
+   * Every seat offered for one edition, on a seat offer - empty on an
+   * invitation.
+   */
+  offers: SeatOffer[];
 }
 
 /**

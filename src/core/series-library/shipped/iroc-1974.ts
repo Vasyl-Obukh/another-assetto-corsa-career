@@ -102,7 +102,7 @@ export const IROC_1974: Championship = {
     penalties: true,
     jumpStartPenalty: 10,
   },
-  entryFee: 0,
+  entryFee: 7500,
   prizes: {
     positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
     standings: [240000, 150000, 96000, 63000, 39000],

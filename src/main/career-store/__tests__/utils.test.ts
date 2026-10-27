@@ -3,11 +3,12 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { addDays } from '../../../core/season-calendar/index.ts';
 import { DEFAULT_CAREER_SETTINGS, MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
 import {
-  Climate, Discipline, Hemisphere, SeasonLength, Weekday,
+  Climate, Discipline, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type {
   CalendarInvitation,
   CareerSeason,
+  ContractTerms,
   HistoricDraw,
   InvitationDraw,
   LaunchRecord,
@@ -17,9 +18,11 @@ import type {
   RoundScore,
   SeasonEntry,
   SeasonEvent,
+  SeatOffer,
   SeriesSession,
   SessionForecast,
 } from '../../../shared/types/index.ts';
+import { offerId } from '../../../shared/utils/contracts/index.ts';
 import { invitationId } from '../../../shared/utils/inbox/index.ts';
 import {
   advanceSkips,
@@ -37,6 +40,7 @@ import {
   closeSeason,
   composeCalendar,
   currentSeason,
+  declineOffers,
   drawnCars,
   drawnEvent,
   drawOf,
@@ -46,6 +50,7 @@ import {
   eventName,
   eventSessions,
   eventStrength,
+  experiencedAt,
   heldRaceable,
   historicDraws,
   historicFee,
@@ -61,6 +66,7 @@ import {
   lostName,
   markMissed,
   materialiseEvents,
+  offerMail,
   openSeason,
   profileOf,
   readBackup,
@@ -70,6 +76,7 @@ import {
   seasonEndDate,
   seasonOf,
   seasonSalt,
+  signedContract,
   simulatedEvent,
   skipCost,
   skippedRound,
@@ -191,6 +198,55 @@ const makeHistoricEntry = (over: Partial<SeasonEntry> = {}): SeasonEntry => make
   playerSeat: 'seat-1',
   events: [makeEvent('one', '2026-07-12', { raceId: 'british-gp-1967/one@0.0' })],
   historic: true,
+  ...over,
+});
+
+/**
+ * Builds what a team offers: a free seat in the class, every fee covered.
+ * @param over Whatever the test wants said differently
+ * @returns The terms
+ */
+const makeTerms = (over: Partial<ContractTerms> = {}): ContractTerms => ({
+  team: 'rivals',
+  teamName: 'Rivals Racing',
+  budget: TeamBudget.INDEPENDENT,
+  entry: 'main',
+  seat: 'seat-2',
+  car: { model: 'test_car' },
+  pay: 'free',
+  amount: 0,
+  feeCover: 1,
+  prizeShare: 50,
+  ...over,
+});
+
+/**
+ * Builds a mail of seat offers for an edition of the test championship.
+ * @param edition Which of the season's editions
+ * @param over Whatever the test wants said differently
+ * @returns The mail
+ */
+const makeOfferMail = (edition: number, over: Partial<Mail> = {}): Mail => ({
+  id: offerId('test-cup', 0, edition),
+  kind: 'offer',
+  season: 0,
+  arrived: '2026-01-04',
+  opened: false,
+  deadline: '2026-01-18',
+  offers: [{
+    ...makeTerms(),
+    series: 'test-cup',
+    seriesName: 'Test Cup',
+    season: 0,
+    edition,
+    opener: '2026-03-01',
+    rounds: 2,
+    editions: 1,
+    entryName: 'Main',
+    ladder: { discipline: Discipline.ROAD, tier: 4 },
+    fees: 2000,
+    rent: 300,
+  }],
   ...over,
 });
 
@@ -1301,6 +1357,7 @@ describe('main/career-store/utils', () => {
         date: '2026-05-03',
         reason: 'skipped',
         historic: false,
+        fine: null,
       });
     });
 
@@ -1330,6 +1387,11 @@ describe('main/career-store/utils', () => {
     it('says when what was lost is a historic event rather than a championship round', () => {
       expect(skippedRound(makeChampionship(), 'main', 0, makeEvent('one', '2026-03-01'), 'clash', true).historic)
         .toBe(true);
+    });
+
+    it('carries what losing the round costs under its contract', () => {
+      expect(skippedRound(makeChampionship(), 'main', 0, makeEvent('one', '2026-03-01'), 'skipped', false, 800).fine)
+        .toBe(800);
     });
   });
 
@@ -1553,6 +1615,22 @@ describe('main/career-store/utils', () => {
 
       expect(marked.entries.map((one) => one.events[0].status)).toEqual(['scheduled', 'missed']);
     });
+
+    it('marks a round lost because the install could not race it as unraceable, and no other', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2026-03-01'), makeEvent('two', '2026-05-03')],
+      });
+      const season = makeSeason({ entries: [entry] });
+      const marked = markMissed(season, [
+        skippedRound(entry.championship, 'main', 0, entry.events[0], 'unraceable'),
+        skippedRound(entry.championship, 'main', 0, entry.events[1], 'skipped'),
+      ]);
+
+      expect(marked.entries[0].events.map((one) => [one.status, one.unraceable])).toEqual([
+        ['missed', true],
+        ['missed', undefined],
+      ]);
+    });
   });
 
   describe('closeSeason', () => {
@@ -1579,6 +1657,17 @@ describe('main/career-store/utils', () => {
       const closed = closeSeason(makeCareer({ date: '2026-10-01', seasons: [season] }), season);
 
       expect(closed.seasons[0].entries[0].events[0].forecast).toBeDefined();
+    });
+
+    // Guards a fix: the year closing used to give these up as plain non-starts,
+    // which a contract then fined.
+    it('marks a round handed over as one the install cannot race', () => {
+      const entry = makeEntry({ events: [makeEvent('two', '2026-11-29')] });
+      const season = makeSeason({ entries: [entry] });
+      const lost = advanceSkips(season, '2027-01-01').map((one) => ({ ...one, reason: 'unraceable' as const }));
+      const closed = closeSeason(makeCareer({ date: '2026-10-01', seasons: [season] }), season, lost);
+
+      expect(closed.seasons[0].entries[0].events[0]).toMatchObject({ status: 'missed', unraceable: true });
     });
   });
 
@@ -2119,6 +2208,185 @@ describe('main/career-store/utils', () => {
       ]);
       expect(career.inbox[0]).toBe(mail);
     });
+
+    it('names the offer accepted on a seat offer', () => {
+      const mail = makeOfferMail(0);
+      const career = makeCareer({ date: '2026-01-10', inbox: [mail] });
+
+      expect(withReply(career, mail, 'accepted', { entry: 'main', team: 'rivals' }).inbox[0].reply).toEqual({
+        answer: 'accepted', on: '2026-01-10', offer: { entry: 'main', team: 'rivals' },
+      });
+    });
+  });
+
+  describe('offerMail', () => {
+    const series = makeChampionship({
+      entries: [
+        makeClassEntry(),
+        makeClassEntry({ id: 'pro', name: 'Pro', ladder: { discipline: Discipline.SPORTSCAR, tier: 3 } }),
+      ],
+    });
+    const season = makeSeason({ index: 2 });
+    const mainEvents = [
+      { date: '2026-03-08', entryFee: 500 },
+      { date: '2026-04-05', entryFee: 700 },
+    ];
+    const proEvents = [{ date: '2026-03-01', entryFee: 900 }, { date: '2026-04-05' }];
+
+    it('mails every class of the edition as one mail, each offer stamped with its own class', () => {
+      const mail = offerMail(season, series, 1, [
+        { terms: makeTerms(), events: mainEvents, rent: 300 },
+        { terms: makeTerms({ entry: 'pro', team: 'works' }), events: proEvents, rent: 0 },
+      ], '2026-01-04');
+
+      expect(mail).toMatchObject({
+        id: offerId('test-cup', 2, 1), kind: 'offer', season: 2, arrived: '2026-01-04', opened: false,
+      });
+      expect(mail.offers?.map((one) => ({
+        entry: one.entry,
+        entryName: one.entryName,
+        ladder: one.ladder,
+        opener: one.opener,
+        rounds: one.rounds,
+        fees: one.fees,
+        rent: one.rent,
+        series: one.series,
+        seriesName: one.seriesName,
+        season: one.season,
+        edition: one.edition,
+        editions: one.editions,
+      }))).toEqual([
+        {
+          entry: 'main',
+          entryName: 'Main',
+          ladder: { discipline: Discipline.ROAD, tier: 4 },
+          opener: '2026-03-08',
+          rounds: 2,
+          fees: 1200,
+          rent: 300,
+          series: 'test-cup',
+          seriesName: 'Test Cup',
+          season: 2,
+          edition: 1,
+          editions: 1,
+        },
+        {
+          entry: 'pro',
+          entryName: 'Pro',
+          ladder: { discipline: Discipline.SPORTSCAR, tier: 3 },
+          opener: '2026-03-01',
+          rounds: 2,
+          fees: 900,
+          rent: 0,
+          series: 'test-cup',
+          seriesName: 'Test Cup',
+          season: 2,
+          edition: 1,
+          editions: 1,
+        },
+      ]);
+    });
+
+    it('stands a fortnight from the day it arrives', () => {
+      const mail = offerMail(season, series, 0, [{ terms: makeTerms(), events: mainEvents, rent: 0 }], '2026-01-04');
+
+      expect(mail.deadline).toBe('2026-01-18');
+    });
+
+    it('lapses on the eve of the earliest opener of any class when that comes sooner', () => {
+      const mail = offerMail(season, series, 0, [
+        { terms: makeTerms(), events: mainEvents, rent: 0 },
+        { terms: makeTerms({ entry: 'pro' }), events: proEvents, rent: 0 },
+      ], '2026-02-22');
+
+      expect(mail.deadline).toBe('2026-02-28');
+    });
+  });
+
+  describe('signedContract', () => {
+    it('copies the terms as offered, naming the mail and the day it was signed', () => {
+      const terms = makeTerms({
+        nation: 'ITA', bonus: [{ upTo: 1, amount: 2000 }], lifeline: true,
+      });
+
+      expect(signedContract(makeOfferMail(0), terms, '2026-01-10')).toEqual({
+        ...terms, offer: offerId('test-cup', 0, 0), signed: '2026-01-10',
+      });
+    });
+
+    it('keeps nothing of the offer but its terms', () => {
+      const mail = makeOfferMail(0);
+      const offer = mail.offers?.[0] as SeatOffer;
+      const contract = signedContract(mail, offer, '2026-01-10');
+
+      expect(Object.keys(contract).sort()).toEqual([
+        'amount', 'budget', 'car', 'entry', 'feeCover', 'offer', 'pay', 'prizeShare', 'seat', 'signed', 'team', 'teamName',
+      ]);
+    });
+  });
+
+  describe('declineOffers', () => {
+    const season = makeSeason();
+
+    it('turns down the offers for the edition still waiting, on the day the clock stands at', () => {
+      const mail = makeOfferMail(0);
+      const career = makeCareer({ date: '2026-01-10', inbox: [mail] });
+
+      expect(declineOffers(career, season, 'test-cup', 0).inbox[0]).toEqual({
+        ...mail, opened: true, reply: { answer: 'declined', on: '2026-01-10' },
+      });
+    });
+
+    it('leaves offers for another edition, and those already answered or lapsed, alone', () => {
+      const other = makeOfferMail(1);
+      const answered = makeOfferMail(0, { reply: { answer: 'accepted', on: '2026-01-05' } });
+      const lapsed = makeOfferMail(0, { deadline: '2026-01-08' });
+
+      for (const inbox of [[other], [answered], [lapsed]]) {
+        const career = makeCareer({ date: '2026-01-10', inbox });
+
+        expect(declineOffers(career, season, 'test-cup', 0)).toBe(career);
+      }
+    });
+
+    it('matches the season as well as the championship and the edition', () => {
+      const career = makeCareer({ date: '2026-01-10', inbox: [makeOfferMail(0)] });
+
+      expect(declineOffers(career, makeSeason({ index: 1 }), 'test-cup', 0)).toBe(career);
+    });
+  });
+
+  describe('experiencedAt', () => {
+    const raced = [
+      makeEvent('one', '2026-03-01', { status: 'raced' }),
+      makeEvent('two', '2026-05-03', { status: 'missed' }),
+    ];
+    const at = (entry: SeasonEntry) => makeCareer({
+      date: '2026-06-01', seasons: [makeSeason({ entries: [entry] })],
+    });
+
+    it('counts an edition run its course at the rung', () => {
+      expect(experiencedAt(at(makeEntry({ events: raced })), Discipline.ROAD, 4)).toBe(true);
+    });
+
+    it('counts a rung above the one asked about, and never one below it', () => {
+      const career = at(makeEntry({ events: raced }));
+
+      expect(experiencedAt(career, Discipline.ROAD, 5)).toBe(true);
+      expect(experiencedAt(career, Discipline.ROAD, 3)).toBe(false);
+    });
+
+    it('counts only the discipline asked about', () => {
+      expect(experiencedAt(at(makeEntry({ events: raced })), Discipline.TOURING, 4)).toBe(false);
+    });
+
+    it('counts no edition still running, withdrawn from or historic', () => {
+      const running = [raced[0], makeEvent('two', '2026-07-05')];
+
+      expect(experiencedAt(at(makeEntry({ events: running })), Discipline.ROAD, 4)).toBe(false);
+      expect(experiencedAt(at(makeEntry({ events: raced, withdrawn: true })), Discipline.ROAD, 4)).toBe(false);
+      expect(experiencedAt(at(makeEntry({ events: raced, historic: true })), Discipline.ROAD, 4)).toBe(false);
+    });
   });
 
   describe('invitationState', () => {
@@ -2253,7 +2521,7 @@ describe('main/career-store/utils', () => {
       )).toMatchObject({ chance: null, discipline: null, rung: null });
     });
 
-    it('names the seat an invitation offers - its class, driver, team and car', () => {
+    it('names the seat an invitation offers - its class, team and car', () => {
       const sent = makeDraw({ invitation: INVITED });
       const career = makeCareer({ date: '2026-06-20', inbox: [makeMail(sent)] });
 
@@ -2264,7 +2532,7 @@ describe('main/career-store/utils', () => {
           team: 'Team Lotus',
           car: 'test_car',
           offer: {
-            entry: 'main', entryName: 'Main', seat: 'seat-1', driver: 'Jim Clark', car: { model: 'test_car' },
+            entry: 'main', entryName: 'Main', seat: 'seat-1', car: { model: 'test_car' },
           },
           answered: null,
         });
@@ -2298,7 +2566,7 @@ describe('main/career-store/utils', () => {
         mail: accepted.id,
         answered: '2026-06-15',
         offer: {
-          entry: 'main', seat: 'seat-1', driver: 'Jim Clark', car: { model: 'test_car' },
+          entry: 'main', seat: 'seat-1', car: { model: 'test_car' },
         },
       });
     });
@@ -2396,6 +2664,7 @@ describe('main/career-store/utils', () => {
         date: '2026-07-12',
         reason: 'unanswered',
         historic: true,
+        fine: null,
       });
     });
 

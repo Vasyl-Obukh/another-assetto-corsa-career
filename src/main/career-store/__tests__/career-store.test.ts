@@ -10,13 +10,17 @@ import {
   CAREER_ID, makeAvailability, makeCar, makeCareer, makeChampionship, makeClassEntry, makeEntry, makeEvent, makeListing,
   makePlan, makeRound, makeSeason,
 } from './fixtures.ts';
+import { classOffers, rungPosition } from '../../../core/seat-offers/index.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
-import { ContentSource, Discipline } from '../../../shared/types/index.ts';
+import { ContentSource, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type {
   Car,
   Career,
   CareerSeason,
   CareerSettings,
+  Championship,
+  Contract,
+  ContractTerms,
   DrivingAids,
   HistoricDraw,
   LaunchRecord,
@@ -27,12 +31,15 @@ import type {
   RacePlace,
   RaceSetup,
   SeasonEntry,
+  SeatOffer,
   SeriesListing,
   SeriesRequirements,
   Settings,
 } from '../../../shared/types/index.ts';
 import { addDays, weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import { dropRating, ratingFloor } from '../../../shared/utils/career-eligibility/index.ts';
+import { offerDay, offerId } from '../../../shared/utils/contracts/index.ts';
+import { prizeTable } from '../../../shared/utils/prizes/index.ts';
 import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
   fakeContentStore, fakeRaceStore, fakeSeriesStore, fakeSettingsStore, raceSetup,
@@ -41,7 +48,9 @@ import type { FakeRaceStore, FakeSeriesStore } from '../../__tests__/fakes/index
 import { packZip, unpackZip } from '../../zip-archive/index.ts';
 import { createCareerStore } from '../career-store.ts';
 import type { CareerStore } from '../career-store.ts';
-import { profileOf, stateOf } from '../utils.ts';
+import {
+  materialiseEvents, profileOf, seasonSalt, stateOf,
+} from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
@@ -595,6 +604,154 @@ const backupOf = (career: Career, over: Record<string, string> = {}): Promise<Bu
  * Where a backup a test restores is kept.
  */
 const BACKUP_FILE = 'D:\\backups\\career.zip';
+
+/**
+ * The cup with a team of each budget fielding two seats in its class, at a fee
+ * a round.
+ */
+const TEAMED = makeChampionship({
+  teams: [
+    { id: 'works', name: 'Works Racing', budget: TeamBudget.WORKS },
+    { id: 'indie', name: 'Indie Racing', budget: TeamBudget.INDEPENDENT },
+    { id: 'priv', name: 'Privateer Racing', budget: TeamBudget.PRIVATEER },
+  ],
+  entries: [makeClassEntry({
+    entryFee: 1_000,
+    seats: ['works', 'indie', 'priv'].flatMap((team) => [{ id: `${team}-1`, team }, { id: `${team}-2`, team }]),
+  })],
+});
+
+/**
+ * The id of the mail holding the cup's offers for this season's one edition.
+ */
+const OFFER_MAIL = offerId(CUP.id, 0, 0);
+
+/**
+ * What the independent team of the cup offers: its slower seat, free, every
+ * fee covered and half of every purse.
+ */
+const INDIE_TERMS: ContractTerms = {
+  team: 'indie',
+  teamName: 'Indie Racing',
+  budget: TeamBudget.INDEPENDENT,
+  entry: 'main',
+  seat: 'indie-2',
+  car: { model: 'test_car' },
+  pay: 'free',
+  amount: 0,
+  feeCover: 1,
+  prizeShare: 50,
+};
+
+/**
+ * One team's offer for the cup's edition.
+ * @param over Whatever the test wants said differently
+ * @returns The offer
+ */
+const seatOffer = (over: Partial<SeatOffer> = {}): SeatOffer => ({
+  ...INDIE_TERMS,
+  series: CUP.id,
+  seriesName: CUP.name,
+  season: 0,
+  edition: 0,
+  opener: '2027-03-07',
+  rounds: 2,
+  editions: 1,
+  entryName: 'Main',
+  ladder: { discipline: Discipline.ROAD, tier: 4 },
+  fees: 2_000,
+  rent: 0,
+  ...over,
+});
+
+/**
+ * The privateer's offer: its slower seat, sold for the season.
+ */
+const PAID_SEAT = seatOffer({
+  team: 'priv', teamName: 'Privateer Racing', budget: TeamBudget.PRIVATEER, seat: 'priv-2', pay: 'seat', amount: 3_000, prizeShare: 100,
+});
+
+/**
+ * A career holding the cup's offers for its edition, still to be answered and
+ * the edition's draw done.
+ * @param offers The offers the mail holds
+ * @param money What the career holds
+ * @param mail Whatever the test wants said differently of the mail
+ * @returns The career
+ */
+const offered = (offers: SeatOffer[], money = 100_000, mail: Partial<Mail> = {}): Career => makeCareer({
+  ...careerWith({ offersDrawn: [`${CUP.id}:0`] }, '2027-01-05'),
+  money,
+  inbox: [{
+    id: OFFER_MAIL,
+    kind: 'offer',
+    season: 0,
+    arrived: '2027-01-01',
+    opened: false,
+    deadline: '2027-01-15',
+    offers,
+    ...mail,
+  }],
+});
+
+/**
+ * A career racing the cup under a contract with its independent team, the
+ * first of three rounds raced and the other two at a fee each still to come.
+ * @param contract Whatever the test wants said differently of the contract
+ * @param money What the career holds
+ * @returns The career
+ */
+const contracted = (contract: Partial<Contract> = {}, money = 100_000): Career => makeCareer({
+  ...careerWith({
+    offersDrawn: [`${CUP.id}:0`],
+    entries: [makeEntry({
+      championship: TEAMED,
+      playerSeat: 'indie-2',
+      contract: {
+        ...INDIE_TERMS, offer: OFFER_MAIL, signed: '2027-01-01', ...contract,
+      },
+      events: [
+        makeEvent('one', '2027-01-03', { status: 'raced', entryFee: 1_000 }),
+        makeEvent('two', '2027-03-07', { entryFee: 1_000 }),
+        makeEvent('three', '2027-06-06', { entryFee: 1_000 }),
+      ],
+    })],
+  }, '2027-01-05'),
+  money,
+});
+
+/**
+ * The teamed cup under the first id whose seeded draw, for a career's first
+ * season, sends two offers or more on a day after the season opens. Which id
+ * that is belongs to the seeds, so it is searched for rather than written down.
+ * @param career The career the draw is for
+ * @returns The championship, the teams that offer and the day the offers go out
+ */
+const drawingCup = (career: Career): { championship: Championship; teams: string[]; day: string } => {
+  const season = career.seasons[0];
+  for (let at = 0; at < 200; at += 1) {
+    const championship = { ...TEAMED, id: `offer-cup-${at}` };
+    const entry = championship.entries[0];
+    const events = materialiseEvents(championship, season, 0, season.startDate, entry.id);
+    const day = offerDay(events[0].date);
+    const offers = classOffers({
+      championship,
+      entry,
+      salt: seasonSalt(career, season.index, 0),
+      cars: ['test_car'],
+      standing: 'rung',
+      position: rungPosition(career.rating[Discipline.ROAD], entry.ladder.tier),
+      experienced: false,
+      fees: events.map((event) => event.entryFee ?? 0),
+      winnerPrize: prizeTable(championship, entry.id, 'positions')[0] ?? 0,
+      prizeSpeed: career.settings.prizeSpeed,
+    });
+    if (offers.length >= 2 && day > season.startDate) {
+      return { championship, teams: offers.map((one) => one.team), day };
+    }
+  }
+  throw new Error('no championship id draws two offers');
+};
 
 describe('main/career-store', () => {
   let open: CareerStore | null = null;
@@ -1419,6 +1576,14 @@ describe('main/career-store', () => {
         .rejects.toMatchObject({ code: 'standalone.enter' });
     });
 
+    it('turns down the offers for the edition still waiting, entering on the player\'s own', async () => {
+      const { store } = await build({ career: offered([seatOffer()]), listings: [makeListing(TEAMED)] });
+      await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
+
+      expect(mailOf(store.get(), OFFER_MAIL)?.reply).toEqual({ answer: 'declined', on: '2027-01-05' });
+      expect(entryOf(store.get()).contract).toBeUndefined();
+    });
+
     it("enters the class in the player's seat and dates every round of the edition", async () => {
       const { store } = await build();
       await store.enrol({ series: CUP.id, entry: 'main', car: { model: 'test_car' } });
@@ -1907,6 +2072,97 @@ describe('main/career-store', () => {
       expect(store.get()?.seasons[0].entries).toEqual([]);
       expect(mailOf(store.get())?.reply).toEqual({ answer: 'declined', on: '2027-01-10' });
     });
+
+    describe('under a contract', () => {
+      it('terminates it, paying the release fee and ending it on the day', async () => {
+        const { store } = await build({ career: contracted(), listings: [makeListing(TEAMED)] });
+        await store.withdraw({ series: CUP.id, entry: 'main' });
+        const career = store.get();
+
+        // Two rounds left at a fine of 1,000 each: a quarter of each is less
+        // than one whole fine, so one whole fine it is.
+        expect(career?.ledger).toContainEqual(expect.objectContaining({
+          key: `release:${OFFER_MAIL}`, kind: 'release', amount: -1_000, place: 2, team: 'Indie Racing',
+        }));
+        expect(career?.money).toBe(99_000);
+        expect(entryOf(career).contract?.ended).toBe('2027-01-05');
+        expect(entryOf(career).withdrawn).toBe(true);
+      });
+
+      it('fines none of the rounds it gave up', async () => {
+        const { store } = await build({ career: contracted(), listings: [makeListing(TEAMED)] });
+        await store.withdraw({ series: CUP.id, entry: 'main' });
+        await store.advanceTo('2027-07-01', true);
+
+        expect(store.get()?.ledger.filter((line) => line.kind === 'fine')).toEqual([]);
+      });
+
+      it('gives half of what is left of a paid seat back, and charges no release fee', async () => {
+        const { store } = await build({
+          career: contracted({
+            team: 'priv', teamName: 'Privateer Racing', seat: 'priv-2', pay: 'seat', amount: 6_000, prizeShare: 100,
+          }),
+          listings: [makeListing(TEAMED)],
+        });
+        await store.withdraw({ series: CUP.id, entry: 'main' });
+        const career = store.get();
+
+        expect(career?.ledger.map((line) => [line.kind, line.amount])).toEqual([['refund', 2_000]]);
+        expect(career?.money).toBe(102_000);
+      });
+
+      it('refuses while the career cannot pay the release fee, leaving the contract standing', async () => {
+        const { store } = await build({ career: contracted({}, 500), listings: [makeListing(TEAMED)] });
+
+        await expect(store.withdraw({ series: CUP.id, entry: 'main' }))
+          .rejects.toMatchObject({ code: 'contract.release.short' });
+        expect(entryOf(store.get()).withdrawn).toBeUndefined();
+        expect(entryOf(store.get()).contract?.ended).toBeUndefined();
+      });
+    });
+  });
+
+  describe('sending seat offers', () => {
+    it('sends the teams that call as one mail, eight weeks before the edition opens', async () => {
+      const career = careerWith({});
+      const { championship, teams, day } = drawingCup(career);
+      const { store } = await build({
+        career: { ...career, date: addDays(day, -1) },
+        listings: [makeListing(championship)],
+        cars: [TEST_CAR],
+      });
+
+      expect(store.get()?.inbox).toEqual([]);
+
+      await store.advanceTo(day);
+      const mail = mailOf(store.get(), offerId(championship.id, 0, 0));
+
+      expect(store.get()?.inbox).toHaveLength(1);
+      expect(mail).toMatchObject({ kind: 'offer', arrived: day, opened: false });
+      expect(mail?.offers?.map((one) => one.team)).toEqual(teams);
+      expect(store.get()?.seasons[0].offersDrawn).toEqual([`${championship.id}:0`]);
+    });
+
+    it('draws an edition once, sending nothing more however far the clock moves', async () => {
+      const career = careerWith({});
+      const { championship, day } = drawingCup(career);
+      const { store } = await build({ career: { ...career, date: day }, listings: [makeListing(championship)] });
+      await store.answer({ mail: offerId(championship.id, 0, 0), answer: 'declined' });
+      await store.advanceTo(addDays(day, 7));
+
+      expect(store.get()?.inbox).toHaveLength(1);
+    });
+
+    it('sends none for an edition the player has already entered', async () => {
+      const career = careerWith({});
+      const { championship, day } = drawingCup(career);
+      const entered = careerWith({
+        entries: [makeEntry({ series: championship.id, championship, events: [makeEvent('one', '2027-12-05')] })],
+      }, day);
+      const { store } = await build({ career: entered, listings: [makeListing(championship)] });
+
+      expect(store.get()?.inbox).toEqual([]);
+    });
   });
 
   describe('sending invitations', () => {
@@ -2071,6 +2327,81 @@ describe('main/career-store', () => {
 
       await expect(store.answer({ mail: 'invite:nowhere', answer: 'accepted' }))
         .rejects.toMatchObject({ code: 'mail.notFound' });
+    });
+
+    describe('a seat offer', () => {
+      it("signs the offer picked, entering the edition in its team's seat and car", async () => {
+        const { store } = await build({ career: offered([PAID_SEAT, seatOffer()]), listings: [makeListing(TEAMED)] });
+        await store.answer({ mail: OFFER_MAIL, answer: 'accepted', offer: { entry: 'main', team: 'indie' } });
+        const entry = entryOf(store.get());
+
+        expect(entry).toMatchObject({
+          entry: 'main',
+          playerSeat: 'indie-2',
+          // No source: the team's car, neither rented nor owned.
+          car: { model: 'test_car' },
+          contract: {
+            ...INDIE_TERMS, offer: OFFER_MAIL, signed: '2027-01-05',
+          },
+        });
+        expect(entry.championship.entries[0].seats.at(-1)?.id).toBe('indie-2');
+        expect(mailOf(store.get(), OFFER_MAIL)).toMatchObject({
+          opened: true, reply: { answer: 'accepted', on: '2027-01-05', offer: { entry: 'main', team: 'indie' } },
+        });
+        expect(store.get()?.ledger).toEqual([]);
+      });
+
+      it('takes the price of a paid seat as it is signed', async () => {
+        const { store } = await build({ career: offered([PAID_SEAT]), listings: [makeListing(TEAMED)] });
+        await store.answer({ mail: OFFER_MAIL, answer: 'accepted' });
+
+        expect(store.get()?.ledger).toEqual([expect.objectContaining({
+          key: `seat:${OFFER_MAIL}`, kind: 'seat', amount: -3_000, team: 'Privateer Racing',
+        })]);
+        expect(store.get()?.money).toBe(97_000);
+      });
+
+      it('refuses a paid seat the career cannot pay for', async () => {
+        const { store } = await build({ career: offered([PAID_SEAT], 1_000), listings: [makeListing(TEAMED)] });
+
+        await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted' }))
+          .rejects.toMatchObject({ code: 'contract.short' });
+        expect(store.get()?.seasons[0].entries).toEqual([]);
+      });
+
+      it('refuses to accept one of several offers without saying which', async () => {
+        const { store } = await build({ career: offered([PAID_SEAT, seatOffer()]), listings: [makeListing(TEAMED)] });
+
+        await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted' }))
+          .rejects.toMatchObject({ code: 'mail.notFound' });
+      });
+
+      it('refuses a seat the championship no longer fields for the team', async () => {
+        const { store } = await build({ career: offered([seatOffer({ seat: 'works-2' })]), listings: [makeListing(TEAMED)] });
+
+        await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted' }))
+          .rejects.toMatchObject({ code: 'contract.gone' });
+      });
+
+      it('turns every offer down, entering nothing', async () => {
+        const { store } = await build({ career: offered([PAID_SEAT, seatOffer()]), listings: [makeListing(TEAMED)] });
+        await store.answer({ mail: OFFER_MAIL, answer: 'declined' });
+
+        expect(store.get()?.seasons[0].entries).toEqual([]);
+        expect(mailOf(store.get(), OFFER_MAIL)).toMatchObject({
+          opened: true, reply: { answer: 'declined', on: '2027-01-05' },
+        });
+      });
+
+      it('refuses to answer offers that have lapsed', async () => {
+        const career = offered([seatOffer()], 100_000, { deadline: '2027-01-02' });
+        const { store } = await build({ career, listings: [makeListing(TEAMED)] });
+
+        await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted' }))
+          .rejects.toMatchObject({ code: 'contract.closed' });
+        await expect(store.answer({ mail: OFFER_MAIL, answer: 'declined' }))
+          .rejects.toMatchObject({ code: 'contract.closed' });
+      });
     });
   });
 
@@ -2351,6 +2682,33 @@ describe('main/career-store', () => {
 
       expect(await store.skips('2027-04-01')).toEqual([]);
     });
+
+    it('lists a round the install cannot race as unraceable, which no contract fines', async () => {
+      const unraceable = makeListing(TEAMED, {
+        availability: makeAvailability(TEAMED, {
+          rounds: makeAvailability(TEAMED).rounds.map((one) => (one.round === 'two'
+            ? { ...one, track: { key: 'track_two', id: 'track_two', layout: '' } as MissingTrack }
+            : one)),
+        }),
+      });
+      const career = contracted();
+      const held = career.seasons[0].entries[0];
+      const { store } = await build({
+        career: {
+          ...career,
+          seasons: [{
+            ...career.seasons[0],
+            entries: [{ ...held, events: [makeEvent('one', '2027-03-07', { entryFee: 1_000 }), makeEvent('two', '2027-06-06', { entryFee: 1_000 })] }],
+          }],
+        },
+        listings: [unraceable],
+      });
+
+      expect((await store.skips('2027-07-01')).map((one) => [one.round, one.reason, one.fine])).toEqual([
+        ['one', 'skipped', 1_000],
+        ['two', 'unraceable', null],
+      ]);
+    });
   });
 
   describe('roundCosts', () => {
@@ -2614,7 +2972,9 @@ describe('main/career-store', () => {
       const { store } = await build({ career });
       const view = await store.event({ series: CUP.id, round: 'one' });
 
-      expect(view.money).toEqual({ fee: 1500, paid: false, rent: null, rentPaid: false, balance: 100_000 });
+      expect(view.money).toEqual({
+        fee: 1500, paid: false, rent: null, rentPaid: false, balance: 100_000, contract: null,
+      });
       expect(view.blocked).toBeNull();
     });
 
@@ -2736,7 +3096,7 @@ describe('main/career-store', () => {
         });
         expect(view.blocked).toBeNull();
         expect(view.money).toEqual({
-          fee: null, paid: false, rent: null, rentPaid: false, balance: 100_000,
+          fee: null, paid: false, rent: null, rentPaid: false, balance: 100_000, contract: null,
         });
       });
 

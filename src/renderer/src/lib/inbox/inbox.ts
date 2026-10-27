@@ -2,9 +2,14 @@
 // event it is about, and the folders, search and pages the inbox lists it by.
 // Derived on every read; the mail and the seasons are all that is stored.
 
+import type { TFunction } from 'i18next';
+
 import { INBOX_PAGE_SIZE } from './constants.ts';
 import type { InboxFolder, InboxItem, InboxMonth } from './types.ts';
-import type { Career, Mail } from '../../../../shared/types';
+import type {
+  Career, ContractBonus, Mail, SeatOffer,
+} from '../../../../shared/types';
+import { pickedOffer } from '../../../../shared/utils/contracts';
 import { mailStatus } from '../../../../shared/utils/inbox';
 import { matchesTerms, searchTerms } from '../../../../shared/utils/search';
 
@@ -15,6 +20,24 @@ import { matchesTerms, searchTerms } from '../../../../shared/utils/search';
  * @returns The mail and everything a screen says of it
  */
 export const inboxItem = (career: Career, mail: Mail): InboxItem => {
+  if (mail.offers) {
+    const signed = career.seasons.find((one) => one.index === mail.season)?.entries
+      .find((one) => one.contract?.offer === mail.id) ?? null;
+
+    return {
+      mail,
+      status: mailStatus(mail, career.date),
+      event: null,
+      draw: null,
+      round: null,
+      entry: null,
+      seat: null,
+      team: null,
+      entered: signed,
+      offers: mail.offers,
+    };
+  }
+
   const offer = mail.invitation;
   const season = career.seasons.find((one) => one.index === mail.season);
   const draw = season?.historicEvents?.find((one) => one.raceId === offer?.raceId) ?? null;
@@ -35,6 +58,7 @@ export const inboxItem = (career: Career, mail: Mail): InboxItem => {
     seat,
     team: event?.teams?.find((one) => one.id === seat?.team) ?? null,
     entered,
+    offers: [],
   };
 };
 
@@ -58,21 +82,34 @@ export const inboxItems = (career: Career): InboxItem[] => career.inbox
 export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
   if (folder === 'unread') return !item.mail.opened;
   if (folder === 'awaiting') return item.status === 'awaiting';
-  if (folder === 'invitation') return item.mail.kind === 'invitation';
+  if (folder === 'invitation' || folder === 'offer') return item.mail.kind === folder;
 
   return true;
 };
 
 /**
  * Whether a mail matches what was typed into the search: the event it is
- * about, or who it comes from.
+ * about, or who it comes from - any of an edition's teams, on a seat offer.
  * @param item The mail
  * @param search What was typed
  * @returns True when every word of it is found
  */
 export const matchesSearch = (item: InboxItem, search: string): boolean => matchesTerms(
   searchTerms(search),
-  [item.event?.name ?? null, item.team?.name ?? null, item.seat?.driver?.name ?? null],
+  [
+    item.event?.name ?? item.offers[0]?.seriesName ?? null,
+    item.team?.name ?? null,
+    ...item.offers.map((offer) => offer.teamName),
+  ],
+);
+
+/**
+ * The offer a seat offer's mail was accepted on.
+ * @param item The mail
+ * @returns The offer signed, or null while none is
+ */
+export const signedOffer = (item: InboxItem): SeatOffer | null => (
+  item.mail.reply?.answer === 'accepted' ? pickedOffer(item.mail, item.mail.reply.offer) : null
 );
 
 /**
@@ -109,4 +146,36 @@ export const byMonth = (items: readonly InboxItem[]): InboxMonth[] => {
   }
 
   return months;
+};
+
+/**
+ * A contract's standings bonus in one line: every tier, the title first.
+ * @param bonus The tiers
+ * @param t The translator
+ * @param formatMoney Formats an amount in the career's currency
+ * @returns The line, or null for a contract with no bonus
+ */
+export const bonusLine = (
+  bonus: readonly ContractBonus[] | undefined,
+  t: TFunction,
+  formatMoney: (amount: number) => string,
+): string | null => (bonus && bonus.length > 0 ? bonus.map((tier) => (tier.upTo === 1
+  ? t('inbox.offer.terms.champion', { amount: formatMoney(tier.amount) })
+  : t('inbox.offer.terms.top', { place: tier.upTo, amount: formatMoney(tier.amount) }))).join(' · ') : null);
+
+/**
+ * A seat offer in one line, as a list of them says it: what it pays and what
+ * share of the prize money is the player's.
+ * @param offer The offer
+ * @param t The translator
+ * @param formatMoney Formats an amount in the career's currency
+ * @returns The line
+ */
+export const offerSummary = (offer: SeatOffer, t: TFunction, formatMoney: (amount: number) => string): string => {
+  const amount = formatMoney(offer.amount);
+  let pay = t('championships.offers.free');
+  if (offer.pay === 'salary') pay = t('championships.offers.salary', { amount });
+  else if (offer.pay === 'seat') pay = t('championships.offers.seat', { amount });
+
+  return [pay, t('championships.offers.share', { share: offer.prizeShare })].join(' · ');
 };

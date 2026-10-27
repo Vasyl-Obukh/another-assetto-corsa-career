@@ -23,6 +23,22 @@ export const describeLine = (
   const round = t('finances.line.round', { number: line.number ?? 1, round: line.roundName ?? '' });
   const series = line.seriesName ?? '';
   const car = line.car?.name ?? '';
+  const team = line.team ?? '';
+  // What the edition a line came from is called, off the season it ran in.
+  const edition = (): string => {
+    const season = career.seasons.find((one) => one.index === line.season);
+    const entry = season?.entries.find((one) => one.series === line.series && one.edition === line.edition);
+
+    return season ? editionName({
+      year: seasonYear(season),
+      edition: line.edition ?? 0,
+      editions: entry ? editionsOf(entry.championship) : 1,
+    }, t) : '';
+  };
+  // A prize under contract says the share of the purse it was.
+  const share = line.share
+    ? { share: line.share.percent, purse: format.formatMoney(line.share.purse) }
+    : null;
 
   switch (line.kind) {
     case 'opening':
@@ -48,27 +64,46 @@ export const describeLine = (
     case 'race':
       return {
         title: t('finances.line.race', { round, race: line.race ?? '' }),
-        detail: t('finances.line.place', { series, place: line.place ?? 0 }),
+        detail: share
+          ? t('finances.line.placeShare', { series, place: line.place ?? 0, ...share })
+          : t('finances.line.place', { series, place: line.place ?? 0 }),
+      };
+    case 'salary':
+      return { title: round, detail: t('finances.line.salaryDetail', { team, series }) };
+    case 'fine':
+      return { title: round, detail: t('finances.line.fineDetail', { team, series }) };
+    case 'bonus':
+      return {
+        title: t('finances.line.standings', { series, edition: edition() }),
+        detail: t('finances.line.bonusDetail', { team, place: line.place ?? 0 }),
+      };
+    case 'seat':
+      return {
+        title: t('finances.line.seat', { team }),
+        detail: t('finances.line.seatDetail', { series, edition: edition() }),
+      };
+    case 'release':
+      return {
+        title: t('finances.line.terminated', { team }),
+        detail: t('finances.line.releaseDetail', { series, edition: edition(), count: line.place ?? 0 }),
+      };
+    case 'refund':
+      return {
+        title: t('finances.line.terminated', { team }),
+        detail: t('finances.line.refundDetail', { series, edition: edition(), count: line.place ?? 0 }),
       };
     case 'historic':
       return {
         title: series,
         detail: t('finances.line.historicDetail', { race: line.race ?? '', place: line.place ?? 0 }),
       };
-    case 'standings': {
-      const season = career.seasons.find((one) => one.index === line.season);
-      const entry = season?.entries.find((one) => one.series === line.series && one.edition === line.edition);
-      const edition = season ? editionName({
-        year: seasonYear(season),
-        edition: line.edition ?? 0,
-        editions: entry ? editionsOf(entry.championship) : 1,
-      }, t) : '';
-
+    case 'standings':
       return {
-        title: t('finances.line.standings', { series, edition }),
-        detail: t('finances.line.standingsDetail', { place: line.place ?? 0 }),
+        title: t('finances.line.standings', { series, edition: edition() }),
+        detail: share
+          ? t('finances.line.standingsShare', { place: line.place ?? 0, ...share })
+          : t('finances.line.standingsDetail', { place: line.place ?? 0 }),
       };
-    }
     default: {
       const speed = (value: number): string => t('finances.speed', { speed: format.formatNumber(value) });
 

@@ -251,6 +251,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'historic.invited': 'You are invited to {{event}}. Answer the invitation before entering it at your own cost.',
   'mail.notFound': 'There is no such mail in the inbox.',
   'mail.closed': 'The invitation to {{event}} can no longer be answered that way.',
+  'contract.closed': 'The seat offer from {{team}} for {{series}} can no longer be answered that way.',
+  'contract.short': 'The seat costs {{price}} and the career holds {{money}}.',
+  'contract.gone': '{{team}} no longer fields that seat in {{series}}.',
+  'contract.release.short': 'Terminating the contract costs {{fee}} and the career holds {{money}}.',
   'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
   'historic.points':
     'Points system "{{system}}" of {{event}} pays points, but a historic event pays only its prize money.',

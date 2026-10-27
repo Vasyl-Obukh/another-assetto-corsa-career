@@ -162,6 +162,85 @@ describe('renderer/screens/finances/utils', () => {
       });
     });
 
+    it("names a race prize under contract by the share of the purse that was the player's", () => {
+      const shared = line({
+        race: 'Race 1', place: 2, amount: 500, share: { percent: 25, purse: 2000 },
+      });
+
+      expect(describeLine(shared, CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.placeShare(series=Cup,place=2,share=25,purse=2000)');
+    });
+
+    it("names a final standing under contract by the share of the purse that was the player's", () => {
+      const shared = line({
+        kind: 'standings', edition: 1, place: 1, amount: 3000, share: { percent: 30, purse: 10_000 },
+      });
+
+      expect(describeLine(shared, CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.standingsShare(place=1,share=30,purse=10000)');
+    });
+
+    it("names a round's salary and fine by the round, the team and the championship", () => {
+      const salary = line({ kind: 'salary', amount: 2500, team: 'Alpha Racing' });
+      const fine = line({ kind: 'fine', amount: -1500, team: 'Alpha Racing' });
+
+      expect(describeLine(salary, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.round(number=3,round=Imola)',
+        detail: 'finances.line.salaryDetail(team=Alpha Racing,series=Cup)',
+      });
+      expect(describeLine(fine, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.round(number=3,round=Imola)',
+        detail: 'finances.line.fineDetail(team=Alpha Racing,series=Cup)',
+      });
+    });
+
+    it('names a standings bonus by the edition it closed, the team and the place it paid', () => {
+      const bonus = line({
+        kind: 'bonus', amount: 4000, edition: 1, place: 1, team: 'Alpha Racing',
+      });
+
+      expect(describeLine(bonus, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.standings(series=Cup,edition=edition.half(number=2,year=2027))',
+        detail: 'finances.line.bonusDetail(team=Alpha Racing,place=1)',
+      });
+    });
+
+    it('names a seat paid for by the team and the edition it was for', () => {
+      const seat = line({
+        kind: 'seat', amount: -9000, edition: 1, team: 'Alpha Racing',
+      });
+
+      expect(describeLine(seat, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.seat(team=Alpha Racing)',
+        detail: 'finances.line.seatDetail(series=Cup,edition=edition.half(number=2,year=2027))',
+      });
+    });
+
+    it('names a release fee and a refund by the team left and the rounds still to race', () => {
+      const release = line({
+        kind: 'release', amount: -800, edition: 1, place: 3, team: 'Alpha Racing',
+      });
+      const refund = line({
+        kind: 'refund', amount: 3000, edition: 1, place: 2, team: 'Alpha Racing',
+      });
+
+      expect(describeLine(release, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.terminated(team=Alpha Racing)',
+        detail: 'finances.line.releaseDetail(series=Cup,edition=edition.half(number=2,year=2027),count=3)',
+      });
+      expect(describeLine(refund, CAREER, translate, FORMAT)).toEqual({
+        title: 'finances.line.terminated(team=Alpha Racing)',
+        detail: 'finances.line.refundDetail(series=Cup,edition=edition.half(number=2,year=2027),count=2)',
+      });
+    });
+
+    it('names an edition by its year where the season no longer lists it, and nothing where the season is gone', () => {
+      expect(describeLine(line({ kind: 'seat', series: 'gone', edition: 0 }), CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.seatDetail(series=Cup,edition=edition.year(year=2027))');
+      expect(describeLine(line({ kind: 'seat', season: 4 }), CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.seatDetail(series=Cup,edition=)');
+    });
+
     it('names the opening balance', () => {
       expect(describeLine(line({ kind: 'opening' }), CAREER, translate, FORMAT)).toEqual({
         title: 'finances.line.opening',

@@ -23,7 +23,9 @@ interface InvitationsBannerProps {
 export const InvitationsBanner = ({ career }: InvitationsBannerProps) => {
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
-  const waiting = awaitingMail(career.inbox, career.date).map((mail) => inboxItem(career, mail));
+  const waiting = awaitingMail(career.inbox, career.date)
+    .filter((mail) => mail.kind === 'invitation')
+    .map((mail) => inboxItem(career, mail));
   if (waiting.length === 0) return null;
 
   return (

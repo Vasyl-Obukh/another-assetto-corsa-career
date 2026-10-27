@@ -1,12 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
+import type { TFunction } from 'i18next';
 
+import { Discipline, TeamBudget } from '../../../../../shared/types';
 import type {
-  Career, CareerSeason, HistoricDraw, Mail, SeasonEntry,
+  Career, CareerSeason, HistoricDraw, Mail, SeasonEntry, SeatOffer,
 } from '../../../../../shared/types';
 import { makeSeries } from '../../season-results/__tests__/fixtures.ts';
 import { INBOX_PAGE_SIZE } from '../constants.ts';
 import {
-  byMonth, inboxItem, inboxItems, inFolder, matchesSearch, pageCount, pageOf,
+  byMonth, inboxItem, inboxItems, inFolder, matchesSearch, offerSummary, pageCount, pageOf, signedOffer,
 } from '../inbox.ts';
 
 const RACE_ID = 'monaco-1967/r1@0.0';
@@ -87,6 +89,66 @@ const career = (
     index: 0, startDate: '2026-01-01', endDate: '2026-12-31', entries: [], historicEvents: [draw()], ...season,
   }],
 } as unknown as Career);
+
+const OFFER_ID = 'offer:cup:0.0';
+
+/**
+ * A team's seat in the cup's main class, as an offer's mail carries it.
+ * @param overrides What to change about it
+ * @returns The offer
+ */
+const seatOffer = (overrides: Partial<SeatOffer> = {}): SeatOffer => ({
+  team: 'alpha',
+  teamName: 'Alpha Racing',
+  budget: TeamBudget.WORKS,
+  entry: 'main',
+  seat: 'main-2',
+  car: { model: 'test_car' },
+  pay: 'salary',
+  amount: 20_000,
+  feeCover: 1,
+  prizeShare: 25,
+  series: 'cup',
+  seriesName: 'Sunday Cup',
+  season: 0,
+  edition: 0,
+  opener: '2026-06-07',
+  rounds: 4,
+  editions: 1,
+  entryName: 'Main',
+  ladder: { discipline: Discipline.TOURING, tier: 4 },
+  fees: 8000,
+  rent: 500,
+  ...overrides,
+});
+
+/**
+ * The cup's seat offers for its one edition, as one mail.
+ * @param offers The offers it holds
+ * @param overrides What to change about the mail
+ * @returns The mail
+ */
+const offerMail = (offers: SeatOffer[] = [seatOffer()], overrides: Partial<Mail> = {}): Mail => ({
+  id: OFFER_ID,
+  kind: 'offer',
+  season: 0,
+  arrived: '2026-04-12',
+  opened: false,
+  deadline: '2026-04-26',
+  offers,
+  ...overrides,
+});
+
+/**
+ * The cup entered under the contract an offer signed.
+ * @param offer The mail the contract was offered in, by id
+ * @returns The entry
+ */
+const contracted = (offer: string): SeasonEntry => entered({
+  series: 'cup',
+  historic: undefined,
+  contract: { ...seatOffer(), offer, signed: '2026-04-15' },
+});
 
 /**
  * A mail joined to nothing in particular, arriving on the day given.
@@ -174,6 +236,34 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(item.seat).toBeNull();
       expect(item.team).toBeNull();
     });
+
+    it("joins a seat offer to its offers and to no event's draw", () => {
+      const offers = [seatOffer(), seatOffer({ team: 'beta', teamName: 'Beta Motorsport' })];
+      const one = offerMail(offers);
+      const item = inboxItem(career([one]), one);
+
+      expect(item).toMatchObject({
+        mail: one,
+        status: 'awaiting',
+        event: null,
+        draw: null,
+        round: null,
+        entry: null,
+        seat: null,
+        team: null,
+        entered: null,
+      });
+      expect(item.offers).toBe(offers);
+    });
+
+    it('reads the edition raced under the contract a seat offer signed', () => {
+      const one = offerMail([seatOffer()], { reply: { answer: 'accepted', on: '2026-04-15' } });
+      const signed = contracted(OFFER_ID);
+      const item = inboxItem(career([one], { entries: [contracted('offer:other:0.0'), signed] }), one);
+
+      expect(item.entered).toBe(signed);
+      expect(item.status).toBe('accepted');
+    });
   });
 
   describe('inboxItems', () => {
@@ -223,15 +313,23 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(inFolder(unread, 'invitation')).toBe(true);
       expect(inFolder(read, 'invitation')).toBe(true);
     });
+
+    it('lists seat offers under their own kind, apart from invitations', () => {
+      const offers = inboxItem(career([]), offerMail());
+
+      expect(inFolder(offers, 'offer')).toBe(true);
+      expect(inFolder(offers, 'invitation')).toBe(false);
+      expect(inFolder(unread, 'offer')).toBe(false);
+    });
   });
 
   describe('matchesSearch', () => {
     const item = inboxItem(career([]), mail());
 
-    it('matches the event, the team and the driver of the seat', () => {
+    it('matches the event and the team, never whose seat it is', () => {
       expect(matchesSearch(item, 'monaco')).toBe(true);
       expect(matchesSearch(item, 'alpha')).toBe(true);
-      expect(matchesSearch(item, 'bo')).toBe(true);
+      expect(matchesSearch(item, 'bo')).toBe(false);
     });
 
     it('matches only where every word is found, folding case and accents', () => {
@@ -250,6 +348,90 @@ describe('renderer/lib/inbox/inbox', () => {
 
       expect(matchesSearch(orphan, 'monaco')).toBe(false);
       expect(matchesSearch(orphan, '')).toBe(true);
+    });
+
+    it("matches a seat offer's championship and any of its teams, however far down the mail", () => {
+      const offers = inboxItem(career([]), offerMail([
+        seatOffer(),
+        seatOffer({ team: 'beta', teamName: 'Beta Motorsport' }),
+        seatOffer({ team: 'gamma', teamName: 'Gamma Garage' }),
+      ]));
+
+      expect(matchesSearch(offers, 'sunday cup')).toBe(true);
+      expect(matchesSearch(offers, 'gamma')).toBe(true);
+      expect(matchesSearch(offers, 'delta')).toBe(false);
+    });
+  });
+
+  describe('signedOffer', () => {
+    const offers = [seatOffer(), seatOffer({ team: 'beta', teamName: 'Beta Motorsport' })];
+
+    /**
+     * A seat offer read as the inbox reads it.
+     * @param one The mail
+     * @returns The item
+     */
+    const read = (one: Mail) => inboxItem(career([one]), one);
+
+    /**
+     * An acceptance, naming the offer picked where one was.
+     * @param pick The class and team picked
+     * @returns The reply, as a mail's overrides
+     */
+    const accepted = (pick?: { entry: string; team: string }): Partial<Mail> => ({
+      reply: { answer: 'accepted', on: '2026-04-15', ...(pick ? { offer: pick } : {}) },
+    });
+
+    it('is the offer the reply names', () => {
+      expect(signedOffer(read(offerMail(offers, accepted({ entry: 'main', team: 'beta' }))))).toBe(offers[1]);
+    });
+
+    it('is the only offer of a mail accepted without naming one', () => {
+      const only = seatOffer();
+
+      expect(signedOffer(read(offerMail([only], accepted())))).toBe(only);
+    });
+
+    it('is none of several when the reply names none, or names one the mail does not hold', () => {
+      expect(signedOffer(read(offerMail(offers, accepted())))).toBeNull();
+      expect(signedOffer(read(offerMail(offers, accepted({ entry: 'main', team: 'gamma' }))))).toBeNull();
+      expect(signedOffer(read(offerMail(offers, accepted({ entry: 'pro', team: 'beta' }))))).toBeNull();
+    });
+
+    it('is none while the mail waits, or once it was declined or lapsed', () => {
+      const declined: Partial<Mail> = { reply: { answer: 'declined', on: '2026-04-15' } };
+
+      expect(signedOffer(read(offerMail()))).toBeNull();
+      expect(signedOffer(read(offerMail([seatOffer()], declined)))).toBeNull();
+      expect(signedOffer(inboxItem(career([], {}, '2026-05-01'), offerMail()))).toBeNull();
+    });
+  });
+
+  describe('offerSummary', () => {
+    const t = ((key: string, params?: object) => (
+      params ? `${key} ${JSON.stringify(params)}` : key
+    )) as unknown as TFunction;
+
+    /**
+     * Writes an amount back the way a test can read it.
+     * @param amount The amount
+     * @returns It, in dollars
+     */
+    const money = (amount: number): string => `$${amount}`;
+
+    it("says what a salary pays and the share of the prize money that is the player's", () => {
+      expect(offerSummary(seatOffer(), t, money)).toBe(
+        'championships.offers.salary {"amount":"$20000"} · championships.offers.share {"share":25}',
+      );
+    });
+
+    it('says what a seat costs, and calls a free seat free', () => {
+      expect(offerSummary(seatOffer({ pay: 'seat', amount: 9000, prizeShare: 100 }), t, money)).toBe(
+        'championships.offers.seat {"amount":"$9000"} · championships.offers.share {"share":100}',
+      );
+      expect(offerSummary(seatOffer({ pay: 'free', amount: 0, prizeShare: 50 }), t, money)).toBe(
+        'championships.offers.free · championships.offers.share {"share":50}',
+      );
     });
   });
 

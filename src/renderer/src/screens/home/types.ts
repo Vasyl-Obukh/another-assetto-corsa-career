@@ -48,6 +48,11 @@ export interface SeasonProgress {
    */
   className: string | null;
   /**
+   * The team whose contract it is raced under, by its display name, or null
+   * when it is raced on the player's own.
+   */
+  team: string | null;
+  /**
    * Which discipline and rung the class sits at, or null when the class has
    * gone from the frozen championship.
    */

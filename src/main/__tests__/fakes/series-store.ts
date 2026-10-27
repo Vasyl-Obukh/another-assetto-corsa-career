@@ -1,6 +1,6 @@
 import { fake } from './fake.ts';
 import type {
-  Championship, RaceDefinition, SeriesAvailability, SeriesListing, SeriesRequirements, WeatherOffer,
+  Championship, RaceDefinition, SeriesAvailability, SeriesListing, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import type { SeriesStore } from '../../series-store/index.ts';
 
@@ -41,8 +41,12 @@ export const raceableAvailability = (series: Championship): SeriesAvailability =
   rounds: series.rounds.map((round) => ({
     round: round.id, track: null, pitboxes: null, entries: [], races: [{ name: 'Race', laps: 10 }],
   })),
-  // Nothing a store does reads what a championship needs of the catalogue.
-  requires: {} as SeriesRequirements,
+  // Needing nothing, so no content source switched off ever hides it.
+  requires: {
+    sources: [], packs: [], makers: [], distributors: [], pools: [],
+    rounds: { packs: [], makers: [], distributors: [] },
+    widenedBy: { packs: [], makers: [], distributors: [] },
+  },
 });
 
 /**

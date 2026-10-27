@@ -420,6 +420,11 @@ and Cup 3 alike, the BMW Cup and SP3T alike. WEC 2017's purse was raised to the
       reading of any real series' prize fund
 - [ ] Entry fees are still one per championship; a class could carry its own the
       same way
+- [x] Formula 1 - all 36 seasons - and IROC 1974 charged nothing to enter, which
+      made the top rung the cheapest to race on your own. Each now charges a
+      quarter of its race winner's prize a round, roughly what the rest of the
+      top rung charges: $25,000 for every F1 season paying $100,000 a win,
+      down to $8,750 for 1954, and $7,500 for IROC
 
 ## 4. Rules the engine cannot express yet
 

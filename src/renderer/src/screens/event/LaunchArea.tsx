@@ -1,4 +1,4 @@
-import { Loader2Icon, WalletIcon } from 'lucide-react';
+import { BriefcaseIcon, Loader2Icon, WalletIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { launchNote, moneyNote, scaleName } from './utils.ts';
@@ -47,6 +47,7 @@ export const LaunchArea = ({
   const { formatMoney } = useFormat();
   const race = useRaceStatus();
   const { money } = view;
+  const contract = money?.contract ?? null;
   // What the next launch pays: the fee and the rent, each until it is paid.
   const fee = money?.fee && !money.paid ? money.fee : 0;
   const rent = money?.rent && !money.rentPaid ? money.rent : 0;
@@ -95,11 +96,33 @@ export const LaunchArea = ({
       {view.blocked && !short ? (
         <p className="text-sm text-muted-foreground">{describe(view.blocked)}</p>
       ) : null}
+      {/* What the round's contract covers, pays and fines, said before the
+          round is launched as the fee is. */}
+      {contract && view.status === 'scheduled' ? (
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <BriefcaseIcon className="mt-0.5 size-4 shrink-0 text-contract-foreground" />
+          <span>
+            {[
+              contract.covered > 0 ? t(money?.fee ? 'event.money.halfCovered' : 'event.money.covered', {
+                team: contract.team, fee: formatMoney(contract.covered + (money?.fee ?? 0)),
+              }) : null,
+              contract.salary && !contract.salaryPaid
+                ? t('event.money.salary', { salary: formatMoney(contract.salary) })
+                : null,
+              contract.fine
+                ? t(contract.salary ? 'event.money.fine' : 'event.money.fineFree', { fine: formatMoney(contract.fine) })
+                : null,
+            ].filter(Boolean).join(' ')}
+          </span>
+        </p>
+      ) : null}
       {/* Said before it is paid, so launching never costs money unannounced. */}
       {view.blocked === null && fee + rent > 0 ? (
         <p className="flex items-start gap-2 text-sm text-muted-foreground">
           <WalletIcon className="mt-0.5 size-4 shrink-0" />
-          {t(moneyNote(fee, rent), { fee: formatMoney(fee), rent: formatMoney(rent), session: name })}
+          {t(contract ? 'event.money.contractFee' : moneyNote(fee, rent), {
+            fee: formatMoney(fee), rent: formatMoney(rent), session: name,
+          })}
         </p>
       ) : null}
       {view.blocked === null && accepting ? (

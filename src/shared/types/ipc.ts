@@ -38,6 +38,7 @@ import type {
   Weather,
   WeatherController,
 } from './content.ts';
+import type { OfferPick } from './contract.ts';
 import type { MailAnswer } from './inbox.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { QuickRace, QuickRaceArchives, QuickRaceView } from './quick-race.ts';
@@ -528,9 +529,10 @@ export interface IpcContract {
   /**
    * Answer a mail that wants an answer: accepting an invitation enters its
    * event in the seat offered, and declining gives the seat back - one already
-   * accepted until the event's first session runs.
+   * accepted until the event's first session runs. Accepting a seat offer signs
+   * the one picked, and declines the rest.
    */
-  'career:answer': { req: { mail: string; answer: MailAnswer }; res: Career };
+  'career:answer': { req: { mail: string; answer: MailAnswer; offer?: OfferPick }; res: Career };
   /**
    * Mark a mail opened, or unread again.
    */

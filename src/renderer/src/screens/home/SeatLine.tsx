@@ -12,8 +12,8 @@ interface SeatLineProps {
   seat: HistoricRow;
 }
 
-// The seat a historic event invites the player into: the car, the team behind
-// it and whose seat it is - or the car they entered it in at their own cost.
+// The seat a historic event invites the player into: the car and the team
+// behind it - or the car they entered it in at their own cost.
 export const SeatLine = ({ seat }: SeatLineProps) => {
   const { t } = useTranslation();
   const carName = useCarNames(seat.car ? [seat.car] : []);
@@ -36,12 +36,8 @@ export const SeatLine = ({ seat }: SeatLineProps) => {
       </div>
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="truncate font-medium">{carName(car)}</span>
-        {seat.invited ? (
-          <span className="truncate text-xs text-muted-foreground">
-            {seat.driver
-              ? t('home.historic.seatOf', { team: seat.team ?? '', driver: seat.driver })
-              : seat.team}
-          </span>
+        {seat.invited && seat.team ? (
+          <span className="truncate text-xs text-muted-foreground">{seat.team}</span>
         ) : null}
         <span className="text-xs text-muted-foreground">
           {t(seat.invited ? 'home.historic.invited' : 'home.historic.entered')}

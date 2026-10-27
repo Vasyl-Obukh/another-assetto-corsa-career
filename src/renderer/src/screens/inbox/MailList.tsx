@@ -2,6 +2,8 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { MailRow } from './MailRow.tsx';
+import { carModels, offerEdition } from './utils.ts';
+import { useSlot } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { useCarNames } from '@/hooks';
@@ -61,7 +63,9 @@ export const MailList = ({
   const pages = pageCount(items.length);
   const held = Math.min(page, pages);
   const shown = pageOf(items, held);
-  const carName = useCarNames(shown.flatMap((item) => (item.mail.invitation ? [item.mail.invitation.car.model] : [])));
+  const { career } = useSlot();
+  // Only an invitation's row names its car.
+  const carName = useCarNames(shown.flatMap((item) => (item.mail.invitation ? carModels(item) : [])));
   const from = (held - 1) * INBOX_PAGE_SIZE + 1;
 
   let empty: string | null = null;
@@ -92,7 +96,8 @@ export const MailList = ({
               <MailRow
                 key={item.mail.id}
                 item={item}
-                car={item.mail.invitation ? carName(item.mail.invitation.car.model) : ''}
+                car={carName(carModels(item)[0] ?? '')}
+                edition={career && item.offers[0] ? offerEdition(career, item.offers[0], t) : ''}
                 selected={item.mail.id === selected}
                 onOpen={() => onOpen(item.mail.id)}
               />

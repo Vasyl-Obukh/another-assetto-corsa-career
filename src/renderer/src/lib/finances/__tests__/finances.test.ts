@@ -82,6 +82,22 @@ describe('renderer/lib/finances/finances', () => {
         .toEqual(['purchase', 'repaint', 'sale']);
       expect(LEDGER.filter((one) => shownBy(one, 'cars'))).toEqual([]);
     });
+
+    it('shows every line a contract moved to contracts, and keeps them out of prizes and fees', () => {
+      const contract: LedgerLine[] = [
+        line('seat', -9000),
+        line('salary', 2500),
+        line('fine', -1500),
+        line('bonus', 4000),
+        line('release', -800),
+        line('refund', 3000),
+      ];
+      const ledger = [...LEDGER, ...contract];
+
+      expect(ledger.filter((one) => shownBy(one, 'contracts'))).toEqual(contract);
+      expect(contract.filter((one) => shownBy(one, 'prizes') || shownBy(one, 'fees') || shownBy(one, 'cars')))
+        .toEqual([]);
+    });
   });
 
   describe('moneyFigures', () => {
@@ -119,6 +135,29 @@ describe('renderer/lib/finances/finances', () => {
         { kind: 'standings', amount: 30_000 },
         { kind: 'historic', amount: 6000 },
         { kind: 'fee', amount: -3500 },
+      ]);
+    });
+
+    it("weighs a contract's pay among what paid and its charges among what was paid", () => {
+      expect(kindTotals([
+        line('fine', -1500),
+        line('seat', -9000),
+        line('salary', 2500),
+        line('salary', 2500),
+        line('race', 1000),
+        line('release', -800),
+        line('bonus', 4000),
+        line('refund', 3000),
+        line('fee', -500),
+      ])).toEqual([
+        { kind: 'race', amount: 1000 },
+        { kind: 'salary', amount: 5000 },
+        { kind: 'bonus', amount: 4000 },
+        { kind: 'refund', amount: 3000 },
+        { kind: 'fee', amount: -500 },
+        { kind: 'seat', amount: -9000 },
+        { kind: 'fine', amount: -1500 },
+        { kind: 'release', amount: -800 },
       ]);
     });
 

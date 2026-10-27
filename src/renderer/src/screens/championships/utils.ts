@@ -15,6 +15,7 @@ import type {
   Discipline,
   EntryAvailability,
   Facet,
+  Mail,
   PointsSystem,
   PrizeMoney,
   Round,
@@ -29,7 +30,9 @@ import type {
 } from '../../../../shared/types';
 import { ratingFloor } from '../../../../shared/utils/career-eligibility';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
+import { offerId } from '../../../../shared/utils/contracts';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
+import { awaitingMail } from '../../../../shared/utils/inbox';
 import { scaledPrize } from '../../../../shared/utils/prizes';
 import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
@@ -523,3 +526,15 @@ export const opensWith = (
 
   return tier > 1 ? t('championships.ladder.orAnywhere', { own, tier: tier - 1 }) : own;
 };
+
+/**
+ * The seat offers still to be answered for one edition of a championship.
+ * @param career The career
+ * @param season Which season, counting from zero
+ * @param series The championship's id
+ * @param edition Which of the season's editions
+ * @returns The mail holding them, or null while none waits
+ */
+export const editionOffers = (career: Career, season: number, series: string, edition: number): Mail | null => (
+  awaitingMail(career.inbox, career.date).find((mail) => mail.id === offerId(series, season, edition)) ?? null
+);

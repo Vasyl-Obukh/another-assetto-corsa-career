@@ -8,7 +8,16 @@ import {
   ContentSource, Discipline, DLCPack, ModMaker,
 } from '../../../../../shared/types';
 import type {
-  Career, CareerSeason, Championship, ClassEntry, SeasonEntry, Seat, SeriesAvailability, SeriesListing, Team,
+  Career,
+  CareerSeason,
+  Championship,
+  ClassEntry,
+  Mail,
+  SeasonEntry,
+  Seat,
+  SeriesAvailability,
+  SeriesListing,
+  Team,
 } from '../../../../../shared/types';
 import { DEFAULT_STANDINGS, TIER_METAL_KEYS } from '../constants.ts';
 import {
@@ -17,6 +26,7 @@ import {
   contentFacets,
   contentPicks,
   contentValues,
+  editionOffers,
   enterHintOf,
   fieldSize,
   isListed,
@@ -619,6 +629,51 @@ describe('renderer/screens/championships/utils', () => {
       });
 
       expect(opensWith(Discipline.ROAD, 3, t, String)).toBe(t('championships.ladder.orAnywhere', { own, tier: 2 }));
+    });
+  });
+
+  describe('editionOffers', () => {
+    /**
+     * An edition's seat offers, as the mail they came in.
+     * @param id The mail's id, which names the edition
+     * @param overrides What to change about it
+     * @returns The mail
+     */
+    const offers = (id: string, overrides: Partial<Mail> = {}): Mail => ({
+      id,
+      kind: 'offer',
+      season: 1,
+      arrived: '2027-04-01',
+      opened: false,
+      deadline: '2027-04-15',
+      offers: [],
+      ...overrides,
+    });
+
+    /**
+     * A career on 10 April 2027 holding the mail given.
+     * @param inbox Its mail
+     * @returns The career
+     */
+    const holding = (...inbox: Mail[]): Career => ({ date: '2027-04-10', inbox } as unknown as Career);
+
+    it("is the mail holding the edition's offers while it waits for an answer", () => {
+      const mine = offers('offer:cup:1.1');
+      const career = holding(offers('offer:cup:1.0'), offers('offer:gt:1.1'), offers('offer:cup:0.1'), mine);
+
+      expect(editionOffers(career, 1, 'cup', 1)).toBe(mine);
+    });
+
+    it('is none once the mail was answered or has lapsed', () => {
+      const answered = offers('offer:cup:1.0', { reply: { answer: 'declined', on: '2027-04-02' } });
+      const lapsed = offers('offer:cup:1.0', { deadline: '2027-04-09' });
+
+      expect(editionOffers(holding(answered), 1, 'cup', 0)).toBeNull();
+      expect(editionOffers(holding(lapsed), 1, 'cup', 0)).toBeNull();
+    });
+
+    it('is none for an edition no team offered a seat in', () => {
+      expect(editionOffers(holding(), 1, 'cup', 0)).toBeNull();
     });
   });
 });

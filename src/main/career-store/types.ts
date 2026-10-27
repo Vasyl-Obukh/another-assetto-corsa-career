@@ -12,10 +12,12 @@ import type {
   CareerState,
   ChampionshipPreview,
   ChampionshipResults,
+  ContractTerms,
   LoadedSave,
   MailAnswer,
   NewCareerRequest,
   NewChampionshipRequest,
+  OfferPick,
   RaceSetup,
   RestoredCareer,
   RoundCost,
@@ -163,6 +165,30 @@ export interface AnswerRequest {
    * The answer.
    */
   answer: MailAnswer;
+  /**
+   * Which of a seat offer's offers is accepted - needed only where it holds
+   * more than one.
+   */
+  offer?: OfferPick;
+}
+
+/**
+ * One class's seat offer, drawn and waiting to be mailed with the rest of its
+ * edition's.
+ */
+export interface OfferDraft {
+  /**
+   * What the team offers.
+   */
+  terms: ContractTerms;
+  /**
+   * The edition's rounds in the class offered, dated.
+   */
+  events: readonly Pick<SeasonEvent, 'date' | 'entryFee'>[];
+  /**
+   * A round's rent of the cheapest car the class may be raced in.
+   */
+  rent: number;
 }
 
 /**

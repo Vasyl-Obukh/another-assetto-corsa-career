@@ -11,6 +11,7 @@ import { InvitationsBanner } from './InvitationsBanner.tsx';
 import { NewSeason } from './NewSeason.tsx';
 import { NextEvent } from './NextEvent.tsx';
 import { NoEvent } from './NoEvent.tsx';
+import { OffersBanner } from './OffersBanner.tsx';
 import { RatingNews } from './RatingNews.tsx';
 import {
   clashingWith, recentlyFinished, seasonProgress, upcomingEvent,
@@ -135,6 +136,7 @@ export const Home = () => {
       ))}
 
       <InvitationsBanner career={career.career} />
+      <OffersBanner career={career.career} />
 
       <RatingNews career={career.career} />
 

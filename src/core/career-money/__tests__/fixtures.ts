@@ -1,18 +1,21 @@
 // Shared builders for the career money tests: one two-round championship of a
 // single class paying a purse per race and per final standing, a season to
-// hang it on, and a career whose ledger holds nothing yet.
+// hang it on, a career whose ledger holds nothing yet, and a team's contract
+// and the offer it is signed from.
 
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
-import { Discipline } from '../../../shared/types/index.ts';
+import { Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type {
   Career,
   CareerSeason,
   Championship,
+  Contract,
   DriverStanding,
   RacePlace,
   RaceScore,
   SeasonEntry,
   SeasonEvent,
+  SeatOffer,
 } from '../../../shared/types/index.ts';
 
 /**
@@ -181,5 +184,57 @@ export const makeCareer = (over: Partial<Career> = {}): Career => ({
   ratingLog: [],
   seasons: [],
   inbox: [],
+  ...over,
+});
+
+/**
+ * Builds a contract for the cup's seat, free with every fee covered and half
+ * of every purse the player's, signed as the career opens.
+ * @param over Whatever the test wants said differently
+ * @returns The contract
+ */
+export const makeContract = (over: Partial<Contract> = {}): Contract => ({
+  team: 'test-racing',
+  teamName: 'Test Racing',
+  budget: TeamBudget.INDEPENDENT,
+  entry: 'main',
+  seat: 'seat-2',
+  car: { model: 'test_car' },
+  pay: 'free',
+  amount: 0,
+  feeCover: 1,
+  prizeShare: 50,
+  offer: 'offer:test-cup:0.0',
+  signed: '2027-01-01',
+  ...over,
+});
+
+/**
+ * Builds an offer of a paid seat in the cup.
+ * @param over Whatever the test wants said differently
+ * @returns The offer
+ */
+export const makeOffer = (over: Partial<SeatOffer> = {}): SeatOffer => ({
+  team: 'test-racing',
+  teamName: 'Test Racing',
+  budget: TeamBudget.PRIVATEER,
+  entry: 'main',
+  seat: 'seat-2',
+  car: { model: 'test_car' },
+  pay: 'seat',
+  amount: 8000,
+  feeCover: 1,
+  prizeShare: 100,
+  series: CUP.id,
+  seriesName: CUP.name,
+  season: 0,
+  edition: 0,
+  opener: '2027-03-07',
+  rounds: 2,
+  editions: 1,
+  entryName: 'Main',
+  ladder: { discipline: Discipline.ROAD, tier: 4 },
+  fees: 3000,
+  rent: 0,
   ...over,
 });

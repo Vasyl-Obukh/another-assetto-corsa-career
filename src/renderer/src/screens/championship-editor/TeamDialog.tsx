@@ -6,13 +6,13 @@ import { EditorDialog } from './EditorDialog.tsx';
 import { NationPicker } from './NationPicker.tsx';
 import { RadioCard } from './RadioCard.tsx';
 import type { Team, TeamBudget } from '../../../../shared/types';
+import { TEAM_BUDGET_LABEL } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { useFocusOnMount } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
-import { TEAM_BUDGET_LABEL } from '@/screens/championships';
 import { Field } from '@/screens/race';
 
 interface TeamDialogProps {

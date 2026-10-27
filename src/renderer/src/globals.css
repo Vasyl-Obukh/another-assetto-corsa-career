@@ -351,6 +351,19 @@
   --ledger-rent: oklch(0.92 0.055 195);
   --ledger-rent-foreground: oklch(0.38 0.09 200);
 
+  /* Anything a team's contract says or pays: a seat offer in the inbox and on
+     Home, the contract on a championship's page and a round's, and on the
+     ledger its salary, its seat bought or refunded, its bonus and its release
+     fee - each the colour of what paid it, as the garage's lines are. Violet
+     295, the mod provenance hue: none of those places shows content's
+     provenance, and the qualifying 310 a seat offer could meet is kept off it,
+     since an offer shows no format. A fine is the destructive red, being a
+     penalty rather than a term; who is offering is the budget chip's. The
+     solid tone is the contract card's top edge. */
+  --contract: oklch(0.93 0.05 295);
+  --contract-foreground: oklch(0.42 0.14 295);
+  --contract-solid: oklch(0.55 0.17 295);
+
   /* The three things money does to a car, each a solid button of its own so
      they are never mistaken for one another or for the primary. Purchase is
      the success green, money turning into a car. Repaint is paint, a gradient
@@ -568,6 +581,9 @@
   --owned-foreground: oklch(0.87 0.1 320);
   --ledger-rent: oklch(0.33 0.06 195);
   --ledger-rent-foreground: oklch(0.86 0.09 195);
+  --contract: oklch(0.33 0.07 295);
+  --contract-foreground: oklch(0.87 0.1 295);
+  --contract-solid: oklch(0.62 0.16 295);
   --paint-from: oklch(0.62 0.19 345);
   --paint-via: oklch(0.58 0.19 295);
   --paint-to: oklch(0.6 0.13 225);
@@ -731,6 +747,9 @@
   --color-owned-foreground: var(--owned-foreground);
   --color-ledger-rent: var(--ledger-rent);
   --color-ledger-rent-foreground: var(--ledger-rent-foreground);
+  --color-contract: var(--contract);
+  --color-contract-foreground: var(--contract-foreground);
+  --color-contract-solid: var(--contract-solid);
   --color-paint-from: var(--paint-from);
   --color-paint-via: var(--paint-via);
   --color-paint-to: var(--paint-to);

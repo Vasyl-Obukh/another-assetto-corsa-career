@@ -9,14 +9,11 @@ import {
 import type { Championship, ClassEntry, Seat, Team } from '../../../../shared/types';
 import { fillDrivers } from '../../../../shared/utils/driver-names';
 import { useSettings } from '@/app';
-import { NationFlag } from '@/components';
-import { Badge } from '@/components/ui/badge.tsx';
+import { BudgetBadge, NationFlag } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
-import { TEAM_BUDGET_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
-import { TEAM_BUDGET_LABEL } from '@/screens/championships';
 import { moveAt, moveTo } from '@/screens/race';
 
 interface SeatSheetProps {
@@ -118,9 +115,7 @@ export const SeatSheet = ({
                       <span className="flex items-center gap-2">
                         {team?.nationCode === undefined ? null : <NationFlag code={team.nationCode} />}
                         {team?.name ?? t('editor.seats.noTeam')}
-                        {team?.budget === undefined ? null : (
-                          <Badge className={TEAM_BUDGET_ACCENT[team.budget]}>{t(TEAM_BUDGET_LABEL[team.budget])}</Badge>
-                        )}
+                        {team?.budget === undefined ? null : <BudgetBadge budget={team.budget} />}
                       </span>
                     </td>
                   </tr>

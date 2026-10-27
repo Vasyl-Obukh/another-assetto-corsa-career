@@ -215,12 +215,25 @@ export const EVENT_ACCENT = {
 export const HISTORIC_ACCENT = 'border-transparent bg-historic text-historic-foreground';
 
 /**
+ * The violet everything a team's contract says or pays is chipped in: a seat
+ * offer, the contract a championship is raced under and its lines on the
+ * ledger. globals.css says why violet.
+ */
+export const CONTRACT_ACCENT = 'border-transparent bg-contract text-contract-foreground';
+
+/**
+ * A contract's violet as a dot, for the inbox's folder of seat offers.
+ */
+export const CONTRACT_DOT = 'bg-contract-foreground';
+
+/**
  * The colour each kind of ledger line is chipped in - Finances, Home's door
  * into it and a round's own money. Each is the colour of what paid it: a race
  * in the race green, a final standing in the podium gold, a historic event in
- * its leather, the opening balance in the career's own blue. A change of speed
- * moves no money and is the catch-all grey on purpose. globals.css says why
- * the fee's.
+ * its leather, the opening balance in the career's own blue, and everything a
+ * contract pays or charges in its violet - a fine excepted, which is a penalty
+ * and wears the destructive red. A change of speed moves no money and is the
+ * catch-all grey on purpose. globals.css says why the fee's.
  */
 export const LEDGER_ACCENT = {
   opening: 'border-transparent bg-mode-career text-mode-career-foreground',
@@ -233,6 +246,12 @@ export const LEDGER_ACCENT = {
   sale: 'border-transparent bg-owned text-owned-foreground',
   repaint: 'border-transparent bg-owned text-owned-foreground',
   rent: 'border-transparent bg-ledger-rent text-ledger-rent-foreground',
+  salary: CONTRACT_ACCENT,
+  seat: CONTRACT_ACCENT,
+  refund: CONTRACT_ACCENT,
+  bonus: CONTRACT_ACCENT,
+  release: CONTRACT_ACCENT,
+  fine: 'border-transparent bg-destructive/15 text-destructive',
 } as const satisfies Record<LedgerKind, string>;
 
 /**
@@ -280,6 +299,12 @@ export const LEDGER_BAR = {
   sale: 'bg-owned-foreground',
   repaint: 'bg-owned-foreground',
   rent: 'bg-ledger-rent-foreground',
+  salary: 'bg-contract-foreground',
+  seat: 'bg-contract-foreground',
+  refund: 'bg-contract-foreground',
+  bonus: 'bg-contract-foreground',
+  release: 'bg-contract-foreground',
+  fine: 'bg-destructive',
 } as const satisfies Record<LedgerKind, string>;
 
 /**

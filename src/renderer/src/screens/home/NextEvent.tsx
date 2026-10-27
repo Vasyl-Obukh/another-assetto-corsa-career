@@ -148,7 +148,7 @@ export const NextEvent = ({
         open={declining}
         busy={busy}
         title={t('historic.decline.title', { name: event.seriesName })}
-        description={t('historic.decline.body', { driver: seat?.driver ?? '', day: formatDayShort(event.date) })}
+        description={t('historic.decline.body')}
         confirmLabel={t('historic.decline.confirm')}
         onClose={() => setDeclining(false)}
         onConfirm={() => {

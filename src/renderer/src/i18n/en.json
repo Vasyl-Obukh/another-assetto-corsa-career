@@ -691,7 +691,7 @@
     },
     "enter": {
       "title": "Enter {{series}}",
-      "body": "Entering puts you in the last seat of the class for the whole season, and every round goes onto your calendar.",
+      "body": "Entering puts you in a team of the class for the whole season, beside its other driver, and every round goes onto your calendar.",
       "class": "Class",
       "noCar": "No car picked yet",
       "pick": "Pick a car",
@@ -710,7 +710,9 @@
       "historicRentHint": "Paid with the entry fee as the event launches.",
       "fee": "Entry fee",
       "feeHint": "Paid as each round launches.",
-      "historicFeeHint": "Paid as the event launches."
+      "historicFeeHint": "Paid as the event launches.",
+      "team": "Your team for the season",
+      "own": "Every prize is yours, and a round you skip costs nothing."
     },
     "brief": {
       "length": "Length",
@@ -784,7 +786,13 @@
       "short": "You can't pay for this round",
       "shortHint": "It costs {{fee}} and you have {{money}}, {{missing}} short. Earn the rest first - a historic event or another championship pays - or skip the round, which costs nothing.",
       "rentNote": "The rental of {{rent}} is paid as {{session}} launches. A round you skip or miss costs nothing.",
-      "bothNote": "The entry fee of {{fee}} and the rental of {{rent}} are paid as {{session}} launches. A round you skip or miss costs nothing."
+      "bothNote": "The entry fee of {{fee}} and the rental of {{rent}} are paid as {{session}} launches. A round you skip or miss costs nothing.",
+      "contractFee": "Your half of the entry fee, {{fee}}, is paid as {{session}} launches.",
+      "covered": "{{team}} covers the {{fee}} entry fee.",
+      "halfCovered": "{{team}} covers half the {{fee}} entry fee.",
+      "salary": "Your salary for the round, {{salary}}, is paid once its last race finishes.",
+      "fine": "Missing the round costs {{fine}}, and pays no salary.",
+      "fineFree": "Missing the round costs {{fine}}."
     },
     "ladder": {
       "locked": "Opens at Tier {{tier}} in {{discipline}}",
@@ -1072,6 +1080,59 @@
       "notAllowed": "Not allowed",
       "enforced": "Enforced",
       "off": "Off"
+    },
+    "contract": {
+      "title": "Your contract",
+      "salary": "Salary",
+      "salaryValue": "{{amount}} a season",
+      "seat": "The seat",
+      "seatValue": "{{amount}}, paid",
+      "pay": "Pay",
+      "free": "A free seat",
+      "fees": "Entry fees",
+      "covered": "Covered",
+      "half": "Half covered",
+      "share": "Your prize share",
+      "shareValue": "{{share}}%",
+      "bonus": "Standings bonus",
+      "missed": "A missed round",
+      "fine": "Its fee as a fine",
+      "noFine": "No fine",
+      "soFar": "So far · {{raced}} of {{count}} rounds",
+      "salarySoFar": "Salary so far",
+      "salarySoFarValue": "{{paid}} of {{total}}",
+      "prizesSoFar": "Your share of prizes",
+      "feesPaid": "Fees the team paid",
+      "terminate": "Terminate contract",
+      "read": "Read the offer",
+      "note": "Every round is yours to race - a contract covers the whole season. A round not raced pays no salary and costs its entry fee as a fine, and a stand-in from the team races it. A round that cannot be raced with what is installed is never fined.",
+      "noteFree": "Every round is yours to race - a contract covers the whole season. A round not raced costs its entry fee as a fine, and a stand-in from the team races it. A round that cannot be raced with what is installed is never fined.",
+      "notePaid": "Every round is yours to race - a contract covers the whole season. A round not raced costs nothing more, the seat being paid for, and a stand-in from the team races it.",
+      "terminateTitle": "Terminate your contract with {{team}}?",
+      "terminateBody": "With {{count}} of {{rounds}} rounds still to race.",
+      "release": "Release fee - a quarter of each round's fine still to race, never less than one fine",
+      "noRelease": "Release fee",
+      "noReleaseValue": "None - a paid seat is never fined",
+      "salaryLeft": "Salary still to come",
+      "salaryLeftValue": "{{amount}} you will not be paid",
+      "refund": "Seat refund - half of what the rounds left were worth",
+      "after": "The team puts another driver in the car for the rest of the season. Your points so far stay on the table.",
+      "payTerminate": "Pay {{amount}} and terminate",
+      "refundTerminate": "Terminate and take {{amount}} back",
+      "keep": "Keep the contract"
+    },
+    "offers": {
+      "title": "Seats on offer",
+      "salary": "{{amount}} a season",
+      "free": "Free seat",
+      "seat": "You pay {{amount}}",
+      "share": "{{share}}% of prizes",
+      "before": "Teams' offers go out {{day}}",
+      "beforeHint": "Eight weeks before the opening round. Entering now means racing on your own - no team will offer you a seat in it after.",
+      "declines_one": "Entering on your own declines the seat offer for it.",
+      "declines_other": "Entering on your own declines the {{count}} seat offers for it.",
+      "compare_one": "Read the offer",
+      "compare_other": "Compare the {{count}} offers"
     }
   },
   "championshipLibrary": {
@@ -1224,7 +1285,12 @@
         "privateer": "Gentleman drivers and bought seats",
         "unsaid": "Leave it unsaid"
       },
-      "hintShort": "Described once, pointed at by every seat it runs."
+      "hintShort": "Described once, pointed at by every seat it runs.",
+      "budgetTip": {
+        "works": "The car maker's own team, or one it backs. The best funded on the grid - it pays its drivers a salary, and wants proven ones.",
+        "independent": "A professional team with no maker behind it, racing cars it bought on its own money and sponsors. It can cover a driver's costs, but rarely pays a salary.",
+        "privateer": "A small team on a tight budget, often a family's or a driver's own. Its drivers usually pay for their seats."
+      }
     },
     "entries": {
       "title": "Classes",
@@ -2057,7 +2123,6 @@
       "counts_one": "{{count}} · {{raced}} raced · {{missed}} missed",
       "counts_other": "{{count}} · {{raced}} raced · {{missed}} missed",
       "all": "All in the year review",
-      "seatOf": "{{team}} · in {{driver}}'s seat",
       "invited": "You're invited to drive it at this event",
       "missed": "Missed",
       "open": "Open to enter",
@@ -2269,7 +2334,9 @@
     "skipConfirm_other": "Skip {{count}} rounds",
     "skipFinish": "Skip and finish",
     "free": "Costs no money: an entry fee is paid only for a round you launch.",
-    "answer": "Answer it"
+    "answer": "Answer it",
+    "fine": "Fine {{amount}}",
+    "fines": "Under contract, each round given up costs its fine - {{amount}} in all. Nothing else here costs anything."
   },
   "back": {
     "home": "Home",
@@ -2444,15 +2511,15 @@
     "seat": {
       "title": "Your seat",
       "declinedTitle": "The seat you declined",
-      "inSeat": "In {{driver}}'s seat, for this event alone",
-      "racedBy": "{{driver}} raced it instead",
+      "inSeat": "For this event alone",
+      "racedBy": "The team raced it without you",
       "underWay": "Under way - it can no longer be declined."
     },
     "decline": {
       "action": "Decline",
       "event": "Decline this event",
       "title": "Decline {{name}}?",
-      "body": "{{driver}} goes back in the seat. You can still enter the event yourself, paying its entry fee and bringing a car of its class.",
+      "body": "The team fills the seat with another driver. You can still enter the event yourself, paying its entry fee and bringing a car of its class.",
       "confirm": "Decline"
     },
     "strength": {
@@ -2908,7 +2975,8 @@
       "all": "Everything",
       "prizes": "Prizes",
       "fees": "Fees and rentals",
-      "cars": "Cars"
+      "cars": "Cars",
+      "contracts": "Contracts"
     },
     "tile": {
       "balance": "Balance",
@@ -2949,7 +3017,13 @@
       "purchase": "Car bought",
       "sale": "Car sold",
       "repaint": "Repaint",
-      "rent": "Car rental"
+      "rent": "Car rental",
+      "salary": "Salary",
+      "seat": "Seat bought",
+      "refund": "Seat refund",
+      "bonus": "Standings bonus",
+      "fine": "Fine",
+      "release": "Release fee"
     },
     "speed": "×{{speed}}",
     "progression": "Progression speed",
@@ -2976,7 +3050,19 @@
       "bought": "Bought",
       "boughtIn": "Bought in {{livery}}",
       "sold": "Bought for {{paid}} on {{day}}",
-      "repainted": "{{from}} → {{to}}"
+      "repainted": "{{from}} → {{to}}",
+      "salaryDetail": "{{team}} · {{series}}",
+      "fineDetail": "{{team}} · {{series}} · not raced, so no salary for it",
+      "bonusDetail": "{{team}} · P{{place}} in the championship",
+      "seat": "Seat with {{team}}",
+      "seatDetail": "{{series}} {{edition}} · paid on signing",
+      "terminated": "Terminated · {{team}}",
+      "releaseDetail_one": "{{series}} {{edition}} · {{count}} round left",
+      "releaseDetail_other": "{{series}} {{edition}} · {{count}} rounds left",
+      "refundDetail_one": "{{series}} {{edition}} · half of what the {{count}} round left was worth",
+      "refundDetail_other": "{{series}} {{edition}} · half of what the {{count}} rounds left were worth",
+      "placeShare": "{{series}} · P{{place}} · your {{share}}% of {{purse}}",
+      "standingsShare": "P{{place}} in the championship · your {{share}}% of {{purse}}"
     }
   },
   "store": {
@@ -3169,13 +3255,16 @@
     },
     "kinds": "Kinds",
     "kind": {
-      "invitation": "Invitations"
+      "invitation": "Invitations",
+      "offer": "Seat offers"
     },
     "chip": {
-      "invitation": "Invitation"
+      "invitation": "Invitation",
+      "offers_one": "Seat offer",
+      "offers_other": "{{count}} seat offers"
     },
     "empty": "No mail yet",
-    "emptyHint": "Invitations to historic events arrive here four weeks before their day.",
+    "emptyHint": "Invitations to historic events arrive here four weeks before their day, and teams' seat offers eight weeks before a championship opens.",
     "emptyFolder": "Nothing here.",
     "noMatch": "No mail matches the search.",
     "pick": "Pick a mail to read it.",
@@ -3183,7 +3272,9 @@
     "previous": "Previous page",
     "next": "Next page",
     "subject": {
-      "invitation": "Invitation: {{event}}"
+      "invitation": "Invitation: {{event}}",
+      "offer_one": "Seat offer: {{series}} {{edition}}",
+      "offer_other": "Seat offers: {{series}} {{edition}}"
     },
     "status": {
       "awaiting": "Reply by {{day}}",
@@ -3195,11 +3286,9 @@
     "to": "to {{driver}}",
     "letter": {
       "greeting": "Dear {{name}},",
-      "offer": "{{team}} would like you in their {{car}} for the {{event}} on {{day}}, in {{driver}}'s seat for this event alone.",
       "offerSeat": "{{team}} would like you in their {{car}} for the {{event}} on {{day}}, for this event alone.",
       "terms": "The car and the entry are on the team, so there is no entry fee and no rent. The prize money for your finish is yours.",
       "reply": "Let us know by the day of the race.",
-      "offerAt": "{{team}} would like you in their {{car}} for the {{event}} at {{track}} on {{day}}, in {{driver}}'s seat for this event alone.",
       "offerSeatAt": "{{team}} would like you in their {{car}} for the {{event}} at {{track}} on {{day}}, for this event alone."
     },
     "card": {
@@ -3223,16 +3312,16 @@
       "left_one": "{{count}} day left",
       "left_other": "{{count}} days left",
       "today": "today is the last day",
-      "awaitingHint": "Unanswered by then, it lapses and {{driver}} races the seat.",
+      "awaitingHint": "Unanswered by then, it lapses and the team fills the seat.",
       "accept": "Accept invitation",
       "decline": "Decline",
       "accepted": "You accepted on {{day}}",
       "acceptedHint": "It is on your calendar, and stops the clock like any round of yours.",
       "declined": "You declined on {{day}}",
       "declinedAhead": "You can still enter it yourself, paying the entry fee and bringing a car of its class.",
-      "declinedPast": "{{driver}} raced the seat on {{day}}.",
+      "declinedPast": "{{team}} raced the seat on {{day}} without you.",
       "lapsed": "Lapsed on {{day}}, unanswered",
-      "lapsedHint": "You moved on past it, and {{driver}} raced the seat.",
+      "lapsedHint": "You moved on past it, and the team raced the seat without you.",
       "open": "Open the event",
       "enter": "Enter the event"
     },
@@ -3243,8 +3332,8 @@
     },
     "decline": {
       "title": "Decline the {{event}}?",
-      "body": "{{team}} gives the seat back to {{driver}}. You can still enter the event yourself, paying its {{fee}} fee and bringing a car of its class.",
-      "bodyFree": "{{team}} gives the seat back to {{driver}}. You can still enter the event yourself, bringing a car of its class.",
+      "body": "{{team}} fills the seat with another driver. You can still enter the event yourself, paying its {{fee}} fee and bringing a car of its class.",
+      "bodyFree": "{{team}} fills the seat with another driver. You can still enter the event yourself, bringing a car of its class.",
       "keep": "Keep it",
       "confirm": "Decline"
     },
@@ -3256,15 +3345,122 @@
       "two": "{{first}} and {{second}}",
       "more_one": "{{first}}, {{second}} and {{count}} more",
       "more_other": "{{first}}, {{second}} and {{count}} more",
-      "open": "Open the inbox"
+      "open": "Open the inbox",
+      "offerDetail": "{{team}} offers you a seat in {{series}}",
+      "offersDetail_one": "{{count}} team offers you a seat in {{series}}",
+      "offersDetail_other": "{{count}} teams offer you a seat in {{series}}"
     },
     "banner": {
       "title_one": "{{count}} invitation awaits a reply",
       "title_other": "{{count}} invitations await a reply",
       "item": "{{event}} by {{day}}",
-      "open": "Open the inbox"
+      "open": "Open the inbox",
+      "offerTitle_one": "Seat offers for {{count}} championship await your reply",
+      "offerTitle_other": "Seat offers for {{count}} championships await your reply",
+      "offerItem": "{{series}} by {{day}}"
     },
-    "markAllRead": "Mark all as read"
+    "markAllRead": "Mark all as read",
+    "offer": {
+      "terms": {
+        "pay": "Pay",
+        "fees": "Entry fees",
+        "prizes": "Prize money",
+        "bonus": "Standings bonus",
+        "car": "Car",
+        "missed": "A missed round",
+        "salaryHint": "{{amount}} as each round finishes",
+        "free": "A free seat",
+        "freeHint": "Nobody pays anyone for it",
+        "seat": "You pay {{amount}}",
+        "seatHint": "For the season, as you sign",
+        "covered": "Covered by the team",
+        "half": "Half covered",
+        "share": "{{share}}% is yours",
+        "shareAll": "Every prize is yours",
+        "shareAllHint": "Race and championship purses alike",
+        "champion": "Champion {{amount}}",
+        "top": "Top {{place}} {{amount}}",
+        "bonusHint": "On your final place in the class",
+        "carHint": "Nothing to rent or buy",
+        "noFine": "No fine"
+      },
+      "lifeline": "A way back.",
+      "lifelineHint": "You have no car and nothing you can afford to enter, so a team at the bottom rung always offers a seat that costs nothing. This is it.",
+      "reply": {
+        "awaiting": "Reply by {{day}}",
+        "awaitingHint": "Unanswered by then, the offer lapses.",
+        "acceptPay": "Accept and pay {{amount}}",
+        "short": "Can't afford · {{amount}}",
+        "declined": "Declined on {{day}}",
+        "declinedHint": "You can still enter {{series}} on your own.",
+        "lapsed": "Lapsed on {{day}}",
+        "lapsedHint": "No answer came, so {{team}} gave the seat to another driver. You can still enter {{series}} on your own.",
+        "open": "Open the championship"
+      },
+      "decline": {
+        "title": "Turn down {{team}}'s offer?",
+        "body": "The seat goes to another driver. You can still enter {{series}} on your own, or take another team's offer for it."
+      }
+    },
+    "offers": {
+      "more": "{{teams}} +{{count}}",
+      "strip_one": "{{count}} round · opens {{day}}",
+      "strip_other": "{{count}} rounds · opens {{day}}",
+      "classes_one": "{{count}} class on offer",
+      "classes_other": "{{count}} classes on offer",
+      "open": "Open",
+      "classFee": "{{amount}} a round to enter",
+      "yourClass": "Your class",
+      "otherClass": "Not the class you signed for",
+      "lede_one": "{{team}} wants you in their car for {{series}} {{edition}}. The terms are below, beside what racing it on your own comes to.",
+      "lede_other": "{{count}} teams want you in their cars for {{series}} {{edition}}. Their terms are side by side below, beside what racing it on your own comes to - accept one, and the others are declined.",
+      "reply": {
+        "awaitingHint": "Accepting one declines the rest. Unanswered by then, they all lapse.",
+        "lapsedHint": "No answer came, so the teams gave their seats to other drivers. You can still enter {{series}} on your own.",
+        "accepted": "Accepted {{team}}'s offer on {{day}}",
+        "acceptedHint_zero": "You race {{series}} for {{team}}, from {{day}}.",
+        "acceptedHint_one": "You race {{series}} for {{team}}, from {{day}}. The other offer was declined.",
+        "acceptedHint_other": "You race {{series}} for {{team}}, from {{day}}. The other {{count}} offers were declined.",
+        "declineAll": "Decline all"
+      },
+      "decline": {
+        "title": "Turn down every offer for {{series}}?",
+        "body": "The seats go to other drivers. You can still enter {{series}} on your own."
+      },
+      "budgetCount": "{{budget}} ×{{count}}"
+    },
+    "compare": {
+      "best": "Best",
+      "signed": "Signed",
+      "signedOn": "Signed on {{day}}",
+      "declinedOn": "Declined on {{day}}",
+      "lapsedOn": "Lapsed on {{day}}",
+      "noContract": "No contract",
+      "own": "On your own",
+      "ownHint": "In a team drawn for you · your car",
+      "salary": "{{amount}} salary",
+      "nothing": "Nothing",
+      "nothingHint": "You pay your own way",
+      "coveredHint": "Every round",
+      "halfHint": "You pay {{amount}} a round",
+      "feesOwn": "Yours to pay",
+      "feesOwnHint": "{{amount}} as each round launches",
+      "teamCar": "The team's",
+      "carOwn": "Yours",
+      "carOwnHint": "Owned, or {{amount}} a round to rent",
+      "before": "Before prizes",
+      "season": "For the season",
+      "beforeOwn": "{{fees}} in fees, {{rent}} renting",
+      "shareAllHint": "Race and championship purses",
+      "keeps": "The team keeps {{rest}}%",
+      "none": "None",
+      "fine": "{{amount}} fine",
+      "fineSalaryHint": "And no salary for it",
+      "fineHint": "Its entry fee",
+      "noFineHint": "A round missed is only yours to lose",
+      "accept": "Accept",
+      "enterOwn": "Enter on your own"
+    }
   },
   "invitation": {
     "state": {

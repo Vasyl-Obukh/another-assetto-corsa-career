@@ -12,7 +12,8 @@ import {
   FORECAST_LEAD_DAYS,
   STATE_FILE,
 } from './constants.ts';
-import type { BackupContents, EnteredEvent } from './types.ts';
+import type { BackupContents, EnteredEvent, OfferDraft } from './types.ts';
+import { feeOf } from '../../core/career-money/index.ts';
 import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { historicRung } from '../../core/historic-draw/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
@@ -41,6 +42,9 @@ import type {
   Championship,
   ChampionshipRun,
   ClassEntry,
+  Contract,
+  ContractTerms,
+  Discipline,
   EventPlan,
   EventSession,
   EventState,
@@ -53,10 +57,12 @@ import type {
   MailAnswer,
   NewCareerRequest,
   NewChampionshipRequest,
+  OfferPick,
   RoundForecast,
   RoundScore,
   SeasonEntry,
   SeasonEvent,
+  SeatOffer,
   SeriesAvailability,
   SeriesListing,
   SeriesSession,
@@ -66,7 +72,8 @@ import type {
 import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
-import { editionEntry, editionsOf } from '../../shared/utils/editions/index.ts';
+import { offerDeadline, offerId, roundFine } from '../../shared/utils/contracts/index.ts';
+import { editionEntry, editionOver, editionsOf } from '../../shared/utils/editions/index.ts';
 import { entryFeeOf } from '../../shared/utils/entry-fees/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { invitationChance, invitationId, mailStatus } from '../../shared/utils/inbox/index.ts';
@@ -567,6 +574,7 @@ export const heldRaceable = (availability: SeriesAvailability, held: EnteredEven
  * @param event The round, dated
  * @param reason What moving on does to it
  * @param historic Whether it is a historic event rather than a championship's round
+ * @param fine What losing it costs under its contract, or null for nothing
  * @returns The round, named and dated
  */
 export const skippedRound = (
@@ -576,6 +584,7 @@ export const skippedRound = (
   event: Pick<SeasonEvent, 'round' | 'date'>,
   reason: SkipReason,
   historic = false,
+  fine: number | null = null,
 ): SkippedRound => {
   const at = championship.rounds.findIndex((one) => one.id === event.round);
   const held = championship.entries.find((one) => one.id === entry) ?? championship.entries[0];
@@ -591,6 +600,7 @@ export const skippedRound = (
     date: event.date,
     reason,
     historic,
+    fine,
   };
 };
 
@@ -607,6 +617,7 @@ const lost = (held: EnteredEvent): SkippedRound => skippedRound(
   held.event,
   held.event.sessions.length > 0 ? 'partway' : 'skipped',
   isHistoric(held.entry),
+  roundFine(held.entry, held.event),
 );
 
 /**
@@ -650,6 +661,7 @@ export const launchSkips = (
           other.event,
           'clash',
           isHistoric(other.entry),
+          roundFine(other.entry, other.event),
         )];
       }
 
@@ -685,24 +697,26 @@ export const skipCost = (season: CareerSeason, held: EnteredEvent): SkippedRound
 export const lostName = (round: SkippedRound): string => `${round.seriesName} - ${round.roundName}`;
 
 /**
- * A season with some of its rounds marked as non-starts.
+ * A season with some of its rounds marked as non-starts - and one lost because
+ * the install could not race it marked so, which no contract fines.
  * @param season The season
  * @param rounds The rounds to mark, of which only the scheduled are touched
  * @returns The season
  */
 export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]): CareerSeason => {
   const key = (series: string, edition: number, round: string): string => `${series}\u0000${edition}\u0000${round}`;
-  const marked = new Set(rounds.map((one) => key(one.series, one.edition, one.round)));
+  const marked = new Map(rounds.map((one) => [key(one.series, one.edition, one.round), one.reason]));
 
   return {
     ...season,
     entries: season.entries.map((entry) => (entry.withdrawn ? entry : {
       ...entry,
-      events: entry.events.map((event) => (
-        event.status === 'scheduled' && marked.has(key(entry.series, entry.edition, event.round))
-          ? { ...event, status: 'missed' as const }
-          : event
-      )),
+      events: entry.events.map((event) => {
+        const reason = marked.get(key(entry.series, entry.edition, event.round));
+        if (event.status !== 'scheduled' || reason === undefined) return event;
+
+        return { ...event, status: 'missed' as const, ...(reason === 'unraceable' ? { unraceable: true as const } : {}) };
+      }),
     })),
   };
 };
@@ -718,11 +732,17 @@ export const markMissed = (season: CareerSeason, rounds: readonly SkippedRound[]
  * once Phase 8 brings it.
  * @param career The career
  * @param season The season to close
+ * @param rounds Its rounds still to run, as moving past the year loses them -
+ * those the install cannot race marked so
  * @returns The career, its clock on the season's last day
  */
-export const closeSeason = (career: Career, season: CareerSeason): Career => {
+export const closeSeason = (
+  career: Career,
+  season: CareerSeason,
+  rounds: readonly SkippedRound[] = advanceSkips(season, addDays(season.endDate, 1)),
+): Career => {
   const dated = { ...career, date: season.endDate };
-  const marked = markMissed(season, advanceSkips(season, addDays(season.endDate, 1)));
+  const marked = markMissed(season, rounds);
 
   return withSeason(dated, issueForecasts(dated, marked, season.endDate));
 };
@@ -893,14 +913,123 @@ export const invitationMail = (career: Career, draw: Pick<HistoricDraw, 'raceId'
  * @param career The career
  * @param mail The mail
  * @param answer The answer
+ * @param offer On a seat offer accepted, which of its offers was signed
  * @returns The career, answered on the day its clock stands at
  */
-export const withReply = (career: Career, mail: Mail, answer: MailAnswer): Career => ({
+export const withReply = (career: Career, mail: Mail, answer: MailAnswer, offer?: OfferPick): Career => ({
   ...career,
   inbox: career.inbox.map((one) => (one.id === mail.id
-    ? { ...one, opened: true, reply: { answer, on: career.date } }
+    ? { ...one, opened: true, reply: { answer, on: career.date, ...(offer ? { offer } : {}) } }
     : one)),
 });
+
+/**
+ * An edition's seat offers, as the one mail they arrive in.
+ * @param season The season it is for
+ * @param championship The championship, as the library holds it
+ * @param edition Which of the season's editions
+ * @param drafts Every class's offers, in the order the mail lists them - which
+ * must not be empty
+ * @param today The ISO date it arrives on
+ * @returns The mail
+ */
+export const offerMail = (
+  season: CareerSeason,
+  championship: Championship,
+  edition: number,
+  drafts: readonly OfferDraft[],
+  today: string,
+): Mail => {
+  const offers = drafts.map(({ terms, events, rent }): SeatOffer => {
+    // The class the terms name is always one of the championship's.
+    const entry = championship.entries.find((one) => one.id === terms.entry) ?? championship.entries[0];
+
+    return {
+      ...terms,
+      series: championship.id,
+      seriesName: championship.name,
+      season: season.index,
+      edition,
+      opener: events[0]?.date ?? today,
+      rounds: events.length,
+      editions: editionsOf(championship),
+      entryName: entry.name,
+      ladder: entry.ladder,
+      fees: events.reduce((sum, event) => sum + (event.entryFee ?? 0), 0),
+      rent,
+    };
+  });
+  const opener = offers.map((offer) => offer.opener).sort()[0] ?? today;
+
+  return {
+    id: offerId(championship.id, season.index, edition),
+    kind: 'offer',
+    season: season.index,
+    arrived: today,
+    opened: false,
+    deadline: offerDeadline(today, opener),
+    offers,
+  };
+};
+
+/**
+ * The contract accepting an offer signs: the offer's terms, and where it came
+ * from and when.
+ * @param mail The offer
+ * @param terms What the team offers
+ * @param signed The ISO date it is signed on
+ * @returns The contract
+ */
+export const signedContract = (mail: Mail, terms: ContractTerms, signed: string): Contract => ({
+  team: terms.team,
+  teamName: terms.teamName,
+  budget: terms.budget,
+  ...(terms.nation === undefined ? {} : { nation: terms.nation }),
+  entry: terms.entry,
+  seat: terms.seat,
+  car: terms.car,
+  pay: terms.pay,
+  amount: terms.amount,
+  feeCover: terms.feeCover,
+  prizeShare: terms.prizeShare,
+  ...(terms.bonus === undefined ? {} : { bonus: terms.bonus }),
+  ...(terms.lifeline ? { lifeline: true as const } : {}),
+  offer: mail.id,
+  signed,
+});
+
+/**
+ * A career with every seat offer for one edition still to be answered turned
+ * down - which entering it, on an offer or on the player's own, does.
+ * @param career The career
+ * @param season The season the edition falls in
+ * @param series The championship's id
+ * @param edition Which of the season's editions
+ * @returns The career, the same one when there was nothing to decline
+ */
+export const declineOffers = (career: Career, season: CareerSeason, series: string, edition: number): Career => {
+  const id = offerId(series, season.index, edition);
+  const open = career.inbox.filter((mail) => mail.id === id && mailStatus(mail, career.date) === 'awaiting');
+
+  return open.reduce((answered, mail) => withReply(answered, mail, 'declined'), career);
+};
+
+/**
+ * Whether the player has finished an edition at a rung or above in a
+ * discipline, which a works team asks of the drivers it calls.
+ * @param career The career
+ * @param discipline The discipline
+ * @param tier The rung, 1 being the top
+ * @returns True once one has run its course
+ */
+export const experiencedAt = (career: Career, discipline: Discipline, tier: number): boolean => (
+  career.seasons.some((season) => season.entries.some((entry) => {
+    if (isHistoric(entry) || entry.withdrawn || !editionOver(entry, career.date)) return false;
+    const ladder = entry.championship.entries.find((one) => one.id === entry.entry)?.ladder;
+
+    return ladder?.discipline === discipline && ladder.tier <= tier;
+  }))
+);
 
 /**
  * Where a historic event's invitation stands for the player.
@@ -996,7 +1125,6 @@ export const historicInvitation = (
       entry: entry.id,
       entryName: entry.name,
       seat: offer.seat,
-      driver: seat?.driver?.name ?? null,
       car: offer.car,
     } : null,
     answered: mail?.reply?.on ?? null,
@@ -1173,8 +1301,10 @@ export const composeCalendar = (
     const draw = isHistoric(held) ? drawOf(season, held.series) : null;
     const invitation = draw ? calendarInvitation(career, season, draw, availability, held) : undefined;
 
+    // What the player pays, which a contract's team covers some or all of.
     return held.events.map((event) => calendarEntry(
-      held.championship, availability, entry, held.edition, event, career, !held.withdrawn, invitation,
+      held.championship, availability, entry, held.edition, { ...event, entryFee: feeOf(held, event) ?? undefined },
+      career, !held.withdrawn, invitation,
     ));
   });
 
