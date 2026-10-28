@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import { ChampionshipRow } from './ChampionshipRow.tsx';
+import { ENTERED_LIST } from './constants.ts';
 import { MarkLegend } from './MarkLegend.tsx';
 import type { SeasonProgress } from './types.ts';
+import { cn } from '@/lib/utils.ts';
 
 interface YourChampionshipsProps {
   /**
@@ -25,7 +27,13 @@ export const YourChampionships = ({ rows }: YourChampionshipsProps) => {
 
       {rows.length === 0 ? (
         <p className="px-2 py-4 text-sm text-muted-foreground">{t('home.noneEntered')}</p>
-      ) : rows.map((row) => <ChampionshipRow key={`${row.series}-${row.edition}-${row.entry}`} progress={row} />)}
+      ) : (
+        // Four rows, and the rest scroll, so the panel stays the height of the
+        // next event beside it.
+        <div className={cn('flex flex-col gap-1 overflow-y-auto', ENTERED_LIST)}>
+          {rows.map((row) => <ChampionshipRow key={`${row.series}-${row.edition}-${row.entry}`} progress={row} />)}
+        </div>
+      )}
 
       {rows.length > 0 ? <MarkLegend /> : null}
     </section>

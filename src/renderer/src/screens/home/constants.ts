@@ -32,6 +32,7 @@ export const DOOR_ACCENT = {
   history: 'bg-podium-gold text-podium-gold-foreground',
   finances: 'bg-mode-career text-mode-career-foreground',
   rating: 'bg-tier-bronze text-tier-bronze-foreground',
+  contracts: 'bg-contract text-contract-foreground',
 } as const;
 
 /**
@@ -49,3 +50,15 @@ export const HISTORIC_SHOWN = 6;
  * happened as well as what is coming.
  */
 export const HISTORIC_BEHIND = 2;
+
+/**
+ * How tall Home's lists of championships grow before they scroll: four rows of
+ * the new season's list, borders included - each row measures 3.92rem.
+ */
+export const NEW_SEASON_LIST = 'max-h-[15.8rem]';
+
+/**
+ * The same for the championships entered this season: four rows of 4.46rem and
+ * the three gaps between them.
+ */
+export const ENTERED_LIST = 'max-h-[18.6rem]';

@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
+import { KeepBlock } from './KeepBlock.tsx';
 import { TerminateDialog } from './TerminateDialog.tsx';
 import type {
   Career, CareerSeason, Contract, SeasonEntry,
 } from '../../../../shared/types';
-import { coveredFee } from '../../../../shared/utils/contracts';
+import { coveredFee, keepStanding } from '../../../../shared/utils/contracts';
 import {
   BudgetBadge, carPictureSources, ContentImage,
 } from '@/components';
@@ -51,8 +52,8 @@ interface ContractCardProps {
 }
 
 // The contract a championship is raced under, where the Enter panel stands for
-// one entered on the player's own: the team's car, every term in a figure, and
-// what it has come to so far - and the way out of it.
+// one entered on the player's own: the team's car, every term in a figure, what
+// it has come to so far and what keeps the player on - and the way out of it.
 export const ContractCard = ({
   career, season, entry, contract, live, busy, onTerminate,
 }: ContractCardProps) => {
@@ -77,6 +78,8 @@ export const ContractCard = ({
   } else if (contract.pay === 'seat') {
     pay = [t('championships.contract.seat'), t('championships.contract.seatValue', { amount: formatMoney(contract.amount) })];
   }
+  // A renewal says what it paid before, where that changed.
+  const before = contract.renews && contract.renews.amount !== contract.amount ? contract.renews : null;
   const bonus = bonusLine(contract.bonus, t, formatMoney);
   const terms: [string, string][] = [
     pay,
@@ -133,6 +136,11 @@ export const ContractCard = ({
               <dd className="text-right font-semibold">{value}</dd>
             </div>
           ))}
+          {before ? (
+            <dd className="col-span-2 text-muted-foreground">
+              {t('championships.contract.renewed', { place: before.place, amount: formatMoney(before.amount) })}
+            </dd>
+          ) : null}
         </dl>
 
         <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 border-t pt-2.5 text-xs">
@@ -146,6 +154,10 @@ export const ContractCard = ({
             </div>
           ))}
         </dl>
+
+        <div className="border-t pt-2.5">
+          <KeepBlock contract={contract} standing={keepStanding(entry)} />
+        </div>
       </CardContent>
 
       <div className="flex items-center justify-between gap-2 border-t px-3 py-2">

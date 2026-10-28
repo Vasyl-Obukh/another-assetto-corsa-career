@@ -2,6 +2,7 @@ import { ChevronRightIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
+import { NEW_SEASON_LIST } from './constants.ts';
 import { editionAhead, racedLastSeason } from './utils.ts';
 import type { CalendarEntry, CareerSeason } from '../../../../shared/types';
 import { editionsOf, seasonYear } from '../../../../shared/utils/editions';
@@ -61,7 +62,9 @@ export const NewSeason = ({
         <p className="text-sm text-muted-foreground">{t('home.newSeason.hint')}</p>
       </div>
 
-      <ul className="flex flex-col overflow-hidden rounded-lg border">
+      {/* Four rows, and the rest scroll, so a busy year last season does not
+          push the rest of Home off the page. */}
+      <ul className={cn('flex flex-col overflow-y-auto rounded-lg border', NEW_SEASON_LIST)}>
         {raced.flatMap((entry) => {
           // Offered at the edition still to come, so one already over this
           // year is passed for the next rather than opened to nothing.

@@ -1,3 +1,4 @@
+import { ContractsDoor } from './ContractsDoor.tsx';
 import { FinancesDoor } from './FinancesDoor.tsx';
 import { HistoryDoor } from './HistoryDoor.tsx';
 import { RatingDoor } from './RatingDoor.tsx';
@@ -12,14 +13,15 @@ interface HomeDoorsProps {
 }
 
 /**
- * Results, History, Finances and Rating side by side under the season, the
- * places the navigation does not list.
+ * Results, History, Finances, Rating and Contracts side by side under the
+ * season, the places the navigation does not list.
  */
 export const HomeDoors = ({ career }: HomeDoorsProps) => (
-  <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
+  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
     <ResultsDoor career={career} />
     <HistoryDoor career={career} />
     <FinancesDoor career={career} />
     <RatingDoor career={career} />
+    <ContractsDoor career={career} />
   </div>
 );

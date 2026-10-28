@@ -1,14 +1,20 @@
-import { CarIcon, LockIcon } from 'lucide-react';
+import {
+  CarIcon, KeyRoundIcon, LockIcon, ShoppingCartIcon,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BuySeatDialog } from './BuySeatDialog.tsx';
 import { InvitationNote } from './InvitationNote.tsx';
 import { LadderNote } from './LadderNote.tsx';
+import { SeatSaleList } from './SeatSaleList.tsx';
 import type {
-  Car, CareerEventView, CarSource, Skin,
+  Car, CareerEventView, CarSource, SeatSale, Skin,
 } from '../../../../shared/types';
 import { rentOf } from '../../../../shared/utils/car-prices';
+import { offerId } from '../../../../shared/utils/contracts';
+import { mailStatus } from '../../../../shared/utils/inbox';
 import { useSlot } from '@/app';
 import {
   BudgetBadge, CarPicker, carPictureSources, CarSourceBadge, ContentImage, NationFlag, PurchaseDialog, SkipDialog,
@@ -22,6 +28,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx';
 import { useGarage } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { CAUTION_ACCENT } from '@/lib/accents';
@@ -79,10 +86,18 @@ interface EnterPanelProps {
    * it has the car, which main then races in the garage's livery
    */
   onEnter: (entry: string, car: { model: string; skin?: string }) => void;
+  /**
+   * Called to buy a privateer's seat in the class instead, once the player has
+   * confirmed what it costs - absent where a seat cannot be bought, which
+   * leaves the panel to the player's own car alone.
+   * @param entry The class entry's id
+   * @param team The team selling the seat, by its id
+   */
+  onBuySeat?: (entry: string, team: string) => void;
 }
 
 export const EnterPanel = ({
-  view, busy, showFirstRound = false, initial, historic = false, note, onEnter,
+  view, busy, showFirstRound = false, initial, historic = false, note, onEnter, onBuySeat,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
@@ -103,6 +118,9 @@ export const EnterPanel = ({
   const [confirming, setConfirming] = useState(false);
   // A car picked to buy rather than rent, and its livery, while it is bought.
   const [buying, setBuying] = useState<{ car: Car; skin: Skin | null } | null>(null);
+  // Racing it in the player's own car, or in a seat bought from a team.
+  const [way, setWay] = useState<'own' | 'seat'>('own');
+  const [seat, setSeat] = useState<SeatSale | null>(null);
 
   const chosen = view.classes.find((one) => one.id === entry);
   const ready = !!chosen?.eligible && view.raceable && car !== null && !busy;
@@ -116,12 +134,22 @@ export const EnterPanel = ({
   const enter = (): void => {
     if (car) onEnter(entry, { model: car.id, skin: livery?.id });
   };
+  // Only a career's championship sells seats; a historic event is entered in
+  // the player's own car or on an invitation.
+  const selling = !!onBuySeat && !historic && mode === 'career' && !!career;
+  const seatWay = selling && way === 'seat';
+  const offers = career?.inbox.find((mail) => (
+    mail.id === offerId(view.series, view.season, view.edition) && mailStatus(mail, view.clock) === 'awaiting'
+  )) ?? null;
+  let description = t('event.enter.body');
+  if (historic) description = t('event.enter.historicBody');
+  else if (seatWay) description = t('event.enter.seats.hint');
 
   return (
     <Card className="gap-3 border-dashed border-primary py-3">
       <CardHeader className="px-3">
         <CardTitle>{t('event.enter.title', { series: view.seriesName })}</CardTitle>
-        <CardDescription>{t(historic ? 'event.enter.historicBody' : 'event.enter.body')}</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 px-3">
         {view.classes.length > 1 ? (
@@ -161,112 +189,143 @@ export const EnterPanel = ({
           <p className="text-sm text-muted-foreground">{t('event.enter.noCars')}</p>
         ) : null}
 
-        {/* The team entering puts the player in, drawn for the edition. */}
-        {chosen?.team && !historic ? (
-          <div className="flex items-center gap-3">
-            <span className="grid aspect-[16/10] w-16 shrink-0 place-items-center rounded-md bg-muted">
-              {chosen.team.nation ? <NationFlag code={chosen.team.nation} /> : null}
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col text-sm">
-              <span className="truncate font-medium">{chosen.team.name}</span>
-              <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                {chosen.team.budget ? <BudgetBadge budget={chosen.team.budget} /> : null}
-                <span className="truncate">{t('event.enter.team')}</span>
-              </span>
-            </span>
-          </div>
+        {selling ? (
+          <Tabs value={way} onValueChange={(next) => setWay(next === 'seat' ? 'seat' : 'own')}>
+            <TabsList className="w-full">
+              <TabsTrigger value="own">
+                <KeyRoundIcon />
+                {t('event.enter.ways.own')}
+              </TabsTrigger>
+              <TabsTrigger value="seat">
+                <ShoppingCartIcon />
+                {t('event.enter.ways.seat')}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         ) : null}
 
-        <div className="flex items-center gap-3">
-          {/* The car as it will look all season, once there is one. */}
-          {car ? (
-            <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
-              <ContentImage
-                sources={carPictureSources(car.id, livery?.id)}
-                alt={car.name}
-                className="object-cover"
-                fallback={(
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <CarIcon className="size-4 text-muted-foreground/40" />
-                  </div>
-                )}
-              />
-            </div>
-          ) : null}
-          <span className="flex min-w-0 flex-1 flex-col text-sm">
-            {car ? (
-              <>
-                <span className="truncate font-medium">{car.name}</span>
-                <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                  {garage ? <CarSourceBadge source={source} /> : null}
-                  {livery ? <span className="truncate">{livery.name}</span> : null}
+        {seatWay && chosen && career ? (
+          <SeatSaleList
+            seats={chosen.forSale}
+            offers={offers}
+            entry={chosen.id}
+            money={career.money}
+            busy={busy || !chosen.eligible || !view.raceable}
+            onBuy={setSeat}
+          />
+        ) : (
+          <>
+            {/* The team entering puts the player in, drawn for the edition. */}
+            {chosen?.team && !historic ? (
+              <div className="flex items-center gap-3">
+                <span className="grid aspect-[16/10] w-16 shrink-0 place-items-center rounded-md bg-muted">
+                  {chosen.team.nation ? <NationFlag code={chosen.team.nation} /> : null}
                 </span>
-              </>
-            ) : <span className="text-muted-foreground">{t('event.enter.noCar')}</span>}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!chosen || chosen.cars.length === 0}
-            onClick={() => setPicking(true)}
-          >
-            {car ? t('event.enter.change') : t('event.enter.pick')}
-          </Button>
-        </div>
+                <span className="flex min-w-0 flex-1 flex-col text-sm">
+                  <span className="truncate font-medium">{chosen.team.name}</span>
+                  <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                    {chosen.team.budget ? <BudgetBadge budget={chosen.team.budget} /> : null}
+                    <span className="truncate">{t('event.enter.team')}</span>
+                  </span>
+                </span>
+              </div>
+            ) : null}
 
-        {/* What the class costs a round to enter, which may be its own, and
-            a rented car's rent beside it. */}
-        {fee || rent ? (
-          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-t pt-2.5 text-xs">
-            {fee ? (
-              <>
-                <dt className="text-muted-foreground">{t('event.enter.fee')}</dt>
-                <dd className="text-right font-semibold tabular-nums">
-                  {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(fee) })}
+            <div className="flex items-center gap-3">
+              {/* The car as it will look all season, once there is one. */}
+              {car ? (
+                <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <ContentImage
+                    sources={carPictureSources(car.id, livery?.id)}
+                    alt={car.name}
+                    className="object-cover"
+                    fallback={(
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <CarIcon className="size-4 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  />
+                </div>
+              ) : null}
+              <span className="flex min-w-0 flex-1 flex-col text-sm">
+                {car ? (
+                  <>
+                    <span className="truncate font-medium">{car.name}</span>
+                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                      {garage ? <CarSourceBadge source={source} /> : null}
+                      {livery ? <span className="truncate">{livery.name}</span> : null}
+                    </span>
+                  </>
+                ) : <span className="text-muted-foreground">{t('event.enter.noCar')}</span>}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!chosen || chosen.cars.length === 0}
+                onClick={() => setPicking(true)}
+              >
+                {car ? t('event.enter.change') : t('event.enter.pick')}
+              </Button>
+            </div>
+
+            {/* What the class costs a round to enter, which may be its own, and
+                a rented car's rent beside it. */}
+            {fee || rent ? (
+              <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-t pt-2.5 text-xs">
+                {fee ? (
+                  <>
+                    <dt className="text-muted-foreground">{t('event.enter.fee')}</dt>
+                    <dd className="text-right font-semibold tabular-nums">
+                      {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(fee) })}
+                    </dd>
+                  </>
+                ) : null}
+                {rent ? (
+                  <>
+                    <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
+                    <dd className="text-right font-semibold tabular-nums">
+                      {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(rent) })}
+                    </dd>
+                  </>
+                ) : null}
+                <dd className="col-span-2 text-muted-foreground">
+                  {rent
+                    ? t(historic ? 'event.enter.historicRentHint' : 'event.enter.rentHint')
+                    : t(historic ? 'event.enter.historicFeeHint' : 'event.enter.feeHint')}
                 </dd>
-              </>
+                {/* Racing on the player's own, against what a contract asks. */}
+                {historic ? null : <dd className="col-span-2 text-muted-foreground">{t('event.enter.own')}</dd>}
+              </dl>
             ) : null}
-            {rent ? (
-              <>
-                <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
-                <dd className="text-right font-semibold tabular-nums">
-                  {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(rent) })}
-                </dd>
-              </>
-            ) : null}
-            <dd className="col-span-2 text-muted-foreground">
-              {rent
-                ? t(historic ? 'event.enter.historicRentHint' : 'event.enter.rentHint')
-                : t(historic ? 'event.enter.historicFeeHint' : 'event.enter.feeHint')}
-            </dd>
-            {/* Racing on the player's own, against what a contract asks. */}
-            {historic ? null : <dd className="col-span-2 text-muted-foreground">{t('event.enter.own')}</dd>}
-          </dl>
-        ) : null}
+          </>
+        )}
 
         {note}
 
         {/* Said before Enter is pressed as well as asked after, so what
-            entering now costs is never a surprise. */}
-        {view.behind.length > 0 ? (
+            entering now costs is never a surprise. Buying a seat says it in
+            its own dialog. */}
+        {view.behind.length > 0 && !seatWay ? (
           <SkipNote
             title={t('skip.behindNote', { count: view.behind.length })}
             hint={t('skip.behindNoteHint')}
           />
         ) : null}
 
-        <Button
-          type="button"
-          disabled={!ready}
-          onClick={() => {
-            if (!car) return;
-            if (view.behind.length > 0) setConfirming(true);
-            else enter();
-          }}
-        >
-          {t(historic ? 'event.enter.historicAction' : 'event.enter.action')}
-        </Button>
+        {seatWay ? null : (
+          <Button
+            type="button"
+            disabled={!ready}
+            onClick={() => {
+              if (!car) return;
+              if (view.behind.length > 0) setConfirming(true);
+              else enter();
+            }}
+          >
+            {t(historic ? 'event.enter.historicAction' : 'event.enter.action')}
+          </Button>
+        )}
 
         {showFirstRound ? (
           <p className="flex items-baseline justify-between gap-2 border-t pt-2.5 text-xs">
@@ -294,6 +353,22 @@ export const EnterPanel = ({
         }}
         onClose={() => setConfirming(false)}
       />
+
+      {selling && career ? (
+        <BuySeatDialog
+          seat={seat}
+          seriesName={view.seriesName}
+          rounds={view.rounds - view.behind.length}
+          behind={view.behind.length}
+          money={career.money}
+          busy={busy}
+          onConfirm={() => {
+            if (seat) onBuySeat?.(entry, seat.team);
+            setSeat(null);
+          }}
+          onClose={() => setSeat(null)}
+        />
+      ) : null}
 
       <CarPicker
         open={picking}

@@ -33,6 +33,14 @@ export interface CareerEventState {
    */
   enter: (entry: string, car: { model: string; skin?: string }) => Promise<void>;
   /**
+   * Buys a privateer's seat in the championship for the season, which enters
+   * it in the team's car.
+   * @param entry Which class of it
+   * @param team The team selling the seat, by its id
+   * @returns Resolves once it has been bought
+   */
+  buySeat: (entry: string, team: string) => Promise<void>;
+  /**
    * Accepts the invitation to the historic event this is, which enters it in
    * the seat offered.
    * @returns Resolves once it has been accepted, or the refusal shown

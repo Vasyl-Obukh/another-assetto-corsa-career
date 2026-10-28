@@ -1597,6 +1597,48 @@ export interface EventClassOption {
      */
     nation: string | null;
   } | null;
+  /**
+   * The seats the class's privateers sell, cheapest first - empty where none
+   * fields two cars, and for anything but a career's championship it is not
+   * yet in.
+   */
+  forSale: readonly SeatSale[];
+}
+
+/**
+ * A privateer's seat a career may buy: the team's slower car, its fees
+ * covered and every prize the player's.
+ */
+export interface SeatSale {
+  /**
+   * The team, by its id in the championship.
+   */
+  team: string;
+  /**
+   * Its display name.
+   */
+  name: string;
+  /**
+   * Its nation, as Assetto Corsa's code, when it has one.
+   */
+  nation: string | null;
+  /**
+   * The team's car the seat races.
+   */
+  car: {
+    /**
+     * Car folder ID.
+     */
+    model: string;
+    /**
+     * Skin folder ID, when the seat names one.
+     */
+    skin?: string;
+  };
+  /**
+   * What the seat costs, paid as it is signed.
+   */
+  price: number;
 }
 
 /**

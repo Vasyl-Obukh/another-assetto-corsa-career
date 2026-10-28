@@ -5,12 +5,14 @@
 
 import type { Termination } from './types.ts';
 import {
-  OFFER_ANSWER_DAYS, OFFER_LEAD_DAYS, OFFER_MAIL_PREFIX, REFUND_SHARE, RELEASE_SHARE,
+  NOTICE_MAIL_PREFIX, OFFER_ANSWER_DAYS, OFFER_LEAD_DAYS, OFFER_MAIL_PREFIX, REFUND_SHARE, RELEASE_SHARE,
+  SEAT_MAIL_PREFIX,
 } from '../../constants/index.ts';
 import type {
-  Contract, ContractTerms, Mail, OfferPick, SeasonEntry, SeasonEvent, SeatOffer,
+  Contract, ContractTerms, KeepStanding, Mail, OfferPick, SeasonEntry, SeasonEvent, SeatOffer,
 } from '../../types/index.ts';
 import { addDays } from '../calendar-days/index.ts';
+import { teammateSeat } from '../standings/index.ts';
 
 /**
  * The id an edition's seat offers are mailed under: one mail per edition,
@@ -22,6 +24,28 @@ import { addDays } from '../calendar-days/index.ts';
  */
 export const offerId = (series: string, season: number, edition: number): string => (
   `${OFFER_MAIL_PREFIX}${series}:${season}.${edition}`
+);
+
+/**
+ * The id a seat bought is mailed under, written already accepted.
+ * @param series The championship's id
+ * @param season Which season, counting from zero
+ * @param edition Which of the season's editions
+ * @returns The mail's id
+ */
+export const seatId = (series: string, season: number, edition: number): string => (
+  `${SEAT_MAIL_PREFIX}${series}:${season}.${edition}`
+);
+
+/**
+ * The id team news about a contract is mailed under.
+ * @param series The championship's id
+ * @param season Which season the contract ran in, counting from zero
+ * @param edition Which of the season's editions
+ * @returns The mail's id
+ */
+export const noticeId = (series: string, season: number, edition: number): string => (
+  `${NOTICE_MAIL_PREFIX}${series}:${season}.${edition}`
 );
 
 /**
@@ -118,6 +142,36 @@ export const bonusFor = (terms: Pick<ContractTerms, 'bonus'>, place: number): nu
 );
 
 /**
+ * Where the player of a season raced under a contract stands against what
+ * keeps them on: their place and their teammate's in the class's table as it
+ * is. Kept on at or above the contract's place, or ahead of the teammate -
+ * and always by a team that asks nothing.
+ * @param entry The season's entry
+ * @returns The standing
+ */
+export const keepStanding = (
+  entry: Pick<SeasonEntry, 'contract' | 'championship' | 'entry' | 'playerSeat' | 'standings'>,
+): KeepStanding => {
+  const seats = entry.championship.entries.find((one) => one.id === entry.entry)?.seats ?? [];
+  const mate = teammateSeat(entry);
+  // The rows each driver raced themselves - a stand-in's row is the seat's,
+  // never theirs.
+  const rows = entry.standings.classes.find((one) => one.entry === entry.entry)?.drivers
+    .filter((row) => !row.substitute && row.races > 0) ?? [];
+  const place = rows.find((row) => row.seat === entry.playerSeat)?.position ?? null;
+  const mateAt = mate ? rows.find((row) => row.seat === mate.id)?.position ?? null : null;
+  const keep = entry.contract?.keep;
+  const ahead = place !== null && mateAt !== null && place < mateAt;
+
+  return {
+    place,
+    mate: mateAt,
+    size: seats.length,
+    kept: keep === undefined || (place !== null && (place <= keep || ahead)),
+  };
+};
+
+/**
  * What terminating the contract an entry is raced under comes to now.
  * @param entry The season's entry
  * @returns The rounds left, the release fee, the refund and the salary given up
@@ -133,7 +187,8 @@ export const termination = (entry: Pick<SeasonEntry, 'contract' | 'events'>): Te
 
   const fines = left.map((event) => event.entryFee ?? 0);
   const paid = contract.pay === 'seat';
-  const rounds = entry.events.length;
+  // A seat bought part-way through was priced on the rounds left then.
+  const rounds = contract.pricedRounds ?? entry.events.length;
 
   return {
     left: left.length,

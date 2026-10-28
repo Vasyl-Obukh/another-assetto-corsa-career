@@ -15,6 +15,7 @@ import { ChampionshipLibrary } from '@/screens/championship-library';
 import { ChampionshipReview } from '@/screens/championship-review';
 import { ChampionshipDetail, Championships } from '@/screens/championships';
 import { ContentSources } from '@/screens/content-sources';
+import { Contracts } from '@/screens/contracts';
 import { Diagnostics } from '@/screens/diagnostics';
 import { Event } from '@/screens/event';
 import { Finances } from '@/screens/finances';
@@ -147,6 +148,7 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.history} element={<History />} />
               <Route path={ROUTE.finances} element={<Finances />} />
               <Route path={ROUTE.rating} element={<Rating />} />
+              <Route path={ROUTE.contracts} element={<Contracts />} />
               <Route path={ROUTE.yearReview} element={<YearReview />} />
               <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
               <Route path={ROUTE.store} element={<Store />} />

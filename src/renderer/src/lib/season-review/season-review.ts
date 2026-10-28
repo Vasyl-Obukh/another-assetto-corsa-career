@@ -22,7 +22,7 @@ import type {
 import { editionOver, editionsOf } from '../../../../shared/utils/editions';
 import { championshipEntries, historicEntries, isInvited } from '../../../../shared/utils/historic';
 import { prizeTable, scaledPrize } from '../../../../shared/utils/prizes';
-import { entryResults } from '../../../../shared/utils/standings';
+import { entryResults, teammateSeat } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
 import { seasonResults } from '@/lib/season-results';
 
@@ -132,9 +132,7 @@ const pathOf = (entry: SeasonEntry, results: ChampionshipResults): RoundStanding
  * @returns The record, or null for a seat without a teammate
  */
 const teammateOf = (entry: SeasonEntry, table: ClassSeason): TeammateRecord | null => {
-  const seats = entry.championship.entries.find((one) => one.id === entry.entry)?.seats ?? [];
-  const team = seats.find((seat) => seat.id === entry.playerSeat)?.team;
-  const mate = team ? seats.find((seat) => seat.id !== entry.playerSeat && seat.team === team) : undefined;
+  const mate = teammateSeat(entry);
   const row = mate ? table.drivers.find((one) => one.seat === mate.id && !one.substitute) : undefined;
   if (!mate || !row) return null;
 

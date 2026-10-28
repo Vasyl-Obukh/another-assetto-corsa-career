@@ -99,7 +99,66 @@ export interface ContractTerms {
    * offered.
    */
   lifeline?: true;
+  /**
+   * The lowest place in the class's table that keeps the player on for the
+   * next season - or a finish ahead of their teammate does. Absent where the
+   * team keeps anyone who will pay again: a privateer's seat.
+   */
+  keep?: number;
+  /**
+   * Set on a renewal: the contract it renews, and what that one paid, which
+   * the offer shows its own terms against.
+   */
+  renews?: Renewal;
+  /**
+   * Set on a seat the player asked a team for and bought, rather than one
+   * offered.
+   */
+  bought?: true;
+  /**
+   * How many rounds a seat bought part-way through a season was priced on,
+   * where fewer than the season holds - which is what its refund is worked
+   * out of.
+   */
+  pricedRounds?: number;
 }
+
+/**
+ * The contract a renewal renews: which run it was, where the player finished
+ * it, and what it paid.
+ */
+export interface Renewal {
+  /**
+   * Which season it ran in, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of that season's editions.
+   */
+  edition: number;
+  /**
+   * The player's place in the class's table when the team decided.
+   */
+  place: number;
+  /**
+   * The salary for the season, or what the seat cost - zero for a free seat.
+   */
+  amount: number;
+  /**
+   * How much of every entry fee the team covered.
+   */
+  feeCover: number;
+  /**
+   * The share of every purse that was the player's, as a percentage.
+   */
+  prizeShare: number;
+}
+
+/**
+ * What came of a contract's team deciding whether to keep the player on: a
+ * renewal offered, that renewal signed, or no renewal at all.
+ */
+export type KeptOutcome = 'offered' | 'renewed' | 'released';
 
 /**
  * A seat offer, as its mail carries it.
@@ -184,4 +243,33 @@ export interface Contract extends ContractTerms {
    * The career's date it was terminated on, once it was.
    */
   ended?: string;
+  /**
+   * What came of the team deciding whether to keep the player on, once it
+   * has - as the next season's offers were drawn.
+   */
+  kept?: KeptOutcome;
+}
+
+/**
+ * Where a contract's player stands against what keeps them on, in the class's
+ * table as it is.
+ */
+export interface KeepStanding {
+  /**
+   * The player's place in the class's table, or null before they have raced.
+   */
+  place: number | null;
+  /**
+   * Their teammate's place, or null for a seat with none, or a teammate not
+   * yet classified.
+   */
+  mate: number | null;
+  /**
+   * How many drivers the class's table holds.
+   */
+  size: number;
+  /**
+   * Whether that is enough to be kept on.
+   */
+  kept: boolean;
 }

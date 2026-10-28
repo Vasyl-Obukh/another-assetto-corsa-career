@@ -313,6 +313,12 @@ export const path = {
    */
   rating: (): string => ROUTE.rating,
   /**
+   * Every contract the career signed, and the ones it holds now, reached from
+   * Home.
+   * @returns Its URL
+   */
+  contracts: (): string => ROUTE.contracts,
+  /**
    * One season of the career, looked back on.
    * @param params Which season, counting from zero
    * @param params.season The season's index

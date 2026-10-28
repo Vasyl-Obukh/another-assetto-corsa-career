@@ -129,3 +129,48 @@ export const ROUND_SMALL = 100;
  * `ROUND_TO`.
  */
 export const ROUND_ABOVE = 10_000;
+
+/**
+ * What keeps the player on, as the share of the class's table from the top
+ * they have to finish in - or ahead of their teammate. A privateer keeps
+ * anyone who will pay again.
+ */
+export const KEEP_SHARE: Record<TeamBudget, number | null> = {
+  [TeamBudget.WORKS]: 1 / 3,
+  [TeamBudget.INDEPENDENT]: 1 / 2,
+  [TeamBudget.PRIVATEER]: null,
+};
+
+/**
+ * What a renewed salary rises by on the player's final place in the class:
+ * a quarter for the title, a tenth for a podium.
+ */
+export const RENEWAL_RAISE = [
+  { upTo: 1, raise: 0.25 },
+  { upTo: 3, raise: 0.1 },
+] as const;
+
+/**
+ * The lowest place that improves an independent's renewal: every fee covered,
+ * and more of the prizes.
+ */
+export const RENEWAL_PODIUM = 3;
+
+/**
+ * How many points more of the prizes an independent's renewal leaves the
+ * player after a podium.
+ */
+export const RENEWAL_SHARE_STEP = 5;
+
+/**
+ * The most of the prizes an independent's renewal ever leaves the player, as
+ * a percentage - the top of what an independent offers at all.
+ */
+export const RENEWAL_SHARE_CAP = 60;
+
+/**
+ * A privateer's price for a seat the player asks to buy, as a range over the
+ * season's entry fees - dearer than its offer, since a team that calls wants
+ * the driver and one called names its price.
+ */
+export const SALE_PRICE_RANGE = [1.3, 1.5] as const;

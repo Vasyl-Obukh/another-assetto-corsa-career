@@ -28,6 +28,12 @@ interface EnterWithHintProps {
    * @param car The car and livery to race all season
    */
   onEnter: (entry: string, car: { model: string; skin?: string }) => void;
+  /**
+   * Called to buy a privateer's seat in the class instead.
+   * @param entry The class entry's id
+   * @param team The team selling the seat, by its id
+   */
+  onBuySeat: (entry: string, team: string) => void;
 }
 
 /**
@@ -37,7 +43,7 @@ interface EnterWithHintProps {
  * player to pick again.
  */
 export const EnterWithHint = ({
-  view, hint, busy, note, onEnter,
+  view, hint, busy, note, onEnter, onBuySeat,
 }: EnterWithHintProps) => {
   const detail = useCarDetail(hint.car.model);
 
@@ -58,6 +64,7 @@ export const EnterWithHint = ({
       }}
       note={note}
       onEnter={onEnter}
+      onBuySeat={onBuySeat}
     />
   );
 };

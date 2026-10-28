@@ -80,6 +80,11 @@ export const OfferReplyBar = ({
     hint = t('inbox.offers.reply.acceptedHint', {
       series: first.seriesName, team, day: formatDayShort(signed?.opener ?? first.opener), count: offers.length - 1,
     });
+    // A seat bought was asked for, and paid for as it was signed.
+    if (first.bought) {
+      title = t('inbox.offers.reply.bought', { team, day: formatDayShort(mail.reply?.on ?? '') });
+      hint = t('inbox.offers.reply.boughtHint', { series: first.seriesName, team });
+    }
   } else if (status === 'declined') {
     title = t('inbox.offer.reply.declined', { day: formatDayShort(mail.reply?.on ?? '') });
     hint = t('inbox.offer.reply.declinedHint', named);

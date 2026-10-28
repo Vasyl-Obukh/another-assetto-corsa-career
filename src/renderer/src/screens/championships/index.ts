@@ -43,3 +43,4 @@ export {
   tierMetalKey, trackKeyOf,
 } from './utils.ts';
 export type { ChampionshipFilter, EnterHint } from './types.ts';
+export { KeepBlock } from './KeepBlock.tsx';

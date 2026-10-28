@@ -2,18 +2,21 @@ import { describe, expect, it } from '@jest/globals';
 
 import { Discipline, TeamBudget } from '../../../types/index.ts';
 import type {
-  Contract, Mail, SeasonEvent, SeatOffer,
+  Championship, Contract, DriverStanding, Mail, SeasonEvent, SeatOffer,
 } from '../../../types/index.ts';
 import {
   activeContract,
   bonusFor,
   coveredFee,
+  keepStanding,
+  noticeId,
   offerDay,
   offerDeadline,
   offerId,
   pickedOffer,
   roundFine,
   roundSalary,
+  seatId,
   termination,
 } from '../index.ts';
 
@@ -268,6 +271,13 @@ describe('shared/utils/contracts', () => {
       expect(termination({ contract: contract(), events }).salaryLeft).toBe(9_000);
     });
 
+    it('refunds a seat bought part-way through on the rounds it was priced on', () => {
+      const events = rounds([1_000, 1_000, 1_000, 1_000]);
+      const late = contract({ pay: 'seat', amount: 6_000, pricedRounds: 3 });
+
+      expect(termination({ contract: late, events }).refund).toBe(3_000);
+    });
+
     it('comes to nothing without a contract still running', () => {
       const events = rounds([1_000, 1_000]);
       const nothing = { release: 0, refund: 0, salaryLeft: 0 };
@@ -282,6 +292,84 @@ describe('shared/utils/contracts', () => {
       expect(termination({ contract: contract(), events })).toEqual({
         left: 0, release: 0, refund: 0, salaryLeft: 0,
       });
+    });
+  });
+
+  describe('seatId', () => {
+    it('names a seat bought by its championship and run, apart from the run\'s offers', () => {
+      expect(seatId('test-gt', 1, 0)).toBe('seat:test-gt:1.0');
+      expect(seatId('test-gt', 1, 0)).not.toBe(offerId('test-gt', 1, 0));
+    });
+  });
+
+  describe('noticeId', () => {
+    it('names team news by the run of the contract it is about', () => {
+      expect(noticeId('test-gt', 0, 1)).toBe('notice:test-gt:0.1');
+    });
+  });
+
+  describe('keepStanding', () => {
+    /**
+     * A row of the class's table.
+     * @param seat The seat
+     * @param position Where it stands
+     * @param more What else to say of it
+     * @returns The row
+     */
+    const row = (seat: string, position: number, more: Partial<DriverStanding> = {}): DriverStanding => ({
+      seat, driver: seat, team: null, position, points: 0, wins: 0, podiums: 0, bestFinish: position, races: 3, ...more,
+    });
+
+    /**
+     * A season raced under a contract keeping the player on in the top 2 of a
+     * class of six, the player in seat gt3-2 beside their teammate in gt3-1.
+     * @param drivers The class's table
+     * @param keep The place that keeps the player on, or null for none
+     * @returns The season's entry
+     */
+    const raced = (drivers: DriverStanding[], keep: number | null = 2) => ({
+      contract: contract(keep === null ? {} : { keep }),
+      championship: {
+        entries: [{
+          id: 'gt3',
+          seats: [
+            { id: 'gt3-1', team: 'alpha' }, { id: 'gt3-2', team: 'alpha' }, { id: 'gt3-3', team: 'beta' },
+            { id: 'gt3-4', team: 'beta' }, { id: 'gt3-5' }, { id: 'gt3-6' },
+          ],
+        }],
+      } as unknown as Championship,
+      entry: 'gt3',
+      playerSeat: 'gt3-2',
+      standings: { classes: [{ entry: 'gt3', name: 'GT3', drivers, teams: [] }], updatedAt: '' },
+    });
+
+    it('keeps the player on at or above the contract\'s place', () => {
+      expect(keepStanding(raced([row('gt3-2', 2), row('gt3-1', 1)]))).toEqual({
+        place: 2, mate: 1, size: 6, kept: true,
+      });
+    });
+
+    it('keeps the player on below it when they finished ahead of their teammate', () => {
+      expect(keepStanding(raced([row('gt3-2', 4), row('gt3-1', 5)])).kept).toBe(true);
+      expect(keepStanding(raced([row('gt3-2', 5), row('gt3-1', 4)])).kept).toBe(false);
+    });
+
+    it('lets go a player who never raced, a stand-in\'s row being the seat\'s and never theirs', () => {
+      const stoodIn = raced([row('gt3-2', 1, { substitute: true }), row('gt3-1', 2)]);
+
+      expect(keepStanding(stoodIn)).toEqual({
+        place: null, mate: 2, size: 6, kept: false,
+      });
+    });
+
+    it('keeps anyone on under a contract asking nothing', () => {
+      expect(keepStanding(raced([], null))).toMatchObject({ place: null, kept: true });
+    });
+
+    it('has no teammate to beat in a seat with none', () => {
+      const alone = { ...raced([row('gt3-5', 3)]), playerSeat: 'gt3-5' };
+
+      expect(keepStanding(alone)).toMatchObject({ place: 3, mate: null, kept: false });
     });
   });
 });

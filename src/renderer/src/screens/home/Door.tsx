@@ -1,5 +1,5 @@
 import {
-  ChartLineIcon, ChevronRightIcon, MedalIcon, TrophyIcon, WalletIcon,
+  BriefcaseIcon, ChartLineIcon, ChevronRightIcon, MedalIcon, TrophyIcon, WalletIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,7 @@ interface DoorProps {
   /**
    * Which icon it carries.
    */
-  icon: 'results' | 'history' | 'finances' | 'rating';
+  icon: 'results' | 'history' | 'finances' | 'rating' | 'contracts';
   /**
    * Its name.
    */
@@ -59,6 +59,7 @@ export const Door = ({
           {icon === 'history' ? <TrophyIcon className="size-5" /> : null}
           {icon === 'finances' ? <WalletIcon className="size-5" /> : null}
           {icon === 'rating' ? <MedalIcon className="size-5" /> : null}
+          {icon === 'contracts' ? <BriefcaseIcon className="size-5" /> : null}
         </span>
         <div className="flex min-w-0 flex-col">
           <span className="text-base font-semibold">{title}</span>

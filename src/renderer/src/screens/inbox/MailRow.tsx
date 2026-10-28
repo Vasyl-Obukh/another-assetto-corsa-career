@@ -1,4 +1,4 @@
-import { BriefcaseIcon, LandmarkIcon } from 'lucide-react';
+import { BriefcaseIcon, LandmarkIcon, NewspaperIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { MailStatusChip } from './MailStatusChip.tsx';
@@ -36,7 +36,7 @@ interface MailRowProps {
 // One mail in the list: who it is from and when, what it is, and where it
 // stands. Unopened, it is bold with a dot beside it. A seat offer lists who
 // is offering by budget, which is what tells one edition's offers from
-// another's at a glance.
+// another's at a glance, and team news says it is news.
 export const MailRow = ({
   item, car, edition, selected, onOpen,
 }: MailRowProps) => {
@@ -44,6 +44,7 @@ export const MailRow = ({
   const { formatDayShort } = useFormat();
   const unread = !item.mail.opened && !selected;
   const offer = item.offers[0];
+  const { notice } = item.mail;
   // Each budget once, in the order the mail lists them, saying how many call.
   const budgets = [...new Set(item.offers.map((one) => one.budget))]
     .map((budget) => ({ budget, count: item.offers.filter((one) => one.budget === budget).length }));
@@ -60,24 +61,30 @@ export const MailRow = ({
     >
       <span aria-hidden className={cn('mt-2 size-2 rounded-full', unread ? 'bg-primary' : 'bg-transparent')} />
       {/* The well wears the leather for an invitation, as it is to a historic
-          event, and a contract's violet for a seat offer. */}
-      <span className={cn('grid size-9 place-items-center rounded-lg [&_svg]:size-4', offer ? CONTRACT_ACCENT : HISTORIC_ACCENT)}>
-        {offer ? <BriefcaseIcon /> : <LandmarkIcon />}
+          event, and a contract's violet for a seat offer and team news. */}
+      <span className={cn('grid size-9 place-items-center rounded-lg [&_svg]:size-4', offer || notice ? CONTRACT_ACCENT : HISTORIC_ACCENT)}>
+        {offer ? <BriefcaseIcon /> : null}
+        {notice ? <NewspaperIcon /> : null}
+        {offer || notice ? null : <LandmarkIcon />}
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="flex items-baseline gap-2">
           <span className={cn('min-w-0 flex-1 truncate text-sm', unread ? 'font-semibold' : 'font-medium')}>
-            {offer ? offerSenders(item.offers, t) : item.team?.name ?? t('inbox.organisers')}
+            {offer ? offerSenders(item.offers, t) : notice?.teamName ?? item.team?.name ?? t('inbox.organisers')}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{formatDayShort(item.mail.arrived)}</span>
         </span>
         <span className={cn('truncate text-sm', unread ? 'font-semibold' : 'text-foreground/90')}>
-          {offer
-            ? t('inbox.subject.offer', { series: offer.seriesName, edition, count: item.offers.length })
-            : t('inbox.subject.invitation', { event: item.event?.name ?? item.mail.invitation?.series ?? '' })}
+          {offer && offer.bought ? t('inbox.subject.bought', { series: offer.seriesName, edition }) : null}
+          {offer && !offer.bought ? t('inbox.subject.offer', { series: offer.seriesName, edition, count: item.offers.length }) : null}
+          {notice ? t('inbox.subject.notice', { series: notice.seriesName, edition }) : null}
+          {offer || notice ? null : t('inbox.subject.invitation', { event: item.event?.name ?? item.mail.invitation?.series ?? '' })}
         </span>
         <span className="flex min-w-0 items-center gap-1.5 pt-0.5">
           <MailStatusChip item={item} className="shrink-0 px-1.5 py-0 text-[0.65rem]" />
+          {notice ? (
+            <Badge className={cn('shrink-0 px-1.5 py-0 text-[0.65rem]', CONTRACT_ACCENT)}>{t('inbox.kind.notice')}</Badge>
+          ) : null}
           {offer ? budgets.map(({ budget, count }) => (
             <Badge key={budget} className={cn('shrink-0 px-1.5 py-0 text-[0.65rem]', TEAM_BUDGET_ACCENT[budget])}>
               {count > 1

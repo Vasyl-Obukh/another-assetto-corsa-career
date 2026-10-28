@@ -82,14 +82,15 @@ export const inboxItems = (career: Career): InboxItem[] => career.inbox
 export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
   if (folder === 'unread') return !item.mail.opened;
   if (folder === 'awaiting') return item.status === 'awaiting';
-  if (folder === 'invitation' || folder === 'offer') return item.mail.kind === folder;
+  if (folder === 'invitation' || folder === 'offer' || folder === 'notice') return item.mail.kind === folder;
 
   return true;
 };
 
 /**
- * Whether a mail matches what was typed into the search: the event it is
- * about, or who it comes from - any of an edition's teams, on a seat offer.
+ * Whether a mail matches what was typed into the search: the event or the
+ * championship it is about, or who it comes from - any of an edition's teams,
+ * on a seat offer.
  * @param item The mail
  * @param search What was typed
  * @returns True when every word of it is found
@@ -97,8 +98,8 @@ export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
 export const matchesSearch = (item: InboxItem, search: string): boolean => matchesTerms(
   searchTerms(search),
   [
-    item.event?.name ?? item.offers[0]?.seriesName ?? null,
-    item.team?.name ?? null,
+    item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName ?? null,
+    item.team?.name ?? item.mail.notice?.teamName ?? null,
     ...item.offers.map((offer) => offer.teamName),
   ],
 );
@@ -171,7 +172,11 @@ export const bonusLine = (
  * @param formatMoney Formats an amount in the career's currency
  * @returns The line
  */
-export const offerSummary = (offer: SeatOffer, t: TFunction, formatMoney: (amount: number) => string): string => {
+export const offerSummary = (
+  offer: Pick<SeatOffer, 'amount' | 'pay' | 'prizeShare'>,
+  t: TFunction,
+  formatMoney: (amount: number) => string,
+): string => {
   const amount = formatMoney(offer.amount);
   let pay = t('championships.offers.free');
   if (offer.pay === 'salary') pay = t('championships.offers.salary', { amount });

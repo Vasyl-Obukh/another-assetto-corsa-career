@@ -40,11 +40,13 @@ export const useMailToasts = (): void => {
     if (!first) return;
 
     const eventOf = (item: typeof first): string => (
-      item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.invitation?.series ?? ''
+      item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName ?? item.mail.invitation?.series ?? ''
     );
     if (!second) {
       const offer = first.offers[0];
+      const { notice } = first.mail;
       let detail = t('inbox.toast.oneDetail', { team: first.team?.name ?? t('inbox.organisers'), event: eventOf(first) });
+      if (notice) detail = t('inbox.toast.noticeDetail', { team: notice.teamName, series: notice.seriesName });
       if (offer) {
         detail = first.offers.length > 1
           ? t('inbox.toast.offersDetail', { count: first.offers.length, series: offer.seriesName })
@@ -52,7 +54,7 @@ export const useMailToasts = (): void => {
       }
       show({
         icon: MailIcon,
-        tone: offer ? CONTRACT_ACCENT : HISTORIC_ACCENT,
+        tone: offer || notice ? CONTRACT_ACCENT : HISTORIC_ACCENT,
         title: t('inbox.toast.one'),
         detail,
         action: { label: t('inbox.toast.read'), run: () => { void navigate(path.inbox(first.mail.id)); } },
@@ -63,7 +65,7 @@ export const useMailToasts = (): void => {
 
     show({
       icon: MailIcon,
-      tone: arrived.every((item) => item.offers.length > 0) ? CONTRACT_ACCENT : HISTORIC_ACCENT,
+      tone: arrived.every((item) => item.offers.length > 0 || item.mail.notice) ? CONTRACT_ACCENT : HISTORIC_ACCENT,
       title: t('inbox.toast.many', { count: arrived.length }),
       detail: arrived.length === 2
         ? t('inbox.toast.two', { first: eventOf(first), second: eventOf(second) })

@@ -29,3 +29,14 @@ export const RELEASE_SHARE = 0.25;
  * to race were worth.
  */
 export const REFUND_SHARE = 0.5;
+
+/**
+ * What a seat bought's mail id starts with - written already accepted, so the
+ * contract has an offer to point back at.
+ */
+export const SEAT_MAIL_PREFIX = 'seat:';
+
+/**
+ * What team news about a contract is kept under.
+ */
+export const NOTICE_MAIL_PREFIX = 'notice:';

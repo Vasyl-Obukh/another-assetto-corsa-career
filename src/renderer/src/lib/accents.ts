@@ -9,6 +9,7 @@
 // would be saying something it does not mean. A set only one screen shows stays
 // beside that screen - a team's budget is in the editor's own constants.
 
+import type { ContractEnd } from './contracts';
 import type {
   CarSource,
   ClassificationOrigin,
@@ -436,6 +437,34 @@ export const CAUTION_ACCENT = 'border-transparent bg-warning text-warning-foregr
  * Read by the toasts the Careers page raises.
  */
 export const DONE_ACCENT = 'border-transparent bg-success text-success-foreground';
+
+/**
+ * Where a contract's player stands against what keeps them on while the season
+ * runs, a traffic light: on course on the accepted pale green, short of it on
+ * the caution amber.
+ *
+ * Read by the contract card and the Contracts page.
+ */
+export const KEEP_ACCENT = {
+  kept: INVITATION_ACCENT.accepted,
+  short: CAUTION_ACCENT,
+} as const;
+
+/**
+ * How a contract ended, or that it is still running, each on a hue the
+ * Contracts page already shows: running and renewed on the contract's violet,
+ * completed on the accepted green, not kept on on the declined slate, as a
+ * mail turned down is, and terminated on the fine's red, since it cost a fee.
+ *
+ * Read by the Contracts page, Home's door into it and team news.
+ */
+export const CONTRACT_END_ACCENT = {
+  running: CONTRACT_ACCENT,
+  completed: INVITATION_ACCENT.accepted,
+  renewed: CONTRACT_ACCENT,
+  released: INVITATION_ACCENT.declined,
+  terminated: LEDGER_ACCENT.fine,
+} as const satisfies Record<ContractEnd, string>;
 
 /**
  * The colour each budget is chipped in.

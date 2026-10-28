@@ -93,6 +93,16 @@ export const OfferReader = ({
   const teams = [...new Set(offers.map((offer) => offer.teamName))];
   const named = { series: first.seriesName, edition, count: teams.length };
   const answered = mail.reply?.on ?? mail.deadline ?? '';
+  // A renewal leads the mail, and a seat bought was asked for rather than
+  // offered.
+  const renewal = offers.find((offer) => offer.renews !== undefined);
+  let lede = t('inbox.offers.lede', { ...named, team: first.teamName });
+  if (first.bought) lede = t('inbox.offers.bought', { ...named, team: first.teamName });
+  else if (renewal?.renews) {
+    lede = t('inbox.offers.renewal', {
+      ...named, team: renewal.teamName, place: renewal.renews.place, count: teams.length - 1,
+    });
+  }
 
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card">
@@ -122,7 +132,7 @@ export const OfferReader = ({
           </div>
 
           <h2 className="text-xl font-semibold" data-selectable>
-            {t('inbox.subject.offer', { ...named, count: offers.length })}
+            {first.bought ? t('inbox.subject.bought', named) : t('inbox.subject.offer', { ...named, count: offers.length })}
           </h2>
 
           <div className="flex items-center gap-3">
@@ -136,7 +146,7 @@ export const OfferReader = ({
           </div>
 
           <p className="max-w-prose text-sm leading-relaxed" data-selectable>
-            {t('inbox.offers.lede', { ...named, team: first.teamName })}
+            {lede}
           </p>
 
           {first.lifeline ? (

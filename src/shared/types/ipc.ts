@@ -514,6 +514,10 @@ export interface IpcContract {
    */
   'career:buyCar': { req: { model: string; skin?: string }; res: Career };
   /**
+   * Buy a privateer's seat in a class for one edition, signed at once.
+   */
+  'career:buySeat': { req: { series: string; entry: string; team: string; edition?: number }; res: Career };
+  /**
    * Sell a car out of the garage. Whatever still races it races it rented.
    */
   'career:sellCar': { req: { model: string }; res: Career };

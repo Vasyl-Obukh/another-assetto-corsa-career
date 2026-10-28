@@ -71,6 +71,7 @@ export const InboxRail = ({ items, folder, onFolder }: InboxRailProps) => {
       </span>
       {row('invitation', <span className={cn('mx-1 size-2 shrink-0 rounded-full', HISTORIC_DOT)} />, t('inbox.kind.invitation'))}
       {row('offer', <span className={cn('mx-1 size-2 shrink-0 rounded-full', CONTRACT_DOT)} />, t('inbox.kind.offer'))}
+      {row('notice', <span className={cn('mx-1 size-2 shrink-0 rounded-full', CONTRACT_DOT)} />, t('inbox.kind.notice'))}
     </nav>
   );
 };

@@ -4,16 +4,19 @@ import {
   CUP_CARS, cupClass, cupRequest, makeCup, teamSeats,
 } from './fixtures.ts';
 import { TeamBudget } from '../../../shared/types/index.ts';
-import type { ContractTerms } from '../../../shared/types/index.ts';
+import type { Contract, ContractTerms } from '../../../shared/types/index.ts';
 import { ratingFloor, rungWidth } from '../../../shared/utils/career-eligibility/index.ts';
 import { BELOW_UNTIL, BUDGET_RANK, LIFELINE_SHARE } from '../constants.ts';
 import {
   classOffers,
   drawnTeam,
+  keepPlace,
   lifelineOffer,
   offerChance,
   offerStanding,
+  renewalOffer,
   rungPosition,
+  seatsForSale,
   seatsGoing,
   slowerSeat,
 } from '../index.ts';
@@ -37,6 +40,33 @@ const ratingAt = (tier: number, share: number): number => ratingFloor(tier) + ru
  * @returns The seats
  */
 const seatsOf = (team: string) => makeCup().entries[0].seats.filter((seat) => seat.team === team);
+
+/**
+ * A contract with one of the cup's teams, as signed for the season before.
+ * @param overrides What to change about it
+ * @returns The contract
+ */
+const signed = (overrides: Partial<Contract> = {}): Contract => ({
+  team: 'indy',
+  teamName: 'Indy Motorsport',
+  budget: TeamBudget.INDEPENDENT,
+  entry: 'cup',
+  seat: 'cup-indy-1',
+  car: { model: 'cup_a' },
+  pay: 'free',
+  amount: 0,
+  feeCover: 0.5,
+  prizeShare: 45,
+  offer: 'offer:test-cup:0.0',
+  signed: '2026-01-10',
+  ...overrides,
+});
+
+/**
+ * The run a renewal of a contract from the first season's only edition says it
+ * came from.
+ */
+const RUN = { season: 0, edition: 0 };
 
 describe('core/seat-offers', () => {
   describe('rungPosition', () => {
@@ -204,6 +234,14 @@ describe('core/seat-offers', () => {
       }
     });
 
+    it('says what keeps the player on, by the team\'s budget', () => {
+      for (const salt of SALTS.slice(0, 80)) {
+        for (const offer of classOffers(cupRequest({ salt }))) {
+          expect(offer.keep).toBe(keepPlace(offer.budget, 7));
+        }
+      }
+    });
+
     it('draws the same offers for the same edition', () => {
       expect(classOffers(cupRequest())).toEqual(classOffers(cupRequest()));
     });
@@ -297,6 +335,163 @@ describe('core/seat-offers', () => {
 
     it('offers nothing in a class with no car to race', () => {
       expect(lifelineOffer(cupRequest({ cars: [] }))).toBeNull();
+    });
+  });
+
+  describe('keepPlace', () => {
+    it('keeps a works driver in the top third and an independent\'s in the top half', () => {
+      expect(keepPlace(TeamBudget.WORKS, 18)).toBe(6);
+      expect(keepPlace(TeamBudget.INDEPENDENT, 18)).toBe(9);
+    });
+
+    it('rounds down, never above first', () => {
+      expect(keepPlace(TeamBudget.WORKS, 20)).toBe(6);
+      expect(keepPlace(TeamBudget.WORKS, 2)).toBe(1);
+      expect(keepPlace(TeamBudget.INDEPENDENT, 1)).toBe(1);
+    });
+
+    it('asks nothing of a privateer\'s driver', () => {
+      expect(keepPlace(TeamBudget.PRIVATEER, 18)).toBeUndefined();
+    });
+  });
+
+  describe('renewalOffer', () => {
+    it('offers the team\'s seat in the class again, saying what it renews', () => {
+      const offer = renewalOffer(cupRequest(), signed(), RUN, 5);
+
+      expect(offer).toMatchObject({
+        team: 'indy', entry: 'cup', pay: 'free', feeCover: 0.5, prizeShare: 45,
+      });
+      expect(offer?.renews).toEqual({
+        season: 0, edition: 0, place: 5, amount: 0, feeCover: 0.5, prizeShare: 45,
+      });
+      expect(seatsOf('indy').map((seat) => seat.id)).toContain(offer?.seat);
+    });
+
+    it('covers every fee and leaves 5 points more of the prizes after a podium, to 60%', () => {
+      expect(renewalOffer(cupRequest(), signed(), RUN, 3)).toMatchObject({ feeCover: 1, prizeShare: 50 });
+      expect(renewalOffer(cupRequest(), signed({ prizeShare: 58 }), RUN, 1)).toMatchObject({ prizeShare: 60 });
+      expect(renewalOffer(cupRequest(), signed({ prizeShare: 60 }), RUN, 1)).toMatchObject({ prizeShare: 60 });
+    });
+
+    it('raises a salary a quarter for the title and a tenth for a podium, its bonus with it', () => {
+      const works = signed({
+        team: 'works',
+        teamName: 'Works Racing',
+        budget: TeamBudget.WORKS,
+        seat: 'cup-works-1',
+        pay: 'salary',
+        amount: 80_000,
+        feeCover: 1,
+        prizeShare: 25,
+        bonus: [{ upTo: 1, amount: 32_000 }, { upTo: 3, amount: 10_000 }],
+      });
+
+      expect(renewalOffer(cupRequest(), works, RUN, 1)).toMatchObject({
+        amount: 100_000, bonus: [{ upTo: 1, amount: 40_000 }, { upTo: 3, amount: 12_500 }],
+      });
+      expect(renewalOffer(cupRequest(), works, RUN, 3)).toMatchObject({ amount: 88_000 });
+      expect(renewalOffer(cupRequest(), works, RUN, 4)).toMatchObject({ amount: 80_000, bonus: works.bonus });
+    });
+
+    it('asks what a paid seat cost again, and nothing to keep the player on', () => {
+      const seat = signed({
+        team: 'priv',
+        teamName: 'Privateer Garage',
+        budget: TeamBudget.PRIVATEER,
+        pay: 'seat',
+        amount: 5_000,
+        feeCover: 1,
+        prizeShare: 100,
+      });
+      const offer = renewalOffer(cupRequest(), seat, RUN, 1);
+
+      expect(offer).toMatchObject({ pay: 'seat', amount: 5_000, prizeShare: 100 });
+      expect(offer?.keep).toBeUndefined();
+    });
+
+    // Guards a fix: a seat bought with rounds left renewed for a whole season at
+    // the price of those rounds alone.
+    it('renews a seat bought part-way through for a whole season, at what it cost a round', () => {
+      const late = signed({
+        team: 'priv',
+        teamName: 'Privateer Garage',
+        budget: TeamBudget.PRIVATEER,
+        pay: 'seat',
+        amount: 1_500,
+        feeCover: 1,
+        prizeShare: 100,
+        bought: true,
+        pricedRounds: 1,
+      });
+      const offer = renewalOffer(cupRequest(), late, RUN, 1);
+
+      expect(offer).toMatchObject({ amount: 6_000 });
+      expect(offer?.pricedRounds).toBeUndefined();
+      expect(offer?.renews?.amount).toBe(1_500);
+    });
+
+    it('says what keeps the player on next time, off the class\'s size', () => {
+      expect(renewalOffer(cupRequest(), signed(), RUN, 5)?.keep).toBe(3);
+    });
+
+    it('offers nothing once the team fields no seat in the class', () => {
+      const cup = makeCup({ entries: [cupClass('cup', [...teamSeats('cup', 'works', 2)])] });
+
+      expect(renewalOffer(cupRequest({ championship: cup }), signed(), RUN, 1)).toBeNull();
+    });
+  });
+
+  describe('seatsForSale', () => {
+    it('sells only a privateer\'s slower seat, fees covered and every prize the player\'s', () => {
+      const seats = seatsForSale(cupRequest(), 4);
+
+      expect(seats.map((seat) => seat.team)).toEqual(['priv']);
+      expect(seats[0]).toMatchObject({
+        pay: 'seat', feeCover: 1, prizeShare: 100, bought: true,
+      });
+      expect(seats[0].seat).toBe(slowerSeat(makeCup(), seatsOf('priv'), cupRequest().salt).id);
+      expect(seats[0].keep).toBeUndefined();
+    });
+
+    it('prices a seat at 1.3 to 1.5 times the season\'s fees, the same each time it is asked', () => {
+      for (const salt of SALTS.slice(0, 50)) {
+        const [seat] = seatsForSale(cupRequest({ salt }), 4);
+
+        expect(seat.amount).toBeGreaterThanOrEqual(5_200);
+        expect(seat.amount).toBeLessThanOrEqual(6_000);
+        expect(seatsForSale(cupRequest({ salt }), 4)).toEqual([seat]);
+      }
+    });
+
+    it('prices a seat on the rounds left, and says so', () => {
+      const [full] = seatsForSale(cupRequest(), 4);
+      const [half] = seatsForSale(cupRequest(), 2);
+
+      expect(full.pricedRounds).toBeUndefined();
+      expect(half.pricedRounds).toBe(2);
+      expect(Math.abs(half.amount - full.amount / 2)).toBeLessThanOrEqual(100);
+    });
+
+    it('sells nothing from a privateer fielding one car, nor once the season is run', () => {
+      const cup = makeCup({ entries: [cupClass('cup', [...teamSeats('cup', 'priv', 1)])] });
+
+      expect(seatsForSale(cupRequest({ championship: cup }), 4)).toEqual([]);
+      expect(seatsForSale(cupRequest(), 0)).toEqual([]);
+    });
+
+    it('lists the cheapest first', () => {
+      const cup = makeCup({
+        teams: [
+          { id: 'priv', name: 'Privateer Garage', budget: TeamBudget.PRIVATEER },
+          { id: 'other', name: 'Other Garage', budget: TeamBudget.PRIVATEER },
+        ],
+        entries: [cupClass('cup', [...teamSeats('cup', 'priv', 2), ...teamSeats('cup', 'other', 2)])],
+      });
+      const prices = seatsForSale(cupRequest({ championship: cup }), 4).map((seat) => seat.amount);
+
+      expect(prices).toHaveLength(2);
+      expect(prices).toEqual([...prices].sort((left, right) => left - right));
     });
   });
 });

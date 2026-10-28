@@ -64,6 +64,12 @@ export const MailList = ({
   const held = Math.min(page, pages);
   const shown = pageOf(items, held);
   const { career } = useSlot();
+  // The edition a seat offer is for, or team news is about.
+  const editionOf = (item: InboxItem): string => {
+    const run = item.offers[0] ?? item.mail.notice;
+
+    return career && run ? offerEdition(career, run, t) : '';
+  };
   // Only an invitation's row names its car.
   const carName = useCarNames(shown.flatMap((item) => (item.mail.invitation ? carModels(item) : [])));
   const from = (held - 1) * INBOX_PAGE_SIZE + 1;
@@ -97,7 +103,7 @@ export const MailList = ({
                 key={item.mail.id}
                 item={item}
                 car={carName(carModels(item)[0] ?? '')}
-                edition={career && item.offers[0] ? offerEdition(career, item.offers[0], t) : ''}
+                edition={editionOf(item)}
                 selected={item.mail.id === selected}
                 onOpen={() => onOpen(item.mail.id)}
               />

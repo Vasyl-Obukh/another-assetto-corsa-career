@@ -9,6 +9,7 @@ import { FOLDER_PARAM, PAGE_PARAM } from './constants.ts';
 import { InboxRail } from './InboxRail.tsx';
 import { MailList } from './MailList.tsx';
 import { MailReader } from './MailReader.tsx';
+import { NoticeReader } from './NoticeReader.tsx';
 import { OfferReader } from './OfferReader.tsx';
 import {
   carModels, eventLink, folderOf, offerEdition, offerLink, pageNumber,
@@ -54,6 +55,7 @@ export const Inbox = () => {
   const offered = selected ? carModels(selected) : [];
   const carName = useCarNames(offered);
   const seat = selected?.offers[0] ?? null;
+  const notice = selected?.mail.notice ?? null;
 
   // Opening a mail reads it. Marked unread again, it is closed as it is, so
   // this never opens it straight back.
@@ -151,7 +153,19 @@ export const Inbox = () => {
             }}
           />
         ) : null}
-        {selected && !seat ? (
+        {selected && notice ? (
+          <NoticeReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, notice } }}
+            edition={offerEdition(career, notice, t)}
+            link={offerLink(career, notice)}
+            onUnread={() => {
+              show({ [MAIL_PARAM]: null });
+              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
+            }}
+          />
+        ) : null}
+        {selected && !seat && !notice ? (
           <MailReader
             career={career}
             item={selected}

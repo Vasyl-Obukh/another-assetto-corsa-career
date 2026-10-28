@@ -209,6 +209,7 @@ export const registerHandlers = (
   handle('career:calendar', async ({ season }) => career.calendar(season));
   handle('career:enrol', async (request) => career.enrol(request));
   handle('career:buyCar', async (request) => career.buyCar(request));
+  handle('career:buySeat', async (request) => career.buySeat(request));
   handle('career:sellCar', async ({ model }) => career.sellCar(model));
   handle('career:repaintCar', async (request) => career.repaintCar(request));
   handle('career:withdraw', async (request) => career.withdraw(request));

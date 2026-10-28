@@ -712,7 +712,32 @@
       "feeHint": "Paid as each round launches.",
       "historicFeeHint": "Paid as the event launches.",
       "team": "Your team for the season",
-      "own": "Every prize is yours, and a round you skip costs nothing."
+      "own": "Every prize is yours, and a round you skip costs nothing.",
+      "ways": {
+        "own": "Your car",
+        "seat": "A team's seat"
+      },
+      "seats": {
+        "hint": "Buy a privateer's seat for the season: its car in its colours, every entry fee covered, every prize yours, and no fine for a round you miss. Works teams and independents don't sell theirs.",
+        "none": "No privateer in this class fields a second car to sell.",
+        "offered": "Offer waiting",
+        "short": "Can't afford",
+        "buy": "Buy",
+        "title": "Buy a seat with {{team}}?",
+        "body_one": "{{series}}, the {{count}} round still to race, in their {{car}}.",
+        "body_other": "{{series}}, all {{count}} rounds still to race, in their {{car}}.",
+        "price": "The seat, paid as you sign",
+        "covered": "Covered by the team",
+        "prizes": "Prize money",
+        "allPrizes": "Every prize is yours",
+        "missed": "A round missed",
+        "noFine": "No fine",
+        "after": "Your balance after",
+        "behind": "The team's own driver races them in the car.",
+        "note": "Buying turns down any team's offer for it still waiting. Terminating later gives back half of what the rounds left were worth.",
+        "cancel": "Cancel",
+        "confirm": "Pay {{amount}} and sign"
+      }
     },
     "brief": {
       "length": "Length",
@@ -1119,7 +1144,30 @@
       "after": "The team puts another driver in the car for the rest of the season. Your points so far stay on the table.",
       "payTerminate": "Pay {{amount}} and terminate",
       "refundTerminate": "Terminate and take {{amount}} back",
-      "keep": "Keep the contract"
+      "keep": "Keep the contract",
+      "keepTitle": "To be kept on",
+      "keepPlace": "Top {{place}}, or ahead of your teammate",
+      "keepAlways": "Always - a paid seat renews if you will pay again",
+      "you": "You",
+      "teammate": "Your teammate",
+      "placeOf": "P{{place}} of {{size}}",
+      "place": "P{{place}}",
+      "unplaced": "Not classified",
+      "judged": "Judged as next season's offers go out",
+      "releasedHint": "The team let you go as next season's offers went out",
+      "kept": {
+        "offered": "Renewal offered",
+        "renewed": "Renewed"
+      },
+      "keptHint": {
+        "offered": "Its offer is in next season's mail",
+        "renewed": "You signed on again for next season"
+      },
+      "renewed": "Renewed after your P{{place}} - it was {{amount}}",
+      "mark": {
+        "kept": "On course",
+        "short": "Short of it"
+      }
     },
     "offers": {
       "title": "Seats on offer",
@@ -2115,6 +2163,15 @@
         "title": "Rating",
         "hint": "Where you stand on the ladder",
         "levels": "Your rungs"
+      },
+      "contracts": {
+        "title": "Contracts",
+        "hint": "Every team you race for",
+        "current": "Under contract",
+        "none": "Racing on your own this season",
+        "line": "{{team}} · {{series}}",
+        "signed_one": "{{count}} contract signed",
+        "signed_other": "{{count}} contracts signed"
       }
     },
     "historic": {
@@ -2376,7 +2433,8 @@
     "store": "Store",
     "garage": "Garage",
     "rating": "Rating",
-    "inbox": "Inbox"
+    "inbox": "Inbox",
+    "contracts": "Contracts"
   },
   "standings": {
     "title": "Standings",
@@ -3256,7 +3314,8 @@
     "kinds": "Kinds",
     "kind": {
       "invitation": "Invitations",
-      "offer": "Seat offers"
+      "offer": "Seat offers",
+      "notice": "Team news"
     },
     "chip": {
       "invitation": "Invitation",
@@ -3274,7 +3333,9 @@
     "subject": {
       "invitation": "Invitation: {{event}}",
       "offer_one": "Seat offer: {{series}} {{edition}}",
-      "offer_other": "Seat offers: {{series}} {{edition}}"
+      "offer_other": "Seat offers: {{series}} {{edition}}",
+      "notice": "Not kept on after {{series}} {{edition}}",
+      "bought": "Seat bought: {{series}} {{edition}}"
     },
     "status": {
       "awaiting": "Reply by {{day}}",
@@ -3348,7 +3409,8 @@
       "open": "Open the inbox",
       "offerDetail": "{{team}} offers you a seat in {{series}}",
       "offersDetail_one": "{{count}} team offers you a seat in {{series}}",
-      "offersDetail_other": "{{count}} teams offer you a seat in {{series}}"
+      "offersDetail_other": "{{count}} teams offer you a seat in {{series}}",
+      "noticeDetail": "{{team}} is not keeping you on in {{series}}"
     },
     "banner": {
       "title_one": "{{count}} invitation awaits a reply",
@@ -3421,13 +3483,19 @@
         "acceptedHint_zero": "You race {{series}} for {{team}}, from {{day}}.",
         "acceptedHint_one": "You race {{series}} for {{team}}, from {{day}}. The other offer was declined.",
         "acceptedHint_other": "You race {{series}} for {{team}}, from {{day}}. The other {{count}} offers were declined.",
-        "declineAll": "Decline all"
+        "declineAll": "Decline all",
+        "bought": "Bought {{team}}'s seat on {{day}}",
+        "boughtHint": "You race {{series}} in their car, every fee covered and every prize yours."
       },
       "decline": {
         "title": "Turn down every offer for {{series}}?",
         "body": "The seats go to other drivers. You can still enter {{series}} on your own."
       },
-      "budgetCount": "{{budget}} ×{{count}}"
+      "budgetCount": "{{budget}} ×{{count}}",
+      "renewal_zero": "{{team}} want to keep you for {{series}} {{edition}} - you finished P{{place}} for them. Their offer is below, beside what racing it on your own comes to.",
+      "renewal_one": "{{team}} want to keep you for {{series}} {{edition}} - you finished P{{place}} for them. One other team wants you too: the offers are side by side, with what racing it on your own comes to - accept one, and the other is declined.",
+      "renewal_other": "{{team}} want to keep you for {{series}} {{edition}} - you finished P{{place}} for them. {{count}} other teams want you too: the offers are side by side, with what racing it on your own comes to - accept one, and the others are declined.",
+      "bought": "You asked {{team}} for its seat in {{series}} {{edition}} and bought it. The terms are below."
     },
     "compare": {
       "best": "Best",
@@ -3459,7 +3527,24 @@
       "fineHint": "Its entry fee",
       "noFineHint": "A round missed is only yours to lose",
       "accept": "Accept",
-      "enterOwn": "Enter on your own"
+      "enterOwn": "Enter on your own",
+      "was": "Was {{value}}",
+      "raised": "Up from {{amount}}, for your P{{place}}",
+      "renew": "Renew",
+      "yourTeam": "Your team",
+      "keep": "To be kept on",
+      "keepPlace": "Top {{place}}, or ahead of your teammate",
+      "keepHint": "Judged as next season's offers go out",
+      "keepAlways": "Always",
+      "keepAlwaysHint": "If you will pay for the seat again",
+      "keepOwn": "Enter again, or not"
+    },
+    "notice": {
+      "strip": "You raced it for {{team}} · {{entry}}",
+      "lede": "{{team}} will not keep you on. They asked for a finish in the top {{place}} of your class, or one ahead of your teammate, and the season ended short of both.",
+      "owed": "Your contract ran its course, as signed. Nothing is owed either way.",
+      "after": "Other teams' offers for the next season, if any came, are in their own mail - and you can always race it on your own.",
+      "run": "{{series}} {{edition}}"
     }
   },
   "invitation": {
@@ -3493,5 +3578,85 @@
     "launch": "Accept and launch {{name}}",
     "launchHint": "Launching it accepts the invitation.",
     "percent": "{{value}}%"
+  },
+  "contracts": {
+    "title": "Contracts",
+    "subtitle": "Every team you have raced for, and what each contract came to",
+    "figures": {
+      "signed": "Contracts signed",
+      "offered_one": "{{count}} offered",
+      "offered_other": "{{count}} offered",
+      "renewal_one": "{{count}} renewal",
+      "renewal_other": "{{count}} renewals",
+      "bought_one": "{{count}} bought",
+      "bought_other": "{{count}} bought",
+      "lifeline_one": "{{count}} lifeline",
+      "lifeline_other": "{{count}} lifelines",
+      "none": "None yet",
+      "teams": "Teams",
+      "teamsHint": "Raced for under contract",
+      "earned": "Earned under contract",
+      "earnedHint": "Salary, bonuses and your share of prizes",
+      "paid": "Paid to teams",
+      "paidHint": "Seats, fines, fees and release fees, less refunds"
+    },
+    "current": "Under contract",
+    "noneCurrent": "No contract held this season - every championship you are in, you race on your own.",
+    "every": "Every contract",
+    "show": "Show",
+    "filter": {
+      "all": "All",
+      "salary": "Salary",
+      "free": "Free seat",
+      "seat": "Paid seat"
+    },
+    "empty": "No contract here yet. Seat offers arrive in your inbox eight weeks before a championship opens.",
+    "netHint": "Came to is what a contract moved: salary, bonus and your share of prizes, less the seat, fines, any share of the fees and a release fee. Fees a team covered moved nothing and are not in it.",
+    "open": "Open",
+    "tile": {
+      "pay": "Pay",
+      "seat": "The seat",
+      "free": "Free seat",
+      "freeHint": "Nobody pays anyone",
+      "salaryHint": "A season",
+      "seatHint": "Paid as you signed",
+      "bought": "Bought from the team",
+      "earned": "Earned so far",
+      "earnedHint": "Salary, bonus and prizes",
+      "rounds": "Rounds",
+      "roundsValue": "{{raced}} of {{count}}",
+      "standing": "Standing",
+      "mate": "Your teammate P{{place}}"
+    },
+    "table": {
+      "season": "Season",
+      "championship": "Championship",
+      "team": "Team",
+      "terms": "Terms",
+      "how": "How",
+      "result": "Result",
+      "net": "Came to",
+      "ended": "Ended",
+      "raced": "{{raced}} of {{count}} rounds",
+      "terminatedOn": "On {{day}}",
+      "renewal": {
+        "awaiting": "Renewal offered - answer it in your inbox",
+        "declined": "You declined to renew"
+      },
+      "none": "-"
+    },
+    "origin": {
+      "offered": "Offered",
+      "renewal": "Renewal",
+      "bought": "Bought",
+      "lifeline": "Lifeline"
+    },
+    "ended": {
+      "running": "Under way",
+      "completed": "Completed",
+      "renewed": "Renewed",
+      "released": "Not kept on",
+      "terminated": "Terminated"
+    }
   }
 }

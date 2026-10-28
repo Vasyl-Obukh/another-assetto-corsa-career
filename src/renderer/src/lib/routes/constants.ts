@@ -36,6 +36,7 @@ export const ROUTE = {
   history: '/home/history',
   finances: '/home/finances',
   rating: '/home/rating',
+  contracts: '/home/contracts',
   yearReview: '/home/history/:season',
   championshipReview: '/home/history/:season/:series/:edition',
   store: '/store',
@@ -102,8 +103,8 @@ export const SESSION_PARAM = 'session';
  * The inbox is second, beside Home, since it is where offers arrive to be
  * answered and its entry carries how many are unread.
  *
- * Results, History and Finances are deliberately not here: all three are
- * reached from Home, and live under its path so Home stays lit while any is
+ * Results, History, Finances, Rating and Contracts are deliberately not here:
+ * all are reached from Home, and live under its path so Home stays lit while any is
  * open. Settings opens on the career's own, and stays lit on the app's. A
  * car's page belongs to the Store, unless the Garage opened it. There is no
  * Tracks: a track browser is only ever a picker, and a circuit's page is
@@ -166,6 +167,7 @@ export const BACK_LABEL = {
   history: 'back.history',
   finances: 'back.finances',
   rating: 'back.rating',
+  contracts: 'back.contracts',
   yearReview: 'back.yearReview',
   championshipReview: 'back.championshipReview',
   store: 'back.store',

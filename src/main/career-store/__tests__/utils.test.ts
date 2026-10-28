@@ -8,6 +8,7 @@ import {
 import type {
   CalendarInvitation,
   CareerSeason,
+  Contract,
   ContractTerms,
   HistoricDraw,
   InvitationDraw,
@@ -22,7 +23,7 @@ import type {
   SeriesSession,
   SessionForecast,
 } from '../../../shared/types/index.ts';
-import { offerId } from '../../../shared/utils/contracts/index.ts';
+import { noticeId, offerId } from '../../../shared/utils/contracts/index.ts';
 import { invitationId } from '../../../shared/utils/inbox/index.ts';
 import {
   advanceSkips,
@@ -66,12 +67,15 @@ import {
   lostName,
   markMissed,
   materialiseEvents,
+  noticeMail,
   offerMail,
   openSeason,
+  previousRun,
   profileOf,
   readBackup,
   readProfile,
   readState,
+  saleSeats,
   scheduledEvents,
   seasonEndDate,
   seasonOf,
@@ -85,6 +89,7 @@ import {
   summarise,
   unansweredSkips,
   winnerPrize,
+  withKept,
   withLapsed,
   withReply,
   withSeason,
@@ -2314,6 +2319,19 @@ describe('main/career-store/utils', () => {
       });
     });
 
+    it('copies what keeps the player on, what it renews, and a bought seat\'s rounds', () => {
+      const renews = {
+        season: 0, edition: 0, place: 3, amount: 0, feeCover: 0.5, prizeShare: 45,
+      };
+      const terms = makeTerms({
+        keep: 4, renews, bought: true, pricedRounds: 2,
+      });
+
+      expect(signedContract(makeOfferMail(0), terms, '2026-01-10')).toMatchObject({
+        keep: 4, renews, bought: true, pricedRounds: 2,
+      });
+    });
+
     it('keeps nothing of the offer but its terms', () => {
       const mail = makeOfferMail(0);
       const offer = mail.offers?.[0] as SeatOffer;
@@ -2322,6 +2340,147 @@ describe('main/career-store/utils', () => {
       expect(Object.keys(contract).sort()).toEqual([
         'amount', 'budget', 'car', 'entry', 'feeCover', 'offer', 'pay', 'prizeShare', 'seat', 'signed', 'team', 'teamName',
       ]);
+    });
+  });
+
+  describe('previousRun', () => {
+    /**
+     * An edition of the test championship raced under a contract.
+     * @param edition Which of the season's editions
+     * @param contract What to change about the contract
+     * @returns The entry
+     */
+    const raced = (edition: number, contract: Partial<Contract> = {}): SeasonEntry => makeEntry({
+      edition, contract: { ...makeTerms(), offer: offerId('test-cup', 0, edition), signed: '2026-01-10', ...contract },
+    });
+
+    it('finds the edition before in the same season', () => {
+      const halves = makeChampionship({ seasonLength: SeasonLength.HALF_YEAR });
+      const season = makeSeason({ entries: [raced(0)] });
+
+      expect(previousRun(makeCareer({ seasons: [season] }), season, halves, 1)?.entry.edition).toBe(0);
+    });
+
+    it('finds last season\'s last edition for the first of a season', () => {
+      const last = makeSeason({ entries: [raced(0)] });
+      const next = makeSeason({ index: 1, startDate: '2027-01-01', endDate: '2027-12-31' });
+      const found = previousRun(makeCareer({ seasons: [last, next] }), next, makeChampionship(), 0);
+
+      expect(found?.season).toBe(last);
+    });
+
+    it('finds nothing raced on the player\'s own, terminated or decided already', () => {
+      const championship = makeChampionship();
+      const next = makeSeason({ index: 1, startDate: '2027-01-01', endDate: '2027-12-31' });
+      for (const entry of [makeEntry(), raced(0, { ended: '2026-05-01' }), raced(0, { kept: 'offered' })]) {
+        const career = makeCareer({ seasons: [makeSeason({ entries: [entry] }), next] });
+
+        expect(previousRun(career, next, championship, 0)).toBeNull();
+      }
+    });
+
+    // Guards a fix: a seat terminated and bought again left two entries of the
+    // run, and the first - the terminated one - hid the contract in force.
+    it('finds the contract still in force beside one terminated in the same run', () => {
+      const next = makeSeason({ index: 1, startDate: '2027-01-01', endDate: '2027-12-31' });
+      const last = makeSeason({ entries: [raced(0, { ended: '2026-05-01' }), raced(0, { team: 'again' })] });
+      const found = previousRun(makeCareer({ seasons: [last, next] }), next, makeChampionship(), 0);
+
+      expect(found?.entry.contract.team).toBe('again');
+    });
+  });
+
+  describe('withKept', () => {
+    it('writes what came of the team deciding onto that run\'s contract alone', () => {
+      const entry = makeEntry({ contract: { ...makeTerms(), offer: 'offer:test-cup:0.0', signed: '2026-01-10' } });
+      const other = makeEntry({ series: 'other-cup' });
+      const career = makeCareer({ seasons: [makeSeason({ entries: [entry, other] })] });
+      const [kept, untouched] = withKept(career, 0, 'test-cup', 0, 'released').seasons[0].entries;
+
+      expect(kept.contract?.kept).toBe('released');
+      expect(untouched).toBe(other);
+    });
+
+    it('leaves a terminated contract of the run as it ended', () => {
+      const ended = makeEntry({ contract: { ...makeTerms(), offer: 'x', signed: '2026-01-10', ended: '2026-04-01' } });
+      const career = makeCareer({ seasons: [makeSeason({ entries: [ended] })] });
+
+      expect(withKept(career, 0, 'test-cup', 0, 'renewed').seasons[0].entries[0].contract?.kept).toBeUndefined();
+    });
+  });
+
+  describe('noticeMail', () => {
+    it('is team news about the run, wanting no answer, saying what the team asked and where the player stood', () => {
+      const entry = makeEntry({
+        contract: {
+          ...makeTerms({ nation: 'ITA', keep: 4 }), offer: 'offer:test-cup:0.0', signed: '2026-01-10',
+        },
+      });
+      const standing = {
+        place: 7, mate: 2, size: 12, kept: false,
+      };
+      const mail = noticeMail(makeSeason(), { ...entry, contract: entry.contract as Contract }, standing, '2027-01-03', 1);
+
+      expect(mail).toEqual({
+        id: noticeId('test-cup', 0, 0),
+        kind: 'notice',
+        season: 1,
+        arrived: '2027-01-03',
+        opened: false,
+        notice: {
+          series: 'test-cup',
+          seriesName: 'Test Cup',
+          season: 0,
+          edition: 0,
+          editions: 1,
+          team: 'rivals',
+          teamName: 'Rivals Racing',
+          nation: 'ITA',
+          entryName: 'Main',
+          keep: 4,
+          standing,
+        },
+      });
+      expect(mail.deadline).toBeUndefined();
+    });
+  });
+
+  describe('saleSeats', () => {
+    const championship = makeChampionship({
+      teams: [
+        { id: 'priv', name: 'Privateer Garage', budget: TeamBudget.PRIVATEER },
+        { id: 'works', name: 'Works Racing', budget: TeamBudget.WORKS },
+      ],
+      entries: [makeClassEntry({
+        seats: [
+          { id: 'p-1', team: 'priv' }, { id: 'p-2', team: 'priv' }, { id: 'w-1', team: 'works' }, { id: 'w-2', team: 'works' },
+        ],
+      })],
+      rounds: [makeRound('one'), makeRound('two', { entryFee: 3_000 })],
+      entryFee: 1_000,
+    });
+    const season = makeSeason();
+    const [classEntry] = championship.entries;
+
+    it('sells the class\'s privateer seats for the edition, priced off its fees', () => {
+      const seats = saleSeats(makeCareer(), season, championship, makeAvailability(championship), classEntry, 0);
+
+      expect(seats.map((seat) => seat.team)).toEqual(['priv']);
+      expect(seats[0].amount).toBeGreaterThanOrEqual(5_200);
+      expect(seats[0].amount).toBeLessThanOrEqual(6_000);
+      expect(seats[0].pricedRounds).toBeUndefined();
+    });
+
+    it('prices on the rounds still to race, and sells nothing once none is', () => {
+      const events = materialiseEvents(championship, season, 0, '2026-01-04', classEntry.id);
+      const between = addDays(events[0].date, 1);
+      const available = makeAvailability(championship);
+      const late = saleSeats(makeCareer({ date: between }), season, championship, available, classEntry, 0);
+      const over = addDays(events[1].date, 1);
+
+      expect(late[0].pricedRounds).toBe(1);
+      expect(saleSeats(makeCareer({ date: over }), season, championship, makeAvailability(championship), classEntry, 0))
+        .toEqual([]);
     });
   });
 

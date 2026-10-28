@@ -254,6 +254,7 @@ export const Event = () => {
                   busy={event.busy}
                   historic={historic !== null}
                   onEnter={(entry, car) => { void event.enter(entry, car); }}
+                  onBuySeat={(entry, team) => { void event.buySeat(entry, team); }}
                 />
               )}
             <EventSessionList

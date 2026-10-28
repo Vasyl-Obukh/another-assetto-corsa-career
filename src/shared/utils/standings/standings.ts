@@ -15,6 +15,7 @@ import type {
   SeasonEntry,
   SeasonEvent,
   SeasonStandings,
+  Seat,
   TeamStanding,
 } from '../../types/index.ts';
 
@@ -156,6 +157,19 @@ export const roundResult = (event: SeasonEvent): RoundResult => ({
   score: event.score ?? null,
   sessions: event.sessions,
 });
+
+/**
+ * The player's teammate in a season: the other seat of their team in their
+ * class.
+ * @param entry The career's edition of the championship
+ * @returns The seat, or null for a seat with no team or no teammate
+ */
+export const teammateSeat = (entry: Pick<SeasonEntry, 'championship' | 'entry' | 'playerSeat'>): Seat | null => {
+  const seats = entry.championship.entries.find((one) => one.id === entry.entry)?.seats ?? [];
+  const team = seats.find((seat) => seat.id === entry.playerSeat)?.team;
+
+  return (team ? seats.find((seat) => seat.id !== entry.playerSeat && seat.team === team) : undefined) ?? null;
+};
 
 /**
  * A season entry as the results screens read a championship.

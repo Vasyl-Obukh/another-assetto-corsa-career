@@ -66,14 +66,18 @@ export const offerSenders = (offers: readonly SeatOffer[], t: TFunction): string
 };
 
 /**
- * What the edition a seat offer is for is called: its year, and which part of
- * it for a championship that runs more than once a year.
+ * What the edition a seat offer - or team news - is about is called: its year,
+ * and which part of it for a championship that runs more than once a year.
  * @param career The career
  * @param offer The offer
  * @param t The translator
  * @returns The name
  */
-export const offerEdition = (career: Career, offer: SeatOffer, t: TFunction): string => {
+export const offerEdition = (
+  career: Career,
+  offer: Pick<SeatOffer, 'season' | 'edition' | 'editions'>,
+  t: TFunction,
+): string => {
   const season = career.seasons.find((one) => one.index === offer.season);
 
   return season ? editionName({ year: seasonYear(season), edition: offer.edition, editions: offer.editions }, t) : '';
@@ -85,7 +89,10 @@ export const offerEdition = (career: Career, offer: SeatOffer, t: TFunction): st
  * @param offer The offer
  * @returns The page's URL
  */
-export const offerLink = (career: Career, offer: SeatOffer): string => path.championship(
+export const offerLink = (
+  career: Career,
+  offer: Pick<SeatOffer, 'series' | 'season' | 'edition' | 'editions'>,
+): string => path.championship(
   { id: offer.series },
   linkRun({ season: offer.season, edition: offer.edition }, career.seasons.at(-1)?.index, offer.editions),
 );

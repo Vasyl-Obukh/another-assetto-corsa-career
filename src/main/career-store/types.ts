@@ -452,6 +452,18 @@ export interface CareerStore {
    */
   buyCar(request: { model: string; skin?: string }): Promise<Career>;
   /**
+   * Buys a privateer's seat in a championship's class for one edition, signed
+   * at once through a mail written already accepted: the team's car, every fee
+   * covered, every prize the player's. Any team's offer for the edition still
+   * waiting is declined.
+   * @param request The championship, the class, the team and the edition
+   * @returns The career
+   * @throws When the class is not open to the career, the edition is entered
+   * already or over, the team sells no seat in it, or the seat costs more than
+   * the career holds
+   */
+  buySeat(request: { series: string; entry: string; team: string; edition?: number }): Promise<Career>;
+  /**
    * Sells a car out of the garage, at what it is worth today. Every entry
    * still racing it races the rest of its rounds rented.
    * @param model Which car

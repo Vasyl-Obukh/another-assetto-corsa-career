@@ -1,6 +1,7 @@
 // Teams' seats for a career: which team calls with an offer, what it offers,
-// which of its seats the player takes, and the team a career racing on its
-// own is drawn into. Pure and seeded, so a career's edition always draws the
+// which of its seats the player takes, the team a career racing on its own is
+// drawn into, what keeps the player on and the renewal that follows, and the
+// seats privateers sell. Pure and seeded, so a career's edition always draws the
 // same teams and the same terms however often it is asked.
 
 import {
@@ -11,12 +12,18 @@ import {
   INDEPENDENT_BONUS_CHANCE,
   INDEPENDENT_BONUS_SHARE,
   INDEPENDENT_SHARES,
+  KEEP_SHARE,
   LIFELINE_SHARE,
   OFFER_CHANCE,
+  RENEWAL_PODIUM,
+  RENEWAL_RAISE,
+  RENEWAL_SHARE_CAP,
+  RENEWAL_SHARE_STEP,
   ROUND_ABOVE,
   ROUND_SMALL,
   ROUND_TO,
   SALARY_RANGE,
+  SALE_PRICE_RANGE,
   SEAT_PRICE_RANGE,
   SEATS_GOING,
   WORKS_BONUS,
@@ -25,7 +32,7 @@ import {
 import type { ClassOfferRequest, OfferStanding, TeamSeat } from './types.ts';
 import { TeamBudget } from '../../shared/types/index.ts';
 import type {
-  Championship, ClassEntry, ContractTerms, Seat, Team,
+  Championship, ClassEntry, Contract, ContractTerms, Seat, Team,
 } from '../../shared/types/index.ts';
 import { ratingFloor, rungWidth } from '../../shared/utils/career-eligibility/index.ts';
 import { scaledPrize } from '../../shared/utils/prizes/index.ts';
@@ -178,6 +185,32 @@ const seatCar = (seat: Seat, cars: readonly string[], random: () => number): Con
 };
 
 /**
+ * What a class's season is priced off: its entry fees, or a championship free
+ * to enter priced off its purse instead.
+ * @param request The class
+ * @returns The figure, before the prize speed
+ */
+const feeBase = (request: Pick<ClassOfferRequest, 'fees' | 'winnerPrize'>): number => {
+  const fees = request.fees.reduce((sum, fee) => sum + fee, 0);
+
+  return fees > 0 ? fees : request.winnerPrize * request.fees.length * FEELESS_SHARE;
+};
+
+/**
+ * The lowest place in a class's table a team of a budget keeps the player on
+ * at - the top third for a works team, the top half for an independent.
+ * @param budget How well funded the team is
+ * @param size How many cars the class fields
+ * @returns The place, never above first - or undefined for a privateer, which
+ * keeps anyone who will pay again
+ */
+export const keepPlace = (budget: TeamBudget, size: number): number | undefined => {
+  const share = KEEP_SHARE[budget];
+
+  return share === null ? undefined : Math.max(1, Math.floor(size * share));
+};
+
+/**
  * What a team of a budget offers, drawn inside that budget's ranges.
  * @param budget How well funded the team is
  * @param request The class it offers in
@@ -189,9 +222,7 @@ const budgetTerms = (
   request: ClassOfferRequest,
   random: () => number,
 ): Pick<ContractTerms, 'pay' | 'amount' | 'feeCover' | 'prizeShare' | 'bonus'> => {
-  const fees = request.fees.reduce((sum, fee) => sum + fee, 0);
-  // A championship free to enter is priced off its purse instead.
-  const base = fees > 0 ? fees : request.winnerPrize * request.fees.length * FEELESS_SHARE;
+  const base = feeBase(request);
 
   if (budget === TeamBudget.WORKS) {
     const salary = roundMoney(scaledPrize(base * between(SALARY_RANGE, random), request.prizeSpeed));
@@ -231,25 +262,29 @@ const budgetTerms = (
  * @returns The offer, or null when the class has no car to race
  */
 const teamOffer = (
-  request: ClassOfferRequest,
+  request: Pick<ClassOfferRequest, 'championship' | 'entry' | 'salt' | 'cars'>,
   team: Team,
   seats: readonly Seat[],
-  terms: Omit<ContractTerms, 'team' | 'teamName' | 'budget' | 'nation' | 'entry' | 'seat' | 'car'>,
+  terms: Omit<ContractTerms, 'team' | 'teamName' | 'budget' | 'nation' | 'entry' | 'seat' | 'car' | 'keep'>,
   random: () => number,
 ): ContractTerms | null => {
   const seat = slowerSeat(request.championship, seats, request.salt);
   const car = seatCar(seat, request.cars, random);
   if (!car) return null;
+  const budget = team.budget ?? TeamBudget.INDEPENDENT;
+  // A seat bought asks nothing of the player but paying again.
+  const keep = terms.bought ? undefined : keepPlace(budget, request.entry.seats.length);
 
   return {
     team: team.id,
     teamName: team.name,
-    budget: team.budget ?? TeamBudget.INDEPENDENT,
+    budget,
     ...(team.nationCode === undefined ? {} : { nation: team.nationCode }),
     entry: request.entry.id,
     seat: seat.id,
     car,
     ...terms,
+    ...(keep === undefined ? {} : { keep }),
   };
 };
 
@@ -329,4 +364,100 @@ export const lifelineOffer = (request: ClassOfferRequest): ContractTerms | null 
   return teamOffer(request, team, seats, {
     pay: 'free', amount: 0, feeCover: 1, prizeShare: LIFELINE_SHARE, lifeline: true,
   }, random);
+};
+
+/**
+ * The offer a team keeping the player on makes for the next season: the
+ * contract's own terms, better after a podium - a works team's salary up a
+ * quarter for the title and a tenth for a podium, its bonus with it, and an
+ * independent covering every fee and leaving more of the prizes. A paid seat
+ * costs what it cost, a whole season of it where it was bought part-way.
+ * @param request The class, as the next season runs it
+ * @param contract The contract it renews
+ * @param run Which season and edition that contract ran in
+ * @param place The player's place in the class's table when the team decided
+ * @returns The offer, or null when the team no longer fields a seat in the
+ * class, or the class has no car to race
+ */
+export const renewalOffer = (
+  request: Pick<ClassOfferRequest, 'championship' | 'entry' | 'salt' | 'cars' | 'fees'>,
+  contract: Contract,
+  run: { season: number; edition: number },
+  place: number,
+): ContractTerms | null => {
+  const fielded = classTeams(request.championship, request.entry).find((one) => one.team.id === contract.team);
+  if (!fielded) return null;
+
+  const random = randomFrom(seedFrom(
+    `${contract.team}\u0000${request.entry.id}\u0000${request.championship.id}\u0000${request.salt}\u0000renewal`,
+  ));
+  let { amount, feeCover, prizeShare } = contract;
+  let { bonus } = contract;
+  if (contract.pay === 'salary') {
+    const raise = RENEWAL_RAISE.find((tier) => place <= tier.upTo)?.raise ?? 0;
+    amount = raise > 0 ? roundMoney(amount * (1 + raise)) : amount;
+    bonus = raise > 0 ? bonus?.map((tier) => ({ ...tier, amount: roundMoney(tier.amount * (1 + raise)) })) : bonus;
+  } else if (contract.pay === 'free' && place <= RENEWAL_PODIUM) {
+    feeCover = 1;
+    prizeShare = Math.max(prizeShare, Math.min(RENEWAL_SHARE_CAP, prizeShare + RENEWAL_SHARE_STEP));
+  } else if (contract.pay === 'seat' && contract.pricedRounds && request.fees.length > 0) {
+    // A seat bought part-way through renews for a whole season, at what it
+    // cost a round.
+    amount = roundMoney((amount / contract.pricedRounds) * request.fees.length);
+  }
+
+  return teamOffer(request, fielded.team, fielded.seats, {
+    pay: contract.pay,
+    amount,
+    feeCover,
+    prizeShare,
+    ...(bonus ? { bonus } : {}),
+    renews: {
+      season: run.season,
+      edition: run.edition,
+      place,
+      amount: contract.amount,
+      feeCover: contract.feeCover,
+      prizeShare: contract.prizeShare,
+    },
+  }, random);
+};
+
+/**
+ * The seats a class's privateers sell a player who asks: every privateer
+ * fielding two or more cars sells its slower one for the season, fees covered
+ * and every prize the player's, at a price seeded on the career and the
+ * season - dearer than its offer would be. Part-way through, priced on the
+ * rounds left. Works teams pay their drivers and independents give their
+ * seats away, so neither sells.
+ * @param request The class
+ * @param left How many of its rounds are still to race
+ * @returns The seats, as the contracts they would sign, the cheapest first
+ */
+export const seatsForSale = (
+  request: Pick<ClassOfferRequest, 'championship' | 'entry' | 'salt' | 'cars' | 'fees' | 'winnerPrize'>,
+  left: number,
+): ContractTerms[] => {
+  const rounds = request.fees.length;
+  if (left <= 0 || rounds === 0) return [];
+  const base = feeBase(request) * (Math.min(left, rounds) / rounds);
+
+  return classTeams(request.championship, request.entry)
+    .filter((one) => one.team.budget === TeamBudget.PRIVATEER && one.seats.length >= 2)
+    .flatMap(({ team, seats }) => {
+      const random = randomFrom(seedFrom(
+        `${team.id}\u0000${request.entry.id}\u0000${request.championship.id}\u0000${request.salt}\u0000sale`,
+      ));
+      const terms = teamOffer(request, team, seats, {
+        pay: 'seat',
+        amount: roundMoney(base * between(SALE_PRICE_RANGE, random)),
+        feeCover: 1,
+        prizeShare: 100,
+        bought: true,
+        ...(left < rounds ? { pricedRounds: left } : {}),
+      }, random);
+
+      return terms ? [terms] : [];
+    })
+    .sort((one, other) => one.amount - other.amount);
 };

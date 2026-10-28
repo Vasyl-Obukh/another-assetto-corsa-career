@@ -202,6 +202,7 @@ export type ErrorCode =
   | 'contract.short'
   | 'contract.gone'
   | 'contract.release.short'
+  | 'contract.sale.none'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'
   // src/main/ipc

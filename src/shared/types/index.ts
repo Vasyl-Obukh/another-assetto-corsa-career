@@ -152,6 +152,7 @@ export type {
   ChampionshipRun,
   ChampionshipStanding,
   EventClassOption,
+  SeatSale,
   EventEntry,
   EventMoney,
   EventSession,
@@ -186,11 +187,11 @@ export type {
 } from './saves.ts';
 
 export type {
-  Invitation, Mail, MailAnswer, MailKind, MailReply, MailStatus,
+  Invitation, Mail, MailAnswer, MailKind, MailReply, MailStatus, TeamNotice,
 } from './inbox.ts';
 
 export type {
-  Contract, ContractBonus, ContractPay, ContractTerms, OfferPick, SeatOffer,
+  Contract, ContractBonus, ContractPay, ContractTerms, KeepStanding, KeptOutcome, OfferPick, Renewal, SeatOffer,
 } from './contract.ts';
 
 export type {

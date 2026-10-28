@@ -49,6 +49,7 @@ export const EnterChampionship = ({
       busy={event.busy}
       note={note}
       onEnter={(entry, car) => { void event.enter(entry, car); }}
+      onBuySeat={(entry, team) => { void event.buySeat(entry, team); }}
     />
   ) : (
     <EnterPanel
@@ -57,6 +58,7 @@ export const EnterChampionship = ({
       showFirstRound
       note={note}
       onEnter={(entry, car) => { void event.enter(entry, car); }}
+      onBuySeat={(entry, team) => { void event.buySeat(entry, team); }}
     />
   );
 };

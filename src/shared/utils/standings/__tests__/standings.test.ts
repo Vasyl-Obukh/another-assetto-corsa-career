@@ -4,7 +4,9 @@ import { Discipline } from '../../../types/index.ts';
 import type {
   Championship, RacePlace, RoundScore, SeasonEntry, SeasonEvent,
 } from '../../../types/index.ts';
-import { buildStandings, entryResults, roundResult } from '../standings.ts';
+import {
+  buildStandings, entryResults, roundResult, teammateSeat,
+} from '../standings.ts';
 
 /**
  * A one-class championship of three seats, the last two in one team.
@@ -303,6 +305,17 @@ describe('shared/utils/standings', () => {
         playerSeat: 'seat-3',
         playerEntry: 'main',
       });
+    });
+  });
+
+  describe('teammateSeat', () => {
+    it('is the other seat of the player\'s team in their class', () => {
+      expect(teammateSeat({ championship: SERIES, entry: 'main', playerSeat: 'seat-3' })?.id).toBe('seat-2');
+    });
+
+    it('is no one for a seat with no team, or a team of one', () => {
+      expect(teammateSeat({ championship: SERIES, entry: 'main', playerSeat: 'seat-1' })).toBeNull();
+      expect(teammateSeat({ championship: fourSeats(), entry: 'main', playerSeat: 'main-3' })).toBeNull();
     });
   });
 });

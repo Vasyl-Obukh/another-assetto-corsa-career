@@ -4,9 +4,9 @@ import type {
 
 /**
  * Which mail the inbox lists: all of it, what is unopened, what still wants an
- * answer, or one kind.
+ * answer, or one kind - invitations, seat offers or team news.
  */
-export type InboxFolder = 'all' | 'unread' | 'awaiting' | 'invitation' | 'offer';
+export type InboxFolder = 'all' | 'unread' | 'awaiting' | 'invitation' | 'offer' | 'notice';
 
 /**
  * One mail, joined to what it is about, as every screen that shows mail reads

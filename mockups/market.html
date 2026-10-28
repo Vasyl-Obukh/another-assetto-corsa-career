@@ -1,0 +1,1479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seat market mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The new families -
+   ledger kinds below - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.8 0.14 142); --t5-fg: oklch(0.27 0.08 145);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.48 0.12 142); --t5-fg: oklch(0.96 0.03 142);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+/* ---------- This mockup ---------- */
+/* Proposed: what an invitation's answer is. Awaiting on the warning amber,
+   because it wants something of the player; accepted on the success green;
+   lapsed on the calendar's missed rose, since a lapsed invitation is an event
+   passed by; declined on the autosave's half-chroma slate 232, which no inbox
+   shows and which sits clear of the rose - the destructive red 27 would sit
+   beside it on the wheel. The kind of mail is its well: an invitation in the
+   historic leather it is about. */
+:root {
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --event-missed: oklch(0.925 0.035 8); --event-missed-fg: oklch(0.42 0.09 12);
+}
+:root[data-theme="dark"] {
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --event-missed: oklch(0.32 0.035 8); --event-missed-fg: oklch(0.86 0.075 12);
+}
+.c-historic { background: var(--historic); color: var(--historic-fg); }
+.c-await { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.c-acc { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-dec { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-lapsed { background: var(--event-missed); color: var(--event-missed-fg); }
+.well.leather { background: var(--historic); color: var(--historic-fg); }
+.bal { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.bal .i { color: var(--success); }
+.bal.rat .i { color: var(--d-sports-fg); }
+.new-outline { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 2px; }
+.nav a .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--primary); color: var(--primary-foreground); font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; margin-left: 1px; }
+
+/* ---------- Inbox ---------- */
+.inbox { flex: 1; min-height: 0; display: grid; grid-template-columns: 216px 400px minmax(0, 1fr); }
+.rail { border-right: 1px solid var(--border); padding: 18px 12px; display: flex; flex-direction: column; gap: 2px; }
+.rail .caps { padding: 14px 10px 6px; }
+.folder { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); }
+.folder.on { background: var(--accent); color: var(--foreground); }
+.folder .cnt { margin-left: auto; font-size: 12px; font-variant-numeric: tabular-nums; }
+.folder .cnt.pill { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+.folder .cnt.pri { background: var(--primary); color: var(--primary-foreground); }
+.folder .cnt.amb { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.folder .sw { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.folder.later { opacity: .5; }
+.mlist { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.mlist .tools { padding: 14px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
+.mlist .scroll { flex: 1; overflow: auto; }
+.mgrp { position: sticky; top: 0; padding: 8px 14px 6px; background: var(--background); border-bottom: 1px solid var(--border); z-index: 1; }
+.mrow { display: grid; grid-template-columns: 8px 34px minmax(0, 1fr); gap: 0 10px; padding: 11px 14px 11px 10px; border-bottom: 1px solid var(--border); align-items: start; cursor: pointer; }
+.mrow .ud { width: 8px; height: 8px; border-radius: 50%; margin-top: 13px; }
+.mrow.unread .ud { background: var(--primary); }
+.mrow .top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted-foreground); }
+.mrow .top .from { color: var(--foreground); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrow .top .when { margin-left: auto; white-space: nowrap; font-size: 12px; }
+.mrow .subj { font-size: 13.5px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrow .bot { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.mrow .bot .s { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow.unread .from, .mrow.unread .subj { font-weight: 650; }
+.mrow.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.mrow.hover { background: var(--accent); }
+.reader { min-height: 0; display: flex; flex-direction: column; }
+.reader .rs { flex: 1; overflow: auto; padding: 22px 30px 26px; }
+.mail { max-width: 760px; display: flex; flex-direction: column; gap: 16px; }
+.mail h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.mfrom { display: flex; align-items: center; gap: 12px; }
+.mfrom b { display: block; font-size: 14px; }
+.mfrom small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.letter { font-size: 14px; line-height: 1.6; }
+.letter p { margin: 0 0 10px; max-width: 66ch; }
+.letter .blurb { border-left: 3px solid var(--historic-fg); padding: 2px 0 2px 12px; color: var(--muted-foreground); font-style: italic; }
+.evcard { overflow: hidden; }
+.evcard .ph { height: 132px; }
+.evcard .ph .cap { position: absolute; left: 16px; bottom: 12px; right: 16px; display: flex; align-items: flex-end; gap: 12px; }
+.evcard .ph h3 { margin: 4px 0 0; font-size: 19px; font-weight: 650; }
+.evcard .ph .d { font-size: 12.5px; opacity: .85; }
+.evcard .facts { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+.evcard .facts > div { padding: 11px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.evcard .facts > div:last-child { border-right: 0; }
+.evcard .facts .k { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.evcard .facts b { font-size: 13.5px; font-weight: 600; }
+.evcard .facts small { font-size: 12px; color: var(--muted-foreground); }
+.seatcell { display: flex; gap: 10px; align-items: center; }
+.seatcell img { width: 78px; height: 44px; object-fit: contain; flex: none; }
+.fstrip { display: inline-flex; gap: 2px; }
+.fstrip span { width: 20px; height: 18px; border-radius: 4px; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
+.replybar { flex: none; border-top: 1px solid var(--border); background: var(--card); padding: 12px 30px; display: flex; align-items: center; gap: 12px; }
+.replybar .msg { display: flex; align-items: center; gap: 10px; font-size: 13px; min-width: 0; }
+.replybar .msg b { font-weight: 600; }
+.replybar .msg small { display: block; color: var(--muted-foreground); font-size: 12px; }
+.replybar .acts { margin-left: auto; display: flex; gap: 8px; }
+.note.amber { border-left-color: var(--warning-soft-fg); background: color-mix(in srgb, var(--warning-soft) 55%, var(--card)); }
+.note { display: flex; gap: 8px; align-items: flex-start; }
+.empty { height: 100%; display: grid; place-items: center; text-align: center; color: var(--muted-foreground); }
+.empty b { display: block; color: var(--foreground); font-size: 15px; margin: 10px 0 4px; }
+.menu.small { min-width: 210px; }
+.hdrmenu { position: relative; }
+
+/* ---------- Other screens ---------- */
+.banner { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-left: 4px solid var(--historic-fg); }
+.banner b { font-size: 14px; }
+.banner small { display: block; color: var(--muted-foreground); font-size: 12.5px; }
+.evhead { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; gap: 18px; align-items: center; }
+.evhead h2 { margin: 6px 0 2px; font-size: 24px; font-weight: 650; }
+.evhead .facts { display: flex; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
+.evhead img.map { width: 120px; height: 70px; object-fit: contain; margin-left: auto; }
+.evbody { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; padding: 18px 28px; }
+.seatwell { display: flex; gap: 12px; align-items: center; }
+.seatwell img { width: 110px; height: 62px; object-fit: contain; }
+.launch { display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
+.tl { display: flex; flex-direction: column; gap: 10px; max-width: 900px; }
+.tlday { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; }
+.tlday .dd { font-size: 12.5px; color: var(--muted-foreground); padding-top: 12px; }
+.tlday .dd b { display: block; color: var(--foreground); font-size: 18px; font-weight: 650; }
+.tlcard { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+.tlcard.invited { border-style: dashed; border-color: color-mix(in srgb, var(--historic-fg) 55%, var(--border)); background: color-mix(in srgb, var(--historic) 30%, var(--card)); }
+.tlcard .t { font-weight: 600; }
+.tlcard .s { font-size: 12px; color: var(--muted-foreground); }
+.tlcard img { width: 60px; height: 36px; object-fit: contain; }
+.lost { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; font-size: 13px; }
+.lost .when { margin-left: auto; color: var(--muted-foreground); font-size: 12.5px; white-space: nowrap; }
+.mono { font-family: "Cascadia Code", Consolas, monospace; }
+.pager { flex: none; display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.pager .btn.on { background: var(--accent); border-color: transparent; }
+.toast .lines { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; font-size: 12.5px; color: var(--muted-foreground); }
+.toast .lines span { display: flex; gap: 6px; align-items: center; }
+.toast .lines .d { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex: none; }
+.cost { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 13px; }
+.cost span { color: var(--muted-foreground); }
+.cost b { text-align: right; font-variant-numeric: tabular-nums; }
+.cost .tot { border-top: 1px solid var(--border); padding-top: 6px; color: var(--foreground); font-weight: 600; }
+.carpick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.carpick > div { border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.carpick > div.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.carpick b { font-size: 13px; }
+.meter { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--historic-fg); border-radius: 99px; }
+.chances { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.chances > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.chances b { font-size: 20px; font-weight: 650; }
+.c-pending { border: 1px dashed color-mix(in srgb, var(--historic-fg) 60%, var(--border)); color: var(--historic-fg); background: transparent; }
+.tlcard.open { border-color: color-mix(in srgb, var(--historic-fg) 35%, var(--border)); }
+.enterp { border: 1px dashed var(--primary); border-radius: 12px; background: var(--card); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.enterp .eh { display: flex; flex-direction: column; gap: 4px; }
+.enterp .eh b { font-size: 15px; font-weight: 600; gap: 8px; }
+.enterp .eh span { font-size: 13px; color: var(--muted-foreground); }
+.carrow { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.carrow b { display: block; font-weight: 500; }
+.carrow .grow { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.thumb16 { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; overflow: hidden; background: var(--muted); flex: none; }
+.thumb16 img { width: 100%; height: 100%; object-fit: cover; }
+.trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.rentdl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; border-top: 1px solid var(--border); padding-top: 10px; font-size: 12px; }
+.rentdl dt { color: var(--muted-foreground); }
+.rentdl dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rentdl dd.hint2 { grid-column: span 2; text-align: left; font-weight: 400; color: var(--muted-foreground); }
+.chancebox { display: flex; flex-direction: column; align-items: flex-start; }
+.chancebox > .row, .chancebox > .meter { align-self: stretch; }
+/* Whose a car is, as CAR_SOURCE_ACCENT draws it: rented on the rental's teal. */
+:root { --ledger-rent: oklch(0.92 0.055 195); --ledger-rent-fg: oklch(0.38 0.09 200); }
+:root[data-theme="dark"] { --ledger-rent: oklch(0.33 0.06 195); --ledger-rent-fg: oklch(0.86 0.09 195); }
+.c-rented { background: var(--ledger-rent); color: var(--ledger-rent-fg); }
+.c-rented .i { width: 12px; height: 12px; }
+.life { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.life .node { position: relative; }
+.life .node h5 .chip { margin-left: auto; }
+.in { color: var(--success); font-weight: 600; }
+.out { color: var(--destructive-soft-fg); font-weight: 600; }
+.tiles4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.tile b { font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.tile.hero { border-top: 3px solid var(--success); }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: 140px minmax(0, 1fr) 90px; align-items: center; gap: 10px; font-size: 12.5px; }
+.bar .tr { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.bar .tr i { display: block; height: 100%; border-radius: 99px; }
+.bar .amt { text-align: right; }
+.led td.amt, .led th.amt { text-align: right; white-space: nowrap; }
+.led td { vertical-align: middle; }
+.panel.ledger { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.panel.ledger .pb { flex: 1; min-height: 0; overflow: auto; padding-top: 0; margin-top: 8px; }
+.led thead th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+.led .w { font-weight: 600; }
+.led .s { font-size: 12px; color: var(--muted-foreground); }
+.feebox { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.feebox .k { color: var(--muted-foreground); }
+.feebox .v { text-align: right; font-weight: 600; }
+.feebox .tot { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
+.errbox { border: 1px solid color-mix(in srgb, var(--destructive) 35%, var(--border)); background: var(--destructive-soft); color: var(--destructive-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.errbox .txt { display: flex; flex-direction: column; gap: 3px; }
+.enter-card { border: 1px dashed var(--primary); border-radius: 12px; background: var(--card); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.enter-card h4 { margin: 0; font-size: 14.5px; font-weight: 600; }
+.enter-card .desc { font-size: 12.5px; color: var(--muted-foreground); margin-top: -8px; }
+.carrow { display: flex; align-items: center; gap: 12px; }
+.carrow img { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; object-fit: cover; flex: none; }
+.carrow .t { font-size: 13.5px; font-weight: 500; }
+.carrow .s { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; }
+.select { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.select .i:last-child { margin-left: auto; color: var(--muted-foreground); }
+.costs { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 12.5px; padding-top: 10px; border-top: 1px solid var(--border); }
+.costs span { color: var(--muted-foreground); }
+.costs b { text-align: right; font-weight: 600; }
+.ctabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.ctabs a { padding: 9px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ctabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sum { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.sum .stripe { height: 6px; border-radius: 99px; background: var(--d-sports-fg); opacity: .8; }
+.sum h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; }
+.fact { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; font-size: 13px; align-items: center; }
+.fact > span:first-child { color: var(--muted-foreground); font-size: 12px; }
+.kebab { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; color: var(--muted-foreground); }
+.kebab.on { background: var(--accent); color: var(--foreground); }
+
+/* ---------- Contracts ---------- */
+/* Proposed: anything a contract says or pays - a seat offer in the inbox, the
+   contract card, its ledger lines - on violet 295, mod provenance's hue. No
+   inbox, Finances, Home or championship sidebar shows a provenance chip; the
+   nearest family that can share a screen with it is qualifying 310, which a
+   seat offer deliberately leaves out (it shows no format strip). A fine is the
+   destructive red: it is a penalty, not a term. Who offers a seat is the
+   team's budget chip, which already exists. */
+:root {
+  --contract: oklch(0.93 0.05 295); --contract-fg: oklch(0.42 0.14 295); --contract-solid: oklch(0.55 0.17 295);
+  --b-works: oklch(0.91 0.075 320); --b-works-fg: oklch(0.38 0.15 320);
+  --b-indep: oklch(0.92 0.06 18); --b-indep-fg: oklch(0.42 0.13 22);
+  --b-priv: oklch(0.93 0.055 132); --b-priv-fg: oklch(0.4 0.09 135);
+  --l-fee: oklch(0.93 0.05 235); --l-fee-fg: oklch(0.38 0.12 250);
+}
+:root[data-theme="dark"] {
+  --contract: oklch(0.33 0.07 295); --contract-fg: oklch(0.87 0.1 295); --contract-solid: oklch(0.62 0.16 295);
+  --b-works: oklch(0.34 0.085 320); --b-works-fg: oklch(0.87 0.11 320);
+  --b-indep: oklch(0.33 0.07 18); --b-indep-fg: oklch(0.86 0.09 22);
+  --b-priv: oklch(0.32 0.06 132); --b-priv-fg: oklch(0.86 0.08 135);
+  --l-fee: oklch(0.32 0.06 235); --l-fee-fg: oklch(0.86 0.08 245);
+}
+.c-contract { background: var(--contract); color: var(--contract-fg); }
+.c-works { background: var(--b-works); color: var(--b-works-fg); }
+.c-indep { background: var(--b-indep); color: var(--b-indep-fg); }
+.c-priv { background: var(--b-priv); color: var(--b-priv-fg); }
+.c-fee { background: var(--l-fee); color: var(--l-fee-fg); }
+.c-fine { background: var(--destructive-soft); color: var(--destructive-soft-fg); }
+.c-own { background: var(--k-named); color: var(--k-named-fg); }
+.well.violet2 { background: var(--contract); color: var(--contract-fg); }
+.btn.soft-red { background: var(--destructive-soft); color: var(--destructive-soft-fg); border-color: transparent; }
+.btn.green { background: var(--success); color: white; border-color: transparent; }
+
+/* The contract card: a seat row, then the terms. */
+.kcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.kcard .khead { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.kcard .khead img { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; flex: none; background: var(--muted); }
+.kcard .khead b { display: block; font-size: 14px; }
+.kcard .khead small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.terms { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 0; font-size: 13px; }
+.terms > span { padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.terms > span:nth-last-child(-n+2) { border-bottom: 0; }
+.terms > span.k { color: var(--muted-foreground); font-size: 12.5px; }
+.terms > span.v b { font-weight: 600; }
+.terms > span.v small { display: block; color: var(--muted-foreground); font-size: 12px; margin-top: 1px; }
+.terms.narrow { grid-template-columns: 96px minmax(0, 1fr); }
+.terms.narrow > span { padding: 7px 12px; }
+.ktiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ktiles > div { padding: 11px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ktiles > div:last-child { border-right: 0; }
+.ktiles .k { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.ktiles b { font-size: 15px; font-weight: 650; }
+.ktiles small { font-size: 12px; color: var(--muted-foreground); }
+.kfoot { display: flex; gap: 16px; flex-wrap: wrap; padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.kfoot b { color: var(--foreground); font-weight: 600; }
+.pos { color: var(--success); font-weight: 600; }
+.neg { color: var(--destructive-soft-fg); font-weight: 600; }
+.yourcard { border-top: 3px solid var(--contract-solid); }
+.paid { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 12.5px; padding: 10px 12px; border-top: 1px solid var(--border); }
+.paid span { color: var(--muted-foreground); }
+.paid b { text-align: right; font-variant-numeric: tabular-nums; }
+.meter.v i { background: var(--contract-fg); }
+
+/* Concept page */
+.dec { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--border); }
+.dec:first-of-type { border-top: 0; }
+.dec .n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 12px; background: var(--contract); color: var(--contract-fg); }
+.dec h4 { margin: 0; font-size: 14.5px; font-weight: 650; align-self: center; }
+.dec .q { grid-column: 2; font-size: 13px; color: var(--muted-foreground); margin: 0; }
+.opts { grid-column: 2; display: grid; gap: 8px; margin-top: 6px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.opt2 { border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; background: var(--card); }
+.opt2 b { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.opt2 span { color: var(--muted-foreground); }
+.opt2.rec { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: color-mix(in srgb, var(--success-soft) 35%, var(--card)); }
+.opt2.rec b::after { content: 'Recommended'; margin-left: auto; font-size: 10.5px; font-weight: 600; padding: 2px 6px; border-radius: 99px; background: var(--success-soft); color: var(--success-soft-fg); }
+.slices { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; }
+.slices .node ul { margin: 2px 0 0; padding-left: 18px; font-size: 12.5px; }
+.slices .node.on { border-top: 3px solid var(--contract-solid); }
+.yr { position: relative; height: 92px; margin-top: 8px; }
+.yr .axis { position: absolute; left: 0; right: 0; top: 70px; display: grid; grid-template-columns: repeat(12, 1fr); font-size: 11px; color: var(--muted-foreground); border-top: 1px solid var(--border); }
+.yr .axis span { padding-top: 4px; border-left: 1px solid var(--border); padding-left: 4px; }
+.yr .lane { position: absolute; height: 18px; border-radius: 5px; font-size: 11px; display: flex; align-items: center; padding: 0 6px; white-space: nowrap; overflow: hidden; }
+.yr .win { background: var(--contract); color: var(--contract-fg); }
+.yr .ed { background: var(--d-sports); color: var(--d-sports-fg); }
+.yr .ed1 { background: var(--d-single); color: var(--d-single-fg); }
+.four { width: 100%; border-collapse: collapse; font-size: 13px; }
+.four th, .four td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.four th { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.four td.r, .four th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.four tr.tot td { font-weight: 650; border-bottom: 0; }
+.heat { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 6px; font-size: 12.5px; }
+.heat > div { padding: 8px 10px; border-radius: 8px; background: var(--muted); }
+.heat > div.h { background: transparent; padding: 4px 2px; font-weight: 600; font-size: 12px; color: var(--muted-foreground); }
+.heat > div.x { background: transparent; border: 1px dashed var(--border); color: var(--muted-foreground); }
+.heat > div.y { background: color-mix(in srgb, var(--contract) 60%, var(--card)); }
+.heat > div small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ocard { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.ocard img { width: 100%; height: 70px; object-fit: cover; border-radius: 6px; background: var(--muted); }
+.ocard b { font-size: 13.5px; }
+.banner.k { border-left-color: var(--contract-fg); }
+
+/* The budget chip's tooltip - the vendored ui/tooltip as it draws: foreground
+   fill, background text, text-xs, px-3 py-1.5, rounded-md, an arrow. Hover any
+   budget chip; the works offer in the inbox shows one held open. */
+.tipwrap { position: relative; display: inline-flex; }
+.tipbox { display: none; position: absolute; z-index: 30; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 260px; background: var(--foreground); color: var(--background); font-size: 12px; line-height: 1.4; font-weight: 400; padding: 6px 12px; border-radius: 6px; text-align: left; white-space: normal; text-transform: none; letter-spacing: 0; }
+.tipbox::before { content: ''; position: absolute; bottom: -4px; left: 50%; width: 10px; height: 10px; background: var(--foreground); transform: translateX(-50%) rotate(45deg); border-radius: 2px; }
+.tipbox b { display: block; font-weight: 600; margin-bottom: 2px; font-size: 12px; color: inherit; }
+.tipwrap:hover .tipbox, .tipwrap.open .tipbox { display: block; }
+.kcard { overflow: visible; }
+.kcard .khead { border-radius: 12px 12px 0 0; }
+.opt2.rec b::after { content: 'Agreed'; }
+.opt2.rec.pend b::after { content: 'Recommended'; }
+.steps { margin: 0; padding-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.feetab { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.feetab td, .feetab th { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.feetab th { font-weight: 500; color: var(--muted-foreground); }
+.feetab .r { text-align: right; font-variant-numeric: tabular-nums; }
+.amend { margin-top: 2px; padding: 5px 8px; border-radius: 6px; background: var(--contract); color: var(--contract-fg); font-size: 12px; }
+/* ---------- Grouped offers ---------- */
+.stage { max-width: 1640px; }
+.why { max-width: 1640px; }
+.doc { max-width: 1200px; }
+.win { height: 1240px; }
+.inbox { grid-template-columns: 216px 400px minmax(0, 1fr); }
+.mail.wide { max-width: 1080px; }
+.mrow .bot .mini { display: inline-flex; gap: 3px; }
+.mrow .bot .mini .chip { padding: 3px 5px; font-size: 10.5px; }
+.lede { font-size: 14px; line-height: 1.6; margin: 0; max-width: 72ch; }
+.termline { font-size: 12.5px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; }
+.termline b { color: var(--foreground); font-weight: 600; }
+.clhead { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.clhead b { font-size: 14px; }
+
+/* Layout A: a column per team, a row per term. */
+.cmp { display: grid; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; font-size: 13px; }
+.cmp > div { padding: 8px 12px; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); min-width: 0; }
+.cmp > div.k { border-left: 0; color: var(--muted-foreground); font-size: 12.5px; background: color-mix(in srgb, var(--muted) 30%, var(--card)); }
+.cmp > div.last { border-bottom: 0; }
+.cmp > div b { font-weight: 600; }
+.cmp > div small { display: block; color: var(--muted-foreground); font-size: 12px; margin-top: 1px; }
+.cmp > div.head { display: flex; flex-direction: column; gap: 6px; padding: 12px; background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.cmp > div.head > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; background: var(--muted); }
+.cmp > div.head .tn { font-weight: 600; font-size: 14px; display: flex; gap: 6px; align-items: center; }
+.cmp > div.head .cn { font-size: 12px; color: var(--muted-foreground); }
+.cmp > div.best { background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); }
+.cmp > div.best b::after { content: 'Best'; margin-left: 6px; font-size: 10.5px; font-weight: 600; padding: 1px 5px; border-radius: 99px; background: var(--success-soft); color: var(--success-soft-fg); vertical-align: 1px; }
+.cmp > div.own { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--muted) 55%, transparent) 8px 9px); }
+.cmp > div.own.head { background: color-mix(in srgb, var(--muted) 30%, var(--card)); }
+.cmp > div.act { display: flex; align-items: center; }
+.cmp > div.act .btn { width: 100%; }
+.cmp > div.off { opacity: .55; }
+.cmp > div.won { box-shadow: inset 0 3px 0 var(--success); }
+.ownwell { width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; border: 1px dashed var(--border); display: grid; place-items: center; color: var(--muted-foreground); }
+.ownwell .i { width: 22px; height: 22px; }
+
+/* Layout B: pick a team, read its card. */
+.picks { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; }
+.pick { display: grid; grid-template-columns: 18px 72px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pick:last-child { border-bottom: 0; }
+.pick > img { width: 72px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 5px; background: var(--muted); }
+.pick .radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--input); }
+.pick.on { background: color-mix(in srgb, var(--primary) 7%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.pick.on .radio { border: 5px solid var(--primary); }
+.pick .tn { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.pick .sub { font-size: 12px; color: var(--muted-foreground); }
+.pick .hl { text-align: right; }
+.pick .hl b { display: block; font-weight: 600; }
+.pick .hl small { color: var(--muted-foreground); font-size: 12px; }
+.pickcap { padding: 8px 14px 6px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 35%, var(--card)); display: flex; gap: 6px; align-items: center; }
+
+/* Accepted looks */
+.cmp { position: relative; }
+.cmp > div.frame { position: absolute; inset: 0; padding: 0; border: 2px solid var(--success); border-radius: 8px; pointer-events: none; background: transparent; }
+.cmp > div.tint { background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); }
+.cmp > div.head.tint { background: color-mix(in srgb, var(--success-soft) 70%, var(--card)); }
+.cmp > div.muted2 b { color: var(--muted-foreground); font-weight: 500; }
+.cmp > div.muted2.head img { filter: grayscale(.8); opacity: .75; }
+.signedtxt { display: inline-flex; align-items: center; gap: 6px; color: var(--success-soft-fg); font-weight: 600; font-size: 12.5px; }
+.kcard.signed { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); }
+.sstrip { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--success-soft); color: var(--success-soft-fg); font-size: 13px; font-weight: 600; border-radius: 12px 12px 0 0; }
+.sstrip small { margin-left: auto; font-weight: 400; }
+.disclose { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; font-weight: 500; }
+.disclose .mini { display: inline-flex; gap: 3px; margin-left: 4px; }
+
+/* The championship, as a link */
+.ccard { display: block; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.ccard:hover, .ccard.hov { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 1px; }
+.cchead { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 40%, var(--card)); }
+.cchead b { display: block; font-size: 15px; font-weight: 650; }
+.cchead small { display: block; font-size: 12.5px; color: var(--muted-foreground); }
+.cchead .open { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.crounds { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.crounds > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; }
+.crounds img { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; border-radius: 6px; background: var(--muted); padding: 6px; margin-bottom: 4px; }
+:root[data-theme="dark"] .crounds img { filter: invert(1) hue-rotate(180deg); background: oklch(0.8 0.01 260); }
+.crounds b { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crounds span { color: var(--muted-foreground); }
+.crounds .more { display: grid; place-items: center; border: 1px dashed var(--border); border-radius: 6px; color: var(--muted-foreground); font-size: 12.5px; aspect-ratio: 16 / 10; }
+.cfacts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cfacts > div { padding: 10px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cfacts > div:last-child { border-right: 0; }
+.cfacts .k { font-size: 10.5px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.cfacts b { font-size: 13.5px; font-weight: 600; }
+.cfacts small { font-size: 12px; color: var(--muted-foreground); }
+.cstrip { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; }
+.cstrip .well { width: 30px; height: 30px; }
+.cstrip b { font-weight: 600; }
+.cstrip small { display: block; font-size: 12px; color: var(--muted-foreground); }
+
+/* Concept */
+.odds { width: 100%; border-collapse: collapse; font-size: 13px; }
+.odds th, .odds td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.odds th { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.odds td.r, .odds th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.odds tr.new td { background: color-mix(in srgb, var(--contract) 35%, var(--card)); }
+.bars2 { display: flex; height: 26px; border-radius: 6px; overflow: hidden; font-size: 11.5px; font-weight: 600; }
+.bars2 span { display: grid; place-items: center; }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.flow > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+.flow > div .n { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 11.5px; background: var(--contract); color: var(--contract-fg); }
+.flow > div b { font-size: 13px; }
+.flow > div span { color: var(--muted-foreground); }
+pre.store { margin: 0; font-size: 12px; background: var(--muted); border-radius: 8px; padding: 10px 12px; overflow: auto; }
+pre.store i { color: var(--muted-foreground); font-style: normal; }
+/* ---------- The market (slice 2) ---------- */
+.stage { max-width: 1640px; }
+.why { max-width: 1640px; }
+.doc { max-width: 1240px; }
+.win { height: auto; min-height: 860px; }
+.inbox { grid-template-columns: 216px 380px minmax(0, 1fr); }
+.mail.wide { max-width: 1120px; }
+/* The renewing team's column: a wash of the contract violet, since it is the
+   contract you hold asking to go on. */
+.cmp > div.ren { background: color-mix(in srgb, var(--contract) 26%, var(--card)); }
+.cmp > div.head.ren { background: color-mix(in srgb, var(--contract) 55%, var(--card)); }
+.cmp > div.k.new-outline, .paid .new-outline { outline-offset: -3px; border-radius: 6px; }
+.cmp .was { color: var(--muted-foreground); text-decoration: line-through; font-weight: 400; margin-left: 4px; font-size: 12px; }
+.chip .i { width: 12px; height: 12px; }
+.paid .full { grid-column: 1 / -1; }
+.paid .full.fg { color: var(--foreground); font-weight: 600; }
+.paid small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted-foreground); margin-top: -2px; }
+.keep { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.keep .tgt { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.keep .tgt .i { color: var(--contract-fg); }
+.keep .vs { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.keep .vs span { color: var(--muted-foreground); }
+.keep .vs b { text-align: right; font-variant-numeric: tabular-nums; }
+.c-onc { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-short { background: var(--warning-soft); color: var(--warning-soft-fg); }
+/* A podium place, as PLACE_ACCENT draws it; fourth and below stay unfilled. */
+.c-p1 { background: var(--gold); color: var(--gold-fg); }
+.c-p2 { background: var(--silver); color: var(--silver-fg); }
+.c-p3 { background: var(--bronze); color: var(--bronze-fg); }
+.c-pn { background: transparent; box-shadow: inset 0 0 0 1px var(--border); color: var(--foreground); }
+
+/* The Enter panel's two ways in. */
+.enter-card .seg { align-self: stretch; }
+.enter-card .seg span { flex: 1; justify-content: center; }
+.sellers { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.seller { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.seller:last-child { border-bottom: 0; }
+.seller .thumb16 { width: 64px; }
+.seller .tn { font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.seller .sub { display: flex; gap: 6px; align-items: center; color: var(--muted-foreground); margin-top: 3px; font-size: 12px; min-width: 0; }
+.seller .pr { text-align: right; }
+.seller .pr b { display: block; font-size: 13px; font-variant-numeric: tabular-nums; }
+.seller .pr small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.seller.no { opacity: .55; }
+.seller.on { background: color-mix(in srgb, var(--primary) 7%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.seller.offered { background: color-mix(in srgb, var(--contract) 22%, var(--card)); }
+
+/* The Contracts page */
+.cgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kcard .khead .grow b { margin-top: 5px; }
+.kfoot .tgt { display: inline-flex; gap: 6px; align-items: center; }
+.kfoot .tgt .i { color: var(--contract-fg); }
+.hist td { vertical-align: middle; }
+.hist .w { font-weight: 600; }
+.hist .s { font-size: 12px; color: var(--muted-foreground); }
+.hist td.amt, .hist th.amt { text-align: right; white-space: nowrap; }
+.hist tr.yrow td { background: color-mix(in srgb, var(--muted) 45%, var(--card)); font-size: 11.5px; font-weight: 650; letter-spacing: .05em; color: var(--muted-foreground); padding: 5px 8px; }
+.kcard .khead img.flag { width: 18px; height: 12px; border-radius: 2px; }
+.c-renewed { background: var(--contract); color: var(--contract-fg); }
+
+/* Home's doors, as Door draws them. */
+.doors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.door { background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.door .dh { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px; }
+.door .dw { width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.door .dw .i { width: 19px; height: 19px; }
+.door .dh b { display: block; font-size: 14.5px; }
+.door .dh small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.door .dh .op { margin-left: auto; color: var(--primary); font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; }
+.door .db { border-top: 1px solid var(--border); padding: 9px 14px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 112px; font-size: 13px; }
+.door .ln { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.door .ln b { white-space: nowrap; }
+.door .ln span:first-child { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Concept */
+.tline { position: relative; height: 128px; margin-top: 6px; }
+.tline .axis { position: absolute; left: 0; right: 0; top: 104px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: 11.5px; color: var(--muted-foreground); border-top: 1px solid var(--border); }
+.tline .axis span { padding: 4px 0 0 6px; border-left: 1px solid var(--border); }
+.tline .lane { position: absolute; height: 22px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden; }
+.tline .ed { background: var(--d-sports); color: var(--d-sports-fg); }
+.tline .k { background: var(--contract); color: var(--contract-fg); }
+.tline .pin { position: absolute; top: 0; bottom: 24px; width: 0; border-left: 2px dashed var(--contract-fg); }
+.tline .pin b { position: absolute; top: -2px; left: 6px; font-size: 11px; white-space: nowrap; color: var(--contract-fg); }
+.tline .pin.amber { border-left-color: var(--warning-soft-fg); }
+.tline .pin.amber b { color: var(--warning-soft-fg); }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.three .node ul { margin: 2px 0 0; padding-left: 18px; font-size: 12.5px; }
+.three .node.on { border-top: 3px solid var(--contract-solid); }
+.dec .opts { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.toast.k { border-color: color-mix(in srgb, var(--contract-fg) 40%, var(--border)); }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  home: P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  mail: P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  store: P('<path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/>'),
+  garage: P('<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  wallet: P('<path d="M4 7h15a1 1 0 0 1 1 1v11H5a1 1 0 0 1-1-1z"/><path d="M4 7V6a2 2 0 0 1 2-2h11v3"/><circle cx="16" cy="13" r="1.2"/>'),
+  gauge: P('<path d="m12 14 4-5"/><path d="M3.5 17a9 9 0 1 1 17 0"/><circle cx="12" cy="14" r="1.3"/>'),
+  landmark: P('<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2 20 7H4z"/>'),
+  brief: P('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>'),
+  sign: P('<path d="M4 20h16"/><path d="m14.5 4.5 3 3L8 17l-4 1 1-4z"/>'),
+  inbox: P('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'),
+  unread: P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><circle cx="19" cy="6" r="3" fill="currentColor"/>'),
+  reply: P('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v5"/>'),
+  search: P('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  dots: P('<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'),
+  check: P('<path d="m5 12 5 5 9-10"/>'),
+  x: P('<path d="M18 6 6 18M6 6l12 12"/>'),
+  clock: P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  info: P('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  warn: P('<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>'),
+  play: P('<path d="M7 4v16l13-8z"/>'),
+  key: P('<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M15 8l2 2"/>'),
+  ext: P('<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>'),
+  user: P('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  coins: P('<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3V7M3 12v5c0 1.7 2.7 3 6 3 1.4 0 2.6-.2 3.6-.6"/><circle cx="17" cy="16" r="4"/>'),
+  ladder: P('<path d="M7 3v18M17 3v18M7 7h10M7 12h10M7 17h10"/>'),
+  sliders: P('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'),
+  grid: P('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+  life: P('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/>'),
+};
+const img = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" onerror="this.style.visibility='hidden'">`;
+const flag = (c) => `<img class="flag" src="${AC}gui/NationFlags/${c}.png" alt="" onerror="this.remove()">`;
+const chip = (cls, t) => `<span class="chip ${cls}">${t}</span>`;
+const DNAME = { single: 'Single-seater', sports: 'Sportscar', touring: 'Touring' };
+const TIER = { 1: 'Platinum', 2: 'Gold', 3: 'Silver', 4: 'Bronze', 5: 'Rookie' };
+const disc = (d) => chip(`c-${d}`, DNAME[d]);
+const tier = (t) => chip(`c-t${t}`, `Tier ${t}`);
+const BUDGET = { works: ['c-works', 'Works team'], indep: ['c-indep', 'Independent'], priv: ['c-priv', 'Privateer'] };
+const BUDGET_TIP = {
+  works: 'The car maker\'s own team, or one it backs. The best funded on the grid - it pays its drivers a salary, and wants proven ones.',
+  indep: 'A professional team with no maker behind it, racing cars it bought on its own money and sponsors. It can cover a driver\'s costs, but rarely pays a salary.',
+  priv: 'A small team on a tight budget, often a family\'s or a driver\'s own. Its drivers usually pay for their seats.',
+};
+const budget = (b, open = false) => `<span class="tipwrap${open ? ' open' : ''}">${chip(BUDGET[b][0], BUDGET[b][1])}<span class="tipbox"><b>${BUDGET[b][1]}</b>${BUDGET_TIP[b]}</span></span>`;
+const money = (n) => `$${Math.abs(n).toLocaleString('en-US')}`;
+const signed = (n) => `<span class="${n >= 0 ? 'pos' : 'neg'} num">${n >= 0 ? '+' : '-'}${money(n)}</span>`;
+const PREV = (car, skin) => `${AC}cars/${car}/skins/${skin}/preview.jpg`;
+
+DNAME.road = 'Road';
+I.renew = P('<path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/>');
+I.target = P('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>');
+I.cart = P('<circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.6 12.4a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H6"/>');
+I.file = P('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>');
+I.chart = P('<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>');
+I.medal = P('<circle cx="12" cy="15" r="6"/><path d="M8 3h8l-2 6h-4z"/>');
+
+// ---------- The career: Sam Whitaker, Bronze in Sportscar ----------
+const BAL = 61400;
+const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>-</span><span>☐</span><span>✕</span></div>';
+const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
+const NAV = [['home', 'Home', I.home], ['inbox', 'Inbox', I.mail], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
+const hdr = (on, { badge = 2, bal = BAL, date = 'Mon 15 Jan', year = 2029 } = {}) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR')}<span><b>Sam Whitaker</b><small>Career · ${year} · ${date}</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}${id === 'inbox' && badge ? `<span class="badge">${badge}</span>` : ''}</a>`).join('')}</nav>
+  <span class="end row" style="gap:10px"><a class="bal rat">${I.gauge}<span class="num">3,480</span></a><a class="bal">${I.wallet}<span class="num">${money(bal)}</span></a></span></header>`;
+const nb = (html) => `<span class="new-outline" style="border-radius:6px;display:inline-flex">${html}</span>`;
+
+const GT4 = { name: 'GT4 European Series', rounds: 6, fee: 7000, rent: 4000, size: 18, d: 'sports', t: 4 };
+const CAR = {
+  cayman: ['Porsche Cayman GT4 Clubsport', PREV('ks_porsche_cayman_gt4_clubsport', '02_cup_01')],
+  maserati: ['Maserati GranTurismo MC GT4', PREV('ks_maserati_gt_mc_gt4', '01_racing_12')],
+  audi: ['Audi R8 LMS GT4', PREV('audi_r8_gt4', 'audi_sport_1')],
+  alpine: ['Alpine A110 GT4', PREV('alpine_a110_gt4', 'esport_10')],
+  ginetta: ['Ginetta G55 GT4', PREV('ginetta_g55_gt4', 'Castrol_GTX')],
+  bmw: ['BMW M4 GT4', PREV('bmw_m4_gt4', 'bmw_1')],
+  cup0: ['Porsche 911 GT3 Cup 2017', PREV('ks_porsche_911_gt3_cup_2017', '00_cup')],
+  cup1: ['Porsche 911 GT3 Cup 2017', PREV('ks_porsche_911_gt3_cup_2017', '01_racing_912')],
+  cup2: ['Porsche 911 GT3 Cup 2017', PREV('ks_porsche_911_gt3_cup_2017', '02_racing_917')],
+  abarth: ['Abarth 500 Assetto Corse', PREV('ks_abarth500_assetto_corse', 'black_neon')],
+  mx5: ['Mazda MX-5 Cup', PREV('ks_mazda_mx5_cup', '01_cup_07')],
+};
+const KEEP = {
+  works: 'Top 6, or ahead of your teammate',
+  indep: 'Top 9, or ahead of your teammate',
+  priv: 'Always - a paid seat renews',
+};
+
+// ---------- 2029's offers for GT4 European Series ----------
+const OFF = {
+  hanse: { id: 'hanse', b: 'works', team: 'Hanse Motorsport', nation: 'DEU', car: CAR.cayman, pay: { kind: 'salary', amount: 82500, was: 75000 }, cover: 1, share: 25, bonus: 'Champion $33,000 · top 3 $11,000', fine: 7000, renewal: true },
+  rhein: { id: 'rhein', b: 'works', team: 'Rheinland Werkssport', nation: 'DEU', car: CAR.audi, pay: { kind: 'salary', amount: 69000 }, cover: 1, share: 20, bonus: 'Champion $27,500 · top 3 $9,000', fine: 7000 },
+  sauer: { id: 'sauer', b: 'indep', team: 'Sauerland GT', nation: 'DEU', car: CAR.maserati, pay: { kind: 'free', amount: 0 }, cover: 0.5, share: 50, bonus: 'Champion $21,000', fine: 7000 },
+  high: { id: 'high', b: 'priv', team: 'Highland GT', nation: 'GBR', car: CAR.bmw, pay: { kind: 'seat', amount: 54000 }, cover: 1, share: 100, bonus: null, fine: 0 },
+};
+const payCell = (o) => ({
+  salary: [`${money(o.pay.amount)} a season${o.pay.was ? `<span class="was">${money(o.pay.was)}</span>` : ''}`, o.pay.was ? '<span class="pos">+10%</span> for your P3 in 2028' : `${money(o.pay.amount / GT4.rounds)} as each round finishes`],
+  free: ['A free seat', 'Nobody pays anyone for it'],
+  seat: [`You pay ${money(o.pay.amount)}`, 'For the season, as you sign'],
+})[o.pay.kind];
+const feeCell = (o) => (o.cover === 1 ? ['Covered by the team', 'Every round'] : ['Half covered', `You pay ${money(GT4.fee / 2)} a round`]);
+const shareCell = (o) => (o.share === 100 ? ['Every prize is yours', 'Race and championship purses'] : [`${o.share}% is yours`, `The team keeps ${100 - o.share}%`]);
+const bonusCell = (o) => (o.bonus ? [o.bonus, 'On your final place in the class'] : ['None', '']);
+const fineCell = (o) => (o.fine ? [`${money(o.fine)} fine`, o.pay.kind === 'salary' ? 'And no salary for it' : 'Its entry fee'] : ['No fine', 'A round missed is only yours to lose']);
+const keepCell = (o) => [KEEP[o.b], o.b === 'priv' ? 'If you will pay again' : 'Judged as the next offers go out'];
+const before = (o) => {
+  if (o.pay.kind === 'salary') return o.pay.amount;
+  if (o.pay.kind === 'seat') return -o.pay.amount;
+  return -(1 - o.cover) * GT4.fee * GT4.rounds;
+};
+const amt = (n) => `<span class="${n >= 0 ? 'pos' : 'neg'}">${n > 0 ? '+' : n < 0 ? '-' : ''}${money(n)}</span>`;
+
+// ---------- The compare table, with a renewal ----------
+const compare = (offers, st = {}) => {
+  const own = !st.acc;
+  const cols = offers.length + (own ? 1 : 0);
+  const cls = (o) => (st.acc ? (st.acc === o.id ? ' tint' : ' muted2') : (o.renewal ? ' ren' : ''));
+  const cell = ([v, s], c = '') => `<div class="${c}"><b>${v}</b>${s ? `<small>${s}</small>` : ''}</div>`;
+  const ownC = st.acc ? ' off' : '';
+  const row = (label, cells, ownCell, isNew) => `<div class="k${isNew ? ' new-outline' : ''}">${label}</div>${cells.join('')}${own ? ownCell : ''}`;
+  const heads = offers.map((o) => `<div class="head${cls(o)}">${img(o.car[1])}<span class="row" style="gap:4px;flex-wrap:wrap">${budget(o.b)}${o.renewal ? nb(chip('c-contract', `${I.renew}Your team`)) : ''}${st.acc === o.id ? chip('c-acc', 'Signed') : st.acc ? chip('c-dec', 'Declined') : ''}</span><span class="tn">${o.team}${flag(o.nation)}</span><span class="cn">${o.car[0]}</span></div>`);
+  const ownHead = `<div class="head own"><span class="ownwell">${I.key}</span><span class="row" style="gap:4px">${chip('c-dec', 'No contract')}</span><span class="tn">On your own</span><span class="cn">In a team drawn for you · your car</span></div>`;
+  const acts = offers.map((o) => {
+    let btn;
+    if (st.acc) btn = st.acc === o.id ? `<span class="signedtxt">${I.check}Signed on Tue 16 Jan</span>` : '<span class="muted" style="font-size:12.5px">Declined on Tue 16 Jan</span>';
+    else if (o.renewal) btn = `<button class="btn pri new-outline">${I.renew}Renew</button>`;
+    else if (o.pay.kind === 'seat') btn = `<button class="btn pri">${I.sign}Accept and pay ${money(o.pay.amount)}</button>`;
+    else btn = `<button class="btn pri">${I.sign}Accept</button>`;
+    return `<div class="act last${cls(o)}">${btn}</div>`;
+  });
+  const fees = GT4.fee * GT4.rounds;
+  const rent = GT4.rent * GT4.rounds;
+  return `<div class="cmp" style="grid-template-columns:128px repeat(${cols}, minmax(0, 1fr));max-width:${128 + cols * 245}px">
+    <div class="k head"></div>${heads.join('')}${own ? ownHead : ''}
+    ${row('Pay', offers.map((o) => cell(payCell(o), cls(o))), cell(['Nothing', 'You pay your own way'], `own${ownC}`))}
+    ${row('Entry fees', offers.map((o) => cell(feeCell(o), cls(o))), cell(['Yours to pay', `${money(GT4.fee)} as each round launches`], `own${ownC}`))}
+    ${row('Car', offers.map((o) => cell(["The team's", 'Nothing to rent or buy'], cls(o))), cell(['Yours', `Owned, or ${money(GT4.rent)} a round to rent`], `own${ownC}`))}
+    ${row('Before prizes', offers.map((o) => cell([amt(before(o)), 'For the season'], cls(o))), cell([amt(-(fees + rent)), `${money(fees)} in fees, ${money(rent)} renting`], `own${ownC}`))}
+    ${row('Prize money', offers.map((o) => cell(shareCell(o), cls(o))), cell(['Every prize is yours', ''], `own${ownC}`))}
+    ${row('Standings bonus', offers.map((o) => cell(bonusCell(o), cls(o))), cell(['None', ''], `own${ownC}`))}
+    ${row('To be kept on', offers.map((o) => cell(keepCell(o), cls(o))), cell(['-', 'Enter again, or not'], `own${ownC}`), true)}
+    ${row('A missed round', offers.map((o) => cell(fineCell(o), cls(o))), cell(['No fine', ''], `own${ownC}`))}
+    <div class="k last"></div>${acts.join('')}${own ? `<div class="act own last"><button class="btn">Enter on your own${I.chev}</button></div>` : ''}
+  </div>`;
+};
+
+// ---------- Inbox ----------
+const strip = (year, sub) => `<a class="cstrip"><span class="well violet2">${I.trophy}</span><span class="grow"><b>${GT4.name} ${year}</b><small>${sub}</small></span><span class="row" style="gap:4px">${disc('sports')}${tier(4)}</span><span class="row muted" style="gap:4px;font-size:12.5px;margin-left:8px">Open${I.chev}</span></a>`;
+const rail = (news) => {
+  const f = (on, icon, label, cnt, isNew) => `<a class="folder ${on ? 'on' : ''}${isNew ? ' new-outline' : ''}">${icon}${label}${cnt}</a>`;
+  return `<div class="rail">
+    ${f(true, I.inbox, 'All mail', '<span class="cnt">41</span>')}
+    ${f(false, I.unread, 'Unread', '<span class="cnt pill pri">2</span>')}
+    ${f(false, I.reply, 'Awaiting reply', `<span class="cnt pill amb">${news ? 3 : 4}</span>`)}
+    <span class="caps">Kinds</span>
+    ${f(false, '<span class="sw" style="background:var(--historic-fg)"></span>', 'Invitations', '<span class="cnt">29</span>')}
+    ${f(false, '<span class="sw" style="background:var(--contract-fg)"></span>', 'Seat offers', '<span class="cnt">11</span>')}
+    ${news ? f(false, '<span class="sw" style="background:var(--contract-fg)"></span>', 'Team news', '<span class="cnt">1</span>', true) : ''}
+  </div>`;
+};
+const mrow = (m, sel) => `<div class="mrow ${m.unread && !sel ? 'unread' : ''} ${sel ? 'sel' : ''}">
+    <span class="ud"></span><span class="well violet2">${m.news ? I.file : I.brief}</span>
+    <div style="min-width:0"><div class="top"><span class="from">${m.from}</span><span class="when">${m.when}</span></div>
+      <div class="subj">${m.subj}</div>
+      <div class="bot">${m.chips}</div></div></div>`;
+const MINI = (bs) => `<span class="mini">${bs.map((b) => chip(BUDGET[b][0], BUDGET[b][1])).join('')}</span>`;
+const inbox = () => {
+  const c = S.mail;
+  const acc = c === 'accRenew' ? 'hanse' : null;
+  const offers = c === 'notKept' ? [OFF.sauer, OFF.high] : [OFF.hanse, OFF.rhein, OFF.sauer];
+  const others = [
+    { from: 'Kleinsee Sportwagen, Fenland Racing', when: 'Mon 15 Jan', subj: 'Seat offers: Lotus Cup 2029', chips: `${chip('c-await', 'Reply by Mon 29 Jan')}${MINI(['indep', 'priv'])}`, unread: true },
+    { from: 'Woodcote Garage', when: 'Mon 15 Jan', subj: 'Seat offer: Production Car Endurance 2029', chips: `${chip('c-await', 'Reply by Mon 29 Jan')}${MINI(['priv'])}`, unread: false },
+  ];
+  let list;
+  let mail;
+  let bar = '';
+  if (c === 'notKept') {
+    list = [
+      { from: 'Hanse Motorsport', when: 'Mon 15 Jan', subj: 'Not kept on for 2029', chips: nb(chip('c-contract', 'Team news')), news: true },
+      { from: 'Sauerland GT, Highland GT', when: 'Mon 15 Jan', subj: 'Seat offers: GT4 European Series 2029', chips: `${chip('c-await', 'Reply by Mon 29 Jan')}${MINI(['indep', 'priv'])}`, unread: true },
+      ...others,
+    ];
+    mail = `<div class="mail">
+      <div class="row" style="gap:8px">${nb(chip('c-contract', 'Team news'))}<span class="end muted" style="font-size:12.5px">Mon 15 Jan 2029</span><button class="btn icon ghost">${I.dots}</button></div>
+      <h2>Not kept on for 2029</h2>
+      <div class="mfrom"><span class="well violet2" style="width:40px;height:40px">${I.file}</span><span><b class="row" style="gap:6px">Hanse Motorsport${flag('DEU')}</b><small>to Sam Whitaker</small></span></div>
+      ${strip(2028, '6 rounds · finished Mon 16 Oct · you raced it for Hanse Motorsport')}
+      <p class="lede">Hanse Motorsport will not be keeping you on for 2029. They asked for a top-six finish or one ahead of your teammate, and the season ended short of both.</p>
+      <div class="kcard new-outline"><div class="keep" style="border-top:0">
+        <span class="tgt">${I.target}What they asked: ${KEEP.works}</span>
+        <div class="vs"><span>You</span><b>P11 of 18</b><span>Your teammate</span><b>P6</b></div>
+        <span class="row" style="gap:6px">${chip('c-dec', 'Not kept on')}<span class="hint">Your contract ended with the 2028 season, as signed. Nothing is owed either way.</span></span>
+      </div></div>
+      <div class="note"><span>${I.info}</span><span>Two other teams have written for 2029 - the offers are in the mail beside this one. You can always race it on your own.</span></div>
+    </div>`;
+  } else {
+    list = [
+      { from: 'Hanse Motorsport, Rheinland Werkssport +1', when: 'Mon 15 Jan', subj: 'Seat offers: GT4 European Series 2029', chips: `${acc ? chip('c-acc', 'Accepted') : chip('c-await', 'Reply by Mon 29 Jan')}${nb(chip('c-contract', `${I.renew}Renewal`))}${MINI(['works', 'works', 'indep'])}`, unread: false },
+      ...others,
+    ];
+    const lede = acc
+      ? '<p class="lede">You renewed with Hanse Motorsport for 2029. The other offers were declined.</p>'
+      : '<p class="lede">Hanse Motorsport want to keep you for 2029, on better terms - you finished P3 for them in 2028, ahead of your teammate. Two other teams want you too. The terms are side by side, with what racing it on your own comes to - accept one, and the others are declined.</p>';
+    mail = `<div class="mail wide">
+      <div class="row" style="gap:8px">${chip('c-contract', '3 seat offers')}${acc ? chip('c-acc', 'Accepted') : chip('c-await', 'Reply by Mon 29 Jan')}<span class="end muted" style="font-size:12.5px">Mon 15 Jan 2029</span><button class="btn icon ghost">${I.dots}</button></div>
+      <h2>Seat offers: GT4 European Series 2029</h2>
+      <div class="mfrom"><span class="well violet2" style="width:40px;height:40px">${I.brief}</span><span><b>Hanse Motorsport, Rheinland Werkssport, Sauerland GT</b><small>to Sam Whitaker</small></span></div>
+      ${lede}
+      ${strip(2029, '6 rounds · Mon 12 Mar to Mon 15 Oct · Monza first')}
+      ${compare(offers, { acc })}
+    </div>`;
+    bar = acc
+      ? `<div class="replybar"><div class="msg"><span class="well" style="width:30px;height:30px;background:var(--success-soft);color:var(--success-soft-fg)">${I.check}</span>
+        <span><b>Renewed with Hanse Motorsport on Tue 16 Jan</b><small>You race GT4 European Series for them in 2029 - and finish it in the top 6, or ahead of your teammate, to be asked back for 2030. The other 2 offers were declined.</small></span></div>
+        <div class="acts"><button class="btn">Open the championship${I.chev}</button></div></div>`
+      : `<div class="replybar"><div class="msg"><span class="well" style="width:30px;height:30px;background:var(--warning-soft);color:var(--warning-soft-fg)">${I.clock}</span>
+        <span><b>Reply by Mon 29 Jan · 14 days left</b><small>Accepting one declines the rest. Unanswered by then, they all lapse - your team's included.</small></span></div>
+        <div class="acts"><button class="btn">Decline all</button></div></div>`;
+  }
+  return win(`${hdr('inbox', { badge: 2 })}<div class="inbox" style="flex:1;min-height:0">${rail(c === 'notKept')}
+    <div class="mlist"><div class="tools"><span class="input grow">${I.search}<span class="muted">Search mail</span></span></div>
+      <div class="scroll"><div class="mgrp caps">January 2029</div>${list.map((m, i) => mrow(m, i === 0)).join('')}</div></div>
+    <div class="reader"><div class="rs">${mail}</div>${bar}</div></div>`);
+};
+
+// ---------- Championship page ----------
+const summary = (year) => `<div class="sum"><div class="stripe"></div>
+  <div class="row" style="align-items:flex-start"><h1 class="grow">${GT4.name}</h1><span class="kebab">${I.dots}</span></div>
+  <div class="row" style="gap:4px">${disc('sports')}${tier(4)}${chip('c-champ', 'Ours')}${chip('c-plain', String(year))}</div>
+  <div class="col" style="gap:8px"><div class="fact"><span>Event</span><span class="row" style="gap:4px">${chip('c-practice', 'P')}${chip('c-qualify', 'Q')}${chip('c-race', 'R1')}${chip('c-race', 'R2')}</span></div>
+    <div class="fact"><span>Grid</span><span>36 cars · 18 teams</span></div>
+    <div class="fact"><span>Entry fee</span><span class="num">${money(GT4.fee)}</span></div></div></div>`;
+const CASES = {
+  one: { year: 2028, date: 'Mon 5 Jun', raced: 3, salary: 75000, me: 4, mate: 7, judged: 'As 2029\'s offers go out, Mon 15 Jan' },
+  short: { year: 2028, date: 'Mon 5 Jun', raced: 3, salary: 75000, me: 9, mate: 5, judged: 'As 2029\'s offers go out, Mon 15 Jan' },
+  renewed: { year: 2029, date: 'Mon 4 Jun', raced: 3, salary: 82500, was: 75000, me: 2, mate: 8, judged: 'As 2030\'s offers go out, Mon 14 Jan' },
+};
+const yourContract = (k) => {
+  const paid = (k.salary / GT4.rounds) * k.raced;
+  const keep = `<div class="keep new-outline"><span class="caps">To be kept on</span><span class="tgt">${I.target}${KEEP.works}</span>
+      <div class="vs"><span>You</span><b>P${k.me} of ${GT4.size}</b><span>Your teammate</span><b>P${k.mate}</b></div>
+      <span class="row" style="gap:6px">${k.me <= 6 || k.me < k.mate ? chip('c-onc', 'On course') : chip('c-short', 'Short of it')}<span class="hint">${k.judged}</span></span></div>`;
+  return `<div class="kcard yourcard">
+  <div style="padding:12px 12px 4px" class="row"><b style="font-size:14.5px">Your contract</b><span class="end">${budget('works')}</span></div>
+  <div class="carrow" style="padding:6px 12px 10px"><span class="thumb16">${img(CAR.cayman[1])}</span><span class="grow"><b>${CAR.cayman[0]}</b><span class="trunc muted">Hanse Motorsport</span></span></div>
+  <div class="paid" style="border-top:1px solid var(--border)">
+    <span>Salary</span><b>${money(k.salary)} a season</b>${k.was ? `<small class="new-outline">Renewed after your P3 in 2028 - it was ${money(k.was)}</small>` : ''}<span>Entry fees</span><b>Covered</b><span>Your prize share</span><b>25%</b><span>Standings bonus</span><b>Champion ${money(k.salary * 0.4)}</b><span>A missed round</span><b>Its fee as a fine</b></div>
+  <div class="paid"><span class="caps full">So far · ${k.raced} of ${GT4.rounds} rounds</span><span>Salary so far</span><b>${money(paid)} of ${money(k.salary)}</b><span>Your share of prizes</span><b>${money(13750)}</b><span>Fees the team paid</span><b>${money(21000)}</b></div>
+  ${keep}
+  <div class="row" style="padding:8px 12px;border-top:1px solid var(--border)"><button class="btn ghost sm" style="padding-left:0">Terminate contract</button><a class="end muted row" style="font-size:12.5px;gap:4px">${I.mail}Read the offer</a></div></div>`;
+};
+const SUP = { name: 'Porsche Supercup', rounds: 7, fee: 6000, rent: 4500 };
+const SELLERS = [
+  { team: 'Kempen Racing', nation: 'NLD', b: 'priv', car: CAR.cup2, price: 59000, on: true },
+  { team: 'Team Zuidwest', nation: 'NLD', b: 'priv', car: CAR.cup1, price: 55500 },
+  { team: 'Lakeside Cup Racing', nation: 'GBR', b: 'priv', car: CAR.cup0, no: 'Fields one car - no seat to sell' },
+];
+// Works teams and independents never sell, so they are not listed at all.
+const sellerRow = (s) => `<div class="seller${s.no ? ' no' : ''}${s.on && S.champ === 'buyConfirm' ? ' on' : ''}"><span class="thumb16">${img(s.car[1])}</span>
+  <span style="min-width:0"><span class="tn">${s.team}${flag(s.nation)}</span><span class="sub">${budget(s.b)}${s.no ? '' : '<span class="trunc">Its car, in its colours</span>'}</span>${s.no ? `<span class="hint" style="display:block;margin-top:3px">${s.no}</span>` : ''}</span>
+  ${s.no ? '<span></span>' : `<span class="pr"><b>${money(s.price)}</b><button class="btn sm" style="margin-top:4px">Buy</button></span>`}</div>`;
+const ownPanel = () => `<div class="carrow"><span class="thumb16" style="display:grid;place-items:center;background:var(--muted)"><img src="${AC}gui/NationFlags/NLD.png" alt="" style="width:24px;height:16px;object-fit:cover;border-radius:2px"></span><span class="grow"><b>Team Zuidwest</b><span class="row" style="gap:6px">${budget('priv')}<span class="trunc muted">Your team for the season</span></span></span></div>
+  <div class="carrow"><span class="thumb16">${img(CAR.cup2[1])}</span><span class="grow"><b>Porsche 911 GT3 Cup 2017</b><span class="row" style="gap:6px">${chip('c-rented', `${I.key}Rented`)}<span class="trunc muted">Racing #917</span></span></span><button class="btn sm">Change</button></div>
+  <div class="costs"><span>Entry fee</span><b class="num">${money(SUP.fee)} a round</b><span>Rent</span><b class="num">${money(SUP.rent)} a round</b><span style="grid-column:1/-1">Paid with the entry fee as each round launches.</span><span style="grid-column:1/-1">Every prize is yours, and a round you skip costs nothing.</span></div>
+  <button class="btn pri">Enter championship</button>`;
+const seatPanel = () => `<span class="hint">Buy a privateer's seat for the season: its car in its colours, every entry fee covered, every prize yours, and no fine for a round you miss. Paid as you sign. Works teams and independents don't sell theirs.</span>
+  <div class="sellers">${SELLERS.map(sellerRow).join('')}</div>
+  <span class="hint">On your own, 2029 comes to ${money(SUP.fee * SUP.rounds)} in fees and ${money(SUP.rent * SUP.rounds)} renting - ${money((SUP.fee + SUP.rent) * SUP.rounds)} before prizes.</span>`;
+const buySide = () => {
+  const firstRound = `<p class="row" style="justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;margin:0;font-size:12px"><span class="muted">Your first round</span><span>R1 · Barcelona GP <span class="muted">· Tue 3 Apr</span></span></p>`;
+  if (S.buyAt === 'card') {
+    return `<div class="enter-card"><h4>Enter ${SUP.name}</h4><div class="desc">Entering puts you in a team of the class for the whole season, beside its other driver, and every round goes onto your calendar.</div>${ownPanel()}${firstRound}</div>
+      <div class="kcard new-outline" style="padding:12px;display:flex;flex-direction:column;gap:10px"><b style="font-size:14.5px">Or buy a seat</b>${seatPanel()}</div>`;
+  }
+  const seat = S.buyTab === 'seat';
+  return `<div class="enter-card"><h4>Enter ${SUP.name}</h4>
+    <div class="seg new-outline"><span class="${seat ? '' : 'on'}">${I.key}Your car</span><span class="${seat ? 'on' : ''}">${I.cart}A team's seat</span></div>
+    ${seat ? seatPanel() : `<div class="desc" style="margin-top:0">Entering puts you in a team of the class for the whole season, beside its other driver, and every round goes onto your calendar.</div>${ownPanel()}`}
+    ${firstRound}</div>`;
+};
+const buyDialog = () => `<div class="scrim"></div><div class="dlg new-outline" style="width:560px">
+  <div class="dh"><h3>Buy a seat with Kempen Racing?</h3><p>${SUP.name} 2029, all ${SUP.rounds} rounds, in their Porsche 911 GT3 Cup 2017.</p></div>
+  <div class="db"><div class="seatcell">${img(CAR.cup2[1])}<span><b class="row" style="gap:6px">Kempen Racing${flag('NLD')}</b><span class="row" style="gap:6px;margin-top:3px">${budget('priv')}<span class="hint">Racing #917</span></span></span></div>
+    <div class="cost"><span>The seat, paid as you sign</span><b class="neg">-${money(59000)}</b><span>Entry fees</span><b>Covered by the team</b><span>Prize money</span><b>Every prize is yours</b><span>A missed round</span><b>No fine</b><span class="tot">Your balance after</span><b class="tot">${money(BAL - 59000)}</b></div>
+    <div class="note"><span>${I.info}</span><span>No team has offered you a seat in it yet, and none will once you are in. Terminating gives back half of what the rounds left were worth, as for any paid seat.</span></div></div>
+  <div class="df"><button class="btn">Cancel</button><button class="btn pri">${I.sign}Pay ${money(59000)} and sign</button></div></div>`;
+const champ = () => {
+  const c = S.champ;
+  if (c === 'buy' || c === 'buyConfirm') {
+    return win(`${hdr('champs', { badge: 0, date: 'Mon 8 Jan' })}<div class="shdr"><span class="backlink">${I.back}Championships</span></div>
+    <div class="body" style="display:grid;grid-template-columns:350px minmax(0,1fr);gap:20px;overflow:auto;align-items:start">
+      <div class="col"><div class="sum"><div class="stripe"></div><h1>${SUP.name}</h1><div class="row" style="gap:4px">${disc('sports')}${tier(4)}${chip('c-champ', 'Ours')}</div>
+        <div class="col" style="gap:8px"><div class="fact"><span>Event</span><span class="row" style="gap:4px">${chip('c-practice', 'P')}${chip('c-qualify', 'Q')}${chip('c-race', 'R')}</span></div><div class="fact"><span>Grid</span><span>28 cars · 14 teams</span></div><div class="fact"><span>Entry fee</span><span class="num">${money(SUP.fee)}</span></div></div></div>
+        <div class="chancebox">${chip('c-pending', "Teams' offers go out Tue 6 Feb")}<span class="hint" style="margin-top:6px;display:block">Eight weeks before the opening round. Entering now, either way, means no team will offer you a seat in it after.</span></div>
+        ${buySide()}</div>
+      <div class="col"><div class="ctabs"><a class="on">Rounds</a><a>Standings</a><a>Classes</a><a>Points, prizes and rules</a></div><div class="placeholder"><b>The rounds</b>As today.</div></div>
+    </div>${c === 'buyConfirm' ? buyDialog() : ''}`);
+  }
+  const k = CASES[c];
+  return win(`${hdr('champs', { badge: 0, date: k.date, year: k.year })}<div class="shdr"><span class="backlink">${I.back}Championships</span></div>
+  <div class="body" style="display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;overflow:auto;align-items:start">
+    <div class="col">${summary(k.year)}${yourContract(k)}</div>
+    <div class="col"><div class="ctabs"><a class="on">Rounds</a><a>Standings</a><a>Classes</a><a>Points, prizes and rules</a></div>
+      <div class="placeholder"><b>The rounds</b>As today.</div></div>
+  </div>`);
+};
+
+// ---------- Contracts page ----------
+const place = (p) => chip(p <= 3 ? `c-p${p}` : 'c-pn', `P${p}`);
+const ENDED = {
+  done: ['c-acc', 'Completed'], renewed: ['c-renewed', 'Renewed'], let: ['c-dec', 'Not kept on'], term: ['c-fine', 'Terminated'],
+};
+const HIST = [
+  ['2029', [
+    { ed: '2029', ch: 'Porsche Supercup', cls: 'Supercup', d: 'sports', t: 4, team: 'Kempen Racing', b: 'priv', terms: 'Seat bought · $59,000', how: 'Bought', res: null, net: -59000, end: null, sub: '2 of 7 rounds' },
+    { ed: '2029', ch: 'GT4 European Series', cls: 'GT4', d: 'sports', t: 4, team: 'Hanse Motorsport', b: 'works', terms: '$82,500 · 25% · bonus', how: 'Renewal', res: null, net: 41250, end: null, sub: '3 of 6 rounds' },
+  ]],
+  ['2028', [
+    { ed: '2028', ch: 'GT4 European Series', cls: 'GT4', d: 'sports', t: 4, team: 'Hanse Motorsport', b: 'works', terms: '$75,000 · 25% · bonus', how: 'Offered', res: 3, net: 112400, end: 'renewed' },
+    { ed: '2028', ch: 'Porsche Supercup', cls: 'Supercup', d: 'sports', t: 4, team: 'Kempen Racing', b: 'priv', terms: 'Seat bought · $46,500', how: 'Offered', res: 9, net: -40500, end: 'term', sub: 'After R5 · refund $13,300' },
+  ]],
+  ['2027', [
+    { ed: '2027', ch: 'GT4 European Series', cls: 'GT4', d: 'sports', t: 4, team: 'Sauerland GT', b: 'indep', terms: 'Free · half the fees · 50%', how: 'Offered', res: 11, net: -6800, end: 'let' },
+    { ed: 'H1 2027', ch: 'Formula Abarth', cls: 'Formula Abarth', d: 'single', t: 5, team: 'Bluewave Racing', b: 'indep', terms: 'Free · fees covered · 55%', how: 'Renewal', res: 1, net: 18900, end: 'done', sub: 'You declined to renew' },
+  ]],
+  ['2026', [
+    { ed: 'H2 2026', ch: 'Formula Abarth', cls: 'Formula Abarth', d: 'single', t: 5, team: 'Bluewave Racing', b: 'indep', terms: 'Free · fees covered · 55%', how: 'Lifeline', res: 2, net: 12600, end: 'renewed' },
+    { ed: '2026', ch: 'Mk1 MX-5 Cup', cls: 'MX-5 Cup', d: 'road', t: 5, team: 'Kleinsee Sportwagen', b: 'priv', terms: 'Seat bought · $9,800', how: 'Offered', res: 5, net: -4100, end: 'done' },
+  ]],
+];
+const currentCard = ({ team, b, nation, car, ch, cls, chips, tiles, foot }) => `<div class="kcard yourcard"><div class="khead">${img(car[1])}<div class="grow"><div class="row" style="gap:5px">${budget(b)}${chips}</div><b class="row" style="gap:6px">${team}${flag(nation)}</b><small>${ch} · ${cls} · ${car[0]}</small></div><span class="row muted" style="gap:4px;font-size:12.5px;align-self:flex-start">Open${I.chev}</span></div>
+  <div class="ktiles">${tiles.map(([k, v, s]) => `<div><span class="k">${k}</span><b>${v}</b><small>${s}</small></div>`).join('')}</div><div class="kfoot">${foot}</div></div>`;
+const contracts = () => win(`${hdr('home', { badge: 0, date: 'Mon 4 Jun' })}<div class="shdr"><span class="backlink">${I.back}Home</span><h2 style="margin-left:12px">Contracts</h2></div>
+  <div class="body col" style="gap:16px;overflow:auto">
+    <div class="tiles4">
+      <div class="tile hero" style="border-top-color:var(--contract-solid)"><span class="caps">Contracts signed</span><b>8</b><span class="hint">4 offered · 2 renewals · 1 bought · 1 lifeline</span></div>
+      <div class="tile"><span class="caps">Teams</span><b>5</b><span class="hint">Hanse Motorsport, Kempen Racing and Bluewave Racing twice each</span></div>
+      <div class="tile"><span class="caps">Earned under contract</span><b class="pos">+${money(196900)}</b><span class="hint">Salary, bonuses and your share of prizes</span></div>
+      <div class="tile"><span class="caps">Paid to teams</span><b class="neg">-${money(124300)}</b><span class="hint">Seats, fines and release fees, less refunds</span></div>
+    </div>
+    <div class="col" style="gap:8px"><span class="caps">Under contract · 2029</span>
+    <div class="cgrid">
+      ${currentCard({
+    team: 'Hanse Motorsport', b: 'works', nation: 'DEU', car: CAR.cayman, ch: 'GT4 European Series', cls: 'GT4', chips: `${disc('sports')}${tier(4)}${chip('c-renewed', `${I.renew}Renewal`)}`,
+    tiles: [['Salary', money(82500), `Was ${money(75000)} · +10% for P3`], ['Paid so far', money(41250), 'Salary for 3 rounds'], ['Rounds', '3 of 6', 'None missed'], ['Standing', 'P4', 'Your teammate P7']],
+    foot: `<span class="tgt">${I.target}To be kept on: <b>${KEEP.works}</b></span>${chip('c-onc', 'On course')}<span>judged as 2030's offers go out</span>`,
+  })}
+      ${currentCard({
+    team: 'Kempen Racing', b: 'priv', nation: 'NLD', car: CAR.cup2, ch: 'Porsche Supercup', cls: 'Supercup', chips: `${disc('sports')}${tier(4)}`,
+    tiles: [['The seat', money(59000), 'Bought Mon 8 Jan'], ['Prizes so far', money(8400), 'Every prize is yours'], ['Rounds', '2 of 7', 'None missed'], ['Standing', 'P6', 'Your teammate P12']],
+    foot: `<span class="tgt">${I.target}To be kept on: <b>${KEEP.priv}</b></span><span>if you will pay again</span>`,
+  })}
+    </div></div>
+    <div class="panel"><h3>Every contract<span class="end seg" style="font-weight:400"><span class="on">All</span><span>Salary</span><span>Free</span><span>Paid seat</span></span></h3><div class="pb">
+      <table class="t hist"><thead><tr><th style="width:96px">Season</th><th>Championship</th><th>Team</th><th>Terms</th><th style="width:90px">How</th><th style="width:70px">Result</th><th class="amt" style="width:110px">Came to</th><th style="width:150px">Ended</th></tr></thead>
+      <tbody>${HIST.map(([yr, rows]) => `<tr class="yrow"><td colspan="8">${yr}</td></tr>${rows.map((r) => `<tr><td class="num">${r.ed}</td>
+        <td><div class="w">${r.ch}</div><div class="s row" style="gap:4px;margin-top:3px">${disc(r.d)}${tier(r.t)}<span>${r.cls}</span></div></td>
+        <td><div class="w">${r.team}</div><div style="margin-top:3px">${budget(r.b)}</div></td>
+        <td class="s" style="color:var(--foreground)">${r.terms}</td><td class="s">${r.how}</td>
+        <td>${r.res ? place(r.res) : '<span class="muted">-</span>'}</td>
+        <td class="amt">${signed(r.net)}</td>
+        <td>${r.end ? chip(...ENDED[r.end]) : chip('c-contract', 'Under way')}${r.sub ? `<div class="s" style="margin-top:3px">${r.sub}</div>` : ''}</td></tr>`).join('')}`).join('')}</tbody></table>
+      <p class="hint" style="margin:10px 0 0">Came to is what the contract moved: salary, bonus and your share of prizes, less the seat, fines and any release fee. Fees a team covered moved nothing and are not in it.</p>
+    </div></div>
+  </div>`);
+
+// ---------- Home ----------
+const door = (accent, icon, title, hint, kicker, body, isNew) => `<a class="door${isNew ? ' new-outline' : ''}"><div class="dh"><span class="dw" style="${accent}">${icon}</span><span style="min-width:0"><b>${title}</b><small>${hint}</small></span><span class="op">Open${I.chev}</span></div><div class="db"><span class="caps">${kicker}</span>${body}</div></a>`;
+const home = () => win(`${hdr('home', { badge: 1, date: 'Mon 4 Jun' })}<div class="body col" style="overflow:auto;gap:14px">
+    <div class="placeholder"><b>Next event</b>GT4 European Series · R4 Red Bull Ring · Mon 25 Jun - as today.</div>
+    <div class="placeholder"><b>Your championships</b>GT4 European Series 2029 with Hanse Motorsport's team chip, Porsche Supercup 2029 with Kempen Racing's - as today.</div>
+    <div class="doors">
+      ${door('background:var(--s-race);color:var(--s-race-fg)', I.chart, 'Results', 'Every event you have driven', 'Last driven', '<div class="ln"><span>Barcelona GP · Race 2</span><b>P4</b></div><div class="ln"><span>Barcelona GP · Race 1</span><b>P2</b></div>')}
+      ${door('background:var(--gold);color:var(--gold-fg)', I.trophy, 'History', 'Every season of your career', 'Your seasons', '<div class="ln"><span>2029</span><b>3 championships</b></div><div class="ln"><span>2028</span><b>2 · 1 title</b></div>')}
+      ${door('background:var(--m-career);color:var(--m-career-fg)', I.wallet, 'Finances', 'Your money, and every change of it', 'Latest', `<b class="num" style="font-size:19px">${money(BAL)}</b><div class="ln"><span>Standings bonus · P3</span>${signed(11000)}</div>`)}
+      ${door('background:var(--t4);color:var(--t4-fg)', I.medal, 'Rating', 'Where you stand on the ladder', 'Your rungs', '<div class="ln"><span>Sportscar</span><b>Bronze · 3,480</b></div><div class="ln"><span>Single-seater</span><b>Rookie · 1,910</b></div>')}
+      ${door('background:var(--contract);color:var(--contract-fg)', I.brief, 'Contracts', 'The teams you race for', 'Under contract', `<div class="ln"><span>Hanse Motorsport · GT4 European Series</span>${chip('c-onc', 'On course')}</div><div class="ln"><span>Kempen Racing · Porsche Supercup</span><b>P6</b></div><div class="ln"><span>8 signed · 5 teams</span><b class="pos">+${money(196900)}</b></div>`, true)}
+    </div>
+  </div>`);
+
+// ---------- Concept ----------
+const OPTS = (list) => `<div class="opts">${list.map(([t, d, rec]) => `<div class="opt2 ${rec ? 'rec' : ''}"><b>${t}</b><span>${d}</span></div>`).join('')}</div>`;
+const DEC = (n, title, q, opts) => `<div class="dec"><span class="n">${n}</span><h4>${title}</h4><p class="q">${q}</p>${OPTS(opts)}</div>`;
+const concept = () => `<div class="doc">
+  <div class="panel"><div class="pb col">
+    <h2>Slice 2 - the market</h2>
+    <p class="muted" style="margin:0">Every contract is one season, as slice 1 built it. This slice is what happens around it: your team asking you back on better terms when you have earned it, buying a seat rather than waiting for one, and a page holding the lot. Exclusivity stays dropped, and so do contracts over several seasons - renewal carries a good partnership on, without tying you to a team when a better one calls. <span class="new-outline" style="padding:0 4px;border-radius:4px">Dashed outlines</span> on the screens mark what is new.</p>
+    <div class="three">
+      <div class="node on"><h5>${I.renew}Renewal</h5><ul><li>Every contract says what keeps you on, and shows where you stand all season</li><li>Met, your team's offer leads next season's offers mail, better after a podium or the title</li><li>Missed, a Team news mail says it is letting you go</li></ul></div>
+      <div class="node on"><h5>${I.cart}Buying a seat</h5><ul><li>From a championship's Enter panel, at once</li><li>Privateers sell their second car; works teams and independents never do</li><li>One season, its fees covered, every prize yours</li></ul></div>
+      <div class="node on"><h5>${I.file}A Contracts page</h5><ul><li>Under Home, a fifth door beside Finances</li><li>What you hold now, with what keeps you on</li><li>Every contract you have signed, and how it ended</li></ul></div>
+    </div>
+    <p class="hint" style="margin:0"><b>"Season", everywhere you read it.</b> A championship running once a year has a 2029 season; one running twice has an H1 and an H2 season, each with its own offers and contracts. Inside the code a championship's run stays <span class="mono">edition</span>, because <span class="mono">season</span> is already the career's calendar year - but no screen says edition.</p>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>Renewal: your team writes first</h2>
+    <div class="flow">
+      <div><span class="n">1</span><b>A target from the day you sign</b><span>Each contract says what keeps you on, by the team's budget, and the contract card shows where you and your teammate stand against it all season.</span></div>
+      <div><span class="n">2</span><b>Judged as next season's offers go out</b><span>On the day they are drawn - so a yearly championship is judged on its final table, and one that runs four times a year on the table as it stands.</span></div>
+      <div><span class="n">3</span><b>Its column leads the offers mail</b><span>Met, your team's offer heads the season's mail, marked Your team, beside whoever else calls - so a better team calling is one Accept away. Missed, a Team news mail says so.</span></div>
+    </div>
+    <table class="odds"><thead><tr><th>Team</th><th>To be kept on</th><th>Renewed on</th></tr></thead><tbody>
+      <tr><td>${budget('works')}</td><td>Top third of the class, or ahead of your teammate</td><td>The salary up 25% for the title, 10% for a podium, else the same; the bonus follows it</td></tr>
+      <tr><td>${budget('indep')}</td><td>Top half of the class, or ahead of your teammate</td><td>A podium turns half the fees covered into all of them, and 5 points more of the prizes, to 60%</td></tr>
+      <tr><td>${budget('priv')}</td><td>Always</td><td>The seat at the price you paid</td></tr></tbody></table>
+    <p class="hint" style="margin:0">Renewals compound: a works driver on the podium three years running is on 1.1 x 1.1 x 1.1 of the first salary. The rest of the season's offers are drawn exactly as today - your team's renewal takes no seat from them. Declining it, or letting it lapse, ends the partnership; the history says "You declined to renew".</p>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>Buying a seat</h2>
+    <p class="muted" style="margin:0">Today a paid seat comes only when a privateer happens to call. Buying one is the same contract, asked for: one season, the team's car in its colours, every fee covered, every prize yours, no fine. Only privateers sell - a works team pays its drivers, and an independent's seat is free or nothing, so buying one would cost more for less. It costs a little more than one offered, since a team that calls wants you and one you call names its price, and it is open until the season's last round, priced on the rounds left.</p>
+    <table class="odds"><thead><tr><th>Team</th><th class="r">Offered (today)</th><th class="r">Bought</th><th class="r">Supercup 2029 · 7 x ${money(6000)} fees</th></tr></thead><tbody>
+      <tr><td>${budget('works')}</td><td class="r">pays a salary</td><td class="r">never sells</td><td class="r">-</td></tr>
+      <tr><td>${budget('indep')}</td><td class="r">a free seat</td><td class="r">never sells</td><td class="r">-</td></tr>
+      <tr><td>${budget('priv')}</td><td class="r">1.1 - 1.4x the fees</td><td class="r">1.3 - 1.5x the fees</td><td class="r">${money(54500)} - ${money(63000)}</td></tr>
+      <tr><td>On your own, renting</td><td class="r"></td><td class="r">fees + rent</td><td class="r">${money(73500)}</td></tr></tbody></table>
+    <p class="hint" style="margin:0">Only a privateer with a second car in the class sells - its slower seat, as an offer takes. Each price is seeded on the career and the season, so it is the same every time you look. A team whose offer is waiting shows the offer instead. Buying before offers go out means none come for that season, as entering on your own does.</p>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>To decide</h2>
+    ${DEC(1, 'When renewal comes', 'How your team asks you back.', [
+    ['With the next offers', 'Its column leads the season\'s offers mail, beside everyone else\'s, on the day they go out. Works however often a championship runs.', true],
+    ['Its own mail, as the season ends', 'Answered before the market opens. But a championship running four times a year sends its next offers before its last round.'],
+    ['Rolls on', 'The contract carries on unless either side ends it - no decision, but nothing to weigh either.'],
+  ])}
+    ${DEC(2, 'Being kept on', 'Whether your team wants you back.', [
+    ['A target, shown', 'Top third, top half or always, or ahead of your teammate - on the contract card all season, with where you stand.', true],
+    ['A hidden chance', 'Rising with your class place. More surprising, and nothing to aim at.'],
+    ['Always, worse on poor results', 'Every contract is renewed; the terms fall when the results do.'],
+  ])}
+    ${DEC(3, 'Renewal terms', 'What your team offers to keep you.', [
+    ['Better after a podium', 'As in the table above - a raise for a podium or the title, better cover from an independent; otherwise the same terms.', true],
+    ['The same', 'The contract as signed, again.'],
+    ['Drawn afresh', 'As any offer - which can come in worse after a title.'],
+  ])}
+    ${DEC(4, 'Being let go', 'When the target is missed.', [
+    ['A Team news mail', 'A new kind of mail with no reply, so nobody wonders why their team went quiet - the first piece of Phase 11\'s contract and market news.', true],
+    ['Only on the pages', 'The contract card and the Contracts page say Not kept on; the inbox says nothing.'],
+  ])}
+    ${DEC(5, 'How a seat is bought', 'Asking a team yourself.', [
+    ['At once, from the Enter panel', 'Every privateer that sells, with its price; buy, confirm, signed.', true],
+    ['Ask by mail', 'Ask a team; it answers a few days on, at a chance. More of a market, but the clock has to move for an answer.'],
+    ['Ask, answered at once', 'As by mail, but in a dialog - and it can say no.'],
+  ])}
+    ${DEC(6, 'What a bought seat costs', 'Against the same privateer\'s offer, at 1.1-1.4x the season\'s fees.', [
+    ['1.3-1.5x the fees', 'A little dearer than an offer, so one that comes is still worth waiting for - and about what racing on your own costs, without a car to rent.', true],
+    ['The offer\'s 1.1-1.4x', 'No difference between asking and being asked.'],
+  ])}
+    ${DEC(7, 'Where buying lives', 'On a championship\'s page. Screen: Championship page, Buy a seat.', [
+    ['A tab in the Enter panel', '"Your car" and "A team\'s seat" - the two ways in side by side, and the sidebar no longer.', true],
+    ['A card under it', '"Or buy a seat" - both visible at once, at the cost of a longer sidebar.'],
+  ])}
+    ${DEC(8, 'Where the Contracts page lives', 'Screen: Contracts, Home.', [
+    ['A fifth Home door', '/home/contracts, beside Finances, Rating and History. The doors become five across.', true],
+    ['A tab of History', 'Where seasons already are - but what you hold now is not history.'],
+    ['In the navigation', 'Beside Inbox. Easiest to find, at the cost of a place every page shows.'],
+  ])}
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>What is stored</h2>
+<pre class="store">Contract.keep: { place } | 'always' <i>// what keeps you on, fixed as signed</i>
+Contract.how: 'offered' | 'renewal' | 'bought' | 'lifeline'
+Contract.end?: 'terminated' | 'released' | 'declined'
+SeatOffer.keep                     <i>// as the contract will carry it</i>
+SeatOffer.renewal?: { pay, feeCover, prizeShare }   <i>// the terms it renews, for "was"</i>
+MailKind 'notice'                  <i>// Team news: no reply, no deadline</i></pre>
+    <p class="hint" style="margin:0">Nothing new on the career itself. A seat bought is signed through a mail written already accepted, so Read the offer still opens something.</p>
+  </div></div>
+</div>`;
+
+const WHY = {
+  concept: () => '<b>The market, in three parts.</b> One-season contracts as now, with a renewal from your team as the next offers go out - judged on a target you can see all season, and better after a podium; buying a privateer\'s seat yourself; and a Contracts page under Home. Eight decisions below, each with a recommendation.',
+  inbox: () => ({
+    renew: '<b>A renewal leads the mail.</b> Hanse Motorsport\'s column comes first, washed in the contract violet and marked Your team, its salary showing what it was. One new row: <b>To be kept on</b>, so every team\'s target can be weighed before signing.',
+    accRenew: '<b>Renewed</b> - the Tinted look agreed in slice 1, unchanged. The reply bar says what keeps you on for the season after.',
+    notKept: '<b>Not kept on.</b> A new kind of mail, Team news, with no reply: what the team asked, where you finished, and that nothing is owed. The season\'s offers from other teams sit beside it.',
+  })[S.mail],
+  champ: () => ({
+    one: '<b>A contract, mid-season.</b> The card gains a <b>To be kept on</b> block: the target, where you and your teammate stand, and when it is judged.',
+    short: '<b>Short of the target</b> - P9, behind your teammate. Amber, three rounds out.',
+    renewed: '<b>A renewed contract</b> - the salary says what it was before your podium.',
+    buy: `<b>Buying a seat</b> from the Enter panel. ${S.buyAt === 'tabs' ? 'A tab beside "Your car"' : 'A card of its own under the Enter panel'}: each privateer that sells, its price, and why a one-car team does not.`,
+    buyConfirm: '<b>Confirming</b> - the seat\'s price on signing, what it covers, and the balance after.',
+  })[S.champ],
+  contracts: () => '<b>The Contracts page</b>, at /home/contracts: four figures, what you hold now with what keeps you on, and every contract you have signed with how it ended. "Came to" is what the contract moved, never fees a team covered.',
+  home: () => '<b>A fifth door</b>, previewing what you hold and how each stands.',
+};
+const ENDED_NOTE = 'How a contract ended is a closed set, each on a hue the page already has: Completed the accepted green, Renewed the contract violet, Not kept on the declined slate, Terminated the fine\'s red. On course and Short of it are the success green and the warning amber. Fourth place and below stay unfilled, as everywhere.';
+const QUESTIONS = {
+  concept: ['Decisions 1-8 below.', 'Is anything missing from the market you had in mind - a team trying to buy you out of a contract, say, which I have left for later?'],
+  inbox: ['Does the violet wash on your team\'s column read as "your team", or should it stay plain with only the chip?', 'Team news (decision 4): a mail kind now, or leave it to Phase 11?'],
+  champ: ['Decision 7: a tab in the Enter panel, or a card under it?'],
+  contracts: ['Decision 8: a Home door, a History tab, or the navigation?', ENDED_NOTE],
+  home: ['Five doors across - or a different home for it?'],
+};
+
+const GROUPS = [
+  { k: 'view', label: 'Screen', opts: [['concept', 'Concept'], ['inbox', 'Inbox'], ['champ', 'Championship page'], ['contracts', 'Contracts'], ['home', 'Home']] },
+  { k: 'mail', label: 'Mail', for: ['inbox'], opts: [['renew', 'Renewal offered'], ['accRenew', 'Renewed'], ['notKept', 'Not kept on']] },
+  { k: 'champ', label: 'Case', for: ['champ'], opts: [['one', 'On course'], ['short', 'Short of target'], ['renewed', 'Renewed'], ['buy', 'Buy a seat'], ['buyConfirm', 'Buy: confirm']] },
+  { k: 'buyAt', label: 'Buy layout', for: ['champ'], when: () => S.champ.startsWith('buy'), opts: [['tabs', 'Tab'], ['card', 'Card']] },
+  { k: 'buyTab', label: 'Tab', for: ['champ'], when: () => S.champ.startsWith('buy') && S.buyAt === 'tabs', opts: [['seat', "A team's seat"], ['own', 'Your car']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+const S = { view: 'concept', mail: 'renew', champ: 'one', buyAt: 'tabs', buyTab: 'seat', theme: 'light' };
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => (!g.for || g.for.includes(S.view)) && (!g.when || g.when()))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = `<div class="box">${WHY[S.view]()}<div class="q"><b>To decide</b><ul>${QUESTIONS[S.view].map((q) => `<li>${q}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('stage').innerHTML = {
+    concept, inbox, champ, contracts, home,
+  }[S.view]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+</script>
+</body>
+</html>

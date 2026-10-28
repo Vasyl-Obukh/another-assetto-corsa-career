@@ -3019,7 +3019,8 @@ on it. Designed in `mockups/inbox.html`, agreed on 2026-10-25.
 Designed in `mockups/contracts.html`, every decision agreed on 2026-10-26, and
 the offers' volume and grouping reworked in `mockups/offer-groups.html` on
 2026-10-27. In two slices: the first is the whole loop from an offer arriving to a season's
-last round, the second what only matters once contracts exist.
+last round, the second what only matters once contracts exist - designed in
+`mockups/market.html` and agreed on 2026-10-28.
 
 ### Slice 1 - Seats and contracts
 
@@ -3111,9 +3112,49 @@ last round, the second what only matters once contracts exist.
 
 ### Slice 2 - The market
 
-- [ ] Contract expiry and renewal - contracts over more than a season
-- [ ] Buying a seat as a pay driver - asking a team yourself
-- [ ] A Contracts page, once there is a history of them
+Every contract stays one season - a championship's run, which the screens call
+a season and the code an edition. Contracts over several seasons were weighed
+and dropped: renewal carries a good partnership on without locking the player
+in when a better team calls.
+
+- [x] **What keeps you on, stated as signed**: a works team wants the top
+      third of the class or a finish ahead of the teammate, an independent the
+      top half or ahead of the teammate, a privateer nothing - fixed as a place
+      off the class's size when the offer is drawn, and shown on the contract
+      card all season with where the player and their teammate stand, On course
+      or Short of it
+- [x] **Renewal comes with the next season's offers**: judged on the day they
+      are drawn, on the class table as it stands - final for a yearly
+      championship, part-way for one that runs more often. Met, the team's
+      offer leads the season's offer mail as Your team, beside whoever else
+      calls and taking no seat from them; terminated, withdrawn or out of the
+      class, or the class no longer open to the player, no renewal. A team that
+      has not yet seen the player race in a run still under way keeps them on.
+      The clock jumped past the next season's opener skips
+      the decision, as it skips that season's offers: the contract simply reads
+      as completed
+- [x] **Renewal terms move with the result**: works teams' salary up 25% for
+      the class title and 10% for a podium, the bonus following it; an
+      independent on a podium covers every fee rather than half and leaves 5
+      points more of the prizes, to 60%; a privateer asks what the seat cost.
+      Otherwise the terms are the contract's own; a seat bought part-way
+      through renews for a whole season at what it cost a round. Declined or
+      lapsed, the partnership ends
+- [x] **Team news**: a mail kind with no reply, telling the player their team
+      is not keeping them on - what it asked and where they finished
+- [x] **Buying a seat**: a tab in a championship's Enter panel beside "Your
+      car", listing every privateer fielding two or more cars in the class, its
+      slower seat at 1.3-1.5x the season's fees, seeded on the career and the
+      season, priced on the rounds left once the season has begun. Works teams
+      and independents never sell. A pay driver's contract - fees covered, every
+      prize the player's, no fine - signed at once through a mail written
+      already accepted, so Read the offer opens it. A team whose offer waits
+      shows the offer instead
+- [x] **A Contracts page** at `/home/contracts`, a fifth door on Home: what
+      the contract came to and cost, every contract held now with what keeps
+      the player on, and every contract signed, season by season, with how it
+      ended - Completed, Renewed, Not kept on or Terminated
+- [ ] Left for later: another team buying the player out of a contract
 
 ## Phase 10 - Sponsors
 

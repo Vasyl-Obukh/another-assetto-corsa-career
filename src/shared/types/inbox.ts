@@ -5,12 +5,13 @@
 // A mail is stored as fields and worded when it is shown, so it reads in the
 // user's language and names the season's own copy of what it is about.
 
-import type { OfferPick, SeatOffer } from './contract.ts';
+import type { KeepStanding, OfferPick, SeatOffer } from './contract.ts';
 
 /**
- * What a mail is: a historic event's invitation, or a team's seat offer.
+ * What a mail is: a historic event's invitation, a team's seat offer, or team
+ * news, which wants no answer.
  */
-export type MailKind = 'invitation' | 'offer';
+export type MailKind = 'invitation' | 'offer' | 'notice';
 
 /**
  * How a mail that wants an answer was answered.
@@ -78,13 +79,66 @@ export interface Invitation {
 }
 
 /**
+ * A team telling the player it is not keeping them on: the contract it is
+ * about, what it asked and where the player finished.
+ */
+export interface TeamNotice {
+  /**
+   * The championship, by its id.
+   */
+  series: string;
+  /**
+   * The championship's display name, copied in.
+   */
+  seriesName: string;
+  /**
+   * Which season the contract ran in, counting from zero.
+   */
+  season: number;
+  /**
+   * Which of that season's editions.
+   */
+  edition: number;
+  /**
+   * How many editions the championship runs a season, which names the run.
+   */
+  editions: number;
+  /**
+   * The team, by its id in the championship.
+   */
+  team: string;
+  /**
+   * The team's display name, copied in.
+   */
+  teamName: string;
+  /**
+   * The team's nation, as Assetto Corsa's code, when it has one.
+   */
+  nation?: string;
+  /**
+   * The class's display name.
+   */
+  entryName: string;
+  /**
+   * The lowest place that would have kept the player on.
+   */
+  keep: number;
+  /**
+   * Where the player stood when the team decided.
+   */
+  standing: KeepStanding;
+}
+
+/**
  * One mail in a career's inbox.
  */
 export interface Mail {
   /**
    * Stable identifier, keyed by what it is about - `invite:<raceId>` for an
-   * invitation, `offer:<series>:<season>.<edition>` for an edition's seat offers -
-   * so nothing arrives twice.
+   * invitation, `offer:<series>:<season>.<edition>` for an edition's seat offers,
+   * `seat:<series>:<season>.<edition>` for a seat bought, and
+   * `notice:<series>:<season>.<edition>` for team news about a contract - so
+   * nothing arrives twice.
    */
   id: string;
   /**
@@ -122,4 +176,8 @@ export interface Mail {
    * championship's order, the best funded team first within each.
    */
   offers?: SeatOffer[];
+  /**
+   * What the team has to say, on team news.
+   */
+  notice?: TeamNotice;
 }

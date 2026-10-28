@@ -1,4 +1,6 @@
-import { CarIcon, CheckIcon, ChevronRightIcon, KeyRoundIcon, LockIcon, PenLineIcon } from 'lucide-react';
+import {
+  CarIcon, CheckIcon, ChevronRightIcon, KeyRoundIcon, LockIcon, PenLineIcon, RefreshCwIcon,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -13,7 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
-import { INVITATION_ACCENT, TRADE_BUTTON } from '@/lib/accents';
+import { CONTRACT_ACCENT, INVITATION_ACCENT, TRADE_BUTTON } from '@/lib/accents';
 import { bonusLine } from '@/lib/inbox';
 import { cn } from '@/lib/utils.ts';
 
@@ -70,9 +72,11 @@ const LABEL_WIDTH = 8;
 
 // One class's offers side by side: a column per team and a row per term, each
 // column ending in its own Accept, and a last column saying what racing it on
-// the player's own comes to. Before prizes is what the season comes to as
-// signed. Once the mail is accepted the signed column is tinted the accepted
-// green and the rest muted, and the own column drops out.
+// the player's own comes to. A renewal from the player's own team leads its
+// class, washed in the contract's violet, saying what it renews. Before prizes
+// is what the season comes to as signed. Once the mail is accepted the signed
+// column is tinted the accepted green and the rest muted, and the own column
+// drops out.
 export const OfferCompare = ({
   offers, status, signed, answered, money, carName, link, busy, onAccept,
 }: OfferCompareProps) => {
@@ -88,6 +92,13 @@ export const OfferCompare = ({
   const ownCost = first.fees + first.rent * first.rounds;
   const isSigned = (offer: SeatOffer): boolean => signed?.entry === offer.entry && signed.team === offer.team;
   const muted = (offer: SeatOffer): boolean => !awaiting && !isSigned(offer);
+  // Washed only while there is a choice to make; once answered, signed or not
+  // says it.
+  const renewing = (offer: SeatOffer): boolean => awaiting && offer.renews !== undefined;
+  // What a renewal's term was before, where it changed.
+  const was = (before: number | undefined, now: number, text: string): string | null => (
+    before !== undefined && before !== now ? t('inbox.compare.was', { value: text }) : null
+  );
   // The one offer best on a row, while there is still a choice to make.
   const bestBy = (score: (offer: SeatOffer) => number): SeatOffer | null => {
     if (!awaiting || offers.length < 2) return null;
@@ -112,7 +123,12 @@ export const OfferCompare = ({
   ): ReactNode => (
     <div
       key={`${offer.entry}:${offer.team}`}
-      className={cn(COMPARE_COLUMN.cell, isSigned(offer) && COMPARE_COLUMN.signed, best && COMPARE_COLUMN.best)}
+      className={cn(
+        COMPARE_COLUMN.cell,
+        renewing(offer) && COMPARE_COLUMN.renewal,
+        isSigned(offer) && COMPARE_COLUMN.signed,
+        best && COMPARE_COLUMN.best,
+      )}
     >
       <span className={cn('font-medium', muted(offer) && 'font-normal text-muted-foreground')}>
         {value}
@@ -137,9 +153,13 @@ export const OfferCompare = ({
 
   const pay = (offer: SeatOffer): [string, string] => {
     if (offer.pay === 'salary') {
+      const before = offer.renews && offer.renews.amount !== offer.amount ? offer.renews : null;
+
       return [
         t('inbox.compare.salary', { amount: formatMoney(offer.amount) }),
-        t('inbox.offer.terms.salaryHint', { amount: formatMoney(roundSalary(offer, offer.rounds) ?? 0) }),
+        before
+          ? t('inbox.compare.raised', { amount: formatMoney(before.amount), place: before.place })
+          : t('inbox.offer.terms.salaryHint', { amount: formatMoney(roundSalary(offer, offer.rounds) ?? 0) }),
       ];
     }
     if (offer.pay === 'seat') {
@@ -177,10 +197,14 @@ export const OfferCompare = ({
       );
     }
 
+    let label = t('inbox.compare.accept');
+    if (offer.renews) label = t('inbox.compare.renew');
+    else if (price > 0) label = t('inbox.offer.reply.acceptPay', { amount: formatMoney(price) });
+
     return (
       <Button className="w-full" disabled={busy} onClick={() => onAccept(offer)}>
-        <PenLineIcon />
-        {price > 0 ? t('inbox.offer.reply.acceptPay', { amount: formatMoney(price) }) : t('inbox.compare.accept')}
+        {offer.renews ? <RefreshCwIcon /> : <PenLineIcon />}
+        {label}
       </Button>
     );
   };
@@ -197,7 +221,11 @@ export const OfferCompare = ({
       {offers.map((offer) => (
         <div
           key={`${offer.entry}:${offer.team}`}
-          className={cn(COMPARE_COLUMN.head, isSigned(offer) && COMPARE_COLUMN.signedHead)}
+          className={cn(
+            COMPARE_COLUMN.head,
+            renewing(offer) && COMPARE_COLUMN.renewalHead,
+            isSigned(offer) && COMPARE_COLUMN.signedHead,
+          )}
         >
           <span className="relative aspect-[16/9] w-full overflow-hidden rounded-md bg-muted">
             <ContentImage
@@ -213,6 +241,12 @@ export const OfferCompare = ({
           </span>
           <span className="flex flex-wrap items-center gap-1">
             <BudgetBadge budget={offer.budget} />
+            {offer.renews ? (
+              <Badge className={cn('gap-1', CONTRACT_ACCENT)}>
+                <RefreshCwIcon className="size-3" />
+                {t('inbox.compare.yourTeam')}
+              </Badge>
+            ) : null}
             {status === 'accepted' ? (
               <Badge className={isSigned(offer) ? INVITATION_ACCENT.accepted : INVITATION_ACCENT.declined}>
                 {t(isSigned(offer) ? 'inbox.compare.signed' : 'inbox.status.declined')}
@@ -249,7 +283,11 @@ export const OfferCompare = ({
       {row(
         t('inbox.offer.terms.fees'),
         offers.map((offer) => (offer.feeCover >= 1
-          ? cell(offer, t('inbox.offer.terms.covered'), t('inbox.compare.coveredHint'))
+          ? cell(
+            offer,
+            t('inbox.offer.terms.covered'),
+            was(offer.renews?.feeCover, offer.feeCover, t('inbox.offer.terms.half')) ?? t('inbox.compare.coveredHint'),
+          )
           : cell(offer, t('inbox.offer.terms.half'), t('inbox.compare.halfHint', { amount: formatMoney(Math.round(perRound / 2)) })))),
         ownCell(t('inbox.compare.feesOwn'), t('inbox.compare.feesOwnHint', { amount: formatMoney(perRound) })),
       )}
@@ -281,7 +319,9 @@ export const OfferCompare = ({
           : cell(
             offer,
             t('inbox.offer.terms.share', { share: offer.prizeShare }),
-            t('inbox.compare.keeps', { rest: 100 - offer.prizeShare }),
+            was(offer.renews?.prizeShare, offer.prizeShare, t('inbox.offer.terms.share', {
+              share: offer.renews?.prizeShare ?? 0,
+            })) ?? t('inbox.compare.keeps', { rest: 100 - offer.prizeShare }),
             offer === bestShare,
           ))),
         ownCell(t('inbox.offer.terms.shareAll'), null),
@@ -290,6 +330,13 @@ export const OfferCompare = ({
         t('inbox.offer.terms.bonus'),
         offers.map((offer) => cell(offer, bonus(offer), offer.bonus ? t('inbox.offer.terms.bonusHint') : null)),
         ownCell(t('inbox.compare.none'), null),
+      )}
+      {row(
+        t('inbox.compare.keep'),
+        offers.map((offer) => (offer.keep === undefined
+          ? cell(offer, t('inbox.compare.keepAlways'), t('inbox.compare.keepAlwaysHint'))
+          : cell(offer, t('inbox.compare.keepPlace', { place: offer.keep }), t('inbox.compare.keepHint')))),
+        ownCell(t('inbox.compare.keepOwn'), null),
       )}
       {row(
         t('inbox.offer.terms.missed'),

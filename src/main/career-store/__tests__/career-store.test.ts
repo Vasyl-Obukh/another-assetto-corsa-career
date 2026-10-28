@@ -12,7 +12,9 @@ import {
 } from './fixtures.ts';
 import { classOffers, rungPosition } from '../../../core/seat-offers/index.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
-import { ContentSource, Discipline, TeamBudget } from '../../../shared/types/index.ts';
+import {
+  ContentSource, Discipline, SeasonLength, TeamBudget,
+} from '../../../shared/types/index.ts';
 import type {
   Car,
   Career,
@@ -38,7 +40,9 @@ import type {
 } from '../../../shared/types/index.ts';
 import { addDays, weekdayOf } from '../../../shared/utils/calendar-days/index.ts';
 import { dropRating, ratingFloor } from '../../../shared/utils/career-eligibility/index.ts';
-import { offerDay, offerId } from '../../../shared/utils/contracts/index.ts';
+import {
+  noticeId, offerDay, offerId, seatId,
+} from '../../../shared/utils/contracts/index.ts';
 import { prizeTable } from '../../../shared/utils/prizes/index.ts';
 import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
@@ -2162,6 +2166,184 @@ describe('main/career-store', () => {
       const { store } = await build({ career: entered, listings: [makeListing(championship)] });
 
       expect(store.get()?.inbox).toEqual([]);
+    });
+  });
+
+  describe('a team deciding whether to keep the player on', () => {
+    /**
+     * The teamed cup running twice a year, under its own id.
+     */
+    const HALVES: Championship = { ...TEAMED, id: 'halves-cup', seasonLength: SeasonLength.HALF_YEAR };
+
+    /**
+     * A career that raced the first half under a contract with the cup's
+     * independent, keeping the player on in the top 3 of six, and the day the
+     * second half's offers go out.
+     * @param place The player's place in the class's table, or null for none
+     * @param mate Their teammate's place
+     * @param over What else to change about the career
+     * @returns The career and the day
+     */
+    const decided = (place: number | null, mate = 6, over: Partial<Career> = {}) => {
+      const base = careerWith({});
+      const season = base.seasons[0];
+      const second = materialiseEvents(HALVES, season, 1, season.startDate, 'main');
+      const day = offerDay(second[0].date);
+      const row = (seat: string, position: number) => ({
+        seat, driver: seat, team: 'indie', position, points: 0, wins: 0, podiums: 0, bestFinish: position, races: 2,
+      });
+      const entry = makeEntry({
+        series: HALVES.id,
+        championship: HALVES,
+        playerSeat: 'indie-2',
+        contract: {
+          ...INDIE_TERMS, feeCover: 0.5, keep: 3, offer: offerId(HALVES.id, 0, 0), signed: '2027-01-01',
+        },
+        events: [makeEvent('one', '2027-01-03', { status: 'raced' }), makeEvent('two', '2027-01-04', { status: 'raced' })],
+        standings: {
+          classes: [{
+            entry: 'main', name: 'Main', drivers: [...(place === null ? [] : [row('indie-2', place)]), row('indie-1', mate)], teams: [],
+          }],
+          updatedAt: '',
+        },
+      });
+      const career = careerWith({ entries: [entry], offersDrawn: [`${HALVES.id}:0`] }, addDays(day, -1));
+
+      return { career: { ...career, ...over }, day };
+    };
+
+    it('leads the next half\'s offers with the renewal of a player who met the target, better after a podium', async () => {
+      const { career, day } = decided(2);
+      const { store } = await build({ career, listings: [makeListing(HALVES)], cars: [TEST_CAR] });
+      await store.advanceTo(day);
+      const [first] = mailOf(store.get(), offerId(HALVES.id, 0, 1))?.offers ?? [];
+
+      expect(first).toMatchObject({
+        team: 'indie', feeCover: 1, prizeShare: 55, renews: { season: 0, edition: 0, place: 2, feeCover: 0.5 },
+      });
+      expect(entryOf(store.get(), HALVES.id).contract?.kept).toBe('offered');
+    });
+
+    it('marks the contract renewed once its renewal is signed', async () => {
+      const { career, day } = decided(2);
+      const { store } = await build({ career, listings: [makeListing(HALVES)], cars: [TEST_CAR] });
+      await store.advanceTo(day);
+      await store.answer({ mail: offerId(HALVES.id, 0, 1), answer: 'accepted', offer: { entry: 'main', team: 'indie' } });
+      const runs = store.get()?.seasons[0].entries.filter((one) => one.series === HALVES.id) ?? [];
+
+      expect(runs.map((one) => [one.edition, one.contract?.kept, !!one.contract?.renews])).toEqual([
+        [0, 'renewed', false], [1, undefined, true],
+      ]);
+    });
+
+    it('keeps on a player behind the target but ahead of their teammate', async () => {
+      const { career, day } = decided(4, 5);
+      const { store } = await build({ career, listings: [makeListing(HALVES)], cars: [TEST_CAR] });
+      await store.advanceTo(day);
+
+      expect(entryOf(store.get(), HALVES.id).contract?.kept).toBe('offered');
+    });
+
+    it('sends team news to a player short of both, and offers no renewal', async () => {
+      const { career, day } = decided(5, 4);
+      const { store } = await build({ career, listings: [makeListing(HALVES)], cars: [TEST_CAR] });
+      await store.advanceTo(day);
+      const news = mailOf(store.get(), noticeId(HALVES.id, 0, 0));
+
+      expect(news).toMatchObject({
+        kind: 'notice', arrived: day, notice: { team: 'indie', keep: 3, standing: { place: 5, mate: 4, kept: false } },
+      });
+      expect(news?.deadline).toBeUndefined();
+      expect(entryOf(store.get(), HALVES.id).contract?.kept).toBe('released');
+      expect(mailOf(store.get(), offerId(HALVES.id, 0, 1))?.offers?.some((one) => one.renews)).toBeFalsy();
+    });
+
+    // Guards a fix: a run still under way that the player had raced none of
+    // yet let them go on an empty table.
+    it('keeps on a player not yet raced in a run still under way', async () => {
+      const { career, day } = decided(null);
+      const entry = career.seasons[0].entries[0];
+      const running = {
+        ...entry, events: [makeEvent('one', addDays(day, 30))], standings: { classes: [], updatedAt: '' },
+      };
+      const { store } = await build({
+        career: { ...career, seasons: [{ ...career.seasons[0], entries: [running] }] },
+        listings: [makeListing(HALVES)],
+        cars: [TEST_CAR],
+      });
+      await store.advanceTo(day);
+
+      expect(entryOf(store.get(), HALVES.id).contract?.kept).toBe('offered');
+    });
+
+    // Guards a fix: a renewal went out for a class the ladder no longer opened
+    // to the player.
+    it('offers no renewal in a class no longer open to the player', async () => {
+      const { career, day } = decided(1, 6, {
+        level: {
+          [Discipline.SINGLE_SEATER]: 5, [Discipline.SPORTSCAR]: 5, [Discipline.TOURING]: 5, [Discipline.ROAD]: 5,
+        },
+      });
+      const { store } = await build({ career, listings: [makeListing(HALVES)], cars: [TEST_CAR] });
+      await store.advanceTo(day);
+
+      expect(entryOf(store.get(), HALVES.id).contract?.kept).toBeUndefined();
+    });
+  });
+
+  describe('buySeat', () => {
+    it('signs a privateer\'s seat at once, through a mail written already accepted', async () => {
+      const { store } = await build({ career: careerWith({}), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+      await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
+      const career = store.get();
+      const { contract } = entryOf(career);
+
+      expect(contract).toMatchObject({
+        team: 'priv', pay: 'seat', feeCover: 1, prizeShare: 100, bought: true, offer: seatId(CUP.id, 0, 0),
+      });
+      expect(contract?.keep).toBeUndefined();
+      expect(mailOf(career, seatId(CUP.id, 0, 0))).toMatchObject({ opened: true, reply: { answer: 'accepted' } });
+      expect(career?.ledger).toEqual([expect.objectContaining({ kind: 'seat', amount: -(contract?.amount ?? 0) })]);
+      expect(career?.money).toBe(100_000 - (contract?.amount ?? 0));
+    });
+
+    it('turns down the offers for the edition still waiting', async () => {
+      const { store } = await build({
+        career: offered([seatOffer()]), listings: [makeListing(TEAMED)], cars: [TEST_CAR],
+      });
+      await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
+
+      expect(mailOf(store.get(), OFFER_MAIL)?.reply?.answer).toBe('declined');
+    });
+
+    it('refuses a team that sells no seat', async () => {
+      const { store } = await build({ career: careerWith({}), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+
+      await expect(store.buySeat({ series: CUP.id, entry: 'main', team: 'works' }))
+        .rejects.toMatchObject({ code: 'contract.sale.none' });
+      expect(store.get()?.seasons[0].entries).toEqual([]);
+    });
+
+    it('refuses a seat the career cannot pay for', async () => {
+      const { store } = await build({
+        career: { ...careerWith({}), money: 100 }, listings: [makeListing(TEAMED)], cars: [TEST_CAR],
+      });
+
+      await expect(store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' }))
+        .rejects.toMatchObject({ code: 'contract.short' });
+    });
+
+    // Guards a fix: buying again after terminating reused the mail's id, and
+    // with it the ledger line's key.
+    it('writes a seat bought again in the same run under a mail and a ledger line of its own', async () => {
+      const { store } = await build({ career: careerWith({}), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+      await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
+      await store.withdraw({ series: CUP.id, entry: 'main' });
+      await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
+      const keys = store.get()?.ledger.map((line) => line.key) ?? [];
+
+      expect(store.get()?.inbox.map((mail) => mail.id)).toEqual([seatId(CUP.id, 0, 0), `${seatId(CUP.id, 0, 0)}#2`]);
+      expect(new Set(keys).size).toBe(keys.length);
     });
   });
 

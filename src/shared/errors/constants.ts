@@ -255,6 +255,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'contract.short': 'The seat costs {{price}} and the career holds {{money}}.',
   'contract.gone': '{{team}} no longer fields that seat in {{series}}.',
   'contract.release.short': 'Terminating the contract costs {{fee}} and the career holds {{money}}.',
+  'contract.sale.none': 'That team sells no seat in {{series}}.',
   'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
   'historic.points':
     'Points system "{{system}}" of {{event}} pays points, but a historic event pays only its prize money.',

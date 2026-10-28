@@ -18,6 +18,7 @@ import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { historicRung } from '../../core/historic-draw/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
+import { seatsForSale } from '../../core/seat-offers/index.ts';
 import { seedFrom } from '../../core/seeded-random/index.ts';
 import {
   climateOf, formatOf, hemisphereOf, raceWeekdayOf, runRaceId,
@@ -52,6 +53,8 @@ import type {
   HistoricDraw,
   HistoricInvitation,
   InvitationState,
+  KeepStanding,
+  KeptOutcome,
   LaunchRecord,
   Mail,
   MailAnswer,
@@ -72,7 +75,9 @@ import type {
 import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
-import { offerDeadline, offerId, roundFine } from '../../shared/utils/contracts/index.ts';
+import {
+  noticeId, offerDeadline, offerId, roundFine,
+} from '../../shared/utils/contracts/index.ts';
 import { editionEntry, editionOver, editionsOf } from '../../shared/utils/editions/index.ts';
 import { entryFeeOf } from '../../shared/utils/entry-fees/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
@@ -994,9 +999,148 @@ export const signedContract = (mail: Mail, terms: ContractTerms, signed: string)
   prizeShare: terms.prizeShare,
   ...(terms.bonus === undefined ? {} : { bonus: terms.bonus }),
   ...(terms.lifeline ? { lifeline: true as const } : {}),
+  ...(terms.keep === undefined ? {} : { keep: terms.keep }),
+  ...(terms.renews === undefined ? {} : { renews: terms.renews }),
+  ...(terms.bought ? { bought: true as const } : {}),
+  ...(terms.pricedRounds === undefined ? {} : { pricedRounds: terms.pricedRounds }),
   offer: mail.id,
   signed,
 });
+
+/**
+ * The contract a season's renewal would renew: the one the player raced the
+ * championship's run before it under, still to be decided on - the edition
+ * before in the same season, or last season's last.
+ * @param career The career
+ * @param season The season the run to be offered falls in
+ * @param championship The championship, as the library holds it
+ * @param edition Which of the season's editions is to be offered
+ * @returns The season it ran in and the entry raced under it, or null where
+ * the player raced the run before under no contract, terminated it, or its
+ * team has decided already
+ */
+export const previousRun = (
+  career: Career,
+  season: CareerSeason,
+  championship: Championship,
+  edition: number,
+): { season: CareerSeason; entry: SeasonEntry & { contract: Contract } } | null => {
+  const before = edition > 0 ? season : career.seasons.find((one) => one.index === season.index - 1);
+  const at = edition > 0 ? edition - 1 : editionsOf(championship) - 1;
+  // The contract still in force: one terminated and bought again leaves two
+  // entries of the run.
+  const entry = before?.entries.find((one) => (
+    one.series === championship.id && one.edition === at && !isHistoric(one) && one.contract?.ended === undefined
+  ));
+  const contract = entry?.contract;
+  if (!before || !entry || !contract || contract.kept !== undefined) return null;
+
+  return { season: before, entry: { ...entry, contract } };
+};
+
+/**
+ * A career with what came of one contract's team deciding written onto it.
+ * @param career The career
+ * @param season Which season the contract ran in
+ * @param series The championship's id
+ * @param edition Which of that season's editions
+ * @param kept What came of it
+ * @returns The career
+ */
+export const withKept = (
+  career: Career,
+  season: number,
+  series: string,
+  edition: number,
+  kept: KeptOutcome,
+): Career => ({
+  ...career,
+  seasons: career.seasons.map((one) => (one.index !== season ? one : {
+    ...one,
+    entries: one.entries.map((entry) => (
+      entry.series === series && entry.edition === edition && entry.contract?.ended === undefined && !isHistoric(entry)
+        && entry.contract
+        ? { ...entry, contract: { ...entry.contract, kept } }
+        : entry
+    )),
+  })),
+});
+
+/**
+ * A team's news that it is not keeping the player on, as the mail it arrives
+ * in.
+ * @param season The season the contract ran in
+ * @param entry The entry raced under it, which must hold one with a place to
+ * keep
+ * @param standing Where the player stood when the team decided
+ * @param today The ISO date it arrives on
+ * @param arrivesIn Which season it arrives in, counting from zero
+ * @returns The mail
+ */
+export const noticeMail = (
+  season: CareerSeason,
+  entry: SeasonEntry & { contract: Contract },
+  standing: KeepStanding,
+  today: string,
+  arrivesIn: number,
+): Mail => {
+  const { contract } = entry;
+  const classEntry = entry.championship.entries.find((one) => one.id === entry.entry);
+
+  return {
+    id: noticeId(entry.series, season.index, entry.edition),
+    kind: 'notice',
+    season: arrivesIn,
+    arrived: today,
+    opened: false,
+    notice: {
+      series: entry.series,
+      seriesName: entry.championship.name,
+      season: season.index,
+      edition: entry.edition,
+      editions: editionsOf(entry.championship),
+      team: contract.team,
+      teamName: contract.teamName,
+      ...(contract.nation === undefined ? {} : { nation: contract.nation }),
+      entryName: classEntry?.name ?? entry.entry,
+      keep: contract.keep ?? standing.size,
+      standing,
+    },
+  };
+};
+
+/**
+ * The seats a class's privateers sell for one edition, priced on the rounds
+ * still to race from the career's clock.
+ * @param career The career
+ * @param season The season the edition falls in
+ * @param championship The championship
+ * @param availability What the install can race of it
+ * @param entry The class
+ * @param edition Which of the season's editions
+ * @returns The seats, as the contracts they would sign, the cheapest first
+ */
+export const saleSeats = (
+  career: Career,
+  season: CareerSeason,
+  championship: Championship,
+  availability: SeriesAvailability,
+  entry: ClassEntry,
+  edition: number,
+): ContractTerms[] => {
+  const events = materialiseEvents(championship, season, edition, career.date, entry.id);
+  const left = events.filter((event) => event.status !== 'missed');
+  if (left.length === 0) return [];
+
+  return seatsForSale({
+    championship,
+    entry,
+    salt: seasonSalt(career, season.index, edition),
+    cars: eligibleCarsIn(availability, left[0].round, entry.id),
+    fees: events.map((event) => event.entryFee ?? 0),
+    winnerPrize: prizeTable(championship, entry.id, 'positions')[0] ?? 0,
+  }, left.length);
+};
 
 /**
  * A career with every seat offer for one edition still to be answered turned

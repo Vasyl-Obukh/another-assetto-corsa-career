@@ -156,6 +156,31 @@ const contracted = (offer: string): SeasonEntry => entered({
  * @param arrived The ISO date it arrived
  * @returns The item
  */
+/**
+ * A team's news that it is not keeping the player on in the cup.
+ */
+const NOTICE: Mail = {
+  id: 'notice:cup:0.0',
+  kind: 'notice',
+  season: 0,
+  arrived: '2026-04-09',
+  opened: false,
+  notice: {
+    series: 'cup',
+    seriesName: 'Sunday Cup',
+    season: 0,
+    edition: 0,
+    editions: 1,
+    team: 'alpha',
+    teamName: 'Alpha Racing',
+    entryName: 'Main',
+    keep: 3,
+    standing: {
+      place: 5, mate: 2, size: 12, kept: false,
+    },
+  },
+};
+
 const arriving = (id: string, arrived: string) => {
   const one = mail({ id, arrived });
 
@@ -321,6 +346,15 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(inFolder(offers, 'invitation')).toBe(false);
       expect(inFolder(unread, 'offer')).toBe(false);
     });
+
+    it('lists team news under its own kind, and never as awaiting a reply', () => {
+      const news = inboxItem(career([]), NOTICE);
+
+      expect(inFolder(news, 'notice')).toBe(true);
+      expect(inFolder(news, 'offer')).toBe(false);
+      expect(inFolder(news, 'awaiting')).toBe(false);
+      expect(inFolder(unread, 'notice')).toBe(false);
+    });
   });
 
   describe('matchesSearch', () => {
@@ -360,6 +394,14 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(matchesSearch(offers, 'sunday cup')).toBe(true);
       expect(matchesSearch(offers, 'gamma')).toBe(true);
       expect(matchesSearch(offers, 'delta')).toBe(false);
+    });
+
+    it("matches team news's championship and its team", () => {
+      const news = inboxItem(career([]), NOTICE);
+
+      expect(matchesSearch(news, 'sunday cup')).toBe(true);
+      expect(matchesSearch(news, 'alpha')).toBe(true);
+      expect(matchesSearch(news, 'beta')).toBe(false);
     });
   });
 
