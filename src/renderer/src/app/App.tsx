@@ -32,6 +32,7 @@ import { Rating } from '@/screens/rating';
 import { ResultDetail, Results } from '@/screens/results';
 import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
+import { Sponsors } from '@/screens/sponsors';
 import { Start } from '@/screens/start';
 import { Store } from '@/screens/store';
 import { TrackDetail } from '@/screens/track-detail';
@@ -149,6 +150,7 @@ export const App = ({ initialReport }: AppProps) => {
               <Route path={ROUTE.finances} element={<Finances />} />
               <Route path={ROUTE.rating} element={<Rating />} />
               <Route path={ROUTE.contracts} element={<Contracts />} />
+              <Route path={ROUTE.sponsors} element={<Sponsors />} />
               <Route path={ROUTE.yearReview} element={<YearReview />} />
               <Route path={ROUTE.championshipReview} element={<ChampionshipReview />} />
               <Route path={ROUTE.store} element={<Store />} />

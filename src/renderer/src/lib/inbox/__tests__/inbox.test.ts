@@ -181,6 +181,46 @@ const NOTICE: Mail = {
   },
 };
 
+/**
+ * Who backs the sponsor mails below.
+ */
+const SPONSOR = { name: 'Halden Lubricants', trade: 'oil', nation: 'GBR' } as const;
+
+/**
+ * A partner's offer, brought by a round at Spa.
+ */
+const SPONSOR_MAIL: Mail = {
+  id: 'sponsor:spa/r1@0.0',
+  kind: 'sponsor',
+  season: 0,
+  arrived: '2026-04-09',
+  opened: false,
+  deadline: '2026-05-09',
+  sponsor: {
+    sponsor: SPONSOR,
+    slot: 'partner',
+    covers: null,
+    perks: [{ kind: 'racePay', amount: 200 }],
+    target: { kind: 'start' },
+    goal: { kind: 'racesStarted', count: 20 },
+    rung: 5,
+  },
+};
+
+/**
+ * News of a partner's year ending with its goal missed.
+ */
+const SPONSOR_NEWS: Mail = {
+  id: 'sponsorNews:sponsor:spa/r1@0.0',
+  kind: 'sponsorNews',
+  season: 0,
+  arrived: '2026-04-09',
+  opened: false,
+  sponsorNews: {
+    deal: 'sponsor:spa/r1@0.0', sponsor: SPONSOR, slot: 'partner', goal: { kind: 'racesStarted', count: 20 }, reached: 12, paid: 2400,
+  },
+};
+
 const arriving = (id: string, arrived: string) => {
   const one = mail({ id, arrived });
 
@@ -355,6 +395,18 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(inFolder(news, 'awaiting')).toBe(false);
       expect(inFolder(unread, 'notice')).toBe(false);
     });
+
+    it("lists a sponsor's offer and sponsor news together under Sponsors, and nothing else there", () => {
+      const offer = inboxItem(career([]), SPONSOR_MAIL);
+      const news = inboxItem(career([]), SPONSOR_NEWS);
+
+      expect(inFolder(offer, 'sponsor')).toBe(true);
+      expect(inFolder(news, 'sponsor')).toBe(true);
+      expect(inFolder(offer, 'awaiting')).toBe(true);
+      expect(inFolder(news, 'awaiting')).toBe(false);
+      expect(inFolder(unread, 'sponsor')).toBe(false);
+      expect(inFolder(inboxItem(career([]), NOTICE), 'sponsor')).toBe(false);
+    });
   });
 
   describe('matchesSearch', () => {
@@ -402,6 +454,12 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(matchesSearch(news, 'sunday cup')).toBe(true);
       expect(matchesSearch(news, 'alpha')).toBe(true);
       expect(matchesSearch(news, 'beta')).toBe(false);
+    });
+
+    it("matches the sponsor's name on its offer and on its news", () => {
+      expect(matchesSearch(inboxItem(career([]), SPONSOR_MAIL), 'halden')).toBe(true);
+      expect(matchesSearch(inboxItem(career([]), SPONSOR_NEWS), 'lubricants')).toBe(true);
+      expect(matchesSearch(inboxItem(career([]), SPONSOR_MAIL), 'vantor')).toBe(false);
     });
   });
 

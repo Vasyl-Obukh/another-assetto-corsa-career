@@ -5,7 +5,7 @@ import type {
   Championship, RacePlace, RoundScore, SeasonEntry, SeasonEvent,
 } from '../../../types/index.ts';
 import {
-  buildStandings, entryResults, roundResult, teammateSeat,
+  buildStandings, entryResults, playerPlace, playerStanding, roundResult, teammateSeat,
 } from '../standings.ts';
 
 /**
@@ -316,6 +316,49 @@ describe('shared/utils/standings', () => {
     it('is no one for a seat with no team, or a team of one', () => {
       expect(teammateSeat({ championship: SERIES, entry: 'main', playerSeat: 'seat-1' })).toBeNull();
       expect(teammateSeat({ championship: fourSeats(), entry: 'main', playerSeat: 'main-3' })).toBeNull();
+    });
+  });
+
+  describe('playerPlace', () => {
+    const seat = { entry: 'main', playerSeat: 'seat-2' };
+    const race = (places: RacePlace[], simulated?: true) => ({
+      launch: 0, session: null, name: 'Race', pointsSystem: 'standard', places, ...(simulated ? { simulated } : {}),
+    });
+
+    it('is the place the player drove in their own seat', () => {
+      const mine = place('seat-2', 2, 18);
+
+      expect(playerPlace(seat, race([place('seat-1', 1, 25), mine]))).toBe(mine);
+    });
+
+    it('is nothing for a race simulated, raced by a stand-in or only carrying qualifying points', () => {
+      expect(playerPlace(seat, race([place('seat-2', 2, 18)], true))).toBeUndefined();
+      expect(playerPlace(seat, race([place('seat-2', 2, 18, { substitute: true })]))).toBeUndefined();
+      expect(playerPlace(seat, race([place('seat-2', 2, 18, { bonusOnly: true })]))).toBeUndefined();
+    });
+
+    it('is nothing for the same seat in another class', () => {
+      expect(playerPlace(seat, race([place('seat-2', 2, 18, { entry: 'other' })]))).toBeUndefined();
+    });
+  });
+
+  describe('playerStanding', () => {
+    const [table] = buildStandings(SERIES, [round([
+      place('seat-1', 1, 25),
+      place('seat-2', 2, 18, { substitute: true }),
+      place('seat-3', 3, 15),
+    ])], AT).classes;
+
+    it('is the player\'s own row of their class, the substitute\'s left out', () => {
+      const row = playerStanding({ entry: 'main', playerSeat: 'seat-2', standings: { classes: [table], updatedAt: AT } });
+
+      expect(row?.seat).toBe('seat-2');
+      expect(row?.substitute).toBeUndefined();
+    });
+
+    it('is nothing when the table holds no class of theirs', () => {
+      expect(playerStanding({ entry: 'other', playerSeat: 'seat-2', standings: { classes: [table], updatedAt: AT } }))
+        .toBeUndefined();
     });
   });
 });

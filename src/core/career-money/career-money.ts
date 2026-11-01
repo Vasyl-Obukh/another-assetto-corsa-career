@@ -9,11 +9,15 @@ import type {
   Career,
   CareerSeason,
   Contract,
+  LedgerKind,
   LedgerLine,
   OwnedCar,
   SeasonEntry,
   SeasonEvent,
   SeatOffer,
+  SponsorDeal,
+  SponsorPerk,
+  SponsorPerkKind,
 } from '../../shared/types/index.ts';
 import {
   activeContract, bonusFor, coveredFee, roundFine, roundSalary,
@@ -21,6 +25,10 @@ import {
 import { editionOver } from '../../shared/utils/editions/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
+import {
+  coversEntry, dealCovers, dealScale, goalStanding, judgedRaces, placeIs, sponsorFigure,
+} from '../../shared/utils/sponsors/index.ts';
+import { playerPlace, playerStanding } from '../../shared/utils/standings/index.ts';
 
 /**
  * What entering one of a career's rounds costs the player.
@@ -58,8 +66,27 @@ export const feePaid = (career: Career, event: SeasonEvent): boolean => (
 );
 
 /**
+ * The sponsor whose deal covers every entry fee of a round's championship, on
+ * the round's day: one fee it pays moves no money and is no line, as a team's
+ * is.
+ * @param career The career
+ * @param entry The season's entry the round belongs to
+ * @param event The round
+ * @returns The deal, or null when no sponsor covers it
+ */
+export const coveringSponsor = (
+  career: Pick<Career, 'sponsors'>,
+  entry: SeasonEntry,
+  event: SeasonEvent,
+): SponsorDeal | null => career.sponsors.find((deal) => (
+  dealCovers(deal, event.date)
+  && deal.perks.some((perk) => perk.kind === 'championship' && perk.series === entry.series)
+)) ?? null;
+
+/**
  * What launching a round's next session costs: its fee, when that is still to
- * be paid. Only a career has money, so a standalone championship owes nothing.
+ * be paid and no sponsor covers it. Only a career has money, so a standalone
+ * championship owes nothing.
  * @param career The career
  * @param entry The season's entry the round belongs to
  * @param event The round
@@ -68,7 +95,9 @@ export const feePaid = (career: Career, event: SeasonEvent): boolean => (
 export const feeOwed = (career: Career, entry: SeasonEntry, event: SeasonEvent): number => {
   const fee = feeOf(entry, event);
 
-  return career.kind === 'career' && fee !== null && !feePaid(career, event) ? fee : 0;
+  return career.kind === 'career' && fee !== null && !feePaid(career, event) && !coveringSponsor(career, entry, event)
+    ? fee
+    : 0;
 };
 
 /**
@@ -463,9 +492,7 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
           const key = `race:${event.raceId}:${race.launch}`;
           // The player's own place alone: a race simulated, or raced in their
           // seat by the driver it names, pays the player nothing.
-          const place = race.simulated || paid.has(key) ? undefined : race.places.find((one) => (
-            one.entry === entry.entry && one.seat === entry.playerSeat && !one.substitute && !one.bonusOnly
-          ));
+          const place = paid.has(key) ? undefined : playerPlace(entry, race);
           const purse = place ? scaledPrize(positions[place.classPosition - 1] ?? 0, speed) : 0;
           if (place && purse > 0) {
             owed.push({
@@ -484,9 +511,7 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
       const key = `standings:${season.index}:${entry.series}:${entry.edition}`;
       // A championship the player withdrew from pays its races and no table.
       if (historic || entry.withdrawn || paid.has(key) || !settled(entry, career.date)) continue;
-      const row = entry.standings.classes
-        .find((one) => one.entry === entry.entry)?.drivers
-        .find((one) => one.seat === entry.playerSeat && !one.substitute);
+      const row = playerStanding(entry);
       const standings = prizeTable(entry.championship, entry.entry, 'standings');
       const purse = row && row.races > 0 ? scaledPrize(standings[row.position - 1] ?? 0, speed) : 0;
       const last = entry.events.reduce<string>((latest, event) => (event.date > latest ? event.date : latest), '');
@@ -516,6 +541,148 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
 };
 
 /**
+ * What a sponsor's line is: pay for being there, or a bonus for a result or a
+ * goal met.
+ * @param perk The perk that pays it
+ * @returns The ledger kind
+ */
+const sponsorKind = (perk: SponsorPerkKind): LedgerKind => (
+  perk === 'racePay' || perk === 'signing' || perk === 'carBacking' ? 'sponsor' : 'sponsorBonus'
+);
+
+/**
+ * A line a sponsor pays.
+ * @param deal The deal
+ * @param perk The perk that pays it
+ * @param key What it settles
+ * @param amount What it pays
+ * @param at The day and season it falls on
+ * @param at.date The ISO date
+ * @param at.season The season, counting from zero
+ * @param half Whether it is race pay a main sponsor halved
+ * @returns The line
+ */
+export const sponsorLine = (
+  deal: SponsorDeal,
+  perk: SponsorPerkKind,
+  key: string,
+  amount: number,
+  at: { date: string; season: number },
+  half = false,
+): LedgerLine => ({
+  key,
+  kind: sponsorKind(perk),
+  date: at.date,
+  season: at.season,
+  amount,
+  sponsor: {
+    deal: deal.id, name: deal.sponsor.name, perk, ...(half ? { half: true as const } : {}),
+  },
+});
+
+/**
+ * Whether a race place earns a results bonus.
+ * @param perk The perk
+ * @param place The player's class place
+ * @param finishPoints The points the finish paid
+ * @returns True when it pays
+ */
+const earns = (perk: SponsorPerk, place: number, finishPoints: number): boolean => {
+  if (perk.kind === 'win' || perk.kind === 'podium') return placeIs(perk.kind, place);
+
+  return perk.kind === 'points' && finishPoints > 0;
+};
+
+/**
+ * Every line a career's sponsors owe it and have not yet paid: race pay for
+ * each race it covers - in full on target, a main sponsor half short of it -
+ * every results bonus earned, a prize match on every prize paid, and a goal
+ * bonus once the deal's year has run out with its goal met.
+ * @param career The career, every prize it is owed paid already
+ * @returns The lines owed
+ */
+export const owedSponsors = (career: Career): LedgerLine[] => {
+  if (career.kind !== 'career') return [];
+
+  const paid = new Set(career.ledger.map((line) => line.key));
+  const owed: LedgerLine[] = [];
+  const add = (line: LedgerLine): void => {
+    if (line.amount > 0 && !paid.has(line.key)) owed.push(line);
+  };
+
+  for (const deal of career.sponsors) {
+    const scale = dealScale(deal, career.level);
+    const races = judgedRaces(career, deal);
+
+    for (const judged of races) {
+      const { event, race, place } = judged;
+      const at = { date: event.date, season: judged.season.index };
+      const where = roundOf(judged.season, judged.entry, judged.event);
+      const named = { ...where, race: race.name, place: place.classPosition };
+      for (const perk of deal.perks) {
+        if (perk.kind === 'racePay' && judged.paid && perk.amount) {
+          // Short of the target, a partner pays nothing and a main sponsor half.
+          const half = !judged.onTarget && deal.slot === 'main';
+          const amount = sponsorFigure(half ? perk.amount / 2 : perk.amount, scale);
+          const key = `sponsor:${deal.id}:pay:${event.raceId}:${race.launch}`;
+          if (judged.onTarget || half) add({ ...sponsorLine(deal, 'racePay', key, amount, at, half), ...named });
+        }
+        if ((perk.kind === 'win' || perk.kind === 'podium' || perk.kind === 'points') && perk.amount
+          && earns(perk, place.classPosition, place.finishPoints)) {
+          add({
+            ...sponsorLine(deal, perk.kind, `sponsor:${deal.id}:${perk.kind}:${event.raceId}:${race.launch}`, sponsorFigure(perk.amount, scale), at),
+            ...named,
+          });
+        }
+        if (perk.kind === 'pole' && perk.amount && judged.first && place.qualifyingPosition === 1) {
+          add({
+            ...sponsorLine(deal, 'pole', `sponsor:${deal.id}:pole:${event.raceId}`, sponsorFigure(perk.amount, scale), at),
+            ...where,
+            place: 1,
+          });
+        }
+      }
+    }
+
+    const match = deal.perks.find((perk) => perk.kind === 'prizeMatch');
+    if (match?.share) {
+      for (const prize of career.ledger) {
+        if ((prize.kind !== 'race' && prize.kind !== 'historic' && prize.kind !== 'standings') || prize.amount <= 0) continue;
+        if (!dealCovers(deal, prize.date)) continue;
+        const entry = career.seasons
+          .find((season) => season.index === prize.season)?.entries
+          .find((one) => one.series === prize.series && one.edition === (prize.edition ?? 0));
+        if (!entry || !coversEntry(deal, entry)) continue;
+        add({
+          ...sponsorLine(deal, 'prizeMatch', `sponsor:${deal.id}:match:${prize.key}`, Math.round((prize.amount * match.share) / 100), {
+            date: prize.date, season: prize.season,
+          }),
+          ...(prize.series === undefined ? {} : { series: prize.series }),
+          ...(prize.seriesName === undefined ? {} : { seriesName: prize.seriesName }),
+          ...(prize.edition === undefined ? {} : { edition: prize.edition }),
+          ...(prize.round === undefined ? {} : {
+            round: prize.round, roundName: prize.roundName, number: prize.number,
+          }),
+          ...(prize.race === undefined ? {} : { race: prize.race }),
+          ...(prize.place === undefined ? {} : { place: prize.place }),
+        });
+      }
+    }
+
+    // A deal ended early - by the player, or replaced - reaches no anniversary.
+    const bonus = deal.perks.find((perk) => perk.kind === 'goalBonus');
+    const reached = career.date >= deal.until && (!deal.ended || deal.ended.on >= deal.until);
+    if (bonus?.amount && reached && goalStanding(career, deal).met) {
+      add(sponsorLine(deal, 'goalBonus', `sponsor:${deal.id}:goal`, sponsorFigure(bonus.amount, scale), {
+        date: deal.until, season: career.seasons[career.seasons.length - 1]?.index ?? 0,
+      }));
+    }
+  }
+
+  return owed;
+};
+
+/**
  * Writes lines into a career's ledger and its money.
  * @param career The career
  * @param lines What to post, oldest first
@@ -528,8 +695,13 @@ export const post = (career: Career, lines: readonly LedgerLine[]): Career => (l
 });
 
 /**
- * Pays a career every prize it is owed.
+ * Pays a career every prize it is owed, then whatever its sponsors owe - after
+ * the prizes, since a prize match pays on them.
  * @param career The career
  * @returns The career, paid - the same one when nothing was owed
  */
-export const payOut = (career: Career): Career => post(career, owedPrizes(career));
+export const payOut = (career: Career): Career => {
+  const prized = post(career, owedPrizes(career));
+
+  return post(prized, owedSponsors(prized));
+};

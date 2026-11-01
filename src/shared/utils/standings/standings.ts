@@ -10,6 +10,7 @@ import type {
   ClassStandings,
   DriverStanding,
   RacePlace,
+  RaceScore,
   RoundResult,
   RoundScore,
   SeasonEntry,
@@ -170,6 +171,33 @@ export const teammateSeat = (entry: Pick<SeasonEntry, 'championship' | 'entry' |
 
   return (team ? seats.find((seat) => seat.id !== entry.playerSeat && seat.team === team) : undefined) ?? null;
 };
+
+/**
+ * The player's own place in a race: driven by them in their own seat, and a
+ * finish rather than qualifying points carried over.
+ * @param entry The season's entry
+ * @param race The race
+ * @returns The place, or undefined when they did not drive it
+ */
+export const playerPlace = (
+  entry: Pick<SeasonEntry, 'entry' | 'playerSeat'>,
+  race: RaceScore,
+): RacePlace | undefined => (
+  race.simulated ? undefined : race.places.find((one) => (
+    one.entry === entry.entry && one.seat === entry.playerSeat && !one.substitute && !one.bonusOnly
+  ))
+);
+
+/**
+ * The player's own row on their class's table, the substitute's left out.
+ * @param entry The season's entry
+ * @returns The row, or undefined when the table holds none
+ */
+export const playerStanding = (entry: Pick<SeasonEntry, 'entry' | 'playerSeat' | 'standings'>): DriverStanding | undefined => (
+  entry.standings.classes
+    .find((one) => one.entry === entry.entry)?.drivers
+    .find((one) => one.seat === entry.playerSeat && !one.substitute)
+);
 
 /**
  * A season entry as the results screens read a championship.

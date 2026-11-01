@@ -538,6 +538,11 @@ export interface IpcContract {
    */
   'career:answer': { req: { mail: string; answer: MailAnswer; offer?: OfferPick }; res: Career };
   /**
+   * End a sponsor's deal early, repaying the share of its signing bonus its
+   * year has left.
+   */
+  'career:endSponsor': { req: { deal: string }; res: Career };
+  /**
    * Mark a mail opened, or unread again.
    */
   'career:markMail': { req: { mail: string; opened: boolean }; res: Career };

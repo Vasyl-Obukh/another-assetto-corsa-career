@@ -1,5 +1,5 @@
 import {
-  ChevronRightIcon, ExternalLinkIcon, MailIcon, MoreHorizontalIcon, NewspaperIcon, TrophyIcon,
+  ChevronRightIcon, ExternalLinkIcon, MailIcon, MoreVerticalIcon, NewspaperIcon, TrophyIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
@@ -63,7 +63,7 @@ export const NoticeReader = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-8" aria-label={t('inbox.menu.label')}>
-                  <MoreHorizontalIcon />
+                  <MoreVerticalIcon />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

@@ -364,6 +364,20 @@
   --contract-foreground: oklch(0.42 0.14 295);
   --contract-solid: oklch(0.55 0.17 295);
 
+  /* A sponsor: a main sponsor, and everything any sponsor pays on the ledger,
+     in pink-magenta 350 - the free arc between custom origin 340, which only
+     the Championships list and the saves list show, and the destructive 27.
+     A partner in cyan 200, on the rent and modified-origin hue: rent shows on
+     Finances, the Garage and an Enter panel, modified origin on the
+     Championships list, and none of them shows a sponsor's slot. The solid
+     tones are a sponsor card's top edge. */
+  --sponsor: oklch(0.93 0.05 350);
+  --sponsor-foreground: oklch(0.43 0.15 352);
+  --sponsor-solid: oklch(0.58 0.18 352);
+  --partner: oklch(0.93 0.05 200);
+  --partner-foreground: oklch(0.38 0.09 205);
+  --partner-solid: oklch(0.6 0.11 205);
+
   /* The three things money does to a car, each a solid button of its own so
      they are never mistaken for one another or for the primary. Purchase is
      the success green, money turning into a car. Repaint is paint, a gradient
@@ -584,6 +598,12 @@
   --contract: oklch(0.33 0.07 295);
   --contract-foreground: oklch(0.87 0.1 295);
   --contract-solid: oklch(0.62 0.16 295);
+  --sponsor: oklch(0.33 0.07 350);
+  --sponsor-foreground: oklch(0.87 0.09 352);
+  --sponsor-solid: oklch(0.65 0.17 352);
+  --partner: oklch(0.33 0.06 200);
+  --partner-foreground: oklch(0.86 0.08 200);
+  --partner-solid: oklch(0.66 0.11 200);
   --paint-from: oklch(0.62 0.19 345);
   --paint-via: oklch(0.58 0.19 295);
   --paint-to: oklch(0.6 0.13 225);
@@ -750,6 +770,12 @@
   --color-contract: var(--contract);
   --color-contract-foreground: var(--contract-foreground);
   --color-contract-solid: var(--contract-solid);
+  --color-sponsor: var(--sponsor);
+  --color-sponsor-foreground: var(--sponsor-foreground);
+  --color-sponsor-solid: var(--sponsor-solid);
+  --color-partner: var(--partner);
+  --color-partner-foreground: var(--partner-foreground);
+  --color-partner-solid: var(--partner-solid);
   --color-paint-from: var(--paint-from);
   --color-paint-via: var(--paint-via);
   --color-paint-to: var(--paint-to);
@@ -866,6 +892,15 @@ summary,
   &:hover {
     outline-color: var(--color-primary);
   }
+}
+
+/*
+ * Something not open yet, such as a sponsor slot the career's rung has still to
+ * reach: thin diagonal stripes over the page. A dashed outline means a place
+ * left free, so this is what keeps the two apart.
+ */
+@utility hatched {
+  background-image: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--muted-foreground) 13%, transparent) 7px 8.5px);
 }
 
 /*

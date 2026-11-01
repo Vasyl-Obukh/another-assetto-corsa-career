@@ -103,6 +103,7 @@ const career = (seasons = 1): Career => ({
     index, startDate: '', endDate: '', entries: [seasonEntry()],
   })),
   inbox: [],
+  sponsors: [],
 });
 
 /**

@@ -1,5 +1,5 @@
 import {
-  BriefcaseIcon, ChartLineIcon, ChevronRightIcon, MedalIcon, TrophyIcon, WalletIcon,
+  BriefcaseIcon, ChartLineIcon, ChevronRightIcon, MedalIcon, SparklesIcon, TrophyIcon, WalletIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +16,7 @@ const KICKER = {
   finances: 'home.doors.finances.latest',
   rating: 'home.doors.rating.levels',
   contracts: 'home.doors.contracts.current',
+  sponsors: 'home.doors.sponsors.goals',
 } as const;
 
 /**
@@ -26,8 +27,8 @@ export const HomeDoorsSkeleton = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-      {(['results', 'history', 'finances', 'rating', 'contracts'] as const).map((door) => (
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {(['results', 'history', 'finances', 'rating', 'contracts', 'sponsors'] as const).map((door) => (
         <div key={door} className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
           <div className="flex items-center gap-3 px-4 pt-4 pb-3">
             <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', DOOR_ACCENT[door])}>
@@ -36,6 +37,7 @@ export const HomeDoorsSkeleton = () => {
               {door === 'finances' ? <WalletIcon className="size-5" /> : null}
               {door === 'rating' ? <MedalIcon className="size-5" /> : null}
               {door === 'contracts' ? <BriefcaseIcon className="size-5" /> : null}
+              {door === 'sponsors' ? <SparklesIcon className="size-5" /> : null}
             </span>
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-base font-semibold">{t(`home.doors.${door}.title`)}</span>

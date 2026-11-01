@@ -241,6 +241,68 @@ describe('renderer/screens/finances/utils', () => {
         .toBe('finances.line.seatDetail(series=Cup,edition=)');
     });
 
+    it("names a sponsor's signing bonus, and its repayment, by the sponsor", () => {
+      const sponsor = { deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'signing' as const };
+      const signing = line({ kind: 'sponsor', amount: 5000, sponsor });
+      const repaid = line({ kind: 'sponsor', amount: -2000, sponsor });
+
+      expect(describeLine(signing, CAREER, translate, FORMAT)).toEqual({
+        title: 'Halden Lubricants',
+        detail: 'finances.line.sponsor.signing',
+      });
+      expect(describeLine(repaid, CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.repaid');
+    });
+
+    it("names a sponsor's car backing by the car, its goal bonus, and its prize match by the championship", () => {
+      const of = (perk: 'carBacking' | 'goalBonus' | 'prizeMatch'): LedgerLine => line({
+        kind: perk === 'goalBonus' ? 'sponsorBonus' : 'sponsor',
+        car: { model: 'mx5', name: 'MX-5 Cup' },
+        sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk },
+      });
+
+      expect(describeLine(of('carBacking'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.car(car=MX-5 Cup)');
+      expect(describeLine(of('goalBonus'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.goal');
+      expect(describeLine(of('prizeMatch'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.match(series=Cup)');
+    });
+
+    it("names a sponsor's race pay by the round, the race and what it paid for, and says when it was halved", () => {
+      const pay = line({
+        kind: 'sponsor', race: 'Race 1', place: 4, sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'racePay' },
+      });
+      const half = line({
+        kind: 'sponsor',
+        race: 'Race 1',
+        place: 12,
+        sponsor: {
+          deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'racePay', half: true,
+        },
+      });
+
+      expect(describeLine(pay, CAREER, translate, FORMAT)).toEqual({
+        title: 'Halden Lubricants',
+        detail: 'finances.line.round(number=3,round=Imola) · Race 1 · finances.line.sponsor.racePay(place=4)',
+      });
+      expect(describeLine(half, CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.round(number=3,round=Imola) · Race 1 · finances.line.sponsor.racePay(place=12) · finances.line.sponsor.half');
+    });
+
+    it("names a sponsor's results bonus by the place it paid, and a line with no round by its championship", () => {
+      const win = line({
+        kind: 'sponsorBonus', race: 'Race 2', place: 1, sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'win' },
+      });
+      const noRound = line({
+        kind: 'sponsorBonus',
+        roundName: undefined,
+        race: undefined,
+        place: 1,
+        sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'pole' },
+      });
+
+      expect(describeLine(win, CAREER, translate, FORMAT).detail)
+        .toBe('finances.line.round(number=3,round=Imola) · Race 2 · finances.line.sponsor.win(place=1)');
+      expect(describeLine(noRound, CAREER, translate, FORMAT).detail).toBe('Cup · finances.line.sponsor.pole(place=1)');
+    });
+
     it('names the opening balance', () => {
       expect(describeLine(line({ kind: 'opening' }), CAREER, translate, FORMAT)).toEqual({
         title: 'finances.line.opening',

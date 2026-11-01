@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { STATE_FOLDERS } from './constants.ts';
 import { useFormat } from '@/i18n';
-import { CONTRACT_DOT, HISTORIC_DOT } from '@/lib/accents';
+import { CONTRACT_DOT, HISTORIC_DOT, SPONSOR_DOT } from '@/lib/accents';
 import { inFolder } from '@/lib/inbox';
 import type { InboxFolder, InboxItem } from '@/lib/inbox';
 import { cn } from '@/lib/utils.ts';
@@ -72,6 +72,7 @@ export const InboxRail = ({ items, folder, onFolder }: InboxRailProps) => {
       {row('invitation', <span className={cn('mx-1 size-2 shrink-0 rounded-full', HISTORIC_DOT)} />, t('inbox.kind.invitation'))}
       {row('offer', <span className={cn('mx-1 size-2 shrink-0 rounded-full', CONTRACT_DOT)} />, t('inbox.kind.offer'))}
       {row('notice', <span className={cn('mx-1 size-2 shrink-0 rounded-full', CONTRACT_DOT)} />, t('inbox.kind.notice'))}
+      {row('sponsor', <span className={cn('mx-1 size-2 shrink-0 rounded-full', SPONSOR_DOT)} />, t('inbox.kind.sponsor'))}
     </nav>
   );
 };

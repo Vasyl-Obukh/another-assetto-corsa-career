@@ -319,6 +319,12 @@ export const path = {
    */
   contracts: (): string => ROUTE.contracts,
   /**
+   * Every sponsor backing the career, and every deal it signed, reached from
+   * Home.
+   * @returns Its URL
+   */
+  sponsors: (): string => ROUTE.sponsors,
+  /**
    * One season of the career, looked back on.
    * @param params Which season, counting from zero
    * @param params.season The season's index

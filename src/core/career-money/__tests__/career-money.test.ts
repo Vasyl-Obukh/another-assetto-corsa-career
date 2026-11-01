@@ -3,16 +3,19 @@ import { describe, expect, it } from '@jest/globals';
 import {
   CUP, makeCareer, makeContract, makeEntry, makeEvent, makeOffer, makePlace, makeRace, makeSeason, makeStanding,
 } from './fixtures.ts';
+import { Discipline } from '../../../shared/types/index.ts';
 import type {
-  Career, Contract, OwnedCar, SeasonEntry, SeasonEvent,
+  Career, Contract, OwnedCar, SeasonEntry, SeasonEvent, SponsorDeal,
 } from '../../../shared/types/index.ts';
 import {
+  coveringSponsor,
   feeLine,
   feeOf,
   feeOwed,
   feePaid,
   openingLine,
   owedPrizes,
+  owedSponsors,
   payOut,
   post,
   purchaseLine,
@@ -26,6 +29,7 @@ import {
   saleLine,
   seatLine,
   speedLine,
+  sponsorLine,
 } from '../career-money.ts';
 
 /**
@@ -55,6 +59,27 @@ const finished = (over: Partial<SeasonEntry> = {}): SeasonEntry => makeEntry({
     }],
     updatedAt: '2027-06-06T18:00:00.000Z',
   },
+  ...over,
+});
+
+/**
+ * A main sponsor's deal for a year from the eve of the career's opening day,
+ * covering any racing, asking only that the player race and paying nothing
+ * until a test gives it perks.
+ * @param over Whatever the test wants said differently
+ * @returns The deal
+ */
+const makeDeal = (over: Partial<SponsorDeal> = {}): SponsorDeal => ({
+  id: 'sponsor:test-cup/zero@0.0',
+  sponsor: { name: 'Halden Lubricants', trade: 'oil', nation: 'GBR' },
+  slot: 'main',
+  covers: null,
+  perks: [],
+  target: { kind: 'start' },
+  goal: { kind: 'racesStarted', count: 2 },
+  rung: 4,
+  signed: '2026-12-31',
+  until: '2027-12-31',
   ...over,
 });
 
@@ -131,6 +156,36 @@ describe('core/career-money', () => {
       const career = careerIn(entry, { settings: { ...makeCareer().settings, prizeSpeed: 2 } });
 
       expect(feeOwed(career, entry, event)).toBe(1500);
+    });
+
+    it("owes nothing for a round whose championship a sponsor's deal covers", () => {
+      const deal = makeDeal({ perks: [{ kind: 'championship', series: CUP.id, seriesName: CUP.name }] });
+
+      expect(feeOwed(careerIn(entry, { sponsors: [deal] }), entry, event)).toBe(0);
+    });
+  });
+
+  describe('coveringSponsor', () => {
+    const entry = makeEntry();
+    const event = makeEvent('one', '2027-03-07');
+    const covering = makeDeal({ perks: [{ kind: 'championship', series: CUP.id, seriesName: CUP.name }] });
+
+    it("finds the deal covering the round's championship", () => {
+      expect(coveringSponsor(makeCareer({ sponsors: [makeDeal(), covering] }), entry, event)).toBe(covering);
+    });
+
+    it('finds none for a deal covering another championship', () => {
+      const other = makeDeal({ perks: [{ kind: 'championship', series: 'other-cup', seriesName: 'Other Cup' }] });
+
+      expect(coveringSponsor(makeCareer({ sponsors: [other] }), entry, event)).toBeNull();
+    });
+
+    it('finds none outside the deal: on the day it was signed, or once it ended', () => {
+      const signed = { ...covering, signed: event.date };
+      const ended = { ...covering, ended: { on: '2027-02-01', why: 'mine' as const } };
+
+      expect(coveringSponsor(makeCareer({ sponsors: [signed] }), entry, event)).toBeNull();
+      expect(coveringSponsor(makeCareer({ sponsors: [ended] }), entry, event)).toBeNull();
     });
   });
 
@@ -692,6 +747,176 @@ describe('core/career-money', () => {
     });
   });
 
+  describe('sponsorLine', () => {
+    const at = { date: '2027-03-07', season: 0 };
+
+    it('books pay for being there as a sponsor line and a result or a goal as a bonus', () => {
+      expect(sponsorLine(makeDeal(), 'racePay', 'k', 100, at).kind).toBe('sponsor');
+      expect(sponsorLine(makeDeal(), 'signing', 'k', 100, at).kind).toBe('sponsor');
+      expect(sponsorLine(makeDeal(), 'carBacking', 'k', 100, at).kind).toBe('sponsor');
+      expect(sponsorLine(makeDeal(), 'win', 'k', 100, at).kind).toBe('sponsorBonus');
+      expect(sponsorLine(makeDeal(), 'goalBonus', 'k', 100, at).kind).toBe('sponsorBonus');
+    });
+
+    it('names the deal, the sponsor and the perk that paid', () => {
+      expect(sponsorLine(makeDeal(), 'racePay', 'k', 100, at)).toEqual({
+        key: 'k',
+        kind: 'sponsor',
+        date: '2027-03-07',
+        season: 0,
+        amount: 100,
+        sponsor: { deal: 'sponsor:test-cup/zero@0.0', name: 'Halden Lubricants', perk: 'racePay' },
+      });
+    });
+
+    it('marks race pay a main sponsor halved, and nothing else', () => {
+      expect(sponsorLine(makeDeal(), 'racePay', 'k', 50, at, true).sponsor?.half).toBe(true);
+      expect(sponsorLine(makeDeal(), 'racePay', 'k', 50, at).sponsor).not.toHaveProperty('half');
+    });
+  });
+
+  describe('owedSponsors', () => {
+    const pay = { kind: 'racePay' as const, amount: 1000 };
+
+    /**
+     * A career whose player won round one and was fourth in round two, with
+     * one deal.
+     * @param deal The deal
+     * @param over Whatever the test wants said differently of the career
+     * @returns The career
+     */
+    const career = (deal: SponsorDeal, over: Partial<Career> = {}): Career => careerIn(finished(), {
+      date: '2027-07-01', sponsors: [deal], ...over,
+    });
+
+    it('pays race pay in full for every race on target, keyed by deal and race', () => {
+      const owed = owedSponsors(career(makeDeal({ perks: [pay] })));
+
+      expect(owed.map((line) => [line.key, line.amount])).toEqual([
+        ['sponsor:sponsor:test-cup/zero@0.0:pay:test-cup/one@0.0:2', 1000],
+        ['sponsor:sponsor:test-cup/zero@0.0:pay:test-cup/two@0.0:2', 1000],
+      ]);
+      expect(owed[0]).toMatchObject({
+        kind: 'sponsor', series: CUP.id, round: 'one', race: 'Race 2', place: 1,
+      });
+    });
+
+    it('pays a partner nothing for a race short of its target', () => {
+      const deal = makeDeal({ slot: 'partner', perks: [pay], target: { kind: 'classPlace', share: 1 / 2 } });
+
+      expect(owedSponsors(career(deal)).map((line) => line.round)).toEqual(['one']);
+    });
+
+    it('pays a main sponsor half for a race short of its target, and says so', () => {
+      const deal = makeDeal({ perks: [pay], target: { kind: 'classPlace', share: 1 / 2 } });
+      const [full, half] = owedSponsors(career(deal));
+
+      expect(full.amount).toBe(1000);
+      expect(full.sponsor).not.toHaveProperty('half');
+      expect(half.amount).toBe(500);
+      expect(half.sponsor?.half).toBe(true);
+    });
+
+    it('pays each results bonus for the race that earned it', () => {
+      const entry = makeEntry({
+        events: [
+          makeEvent('one', '2027-03-07', [makeRace(2, [makePlace(1, { qualifyingPosition: 1, finishPoints: 25 })])]),
+          makeEvent('two', '2027-06-06', [makeRace(2, [makePlace(3, { qualifyingPosition: 2, finishPoints: 15 })])]),
+        ],
+      });
+      const deal = makeDeal({
+        perks: [
+          { kind: 'win', amount: 2000 },
+          { kind: 'podium', amount: 700 },
+          { kind: 'points', amount: 300 },
+          { kind: 'pole', amount: 500 },
+        ],
+      });
+      const owed = owedSponsors(careerIn(entry, { date: '2027-07-01', sponsors: [deal] }));
+
+      expect(owed.map((line) => [line.round, line.sponsor?.perk, line.amount, line.kind])).toEqual([
+        ['one', 'win', 2000, 'sponsorBonus'],
+        ['one', 'podium', 700, 'sponsorBonus'],
+        ['one', 'points', 300, 'sponsorBonus'],
+        ['one', 'pole', 500, 'sponsorBonus'],
+        ['two', 'podium', 700, 'sponsorBonus'],
+        ['two', 'points', 300, 'sponsorBonus'],
+      ]);
+    });
+
+    it('pays nothing for a race the player did not drive', () => {
+      const entry = makeEntry({
+        events: [makeEvent('one', '2027-03-07', [makeRace(2, [makePlace(1)], { simulated: true })])],
+      });
+
+      expect(owedSponsors(careerIn(entry, { sponsors: [makeDeal({ perks: [pay] })] }))).toEqual([]);
+    });
+
+    it('matches every prize paid inside the deal, race and standings alike', () => {
+      const deal = makeDeal({ perks: [{ kind: 'prizeMatch', share: 20 }] });
+      const prized = payOut(career(makeDeal()));
+      const owed = owedSponsors({ ...prized, sponsors: [deal] });
+
+      expect(owed.map((line) => [line.key, line.amount, line.kind])).toEqual([
+        ['sponsor:sponsor:test-cup/zero@0.0:match:race:test-cup/one@0.0:2', 200, 'sponsorBonus'],
+        ['sponsor:sponsor:test-cup/zero@0.0:match:standings:0:test-cup:0', 800, 'sponsorBonus'],
+      ]);
+      expect(owed[0]).toMatchObject({ series: CUP.id, round: 'one', place: 1 });
+    });
+
+    it('matches no prize won before the deal, nor one of a discipline it does not cover', () => {
+      const prized = payOut(career(makeDeal()));
+      const later = makeDeal({ perks: [{ kind: 'prizeMatch', share: 20 }], signed: '2027-04-01' });
+      const elsewhere = makeDeal({ perks: [{ kind: 'prizeMatch', share: 20 }], covers: Discipline.SPORTSCAR });
+
+      expect(owedSponsors({ ...prized, sponsors: [later] }).map((line) => line.amount)).toEqual([800]);
+      expect(owedSponsors({ ...prized, sponsors: [elsewhere] })).toEqual([]);
+    });
+
+    it("pays the goal bonus once the deal's year has run out with its goal met", () => {
+      const deal = makeDeal({ perks: [{ kind: 'goalBonus', amount: 5000 }] });
+
+      expect(owedSponsors(career(deal, { date: '2027-12-30' }))).toEqual([]);
+      expect(owedSponsors(career(deal, { date: '2027-12-31' }))).toEqual([
+        sponsorLine(deal, 'goalBonus', 'sponsor:sponsor:test-cup/zero@0.0:goal', 5000, { date: '2027-12-31', season: 0 }),
+      ]);
+    });
+
+    it('pays no goal bonus for a goal missed, nor to a deal ended before its year ran out', () => {
+      const bonus = { kind: 'goalBonus' as const, amount: 5000 };
+      const missed = makeDeal({ perks: [bonus], goal: { kind: 'racesStarted', count: 3 } });
+      const ended = makeDeal({ perks: [bonus], ended: { on: '2027-07-01', why: 'mine' } });
+
+      expect(owedSponsors(career(missed, { date: '2028-01-01' }))).toEqual([]);
+      expect(owedSponsors(career(ended, { date: '2028-01-01' }))).toEqual([]);
+    });
+
+    it('raises the figures of a deal that climbs with the player to their new rung', () => {
+      // Drawn at Rookie's typical fee of 700 a round, paid at Bronze's 3,000.
+      const deal = makeDeal({ rung: 5, perks: [{ kind: 'climbs' }, pay] });
+
+      expect(owedSponsors(career(deal)).map((line) => line.amount)).toEqual([4290, 4290]);
+    });
+
+    it('pays nothing twice', () => {
+      const owing = career(makeDeal({ perks: [pay] }));
+
+      expect(owedSponsors(post(owing, owedSponsors(owing)))).toEqual([]);
+    });
+
+    it('pays nothing in a standalone championship, which has no money', () => {
+      expect(owedSponsors(career(makeDeal({ perks: [pay] }), { kind: 'championship' }))).toEqual([]);
+    });
+
+    // Guards a fix: the round that brought the offer falls on the day it is
+    // signed, and used to be paid by a deal signed after it ran.
+    it('pays nothing for a round raced on the day the deal was signed', () => {
+      const deal = makeDeal({ perks: [pay], signed: '2027-03-07' });
+
+      expect(owedSponsors(career(deal)).map((line) => line.round)).toEqual(['two']);
+    });
+  });
+
   describe('post', () => {
     it('adds the lines to the ledger and their amounts to the money', () => {
       const career = post(makeCareer(), [openingLine('2027-01-01', 10), { ...openingLine('2027-01-02', -4), key: 'x' }]);
@@ -719,6 +944,14 @@ describe('core/career-money', () => {
       const career = makeCareer();
 
       expect(payOut(career)).toBe(career);
+    });
+
+    it('pays the sponsors after the prizes, so a prize match pays on prizes paid in the same call', () => {
+      const deal = makeDeal({ perks: [{ kind: 'prizeMatch', share: 20 }] });
+      const career = payOut(careerIn(finished(), { date: '2027-07-01', sponsors: [deal] }));
+
+      expect(career.money).toBe(50_000 + 1000 + 4000 + 200 + 800);
+      expect(career.ledger.map((line) => line.kind)).toEqual(['race', 'standings', 'sponsorBonus', 'sponsorBonus']);
     });
   });
 });

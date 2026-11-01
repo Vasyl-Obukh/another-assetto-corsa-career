@@ -17,7 +17,7 @@ export const PAGE_PARAM = 'page';
  * The folders down the rail that list mail by where it stands, in order, each
  * with its icon. The kinds of mail follow under a heading of their own.
  */
-export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | 'offer' | 'notice'>; icon: LucideIcon }[] = [
+export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | 'offer' | 'notice' | 'sponsor'>; icon: LucideIcon }[] = [
   { id: 'all', icon: InboxIcon },
   { id: 'unread', icon: MailWarningIcon },
   { id: 'awaiting', icon: ReplyIcon },
@@ -26,7 +26,7 @@ export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | '
 /**
  * Every folder the inbox opens on, for reading one back out of its URL.
  */
-export const INBOX_FOLDERS: readonly InboxFolder[] = ['all', 'unread', 'awaiting', 'invitation', 'offer', 'notice'];
+export const INBOX_FOLDERS: readonly InboxFolder[] = ['all', 'unread', 'awaiting', 'invitation', 'offer', 'notice', 'sponsor'];
 
 /**
  * How a cell of a seat offer's comparison is drawn: a term's value and the

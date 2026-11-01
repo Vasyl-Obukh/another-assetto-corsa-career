@@ -13,7 +13,9 @@ import {
   STATE_FILE,
 } from './constants.ts';
 import type { BackupContents, EnteredEvent, OfferDraft } from './types.ts';
-import { feeOf } from '../../core/career-money/index.ts';
+import {
+  feeOf, payOut, post, sponsorLine,
+} from '../../core/career-money/index.ts';
 import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { historicRung } from '../../core/historic-draw/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
@@ -23,6 +25,9 @@ import { seedFrom } from '../../core/seeded-random/index.ts';
 import {
   climateOf, formatOf, hemisphereOf, raceWeekdayOf, runRaceId,
 } from '../../core/series/index.ts';
+import {
+  drawSponsorOffer, OFFER_DAYS, sponsorChance, sponsorDrawn,
+} from '../../core/sponsor-offers/index.ts';
 import { drawRound } from '../../core/weather-forecast/index.ts';
 import {
   DAYS_PER_WEEK, DEFAULT_SEASON_LENGTH, MAX_START_YEAR, MIN_START_YEAR, MINUTES_PER_HOUR, SEASON_WEEKS,
@@ -71,6 +76,9 @@ import type {
   SeriesSession,
   SkippedRound,
   SkipReason,
+  SponsorDeal,
+  SponsorEnd,
+  SponsorTerms,
 } from '../../shared/types/index.ts';
 import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
@@ -88,7 +96,12 @@ import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import {
   eligibleCarsIn, roundAvailabilityIn, roundRaceableIn, seatRaceableIn,
 } from '../../shared/utils/round-availability/index.ts';
+import {
+  dealPaid, dealUntil, entryDiscipline, formOf, goalStanding, liveDeals, partnerSlots, signingRepay, sponsorMailId,
+  sponsorNewsId,
+} from '../../shared/utils/sponsors/index.ts';
 import { standaloneStanding } from '../../shared/utils/standalone/index.ts';
+import { playerPlace, playerStanding } from '../../shared/utils/standings/index.ts';
 import { isArchiveName } from '../race-store/index.ts';
 import { readSaveFile, SAVE_ID_PATTERN, SAVES_DIR } from '../save-files/index.ts';
 import type { ZipEntry } from '../zip-archive/index.ts';
@@ -134,6 +147,7 @@ export const stateOf = (career: Career): CareerState => ({
   ratingLog: career.ratingLog,
   seasons: career.seasons,
   inbox: career.inbox,
+  sponsors: career.sponsors,
 });
 
 /**
@@ -216,9 +230,11 @@ export const readState = (value: unknown): CareerState | null => {
         ))
       ))
     ))
-    && Array.isArray(state.inbox);
+    && Array.isArray(state.inbox)
+    && (state.sponsors === undefined || Array.isArray(state.sponsors));
 
-  return readable ? stateOf(state as Career) : null;
+  // A career from before sponsors holds none, which is what an empty list says.
+  return readable ? stateOf({ ...state, sponsors: state.sponsors ?? [] } as Career) : null;
 };
 
 /**
@@ -1831,4 +1847,259 @@ export const backupName = (career: CareerSummary): string => {
   const driver = slug(career.driver.name);
 
   return `${driver ? `${driver}-` : ''}career-${career.date}.zip`;
+};
+
+/**
+ * Whether the player drove a round themselves: any race of it in their own
+ * seat, rather than simulated or raced by a stand-in.
+ * @param entry The season's entry
+ * @param event The round
+ * @returns True when they did
+ */
+const droveRound = (entry: SeasonEntry, event: SeasonEvent): boolean => (
+  (event.score?.races ?? []).some((race) => playerPlace(entry, race) !== undefined)
+);
+
+/**
+ * The disciplines a career has driven races in, the most driven first.
+ * @param career The career
+ * @returns The disciplines
+ */
+const racedDisciplines = (career: Career): Discipline[] => {
+  const counts = new Map<Discipline, number>();
+  for (const season of career.seasons) {
+    for (const entry of season.entries) {
+      const discipline = entryDiscipline(entry);
+      const driven = entry.events.filter((event) => droveRound(entry, event)).length;
+      if (discipline && driven > 0) counts.set(discipline, (counts.get(discipline) ?? 0) + driven);
+    }
+  }
+
+  return [...counts.entries()].sort((left, right) => right[1] - left[1]).map(([discipline]) => discipline);
+};
+
+/**
+ * What one round brought that makes a sponsor likelier to write: a class win
+ * of the player's, a class title it settled, or a rung it opened.
+ * @param career The career
+ * @param entry The season's entry
+ * @param event The round
+ * @returns What it brought
+ */
+const standoutOf = (
+  career: Career,
+  entry: SeasonEntry,
+  event: SeasonEvent,
+): { win: boolean; title: boolean; rung: boolean } => {
+  const win = (event.score?.races ?? []).some((race) => playerPlace(entry, race)?.classPosition === 1);
+  const last = entry.events.every((one) => one.date <= event.date);
+  const title = last && !isHistoric(entry) && playerStanding(entry)?.position === 1;
+  const rung = career.ratingLog.some((line) => line.kind === 'promotion' && line.date === event.date);
+
+  return { win, title, rung };
+};
+
+/**
+ * Sends a sponsor's offer for every round the player drove whose draw has not
+ * been made yet, once each - at the chance their form sets and a standout
+ * result raises. A round too long ago for its offer still to be open draws
+ * nothing.
+ * @param career The career
+ * @returns The career, every offer due sent - the same one when none was
+ */
+export const sendSponsorOffers = (career: Career): Career => {
+  const season = currentSeason(career);
+  if (career.kind !== 'career' || !season) return career;
+
+  const drawn = new Set(season.sponsorDraws ?? []);
+  const rounds = season.entries
+    .flatMap((entry) => entry.events
+      .filter((event) => event.status === 'raced' && !drawn.has(event.raceId) && droveRound(entry, event))
+      .map((event) => ({ entry, event })))
+    .sort((left, right) => left.event.date.localeCompare(right.event.date));
+  if (rounds.length === 0) return career;
+
+  const form = formOf(career);
+  const live = liveDeals(career);
+  const waiting = career.inbox
+    .filter((mail) => mailStatus(mail, career.date) === 'awaiting')
+    .flatMap((mail) => (mail.sponsor ? [mail.sponsor] : []));
+  const raced = racedDisciplines(career);
+  const championships = season.entries
+    .filter((entry) => !isHistoric(entry) && !entry.withdrawn && !entry.contract)
+    .flatMap((entry) => {
+      const discipline = entryDiscipline(entry);
+
+      return discipline ? [{ series: entry.series, name: entry.championship.name, discipline }] : [];
+    });
+  const sent: Mail[] = [];
+
+  for (const { entry, event } of rounds) {
+    const deadline = addDays(event.date, OFFER_DAYS);
+    if (!form || deadline < career.date) continue;
+    const offered: SponsorTerms[] = [
+      ...live, ...waiting, ...sent.flatMap((mail) => (mail.sponsor ? [mail.sponsor] : [])),
+    ];
+    const salt = `${career.id}\u0000${event.raceId}`;
+    const free = {
+      main: !offered.some((one) => one.slot === 'main'),
+      partner: offered.filter((one) => one.slot === 'partner').length < partnerSlots(career.level),
+    };
+    const pick = sponsorDrawn(salt, sponsorChance(form, standoutOf(career, entry, event)), form, free);
+    // Replacing a deal, the one whose year runs out first.
+    const replaces = pick?.replace
+      ? live.filter((one) => one.slot === pick.slot).sort((left, right) => left.until.localeCompare(right.until))[0]
+      : undefined;
+    const offer = pick && (!pick.replace || replaces) ? drawSponsorOffer({
+      salt,
+      slot: pick.slot,
+      level: career.level,
+      rating: career.rating,
+      globalRating: career.globalRating,
+      raced,
+      held: offered.map((one) => one.sponsor.trade),
+      names: [...career.sponsors, ...offered].map((one) => one.sponsor.name),
+      championships,
+      prizeSpeed: career.settings.prizeSpeed,
+    }) : null;
+    if (offer) {
+      sent.push({
+        id: sponsorMailId(event.raceId),
+        kind: 'sponsor',
+        season: season.index,
+        arrived: event.date,
+        opened: false,
+        deadline,
+        sponsor: { ...offer, ...(replaces ? { replaces: replaces.id } : {}) },
+      });
+    }
+  }
+
+  const known = new Set(career.inbox.map((mail) => mail.id));
+
+  return {
+    ...withSeason(career, { ...season, sponsorDraws: [...drawn, ...rounds.map((one) => one.event.raceId)] }),
+    inbox: [...career.inbox, ...sent.filter((mail) => !known.has(mail.id))],
+  };
+};
+
+/**
+ * Ends every deal whose year has run out, on its anniversary - its goal met or
+ * missed - and sends sponsor news for one missed.
+ * @param career The career
+ * @returns The career, paid up and every deal due ended - the same one when
+ * none was
+ */
+export const endSponsorYears = (career: Career): Career => {
+  const due = liveDeals(career).filter((deal) => deal.until <= career.date);
+  if (due.length === 0) return career;
+
+  // Paid up first, so the news says what the deal came to.
+  const paid = payOut(career);
+  const news: Mail[] = [];
+  const ended = new Map(due.map((deal) => {
+    const goal = goalStanding(career, deal);
+    if (!goal.met) {
+      news.push({
+        id: sponsorNewsId(deal.id),
+        kind: 'sponsorNews',
+        season: currentSeason(career)?.index ?? 0,
+        arrived: deal.until,
+        opened: false,
+        sponsorNews: {
+          deal: deal.id,
+          sponsor: deal.sponsor,
+          slot: deal.slot,
+          goal: deal.goal,
+          reached: goal.reached,
+          paid: dealPaid(paid, deal.id),
+        },
+      });
+    }
+    const why: SponsorEnd = goal.met ? 'goalMet' : 'goalMissed';
+
+    return [deal.id, { on: deal.until, why }];
+  }));
+  const known = new Set(paid.inbox.map((mail) => mail.id));
+
+  return {
+    ...paid,
+    sponsors: paid.sponsors.map((deal) => {
+      const end = ended.get(deal.id);
+
+      return end ? { ...deal, ended: end } : deal;
+    }),
+    inbox: [...paid.inbox, ...news.filter((mail) => !known.has(mail.id))],
+  };
+};
+
+/**
+ * Ends a deal early, by the player's choice or replaced by another sponsor's,
+ * repaying the share of its signing bonus its year has left.
+ * @param career The career
+ * @param deal The deal
+ * @param why Why it ends
+ * @returns The career, the deal ended
+ */
+export const endSponsor = (career: Career, deal: SponsorDeal, why: 'mine' | 'replaced'): Career => {
+  const repay = signingRepay(deal, career.date);
+  const season = currentSeason(career)?.index ?? 0;
+  const repaid = repay > 0
+    ? post(career, [sponsorLine(deal, 'signing', `sponsor:${deal.id}:repay`, -repay, { date: career.date, season })])
+    : career;
+
+  return {
+    ...repaid,
+    sponsors: repaid.sponsors.map((one) => (one.id === deal.id ? { ...one, ended: { on: career.date, why } } : one)),
+  };
+};
+
+/**
+ * Signs a sponsor's offer: its deal for a year from today, its signing bonus
+ * paid, and any deal it replaces ended. Refused once its slot is taken, or
+ * while another sponsor of its trade backs the player.
+ * @param career The career
+ * @param mail The offer's mail
+ * @returns The career, signed
+ */
+export const signSponsor = (career: Career, mail: Mail): Career => {
+  const offer = mail.sponsor;
+  const name = offer?.sponsor.name ?? mail.id;
+  if (!offer || mailStatus(mail, career.date) !== 'awaiting') throw new AppError('sponsor.closed', { sponsor: name });
+
+  const live = liveDeals(career);
+  const replaced = offer.replaces === undefined ? undefined : live.find((deal) => deal.id === offer.replaces);
+  const others = live.filter((deal) => deal !== replaced);
+  if (others.some((deal) => deal.sponsor.trade === offer.sponsor.trade)) {
+    throw new AppError('sponsor.trade', { sponsor: name });
+  }
+  const full = offer.slot === 'main'
+    ? others.some((deal) => deal.slot === 'main')
+    : others.filter((deal) => deal.slot === 'partner').length >= partnerSlots(career.level);
+  if (full) throw new AppError('sponsor.slotFull', { sponsor: name });
+
+  const ended = replaced ? endSponsor(career, replaced, 'replaced') : career;
+  const terms: SponsorTerms = {
+    sponsor: offer.sponsor,
+    slot: offer.slot,
+    covers: offer.covers,
+    perks: offer.perks,
+    target: offer.target,
+    goal: offer.goal,
+    rung: offer.rung,
+  };
+  const deal: SponsorDeal = {
+    ...terms, id: mail.id, signed: career.date, until: dealUntil(career.date),
+  };
+  const signing = deal.perks.find((perk) => perk.kind === 'signing')?.amount ?? 0;
+  const season = currentSeason(career)?.index ?? 0;
+  const signed = post({ ...ended, sponsors: [...ended.sponsors, deal] }, signing > 0
+    ? [sponsorLine(deal, 'signing', `sponsor:${deal.id}:signing`, signing, { date: career.date, season })]
+    : []);
+  // The new signing bonus may pay the old one's repayment.
+  if (replaced && signed.money < 0) {
+    throw new AppError('sponsor.repay.short', { repay: career.money - ended.money, money: career.money });
+  }
+
+  return withReply(signed, mail, 'accepted');
 };

@@ -47,6 +47,11 @@ export interface RacePlace {
    */
   fastestLap: boolean;
   /**
+   * How many of its laps Assetto Corsa counted cuts on, when the race was
+   * driven - absent on one simulated.
+   */
+  cuts?: number;
+  /**
    * Points for where it finished.
    */
   finishPoints: number;

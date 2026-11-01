@@ -4,7 +4,7 @@
 // thing stored.
 
 import {
-  BREAKDOWN, CAR_KINDS, CONTRACT_KINDS, PRIZE_KINDS, ROUND_COST_KINDS,
+  BREAKDOWN, CAR_KINDS, CONTRACT_KINDS, PRIZE_KINDS, ROUND_COST_KINDS, SPONSOR_KINDS,
 } from './constants.ts';
 import type {
   KindTotal, LedgerFilter, LedgerRow, MoneyFigures, SeriesTotal,
@@ -53,6 +53,7 @@ export const shownBy = (line: LedgerLine, filter: LedgerFilter): boolean => {
   if (filter === 'fees') return ROUND_COST_KINDS.includes(line.kind);
   if (filter === 'cars') return CAR_KINDS.includes(line.kind);
   if (filter === 'contracts') return CONTRACT_KINDS.includes(line.kind);
+  if (filter === 'sponsors') return SPONSOR_KINDS.includes(line.kind);
 
   return true;
 };

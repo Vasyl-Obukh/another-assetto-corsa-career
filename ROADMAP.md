@@ -546,14 +546,12 @@ raced against, which every launch records, not the nominal one.
 
 ### Sponsors
 
-Sponsor **cards** filling a number of **slots** that grows with your level. Rather
-than flat bonuses, they do things a real sponsor does: cover the entry fee for a
-series you can't yet afford or access, pay out per event or on results, and drop
-you or penalise you for poor performance.
-
-Design is deliberately open - see Open questions. One tension to resolve before
-building: a sponsor covering entry to a series above your level is a **bypass of
-the discipline ladder**, so the two systems need to agree on how far that goes.
+A **main sponsor and partners** filling **slots** that grow with your rung. Each
+deal is drawn from a pool of perks and conditions: it pays race by race for a
+target met, on results and for a goal over its year, and a main sponsor brings a
+signature perk - a championship's fees, pay that climbs with you, half a car.
+Offers come to a driver racing well. No sponsor opens a rung above: the ladder
+stays the only way up. Phase 10 holds the detail.
 
 ### Progression speed
 
@@ -3158,22 +3156,95 @@ in when a better team calls.
 
 ## Phase 10 - Sponsors
 
-Design to be settled before building - see Open questions.
+Designed in `mockups/sponsors.html`, every decision agreed on 2026-10-31. A
+contract is a seat; a sponsor backs the driver, across every championship,
+whether racing for a team or on their own. In two slices: the first the whole
+loop from an offer to a deal's year running out, the second the perks that
+reach into other systems, and renewal.
 
-- [ ] Sponsor cards and slots that grow with level
-- [ ] Effects: cover entry fees (including series above your level), pay per
-      event, pay on results
-- [ ] Performance expectations, penalties and being dropped
-- [ ] Reconcile fee coverage with the discipline ladder
-- [ ] Sponsor offers arriving through the inbox
+### Slice 1 - Sponsors
+
+- [x] **Slots by rung**: a main sponsor and a partner at Rookie, a partner more
+      each rung - a main sponsor and five partners at Platinum - counted on the
+      career's best rung in any discipline. A slot lost on a drop of rung keeps
+      its deal until that deal's year runs out
+- [x] **No sponsor opens a rung above**: the ladder stays the only way up, so
+      nothing reconciles a sponsor with it
+- [x] **Offers come from racing well**, never on a date: after every round
+      raced, one seeded draw at the chance the player's form sets - their
+      average class finish over the last three rounds: 5% in the bottom
+      quarter, 12% the lower half, 22% the upper half, 35% the top quarter,
+      and 15% more for a class win, 25% for a class title or a new rung. A main
+      sponsor writes only from the upper half. An offer is for a free slot where
+      there is one; a full slot never stops one, but an offer to replace comes at
+      half the chance
+- [x] **The rating sets how good an offer is**, read in the discipline it
+      covers as it is drawn: the bottom quarter of a rung draws x0.8 and the
+      basic perks, the middle x1.0 and the whole pool, the top quarter x1.3, a
+      perk more and the strongest likelier
+- [x] **Every deal is drawn from a pool**, leaning on a trade - oil, tyres,
+      technology, drinks, watches, insurance and finance, motor parts, car
+      dealers, clothing - and named off that trade's book, seeded on the career.
+      No two sponsors of one trade at once. Nothing is ever paid to a sponsor
+- [x] **What a deal covers**: a discipline, or any racing - every race started
+      in it, any championship, historic events included
+- [x] **Its target, judged on every race** - or every qualifying, for a
+      qualifying target: a class place (top half to top quarter), a qualifying
+      place, beating the teammate, clean racing (2 to 4 cut laps at most), or
+      just racing. Short of it, that race pays nothing - a main sponsor half -
+      and nothing else follows. No strikes
+- [x] **Its goal, one a deal for its year**: a championship place, a count of
+      class podiums, wins or poles, on target in a share of its races, or races
+      started. Met, the sponsor offers to renew; missed, the deal ends on its
+      anniversary. Nothing ends a deal early
+- [x] **The money perks**, every figure scaled by the rung's typical entry fee
+      ($700 a round at Rookie to $25,000 at Platinum) and the prize speed: race
+      pay; a signing bonus and a goal bonus, a main sponsor's alone; win, podium,
+      points and pole bonuses; a prize match on every prize paid. Each figure is
+      drawn inside its perk's range for the slot, nearer the top for a better
+      rating and a harder target and goal
+- [x] **A main sponsor is better and rarer**: several times a partner's money,
+      and one **signature perk** on every offer, on top of its budget -
+      **Championship covered** (every entry fee of one championship it names),
+      **Climbs with you** (its figures rise to a new rung's), or **Car purchase
+      backing** (half of one car bought that races on the player's rung or
+      below - in the discipline the deal covers, on its own rung, for a deal
+      covering one - once a deal year)
+- [x] **A deal runs a year** from the day it is signed. Ending one yourself, or
+      replacing it, is free but repays the share of a signing bonus its year has
+      left
+- [x] **One mail per offer**, open a month, then it lapses: its terms, and for
+      a filled slot the deal it would replace beside it. **Sponsor news** when a
+      deal ends with its goal missed. A sponsor's mail opens the Sponsors page
+- [x] **Paying it**: `payOut` works out every line owed, as prizes are - race
+      pay and results bonuses race by race, a goal bonus on the anniversary -
+      keyed by deal, perk and session. Ledger kinds Sponsor and Sponsor bonus
+- [x] **Screens**: a Sponsors page at `/home/sponsors`, a sixth door on Home,
+      three by two - compact cards, a price and its condition to a line, each
+      goal On course or Short of it, locked slots a slim row, History on a tab of
+      its own; a round's page lists each sponsor's prices and conditions, and
+      what each session paid once run. Main sponsors wear the sponsor pink,
+      partners a cyan of their own
+
+### Slice 2 - More perks, and renewal
+
+- [ ] **Signature perks**: Seat backing (half of a team seat bought), Car reward
+      (a car of the rung worth about three goal bonuses, for the goal met, a new
+      one on renewal)
+- [ ] **Seat offer perks**: Team interest (seat offers likelier), Works team
+      interest (works teams likelier), Better terms (a better salary and fee
+      cover)
+- [ ] **Partners' perks**: entry fee share, rent share, free repaints, historic
+      invitations likelier
+- [ ] **Renewal** on a deal's anniversary with its goal met - its figures drawn
+      again at the rating then, each changed one saying what it was. **A Renewal
+      tag** on a renewal's mail, a sponsor's and a team's alike
 
 ## Phase 11 - Inbox
 
 The message model, the screen and event invitations moved ahead of Phase 9 as
 *Phase 11a - Inbox base*. What is left builds on it.
 
-- [ ] Sponsor offers with accept/decline and deadlines - seat offers are
-      Phase 9's
 - [ ] Session, race and championship results from engineer and team owner
 - [ ] Contract and market news
 - [ ] Earlier phases emit events into this bus as they land
@@ -3262,9 +3333,9 @@ The message model, the screen and event invitations moved ahead of Phase 9 as
   ship constantly, so a catalogue authored once goes stale. Does it update with the
   app, or does something fetch it? LFM's pack in particular turns over every
   season, which may make its list unmaintainable at our end.
-- **Sponsors, in detail.** How many slots per level; whether sponsor-funded entry
-  bypasses the ladder or only softens the cost; what "poor performance" means
-  numerically; whether sponsors are per-season or per-championship.
+- ~~**Sponsors, in detail.**~~ Settled in Phase 10: a main sponsor and one to
+  five partners by rung, nothing above the ladder, a target judged race by race
+  and a goal for each deal's year, and deals a year long from signing.
 - **Default exclusivity.** Are most contracts permissive, with only top teams
   locking you in? This sets how much multi-series racing feels normal.
 - ~~**Event scheduling.**~~ Settled: historic events are placed by the

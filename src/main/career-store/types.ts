@@ -500,6 +500,15 @@ export interface CareerStore {
    */
   answer(request: AnswerRequest): Promise<Career>;
   /**
+   * Ends a sponsor's deal early, repaying the share of its signing bonus its
+   * year has left.
+   * @param deal The deal, by id
+   * @returns The career
+   * @throws When there is no such deal still running, or the repayment is more
+   * than the career holds
+   */
+  endSponsor(deal: string): Promise<Career>;
+  /**
    * Marks a mail opened, or unread again.
    * @param request Which mail, and whether it is opened
    * @returns The career

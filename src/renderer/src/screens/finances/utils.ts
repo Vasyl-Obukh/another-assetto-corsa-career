@@ -97,6 +97,26 @@ export const describeLine = (
         title: series,
         detail: t('finances.line.historicDetail', { race: line.race ?? '', place: line.place ?? 0 }),
       };
+    case 'sponsor':
+    case 'sponsorBonus': {
+      const perk = line.sponsor?.perk ?? 'racePay';
+      const sponsor = line.sponsor?.name ?? '';
+      if (perk === 'signing') {
+        return { title: sponsor, detail: t(line.amount < 0 ? 'finances.line.sponsor.repaid' : 'finances.line.sponsor.signing') };
+      }
+      if (perk === 'carBacking') return { title: sponsor, detail: t('finances.line.sponsor.car', { car }) };
+      if (perk === 'goalBonus') return { title: sponsor, detail: t('finances.line.sponsor.goal') };
+      if (perk === 'prizeMatch') return { title: sponsor, detail: t('finances.line.sponsor.match', { series }) };
+      // Race pay or a results bonus, the only perks left by now.
+      const result = perk as 'racePay' | 'win' | 'podium' | 'points' | 'pole';
+      const what = t(`finances.line.sponsor.${result}`, { place: line.place ?? 0 });
+
+      return {
+        title: sponsor,
+        detail: [line.roundName ? round : series, line.race, what, line.sponsor?.half ? t('finances.line.sponsor.half') : null]
+          .filter(Boolean).join(' · '),
+      };
+    }
     case 'standings':
       return {
         title: t('finances.line.standings', { series, edition: edition() }),

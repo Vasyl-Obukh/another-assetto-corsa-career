@@ -256,6 +256,29 @@ describe('core/season-scoring/season-scoring', () => {
       expect(places.map((one) => one.fastestLap)).toEqual([false, false, true, false]);
     });
 
+    it('counts the laps each car had a cut on, read back through the order the launch ran with', () => {
+      const plan = makePlan(makeGrid(), [sprint]);
+      // The first [CAR_n] slot is car 2, the third car 1.
+      const state = makeState([ran(0, [0, 1, 2, 3], [2, 0, 1, 3])], 1);
+      const result = raceOf(0, [[0, 60_000], [0, 61_000], [1, 60_500], [3, 62_000], [3, 63_000]]);
+      const cuts = [1, 2, 0, 0, 1];
+      const laps = result.raceOut.sessions[0].laps.map((lap, at) => ({ ...lap, cuts: cuts[at] }));
+      const cut = { ...result, raceOut: { ...result.raceOut, sessions: [{ ...result.raceOut.sessions[0], laps }] } };
+
+      const { places } = scoreRound(makeSeries(), 'magione', plan, state, [cut], AT).races[0];
+
+      expect(places.map((one) => one.cuts)).toEqual([0, 0, 2, 1]);
+    });
+
+    it('records no cut count for a race nothing was archived for', () => {
+      const plan = makePlan(makeGrid(), [sprint]);
+      const state = makeState([ran(0, [0, 1, 2, 3])], 1);
+
+      const { places } = scoreRound(makeSeries(), 'magione', plan, state, [], AT).races[0];
+
+      expect(places.every((one) => !('cuts' in one))).toBe(true);
+    });
+
     it('reports no qualifying position when nothing set the grid', () => {
       const plan = makePlan(makeGrid(), [sprint]);
       const state = makeState([ran(0, [0, 1, 2, 3])], 1);

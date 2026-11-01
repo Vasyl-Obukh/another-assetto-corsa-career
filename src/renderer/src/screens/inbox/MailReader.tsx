@@ -1,5 +1,5 @@
 import {
-  AlertTriangleIcon, CarIcon, ExternalLinkIcon, LandmarkIcon, MailIcon, MoreHorizontalIcon,
+  AlertTriangleIcon, CarIcon, ExternalLinkIcon, LandmarkIcon, MailIcon, MoreVerticalIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
@@ -104,7 +104,7 @@ export const MailReader = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-8" aria-label={t('inbox.menu.label')}>
-                  <MoreHorizontalIcon />
+                  <MoreVerticalIcon />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

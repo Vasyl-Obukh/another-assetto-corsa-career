@@ -6,12 +6,14 @@
 // user's language and names the season's own copy of what it is about.
 
 import type { KeepStanding, OfferPick, SeatOffer } from './contract.ts';
+import type { SponsorNews, SponsorOffer } from './sponsor.ts';
 
 /**
- * What a mail is: a historic event's invitation, a team's seat offer, or team
- * news, which wants no answer.
+ * What a mail is: a historic event's invitation, a team's seat offer, team
+ * news, a sponsor's offer, or sponsor news - the two news kinds wanting no
+ * answer.
  */
-export type MailKind = 'invitation' | 'offer' | 'notice';
+export type MailKind = 'invitation' | 'offer' | 'notice' | 'sponsor' | 'sponsorNews';
 
 /**
  * How a mail that wants an answer was answered.
@@ -136,9 +138,10 @@ export interface Mail {
   /**
    * Stable identifier, keyed by what it is about - `invite:<raceId>` for an
    * invitation, `offer:<series>:<season>.<edition>` for an edition's seat offers,
-   * `seat:<series>:<season>.<edition>` for a seat bought, and
-   * `notice:<series>:<season>.<edition>` for team news about a contract - so
-   * nothing arrives twice.
+   * `seat:<series>:<season>.<edition>` for a seat bought,
+   * `notice:<series>:<season>.<edition>` for team news about a contract,
+   * `sponsor:<raceId>` for the sponsor's offer a round drew, and
+   * `sponsorNews:<deal>` for news of a deal ending - so nothing arrives twice.
    */
   id: string;
   /**
@@ -180,4 +183,12 @@ export interface Mail {
    * What the team has to say, on team news.
    */
   notice?: TeamNotice;
+  /**
+   * What the sponsor offers, on a sponsor's offer.
+   */
+  sponsor?: SponsorOffer;
+  /**
+   * What the sponsor has to say, on sponsor news.
+   */
+  sponsorNews?: SponsorNews;
 }

@@ -1,12 +1,14 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
+import { OFFER_DAYS } from '../../../core/sponsor-offers/index.ts';
 import { DEFAULT_CAREER_SETTINGS, MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
 import {
   Climate, Discipline, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type {
   CalendarInvitation,
+  Career,
   CareerSeason,
   Contract,
   ContractTerms,
@@ -15,16 +17,21 @@ import type {
   LaunchRecord,
   Mail,
   RacePlace,
+  RatingLine,
   RoundForecast,
   RoundScore,
   SeasonEntry,
   SeasonEvent,
+  SeasonStandings,
   SeatOffer,
   SeriesSession,
   SessionForecast,
+  SponsorDeal,
+  SponsorOffer,
 } from '../../../shared/types/index.ts';
 import { noticeId, offerId } from '../../../shared/utils/contracts/index.ts';
 import { invitationId } from '../../../shared/utils/inbox/index.ts';
+import { sponsorMailId, sponsorNewsId } from '../../../shared/utils/sponsors/index.ts';
 import {
   advanceSkips,
   advanceStop,
@@ -46,6 +53,8 @@ import {
   drawnEvent,
   drawOf,
   editionAt,
+  endSponsor,
+  endSponsorYears,
   enteredEntry,
   enteredEvent,
   eventName,
@@ -80,7 +89,9 @@ import {
   seasonEndDate,
   seasonOf,
   seasonSalt,
+  sendSponsorOffers,
   signedContract,
+  signSponsor,
   simulatedEvent,
   skipCost,
   skippedRound,
@@ -255,6 +266,136 @@ const makeOfferMail = (edition: number, over: Partial<Mail> = {}): Mail => ({
   ...over,
 });
 
+/**
+ * A seat's place in a race of the cup's one class.
+ * @param seat The seat
+ * @param classPosition Where it finished in its class
+ * @returns The place
+ */
+const placeOf = (seat: string, classPosition: number): RacePlace => ({
+  seat,
+  entry: 'main',
+  team: null,
+  driver: seat,
+  position: classPosition,
+  classPosition,
+  qualifyingPosition: classPosition,
+  fastestLap: false,
+  finishPoints: 0,
+  fastestLapPoints: 0,
+  qualifyingPoints: 0,
+  points: 0,
+});
+
+/**
+ * A round of the cup raced, the player in the second seat.
+ * @param round The round's id
+ * @param date The ISO date it was raced on
+ * @param won Whether the player won it rather than finished second
+ * @param simulated Whether nobody drove it
+ * @returns The event
+ */
+const racedRound = (round: string, date: string, won = true, simulated = false): SeasonEvent => makeEvent(round, date, {
+  status: 'raced',
+  score: {
+    round,
+    recordedAt: `${date}T16:00:00.000Z`,
+    races: [{
+      launch: 2,
+      session: null,
+      name: 'Race',
+      pointsSystem: 'standard',
+      ...(simulated ? { simulated: true } : {}),
+      places: won ? [placeOf('seat-2', 1), placeOf('seat-1', 2)] : [placeOf('seat-1', 1), placeOf('seat-2', 2)],
+    }],
+  },
+});
+
+/**
+ * The cup's table with the player leading it.
+ */
+const LEADING: SeasonStandings = {
+  classes: [{
+    entry: 'main',
+    name: 'Main',
+    teams: [],
+    drivers: [{
+      seat: 'seat-2', driver: 'Test Driver', team: null, position: 1, points: 25, wins: 1, podiums: 1, bestFinish: 1, races: 1,
+    }],
+  }],
+  updatedAt: '2026-03-01T16:00:00.000Z',
+};
+
+/**
+ * The line saying a race opened a new rung.
+ * @param date The ISO date of the race
+ * @returns The line
+ */
+const promotion = (date: string): RatingLine => ({
+  key: `promotion:${date}`, kind: 'promotion', date, season: 0, change: 0, globalChange: 0, global: 2000,
+});
+
+/**
+ * A career that has just won the cup's last round, settling its title and
+ * opening a rung on the way - which is certain of a sponsor's offer.
+ * @param date Where the clock stands
+ * @param over Whatever the test wants said differently
+ * @returns The career
+ */
+const inForm = (date = '2026-03-01', over: Partial<Career> = {}): Career => makeCareer({
+  date,
+  ratingLog: [promotion('2026-03-01')],
+  seasons: [makeSeason({ entries: [makeEntry({ events: [racedRound('one', '2026-03-01')], standings: LEADING })] })],
+  ...over,
+});
+
+/**
+ * Builds what a sponsor offers: a main sponsor of oil paying for every race
+ * started, with a year's goal of one race.
+ * @param over Whatever the test wants said differently
+ * @returns The offer
+ */
+const makeSponsorOffer = (over: Partial<SponsorOffer> = {}): SponsorOffer => ({
+  sponsor: { name: 'Halden Lubricants', trade: 'oil', nation: 'GBR' },
+  slot: 'main',
+  covers: null,
+  perks: [{ kind: 'racePay', amount: 500 }],
+  target: { kind: 'start' },
+  goal: { kind: 'racesStarted', count: 1 },
+  rung: 4,
+  ...over,
+});
+
+/**
+ * Builds a deal signed on the career's opening day, for a year.
+ * @param over Whatever the test wants said differently
+ * @returns The deal
+ */
+const makeDeal = (over: Partial<SponsorDeal> = {}): SponsorDeal => ({
+  ...makeSponsorOffer(),
+  id: 'sponsor:test-cup/zero',
+  signed: '2026-01-04',
+  until: '2027-01-04',
+  ...over,
+});
+
+/**
+ * Builds a sponsor's offer as its mail, open until the end of March.
+ * @param offer What it offers
+ * @param over Whatever the test wants said differently
+ * @returns The mail
+ */
+const makeSponsorMail = (offer: SponsorOffer = makeSponsorOffer(), over: Partial<Mail> = {}): Mail => ({
+  id: sponsorMailId('test-cup/one'),
+  kind: 'sponsor',
+  season: 0,
+  arrived: '2026-03-01',
+  opened: false,
+  deadline: '2026-03-31',
+  sponsor: offer,
+  ...over,
+});
+
 describe('main/career-store/utils', () => {
   describe('profileOf', () => {
     it('keeps who races the career, when it began and how it is set up, and nothing of where it has got to', () => {
@@ -289,6 +430,7 @@ describe('main/career-store/utils', () => {
         ratingLog: career.ratingLog,
         seasons: career.seasons,
         inbox: career.inbox,
+        sponsors: career.sponsors,
       });
     });
 
@@ -468,6 +610,17 @@ describe('main/career-store/utils', () => {
       const mail = makeMail(makeDraw());
 
       expect(readState({ ...wholeCareer(), inbox: [mail] })?.inbox).toEqual([mail]);
+    });
+
+    it('reads a state holding no sponsors as one with none signed', () => {
+      expect(readState({ ...wholeCareer(), sponsors: undefined })?.sponsors).toEqual([]);
+    });
+
+    it('keeps the deals a state holds, and refuses sponsors that are not a list', () => {
+      const deal = makeDeal();
+
+      expect(readState({ ...wholeCareer(), sponsors: [deal] })?.sponsors).toEqual([deal]);
+      expect(readState({ ...wholeCareer(), sponsors: {} })).toBeNull();
     });
   });
 
@@ -3468,6 +3621,268 @@ describe('main/career-store/utils', () => {
       expect(backupName({
         ...summary, kind: 'championship', year: 2028, championships,
       })).toBe('championship-2028.zip');
+    });
+  });
+
+  describe('sendSponsorOffers', () => {
+    it('offers a sponsor for a round the player drove, open a month from its day', () => {
+      const sent = sendSponsorOffers(inForm());
+
+      expect(sent.inbox).toEqual([expect.objectContaining({
+        id: sponsorMailId('test-cup/one'),
+        kind: 'sponsor',
+        season: 0,
+        arrived: '2026-03-01',
+        opened: false,
+        deadline: addDays('2026-03-01', OFFER_DAYS),
+        // Free, and in form, so the main sponsor's slot.
+        sponsor: expect.objectContaining({ slot: 'main' }),
+      })]);
+      expect(sent.inbox[0].sponsor?.replaces).toBeUndefined();
+      expect(sent.seasons[0].sponsorDraws).toEqual(['test-cup/one']);
+    });
+
+    it('draws each round once, whatever came of it', () => {
+      const once = sendSponsorOffers(inForm());
+
+      expect(sendSponsorOffers(once)).toBe(once);
+    });
+
+    it('draws nothing for a round the player did not drive, nor one still to race', () => {
+      const career = inForm('2026-03-08', {
+        seasons: [makeSeason({
+          entries: [makeEntry({
+            events: [racedRound('one', '2026-03-01', true, true), makeEvent('two', '2026-03-08')],
+            standings: LEADING,
+          })],
+        })],
+      });
+
+      expect(sendSponsorOffers(career)).toBe(career);
+    });
+
+    it('marks a round too long ago for its offer still to be open as drawn, sending nothing', () => {
+      const sent = sendSponsorOffers(inForm(addDays('2026-03-01', OFFER_DAYS + 1)));
+
+      expect(sent.inbox).toEqual([]);
+      expect(sent.seasons[0].sponsorDraws).toEqual(['test-cup/one']);
+    });
+
+    it('sends nothing outside a career', () => {
+      const career = inForm('2026-03-01', { kind: 'championship' });
+
+      expect(sendSponsorOffers(career)).toBe(career);
+    });
+
+    it('offers to replace the deal of its slot whose year runs out first, every slot being filled', () => {
+      const dates = Array.from({ length: 10 }, (unused, at) => addDays('2026-03-01', at));
+      const main = makeDeal({ id: 'main', sponsor: { name: 'Vantor Tyres', trade: 'tyres', nation: 'DEU' } });
+      const late = makeDeal({
+        id: 'late', slot: 'partner', until: '2027-02-01', sponsor: { name: 'Lumen Data', trade: 'tech', nation: 'USA' },
+      });
+      const early = makeDeal({
+        id: 'early', slot: 'partner', until: '2026-12-01', sponsor: { name: 'Alder Springs', trade: 'drinks', nation: 'CAN' },
+      });
+      const career = makeCareer({
+        date: dates[dates.length - 1],
+        ratingLog: dates.map(promotion),
+        sponsors: [main, late, early],
+        seasons: [makeSeason({
+          entries: [makeEntry({ events: dates.map((date, at) => racedRound(`r${at}`, date)), standings: LEADING })],
+        })],
+      });
+      const offers = sendSponsorOffers(career).inbox.map((mail) => mail.sponsor);
+
+      expect(offers.length).toBeGreaterThan(0);
+      for (const offer of offers) {
+        expect(offer?.replaces).toBe(offer?.slot === 'main' ? 'main' : 'early');
+      }
+    });
+  });
+
+  describe('endSponsorYears', () => {
+    /**
+     * A career on a deal's anniversary, a race of it driven in March.
+     * @param deal The deal
+     * @returns The career
+     */
+    const anniversary = (deal: SponsorDeal): Career => makeCareer({
+      date: deal.until,
+      sponsors: [deal],
+      seasons: [makeSeason({ entries: [makeEntry({ events: [racedRound('one', '2026-03-01')] })] })],
+    });
+
+    it('ends a deal on its anniversary with its goal met, sending no news', () => {
+      const ended = endSponsorYears(anniversary(makeDeal()));
+
+      expect(ended.sponsors[0].ended).toEqual({ on: '2027-01-04', why: 'goalMet' });
+      expect(ended.inbox).toEqual([]);
+    });
+
+    // The paid career used to be worked out for the news alone and thrown away.
+    it('pays the career up as it ends a deal', () => {
+      const ended = endSponsorYears(anniversary(makeDeal()));
+
+      expect(ended.ledger).toContainEqual(expect.objectContaining({
+        key: 'sponsor:sponsor:test-cup/zero:pay:test-cup/one:2', kind: 'sponsor', amount: 500,
+      }));
+      expect(ended.money).toBe(100_500);
+    });
+
+    it('ends a deal with its goal missed, and sends news of what it paid and how far the goal got', () => {
+      const deal = makeDeal({ goal: { kind: 'racesStarted', count: 5 } });
+      const ended = endSponsorYears(anniversary(deal));
+
+      expect(ended.sponsors[0].ended).toEqual({ on: '2027-01-04', why: 'goalMissed' });
+      expect(ended.inbox).toEqual([{
+        id: sponsorNewsId(deal.id),
+        kind: 'sponsorNews',
+        season: 0,
+        arrived: '2027-01-04',
+        opened: false,
+        sponsorNews: {
+          deal: deal.id, sponsor: deal.sponsor, slot: 'main', goal: deal.goal, reached: 1, paid: 500,
+        },
+      }]);
+    });
+
+    it('leaves a career alone while no deal has reached its anniversary', () => {
+      const career = { ...anniversary(makeDeal()), date: '2027-01-03' };
+
+      expect(endSponsorYears(career)).toBe(career);
+    });
+
+    it('leaves a deal already ended alone', () => {
+      const career = anniversary(makeDeal({ ended: { on: '2026-06-01', why: 'mine' } }));
+
+      expect(endSponsorYears(career)).toBe(career);
+    });
+  });
+
+  describe('endSponsor', () => {
+    const signing = makeDeal({ perks: [{ kind: 'racePay', amount: 500 }, { kind: 'signing', amount: 3650 }] });
+
+    it("repays the share of the signing bonus the deal's year has left", () => {
+      // 183 of its 365 days are left.
+      const ended = endSponsor(makeCareer({ date: '2026-07-05', sponsors: [signing] }), signing, 'mine');
+
+      expect(ended.ledger).toEqual([expect.objectContaining({
+        key: 'sponsor:sponsor:test-cup/zero:repay', kind: 'sponsor', amount: -1830, date: '2026-07-05',
+      })]);
+      expect(ended.money).toBe(98_170);
+      expect(ended.sponsors[0].ended).toEqual({ on: '2026-07-05', why: 'mine' });
+    });
+
+    it('ends a deal with no signing bonus for nothing, saying why it ended', () => {
+      const deal = makeDeal();
+      const ended = endSponsor(makeCareer({ date: '2026-07-05', sponsors: [deal] }), deal, 'replaced');
+
+      expect(ended.ledger).toEqual([]);
+      expect(ended.money).toBe(100_000);
+      expect(ended.sponsors[0].ended).toEqual({ on: '2026-07-05', why: 'replaced' });
+    });
+  });
+
+  describe('signSponsor', () => {
+    const offer = makeSponsorOffer({ perks: [{ kind: 'racePay', amount: 500 }, { kind: 'signing', amount: 2000 }] });
+
+    /**
+     * A career on 10 March holding the offer's mail.
+     * @param over Whatever the test wants said differently
+     * @returns The career
+     */
+    const offered = (over: Partial<Career> = {}): Career => makeCareer({
+      date: '2026-03-10', seasons: [makeSeason()], inbox: [makeSponsorMail(offer)], ...over,
+    });
+
+    it('signs a deal for a year from today, pays its signing bonus and accepts the mail', () => {
+      const career = offered();
+      const signed = signSponsor(career, career.inbox[0]);
+
+      expect(signed.sponsors).toEqual([{
+        ...offer, id: sponsorMailId('test-cup/one'), signed: '2026-03-10', until: '2027-03-10',
+      }]);
+      expect(signed.ledger).toEqual([expect.objectContaining({
+        key: 'sponsor:sponsor:test-cup/one:signing', kind: 'sponsor', amount: 2000, date: '2026-03-10',
+      })]);
+      expect(signed.money).toBe(102_000);
+      expect(signed.inbox[0]).toMatchObject({ opened: true, reply: { answer: 'accepted', on: '2026-03-10' } });
+    });
+
+    it('refuses a mail that is no longer open', () => {
+      const lapsed = offered({ date: '2026-04-01' });
+      const declined = offered({ inbox: [makeSponsorMail(offer, { reply: { answer: 'declined', on: '2026-03-05' } })] });
+
+      expect(() => signSponsor(lapsed, lapsed.inbox[0])).toThrow(expect.objectContaining({ code: 'sponsor.closed' }));
+      expect(() => signSponsor(declined, declined.inbox[0])).toThrow(expect.objectContaining({ code: 'sponsor.closed' }));
+    });
+
+    it('refuses a sponsor of a trade another backing the player is in', () => {
+      const career = offered({ sponsors: [makeDeal({ slot: 'partner' })] });
+
+      expect(() => signSponsor(career, career.inbox[0])).toThrow(expect.objectContaining({ code: 'sponsor.trade' }));
+    });
+
+    it('refuses a slot already filled', () => {
+      const tyres = { name: 'Vantor Tyres', trade: 'tyres', nation: 'DEU' } as const;
+      const tech = { name: 'Lumen Data', trade: 'tech', nation: 'USA' } as const;
+      const main = offered({ sponsors: [makeDeal({ sponsor: tyres })] });
+      const partner = offered({
+        inbox: [makeSponsorMail({ ...offer, slot: 'partner' })],
+        sponsors: [
+          makeDeal({ id: 'a', slot: 'partner', sponsor: tyres }),
+          makeDeal({ id: 'b', slot: 'partner', sponsor: tech }),
+        ],
+      });
+
+      expect(() => signSponsor(main, main.inbox[0])).toThrow(expect.objectContaining({ code: 'sponsor.slotFull' }));
+      expect(() => signSponsor(partner, partner.inbox[0])).toThrow(expect.objectContaining({ code: 'sponsor.slotFull' }));
+    });
+
+    describe('replacing a deal', () => {
+      // Signed in January with 3,650 on signing, so 1,830 is repaid on 5 July.
+      const old = makeDeal({ perks: [{ kind: 'racePay', amount: 500 }, { kind: 'signing', amount: 3650 }] });
+
+      /**
+       * A career on 5 July holding the old deal and an offer to replace it.
+       * @param money What the career holds
+       * @param bonus The new deal's signing bonus
+       * @returns The career
+       */
+      const replacing = (money: number, bonus: number): Career => offered({
+        date: '2026-07-05',
+        money,
+        sponsors: [old],
+        inbox: [makeSponsorMail(
+          { ...offer, perks: [{ kind: 'signing', amount: bonus }], replaces: old.id },
+          { deadline: '2026-07-31' },
+        )],
+      });
+
+      it('ends the deal it replaces, of its own trade or not, repaying what that owes', () => {
+        const career = replacing(100_000, 2000);
+        const signed = signSponsor(career, career.inbox[0]);
+
+        expect(signed.sponsors[0].ended).toEqual({ on: '2026-07-05', why: 'replaced' });
+        expect(signed.sponsors[1]).toMatchObject({ id: sponsorMailId('test-cup/one'), signed: '2026-07-05' });
+        expect(signed.ledger.map((line) => line.amount)).toEqual([-1830, 2000]);
+        expect(signed.money).toBe(100_170);
+      });
+
+      // Guards a fix: the repayment was once checked against the money before
+      // the new signing bonus was paid in.
+      it('signs when the new signing bonus covers what the money alone would not', () => {
+        const career = replacing(500, 5000);
+
+        expect(signSponsor(career, career.inbox[0]).money).toBe(3670);
+      });
+
+      it('refuses a replacement the career cannot repay, even with the new bonus', () => {
+        const career = replacing(500, 1000);
+
+        expect(() => signSponsor(career, career.inbox[0]))
+          .toThrow(expect.objectContaining({ code: 'sponsor.repay.short', params: { repay: 1830, money: 500 } }));
+      });
     });
   });
 });

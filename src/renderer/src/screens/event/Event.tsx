@@ -14,6 +14,7 @@ import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
 import { HistoricSeatPanel } from './HistoricSeatPanel.tsx';
 import { RoundRating } from './RoundRating.tsx';
+import { RoundSponsors } from './RoundSponsors.tsx';
 import { RoundStrength } from './RoundStrength.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundSummarySkeleton } from './RoundSummarySkeleton.tsx';
@@ -197,7 +198,11 @@ export const Event = () => {
                   <span>{t('calendar.prize', { amount: formatMoney(view.prize) })}</span>
                 )}
                 {view.money?.fee ? (
-                  <span>{t('event.money.fee', { amount: formatMoney(view.money.fee) })}</span>
+                  <span>
+                    {view.money.sponsor
+                      ? t('event.money.feeCovered', { amount: formatMoney(view.money.fee), sponsor: view.money.sponsor })
+                      : t('event.money.fee', { amount: formatMoney(view.money.fee) })}
+                  </span>
                 ) : null}
                 {/* What a historic event of one class costs anyone entering it
                     without an invitation; several classes' fees are said in
@@ -274,6 +279,7 @@ export const Event = () => {
                 })}
               />
             ) : null}
+            {slot.mode === 'career' && slot.career && view.entered ? <RoundSponsors career={slot.career} view={view} /> : null}
             {view.entered && view.strength ? (
               <RoundStrength
                 view={view}

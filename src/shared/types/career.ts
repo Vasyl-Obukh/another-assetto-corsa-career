@@ -22,6 +22,7 @@ import type {
   AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability, TeamBudget,
 } from './series.ts';
 import type { Currency, DrivingAids, HistoricFrequency } from './settings.ts';
+import type { SponsorDeal, SponsorPerkKind } from './sponsor.ts';
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
 } from './standings.ts';
@@ -362,6 +363,11 @@ export interface CareerSeason {
    * `<series>:<edition>` - so each draws once, whatever came of it.
    */
   offersDrawn?: readonly string[];
+  /**
+   * Every round raced whose sponsor draw has been made, by race id - so each
+   * draws once, whatever came of it.
+   */
+  sponsorDraws?: readonly string[];
 }
 
 /**
@@ -500,11 +506,13 @@ export interface OwnedCar {
  * change of prize speed, which moves none, a car bought, sold or
  * repainted, or a round's rent - and under a contract, a round's salary, a seat
  * paid for or partly refunded, a standings bonus, a round missed and fined, or
- * the fee for terminating it.
+ * the fee for terminating it - and a sponsor's pay for being there, or its
+ * bonus for a result or a goal met.
  */
 export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' | 'speed'
   | 'purchase' | 'sale' | 'repaint' | 'rent'
-  | 'salary' | 'seat' | 'refund' | 'bonus' | 'fine' | 'release';
+  | 'salary' | 'seat' | 'refund' | 'bonus' | 'fine' | 'release'
+  | 'sponsor' | 'sponsorBonus';
 
 /**
  * One change of a career's money, and what it was for.
@@ -616,6 +624,28 @@ export interface LedgerLine {
     purse: number;
   };
   /**
+   * The sponsor behind a sponsor's line: the deal, its name and the perk that
+   * paid.
+   */
+  sponsor?: {
+    /**
+     * The deal, by id.
+     */
+    deal: string;
+    /**
+     * The sponsor's name.
+     */
+    name: string;
+    /**
+     * The perk that paid it.
+     */
+    perk: SponsorPerkKind;
+    /**
+     * Set on race pay a main sponsor halved for a race short of its target.
+     */
+    half?: true;
+  };
+  /**
    * The speed before and after, for a change of prize speed.
    */
   speed?: {
@@ -643,6 +673,11 @@ export interface EventMoney {
    * Whether that fee has been paid, which it is as the first session launches.
    */
   paid: boolean;
+  /**
+   * The sponsor whose deal covers that fee, by name, or null for none - a fee
+   * it covers moves no money.
+   */
+  sponsor: string | null;
   /**
    * What the round's rent comes to, or null when the car is not rented.
    */
@@ -919,6 +954,10 @@ export interface CareerState {
    * Every mail it has been sent, oldest first, across all its seasons.
    */
   inbox: readonly Mail[];
+  /**
+   * Every sponsor's deal it has signed, oldest first - those ended included.
+   */
+  sponsors: readonly SponsorDeal[];
 }
 
 /**

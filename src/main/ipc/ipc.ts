@@ -214,6 +214,7 @@ export const registerHandlers = (
   handle('career:repaintCar', async (request) => career.repaintCar(request));
   handle('career:withdraw', async (request) => career.withdraw(request));
   handle('career:answer', async (request) => career.answer(request));
+  handle('career:endSponsor', async ({ deal }) => career.endSponsor(deal));
   handle('career:markMail', async (request) => career.markMail(request));
   handle('career:markAllRead', async () => career.markAllRead());
   handle('career:strength', async (request) => career.strength(request));

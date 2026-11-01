@@ -55,6 +55,9 @@ export {
   DistributorBadge, distributorNameKey, makerNameKey, packNameKey, ProvenanceBadges,
 } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
+export {
+  CoversBadge, goalText, perkPair, SponsorGoal, SponsorMark, SponsorPerks,
+} from './sponsors/index.ts';
 export { ScreenHeader } from './ScreenHeader.tsx';
 export { ScreenStrip } from './ScreenStrip.tsx';
 export { Segments } from './Segments.tsx';

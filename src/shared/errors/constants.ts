@@ -256,6 +256,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'contract.gone': '{{team}} no longer fields that seat in {{series}}.',
   'contract.release.short': 'Terminating the contract costs {{fee}} and the career holds {{money}}.',
   'contract.sale.none': 'That team sells no seat in {{series}}.',
+  'sponsor.closed': 'The offer from {{sponsor}} can no longer be answered that way.',
+  'sponsor.slotFull': 'Every slot {{sponsor}} could fill is taken. End a deal to free one.',
+  'sponsor.trade': 'You already have a sponsor in the same trade as {{sponsor}}.',
+  'sponsor.notFound': 'There is no such sponsor deal.',
+  'sponsor.repay.short': 'Ending the deal repays {{repay}} of its signing bonus, and the career holds {{money}}.',
   'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
   'historic.points':
     'Points system "{{system}}" of {{event}} pays points, but a historic event pays only its prize money.',

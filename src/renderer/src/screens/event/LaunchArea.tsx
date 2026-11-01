@@ -48,8 +48,9 @@ export const LaunchArea = ({
   const race = useRaceStatus();
   const { money } = view;
   const contract = money?.contract ?? null;
-  // What the next launch pays: the fee and the rent, each until it is paid.
-  const fee = money?.fee && !money.paid ? money.fee : 0;
+  // What the next launch pays: the fee - unless a sponsor covers it - and the
+  // rent, each until it is paid.
+  const fee = money?.fee && !money.paid && !money.sponsor ? money.fee : 0;
   const rent = money?.rent && !money.rentPaid ? money.rent : 0;
   // Said with the amounts in the career's own currency, which the shared
   // English template cannot do.

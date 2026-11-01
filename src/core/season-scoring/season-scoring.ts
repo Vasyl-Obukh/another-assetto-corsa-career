@@ -74,6 +74,30 @@ const lapTimesByCar = (
 };
 
 /**
+ * How many laps each car had a cut counted on, in event-grid order - mapped
+ * back through the launch's own order as lap times are.
+ * @param result What the launch wrote, or undefined when nothing was archived
+ * @param gridOrder The [CAR_n] order the launch ran with, as event-grid indices
+ * @param size How many cars the event fields
+ * @returns One count per event-grid car, or null where nothing was written
+ */
+const cutLapsByCar = (
+  result: LaunchResult | undefined,
+  gridOrder: readonly number[],
+  size: number,
+): (number | null)[] => {
+  const counts: (number | null)[] = Array.from({ length: size }, () => null);
+  const session = result && lastSessionOf(result.raceOut, SESSION_TYPE.race);
+  if (!session) return counts;
+
+  gridOrder.forEach((car, at) => {
+    counts[car] = (session.laps ?? []).filter((lap) => lap.car === at && lap.cuts > 0).length;
+  });
+
+  return counts;
+};
+
+/**
  * Scores one round of a championship from the event that ran it.
  *
  * Every race of the event pays, so a sprint event scores twice and a round
@@ -116,11 +140,9 @@ export const scoreRound = (
     // reverse-grid race pays on the qualifying order rather than on the
     // reversal, because the reverse is applied after this.
     const started = composeOrder(chainOf(plan, launch.index), state.completed, size);
-    const times = lapTimesByCar(
-      results.find((one) => one.launch === launch.index),
-      record.gridOrder,
-      size,
-    );
+    const result = results.find((one) => one.launch === launch.index);
+    const times = lapTimesByCar(result, record.gridOrder, size);
+    const cuts = cutLapsByCar(result, record.gridOrder, size);
 
     const places = series.entries.flatMap((entry): RacePlace[] => {
       const cars = classOrder(finish, plan.grid, entry.id);
@@ -139,6 +161,8 @@ export const scoreRound = (
           ? 0
           : pointsAt(system.qualifying, qualifyingPosition);
 
+        const cutLaps = cuts[car];
+
         return {
           seat: row.seat ?? '',
           entry: entry.id,
@@ -148,6 +172,7 @@ export const scoreRound = (
           classPosition,
           qualifyingPosition,
           fastestLap: car === fastest,
+          ...(cutLaps === null ? {} : { cuts: cutLaps }),
           finishPoints,
           fastestLapPoints,
           qualifyingPoints,

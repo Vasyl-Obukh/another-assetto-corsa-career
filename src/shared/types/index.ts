@@ -191,6 +191,24 @@ export type {
 } from './inbox.ts';
 
 export type {
+  Sponsor,
+  SponsorDeal,
+  SponsorEnd,
+  SponsorGoal,
+  SponsorGoalKind,
+  SponsorNews,
+  SponsorOffer,
+  SponsorPerk,
+  SponsorPerkKind,
+  SponsorResult,
+  SponsorSlot,
+  SponsorTarget,
+  SponsorTargetKind,
+  SponsorTerms,
+  SponsorTrade,
+} from './sponsor.ts';
+
+export type {
   Contract, ContractBonus, ContractPay, ContractTerms, KeepStanding, KeptOutcome, OfferPick, Renewal, SeatOffer,
 } from './contract.ts';
 

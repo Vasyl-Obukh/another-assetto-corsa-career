@@ -98,6 +98,16 @@ describe('renderer/lib/finances/finances', () => {
       expect(contract.filter((one) => shownBy(one, 'prizes') || shownBy(one, 'fees') || shownBy(one, 'cars')))
         .toEqual([]);
     });
+
+    it('shows what sponsors paid and took back to sponsors, and keeps it out of every other filter', () => {
+      const sponsor: LedgerLine[] = [line('sponsor', 5000), line('sponsorBonus', 1200), line('sponsor', -2000)];
+      const ledger = [...LEDGER, ...sponsor];
+
+      expect(ledger.filter((one) => shownBy(one, 'sponsors'))).toEqual(sponsor);
+      expect(sponsor.filter((one) => (
+        shownBy(one, 'prizes') || shownBy(one, 'fees') || shownBy(one, 'cars') || shownBy(one, 'contracts')
+      ))).toEqual([]);
+    });
   });
 
   describe('moneyFigures', () => {

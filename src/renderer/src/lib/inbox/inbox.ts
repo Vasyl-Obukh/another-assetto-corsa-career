@@ -83,6 +83,7 @@ export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
   if (folder === 'unread') return !item.mail.opened;
   if (folder === 'awaiting') return item.status === 'awaiting';
   if (folder === 'invitation' || folder === 'offer' || folder === 'notice') return item.mail.kind === folder;
+  if (folder === 'sponsor') return item.mail.kind === 'sponsor' || item.mail.kind === 'sponsorNews';
 
   return true;
 };
@@ -100,6 +101,7 @@ export const matchesSearch = (item: InboxItem, search: string): boolean => match
   [
     item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName ?? null,
     item.team?.name ?? item.mail.notice?.teamName ?? null,
+    item.mail.sponsor?.sponsor.name ?? item.mail.sponsorNews?.sponsor.name ?? null,
     ...item.offers.map((offer) => offer.teamName),
   ],
 );

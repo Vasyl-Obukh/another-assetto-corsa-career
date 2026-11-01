@@ -203,6 +203,11 @@ export type ErrorCode =
   | 'contract.gone'
   | 'contract.release.short'
   | 'contract.sale.none'
+  | 'sponsor.closed'
+  | 'sponsor.slotFull'
+  | 'sponsor.trade'
+  | 'sponsor.notFound'
+  | 'sponsor.repay.short'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'
   // src/main/ipc

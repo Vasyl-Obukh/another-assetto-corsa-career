@@ -23,6 +23,8 @@ import type {
   RatingKind,
   SaveKind,
   SessionType,
+  SponsorEnd,
+  SponsorSlot,
   TeamBudget,
 } from '../../../shared/types';
 
@@ -228,6 +230,30 @@ export const CONTRACT_ACCENT = 'border-transparent bg-contract text-contract-for
 export const CONTRACT_DOT = 'bg-contract-foreground';
 
 /**
+ * A sponsor's colour by the slot it fills: a main sponsor's pink, and a
+ * partner's cyan - each deal's mark, card and chips, wherever a sponsor shows.
+ * Everything a sponsor pays on the ledger wears the main sponsor's pink.
+ * globals.css says why each.
+ */
+export const SPONSOR_ACCENT = {
+  main: 'border-transparent bg-sponsor text-sponsor-foreground',
+  partner: 'border-transparent bg-partner text-partner-foreground',
+} as const satisfies Record<SponsorSlot, string>;
+
+/**
+ * A slot's deep tone, for a card's top edge and a dot.
+ */
+export const SPONSOR_SOLID = {
+  main: 'border-t-sponsor-solid',
+  partner: 'border-t-partner-solid',
+} as const satisfies Record<SponsorSlot, string>;
+
+/**
+ * A sponsor's pink as a dot, for the inbox's folder of sponsors' mail.
+ */
+export const SPONSOR_DOT = 'bg-sponsor-foreground';
+
+/**
  * The colour each kind of ledger line is chipped in - Finances, Home's door
  * into it and a round's own money. Each is the colour of what paid it: a race
  * in the race green, a final standing in the podium gold, a historic event in
@@ -253,6 +279,8 @@ export const LEDGER_ACCENT = {
   bonus: CONTRACT_ACCENT,
   release: CONTRACT_ACCENT,
   fine: 'border-transparent bg-destructive/15 text-destructive',
+  sponsor: SPONSOR_ACCENT.main,
+  sponsorBonus: SPONSOR_ACCENT.main,
 } as const satisfies Record<LedgerKind, string>;
 
 /**
@@ -306,6 +334,8 @@ export const LEDGER_BAR = {
   bonus: 'bg-contract-foreground',
   release: 'bg-contract-foreground',
   fine: 'bg-destructive',
+  sponsor: 'bg-sponsor-foreground',
+  sponsorBonus: 'bg-sponsor-foreground',
 } as const satisfies Record<LedgerKind, string>;
 
 /**
@@ -549,3 +579,18 @@ export const SECTION_ACCENT = {
  * What a settings section is about, which picks its colour.
  */
 export type SectionTone = keyof typeof SECTION_ACCENT;
+
+/**
+ * How a sponsor's deal ended, or that it is running, each on a hue the
+ * Sponsors page already shows: running on the main sponsor's pink, its goal
+ * met on the accepted green, its goal missed on the destructive red, and ended
+ * by the player or replaced on the declined slate, as a choice rather than a
+ * failure.
+ */
+export const SPONSOR_END_ACCENT = {
+  running: SPONSOR_ACCENT.main,
+  goalMet: INVITATION_ACCENT.accepted,
+  goalMissed: 'border-transparent bg-destructive/15 text-destructive',
+  mine: INVITATION_ACCENT.declined,
+  replaced: INVITATION_ACCENT.declined,
+} as const satisfies Record<SponsorEnd | 'running', string>;

@@ -11,6 +11,8 @@ import { MailList } from './MailList.tsx';
 import { MailReader } from './MailReader.tsx';
 import { NoticeReader } from './NoticeReader.tsx';
 import { OfferReader } from './OfferReader.tsx';
+import { SponsorNewsReader } from './SponsorNewsReader.tsx';
+import { SponsorReader } from './SponsorReader.tsx';
 import {
   carModels, eventLink, folderOf, offerEdition, offerLink, pageNumber,
 } from './utils.ts';
@@ -21,7 +23,9 @@ import { ConfirmDialog, ErrorCard, ScreenBody } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCarNames } from '@/hooks';
 import { useFormat } from '@/i18n';
-import { inboxItems, inFolder, matchesSearch } from '@/lib/inbox';
+import {
+  INBOX_PAGE_SIZE, inboxItems, inFolder, matchesSearch,
+} from '@/lib/inbox';
 import type { InboxFolder } from '@/lib/inbox';
 import { invoke, toDisplayableError } from '@/lib/ipc';
 import { MAIL_PARAM } from '@/lib/routes';
@@ -46,16 +50,21 @@ export const Inbox = () => {
   const [declining, setDeclining] = useState(false);
 
   const folder = folderOf(params.get(FOLDER_PARAM));
-  const page = pageNumber(params.get(PAGE_PARAM));
   const open = params.get(MAIL_PARAM);
   const items = useMemo(() => (career ? inboxItems(career) : []), [career]);
   const listed = items.filter((item) => inFolder(item, folder) && matchesSearch(item, search));
   const selected = items.find((item) => item.mail.id === open) ?? null;
+  // A mail opened by a link that names no page opens the page listing it.
+  const asked = params.get(PAGE_PARAM);
+  const at = selected ? listed.indexOf(selected) : -1;
+  const page = asked === null && at >= 0 ? Math.floor(at / INBOX_PAGE_SIZE) + 1 : pageNumber(asked);
   const unread = items.filter((item) => !item.mail.opened).length;
   const offered = selected ? carModels(selected) : [];
   const carName = useCarNames(offered);
   const seat = selected?.offers[0] ?? null;
   const notice = selected?.mail.notice ?? null;
+  const sponsor = selected?.mail.sponsor ?? null;
+  const news = selected?.mail.sponsorNews ?? null;
 
   // Opening a mail reads it. Marked unread again, it is closed as it is, so
   // this never opens it straight back.
@@ -100,10 +109,22 @@ export const Inbox = () => {
     mail: id, answer: reply, ...(offer ? { offer } : {}),
   }));
 
+  // What declining a seat offer or an invitation is asked as.
+  const declineTitle = seat
+    ? t((selected?.offers.length ?? 0) > 1 ? 'inbox.offers.decline.title' : 'inbox.offer.decline.title', {
+      team: seat.teamName, series: seat.seriesName,
+    })
+    : t('inbox.decline.title', { event: selected?.event?.name ?? '' });
   // What entering the class it offers costs without it.
   const fee = selected?.event && selected.round
     ? entryFeeOf(selected.event, selected.round.id, selected.mail.invitation?.entry ?? '')
     : undefined;
+  const declineBody = seat
+    ? t(selected && selected.offers.length > 1 ? 'inbox.offers.decline.body' : 'inbox.offer.decline.body', { series: seat.seriesName })
+    : t(fee ? 'inbox.decline.body' : 'inbox.decline.bodyFree', {
+      team: selected?.team?.name ?? t('inbox.organisers'),
+      fee: formatMoney(fee ?? 0),
+    });
 
   return (
     <ScreenBody wide className="flex h-full flex-col gap-4 py-6">
@@ -134,7 +155,7 @@ export const Inbox = () => {
           page={page}
           selected={selected?.mail.id ?? null}
           onSearch={(next) => { setSearch(next); show({ [PAGE_PARAM]: null }); }}
-          onPage={(next) => show({ [PAGE_PARAM]: next === 1 ? null : String(next) })}
+          onPage={(next) => show({ [PAGE_PARAM]: next === 1 && !open ? null : String(next) })}
           onOpen={(id) => show({ [MAIL_PARAM]: id })}
         />
         {selected && seat ? (
@@ -165,7 +186,30 @@ export const Inbox = () => {
             }}
           />
         ) : null}
-        {selected && !seat && !notice ? (
+        {selected && sponsor ? (
+          <SponsorReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, sponsor } }}
+            busy={busy}
+            onSign={() => answer(selected.mail.id, 'accepted')}
+            onDecline={() => setDeclining(true)}
+            onUnread={() => {
+              show({ [MAIL_PARAM]: null });
+              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
+            }}
+          />
+        ) : null}
+        {selected && news ? (
+          <SponsorNewsReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, sponsorNews: news } }}
+            onUnread={() => {
+              show({ [MAIL_PARAM]: null });
+              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
+            }}
+          />
+        ) : null}
+        {selected && !seat && !notice && !sponsor && !news ? (
           <MailReader
             career={career}
             item={selected}
@@ -192,17 +236,10 @@ export const Inbox = () => {
         <ConfirmDialog
           open={declining}
           busy={busy}
-          title={seat
-            ? t(selected.offers.length > 1 ? 'inbox.offers.decline.title' : 'inbox.offer.decline.title', {
-              team: seat.teamName, series: seat.seriesName,
-            })
-            : t('inbox.decline.title', { event: selected.event?.name ?? '' })}
-          description={seat
-            ? t(selected.offers.length > 1 ? 'inbox.offers.decline.body' : 'inbox.offer.decline.body', { series: seat.seriesName })
-            : t(fee ? 'inbox.decline.body' : 'inbox.decline.bodyFree', {
-              team: selected.team?.name ?? t('inbox.organisers'),
-              fee: formatMoney(fee ?? 0),
-            })}
+          title={declining && sponsor
+            ? t('inbox.sponsor.decline.title', { sponsor: sponsor.sponsor.name })
+            : declineTitle}
+          description={declining && sponsor ? t('inbox.sponsor.decline.body') : declineBody}
           confirmLabel={t('inbox.decline.confirm')}
           onClose={() => setDeclining(false)}
           onConfirm={() => {
