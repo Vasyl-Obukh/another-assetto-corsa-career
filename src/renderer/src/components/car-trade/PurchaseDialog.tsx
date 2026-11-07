@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, StoreIcon } from 'lucide-react';
+import { ChevronLeftIcon, SparklesIcon, StoreIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,6 +7,7 @@ import { TradeError } from './TradeError.tsx';
 import type { Car, Skin } from '../../../../shared/types';
 import { carPictureSources, ContentImage } from '@/components/content-image/index.ts';
 import { SkinStep } from '@/components/content-picker/index.ts';
+import { SwitchTile } from '@/components/SwitchTile.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -45,13 +46,16 @@ export const PurchaseDialog = ({
   car, skin: initial = null, garage, onClose,
 }: PurchaseDialogProps) => {
   const { t } = useTranslation();
-  const { formatMoney } = useFormat();
+  const { formatDay, formatMoney } = useFormat();
   // The livery picked, or null while it is still being picked.
   const [skin, setSkin] = useState<Skin | null>(null);
+  // Off every time it opens: backing is only ever spent on purpose.
+  const [backed, setBacked] = useState(false);
   const [shownFor, setShownFor] = useState<Car | null>(null);
   if (shownFor !== car) {
     setShownFor(car);
     setSkin(initial);
+    setBacked(false);
   }
   if (!car) return null;
 
@@ -62,8 +66,12 @@ export const PurchaseDialog = ({
     onClose();
   };
   const buy = (): void => {
-    garage.buy(car.id, picked?.id).then((ok) => { if (ok) onClose(picked); }, () => undefined);
+    garage.buy(car.id, picked?.id, backed).then((ok) => { if (ok) onClose(picked); }, () => undefined);
   };
+  const price = garage.priceOf(car);
+  const backing = garage.backingOf(car);
+  const pays = price - (backed && backing ? backing.amount : 0);
+  const short = pays - garage.balance;
 
   if (choosing) {
     return (
@@ -99,11 +107,31 @@ export const PurchaseDialog = ({
             fallback={null}
           />
         </div>
+        {backing ? (
+          <SwitchTile
+            label={t('trade.backing.use', { sponsor: backing.sponsor })}
+            hint={t('trade.backing.hint', { amount: formatMoney(backing.amount), day: formatDay(backing.until) })}
+            checked={backed}
+            onChange={setBacked}
+          />
+        ) : null}
         <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">{t('trade.price')}</dt>
-          <dd className="text-right font-semibold tabular-nums">{formatMoney(garage.priceOf(car))}</dd>
-          <dt className="text-muted-foreground">{t('trade.balanceAfter')}</dt>
-          <dd className="text-right font-semibold tabular-nums">{formatMoney(garage.balance - garage.priceOf(car))}</dd>
+          <dd className="text-right font-semibold tabular-nums">{formatMoney(price)}</dd>
+          {backed && backing ? (
+            <>
+              <dt className="flex items-center gap-1.5 text-muted-foreground">
+                <SparklesIcon className="size-3.5 text-sponsor-foreground" />
+                {t('trade.backing.pays', { sponsor: backing.sponsor })}
+              </dt>
+              <dd className="text-right font-semibold text-success tabular-nums">{formatMoney(backing.amount)}</dd>
+            </>
+          ) : null}
+          <dt className="text-muted-foreground">{t(short > 0 ? 'trade.balance' : 'trade.balanceAfter')}</dt>
+          <dd className="text-right font-semibold tabular-nums">{formatMoney(short > 0 ? garage.balance : garage.balance - pays)}</dd>
+          {short > 0 ? (
+            <dd className="col-span-2 font-semibold text-destructive">{t('trade.short', { amount: formatMoney(short) })}</dd>
+          ) : null}
         </dl>
         <TradeError garage={garage} />
 
@@ -115,7 +143,7 @@ export const PurchaseDialog = ({
             </Button>
           ) : null}
           <Button variant="ghost" disabled={garage.busy} onClick={close}>{t('confirm.cancel')}</Button>
-          <Button className={TRADE_BUTTON.purchase} disabled={garage.busy} onClick={buy}>
+          <Button className={TRADE_BUTTON.purchase} disabled={garage.busy || short > 0} onClick={buy}>
             <StoreIcon />
             {t('trade.purchase')}
           </Button>

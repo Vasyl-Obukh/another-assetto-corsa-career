@@ -19,11 +19,36 @@ export type SponsorSlot = 'main' | 'partner';
 
 /**
  * What a perk is: a main sponsor's signature - a championship's fees, pay that
- * climbs with the player, half a car - or money for being on target, for a
- * result, on signing or for a goal met.
+ * climbs with the player, half a car or a seat, a car for the goal met - money
+ * for being on target, for a result, on signing or for a goal met, a cost it
+ * takes off, or something that helps without paying.
  */
-export type SponsorPerkKind = 'championship' | 'climbs' | 'carBacking'
-  | 'racePay' | 'signing' | 'win' | 'podium' | 'points' | 'pole' | 'prizeMatch' | 'goalBonus';
+export type SponsorPerkKind = 'championship' | 'climbs' | 'carBacking' | 'seatBacking' | 'carReward'
+  | 'racePay' | 'signing' | 'win' | 'podium' | 'points' | 'pole' | 'prizeMatch' | 'goalBonus'
+  | 'feeShare' | 'rentShare' | 'repaints'
+  | 'teamInterest' | 'worksInterest' | 'betterTerms' | 'invitations';
+
+/**
+ * The car a car reward names, copied in as it was drawn.
+ */
+export interface SponsorCar {
+  /**
+   * The car's folder ID.
+   */
+  model: string;
+  /**
+   * The car's display name.
+   */
+  name: string;
+  /**
+   * What the Store sells it for.
+   */
+  price: number;
+  /**
+   * The livery it arrives in, its first.
+   */
+  skin?: string;
+}
 
 /**
  * One thing a sponsor gives.
@@ -40,7 +65,7 @@ export interface SponsorPerk {
   amount?: number;
   /**
    * The share it pays, as a percentage - of every prize for a prize match, of a
-   * car's price for car backing.
+   * car's or a seat's price for backing, of a cost for a fee or rent share.
    */
   share?: number;
   /**
@@ -51,6 +76,18 @@ export interface SponsorPerk {
    * That championship's name, copied in.
    */
   seriesName?: string;
+  /**
+   * The car a car reward gives.
+   */
+  car?: SponsorCar;
+  /**
+   * On a renewal, the amount or share it replaces - set only where it changed.
+   */
+  was?: number;
+  /**
+   * On a renewal, the name of the car it replaces.
+   */
+  wasCar?: string;
 }
 
 /**
@@ -176,6 +213,10 @@ export interface SponsorOffer extends SponsorTerms {
    * The deal it would replace, by id, when its slot is filled.
    */
   replaces?: string;
+  /**
+   * The deal it renews, by id, for a sponsor asking for another year.
+   */
+  renews?: string;
 }
 
 /**
@@ -201,6 +242,15 @@ export interface SponsorDeal extends SponsorTerms {
    */
   until: string;
   /**
+   * The deal it renewed, by id.
+   */
+  renews?: string;
+  /**
+   * The day its goal was met, as an ISO date, which is the day its goal bonus
+   * and its car came.
+   */
+  goalMet?: string;
+  /**
    * How and when it ended, once it has.
    */
   ended?: {
@@ -216,10 +266,53 @@ export interface SponsorDeal extends SponsorTerms {
 }
 
 /**
- * A sponsor telling the player a deal's year has run out with its goal
- * missed.
+ * One of a deal's figures risen with the player.
+ */
+export interface SponsorRise {
+  /**
+   * The perk.
+   */
+  kind: SponsorPerkKind;
+  /**
+   * What it pays now.
+   */
+  amount: number;
+  /**
+   * What it paid.
+   */
+  was: number;
+}
+
+/**
+ * A sponsor telling the player something of a deal: by default that its year
+ * has run out with its goal missed, or else that its goal is met or that it has
+ * climbed with them.
  */
 export interface SponsorNews {
+  /**
+   * What it says, when that is not a goal missed.
+   */
+  kind?: 'goalMet' | 'climbed';
+  /**
+   * The goal bonus paid, on a goal met.
+   */
+  bonus?: number;
+  /**
+   * The car a goal met brought.
+   */
+  car?: SponsorCar;
+  /**
+   * What the car would have sold for, on a goal met whose car could not come.
+   */
+  carPaid?: number;
+  /**
+   * The rung it climbed to, 1 being the top.
+   */
+  rung?: number;
+  /**
+   * Each figure it climbed from.
+   */
+  rises?: readonly SponsorRise[];
   /**
    * The deal, by id.
    */

@@ -24,6 +24,7 @@ import type {
 import { carClassesOf, carSpecsOf, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carPrice, priceOrigin } from '../../shared/utils/car-prices/index.ts';
 import { nationOfCountry } from '../../shared/utils/nations/index.ts';
+import { percentOf } from '../../shared/utils/sponsors/index.ts';
 
 /**
  * A named test an entry has to pass, so a facet can leave its own one out.
@@ -111,6 +112,14 @@ const carFilters = (
   priceOf: (car: Car) => number,
 ): Filters<Car> => {
   const terms = searchTerms(query.search);
+  const { payable } = query;
+  const backed = new Set(payable?.models);
+  const canPay = (car: Car): boolean => {
+    if (!payable) return true;
+    const price = priceOf(car);
+
+    return price - (backed.has(car.id) ? percentOf(price, payable.share) : 0) <= payable.money;
+  };
 
   return {
     search: (car) => matchesTerms(terms, [car.name, car.brand, car.id]),
@@ -126,7 +135,7 @@ const carFilters = (
     provenance: (car) => fromAnyOf(car.provenance, query),
     year: (car) => inBounds(car.year, query.yearFrom, query.yearTo),
     bhp: (car) => inBounds(car.performance.bhp, query.bhpFrom, query.bhpTo),
-    price: (car) => inBounds(priceOf(car), query.priceFrom, query.priceTo),
+    price: (car) => inBounds(priceOf(car), query.priceFrom, query.priceTo) && canPay(car),
     priceOrigin: (car) => isOneOf(pricedAs(car, pricing), query.priceOrigins),
   };
 };

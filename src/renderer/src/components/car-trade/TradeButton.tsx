@@ -54,7 +54,9 @@ export const TradeButton = ({
       onClick={onClick}
     >
       {kind === 'repaint' ? <PaletteIcon /> : <TagIcon />}
-      {amount === undefined ? label : t('trade.withAmount', { label, amount: formatMoney(amount) })}
+      {amount === undefined ? label : t('trade.withAmount', {
+        label, amount: amount === 0 && kind === 'repaint' ? t('trade.free') : formatMoney(amount),
+      })}
     </Button>
   );
 };

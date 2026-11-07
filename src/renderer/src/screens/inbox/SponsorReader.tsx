@@ -1,5 +1,5 @@
 import {
-  CheckIcon, ClockIcon, MailIcon, MoreVerticalIcon, SparklesIcon, XIcon,
+  CheckIcon, ClockIcon, MailIcon, MoreVerticalIcon, RefreshCwIcon, SparklesIcon, XIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,14 +8,15 @@ import { Link } from 'react-router';
 import { SponsorCompare } from './SponsorCompare.tsx';
 import type { Career, SponsorOffer } from '../../../../shared/types';
 import { daysBetween } from '../../../../shared/utils/calendar-days';
-import { NationFlag, SponsorMark } from '@/components';
+import { slotFree } from '../../../../shared/utils/sponsors';
+import { NationFlag, SponsorMark, sponsorOfferSubject } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import { useFormat } from '@/i18n';
-import { INVITATION_WELL, SPONSOR_ACCENT } from '@/lib/accents';
+import { INVITATION_WELL, RENEWAL_ACCENT, SPONSOR_ACCENT } from '@/lib/accents';
 import type { InboxItem } from '@/lib/inbox';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
@@ -70,6 +71,9 @@ export const SponsorReader = ({
   const replaces = offer.replaces === undefined
     ? null
     : career.sponsors.find((deal) => deal.id === offer.replaces) ?? null;
+  const renewal = offer.renews !== undefined;
+  // A renewal needs a slot free, and comes back to life if one is.
+  const held = renewal && status === 'awaiting' && !slotFree(career, offer.slot);
   const deadline = mail.deadline ?? '';
   const left = daysBetween(career.date, deadline);
   const Icon = status ? ICONS[status] : ClockIcon;
@@ -84,8 +88,10 @@ export const SponsorReader = ({
 
   let title = t('inbox.sponsor.reply.lapsed', { day: formatDayShort(deadline) });
   if (status === 'awaiting') {
-    title = `${t('inbox.sponsor.reply.awaiting', { day: formatDayShort(deadline) })} · ${
-      left > 0 ? t('inbox.reply.left', { count: left }) : t('inbox.reply.today')}`;
+    title = held
+      ? t(`inbox.sponsor.reply.noSlot.${offer.slot}`, { day: formatDayShort(deadline) })
+      : `${t('inbox.sponsor.reply.awaiting', { day: formatDayShort(deadline) })} · ${
+        left > 0 ? t('inbox.reply.left', { count: left }) : t('inbox.reply.today')}`;
   } else if (status === 'accepted') {
     title = t('inbox.sponsor.reply.accepted', { day: formatDayShort(mail.reply?.on ?? '') });
   } else if (status === 'declined') {
@@ -97,7 +103,13 @@ export const SponsorReader = ({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-5 p-6">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className={SPONSOR_ACCENT[offer.slot]}>{t(`inbox.sponsor.kind.${offer.slot}`)}</Badge>
+            {renewal ? (
+              <Badge className={cn('gap-1', RENEWAL_ACCENT)}>
+                <RefreshCwIcon className="size-3" />
+                {t('inbox.renewal')}
+              </Badge>
+            ) : null}
+            <Badge className={SPONSOR_ACCENT[offer.slot]}>{t(renewal ? `sponsors.slot.${offer.slot}` : `inbox.sponsor.kind.${offer.slot}`)}</Badge>
             <span className="ml-auto text-xs text-muted-foreground">{formatDay(mail.arrived)}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -115,7 +127,7 @@ export const SponsorReader = ({
           </div>
 
           <h2 className="text-xl font-semibold" data-selectable>
-            {t(`inbox.sponsor.title.${offer.slot}`, { sponsor: offer.sponsor.name })}
+            {sponsorOfferSubject(offer, t)}
           </h2>
 
           <div className="flex items-center gap-3">
@@ -130,11 +142,19 @@ export const SponsorReader = ({
           </div>
 
           <p className="max-w-prose text-sm leading-relaxed" data-selectable>
-            {t(`inbox.sponsor.lede.${offer.slot}`, { sponsor: offer.sponsor.name })}
+            {t(renewal ? 'inbox.sponsor.lede.renewal' : `inbox.sponsor.lede.${offer.slot}`, { sponsor: offer.sponsor.name })}
             {replaces ? ` ${t('inbox.sponsor.replaces', { sponsor: replaces.sponsor.name })}` : ''}
           </p>
 
-          <SponsorCompare offer={offer} replaces={replaces} open={status === 'awaiting'} busy={busy} onSign={onSign} />
+          <SponsorCompare
+            offer={offer}
+            replaces={replaces}
+            renewal={renewal}
+            held={held}
+            open={status === 'awaiting'}
+            busy={busy}
+            onSign={onSign}
+          />
         </div>
       </div>
 
@@ -149,7 +169,11 @@ export const SponsorReader = ({
           </span>
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-sm font-semibold">{title}</span>
-            {status === 'awaiting' ? <span className="text-xs text-muted-foreground">{t('inbox.sponsor.reply.awaitingHint')}</span> : null}
+            {status === 'awaiting' ? (
+              <span className="text-xs text-muted-foreground">
+                {held ? t('inbox.sponsor.reply.noSlotHint', { day: formatDayShort(deadline) }) : t('inbox.sponsor.reply.awaitingHint')}
+              </span>
+            ) : null}
           </span>
           <span className="flex gap-2">
             {toSponsors}

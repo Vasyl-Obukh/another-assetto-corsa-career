@@ -36,6 +36,8 @@ import type {
 } from '../../shared/types/index.ts';
 import { ratingFloor, rungWidth } from '../../shared/utils/career-eligibility/index.ts';
 import { scaledPrize } from '../../shared/utils/prizes/index.ts';
+import { NO_SEAT_LIFT } from '../../shared/utils/sponsors/index.ts';
+import type { SeatLift } from '../../shared/utils/sponsors/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import { seatDraw } from '../series/index.ts';
 
@@ -103,6 +105,7 @@ export const offerStanding = (tier: number, open: number, rating: number): Offer
  * @param standing Where its class sits against the player's rung
  * @param position How far through the class's rung the player stands, 0 to 1
  * @param experienced Whether the player has finished an edition at that rung
+ * @param lift What the career's sponsors add
  * @returns The chance, as a percentage
  */
 export const offerChance = (
@@ -110,15 +113,21 @@ export const offerChance = (
   standing: OfferStanding,
   position: number,
   experienced: boolean,
+  lift: SeatLift = NO_SEAT_LIFT,
 ): number => {
-  if (standing === 'below') return OFFER_CHANCE.below[budget];
+  const works = budget === TeamBudget.WORKS;
+  const lifted = (chance: number, rise = lift.interest + (works ? lift.works : 0)): number => (
+    Math.min(100, Math.round(chance * (1 + rise)))
+  );
+  if (standing === 'below') return lifted(OFFER_CHANCE.below[budget]);
 
   const odds = OFFER_CHANCE.rung[budget];
-  const qualified = position >= odds.from && (budget !== TeamBudget.WORKS || experienced);
-  if (!qualified) return odds.short;
+  const qualified = position >= odds.from && (!works || experienced);
+  // Before the player is ready, works interest is the points it adds and no more.
+  if (!qualified) return lifted(odds.short + (works ? lift.bar : 0), lift.interest);
   const across = odds.from >= 1 ? 1 : (position - odds.from) / (1 - odds.from);
 
-  return Math.round(odds.low + across * (odds.high - odds.low));
+  return lifted(odds.low + across * (odds.high - odds.low));
 };
 
 /**
@@ -223,9 +232,11 @@ const budgetTerms = (
   random: () => number,
 ): Pick<ContractTerms, 'pay' | 'amount' | 'feeCover' | 'prizeShare' | 'bonus'> => {
   const base = feeBase(request);
+  const lift = request.lift ?? NO_SEAT_LIFT;
 
   if (budget === TeamBudget.WORKS) {
-    const salary = roundMoney(scaledPrize(base * between(SALARY_RANGE, random), request.prizeSpeed));
+    const drawn = base * between(SALARY_RANGE, random) * (1 + lift.salary);
+    const salary = roundMoney(scaledPrize(drawn, request.prizeSpeed));
 
     return {
       pay: 'salary',
@@ -236,7 +247,8 @@ const budgetTerms = (
     };
   }
   if (budget === TeamBudget.INDEPENDENT) {
-    const feeCover = random() < HALF_COVER_CHANCE ? 0.5 : 1;
+    const half = random() < HALF_COVER_CHANCE;
+    const feeCover = half && !lift.cover ? 0.5 : 1;
     const prizeShare = pickOne(INDEPENDENT_SHARES, random);
     const bonus = random() < INDEPENDENT_BONUS_CHANCE
       ? [{ upTo: 1, amount: roundMoney(scaledPrize(base * INDEPENDENT_BONUS_SHARE, request.prizeSpeed)) }]
@@ -248,7 +260,7 @@ const budgetTerms = (
   }
 
   return {
-    pay: 'seat', amount: roundMoney(base * between(SEAT_PRICE_RANGE, random)), feeCover: 1, prizeShare: 100,
+    pay: 'seat', amount: roundMoney(base * between(SEAT_PRICE_RANGE, random) * (1 - lift.seatPrice)), feeCover: 1, prizeShare: 100,
   };
 };
 
@@ -330,7 +342,7 @@ export const classOffers = (request: ClassOfferRequest): ContractTerms[] => {
     const random = randomFrom(seedFrom(
       `${team.id}\u0000${request.entry.id}\u0000${request.championship.id}\u0000${request.salt}\u0000offer`,
     ));
-    const chance = offerChance(budget, request.standing, request.position, request.experienced);
+    const chance = offerChance(budget, request.standing, request.position, request.experienced, request.lift);
     if (random() * 100 >= chance) return [];
 
     return [{
@@ -380,11 +392,12 @@ export const lifelineOffer = (request: ClassOfferRequest): ContractTerms | null 
  * class, or the class has no car to race
  */
 export const renewalOffer = (
-  request: Pick<ClassOfferRequest, 'championship' | 'entry' | 'salt' | 'cars' | 'fees'>,
+  request: Pick<ClassOfferRequest, 'championship' | 'entry' | 'salt' | 'cars' | 'fees' | 'winnerPrize' | 'lift'>,
   contract: Contract,
   run: { season: number; edition: number },
   place: number,
 ): ContractTerms | null => {
+  const lift = request.lift ?? NO_SEAT_LIFT;
   const fielded = classTeams(request.championship, request.entry).find((one) => one.team.id === contract.team);
   if (!fielded) return null;
 
@@ -394,16 +407,28 @@ export const renewalOffer = (
   let { amount, feeCover, prizeShare } = contract;
   let { bonus } = contract;
   if (contract.pay === 'salary') {
-    const raise = RENEWAL_RAISE.find((tier) => place <= tier.upTo)?.raise ?? 0;
+    const raise = (RENEWAL_RAISE.find((tier) => place <= tier.upTo)?.raise ?? 0) + lift.salary;
     amount = raise > 0 ? roundMoney(amount * (1 + raise)) : amount;
     bonus = raise > 0 ? bonus?.map((tier) => ({ ...tier, amount: roundMoney(tier.amount * (1 + raise)) })) : bonus;
   } else if (contract.pay === 'free' && place <= RENEWAL_PODIUM) {
     feeCover = 1;
     prizeShare = Math.max(prizeShare, Math.min(RENEWAL_SHARE_CAP, prizeShare + RENEWAL_SHARE_STEP));
-  } else if (contract.pay === 'seat' && contract.pricedRounds && request.fees.length > 0) {
+  } else if (contract.pay === 'free' && lift.cover) {
+    feeCover = 1;
+  } else if (contract.pay === 'seat') {
     // A seat bought part-way through renews for a whole season, at what it
     // cost a round.
-    amount = roundMoney((amount / contract.pricedRounds) * request.fees.length);
+    const whole = contract.pricedRounds && request.fees.length > 0
+      ? (amount / contract.pricedRounds) * request.fees.length
+      : amount;
+    if (lift.seatPrice > 0) {
+      // A sponsor's help takes a seat down once: never below the least the team
+      // asks with that help, and never dearer than it was.
+      const least = roundMoney(feeBase(request) * SEAT_PRICE_RANGE[0] * (1 - lift.seatPrice));
+      amount = Math.min(roundMoney(whole), Math.max(roundMoney(whole * (1 - lift.seatPrice)), least));
+    } else if (whole !== amount) {
+      amount = roundMoney(whole);
+    }
   }
 
   return teamOffer(request, fielded.team, fielded.seats, {

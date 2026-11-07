@@ -260,6 +260,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'sponsor.slotFull': 'Every slot {{sponsor}} could fill is taken. End a deal to free one.',
   'sponsor.trade': 'You already have a sponsor in the same trade as {{sponsor}}.',
   'sponsor.notFound': 'There is no such sponsor deal.',
+  'sponsor.backing.none': 'No sponsor can back this.',
   'sponsor.repay.short': 'Ending the deal repays {{repay}} of its signing bonus, and the career holds {{money}}.',
   'historic.rounds': '{{event}} is a historic event, so it runs exactly one round rather than {{count}}.',
   'historic.points':

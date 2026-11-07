@@ -207,6 +207,7 @@ export type ErrorCode =
   | 'sponsor.slotFull'
   | 'sponsor.trade'
   | 'sponsor.notFound'
+  | 'sponsor.backing.none'
   | 'sponsor.repay.short'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'

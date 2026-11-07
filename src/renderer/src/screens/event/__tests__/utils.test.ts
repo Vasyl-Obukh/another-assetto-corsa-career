@@ -6,7 +6,7 @@ import type {
 } from '../../../../../shared/types';
 import {
   defaultSession, dotted, launchNote, moneyNote, playerPosition, racedStrength, scaleName, sessionDay,
-  sessionLength, shareOf, shortLaps,
+  sessionLength, shareOf, sharesText, shortLaps,
 } from '../utils.ts';
 
 /**
@@ -74,6 +74,22 @@ const translate = ((key: string, params?: Record<string, unknown>): string => {
 const formatNumber = (value: number): string => `#${value}`;
 
 describe('renderer/screens/event/utils', () => {
+  describe('sharesText', () => {
+    const t = ((key: string, params?: { sponsor: string; share: number }) => (
+      params ? `${params.share}% ${params.sponsor}` : ' and '
+    )) as unknown as TFunction;
+
+    it("says one sponsor's share", () => {
+      expect(sharesText([{ sponsor: 'Halden', amount: 300, share: 20 }], t)).toBe('20% Halden');
+    });
+
+    it('joins several', () => {
+      expect(sharesText([
+        { sponsor: 'Halden', amount: 300, share: 20 }, { sponsor: 'Vantor', amount: 150, share: 10 },
+      ], t)).toBe('20% Halden and 10% Vantor');
+    });
+  });
+
   describe('defaultSession', () => {
     it('opens on the session that runs next', () => {
       expect(defaultSession(event(['done', 'next', 'later']))).toBe(1);

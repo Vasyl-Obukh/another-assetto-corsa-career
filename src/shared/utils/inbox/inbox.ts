@@ -21,11 +21,12 @@ export const invitationId = (raceId: string): string => `${INVITATION_MAIL_PREFI
  * every rung up, so the top rung is always invited. Every rung below the
  * lowest the ladder names shares its chance, as it shares its figures.
  * @param rung The rung, 1 being the top
+ * @param lift How much likelier a career's sponsors make it, as a share
  * @returns The chance, as a percentage
  */
-export const invitationChance = (rung: number): number => (
-  INVITATION_CHANCE_STEP * (LOWEST_RUNG + 1 - Math.min(Math.max(1, rung), LOWEST_RUNG))
-);
+export const invitationChance = (rung: number, lift = 0): number => Math.min(100, Math.round(
+  INVITATION_CHANCE_STEP * (LOWEST_RUNG + 1 - Math.min(Math.max(1, rung), LOWEST_RUNG)) * (1 + lift),
+));
 
 /**
  * The day a historic event's invitations go out: four weeks before its own,

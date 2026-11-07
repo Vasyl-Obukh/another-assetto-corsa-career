@@ -1,15 +1,15 @@
 import {
-  BriefcaseIcon, LandmarkIcon, NewspaperIcon, SparklesIcon,
+  BriefcaseIcon, LandmarkIcon, NewspaperIcon, RefreshCwIcon, SparklesIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { MailStatusChip } from './MailStatusChip.tsx';
 import { offerSenders } from './utils.ts';
-import { TEAM_BUDGET_LABEL } from '@/components';
+import { sponsorNewsSubject, TEAM_BUDGET_LABEL } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import {
-  CONTRACT_ACCENT, HISTORIC_ACCENT, SPONSOR_ACCENT, TEAM_BUDGET_ACCENT,
+  CONTRACT_ACCENT, HISTORIC_ACCENT, RENEWAL_ACCENT, SPONSOR_ACCENT, TEAM_BUDGET_ACCENT,
 } from '@/lib/accents';
 import type { InboxItem } from '@/lib/inbox';
 import { cn } from '@/lib/utils.ts';
@@ -52,6 +52,7 @@ export const MailRow = ({
   const { notice } = item.mail;
   const sponsor = item.mail.sponsor ?? item.mail.sponsorNews ?? null;
   const news = item.mail.sponsorNews ?? null;
+  const renewal = item.mail.sponsor?.renews !== undefined || item.offers.some((one) => one.renews);
   // Each budget once, in the order the mail lists them, saying how many call.
   const budgets = [...new Set(item.offers.map((one) => one.budget))]
     .map((budget) => ({ budget, count: item.offers.filter((one) => one.budget === budget).length }));
@@ -93,12 +94,19 @@ export const MailRow = ({
           {offer && offer.bought ? t('inbox.subject.bought', { series: offer.seriesName, edition }) : null}
           {offer && !offer.bought ? t('inbox.subject.offer', { series: offer.seriesName, edition, count: item.offers.length }) : null}
           {notice ? t('inbox.subject.notice', { series: notice.seriesName, edition }) : null}
-          {sponsor && !news ? t(`inbox.subject.sponsor.${sponsor.slot}`) : null}
-          {news ? t('inbox.subject.sponsorNews', { sponsor: news.sponsor.name }) : null}
+          {item.mail.sponsor?.renews ? t('inbox.sponsor.title.renewal', { sponsor: item.mail.sponsor.sponsor.name }) : null}
+          {sponsor && !news && !item.mail.sponsor?.renews ? t(`inbox.subject.sponsor.${sponsor.slot}`) : null}
+          {news ? sponsorNewsSubject(news, t) : null}
           {offer || notice || sponsor ? null : t('inbox.subject.invitation', { event: item.event?.name ?? item.mail.invitation?.series ?? '' })}
         </span>
         <span className="flex min-w-0 items-center gap-1.5 pt-0.5">
           <MailStatusChip item={item} className="shrink-0 px-1.5 py-0 text-[0.65rem]" />
+          {renewal ? (
+            <Badge className={cn('shrink-0 gap-1 px-1.5 py-0 text-[0.65rem]', RENEWAL_ACCENT)}>
+              <RefreshCwIcon className="size-2.5" />
+              {t('inbox.renewal')}
+            </Badge>
+          ) : null}
           {notice ? (
             <Badge className={cn('shrink-0 px-1.5 py-0 text-[0.65rem]', CONTRACT_ACCENT)}>{t('inbox.kind.notice')}</Badge>
           ) : null}

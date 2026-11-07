@@ -8,6 +8,7 @@ import { SponsorHistory } from './SponsorHistory.tsx';
 import { dealRows, lockedSlots, paidIn } from './utils.ts';
 import type { SponsorDeal } from '../../../../shared/types';
 import { seasonYear } from '../../../../shared/utils/editions';
+import { awaitingMail } from '../../../../shared/utils/inbox';
 import {
   bestRung, formOf, goalStanding, liveDeals, partnerSlots, signingRepay,
 } from '../../../../shared/utils/sponsors';
@@ -51,6 +52,9 @@ export const Sponsors = () => {
   const form = formOf(career);
   const onCourse = live.filter((deal) => goalStanding(career, deal).onCourse === true).length;
   const best = bestRung(career.level);
+  // A sponsor asking for another year says so on the slot its deal left free.
+  const renewals = awaitingMail(career.inbox, career.date).filter((mail) => mail.sponsor?.renews);
+  const partnerRenewals = renewals.filter((mail) => mail.sponsor?.slot === 'partner');
 
   /**
    * Ends the deal being asked about.
@@ -109,11 +113,13 @@ export const Sponsors = () => {
         </TabsList>
         <TabsContent value="current" className="flex flex-col gap-3">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {main ? <SponsorCard career={career} deal={main} onEnd={() => setEnding(main)} /> : <FreeSlot slot="main" />}
+            {main ? <SponsorCard career={career} deal={main} onEnd={() => setEnding(main)} /> : (
+              <FreeSlot slot="main" renewal={renewals.find((mail) => mail.sponsor?.slot === 'main')} />
+            )}
             {partners.map((deal) => (
               <SponsorCard key={deal.id} career={career} deal={deal} onEnd={() => setEnding(deal)} />
             ))}
-            {Array.from({ length: free }, (unused, at) => <FreeSlot key={at} slot="partner" />)}
+            {Array.from({ length: free }, (unused, at) => <FreeSlot key={at} slot="partner" renewal={partnerRenewals[at]} />)}
             {lockedSlots(career).map((slot) => <LockedSlot key={slot.rung} rung={slot.rung} rating={slot.rating} />)}
           </div>
         </TabsContent>

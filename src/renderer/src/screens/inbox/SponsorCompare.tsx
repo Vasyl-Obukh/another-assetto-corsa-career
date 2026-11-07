@@ -1,11 +1,12 @@
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, RefreshCwIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { COMPARE_COLUMN, COMPARE_LABEL } from './constants.ts';
-import type { SponsorPerkKind, SponsorTerms } from '../../../../shared/types';
+import type { SponsorTerms } from '../../../../shared/types';
+import { perkOf } from '../../../../shared/utils/sponsors';
 import {
-  CoversBadge, NationFlag, SponsorGoal, SponsorMark, SponsorPerks,
+  CoversBadge, HELPS, NationFlag, RewardPicture, SIGNATURES, SponsorGoal, SponsorMark, SponsorPerks,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -22,11 +23,6 @@ const COLUMN_WIDTH = 20;
  */
 const LABEL_WIDTH = 7.5;
 
-/**
- * A main sponsor's signature perks, which get a row of their own.
- */
-const SIGNATURES: readonly SponsorPerkKind[] = ['championship', 'climbs', 'carBacking'];
-
 interface SponsorCompareProps {
   /**
    * The offer.
@@ -36,6 +32,15 @@ interface SponsorCompareProps {
    * The deal it would replace, shown beside it.
    */
   replaces: SponsorTerms | null;
+  /**
+   * Whether it is a sponsor asking for another year, which is washed in its
+   * slot's colour and says what changed.
+   */
+  renewal?: boolean;
+  /**
+   * Whether no slot is free for it, which holds a renewal's button.
+   */
+  held?: boolean;
   /**
    * Whether the offer can still be signed.
    */
@@ -56,11 +61,11 @@ interface SponsorCompareProps {
  * colour.
  */
 export const SponsorCompare = ({
-  offer, replaces, open, busy, onSign,
+  offer, replaces, renewal = false, held = false, open, busy, onSign,
 }: SponsorCompareProps) => {
   const { t } = useTranslation();
   const columns = [offer, ...(replaces ? [replaces] : [])];
-  const current = (terms: SponsorTerms): string | false => terms === replaces && (terms.slot === 'main' ? 'bg-sponsor/30' : 'bg-partner/30');
+  const current = (terms: SponsorTerms): string | false => (terms === replaces || renewal) && (terms.slot === 'main' ? 'bg-sponsor/30' : 'bg-partner/30');
   const row = (label: string, cell: (terms: SponsorTerms) => ReactNode) => (
     <>
       <div className={COMPARE_LABEL}>{label}</div>
@@ -96,17 +101,32 @@ export const SponsorCompare = ({
         </div>
       ))}
       {columns.some((terms) => terms.perks.some((perk) => SIGNATURES.includes(perk.kind)))
-        ? row(t('inbox.sponsor.signature'), (terms) => (
-          <SponsorPerks terms={{ ...terms, perks: terms.perks.filter((perk) => SIGNATURES.includes(perk.kind)) }} />
-        ))
+        ? row(t('inbox.sponsor.signature'), (terms) => {
+          const car = perkOf(terms, 'carReward')?.car;
+
+          return (
+            <div className="flex flex-col gap-2">
+              {car ? <RewardPicture car={car} /> : null}
+              <SponsorPerks
+                terms={{ ...terms, perks: terms.perks.filter((perk) => SIGNATURES.includes(perk.kind)) }}
+                changes={renewal}
+              />
+            </div>
+          );
+        })
         : null}
       {row(t('inbox.sponsor.pays'), (terms) => (
-        <SponsorPerks terms={terms} without={[...SIGNATURES, 'goalBonus']} />
+        <SponsorPerks terms={terms} without={[...SIGNATURES, ...HELPS, 'goalBonus']} changes={renewal} />
       ))}
+      {columns.some((terms) => terms.perks.some((perk) => HELPS.includes(perk.kind)))
+        ? row(t('inbox.sponsor.helps'), (terms) => (
+          <SponsorPerks terms={{ ...terms, perks: terms.perks.filter((perk) => HELPS.includes(perk.kind)) }} />
+        ))
+        : null}
       {row(t('inbox.sponsor.goal'), (terms) => (
         <div className="flex flex-col gap-1.5">
           <SponsorGoal goal={terms.goal} labelled={false} />
-          <SponsorPerks terms={{ ...terms, perks: terms.perks.filter((perk) => perk.kind === 'goalBonus') }} />
+          <SponsorPerks terms={{ ...terms, perks: terms.perks.filter((perk) => perk.kind === 'goalBonus') }} changes={renewal} />
         </div>
       ))}
       {row(t('inbox.sponsor.runs'), () => <span className="font-medium">{t('inbox.sponsor.year')}</span>)}
@@ -114,9 +134,11 @@ export const SponsorCompare = ({
       {columns.map((terms) => (
         <div key={terms.sponsor.name} className={cn(COMPARE_COLUMN.cell, 'py-2.5', current(terms))}>
           {terms === offer && open ? (
-            <Button className="w-full" disabled={busy} onClick={onSign}>
-              <CheckIcon />
-              {replaces ? t('inbox.sponsor.signReplacing', { sponsor: replaces.sponsor.name }) : t('inbox.sponsor.sign')}
+            <Button className="w-full" disabled={busy || held} onClick={onSign}>
+              {renewal ? <RefreshCwIcon /> : <CheckIcon />}
+              {renewal ? t('inbox.compare.renew') : null}
+              {!renewal && replaces ? t('inbox.sponsor.signReplacing', { sponsor: replaces.sponsor.name }) : null}
+              {!renewal && !replaces ? t('inbox.sponsor.sign') : null}
             </Button>
           ) : null}
         </div>

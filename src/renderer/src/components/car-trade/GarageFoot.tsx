@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { TradeButton } from './TradeButton.tsx';
 import type { CarTrade } from './types.ts';
 import type { Car } from '../../../../shared/types';
-import { repaintOf } from '../../../../shared/utils/car-prices';
 import { liveryName } from '../../../../shared/utils/garage';
 import { CarSwatch } from '@/components/content-image/index.ts';
 import { useFormat } from '@/i18n';
@@ -55,7 +54,7 @@ export const GarageFoot = ({ car, trade }: GarageFootProps) => {
         <TradeButton
           kind="repaint"
           size="sm"
-          amount={repaintOf(owned.paid)}
+          amount={garage.repaintCost(owned)}
           className="flex-1"
           onClick={() => trade.onRepaint?.(car)}
         />

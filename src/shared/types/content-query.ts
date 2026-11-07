@@ -83,6 +83,25 @@ export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerTo
  * as one tree. Every field is
  * optional, so an empty object means "everything, default sort, first page".
  */
+/**
+ * What a career can pay for a car: what it holds, and what a sponsor's backing
+ * takes off the cars it covers.
+ */
+export interface CarPayable {
+  /**
+   * What the career holds.
+   */
+  money: number;
+  /**
+   * The share a sponsor can pay, as a percentage.
+   */
+  share: number;
+  /**
+   * The cars it can pay that share of, by folder ID.
+   */
+  models: readonly string[];
+}
+
 export interface CarQuery {
   /**
    * Ask about the anonymous mods the catalogue does not name, instead of the
@@ -151,10 +170,13 @@ export interface CarQuery {
    */
   priceFrom?: number;
   /**
-   * Highest price, inclusive - what the career holds, for the cars it can
-   * afford.
+   * Highest price, inclusive.
    */
   priceTo?: number;
+  /**
+   * Keep only cars a career can pay for.
+   */
+  payable?: CarPayable;
   /**
    * Keep only cars priced this way. Only a car the user added is ever priced
    * by them or suggested; one they have not added is neither.

@@ -1,8 +1,20 @@
 import type { TFunction } from 'i18next';
 
-import type { EventSession, LaunchRecord, SkippedRound } from '../../../../shared/types';
+import type {
+  CostShare, EventSession, LaunchRecord, SkippedRound,
+} from '../../../../shared/types';
 import { scaledLaps } from '../../../../shared/utils/race-scale';
 import { raceLength } from '@/lib/session-labels';
+
+/**
+ * Says who takes what off a cost.
+ * @param off What each sponsor takes off
+ * @param t The translator
+ * @returns Each sponsor's share, one after another
+ */
+export const sharesText = (off: readonly CostShare[], t: TFunction): string => off
+  .map((one) => t('event.money.share', { sponsor: one.sponsor, share: one.share }))
+  .join(t('event.money.shareAnd'));
 
 /**
  * Which session the page opens on.

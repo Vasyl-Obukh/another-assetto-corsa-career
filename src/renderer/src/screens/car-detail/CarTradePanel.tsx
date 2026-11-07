@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Car } from '../../../../shared/types';
-import { repaintOf } from '../../../../shared/utils/car-prices';
 import { liveryName } from '../../../../shared/utils/garage';
 import {
-  CarSourceBadge, CarSwatch, PurchaseButton, PurchaseDialog, RepaintDialog, SellDialog, TradeButton,
+  BackingMark, CarSourceBadge, CarSwatch, PurchaseButton, PurchaseDialog, RepaintDialog, SellDialog, TradeButton,
 } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
 import type { Garage } from '@/hooks';
@@ -34,6 +33,7 @@ export const CarTradePanel = ({ car, garage }: CarTradePanelProps) => {
   const [open, setOpen] = useState<'purchase' | 'repaint' | 'sell' | null>(null);
   const owned = garage.owned(car.id);
   const price = garage.priceOf(car);
+  const backing = garage.backingOf(car);
   const close = (): void => setOpen(null);
 
   return (
@@ -43,7 +43,7 @@ export const CarTradePanel = ({ car, garage }: CarTradePanelProps) => {
           <div className="flex items-center gap-2">
             <CarSourceBadge source="owned" />
             <span className="ml-auto text-xs text-muted-foreground">
-              {t('trade.paidOn', { paid: formatMoney(owned.paid), day: formatDay(owned.bought) })}
+              {owned.reward ? t('trade.rewardFrom', { sponsor: owned.reward, day: formatDay(owned.bought) }) : t('trade.paidOn', { paid: formatMoney(owned.paid), day: formatDay(owned.bought) })}
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm font-semibold">
@@ -51,7 +51,7 @@ export const CarTradePanel = ({ car, garage }: CarTradePanelProps) => {
             <span className="truncate">{liveryName(car, owned.skin)}</span>
           </div>
           <div className="flex gap-2">
-            <TradeButton kind="repaint" amount={repaintOf(owned.paid)} className="flex-1" onClick={() => setOpen('repaint')} />
+            <TradeButton kind="repaint" amount={garage.repaintCost(owned)} className="flex-1" onClick={() => setOpen('repaint')} />
             <TradeButton kind="sell" amount={garage.valueOf(owned)} className="flex-1" onClick={() => setOpen('sell')} />
           </div>
         </>
@@ -59,9 +59,12 @@ export const CarTradePanel = ({ car, garage }: CarTradePanelProps) => {
         <>
           <div className="flex flex-col">
             <span className="text-[0.6875rem] font-semibold tracking-wide text-muted-foreground uppercase">{t('trade.price')}</span>
-            <span className="text-3xl font-semibold tracking-tight tabular-nums">{formatMoney(price)}</span>
+            <span className="flex items-center gap-2">
+              <span className="text-3xl font-semibold tracking-tight tabular-nums">{formatMoney(price)}</span>
+              {backing ? <BackingMark sponsor={backing.sponsor} amount={backing.amount} /> : null}
+            </span>
           </div>
-          <PurchaseButton price={price} balance={garage.balance} size="lg" onPurchase={() => setOpen('purchase')} />
+          <PurchaseButton price={price} payable={garage.payableFor(car)} balance={garage.balance} size="lg" onPurchase={() => setOpen('purchase')} />
         </>
       )}
 

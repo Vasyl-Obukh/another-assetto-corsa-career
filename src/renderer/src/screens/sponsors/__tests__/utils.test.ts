@@ -113,6 +113,14 @@ describe('renderer/screens/sponsors/utils', () => {
       ]);
     });
 
+    it('says a deal was renewed once another year of it was signed', () => {
+      const old = deal('old', '2026-01-01', { ended: { on: '2027-01-01', why: 'goalMet' } });
+      const next = deal('next', '2027-01-10', { renews: 'old' });
+      const rows = dealRows(career({ sponsors: [old, next] }));
+
+      expect(rows.map((row) => row.end)).toEqual(['running', 'renewed']);
+    });
+
     it('lists nothing for a career no sponsor ever backed', () => {
       expect(dealRows(career())).toEqual([]);
     });

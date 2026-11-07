@@ -8,7 +8,8 @@ import type { Car } from '../../../../shared/types';
 import { rentOf } from '../../../../shared/utils/car-prices';
 import { nationOfCountry } from '../../../../shared/utils/nations';
 import {
-  ContentImage, NationFlag, PriceOriginBadge, ProvenanceBadges, PurchaseButton, RacedIn, SpecBadge, SWITCH_TRACK,
+  BackingMark, ContentImage, NationFlag, PriceOriginBadge, ProvenanceBadges, PurchaseButton,
+  RacedIn, SpecBadge, SWITCH_TRACK,
 } from '@/components';
 import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -65,6 +66,7 @@ export const CarRow = ({
     formatMoney, formatNation, formatNumber, formatYear,
   } = useFormat();
   const owned = trade?.garage.owned(car.id) ?? null;
+  const backing = trade && trade.mode !== 'garage' ? trade.garage.backingOf(car) : null;
   const price = trade?.garage.priceOf(car) ?? 0;
   // Priced, the row makes room for what the car costs by giving up the
   // columns a buyer can do without, its provenance moving under its name.
@@ -197,10 +199,13 @@ export const CarRow = ({
         <>
           <td className={cn(
             'px-2.5 py-1.5 text-right font-semibold whitespace-nowrap tabular-nums',
-            !owned && price > trade.garage.balance && 'text-muted-foreground',
+            !owned && trade.garage.payableFor(car) > trade.garage.balance && 'text-muted-foreground',
           )}
           >
-            {formatMoney(price)}
+            <span className="inline-flex items-center gap-1.5">
+              {backing ? <BackingMark sponsor={backing.sponsor} amount={backing.amount} /> : null}
+              {formatMoney(price)}
+            </span>
           </td>
           <td className="px-2.5 py-1.5 text-right whitespace-nowrap tabular-nums">
             {owned ? dash : formatMoney(rentOf(price))}
@@ -244,6 +249,7 @@ export const CarRow = ({
           ) : (
             <PurchaseButton
               price={price}
+              payable={trade.garage.payableFor(car)}
               balance={trade.garage.balance}
               size="sm"
               className="w-32"

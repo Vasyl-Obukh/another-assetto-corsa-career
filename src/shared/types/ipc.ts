@@ -7,6 +7,7 @@ import type {
 } from './car-classes.ts';
 import type { CarAppraisal } from './car-prices.ts';
 import type {
+  CarBacking,
   Career,
   CareerBackup,
   CareerCalendar,
@@ -512,11 +513,15 @@ export interface IpcContract {
    * Buy a car into the career's garage, in a livery. A car the career is
    * renting races in it, owned, from its next round.
    */
-  'career:buyCar': { req: { model: string; skin?: string }; res: Career };
+  'career:buyCar': { req: { model: string; skin?: string; backed?: boolean }; res: Career };
+  /**
+   * Which cars the career's main sponsor can pay half of, null with none.
+   */
+  'career:carBacking': { req: void; res: CarBacking | null };
   /**
    * Buy a privateer's seat in a class for one edition, signed at once.
    */
-  'career:buySeat': { req: { series: string; entry: string; team: string; edition?: number }; res: Career };
+  'career:buySeat': { req: { series: string; entry: string; team: string; edition?: number; backed?: boolean }; res: Career };
   /**
    * Sell a car out of the garage. Whatever still races it races it rented.
    */
@@ -536,7 +541,7 @@ export interface IpcContract {
    * accepted until the event's first session runs. Accepting a seat offer signs
    * the one picked, and declines the rest.
    */
-  'career:answer': { req: { mail: string; answer: MailAnswer; offer?: OfferPick }; res: Career };
+  'career:answer': { req: { mail: string; answer: MailAnswer; offer?: OfferPick; backed?: boolean }; res: Career };
   /**
    * End a sponsor's deal early, repaying the share of its signing bonus its
    * year has left.

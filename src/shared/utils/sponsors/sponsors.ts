@@ -4,15 +4,19 @@
 // pays and ends deals on these answers and the renderer shows the same.
 
 import {
-  DEAL_DAYS, FORM_BANDS, FORM_ROUNDS, PARTNER_SLOTS, PODIUM_PLACES, REPAY_ROUND, RUNG_FEE, SPONSOR_MAIL_PREFIX,
-  SPONSOR_NEWS_PREFIX, SPONSOR_ROUND_TO,
+  DEAL_DAYS, FORM_BANDS, FORM_ROUNDS, NO_SEAT_LIFT, PARTNER_SLOTS, PODIUM_PLACES, REPAY_ROUND, REWARD_BONUSES, RUNG_FEE,
+  SPONSOR_LIFT, SPONSOR_MAIL_PREFIX, SPONSOR_NEWS_PREFIX, SPONSOR_ROUND_TO, WORKS_BAR_LIFT,
 } from './constants.ts';
-import type { FormBand, GoalStanding, JudgedRace } from './types.ts';
 import type {
-  Career, Discipline, LedgerLine, RacePlace, RaceScore, SeasonEntry, SponsorDeal, SponsorTerms,
+  FormBand, GoalStanding, JudgedRace, SeatLift,
+} from './types.ts';
+import type {
+  Career, CostShare, Discipline, LedgerLine, RacePlace, RaceScore, SeasonEntry, SponsorDeal, SponsorGoal,
+  SponsorPerk, SponsorPerkKind, SponsorSlot, SponsorTerms,
 } from '../../types/index.ts';
 import { daysBetween } from '../calendar-days/index.ts';
 import { LOWEST_RUNG } from '../career-eligibility/index.ts';
+import { editionOver } from '../editions/index.ts';
 import { playerPlace, playerStanding, teammateSeat } from '../standings/index.ts';
 
 /**
@@ -28,6 +32,28 @@ export const sponsorMailId = (raceId: string): string => `${SPONSOR_MAIL_PREFIX}
  * @returns The id
  */
 export const sponsorNewsId = (deal: string): string => `${SPONSOR_NEWS_PREFIX}${deal}`;
+
+/**
+ * The id a sponsor asks to renew a deal under, which the deal it signs keeps.
+ * @param deal The deal it renews, by id
+ * @returns The id
+ */
+export const sponsorRenewalId = (deal: string): string => `${SPONSOR_MAIL_PREFIX}renew:${deal}`;
+
+/**
+ * The id the news of a deal's goal met is mailed under.
+ * @param deal The deal, by id
+ * @returns The id
+ */
+export const goalNewsId = (deal: string): string => `${SPONSOR_NEWS_PREFIX}goal:${deal}`;
+
+/**
+ * The id the news of a deal climbing to a rung is mailed under.
+ * @param deal The deal, by id
+ * @param rung The rung it climbed to
+ * @returns The id
+ */
+export const climbNewsId = (deal: string, rung: number): string => `${SPONSOR_NEWS_PREFIX}climb:${rung}:${deal}`;
 
 /**
  * A career's best rung, in any discipline.
@@ -99,6 +125,42 @@ export const liveDeals = (career: Pick<Career, 'sponsors'>): SponsorDeal[] => (
 );
 
 /**
+ * The rung a deal or an offer reads on: the discipline's it covers, or the
+ * career's best for one covering any racing.
+ * @param terms The deal or offer
+ * @param level The rung each discipline holds, 1 being the top
+ * @returns The rung
+ */
+export const dealRung = (
+  terms: Pick<SponsorTerms, 'covers'>,
+  level: Readonly<Record<Discipline, number>>,
+): number => (terms.covers ? level[terms.covers] : bestRung(level));
+
+/**
+ * Whether a slot is free for a deal to fill.
+ * @param career The career
+ * @param slot Which slot
+ * @returns True when no deal holds the main sponsor's, or a partner's is left
+ */
+export const slotFree = (career: Pick<Career, 'sponsors' | 'level'>, slot: SponsorSlot): boolean => {
+  const live = liveDeals(career);
+
+  return slot === 'main'
+    ? !live.some((deal) => deal.slot === 'main')
+    : live.filter((deal) => deal.slot === 'partner').length < partnerSlots(career.level);
+};
+
+/**
+ * One perk of a deal or an offer.
+ * @param terms The deal or offer
+ * @param kind The perk
+ * @returns It, or undefined when it has none
+ */
+export const perkOf = (terms: Pick<SponsorTerms, 'perks'>, kind: SponsorPerkKind): SponsorPerk | undefined => (
+  terms.perks.find((perk) => perk.kind === kind)
+);
+
+/**
  * The discipline a season's entry races in, off its class.
  * @param entry The season's entry
  * @returns The discipline, or null when the class is not found
@@ -115,6 +177,204 @@ export const entryDiscipline = (entry: SeasonEntry): Discipline | null => (
  */
 export const coversEntry = (terms: Pick<SponsorTerms, 'covers'>, entry: SeasonEntry): boolean => (
   terms.covers === null || entryDiscipline(entry) === terms.covers
+);
+
+/**
+ * The deal paying every entry fee of a championship on a day.
+ * @param career The career
+ * @param series The championship, by id
+ * @param date The ISO date of the round
+ * @returns The deal, or null when no sponsor covers it
+ */
+export const coveringDeal = (career: Pick<Career, 'sponsors'>, series: string, date: string): SponsorDeal | null => (
+  career.sponsors.find((deal) => (
+    dealCovers(deal, date) && deal.perks.some((perk) => perk.kind === 'championship' && perk.series === series)
+  )) ?? null
+);
+
+/**
+ * The deal whose car purchase backing is still to use: one a deal year.
+ * @param career The career
+ * @returns The deal, or null when none is left to use
+ */
+export const carBackingDeal = (career: Pick<Career, 'sponsors' | 'ledger'>): SponsorDeal | null => (
+  liveDeals(career).find((deal) => (
+    perkOf(deal, 'carBacking') && !career.ledger.some((line) => line.key === `sponsor:${deal.id}:car`)
+  )) ?? null
+);
+
+/**
+ * Every deal reaching a discipline.
+ * @param career The career
+ * @param discipline The discipline
+ * @returns The live deals covering it
+ */
+const dealsIn = (career: Pick<Career, 'sponsors'>, discipline: Discipline): SponsorDeal[] => (
+  liveDeals(career).filter((deal) => deal.covers === null || deal.covers === discipline)
+);
+
+/**
+ * The season's entry a deal's seat backing is in use on: the seat it paid half
+ * of, until that season has finished, terminated or not.
+ * @param career The career
+ * @param deal The deal, by id
+ * @returns The entry, or null when the backing is free
+ */
+export const seatBackedIn = (career: Pick<Career, 'seasons' | 'date'>, deal: string): SeasonEntry | null => (
+  career.seasons
+    .flatMap((season) => season.entries)
+    .find((entry) => entry.contract?.backed?.deal === deal && !editionOver(entry, career.date)) ?? null
+);
+
+/**
+ * The deal that may back a seat in a class: free to, covering its discipline,
+ * and with the class on the career's rung or below - that discipline's rung for
+ * a deal covering one.
+ * @param career The career
+ * @param discipline The class's discipline
+ * @param tier The class's rung, 1 being the top
+ * @returns The deal, or null when none may
+ */
+export const seatBackingDeal = (
+  career: Pick<Career, 'sponsors' | 'seasons' | 'date' | 'level'>,
+  discipline: Discipline,
+  tier: number,
+): SponsorDeal | null => dealsIn(career, discipline).find((deal) => (
+  perkOf(deal, 'seatBacking') && tier >= dealRung(deal, career.level) && !seatBackedIn(career, deal.id)
+)) ?? null;
+
+/**
+ * Who can pay part of a seat in a class.
+ * @param career The career
+ * @param discipline The class's discipline
+ * @param tier The class's rung, 1 being the top
+ * @returns The sponsor and its share, or null when none can
+ */
+export const seatBacker = (
+  career: Pick<Career, 'sponsors' | 'seasons' | 'date' | 'level'>,
+  discipline: Discipline,
+  tier: number,
+): { sponsor: string; share: number } | null => {
+  const deal = seatBackingDeal(career, discipline, tier);
+
+  return deal ? { sponsor: deal.sponsor.name, share: perkOf(deal, 'seatBacking')?.share ?? 0 } : null;
+};
+
+/**
+ * A share of an amount.
+ * @param amount The amount
+ * @param share The share, as a percentage
+ * @returns What it comes to, rounded
+ */
+export const percentOf = (amount: number, share: number): number => Math.round((amount * share) / 100);
+
+/**
+ * What a deal's backing pays of a price.
+ * @param deal The deal
+ * @param kind Which backing
+ * @param price The car's or the seat's price
+ * @returns The amount
+ */
+export const backingOf = (deal: SponsorDeal, kind: 'carBacking' | 'seatBacking', price: number): number => (
+  percentOf(price, perkOf(deal, kind)?.share ?? 0)
+);
+
+/**
+ * What a career's deals take off a round's fee or rent: every share covering
+ * it adds, and none takes more than is left to pay.
+ * @param career The career
+ * @param discipline The discipline the round races in, null for none
+ * @param date The round's day
+ * @param kind Which cost
+ * @param cost What it comes to
+ * @returns What each sponsor takes off, none for nothing
+ */
+export const costShares = (
+  career: Pick<Career, 'sponsors'>,
+  discipline: Discipline | null,
+  date: string,
+  kind: 'feeShare' | 'rentShare',
+  cost: number,
+): CostShare[] => {
+  let left = cost;
+
+  return career.sponsors.flatMap((deal): CostShare[] => {
+    const share = perkOf(deal, kind)?.share ?? 0;
+    const reaches = deal.covers === null || deal.covers === discipline;
+    if (share === 0 || left === 0 || !reaches || !dealCovers(deal, date)) return [];
+    const amount = Math.min(left, percentOf(cost, share));
+    left -= amount;
+
+    return [{ sponsor: deal.sponsor.name, amount, share }];
+  });
+};
+
+/**
+ * What a cost comes to once its shares are taken off.
+ * @param cost What it comes to
+ * @param shares What is taken off
+ * @returns What is left to pay
+ */
+export const afterShares = (cost: number, shares: readonly CostShare[]): number => (
+  cost - shares.reduce((sum, one) => sum + one.amount, 0)
+);
+
+/**
+ * The deal paying for repaints.
+ * @param career The career
+ * @returns The deal, or null when the player pays their own
+ */
+export const repaintDeal = (career: Pick<Career, 'sponsors'>): SponsorDeal | null => (
+  liveDeals(career).find((deal) => perkOf(deal, 'repaints')) ?? null
+);
+
+/**
+ * What a career's deals add to the seats it is offered in a discipline. Every
+ * deal holding a perk adds, on what its slot gives.
+ * @param career The career
+ * @param discipline The class's discipline
+ * @returns What they add, nothing at all without any
+ */
+export const seatLift = (career: Pick<Career, 'sponsors'>, discipline: Discipline): SeatLift => {
+  const lift = { ...NO_SEAT_LIFT };
+  for (const deal of dealsIn(career, discipline)) {
+    const { slot } = deal;
+    if (perkOf(deal, 'teamInterest')) lift.interest += SPONSOR_LIFT.teamInterest[slot];
+    if (perkOf(deal, 'worksInterest')) {
+      lift.works += SPONSOR_LIFT.worksInterest[slot];
+      lift.bar += WORKS_BAR_LIFT[slot];
+    }
+    if (perkOf(deal, 'betterTerms')) {
+      lift.salary += SPONSOR_LIFT.salary[slot];
+      lift.seatPrice += SPONSOR_LIFT.seatPrice[slot];
+      lift.cover = lift.cover || slot === 'main';
+    }
+  }
+  lift.seatPrice = Math.min(1, lift.seatPrice);
+
+  return lift;
+};
+
+/**
+ * How much likelier a career's deals make a historic invitation in a discipline.
+ * @param career The career
+ * @param discipline The discipline
+ * @returns The rise, as a share - nothing without any
+ */
+export const invitationLift = (career: Pick<Career, 'sponsors'>, discipline: Discipline): number => (
+  dealsIn(career, discipline)
+    .filter((deal) => perkOf(deal, 'invitations'))
+    .reduce((sum, deal) => sum + SPONSOR_LIFT.invitations[deal.slot], 0)
+);
+
+/**
+ * What a car reward sells from: three goal bonuses, never more than the car.
+ * @param deal The deal
+ * @param price The car's price
+ * @returns The amount
+ */
+export const rewardWorth = (deal: Pick<SponsorTerms, 'perks'>, price: number): number => (
+  Math.min(price, (perkOf(deal, 'goalBonus')?.amount ?? 0) * REWARD_BONUSES)
 );
 
 /**
@@ -224,6 +484,23 @@ const yearDone = (deal: SponsorDeal, today: string): number => (
 );
 
 /**
+ * Where the player stands in a season's entry against the place a goal asks.
+ * @param entry The season's entry
+ * @param goal The goal
+ * @returns Their place and the place asked, or null before they have raced it
+ */
+const placeAgainst = (entry: SeasonEntry, goal: SponsorGoal): { position: number; needed: number } | null => {
+  const drivers = entry.standings.classes.find((one) => one.entry === entry.entry)?.drivers ?? [];
+  const row = playerStanding(entry);
+  if (!row || row.races === 0) return null;
+
+  return {
+    position: row.position,
+    needed: goal.count ?? topOf(drivers.filter((one) => !one.substitute).length, goal.share ?? 1),
+  };
+};
+
+/**
  * How far a deal's goal has got, as things stand.
  *
  * A championship place reads every edition the deal covers that the player
@@ -241,11 +518,8 @@ export const goalStanding = (career: Pick<Career, 'seasons' | 'date'>, deal: Spo
     const entries = [...new Set(races.map((one) => one.entry))];
     let best: { position: number; needed: number } | null = null;
     for (const entry of entries) {
-      const drivers = entry.standings.classes.find((one) => one.entry === entry.entry)?.drivers ?? [];
-      const row = playerStanding(entry);
-      if (!row || row.races === 0) continue;
-      const needed = goal.count ?? topOf(drivers.filter((one) => !one.substitute).length, goal.share ?? 1);
-      if (!best || row.position - needed < best.position - best.needed) best = { position: row.position, needed };
+      const place = placeAgainst(entry, goal);
+      if (place && (!best || place.position - place.needed < best.position - best.needed)) best = place;
     }
     if (!best) {
       return {
@@ -286,6 +560,31 @@ export const goalStanding = (career: Pick<Career, 'seasons' | 'date'>, deal: Spo
   return {
     reached, needed, met, onCourse: met || reached >= Math.floor(needed * yearDone(deal, career.date)),
   };
+};
+
+/**
+ * Whether a deal's goal is settled as met. A count is the day it is reached,
+ * and a championship place the day a season of it finishes there. A share of
+ * races moves until the last, so it settles only as the deal's year runs out -
+ * when everything else is read as it stands.
+ * @param career The career
+ * @param deal The deal
+ * @returns True once it is
+ */
+export const goalSettled = (career: Pick<Career, 'seasons' | 'date'>, deal: SponsorDeal): boolean => {
+  const standing = goalStanding(career, deal);
+  if (deal.until <= career.date) return standing.met;
+  if (deal.goal.kind === 'onTarget') return false;
+  if (deal.goal.kind !== 'championshipPlace') return standing.met;
+
+  const finished = [...new Set(judgedRaces(career, deal).map((one) => one.entry))]
+    .filter((entry) => editionOver(entry, career.date));
+
+  return finished.some((entry) => {
+    const place = placeAgainst(entry, deal.goal);
+
+    return place !== null && place.position <= place.needed;
+  });
 };
 
 /**
@@ -341,19 +640,20 @@ export const dealPaid = (career: Pick<Career, 'ledger'>, deal: string): number =
 
 /**
  * What a deal's figures are multiplied by now: one, or for a deal that climbs
- * with the player, the rise from the rung it was drawn at to their best.
+ * with the player, the rise from the rung it was drawn at to the rung it reads
+ * on now.
  * @param deal The deal
  * @param level The rung each discipline holds, 1 being the top
  * @returns The multiplier
  */
 export const dealScale = (
-  deal: Pick<SponsorTerms, 'perks' | 'rung'>,
+  deal: Pick<SponsorTerms, 'perks' | 'rung' | 'covers'>,
   level: Readonly<Record<Discipline, number>>,
 ): number => {
-  const best = bestRung(level);
-  if (!deal.perks.some((perk) => perk.kind === 'climbs') || best >= deal.rung) return 1;
+  const rung = dealRung(deal, level);
+  if (!perkOf(deal, 'climbs') || rung >= deal.rung) return 1;
 
-  return rungFee(best) / rungFee(deal.rung);
+  return rungFee(rung) / rungFee(deal.rung);
 };
 
 /**
@@ -375,7 +675,7 @@ export const sponsorFigure = (amount: number, scale: number): number => (
  * @returns The amount, rounded
  */
 export const signingRepay = (deal: Pick<SponsorTerms, 'perks'> & Pick<SponsorDeal, 'until'>, today: string): number => {
-  const signing = deal.perks.find((perk) => perk.kind === 'signing')?.amount ?? 0;
+  const signing = perkOf(deal, 'signing')?.amount ?? 0;
   const left = Math.max(0, daysBetween(today, deal.until)) / DEAL_DAYS;
 
   return Math.round((signing * left) / REPAY_ROUND) * REPAY_ROUND;

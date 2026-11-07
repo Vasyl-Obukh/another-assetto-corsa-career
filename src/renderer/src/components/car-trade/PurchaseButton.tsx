@@ -29,6 +29,11 @@ interface PurchaseButtonProps {
    */
   busy?: boolean;
   /**
+   * The least the career could pay for it, a sponsor's backing taken off, which
+   * is what decides whether it is out of reach.
+   */
+  payable?: number;
+  /**
    * Anything the caller adds, such as its width.
    */
   className?: string;
@@ -43,11 +48,11 @@ interface PurchaseButtonProps {
  * cannot pay, the same button in a refusal's soft red saying so.
  */
 export const PurchaseButton = ({
-  price, balance, withPrice = false, size = 'default', busy = false, className, onPurchase,
+  price, payable = price, balance, withPrice = false, size = 'default', busy = false, className, onPurchase,
 }: PurchaseButtonProps) => {
   const { t } = useTranslation();
   const { formatMoney } = useFormat();
-  const affordable = price <= balance;
+  const affordable = payable <= balance;
   const amount = formatMoney(price);
 
   if (!affordable) {
@@ -57,7 +62,7 @@ export const PurchaseButton = ({
         size={size}
         variant="outline"
         aria-disabled
-        title={t('trade.short', { amount: formatMoney(price - balance) })}
+        title={t('trade.short', { amount: formatMoney(payable - balance) })}
         className={cn(TRADE_BUTTON.cantAfford, className)}
       >
         <LockIcon />

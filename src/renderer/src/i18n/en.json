@@ -736,8 +736,10 @@
         "behind": "The team's own driver races them in the car.",
         "note": "Buying turns down any team's offer for it still waiting. Terminating later gives back half of what the rounds left were worth.",
         "cancel": "Cancel",
-        "confirm": "Pay {{amount}} and sign"
-      }
+        "confirm": "Pay {{amount}} and sign",
+        "backingHint": "Half of this seat, {{amount}}. One backed seat at a time."
+      },
+      "coveredBy": "Covered by {{sponsor}}"
     },
     "brief": {
       "length": "Length",
@@ -818,7 +820,11 @@
       "salary": "Your salary for the round, {{salary}}, is paid once its last race finishes.",
       "fine": "Missing the round costs {{fine}}, and pays no salary.",
       "fineFree": "Missing the round costs {{fine}}.",
-      "feeCovered": "Entry fee {{amount}} · covered by {{sponsor}}"
+      "feeCovered": "Entry fee {{amount}} · covered by {{sponsor}}",
+      "feeOff": "That is {{fee}}, less {{shares}}.",
+      "rentOff": "The rental is {{rent}}, less {{shares}}.",
+      "share": "{{share}}% from {{sponsor}}",
+      "shareAnd": " and "
     },
     "ladder": {
       "locked": "Opens at Tier {{tier}} in {{discipline}}",
@@ -3162,8 +3168,12 @@
         "podium": "Class podium, P{{place}}",
         "points": "Points finish, P{{place}}",
         "pole": "Class pole",
-        "half": "half"
-      }
+        "half": "half",
+        "seat": "Half of a seat · {{series}}",
+        "carReward": "For a car that could not come"
+      },
+      "offBy": "{{whole}}, less {{off}}",
+      "offByOne": "{{amount}} from {{sponsor}}"
     }
   },
   "store": {
@@ -3220,7 +3230,17 @@
     "close": "Close",
     "actions": "What to do with the {{car}}",
     "openCar": "Open the car's page",
-    "paidOn": "Bought for {{paid}} · {{day}}"
+    "paidOn": "Bought for {{paid}} · {{day}}",
+    "free": "Free",
+    "balance": "Your balance",
+    "repaintBy": "{{sponsor}} pays for it",
+    "rewardFrom": "From {{sponsor}} · {{day}}",
+    "backing": {
+      "use": "Use {{sponsor}}'s backing",
+      "hint": "Half of this car, {{amount}}. Its one car until {{day}}.",
+      "pays": "{{sponsor}} pays half",
+      "mark": "{{sponsor}} can pay {{amount}}"
+    }
   },
   "prices": {
     "origin": {
@@ -3603,11 +3623,13 @@
       },
       "title": {
         "main": "{{sponsor}} would like to be your main sponsor",
-        "partner": "{{sponsor}} would like to be a partner"
+        "partner": "{{sponsor}} would like to be a partner",
+        "renewal": "{{sponsor}} would like to renew"
       },
       "lede": {
         "main": "{{sponsor}} has watched your season and wants to be your main sponsor, for a year from the day you sign.",
-        "partner": "{{sponsor}} has watched your season and would like to back you as a partner, for a year from the day you sign."
+        "partner": "{{sponsor}} has watched your season and would like to back you as a partner, for a year from the day you sign.",
+        "renewal": "Your year with {{sponsor}} ended today, with its goal met. It would like another, from the day you sign."
       },
       "replaces": "Signing it ends your deal with {{sponsor}}.",
       "yours": {
@@ -3627,12 +3649,18 @@
         "awaitingHint": "Unanswered by then, the offer lapses.",
         "accepted": "Signed on {{day}}",
         "declined": "Declined on {{day}}",
-        "lapsed": "Lapsed on {{day}}, unanswered"
+        "lapsed": "Lapsed on {{day}}, unanswered",
+        "noSlot": {
+          "main": "Your main sponsor slot is taken · reply by {{day}}",
+          "partner": "You have no free partner slot · reply by {{day}}"
+        },
+        "noSlotHint": "End a deal and you can renew, until {{day}}."
       },
       "decline": {
         "title": "Decline {{sponsor}}'s offer?",
         "body": "Declining it cannot be undone."
-      }
+      },
+      "helps": "It helps"
     },
     "sponsorNews": {
       "lede": "Your year with {{sponsor}} has ended without its goal met, so it will not renew.",
@@ -3640,8 +3668,29 @@
       "missed": "Missed",
       "reached_one": "You reached {{count}}",
       "reached_other": "You reached {{count}}",
-      "paid": "It paid"
-    }
+      "paid": "It paid",
+      "climbed": {
+        "title": "{{sponsor}} climbs with you",
+        "lede": "{{sponsor}} rises with you to {{rung}}. Its figures are {{rung}}'s from today.",
+        "racePay": "Race pay",
+        "win": "Win bonus",
+        "podium": "Podium bonus",
+        "points": "Points bonus",
+        "pole": "Pole bonus",
+        "goalBonus": "Goal bonus"
+      },
+      "goalMet": {
+        "title": "{{sponsor}}: goal met",
+        "titleCar": "Your car is in your garage",
+        "lede": "Its goal is met: {{goal}}.",
+        "car": "Your car is in your garage.",
+        "carPaid": "The {{car}} could not come, so {{amount}} is on your account instead.",
+        "bonus": "Its {{amount}} goal bonus is on your account.",
+        "reward": "Car reward",
+        "garage": "Open the Garage"
+      }
+    },
+    "renewal": "Renewal"
   },
   "invitation": {
     "state": {
@@ -3798,7 +3847,19 @@
       "points": "each points finish",
       "pole": "each class pole",
       "prizeMatch": "on top of every prize",
-      "goalBonus": "when its goal is met"
+      "goalBonus": "when its goal is met",
+      "seatBacking": "Half of a team seat you buy",
+      "carReward": "A {{car}} the day its goal is met",
+      "carPrice": "Store price {{price}}",
+      "feeShare": "of every entry fee you pay",
+      "rentShare": "of every rent you pay",
+      "repaints": "Free repaints",
+      "teamInterest": "Seat offers likelier",
+      "worksInterest": "Works teams likelier to call",
+      "betterTerms": "Better terms in seat offers",
+      "invitations": "Historic invitations likelier",
+      "was": "was {{value}}",
+      "wasCar": "was a {{car}}"
     },
     "goal": {
       "label": "Goal",
@@ -3812,7 +3873,8 @@
       "pole_other": "{{count}} class poles in its year",
       "onTarget": "On target in {{share}} of its races",
       "races_one": "Start {{count}} race in its year",
-      "races_other": "Start {{count}} races in its year"
+      "races_other": "Start {{count}} races in its year",
+      "met": "Met"
     },
     "progress": {
       "none": "Nothing to judge yet",
@@ -3854,7 +3916,8 @@
     "free": {
       "main": "Main sponsor slot - free",
       "partner": "Partner slot - free",
-      "hint": "Offers come as you race"
+      "hint": "Offers come as you race",
+      "renewal": "{{sponsor}} would like to renew, by {{day}}"
     },
     "locked": {
       "slot": "Partner slot",
@@ -3875,13 +3938,24 @@
       "goalMet": "Goal met",
       "goalMissed": "Goal missed",
       "mine": "Ended by you",
-      "replaced": "Replaced"
+      "replaced": "Replaced",
+      "renewed": "Renewed"
     },
     "endDeal": {
       "title": "End the deal with {{sponsor}}?",
       "repay": "It repays {{repay}} of its signing bonus, and the slot is free again at once.",
       "free": "The slot is free again at once.",
       "confirm": "End the deal"
-    }
+    },
+    "backing": {
+      "available": "Available",
+      "used": "Used",
+      "inUse": "In use",
+      "usedOn": "{{car}} · {{day}}",
+      "seatIn": "{{team}}'s seat, until {{series}} finishes",
+      "carFree": "Until its year runs out",
+      "seatFree": "One seat at a time"
+    },
+    "climbed": "{{rung}}'s figures since {{day}}"
   }
 }

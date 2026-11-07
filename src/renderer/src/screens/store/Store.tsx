@@ -24,7 +24,9 @@ export const Store = () => {
   const ids = garage.cars.map((one) => one.model);
   const baseQuery: CarQuery = {
     ...(owned ? { ids: ids.length > 0 ? ids : [...NO_CARS] } : {}),
-    ...(affordable ? { priceTo: garage.balance } : {}),
+    ...(affordable ? {
+      payable: { money: garage.balance, share: garage.backing?.share ?? 0, models: garage.backing?.models ?? [] },
+    } : {}),
   };
 
   return (

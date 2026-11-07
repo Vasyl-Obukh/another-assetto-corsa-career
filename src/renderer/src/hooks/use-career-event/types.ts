@@ -39,7 +39,7 @@ export interface CareerEventState {
    * @param team The team selling the seat, by its id
    * @returns Resolves once it has been bought
    */
-  buySeat: (entry: string, team: string) => Promise<void>;
+  buySeat: (entry: string, team: string, backed: boolean) => Promise<void>;
   /**
    * Accepts the invitation to the historic event this is, which enters it in
    * the seat offered.

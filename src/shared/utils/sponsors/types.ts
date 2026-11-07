@@ -3,6 +3,36 @@ import type {
 } from '../../types/index.ts';
 
 /**
+ * What a career's deals add to the seats it is offered in one discipline.
+ */
+export interface SeatLift {
+  /**
+   * How much likelier any team is to call, as a share.
+   */
+  interest: number;
+  /**
+   * How much likelier a works team is to call on top, as a share.
+   */
+  works: number;
+  /**
+   * The points a works seat before the player is ready rises by.
+   */
+  bar: number;
+  /**
+   * How much a salary rises, as a share.
+   */
+  salary: number;
+  /**
+   * Whether an independent's fee cover comes a step up.
+   */
+  cover: boolean;
+  /**
+   * How much cheaper a paid seat comes, as a share.
+   */
+  seatPrice: number;
+}
+
+/**
  * Where a career's form stands: how far down its classes it averaged over its
  * latest rounds, as a quarter of the field.
  */

@@ -258,6 +258,15 @@ describe('shared/utils/contracts', () => {
       expect(termination({ contract: contract(), events }).release).toBe(3_000);
     });
 
+    it('works a refund out on what the player paid, what a sponsor backed not being theirs', () => {
+      const seat = contract({
+        pay: 'seat', amount: 8_000, backed: { deal: 'deal', amount: 4_000 },
+      });
+
+      // Three rounds of four left, a half of it back: of the 4,000 paid.
+      expect(termination({ contract: seat, events: rounds([1_000, 1_000, 1_000, 1_000]) }).refund).toBe(1_500);
+    });
+
     it('gives back half of what a paid seat\'s rounds left were worth, and costs no release', () => {
       const events = rounds([1_000, 1_000, 1_000, 1_000]);
       const paid = contract({ pay: 'seat', amount: 8_000 });

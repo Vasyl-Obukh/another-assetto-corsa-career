@@ -63,7 +63,7 @@ export const useCarBrowser = (
   // only where the list is ordered or narrowed by price, so only there does it
   // start the list again; anywhere else the card already reads the new one.
   const byPrice = query.sort === 'price' || (query.priceOrigins ?? []).length > 0
-    || query.priceFrom !== undefined || query.priceTo !== undefined;
+    || query.priceFrom !== undefined || query.priceTo !== undefined || query.payable !== undefined;
   const key = useMemo(
     () => (byPrice
       ? `${carQueryKey(query)}|${JSON.stringify([carPrices, addedContent.cars])}`

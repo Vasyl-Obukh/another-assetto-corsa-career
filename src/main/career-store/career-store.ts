@@ -45,6 +45,7 @@ import {
   checkedNewCareer,
   checkedNewChampionship,
   checkedYear,
+  classCars,
   closeSeason,
   composeCalendar,
   currentSeason,
@@ -61,6 +62,7 @@ import {
   eventSessions,
   eventStrength,
   experiencedAt,
+  goalsDue,
   heldRaceable,
   historicDraws,
   historicInvitation,
@@ -86,6 +88,7 @@ import {
   saleSeats,
   seasonOf,
   seasonSalt,
+  sendClimbNews,
   sendSponsorOffers,
   signedContract,
   signSponsor,
@@ -96,7 +99,9 @@ import {
   strengthStep,
   summarise,
   unansweredSkips,
+  wantsRewards,
   winnerPrize,
+  withGoalMet,
   withKept,
   withLapsed,
   withReply,
@@ -108,6 +113,7 @@ import {
   feeOf,
   feeOwed,
   feePaid,
+  feeShares,
   openingLine,
   payOut,
   post,
@@ -117,6 +123,7 @@ import {
   rentLine,
   rentOwed,
   rentPaid,
+  rentShares,
   repaintLine,
   salaryPaid,
   saleLine,
@@ -141,6 +148,7 @@ import type { ClassOfferRequest } from '../../core/seat-offers/index.ts';
 import {
   climateOf, formatOf, roundSessions, runRaceId,
 } from '../../core/series/index.ts';
+import type { RewardCar } from '../../core/sponsor-offers/index.ts';
 import { offerForecast } from '../../core/weather-forecast/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
@@ -175,6 +183,7 @@ import type {
   SeriesLibrary,
   SeriesListing,
   SkippedRound,
+  SponsorDeal,
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { rentOf, repaintOf, resaleValue } from '../../shared/utils/car-prices/index.ts';
@@ -201,7 +210,10 @@ import { nationName } from '../../shared/utils/nations/index.ts';
 import { prizeTable } from '../../shared/utils/prizes/index.ts';
 import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 import { hiddenAsFiller, isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
-import { bestRung, liveDeals } from '../../shared/utils/sponsors/index.ts';
+import {
+  afterShares, backingOf, carBackingDeal, costShares, dealRung, invitationLift, liveDeals, perkOf, repaintDeal,
+  seatBacker, seatBackingDeal, seatLift,
+} from '../../shared/utils/sponsors/index.ts';
 import { buildStandings, entryResults, roundResult } from '../../shared/utils/standings/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
@@ -786,7 +798,7 @@ export const createCareerStore = async (
       const cars = drawnCars(draw, await historic.validate(draw.championship));
       const rung = historicRung(draw.championship, cars, career.level);
       if (!rung) return { ...draw, invitation: { on, outcome: 'uninvited' } };
-      const chance = invitationChance(rung.rung);
+      const chance = invitationChance(rung.rung, invitationLift(career, rung.discipline));
       const drawnOn = {
         on, discipline: rung.discipline, rung: rung.rung, chance,
       };
@@ -947,6 +959,7 @@ export const createCareerStore = async (
             fees: events.map((event) => event.entryFee ?? 0),
             winnerPrize: prizeTable(championship, entry.id, 'positions')[0] ?? 0,
             prizeSpeed: career.settings.prizeSpeed,
+            lift: seatLift(career, discipline),
           };
           // A renewal leads its class, beside whoever else calls - and the team
           // renewing does not call twice. Only in a class the ladder still
@@ -1026,26 +1039,23 @@ export const createCareerStore = async (
   };
 
   /**
-   * Whether a car races in a class on a rung or below it, anywhere in the
+   * Every car racing in a class on a rung or below it, anywhere in the
    * championship library.
-   * @param model The car's folder ID
    * @param rung The rung, 1 being the top
    * @param discipline The discipline the class has to enter at, or null for any
-   * @returns True when some class at that rung or lower may field it
+   * @returns The cars, by folder ID
    */
-  const racesAtOrBelow = async (model: string, rung: number, discipline: Discipline | null): Promise<boolean> => {
+  const carsAtOrBelow = async (rung: number, discipline: Discipline | null): Promise<string[]> => {
     let library: SeriesLibrary;
     try {
       library = await series.list();
     } catch {
-      return false;
+      return [];
     }
 
-    return library.series.some((listing) => listing.series.entries.some((entry) => (
-      entry.ladder.tier >= rung
-      && (discipline === null || entry.ladder.discipline === discipline)
-      && eligibleCarsIn(listing.availability, listing.series.rounds[0]?.id ?? '', entry.id).includes(model)
-    )));
+    return [...new Set(library.series.flatMap((listing) => listing.series.entries
+      .filter((entry) => entry.ladder.tier >= rung && (discipline === null || entry.ladder.discipline === discipline))
+      .flatMap((entry) => classCars(listing, entry))))];
   };
 
   /**
@@ -1268,14 +1278,97 @@ export const createCareerStore = async (
   };
 
   /**
+   * The cars a car reward may name: every car of the library racing on the rung
+   * open to the career in each discipline, the garage's left out.
+   * @param career The career
+   * @returns The cars, none without an install to read them from
+   */
+  const rewardCars = async (career: Career): Promise<RewardCar[]> => {
+    try {
+      const library = await series.list();
+      const open = openLevels(career.level);
+      const found = new Map<string, Pick<RewardCar, 'model' | 'discipline' | 'tier'>>();
+      for (const listing of library.series) {
+        for (const entry of listing.series.entries) {
+          const { discipline, tier } = entry.ladder;
+          if (tier !== open[discipline]) continue;
+          for (const model of classCars(listing, entry)) {
+            if (!ownedCar(career, model)) found.set(`${discipline}\u0000${model}`, { model, discipline, tier });
+          }
+        }
+      }
+
+      const cars = await Promise.all([...found.values()].map(async (one): Promise<RewardCar | null> => {
+        const car = await content.car(one.model);
+        const price = car ? await content.price(one.model) : null;
+        if (!car || price === null) return null;
+        const skin = car.skins[0]?.id;
+
+        return {
+          ...one, name: car.name, price, ...(skin === undefined ? {} : { skin }),
+        };
+      }));
+
+      return cars.filter((car) => car !== null);
+    } catch (error) {
+      console.warn('Could not read the cars a sponsor may reward.', error);
+
+      return [];
+    }
+  };
+
+  /**
+   * The livery a deal's car comes in.
+   * @param deal The deal
+   * @returns The car's first, undefined for a car with none, or null when it
+   * cannot come. With no install to ask it comes in the one the deal named.
+   */
+  const rewardSkin = async (deal: SponsorDeal): Promise<string | null | undefined> => {
+    const reward = perkOf(deal, 'carReward')?.car;
+    if (!reward) return null;
+    try {
+      const car = await content.car(reward.model, true);
+
+      return car ? car.skins[0]?.id : null;
+    } catch {
+      return reward.skin;
+    }
+  };
+
+  /**
+   * Marks every goal just settled.
+   * @param career The career
+   * @returns The career
+   */
+  const meetGoals = async (career: Career): Promise<Career> => {
+    let next = career;
+    for (const deal of goalsDue(career)) next = withGoalMet(next, deal, await rewardSkin(deal));
+
+    return next;
+  };
+
+  /**
+   * Moves a career's sponsors on: goals settled, years run out, offers drawn and
+   * deals climbed. Rated first, so everything they say and name reads the rung
+   * and rating the round left.
+   * @param career The career
+   * @returns The career
+   */
+  const sponsorsMove = async (career: Career): Promise<Career> => {
+    const rated = await meetGoals(rateCareer(career));
+    const rewards = wantsRewards(rated) ? await rewardCars(rated) : [];
+
+    return sendClimbNews(sendSponsorOffers(endSponsorYears(rated, rewards), rewards));
+  };
+
+  /**
    * Brings the career's missed rounds and its mail up to date, after anything
    * that can have moved the clock or given a round up.
    */
   const catchUp = async (): Promise<void> => {
     if (current) {
-      current = await sendOffers(await sendInvitations(await simulateMissed(current)));
-      // Rated first, so an offer is drawn on the rung and rating the round left.
-      current = sendSponsorOffers(rateCareer(endSponsorYears(current)));
+      // Sponsors first, so a deal whose year ran out helps no seat or invitation.
+      current = await sendOffers(await sendInvitations(await sponsorsMove(await simulateMissed(current))));
     }
   };
 
@@ -1335,7 +1428,7 @@ export const createCareerStore = async (
     }
     // A round finished may bring a sponsor's offer, whether or not it moved
     // the clock.
-    if (finished) current = sendSponsorOffers(rateCareer(current));
+    if (finished) current = await sponsorsMove(current);
     settle();
 
     const landed = plan.launches[state.completed[state.completed.length - 1]?.index ?? -1];
@@ -1545,7 +1638,13 @@ export const createCareerStore = async (
    * the edition is entered already, the seat costs more than the career holds,
    * or the championship no longer races or fields the seat
    */
-  const signOffer = async (career: Career, season: CareerSeason, mail: Mail, pick?: OfferPick): Promise<Career> => {
+  const signOffer = async (
+    career: Career,
+    season: CareerSeason,
+    mail: Mail,
+    pick?: OfferPick,
+    backed = false,
+  ): Promise<Career> => {
     const offer = pickedOffer(mail, pick);
     if (!offer) throw new AppError('mail.notFound');
     const named = { team: offer.teamName, series: offer.seriesName };
@@ -1556,13 +1655,19 @@ export const createCareerStore = async (
       throw new AppError('career.entry.enrolled', { entry: offer.seriesName });
     }
     const price = offer.pay === 'seat' ? offer.amount : 0;
-    if (price > career.money) throw new AppError('contract.short', { price, money: career.money });
+    const backer = backed ? seatBackingDeal(career, offer.ladder.discipline, offer.ladder.tier) : null;
+    if (backed && (!backer || price === 0)) throw new AppError('sponsor.backing.none');
+    const backing = backer ? backingOf(backer, 'seatBacking', price) : 0;
+    if (price - backing > career.money) throw new AppError('contract.short', { price: price - backing, money: career.money });
 
     const { listing, entry } = await raceableEntry(offer.series, offer.entry);
     if (!entry.seats.some((seat) => seat.id === offer.seat && seat.team === offer.team)) {
       throw new AppError('contract.gone', named);
     }
-    const contract = signedContract(mail, offer, career.date);
+    const contract = {
+      ...signedContract(mail, offer, career.date),
+      ...(backer ? { backed: { deal: backer.id, amount: backing } } : {}),
+    };
     // The team's car, which is never the player's to rent or buy.
     const enrolled = await entering(career, season, listing, entry, offer.edition, offer.car, contract);
     const answered = declineOffers(
@@ -1582,7 +1687,16 @@ export const createCareerStore = async (
       ? withKept(signed, offer.renews.season, offer.series, offer.renews.edition, 'renewed')
       : signed;
 
-    return post(renewed, price > 0 ? [seatLine(career, mail.id, offer)] : []);
+    return post(renewed, [
+      ...(price > 0 ? [seatLine(career, mail.id, offer)] : []),
+      ...(backer ? [{
+        ...sponsorLine(backer, 'seatBacking', `sponsor:${backer.id}:seat:${mail.id}`, backing, {
+          date: career.date, season: season.index,
+        }),
+        series: offer.series,
+        seriesName: offer.seriesName,
+      }] : []),
+    ]);
   };
 
   /**
@@ -2282,14 +2396,27 @@ export const createCareerStore = async (
         ...drafted, id: taken === 0 ? base : `${base}#${taken + 1}`, opened: true, deadline: career.date,
       };
       const asked = { ...career, inbox: [...career.inbox, mail] };
-      current = await signOffer(asked, season, mail, { entry: terms.entry, team: terms.team });
+      current = await signOffer(asked, season, mail, { entry: terms.entry, team: terms.team }, request.backed);
       // The rounds already behind the clock happened without the player.
       await catchUp();
 
       return settle();
     }),
 
-    buyCar: ({ model, skin }) => commit(async () => {
+    async carBacking() {
+      const career = await ensure();
+      const deal = carBackingDeal(career);
+      if (career.kind !== 'career' || !deal) return null;
+
+      return {
+        sponsor: deal.sponsor.name,
+        share: perkOf(deal, 'carBacking')?.share ?? 0,
+        until: deal.until,
+        models: await carsAtOrBelow(dealRung(deal, career.level), deal.covers),
+      };
+    },
+
+    buyCar: ({ model, skin, backed = false }) => commit(async () => {
       const { career, season, owned } = await garageNow(model);
       const names = await namesOf(model);
       if (owned) throw new AppError('career.car.owned', { car: names.name });
@@ -2299,16 +2426,10 @@ export const createCareerStore = async (
       if (skin !== undefined && !names.car.skins.some((one) => one.id === skin)) {
         throw new AppError('career.car.livery', { car: names.name, livery: skin });
       }
-      // A main sponsor backing a car pays half of one a deal year, while the car
-      // races on the career's rung or below - in the discipline the deal covers,
-      // on that discipline's rung, for one that covers only one.
-      const backer = liveDeals(career).find((deal) => deal.perks.some((perk) => perk.kind === 'carBacking')
-        && !career.ledger.some((line) => line.key === `sponsor:${deal.id}:car`));
-      const share = backer?.perks.find((perk) => perk.kind === 'carBacking')?.share ?? 0;
-      const backedRung = backer?.covers ? career.level[backer.covers] : bestRung(career.level);
-      const backing = backer && await racesAtOrBelow(model, backedRung, backer.covers)
-        ? Math.round((price * share) / 100)
-        : 0;
+      const backer = backed ? carBackingDeal(career) : null;
+      const backable = backer ? await carsAtOrBelow(dealRung(backer, career.level), backer.covers) : [];
+      if (backed && !backable.includes(model)) throw new AppError('sponsor.backing.none');
+      const backing = backer ? backingOf(backer, 'carBacking', price) : 0;
       if (price - backing > career.money) throw new AppError('career.car.short', { price: price - backing, money: career.money });
 
       const livery = skin ?? names.car.skins[0]?.id;
@@ -2316,7 +2437,7 @@ export const createCareerStore = async (
       const at = currentSeason(career)?.index ?? 0;
       const paid = post(career, [
         purchaseLine(career, model, names.name, names.livery(livery), price),
-        ...(backer && backing > 0 ? [{
+        ...(backer ? [{
           ...sponsorLine(backer, 'carBacking', `sponsor:${backer.id}:car`, backing, { date: career.date, season: at }),
           car: { model, name: names.name },
         }] : []),
@@ -2364,12 +2485,12 @@ export const createCareerStore = async (
       }
       // Priced off what was paid for it, as its sale is, so a price changed
       // since in settings never reaches a car already bought.
-      const cost = repaintOf(owned.paid);
+      const cost = repaintDeal(career) ? 0 : repaintOf(owned.paid);
       if (cost > career.money) throw new AppError('career.car.short', { price: cost, money: career.money });
 
-      const painted = post(career, [
-        repaintLine(career, model, names.name, names.livery(owned.skin), names.livery(skin), cost),
-      ]);
+      const painted = post(career, cost > 0
+        ? [repaintLine(career, model, names.name, names.livery(owned.skin), names.livery(skin), cost)]
+        : []);
       // At once, for every round still to come.
       current = withSeason(
         { ...painted, garage: career.garage.map((one) => (one === owned ? { ...one, skin } : one)) },
@@ -2433,7 +2554,9 @@ export const createCareerStore = async (
       return settle();
     }),
 
-    answer: ({ mail: id, answer, offer: pick }) => commit(async () => {
+    answer: ({
+      mail: id, answer, offer: pick, backed,
+    }) => commit(async () => {
       const { career, season } = await seasonNow();
       const mail = career.inbox.find((one) => one.id === id);
       if (!mail) throw new AppError('mail.notFound');
@@ -2446,7 +2569,7 @@ export const createCareerStore = async (
       }
       const first = mail.offers?.[0];
       if (first) {
-        if (answer === 'accepted') current = await signOffer(career, season, mail, pick);
+        if (answer === 'accepted') current = await signOffer(career, season, mail, pick, backed);
         else if (mailStatus(mail, career.date) === 'awaiting') current = withReply(career, mail, 'declined');
         else throw new AppError('contract.closed', { team: first.teamName, series: first.seriesName });
         await catchUp();
@@ -2651,8 +2774,11 @@ export const createCareerStore = async (
             const rent = cars.some((car) => owned.has(car)) ? 0 : Math.min(...await Promise.all(cars.map(rentOfCar)));
 
             const fee = entryFeeOf(championship, next.round, entry.id) ?? 0;
+            const after = (kind: 'feeShare' | 'rentShare', cost: number): number => (
+              afterShares(cost, costShares(career, entry.ladder.discipline, next.date, kind, cost))
+            );
 
-            return { series: championship.id, entry: entry.id, cost: fee + rent };
+            return { series: championship.id, entry: entry.id, cost: after('feeShare', fee) + after('rentShare', rent) };
           }));
 
           return priced.filter((cost) => cost !== null);
@@ -2877,6 +3003,7 @@ export const createCareerStore = async (
           fee: career.kind === 'career' ? entryFeeOf(championship, enterAt, one.id) || null : null,
           team: drawnTeamOf(one),
           forSale: forSale.get(one.id) ?? [],
+          seatBacker: seatBacker(career, one.ladder.discipline, one.ladder.tier),
         })),
         raceable,
         sessions: plan ? eventSessions(
@@ -2896,6 +3023,8 @@ export const createCareerStore = async (
           fee: held ? feeOf(held.entry, held.event) : null,
           paid: held ? feePaid(career, held.event) : false,
           sponsor: held ? coveringSponsor(career, held.entry, held.event)?.sponsor.name ?? null : null,
+          feeOff: held ? feeShares(career, held.entry, held.event) : [],
+          rentOff: held && owed?.roundRent ? rentShares(career, held.entry, held.event, owed.roundRent) : [],
           rent: owed?.roundRent ?? null,
           rentPaid: held ? rentPaid(career, held.event) : false,
           balance: career.money,
@@ -2990,7 +3119,7 @@ export const createCareerStore = async (
       const block = launchBlock(season, held, heldRaceable(availability, held), allowSameDay);
       if (block) throw new AppError(block.code, block.params);
       // Paid as the first session goes out, and never into debt.
-      const { fee, rent } = await owedFor(career, held);
+      const { fee, rent, roundRent } = await owedFor(career, held);
       if (fee + rent > career.money) throw new AppError('career.money.short', { fee: fee + rent, money: career.money });
 
       // What this event costs the rest of the season, which the player has to
@@ -3056,8 +3185,10 @@ export const createCareerStore = async (
         );
         const name = rent > 0 ? (await namesOf(held.entry.car.model)).name : '';
         current = post(next, [
-          ...(fee > 0 ? [feeLine(season, held.entry, event, fee)] : []),
-          ...(rent > 0 ? [rentLine(season, held.entry, event, rent, name)] : []),
+          ...(fee > 0 ? [feeLine(season, held.entry, event, fee, feeShares(career, held.entry, held.event))] : []),
+          ...(rent > 0 ? [rentLine(
+            season, held.entry, event, rent, name, rentShares(career, held.entry, held.event, roundRent ?? 0),
+          )] : []),
         ]);
         if (changed) await catchUp();
         settle();

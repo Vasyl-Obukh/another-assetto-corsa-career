@@ -3,7 +3,17 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import type { SponsorTrade } from '../../../../shared/types';
+import type { SponsorPerkKind, SponsorTrade } from '../../../../shared/types';
+
+/**
+ * A main sponsor's signature perks, which get a row of their own on an offer.
+ */
+export const SIGNATURES: readonly SponsorPerkKind[] = ['championship', 'climbs', 'carBacking', 'seatBacking', 'carReward'];
+
+/**
+ * The perks that help rather than pay, which have no price to show.
+ */
+export const HELPS: readonly SponsorPerkKind[] = ['repaints', 'teamInterest', 'worksInterest', 'betterTerms', 'invitations'];
 
 /**
  * The icon each trade wears on a sponsor's mark - an icon rather than a chip,

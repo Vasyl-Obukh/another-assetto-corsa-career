@@ -23,6 +23,7 @@ import { SkipPanel } from './SkipPanel.tsx';
 import { defaultSession, scaleName, shortLaps } from './utils.ts';
 import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { scalesFor } from '../../../../shared/utils/race-scale';
+import { afterShares } from '../../../../shared/utils/sponsors';
 import { useSlot } from '@/app';
 import {
   ClimateBadge, ErrorCard, HistoricChip, ScreenBody, ScreenHeader, SkipDialog, SkipRoundDialog,
@@ -201,7 +202,7 @@ export const Event = () => {
                   <span>
                     {view.money.sponsor
                       ? t('event.money.feeCovered', { amount: formatMoney(view.money.fee), sponsor: view.money.sponsor })
-                      : t('event.money.fee', { amount: formatMoney(view.money.fee) })}
+                      : t('event.money.fee', { amount: formatMoney(afterShares(view.money.fee, view.money.feeOff)) })}
                   </span>
                 ) : null}
                 {/* What a historic event of one class costs anyone entering it
@@ -259,7 +260,7 @@ export const Event = () => {
                   busy={event.busy}
                   historic={historic !== null}
                   onEnter={(entry, car) => { void event.enter(entry, car); }}
-                  onBuySeat={(entry, team) => { void event.buySeat(entry, team); }}
+                  onBuySeat={(entry, team, backed) => { void event.buySeat(entry, team, backed); }}
                 />
               )}
             <EventSessionList

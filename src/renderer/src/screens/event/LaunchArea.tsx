@@ -1,8 +1,13 @@
-import { BriefcaseIcon, Loader2Icon, WalletIcon } from 'lucide-react';
+import {
+  BriefcaseIcon, Loader2Icon, SparklesIcon, WalletIcon,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { launchNote, moneyNote, scaleName } from './utils.ts';
+import {
+  launchNote, moneyNote, scaleName, sharesText,
+} from './utils.ts';
 import type { CareerEventView, EventSession } from '../../../../shared/types';
+import { afterShares } from '../../../../shared/utils/sponsors';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useRaceStatus } from '@/hooks';
@@ -50,8 +55,8 @@ export const LaunchArea = ({
   const contract = money?.contract ?? null;
   // What the next launch pays: the fee - unless a sponsor covers it - and the
   // rent, each until it is paid.
-  const fee = money?.fee && !money.paid && !money.sponsor ? money.fee : 0;
-  const rent = money?.rent && !money.rentPaid ? money.rent : 0;
+  const fee = money?.fee && !money.paid && !money.sponsor ? afterShares(money.fee, money.feeOff) : 0;
+  const rent = money?.rent && !money.rentPaid ? afterShares(money.rent, money.rentOff) : 0;
   // Said with the amounts in the career's own currency, which the shared
   // English template cannot do.
   const short = view.blocked?.code === 'career.money.short' && money && fee + rent > 0 ? money : null;
@@ -124,6 +129,18 @@ export const LaunchArea = ({
           {t(contract ? 'event.money.contractFee' : moneyNote(fee, rent), {
             fee: formatMoney(fee), rent: formatMoney(rent), session: name,
           })}
+        </p>
+      ) : null}
+      {view.blocked === null && fee > 0 && money && money.feeOff.length > 0 ? (
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <SparklesIcon className="mt-0.5 size-4 shrink-0 text-partner-foreground" />
+          {t('event.money.feeOff', { fee: formatMoney(money.fee ?? 0), shares: sharesText(money.feeOff, t) })}
+        </p>
+      ) : null}
+      {view.blocked === null && rent > 0 && money && money.rentOff.length > 0 ? (
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <SparklesIcon className="mt-0.5 size-4 shrink-0 text-partner-foreground" />
+          {t('event.money.rentOff', { rent: formatMoney(money.rent ?? 0), shares: sharesText(money.rentOff, t) })}
         </p>
       ) : null}
       {view.blocked === null && accepting ? (

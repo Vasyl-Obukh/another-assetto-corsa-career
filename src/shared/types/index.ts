@@ -63,6 +63,7 @@ export type {
 
 export type {
   CarFacets,
+  CarPayable,
   CarQuery,
   CarSortKey,
   Facet,
@@ -166,6 +167,8 @@ export type {
   InvitationOutcome,
   InvitationState,
   LedgerKind,
+  CarBacking,
+  CostShare,
   LedgerLine,
   NewCareerRequest,
   NewChampionshipRequest,
@@ -192,6 +195,7 @@ export type {
 
 export type {
   Sponsor,
+  SponsorCar,
   SponsorDeal,
   SponsorEnd,
   SponsorGoal,
@@ -201,6 +205,7 @@ export type {
   SponsorPerk,
   SponsorPerkKind,
   SponsorResult,
+  SponsorRise,
   SponsorSlot,
   SponsorTarget,
   SponsorTargetKind,

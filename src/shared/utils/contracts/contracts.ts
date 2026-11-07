@@ -193,7 +193,10 @@ export const termination = (entry: Pick<SeasonEntry, 'contract' | 'events'>): Te
   return {
     left: left.length,
     release: paid ? 0 : Math.max(...fines, Math.round(fines.reduce((sum, fine) => sum + fine, 0) * RELEASE_SHARE)),
-    refund: paid ? Math.round(contract.amount * (left.length / rounds) * REFUND_SHARE) : 0,
+    // Worked out on what the player paid: what a sponsor backed is not theirs.
+    refund: paid
+      ? Math.round((contract.amount - (contract.backed?.amount ?? 0)) * (left.length / rounds) * REFUND_SHARE)
+      : 0,
     salaryLeft: (roundSalary(contract, rounds) ?? 0) * left.length,
   };
 };

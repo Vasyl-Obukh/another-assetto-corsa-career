@@ -3228,17 +3228,51 @@ reach into other systems, and renewal.
 
 ### Slice 2 - More perks, and renewal
 
-- [ ] **Signature perks**: Seat backing (half of a team seat bought), Car reward
-      (a car of the rung worth about three goal bonuses, for the goal met, a new
-      one on renewal)
-- [ ] **Seat offer perks**: Team interest (seat offers likelier), Works team
-      interest (works teams likelier), Better terms (a better salary and fee
-      cover)
-- [ ] **Partners' perks**: entry fee share, rent share, free repaints, historic
-      invitations likelier
-- [ ] **Renewal** on a deal's anniversary with its goal met - its figures drawn
-      again at the rating then, each changed one saying what it was. **A Renewal
+Designed in `mockups/sponsor-perks.html`, every decision agreed on 2026-11-07.
+
+- [x] **Backing is the player's to use**: seat and car purchase backing are never
+      spent on their own. Buying asks, with a switch that starts off, in the
+      purchase dialog, in Buy a seat and on a privateer's offer. A car only backing
+      puts in reach stays open to buy; the dialog says how short the player is
+      until the switch is on. A sparkle beside a price says what backing can pay,
+      in a tooltip, on a car and on a seat for sale, and a sponsor's card says
+      whether it is Available or Used
+- [x] **Seat backing**: half of one seat at a time, in a championship of the
+      discipline it covers, on the player's rung or below. It frees up as that
+      championship's season finishes, terminated or not, so a quarter-length
+      championship can use it several times a year. A refund is on what the
+      player paid
+- [x] **Car reward**: named on the offer, a car racing on the highest rung open
+      to the player in what the deal covers, its picture and a link to its page
+      on the offer and the renewal. It arrives the day the goal is met, in its
+      first livery, with a mail, and sells for three goal bonuses. A goal only
+      settled at the end - on target in a share of races - is met on the
+      anniversary. A car the install no longer has, or one already owned, pays
+      what it would sell for
+- [x] **The goal bonus** pays the day the goal is met, with the car
+- [x] **Seat offer perks**, on either slot: Team interest (seat offers likelier, a
+      fifth, a partner's a tenth), Works team interest (works teams likelier, a
+      third, a partner's a sixth - and a works seat before the player is ready
+      rises from 5% to 10%, a partner's to 7.5%), Better terms (a works salary up a
+      fifth, a partner's a tenth; an independent's fee cover a step up, a main
+      sponsor's alone; a privateer's seat a fifth cheaper, a partner's a tenth -
+      renewals included, seats for sale not). Nothing on a seat offer says so
+- [x] **Partners' perks**: entry fee share and rent share, taken off the cost,
+      the launch note, the Enter panel's figure and the Finances line saying why,
+      and free repaints. Historic
+      invitations likelier, on either slot, the chance simply reading higher
+- [x] **Everything adds**: shares, chances and terms, a share stopping at what the
+      player pays and a chance at certain
+- [x] **An It helps row** on an offer and under a card's prices, for what pays
+      nothing
+- [x] **Renewal**: a deal ends on its anniversary, and with its goal met its
+      sponsor asks to renew, open a month, nothing paying meanwhile. The same perks,
+      target and goal; each figure drawn again at the rating and rung then, never
+      down, each changed one saying what it was; a signing bonus again, Climbs with
+      you from the new rung, a new car. Its slot stands free and says who is
+      asking. Renew is held, the mail saying why, while no slot is free. **A Renewal
       tag** on a renewal's mail, a sponsor's and a team's alike
+- [x] **A deal that climbs says so**, on its card and in a mail
 
 ## Phase 11 - Inbox
 

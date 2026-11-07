@@ -1,8 +1,10 @@
-import { InfoIcon, PenLineIcon } from 'lucide-react';
+import { InfoIcon, PenLineIcon, SparklesIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { SeatSale } from '../../../../shared/types';
-import { MoneyAmount, SkipNote } from '@/components';
+import type { EventClassOption, SeatSale } from '../../../../shared/types';
+import { percentOf } from '../../../../shared/utils/sponsors';
+import { MoneyAmount, SkipNote, SwitchTile } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -33,13 +35,18 @@ interface BuySeatDialogProps {
    */
   money: number;
   /**
+   * The sponsor who can pay part of the seat, when one can.
+   */
+  backer: EventClassOption['seatBacker'];
+  /**
    * Whether a command is in flight.
    */
   busy: boolean;
   /**
    * Called once the player has confirmed what the seat costs.
+   * @param backed Whether to spend the sponsor's backing on it
    */
-  onConfirm: () => void;
+  onConfirm: (backed: boolean) => void;
   /**
    * Called to close it without buying.
    */
@@ -49,11 +56,21 @@ interface BuySeatDialogProps {
 // What buying a privateer's seat comes to, asked before anything is paid: the
 // price on signing, what it covers, and what the career holds after.
 export const BuySeatDialog = ({
-  seat, seriesName, rounds, behind, money, busy, onConfirm, onClose,
+  seat, seriesName, rounds, behind, money, backer, busy, onConfirm, onClose,
 }: BuySeatDialogProps) => {
   const { t } = useTranslation();
   const { formatMoney } = useFormat();
   const carName = useCarNames(seat ? [seat.car.model] : []);
+  // Off every time it opens: backing is only ever spent on purpose.
+  const [backed, setBacked] = useState(false);
+  const [shownFor, setShownFor] = useState<SeatSale | null>(null);
+  if (shownFor !== seat) {
+    setShownFor(seat);
+    setBacked(false);
+  }
+  const price = seat?.price ?? 0;
+  const half = percentOf(price, backer?.share ?? 0);
+  const pays = backed ? price - half : price;
 
   return (
     <Dialog open={seat !== null} onOpenChange={(next) => { if (!next) onClose(); }}>
@@ -65,9 +82,27 @@ export const BuySeatDialog = ({
           </DialogDescription>
         </DialogHeader>
 
+        {backer ? (
+          <SwitchTile
+            label={t('trade.backing.use', { sponsor: backer.sponsor })}
+            hint={t('event.enter.seats.backingHint', { amount: formatMoney(half) })}
+            checked={backed}
+            onChange={setBacked}
+          />
+        ) : null}
+
         <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 rounded-lg border p-3 text-sm">
           <dt className="text-muted-foreground">{t('event.enter.seats.price')}</dt>
-          <dd className="text-right"><MoneyAmount amount={-(seat?.price ?? 0)} /></dd>
+          <dd className="text-right"><MoneyAmount amount={-price} /></dd>
+          {backed && backer ? (
+            <>
+              <dt className="flex items-center gap-1.5 text-muted-foreground">
+                <SparklesIcon className="size-3.5 text-sponsor-foreground" />
+                {t('trade.backing.pays', { sponsor: backer.sponsor })}
+              </dt>
+              <dd className="text-right"><MoneyAmount amount={half} /></dd>
+            </>
+          ) : null}
           <dt className="text-muted-foreground">{t('event.enter.fee')}</dt>
           <dd className="text-right font-medium">{t('event.enter.seats.covered')}</dd>
           <dt className="text-muted-foreground">{t('event.enter.seats.prizes')}</dt>
@@ -75,7 +110,7 @@ export const BuySeatDialog = ({
           <dt className="text-muted-foreground">{t('event.enter.seats.missed')}</dt>
           <dd className="text-right font-medium">{t('event.enter.seats.noFine')}</dd>
           <dt className="border-t pt-2 font-medium">{t('event.enter.seats.after')}</dt>
-          <dd className="border-t pt-2 text-right font-semibold tabular-nums">{formatMoney(money - (seat?.price ?? 0))}</dd>
+          <dd className="border-t pt-2 text-right font-semibold tabular-nums">{formatMoney(money - pays)}</dd>
         </dl>
 
         {behind > 0 ? (
@@ -88,9 +123,9 @@ export const BuySeatDialog = ({
 
         <DialogFooter>
           <Button variant="ghost" disabled={busy} onClick={onClose}>{t('event.enter.seats.cancel')}</Button>
-          <Button disabled={busy || !seat} onClick={onConfirm}>
+          <Button disabled={busy || !seat || pays > money} onClick={() => onConfirm(backed)}>
             <PenLineIcon />
-            {t('event.enter.seats.confirm', { amount: formatMoney(seat?.price ?? 0) })}
+            {t('event.enter.seats.confirm', { amount: formatMoney(pays) })}
           </Button>
         </DialogFooter>
       </DialogContent>

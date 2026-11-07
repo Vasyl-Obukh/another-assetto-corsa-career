@@ -17,6 +17,10 @@ interface SponsorGoalProps {
    */
   standing?: GoalStanding;
   /**
+   * Whether it has been met, which is settled and no longer on course.
+   */
+  met?: boolean;
+  /**
    * Whether it says Goal before it - left off where a row already names it.
    */
   labelled?: boolean;
@@ -32,7 +36,7 @@ interface SponsorGoalProps {
  * got.
  */
 export const SponsorGoal = ({
-  goal, standing, labelled = true, className,
+  goal, standing, met = false, labelled = true, className,
 }: SponsorGoalProps) => {
   const { t } = useTranslation();
   const mark = standing?.onCourse === true ? 'kept' : standing?.onCourse === false ? 'short' : null;
@@ -45,7 +49,8 @@ export const SponsorGoal = ({
         </span>
       ) : null}
       <span>{goalText(goal, t)}</span>
-      {mark ? <Badge className={KEEP_ACCENT[mark]}>{t(`championships.contract.mark.${mark}`)}</Badge> : null}
+      {met ? <Badge className={KEEP_ACCENT.kept}>{t('sponsors.goal.met')}</Badge> : null}
+      {mark && !met ? <Badge className={KEEP_ACCENT[mark]}>{t(`championships.contract.mark.${mark}`)}</Badge> : null}
       {standing ? <span className="basis-full text-xs text-muted-foreground">{goalProgress(goal, standing, t)}</span> : null}
     </div>
   );

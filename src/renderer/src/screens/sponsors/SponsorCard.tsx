@@ -2,6 +2,7 @@ import { MailIcon, MoreVerticalIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
+import { DealNotes } from './DealNotes.tsx';
 import type { Career, SponsorDeal } from '../../../../shared/types';
 import { dealPaid, dealScale, goalStanding } from '../../../../shared/utils/sponsors';
 import {
@@ -58,7 +59,8 @@ export const SponsorCard = ({ career, deal, onEnd }: SponsorCardProps) => {
       </div>
       <div className="flex flex-col gap-3 px-4 pb-3.5">
         <SponsorPerks terms={deal} scale={dealScale(deal, career.level)} />
-        <SponsorGoal goal={deal.goal} standing={goalStanding(career, deal)} />
+        <DealNotes career={career} deal={deal} />
+        <SponsorGoal goal={deal.goal} standing={goalStanding(career, deal)} met={deal.goalMet !== undefined} />
       </div>
       <div className="mt-auto flex items-center gap-3 border-t px-4 py-2 text-xs text-muted-foreground">
         <span className="flex items-baseline gap-1.5">

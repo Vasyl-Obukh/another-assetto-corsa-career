@@ -6,6 +6,7 @@ import {
 import { TeamBudget } from '../../../shared/types/index.ts';
 import type { Contract, ContractTerms } from '../../../shared/types/index.ts';
 import { ratingFloor, rungWidth } from '../../../shared/utils/career-eligibility/index.ts';
+import { NO_SEAT_LIFT } from '../../../shared/utils/sponsors/index.ts';
 import { BELOW_UNTIL, BUDGET_RANK, LIFELINE_SHARE } from '../constants.ts';
 import {
   classOffers,
@@ -101,6 +102,32 @@ describe('core/seat-offers', () => {
   });
 
   describe('offerChance', () => {
+    it('makes any team likelier by the interest sponsors add', () => {
+      const lift = { ...NO_SEAT_LIFT, interest: 0.2 };
+
+      expect(offerChance(TeamBudget.WORKS, 'rung', 1, true, lift)).toBe(54);
+      expect(offerChance(TeamBudget.INDEPENDENT, 'rung', 0.2, false, lift)).toBe(6);
+      expect(offerChance(TeamBudget.PRIVATEER, 'below', 1, true, lift)).toBe(36);
+    });
+
+    it('makes only a works team likelier by works interest', () => {
+      const lift = { ...NO_SEAT_LIFT, works: 1 / 3, bar: 5 };
+
+      expect(offerChance(TeamBudget.WORKS, 'rung', 1, true, lift)).toBe(60);
+      expect(offerChance(TeamBudget.INDEPENDENT, 'rung', 1, true, lift)).toBe(50);
+    });
+
+    // Guards a fix: works interest also multiplied the points it had just
+    // added, so the agreed 10% came out at 13%.
+    it("lifts a works team's chance before the player is ready to 10%, or 7.5% for a partner's", () => {
+      expect(offerChance(TeamBudget.WORKS, 'rung', 0.4, true, { ...NO_SEAT_LIFT, works: 1 / 3, bar: 5 })).toBe(10);
+      expect(offerChance(TeamBudget.WORKS, 'rung', 0.9, false, { ...NO_SEAT_LIFT, works: 1 / 6, bar: 2.5 })).toBe(8);
+    });
+
+    it('stops at certain', () => {
+      expect(offerChance(TeamBudget.WORKS, 'rung', 1, true, { ...NO_SEAT_LIFT, interest: 2, works: 2 })).toBe(100);
+    });
+
     it('keeps a works team short until the player is experienced and in the top half', () => {
       expect(offerChance(TeamBudget.WORKS, 'rung', 0.4, true)).toBe(5);
       expect(offerChance(TeamBudget.WORKS, 'rung', 0.9, false)).toBe(5);
@@ -310,6 +337,38 @@ describe('core/seat-offers', () => {
     });
   });
 
+  describe('classOffers with sponsors helping', () => {
+    /**
+     * Every offer one team makes across the salts.
+     * @param team The team's id
+     * @param lift What the career's sponsors add
+     * @returns The offers
+     */
+    const offersOf = (team: string, lift = NO_SEAT_LIFT): ContractTerms[] => SALTS.flatMap((salt) => (
+      classOffers(cupRequest({ salt, lift })).filter((one) => one.team === team)
+    ));
+
+    it('pays a works salary more', () => {
+      const plain = offersOf('works');
+      const lifted = offersOf('works', { ...NO_SEAT_LIFT, salary: 0.2 });
+      const average = (offers: ContractTerms[]) => offers.reduce((sum, one) => sum + one.amount, 0) / offers.length;
+
+      expect(average(lifted)).toBeGreaterThan(average(plain) * 1.15);
+    });
+
+    it("always covers every fee of an independent's seat under a main sponsor's better terms", () => {
+      expect(offersOf('indy').some((one) => one.feeCover === 0.5)).toBe(true);
+      expect(offersOf('indy', { ...NO_SEAT_LIFT, cover: true }).every((one) => one.feeCover === 1)).toBe(true);
+    });
+
+    it("takes what sponsors add off a privateer's seat", () => {
+      const plain = offersOf('priv');
+      const lifted = offersOf('priv', { ...NO_SEAT_LIFT, seatPrice: 0.5 });
+
+      expect(Math.max(...lifted.map((one) => one.amount))).toBeLessThan(Math.min(...plain.map((one) => one.amount)));
+    });
+  });
+
   describe('lifelineOffer', () => {
     it('offers an independent\'s seat free, every fee covered', () => {
       expect(lifelineOffer(cupRequest())).toMatchObject({
@@ -356,6 +415,39 @@ describe('core/seat-offers', () => {
   });
 
   describe('renewalOffer', () => {
+    it("raises a salary by what a career's sponsors add, on top of any raise it earned", () => {
+      const works = signed({
+        team: 'works', teamName: 'Works Racing', budget: TeamBudget.WORKS, seat: 'cup-works-1', pay: 'salary', amount: 80_000,
+      });
+      const lift = { ...NO_SEAT_LIFT, salary: 0.2 };
+
+      expect(renewalOffer(cupRequest({ lift }), works, RUN, 9)?.amount).toBe(96_000);
+      expect(renewalOffer(cupRequest({ lift }), works, RUN, 1)?.amount).toBe(116_000);
+    });
+
+    it("covers every fee of an independent's seat under a main sponsor's better terms", () => {
+      const lift = { ...NO_SEAT_LIFT, cover: true };
+
+      expect(renewalOffer(cupRequest({ lift }), signed(), RUN, 9)).toMatchObject({ feeCover: 1, prizeShare: 45 });
+    });
+
+    it('takes what sponsors add off a paid seat, never below the least asked with it nor above what it was', () => {
+      const paid = signed({
+        team: 'priv', teamName: 'Privateer Garage', budget: TeamBudget.PRIVATEER, seat: 'cup-priv-1', pay: 'seat', amount: 6_000,
+      });
+      const lift = { ...NO_SEAT_LIFT, seatPrice: 0.2 };
+      const renewed = (over: Partial<Contract>) => (
+        renewalOffer(cupRequest({ lift }), { ...paid, ...over }, RUN, 9)?.amount
+      );
+
+      expect(renewed({})).toBe(4_800);
+      // A seat bought part-way is priced for the whole season first.
+      expect(renewed({ amount: 3_000, pricedRounds: 2 })).toBe(4_800);
+      // The season's fees are 4,000, the least a privateer asks 1.1x that, less a fifth.
+      expect(renewed({ amount: 4_000 })).toBe(3_500);
+      expect(renewed({ amount: 2_000 })).toBe(2_000);
+    });
+
     it('offers the team\'s seat in the class again, saying what it renews', () => {
       const offer = renewalOffer(cupRequest(), signed(), RUN, 5);
 

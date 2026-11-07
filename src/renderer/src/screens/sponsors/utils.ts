@@ -14,7 +14,7 @@ export const dealRows = (career: Career): DealRow[] => [...career.sponsors].reve
   deal,
   paid: dealPaid(career, deal.id),
   races: judgedRaces(career, deal).length,
-  end: deal.ended?.why ?? 'running',
+  end: career.sponsors.some((one) => one.renews === deal.id) ? 'renewed' : deal.ended?.why ?? 'running',
 }));
 
 /**

@@ -16,7 +16,9 @@ export type {
   ActiveFilter, BrowserToggle, ProvenancePicks, RailItem, RangeValue, SortItem,
 } from './browser/index.ts';
 export {
-  CarSourceBadge, GarageFoot, PriceFoot, PurchaseButton, PurchaseDialog, RepaintDialog, SellDialog, TradeButton,
+  BackingMark, CarSourceBadge, GarageFoot, PriceFoot, PurchaseButton, PurchaseDialog, RepaintDialog,
+  SparkleMark, SellDialog,
+  TradeButton,
 } from './car-trade/index.ts';
 export { AppraiseFoot, PriceOriginBadge } from './car-pricing/index.ts';
 export type { CarAppraise } from './car-pricing/index.ts';
@@ -56,7 +58,8 @@ export {
 } from './provenance-badges/index.ts';
 export { ScreenBody } from './ScreenBody.tsx';
 export {
-  CoversBadge, goalText, perkPair, SponsorGoal, SponsorMark, SponsorPerks,
+  CoversBadge, goalText, HELPS, perkPair, RewardPicture, SIGNATURES, SponsorGoal, SponsorMark, sponsorNewsSubject,
+  sponsorOfferSubject, SponsorPerks,
 } from './sponsors/index.ts';
 export { ScreenHeader } from './ScreenHeader.tsx';
 export { ScreenStrip } from './ScreenStrip.tsx';

@@ -33,7 +33,7 @@ interface EnterWithHintProps {
    * @param entry The class entry's id
    * @param team The team selling the seat, by its id
    */
-  onBuySeat: (entry: string, team: string) => void;
+  onBuySeat: (entry: string, team: string, backed: boolean) => void;
 }
 
 /**

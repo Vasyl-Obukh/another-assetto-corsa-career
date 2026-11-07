@@ -265,6 +265,29 @@ describe('renderer/screens/finances/utils', () => {
       expect(describeLine(of('prizeMatch'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.match(series=Cup)');
     });
 
+    it("names a sponsor's seat backing by the championship, and a reward paid in money", () => {
+      const of = (perk: 'seatBacking' | 'carReward') => line({
+        kind: 'sponsor', sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk },
+      });
+
+      expect(describeLine(of('seatBacking'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.seat(series=Cup)');
+      expect(describeLine(of('carReward'), CAREER, translate, FORMAT).detail).toBe('finances.line.sponsor.carReward');
+    });
+
+    it('says why a fee or a rent came lower, off the whole it was', () => {
+      const offBy = [{ sponsor: 'Halden', amount: 300, share: 20 }, { sponsor: 'Vantor', amount: 150, share: 10 }];
+      const off = 'finances.line.offBy(whole=1500,off=finances.line.offByOne(amount=300,sponsor=Halden), finances.line.offByOne(amount=150,sponsor=Vantor))';
+      const fee = describeLine(line({ kind: 'fee', amount: -1050, offBy }), CAREER, translate, FORMAT);
+      const rent = describeLine(line({ kind: 'rent', amount: -1050, offBy, car: { model: 'a', name: 'A' } }), CAREER, translate, FORMAT);
+
+      expect(fee.detail.endsWith(` · ${off}`)).toBe(true);
+      expect(rent.detail.endsWith(` · ${off}`)).toBe(true);
+    });
+
+    it('says nothing more of a fee no sponsor touched', () => {
+      expect(describeLine(line({ kind: 'fee', amount: -1500 }), CAREER, translate, FORMAT).detail).not.toContain('offBy');
+    });
+
     it("names a sponsor's race pay by the round, the race and what it paid for, and says when it was halved", () => {
       const pay = line({
         kind: 'sponsor', race: 'Race 1', place: 4, sponsor: { deal: 'sponsor:spa', name: 'Halden Lubricants', perk: 'racePay' },

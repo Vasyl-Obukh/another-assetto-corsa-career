@@ -1,10 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import type { TFunction } from 'i18next';
 
-import type { SponsorGoal, SponsorPerk, SponsorTarget } from '../../../../../shared/types';
+import type {
+  SponsorGoal, SponsorNews, SponsorOffer, SponsorPerk, SponsorTarget,
+} from '../../../../../shared/types';
 import type { GoalStanding } from '../../../../../shared/utils/sponsors';
 import {
-  goalProgress, goalText, perkPair, shareKey,
+  goalProgress, goalText, perkPair, shareKey, sponsorNewsSubject, sponsorOfferSubject,
 } from '../utils.ts';
 
 /**
@@ -68,7 +70,80 @@ describe('renderer/components/sponsors/utils', () => {
     });
   });
 
+  describe('sponsorOfferSubject', () => {
+    const offer = { slot: 'partner', sponsor: { name: 'Halden' } } as SponsorOffer;
+
+    it('calls an offer by its slot', () => {
+      expect(sponsorOfferSubject(offer, translate)).toBe('inbox.sponsor.title.partner(sponsor=Halden)');
+    });
+
+    it('calls a renewal a renewal, whatever its slot', () => {
+      expect(sponsorOfferSubject({ ...offer, renews: 'deal' }, translate)).toBe('inbox.sponsor.title.renewal(sponsor=Halden)');
+    });
+  });
+
+  describe('sponsorNewsSubject', () => {
+    const news = { sponsor: { name: 'Halden' } } as SponsorNews;
+    const car = {
+      model: 'a', name: 'A', price: 1,
+    };
+
+    it('calls a goal missed by the sponsor', () => {
+      expect(sponsorNewsSubject(news, translate)).toBe('inbox.subject.sponsorNews(sponsor=Halden)');
+    });
+
+    it('says a deal climbed', () => {
+      expect(sponsorNewsSubject({ ...news, kind: 'climbed' }, translate)).toBe('inbox.sponsorNews.climbed.title(sponsor=Halden)');
+    });
+
+    it('leads with the car a goal met brought', () => {
+      expect(sponsorNewsSubject({ ...news, kind: 'goalMet', car }, translate)).toBe('inbox.sponsorNews.goalMet.titleCar');
+    });
+
+    it('calls a goal met by the sponsor where no car came', () => {
+      const title = 'inbox.sponsorNews.goalMet.title(sponsor=Halden)';
+
+      expect(sponsorNewsSubject({ ...news, kind: 'goalMet' }, translate)).toBe(title);
+      expect(sponsorNewsSubject({
+        ...news, kind: 'goalMet', car, carPaid: 5000,
+      }, translate)).toBe(title);
+    });
+  });
+
   describe('perkPair', () => {
+    it('makes seat backing a signature', () => {
+      expect(pair({ kind: 'seatBacking', share: 50 })).toEqual({
+        price: '', condition: 'sponsors.perk.seatBacking', signature: true,
+      });
+    });
+
+    it("names a reward's car, its price on a line of its own", () => {
+      expect(pair({
+        kind: 'carReward',
+        car: {
+          model: 'a', name: 'Car A', price: 50_000,
+        },
+      })).toEqual({
+        price: '',
+        condition: 'sponsors.perk.carReward(car=Car A)',
+        signature: true,
+        sub: 'sponsors.perk.carPrice(price=$50000)',
+      });
+    });
+
+    it('prices a cost share as a percentage', () => {
+      expect(pair({ kind: 'feeShare', share: 25 })).toEqual({
+        price: '25%', condition: 'sponsors.perk.feeShare', signature: false,
+      });
+      expect(pair({ kind: 'rentShare', share: 30 }).price).toBe('30%');
+    });
+
+    it('gives a perk that helps no price', () => {
+      expect(pair({ kind: 'teamInterest' })).toEqual({
+        price: '', condition: 'sponsors.perk.teamInterest', signature: false, helps: true,
+      });
+    });
+
     it('prices race pay at its condition, the target the deal asks', () => {
       expect(pair({ kind: 'racePay', amount: 400 })).toEqual({
         price: '$400',

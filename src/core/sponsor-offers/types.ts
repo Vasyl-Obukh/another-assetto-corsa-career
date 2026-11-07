@@ -1,4 +1,21 @@
-import type { Discipline, SponsorSlot, SponsorTrade } from '../../shared/types/index.ts';
+import type {
+  Discipline, SponsorCar, SponsorDeal, SponsorSlot, SponsorTrade,
+} from '../../shared/types/index.ts';
+
+/**
+ * A car a car reward may name: one racing on the rung open to the career in
+ * its discipline.
+ */
+export interface RewardCar extends SponsorCar {
+  /**
+   * The discipline it races in at that rung.
+   */
+  discipline: Discipline;
+  /**
+   * That rung, 1 being the top.
+   */
+  tier: number;
+}
 
 /**
  * Everything one sponsor's offer is drawn from.
@@ -45,4 +62,20 @@ export interface SponsorDrawRequest {
    * The career's prize speed, which every figure follows.
    */
   prizeSpeed: number;
+  /**
+   * The cars a Car reward signature may name, none leaving it out.
+   */
+  rewards?: readonly RewardCar[];
+}
+
+/**
+ * Everything a sponsor's renewal is drawn from.
+ */
+export interface SponsorRenewalRequest extends Pick<
+  SponsorDrawRequest, 'salt' | 'level' | 'rating' | 'globalRating' | 'prizeSpeed' | 'rewards'
+> {
+  /**
+   * The deal it renews.
+   */
+  deal: SponsorDeal;
 }

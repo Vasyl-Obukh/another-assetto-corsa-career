@@ -6,6 +6,25 @@ import type { Formatters } from '@/i18n';
 import { editionName } from '@/lib/edition-names';
 
 /**
+ * A fee's or a rent's detail, saying what a sponsor took off it.
+ * @param line The line
+ * @param detail What it says otherwise
+ * @param t The translator
+ * @param formatMoney Formats an amount
+ * @returns The detail
+ */
+const withOff = (line: LedgerLine, detail: string, t: TFunction, formatMoney: (amount: number) => string): string => {
+  const offBy = line.offBy ?? [];
+  if (offBy.length === 0) return detail;
+  const whole = -line.amount + offBy.reduce((sum, one) => sum + one.amount, 0);
+
+  return [detail, t('finances.line.offBy', {
+    whole: formatMoney(whole),
+    off: offBy.map((one) => t('finances.line.offByOne', { amount: formatMoney(one.amount), sponsor: one.sponsor })).join(', '),
+  })].join(' · ');
+};
+
+/**
  * What a ledger line says it was for: a line naming it, and a line of detail.
  * @param line The line
  * @param career The career, whose seasons name the year an edition ran in
@@ -44,9 +63,9 @@ export const describeLine = (
     case 'opening':
       return { title: t('finances.line.opening'), detail: t('finances.line.openingDetail') };
     case 'fee':
-      return { title: round, detail: t('finances.line.feeDetail', { series }) };
+      return { title: round, detail: withOff(line, t('finances.line.feeDetail', { series }), t, format.formatMoney) };
     case 'rent':
-      return { title: round, detail: t('finances.line.rentDetail', { car, series }) };
+      return { title: round, detail: withOff(line, t('finances.line.rentDetail', { car, series }), t, format.formatMoney) };
     case 'purchase':
       return {
         title: car,
@@ -105,6 +124,8 @@ export const describeLine = (
         return { title: sponsor, detail: t(line.amount < 0 ? 'finances.line.sponsor.repaid' : 'finances.line.sponsor.signing') };
       }
       if (perk === 'carBacking') return { title: sponsor, detail: t('finances.line.sponsor.car', { car }) };
+      if (perk === 'seatBacking') return { title: sponsor, detail: t('finances.line.sponsor.seat', { series }) };
+      if (perk === 'carReward') return { title: sponsor, detail: t('finances.line.sponsor.carReward') };
       if (perk === 'goalBonus') return { title: sponsor, detail: t('finances.line.sponsor.goal') };
       if (perk === 'prizeMatch') return { title: sponsor, detail: t('finances.line.sponsor.match', { series }) };
       // Race pay or a results bonus, the only perks left by now.

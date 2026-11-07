@@ -7,7 +7,6 @@ import { Link, useNavigate } from 'react-router';
 
 import { carImageSources } from './utils.ts';
 import type { Car } from '../../../../shared/types';
-import { repaintOf } from '../../../../shared/utils/car-prices';
 import { liveryName } from '../../../../shared/utils/garage';
 import { nationOfCountry } from '../../../../shared/utils/nations';
 import {
@@ -62,7 +61,7 @@ export const GarageRow = ({ car, trade }: GarageRowProps) => {
   const nation = nationOfCountry(car.country);
   const livery = liveryName(car, owned.skin) ?? '';
   const racing = garage.racingIn(car.id).map((entry) => entry.championship.name);
-  const repaint = repaintOf(owned.paid);
+  const repaint = garage.repaintCost(owned);
   const value = garage.valueOf(owned);
   const state = { section: 'garage' } satisfies NavState;
   const open = (): void => {

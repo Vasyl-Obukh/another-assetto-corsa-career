@@ -68,31 +68,31 @@ export const TRADE_LEAN: Record<SponsorTrade, {
   goals: readonly SponsorGoalKind[];
 }> = {
   oil: {
-    discipline: true, signatures: ['climbs', 'championship'], perks: ['podium', 'points'], targets: ['classPlace', 'start'], goals: ['championshipPlace', 'resultCount'],
+    discipline: true, signatures: ['climbs', 'championship'], perks: ['podium', 'points', 'feeShare'], targets: ['classPlace', 'start'], goals: ['championshipPlace', 'resultCount'],
   },
   tyres: {
-    discipline: true, signatures: ['championship', 'climbs'], perks: ['pole', 'podium'], targets: ['qualifying', 'classPlace'], goals: ['resultCount'],
+    discipline: true, signatures: ['championship', 'climbs'], perks: ['pole', 'podium', 'teamInterest'], targets: ['qualifying', 'classPlace'], goals: ['resultCount'],
   },
   tech: {
-    discipline: true, signatures: ['championship', 'climbs'], perks: ['win', 'podium'], targets: ['classPlace'], goals: ['resultCount', 'championshipPlace'],
+    discipline: true, signatures: ['championship', 'climbs'], perks: ['win', 'podium', 'betterTerms'], targets: ['classPlace'], goals: ['resultCount', 'championshipPlace'],
   },
   drinks: {
-    discipline: false, signatures: ['carBacking', 'championship'], perks: ['signing', 'points'], targets: ['start'], goals: ['racesStarted'],
+    discipline: false, signatures: ['carBacking', 'championship'], perks: ['signing', 'points', 'teamInterest'], targets: ['start'], goals: ['racesStarted'],
   },
   watch: {
-    discipline: true, signatures: ['climbs', 'carBacking'], perks: ['pole', 'win'], targets: ['qualifying'], goals: ['resultCount'],
+    discipline: true, signatures: ['climbs', 'carBacking'], perks: ['pole', 'win', 'invitations', 'worksInterest'], targets: ['qualifying'], goals: ['resultCount'],
   },
   finance: {
-    discipline: false, signatures: ['carBacking', 'climbs'], perks: ['prizeMatch', 'signing'], targets: ['clean'], goals: ['onTarget'],
+    discipline: false, signatures: ['seatBacking', 'carBacking', 'climbs'], perks: ['prizeMatch', 'signing', 'betterTerms'], targets: ['clean'], goals: ['onTarget'],
   },
   parts: {
-    discipline: false, signatures: ['championship', 'carBacking'], perks: ['points', 'podium'], targets: ['start', 'clean'], goals: ['racesStarted', 'onTarget'],
+    discipline: false, signatures: ['championship', 'carBacking'], perks: ['points', 'podium', 'rentShare', 'repaints'], targets: ['start', 'clean'], goals: ['racesStarted', 'onTarget'],
   },
   dealer: {
-    discipline: true, signatures: ['carBacking', 'climbs'], perks: ['podium', 'win'], targets: ['classPlace'], goals: ['championshipPlace'],
+    discipline: true, signatures: ['carReward', 'carBacking', 'climbs'], perks: ['podium', 'win', 'worksInterest'], targets: ['classPlace'], goals: ['championshipPlace'],
   },
   apparel: {
-    discipline: false, signatures: ['climbs', 'carBacking'], perks: ['points', 'win'], targets: ['teammate'], goals: ['onTarget'],
+    discipline: false, signatures: ['seatBacking', 'climbs', 'carBacking'], perks: ['points', 'win', 'teamInterest'], targets: ['teammate'], goals: ['onTarget'],
   },
 };
 
@@ -105,6 +105,12 @@ export const BASIC_PERKS: readonly SponsorPerkKind[] = ['points', 'podium'];
  * The perks only a main sponsor gives.
  */
 export const MAIN_ONLY: readonly SponsorPerkKind[] = ['signing'];
+
+/**
+ * The perks only a partner gives, which is what makes a partner's small money
+ * worth a slot.
+ */
+export const PARTNER_ONLY: readonly SponsorPerkKind[] = ['feeShare', 'rentShare', 'repaints'];
 
 /**
  * How many perks an offer draws beside its race pay - and beside a main
@@ -132,9 +138,19 @@ export const PERK_RANGE: Partial<Record<SponsorPerkKind, Record<SponsorSlot, rea
 export const MATCH_RANGE = { main: [15, 25], partner: [10, 15] } as const;
 
 /**
+ * A cost share's range, as a percentage of the cost.
+ */
+export const COST_SHARE_RANGE = { feeShare: [15, 30], rentShare: [20, 40] } as const;
+
+/**
  * Car purchase backing's share of a car's price, as a percentage.
  */
 export const CAR_BACKING_SHARE = 50;
+
+/**
+ * Seat backing's share of a seat's price, as a percentage.
+ */
+export const SEAT_BACKING_SHARE = 50;
 
 /**
  * The shares of the class a place target may ask, from the top, by quality.

@@ -5,7 +5,7 @@ import type { Career, CareerEventView } from '../../../../shared/types';
 import {
   coversEntry, dealCovers, dealScale, goalStanding, judgedRaces,
 } from '../../../../shared/utils/sponsors';
-import { MoneyAmount, SponsorMark, SponsorPerks } from '@/components';
+import { MoneyAmount, SIGNATURES, SponsorMark, SponsorPerks } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
@@ -107,13 +107,13 @@ export const RoundSponsors = ({ career, view }: RoundSponsorsProps) => {
                       <Badge className={cn('px-1.5 py-0 text-[0.65rem]', SESSION_ACCENT[line.sponsor?.perk === 'pole' ? 'qualify' : 'race'])}>
                         {line.sponsor?.perk === 'pole' ? t('championships.sessionShort.qualify') : line.race ?? ''}
                       </Badge>
-                      <span className="truncate text-muted-foreground">{t(`event.sponsors.bonus.${line.sponsor?.perk ?? 'podium'}`)}</span>
+                      <span className="truncate text-muted-foreground">{t(`event.sponsors.bonus.${(line.sponsor?.perk ?? 'podium') as 'win' | 'podium' | 'points' | 'pole'}`)}</span>
                       <MoneyAmount amount={line.amount} className="text-sm" />
                     </div>
                   ))}
                 </div>
               ) : (
-                <SponsorPerks terms={deal} scale={dealScale(deal, career.level)} without={['championship', 'climbs', 'carBacking', 'goalBonus']} />
+                <SponsorPerks terms={deal} scale={dealScale(deal, career.level)} without={[...SIGNATURES, 'goalBonus']} />
               )}
             </div>
           );

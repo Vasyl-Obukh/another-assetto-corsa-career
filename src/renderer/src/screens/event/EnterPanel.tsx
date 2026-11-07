@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BuySeatDialog } from './BuySeatDialog.tsx';
+import { EnterCosts } from './EnterCosts.tsx';
 import { InvitationNote } from './InvitationNote.tsx';
 import { LadderNote } from './LadderNote.tsx';
 import { SeatSaleList } from './SeatSaleList.tsx';
@@ -93,14 +94,14 @@ interface EnterPanelProps {
    * @param entry The class entry's id
    * @param team The team selling the seat, by its id
    */
-  onBuySeat?: (entry: string, team: string) => void;
+  onBuySeat?: (entry: string, team: string, backed: boolean) => void;
 }
 
 export const EnterPanel = ({
   view, busy, showFirstRound = false, initial, historic = false, note, onEnter, onBuySeat,
 }: EnterPanelProps) => {
   const { t } = useTranslation();
-  const { formatDayShort, formatMoney } = useFormat();
+  const { formatDayShort } = useFormat();
   const garage = useGarage();
   const { mode, career } = useSlot();
   // The first class the career may enter, not merely the first listed: a
@@ -210,6 +211,7 @@ export const EnterPanel = ({
             offers={offers}
             entry={chosen.id}
             money={career.money}
+            backer={chosen.seatBacker}
             busy={busy || !chosen.eligible || !view.raceable}
             onBuy={setSeat}
           />
@@ -269,35 +271,15 @@ export const EnterPanel = ({
               </Button>
             </div>
 
-            {/* What the class costs a round to enter, which may be its own, and
-                a rented car's rent beside it. */}
-            {fee || rent ? (
-              <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 border-t pt-2.5 text-xs">
-                {fee ? (
-                  <>
-                    <dt className="text-muted-foreground">{t('event.enter.fee')}</dt>
-                    <dd className="text-right font-semibold tabular-nums">
-                      {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(fee) })}
-                    </dd>
-                  </>
-                ) : null}
-                {rent ? (
-                  <>
-                    <dt className="text-muted-foreground">{t('event.enter.rent')}</dt>
-                    <dd className="text-right font-semibold tabular-nums">
-                      {t(historic ? 'event.enter.perEvent' : 'event.enter.perRound', { amount: formatMoney(rent) })}
-                    </dd>
-                  </>
-                ) : null}
-                <dd className="col-span-2 text-muted-foreground">
-                  {rent
-                    ? t(historic ? 'event.enter.historicRentHint' : 'event.enter.rentHint')
-                    : t(historic ? 'event.enter.historicFeeHint' : 'event.enter.feeHint')}
-                </dd>
-                {/* Racing on the player's own, against what a contract asks. */}
-                {historic ? null : <dd className="col-span-2 text-muted-foreground">{t('event.enter.own')}</dd>}
-              </dl>
-            ) : null}
+            <EnterCosts
+              career={career}
+              series={view.series}
+              discipline={chosen?.ladder.discipline ?? null}
+              date={view.date}
+              fee={fee}
+              rent={rent}
+              historic={!!historic}
+            />
           </>
         )}
 
@@ -361,9 +343,10 @@ export const EnterPanel = ({
           rounds={view.rounds - view.behind.length}
           behind={view.behind.length}
           money={career.money}
+          backer={chosen?.seatBacker ?? null}
           busy={busy}
-          onConfirm={() => {
-            if (seat) onBuySeat?.(entry, seat.team);
+          onConfirm={(backed) => {
+            if (seat) onBuySeat?.(entry, seat.team, backed);
             setSeat(null);
           }}
           onClose={() => setSeat(null)}

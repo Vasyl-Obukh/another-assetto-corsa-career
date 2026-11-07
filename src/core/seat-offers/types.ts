@@ -1,6 +1,7 @@
 import type {
   Championship, ClassEntry, Seat, Team,
 } from '../../shared/types/index.ts';
+import type { SeatLift } from '../../shared/utils/sponsors/index.ts';
 
 /**
  * Where a class sits against the rung the player may enter its discipline at:
@@ -52,6 +53,11 @@ export interface ClassOfferRequest {
    * What the class's race winner is paid, before the prize speed.
    */
   winnerPrize: number;
+  /**
+   * What the career's sponsors add in the class's discipline, nothing when
+   * left out.
+   */
+  lift?: SeatLift;
   /**
    * What the career's prizes are multiplied by, which a salary follows.
    */

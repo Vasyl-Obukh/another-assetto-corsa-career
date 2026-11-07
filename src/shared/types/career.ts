@@ -498,6 +498,11 @@ export interface OwnedCar {
    * The day it was bought, as an ISO date.
    */
   bought: string;
+  /**
+   * The sponsor who gave it, for a car reward, whose `paid` is what it sells
+   * from rather than money the player spent.
+   */
+  reward?: string;
 }
 
 /**
@@ -513,6 +518,24 @@ export type LedgerKind = 'opening' | 'fee' | 'race' | 'standings' | 'historic' |
   | 'purchase' | 'sale' | 'repaint' | 'rent'
   | 'salary' | 'seat' | 'refund' | 'bonus' | 'fine' | 'release'
   | 'sponsor' | 'sponsorBonus';
+
+/**
+ * What one sponsor takes off a cost.
+ */
+export interface CostShare {
+  /**
+   * The sponsor's name.
+   */
+  sponsor: string;
+  /**
+   * What it takes off.
+   */
+  amount: number;
+  /**
+   * The share it comes to, as a percentage.
+   */
+  share: number;
+}
 
 /**
  * One change of a career's money, and what it was for.
@@ -646,6 +669,10 @@ export interface LedgerLine {
     half?: true;
   };
   /**
+   * What took a fee or a rent down, for one a sponsor's share made smaller.
+   */
+  offBy?: readonly CostShare[];
+  /**
    * The speed before and after, for a change of prize speed.
    */
   speed?: {
@@ -658,6 +685,28 @@ export interface LedgerLine {
      */
     to: number;
   };
+}
+
+/**
+ * Which cars a career's main sponsor can pay half of.
+ */
+export interface CarBacking {
+  /**
+   * The sponsor's name.
+   */
+  sponsor: string;
+  /**
+   * The share it pays, as a percentage.
+   */
+  share: number;
+  /**
+   * The last day it can be used, as an ISO date.
+   */
+  until: string;
+  /**
+   * The cars it covers, by folder ID.
+   */
+  models: readonly string[];
 }
 
 /**
@@ -682,6 +731,14 @@ export interface EventMoney {
    * What the round's rent comes to, or null when the car is not rented.
    */
   rent: number | null;
+  /**
+   * What sponsors take off the fee.
+   */
+  feeOff: readonly CostShare[];
+  /**
+   * What sponsors take off the rent.
+   */
+  rentOff: readonly CostShare[];
   /**
    * Whether that rent has been paid, which it is beside the fee.
    */
@@ -1642,6 +1699,10 @@ export interface EventClassOption {
    * yet in.
    */
   forSale: readonly SeatSale[];
+  /**
+   * The sponsor who can pay half of a seat in the class, when one can.
+   */
+  seatBacker: { sponsor: string; share: number } | null;
 }
 
 /**

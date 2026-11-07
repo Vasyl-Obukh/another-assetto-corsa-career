@@ -1,4 +1,5 @@
 import type {
+  CarBacking,
   Career,
   CareerBackup,
   CareerCalendar,
@@ -165,6 +166,11 @@ export interface AnswerRequest {
    * The answer.
    */
   answer: MailAnswer;
+  /**
+   * Whether to spend a sponsor's backing on a paid seat accepted - never spent
+   * unasked.
+   */
+  backed?: boolean;
   /**
    * Which of a seat offer's offers is accepted - needed only where it holds
    * more than one.
@@ -445,24 +451,33 @@ export interface CareerStore {
   /**
    * Buys a car into the garage. Every entry renting it races it owned, in the
    * livery bought, from its next round.
-   * @param request Which car, and which livery
+   * @param request Which car, which livery, and whether to spend a sponsor's
+   * backing on it - never spent unasked
    * @returns The career
-   * @throws When the car is owned already, is not in the library, or costs
-   * more than the career holds
+   * @throws When the car is owned already, is not in the library, costs more
+   * than the career holds, or no sponsor can back it as asked
    */
-  buyCar(request: { model: string; skin?: string }): Promise<Career>;
+  buyCar(request: { model: string; skin?: string; backed?: boolean }): Promise<Career>;
+  /**
+   * Which cars the career's main sponsor can pay half of.
+   * @returns What it covers, or null with no backing left to use
+   */
+  carBacking(): Promise<CarBacking | null>;
   /**
    * Buys a privateer's seat in a championship's class for one edition, signed
    * at once through a mail written already accepted: the team's car, every fee
    * covered, every prize the player's. Any team's offer for the edition still
    * waiting is declined.
-   * @param request The championship, the class, the team and the edition
+   * @param request The championship, the class, the team, the edition, and
+   * whether to spend a sponsor's backing on it - never spent unasked
    * @returns The career
    * @throws When the class is not open to the career, the edition is entered
-   * already or over, the team sells no seat in it, or the seat costs more than
-   * the career holds
+   * already or over, the team sells no seat in it, the seat costs more than the
+   * career holds, or no sponsor can back it as asked
    */
-  buySeat(request: { series: string; entry: string; team: string; edition?: number }): Promise<Career>;
+  buySeat(request: {
+    series: string; entry: string; team: string; edition?: number; backed?: boolean;
+  }): Promise<Career>;
   /**
    * Sells a car out of the garage, at what it is worth today. Every entry
    * still racing it races the rest of its rounds rented.

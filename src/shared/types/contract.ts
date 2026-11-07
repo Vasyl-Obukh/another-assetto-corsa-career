@@ -232,6 +232,20 @@ export interface OfferPick {
  */
 export interface Contract extends ContractTerms {
   /**
+   * What a sponsor paid of a seat bought, which holds that deal's seat backing
+   * until the season finishes and is not the player's to have refunded.
+   */
+  backed?: {
+    /**
+     * The deal, by id.
+     */
+    deal: string;
+    /**
+     * What it paid.
+     */
+    amount: number;
+  };
+  /**
    * The mail it was offered in, by id.
    */
   offer: string;

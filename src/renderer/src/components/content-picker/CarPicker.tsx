@@ -165,6 +165,7 @@ export const CarPicker = ({
                     <PurchaseButton
                       withPrice
                       price={trade.garage.priceOf(chosen)}
+                      payable={trade.garage.payableFor(chosen)}
                       balance={trade.garage.balance}
                       onPurchase={() => {
                         close(false);

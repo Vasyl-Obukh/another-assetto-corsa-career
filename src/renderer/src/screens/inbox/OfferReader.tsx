@@ -10,6 +10,7 @@ import { OfferReplyBar } from './OfferReplyBar.tsx';
 import { OfferStrip } from './OfferStrip.tsx';
 import { feePerRound } from './utils.ts';
 import type { Career, SeatOffer } from '../../../../shared/types';
+import { seatBacker } from '../../../../shared/utils/sponsors';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -50,7 +51,7 @@ interface OfferReaderProps {
   /**
    * Called to accept one of its offers.
    */
-  onAccept: (offer: SeatOffer) => void;
+  onAccept: (offer: SeatOffer, backed: boolean) => void;
   /**
    * Called to decline it, which asks first.
    */
@@ -188,6 +189,9 @@ export const OfferReader = ({
                   signed={signed}
                   answered={answered}
                   money={career.money}
+                  backerOf={(offer) => (
+                    offer.pay === 'seat' ? seatBacker(career, offer.ladder.discipline, offer.ladder.tier) : null
+                  )}
                   carName={carName}
                   link={link}
                   busy={busy}

@@ -1,3 +1,5 @@
+import type { SeatLift } from './types.ts';
+
 /**
  * The typical entry fee a round of each rung charges, 1 being the top - what
  * every sponsor's figure is scaled by, so a deal on one rung pays what the
@@ -43,6 +45,37 @@ export const PODIUM_PLACES = 3;
  * The prefix of a sponsor's offer's mail id, which the deal it signs keeps.
  */
 export const SPONSOR_MAIL_PREFIX = 'sponsor:';
+
+/**
+ * What a career with no sponsor's help adds to the seats it is offered.
+ */
+export const NO_SEAT_LIFT: SeatLift = {
+  interest: 0, works: 0, bar: 0, salary: 0, cover: false, seatPrice: 0,
+};
+
+/**
+ * What each perk that helps rather than pays adds, by the slot holding it: a
+ * chance's rise, a salary's and how much cheaper a paid seat comes. Every deal
+ * holding one adds.
+ */
+export const SPONSOR_LIFT = {
+  teamInterest: { main: 0.2, partner: 0.1 },
+  worksInterest: { main: 1 / 3, partner: 1 / 6 },
+  salary: { main: 0.2, partner: 0.1 },
+  seatPrice: { main: 0.2, partner: 0.1 },
+  invitations: { main: 0.2, partner: 0.1 },
+} as const;
+
+/**
+ * What works team interest adds, in points, to the chance of a works seat
+ * before the player is ready.
+ */
+export const WORKS_BAR_LIFT = { main: 5, partner: 2.5 } as const;
+
+/**
+ * How many goal bonuses a car reward sells for.
+ */
+export const REWARD_BONUSES = 3;
 
 /**
  * The prefix of sponsor news's mail id.

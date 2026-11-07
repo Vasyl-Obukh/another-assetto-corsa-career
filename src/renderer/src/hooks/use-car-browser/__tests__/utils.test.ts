@@ -48,17 +48,12 @@ describe('renderer/hooks/use-car-browser/utils', () => {
       expect(toCarQuery({ raced: true }, '')).toEqual({});
     });
 
-    // Fixed in the polish pass: the Store's Affordable switch put its ceiling
-    // in the base query, which replaced the price slider's instead of
-    // narrowing it, so cars above the slider came back.
-    it('narrows the price slider to a ceiling the page sets, whichever is lower', () => {
-      expect(toCarQuery({ priceTo: 20_000 }, '', { priceTo: 100_000 })).toEqual({ priceTo: 20_000 });
-      expect(toCarQuery({ priceTo: 200_000 }, '', { priceTo: 100_000 })).toEqual({ priceTo: 100_000 });
-    });
+    // Guards a fix of the polish pass: what the career can afford is a field of
+    // its own, so it can never replace the price slider's ceiling.
+    it("carries what a career can pay beside the price slider's ceiling", () => {
+      const payable = { money: 100_000, share: 50, models: ['car'] };
 
-    it('takes either ceiling alone as it is', () => {
-      expect(toCarQuery({ priceTo: 20_000 }, '')).toEqual({ priceTo: 20_000 });
-      expect(toCarQuery({}, '', { priceTo: 100_000 })).toEqual({ priceTo: 100_000 });
+      expect(toCarQuery({ priceTo: 20_000 }, '', { payable })).toEqual({ priceTo: 20_000, payable });
     });
 
     it('does not mutate the criteria it was given', () => {

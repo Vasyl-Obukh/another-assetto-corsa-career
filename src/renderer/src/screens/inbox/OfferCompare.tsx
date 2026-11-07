@@ -1,6 +1,7 @@
 import {
   CarIcon, CheckIcon, ChevronRightIcon, KeyRoundIcon, LockIcon, PenLineIcon, RefreshCwIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -9,8 +10,9 @@ import { COMPARE_COLUMN, COMPARE_LABEL } from './constants.ts';
 import { feePerRound, seasonBeforePrizes } from './utils.ts';
 import type { MailStatus, SeatOffer } from '../../../../shared/types';
 import { roundSalary } from '../../../../shared/utils/contracts';
+import { percentOf } from '../../../../shared/utils/sponsors';
 import {
-  BudgetBadge, carPictureSources, ContentImage, NationFlag,
+  BudgetBadge, carPictureSources, ContentImage, NationFlag, SwitchTile,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -54,9 +56,17 @@ interface OfferCompareProps {
    */
   busy: boolean;
   /**
-   * Called to accept one of the offers.
+   * The sponsor who can pay part of a paid seat, when one can.
+   * @param offer The offer
+   * @returns The sponsor and its share, or null
    */
-  onAccept: (offer: SeatOffer) => void;
+  backerOf: (offer: SeatOffer) => { sponsor: string; share: number } | null;
+  /**
+   * Called to accept one of the offers.
+   * @param offer The offer
+   * @param backed Whether to spend a sponsor's backing on it
+   */
+  onAccept: (offer: SeatOffer, backed: boolean) => void;
 }
 
 /**
@@ -78,10 +88,14 @@ const LABEL_WIDTH = 8;
 // column is tinted the accepted green and the rest muted, and the own column
 // drops out.
 export const OfferCompare = ({
-  offers, status, signed, answered, money, carName, link, busy, onAccept,
+  offers, status, signed, answered, money, backerOf, carName, link, busy, onAccept,
 }: OfferCompareProps) => {
   const { t } = useTranslation();
   const { formatDayShort, formatMoney } = useFormat();
+  // Which seats the player has switched a sponsor's backing on for: off to
+  // start with, since backing is only ever spent on purpose.
+  const [backing, setBacking] = useState<readonly string[]>([]);
+  const offerKey = (offer: SeatOffer): string => `${offer.entry}:${offer.team}`;
   const first = offers[0];
   if (!first) return null;
 
@@ -107,7 +121,10 @@ export const OfferCompare = ({
 
     return leaders.length === 1 ? leaders[0] : null;
   };
-  const bestSeason = bestBy(seasonBeforePrizes);
+  // What a sponsor would pay of a seat, and what the player has switched on.
+  const halfOf = (offer: SeatOffer): number => percentOf(offer.amount, backerOf(offer)?.share ?? 0);
+  const backedOf = (offer: SeatOffer): number => (backing.includes(offerKey(offer)) ? halfOf(offer) : 0);
+  const bestSeason = bestBy((offer) => seasonBeforePrizes(offer) + backedOf(offer));
   const bestShare = bestBy((offer) => offer.prizeShare);
 
   const signedMoney = (amount: number): ReactNode => {
@@ -185,15 +202,29 @@ export const OfferCompare = ({
         </span>
       );
     }
-    const price = offer.pay === 'seat' ? offer.amount : 0;
+    const backed = backedOf(offer);
+    const price = (offer.pay === 'seat' ? offer.amount : 0) - backed;
+    const backer = backerOf(offer);
+    const key = offerKey(offer);
+    const tile = backer ? (
+      <SwitchTile
+        label={t('trade.backing.use', { sponsor: backer.sponsor })}
+        hint={t('event.enter.seats.backingHint', { amount: formatMoney(halfOf(offer)) })}
+        checked={backing.includes(key)}
+        onChange={(on) => setBacking((now) => (on ? [...now, key] : now.filter((one) => one !== key)))}
+      />
+    ) : null;
     // A seat the career cannot pay for says so in the soft red a refusal
     // wears, as a car it cannot buy does.
     if (price > money) {
       return (
-        <Button variant="outline" aria-disabled className={cn('w-full', TRADE_BUTTON.cantAfford)}>
-          <LockIcon />
-          {t('inbox.offer.reply.short', { amount: formatMoney(price) })}
-        </Button>
+        <div className="flex w-full flex-col gap-2">
+          {tile}
+          <Button variant="outline" aria-disabled className={cn('w-full', TRADE_BUTTON.cantAfford)}>
+            <LockIcon />
+            {t('inbox.offer.reply.short', { amount: formatMoney(price) })}
+          </Button>
+        </div>
       );
     }
 
@@ -202,10 +233,13 @@ export const OfferCompare = ({
     else if (price > 0) label = t('inbox.offer.reply.acceptPay', { amount: formatMoney(price) });
 
     return (
-      <Button className="w-full" disabled={busy} onClick={() => onAccept(offer)}>
-        {offer.renews ? <RefreshCwIcon /> : <PenLineIcon />}
-        {label}
-      </Button>
+      <div className="flex w-full flex-col gap-2">
+        {tile}
+        <Button className="w-full" disabled={busy} onClick={() => onAccept(offer, backed > 0)}>
+          {offer.renews ? <RefreshCwIcon /> : <PenLineIcon />}
+          {label}
+        </Button>
+      </div>
     );
   };
 
@@ -303,7 +337,7 @@ export const OfferCompare = ({
         t('inbox.compare.before'),
         offers.map((offer) => cell(
           offer,
-          signedMoney(seasonBeforePrizes(offer)),
+          signedMoney(seasonBeforePrizes(offer) + backedOf(offer)),
           t('inbox.compare.season'),
           offer === bestSeason,
         )),

@@ -31,12 +31,18 @@ describe('shared/utils/inbox', () => {
 
   describe('invitationChance', () => {
     it('is a fifth at Rookie and a fifth more every rung up', () => {
-      expect([5, 4, 3, 2, 1].map(invitationChance)).toEqual([20, 40, 60, 80, 100]);
+      expect([5, 4, 3, 2, 1].map((rung) => invitationChance(rung))).toEqual([20, 40, 60, 80, 100]);
     });
 
     it('gives a rung below the lowest the lowest chance, and never more than certain', () => {
       expect(invitationChance(9)).toBe(20);
       expect(invitationChance(0)).toBe(100);
+    });
+
+    it("rises by what a career's sponsors add, and stops at certain", () => {
+      expect(invitationChance(5, 0.2)).toBe(24);
+      expect(invitationChance(4, 0.3)).toBe(52);
+      expect(invitationChance(1, 0.2)).toBe(100);
     });
   });
 

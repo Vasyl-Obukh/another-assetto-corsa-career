@@ -13,6 +13,7 @@ import {
   feeOf,
   feeOwed,
   feePaid,
+  feeShares,
   openingLine,
   owedPrizes,
   owedSponsors,
@@ -24,6 +25,7 @@ import {
   rentLine,
   rentOwed,
   rentPaid,
+  rentShares,
   repaintLine,
   salaryPaid,
   saleLine,
@@ -163,6 +165,12 @@ describe('core/career-money', () => {
 
       expect(feeOwed(careerIn(entry, { sponsors: [deal] }), entry, event)).toBe(0);
     });
+
+    it("owes what is left of the fee after a sponsor's share", () => {
+      const deal = makeDeal({ perks: [{ kind: 'feeShare', share: 20 }] });
+
+      expect(feeOwed(careerIn(entry, { sponsors: [deal] }), entry, event)).toBe(1200);
+    });
   });
 
   describe('coveringSponsor', () => {
@@ -186,6 +194,47 @@ describe('core/career-money', () => {
 
       expect(coveringSponsor(makeCareer({ sponsors: [signed] }), entry, event)).toBeNull();
       expect(coveringSponsor(makeCareer({ sponsors: [ended] }), entry, event)).toBeNull();
+    });
+  });
+
+  describe('feeShares', () => {
+    const entry = makeEntry();
+    const event = makeEvent('one', '2027-03-07', undefined, { entryFee: 1500 });
+    const deal = makeDeal({ perks: [{ kind: 'feeShare', share: 20 }] });
+
+    it("says what each sponsor takes off a round's fee", () => {
+      expect(feeShares(careerIn(entry, { sponsors: [deal] }), entry, event)).toEqual([
+        { sponsor: 'Halden Lubricants', amount: 300, share: 20 },
+      ]);
+    });
+
+    it('takes nothing off a fee a sponsor already covers, nor a round with none to pay', () => {
+      const covering = makeDeal({
+        id: 'covering', perks: [{ kind: 'championship', series: CUP.id, seriesName: CUP.name }],
+      });
+      const invited = makeEntry({ historic: true });
+
+      expect(feeShares(careerIn(entry, { sponsors: [deal, covering] }), entry, event)).toEqual([]);
+      expect(feeShares(careerIn(invited, { sponsors: [deal] }), invited, event)).toEqual([]);
+    });
+  });
+
+  describe('rentShares', () => {
+    const rented = makeEntry({ car: { model: 'test_car', source: 'rented' } });
+    const event = makeEvent('one', '2027-03-07');
+
+    it("says what each sponsor takes off a round's rent", () => {
+      const deal = makeDeal({ perks: [{ kind: 'rentShare', share: 40 }] });
+
+      expect(rentShares(careerIn(rented, { sponsors: [deal] }), rented, event, 300)).toEqual([
+        { sponsor: 'Halden Lubricants', amount: 120, share: 40 },
+      ]);
+    });
+
+    it('takes nothing off a round in a discipline the deal does not cover', () => {
+      const deal = makeDeal({ covers: Discipline.TOURING, perks: [{ kind: 'rentShare', share: 40 }] });
+
+      expect(rentShares(careerIn(rented, { sponsors: [deal] }), rented, event, 300)).toEqual([]);
     });
   });
 
@@ -256,6 +305,12 @@ describe('core/career-money', () => {
     it('owes nothing in a standalone championship, which has no money', () => {
       expect(rentOwed(careerIn(rented, { kind: 'championship' }), rented, event, 300)).toBe(0);
     });
+
+    it("owes what is left of the rent after a sponsor's share", () => {
+      const deal = makeDeal({ perks: [{ kind: 'rentShare', share: 40 }] });
+
+      expect(rentOwed(careerIn(rented, { sponsors: [deal] }), rented, event, 300)).toBe(180);
+    });
   });
 
   describe('rentLine', () => {
@@ -277,6 +332,15 @@ describe('core/career-money', () => {
         number: 2,
         car: { model: 'test_car', name: 'Test Car' },
       });
+    });
+
+    it('says what sponsors took off it, and nothing when none did', () => {
+      const entry = makeEntry({ car: { model: 'test_car', source: 'rented' } });
+      const event = makeEvent('two', '2027-06-06');
+      const offBy = [{ sponsor: 'Halden Lubricants', amount: 120, share: 40 }];
+
+      expect(rentLine(makeSeason(), entry, event, 180, 'Test Car', offBy)).toMatchObject({ amount: -180, offBy });
+      expect(rentLine(makeSeason(), entry, event, 300, 'Test Car')).not.toHaveProperty('offBy');
     });
   });
 
@@ -873,12 +937,13 @@ describe('core/career-money', () => {
       expect(owedSponsors({ ...prized, sponsors: [elsewhere] })).toEqual([]);
     });
 
-    it("pays the goal bonus once the deal's year has run out with its goal met", () => {
+    it('pays the goal bonus the day its goal is met', () => {
       const deal = makeDeal({ perks: [{ kind: 'goalBonus', amount: 5000 }] });
+      const met = { ...deal, goalMet: '2027-06-01' };
 
-      expect(owedSponsors(career(deal, { date: '2027-12-30' }))).toEqual([]);
-      expect(owedSponsors(career(deal, { date: '2027-12-31' }))).toEqual([
-        sponsorLine(deal, 'goalBonus', 'sponsor:sponsor:test-cup/zero@0.0:goal', 5000, { date: '2027-12-31', season: 0 }),
+      expect(owedSponsors(career(deal, { date: '2027-12-31' }))).toEqual([]);
+      expect(owedSponsors(career(met, { date: '2027-06-01' }))).toEqual([
+        sponsorLine(met, 'goalBonus', 'sponsor:sponsor:test-cup/zero@0.0:goal', 5000, { date: '2027-06-01', season: 0 }),
       ]);
     });
 

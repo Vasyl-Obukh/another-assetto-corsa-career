@@ -33,6 +33,7 @@ import type {
   RacePlace,
   RaceSetup,
   SeasonEntry,
+  SeasonEvent,
   SeatOffer,
   SeriesListing,
   SeriesRequirements,
@@ -46,6 +47,7 @@ import {
   noticeId, offerDay, offerId, seatId,
 } from '../../../shared/utils/contracts/index.ts';
 import { prizeTable } from '../../../shared/utils/prizes/index.ts';
+import { sponsorNewsId, sponsorRenewalId } from '../../../shared/utils/sponsors/index.ts';
 import { standaloneStanding } from '../../../shared/utils/standalone/index.ts';
 import {
   fakeContentStore, fakeRaceStore, fakeSeriesStore, fakeSettingsStore, raceSetup,
@@ -129,6 +131,10 @@ interface HarnessOptions {
    * What each installed car costs, by folder ID.
    */
   prices?: Readonly<Record<string, number>>;
+  /**
+   * Whether no install has been located, which is what a car's lookup refuses on.
+   */
+  noInstall?: boolean;
 }
 
 /**
@@ -215,12 +221,14 @@ const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
   const series = fakeSeriesStore(options.listings ?? [makeListing(CUP)]);
   const historic = fakeSeriesStore(options.historic ?? []);
   const race = fakeRaceStore();
+  const content = fakeContentStore({ cars: [...options.cars ?? []] }, options.prices);
+  if (options.noInstall) content.car = async () => { throw new Error('no install'); };
   const store = await createCareerStore(
     'D:\\userData',
     series,
     historic,
     race,
-    fakeContentStore({ cars: [...options.cars ?? []] }, options.prices),
+    content,
     fakeSettingsStore(options.settings),
   );
   if (career) await store.open(career.id);
@@ -425,6 +433,51 @@ const sponsorDeal = (over: Partial<SponsorDeal> = {}): SponsorDeal => ({
   signed: '2026-12-01',
   until: '2027-12-01',
   ...over,
+});
+
+/**
+ * A round of the cup the player drove, finishing second.
+ * @param date The ISO date it ran
+ * @returns The round
+ */
+const drivenRound = (date: string): SeasonEvent => makeEvent('one', date, {
+  status: 'raced',
+  score: {
+    round: 'one',
+    recordedAt: `${date}T18:00:00.000Z`,
+    races: [{
+      launch: 2,
+      session: null,
+      name: 'Race',
+      pointsSystem: 'standard',
+      places: [{
+        seat: 'seat-2',
+        entry: 'main',
+        team: null,
+        driver: 'Test Driver',
+        position: 2,
+        classPosition: 2,
+        qualifyingPosition: null,
+        fastestLap: false,
+        finishPoints: 18,
+        fastestLapPoints: 0,
+        qualifyingPoints: 0,
+        points: 18,
+      }],
+    }],
+  },
+});
+
+/**
+ * A main sponsor's deal bringing a car and a bonus for one race started.
+ */
+const REWARD_DEAL = sponsorDeal({
+  perks: [{
+    kind: 'carReward',
+    car: {
+      model: 'test_car', name: 'Car test_car', price: 40_000, skin: 'red',
+    },
+  }, { kind: 'goalBonus', amount: 5_000 }],
 });
 
 /**
@@ -1951,9 +2004,18 @@ describe('main/career-store', () => {
         ...careerWith({}), sponsors: [sponsorDeal({ perks: [{ kind: 'carBacking', share: 50 }] })],
       });
 
-      it("has the sponsor pay its share of a car the career's rung races", async () => {
+      it('spends nothing of it unasked', async () => {
         const { store } = await build({ career: backed(), cars: [TEST_CAR], prices: PRICES });
         await store.buyCar({ model: 'test_car' });
+
+        expect(store.get()?.money).toBe(60_000);
+        expect(store.get()?.garage[0].paid).toBe(40_000);
+        expect(store.get()?.ledger.filter((line) => line.kind === 'sponsor')).toEqual([]);
+      });
+
+      it("has the sponsor pay its share of a car the career's rung races", async () => {
+        const { store } = await build({ career: backed(), cars: [TEST_CAR], prices: PRICES });
+        await store.buyCar({ model: 'test_car', backed: true });
 
         expect(store.get()?.money).toBe(80_000);
         expect(store.get()?.ledger).toContainEqual(expect.objectContaining({
@@ -1965,7 +2027,7 @@ describe('main/career-store', () => {
       // straight back turned the sponsor's share into cash.
       it('keeps what the career paid as the price, so selling it back makes nothing', async () => {
         const { store } = await build({ career: backed(), cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
+        await store.buyCar({ model: 'test_car', backed: true });
 
         expect(store.get()?.garage[0].paid).toBe(20_000);
         await store.sellCar('test_car');
@@ -1974,11 +2036,10 @@ describe('main/career-store', () => {
 
       it('backs one car a deal', async () => {
         const { store } = await build({ career: backed(), cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
+        await store.buyCar({ model: 'test_car', backed: true });
         await store.sellCar('test_car');
-        await store.buyCar({ model: 'test_car' });
 
-        expect(store.get()?.money).toBe(60_000);
+        await expect(store.buyCar({ model: 'test_car', backed: true })).rejects.toMatchObject({ code: 'sponsor.backing.none' });
         expect(store.get()?.ledger.filter((line) => line.kind === 'sponsor')).toHaveLength(1);
       });
 
@@ -1988,9 +2049,8 @@ describe('main/career-store', () => {
           sponsors: [sponsorDeal({ covers: Discipline.SINGLE_SEATER, perks: [{ kind: 'carBacking', share: 50 }] })],
         });
         const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
 
-        expect(store.get()?.money).toBe(60_000);
+        await expect(store.buyCar({ model: 'test_car', backed: true })).rejects.toMatchObject({ code: 'sponsor.backing.none' });
         expect(store.get()?.ledger.filter((line) => line.kind === 'sponsor')).toEqual([]);
       });
 
@@ -2002,9 +2062,8 @@ describe('main/career-store', () => {
           sponsors: [sponsorDeal({ covers: Discipline.ROAD, perks: [{ kind: 'carBacking', share: 50 }] })],
         });
         const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
 
-        expect(store.get()?.money).toBe(60_000);
+        await expect(store.buyCar({ model: 'test_car', backed: true })).rejects.toMatchObject({ code: 'sponsor.backing.none' });
       });
 
       it('backs a car of the discipline it covers', async () => {
@@ -2013,7 +2072,7 @@ describe('main/career-store', () => {
           sponsors: [sponsorDeal({ covers: Discipline.ROAD, perks: [{ kind: 'carBacking', share: 50 }] })],
         });
         const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
+        await store.buyCar({ model: 'test_car', backed: true });
 
         expect(store.get()?.money).toBe(80_000);
       });
@@ -2021,10 +2080,49 @@ describe('main/career-store', () => {
       it('lets the career buy a car it could afford only with the backing', async () => {
         const career = makeCareer({ ...backed(), money: 25_000 });
         const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
-        await store.buyCar({ model: 'test_car' });
+        await store.buyCar({ model: 'test_car', backed: true });
 
         expect(store.get()?.money).toBe(5_000);
       });
+    });
+  });
+
+  describe('carBacking', () => {
+    const backing = sponsorDeal({ perks: [{ kind: 'carBacking', share: 50 }] });
+
+    it("says who can pay how much of which cars, until the deal's year runs out", async () => {
+      const career = makeCareer({ ...careerWith({}), sponsors: [backing] });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      expect(await store.carBacking()).toEqual({
+        sponsor: 'Halden Lubricants', share: 50, until: '2027-12-01', models: ['test_car'],
+      });
+    });
+
+    it('lists no car above the rung the deal reads on', async () => {
+      const level = { ...careerWith({}).level, [Discipline.ROAD]: 5 };
+      const career = makeCareer({ ...careerWith({}), level, sponsors: [{ ...backing, covers: Discipline.ROAD }] });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+
+      expect((await store.carBacking())?.models).toEqual([]);
+    });
+
+    it('says nothing with no backing, or once it has paid for a car', async () => {
+      const career = makeCareer({ ...careerWith({}), sponsors: [backing] });
+      const none = await build({ career: careerWith({}) });
+      expect(await none.store.carBacking()).toBeNull();
+
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car', backed: true });
+
+      expect(await store.carBacking()).toBeNull();
+    });
+
+    it('says nothing in a standalone championship', async () => {
+      const { store } = await build({ closed: true });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      expect(await store.carBacking()).toBeNull();
     });
   });
 
@@ -2070,6 +2168,18 @@ describe('main/career-store', () => {
   });
 
   describe('repaintCar', () => {
+    it('costs nothing and writes no line with a sponsor paying for repaints', async () => {
+      const career = makeCareer({
+        ...garaged(), sponsors: [sponsorDeal({ slot: 'partner', perks: [{ kind: 'repaints' }] })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.repaintCar({ model: 'test_car', skin: 'red' });
+
+      expect(store.get()?.money).toBe(100_000);
+      expect(store.get()?.garage[0].skin).toBe('red');
+      expect(store.get()?.ledger).toEqual([]);
+    });
+
     it('charges a repaint off what was paid and paints the car at once, every round to come included', async () => {
       const career = garaged([makeEntry({
         car: { model: 'test_car', skin: 'blue', source: 'owned' }, events: [makeEvent('one', '2027-03-07')],
@@ -2421,6 +2531,44 @@ describe('main/career-store', () => {
   });
 
   describe('buySeat', () => {
+    describe('with a sponsor backing a seat', () => {
+      const backed = (money = 100_000): Career => makeCareer({
+        ...careerWith({}), money, sponsors: [sponsorDeal({ perks: [{ kind: 'seatBacking', share: 50 }] })],
+      });
+
+      it('has the sponsor pay its share, the career the rest, and the contract says so', async () => {
+        const { store } = await build({ career: backed(), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+        await store.buySeat({
+          series: CUP.id, entry: 'main', team: 'priv', backed: true,
+        });
+        const career = store.get();
+        const amount = entryOf(career).contract?.amount ?? 0;
+        const half = Math.round(amount / 2);
+
+        expect(entryOf(career).contract?.backed).toEqual({ deal: 'sponsor:test-cup/zero@0.0', amount: half });
+        expect(career?.money).toBe(100_000 - amount + half);
+        expect(career?.ledger).toContainEqual(expect.objectContaining({
+          kind: 'sponsor', amount: half, series: CUP.id, sponsor: expect.objectContaining({ perk: 'seatBacking' }),
+        }));
+      });
+
+      it('spends nothing of it unasked', async () => {
+        const { store } = await build({ career: backed(), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+        await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
+
+        expect(entryOf(store.get()).contract?.backed).toBeUndefined();
+        expect(store.get()?.ledger.filter((line) => line.kind === 'sponsor')).toEqual([]);
+      });
+
+      it('refuses to be asked with no sponsor who can', async () => {
+        const { store } = await build({ career: careerWith({}), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+
+        await expect(store.buySeat({
+          series: CUP.id, entry: 'main', team: 'priv', backed: true,
+        })).rejects.toMatchObject({ code: 'sponsor.backing.none' });
+      });
+    });
+
     it('signs a privateer\'s seat at once, through a mail written already accepted', async () => {
       const { store } = await build({ career: careerWith({}), listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
       await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
@@ -2662,6 +2810,45 @@ describe('main/career-store', () => {
         expect(store.get()?.ledger).toEqual([]);
       });
 
+      describe('with a sponsor backing a seat', () => {
+        const deal = sponsorDeal({ perks: [{ kind: 'seatBacking', share: 50 }] });
+        const holding = (money = 100_000): Career => makeCareer({ ...offered([PAID_SEAT], money), sponsors: [deal] });
+
+        it('has the sponsor pay its share of a paid seat when asked', async () => {
+          const { store } = await build({ career: holding(), listings: [makeListing(TEAMED)] });
+          await store.answer({ mail: OFFER_MAIL, answer: 'accepted', backed: true });
+
+          expect(entryOf(store.get()).contract?.backed).toEqual({ deal: deal.id, amount: 1_500 });
+          expect(store.get()?.money).toBe(98_500);
+          expect(store.get()?.ledger).toContainEqual(expect.objectContaining({
+            key: `sponsor:${deal.id}:seat:${OFFER_MAIL}`, kind: 'sponsor', amount: 1_500,
+          }));
+        });
+
+        it('opens a seat the career could afford only with it', async () => {
+          const { store } = await build({ career: holding(2_000), listings: [makeListing(TEAMED)] });
+
+          await store.answer({ mail: OFFER_MAIL, answer: 'accepted', backed: true });
+
+          expect(store.get()?.money).toBe(500);
+        });
+
+        it('still refuses that seat unasked', async () => {
+          const { store } = await build({ career: holding(2_000), listings: [makeListing(TEAMED)] });
+
+          await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted' }))
+            .rejects.toMatchObject({ code: 'contract.short' });
+        });
+
+        it('refuses to spend it on a seat that costs nothing', async () => {
+          const career = makeCareer({ ...offered([seatOffer()]), sponsors: [deal] });
+          const { store } = await build({ career, listings: [makeListing(TEAMED)] });
+
+          await expect(store.answer({ mail: OFFER_MAIL, answer: 'accepted', backed: true }))
+            .rejects.toMatchObject({ code: 'sponsor.backing.none' });
+        });
+      });
+
       it('takes the price of a paid seat as it is signed', async () => {
         const { store } = await build({ career: offered([PAID_SEAT]), listings: [makeListing(TEAMED)] });
         await store.answer({ mail: OFFER_MAIL, answer: 'accepted' });
@@ -2865,6 +3052,96 @@ describe('main/career-store', () => {
   });
 
   describe('advanceTo', () => {
+    describe('moving sponsors on', () => {
+      /**
+       * A career that raced a round in March, holding a deal.
+       * @param deal The deal
+       * @returns The career
+       */
+      const holding = (deal: SponsorDeal): Career => makeCareer({
+        ...careerWith({ entries: [makeEntry({ events: [drivenRound('2027-03-07')] })] }, '2027-03-07'),
+        sponsors: [deal],
+      });
+
+      it('brings the car and pays the bonus the day a goal is met', async () => {
+        const { store } = await build({ career: holding(REWARD_DEAL), cars: [TEST_CAR], prices: PRICES });
+        await store.advanceTo('2027-03-08');
+
+        expect(store.get()?.sponsors[0].goalMet).toBe('2027-03-07');
+        expect(store.get()?.garage).toEqual([{
+          model: 'test_car', skin: 'red', paid: 15_000, bought: '2027-03-07', reward: 'Halden Lubricants',
+        }]);
+        expect(store.get()?.ledger).toContainEqual(expect.objectContaining({
+          kind: 'sponsorBonus', amount: 5_000, date: '2027-03-07',
+        }));
+      });
+
+      it('pays what a car would sell for once the install no longer has it', async () => {
+        const { store } = await build({ career: holding(REWARD_DEAL) });
+        await store.advanceTo('2027-03-08');
+
+        expect(store.get()?.garage).toEqual([]);
+        expect(store.get()?.ledger).toContainEqual(expect.objectContaining({
+          key: `sponsor:${REWARD_DEAL.id}:reward`, amount: 15_000,
+        }));
+      });
+
+      // Guards a fix: the lookup threw with no install located, which failed
+      // the whole move and lost it.
+      it('still moves the clock with no install, the car coming in the livery the deal named', async () => {
+        const { store } = await build({ career: holding(REWARD_DEAL), noInstall: true });
+        await store.advanceTo('2027-03-08');
+
+        expect(store.get()?.date).toBe('2027-03-08');
+        expect(store.get()?.garage[0]).toMatchObject({ model: 'test_car', skin: 'red' });
+      });
+
+      it('asks for another year as a deal with its goal met runs out', async () => {
+        const deal = sponsorDeal({ until: '2027-04-01' });
+        const { store } = await build({ career: holding(deal) });
+        await store.advanceTo('2027-04-02');
+
+        expect(store.get()?.sponsors[0].ended).toEqual({ on: '2027-04-01', why: 'goalMet' });
+        expect(store.get()?.inbox).toContainEqual(expect.objectContaining({
+          id: sponsorRenewalId(deal.id), kind: 'sponsor', sponsor: expect.objectContaining({ renews: deal.id }),
+        }));
+      });
+
+      it('sends news of a goal missed as a deal runs out', async () => {
+        const deal = sponsorDeal({ until: '2027-04-01', goal: { kind: 'racesStarted', count: 5 } });
+        const { store } = await build({ career: holding(deal) });
+        await store.advanceTo('2027-04-02');
+
+        const ids = store.get()?.inbox.map((one) => one.id);
+
+        expect(store.get()?.sponsors[0].ended).toEqual({ on: '2027-04-01', why: 'goalMissed' });
+        expect(ids).toContain(sponsorNewsId(deal.id));
+        expect(ids).not.toContain(sponsorRenewalId(deal.id));
+      });
+
+      // Guards a fix: invitations and seat offers were drawn before a deal's
+      // year was ended, so an expired perk still lifted what was stored for good.
+      it('lifts no invitation with a deal whose year the move ran out', async () => {
+        const draw = drawnHistoric({ date: '2027-03-03', invitations: '2027-02-01' });
+        const lapsing = sponsorDeal({ until: '2027-01-20', perks: [{ kind: 'invitations' }] });
+        const career = makeCareer({ ...careerWith({ historicEvents: [draw] }, '2027-01-10'), sponsors: [lapsing] });
+        const { store } = await build({ career });
+        await store.advanceTo('2027-02-02');
+
+        expect(drawOn(store.get())?.invitation).toMatchObject({ chance: 40 });
+      });
+
+      it('lifts an invitation with a deal still running', async () => {
+        const draw = drawnHistoric({ date: '2027-03-03', invitations: '2027-02-01' });
+        const running = sponsorDeal({ perks: [{ kind: 'invitations' }] });
+        const career = makeCareer({ ...careerWith({ historicEvents: [draw] }, '2027-01-10'), sponsors: [running] });
+        const { store } = await build({ career });
+        await store.advanceTo('2027-02-02');
+
+        expect(drawOn(store.get())?.invitation).toMatchObject({ chance: 48 });
+      });
+    });
+
     // Guards a fix: a move past New Year left the closing year's unsent
     // invitations unsent for good, since only the current season sends.
     it('sends no one the closing year\'s invitations a confirmed move past New Year passes', async () => {
@@ -3120,6 +3397,22 @@ describe('main/career-store', () => {
       expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 1_000 }]);
     });
 
+    // Guards a fix: an unentered class was priced whole, so Can afford next round
+    // hid a class the launch would have charged less for.
+    it('takes what sponsors would take off the fee and the rent', async () => {
+      const career = makeCareer({
+        ...careerWith({}),
+        sponsors: [sponsorDeal({
+          slot: 'partner', perks: [{ kind: 'feeShare', share: 20 }, { kind: 'rentShare', share: 50 }],
+        })],
+      });
+      const { store } = await build({
+        career, listings: [PRICED_LISTING], cars: CARS, prices: CAR_PRICES,
+      });
+
+      expect(await store.roundCosts()).toEqual([{ series: PRICED.id, entry: 'main', cost: 900 }]);
+    });
+
     it("prices a class that states a fee of its own at that fee over the championship's", async () => {
       const own = { ...PRICED, entries: [{ ...PRICED.entries[0], entryFee: 2_500 }] };
       const { store } = await build({
@@ -3341,6 +3634,35 @@ describe('main/career-store', () => {
       expect(view.sessions).toEqual([]);
     });
 
+    it('says what sponsors take off the fee and the rent', async () => {
+      const career = makeCareer({
+        ...careerWith({
+          entries: [makeEntry({
+            car: { model: 'test_car', source: 'rented' },
+            events: [makeEvent('one', '2027-03-07', { entryFee: 1500 })],
+          })],
+        }),
+        sponsors: [sponsorDeal({
+          slot: 'partner', perks: [{ kind: 'feeShare', share: 20 }, { kind: 'rentShare', share: 25 }],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      const { money } = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(money?.feeOff).toEqual([{ sponsor: 'Halden Lubricants', amount: 300, share: 20 }]);
+      expect(money?.rentOff).toEqual([{ sponsor: 'Halden Lubricants', amount: 200, share: 25 }]);
+    });
+
+    it('says who can pay part of a seat in each class', async () => {
+      const career = makeCareer({
+        ...careerWith({}), sponsors: [sponsorDeal({ perks: [{ kind: 'seatBacking', share: 50 }] })],
+      });
+      const { store } = await build({ career, listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.classes[0].seatBacker).toEqual({ sponsor: 'Halden Lubricants', share: 50 });
+    });
+
     it('says what the round costs and what the career holds', async () => {
       const career = careerWith({
         entries: [makeEntry({ events: [makeEvent('one', '2027-03-07', { entryFee: 1500 })] })],
@@ -3349,7 +3671,15 @@ describe('main/career-store', () => {
       const view = await store.event({ series: CUP.id, round: 'one' });
 
       expect(view.money).toEqual({
-        fee: 1500, paid: false, sponsor: null, rent: null, rentPaid: false, balance: 100_000, contract: null,
+        fee: 1500,
+        paid: false,
+        sponsor: null,
+        feeOff: [],
+        rentOff: [],
+        rent: null,
+        rentPaid: false,
+        balance: 100_000,
+        contract: null,
       });
       expect(view.blocked).toBeNull();
     });
@@ -3472,7 +3802,15 @@ describe('main/career-store', () => {
         });
         expect(view.blocked).toBeNull();
         expect(view.money).toEqual({
-          fee: null, paid: false, sponsor: null, rent: null, rentPaid: false, balance: 100_000, contract: null,
+          fee: null,
+          paid: false,
+          sponsor: null,
+          feeOff: [],
+          rentOff: [],
+          rent: null,
+          rentPaid: false,
+          balance: 100_000,
+          contract: null,
         });
       });
 
@@ -3559,6 +3897,32 @@ describe('main/career-store', () => {
 
       expect(race.loaded.map((one) => one.definition.id)).toEqual(['test-cup/one']);
       expect(race.launches).toEqual([2]);
+    });
+
+    it('charges a fee and a rent less what sponsors take off, each line saying who took what', async () => {
+      const career = makeCareer({
+        ...careerWith({
+          entries: [makeEntry({
+            car: { model: 'test_car', source: 'rented' },
+            events: [makeEvent('one', '2027-01-01', { entryFee: 1500 })],
+          })],
+        }),
+        sponsors: [sponsorDeal({
+          slot: 'partner', perks: [{ kind: 'feeShare', share: 20 }, { kind: 'rentShare', share: 25 }],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.ledger).toEqual([
+        expect.objectContaining({
+          kind: 'fee', amount: -1200, offBy: [{ sponsor: 'Halden Lubricants', amount: 300, share: 20 }],
+        }),
+        expect.objectContaining({
+          kind: 'rent', amount: -600, offBy: [{ sponsor: 'Halden Lubricants', amount: 200, share: 25 }],
+        }),
+      ]);
+      expect(store.get()?.money).toBe(98_200);
     });
 
     it("moves the clock to an event raced ahead of it", async () => {

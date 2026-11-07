@@ -59,7 +59,7 @@ export const SellDialog = ({ car, garage, onClose }: SellDialogProps) => {
         <DialogHeader>
           <DialogTitle>{t('trade.sellTitle', { car: car.name })}</DialogTitle>
           <DialogDescription>
-            {t('trade.boughtFor', { paid: formatMoney(owned.paid), day: formatDay(owned.bought) })}
+            {owned.reward ? t('trade.rewardFrom', { sponsor: owned.reward, day: formatDay(owned.bought) }) : t('trade.boughtFor', { paid: formatMoney(owned.paid), day: formatDay(owned.bought) })}
           </DialogDescription>
         </DialogHeader>
 

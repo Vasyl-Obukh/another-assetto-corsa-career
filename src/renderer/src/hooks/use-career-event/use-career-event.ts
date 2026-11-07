@@ -95,8 +95,8 @@ export const useCareerEvent = (
     enter: (entry, car) => command(() => invoke('career:enrol', {
       series, entry, car, edition: view?.edition ?? edition,
     })),
-    buySeat: (entry, team) => command(() => invoke('career:buySeat', {
-      series, entry, team, edition: view?.edition ?? edition,
+    buySeat: (entry, team, backed) => command(() => invoke('career:buySeat', {
+      series, entry, team, edition: view?.edition ?? edition, backed,
     })),
     accept: () => command(async () => {
       const mail = view?.historic?.invitation.mail;

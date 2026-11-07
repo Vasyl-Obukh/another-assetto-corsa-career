@@ -105,8 +105,8 @@ export const Inbox = () => {
       (thrown: unknown) => setError(toDisplayableError(thrown)),
     ).finally(() => setBusy(false));
   };
-  const answer = (id: string, reply: MailAnswer, offer?: OfferPick): void => command(() => invoke('career:answer', {
-    mail: id, answer: reply, ...(offer ? { offer } : {}),
+  const answer = (id: string, reply: MailAnswer, offer?: OfferPick, backed = false): void => command(() => invoke('career:answer', {
+    mail: id, answer: reply, ...(offer ? { offer } : {}), ...(backed ? { backed } : {}),
   }));
 
   // What declining a seat offer or an invitation is asked as.
@@ -166,7 +166,7 @@ export const Inbox = () => {
             edition={offerEdition(career, seat, t)}
             link={offerLink(career, seat)}
             busy={busy}
-            onAccept={(offer) => answer(selected.mail.id, 'accepted', { entry: offer.entry, team: offer.team })}
+            onAccept={(offer, backed) => answer(selected.mail.id, 'accepted', { entry: offer.entry, team: offer.team }, backed)}
             onDecline={() => setDeclining(true)}
             onUnread={() => {
               show({ [MAIL_PARAM]: null });

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { BackingMark } from './BackingMark.tsx';
 import { PurchaseButton } from './PurchaseButton.tsx';
 import type { CarTrade } from './types.ts';
 import type { Car } from '../../../../shared/types';
@@ -32,6 +33,7 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
   const { garage } = trade;
   const owned = garage.owned(car.id);
   const price = garage.priceOf(car);
+  const backing = garage.backingOf(car);
   const band = '-mx-3 -mb-3 flex items-center gap-3 px-3 py-2.5';
 
   if (owned) {
@@ -54,12 +56,15 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
   return (
     <div className={cn(band, PRICE_FOOT.forSale)}>
       <div className="flex min-w-0 flex-col">
-        <span className={cn(
-          'text-lg leading-tight font-semibold tabular-nums',
-          price > garage.balance && 'text-muted-foreground',
-        )}
-        >
-          {formatMoney(price)}
+        <span className="flex items-center gap-1.5">
+          <span className={cn(
+            'text-lg leading-tight font-semibold tabular-nums',
+            garage.payableFor(car) > garage.balance && 'text-muted-foreground',
+          )}
+          >
+            {formatMoney(price)}
+          </span>
+          {backing ? <BackingMark sponsor={backing.sponsor} amount={backing.amount} /> : null}
         </span>
         <span className="text-xs text-muted-foreground">
           {t('trade.orRent', { rent: formatMoney(rentOf(price)) })}
@@ -69,6 +74,7 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
         // Above the card's own link, which covers the rest of the card.
         <PurchaseButton
           price={price}
+          payable={garage.payableFor(car)}
           balance={garage.balance}
           size="sm"
           className="relative z-10 ml-auto"

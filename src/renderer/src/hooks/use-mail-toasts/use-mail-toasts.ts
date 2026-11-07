@@ -3,7 +3,9 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
+import type { SponsorOffer } from '../../../../shared/types';
 import { useSlot, useToast } from '@/app';
+import { sponsorNewsSubject, sponsorOfferSubject } from '@/components';
 import { CONTRACT_ACCENT, HISTORIC_ACCENT, SPONSOR_ACCENT } from '@/lib/accents';
 import { inboxItem } from '@/lib/inbox';
 import { path } from '@/lib/routes';
@@ -52,8 +54,8 @@ export const useMailToasts = (): void => {
       if (notice) detail = t('inbox.toast.noticeDetail', { team: notice.teamName, series: notice.seriesName });
       if (sponsor) {
         detail = sponsorNews
-          ? t('inbox.subject.sponsorNews', { sponsor: sponsor.sponsor.name })
-          : t(`inbox.sponsor.title.${sponsor.slot}`, { sponsor: sponsor.sponsor.name });
+          ? sponsorNewsSubject(sponsorNews, t)
+          : sponsorOfferSubject(first.mail.sponsor as SponsorOffer, t);
       }
       if (offer) {
         detail = first.offers.length > 1

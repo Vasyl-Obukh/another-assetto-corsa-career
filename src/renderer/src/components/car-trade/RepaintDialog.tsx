@@ -6,7 +6,6 @@ import { LIVERY_DIALOG } from './constants.ts';
 import { TradeButton } from './TradeButton.tsx';
 import { TradeError } from './TradeError.tsx';
 import type { Car } from '../../../../shared/types';
-import { repaintOf } from '../../../../shared/utils/car-prices';
 import { liveryName } from '../../../../shared/utils/garage';
 import { CarSwatch } from '@/components/content-image/index.ts';
 import { SkinStep } from '@/components/content-picker/index.ts';
@@ -15,6 +14,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import type { Garage } from '@/hooks';
+import { cn } from '@/lib/utils.ts';
 
 interface RepaintDialogProps {
   /**
@@ -87,12 +87,15 @@ export const RepaintDialog = ({ car, garage, onClose }: RepaintDialogProps) => {
             ) : null}
           </span>
           <TradeError garage={garage} />
-          <span className="ml-auto flex gap-2">
+          {garage.repaintSponsor ? (
+            <span className="ml-auto text-xs text-partner-foreground">{t('trade.repaintBy', { sponsor: garage.repaintSponsor })}</span>
+          ) : null}
+          <span className={cn('flex gap-2', !garage.repaintSponsor && 'ml-auto')}>
             <Button variant="ghost" disabled={garage.busy} onClick={close}>{t('confirm.cancel')}</Button>
             <TradeButton
               kind="repaint"
-              amount={repaintOf(owned.paid)}
-              disabled={!changed || garage.busy || repaintOf(owned.paid) > garage.balance}
+              amount={garage.repaintCost(owned)}
+              disabled={!changed || garage.busy || garage.repaintCost(owned) > garage.balance}
               onClick={repaint}
             />
           </span>

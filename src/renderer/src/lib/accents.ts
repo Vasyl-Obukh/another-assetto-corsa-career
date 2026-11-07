@@ -241,6 +241,11 @@ export const SPONSOR_ACCENT = {
 } as const satisfies Record<SponsorSlot, string>;
 
 /**
+ * The tag a renewal's mail wears, a sponsor's and a team's alike.
+ */
+export const RENEWAL_ACCENT = 'border-transparent bg-renewal text-renewal-foreground';
+
+/**
  * A slot's deep tone, for a card's top edge and a dot.
  */
 export const SPONSOR_SOLID = {
@@ -589,8 +594,15 @@ export type SectionTone = keyof typeof SECTION_ACCENT;
  */
 export const SPONSOR_END_ACCENT = {
   running: SPONSOR_ACCENT.main,
+  renewed: RENEWAL_ACCENT,
   goalMet: INVITATION_ACCENT.accepted,
   goalMissed: 'border-transparent bg-destructive/15 text-destructive',
   mine: INVITATION_ACCENT.declined,
   replaced: INVITATION_ACCENT.declined,
-} as const satisfies Record<SponsorEnd | 'running', string>;
+} as const satisfies Record<SponsorEnd | 'running' | 'renewed', string>;
+
+/**
+ * A sponsor's backing already spent: the slate of something answered, gone
+ * from what can be used.
+ */
+export const USED_ACCENT = INVITATION_ACCENT.declined;

@@ -9,6 +9,7 @@ import type {
   Career,
   CareerSeason,
   Contract,
+  CostShare,
   LedgerKind,
   LedgerLine,
   OwnedCar,
@@ -26,7 +27,8 @@ import { editionOver } from '../../shared/utils/editions/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 import {
-  coversEntry, dealCovers, dealScale, goalStanding, judgedRaces, placeIs, sponsorFigure,
+  afterShares, costShares, coveringDeal, coversEntry, dealCovers, dealScale, entryDiscipline, judgedRaces, percentOf,
+  perkOf, placeIs, sponsorFigure,
 } from '../../shared/utils/sponsors/index.ts';
 import { playerPlace, playerStanding } from '../../shared/utils/standings/index.ts';
 
@@ -78,15 +80,39 @@ export const coveringSponsor = (
   career: Pick<Career, 'sponsors'>,
   entry: SeasonEntry,
   event: SeasonEvent,
-): SponsorDeal | null => career.sponsors.find((deal) => (
-  dealCovers(deal, event.date)
-  && deal.perks.some((perk) => perk.kind === 'championship' && perk.series === entry.series)
-)) ?? null;
+): SponsorDeal | null => coveringDeal(career, entry.series, event.date);
 
 /**
- * What launching a round's next session costs: its fee, when that is still to
- * be paid and no sponsor covers it. Only a career has money, so a standalone
- * championship owes nothing.
+ * What sponsors take off a round's fee.
+ * @param career The career
+ * @param entry The season's entry the round belongs to
+ * @param event The round
+ * @returns What each takes off, none where no fee is left to pay
+ */
+export const feeShares = (career: Career, entry: SeasonEntry, event: SeasonEvent): CostShare[] => {
+  const fee = feeOf(entry, event);
+
+  return fee === null || coveringSponsor(career, entry, event)
+    ? []
+    : costShares(career, entryDiscipline(entry), event.date, 'feeShare', fee);
+};
+
+/**
+ * What sponsors take off a round's rent.
+ * @param career The career
+ * @param entry The season's entry the round belongs to
+ * @param event The round
+ * @param rent What it comes to
+ * @returns What each takes off
+ */
+export const rentShares = (career: Career, entry: SeasonEntry, event: SeasonEvent, rent: number): CostShare[] => (
+  costShares(career, entryDiscipline(entry), event.date, 'rentShare', rent)
+);
+
+/**
+ * What launching a round's next session costs: its fee less any sponsor's
+ * share, when that is still to be paid and no sponsor covers it. Only a career
+ * has money, so a standalone championship owes nothing.
  * @param career The career
  * @param entry The season's entry the round belongs to
  * @param event The round
@@ -96,7 +122,7 @@ export const feeOwed = (career: Career, entry: SeasonEntry, event: SeasonEvent):
   const fee = feeOf(entry, event);
 
   return career.kind === 'career' && fee !== null && !feePaid(career, event) && !coveringSponsor(career, entry, event)
-    ? fee
+    ? afterShares(fee, feeShares(career, entry, event))
     : 0;
 };
 
@@ -130,7 +156,8 @@ const roundOf = (
  * @param season The season it falls in
  * @param entry The season's entry
  * @param event The round
- * @param fee What it costs
+ * @param fee What it costs, after any sponsor's share
+ * @param offBy What sponsors took off it
  * @returns The line
  */
 export const feeLine = (
@@ -138,12 +165,14 @@ export const feeLine = (
   entry: SeasonEntry,
   event: SeasonEvent,
   fee: number,
+  offBy: readonly CostShare[] = [],
 ): LedgerLine => ({
   key: feeKey(event),
   kind: 'fee',
   date: event.date,
   amount: -fee,
   ...roundOf(season, entry, event),
+  ...(offBy.length > 0 ? { offBy } : {}),
 });
 
 /**
@@ -164,8 +193,8 @@ export const rentPaid = (career: Career, event: SeasonEvent): boolean => (
 );
 
 /**
- * What launching a round's next session costs in rent: the round's, when its
- * car is rented and the rent is still to be paid.
+ * What launching a round's next session costs in rent: the round's less any
+ * sponsor's share, when its car is rented and the rent is still to be paid.
  * @param career The career
  * @param entry The season's entry the round belongs to
  * @param event The round
@@ -173,7 +202,9 @@ export const rentPaid = (career: Career, event: SeasonEvent): boolean => (
  * @returns What is owed, zero for nothing
  */
 export const rentOwed = (career: Career, entry: SeasonEntry, event: SeasonEvent, rent: number): number => (
-  career.kind === 'career' && entry.car.source === 'rented' && !rentPaid(career, event) ? rent : 0
+  career.kind === 'career' && entry.car.source === 'rented' && !rentPaid(career, event)
+    ? afterShares(rent, rentShares(career, entry, event, rent))
+    : 0
 );
 
 /**
@@ -181,8 +212,9 @@ export const rentOwed = (career: Career, entry: SeasonEntry, event: SeasonEvent,
  * @param season The season it falls in
  * @param entry The season's entry
  * @param event The round
- * @param rent What it costs
+ * @param rent What it costs, after any sponsor's share
  * @param name The car's name
+ * @param offBy What sponsors took off it
  * @returns The line
  */
 export const rentLine = (
@@ -191,6 +223,7 @@ export const rentLine = (
   event: SeasonEvent,
   rent: number,
   name: string,
+  offBy: readonly CostShare[] = [],
 ): LedgerLine => ({
   key: rentKey(event),
   kind: 'rent',
@@ -198,6 +231,7 @@ export const rentLine = (
   amount: -rent,
   ...roundOf(season, entry, event),
   car: { model: entry.car.model, name },
+  ...(offBy.length > 0 ? { offBy } : {}),
 });
 
 /**
@@ -547,7 +581,7 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
  * @returns The ledger kind
  */
 const sponsorKind = (perk: SponsorPerkKind): LedgerKind => (
-  perk === 'racePay' || perk === 'signing' || perk === 'carBacking' ? 'sponsor' : 'sponsorBonus'
+  perk === 'racePay' || perk === 'signing' || perk === 'carBacking' || perk === 'seatBacking' ? 'sponsor' : 'sponsorBonus'
 );
 
 /**
@@ -597,7 +631,7 @@ const earns = (perk: SponsorPerk, place: number, finishPoints: number): boolean 
  * Every line a career's sponsors owe it and have not yet paid: race pay for
  * each race it covers - in full on target, a main sponsor half short of it -
  * every results bonus earned, a prize match on every prize paid, and a goal
- * bonus once the deal's year has run out with its goal met.
+ * bonus once its goal is met.
  * @param career The career, every prize it is owed paid already
  * @returns The lines owed
  */
@@ -644,7 +678,7 @@ export const owedSponsors = (career: Career): LedgerLine[] => {
       }
     }
 
-    const match = deal.perks.find((perk) => perk.kind === 'prizeMatch');
+    const match = perkOf(deal, 'prizeMatch');
     if (match?.share) {
       for (const prize of career.ledger) {
         if ((prize.kind !== 'race' && prize.kind !== 'historic' && prize.kind !== 'standings') || prize.amount <= 0) continue;
@@ -654,7 +688,7 @@ export const owedSponsors = (career: Career): LedgerLine[] => {
           .find((one) => one.series === prize.series && one.edition === (prize.edition ?? 0));
         if (!entry || !coversEntry(deal, entry)) continue;
         add({
-          ...sponsorLine(deal, 'prizeMatch', `sponsor:${deal.id}:match:${prize.key}`, Math.round((prize.amount * match.share) / 100), {
+          ...sponsorLine(deal, 'prizeMatch', `sponsor:${deal.id}:match:${prize.key}`, percentOf(prize.amount, match.share), {
             date: prize.date, season: prize.season,
           }),
           ...(prize.series === undefined ? {} : { series: prize.series }),
@@ -669,12 +703,10 @@ export const owedSponsors = (career: Career): LedgerLine[] => {
       }
     }
 
-    // A deal ended early - by the player, or replaced - reaches no anniversary.
-    const bonus = deal.perks.find((perk) => perk.kind === 'goalBonus');
-    const reached = career.date >= deal.until && (!deal.ended || deal.ended.on >= deal.until);
-    if (bonus?.amount && reached && goalStanding(career, deal).met) {
+    const bonus = perkOf(deal, 'goalBonus');
+    if (bonus?.amount && deal.goalMet) {
       add(sponsorLine(deal, 'goalBonus', `sponsor:${deal.id}:goal`, sponsorFigure(bonus.amount, scale), {
-        date: deal.until, season: career.seasons[career.seasons.length - 1]?.index ?? 0,
+        date: deal.goalMet, season: career.seasons[career.seasons.length - 1]?.index ?? 0,
       }));
     }
   }

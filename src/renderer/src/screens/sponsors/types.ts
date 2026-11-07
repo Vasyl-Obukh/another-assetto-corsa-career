@@ -19,5 +19,5 @@ export interface DealRow {
   /**
    * How it ended, or that it is running.
    */
-  end: SponsorEnd | 'running';
+  end: SponsorEnd | 'running' | 'renewed';
 }

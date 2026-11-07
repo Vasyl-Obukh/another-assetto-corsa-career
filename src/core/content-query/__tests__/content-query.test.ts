@@ -151,6 +151,24 @@ describe('core/content-query', () => {
         .toEqual(['nameless_mod', 'ks_porsche_911_gt3_r_2016']);
     });
 
+    it('keeps the cars a career can pay for', () => {
+      expect(ids(queryCars(makeCars(), { payable: { money: 250_000, share: 0, models: [] } }, undefined, PRICING)))
+        .toEqual(['citroen_ds3', 'nameless_mod', 'ks_porsche_911_gt3_r_2016']);
+    });
+
+    it("counts a sponsor's backing on the cars it covers, and only those", () => {
+      const payable = { money: 250_000, share: 50, models: ['ferrari_488_gt3'] };
+
+      expect(ids(queryCars(makeCars(), { payable }, undefined, PRICING))).toContain('ferrari_488_gt3');
+      expect(ids(queryCars(makeCars(), { payable }, undefined, PRICING))).not.toContain('ferrari_f40');
+    });
+
+    it('still narrows to the price range on the list price, a backed car included', () => {
+      const payable = { money: 250_000, share: 50, models: ['ferrari_488_gt3'] };
+
+      expect(ids(queryCars(makeCars(), { payable, priceTo: 100_000 }, undefined, PRICING))).not.toContain('ferrari_488_gt3');
+    });
+
     it('filters by where a price comes from, a suggestion counting only for a car the user added', () => {
       expect(ids(queryCars(makeCars(), { priceOrigins: ['suggested'] }, undefined, PRICING))).toEqual(['citroen_ds3']);
       expect(ids(queryCars(makeCars(), { priceOrigins: ['yours'] }, undefined, PRICING))).toEqual(['nameless_mod']);
