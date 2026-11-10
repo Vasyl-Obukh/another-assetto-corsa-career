@@ -29,13 +29,16 @@ import {
   RESULT_COUNTS,
   ROUND_TO,
   SEAT_BACKING_SHARE,
-  SPONSOR_BOOK,
   STANDOUT_CHANCE,
+  STATURE_RUNGS,
   TARGET_HARDNESS,
   TRADE_LEAN,
   TRADES,
 } from './constants.ts';
-import type { RewardCar, SponsorDrawRequest, SponsorRenewalRequest } from './types.ts';
+import { SPONSOR_BOOK } from './sponsor-book.ts';
+import type {
+  BookSponsor, RewardCar, SponsorDrawRequest, SponsorRenewalRequest,
+} from './types.ts';
 import type {
   Discipline,
   SponsorCar,
@@ -47,6 +50,7 @@ import type {
   SponsorSlot,
   SponsorTarget,
   SponsorTargetKind,
+  SponsorTrade,
 } from '../../shared/types/index.ts';
 import {
   bestRung, dealRung, dealScale, rungFee, sponsorFigure,
@@ -70,6 +74,19 @@ type Quality = keyof typeof QUALITY_BASE;
  * @returns The item
  */
 const pickOne = <T>(items: readonly T[], random: () => number): T => items[Math.floor(random() * items.length)];
+
+/**
+ * The sponsors of a trade big enough, and not too big, to write at a rung.
+ * @param trade The trade
+ * @param rung The rung, 1 being the top
+ * @returns The trade's sponsors whose stature writes there, in the book's order
+ */
+export const openSponsors = (trade: SponsorTrade, rung: number): readonly BookSponsor[] => (
+  SPONSOR_BOOK[trade].filter(({ stature }) => {
+    const [top, bottom] = STATURE_RUNGS[stature];
+    return rung >= top && rung <= bottom;
+  })
+);
 
 /**
  * A whole number drawn inside a range, both ends included.
@@ -358,8 +375,11 @@ export const drawSponsorOffer = (request: SponsorDrawRequest): SponsorOffer | nu
   for (const kind of shuffle(pool, random).slice(0, count)) perks.push(drawnPerk(kind, slot, fee, at, speed));
   if (slot === 'main') perks.push({ kind: 'goalBonus', amount: figure('goalBonus', slot, fee, at, speed) });
 
-  const book = SPONSOR_BOOK[trade].filter((one) => !request.names.includes(one.name));
-  const who = pickOne(book.length > 0 ? book : SPONSOR_BOOK[trade], random);
+  // Only a sponsor of a size to back the rung writes, and none a deal holds.
+  const open = openSponsors(trade, rung);
+  const book = open.length > 0 ? open : SPONSOR_BOOK[trade];
+  const free = book.filter((one) => !request.names.includes(one.name));
+  const { stature, ...who } = pickOne(free.length > 0 ? free : book, random);
 
   return {
     sponsor: { ...who, trade },

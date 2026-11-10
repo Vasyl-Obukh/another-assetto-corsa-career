@@ -1,5 +1,6 @@
+import type { SponsorStature } from './types.ts';
 import type {
-  Sponsor, SponsorGoalKind, SponsorPerkKind, SponsorSlot, SponsorTargetKind, SponsorTrade,
+  SponsorGoalKind, SponsorPerkKind, SponsorSlot, SponsorTargetKind, SponsorTrade,
 } from '../../shared/types/index.ts';
 import type { FormBand } from '../../shared/utils/sponsors/index.ts';
 
@@ -53,7 +54,7 @@ export const JITTER = 0.15;
 /**
  * Every trade, in a fixed order the draw picks from.
  */
-export const TRADES: readonly SponsorTrade[] = ['oil', 'tyres', 'tech', 'drinks', 'watch', 'finance', 'parts', 'dealer', 'apparel'];
+export const TRADES: readonly SponsorTrade[] = ['oil', 'tyres', 'tech', 'drinks', 'watch', 'finance', 'parts', 'dealer', 'apparel', 'travel'];
 
 /**
  * What each trade leans on: whether it covers a discipline rather than any
@@ -93,6 +94,9 @@ export const TRADE_LEAN: Record<SponsorTrade, {
   },
   apparel: {
     discipline: false, signatures: ['seatBacking', 'climbs', 'carBacking'], perks: ['points', 'win', 'teamInterest'], targets: ['teammate'], goals: ['onTarget'],
+  },
+  travel: {
+    discipline: false, signatures: ['championship', 'seatBacking'], perks: ['invitations', 'points', 'win'], targets: ['start', 'classPlace'], goals: ['racesStarted', 'championshipPlace'],
   },
 };
 
@@ -208,58 +212,12 @@ export const CHAMPIONSHIP_PLACE = { top: 3, share: 1 / 2 } as const;
 export const ROUND_TO = { below: 10_000, small: 100, large: 500 } as const;
 
 /**
- * Who each trade's sponsors are: invented names, each with the nation it
- * comes from.
+ * The rungs a sponsor of each stature writes to, as the highest and the lowest,
+ * 1 being the top: a household name only at Gold and Platinum, a niche brand
+ * only up to Silver, and every rung under the fifth being Rookie's.
  */
-export const SPONSOR_BOOK: Record<SponsorTrade, readonly Omit<Sponsor, 'trade'>[]> = {
-  oil: [
-    { name: 'Halden Lubricants', nation: 'GBR' }, { name: 'Castlebridge Fuels', nation: 'GBR' },
-    { name: 'Nordvik Oil', nation: 'NOR' }, { name: 'Petrolia Avanti', nation: 'ITA' },
-    { name: 'Rheinmark Schmierstoffe', nation: 'DEU' }, { name: 'Sable Motor Oils', nation: 'USA' },
-    { name: 'Corbeau Carburants', nation: 'FRA' }, { name: 'Takumi Lube', nation: 'JPN' },
-  ],
-  tyres: [
-    { name: 'Vantor Tyres', nation: 'DEU' }, { name: 'Morrow Rubber', nation: 'GBR' },
-    { name: 'Pneus Lacroix', nation: 'FRA' }, { name: 'Gommeria Ardente', nation: 'ITA' },
-    { name: 'Kurogane Tire', nation: 'JPN' }, { name: 'Ridgeline Tire Co', nation: 'USA' },
-    { name: 'Bergmann Reifen', nation: 'AUT' },
-  ],
-  tech: [
-    { name: 'Corvane Telecom', nation: 'IRL' }, { name: 'Lumen Data', nation: 'USA' },
-    { name: 'Helix Systems', nation: 'GBR' }, { name: 'Nexora Software', nation: 'SWE' },
-    { name: 'Kaiden Electronics', nation: 'JPN' }, { name: 'Datastrom', nation: 'DEU' },
-    { name: 'Quantis Networks', nation: 'NLD' },
-  ],
-  drinks: [
-    { name: 'Brightwater Cider', nation: 'GBR' }, { name: 'Alder Springs', nation: 'CAN' },
-    { name: 'Volta Energy', nation: 'AUT' }, { name: 'Cantina Serrano', nation: 'ESP' },
-    { name: 'Brauerei Falkner', nation: 'DEU' }, { name: 'Maré Agua', nation: 'PRT' },
-    { name: 'Highfield Gin', nation: 'SCT' },
-  ],
-  watch: [
-    { name: 'Kestrel Timing', nation: 'CHE' }, { name: 'Maison Varre', nation: 'CHE' },
-    { name: 'Orrell Chronographs', nation: 'GBR' }, { name: 'Sekai Watch', nation: 'JPN' },
-    { name: 'Lindqvist Horologe', nation: 'SWE' }, { name: 'Tempo Milano', nation: 'ITA' },
-  ],
-  finance: [
-    { name: 'Moorgate Insurance', nation: 'GBR' }, { name: 'Fenwick Capital', nation: 'GBR' },
-    { name: 'Aurum Bank', nation: 'LUX' }, { name: 'Hansa Versicherung', nation: 'DEU' },
-    { name: 'Meridian Assurance', nation: 'USA' }, { name: 'Banca Solare', nation: 'ITA' },
-    { name: 'Nordhavn Invest', nation: 'DNK' },
-  ],
-  parts: [
-    { name: 'Ridgeway Motor Factors', nation: 'GBR' }, { name: 'Brakeline', nation: 'USA' },
-    { name: 'Kessler Autoteile', nation: 'DEU' }, { name: 'Pièces Marchand', nation: 'FRA' },
-    { name: 'Tanaka Parts', nation: 'JPN' }, { name: 'Ricambi Ferraresi', nation: 'ITA' },
-  ],
-  dealer: [
-    { name: 'Sutton Motor Group', nation: 'GBR' }, { name: 'Ostwald Automobile', nation: 'DEU' },
-    { name: 'Auto Bellini', nation: 'ITA' }, { name: 'Garage Lemaire', nation: 'FRA' },
-    { name: 'Lakeside Motors', nation: 'USA' }, { name: 'Haugen Bil', nation: 'NOR' },
-  ],
-  apparel: [
-    { name: 'Northpeak Outdoor', nation: 'CAN' }, { name: 'Kilner & Co', nation: 'GBR' },
-    { name: 'Vela Sportswear', nation: 'ESP' }, { name: 'Strada Moda', nation: 'ITA' },
-    { name: 'Fjell Apparel', nation: 'NOR' }, { name: 'Brandt Textil', nation: 'DEU' },
-  ],
+export const STATURE_RUNGS: Record<SponsorStature, readonly [number, number]> = {
+  global: [1, 2],
+  major: [1, 4],
+  specialist: [3, Number.POSITIVE_INFINITY],
 };

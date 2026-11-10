@@ -3274,6 +3274,24 @@ Designed in `mockups/sponsor-perks.html`, every decision agreed on 2026-11-07.
       tag** on a renewal's mail, a sponsor's and a team's alike
 - [x] **A deal that climbs says so**, on its card and in a mail
 
+### Slice 3 - Real sponsors
+
+Designed in `mockups/sponsor-logos.html`, agreed on 2026-11-10. Every brand and
+where its logo came from is in `sponsor-review.md`.
+
+- [x] **A book of real companies**: 314 brands that have backed motorsport, in
+      place of the invented names, each with its nation
+- [x] **A tenth trade, Travel and logistics**: airlines, hotels, ferries, freight
+      and couriers, offering championship cover or seat backing, invitations,
+      points and wins, for starting races or a championship place. Tobacco stays
+      out
+- [x] **Size decides the rung**: a global brand writes only at Gold and
+      Platinum, a major one from Bronze to Platinum, a specialist from Rookie to
+      Silver. Every trade has at least ten brands open at every rung
+- [x] **Logos**: 170 of them, public domain or CC0, shown on a light plate ringed
+      in the slot's colour, wider than tall and with no trade icon. A brand with
+      none keeps its initials and its trade icon, widened to the same size
+
 ## Phase 11 - Inbox
 
 The message model, the screen and event invitations moved ahead of Phase 9 as
@@ -3325,6 +3343,12 @@ The message model, the screen and event invitations moved ahead of Phase 9 as
 - [ ] **Code signing certificate** - an unsigned Electron app that reads game
       folders and spawns processes gets flagged constantly
 - [ ] Auto-update, crash reporting
+- [ ] **Decide whether real sponsors ship.** A logo's free licence covers the
+      file, not the trademark, and an offer from a real company implies an
+      endorsement it never gave. Every logo is in
+      `src/renderer/src/assets/sponsors/`, and a sponsor without one shows its
+      initials, so taking them out is deleting that folder; the names are
+      `SPONSOR_BOOK` in `src/core/sponsor-offers/sponsor-book.ts`
 - [ ] Docs: getting started, series authoring guide
 - [ ] Translation contribution workflow
 

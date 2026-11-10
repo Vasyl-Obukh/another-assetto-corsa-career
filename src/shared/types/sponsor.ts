@@ -10,7 +10,7 @@ import type { Discipline } from './ladder.ts';
 /**
  * What a sponsor sells, which decides what it leans on and names it.
  */
-export type SponsorTrade = 'oil' | 'tyres' | 'tech' | 'drinks' | 'watch' | 'finance' | 'parts' | 'dealer' | 'apparel';
+export type SponsorTrade = 'oil' | 'tyres' | 'tech' | 'drinks' | 'watch' | 'finance' | 'parts' | 'dealer' | 'apparel' | 'travel';
 
 /**
  * Which slot a deal fills: the one main sponsor, or a partner.
@@ -156,7 +156,7 @@ export interface SponsorGoal {
  */
 export interface Sponsor {
   /**
-   * Its name, drawn off its trade's book.
+   * Its name, drawn off its trade's book of real companies.
    */
   name: string;
   /**
@@ -167,6 +167,11 @@ export interface Sponsor {
    * Where it is from, as Assetto Corsa's nation code.
    */
   nation: string;
+  /**
+   * Its logo, by the name of its file among the renderer's sponsor assets -
+   * absent for a brand that has none, which shows its initials.
+   */
+  logo?: string;
 }
 
 /**

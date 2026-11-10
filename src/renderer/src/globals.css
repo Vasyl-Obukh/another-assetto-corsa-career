@@ -377,6 +377,11 @@
   --partner: oklch(0.93 0.05 200);
   --partner-foreground: oklch(0.38 0.09 205);
   --partner-solid: oklch(0.6 0.11 205);
+  /* The plate a sponsor's logo sits on, ringed in its slot's solid tone. Light
+     in both themes, since logos are drawn for white paper and a black wordmark
+     vanishes on a dark card; a touch dimmer in dark so it does not glare. No
+     hue of its own - the ring is the slot's. */
+  --sponsor-plate: oklch(0.995 0.002 255);
   /* A renewal's tag, a sponsor's and a team's alike, on periwinkle 250: practice's
      hue, which no mail or list of mail shows. */
   --renewal: oklch(0.93 0.045 250);
@@ -608,6 +613,7 @@
   --partner: oklch(0.33 0.06 200);
   --partner-foreground: oklch(0.86 0.08 200);
   --partner-solid: oklch(0.66 0.11 200);
+  --sponsor-plate: oklch(0.94 0.004 255);
   --renewal: oklch(0.33 0.06 255);
   --renewal-foreground: oklch(0.86 0.08 255);
   --paint-from: oklch(0.62 0.19 345);
@@ -782,6 +788,7 @@
   --color-partner: var(--partner);
   --color-partner-foreground: var(--partner-foreground);
   --color-partner-solid: var(--partner-solid);
+  --color-sponsor-plate: var(--sponsor-plate);
   --color-renewal: var(--renewal);
   --color-renewal-foreground: var(--renewal-foreground);
   --color-paint-from: var(--paint-from);

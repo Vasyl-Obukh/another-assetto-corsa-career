@@ -1,6 +1,22 @@
 import type {
-  Discipline, SponsorCar, SponsorDeal, SponsorSlot, SponsorTrade,
+  Discipline, Sponsor, SponsorCar, SponsorDeal, SponsorSlot, SponsorTrade,
 } from '../../shared/types/index.ts';
+
+/**
+ * How big a sponsor is in its trade, which decides the rungs it writes to: a
+ * household name, a brand known worldwide, or a niche or regional one.
+ */
+export type SponsorStature = 'global' | 'major' | 'specialist';
+
+/**
+ * A sponsor as its trade's book lists it.
+ */
+export interface BookSponsor extends Omit<Sponsor, 'trade'> {
+  /**
+   * How big it is in its trade.
+   */
+  stature: SponsorStature;
+}
 
 /**
  * A car a car reward may name: one racing on the rung open to the career in

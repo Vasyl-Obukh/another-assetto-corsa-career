@@ -1,5 +1,5 @@
 import {
-  CarIcon, CogIcon, CupSodaIcon, DiscIcon, DropletIcon, LandmarkIcon, ShirtIcon, SmartphoneIcon, WatchIcon,
+  CarIcon, CogIcon, CupSodaIcon, DiscIcon, DropletIcon, LandmarkIcon, PlaneIcon, ShirtIcon, SmartphoneIcon, WatchIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -16,8 +16,9 @@ export const SIGNATURES: readonly SponsorPerkKind[] = ['championship', 'climbs',
 export const HELPS: readonly SponsorPerkKind[] = ['repaints', 'teamInterest', 'worksInterest', 'betterTerms', 'invitations'];
 
 /**
- * The icon each trade wears on a sponsor's mark - an icon rather than a chip,
- * so the nine trades spend no hue of the palette.
+ * The icon each trade wears on a sponsor's initials - an icon rather than a
+ * chip, so the ten trades spend no hue of the palette. A logo wears none, since
+ * in the corner it would cover the end of a wordmark.
  */
 export const TRADE_ICON = {
   oil: DropletIcon,
@@ -29,6 +30,7 @@ export const TRADE_ICON = {
   parts: CogIcon,
   dealer: CarIcon,
   apparel: ShirtIcon,
+  travel: PlaneIcon,
 } as const satisfies Record<SponsorTrade, LucideIcon>;
 
 /**

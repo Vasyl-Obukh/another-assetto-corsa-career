@@ -1,11 +1,26 @@
 import type { TFunction } from 'i18next';
 
-import { HELPS } from './constants.ts';
+import { HELPS, MARK_LETTERS } from './constants.ts';
 import type {
   SponsorGoal, SponsorNews, SponsorOffer, SponsorPerk, SponsorTarget, SponsorTerms,
 } from '../../../../shared/types';
 import { sponsorFigure } from '../../../../shared/utils/sponsors';
 import type { GoalStanding } from '../../../../shared/utils/sponsors';
+
+/**
+ * The letters a sponsor without a logo shows: the first of each of its first
+ * two words, or the first two of a name of one word.
+ * @param name The sponsor's name
+ * @returns Its initials, in capitals
+ */
+export const markInitials = (name: string): string => {
+  const words = name.split(/[\s-]+/).filter((word) => /^[\p{L}\p{N}]/u.test(word));
+  const letters = words.length > 1
+    ? words.map((word) => word[0])
+    : [...(words[0] ?? '')].filter((one) => /[\p{L}\p{N}]/u.test(one));
+
+  return letters.slice(0, MARK_LETTERS).join('').toUpperCase();
+};
 
 /**
  * What a share of a class or of a deal's races is called.

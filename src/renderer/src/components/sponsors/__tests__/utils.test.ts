@@ -6,7 +6,7 @@ import type {
 } from '../../../../../shared/types';
 import type { GoalStanding } from '../../../../../shared/utils/sponsors';
 import {
-  goalProgress, goalText, perkPair, shareKey, sponsorNewsSubject, sponsorOfferSubject,
+  goalProgress, goalText, markInitials, perkPair, shareKey, sponsorNewsSubject, sponsorOfferSubject,
 } from '../utils.ts';
 
 /**
@@ -55,6 +55,25 @@ const standing = (over: Partial<GoalStanding> = {}): GoalStanding => ({
 });
 
 describe('renderer/components/sponsors/utils', () => {
+  describe('markInitials', () => {
+    it("takes the first letter of each of a name's first two words", () => {
+      expect(markInitials('Mobil 1 Racing')).toBe('M1');
+      expect(markInitials('Mercedes-Benz Financial')).toBe('MB');
+      expect(markInitials('Tag Heuer')).toBe('TH');
+    });
+
+    // A name of one word showed a single letter on a plate two wide.
+    it('takes the first two letters of a name of one word', () => {
+      expect(markInitials('Goodyear')).toBe('GO');
+      expect(markInitials('AWS')).toBe('AW');
+      expect(markInitials("O'Neill")).toBe('ON');
+    });
+
+    it('skips a word that starts with neither a letter nor a digit', () => {
+      expect(markInitials('Kilner & Co')).toBe('KC');
+    });
+  });
+
   describe('shareKey', () => {
     it('names a half, a third, a quarter and three quarters', () => {
       expect(shareKey(1 / 2)).toBe('half');

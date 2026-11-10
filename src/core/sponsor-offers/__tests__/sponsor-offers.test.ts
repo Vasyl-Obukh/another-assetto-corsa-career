@@ -7,10 +7,11 @@ import type {
 import { ratingFloor, rungWidth } from '../../../shared/utils/career-eligibility/index.ts';
 import { randomFrom, seedFrom } from '../../seeded-random/index.ts';
 import {
-  COST_SHARE_RANGE, FORM_CHANCE, PARTNER_ONLY, REPLACE_FACTOR, SPONSOR_BOOK, STANDOUT_CHANCE, TRADE_LEAN, TRADES,
+  COST_SHARE_RANGE, FORM_CHANCE, PARTNER_ONLY, REPLACE_FACTOR, STANDOUT_CHANCE, TRADE_LEAN, TRADES,
 } from '../constants.ts';
+import { SPONSOR_BOOK } from '../sponsor-book.ts';
 import {
-  drawRenewal, drawSponsorOffer, sponsorChance, sponsorDrawn,
+  drawRenewal, drawSponsorOffer, openSponsors, sponsorChance, sponsorDrawn,
 } from '../sponsor-offers.ts';
 import type { RewardCar, SponsorDrawRequest, SponsorRenewalRequest } from '../types.ts';
 
@@ -223,6 +224,29 @@ describe('core/sponsor-offers', () => {
     });
   });
 
+  describe('openSponsors', () => {
+    it('opens Rookie, at every rung under the fifth, to specialists alone', () => {
+      for (const trade of TRADES) {
+        for (const rung of [5, 6, 9]) {
+          expect(openSponsors(trade, rung).every(({ stature }) => stature === 'specialist')).toBe(true);
+        }
+      }
+    });
+
+    it('keeps specialists off Gold and Platinum and household names off every rung under Gold', () => {
+      for (const trade of TRADES) {
+        for (const rung of [1, 2]) expect(openSponsors(trade, rung).map(({ stature }) => stature)).not.toContain('specialist');
+        for (const rung of [3, 4, 5]) expect(openSponsors(trade, rung).map(({ stature }) => stature)).not.toContain('global');
+      }
+    });
+
+    it('leaves every trade a choice of sponsors on every rung', () => {
+      for (const trade of TRADES) {
+        for (const rung of [1, 2, 3, 4, 5]) expect(openSponsors(trade, rung).length).toBeGreaterThanOrEqual(6);
+      }
+    });
+  });
+
   describe('drawSponsorOffer', () => {
     it('draws nothing once every trade is held', () => {
       expect(drawSponsorOffer(request({ held: [...TRADES] }))).toBeNull();
@@ -239,16 +263,51 @@ describe('core/sponsor-offers', () => {
     });
 
     it('never takes a name a deal holds while the book has another', () => {
-      const [left, ...taken] = SPONSOR_BOOK.oil.map((one) => one.name);
+      // The request draws at Bronze, so only the oil sponsors open there count.
+      const [left, ...taken] = openSponsors('oil', 4).map((one) => one.name);
       for (const salt of SALTS) {
         expect(drawSponsorOffer(request({ salt, held: allBut('oil'), names: taken }))?.sponsor.name).toBe(left);
       }
     });
 
-    it('falls back on the whole book once every name is taken', () => {
+    it("falls back on the rung's own sponsors once every name is taken", () => {
       const names = SPONSOR_BOOK.oil.map((one) => one.name);
+      const open = openSponsors('oil', 4).map((one) => one.name);
 
-      expect(names).toContain(drawSponsorOffer(request({ held: allBut('oil'), names }))?.sponsor.name);
+      for (const salt of SALTS) {
+        expect(open).toContain(drawSponsorOffer(request({ salt, held: allBut('oil'), names }))?.sponsor.name);
+      }
+    });
+
+    it('draws a sponsor sized to the rung', () => {
+      for (const rung of [1, 3, 5, 7]) {
+        for (const trade of TRADES) {
+          const open = openSponsors(trade, rung).map((one) => one.name);
+
+          for (const offer of offersOf(trade, { level: levels(rung) })) expect(open).toContain(offer.sponsor.name);
+        }
+      }
+    });
+
+    it("names its sponsor as the book lists it, logo and all, without its stature", () => {
+      const drawn = TRADES.flatMap((trade) => offersOf(trade)).map((offer) => offer.sponsor);
+
+      expect(drawn.some((sponsor) => sponsor.logo)).toBe(true);
+      for (const sponsor of drawn) {
+        const { stature, ...listed } = SPONSOR_BOOK[sponsor.trade].find((one) => one.name === sponsor.name)!;
+
+        expect(stature).toBeDefined();
+        expect(sponsor).toEqual({ ...listed, trade: sponsor.trade });
+      }
+    });
+
+    it('draws its target and goal from those its trade leans to', () => {
+      for (const trade of TRADES) {
+        for (const offer of offersOf(trade)) {
+          expect(TRADE_LEAN[trade].targets).toContain(offer.target.kind);
+          expect(TRADE_LEAN[trade].goals).toContain(offer.goal.kind);
+        }
+      }
     });
 
     it('leads a main offer with a signature and ends it with a goal bonus', () => {
