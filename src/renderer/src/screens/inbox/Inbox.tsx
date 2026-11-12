@@ -6,15 +6,20 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
 import { FOLDER_PARAM, PAGE_PARAM } from './constants.ts';
+import { DebriefReader } from './DebriefReader.tsx';
 import { InboxRail } from './InboxRail.tsx';
 import { MailList } from './MailList.tsx';
 import { MailReader } from './MailReader.tsx';
+import { MarketReader } from './MarketReader.tsx';
 import { NoticeReader } from './NoticeReader.tsx';
 import { OfferReader } from './OfferReader.tsx';
+import { ResultsReader } from './ResultsReader.tsx';
+import { RungReader } from './RungReader.tsx';
 import { SponsorNewsReader } from './SponsorNewsReader.tsx';
 import { SponsorReader } from './SponsorReader.tsx';
+import { TeamNewsReader } from './TeamNewsReader.tsx';
 import {
-  carModels, eventLink, folderOf, offerEdition, offerLink, pageNumber,
+  carModels, eventLink, folderOf, offerEdition, offerLink, pageNumber, runName,
 } from './utils.ts';
 import type { MailAnswer, OfferPick } from '../../../../shared/types';
 import { entryFeeOf } from '../../../../shared/utils/entry-fees';
@@ -65,6 +70,11 @@ export const Inbox = () => {
   const notice = selected?.mail.notice ?? null;
   const sponsor = selected?.mail.sponsor ?? null;
   const news = selected?.mail.sponsorNews ?? null;
+  const debrief = selected?.mail.debrief ?? null;
+  const results = selected?.mail.results ?? null;
+  const rung = selected?.mail.rung ?? null;
+  const market = selected?.mail.market ?? null;
+  const run = career && selected ? runName(career, selected, t) : '';
 
   // Opening a mail reads it. Marked unread again, it is closed as it is, so
   // this never opens it straight back.
@@ -108,6 +118,14 @@ export const Inbox = () => {
   const answer = (id: string, reply: MailAnswer, offer?: OfferPick, backed = false): void => command(() => invoke('career:answer', {
     mail: id, answer: reply, ...(offer ? { offer } : {}), ...(backed ? { backed } : {}),
   }));
+  /**
+   * Marks the mail open unread again, and closes it.
+   * @param id The mail
+   */
+  const markUnread = (id: string): void => {
+    show({ [MAIL_PARAM]: null });
+    command(() => invoke('career:markMail', { mail: id, opened: false }));
+  };
 
   // What declining a seat offer or an invitation is asked as.
   const declineTitle = seat
@@ -168,22 +186,56 @@ export const Inbox = () => {
             busy={busy}
             onAccept={(offer, backed) => answer(selected.mail.id, 'accepted', { entry: offer.entry, team: offer.team }, backed)}
             onDecline={() => setDeclining(true)}
-            onUnread={() => {
-              show({ [MAIL_PARAM]: null });
-              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
-            }}
+            onUnread={() => markUnread(selected.mail.id)}
           />
         ) : null}
-        {selected && notice ? (
+        {selected && notice?.kind ? (
+          <TeamNewsReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, notice } }}
+            run={run}
+            link={offerLink(career, notice)}
+            onUnread={() => markUnread(selected.mail.id)}
+          />
+        ) : null}
+        {selected && debrief ? (
+          <DebriefReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, debrief } }}
+            run={run}
+            onUnread={() => markUnread(selected.mail.id)}
+          />
+        ) : null}
+        {selected && results ? (
+          <ResultsReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, results } }}
+            run={run}
+            onUnread={() => markUnread(selected.mail.id)}
+          />
+        ) : null}
+        {selected && rung ? (
+          <RungReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, rung } }}
+            onUnread={() => markUnread(selected.mail.id)}
+          />
+        ) : null}
+        {selected && market ? (
+          <MarketReader
+            career={career}
+            item={{ ...selected, mail: { ...selected.mail, market } }}
+            year={run}
+            onUnread={() => markUnread(selected.mail.id)}
+          />
+        ) : null}
+        {selected && notice && !notice.kind ? (
           <NoticeReader
             career={career}
             item={{ ...selected, mail: { ...selected.mail, notice } }}
             edition={offerEdition(career, notice, t)}
             link={offerLink(career, notice)}
-            onUnread={() => {
-              show({ [MAIL_PARAM]: null });
-              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
-            }}
+            onUnread={() => markUnread(selected.mail.id)}
           />
         ) : null}
         {selected && sponsor ? (
@@ -193,23 +245,17 @@ export const Inbox = () => {
             busy={busy}
             onSign={() => answer(selected.mail.id, 'accepted')}
             onDecline={() => setDeclining(true)}
-            onUnread={() => {
-              show({ [MAIL_PARAM]: null });
-              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
-            }}
+            onUnread={() => markUnread(selected.mail.id)}
           />
         ) : null}
         {selected && news ? (
           <SponsorNewsReader
             career={career}
             item={{ ...selected, mail: { ...selected.mail, sponsorNews: news } }}
-            onUnread={() => {
-              show({ [MAIL_PARAM]: null });
-              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
-            }}
+            onUnread={() => markUnread(selected.mail.id)}
           />
         ) : null}
-        {selected && !seat && !notice && !sponsor && !news ? (
+        {selected && !seat && !notice && !sponsor && !news && !debrief && !results && !rung && !market ? (
           <MailReader
             career={career}
             item={selected}
@@ -218,10 +264,7 @@ export const Inbox = () => {
             busy={busy}
             onAccept={() => answer(selected.mail.id, 'accepted')}
             onDecline={() => setDeclining(true)}
-            onUnread={() => {
-              show({ [MAIL_PARAM]: null });
-              command(() => invoke('career:markMail', { mail: selected.mail.id, opened: false }));
-            }}
+            onUnread={() => markUnread(selected.mail.id)}
           />
         ) : null}
         {selected ? null : (

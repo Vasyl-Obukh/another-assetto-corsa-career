@@ -50,6 +50,7 @@ import {
   composeCalendar,
   currentSeason,
   declineOffers,
+  deliver,
   drawnCars,
   drawnEvent,
   drawOf,
@@ -69,6 +70,7 @@ import {
   inProgressEvent,
   invitationMail,
   invitationState,
+  isListed,
   issueForecast,
   issueForecasts,
   keptInBackup,
@@ -138,6 +140,9 @@ import { planEvent } from '../../core/event/index.ts';
 import {
   historicRung, historicSeat, historicSlots, invitationDrawn, planHistoric, withPlayerSeat,
 } from '../../core/historic-draw/index.ts';
+import {
+  debriefMail, debriefOf, marketMail, paddockNews, teamPeople,
+} from '../../core/paddock-news/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, toDayNumber } from '../../core/season-calendar/index.ts';
 import { scoreRound } from '../../core/season-scoring/index.ts';
@@ -170,6 +175,7 @@ import type {
   HistoricDraw,
   KeptOutcome,
   Mail,
+  MarketSeat,
   OfferPick,
   RaceDefinition,
   RaceSetup,
@@ -209,7 +215,7 @@ import {
 import { nationName } from '../../shared/utils/nations/index.ts';
 import { prizeTable } from '../../shared/utils/prizes/index.ts';
 import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
-import { hiddenAsFiller, isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
+import { isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
   afterShares, backingOf, carBackingDeal, costShares, dealRung, invitationLift, liveDeals, perkOf, repaintDeal,
   seatBacker, seatBackingDeal, seatLift,
@@ -682,8 +688,10 @@ export const createCareerStore = async (
    */
   const settle = (): Career => {
     if (!current) throw new AppError('career.none');
+    const rated = rateCareer(payOut(current));
+    const dated = rated.newsFrom === undefined ? { ...rated, newsFrom: rated.date } : rated;
     // Played is opened or changed, which every settle is one of.
-    const career: Career = { ...rateCareer(payOut(current)), playedAt: new Date().toISOString() };
+    const career: Career = { ...deliver(dated, paddockNews(dated)), playedAt: new Date().toISOString() };
     current = career;
 
     if (timer) clearTimeout(timer);
@@ -822,10 +830,7 @@ export const createCareerStore = async (
       return { ...draw, invitation: { ...drawnOn, outcome: 'invited' } };
     }));
 
-    return {
-      ...withSeason(career, { ...season, historicEvents: draws }),
-      inbox: [...career.inbox, ...sent.sort((left, right) => left.arrived.localeCompare(right.arrived))],
-    };
+    return deliver(withSeason(career, { ...season, historicEvents: draws }), sent);
   };
 
   /**
@@ -893,12 +898,7 @@ export const createCareerStore = async (
     // Only what the Championships page lists, and only an edition not drawn
     // yet - which spares dating every edition of the library on every command.
     const due = library.series
-      .filter((listing) => (
-        listing.availability.available
-        && isSeriesActive(listing, shown)
-        && !hiddenAsFiller(listing, shown)
-        && !hiddenBySources(listing, shown.hiddenContentSources)
-      ))
+      .filter((listing) => isListed(listing, shown))
       .flatMap((listing) => Array.from({ length: editionsOf(listing.series) }, (unused, edition) => ({
         listing, edition, key: `${listing.series.id}:${edition}`,
       })))
@@ -937,7 +937,9 @@ export const createCareerStore = async (
           ? { ...judged, kept: true }
           : judged;
         if (before && keeping && !keeping.kept) {
-          notices.push(noticeMail(before.season, before.entry, keeping, today, season.index));
+          notices.push(noticeMail(
+            before.season, before.entry, keeping, today, season.index, teamPeople(career.id, before.entry).boss,
+          ));
           decided.push({
             season: before.season.index, series: championship.id, edition: before.entry.edition, kept: 'released',
           });
@@ -1022,7 +1024,6 @@ export const createCareerStore = async (
       }
     }
 
-    const known = new Set(career.inbox.map((mail) => mail.id));
     const painted = await Promise.all(sent.map(async (mail): Promise<Mail> => ({
       ...mail,
       offers: await Promise.all((mail.offers ?? []).map(async (offer) => ({
@@ -1032,10 +1033,75 @@ export const createCareerStore = async (
 
     const drawnNow = withSeason(career, { ...season, offersDrawn: [...drawn, ...due.map((one) => one.key)] });
 
-    return {
-      ...decided.reduce((marked, one) => withKept(marked, one.season, one.series, one.edition, one.kept), drawnNow),
-      inbox: [...career.inbox, ...[...notices, ...painted].filter((mail) => !known.has(mail.id))],
-    };
+    return deliver(
+      decided.reduce((marked, one) => withKept(marked, one.season, one.series, one.edition, one.kept), drawnNow),
+      [...notices, ...painted],
+    );
+  };
+
+  /**
+   * Sends a season's market news once, as it opens: every seat a privateer
+   * sells in a class on the rung each discipline is open to the player at, in
+   * the next edition of each championship the Championships page lists and
+   * the player has not entered.
+   * Nothing for a season opened before news started.
+   * @param career The career
+   * @returns The career, the season marked looked over
+   */
+  const sendMarket = async (career: Career): Promise<Career> => {
+    const season = currentSeason(career);
+    if (career.kind !== 'career' || !season || season.marketDrawn) return career;
+    const marked = withSeason(career, { ...season, marketDrawn: true });
+    if (season.startDate < (career.newsFrom ?? career.date)) return marked;
+
+    let library: SeriesLibrary;
+    try {
+      library = await series.list();
+    } catch (error) {
+      console.warn('Could not read the championships for market news.', error);
+
+      return career;
+    }
+
+    const shown = settings.get();
+    const open = openLevels(career.level);
+    const seats = library.series
+      .filter((listing) => isListed(listing, shown))
+      .flatMap((listing): MarketSeat[] => {
+        const championship = listing.series;
+        const edition = Array.from({ length: editionsOf(championship) }, (unused, at) => at).find((at) => (
+          (materialiseEvents(championship, season, at, season.startDate)[0]?.date ?? '') >= career.date
+        ));
+        if (edition === undefined || enteredEntry(season, championship.id, edition)) return [];
+
+        return championship.entries
+          // The rung each discipline is open at, not every rung beneath it.
+          .filter((entry) => entry.ladder.tier === open[entry.ladder.discipline])
+          .flatMap((entry) => saleSeats(career, season, championship, listing.availability, entry, edition)
+            .map((terms): MarketSeat => ({
+              series: championship.id,
+              seriesName: championship.name,
+              season: season.index,
+              edition,
+              editions: editionsOf(championship),
+              entry: entry.id,
+              entryName: entry.name,
+              team: terms.team,
+              teamName: terms.teamName,
+              ...(terms.nation === undefined ? {} : { nation: terms.nation }),
+              budget: terms.budget,
+              car: terms.car,
+              price: terms.amount,
+            })));
+      });
+
+    const mail = marketMail(season, seats, career.date);
+    if (!mail?.market) return marked;
+    const painted = await Promise.all(mail.market.seats.map(async (seat) => ({
+      ...seat, car: await liveried(seat.car),
+    })));
+
+    return deliver(marked, [{ ...mail, market: { seats: painted } }]);
   };
 
   /**
@@ -1233,6 +1299,8 @@ export const createCareerStore = async (
   const simulateMissed = async (career: Career): Promise<Career> => {
     const at = new Date().toISOString();
     let next = career;
+    const debriefs: Mail[] = [];
+    const newsFrom = career.newsFrom ?? career.date;
 
     for (const season of career.seasons) {
       const entries = await Promise.all(season.entries.map(async (entry) => {
@@ -1244,6 +1312,7 @@ export const createCareerStore = async (
 
         for (const event of due) {
           try {
+            const driven = await race.launchResults(event.sessions);
             const simulated = simulateRound({
               series: entry.championship,
               round: event.round,
@@ -1252,11 +1321,19 @@ export const createCareerStore = async (
               field: entry.field,
               player: { entry: entry.entry },
               completed: event.sessions,
-              results: await race.launchResults(event.sessions),
+              results: driven,
             });
-            updated = withEvent(updated, {
-              ...event, sessions: simulated.sessions, score: simulated.score, simulated: true,
-            }, at);
+            const recorded = { ...event, sessions: simulated.sessions, score: simulated.score, simulated: true };
+            updated = withEvent(updated, recorded, at);
+            // Standalone championships get no news.
+            if (career.kind === 'career' && event.sessions.some((launch) => !launch.skipped)) {
+              const debrief = debriefOf({
+                season: season.index, entry: updated, event: recorded, plan: simulated.plan, results: driven,
+              });
+              if (debrief && event.date >= newsFrom) {
+                debriefs.push(debriefMail(career.id, updated, debrief, event.date, season.index));
+              }
+            }
           } catch (error) {
             // Left as a plain non-start, which pays nobody anything - and marked
             // all the same, since the season's copy never changes and would only
@@ -1274,7 +1351,7 @@ export const createCareerStore = async (
       }
     }
 
-    return next;
+    return deliver(next, debriefs);
   };
 
   /**
@@ -1368,7 +1445,8 @@ export const createCareerStore = async (
   const catchUp = async (): Promise<void> => {
     if (current) {
       // Sponsors first, so a deal whose year ran out helps no seat or invitation.
-      current = await sendOffers(await sendInvitations(await sponsorsMove(await simulateMissed(current))));
+      const mailed = await sendInvitations(await sponsorsMove(await simulateMissed(current)));
+      current = await sendMarket(await sendOffers(mailed));
     }
   };
 
@@ -1398,14 +1476,8 @@ export const createCareerStore = async (
     if (state.completed.length <= held.event.sessions.length) return;
 
     const at = new Date().toISOString();
-    const score = scoreRound(
-      held.entry.championship,
-      held.event.round,
-      plan,
-      state,
-      await race.launchResults(state.completed),
-      at,
-    );
+    const results = await race.launchResults(state.completed);
+    const score = scoreRound(held.entry.championship, held.event.round, plan, state, results, at);
     const finished = state.completed.length >= state.launchCount;
 
     const event: SeasonEvent = {
@@ -1414,7 +1486,20 @@ export const createCareerStore = async (
       score,
       status: finished ? 'raced' : 'scheduled',
     };
-    replaceEntry(season, held.entry, withEvent(held.entry, event, at));
+    const recorded = withEvent(held.entry, event, at);
+    replaceEntry(season, held.entry, recorded);
+    const debrief = finished && current.kind === 'career'
+      ? debriefOf({
+        season: season.index, entry: recorded, event, plan, results,
+      })
+      : null;
+    if (debrief) {
+      // Never before the race day, and never behind the clock.
+      const arrived = current.date > event.date ? current.date : event.date;
+      if (arrived >= (current.newsFrom ?? current.date)) {
+        current = deliver(current, [debriefMail(current.id, recorded, debrief, arrived, season.index)]);
+      }
+    }
 
     // The clock never runs backwards, so an event raced early leaves it where
     // it was rather than pulling it back to the event's day.
@@ -2009,6 +2094,7 @@ export const createCareerStore = async (
         seasons: [openSeason(0, startDate)],
         inbox: [],
         sponsors: [],
+        newsFrom: startDate,
       };
 
       // Drawn before anything changes, so a draw that fails leaves the career
@@ -2016,10 +2102,10 @@ export const createCareerStore = async (
       // invitation as the year opens.
       const first = currentSeason(started);
       const ready = first
-        ? await sendOffers(await sendInvitations(withSeason(
+        ? await sendMarket(await sendOffers(await sendInvitations(withSeason(
           started,
           issueForecasts(started, await drawHistoric(started, first, startDate), startDate),
-        )))
+        ))))
         : started;
       await makeCurrent(ready);
       const made = settle();
@@ -2395,7 +2481,7 @@ export const createCareerStore = async (
       const mail: Mail = {
         ...drafted, id: taken === 0 ? base : `${base}#${taken + 1}`, opened: true, deadline: career.date,
       };
-      const asked = { ...career, inbox: [...career.inbox, mail] };
+      const asked = deliver(career, [mail]);
       current = await signOffer(asked, season, mail, { entry: terms.entry, team: terms.team }, request.backed);
       // The rounds already behind the clock happened without the player.
       await catchUp();

@@ -18,6 +18,7 @@ import {
 } from '../../core/career-money/index.ts';
 import { chainOf, startingGrid } from '../../core/event/index.ts';
 import { historicRung } from '../../core/historic-draw/index.ts';
+import { teamNotice } from '../../core/paddock-news/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
 import { addDays, clashes, seasonCalendar } from '../../core/season-calendar/index.ts';
 import { seatsForSale } from '../../core/seat-offers/index.ts';
@@ -67,6 +68,7 @@ import type {
   NewCareerRequest,
   NewChampionshipRequest,
   OfferPick,
+  Paddocker,
   RoundForecast,
   RoundScore,
   SeasonEntry,
@@ -75,6 +77,7 @@ import type {
   SeriesAvailability,
   SeriesListing,
   SeriesSession,
+  Settings,
   SkippedRound,
   SkipReason,
   SponsorDeal,
@@ -84,6 +87,7 @@ import type {
 import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
+import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
 import {
   noticeId, offerDeadline, offerId, roundFine,
 } from '../../shared/utils/contracts/index.ts';
@@ -98,6 +102,7 @@ import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import {
   eligibleCarsIn, roundAvailabilityIn, roundRaceableIn, seatRaceableIn,
 } from '../../shared/utils/round-availability/index.ts';
+import { hiddenAsFiller, isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
   climbNewsId, dealPaid, dealRung, dealScale, dealUntil, entryDiscipline, formOf, goalNewsId, goalSettled,
   goalStanding, invitationLift, liveDeals, partnerSlots, perkOf, rewardWorth, rungFee, signingRepay, slotFree,
@@ -151,6 +156,7 @@ export const stateOf = (career: Career): CareerState => ({
   seasons: career.seasons,
   inbox: career.inbox,
   sponsors: career.sponsors,
+  ...(career.newsFrom === undefined ? {} : { newsFrom: career.newsFrom }),
 });
 
 /**
@@ -238,6 +244,30 @@ export const readState = (value: unknown): CareerState | null => {
 
   // A career from before sponsors holds none, which is what an empty list says.
   return readable ? stateOf({ ...state, sponsors: state.sponsors ?? [] } as Career) : null;
+};
+
+/**
+ * The one door mail comes into a career's inbox through: whatever the inbox
+ * holds already is dropped, so a sender may hand the same mail again, and what
+ * is new goes in by the day it arrived.
+ * @param career The career
+ * @param mails The mail to send
+ * @returns The career, the same one when nothing was new
+ */
+export const deliver = (career: Career, mails: readonly Mail[]): Career => {
+  const known = new Set(career.inbox.map((mail) => mail.id));
+  const fresh = mails.filter((mail) => {
+    if (known.has(mail.id)) return false;
+    known.add(mail.id);
+
+    return true;
+  });
+  if (fresh.length === 0) return career;
+
+  return {
+    ...career,
+    inbox: [...career.inbox, ...fresh].sort((left, right) => left.arrived.localeCompare(right.arrived)),
+  };
 };
 
 /**
@@ -1094,6 +1124,7 @@ export const withKept = (
  * @param standing Where the player stood when the team decided
  * @param today The ISO date it arrives on
  * @param arrivesIn Which season it arrives in, counting from zero
+ * @param from Who writes it, the team's boss
  * @returns The mail
  */
 export const noticeMail = (
@@ -1102,31 +1133,16 @@ export const noticeMail = (
   standing: KeepStanding,
   today: string,
   arrivesIn: number,
-): Mail => {
-  const { contract } = entry;
-  const classEntry = entry.championship.entries.find((one) => one.id === entry.entry);
-
-  return {
-    id: noticeId(entry.series, season.index, entry.edition),
-    kind: 'notice',
-    season: arrivesIn,
-    arrived: today,
-    opened: false,
-    notice: {
-      series: entry.series,
-      seriesName: entry.championship.name,
-      season: season.index,
-      edition: entry.edition,
-      editions: editionsOf(entry.championship),
-      team: contract.team,
-      teamName: contract.teamName,
-      ...(contract.nation === undefined ? {} : { nation: contract.nation }),
-      entryName: classEntry?.name ?? entry.entry,
-      keep: contract.keep ?? standing.size,
-      standing,
-    },
-  };
-};
+  from?: Paddocker,
+): Mail => ({
+  id: noticeId(entry.series, season.index, entry.edition),
+  kind: 'notice',
+  ...(from ? { from } : {}),
+  season: arrivesIn,
+  arrived: today,
+  opened: false,
+  notice: teamNotice(entry, season.index, standing),
+});
 
 /**
  * The seats a class's privateers sell for one edition, priced on the rounds
@@ -1907,6 +1923,21 @@ const standoutOf = (
 };
 
 /**
+ * Whether the Championships page lists a championship: one the install can
+ * race, switched on, and neither a filler hidden nor one the content sources
+ * leave out - which is what seat offers and market news are drawn over.
+ * @param listing The championship
+ * @param shown The settings that decide it
+ * @returns True when it is listed
+ */
+export const isListed = (listing: SeriesListing, shown: Settings): boolean => (
+  listing.availability.available
+  && isSeriesActive(listing, shown)
+  && !hiddenAsFiller(listing, shown)
+  && !hiddenBySources(listing, shown.hiddenContentSources)
+);
+
+/**
  * Every car a class of the library may field, off its championship's opener.
  * @param listing The championship
  * @param entry The class
@@ -2019,12 +2050,10 @@ export const sendSponsorOffers = (career: Career, rewards: readonly RewardCar[] 
     }
   }
 
-  const known = new Set(career.inbox.map((mail) => mail.id));
-
-  return {
-    ...withSeason(career, { ...season, sponsorDraws: [...drawn, ...rounds.map((one) => one.event.raceId)] }),
-    inbox: [...career.inbox, ...sent.filter((mail) => !known.has(mail.id))],
-  };
+  return deliver(
+    withSeason(career, { ...season, sponsorDraws: [...drawn, ...rounds.map((one) => one.event.raceId)] }),
+    sent,
+  );
 };
 
 /**
@@ -2079,9 +2108,7 @@ export const withGoalMet = (career: Career, deal: SponsorDeal, skin: string | nu
   }
   if (!car && !bonus) return next;
 
-  return {
-    ...next,
-    inbox: [...next.inbox, {
+  return deliver(next, [{
       id: goalNewsId(deal.id),
       kind: 'sponsorNews',
       season: seasonNow?.index ?? 0,
@@ -2099,8 +2126,7 @@ export const withGoalMet = (career: Career, deal: SponsorDeal, skin: string | nu
         ...(car ? { car } : {}),
         ...(car && !comes ? { carPaid: worth } : {}),
       },
-    }],
-  };
+    }]);
 };
 
 /**
@@ -2156,7 +2182,7 @@ export const sendClimbNews = (career: Career): Career => {
     }];
   });
 
-  return news.length === 0 ? career : { ...career, inbox: [...career.inbox, ...news] };
+  return deliver(career, news);
 };
 
 /**
@@ -2225,17 +2251,14 @@ export const endSponsorYears = (career: Career, rewards: readonly RewardCar[] = 
 
     return [deal.id, { on: deal.until, why }];
   }));
-  const known = new Set(paid.inbox.map((mail) => mail.id));
-
-  return {
+  return deliver({
     ...paid,
     sponsors: paid.sponsors.map((deal) => {
       const end = ended.get(deal.id);
 
       return end ? { ...deal, ended: end } : deal;
     }),
-    inbox: [...paid.inbox, ...news.filter((mail) => !known.has(mail.id))],
-  };
+  }, news);
 };
 
 /**

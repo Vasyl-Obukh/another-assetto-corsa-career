@@ -230,6 +230,34 @@ export const CONTRACT_ACCENT = 'border-transparent bg-contract text-contract-for
 export const CONTRACT_DOT = 'bg-contract-foreground';
 
 /**
+ * The teal an engineer's debrief is chipped in, its well, and its folder's dot.
+ * globals.css says why teal.
+ */
+export const DEBRIEF_ACCENT = 'border-transparent bg-debrief text-debrief-foreground';
+
+/**
+ * A debrief's teal as a dot.
+ */
+export const DEBRIEF_DOT = 'bg-debrief-foreground';
+
+/**
+ * The laurel a championship's result is chipped in, its well, and its folder's
+ * dot. globals.css says why laurel.
+ */
+export const RESULTS_ACCENT = 'border-transparent bg-results text-results-foreground';
+
+/**
+ * A result's laurel as a dot.
+ */
+export const RESULTS_DOT = 'bg-results-foreground';
+
+/**
+ * The dot a rung's mail is filed under: the silver of the tier chips, since its
+ * own wears whichever metal it moved to.
+ */
+export const RUNG_DOT = 'bg-tier-silver-foreground';
+
+/**
  * A sponsor's colour by the slot it fills: a main sponsor's pink, and a
  * partner's cyan - each deal's mark, card and chips, wherever a sponsor shows.
  * Everything a sponsor pays on the ledger wears the main sponsor's pink.

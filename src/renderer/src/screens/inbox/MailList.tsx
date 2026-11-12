@@ -2,7 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { MailRow } from './MailRow.tsx';
-import { carModels, offerEdition } from './utils.ts';
+import { carModels, runName } from './utils.ts';
 import { useSlot } from '@/app';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -64,12 +64,8 @@ export const MailList = ({
   const held = Math.min(page, pages);
   const shown = pageOf(items, held);
   const { career } = useSlot();
-  // The edition a seat offer is for, or team news is about.
-  const editionOf = (item: InboxItem): string => {
-    const run = item.offers[0] ?? item.mail.notice;
-
-    return career && run ? offerEdition(career, run, t) : '';
-  };
+  // The run a seat offer is for, or news is about.
+  const editionOf = (item: InboxItem): string => (career ? runName(career, item, t) : '');
   // Only an invitation's row names its car.
   const carName = useCarNames(shown.flatMap((item) => (item.mail.invitation ? carModels(item) : [])));
   const from = (held - 1) * INBOX_PAGE_SIZE + 1;

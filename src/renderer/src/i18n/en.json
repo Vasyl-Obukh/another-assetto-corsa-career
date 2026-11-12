@@ -803,7 +803,7 @@
     "skip": {
       "title": "This round can't be raced as things stand.",
       "titleEvent": "This event can't be raced as things stand.",
-      "hint": "What it needs is not installed. Install it and come back, or skip it: a stand-in races it in your seat, as for any round you miss.",
+      "hint": "What it needs is not installed. Install it and come back, or skip it: a reserve driver races it in your seat, as for any round you miss.",
       "action": "Skip round {{number}}",
       "actionEvent": "Skip this event"
     },
@@ -1156,9 +1156,9 @@
       "feesPaid": "Fees the team paid",
       "terminate": "Terminate contract",
       "read": "Read the offer",
-      "note": "Every round is yours to race - a contract covers the whole season. A round not raced pays no salary and costs its entry fee as a fine, and a stand-in from the team races it. A round that cannot be raced with what is installed is never fined.",
-      "noteFree": "Every round is yours to race - a contract covers the whole season. A round not raced costs its entry fee as a fine, and a stand-in from the team races it. A round that cannot be raced with what is installed is never fined.",
-      "notePaid": "Every round is yours to race - a contract covers the whole season. A round not raced costs nothing more, the seat being paid for, and a stand-in from the team races it.",
+      "note": "Every round is yours to race - a contract covers the whole season. A round not raced pays no salary and costs its entry fee as a fine, and the team's reserve driver races it. A round that cannot be raced with what is installed is never fined.",
+      "noteFree": "Every round is yours to race - a contract covers the whole season. A round not raced costs its entry fee as a fine, and the team's reserve driver races it. A round that cannot be raced with what is installed is never fined.",
+      "notePaid": "Every round is yours to race - a contract covers the whole season. A round not raced costs nothing more, the seat being paid for, and the team's reserve driver races it.",
       "terminateTitle": "Terminate your contract with {{team}}?",
       "terminateBody": "With {{count}} of {{rounds}} rounds still to race.",
       "release": "Release fee - a quarter of each round's fine still to race, never less than one fine",
@@ -2416,8 +2416,8 @@
     "enterHint_other": "{{series}} is already {{count}} rounds in. Those rounds count as non-starts.",
     "enterConfirm": "Enter from round {{number}}",
     "skipTitle": "Skip {{round}}?",
-    "skipHint": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and a stand-in races it in your seat. Points you have already scored stay.",
-    "skipHintMany": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and every round listed becomes a non-start, raced by a stand-in in your seat. Points you have already scored stay.",
+    "skipHint": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and a reserve driver races it in your seat. Points you have already scored stay.",
+    "skipHintMany": "{{round}} can't be raced as things stand. Skipping it moves the clock to {{day}}, and every round listed becomes a non-start, raced by a reserve driver in your seat. Points you have already scored stay.",
     "skipFinishNote": "With nothing left to race, the season is over.",
     "skipConfirm_one": "Skip {{count}} round",
     "skipConfirm_other": "Skip {{count}} rounds",
@@ -2987,12 +2987,12 @@
     "stuck": {
       "tailTitle_one": "Round {{number}} · {{round}} can't be raced",
       "tailTitle_other": "The last {{count}} rounds can't be raced",
-      "tailHint_one": "What it needs is not installed. Install it and the season carries on, or skip it: a stand-in races it in your seat, and the season is over.",
-      "tailHint_other": "What they need is not installed. Install it and the season carries on, or skip them: a stand-in races each in your seat, and the season is over.",
+      "tailHint_one": "What it needs is not installed. Install it and the season carries on, or skip it: a reserve driver races it in your seat, and the season is over.",
+      "tailHint_other": "What they need is not installed. Install it and the season carries on, or skip them: a reserve driver races each in your seat, and the season is over.",
       "aheadTitle_one": "Round {{number}} · {{round}} can't be raced",
       "aheadTitle_other": "{{count}} rounds before round {{next}} can't be raced",
-      "aheadHint_one": "What it needs is not installed. Starting round {{next}} skips it, and a stand-in races it in your seat.",
-      "aheadHint_other": "What they need is not installed. Starting round {{next}} skips them, and a stand-in races each in your seat.",
+      "aheadHint_one": "What it needs is not installed. Starting round {{next}} skips it, and a reserve driver races it in your seat.",
+      "aheadHint_other": "What they need is not installed. Starting round {{next}} skips them, and a reserve driver races each in your seat.",
       "skip_one": "Skip the last round and finish",
       "skip_other": "Skip the last {{count}} rounds and finish"
     }
@@ -3052,8 +3052,8 @@
     "library": "Settings › Championships",
     "stuckTitle_one": "{{count}} round can't be raced as things stand.",
     "stuckTitle_other": "{{count}} rounds can't be raced as things stand.",
-    "stuckHint_one": "Install what it needs before the season gets there, or skip it when it does - a stand-in races it in your seat.",
-    "stuckHint_other": "Install what they need before the season gets there, or skip them when it does - a stand-in races each in your seat."
+    "stuckHint_one": "Install what it needs before the season gets there, or skip it when it does - a reserve driver races it in your seat.",
+    "stuckHint_other": "Install what they need before the season gets there, or skip them when it does - a reserve driver races each in your seat."
   },
   "finances": {
     "open": "Finances",
@@ -3380,12 +3380,19 @@
       "offer": "Seat offers",
       "notice": "Team news",
       "sponsor": "Sponsors",
-      "sponsorNews": "Sponsor news"
+      "sponsorNews": "Sponsor news",
+      "debrief": "Debriefs",
+      "results": "Results",
+      "rung": "Categorisation",
+      "market": "Market"
     },
     "chip": {
       "invitation": "Invitation",
       "offers_one": "Seat offer",
-      "offers_other": "{{count}} seat offers"
+      "offers_other": "{{count}} seat offers",
+      "debrief": "Debrief",
+      "results": "Championship result",
+      "market": "Market"
     },
     "empty": "No mail yet",
     "emptyHint": "Invitations to historic events arrive here four weeks before their day, and teams' seat offers eight weeks before a championship opens.",
@@ -3411,7 +3418,10 @@
       "awaiting": "Reply by {{day}}",
       "accepted": "Accepted",
       "declined": "Declined",
-      "lapsed": "Lapsed"
+      "lapsed": "Lapsed",
+      "statusLeft_one": "Reply by {{day}} · {{count}} day left",
+      "statusLeft_other": "Reply by {{day}} · {{count}} days left",
+      "statusToday": "Reply today"
     },
     "organisers": "The organisers",
     "to": "to {{driver}}",
@@ -3612,8 +3622,6 @@
     "notice": {
       "strip": "You raced it for {{team}} · {{entry}}",
       "lede": "{{team}} will not keep you on. They asked for a finish in the top {{place}} of your class, or one ahead of your teammate, and the season ended short of both.",
-      "owed": "Your contract ran its course, as signed. Nothing is owed either way.",
-      "after": "Other teams' offers for the next season, if any came, are in their own mail - and you can always race it on your own.",
       "run": "{{series}} {{edition}}"
     },
     "sponsor": {
@@ -3690,7 +3698,160 @@
         "garage": "Open the Garage"
       }
     },
-    "renewal": "Renewal"
+    "renewal": "Renewal",
+    "news": {
+      "from": {
+        "categorisation": "Driver categorisation",
+        "paddock": "Paddock news"
+      },
+      "role": {
+        "engineer": "Race engineer",
+        "principal": "Team principal",
+        "manager": "Team manager",
+        "owner": "Team owner",
+        "organisers": "The organisers",
+        "categorisation": "The ladder",
+        "paddock": "The market"
+      },
+      "open": {
+        "round": "Open round",
+        "championship": "Open championship",
+        "review": "Open review"
+      },
+      "place": "P{{place}}",
+      "and": "{{first}} and {{last}}",
+      "toast": "{{from}}: {{subject}}",
+      "debrief": {
+        "subject": "{{round}}: {{places}}",
+        "subjectQualifying": "{{round}}: qualified {{place}}",
+        "unclassified": "unclassified",
+        "strip": "{{series}} {{edition}} · Round {{number}} of {{rounds}}",
+        "stripHistoric": "{{series}}",
+        "stripDetail": "{{round}} · {{entry}}",
+        "lede": {
+          "win": "A win at {{round}}.",
+          "podium": "A podium at {{round}}.",
+          "points": "Points at {{round}}.",
+          "none": "A hard day at {{round}}."
+        },
+        "race": {
+          "winPole": "{{session}}: the win, from pole.",
+          "win": "{{session}}: the win, from P{{grid}} on the grid.",
+          "up": "{{session}}: P{{place}}, up from P{{grid}} on the grid.",
+          "down": "{{session}}: P{{place}}, down from P{{grid}} on the grid.",
+          "held": "{{session}}: P{{place}}, where you started.",
+          "at": "{{session}}: P{{place}}.",
+          "out": "{{session}}: not classified."
+        },
+        "qualify": {
+          "pole": "{{session}}: pole position.",
+          "gap": "{{session}}: P{{place}}, {{gap}} off the best in class.",
+          "at": "{{session}}: P{{place}}.",
+          "out": "{{session}}: no time set."
+        },
+        "mate": {
+          "all": "You were ahead of {{name}} in every session.",
+          "none": "{{name}} was ahead of you in every session.",
+          "some": "You were ahead of {{name}} in {{count}} of {{of}} sessions."
+        },
+        "standing": {
+          "up_one": "P{{place}} in the championship now, up {{count}} place.",
+          "up_other": "P{{place}} in the championship now, up {{count}} places.",
+          "down_one": "P{{place}} in the championship now, down {{count}} place.",
+          "down_other": "P{{place}} in the championship now, down {{count}} places.",
+          "held": "Still P{{place}} in the championship.",
+          "at": "P{{place}} in the championship."
+        },
+        "next": "{{round}} is next, on {{day}}.",
+        "last": "That was the last round.",
+        "table": {
+          "title": "Your weekend",
+          "of": "Places in {{entry}}, of {{count}}",
+          "session": "Session",
+          "started": "Started",
+          "finished": "Finished",
+          "best": "Best lap",
+          "gap": "To class best",
+          "points": "Points"
+        },
+        "tile": {
+          "championship": "Championship",
+          "round": "This round",
+          "next": "Next round",
+          "nextDay": "{{day}}",
+          "none": "None",
+          "last": "Season done"
+        },
+        "points_one": "{{count}} point",
+        "points_other": "{{count}} points",
+        "noPoints": "No points"
+      },
+      "welcome": {
+        "subject": "Welcome to {{team}}",
+        "subjectBack": "Welcome back to {{team}}",
+        "lede": "Welcome aboard. Your contract for {{series}} {{edition}} is signed, and the car will be ready for {{round}} on {{day}}.",
+        "ledeBack": "Welcome back. Your contract for {{series}} {{edition}} is signed, and the car will be ready for {{round}} on {{day}}.",
+        "keep": "We ask for a finish in the top {{place}} of {{entry}}, or one ahead of your teammate.",
+        "car": "In {{team}}'s livery",
+        "engineer": "Your race engineer",
+        "mate": "Your teammate"
+      },
+      "halfway": {
+        "subject": "Halfway in {{series}} {{edition}}",
+        "on": "{{done}} rounds down and {{left}} to go, and you are where we asked you to be.",
+        "short": "{{done}} rounds down and {{left}} to go, and you are short of where we asked you to be."
+      },
+      "missed": {
+        "subject": "{{round}} missed",
+        "lede": "You were not at {{round}}. Our reserve driver raced your car, and your contract's fine for a missed round is charged.",
+        "fine": "Fine",
+        "fineHint": "On the ledger",
+        "car": "Your car",
+        "carHint_one": "The race",
+        "carHint_other": "Race by race"
+      },
+      "results": {
+        "subject": "{{series}} {{edition}}: P{{place}} in {{entry}}",
+        "subjectChampion": "{{series}} {{edition}}: champion",
+        "subjectNone": "{{series}} {{edition}} is over",
+        "champion": "Champion of {{entry}}",
+        "lede": "{{series}} {{edition}} is over: P{{place}} in {{entry}}, with {{points}} points.",
+        "ledeChampion": "Champions. The {{entry}} title, with {{points}} points.",
+        "ledeNone": "{{series}} {{edition}} is over.",
+        "mate": "{{name}} finished P{{place}}.",
+        "team": "{{team}} finished P{{place}} of {{of}} teams.",
+        "paidShare": "Your share of the standings prize is paid.",
+        "paid": "Your standings prize is paid.",
+        "bonus": "Your standings bonus is paid.",
+        "tile": {
+          "you": "You",
+          "teams": "Teams, of {{of}}",
+          "paid": "Paid",
+          "share": "Your {{percent}}% of {{purse}}",
+          "prize": "Standings prize",
+          "withBonus": "With the {{bonus}} bonus"
+        },
+        "table": "Final standings · {{entry}}",
+        "position": "Pos",
+        "driver": "Driver",
+        "teamHead": "Team",
+        "points": "Points",
+        "review": "Review {{series}} {{edition}}",
+        "reviewHint": "Final tables, every champion, your season round by round",
+        "wins_one": "{{count}} win",
+        "wins_other": "{{count}} wins",
+        "podiums_one": "{{count}} podium",
+        "podiums_other": "{{count}} podiums"
+      },
+      "market": {
+        "subject": "Seats for sale in {{year}}",
+        "lede": "Privateer teams selling a seat this season, in championships open to you.",
+        "price": "the season",
+        "row": "{{series}} {{edition}} · {{entry}}"
+      },
+      "tier": "Tier {{tier}} · {{metal}}",
+      "strip": "{{team}} · {{entry}}"
+    }
   },
   "invitation": {
     "state": {

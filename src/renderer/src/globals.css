@@ -386,6 +386,18 @@
      hue, which no mail or list of mail shows. */
   --renewal: oklch(0.93 0.045 250);
   --renewal-foreground: oklch(0.4 0.13 258);
+  /* What the paddock tells a career: an engineer's debrief on teal 175, and a
+     championship's result on laurel 110 - touring's and sportscar's hues. The
+     inbox and its readers show no discipline chip: their rows carry budgets
+     (18, 132, 320), slots (350, 200), the contract violet 295, the historic
+     leather 40, the reply states (80, 155, 232, 8) and the renewal periwinkle
+     250, which leaves 100-120 and 165-185 the arcs clear of all of them. Team
+     and market news stay on the contract violet, being what a team's contract
+     says or puts on offer, and a rung moved wears its tier's metal. */
+  --debrief: oklch(0.925 0.055 175);
+  --debrief-foreground: oklch(0.36 0.09 178);
+  --results: oklch(0.925 0.065 110);
+  --results-foreground: oklch(0.38 0.1 115);
 
   /* The three things money does to a car, each a solid button of its own so
      they are never mistaken for one another or for the primary. Purchase is
@@ -616,6 +628,10 @@
   --sponsor-plate: oklch(0.94 0.004 255);
   --renewal: oklch(0.33 0.06 255);
   --renewal-foreground: oklch(0.86 0.08 255);
+  --debrief: oklch(0.32 0.065 175);
+  --debrief-foreground: oklch(0.86 0.09 175);
+  --results: oklch(0.33 0.07 110);
+  --results-foreground: oklch(0.87 0.1 112);
   --paint-from: oklch(0.62 0.19 345);
   --paint-via: oklch(0.58 0.19 295);
   --paint-to: oklch(0.6 0.13 225);
@@ -791,6 +807,10 @@
   --color-sponsor-plate: var(--sponsor-plate);
   --color-renewal: var(--renewal);
   --color-renewal-foreground: var(--renewal-foreground);
+  --color-debrief: var(--debrief);
+  --color-debrief-foreground: var(--debrief-foreground);
+  --color-results: var(--results);
+  --color-results-foreground: var(--results-foreground);
   --color-paint-from: var(--paint-from);
   --color-paint-via: var(--paint-via);
   --color-paint-to: var(--paint-to);

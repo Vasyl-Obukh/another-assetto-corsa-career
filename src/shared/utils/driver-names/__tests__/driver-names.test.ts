@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { Discipline } from '../../../types/index.ts';
 import type { ClassEntry, Seat, Team } from '../../../types/index.ts';
 import { DRIVER_NAMES } from '../constants.ts';
-import { fillDrivers } from '../driver-names.ts';
+import { drawName, fillDrivers } from '../driver-names.ts';
 
 /**
  * A class entry over the seats given.
@@ -36,6 +36,30 @@ const firstOf = (code: string): string => `${DRIVER_NAMES[code].first[0]} ${DRIV
 const [FIRST_BOOK] = Object.keys(DRIVER_NAMES);
 
 describe('shared/utils/driver-names', () => {
+  describe('drawName', () => {
+    it('draws a first name and a surname from the nation asked for', () => {
+      const { first, last } = DRIVER_NAMES.ITA;
+
+      expect(drawName('ITA', always(0))).toEqual({ name: `${first[0]} ${last[0]}`, nation: 'ITA' });
+    });
+
+    it('draws from any book where the nation asked for has none', () => {
+      const drawn = drawName('ZZZ', always(0));
+
+      expect(Object.keys(DRIVER_NAMES)).toContain(drawn.nation);
+      expect(drawName(undefined, always(0)).nation).toBe(drawn.nation);
+    });
+
+    it('draws the same name off the same numbers', () => {
+      let at = 0;
+      const sequence = () => { at = (at + 0.37) % 1; return at; };
+      const again = () => { at = 0; return drawName('GBR', sequence); };
+
+      expect(again()).toEqual(again());
+    });
+  });
+
+
   describe('fillDrivers', () => {
     it('names every empty seat and leaves the named ones alone', () => {
       const named: Seat = { id: 'one', driver: { name: 'Kept Driver', nationCode: 'ITA' } };

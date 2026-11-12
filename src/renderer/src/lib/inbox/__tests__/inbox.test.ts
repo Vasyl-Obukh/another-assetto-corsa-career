@@ -407,6 +407,19 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(inFolder(unread, 'sponsor')).toBe(false);
       expect(inFolder(inboxItem(career([]), NOTICE), 'sponsor')).toBe(false);
     });
+
+    it("lists each kind of the paddock's news under its own folder, and never as awaiting a reply", () => {
+      const kinds = ['debrief', 'results', 'rung', 'market'] as const;
+      kinds.forEach((kind) => {
+        const news = inboxItem(career([]), {
+          id: kind, kind, season: 0, arrived: '2026-04-09', opened: false,
+        });
+
+        expect(inFolder(news, kind)).toBe(true);
+        expect(inFolder(news, 'awaiting')).toBe(false);
+        kinds.filter((other) => other !== kind).forEach((other) => expect(inFolder(news, other)).toBe(false));
+      });
+    });
   });
 
   describe('matchesSearch', () => {
@@ -454,6 +467,39 @@ describe('renderer/lib/inbox/inbox', () => {
       expect(matchesSearch(news, 'sunday cup')).toBe(true);
       expect(matchesSearch(news, 'alpha')).toBe(true);
       expect(matchesSearch(news, 'beta')).toBe(false);
+    });
+
+    it("matches who wrote a piece of news, and the championship and round it is about", () => {
+      const debrief = inboxItem(career([]), {
+        id: 'debrief:x',
+        kind: 'debrief',
+        season: 0,
+        arrived: '2026-04-09',
+        opened: false,
+        from: { role: 'engineer', name: 'Ann Lee', teamName: 'Aster Racing' },
+        debrief: {
+          series: 'gt-cup', seriesName: 'GT Cup', roundName: 'Monza',
+        } as never,
+      });
+
+      expect(matchesSearch(debrief, 'ann lee')).toBe(true);
+      expect(matchesSearch(debrief, 'gt cup')).toBe(true);
+      expect(matchesSearch(debrief, 'monza')).toBe(true);
+      expect(matchesSearch(debrief, 'spa')).toBe(false);
+    });
+
+    it('matches the championships and teams market news lists', () => {
+      const market = inboxItem(career([]), {
+        id: 'market:0',
+        kind: 'market',
+        season: 0,
+        arrived: '2026-01-01',
+        opened: false,
+        market: { seats: [{ seriesName: 'Lotus Cup', teamName: 'Brackley Clubsport' } as never] },
+      });
+
+      expect(matchesSearch(market, 'brackley')).toBe(true);
+      expect(matchesSearch(market, 'lotus')).toBe(true);
     });
 
     it("matches the sponsor's name on its offer and on its news", () => {

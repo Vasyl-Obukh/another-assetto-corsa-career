@@ -1,7 +1,9 @@
 import type { TFunction } from 'i18next';
 
 import { INBOX_FOLDERS } from './constants.ts';
-import type { Career, SeatOffer } from '../../../../shared/types';
+import type {
+  Career, Debrief, MailRun, SeatOffer,
+} from '../../../../shared/types';
 import { seasonYear } from '../../../../shared/utils/editions';
 import { editionName } from '@/lib/edition-names';
 import type { InboxFolder, InboxItem } from '@/lib/inbox';
@@ -96,6 +98,49 @@ export const offerLink = (
   { id: offer.series },
   linkRun({ season: offer.season, edition: offer.edition }, career.seasons.at(-1)?.index, offer.editions),
 );
+
+/**
+ * The page of the round a debrief reports, in the run it was raced in.
+ * @param career The career
+ * @param debrief The debrief
+ * @returns The page's URL
+ */
+export const roundLink = (
+  career: Career,
+  debrief: Pick<Debrief, 'series' | 'round' | 'season' | 'edition' | 'editions'>,
+): string => path.event(
+  { series: debrief.series, round: debrief.round },
+  linkRun({ season: debrief.season, edition: debrief.edition }, career.seasons.at(-1)?.index, debrief.editions),
+);
+
+/**
+ * The review of the edition a championship's result is about.
+ * @param run The run
+ * @returns The page's URL
+ */
+export const reviewLink = (run: Pick<MailRun, 'series' | 'season' | 'edition'>): string => (
+  path.championshipReview({ series: run.series, season: run.season, edition: run.edition })
+);
+
+/**
+ * What the run a mail of the paddock's is about is called - the season's year
+ * for market news, which is about every championship.
+ * @param career The career
+ * @param item The mail
+ * @param t The translator
+ * @returns The name, or empty for a mail about no run
+ */
+export const runName = (career: Career, item: InboxItem, t: TFunction): string => {
+  const { mail } = item;
+  if (mail.market) {
+    const season = career.seasons.find((one) => one.index === mail.season);
+
+    return season ? String(seasonYear(season)) : '';
+  }
+  const run = item.offers[0] ?? mail.notice ?? mail.debrief ?? mail.results;
+
+  return run ? offerEdition(career, run, t) : '';
+};
 
 /**
  * A class's entry fee a round, as its offer states the edition's.

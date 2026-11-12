@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inbox news, Phase 11 mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The new families -
+   ledger kinds below - are proposals and say where their hue comes from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --input: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --warning-soft: oklch(0.94 0.06 80); --warning-soft-fg: oklch(0.42 0.1 70);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t1: oklch(0.945 0.022 210); --t1-fg: oklch(0.4 0.05 215);
+  --t2: oklch(0.9 0.085 88); --t2-fg: oklch(0.42 0.1 75);
+  --t3: oklch(0.91 0.008 255); --t3-fg: oklch(0.42 0.015 260);
+  --t4: oklch(0.89 0.07 52); --t4-fg: oklch(0.41 0.09 48);
+  --t5: oklch(0.8 0.14 142); --t5-fg: oklch(0.27 0.08 145);
+  /* Proposed: which mode a slot is. Career on the primary hue, championship on
+     the trophy gold, quick race on the race session's green. Shown only on the
+     start screen and the hub, where no session, podium or tier chip appears. */
+  --m-career: oklch(0.93 0.045 262); --m-career-fg: oklch(0.42 0.17 262); --m-career-solid: oklch(0.48 0.2 262);
+  --m-champ: oklch(0.9 0.085 88); --m-champ-fg: oklch(0.42 0.1 75); --m-champ-solid: oklch(0.72 0.14 85);
+  --m-quick: oklch(0.89 0.085 150); --m-quick-fg: oklch(0.33 0.1 152); --m-quick-solid: oklch(0.58 0.14 152);
+  /* Proposed: what kind of save. Named on 340 and quick on 18, the custom-origin
+     and budget-independent hues, which no save list shows; autosave on a
+     half-chroma slate 232, told apart from single-seater 212 by chroma, the way
+     the climate chips are. */
+  --k-named: oklch(0.92 0.06 340); --k-named-fg: oklch(0.4 0.13 340);
+  --k-quick: oklch(0.92 0.06 18); --k-quick-fg: oklch(0.42 0.13 22);
+  --k-auto: oklch(0.925 0.03 232); --k-auto-fg: oklch(0.4 0.05 235);
+  /* Section wells, as SECTION_ACCENT draws them. */
+  --w-blue: oklch(0.93 0.045 250); --w-blue-fg: oklch(0.45 0.15 258);
+  --w-violet: oklch(0.93 0.05 300); --w-violet-fg: oklch(0.45 0.15 300);
+  --w-green: oklch(0.93 0.05 155); --w-green-fg: oklch(0.42 0.11 155);
+  --w-amber: oklch(0.94 0.06 80); --w-amber-fg: oklch(0.45 0.1 70);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+  /* A race's classes by slot, as globals.css has them. */
+  --cl-1: oklch(0.92 0.055 195); --cl-1-fg: oklch(0.38 0.09 200);
+  --cl-2: oklch(0.92 0.06 18); --cl-2-fg: oklch(0.42 0.13 22);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --success: oklch(0.7 0.15 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --warning-soft: oklch(0.34 0.06 80); --warning-soft-fg: oklch(0.88 0.1 85);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t1: oklch(0.34 0.025 210); --t1-fg: oklch(0.9 0.03 210);
+  --t2: oklch(0.36 0.07 88); --t2-fg: oklch(0.89 0.12 92);
+  --t3: oklch(0.33 0.006 260); --t3-fg: oklch(0.86 0.008 260);
+  --t4: oklch(0.33 0.06 50); --t4-fg: oklch(0.85 0.09 55);
+  --t5: oklch(0.48 0.12 142); --t5-fg: oklch(0.96 0.03 142);
+  --m-career: oklch(0.33 0.07 262); --m-career-fg: oklch(0.87 0.09 262); --m-career-solid: oklch(0.58 0.19 262);
+  --m-champ: oklch(0.36 0.07 88); --m-champ-fg: oklch(0.89 0.12 92); --m-champ-solid: oklch(0.72 0.13 85);
+  --m-quick: oklch(0.35 0.09 150); --m-quick-fg: oklch(0.88 0.13 150); --m-quick-solid: oklch(0.62 0.14 152);
+  --k-named: oklch(0.33 0.07 340); --k-named-fg: oklch(0.86 0.09 340);
+  --k-quick: oklch(0.33 0.07 18); --k-quick-fg: oklch(0.86 0.09 22);
+  --k-auto: oklch(0.32 0.03 232); --k-auto-fg: oklch(0.85 0.05 235);
+  --w-blue: oklch(0.32 0.06 250); --w-blue-fg: oklch(0.86 0.09 255);
+  --w-violet: oklch(0.33 0.07 300); --w-violet-fg: oklch(0.87 0.1 300);
+  --w-green: oklch(0.32 0.06 155); --w-green-fg: oklch(0.86 0.11 155);
+  --w-amber: oklch(0.34 0.06 80); --w-amber-fg: oklch(0.88 0.1 85);
+  --cl-1: oklch(0.33 0.06 195); --cl-1-fg: oklch(0.86 0.09 195);
+  --cl-2: oklch(0.33 0.07 18); --cl-2-fg: oklch(0.86 0.09 22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+/* The page behind the mock window, not an app colour. */
+:root body { background: oklch(0.9 0.008 255); }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.end { margin-left: auto; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1280px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .q { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.stage { max-width: 1280px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 820px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.hd h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav a .i { width: 15px; height: 15px; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 22px 28px; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-t1 { background: var(--t1); color: var(--t1-fg); } .c-t2 { background: var(--t2); color: var(--t2-fg); }
+.c-t3 { background: var(--t3); color: var(--t3-fg); } .c-t4 { background: var(--t4); color: var(--t4-fg); }
+.c-t5 { background: var(--t5); color: var(--t5-fg); }
+.c-career { background: var(--m-career); color: var(--m-career-fg); }
+.c-champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.c-quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.c-named { background: var(--k-named); color: var(--k-named-fg); }
+.c-kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.c-auto { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-done { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-later { border: 1px dashed var(--border); color: var(--muted-foreground); background: transparent; }
+/* A year, a date, a count - identifiers, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.flag.lg { width: 27px; height: 18px; border-radius: 3px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.danger { background: var(--destructive); color: white; border-color: transparent; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.icon { width: 32px; padding: 0; }
+.btn.dim { opacity: .5; }
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; }
+.split .btn.pri:last-child { border-left: 1px solid oklch(1 0 0 / 25%); }
+.kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--border); border-bottom-width: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); background: var(--card); font-family: inherit; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.panel > h3 { margin: 0; padding: 12px 14px 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel .pb { padding: 10px 14px 14px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--muted); gap: 2px; }
+.seg span { padding: 4px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+.seg span.on { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.seg span small { font-size: 11px; opacity: .8; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.note { border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-radius: 0 8px 8px 0; padding: 7px 10px; font-size: 12px; color: var(--muted-foreground); }
+.note b { color: var(--foreground); }
+.input { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.input.focus { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent); border-color: var(--primary); }
+.lbl { font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+.slider { position: relative; height: 34px; }
+.slider .track { position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--muted); }
+.slider .fill { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 99px; background: var(--primary); }
+.slider .knob { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--card); border: 2px solid var(--primary); box-shadow: 0 1px 3px oklch(0 0 0 / .25); }
+.slider .stops { position: absolute; left: 0; right: 0; top: 22px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-foreground); }
+.slider .stops span.on { color: var(--foreground); font-weight: 600; }
+
+/* ---------- Photographs ---------- */
+.ph { position: relative; overflow: hidden; background: var(--scrim); }
+.ph > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.shade::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, oklch(0.14 0.012 265 / .05), oklch(0.14 0.012 265 / .82)); }
+.ph.side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, oklch(0.14 0.012 265 / .94), oklch(0.14 0.012 265 / .7) 38%, oklch(0.14 0.012 265 / .1)); }
+.ph > .cap { position: relative; z-index: 1; color: var(--on-scrim); }
+
+/* ---------- Menus, dialogs, toasts ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0.14 0.012 265 / .45); z-index: 20; }
+.dlg { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px oklch(0 0 0 / .3); display: flex; flex-direction: column; }
+.dlg .dh { padding: 18px 20px 6px; }
+.dlg .dh h3 { margin: 0; font-size: 16.5px; font-weight: 650; }
+.dlg .dh p { margin: 4px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.dlg .db { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 12px; }
+.dlg .df { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.menu { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px oklch(0 0 0 / .22); padding: 5px; min-width: 280px; }
+.menu .mi { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 7px; font-size: 13.5px; }
+.menu .mi.tall { height: auto; padding: 7px 9px; align-items: flex-start; }
+.menu .mi.hl { background: var(--accent); }
+.menu .mi .kbd { margin-left: auto; }
+.menu .mi small { display: block; font-size: 11.5px; color: var(--muted-foreground); line-height: 1.3; }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -5px; }
+.menu .mh { padding: 8px 9px 6px; display: flex; gap: 9px; align-items: center; }
+.menu .mi.danger { color: var(--destructive); }
+.toast { position: absolute; z-index: 40; right: 22px; bottom: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 40px oklch(0 0 0 / .25); padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-width: 380px; font-size: 13px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* ---------- Lists ---------- */
+.list { display: flex; flex-direction: column; }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.li:last-child { border-bottom: 0; }
+.li.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.li.hover { background: var(--accent); }
+.li .t { font-weight: 600; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted-foreground); }
+.thumb { width: 64px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--muted); }
+.well { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.well .i { width: 17px; height: 17px; }
+.well.blue { background: var(--w-blue); color: var(--w-blue-fg); }
+.well.violet { background: var(--w-violet); color: var(--w-violet-fg); }
+.well.green { background: var(--w-green); color: var(--w-green-fg); }
+.well.amber { background: var(--w-amber); color: var(--w-amber-fg); }
+.well.career { background: var(--m-career); color: var(--m-career-fg); }
+.well.champ { background: var(--m-champ); color: var(--m-champ-fg); }
+.well.quick { background: var(--m-quick); color: var(--m-quick-fg); }
+.well.named { background: var(--k-named); color: var(--k-named-fg); }
+.well.kquick { background: var(--k-quick); color: var(--k-quick-fg); }
+.well.auto { background: var(--k-auto); color: var(--k-auto-fg); }
+
+/* ---------- Settings ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 28px; flex: none; background: var(--background); }
+.tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sect { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.sect h4 { margin: 0; font-size: 14.5px; font-weight: 600; align-self: center; display: flex; gap: 8px; align-items: center; }
+.sect .sh { grid-column: 2; font-size: 12.5px; color: var(--muted-foreground); margin-top: -4px; }
+.sect .sb { grid-column: 2; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.inherit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ---------- Overview page ---------- */
+.doc { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.doc .panel .pb { padding: 14px 18px 18px; }
+.doc h2 { margin: 0; font-size: 18px; }
+.flow { display: grid; gap: 10px; }
+.flow .lvl { display: grid; gap: 10px; }
+.flow .arrow { text-align: center; color: var(--muted-foreground); font-size: 12px; }
+.node { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.node h5 { margin: 0; font-size: 13.5px; display: flex; gap: 7px; align-items: center; }
+.node p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+.node .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.node .pill { font-size: 11.5px; padding: 2px 7px; border-radius: 99px; background: var(--muted); }
+.node.career { border-top: 3px solid var(--m-career-solid); }
+.node.champ { border-top: 3px solid var(--m-champ-solid); }
+.node.quick { border-top: 3px solid var(--m-quick-solid); }
+pre.tree { margin: 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; color: var(--foreground); background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow: auto; }
+pre.tree i { color: var(--muted-foreground); font-style: normal; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.t td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.t tr:last-child td { border-bottom: 0; }
+.yes { color: var(--success); font-weight: 600; }
+.no { color: var(--muted-foreground); }
+
+/* ---------- Start screen ---------- */
+.btn.glass { background: oklch(1 0 0 / 13%); border-color: oklch(1 0 0 / 22%); color: var(--on-scrim); backdrop-filter: blur(6px); }
+.btn.glass small.cnt { font-size: 11px; opacity: .75; }
+.st-title h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+/* The start screen follows the theme; only its tiles are photographs. */
+.st-a { flex: 1; min-height: 0; position: relative; padding: 32px 40px 26px; display: flex; flex-direction: column; gap: 24px;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 9%, var(--background)), var(--background) 55%); }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; min-height: 0; }
+.st-tile { border-radius: 16px; box-shadow: 0 14px 34px oklch(0 0 0 / .2); border-top: 4px solid; }
+.st-tile.career { border-top-color: var(--m-career-solid); }
+.st-tile.champ { border-top-color: var(--m-champ-solid); }
+.st-tile.quick { border-top-color: var(--m-quick-solid); }
+.st-tile.shade::after { background: linear-gradient(180deg, oklch(0.14 0.012 265 / .25), oklch(0.14 0.012 265 / .55) 35%, oklch(0.14 0.012 265 / .93)); }
+.st-tile > .cap { height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.st-tile h2 { margin: 6px 0 0; font-size: 26px; font-weight: 650; }
+.st-tile p { margin: 0; font-size: 13px; opacity: .82; }
+.cont { background: oklch(1 0 0 / 10%); border: 1px solid oklch(1 0 0 / 16%); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); }
+.cont b { display: block; font-size: 14px; }
+.cont small { display: block; font-size: 12px; opacity: .75; }
+.st-foot { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- New career, new championship ---------- */
+.lvl-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.lvl-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+.lvl-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.lvl-tile .ex { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.lvl-tile .rt { font-size: 12px; margin-top: auto; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; font-size: 13px; }
+.kv2 span { color: var(--muted-foreground); }
+.kv2 b { display: flex; gap: 6px; align-items: center; }
+.caret { width: 1px; height: 16px; background: var(--foreground); margin-left: -6px; }
+.stepper { display: flex; align-items: center; gap: 8px; margin-left: 24px; font-size: 13px; color: var(--muted-foreground); }
+.stepper span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stepper i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--muted); font-size: 11.5px; font-weight: 600; }
+.stepper span.on { color: var(--foreground); font-weight: 600; }
+.stepper span.on i { background: var(--primary); color: var(--primary-foreground); }
+.stepper span.done i { background: var(--success-soft); color: var(--success-soft-fg); }
+.stepper b { width: 24px; height: 1px; background: var(--border); }
+.foot-bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-top: 1px solid var(--border); background: var(--card); }
+.ch-card { overflow: hidden; }
+.ch-card.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.car-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.car-tile { border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; background: var(--card); }
+.car-tile img { width: 100%; height: 90px; object-fit: contain; }
+.car-tile.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+
+/* ---------- Inside a slot ---------- */
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.slotbtn.open { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); border-color: var(--primary); }
+.idx { padding: 5px 10px; border-radius: 7px; color: var(--muted-foreground); }
+.idx.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+
+/* ---------- Rounds, classes, aids ---------- */
+.rounds { display: flex; flex-direction: column; }
+.rd { display: grid; grid-template-columns: 30px 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--border); }
+.rd:first-child { border-top: 0; }
+.rd .no { font-size: 11px; font-weight: 700; color: var(--muted-foreground); text-align: center; line-height: 1.1; }
+.rd .no b { display: block; font-size: 17px; color: var(--foreground); font-weight: 650; }
+.rd .pic { position: relative; width: 76px; height: 46px; border-radius: 7px; overflow: hidden; background: var(--muted); }
+.rd .pic img.p { width: 100%; height: 100%; object-fit: cover; }
+.rd .pic img.o { position: absolute; right: 3px; bottom: 3px; width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 0 2px oklch(0 0 0 / .8)); }
+.rd .tn { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.rd .ts { font-size: 12px; color: var(--muted-foreground); }
+.rd .dt { text-align: right; font-size: 12.5px; white-space: nowrap; }
+.rd .dt small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.rd .ss { display: flex; gap: 3px; margin-top: 4px; }
+.c-cl1 { background: var(--cl-1); color: var(--cl-1-fg); }
+.c-cl2 { background: var(--cl-2); color: var(--cl-2-fg); }
+.cls-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cls-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--card); border-left-width: 4px; }
+.cls-tile.cl1 { border-left-color: var(--cl-1-fg); }
+.cls-tile.cl2 { border-left-color: var(--cl-2-fg); }
+.cls-tile.on { border-color: var(--primary); border-left-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.cls-tile .models { display: flex; gap: 4px; }
+.cls-tile .models img { width: 54px; height: 32px; object-fit: cover; border-radius: 4px; }
+.aid-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.aid { border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; }
+.aid.sw { flex-direction: row; align-items: center; justify-content: space-between; }
+.aid.diff { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.aid small { font-weight: 400; font-size: 11.5px; color: var(--primary); }
+.follow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: var(--muted); font-size: 13px; }
+.follow .lbl { font-weight: 600; }
+.dimmed { opacity: .5; pointer-events: none; }
+.c-warn { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.toast.warn { border-color: color-mix(in srgb, var(--warning-soft-fg) 40%, var(--border)); }
+.li.save { display: grid; grid-template-columns: 30px minmax(0, 1fr) 90px 76px 32px; }
+.li.save > .k { justify-self: end; }
+.btn.icon.on { background: var(--accent); }
+
+/* ---------- Skeletons, as the shimmer utility in globals.css draws them ---------- */
+:root { --skeleton: oklch(0.925 0.018 255); --skeleton-shine: oklch(0.965 0.01 255); }
+:root[data-theme="dark"] { --skeleton: oklch(0.3 0.016 265); --skeleton-shine: oklch(0.345 0.016 265); }
+.shim { display: inline-block; flex: none; vertical-align: middle; background-color: var(--skeleton);
+  background-image: linear-gradient(100deg, transparent 0 40%, var(--skeleton-shine) 50%, transparent 60% 100%);
+  background-size: 200vw 100%; background-attachment: fixed; animation: sweep 1.8s linear infinite; }
+.shim.block { display: block; }
+/* Over a photograph the fill is translucent white, so the photo still reads through. */
+.shim.on-photo { background-color: oklch(1 0 0 / 14%); background-image: linear-gradient(100deg, transparent 0 40%, oklch(1 0 0 / 14%) 50%, transparent 60% 100%); }
+@keyframes sweep { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+/* ---------- This mockup ---------- */
+/* Proposed: what an invitation's answer is. Awaiting on the warning amber,
+   because it wants something of the player; accepted on the success green;
+   lapsed on the calendar's missed rose, since a lapsed invitation is an event
+   passed by; declined on the autosave's half-chroma slate 232, which no inbox
+   shows and which sits clear of the rose - the destructive red 27 would sit
+   beside it on the wheel. The kind of mail is its well: an invitation in the
+   historic leather it is about. */
+:root {
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --event-missed: oklch(0.925 0.035 8); --event-missed-fg: oklch(0.42 0.09 12);
+}
+:root[data-theme="dark"] {
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --event-missed: oklch(0.32 0.035 8); --event-missed-fg: oklch(0.86 0.075 12);
+}
+.c-historic { background: var(--historic); color: var(--historic-fg); }
+.c-await { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.c-acc { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-dec { background: var(--k-auto); color: var(--k-auto-fg); }
+.c-lapsed { background: var(--event-missed); color: var(--event-missed-fg); }
+.well.leather { background: var(--historic); color: var(--historic-fg); }
+.bal { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.bal .i { color: var(--success); }
+.bal.rat .i { color: var(--d-sports-fg); }
+.new-outline { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 2px; }
+.nav a .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--primary); color: var(--primary-foreground); font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; margin-left: 1px; }
+
+/* ---------- Inbox ---------- */
+.inbox { flex: 1; min-height: 0; display: grid; grid-template-columns: 216px 400px minmax(0, 1fr); }
+.rail { border-right: 1px solid var(--border); padding: 18px 12px; display: flex; flex-direction: column; gap: 2px; }
+.rail .caps { padding: 14px 10px 6px; }
+.folder { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); }
+.folder.on { background: var(--accent); color: var(--foreground); }
+.folder .cnt { margin-left: auto; font-size: 12px; font-variant-numeric: tabular-nums; }
+.folder .cnt.pill { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+.folder .cnt.pri { background: var(--primary); color: var(--primary-foreground); }
+.folder .cnt.amb { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.folder .sw { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.folder.later { opacity: .5; }
+.mlist { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.mlist .tools { padding: 14px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
+.mlist .scroll { flex: 1; overflow: auto; }
+.mgrp { position: sticky; top: 0; padding: 8px 14px 6px; background: var(--background); border-bottom: 1px solid var(--border); z-index: 1; }
+.mrow { display: grid; grid-template-columns: 8px 34px minmax(0, 1fr); gap: 0 10px; padding: 11px 14px 11px 10px; border-bottom: 1px solid var(--border); align-items: start; cursor: pointer; }
+.mrow .ud { width: 8px; height: 8px; border-radius: 50%; margin-top: 13px; }
+.mrow.unread .ud { background: var(--primary); }
+.mrow .top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted-foreground); }
+.mrow .top .from { color: var(--foreground); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrow .top .when { margin-left: auto; white-space: nowrap; font-size: 12px; }
+.mrow .subj { font-size: 13.5px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrow .bot { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.mrow .bot .s { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow.unread .from, .mrow.unread .subj { font-weight: 650; }
+.mrow.sel { background: color-mix(in srgb, var(--primary) 8%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.mrow.hover { background: var(--accent); }
+.reader { min-height: 0; display: flex; flex-direction: column; }
+.reader .rs { flex: 1; overflow: auto; padding: 22px 30px 26px; }
+.mail { max-width: 760px; display: flex; flex-direction: column; gap: 16px; }
+.mail h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.mfrom { display: flex; align-items: center; gap: 12px; }
+.mfrom b { display: block; font-size: 14px; }
+.mfrom small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.letter { font-size: 14px; line-height: 1.6; }
+.letter p { margin: 0 0 10px; max-width: 66ch; }
+.letter .blurb { border-left: 3px solid var(--historic-fg); padding: 2px 0 2px 12px; color: var(--muted-foreground); font-style: italic; }
+.evcard { overflow: hidden; }
+.evcard .ph { height: 132px; }
+.evcard .ph .cap { position: absolute; left: 16px; bottom: 12px; right: 16px; display: flex; align-items: flex-end; gap: 12px; }
+.evcard .ph h3 { margin: 4px 0 0; font-size: 19px; font-weight: 650; }
+.evcard .ph .d { font-size: 12.5px; opacity: .85; }
+.evcard .facts { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+.evcard .facts > div { padding: 11px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.evcard .facts > div:last-child { border-right: 0; }
+.evcard .facts .k { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.evcard .facts b { font-size: 13.5px; font-weight: 600; }
+.evcard .facts small { font-size: 12px; color: var(--muted-foreground); }
+.seatcell { display: flex; gap: 10px; align-items: center; }
+.seatcell img { width: 78px; height: 44px; object-fit: contain; flex: none; }
+.fstrip { display: inline-flex; gap: 2px; }
+.fstrip span { width: 20px; height: 18px; border-radius: 4px; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
+.replybar { flex: none; border-top: 1px solid var(--border); background: var(--card); padding: 12px 30px; display: flex; align-items: center; gap: 12px; }
+.replybar .msg { display: flex; align-items: center; gap: 10px; font-size: 13px; min-width: 0; }
+.replybar .msg b { font-weight: 600; }
+.replybar .msg small { display: block; color: var(--muted-foreground); font-size: 12px; }
+.replybar .acts { margin-left: auto; display: flex; gap: 8px; }
+.note.amber { border-left-color: var(--warning-soft-fg); background: color-mix(in srgb, var(--warning-soft) 55%, var(--card)); }
+.note { display: flex; gap: 8px; align-items: flex-start; }
+.empty { height: 100%; display: grid; place-items: center; text-align: center; color: var(--muted-foreground); }
+.empty b { display: block; color: var(--foreground); font-size: 15px; margin: 10px 0 4px; }
+.menu.small { min-width: 210px; }
+.hdrmenu { position: relative; }
+
+/* ---------- Other screens ---------- */
+.banner { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-left: 4px solid var(--historic-fg); }
+.banner b { font-size: 14px; }
+.banner small { display: block; color: var(--muted-foreground); font-size: 12.5px; }
+.evhead { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; gap: 18px; align-items: center; }
+.evhead h2 { margin: 6px 0 2px; font-size: 24px; font-weight: 650; }
+.evhead .facts { display: flex; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
+.evhead img.map { width: 120px; height: 70px; object-fit: contain; margin-left: auto; }
+.evbody { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; padding: 18px 28px; }
+.seatwell { display: flex; gap: 12px; align-items: center; }
+.seatwell img { width: 110px; height: 62px; object-fit: contain; }
+.launch { display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
+.tl { display: flex; flex-direction: column; gap: 10px; max-width: 900px; }
+.tlday { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; }
+.tlday .dd { font-size: 12.5px; color: var(--muted-foreground); padding-top: 12px; }
+.tlday .dd b { display: block; color: var(--foreground); font-size: 18px; font-weight: 650; }
+.tlcard { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+.tlcard.invited { border-style: dashed; border-color: color-mix(in srgb, var(--historic-fg) 55%, var(--border)); background: color-mix(in srgb, var(--historic) 30%, var(--card)); }
+.tlcard .t { font-weight: 600; }
+.tlcard .s { font-size: 12px; color: var(--muted-foreground); }
+.tlcard img { width: 60px; height: 36px; object-fit: contain; }
+.lost { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; font-size: 13px; }
+.lost .when { margin-left: auto; color: var(--muted-foreground); font-size: 12.5px; white-space: nowrap; }
+.mono { font-family: "Cascadia Code", Consolas, monospace; }
+.pager { flex: none; display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.pager .btn.on { background: var(--accent); border-color: transparent; }
+.toast .lines { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; font-size: 12.5px; color: var(--muted-foreground); }
+.toast .lines span { display: flex; gap: 6px; align-items: center; }
+.toast .lines .d { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex: none; }
+.cost { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 13px; }
+.cost span { color: var(--muted-foreground); }
+.cost b { text-align: right; font-variant-numeric: tabular-nums; }
+.cost .tot { border-top: 1px solid var(--border); padding-top: 6px; color: var(--foreground); font-weight: 600; }
+.carpick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.carpick > div { border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.carpick > div.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
+.carpick b { font-size: 13px; }
+.meter { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--historic-fg); border-radius: 99px; }
+.chances { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.chances > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.chances b { font-size: 20px; font-weight: 650; }
+.c-pending { border: 1px dashed color-mix(in srgb, var(--historic-fg) 60%, var(--border)); color: var(--historic-fg); background: transparent; }
+.tlcard.open { border-color: color-mix(in srgb, var(--historic-fg) 35%, var(--border)); }
+.enterp { border: 1px dashed var(--primary); border-radius: 12px; background: var(--card); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.enterp .eh { display: flex; flex-direction: column; gap: 4px; }
+.enterp .eh b { font-size: 15px; font-weight: 600; gap: 8px; }
+.enterp .eh span { font-size: 13px; color: var(--muted-foreground); }
+.carrow { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.carrow b { display: block; font-weight: 500; }
+.carrow .grow { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.thumb16 { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; overflow: hidden; background: var(--muted); flex: none; }
+.thumb16 img { width: 100%; height: 100%; object-fit: cover; }
+.trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.rentdl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; border-top: 1px solid var(--border); padding-top: 10px; font-size: 12px; }
+.rentdl dt { color: var(--muted-foreground); }
+.rentdl dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rentdl dd.hint2 { grid-column: span 2; text-align: left; font-weight: 400; color: var(--muted-foreground); }
+.chancebox { display: flex; flex-direction: column; align-items: flex-start; }
+.chancebox > .row, .chancebox > .meter { align-self: stretch; }
+/* Whose a car is, as CAR_SOURCE_ACCENT draws it: rented on the rental's teal. */
+:root { --ledger-rent: oklch(0.92 0.055 195); --ledger-rent-fg: oklch(0.38 0.09 200); }
+:root[data-theme="dark"] { --ledger-rent: oklch(0.33 0.06 195); --ledger-rent-fg: oklch(0.86 0.09 195); }
+.c-rented { background: var(--ledger-rent); color: var(--ledger-rent-fg); }
+.c-rented .i { width: 12px; height: 12px; }
+.life { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.life .node { position: relative; }
+.life .node h5 .chip { margin-left: auto; }
+.in { color: var(--success); font-weight: 600; }
+.out { color: var(--destructive-soft-fg); font-weight: 600; }
+.tiles4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.tile b { font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.tile.hero { border-top: 3px solid var(--success); }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: 140px minmax(0, 1fr) 90px; align-items: center; gap: 10px; font-size: 12.5px; }
+.bar .tr { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+.bar .tr i { display: block; height: 100%; border-radius: 99px; }
+.bar .amt { text-align: right; }
+.led td.amt, .led th.amt { text-align: right; white-space: nowrap; }
+.led td { vertical-align: middle; }
+.panel.ledger { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.panel.ledger .pb { flex: 1; min-height: 0; overflow: auto; padding-top: 0; margin-top: 8px; }
+.led thead th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+.led .w { font-weight: 600; }
+.led .s { font-size: 12px; color: var(--muted-foreground); }
+.feebox { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.feebox .k { color: var(--muted-foreground); }
+.feebox .v { text-align: right; font-weight: 600; }
+.feebox .tot { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
+.errbox { border: 1px solid color-mix(in srgb, var(--destructive) 35%, var(--border)); background: var(--destructive-soft); color: var(--destructive-soft-fg); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.errbox .txt { display: flex; flex-direction: column; gap: 3px; }
+.enter-card { border: 1px dashed var(--primary); border-radius: 12px; background: var(--card); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.enter-card h4 { margin: 0; font-size: 14.5px; font-weight: 600; }
+.enter-card .desc { font-size: 12.5px; color: var(--muted-foreground); margin-top: -8px; }
+.carrow { display: flex; align-items: center; gap: 12px; }
+.carrow img { width: 64px; aspect-ratio: 16 / 10; border-radius: 6px; object-fit: cover; flex: none; }
+.carrow .t { font-size: 13.5px; font-weight: 500; }
+.carrow .s { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; }
+.select { height: 34px; border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; gap: 8px; background: var(--card); font-size: 13.5px; }
+.select .i:last-child { margin-left: auto; color: var(--muted-foreground); }
+.costs { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 12.5px; padding-top: 10px; border-top: 1px solid var(--border); }
+.costs span { color: var(--muted-foreground); }
+.costs b { text-align: right; font-weight: 600; }
+.ctabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.ctabs a { padding: 9px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ctabs a.on { color: var(--foreground); border-bottom-color: var(--primary); }
+.sum { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.sum .stripe { height: 6px; border-radius: 99px; background: var(--d-sports-fg); opacity: .8; }
+.sum h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; }
+.fact { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; font-size: 13px; align-items: center; }
+.fact > span:first-child { color: var(--muted-foreground); font-size: 12px; }
+.kebab { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; color: var(--muted-foreground); }
+.kebab.on { background: var(--accent); color: var(--foreground); }
+
+/* ---------- Contracts ---------- */
+/* Proposed: anything a contract says or pays - a seat offer in the inbox, the
+   contract card, its ledger lines - on violet 295, mod provenance's hue. No
+   inbox, Finances, Home or championship sidebar shows a provenance chip; the
+   nearest family that can share a screen with it is qualifying 310, which a
+   seat offer deliberately leaves out (it shows no format strip). A fine is the
+   destructive red: it is a penalty, not a term. Who offers a seat is the
+   team's budget chip, which already exists. */
+:root {
+  --contract: oklch(0.93 0.05 295); --contract-fg: oklch(0.42 0.14 295); --contract-solid: oklch(0.55 0.17 295);
+  --b-works: oklch(0.91 0.075 320); --b-works-fg: oklch(0.38 0.15 320);
+  --b-indep: oklch(0.92 0.06 18); --b-indep-fg: oklch(0.42 0.13 22);
+  --b-priv: oklch(0.93 0.055 132); --b-priv-fg: oklch(0.4 0.09 135);
+  --l-fee: oklch(0.93 0.05 235); --l-fee-fg: oklch(0.38 0.12 250);
+}
+:root[data-theme="dark"] {
+  --contract: oklch(0.33 0.07 295); --contract-fg: oklch(0.87 0.1 295); --contract-solid: oklch(0.62 0.16 295);
+  --b-works: oklch(0.34 0.085 320); --b-works-fg: oklch(0.87 0.11 320);
+  --b-indep: oklch(0.33 0.07 18); --b-indep-fg: oklch(0.86 0.09 22);
+  --b-priv: oklch(0.32 0.06 132); --b-priv-fg: oklch(0.86 0.08 135);
+  --l-fee: oklch(0.32 0.06 235); --l-fee-fg: oklch(0.86 0.08 245);
+}
+.c-contract { background: var(--contract); color: var(--contract-fg); }
+.c-works { background: var(--b-works); color: var(--b-works-fg); }
+.c-indep { background: var(--b-indep); color: var(--b-indep-fg); }
+.c-priv { background: var(--b-priv); color: var(--b-priv-fg); }
+.c-fee { background: var(--l-fee); color: var(--l-fee-fg); }
+.c-fine { background: var(--destructive-soft); color: var(--destructive-soft-fg); }
+.c-own { background: var(--k-named); color: var(--k-named-fg); }
+.well.violet2 { background: var(--contract); color: var(--contract-fg); }
+.btn.soft-red { background: var(--destructive-soft); color: var(--destructive-soft-fg); border-color: transparent; }
+.btn.green { background: var(--success); color: white; border-color: transparent; }
+
+/* The contract card: a seat row, then the terms. */
+.kcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.kcard .khead { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.kcard .khead img { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; flex: none; background: var(--muted); }
+.kcard .khead b { display: block; font-size: 14px; }
+.kcard .khead small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.terms { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 0; font-size: 13px; }
+.terms > span { padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.terms > span:nth-last-child(-n+2) { border-bottom: 0; }
+.terms > span.k { color: var(--muted-foreground); font-size: 12.5px; }
+.terms > span.v b { font-weight: 600; }
+.terms > span.v small { display: block; color: var(--muted-foreground); font-size: 12px; margin-top: 1px; }
+.terms.narrow { grid-template-columns: 96px minmax(0, 1fr); }
+.terms.narrow > span { padding: 7px 12px; }
+.ktiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ktiles > div { padding: 11px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ktiles > div:last-child { border-right: 0; }
+.ktiles .k { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.ktiles b { font-size: 15px; font-weight: 650; }
+.ktiles small { font-size: 12px; color: var(--muted-foreground); }
+.kfoot { display: flex; gap: 16px; flex-wrap: wrap; padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.kfoot b { color: var(--foreground); font-weight: 600; }
+.pos { color: var(--success); font-weight: 600; }
+.neg { color: var(--destructive-soft-fg); font-weight: 600; }
+.yourcard { border-top: 3px solid var(--contract-solid); }
+.paid { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 12.5px; padding: 10px 12px; border-top: 1px solid var(--border); }
+.paid span { color: var(--muted-foreground); }
+.paid b { text-align: right; font-variant-numeric: tabular-nums; }
+.meter.v i { background: var(--contract-fg); }
+
+/* Concept page */
+.dec { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--border); }
+.dec:first-of-type { border-top: 0; }
+.dec .n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 12px; background: var(--contract); color: var(--contract-fg); }
+.dec h4 { margin: 0; font-size: 14.5px; font-weight: 650; align-self: center; }
+.dec .q { grid-column: 2; font-size: 13px; color: var(--muted-foreground); margin: 0; }
+.opts { grid-column: 2; display: grid; gap: 8px; margin-top: 6px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.opt2 { border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; background: var(--card); }
+.opt2 b { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.opt2 span { color: var(--muted-foreground); }
+.opt2.rec { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: color-mix(in srgb, var(--success-soft) 35%, var(--card)); }
+.opt2.rec b::after { content: 'Recommended'; margin-left: auto; font-size: 10.5px; font-weight: 600; padding: 2px 6px; border-radius: 99px; background: var(--success-soft); color: var(--success-soft-fg); }
+.slices { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; }
+.slices .node ul { margin: 2px 0 0; padding-left: 18px; font-size: 12.5px; }
+.slices .node.on { border-top: 3px solid var(--contract-solid); }
+.yr { position: relative; height: 92px; margin-top: 8px; }
+.yr .axis { position: absolute; left: 0; right: 0; top: 70px; display: grid; grid-template-columns: repeat(12, 1fr); font-size: 11px; color: var(--muted-foreground); border-top: 1px solid var(--border); }
+.yr .axis span { padding-top: 4px; border-left: 1px solid var(--border); padding-left: 4px; }
+.yr .lane { position: absolute; height: 18px; border-radius: 5px; font-size: 11px; display: flex; align-items: center; padding: 0 6px; white-space: nowrap; overflow: hidden; }
+.yr .win { background: var(--contract); color: var(--contract-fg); }
+.yr .ed { background: var(--d-sports); color: var(--d-sports-fg); }
+.yr .ed1 { background: var(--d-single); color: var(--d-single-fg); }
+.four { width: 100%; border-collapse: collapse; font-size: 13px; }
+.four th, .four td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.four th { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.four td.r, .four th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.four tr.tot td { font-weight: 650; border-bottom: 0; }
+.heat { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 6px; font-size: 12.5px; }
+.heat > div { padding: 8px 10px; border-radius: 8px; background: var(--muted); }
+.heat > div.h { background: transparent; padding: 4px 2px; font-weight: 600; font-size: 12px; color: var(--muted-foreground); }
+.heat > div.x { background: transparent; border: 1px dashed var(--border); color: var(--muted-foreground); }
+.heat > div.y { background: color-mix(in srgb, var(--contract) 60%, var(--card)); }
+.heat > div small { display: block; color: var(--muted-foreground); font-size: 11.5px; }
+.offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ocard { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.ocard img { width: 100%; height: 70px; object-fit: cover; border-radius: 6px; background: var(--muted); }
+.ocard b { font-size: 13.5px; }
+.banner.k { border-left-color: var(--contract-fg); }
+
+/* The budget chip's tooltip - the vendored ui/tooltip as it draws: foreground
+   fill, background text, text-xs, px-3 py-1.5, rounded-md, an arrow. Hover any
+   budget chip; the works offer in the inbox shows one held open. */
+.tipwrap { position: relative; display: inline-flex; }
+.tipbox { display: none; position: absolute; z-index: 30; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 260px; background: var(--foreground); color: var(--background); font-size: 12px; line-height: 1.4; font-weight: 400; padding: 6px 12px; border-radius: 6px; text-align: left; white-space: normal; text-transform: none; letter-spacing: 0; }
+.tipbox::before { content: ''; position: absolute; bottom: -4px; left: 50%; width: 10px; height: 10px; background: var(--foreground); transform: translateX(-50%) rotate(45deg); border-radius: 2px; }
+.tipbox b { display: block; font-weight: 600; margin-bottom: 2px; font-size: 12px; color: inherit; }
+.tipwrap:hover .tipbox, .tipwrap.open .tipbox { display: block; }
+.kcard { overflow: visible; }
+.kcard .khead { border-radius: 12px 12px 0 0; }
+.opt2.rec b::after { content: 'Agreed'; }
+.opt2.rec.pend b::after { content: 'Recommended'; }
+.steps { margin: 0; padding-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.feetab { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.feetab td, .feetab th { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.feetab th { font-weight: 500; color: var(--muted-foreground); }
+.feetab .r { text-align: right; font-variant-numeric: tabular-nums; }
+.amend { margin-top: 2px; padding: 5px 8px; border-radius: 6px; background: var(--contract); color: var(--contract-fg); font-size: 12px; }
+/* ---------- Grouped offers ---------- */
+.stage { max-width: 1640px; }
+.why { max-width: 1640px; }
+.doc { max-width: 1200px; }
+.win { height: 1240px; }
+.inbox { grid-template-columns: 216px 400px minmax(0, 1fr); }
+.mail.wide { max-width: 1080px; }
+.mrow .bot .mini { display: inline-flex; gap: 3px; }
+.mrow .bot .mini .chip { padding: 3px 5px; font-size: 10.5px; }
+.lede { font-size: 14px; line-height: 1.6; margin: 0; max-width: 72ch; }
+.termline { font-size: 12.5px; color: var(--muted-foreground); display: flex; gap: 6px; align-items: center; }
+.termline b { color: var(--foreground); font-weight: 600; }
+.clhead { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.clhead b { font-size: 14px; }
+
+/* Layout A: a column per team, a row per term. */
+.cmp { display: grid; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; font-size: 13px; }
+.cmp > div { padding: 8px 12px; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); min-width: 0; }
+.cmp > div.k { border-left: 0; color: var(--muted-foreground); font-size: 12.5px; background: color-mix(in srgb, var(--muted) 30%, var(--card)); }
+.cmp > div.last { border-bottom: 0; }
+.cmp > div b { font-weight: 600; }
+.cmp > div small { display: block; color: var(--muted-foreground); font-size: 12px; margin-top: 1px; }
+.cmp > div.head { display: flex; flex-direction: column; gap: 6px; padding: 12px; background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.cmp > div.head > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; background: var(--muted); }
+.cmp > div.head .tn { font-weight: 600; font-size: 14px; display: flex; gap: 6px; align-items: center; }
+.cmp > div.head .cn { font-size: 12px; color: var(--muted-foreground); }
+.cmp > div.best { background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); }
+.cmp > div.best b::after { content: 'Best'; margin-left: 6px; font-size: 10.5px; font-weight: 600; padding: 1px 5px; border-radius: 99px; background: var(--success-soft); color: var(--success-soft-fg); vertical-align: 1px; }
+.cmp > div.own { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--muted) 55%, transparent) 8px 9px); }
+.cmp > div.own.head { background: color-mix(in srgb, var(--muted) 30%, var(--card)); }
+.cmp > div.act { display: flex; align-items: center; }
+.cmp > div.act .btn { width: 100%; }
+.cmp > div.off { opacity: .55; }
+.cmp > div.won { box-shadow: inset 0 3px 0 var(--success); }
+.ownwell { width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; border: 1px dashed var(--border); display: grid; place-items: center; color: var(--muted-foreground); }
+.ownwell .i { width: 22px; height: 22px; }
+
+/* Layout B: pick a team, read its card. */
+.picks { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; }
+.pick { display: grid; grid-template-columns: 18px 72px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pick:last-child { border-bottom: 0; }
+.pick > img { width: 72px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 5px; background: var(--muted); }
+.pick .radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--input); }
+.pick.on { background: color-mix(in srgb, var(--primary) 7%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.pick.on .radio { border: 5px solid var(--primary); }
+.pick .tn { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.pick .sub { font-size: 12px; color: var(--muted-foreground); }
+.pick .hl { text-align: right; }
+.pick .hl b { display: block; font-weight: 600; }
+.pick .hl small { color: var(--muted-foreground); font-size: 12px; }
+.pickcap { padding: 8px 14px 6px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 35%, var(--card)); display: flex; gap: 6px; align-items: center; }
+
+/* Accepted looks */
+.cmp { position: relative; }
+.cmp > div.frame { position: absolute; inset: 0; padding: 0; border: 2px solid var(--success); border-radius: 8px; pointer-events: none; background: transparent; }
+.cmp > div.tint { background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); }
+.cmp > div.head.tint { background: color-mix(in srgb, var(--success-soft) 70%, var(--card)); }
+.cmp > div.muted2 b { color: var(--muted-foreground); font-weight: 500; }
+.cmp > div.muted2.head img { filter: grayscale(.8); opacity: .75; }
+.signedtxt { display: inline-flex; align-items: center; gap: 6px; color: var(--success-soft-fg); font-weight: 600; font-size: 12.5px; }
+.kcard.signed { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); }
+.sstrip { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--success-soft); color: var(--success-soft-fg); font-size: 13px; font-weight: 600; border-radius: 12px 12px 0 0; }
+.sstrip small { margin-left: auto; font-weight: 400; }
+.disclose { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; font-weight: 500; }
+.disclose .mini { display: inline-flex; gap: 3px; margin-left: 4px; }
+
+/* The championship, as a link */
+.ccard { display: block; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.ccard:hover, .ccard.hov { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 1px; }
+.cchead { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 40%, var(--card)); }
+.cchead b { display: block; font-size: 15px; font-weight: 650; }
+.cchead small { display: block; font-size: 12.5px; color: var(--muted-foreground); }
+.cchead .open { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.crounds { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.crounds > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; }
+.crounds img { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; border-radius: 6px; background: var(--muted); padding: 6px; margin-bottom: 4px; }
+:root[data-theme="dark"] .crounds img { filter: invert(1) hue-rotate(180deg); background: oklch(0.8 0.01 260); }
+.crounds b { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crounds span { color: var(--muted-foreground); }
+.crounds .more { display: grid; place-items: center; border: 1px dashed var(--border); border-radius: 6px; color: var(--muted-foreground); font-size: 12.5px; aspect-ratio: 16 / 10; }
+.cfacts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cfacts > div { padding: 10px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cfacts > div:last-child { border-right: 0; }
+.cfacts .k { font-size: 10.5px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.cfacts b { font-size: 13.5px; font-weight: 600; }
+.cfacts small { font-size: 12px; color: var(--muted-foreground); }
+.cstrip { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font-size: 13px; }
+.cstrip .well { width: 30px; height: 30px; }
+.cstrip b { font-weight: 600; }
+.cstrip small { display: block; font-size: 12px; color: var(--muted-foreground); }
+
+/* Concept */
+.odds { width: 100%; border-collapse: collapse; font-size: 13px; }
+.odds th, .odds td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.odds th { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.odds td.r, .odds th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.odds tr.new td { background: color-mix(in srgb, var(--contract) 35%, var(--card)); }
+.bars2 { display: flex; height: 26px; border-radius: 6px; overflow: hidden; font-size: 11.5px; font-weight: 600; }
+.bars2 span { display: grid; place-items: center; }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.flow > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+.flow > div .n { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 11.5px; background: var(--contract); color: var(--contract-fg); }
+.flow > div b { font-size: 13px; }
+.flow > div span { color: var(--muted-foreground); }
+pre.store { margin: 0; font-size: 12px; background: var(--muted); border-radius: 8px; padding: 10px 12px; overflow: auto; }
+pre.store i { color: var(--muted-foreground); font-style: normal; }
+/* ---------- The market (slice 2) ---------- */
+.stage { max-width: 1640px; }
+.why { max-width: 1640px; }
+.doc { max-width: 1240px; }
+.win { height: auto; min-height: 860px; }
+.inbox { grid-template-columns: 216px 380px minmax(0, 1fr); }
+.mail.wide { max-width: 1120px; }
+/* The renewing team's column: a wash of the contract violet, since it is the
+   contract you hold asking to go on. */
+.cmp > div.ren { background: color-mix(in srgb, var(--contract) 26%, var(--card)); }
+.cmp > div.head.ren { background: color-mix(in srgb, var(--contract) 55%, var(--card)); }
+.cmp > div.k.new-outline, .paid .new-outline { outline-offset: -3px; border-radius: 6px; }
+.cmp .was { color: var(--muted-foreground); text-decoration: line-through; font-weight: 400; margin-left: 4px; font-size: 12px; }
+.chip .i { width: 12px; height: 12px; }
+.paid .full { grid-column: 1 / -1; }
+.paid .full.fg { color: var(--foreground); font-weight: 600; }
+.paid small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted-foreground); margin-top: -2px; }
+.keep { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.keep .tgt { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.keep .tgt .i { color: var(--contract-fg); }
+.keep .vs { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.keep .vs span { color: var(--muted-foreground); }
+.keep .vs b { text-align: right; font-variant-numeric: tabular-nums; }
+.c-onc { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-short { background: var(--warning-soft); color: var(--warning-soft-fg); }
+/* A podium place, as PLACE_ACCENT draws it; fourth and below stay unfilled. */
+.c-p1 { background: var(--gold); color: var(--gold-fg); }
+.c-p2 { background: var(--silver); color: var(--silver-fg); }
+.c-p3 { background: var(--bronze); color: var(--bronze-fg); }
+.c-pn { background: transparent; box-shadow: inset 0 0 0 1px var(--border); color: var(--foreground); }
+
+/* The Enter panel's two ways in. */
+.enter-card .seg { align-self: stretch; }
+.enter-card .seg span { flex: 1; justify-content: center; }
+.sellers { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.seller { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.seller:last-child { border-bottom: 0; }
+.seller .thumb16 { width: 64px; }
+.seller .tn { font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.seller .sub { display: flex; gap: 6px; align-items: center; color: var(--muted-foreground); margin-top: 3px; font-size: 12px; min-width: 0; }
+.seller .pr { text-align: right; }
+.seller .pr b { display: block; font-size: 13px; font-variant-numeric: tabular-nums; }
+.seller .pr small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.seller.no { opacity: .55; }
+.seller.on { background: color-mix(in srgb, var(--primary) 7%, var(--card)); box-shadow: inset 3px 0 0 var(--primary); }
+.seller.offered { background: color-mix(in srgb, var(--contract) 22%, var(--card)); }
+
+/* The Contracts page */
+.cgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kcard .khead .grow b { margin-top: 5px; }
+.kfoot .tgt { display: inline-flex; gap: 6px; align-items: center; }
+.kfoot .tgt .i { color: var(--contract-fg); }
+.hist td { vertical-align: middle; }
+.hist .w { font-weight: 600; }
+.hist .s { font-size: 12px; color: var(--muted-foreground); }
+.hist td.amt, .hist th.amt { text-align: right; white-space: nowrap; }
+.hist tr.yrow td { background: color-mix(in srgb, var(--muted) 45%, var(--card)); font-size: 11.5px; font-weight: 650; letter-spacing: .05em; color: var(--muted-foreground); padding: 5px 8px; }
+.kcard .khead img.flag { width: 18px; height: 12px; border-radius: 2px; }
+.c-renewed { background: var(--contract); color: var(--contract-fg); }
+
+/* Home's doors, as Door draws them. */
+.doors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.door { background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.door .dh { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px; }
+.door .dw { width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.door .dw .i { width: 19px; height: 19px; }
+.door .dh b { display: block; font-size: 14.5px; }
+.door .dh small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.door .dh .op { margin-left: auto; color: var(--primary); font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; }
+.door .db { border-top: 1px solid var(--border); padding: 9px 14px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 112px; font-size: 13px; }
+.door .ln { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.door .ln b { white-space: nowrap; }
+.door .ln span:first-child { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Concept */
+.tline { position: relative; height: 128px; margin-top: 6px; }
+.tline .axis { position: absolute; left: 0; right: 0; top: 104px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: 11.5px; color: var(--muted-foreground); border-top: 1px solid var(--border); }
+.tline .axis span { padding: 4px 0 0 6px; border-left: 1px solid var(--border); }
+.tline .lane { position: absolute; height: 22px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden; }
+.tline .ed { background: var(--d-sports); color: var(--d-sports-fg); }
+.tline .k { background: var(--contract); color: var(--contract-fg); }
+.tline .pin { position: absolute; top: 0; bottom: 24px; width: 0; border-left: 2px dashed var(--contract-fg); }
+.tline .pin b { position: absolute; top: -2px; left: 6px; font-size: 11px; white-space: nowrap; color: var(--contract-fg); }
+.tline .pin.amber { border-left-color: var(--warning-soft-fg); }
+.tline .pin.amber b { color: var(--warning-soft-fg); }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.three .node ul { margin: 2px 0 0; padding-left: 18px; font-size: 12.5px; }
+.three .node.on { border-top: 3px solid var(--contract-solid); }
+.dec .opts { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.toast.k { border-color: color-mix(in srgb, var(--contract-fg) 40%, var(--border)); }
+
+/* ---------- Sponsors (new) ---------- */
+/* Proposed: a sponsor's pink-magenta at 350. Every screen a sponsor shows on -
+   the inbox, Home, Finances, a round's page and the Sponsors page - already
+   carries the contract violet 295, the historic leather 40, the fee blue 235,
+   the rent cyan 195 and the disciplines, so the free arc between custom origin
+   340 and the destructive 27 is where it fits. Custom origin and the named save
+   share 340 but show only on the Championships list and the saves list; the
+   third class of a round (also 340) is the one place they could meet. */
+:root {
+  --sponsor: oklch(0.93 0.05 350); --sponsor-fg: oklch(0.43 0.15 352); --sponsor-solid: oklch(0.58 0.18 352);
+}
+:root[data-theme="dark"] {
+  --sponsor: oklch(0.33 0.07 350); --sponsor-fg: oklch(0.87 0.09 352); --sponsor-solid: oklch(0.65 0.17 352);
+}
+.c-sponsor { background: var(--sponsor); color: var(--sponsor-fg); }
+.c-dropped { background: var(--destructive-soft); color: var(--destructive-soft-fg); }
+.well.pink { background: var(--sponsor); color: var(--sponsor-fg); }
+.opt2.rec b::after { content: 'Recommended'; }
+.dec .n { background: var(--sponsor); color: var(--sponsor-fg); }
+.flow > div .n { background: var(--sponsor); color: var(--sponsor-fg); }
+.three .node.on { border-top-color: var(--sponsor-solid); }
+.slices .node.on { border-top-color: var(--sponsor-solid); }
+
+/* A sponsor's mark: its initials on the sponsor pink, its trade as an icon -
+   an icon rather than a chip, so the eight trades spend no hues. */
+.mark { position: relative; width: 44px; height: 44px; border-radius: 11px; display: grid; place-items: center; flex: none; background: var(--sponsor); color: var(--sponsor-fg); font-weight: 750; font-size: 14px; letter-spacing: .02em; }
+.mark .tr { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--card); color: var(--sponsor-fg); box-shadow: 0 0 0 1px var(--border); }
+.mark .tr .i { width: 12px; height: 12px; }
+.mark.sm { width: 32px; height: 32px; border-radius: 8px; font-size: 10.5px; letter-spacing: 0; }
+.mark.sm .tr { width: 16px; height: 16px; right: -3px; bottom: -3px; border-radius: 5px; }
+.mark.sm .tr .i { width: 10px; height: 10px; }
+
+.pips { display: inline-flex; gap: 3px; align-items: center; }
+.pips i { width: 9px; height: 9px; border-radius: 99px; background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
+.pips i.on { background: var(--warning-soft-fg); box-shadow: none; }
+.pips.red i.on { background: var(--destructive); }
+
+/* The slots board. */
+.slots { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 14px; align-items: stretch; }
+.spcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border-top: 3px solid var(--sponsor-solid); }
+.spcard .sh { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--sponsor) 25%, var(--card)); }
+.spcard .sh b { display: flex; gap: 6px; align-items: center; font-size: 14.5px; }
+.spcard .sh small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.spcard .slotname { font-size: 10.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--sponsor-fg); }
+.spcard .terms { flex: none; }
+.spcard .prog { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 12.5px; padding: 10px 14px; border-top: 1px solid var(--border); }
+.spcard .prog span { color: var(--muted-foreground); }
+.spcard .prog b { text-align: right; font-variant-numeric: tabular-nums; }
+.spcard .sf { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.spcard.free { border-top: 1px dashed var(--border); border-style: dashed; background: transparent; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; gap: 8px; color: var(--muted-foreground); }
+.spcard.locked { border: 1px dashed var(--border); background: color-mix(in srgb, var(--muted) 45%, transparent); align-items: center; justify-content: center; text-align: center; padding: 24px 16px; gap: 8px; color: var(--muted-foreground); }
+.spcard.locked b { color: var(--foreground); }
+.spcard.warn { border-top-color: var(--warning-soft-fg); }
+.lockrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+
+/* A round's sponsors, in the aside under the sessions. */
+.rspon { display: flex; flex-direction: column; }
+.rspon .ln { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.rspon .ln b { font-size: 13px; }
+.rspon .ln small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.rspon .ln .amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.aside { display: flex; flex-direction: column; gap: 14px; }
+.cardh { display: flex; align-items: center; gap: 8px; padding: 11px 12px; font-size: 13.5px; font-weight: 600; }
+.cardh .i { color: var(--sponsor-fg); }
+
+/* The backing note on an Enter panel. */
+.backing { display: flex; gap: 10px; padding: 10px; border-radius: 10px; background: color-mix(in srgb, var(--sponsor) 40%, var(--card)); border: 1px solid color-mix(in srgb, var(--sponsor-fg) 25%, var(--border)); font-size: 12.5px; }
+.backing b { display: block; font-size: 13px; }
+.backing small { display: block; color: var(--muted-foreground); margin-top: 2px; }
+
+/* The ladder's rung card, as LadderCell draws it, for the backed case. */
+.lad { display: grid; grid-template-columns: 120px repeat(3, minmax(0, 1fr)); gap: 8px; align-items: stretch; font-size: 12.5px; }
+.lad .rh { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.lad .th { text-align: center; }
+.rungc { position: relative; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--d-sports-fg); border-radius: 9px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; }
+.rungc h5 { margin: 0; font-size: 13px; font-weight: 600; }
+.rungc .ft { display: flex; gap: 6px; align-items: center; font-size: 11.5px; color: var(--muted-foreground); }
+.rungc.lock { opacity: .5; }
+.rungc.lock h5::after { content: ' 🔒'; font-size: 11px; }
+
+/* Ledger snippet. */
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted-foreground); padding: 7px 10px; border-bottom: 1px solid var(--border); }
+table.t td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.t td.amt, table.t th.amt { text-align: right; font-variant-numeric: tabular-nums; }
+table.t .s { font-size: 12px; color: var(--muted-foreground); }
+
+/* The offers mail: a table per slot kind. */
+.slotgrp { display: flex; flex-direction: column; gap: 8px; }
+.slotgrp h3 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.slotgrp h3 small { font-weight: 400; color: var(--muted-foreground); font-size: 12.5px; }
+.cmp > div.tint2 { background: color-mix(in srgb, var(--success-soft) 30%, var(--card)); }
+.cmp > div.head.tint2 { background: color-mix(in srgb, var(--success-soft) 60%, var(--card)); }
+.spname { display: flex; align-items: center; gap: 6px; font-weight: 650; font-size: 13.5px; }
+.doors.six { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.doors.six .door .dh small { white-space: normal; }
+.doors.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.slice2 { outline: 2px dashed color-mix(in oklch, var(--sponsor-fg) 50%, transparent); outline-offset: 2px; }
+
+/* The pool: a trade's icon on its own, and a table's group rows. */
+.ti { width: 24px; height: 24px; border-radius: 7px; display: inline-grid; place-items: center; background: var(--sponsor); color: var(--sponsor-fg); flex: none; }
+.ti .i { width: 13px; height: 13px; }
+.tis { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+table.t tr.gr td { background: color-mix(in srgb, var(--sponsor) 30%, var(--card)); font-size: 11.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--sponsor-fg); padding: 6px 10px; }
+table.t tr.gr td small { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted-foreground); margin-left: 6px; }
+table.t td b { font-weight: 600; }
+.s2t { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 4px; font-size: 10.5px; font-weight: 600; border: 1px dashed color-mix(in oklch, var(--sponsor-fg) 60%, transparent); color: var(--sponsor-fg); vertical-align: 1px; }
+.recipe { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.recipe > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+.recipe > div .n { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 11.5px; background: var(--sponsor); color: var(--sponsor-fg); }
+.recipe > div b { font-size: 13px; }
+.recipe > div span { color: var(--muted-foreground); }
+.agreed { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--success-soft) 55%, var(--card)); font-size: 13px; }
+.agreed .i { color: var(--success-soft-fg); flex: none; margin-top: 2px; }
+.cmp .none { color: var(--muted-foreground); font-weight: 400; }
+/* Proposed: a partner's cyan at 200, on the rent and modified-origin hue - rent
+   shows on Finances, the Garage and an Enter panel, modified origin on the
+   Championships list, and none of them shows a sponsor's slot. A renewal's
+   periwinkle at 250 sits on practice's hue, which only a round's sessions wear. */
+:root { --partner: oklch(0.93 0.05 200); --partner-fg: oklch(0.38 0.09 205); --partner-solid: oklch(0.6 0.11 205);
+  --renewal: oklch(0.93 0.045 250); --renewal-fg: oklch(0.4 0.13 258); }
+:root[data-theme="dark"] { --partner: oklch(0.33 0.06 200); --partner-fg: oklch(0.86 0.08 200); --partner-solid: oklch(0.66 0.11 200);
+  --renewal: oklch(0.33 0.06 255); --renewal-fg: oklch(0.86 0.08 255); }
+.c-partner { background: var(--partner); color: var(--partner-fg); }
+.c-renewal { background: var(--renewal); color: var(--renewal-fg); }
+.c-renewal .i { width: 11px; height: 11px; }
+.mark.partner { background: var(--partner); color: var(--partner-fg); }
+.mark.partner .tr { color: var(--partner-fg); }
+.well.cyan { background: var(--partner); color: var(--partner-fg); }
+
+/* A sponsor's terms, a price and its condition to a line. */
+.pairs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 10px; font-size: 12.5px; align-items: baseline; }
+.pairs b { font-variant-numeric: tabular-nums; font-weight: 650; }
+.pairs span { color: var(--muted-foreground); }
+.pairs .sig { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; color: var(--foreground); font-weight: 600; }
+.pairs .sig .i { width: 13px; height: 13px; color: var(--sponsor-fg); }
+.goalln { display: flex; gap: 8px; align-items: center; font-size: 12.5px; flex-wrap: wrap; }
+.goalln .gk { font-size: 10.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.goalln small { flex-basis: 100%; color: var(--muted-foreground); font-size: 12px; }
+
+/* Variant A: compact cards. */
+.sp2grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.sp2 { background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; border-top: 3px solid var(--sponsor-solid); overflow: hidden; }
+.sp2.partner { border-top-color: var(--partner-solid); }
+.sp2 .h { display: flex; gap: 10px; align-items: center; padding: 10px 12px; }
+.sp2 .h b { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+.sp2 .h small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.sp2 .bd { padding: 2px 12px 10px; display: flex; flex-direction: column; gap: 10px; }
+.sp2 .f { margin-top: auto; display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); }
+.sp2 .f b { color: var(--foreground); }
+.sp2.free { border: 2px dashed var(--border); border-top: 4px dashed var(--partner-solid); background: transparent; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 18px; color: var(--muted-foreground); font-size: 12.5px; }
+.locks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sp2.lockt { border: 2px dashed var(--border); background: transparent; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 18px; color: var(--muted-foreground); font-size: 12.5px; min-height: 190px; }
+.sp2.lockt b { color: var(--foreground); }
+.sp2.lockt .i { width: 18px; height: 18px; }
+/* Locked slot options. Faded: the whole tile at half strength on a solid hairline. */
+.sp2.lockt.lk-faded { border: 1px solid var(--border); opacity: .5; }
+/* Hatched: diagonal stripes, the usual "not available" texture, on a solid hairline. */
+.sp2.lockt.lk-hatched { border: 1px solid var(--border); background: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--muted-foreground) 13%, transparent) 7px 8.5px); }
+.sp2.lockt.lk-hatched b { color: var(--muted-foreground); }
+/* Well: sunk into the page - a muted fill with an inner shadow and no border. */
+.sp2.lockt.lk-well { border: 0; background: var(--muted); box-shadow: inset 0 1px 4px rgb(0 0 0 / .08); }
+.sp2.lockt.lk-well b { color: var(--muted-foreground); }
+/* Merged: one well for every slot still to open, a line each. */
+.sp2.lockt.lk-merged { border: 0; background: var(--muted); box-shadow: inset 0 1px 4px rgb(0 0 0 / .08); align-items: stretch; justify-content: flex-start; text-align: left; gap: 8px; }
+.lk-merged .lh { display: flex; gap: 8px; align-items: center; color: var(--muted-foreground); font-weight: 600; }
+.lk-merged .lr { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
+.lk-merged .lr .end { margin-left: auto; font-variant-numeric: tabular-nums; }
+/* The History tab's ways to a past offer. */
+table.t tr.hov td { background: color-mix(in srgb, var(--accent) 70%, transparent); }
+table.t td .olink { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-weight: 550; font-size: 12.5px; white-space: nowrap; }
+table.t td .olink .i { width: 14px; height: 14px; }
+.hmenu { position: relative; }
+.hmenu .menu { right: 0; top: 34px; min-width: 190px; }
+.lock1 { display: flex; gap: 8px; align-items: center; padding: 9px 12px; border: 1px dashed var(--border); border-radius: 10px; font-size: 12.5px; color: var(--muted-foreground); background: color-mix(in srgb, var(--muted) 40%, transparent); }
+.lock1 .i { width: 14px; height: 14px; }
+.lock1 b { color: var(--foreground); font-weight: 600; }
+
+/* Variant B: one row a sponsor. */
+table.sprows td { vertical-align: top; padding: 11px 10px; }
+table.sprows tr.lockr td { color: var(--muted-foreground); background: color-mix(in srgb, var(--muted) 30%, transparent); padding: 8px 10px; }
+.slotbar { width: 3px; border-radius: 3px; align-self: stretch; background: var(--sponsor-solid); }
+.slotbar.partner { background: var(--partner-solid); }
+
+/* Variant C: the main sponsor large, partners beside it. */
+.board { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.hero2 { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.hero2 .top { padding: 14px 16px; display: flex; gap: 12px; align-items: center; background: color-mix(in srgb, var(--sponsor) 45%, var(--card)); }
+.hero2 .top b { font-size: 17px; display: flex; gap: 6px; align-items: center; }
+.hero2 .top small { display: block; color: var(--muted-foreground); font-size: 12px; }
+.hero2 .sigband { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.hero2 .sigband .i { color: var(--sponsor-fg); }
+.hero2 .bd { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+.plist { display: flex; flex-direction: column; gap: 10px; }
+.prow { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--partner-solid); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+.prow .who { display: flex; gap: 10px; align-items: center; }
+.prow .who b { font-size: 13.5px; display: flex; gap: 6px; align-items: center; }
+.prow .who small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* A round's sponsors, redrawn. */
+.rsp { display: flex; flex-direction: column; }
+.rsp .blk { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+.rsp .blk.main { box-shadow: inset 3px 0 0 var(--sponsor-solid); }
+.rsp .blk.partner { box-shadow: inset 3px 0 0 var(--partner-solid); }
+.rsp .who { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.rsp .who b { font-weight: 650; }
+.rsp .ln2 { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12.5px; }
+.rsp .ln2 .c { color: var(--muted-foreground); }
+.rsp .ln2 .a { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+.rsp .ln2.pre { grid-template-columns: max-content minmax(0, 1fr); }
+
+/* The sponsor an offer would replace, washed in its pink as a renewal is in the contract violet. */
+.cmp > div.cur { background: color-mix(in srgb, var(--sponsor) 28%, var(--card)); }
+.work { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+
+/* ---------- Slice 2 ---------- */
+/* Every signature side by side, the one shown lit. */
+.sigstrip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.sigt { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--sponsor-solid); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.sigt b { color: var(--foreground); font-size: 13.5px; }
+.sigt .i { color: var(--sponsor-fg); }
+.sigt.on { box-shadow: 0 0 0 2px var(--sponsor-solid); }
+.sigrow { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 440px); gap: 16px; align-items: start; }
+/* A perk that helps rather than pays: one line, in its slot's colour. */
+.help { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; }
+.help .i { width: 14px; height: 14px; color: var(--sponsor-fg); flex: none; }
+.help.partner .i { color: var(--partner-fg); }
+.climbed { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted-foreground); border-radius: 6px; }
+/* The Store's cards, as the car browser draws them, priced. */
+.stgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.stc.on { box-shadow: 0 0 0 2px var(--primary); }
+.sti { aspect-ratio: 16 / 9; background: var(--scrim); }
+.sti img { width: 100%; height: 100%; object-fit: cover; }
+.stb { padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; }
+.stf { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--border); font-size: 13px; }
+.lnote { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted-foreground); border-radius: 6px; }
+.lnote .i { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+.lnote.new-outline .i { color: var(--sponsor-fg); }
+.reward { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid var(--border); border-left: 4px solid var(--sponsor-solid); border-radius: 12px; background: var(--card); }
+.reward .grow { display: flex; flex-direction: column; gap: 3px; }
+.reward b { font-size: 14.5px; }
+.reward small { font-size: 12.5px; color: var(--muted-foreground); }
+.invn { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.cbar { height: 6px; border-radius: 99px; background: var(--historic); overflow: hidden; display: block; }
+.cbar i { display: block; height: 100%; border-radius: 99px; background: var(--historic-fg); }
+.seller .pr { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.ccgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.cc .pic { position: relative; flex: none; aspect-ratio: 4 / 3; background: var(--scrim); overflow: hidden; }
+.cc .pic img.p { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cc .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, oklch(0.14 0.012 265 / .85)); }
+.cc .tl { position: absolute; top: 8px; left: 8px; right: 54px; display: flex; flex-wrap: wrap; gap: 4px; z-index: 1; }
+.cc .tl { flex-direction: row; align-items: flex-start; }
+.cc .tr { position: absolute; top: 8px; right: 8px; z-index: 1; }
+.cc .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 99px; padding: 2px 8px; font-size: 11.5px; font-weight: 500; background: oklch(0.14 0.012 265 / .6); color: var(--on-scrim); }
+.cc .pill .i { width: 12px; height: 12px; }
+.cc .cap { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; color: var(--on-scrim); }
+.cc .cap .ov { display: flex; align-items: center; gap: 6px; font-size: 11.5px; opacity: .9; }
+.cc .cap .nm { font-size: 15px; font-weight: 650; line-height: 1.2; margin-top: 2px; }
+.cc .bd { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.fig { display: flex; gap: 10px; font-size: 12px; color: var(--muted-foreground); }
+.fig b { color: var(--foreground); font-weight: 600; }
+.raced { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 5px; align-items: center; margin-top: auto; }
+.raced .i { width: 13px; height: 13px; }
+.pf { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--muted); }
+.pf b { font-size: 17px; font-weight: 650; line-height: 1.15; }
+.pf b.dim { color: var(--muted-foreground); }
+.pf small { font-size: 12px; color: var(--muted-foreground); }
+.pf.own { background: var(--k-named); color: var(--k-named-fg); }
+.pf.own small { color: inherit; opacity: .75; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.pf.own b { font-size: 15px; }
+.btn.go { background: var(--success); color: oklch(0.985 0.005 260); border-color: transparent; }
+.btn.cant { background: var(--destructive-soft); color: var(--destructive-soft-fg); border-color: transparent; }
+.sp2.free.mainfree { border-top-color: var(--sponsor-solid); }
+.cmp > div.curp { background: color-mix(in srgb, var(--partner) 28%, var(--card)); }
+.rcar { display: flex; flex-direction: column; gap: 8px; border-radius: 6px; }
+.rcar .ph { aspect-ratio: 16 / 9; border-radius: 6px; }
+.swt { display: flex; align-items: center; gap: 14px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+.swt .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.swt b { font-size: 13.5px; font-weight: 500; }
+.swt small { font-size: 12px; color: var(--muted-foreground); }
+
+.olink { display: inline-flex; gap: 5px; align-items: center; color: var(--primary); font-size: 12.5px; font-weight: 500; }
+.olink .i { width: 14px; height: 14px; }
+
+/* ---------- Phase 11 - the paddock talks ---------- */
+.stage { max-width: 1640px; }
+.why { max-width: 1640px; }
+.doc { max-width: 1240px; }
+.win { height: 1180px; }
+.mfrom b.row { display: flex; }
+.ppl b.row { display: flex; }
+.inbox { grid-template-columns: 216px 380px minmax(0, 1fr); }
+.dec .n { background: var(--debrief); color: var(--debrief-fg); }
+.opt2.rec b::after { content: 'Recommended'; }
+.opt2.rec.agreed b::after { content: 'Agreed'; }
+.dec.done .opt2:not(.rec) { opacity: .45; }
+/* Proposed: a debrief on teal 175, touring's hue, and a championship's result
+   on a laurel 110, sportscar's hue. The inbox shows no discipline chip - its
+   rows carry budgets (18, 132, 320), slots (350, 200), the contract violet 295,
+   the historic leather 40, the reply states (80, 155, 232, 8) and the renewal
+   periwinkle 250 - so the two arcs left clear of all of them are 100-120 and
+   165-185. Team news and market news stay on the contract violet, being what a
+   team's contract says or puts on offer; a rung's mail wears its tier's metal. */
+:root {
+  --debrief: oklch(0.925 0.055 175); --debrief-fg: oklch(0.36 0.09 178);
+  --results: oklch(0.925 0.065 110); --results-fg: oklch(0.38 0.1 115);
+}
+:root[data-theme="dark"] {
+  --debrief: oklch(0.32 0.065 175); --debrief-fg: oklch(0.86 0.09 175);
+  --results: oklch(0.33 0.07 110); --results-fg: oklch(0.87 0.1 112);
+}
+.c-debrief { background: var(--debrief); color: var(--debrief-fg); }
+.c-results { background: var(--results); color: var(--results-fg); }
+.well.debrief { background: var(--debrief); color: var(--debrief-fg); }
+.well.results { background: var(--results); color: var(--results-fg); }
+.well.t3 { background: var(--t3); color: var(--t3-fg); } .well.t4 { background: var(--t4); color: var(--t4-fg); }
+.c-new { background: var(--primary); color: var(--primary-foreground); font-size: 10px; padding: 3px 6px; }
+.medal { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; flex: none; }
+.m3 { background: var(--t3); color: var(--t3-fg); } .m4 { background: var(--t4); color: var(--t4-fg); }
+.c-tier3 { background: var(--t3); color: var(--t3-fg); } .c-tier4 { background: var(--t4); color: var(--t4-fg); }
+.c-qualify .i, .c-race .i { width: 12px; height: 12px; }
+/* A person writing: initials in a round well of their kind's colour. */
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none; }
+.av.sm { width: 34px; height: 34px; font-size: 12.5px; }
+.av.debrief { background: var(--debrief); color: var(--debrief-fg); }
+.av.contract { background: var(--contract); color: var(--contract-fg); }
+.av.results { background: var(--results); color: var(--results-fg); }
+.mrow .av.sm { width: 34px; height: 34px; }
+/* ResultCell, as components/results draws it. */
+.rc { display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; position: relative; }
+.rc.p1 { background: var(--gold); color: var(--gold-fg); } .rc.p2 { background: var(--silver); color: var(--silver-fg); }
+.rc.p3 { background: var(--bronze); color: var(--bronze-fg); }
+.rc.pts { background: var(--success-soft); color: var(--success-soft-fg); }
+.rc.np { font-weight: 500; color: var(--foreground); }
+.rc.lg { min-width: 40px; height: 30px; font-size: 15px; }
+.rc .fl { position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.rc .pl { position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--s-qualify-fg); }
+.mv { display: inline-flex; align-items: center; gap: 1px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.mv.up { color: var(--success); } .mv.dn { color: var(--destructive); } .mv.eq { color: var(--muted-foreground); font-weight: 400; }
+.mv .i { width: 12px; height: 12px; }
+/* The debrief's table: a row a session. */
+.dtab { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtab th { text-align: left; font-weight: 500; font-size: 11.5px; color: var(--muted-foreground); padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; background: color-mix(in srgb, var(--muted) 40%, var(--card)); }
+.dtab td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+.dtab tr:last-child td { border-bottom: 0; }
+.dtab .r { text-align: right; font-variant-numeric: tabular-nums; }
+.dtab td small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.dtab tr.me td { background: color-mix(in srgb, var(--primary) 7%, var(--card)); }
+.dtab tr.champ td { font-weight: 600; }
+.dtab .dim { color: var(--muted-foreground); }
+.tbox { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.tbox > .th { padding: 9px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.tbox > .th .end { font-weight: 400; font-size: 12px; color: var(--muted-foreground); }
+.sumtiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+.sumtiles > div { padding: 10px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sumtiles > div:last-child { border-right: 0; }
+.sumtiles .k { font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.sumtiles b { font-size: 16px; font-weight: 650; display: flex; align-items: center; gap: 6px; }
+.sumtiles small { font-size: 12px; color: var(--muted-foreground); }
+.strip2 { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+.strip2 b { display: block; font-size: 13.5px; }
+.strip2 small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.strip2 .op { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted-foreground); }
+.sig2 { font-size: 13px; color: var(--muted-foreground); }
+.sig2 b { color: var(--foreground); display: block; }
+.champbar { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; border: 1px solid color-mix(in oklch, var(--gold-fg) 25%, transparent); background: color-mix(in oklch, var(--gold) 60%, transparent); }
+.champbar .i { width: 22px; height: 22px; color: var(--gold-fg); }
+.champbar b { font-size: 15px; }
+.champbar small { display: block; font-size: 12.5px; color: var(--muted-foreground); }
+.rungbar { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; background: var(--d-sports); color: var(--d-sports-fg); }
+.rungbar .medal { width: 34px; height: 34px; font-size: 15px; box-shadow: 0 0 0 3px var(--card); }
+.rungbar b { font-size: 15px; display: block; }
+.rungbar.down { background: var(--warning-soft); color: var(--warning-soft-fg); }
+.carrow { display: flex; gap: 12px; align-items: center; }
+.carrow img { width: 128px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--muted); flex: none; }
+.ppl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ppl > div { display: flex; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; background: var(--card); }
+.ppl b { display: block; font-size: 13.5px; }
+.ppl small { display: block; font-size: 12px; color: var(--muted-foreground); }
+.month { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 0; font-size: 12.5px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.month > div { padding: 6px 10px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.month > div.d { color: var(--muted-foreground); font-variant-numeric: tabular-nums; background: color-mix(in srgb, var(--muted) 40%, var(--card)); }
+.month > div:nth-last-child(-n+2) { border-bottom: 0; }
+.kinds td .chip { margin-right: 4px; }
+.toast .av { width: 34px; height: 34px; font-size: 12.5px; }
+.chip.dl .i { width: 11px; height: 11px; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage" id="stage"></div>
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  chev: P('<path d="m9 18 6-6-6-6"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  up: P('<path d="m6 15 6-6 6 6"/>'),
+  home: P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  mail: P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  trophy: P('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  store: P('<path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/>'),
+  garage: P('<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  wallet: P('<path d="M4 7h15a1 1 0 0 1 1 1v11H5a1 1 0 0 1-1-1z"/><path d="M4 7V6a2 2 0 0 1 2-2h11v3"/><circle cx="16" cy="13" r="1.2"/>'),
+  gauge: P('<path d="m12 14 4-5"/><path d="M3.5 17a9 9 0 1 1 17 0"/><circle cx="12" cy="14" r="1.3"/>'),
+  landmark: P('<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2 20 7H4z"/>'),
+  brief: P('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>'),
+  inbox: P('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'),
+  unread: P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><circle cx="19" cy="6" r="3" fill="currentColor"/>'),
+  reply: P('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v5"/>'),
+  search: P('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  dots: P('<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>'),
+  check: P('<path d="m5 12 5 5 9-10"/>'),
+  checks: P('<path d="m2 12 5 5L18 6M13 16l1 1 8-9"/>'),
+  news: P('<path d="M4 4h13v16H6a2 2 0 0 1-2-2z"/><path d="M17 8h3v10a2 2 0 0 1-2 2"/><path d="M8 8h5M8 12h5M8 16h3"/>'),
+  spark: P('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>'),
+  headset: P('<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/><path d="M19 20a3 3 0 0 1-3 2h-3"/>'),
+  flag2: P('<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'),
+  medal: P('<circle cx="12" cy="15" r="6"/><path d="M8 3h8l-2 6h-4z"/>'),
+  tag: P('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/>'),
+  eye: P('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  target: P('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
+  x: P('<path d="M18 6 6 18M6 6l12 12"/>'),
+  clock: P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  ext: P('<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>'),
+  sparkles: P('<path d="M12 3 13.8 9 20 11l-6.2 2L12 19l-1.8-6L4 11l6.2-2z"/>'),
+};
+const img = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" onerror="this.style.visibility='hidden'">`;
+const flag = (c) => `<img class="flag" src="${AC}gui/NationFlags/${c}.png" alt="" onerror="this.remove()">`;
+const chip = (cls, t) => `<span class="chip ${cls}">${t}</span>`;
+const money = (n) => `$${Math.abs(n).toLocaleString('en-US')}`;
+const PREV = (car, skin) => `${AC}cars/${car}/skins/${skin}/preview.jpg`;
+const BUDGET = { works: ['c-works', 'Works team'], indep: ['c-indep', 'Independent'], priv: ['c-priv', 'Privateer'] };
+const budget = (b) => chip(BUDGET[b][0], BUDGET[b][1]);
+const medal = (t, sz) => `<span class="medal m${t}"${sz ? ` style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz * 0.5)}px"` : ''}>${t}</span>`;
+const TIER = { 3: 'Silver', 4: 'Bronze', 5: 'Rookie' };
+const tierChip = (t) => `<span class="chip c-tier${t}">${medal(t, 14)}Tier ${t} · ${TIER[t]}</span>`;
+const nb = (html) => `<span class="new-outline" style="border-radius:6px;display:inline-flex">${html}</span>`;
+// ResultCell: a podium in its metals, a points finish green, the rest plain.
+const rc = (p, { pts = true, fl = false, pl = false, lg = false } = {}) => {
+  const cls = p === 1 ? 'p1' : p === 2 ? 'p2' : p === 3 ? 'p3' : pts ? 'pts' : 'np';
+  return `<span class="rc ${cls}${lg ? ' lg' : ''}">${pl ? '<i class="pl"></i>' : ''}P${p}${fl ? '<i class="fl"></i>' : ''}</span>`;
+};
+// Movement, as components/results draws it.
+const mv = (n) => (n > 0 ? `<span class="mv up">${I.up}${n}</span>` : n < 0 ? `<span class="mv dn">${I.down}${-n}</span>` : '<span class="mv eq">-</span>');
+const sess = (t, name) => chip(t === 'q' ? 'c-qualify' : 'c-race', name);
+
+// ---------- The career: Sam Whitaker, Bronze in Sportscar ----------
+const RATING = '3,512';
+const BAL = 48250;
+const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>-</span><span>☐</span><span>✕</span></div>';
+const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
+const NAV = [['home', 'Home', I.home], ['inbox', 'Inbox', I.mail], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
+const hdr = (on, { badge = 3, date = 'Sun 8 Jul' } = {}) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR')}<span><b>Sam Whitaker</b><small>Career · 2029 · ${date}</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}${id === 'inbox' && badge ? `<span class="badge">${badge}</span>` : ''}</a>`).join('')}</nav>
+  <span class="end row" style="gap:10px"><a class="bal rat">${I.gauge}<span class="num">${RATING}</span></a><a class="bal">${I.wallet}<span class="num">${money(BAL)}</span></a></span></header>`;
+
+// The people. Each is drawn once off the shared name books - a team's engineer
+// and boss seeded on the career and the team, so they stay the same season
+// after season - and copied into every mail they write.
+const WHO = {
+  tom: { ini: 'TH', name: 'Tom Hadley', nation: 'GBR', role: 'Race engineer', team: 'Chiltern Sportscars', av: 'debrief' },
+  lukas: { ini: 'LB', name: 'Lukas Brenner', nation: 'DEU', role: 'Race engineer', team: 'Lechner Racing', av: 'debrief' },
+  rachel: { ini: 'RO', name: 'Rachel Okafor', nation: 'GBR', role: 'Team manager', team: 'Chiltern Sportscars', av: 'contract' },
+  cup: { name: 'Carrera Cup 991', role: 'The organisers', well: 'results', icon: I.trophy },
+  cat: { name: 'Driver categorisation', role: 'Sportscar', well: 't3', icon: I.medal },
+  paddock: { name: 'Paddock news', role: 'The market', well: 'violet2', icon: I.news },
+};
+const avatar = (w, sm) => (w.ini
+  ? `<span class="av ${w.av}${sm ? ' sm' : ''}">${w.ini}</span>`
+  : `<span class="well ${w.well}"${sm ? '' : ' style="width:40px;height:40px;border-radius:10px"'}>${w.icon}</span>`);
+const from = (w) => `<div class="mfrom">${avatar(w)}<span><b class="row" style="gap:6px">${w.name}${w.nation ? flag(w.nation) : ''}</b><small>${[w.role, w.team].filter(Boolean).join(' · ')} · to Sam Whitaker</small></span></div>`;
+const KIND = {
+  debrief: ['c-debrief', 'Debrief'],
+  notice: ['c-contract', 'Team news'],
+  results: ['c-results', 'Championship result'],
+  rung: null,
+  market: ['c-contract', 'Market'],
+  sponsor: ['c-partner', 'Partner'],
+};
+
+// ---------- The inbox list ----------
+// The month of mail a busy career gets: two championships, one under contract.
+const LIST = [
+  { m: 'July 2029' },
+  { id: 'debrief', w: WHO.tom, subj: 'Spa-Francorchamps: P3 and P7', when: 'Sun 8 Jul', unread: true, chips: () => [chip('c-debrief', 'Debrief')], s: 'GT4 European Series · Round 3' },
+  { id: 'team', w: WHO.rachel, subj: 'Halfway in GT4 European Series 2029', when: 'Sun 8 Jul', unread: true, chips: () => [chip('c-contract', 'Team news'), chip('c-onc', 'On course')] },
+  { id: 'rung', w: WHO.cat, subj: 'Promoted to Tier 3 in Sportscar', when: 'Sun 8 Jul', unread: true, chips: () => [tierChip(3)] },
+  { id: 'debrief2', w: WHO.lukas, subj: 'Brands Hatch: P14', when: 'Sun 1 Jul', chips: () => [chip('c-debrief', 'Debrief')], s: 'Carrera Cup 991 · Round 2' },
+  { m: 'June 2029' },
+  { id: 'sponsor', w: { name: 'Castrol', well: 'pink', icon: I.sparkles }, subj: 'Partner offer', when: 'Sun 24 Jun', chips: () => [chip('c-await', `Awaiting${S.cl === 'chip' ? ' · 9 days left' : ''}`), chip('c-partner', 'Partner')] },
+  { id: 'results', w: WHO.cup, subj: 'Carrera Cup 991 H1 2029: 5th', when: 'Sun 17 Jun', chips: () => [chip('c-results', 'Championship result')] },
+  { id: 'debrief3', w: WHO.lukas, subj: 'Silverstone: P4', when: 'Sun 17 Jun', chips: () => [chip('c-debrief', 'Debrief')], s: 'Carrera Cup 991 · Round 6' },
+  { id: 'missed', w: WHO.rachel, subj: 'Nürburgring missed', when: 'Sun 10 Jun', chips: () => [chip('c-contract', 'Team news'), chip('c-fine', 'Fine')] },
+  { id: 'debrief4', w: WHO.tom, subj: 'Silverstone: P5 and P2', when: 'Sun 20 May', chips: () => [chip('c-debrief', 'Debrief')], s: 'GT4 European Series · Round 1' },
+  { m: 'January 2029' },
+  { id: 'market', w: WHO.paddock, subj: 'Seats for sale in 2029', when: 'Mon 1 Jan', chips: () => [chip('c-contract', 'Market')] },
+  { m: 'December 2028' },
+  { id: 'welcome', w: WHO.rachel, subj: 'Welcome to Chiltern Sportscars', when: 'Thu 14 Dec', chips: () => [chip('c-contract', 'Team news')] },
+];
+// Which row a reader view lights.
+const SEL = () => ({
+  debrief: S.dv === 'good' ? 'debrief' : 'debrief2',
+  team: { welcome: 'welcome', halfway: 'team', short: 'team', missed: 'missed' }[S.tv],
+  results: S.rv === 'own' ? 'results' : null,
+  rung: 'rung',
+  market: 'market',
+})[S.mail];
+
+const mrow = (r) => (r.m ? `<div class="mgrp caps">${r.m}</div>` : `<div class="mrow${r.unread && SEL() !== r.id ? ' unread' : ''}${SEL() === r.id ? ' sel' : ''}">
+  <span class="ud"></span>${avatar(r.w, true)}
+  <span style="min-width:0"><span class="top"><span class="from">${r.w.name}</span><span class="when">${r.when}</span></span>
+  <div class="subj">${r.subj}</div>
+  <div class="bot">${r.chips().join('')}${r.s ? `<span class="s">${r.s}</span>` : ''}</div></span></div>`);
+
+const FOLDERS = [
+  ['inbox', 'All mail', 11], ['unread', 'Unread', 3, 'pri'], ['reply', 'Awaiting reply', 1, 'amb'],
+];
+const KINDS = [
+  ['var(--historic-fg)', 'Invitations', 0], ['var(--contract-fg)', 'Seat offers', 0], ['var(--contract-fg)', 'Team news', 3],
+  ['var(--debrief-fg)', 'Debriefs', 4, true], ['var(--results-fg)', 'Results', 1, true], ['var(--sponsor-fg)', 'Sponsors', 1],
+  ['var(--t3-fg)', 'Categorisation', 1, true], ['var(--contract-fg)', 'Market', 1, true],
+];
+const rail = () => `<nav class="rail">
+  ${FOLDERS.map(([ic, l, n, pill], i) => `<a class="folder${i === 0 ? ' on' : ''}">${I[ic]}${l}<span class="cnt${pill ? ` pill ${pill}` : ''}">${n}</span></a>`).join('')}
+  <span class="caps">Kinds</span>
+  ${KINDS.map(([c, l, n, isNew]) => `<a class="folder${isNew ? ' new-outline' : ''}"${isNew ? ' style="outline-offset:-2px"' : ''}><span class="sw" style="background:${c}"></span>${l}<span class="cnt">${n}</span></a>`).join('')}
+</nav>`;
+const mlist = () => `<div class="mlist"><div class="tools"><div class="input grow">${I.search}<span class="muted">Search mail</span></div></div>
+  <div class="scroll">${LIST.map(mrow).join('')}</div></div>`;
+// The reader's head: kind chip, date, the vertical-dots menu.
+const rhead = (chips, when) => `<div class="row" style="gap:8px">${chips.join('')}<span class="end muted" style="font-size:12px">${when}</span><button class="btn ghost icon">${I.dots}</button></div>`;
+const strip = (well, icon, t, s, op = 'Open round') => `<a class="strip2"><span class="well ${well}">${icon}</span><span style="min-width:0"><b>${t}</b><small>${s}</small></span><span class="op">${op}${I.chev}</span></a>`;
+const reader = (inner) => `<div class="reader"><div class="rs"><div class="mail">${inner}</div></div></div>`;
+
+// ---------- Debriefs ----------
+const debriefGood = () => reader(`
+  ${rhead([nb(chip('c-debrief', 'Debrief'))], 'Sunday 8 July 2029')}
+  <h2>Spa-Francorchamps: P3 and P7</h2>
+  ${from(WHO.tom)}
+  ${strip('violet2', I.trophy, 'GT4 European Series 2029 · Round 3 of 6', 'Spa-Francorchamps · Ginetta G55 GT4 · GT4')}
+  <div class="letter">
+    <p>Race one is our first podium of the year - fourth on the grid to third at the flag, and your best lap was the third quickest in GT4.</p>
+    <p>Race two was harder. You started sixth and finished seventh, and your best lap was half a second off race one's.</p>
+    <p>Seventh in the championship now, two places up. Portimão is next, in three weeks.</p>
+  </div>
+  <div class="tbox"><div class="th">Your weekend<span class="end">Places are in GT4, of 18</span></div>
+  <table class="dtab"><thead><tr><th>Session</th><th>Started</th><th>Finished</th><th class="r">Best lap</th><th class="r">To class best</th><th>Jonas Bakker</th><th class="r">Points</th></tr></thead><tbody>
+    <tr><td>${sess('q', 'Qualifying 1')}</td><td class="dim">-</td><td>${rc(4)}</td><td class="r num">2:31.402</td><td class="r num">+0.284</td><td>${rc(9, { pts: false })}</td><td class="r num dim">-</td></tr>
+    <tr><td>${sess('q', 'Qualifying 2')}</td><td class="dim">-</td><td>${rc(6)}</td><td class="r num">2:31.630</td><td class="r num">+0.512</td><td>${rc(5)}</td><td class="r num dim">-</td></tr>
+    <tr><td>${sess('r', 'Race 1')}</td><td>${rc(4)}</td><td>${rc(3)}</td><td class="r num">2:31.884</td><td class="r num">+0.196</td><td>${rc(8)}</td><td class="r num">6</td></tr>
+    <tr><td>${sess('r', 'Race 2')}</td><td>${rc(6)}</td><td>${rc(7)}</td><td class="r num">2:32.410</td><td class="r num">+0.731</td><td>${rc(5)}</td><td class="r num">2</td></tr>
+  </tbody></table></div>
+  <div class="sumtiles">
+    <div><span class="k">Championship</span><b>P7 ${mv(2)}</b><small>41 points</small></div>
+    <div><span class="k">This round</span><b>8 points</b><small>Your best round so far</small></div>
+    <div><span class="k">Jonas Bakker</span><b>P6 ${mv(-1)}</b><small>47 points</small></div>
+    <div><span class="k">Next round</span><b>Portimão</b><small>Sat 28 Jul · in 3 weeks</small></div>
+  </div>`);
+const debriefTough = () => reader(`
+  ${rhead([nb(chip('c-debrief', 'Debrief'))], 'Sunday 1 July 2029')}
+  <h2>Brands Hatch: P14</h2>
+  ${from(WHO.lukas)}
+  ${strip('violet2', I.trophy, 'Carrera Cup 991 H2 2029 · Round 2 of 6', 'Brands Hatch · Porsche 911 GT3 Cup · your own car, for Lechner Racing')}
+  <div class="letter">
+    <p>A hard day at Brands Hatch. Twelfth in qualifying, nine tenths off pole, and fourteenth at the flag.</p>
+    <p>Twelfth in the championship, two places down. Snetterton is next, on Sunday 22 July.</p>
+  </div>
+  <div class="tbox"><div class="th">Your weekend<span class="end">Places of 20</span></div>
+  <table class="dtab"><thead><tr><th>Session</th><th>Started</th><th>Finished</th><th class="r">Best lap</th><th class="r">To best</th><th>Max Hofer</th><th class="r">Points</th></tr></thead><tbody>
+    <tr><td>${sess('q', 'Qualifying')}</td><td class="dim">-</td><td>${rc(12, { pts: false })}</td><td class="r num">1:23.118</td><td class="r num">+0.912</td><td>${rc(10, { pts: false })}</td><td class="r num dim">-</td></tr>
+    <tr><td>${sess('r', 'Race')}</td><td>${rc(12, { pts: false })}</td><td>${rc(14, { pts: false })}</td><td class="r num">1:23.540</td><td class="r num">+0.866</td><td>${rc(9)}</td><td class="r num">0</td></tr>
+  </tbody></table></div>
+  <div class="sumtiles">
+    <div><span class="k">Championship</span><b>P12 ${mv(-2)}</b><small>14 points</small></div>
+    <div><span class="k">This round</span><b>No points</b><small>&nbsp;</small></div>
+    <div><span class="k">Max Hofer</span><b>P9 ${mv(1)}</b><small>22 points</small></div>
+    <div><span class="k">Next round</span><b>Snetterton</b><small>Sun 22 Jul · in 3 weeks</small></div>
+  </div>`);
+
+// ---------- Team news ----------
+const keepBlock = (on, you, mate) => `<div class="panel"><div class="keep" style="border-top:0">
+  <span class="tgt">${I.target}Top 9 in GT4, or ahead of your teammate${on == null ? '' : `<span class="end">${on ? chip('c-onc', 'On course') : chip('c-short', 'Short of it')}</span>`}</span>
+  ${you ? `<div class="vs"><span>You</span><b>P${you}</b><span>Jonas Bakker</span><b>P${mate}</b></div>` : ''}</div></div>`;
+const teamWelcome = () => reader(`
+  ${rhead([chip('c-contract', 'Team news')], 'Thursday 14 December 2028')}
+  <h2>Welcome to Chiltern Sportscars</h2>
+  ${from(WHO.rachel)}
+  ${strip('violet2', I.trophy, 'GT4 European Series 2029', `<span class="row" style="gap:6px">Chiltern Sportscars · GT4 ${budget('indep')}</span>`, 'Open championship')}
+  <div class="letter">
+    <p>Welcome aboard. Your contract for GT4 European Series 2029 is signed, and the car will be ready for Silverstone on Sunday 20 May.</p>
+    <p>We ask for a finish in the top nine of GT4, or one ahead of your teammate.</p>
+  </div>
+  <div class="carrow">${img(PREV('ginetta_g55_gt4', 'Castrol_GTX'))}<span><b>Ginetta G55 GT4</b><small class="muted">In Chiltern Sportscars' livery</small></span></div>
+  <div class="ppl">
+    <div>${avatar(WHO.tom, true)}<span><b class="row" style="gap:6px">Tom Hadley${flag('GBR')}</b><small>Your race engineer</small></span></div>
+    <div><span class="av sm contract">JB</span><span><b class="row" style="gap:6px">Jonas Bakker${flag('NLD')}</b><small>Your teammate</small></span></div>
+  </div>
+  ${keepBlock(null)}
+  <div class="placeholder"><b>The contract, as today</b>The contract card's terms - free seat, half the entry fees covered, 50% of prizes - drawn from the championship page's own card.</div>`);
+const teamHalfway = (on) => reader(`
+  ${rhead([nb(chip('c-contract', 'Team news'))], 'Sunday 8 July 2029')}
+  <h2>Halfway in GT4 European Series 2029</h2>
+  ${from(WHO.rachel)}
+  ${strip('violet2', I.trophy, 'GT4 European Series 2029 · after round 3 of 6', 'Chiltern Sportscars · GT4', 'Open championship')}
+  <div class="letter">
+    ${on
+    ? '<p>Three rounds down and three to go. You are seventh in GT4, inside the top nine we asked for.</p>'
+    : '<p>Three rounds down and three to go. You are eleventh in GT4, two places short of the top nine we asked for, and behind Jonas.</p>'}
+  </div>
+  ${on ? keepBlock(true, 7, 6) : keepBlock(false, 11, 6)}`);
+const teamMissed = () => reader(`
+  ${rhead([chip('c-contract', 'Team news'), chip('c-fine', 'Fine')], 'Sunday 10 June 2029')}
+  <h2>Nürburgring missed</h2>
+  ${from(WHO.rachel)}
+  ${strip('violet2', I.trophy, 'GT4 European Series 2029 · Round 2 of 6', 'Nürburgring GP · Ginetta G55 GT4 · GT4')}
+  <div class="letter">
+    <p>You were not at the Nürburgring. Our reserve driver raced your car, and your contract's fine for a missed round is charged.</p>
+  </div>
+  <div class="sumtiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div><span class="k">Fine</span><b class="neg">-${money(1200)}</b><small>On the ledger today</small></div>
+    <div><span class="k">Your car</span><b>${rc(11, { pts: false })}${rc(9, { pts: true })}</b><small>Race 1 and Race 2</small></div>
+    <div><span class="k">Next round</span><b>Spa-Francorchamps</b><small>Sun 8 Jul · in 4 weeks</small></div>
+  </div>`);
+
+// ---------- Championship results ----------
+const TOP = [
+  [1, 'Lars Vermeer', 'NLD', 'Rhenus Racing', 112], [2, 'Owen Price', 'GBR', 'Chiltern Sportscars', 101], [3, 'Matteo Riva', 'ITA', 'Scuderia Tessin', 94],
+  [4, 'Felix Brandt', 'DEU', 'Eifelblick Racing', 80], [5, 'Jonas Bakker', 'NLD', 'Chiltern Sportscars', 71], [6, 'Sam Whitaker', 'GBR', 'Chiltern Sportscars', 64, true],
+];
+const TOPC = [
+  [1, 'Sam Whitaker', 'GBR', 'Chiltern Sportscars', 118, true], [2, 'Lars Vermeer', 'NLD', 'Rhenus Racing', 109], [3, 'Matteo Riva', 'ITA', 'Scuderia Tessin', 94],
+  [4, 'Felix Brandt', 'DEU', 'Eifelblick Racing', 80], [5, 'Jonas Bakker', 'NLD', 'Chiltern Sportscars', 71],
+];
+const TOPO = [
+  [1, 'Arjen de Wit', 'NLD', 'Lechner Racing', 128], [2, 'Paul Hartmann', 'DEU', 'Allied Racing', 117], [3, 'Kenji Mori', 'JPN', 'Fach Auto Tech', 104],
+  [4, 'Luca Bassi', 'ITA', 'Lechner Racing', 90], [5, 'Sam Whitaker', 'GBR', 'Allied Racing', 86, true],
+];
+const table = (rows, of) => `<div class="tbox"><div class="th">Final standings · GT4<span class="end">of ${of}</span></div>
+  <table class="dtab"><thead><tr><th style="width:56px">Pos</th><th>Driver</th><th>Team</th><th class="r">Points</th></tr></thead><tbody>
+  ${rows.map(([p, d, n, t, pts, me]) => `<tr class="${me ? 'me' : ''}"><td>${rc(p)}</td><td><span class="row" style="gap:6px">${flag(n)}${d}</span></td><td class="dim">${t}</td><td class="r num">${pts}</td></tr>`).join('')}
+  </tbody></table></div>`;
+const resultsContract = (champ) => reader(`
+  ${rhead([nb(chip('c-results', 'Championship result'))], 'Sunday 7 October 2029')}
+  <h2>GT4 European Series 2029: ${champ ? 'Champion' : '6th in GT4'}</h2>
+  ${from(WHO.rachel)}
+  ${champ ? `<div class="champbar">${I.trophy}<span><b>Champion of GT4</b><small>GT4 European Series 2029 · Chiltern Sportscars</small></span></div>` : ''}
+  <div class="letter">
+    ${champ
+    ? '<p>Champions. 118 points and the GT4 title, nine clear of Lars Vermeer, and Chiltern take the teams\' title with it.</p><p>Your standings bonus of $8,000 is paid, with your share of the prize.</p>'
+    : '<p>The season is done: sixth in GT4 with 64 points, one place behind Jonas. Chiltern finished second of nine teams.</p><p>Your share of the standings prize is paid.</p>'}
+  </div>
+  <div class="sumtiles">
+    <div><span class="k">You</span><b>${rc(champ ? 1 : 6)}</b><small>${champ ? '118 points · 4 wins' : '64 points · 2 podiums'}</small></div>
+    <div><span class="k">Jonas Bakker</span><b>${rc(5)}</b><small>71 points</small></div>
+    <div><span class="k">Chiltern Sportscars</span><b>${rc(champ ? 1 : 2)}</b><small>Teams, of 9</small></div>
+    <div><span class="k">Paid</span><b class="pos">+${money(champ ? 14000 : 3000)}</b><small>${champ ? 'Your 50% of $12,000, and the $8,000 bonus' : 'Your 50% of $6,000'}</small></div>
+  </div>
+  ${table(champ ? TOPC : TOP, 18)}
+  ${strip('results', I.trophy, 'Review GT4 European Series 2029', 'Final tables, every champion, your season round by round', 'Open review')}`);
+const resultsOwn = () => reader(`
+  ${rhead([nb(chip('c-results', 'Championship result'))], 'Sunday 17 June 2029')}
+  <h2>Carrera Cup 991 H1 2029: 5th</h2>
+  ${from(WHO.cup)}
+  <div class="letter">
+    <p>Carrera Cup 991 H1 2029 is complete. Arjen de Wit is champion with 128 points; you finished fifth with 86.</p>
+    <p>Your standings prize is paid.</p>
+  </div>
+  <div class="sumtiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div><span class="k">You</span><b>${rc(5)}</b><small>86 points · 1 podium</small></div>
+    <div><span class="k">Champion</span><b class="row" style="gap:6px">${flag('NLD')}Arjen de Wit</b><small>128 points · Lechner Racing</small></div>
+    <div><span class="k">Paid</span><b class="pos">+${money(4000)}</b><small>Standings prize</small></div>
+  </div>
+  ${table(TOPO, 20).replace('Final standings · GT4', 'Final standings')}
+  ${strip('results', I.trophy, 'Review Carrera Cup 991 H1 2029', 'Final tables, every champion, your season round by round', 'Open review')}`);
+
+// ---------- Categorisation ----------
+const rungUp = () => reader(`
+  ${rhead([nb(tierChip(3))], 'Sunday 8 July 2029')}
+  <h2>Promoted to Tier 3 in Sportscar</h2>
+  ${from(WHO.cat)}
+  <div class="rungbar">${medal(3)}<span class="grow"><b>Silver in Sportscar</b>Your sportscar rating reached 3,512, past Silver's 3,500.</span></div>
+  <div class="letter">
+    <p>Silver sportscar championships are open to you, and Single-seater, Touring and Road open at Bronze through it.</p>
+  </div>
+  <div class="row"><button class="btn">${I.trophy}Show on the ladder</button><button class="btn">${I.gauge}Rating</button></div>
+  <p class="hint" style="margin:0">The same day's banner on Home and the toast stay as they are.</p>`);
+const rungDown = () => reader(`
+  ${rhead([nb(tierChip(4))], 'Tuesday 1 January 2030')}
+  <h2>Touring is back to Tier 4</h2>
+  ${from({ ...WHO.cat, role: 'Touring', well: 't4' })}
+  <div class="rungbar down">${medal(4)}<span class="grow"><b>Bronze in Touring for 2030</b>The season closed with it at 2,650, under the middle of Bronze.</span></div>
+  <div class="letter"><p>Your entries stand; the rungs above reopen at 3,500.</p></div>
+  <div class="row"><button class="btn">${I.gauge}Rating</button></div>`);
+
+// ---------- Market ----------
+const SEATS = [
+  ['ks_maserati_gt_mc_gt4', '01_racing_12', 'Aegean Motorsport', 'GRC', 'GT4 European Series', 'Maserati GT MC GT4', 21600],
+  ['alpine_a110_gt4', 'esport_10', 'Lindhoven Motorsport', 'NLD', 'GT4 European Series', 'Alpine A110 GT4', 19800],
+  ['ks_porsche_cayman_gt4_clubsport', '02_cup_01', 'Brackley Clubsport', 'GBR', 'Cayman GT4 Trophy', 'Porsche Cayman GT4 Clubsport', 12400],
+  ['bmw_m4_gt4', 'bmw_1', 'Eifelblick Racing', 'DEU', 'GT4 European Series', 'BMW M4 GT4', 20700],
+  ['audi_r8_gt4', 'audi_sport_1', 'Scuderia Tessin', 'CHE', 'ADAC GT4 Germany', 'Audi R8 LMS GT4', 17900],
+];
+const marketSeats = () => reader(`
+  ${rhead([nb(chip('c-contract', 'Market'))], 'Monday 1 January 2029')}
+  <h2>Seats for sale in 2029</h2>
+  ${from(WHO.paddock)}
+  <div class="letter"><p>Privateer teams selling a seat this season, in championships open to you.</p></div>
+  <div class="sellers">${SEATS.map(([c, sk, t, n, ch, car, pr]) => `<div class="seller"><img class="thumb16" src="${PREV(c, sk)}" alt="" style="height:36px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="min-width:0"><span class="tn">${t}${flag(n)}${budget('priv')}</span><span class="sub">${ch} · ${car}</span></span><span class="pr"><b>${money(pr)}</b><small>the season</small></span></div>`).join('')}</div>
+  <p class="hint" style="margin:0">Each row opens its championship on A team's seat. Drawn from the Enter panel's own <b>SeatSaleList</b>.</p>`);
+const marketWorks = () => reader(`
+  ${rhead([nb(chip('c-contract', 'Market'))], 'Monday 3 September 2029')}
+  <h2>Works teams are watching</h2>
+  ${from(WHO.paddock)}
+  <div class="letter">
+    <p>Works teams in Silver sportscar have started asking about you.</p>
+  </div>
+  <div class="sellers">${[['GT4 European Series', 'Rhenus Racing', 'NLD', 'Opens Sun 19 May 2030'], ['Porsche Supercup', 'Manthey Junior', 'DEU', 'Opens Sun 21 Apr 2030']].map(([ch, t, n, d]) => `<div class="seller" style="grid-template-columns:minmax(0,1fr) auto"><span style="min-width:0"><span class="tn">${ch}</span><span class="sub">${flag(n)}${t} ${budget('works')}</span></span><span class="pr"><small>${d}</small></span></div>`).join('')}</div>`);
+
+const inboxView = () => {
+  const body = {
+    debrief: () => (S.dv === 'good' ? debriefGood() : debriefTough()),
+    team: () => ({ welcome: teamWelcome, halfway: () => teamHalfway(true), short: () => teamHalfway(false), missed: teamMissed })[S.tv](),
+    results: () => ({ contract: () => resultsContract(false), champ: () => resultsContract(true), own: resultsOwn })[S.rv](),
+    rung: () => (S.gv === 'up' ? rungUp() : rungDown()),
+    market: () => (S.kv === 'seats' ? marketSeats() : marketWorks()),
+  }[S.mail]();
+  const toast = S.mail === 'debrief' && S.dv === 'good' && S.toast === 'on'
+    ? `<div class="toast">${avatar(WHO.tom, true)}<span class="grow"><b>Debrief from Tom Hadley</b><br><span class="muted">Spa-Francorchamps: P3 and P7</span></span><button class="btn sm">Read</button></div>` : '';
+  return win(`${hdr('inbox')}<div class="body" style="padding:0;display:flex;flex-direction:column">
+    <div class="row" style="padding:16px 22px 12px"><h2 style="margin:0;font-size:22px">Inbox</h2><button class="btn end">${I.checks}Mark all as read</button></div>
+    <div class="inbox" style="border-top:1px solid var(--border)">${rail()}${mlist()}${body}</div></div>${toast}`);
+};
+
+// ---------- Concept ----------
+// [title, question, options, status, question when open]. An agreed decision
+// keeps what was offered, the agreed option marked Agreed and the rest dimmed.
+const DECISIONS = [
+  ['When a debrief comes', 'Your engineer writes once a round, or more often.', [
+    ['One a round', 'Once the round\'s last session has run - every qualifying and race of it in one mail. A round you leave part-way is written up once its day has passed.', true],
+    ['One a session', 'Qualifying and each race its own mail. Four mails from one GT4 weekend.'],
+    ['One an event day', 'A two-day event writes twice: qualifying day, race day.'],
+  ]],
+  ['Who writes on your own', 'Racing on your own you take a drawn team\'s slower seat, in your own car.', [
+    ['Your own engineer', 'One engineer of your own for the career, for everything raced on your own and every historic event you pay into.'],
+    ['The drawn team\'s engineer', 'The engineer of the team drawn for you that edition - the same person whenever that team is drawn again. A historic event you pay into: the team whose seat you take.', true],
+    ['Nobody', 'Debriefs only under contract.'],
+  ]],
+  ['A historic event you are invited to', 'The seat is a team\'s, for one event.', [
+    ['That team\'s engineer', 'Named for that event alone.', true],
+    ['Your own engineer', 'Always, invited or paying.'],
+  ]],
+  ['Money in a debrief', 'What the round paid - prize, salary, sponsors.', [
+    ['Left out', 'A debrief is about racing; Finances and the round\'s page hold the money.', true],
+    ['One line', '"This round paid you $4,100", opening Finances.'],
+  ]],
+  ['The teammate', 'Debriefs and team news compare you with them.', [
+    ['By name', 'Jonas Bakker, as the standings name him.', true],
+    ['"Your teammate"', 'Never named.'],
+  ]],
+  ['Which team news', 'Today a team writes only when it lets you go.', [
+    ['Welcome, halfway, missed round', 'Welcome as a contract is signed (the engineer and teammate named, what keeps you on); halfway where a place keeps you on, On course or Short of it; a missed round with its fine. Terminating sends nothing: you did it, and Contracts and Finances say so.', true],
+    ['All of those, and a termination receipt', 'The release fee or refund in a mail too.'],
+    ['Welcome and missed round only', 'No halfway check.'],
+  ]],
+  ['What a team\'s boss is called', 'The person who writes team news and a season\'s result.', [
+    ['By budget', 'A works team\'s team principal, an independent\'s team manager, a privateer\'s team owner.', true],
+    ['Always team owner', 'As the roadmap words it.'],
+  ]],
+  ['A championship\'s result', 'One mail as each edition you raced in ends.', [
+    ['From the team, or the organisers', 'Under contract your team\'s boss writes it, with your teammate and the teams\' table; on your own, the championship\'s organisers. Final table, what it paid, a link to the review. A historic event has its debrief and nothing more.', true],
+    ['Always the organisers', 'And the team says nothing at the end.'],
+    ['Under contract only', ''],
+  ]],
+  ['A rung opened or lost', 'Home already shows a banner and a toast.', [
+    ['Both, by mail too', 'From Driver categorisation, worded as Home\'s banner, opening the ladder and the Rating page. The banner and toast stay.', true],
+    ['Lost only', 'Opening one already raises a toast.'],
+    ['Neither', 'Home is enough.'],
+  ]],
+  ['Market news', 'What the market says that no other mail does.', [
+    ['Leave works teams out', 'Seats for sale stay, agreed. The first works offer is the news itself: a "watching" mail is followed by up to months of nothing, since offers only go out eight weeks before an edition and a class may have no seats going.', true],
+    ['Works teams watching', 'Today a works team on your rung calls at 15-45% only once you are in the top half of that rung <i>and</i> have finished an edition at it; before both hold, at 5%. This mail goes out the day both first hold in a discipline - once per rung - naming that rung\'s works teams and their championships. It says nothing of why.'],
+    ['Paddock digest, later', 'Monthly: champions crowned in championships you are not in. Not in this phase.'],
+  ], 'agreed', 'Seats for sale as each season opens; works teams watching, as defined, left out.'],
+  ['An answer running out', 'A seat offer, sponsor offer or invitation close to its deadline.', [
+    ['Days left on its chip', 'Awaiting · 9 days left, from a fortnight out, on the row and the reader. Toggle it with Closing below.', true],
+    ['A reminder mail', 'Three days before.'],
+    ['Nothing', 'As today.'],
+  ]],
+  ['The rail', 'Kinds grows from five to nine folders.', [
+    ['A folder a kind', 'Debriefs, Results, Categorisation and Market join the list.', true],
+    ['Grouped by sender', 'Team (debriefs and team news), Sponsors, Organisers, Market.'],
+  ]],
+  ['Toasts', 'A debrief arrives the moment you return from a race.', [
+    ['As any mail', 'One toast for however many arrived. Toggle it on the debrief.', true],
+    ['Silent for news', 'Toasts only for mail that wants an answer.'],
+  ]],
+  ['Colours', 'Closed set: the kind of mail.', [
+    ['Two new families', 'Debrief teal 175, championship result laurel 110 - on touring\'s and sportscar\'s hues, which the inbox never shows. Team and market news on the contract violet; a rung by its tier\'s metal.', true],
+  ]],
+];
+const KINDS_T = [
+  [chip('c-debrief', 'Debrief'), 'The engineer of the team you race for', 'Each round you drive, once its last session has run', 'Each qualifying and race - never practice: grid, finish, best lap and its gap, teammate, points; the championship after it; the next round'],
+  [chip('c-contract', 'Team news'), 'Your team\'s boss', 'On signing · halfway · a round missed · not kept on (today)', 'What keeps you on and where you stand; the engineer and teammate; a fine'],
+  [chip('c-results', 'Championship result'), 'Your team\'s boss, or the organisers', 'As an edition you raced in has run its course', 'Your place, teammate and team; the top of the table; what it paid; the review'],
+  [tierChip(3), 'Driver categorisation', 'A rung opened, a rung lost as a season closes', 'Home\'s banner, as a mail'],
+  [chip('c-contract', 'Market'), 'Paddock news', 'As a season opens · works teams start calling', 'Seats for sale on your rungs; the works teams watching'],
+];
+const EMIT = [
+  ['Seasons and rounds (5, 6)', 'A round driven, an edition finished', 'Debrief, Championship result'],
+  ['Money (7)', 'Nothing new', 'A debrief leaves money to Finances; a fine travels in team news'],
+  ['Rating (8)', 'A rung opened or lost', 'Categorisation'],
+  ['Contracts (9)', 'Signed, halfway, a round missed, released', 'Team news - released as today'],
+  ['The market (9)', 'A season opens, works teams start calling', 'Market'],
+  ['Sponsors (10)', 'Offers, renewals, goals, climbs, ends', 'As today'],
+  ['Historic events (11a)', 'Invitations', 'As today; an invited event\'s debrief from the inviting team'],
+];
+const concept = () => `<div class="doc">
+  <div class="panel"><div class="pb col">
+    <h2>Phase 11 - The paddock talks</h2>
+    <p class="muted" style="margin:0">Phase 11a built the inbox for mail that wants an answer. What is left is mail that tells you something: your engineer after every round, your team as a contract runs, the organisers as a championship ends, the categorisation panel as a rung moves, and the market as a season opens. Nothing here is answered, so none of it has a reply bar - every new kind is read, linked to where it happened, and filed.</p>
+    <p class="muted" style="margin:0"><b style="color:var(--foreground)">The people are persons.</b> A team's engineer and its boss are drawn once off the name books, seeded on the career and the team, so Chiltern's engineer is Tom Hadley every season you race for them. Each mail copies in who wrote it and everything it says, so it reads the same once a championship is edited or gone.</p>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>The new mail</h2>
+    <table class="t kinds"><thead><tr><th>Kind</th><th>From</th><th>When</th><th>What it says</th></tr></thead><tbody>
+    ${KINDS_T.map(([k, f, w, s]) => `<tr><td>${k}</td><td>${f}</td><td>${w}</td><td class="muted">${s}</td></tr>`).join('')}</tbody></table>
+    <p class="hint" style="margin:0">June and July of a busy career - two championships, one under contract, as the Inbox screen lists them - bring four debriefs, two team mails, a result and a rung: eight mails beside one sponsor offer.</p>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>To decide</h2>
+    ${DECISIONS.map(([t, q, opts, st = 'agreed', oq], i) => `<div class="dec${st === 'agreed' ? ' done' : ''}"><span class="n">${i + 1}</span><h4>${t}${st === 'agreed' ? '' : ' <span class="chip c-await" style="margin-left:6px">Open</span>'}</h4><p class="q">${oq ?? q}</p><div class="opts">${opts.map(([b, s, rec]) => `<div class="opt2${rec ? ` rec${st === 'agreed' ? ' agreed' : ''}` : ''}"><b>${b}</b>${s ? `<span>${s}</span>` : ''}</div>`).join('')}</div></div>`).join('')}
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>Earlier phases into the inbox</h2>
+    <p class="muted" style="margin:0">Every sender goes through one door, <code>deliver(career, mails)</code> in the career store: it drops an id the inbox already holds and keeps the inbox ordered by arrival. Today five places append to <code>CareerState.inbox</code> each in its own way; they move onto it, and every new kind starts there.</p>
+    <table class="t"><thead><tr><th>Phase</th><th>What happens</th><th>Mail</th></tr></thead><tbody>
+    ${EMIT.map(([a, b, c]) => `<tr><td>${a}</td><td>${b}</td><td class="muted">${c}</td></tr>`).join('')}</tbody></table>
+  </div></div>
+
+  <div class="panel"><div class="pb col">
+    <h2>What is stored</h2>
+<pre class="tree">MailKind += 'debrief' | 'results' | 'rung' | 'market'
+Mail.from?: Paddocker                <i>// who wrote it, copied in: { name, nation?, role, team? }</i>
+Paddocker.role: 'engineer' | 'principal' | 'manager' | 'owner' | 'organisers' | 'categorisation' | 'paddock'
+Mail.debrief?: Debrief               <i>// series, seriesName, season, edition, editions, raceId, round, of, track, car, entryName</i>
+  Debrief.sessions: { type: 'qualify' | 'race', name, grid?, place, of, best?, gap?, pole, fastestLap, mate?, points }[]   <i>// practice never</i>
+  Debrief.standing: { place, was, points, mate?: { name, place, was, points } }
+  Debrief.next?: { name, date }
+Mail.results?: EditionResult         <i>// series ..., entryName, place, of, points, wins, mate?, team?, top[], paid, bonus?</i>
+TeamNotice.kind?: 'welcome' | 'halfway' | 'missed'   <i>// absent is today's released; halfway carries a KeepStanding, missed its round and fine</i>
+Mail.rung?: { discipline, tier, rating, dir: 'up' | 'down' }
+Mail.market?: { kind: 'seats', seats: SeatForSale[] } | { kind: 'works', discipline, tier, series[] }
+ids: debrief:&lt;raceId&gt;   results:&lt;series&gt;:&lt;season&gt;.&lt;edition&gt;   notice:&lt;kind&gt;:&lt;series&gt;:&lt;season&gt;.&lt;edition&gt;
+     rung:&lt;discipline&gt;:&lt;tier&gt;:&lt;season&gt;   market:seats:&lt;season&gt;   market:works:&lt;discipline&gt;:&lt;tier&gt;</pre>
+    <p class="hint" style="margin:0">Mail stays fields worded when shown: the engineer's sentences are chosen off the facts - a podium, a place gained, the teammate beaten - in the user's language. A debrief copies the best lap and its gap out of the archive as it lands, since nothing else stores them. Every field is optional, so a save from before reads as it is.</p>
+  </div></div>
+</div>`;
+
+const WHY = {
+  concept: () => '<b>Phase 11, what is left</b>: results from the engineer and the team, contract and market news, and every earlier phase sending through one door. Every decision agreed on 12 November.',
+  inbox: () => ({
+    debrief: S.dv === 'good'
+      ? '<b>A debrief under contract</b>: one mail for the round, from the team\'s engineer. The prose states the facts the table holds; the table is a row a session, places in the class.'
+      : '<b>A hard day on your own</b>: the engineer of Lechner Racing, the team drawn for you this edition - one qualifying and one race. The words follow the facts - no podium, no points.',
+    team: ({
+      welcome: '<b>Welcome</b>, the day an offer is signed: the car in the team\'s livery, the engineer and teammate, and what keeps you on.',
+      halfway: '<b>Halfway, on course</b>: the KeepBlock the contract card already shows, with a sentence.',
+      short: '<b>Halfway, short of it</b>: the same, amber.',
+      missed: '<b>A round missed under contract</b>: the fine, and how your car did without you.',
+    })[S.tv],
+    results: ({
+      contract: '<b>A championship\'s result under contract</b>, from the team manager: your place, your teammate, the team, what it paid, the top of the table and the review.',
+      champ: '<b>Champion</b>: the gold bar Home\'s finished banner wears, and the bonus.',
+      own: '<b>On your own</b>, from the organisers.',
+    })[S.rv],
+    rung: S.gv === 'up' ? '<b>A rung opened</b>, worded as Home\'s banner.' : '<b>A rung lost</b> as the year closes, worded as Home\'s banner.',
+    market: S.kv === 'seats' ? '<b>Seats for sale</b>, as the season opens.' : '<b>Works teams watching</b>, once a discipline: the day they start calling at full chance, naming their championships.',
+  })[S.mail],
+};
+const QUESTIONS = {
+  concept: ['-'],
+  inbox: () => ({
+    debrief: ['Is the table the right amount - or should qualifying fold into the race rows as Started?', 'Do the tiles under it earn their place, or is the prose enough?'],
+    team: ['-'],
+    results: ['Top five and your row, or the whole class table?'],
+    rung: ['-'],
+    market: ['Decision 10 on the Concept screen: keep this mail or leave it out?'],
+  })[S.mail],
+};
+const GROUPS = [
+  { k: 'view', label: 'Screen', opts: [['concept', 'Concept'], ['inbox', 'Inbox']] },
+  { k: 'mail', label: 'Mail', for: ['inbox'], opts: [['debrief', 'Debrief'], ['team', 'Team news'], ['results', 'Championship result'], ['rung', 'Categorisation'], ['market', 'Market']] },
+  { k: 'dv', label: 'Case', for: ['inbox'], when: () => S.mail === 'debrief', opts: [['good', 'Under contract'], ['tough', 'On your own, a hard day']] },
+  { k: 'toast', label: 'Toast', for: ['inbox'], when: () => S.mail === 'debrief' && S.dv === 'good', opts: [['off', 'Off'], ['on', 'Just arrived']] },
+  { k: 'tv', label: 'Case', for: ['inbox'], when: () => S.mail === 'team', opts: [['welcome', 'Welcome'], ['halfway', 'Halfway, on course'], ['short', 'Halfway, short'], ['missed', 'Round missed']] },
+  { k: 'rv', label: 'Case', for: ['inbox'], when: () => S.mail === 'results', opts: [['contract', 'Under contract'], ['champ', 'Champion'], ['own', 'On your own']] },
+  { k: 'gv', label: 'Case', for: ['inbox'], when: () => S.mail === 'rung', opts: [['up', 'Opened'], ['down', 'Lost']] },
+  { k: 'kv', label: 'Case', for: ['inbox'], when: () => S.mail === 'market', opts: [['seats', 'Seats for sale'], ['watching', 'Works teams watching (open)']] },
+  { k: 'cl', label: 'Closing', for: ['inbox'], opts: [['chip', 'Days left'], ['none', 'As today']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+const S = { view: 'concept', mail: 'debrief', dv: 'good', toast: 'off', tv: 'welcome', rv: 'contract', gv: 'up', kv: 'seats', cl: 'chip', theme: 'light' };
+
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('picker').innerHTML = GROUPS.filter((g) => (!g.for || g.for.includes(S.view)) && (!g.when || g.when()))
+    .map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  const q = QUESTIONS[S.view];
+  document.getElementById('why').innerHTML = `<div class="box">${WHY[S.view]()}<div class="q"><b>To decide</b><ul>${(typeof q === 'function' ? q() : q).map((x) => `<li>${x}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('stage').innerHTML = { concept, inbox: inboxView }[S.view]();
+};
+document.getElementById('picker').addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  history.replaceState(null, '', `#${new URLSearchParams(S)}`);
+  render();
+});
+new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in S) S[k] = v; });
+render();
+</script>
+</body>
+</html>

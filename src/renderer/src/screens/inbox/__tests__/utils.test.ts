@@ -14,6 +14,9 @@ import {
   offerLink,
   offerSenders,
   pageNumber,
+  reviewLink,
+  roundLink,
+  runName,
   seasonBeforePrizes,
 } from '../utils.ts';
 import type { InboxItem } from '@/lib/inbox';
@@ -213,6 +216,59 @@ describe('renderer/screens/inbox/utils', () => {
 
     it('names nothing for a season the career does not hold', () => {
       expect(offerEdition(TWO_SEASONS, seatOffer({ season: 5 }), t)).toBe('');
+    });
+  });
+
+  describe('roundLink', () => {
+    const debrief = {
+      series: 'sunday cup', round: 'r1', season: 1, edition: 0, editions: 1,
+    };
+
+    it("links the round's page without naming the season under way", () => {
+      expect(roundLink(TWO_SEASONS, debrief)).toBe(path.event({ series: 'sunday cup', round: 'r1' }));
+    });
+
+    it('names a season gone by, and the edition of a championship that runs more than once', () => {
+      expect(roundLink(TWO_SEASONS, { ...debrief, season: 0 }))
+        .toBe(path.event({ series: 'sunday cup', round: 'r1' }, { season: 0 }));
+      expect(roundLink(TWO_SEASONS, { ...debrief, edition: 1, editions: 2 }))
+        .toBe(path.event({ series: 'sunday cup', round: 'r1' }, { edition: 1 }));
+    });
+  });
+
+  describe('reviewLink', () => {
+    it("links the edition's review", () => {
+      expect(reviewLink({ series: 'sunday cup', season: 0, edition: 1 }))
+        .toBe(path.championshipReview({ series: 'sunday cup', season: 0, edition: 1 }));
+    });
+  });
+
+  describe('runName', () => {
+    /**
+     * A mail in a season, as the inbox lists it.
+     * @param over What the mail holds
+     * @returns The item
+     */
+    const newsItem = (over: Partial<Mail>): InboxItem => ({
+      mail: {
+        id: 'x', kind: 'debrief', season: 0, arrived: '2026-04-09', opened: false, ...over,
+      },
+      offers: [],
+    } as unknown as InboxItem);
+
+    it('names the run a debrief, a result or team news is about', () => {
+      const run = {
+        series: 'sunday cup', seriesName: 'Sunday Cup', season: 0, edition: 1, editions: 2,
+      };
+
+      expect(runName(TWO_SEASONS, newsItem({ debrief: run as never }), t)).toBe(t('edition.half', { number: 2, year: 2026 }));
+      expect(runName(TWO_SEASONS, newsItem({ results: { ...run, season: 1, edition: 0, editions: 1 } as never }), t))
+        .toBe(t('edition.year', { year: 2027 }));
+    });
+
+    it("names market news by its season's year, and nothing for mail about no run", () => {
+      expect(runName(TWO_SEASONS, newsItem({ market: { seats: [] }, season: 1 }), t)).toBe('2027');
+      expect(runName(TWO_SEASONS, newsItem({}), t)).toBe('');
     });
   });
 

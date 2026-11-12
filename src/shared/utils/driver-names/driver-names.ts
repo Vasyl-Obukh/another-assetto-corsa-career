@@ -17,6 +17,20 @@ import type { ClassEntry, Seat, Team } from '../../types/index.ts';
 const pick = <T>(list: readonly T[], random: () => number): T => list[Math.floor(random() * list.length)];
 
 /**
+ * Draws one person's name off the books: from the nation asked for where the
+ * books cover it, and any nation they cover otherwise.
+ * @param nation The nation they should come from, as Assetto Corsa's code
+ * @param random A source of numbers in [0, 1)
+ * @returns Their name and the nation it came from
+ */
+export const drawName = (nation: string | undefined, random: () => number): { name: string; nation: string } => {
+  const code = nation !== undefined && nation in DRIVER_NAMES ? nation : pick(Object.keys(DRIVER_NAMES), random);
+  const book = DRIVER_NAMES[code];
+
+  return { name: `${pick(book.first, random)} ${pick(book.last, random)}`, nation: code };
+};
+
+/**
  * Names every seat of a class that has no driver, leaving the named ones alone.
  *
  * A driver comes from their team's nation where the team has one the name

@@ -5,10 +5,15 @@ import { useNavigate } from 'react-router';
 
 import type { SponsorOffer } from '../../../../shared/types';
 import { useSlot, useToast } from '@/app';
-import { sponsorNewsSubject, sponsorOfferSubject } from '@/components';
+import {
+  newsAccent, newsSubject, paddockName, sponsorNewsSubject, sponsorOfferSubject,
+} from '@/components';
 import { CONTRACT_ACCENT, HISTORIC_ACCENT, SPONSOR_ACCENT } from '@/lib/accents';
 import { inboxItem } from '@/lib/inbox';
 import { path } from '@/lib/routes';
+import { runName } from '@/screens/inbox';
+
+
 
 /**
  * Says so in a toast whenever mail arrives, whichever page the player is on -
@@ -43,7 +48,9 @@ export const useMailToasts = (): void => {
 
     const eventOf = (item: typeof first): string => (
       item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName ?? item.mail.invitation?.series
-      ?? item.mail.sponsor?.sponsor.name ?? item.mail.sponsorNews?.sponsor.name ?? ''
+      ?? item.mail.sponsor?.sponsor.name ?? item.mail.sponsorNews?.sponsor.name
+      ?? item.mail.debrief?.seriesName ?? item.mail.results?.seriesName
+      ?? (item.mail.from ? paddockName(item.mail.from, t) : '')
     );
     const sponsorOf = (item: typeof first) => item.mail.sponsor ?? item.mail.sponsorNews ?? null;
     if (!second) {
@@ -62,9 +69,18 @@ export const useMailToasts = (): void => {
           ? t('inbox.toast.offersDetail', { count: first.offers.length, series: offer.seriesName })
           : t('inbox.toast.offerDetail', { team: offer.teamName, series: offer.seriesName });
       }
+      const subject = newsSubject(first.mail, runName(career, first, t), t);
+      if (subject !== null) {
+        detail = first.mail.from
+          ? t('inbox.news.toast', { from: paddockName(first.mail.from, t), subject })
+          : subject;
+      }
+      let tone = newsAccent(first.mail) ?? HISTORIC_ACCENT;
+      if (sponsor) tone = SPONSOR_ACCENT[sponsor.slot];
+      else if (offer || notice) tone = CONTRACT_ACCENT;
       show({
         icon: MailIcon,
-        tone: sponsor ? SPONSOR_ACCENT[sponsor.slot] : offer || notice ? CONTRACT_ACCENT : HISTORIC_ACCENT,
+        tone,
         title: t('inbox.toast.one'),
         detail,
         action: { label: t('inbox.toast.read'), run: () => { void navigate(path.inbox(first.mail.id)); } },

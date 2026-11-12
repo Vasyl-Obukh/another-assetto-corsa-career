@@ -49,6 +49,10 @@ export {
 export { Loading } from './Loading.tsx';
 export { NameDialog } from './NameDialog.tsx';
 export { NationFlag } from './NationFlag.tsx';
+export {
+  debriefLines, debriefSubject, gapText, initials, isPerson, MailFrame, MailStrip, MailTile, newsAccent, newsSubject,
+  paddockName, Sender,
+} from './paddock-news/index.ts';
 export { PATH_KINDS, PathList, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
 export { RatingBadge, RatingChange, RatingLink } from './rating/index.ts';

@@ -82,10 +82,10 @@ export const inboxItems = (career: Career): InboxItem[] => career.inbox
 export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
   if (folder === 'unread') return !item.mail.opened;
   if (folder === 'awaiting') return item.status === 'awaiting';
-  if (folder === 'invitation' || folder === 'offer' || folder === 'notice') return item.mail.kind === folder;
   if (folder === 'sponsor') return item.mail.kind === 'sponsor' || item.mail.kind === 'sponsorNews';
+  if (folder === 'all') return true;
 
-  return true;
+  return item.mail.kind === folder;
 };
 
 /**
@@ -99,10 +99,14 @@ export const inFolder = (item: InboxItem, folder: InboxFolder): boolean => {
 export const matchesSearch = (item: InboxItem, search: string): boolean => matchesTerms(
   searchTerms(search),
   [
-    item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName ?? null,
+    item.event?.name ?? item.offers[0]?.seriesName ?? item.mail.notice?.seriesName
+      ?? item.mail.debrief?.seriesName ?? item.mail.results?.seriesName ?? null,
     item.team?.name ?? item.mail.notice?.teamName ?? null,
     item.mail.sponsor?.sponsor.name ?? item.mail.sponsorNews?.sponsor.name ?? null,
+    item.mail.from?.name ?? null,
+    item.mail.debrief?.roundName ?? null,
     ...item.offers.map((offer) => offer.teamName),
+    ...(item.mail.market?.seats ?? []).flatMap((seat) => [seat.seriesName, seat.teamName]),
   ],
 );
 

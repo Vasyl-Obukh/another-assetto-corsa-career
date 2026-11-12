@@ -1064,6 +1064,27 @@ describe('main/career-store', () => {
       });
     });
 
+    it("sends the season's seats for sale on the player's rungs, and news starts the day it opens", async () => {
+      const { store } = await build({ closed: true, listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+      await store.create({ ...NEW_CAREER, year: 2030, level: 4 });
+      const market = store.get()?.inbox.find((mail) => mail.kind === 'market');
+
+      expect(store.get()?.newsFrom).toBe('2030-01-01');
+      expect(market).toMatchObject({
+        id: 'market:0', arrived: '2030-01-01', from: { role: 'paddock' },
+      });
+      expect(market?.market?.seats.map((seat) => [seat.team, seat.budget])).toEqual([['priv', TeamBudget.PRIVATEER]]);
+      expect(store.get()?.seasons[0].marketDrawn).toBe(true);
+    });
+
+    it('sends no market news with no seat for sale on the rungs open', async () => {
+      const { store } = await build({ closed: true, listings: [makeListing(TEAMED)], cars: [TEST_CAR] });
+      await store.create({ ...NEW_CAREER, year: 2030, level: 2 });
+
+      expect(store.get()?.inbox.filter((mail) => mail.kind === 'market')).toEqual([]);
+      expect(store.get()?.seasons[0].marketDrawn).toBe(true);
+    });
+
     it('opens its ledger on the money it starts with, at the speed asked for', async () => {
       const { store } = await build({ closed: true });
       await store.create({ ...NEW_CAREER, year: 2030, settings: { prizeSpeed: 2 } });
@@ -2619,7 +2640,9 @@ describe('main/career-store', () => {
       await store.buySeat({ series: CUP.id, entry: 'main', team: 'priv' });
       const keys = store.get()?.ledger.map((line) => line.key) ?? [];
 
-      expect(store.get()?.inbox.map((mail) => mail.id)).toEqual([seatId(CUP.id, 0, 0), `${seatId(CUP.id, 0, 0)}#2`]);
+      // Only the seats bought: the team's welcome and the season's market are mail of their own.
+      expect(store.get()?.inbox.filter((mail) => mail.kind === 'offer').map((mail) => mail.id))
+        .toEqual([seatId(CUP.id, 0, 0), `${seatId(CUP.id, 0, 0)}#2`]);
       expect(new Set(keys).size).toBe(keys.length);
     });
   });
@@ -3150,7 +3173,7 @@ describe('main/career-store', () => {
       await store.advanceTo('2028-01-05', true);
 
       expect(store.get()?.seasons[0].historicEvents?.[0].invitation).toEqual({ on: '2027-12-01', outcome: 'uninvited' });
-      expect(store.get()?.inbox).toEqual([]);
+      expect(store.get()?.inbox.filter((mail) => mail.kind === 'invitation')).toEqual([]);
     });
 
     /**
@@ -4342,6 +4365,67 @@ describe('main/career-store', () => {
       expect(store.get()).toBe(before);
     });
 
+    describe('debriefing it', () => {
+      /**
+       * What the race store pushes once the cup's first round has run whole,
+       * the player's seat leading a class of four and winning its race.
+       * @param completed How many launches have landed
+       * @returns The state
+       */
+      const run = (completed = 3) => {
+        const plan = makePlan(CUP.eventFormats[0].sessions);
+
+        return raceSetup({
+          owner: CAREER_ID,
+          plan: {
+            ...plan,
+            grid: plan.grid.map((row, at) => ({ ...row, entry: 'main', seat: at === 0 ? 'seat-2' : `seat-x${at}` })),
+          },
+          state: {
+            raceId: 'test-cup/one',
+            launchCount: 3,
+            completed: [
+              record(0), record(1), { ...record(2), gridOrder: [0, 1, 2, 3], classification: [0, 1, 2, 3] },
+            ].slice(0, completed),
+          },
+        });
+      };
+
+      it("sends the engineer's debrief once the round's last launch lands", async () => {
+        const { store, race } = await build({ career: entered() });
+        race.push(run());
+        await settled();
+
+        expect(store.get()?.inbox.find((mail) => mail.kind === 'debrief')).toMatchObject({
+          id: 'debrief:test-cup/one',
+          arrived: '2027-03-07',
+          opened: false,
+          from: { role: 'engineer' },
+          debrief: { raceId: 'test-cup/one', sessions: [{ type: 'race', place: 1, of: 4 }] },
+        });
+      });
+
+      it('sends none while the round is part-way', async () => {
+        const { store, race } = await build({ career: entered() });
+        race.push(run(2));
+        await settled();
+
+        expect(store.get()?.inbox.filter((mail) => mail.kind === 'debrief')).toEqual([]);
+      });
+
+      it('sends none in a standalone championship', async () => {
+        const { store, race } = await build({ closed: true });
+        putStandalone(folderDisk().files, { ...entered(), id: OTHER_ID, kind: 'championship' });
+        await store.open(OTHER_ID);
+        race.push({ ...run(), owner: OTHER_ID });
+        await settled();
+
+        expect(store.get()?.seasons[0].entries[0].events[0].status).toBe('raced');
+
+        expect(store.get()?.inbox).toEqual([]);
+      });
+    });
+
     describe('rating it', () => {
       /**
        * What the race store pushes once the cup's first round has run whole:
@@ -4395,6 +4479,17 @@ describe('main/career-store', () => {
   });
 
   describe('settling up', () => {
+    it('starts news on the day the career is first settled, and keeps that day after', async () => {
+      const { store } = await build({ career: careerWith({}, '2027-03-07') });
+      await store.setSettings({ allowSameDayEvents: true });
+
+      expect(store.get()?.newsFrom).toBe('2027-03-07');
+
+      await store.advanceTo('2027-04-01');
+
+      expect(store.get()?.newsFrom).toBe('2027-03-07');
+    });
+
     it('pays a prize the career has earned whatever command settles it, and only once', async () => {
       const championship = makeChampionship({ prizes: { positions: [1000, 600] } });
       const place: RacePlace = {

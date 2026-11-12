@@ -3297,9 +3297,48 @@ where its logo came from is in `sponsor-review.md`.
 The message model, the screen and event invitations moved ahead of Phase 9 as
 *Phase 11a - Inbox base*. What is left builds on it.
 
-- [ ] Session, race and championship results from engineer and team owner
-- [ ] Contract and market news
-- [ ] Earlier phases emit events into this bus as they land
+Designed in `mockups/inbox-news.html`, every decision agreed on 2026-11-12.
+Nothing here wants an answer: each new kind is read, linked to where it
+happened, and filed.
+
+- [x] **People write mail**: a team's race engineer and its boss are drawn once
+      off the name books, seeded on the career, the championship and the team, so
+      a team keeps the same people season after season. The boss is a works
+      team's team principal, an independent's team manager and a privateer's team
+      owner. Each mail copies in who wrote it
+- [x] **A debrief after every round you drive**, from the engineer of the team
+      you race for - under contract, the drawn team on your own, the team whose
+      seat a historic event gives you. One mail once the round's last session has
+      run, or once its day has passed for one left part-way. Qualifying and races
+      only, never practice, and no cut laps: each session's grid, finish in the
+      class, best lap and its gap to the class's best, the teammate by name and the
+      points; the championship after it, and the next round. No money
+- [x] **Team news as a contract runs**: a welcome as it is signed - the car, the
+      engineer, the teammate and what keeps the player on - a halfway word where a
+      place keeps them on, On course or Short of it, and a round missed with its
+      fine and how the reserve driver did. Terminating sends nothing. Not kept on
+      stays as it is
+- [x] **A championship's result** as each edition raced in has run its course:
+      from the team's boss under contract, with the teammate and the teams'
+      table, from the organisers on the player's own. The final place, the top of
+      the table, what it paid and the review. A historic event has its debrief alone
+- [x] **Categorisation**: a rung opened and a rung lost, by mail too, worded as
+      Home's banner, which stays with its toast
+- [x] **Market news**: every privateer seat for sale on the player's rungs as each
+      season opens, cheapest first. No mail about works teams watching - the first
+      works offer is the news - and no paddock digest
+- [x] **Days left on an answer's chip**: Awaiting reads how long is left from a
+      fortnight out
+- [x] **The rail** gains a folder a kind - Debriefs, Results, Categorisation and
+      Market - and new mail raises the one toast any mail does
+- [x] **Colours**: a debrief on teal 175 and a championship's result on laurel 110,
+      touring's and sportscar's hues, which the inbox never shows; team and market
+      news on the contract violet; a rung by its tier's metal
+- [x] **Earlier phases into the inbox through one door**: `deliver` in the career
+      store, which drops an id the inbox holds and keeps it ordered by arrival.
+      News is sent only for what happens from the day a career first reads it
+- [x] **Reserve driver, never stand-in**, wherever the app says who raced a round
+      the player missed
 
 ## Phase 12 - Real results (CSP Lua recorder)
 

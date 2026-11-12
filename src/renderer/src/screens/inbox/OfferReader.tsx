@@ -108,7 +108,7 @@ export const OfferReader = ({
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex max-w-6xl flex-col gap-5 p-6">
+        <div className="flex flex-col gap-5 p-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={CONTRACT_ACCENT}>{t('inbox.chip.offers', { count: offers.length })}</Badge>
             <MailStatusChip item={item} />
@@ -132,74 +132,76 @@ export const OfferReader = ({
             </DropdownMenu>
           </div>
 
-          <h2 className="text-xl font-semibold" data-selectable>
-            {first.bought ? t('inbox.subject.bought', named) : t('inbox.subject.offer', { ...named, count: offers.length })}
-          </h2>
+          <div className="flex w-full max-w-6xl flex-col gap-5">
+            <h2 className="text-xl font-semibold" data-selectable>
+              {first.bought ? t('inbox.subject.bought', named) : t('inbox.subject.offer', { ...named, count: offers.length })}
+            </h2>
 
-          <div className="flex items-center gap-3">
-            <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg [&_svg]:size-5', CONTRACT_ACCENT)}>
-              <BriefcaseIcon />
-            </span>
-            <span className="flex min-w-0 flex-col">
-              <span className="font-semibold">{teams.join(', ')}</span>
-              <span className="text-xs text-muted-foreground">{t('inbox.to', { driver: career.driver.name })}</span>
-            </span>
-          </div>
-
-          <p className="max-w-prose text-sm leading-relaxed" data-selectable>
-            {lede}
-          </p>
-
-          {first.lifeline ? (
-            <p className="flex items-start gap-2 rounded-md border-l-3 border-contract-foreground bg-contract/40 p-3 text-sm">
-              <LifeBuoyIcon className="mt-0.5 size-4 shrink-0" />
-              <span>
-                <span className="font-semibold">{t('inbox.offer.lifeline')}</span>
-                {' '}
-                {t('inbox.offer.lifelineHint')}
+            <div className="flex items-center gap-3">
+              <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg [&_svg]:size-5', CONTRACT_ACCENT)}>
+                <BriefcaseIcon />
               </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="font-semibold">{teams.join(', ')}</span>
+                <span className="text-xs text-muted-foreground">{t('inbox.to', { driver: career.driver.name })}</span>
+              </span>
+            </div>
+
+            <p className="max-w-prose text-sm leading-relaxed" data-selectable>
+              {lede}
             </p>
-          ) : null}
 
-          <OfferStrip offers={offers} edition={edition} link={link} />
+            {first.lifeline ? (
+              <p className="flex items-start gap-2 rounded-md border-l-3 border-contract-foreground bg-contract/40 p-3 text-sm">
+                <LifeBuoyIcon className="mt-0.5 size-4 shrink-0" />
+                <span>
+                  <span className="font-semibold">{t('inbox.offer.lifeline')}</span>
+                  {' '}
+                  {t('inbox.offer.lifelineHint')}
+                </span>
+              </p>
+            ) : null}
 
-          {classes.map((group) => {
-            const head = group[0];
-            const mine = isMine(group);
+            <OfferStrip offers={offers} edition={edition} link={link} />
 
-            return (
-              <div key={head.entry} className="flex flex-col gap-2">
-                {classes.length > 1 ? (
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-semibold">{head.entryName}</span>
-                    <Badge className={DISCIPLINE_ACCENT[head.ladder.discipline]}>
-                      {t(disciplineKey(head.ladder.discipline))}
-                    </Badge>
-                    <Badge className={tierAccent(head.ladder.tier)}>{t('championships.tier', { tier: head.ladder.tier })}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {t('inbox.offers.classFee', { amount: formatMoney(feePerRound(head)) })}
-                    </span>
-                    {mine ? <Badge className={INVITATION_ACCENT.accepted}>{t('inbox.offers.yourClass')}</Badge> : null}
-                    {signed && !mine ? <span className="text-xs text-muted-foreground">{t('inbox.offers.otherClass')}</span> : null}
-                  </div>
-                ) : null}
-                <OfferCompare
-                  offers={group}
-                  status={item.status ?? 'awaiting'}
-                  signed={signed}
-                  answered={answered}
-                  money={career.money}
-                  backerOf={(offer) => (
-                    offer.pay === 'seat' ? seatBacker(career, offer.ladder.discipline, offer.ladder.tier) : null
-                  )}
-                  carName={carName}
-                  link={link}
-                  busy={busy}
-                  onAccept={onAccept}
-                />
-              </div>
-            );
-          })}
+            {classes.map((group) => {
+              const head = group[0];
+              const mine = isMine(group);
+
+              return (
+                <div key={head.entry} className="flex flex-col gap-2">
+                  {classes.length > 1 ? (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-semibold">{head.entryName}</span>
+                      <Badge className={DISCIPLINE_ACCENT[head.ladder.discipline]}>
+                        {t(disciplineKey(head.ladder.discipline))}
+                      </Badge>
+                      <Badge className={tierAccent(head.ladder.tier)}>{t('championships.tier', { tier: head.ladder.tier })}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {t('inbox.offers.classFee', { amount: formatMoney(feePerRound(head)) })}
+                      </span>
+                      {mine ? <Badge className={INVITATION_ACCENT.accepted}>{t('inbox.offers.yourClass')}</Badge> : null}
+                      {signed && !mine ? <span className="text-xs text-muted-foreground">{t('inbox.offers.otherClass')}</span> : null}
+                    </div>
+                  ) : null}
+                  <OfferCompare
+                    offers={group}
+                    status={item.status ?? 'awaiting'}
+                    signed={signed}
+                    answered={answered}
+                    money={career.money}
+                    backerOf={(offer) => (
+                      offer.pay === 'seat' ? seatBacker(career, offer.ladder.discipline, offer.ladder.tier) : null
+                    )}
+                    carName={carName}
+                    link={link}
+                    busy={busy}
+                    onAccept={onAccept}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

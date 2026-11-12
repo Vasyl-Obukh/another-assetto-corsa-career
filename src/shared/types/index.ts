@@ -190,7 +190,27 @@ export type {
 } from './saves.ts';
 
 export type {
-  Invitation, Mail, MailAnswer, MailKind, MailReply, MailStatus, TeamNotice,
+  Debrief,
+  DebriefSession,
+  EditionResult,
+  Invitation,
+  Mail,
+  MailAnswer,
+  MailDay,
+  MailDriver,
+  MailKind,
+  MailReply,
+  MailRun,
+  MailStanding,
+  MailStatus,
+  MarketNews,
+  NoticeKind,
+  Paddocker,
+  PaddockRole,
+  ResultRow,
+  RungNews,
+  MarketSeat,
+  TeamNotice,
 } from './inbox.ts';
 
 export type {

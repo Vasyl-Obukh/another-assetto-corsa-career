@@ -14,10 +14,16 @@ export const FOLDER_PARAM = 'folder';
 export const PAGE_PARAM = 'page';
 
 /**
+ * How many days before its deadline a mail still to answer says how long is
+ * left.
+ */
+export const CLOSING_DAYS = 14;
+
+/**
  * The folders down the rail that list mail by where it stands, in order, each
  * with its icon. The kinds of mail follow under a heading of their own.
  */
-export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | 'offer' | 'notice' | 'sponsor'>; icon: LucideIcon }[] = [
+export const STATE_FOLDERS: readonly { id: Extract<InboxFolder, 'all' | 'unread' | 'awaiting'>; icon: LucideIcon }[] = [
   { id: 'all', icon: InboxIcon },
   { id: 'unread', icon: MailWarningIcon },
   { id: 'awaiting', icon: ReplyIcon },
@@ -26,7 +32,9 @@ export const STATE_FOLDERS: readonly { id: Exclude<InboxFolder, 'invitation' | '
 /**
  * Every folder the inbox opens on, for reading one back out of its URL.
  */
-export const INBOX_FOLDERS: readonly InboxFolder[] = ['all', 'unread', 'awaiting', 'invitation', 'offer', 'notice', 'sponsor'];
+export const INBOX_FOLDERS: readonly InboxFolder[] = [
+  'all', 'unread', 'awaiting', 'invitation', 'offer', 'notice', 'sponsor', 'debrief', 'results', 'rung', 'market',
+];
 
 /**
  * How a cell of a seat offer's comparison is drawn: a term's value and the

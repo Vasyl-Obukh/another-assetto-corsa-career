@@ -2,7 +2,9 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import { addDays } from '../../../core/season-calendar/index.ts';
 import { OFFER_DAYS } from '../../../core/sponsor-offers/index.ts';
-import { DEFAULT_CAREER_SETTINGS, MAX_START_YEAR, MIN_START_YEAR } from '../../../shared/constants/index.ts';
+import {
+  DEFAULT_CAREER_SETTINGS, DEFAULT_SETTINGS, MAX_START_YEAR, MIN_START_YEAR,
+} from '../../../shared/constants/index.ts';
 import {
   Climate, Discipline, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
@@ -52,6 +54,7 @@ import {
   composeCalendar,
   currentSeason,
   declineOffers,
+  deliver,
   drawnCars,
   drawnEvent,
   drawOf,
@@ -72,6 +75,7 @@ import {
   inProgressEvent,
   invitationMail,
   invitationState,
+  isListed,
   issueForecast,
   issueForecasts,
   keptInBackup,
@@ -445,6 +449,43 @@ describe('main/career-store/utils', () => {
       const career = wholeCareer();
 
       expect({ ...profileOf(career), ...stateOf(career) }).toEqual(career);
+    });
+
+    it('keeps the day news starts from, once there is one', () => {
+      expect(stateOf({ ...wholeCareer(), newsFrom: '2026-01-04' }).newsFrom).toBe('2026-01-04');
+      expect('newsFrom' in stateOf(wholeCareer())).toBe(false);
+    });
+  });
+
+  describe('deliver', () => {
+    /**
+     * A mail that wants no answer.
+     * @param id Its id
+     * @param arrived The day it came
+     * @returns The mail
+     */
+    const mail = (id: string, arrived: string): Mail => ({
+      id, kind: 'rung', season: 0, arrived, opened: false,
+    });
+
+    it('puts new mail in by the day it arrived', () => {
+      const career = makeCareer({ inbox: [mail('a', '2026-01-04'), mail('c', '2026-03-01')] });
+
+      expect(deliver(career, [mail('b', '2026-02-01')]).inbox.map((one) => one.id)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('drops what the inbox already holds, and the same mail handed twice', () => {
+      const career = makeCareer({ inbox: [{ ...mail('a', '2026-01-04'), opened: true }] });
+      const delivered = deliver(career, [mail('a', '2026-01-04'), mail('b', '2026-02-01'), mail('b', '2026-02-01')]);
+
+      expect(delivered.inbox).toEqual([{ ...mail('a', '2026-01-04'), opened: true }, mail('b', '2026-02-01')]);
+    });
+
+    it('hands back the same career when nothing was new', () => {
+      const career = makeCareer({ inbox: [mail('a', '2026-01-04')] });
+
+      expect(deliver(career, [mail('a', '2026-01-04')])).toBe(career);
+      expect(deliver(career, [])).toBe(career);
     });
   });
 
@@ -2602,6 +2643,19 @@ describe('main/career-store/utils', () => {
         },
       });
       expect(mail.deadline).toBeUndefined();
+      expect(mail.from).toBeUndefined();
+    });
+
+    it('says who wrote it, where the team\'s boss is named', () => {
+      const entry = makeEntry({
+        contract: { ...makeTerms(), offer: 'offer:test-cup:0.0', signed: '2026-01-10' },
+      });
+      const from = { role: 'owner' as const, name: 'Pat Owner', teamName: 'Rivals Racing' };
+      const mail = noticeMail(makeSeason(), { ...entry, contract: entry.contract as Contract }, {
+        place: 7, mate: 2, size: 12, kept: false,
+      }, '2027-01-03', 1, from);
+
+      expect(mail.from).toEqual(from);
     });
   });
 
@@ -3704,6 +3758,22 @@ describe('main/career-store/utils', () => {
       for (const offer of offers) {
         expect(offer?.replaces).toBe(offer?.slot === 'main' ? 'main' : 'early');
       }
+    });
+  });
+
+  describe('isListed', () => {
+    const series = makeChampionship();
+    const shown = { ...DEFAULT_SETTINGS };
+
+    it('lists a championship the install can race and nothing hides', () => {
+      expect(isListed(makeListing(series), shown)).toBe(true);
+    });
+
+    it('leaves out one that cannot be raced, is switched off, or is a filler hidden', () => {
+      expect(isListed(makeListing(series, { availability: makeAvailability(series, { available: false }) }), shown))
+        .toBe(false);
+      expect(isListed(makeListing(series), { ...shown, seriesActive: { [series.id]: false } })).toBe(false);
+      expect(isListed(makeListing(series, { filler: true }), { ...shown, showFillerSeries: false })).toBe(false);
     });
   });
 

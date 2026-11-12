@@ -1,7 +1,7 @@
 // What simulating a round is handed, and what it hands back.
 
 import type {
-  Championship, FieldSeat, GridEntry, LaunchRecord, RoundScore,
+  Championship, EventPlan, FieldSeat, GridEntry, LaunchRecord, RoundScore,
 } from '../../shared/types/index.ts';
 import type { LaunchResult } from '../season-scoring/index.ts';
 
@@ -87,6 +87,10 @@ export interface SimulatedRound {
    * these exactly as it reads driven ones.
    */
   sessions: LaunchRecord[];
+  /**
+   * The event as it was simulated, whose grid every car index reads.
+   */
+  plan: EventPlan;
   /**
    * The round's score.
    */

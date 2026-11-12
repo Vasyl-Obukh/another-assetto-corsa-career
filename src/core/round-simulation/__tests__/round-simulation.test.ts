@@ -64,6 +64,16 @@ describe('core/round-simulation', () => {
       });
     });
 
+    it('hands back the plan its car indices read, a launch a session', () => {
+      const { plan, sessions } = simulateRound(request());
+
+      expect(plan.launches).toHaveLength(sessions.length);
+      expect(plan.grid).toHaveLength(8);
+      sessions.forEach((session) => {
+        session.classification?.forEach((car) => expect(plan.grid[car]).toBeDefined());
+      });
+    });
+
     it('records the class each car raced in on every launch, as a driven one does', () => {
       simulateRound(request()).sessions.forEach((session) => {
         expect([...session.carClasses ?? []].sort()).toEqual(['gt3', 'gt3', 'gt3', 'gt3', 'gt4', 'gt4', 'gt4', 'gt4']);

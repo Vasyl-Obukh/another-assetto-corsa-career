@@ -364,6 +364,11 @@ export interface CareerSeason {
    */
   offersDrawn?: readonly string[];
   /**
+   * Set once its market news has been looked for, whether or not any seat was
+   * for sale - so it is looked for once.
+   */
+  marketDrawn?: true;
+  /**
    * Every round raced whose sponsor draw has been made, by race id - so each
    * draws once, whatever came of it.
    */
@@ -1015,6 +1020,12 @@ export interface CareerState {
    * Every sponsor's deal it has signed, oldest first - those ended included.
    */
   sponsors: readonly SponsorDeal[];
+  /**
+   * The day news starts from, as an ISO date: nothing that happened before it
+   * sends a debrief, a result or any other news. The day a career first read
+   * it, so a career from before news is not sent its whole past.
+   */
+  newsFrom?: string;
 }
 
 /**

@@ -180,6 +180,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
 
   return {
     sessions,
+    plan,
     score: {
       ...score,
       races: score.races.map((race) => (race.launch < completed.length ? race : {
