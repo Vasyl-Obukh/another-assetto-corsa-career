@@ -248,7 +248,8 @@
   /* A weather's colour, by the kind the weather picker files it under -
      WEATHER_KINDS, read by the picker, the settings' allowed weather, a plan's
      bar and a session's weather chip alike, so one weather wears one colour
-     everywhere. A hue per kind rather than per type, since thirty-three types
+     everywhere. Rain allowed and not allowed wear wet and dry too
+     (RAIN_ACCENT), spending no hue of their own. A hue per kind rather than per type, since thirty-three types
      would be decoration; the icon names the weather itself. Sun gold, haze
      slate and rain blue sit on the podium gold, the oceanic slate and the
      practice blue, which no weather control shows beside them. */

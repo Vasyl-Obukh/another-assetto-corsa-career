@@ -13,6 +13,7 @@ export { SessionDetail } from './SessionDetail.tsx';
 export { SessionResult } from './SessionResult.tsx';
 export { SessionStatusDot } from './SessionStatusDot.tsx';
 export { StrengthBetween } from './StrengthBetween.tsx';
+export { RainCardSkeleton } from './RainCardSkeleton.tsx';
 export { StrengthCardSkeleton } from './StrengthCardSkeleton.tsx';
 export { StrengthClasses } from './StrengthClasses.tsx';
 export { StrengthNote } from './StrengthNote.tsx';

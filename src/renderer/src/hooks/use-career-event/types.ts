@@ -68,4 +68,10 @@ export interface CareerEventState {
    * @returns Resolves once it has been kept
    */
   setStrength: (strength: number) => Promise<void>;
+  /**
+   * Says whether this round may race in the wet.
+   * @param rain Whether rain is allowed, or null to follow the season
+   * @returns Resolves once it has been kept
+   */
+  setRain: (rain: boolean | null) => Promise<void>;
 }

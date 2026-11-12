@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { WEATHER_TYPE_LABEL } from './constants.ts';
+import { weatherWords } from './utils.ts';
 import type { ForecastStep } from '../../../../shared/types';
 
 interface WeatherStepsLabelProps {
@@ -21,17 +21,8 @@ interface WeatherStepsLabelProps {
  */
 export const WeatherStepsLabel = ({ steps, generated }: WeatherStepsLabelProps) => {
   const { t } = useTranslation();
-  const [first, last] = [steps[0], steps[steps.length - 1]];
 
-  if (!first) return <>{generated ? t('forecast.unavailable') : t('forecast.preset')}</>;
-  if (steps.length === 1) return <>{t(WEATHER_TYPE_LABEL[first.weather])}</>;
+  if (steps.length === 0) return <>{generated ? t('forecast.unavailable') : t('forecast.preset')}</>;
 
-  return (
-    <>
-      {t('forecast.change', {
-        from: t(WEATHER_TYPE_LABEL[first.weather]),
-        to: t(WEATHER_TYPE_LABEL[last.weather]),
-      })}
-    </>
-  );
+  return <>{weatherWords(steps.map((step) => step.weather), t)}</>;
 };

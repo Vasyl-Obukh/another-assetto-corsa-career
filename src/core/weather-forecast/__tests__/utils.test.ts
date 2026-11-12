@@ -23,6 +23,7 @@ import {
   dayIsWet,
   drawDays,
   drawSession,
+  driedSteps,
   offeredSteps,
   seasonalProfile,
   sessionAmbient,
@@ -492,6 +493,53 @@ describe('core/weather-forecast/utils', () => {
     it('comes back empty when nothing is on offer', () => {
       expect(offeredSteps([{ weather: WeatherType.RAIN, minutes: 5 }, { weather: WeatherType.CLEAR }], offer([])))
         .toEqual([]);
+    });
+  });
+
+  describe('driedSteps', () => {
+    const DRY = [WeatherType.CLEAR, WeatherType.OVERCAST_CLOUDS];
+
+    it('turns each wet stretch into the nearest dry weather, remembering what was meant', () => {
+      expect(driedSteps([{ weather: WeatherType.CLEAR, minutes: 10 }, { weather: WeatherType.RAIN }], DRY))
+        .toStrictEqual([
+          { weather: WeatherType.CLEAR, intended: WeatherType.CLEAR, minutes: 10 },
+          { weather: WeatherType.OVERCAST_CLOUDS, intended: WeatherType.RAIN },
+        ]);
+    });
+
+    it('keeps dry stretches as authored, even ones not on offer', () => {
+      expect(driedSteps([{ weather: WeatherType.FOG }], DRY))
+        .toStrictEqual([{ weather: WeatherType.FOG, intended: WeatherType.FOG }]);
+    });
+
+    it('runs two stretches that dry the same as one', () => {
+      expect(driedSteps([
+        { weather: WeatherType.RAIN, minutes: 15 },
+        { weather: WeatherType.HEAVY_RAIN, minutes: 5 },
+        { weather: WeatherType.CLEAR },
+      ], DRY)).toStrictEqual([
+        { weather: WeatherType.OVERCAST_CLOUDS, intended: WeatherType.RAIN, minutes: 20 },
+        { weather: WeatherType.CLEAR, intended: WeatherType.CLEAR },
+      ]);
+    });
+
+    it('keeps every stretch of a plan, unlike a static offer', () => {
+      expect(driedSteps([{ weather: WeatherType.CLEAR, minutes: 5 }, { weather: WeatherType.DRIZZLE }], DRY))
+        .toHaveLength(2);
+    });
+
+    it('keeps wet weather as authored when nothing dry is on offer', () => {
+      expect(driedSteps([{ weather: WeatherType.RAIN }], []))
+        .toStrictEqual([{ weather: WeatherType.RAIN, intended: WeatherType.RAIN }]);
+    });
+
+    // A stretch dried into the one before it used to vanish from intended, so
+    // the page never said rain had been taken out.
+    it('remembers a wet stretch merged into a dry one before it', () => {
+      expect(driedSteps([
+        { weather: WeatherType.OVERCAST_CLOUDS, minutes: 20 },
+        { weather: WeatherType.LIGHT_RAIN },
+      ], DRY)).toStrictEqual([{ weather: WeatherType.OVERCAST_CLOUDS, intended: WeatherType.LIGHT_RAIN }]);
     });
   });
 

@@ -565,6 +565,15 @@ export interface IpcContract {
     res: Career;
   };
   /**
+   * Say whether an edition the career is in may race in the wet - every round
+   * of it, or the one round named - or null to follow what is above it. A
+   * round is refused once a session of it has run.
+   */
+  'career:rain': {
+    req: { series: string; edition?: number; round?: string; rain: boolean | null };
+    res: Career;
+  };
+  /**
    * Move the clock forward, stopping at the first enrolled event on the way -
    * or, with `skip`, all the way to the date, marking every round of the
    * career's it passes a non-start. `skip` is what the player confirmed after

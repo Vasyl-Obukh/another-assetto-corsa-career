@@ -209,6 +209,20 @@ export const DetailsCard = ({
             />
           </div>
         ) : null}
+
+        {/* Whether or not weather is generated, since authored rain is kept dry
+            too. Written only as false, so nothing shipped changes. */}
+        <SwitchLine
+          id="editor-rain"
+          label={t('editor.details.rain')}
+          hint={t(series.rain === false ? 'editor.details.rainOffShort' : 'editor.details.rainShort')}
+          value={series.rain !== false}
+          disabled={locked}
+          onChange={(on) => {
+            const { rain: unused, ...rest } = series;
+            onChange(on ? rest : { ...rest, rain: false });
+          }}
+        />
       </div>
     </Card>
   );

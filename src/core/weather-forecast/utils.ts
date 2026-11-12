@@ -30,6 +30,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { parseClock } from '../../shared/utils/road-temperature/index.ts';
 import { nearestOffered } from '../../shared/utils/weather-types/index.ts';
+import { driedType } from '../../shared/utils/wet-weather/index.ts';
 import { runsToClock } from '../event/index.ts';
 import { toDayNumber } from '../season-calendar/index.ts';
 
@@ -271,24 +272,27 @@ export const statedSteps = (drawn: readonly DrawnStep[]): ForecastStep[] => draw
 }));
 
 /**
- * Swaps what the climate drew for what the install and settings can run.
- *
- * Two stretches that come out the same are one stretch, and weather that cannot
- * change without a planner app keeps only the stretch the session opens in.
+ * Steps with each weather swapped, two stretches that come out the same run as
+ * one, and a weather nothing can stand in for left out.
  * @param drawn The steps as drawn
- * @param offer What can be raced in
- * @returns The steps that will run, empty when nothing at all is on offer
+ * @param swap What each weather becomes, or null for nothing
+ * @returns The steps that will run
  */
-export const offeredSteps = (drawn: readonly DrawnStep[], offer: WeatherOffer): ForecastStep[] => {
+const swappedSteps = (
+  drawn: readonly DrawnStep[],
+  swap: (weather: WeatherType) => WeatherType | null,
+): ForecastStep[] => {
   const steps: ForecastStep[] = [];
 
   drawn.forEach((step) => {
-    const weather = nearestOffered(step.weather, offer.types);
+    const weather = swap(step.weather);
     if (weather === null) return;
 
     const previous = steps.at(-1);
     if (previous?.weather === weather) {
-      // The stretch before now runs on through this one.
+      // The stretch before now runs on through this one, remembering a swap
+      // that happened in either so the merge never hides one.
+      if (previous.intended === previous.weather) previous.intended = step.weather;
       if (step.minutes === undefined) delete previous.minutes;
       else previous.minutes = (previous.minutes ?? 0) + step.minutes;
       return;
@@ -301,6 +305,21 @@ export const offeredSteps = (drawn: readonly DrawnStep[], offer: WeatherOffer): 
     });
   });
 
+  return steps;
+};
+
+/**
+ * Swaps what the climate drew for what the install and settings can run.
+ *
+ * Two stretches that come out the same are one stretch, and weather that cannot
+ * change without a planner app keeps only the stretch the session opens in.
+ * @param drawn The steps as drawn
+ * @param offer What can be raced in
+ * @returns The steps that will run, empty when nothing at all is on offer
+ */
+export const offeredSteps = (drawn: readonly DrawnStep[], offer: WeatherOffer): ForecastStep[] => {
+  const steps = swappedSteps(drawn, (weather) => nearestOffered(weather, offer.types));
+
   if (!offer.dynamic && steps.length > 1) {
     const { minutes: unused, ...opening } = steps[0];
     return [opening];
@@ -308,6 +327,17 @@ export const offeredSteps = (drawn: readonly DrawnStep[], offer: WeatherOffer): 
 
   return steps;
 };
+
+/**
+ * Authored steps with no rain in them, as `withoutRain` dries the conditions
+ * they are read from.
+ * @param drawn The steps as authored
+ * @param dry The dry types on offer
+ * @returns The steps that will run
+ */
+export const driedSteps = (drawn: readonly DrawnStep[], dry: readonly WeatherType[]): ForecastStep[] => (
+  swappedSteps(drawn, (weather) => driedType(weather, dry))
+);
 
 /**
  * The weather fields generation writes onto a session.

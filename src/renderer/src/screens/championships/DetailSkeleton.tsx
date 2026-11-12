@@ -10,7 +10,7 @@ import type { DetailTab } from './types.ts';
 import { Loading, Shimmer } from '@/components';
 import { slots } from '@/lib/slots.ts';
 import { cn } from '@/lib/utils.ts';
-import { EnterPanelSkeleton, StrengthCardSkeleton } from '@/screens/event';
+import { EnterPanelSkeleton, RainCardSkeleton, StrengthCardSkeleton } from '@/screens/event';
 
 interface DetailSkeletonProps {
   /**
@@ -72,6 +72,7 @@ export const DetailSkeleton = ({
         </section>
         {enterable ? <EnterPanelSkeleton showFirstRound /> : null}
         {strength ? <StrengthCardSkeleton label={t('strength.season')} note={false} /> : null}
+        {strength ? <RainCardSkeleton note={false} /> : null}
         {manage ? null : (
           <section className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
             <h2 className="font-semibold">{t(entered ? 'standings.season.title' : 'standings.title')}</h2>

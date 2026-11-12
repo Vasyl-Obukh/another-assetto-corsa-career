@@ -749,6 +749,9 @@
       "temperature": "{{value}}°C",
       "windRange": "{{min}}-{{max}} km/h",
       "authored": "As the event sets it",
+      "authoredDry": "As the event sets it, without rain",
+      "dried": "{{weather}} · no rain allowed",
+      "driedTip": "Rain is not allowed, so this runs {{actual}} rather than {{intended}}",
       "pending": "Forecast a week before the event"
     },
     "length": {
@@ -1134,10 +1137,13 @@
       "title": "Rules",
       "hint": "What the championship allows and how it is policed. Your own aids are in Settings and are not shown here.",
       "carry": "What the cars carry",
+      "weather": "Weather",
+      "rain": "Rain",
       "allowed": "Allowed",
       "notAllowed": "Not allowed",
       "enforced": "Enforced",
-      "off": "Off"
+      "off": "Off",
+      "rainOwn": "Set for your season"
     },
     "contract": {
       "title": "Your contract",
@@ -1309,7 +1315,10 @@
       "entryFeeShort": "Per round, unless a round says otherwise. Zero is free to enter.",
       "seasonLengthShort": "How much of a career's year it fills",
       "raceWeekdayShort": "By tier, the top tier races on Sunday, the next on Saturday and the rest on a weekday of their own",
-      "generatedWeatherShort": "Drawn from a climate; a round or a session may still set its own"
+      "generatedWeatherShort": "Drawn from a climate; a round or a session may still set its own",
+      "rain": "Allow rain",
+      "rainShort": "Turn off if a car you race here cannot handle a wet track",
+      "rainOffShort": "Every session runs dry, whatever the weather would have been"
     },
     "grid": {
       "title": "AI field",
@@ -2768,7 +2777,8 @@
       },
       "championships": {
         "rules": {
-          "hint": "What the event allows and how it is policed. Your own aids are in Settings and are not shown here."
+          "hint": "What the event allows and how it is policed. Your own aids are in Settings and are not shown here.",
+          "rainOwn": "Set for this event"
         }
       }
     },
@@ -4147,5 +4157,20 @@
       "seatFree": "One seat at a time"
     },
     "climbed": "{{rung}}'s figures since {{day}}"
+  },
+  "rain": {
+    "title": "Wet weather",
+    "allow": "Allow rain",
+    "followsChampionship": "As the championship sets it",
+    "followsSeason": "As the season sets it",
+    "seasonAllowed": "Rain is allowed this season.",
+    "seasonNotAllowed": "Rain is not allowed this season.",
+    "change": "Change it",
+    "ownRounds": "Rounds set on their own",
+    "allowed": "Rain allowed",
+    "notAllowed": "Rain not allowed",
+    "raced": "Raced",
+    "fixed": "Fixed for the whole event once {{session}} ran.",
+    "reset": "Reset"
   }
 }

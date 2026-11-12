@@ -70,6 +70,13 @@ export const OverviewSkeleton = () => {
             <span className="text-sm font-medium">{t('editor.details.hemisphere')}</span>
             <Shimmer className="h-8.5 w-41 rounded-lg" />
           </div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-sm font-medium">{t('editor.details.rain')}</span>
+              <span className="text-xs text-muted-foreground">{t('editor.details.rainShort')}</span>
+            </div>
+            <Shimmer className="h-[1.15rem] w-8 rounded-full" />
+          </div>
         </div>
       </Card>
 

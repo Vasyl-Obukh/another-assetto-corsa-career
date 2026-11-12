@@ -140,7 +140,7 @@ export const HistoricDetail = () => {
               </Card>
               <div className="grid items-start gap-4 lg:grid-cols-2">
                 <FormatsCard series={series} />
-                <RulesSheet regulations={series.regulations ?? {}} />
+                <RulesSheet regulations={series.regulations ?? {}} rain={series.rain !== false} />
               </div>
             </TabsContent>
 

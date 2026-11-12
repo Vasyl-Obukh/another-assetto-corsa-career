@@ -56,6 +56,19 @@ export const readOptionalNumber = (
 ): boolean => value === undefined || typeof value === 'number' || report.bad(field, value);
 
 /**
+ * Checks a value that has to be true or false when it is there at all.
+ * @param value The value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readOptionalBoolean = (
+  value: unknown,
+  field: string,
+  report: Reporter,
+): boolean => value === undefined || typeof value === 'boolean' || report.bad(field, value);
+
+/**
  * Checks a value that has to be a string when it is there at all.
  * @param value The value
  * @param field Dotted path to it

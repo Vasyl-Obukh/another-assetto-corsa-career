@@ -66,7 +66,11 @@ export const SessionDetail = ({
         {session.record ? (
           <SessionResult view={view} session={session} record={session.record} series={series} />
         ) : (
-          <SessionBriefing session={session} length={session.status === 'next' ? length : undefined} />
+          <SessionBriefing
+            session={session}
+            length={session.status === 'next' ? length : undefined}
+            rain={view.rain.allowed}
+          />
         )}
 
         {session.status === 'next' ? (

@@ -21,6 +21,7 @@ import {
   readFormat,
   readGeneratedWeather,
   readGrid,
+  readOptionalBoolean,
   readOptionalNumber,
   readOptionalString,
   readPoints,
@@ -96,6 +97,7 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     readPrizes(raw.prizes, 'prizes', report),
     readGrid(raw.grid, 'grid', report),
     readGeneratedWeather(raw.generatedWeather, 'generatedWeather', report),
+    readOptionalBoolean(raw.rain, 'rain', report),
     raw.seasonLength === undefined
       || report.closedSet(raw.seasonLength, SEASON_LENGTHS, 'seasonLength'),
     raw.raceWeekday === undefined

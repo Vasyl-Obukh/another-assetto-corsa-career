@@ -90,6 +90,28 @@ export interface EnteredEvent {
 }
 
 /**
+ * Whether rain is allowed, for an edition or one round of it.
+ */
+export interface RainRequest {
+  /**
+   * The championship's id.
+   */
+  series: string;
+  /**
+   * Which edition, when the championship runs more than one a year.
+   */
+  edition?: number;
+  /**
+   * The round it is for, or omitted for every round of the edition.
+   */
+  round?: string;
+  /**
+   * Whether rain is allowed, or null to follow what is above it.
+   */
+  rain: boolean | null;
+}
+
+/**
  * A step on the AI's strength, for an edition or one round of it.
  */
 export interface StrengthRequest {
@@ -546,6 +568,16 @@ export interface CareerStore {
    * step moves the AI further than a step may
    */
   strength(request: StrengthRequest): Promise<Career>;
+  /**
+   * Says whether an edition the career is in may race in the wet: every round
+   * of it, or the one round named.
+   * @param request Which championship and edition - the one being raced when
+   * it names none - which round, if only one, and whether rain is allowed, null
+   * to follow what is above it
+   * @returns The career
+   * @throws When the edition is not entered, or a session of the round has run
+   */
+  rain(request: RainRequest): Promise<Career>;
   /**
    * Moves the clock forward, stopping at the first enrolled event on the way
    * - or, once the player has confirmed what it costs, all the way. A move past

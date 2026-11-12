@@ -3394,6 +3394,16 @@ happened, and filed.
       how dynamic weather is actually driven* for both file formats and both
       autoload hooks. Wants a spike per system first, and has to be honest that
       it writes into the user's mod folders and overwrites a plan slot of theirs
+- [x] **Allow rain, per championship, edition and round** - some cars and
+      tracks aquaplane on any water, and nobody can check every pairing. A
+      championship's `rain: false` is set in the editor's Overview; a career's
+      edition and round override it (`SeasonEntry.rain`, `SeasonEvent.rain`),
+      each from a Wet weather card beside its AI strength, the round's locking
+      once its first session runs. **It takes no part in drawing the weather**:
+      the stored draw is untouched, and a round where rain is not allowed races
+      every wet type as the nearest dry one on offer - its forecast, authored
+      conditions and plan steps alike - so allowing rain again restores what
+      was drawn
 - [ ] Weather preset management; surface that installing touches the AC folder
 - [ ] Warn that `__CM_WEATHER_CONTROLLER` overrides the user's `weather_fx.ini`
 - [ ] Uninstall/cleanup: remove career weathers, restore CM arguments

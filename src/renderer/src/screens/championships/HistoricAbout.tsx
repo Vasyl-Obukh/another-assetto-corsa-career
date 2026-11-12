@@ -26,6 +26,11 @@ interface HistoricAboutProps {
    * written.
    */
   speed?: number;
+  /**
+   * Whether it may race in the wet as a career races it - absent to read the
+   * event's own.
+   */
+  rain?: boolean;
 }
 
 /**
@@ -36,7 +41,7 @@ const PART_HEADING = 'text-xs font-semibold tracking-wide text-muted-foreground 
 // The whole of a historic event in one panel, as a career's event page shows
 // it; its settings page shows the same parts a tab each.
 export const HistoricAbout = ({
-  event, availability, playerSeat, speed = 1,
+  event, availability, playerSeat, speed = 1, rain,
 }: HistoricAboutProps) => {
   const { t } = useTranslation();
 
@@ -64,7 +69,12 @@ export const HistoricAbout = ({
             {/* Worded for an event wherever the panel is shown, the career's
                 own event page included. */}
             <WordingKind.Provider value="historic">
-              <RulesSheet regulations={event.regulations ?? {}} titled={false} />
+              <RulesSheet
+                regulations={event.regulations ?? {}}
+                rain={rain ?? event.rain !== false}
+                rainOwn={rain !== undefined && rain !== (event.rain !== false)}
+                titled={false}
+              />
             </WordingKind.Provider>
           </div>
         </div>

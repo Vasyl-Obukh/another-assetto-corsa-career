@@ -113,6 +113,7 @@ export const useCareer = (): CareerState => {
         else load();
       });
     },
+    setRain: (series, edition, rain) => run(() => invoke('career:rain', { series, edition, rain })),
     advanceTo: (date, skip) => run(() => invoke('career:advance', { date, skip })),
     // An error is shown as any command's is, and still rejects: a move whose
     // cost could not be read must not go ahead as though it cost nothing.

@@ -13,6 +13,7 @@ import { EventHeadSkeleton } from './EventHeadSkeleton.tsx';
 import { EventSessionList } from './EventSessionList.tsx';
 import { EventSkeleton } from './EventSkeleton.tsx';
 import { HistoricSeatPanel } from './HistoricSeatPanel.tsx';
+import { RoundRain } from './RoundRain.tsx';
 import { RoundRating } from './RoundRating.tsx';
 import { RoundSponsors } from './RoundSponsors.tsx';
 import { RoundStrength } from './RoundStrength.tsx';
@@ -290,6 +291,14 @@ export const Event = () => {
                 onChange={(step) => { void event.setStrength(step); }}
               />
             ) : null}
+            {view.entered ? (
+              <RoundRain
+                view={view}
+                championship={historic ? null : path.championship({ id: view.series }, run)}
+                busy={event.busy}
+                onChange={(rain) => { void event.setRain(rain); }}
+              />
+            ) : null}
           </aside>
 
           {selected === ABOUT && historic ? (
@@ -306,6 +315,7 @@ export const Event = () => {
                     availability={historic.availability}
                     playerSeat={historic.seat ?? undefined}
                     speed={prizeSpeed(slot.career)}
+                    rain={view.entered ? view.rain.allowed : undefined}
                   />
                 </CardContent>
               </Card>

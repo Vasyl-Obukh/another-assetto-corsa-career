@@ -128,6 +128,11 @@ export interface SeasonEvent {
    * offset, so the difficulty in settings still moves the round.
    */
   strength?: number;
+  /**
+   * Whether this round alone may race in the wet, over the edition's - absent
+   * to follow it. Fixed once a session of the round has run.
+   */
+  rain?: boolean;
 }
 
 /**
@@ -229,6 +234,11 @@ export interface SeasonEntry {
    * none. Each round may add a step of its own.
    */
   strength?: number;
+  /**
+   * Whether every round of this edition may race in the wet, over the
+   * championship's - absent to follow it. Each round may say otherwise.
+   */
+  rain?: boolean;
   /**
    * The team's contract it is raced under - absent for a championship entered
    * on the player's own.
@@ -1791,6 +1801,30 @@ export interface EventEntry {
 }
 
 /**
+ * Whether one round of the career's may race in the wet, and what decides it.
+ */
+export interface EventRain {
+  /**
+   * Whether it may, which is what it races under.
+   */
+  allowed: boolean;
+  /**
+   * What the round itself says, or null where it follows its edition.
+   */
+  own: boolean | null;
+  /**
+   * What its edition comes to - its own say, else the championship's - which
+   * is what the round follows when it says nothing.
+   */
+  season: boolean;
+  /**
+   * Whether the round's own say may still change: an entered round none of
+   * whose sessions has run.
+   */
+  editable: boolean;
+}
+
+/**
  * What the AI's strength in one round of the career's is made of, below the
  * difficulty in settings, which the renderer reads for itself.
  */
@@ -1925,6 +1959,10 @@ export interface CareerEventView {
    * What the AI's strength is made of, or null when the career is not entered.
    */
   strength: EventStrength | null;
+  /**
+   * Whether it may race in the wet, and what decides that.
+   */
+  rain: EventRain;
   /**
    * The classes it can be entered in, for a career not yet in it.
    */

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BriefTile } from './BriefTile.tsx';
 import { EVENT_SKELETON } from './constants.ts';
+import { RainCardSkeleton } from './RainCardSkeleton.tsx';
 import { StrengthCardSkeleton } from './StrengthCardSkeleton.tsx';
 import { Loading, Shimmer } from '@/components';
 import {
@@ -55,6 +56,7 @@ export const EventSkeleton = () => {
         {/* Drawn as the entry card is, whether or not the round turns out to be
             entered. */}
         <StrengthCardSkeleton label={t('strength.round')} />
+        <RainCardSkeleton />
       </aside>
 
       <Card className="py-4">

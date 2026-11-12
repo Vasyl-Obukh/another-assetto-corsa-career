@@ -108,6 +108,7 @@ export type ErrorCode =
   | 'career.event.notFound'
   | 'career.event.notEntered'
   | 'career.event.closed'
+  | 'career.event.weatherSet'
   | 'career.event.earlierPending'
   | 'career.event.otherInProgress'
   | 'career.event.sameDay'

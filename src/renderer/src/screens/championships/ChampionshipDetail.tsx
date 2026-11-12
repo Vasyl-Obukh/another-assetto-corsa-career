@@ -15,6 +15,7 @@ import { EditionSwitcher } from './EditionSwitcher.tsx';
 import { EnterChampionship } from './EnterChampionship.tsx';
 import { OfferNote } from './OfferNote.tsx';
 import { RoundTable } from './RoundTable.tsx';
+import { SeasonRain } from './SeasonRain.tsx';
 import { SeasonRules } from './SeasonRules.tsx';
 import { SeasonStrength } from './SeasonStrength.tsx';
 import { SeasonSummary } from './SeasonSummary.tsx';
@@ -28,6 +29,7 @@ import { editionOver, editionsOf, seasonYear } from '../../../../shared/utils/ed
 import { prizeSpeed } from '../../../../shared/utils/prizes';
 import { seatRaceableIn } from '../../../../shared/utils/round-availability';
 import { standaloneEntry, standaloneStanding } from '../../../../shared/utils/standalone';
+import { rainAllowed } from '../../../../shared/utils/wet-weather';
 import { useSlot } from '@/app';
 import {
   ErrorCard, ResultCell, ScreenBody, ScreenHeader, SkipRoundDialog,
@@ -284,6 +286,14 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
                 onChange={(step) => { void career.setStrength(id, entered.edition, step); }}
               />
             ) : null}
+            {adjustable && entered ? (
+              <SeasonRain
+                entry={entered}
+                run={run}
+                busy={career.busy}
+                onChange={(rain) => { void career.setRain(id, entered.edition, rain); }}
+              />
+            ) : null}
             {table && mine && results.results ? (
               <SeasonSummary
                 season={mine}
@@ -381,7 +391,11 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
             <TabsContent value="rules">
               {/* The library's own page shows the purse as written; a
                   career's shows what it would be paid. */}
-              <SeasonRules series={listing.series} speed={manage ? 1 : prizeSpeed(slot)} />
+              <SeasonRules
+                series={listing.series}
+                speed={manage ? 1 : prizeSpeed(slot)}
+                rain={!manage && entered ? rainAllowed(entered.championship, entered) : undefined}
+              />
             </TabsContent>
           </Tabs>
         </div>

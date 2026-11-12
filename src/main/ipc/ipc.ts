@@ -219,6 +219,7 @@ export const registerHandlers = (
   handle('career:markMail', async (request) => career.markMail(request));
   handle('career:markAllRead', async () => career.markAllRead());
   handle('career:strength', async (request) => career.strength(request));
+  handle('career:rain', async (request) => career.rain(request));
   handle('career:advance', async ({ date, skip }) => career.advanceTo(date, skip));
   handle('career:skips', async ({ date }) => career.skips(date));
   handle('career:roundCosts', async () => career.roundCosts());

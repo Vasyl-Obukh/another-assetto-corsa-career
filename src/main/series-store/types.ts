@@ -26,6 +26,11 @@ export interface CareerDraws {
    * The season's AI field, frozen when the championship was entered.
    */
   field?: readonly FieldSeat[];
+  /**
+   * Whether the round may race in the wet, as the career's edition and round
+   * resolve it.
+   */
+  rain?: boolean;
 }
 
 /**

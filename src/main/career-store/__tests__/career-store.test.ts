@@ -3074,6 +3074,86 @@ describe('main/career-store', () => {
     });
   });
 
+  describe('rain', () => {
+    /**
+     * A career entered in the cup: one round raced, one part-way through, and
+     * one still to come.
+     * @returns The career
+     */
+    const entered = (): Career => careerWith({
+      entries: [makeEntry({
+        events: [
+          makeEvent('one', '2027-01-01', { status: 'raced', sessions: [record(0)] }),
+          makeEvent('two', '2027-03-07', { sessions: [record(0)] }),
+          makeEvent('three', '2027-06-06'),
+        ],
+      })],
+    });
+
+    it('keeps whether the season allows rain', async () => {
+      const { store } = await build({ career: entered() });
+      await store.rain({ series: CUP.id, rain: false });
+
+      expect(entryOf(store.get()).rain).toBe(false);
+    });
+
+    it('follows the championship again once the season says null', async () => {
+      const { store } = await build({ career: entered() });
+      await store.rain({ series: CUP.id, rain: false });
+      await store.rain({ series: CUP.id, rain: null });
+
+      expect(entryOf(store.get())).not.toHaveProperty('rain');
+    });
+
+    // Guards a fix: a round already begun followed the season's new say, and
+    // its sessions still to run changed weather part-way.
+    it('keeps a round already begun at the say it began under when the season changes', async () => {
+      const { store } = await build({ career: entered() });
+      await store.rain({ series: CUP.id, rain: false });
+
+      expect(entryOf(store.get()).events.map((one) => one.rain)).toEqual([true, true, undefined]);
+    });
+
+    it("leaves a begun round's own say alone when the season changes", async () => {
+      const { store } = await build({
+        career: careerWith({
+          entries: [makeEntry({ events: [makeEvent('two', '2027-03-07', { sessions: [record(0)], rain: false })] })],
+        }),
+      });
+      await store.rain({ series: CUP.id, rain: true });
+
+      expect(entryOf(store.get()).events[0].rain).toBe(false);
+    });
+
+    it('keeps whether one round still to run allows rain', async () => {
+      const { store } = await build({ career: entered() });
+      await store.rain({ series: CUP.id, round: 'three', rain: false });
+
+      expect(entryOf(store.get()).events[2].rain).toBe(false);
+    });
+
+    it('refuses a round once a session of it has run', async () => {
+      const { store } = await build({ career: entered() });
+
+      await expect(store.rain({ series: CUP.id, round: 'two', rain: false }))
+        .rejects.toMatchObject({ code: 'career.event.weatherSet' });
+    });
+
+    it('refuses a round already raced', async () => {
+      const { store } = await build({ career: entered() });
+
+      await expect(store.rain({ series: CUP.id, round: 'one', rain: false }))
+        .rejects.toMatchObject({ code: 'career.event.closed' });
+    });
+
+    it('refuses a championship the career is not in', async () => {
+      const { store } = await build({ career: careerWith({}) });
+
+      await expect(store.rain({ series: CUP.id, rain: false }))
+        .rejects.toMatchObject({ code: 'career.event.notEntered' });
+    });
+  });
+
   describe('advanceTo', () => {
     describe('moving sponsors on', () => {
       /**
@@ -3646,6 +3726,30 @@ describe('main/career-store', () => {
       });
     });
 
+    it("says whether the round may race in the wet, and what decides it", async () => {
+      const career = careerWith({
+        entries: [makeEntry({ rain: false, events: [makeEvent('one', '2027-03-07', { rain: true })] })],
+      });
+      const { store } = await build({ career });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.rain).toEqual({
+        allowed: true, own: true, season: false, editable: true,
+      });
+    });
+
+    it('stops the say on rain changing once a session of the round has run', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-03-07', { sessions: [record(0)] })] })],
+      });
+      const { store } = await build({ career });
+      const view = await store.event({ series: CUP.id, round: 'one' });
+
+      expect(view.rain).toEqual({
+        allowed: true, own: null, season: true, editable: false,
+      });
+    });
+
     it("says a round the player's own car can no longer race cannot be raced, which is what offers its skip", async () => {
       const career = careerWith({
         entries: [makeEntry({ car: { model: 'gone_car' }, events: [makeEvent('one', '2027-03-07')] })],
@@ -4104,6 +4208,24 @@ describe('main/career-store', () => {
 
       expect(seen[0]).toEqual({ strength: 90, aggression: 20 });
       expect(seen.at(-1)).toEqual({ strength: 70, aggression: 60 });
+    });
+
+    it('lowers the round as the career allows rain in it', async () => {
+      const career = careerWith({
+        entries: [makeEntry({ rain: false, events: [makeEvent('one', '2027-01-01')] })],
+      });
+      const { store, series } = await build({ career });
+      const seen: (boolean | undefined)[] = [];
+      const lower = series.lowerRound;
+      series.lowerRound = async (championship, request, step, opponents) => {
+        seen.push(request.rain);
+
+        return lower(championship, request, step, opponents);
+      };
+      await store.event({ series: CUP.id, round: 'one' });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(seen).toEqual([false, false]);
     });
 
     it("launches with the career's own driving aids, or the app's while it follows them", async () => {

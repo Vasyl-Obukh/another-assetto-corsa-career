@@ -49,6 +49,7 @@ import type {
   CarEntry,
   Championship,
   ClassCatalogue,
+  Conditions,
   Content,
   FieldSeat,
   RaceDefinition,
@@ -61,6 +62,7 @@ import { aiFigure } from '../../shared/utils/ai-figure/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { formatOf } from '../../shared/utils/event-format/index.ts';
+import { dryOffer, rainAllowed, withoutRain } from '../../shared/utils/wet-weather/index.ts';
 import { nextSkin, skinKey } from '../race-ini/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 import {
@@ -349,7 +351,7 @@ export const seriesForecast = (series: Championship, offer: WeatherOffer): Round
     const format = formatOf(series, round);
 
     return climate !== null && format !== null
-      ? [forecastRound(series.id, round, format, climate, offer)]
+      ? [forecastRound(series.id, round, format, climate, offer, {}, rainAllowed(series))]
       : [];
   })
 );
@@ -542,6 +544,17 @@ export const roundRace = (
   }
 
   const climate = climateOf(series, round);
+  // Without rain, wet weather runs as the nearest dry on offer: the forecast
+  // through the offer, and what the round and its sessions author dried here.
+  const rain = request.rain ?? rainAllowed(series);
+  const presets = rain ? null : new Map(content.weather.map((preset) => [preset.id, preset.type]));
+  const dryTypes = dryOffer(offer).types;
+  const dry = (conditions: Conditions | undefined): Conditions | undefined => (
+    presets ? withoutRain(conditions, dryTypes, (preset) => presets.get(preset) ?? null) : conditions
+  );
+  const raced = sessions.map((session) => (
+    session.conditions === undefined ? session : { ...session, conditions: dry(session.conditions) }
+  ));
 
   return {
     id: roundRaceId(series.id, round.id),
@@ -559,11 +572,11 @@ export const roundRace = (
     // A draw the career already issued is substituted rather than redrawn, so
     // the weather raced is the weather forecast however long ago it was shown.
     sessions: climate === null
-      ? sessions
-      : applyForecast(sessions, request.draw
-        ? offerForecast(request.draw, offer)
-        : forecastRound(series.id, round, format, climate, offer)),
-    conditions: round.conditions,
+      ? raced
+      : applyForecast(raced, request.draw
+        ? offerForecast(request.draw, offer, rain)
+        : forecastRound(series.id, round, format, climate, offer, {}, rain)),
+    conditions: dry(round.conditions),
     assists: series.regulations?.assists,
     penalties: series.regulations?.penalties,
     jumpStartPenalty: series.regulations?.jumpStartPenalty,

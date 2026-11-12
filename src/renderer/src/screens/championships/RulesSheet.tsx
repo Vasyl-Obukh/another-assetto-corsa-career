@@ -4,6 +4,7 @@ import { RuleScale } from './RuleScale.tsx';
 import { RuleSteps } from './RuleSteps.tsx';
 import { DEFAULT_ASSISTS } from '../../../../shared/constants';
 import type { Regulations } from '../../../../shared/types';
+import { RainChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card, CardContent } from '@/components/ui/card.tsx';
 import { useFormat, useKindTranslation } from '@/i18n';
@@ -16,6 +17,15 @@ interface RulesSheetProps {
    * The rules as the championship or the historic event states them.
    */
   regulations: Regulations;
+  /**
+   * Whether its rounds may race in the wet.
+   */
+  rain: boolean;
+  /**
+   * Whether `rain` is the career's own say for its season or event, rather
+   * than the championship's.
+   */
+  rainOwn?: boolean;
   /**
    * Whether the card heads itself, which it does unless the page around it
    * already has.
@@ -35,7 +45,9 @@ const IN_FORCE = 'border-transparent bg-result-points text-result-points-foregro
 
 // Every rule a race is run under, read-only and drawn as the editor draws them.
 // What is left unset is Assetto Corsa's own, and says so rather than vanishing.
-export const RulesSheet = ({ regulations, titled = true, className }: RulesSheetProps) => {
+export const RulesSheet = ({
+  regulations, rain, rainOwn = false, titled = true, className,
+}: RulesSheetProps) => {
   const { t } = useKindTranslation();
   const { t: plain } = useTranslation();
   const { formatNumber } = useFormat();
@@ -109,6 +121,19 @@ export const RulesSheet = ({ regulations, titled = true, className }: RulesSheet
                 ? plain('editor.regulations.tyresOutTrack')
                 : formatNumber(wheels))}
             />
+          </div>
+        </div>
+
+        <div className="flex flex-col">
+          <span className="mb-1 text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
+            {t('championships.rules.weather')}
+          </span>
+          <div className={row}>
+            <span className="font-medium">{t('championships.rules.rain')}</span>
+            <span className="flex items-center gap-2">
+              <RainChip allowed={rain} />
+              {rainOwn ? <span className="text-xs text-muted-foreground">{t('championships.rules.rainOwn')}</span> : null}
+            </span>
           </div>
         </div>
       </CardContent>

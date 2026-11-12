@@ -122,6 +122,9 @@ export const useCareerEvent = (
       scale,
       accept: view?.historic?.invitation.state === 'awaiting',
     })),
+    setRain: (rain) => command(() => invoke('career:rain', {
+      series, round, edition: view?.edition ?? edition, rain,
+    })),
     // Shown at once and kept behind it, never holding the buttons, so a step
     // can be typed or clicked through; the round is read once the last lands.
     setStrength: (strength) => {

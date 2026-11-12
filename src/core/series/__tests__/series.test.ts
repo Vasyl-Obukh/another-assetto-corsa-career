@@ -365,6 +365,12 @@ describe('core/series', () => {
         session.steps.forEach((step) => expect(OFFER.types).toContain(step.weather));
       }));
     });
+
+    it('forecasts no rain for a championship that does not allow it', () => {
+      seriesForecast({ ...generated(), rain: false }, OFFER).forEach((round) => round.sessions.forEach((session) => {
+        session.steps.forEach((step) => expect(step.weather).toBe(WeatherType.CLEAR));
+      }));
+    });
   });
 
   describe('drawField', () => {
@@ -584,6 +590,123 @@ describe('core/series', () => {
 
       expect(race.sessions?.[0].conditions)
         .toEqual(offerForecast(draw, OFFER).sessions[0].conditions);
+    });
+
+    it('races a draw dry when the career does not allow rain', () => {
+      const series = generated();
+      const [round] = series.rounds;
+      const format = formatOf(series, round);
+      if (!format) throw new Error('The fixture round has no format.');
+
+      const draw = drawRound(series.id, round, format, Climate.OCEANIC, { salt: 'career-1' });
+      const race = roundRace(
+        {
+          series, entry: 'main', round: round.id, car: { model: 'test_car' }, draw, rain: false,
+        },
+        makeContent(),
+        SHIPPED_CATALOGUE,
+        OFFER,
+      );
+
+      expect(race.sessions?.[0].conditions)
+        .toEqual(offerForecast(draw, OFFER, false).sessions[0].conditions);
+      expect(race.sessions?.[0].conditions?.weatherType).toBe(WeatherType.CLEAR);
+    });
+
+    /**
+     * A championship whose round and race both author rain.
+     * @param rain What the championship says of rain
+     * @returns The championship
+     */
+    const authoredRain = (rain?: boolean): Championship => makeSeries({
+      ...(rain === undefined ? {} : { rain }),
+      rounds: [{
+        id: 'magione', name: 'Magione', track: { id: 'magione' }, conditions: { weatherType: WeatherType.RAIN },
+      }],
+      eventFormats: [{
+        id: 'standard',
+        name: 'Standard',
+        sessions: [{
+          type: 'race',
+          name: 'Race',
+          laps: 8,
+          day: 0,
+          conditions: {
+            weatherSteps: [
+              { weather: WeatherType.CLEAR, minutes: 5 },
+              { weather: WeatherType.HEAVY_RAIN, rain: 0.8 },
+            ],
+          },
+        }],
+      }],
+    });
+
+    /**
+     * Lowers the authored-rain championship's round.
+     * @param series The championship
+     * @param rain What the career says of rain, if anything
+     * @returns The race
+     */
+    const lowerAuthored = (series: Championship, rain?: boolean) => roundRace(
+      {
+        series, entry: 'main', round: 'magione', car: { model: 'test_car' }, ...(rain === undefined ? {} : { rain }),
+      },
+      makeContent(),
+      SHIPPED_CATALOGUE,
+      OFFER,
+    );
+
+    it('dries the weather a round and its sessions author when the championship allows no rain', () => {
+      const race = lowerAuthored(authoredRain(false));
+
+      expect(race.conditions?.weatherType).toBe(WeatherType.CLEAR);
+      expect(race.sessions?.[0].conditions?.weatherSteps).toEqual([
+        { weather: WeatherType.CLEAR, minutes: 5 },
+        { weather: WeatherType.CLEAR, rain: 0 },
+      ]);
+    });
+
+    it('races authored rain as authored where rain is allowed', () => {
+      const series = authoredRain();
+      const race = lowerAuthored(series);
+
+      expect(race.conditions).toEqual(series.rounds[0].conditions);
+      expect(race.sessions).toEqual(series.eventFormats[0].sessions);
+    });
+
+    it('lets the career allow rain a championship does not', () => {
+      expect(lowerAuthored(authoredRain(false), true).conditions?.weatherType).toBe(WeatherType.RAIN);
+    });
+
+    it('races a named preset declaring rain as a dry type', () => {
+      const content = makeContent();
+      const series = makeSeries({
+        rain: false,
+        rounds: [{
+          id: 'magione', name: 'Magione', track: { id: 'magione' }, conditions: { weather: 'career_rain' },
+        }],
+      });
+      const race = roundRace(
+        { series, entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        {
+          ...content,
+          weather: [{
+            id: 'career_rain',
+            name: 'Rain',
+            type: WeatherType.RAIN,
+            temperatureCoeff: 1,
+            author: null,
+            timeDiapason: null,
+            cloudCover: 1,
+            rain: null,
+            forceHeadlights: false,
+          }],
+        },
+        SHIPPED_CATALOGUE,
+        OFFER,
+      );
+
+      expect(race.conditions).toEqual({ weatherType: WeatherType.CLEAR });
     });
 
     it('fields a class out of a user spec, given the catalogue that holds it', () => {

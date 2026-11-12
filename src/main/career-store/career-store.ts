@@ -221,6 +221,7 @@ import {
   seatBacker, seatBackingDeal, seatLift,
 } from '../../shared/utils/sponsors/index.ts';
 import { buildStandings, entryResults, roundResult } from '../../shared/utils/standings/index.ts';
+import { rainAllowed, withRain } from '../../shared/utils/wet-weather/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
 import type { RaceStore } from '../race-store/index.ts';
 import { slotHolds, withLevelsOf } from '../race-store/index.ts';
@@ -1184,6 +1185,46 @@ export const createCareerStore = async (
 
     const listing = await series.get(request.series);
     throw new AppError('career.event.notEntered', { series: listing?.series.name ?? request.series });
+  };
+
+  /**
+   * One edition the career is in, or a refusal saying it is not.
+   * @param season The season to look in
+   * @param request Which championship, and which edition - the one being raced
+   * when it names none
+   * @param request.series The championship's id
+   * @param request.edition Which edition, when it names one
+   * @returns The edition
+   * @throws When the career is not in that championship
+   */
+  const heldEntry = async (
+    season: CareerSeason,
+    request: { series: string; edition?: number },
+  ): Promise<SeasonEntry> => {
+    const edition = request.edition ?? enteredEdition(season, request.series);
+    const entry = edition === null ? null : enteredEntry(season, request.series, edition);
+    if (entry) return entry;
+
+    const listing = await series.get(request.series);
+    throw new AppError('career.event.notEntered', { series: listing?.series.name ?? request.series });
+  };
+
+  /**
+   * One round of an edition that has not been raced yet, with its name for a
+   * refusal.
+   * @param entry The edition
+   * @param round The round's id
+   * @returns The round's event and its name
+   * @throws When the edition has no such round, or it has been raced or passed
+   */
+  const openEvent = (entry: SeasonEntry, round: string): { event: SeasonEvent; name: string } => {
+    const event = entry.events.find((one) => one.round === round);
+    if (!event) throw new AppError('career.event.notFound', { series: entry.championship.name, round });
+
+    const name = entry.championship.rounds.find((one) => one.id === round)?.name ?? round;
+    if (event.status !== 'scheduled') throw new AppError('career.event.closed', { round: name });
+
+    return { event, name };
   };
 
   /**
@@ -2714,32 +2755,46 @@ export const createCareerStore = async (
     strength: (request) => commit(async () => {
       const { season } = await seasonNow();
       const step = keptStep(request.strength);
-      const edition = request.edition ?? enteredEdition(season, request.series);
-      const entry = edition === null ? null : enteredEntry(season, request.series, edition);
-      if (!entry) {
-        const listing = await series.get(request.series);
-        throw new AppError('career.event.notEntered', { series: listing?.series.name ?? request.series });
-      }
-
+      const entry = await heldEntry(season, request);
       if (request.round === undefined) {
         replaceEntry(season, entry, withStrength(entry, step));
 
         return settle();
       }
 
-      const event = entry.events.find((one) => one.round === request.round);
-      if (!event) {
-        throw new AppError('career.event.notFound', { series: entry.championship.name, round: request.round });
-      }
       // A round already run keeps what it raced at, which its sessions record.
-      if (event.status !== 'scheduled') {
-        const round = entry.championship.rounds.find((one) => one.id === event.round);
-        throw new AppError('career.event.closed', { round: round?.name ?? event.round });
-      }
-
+      const { event } = openEvent(entry, request.round);
       replaceEntry(season, entry, {
         ...entry,
         events: entry.events.map((one) => (one === event ? withStrength(one, step) : one)),
+      });
+
+      return settle();
+    }),
+
+    rain: (request) => commit(async () => {
+      const { season } = await seasonNow();
+      const entry = await heldEntry(season, request);
+      if (request.round === undefined) {
+        // A round already begun keeps the weather it began in, so it takes the
+        // say it raced under as its own before the season's changes.
+        const events = entry.events.map((one) => (
+          one.sessions.length > 0 && one.rain === undefined
+            ? { ...one, rain: rainAllowed(entry.championship, entry, one) }
+            : one
+        ));
+        replaceEntry(season, entry, withRain({ ...entry, events }, request.rain));
+
+        return settle();
+      }
+
+      const { event, name } = openEvent(entry, request.round);
+      // The race store keeps an event's weather from its first session on.
+      if (event.sessions.length > 0) throw new AppError('career.event.weatherSet', { round: name });
+
+      replaceEntry(season, entry, {
+        ...entry,
+        events: entry.events.map((one) => (one === event ? withRain(one, request.rain) : one)),
       });
 
       return settle();
@@ -2986,11 +3041,19 @@ export const createCareerStore = async (
       const firstCar = eligibleCarsIn(availability, request.round, classEntry.id)[0];
       const car = launching?.entry.car ?? (firstCar ? { model: firstCar } : null);
 
+      // An invitation's own entry follows the championship, as accepting it would.
+      const wet = rainAllowed(championship, launching?.entry, launching?.event);
+
       let plan: EventPlan | null = null;
       if (car && raceable) {
         try {
           const definition = await lowerEvent(championship, {
-            entry: classEntry.id, round: request.round, car, draw: event.forecast, field: launching?.entry.field,
+            entry: classEntry.id,
+            round: request.round,
+            car,
+            draw: event.forecast,
+            field: launching?.entry.field,
+            rain: wet,
           }, event.raceId, held ? strengthStep(held) : 0);
           plan = planEvent(definition, await content.content());
         } catch (error) {
@@ -3002,7 +3065,7 @@ export const createCareerStore = async (
 
       const format = formatOf(championship, round);
       const climate = climateOf(championship, round);
-      const forecast = event.forecast ? offerForecast(event.forecast, await series.offer()) : null;
+      const forecast = event.forecast ? offerForecast(event.forecast, await series.offer(), wet) : null;
       const playerSeat = held?.entry.playerSeat ?? null;
       const seat = classEntry.seats.find((one) => one.id === playerSeat);
       const allowSameDay = career.settings.allowSameDayEvents;
@@ -3079,6 +3142,12 @@ export const createCareerStore = async (
           team: championship.teams?.find((one) => one.id === seat?.team)?.name ?? null,
         } : null,
         strength: held ? eventStrength(held, !closed && event.status === 'scheduled') : null,
+        rain: {
+          allowed: wet,
+          own: held?.event.rain ?? null,
+          season: rainAllowed(championship, held?.entry),
+          editable: !!held && !closed && event.status === 'scheduled' && event.sessions.length === 0,
+        },
         classes: championship.entries.map((one) => ({
           id: one.id,
           name: one.name,
@@ -3244,6 +3313,7 @@ export const createCareerStore = async (
         car: held.entry.car,
         draw: event.forecast,
         field: held.entry.field,
+        rain: rainAllowed(held.entry.championship, held.entry, held.event),
       }, event.raceId, strengthStep(held));
       const setup = await race.get();
       const carriedOn = slotHolds(setup, event.raceId, event.sessions.length, career.id);

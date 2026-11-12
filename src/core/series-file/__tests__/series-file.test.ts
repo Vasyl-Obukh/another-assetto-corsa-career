@@ -503,6 +503,12 @@ describe('core/series-file', () => {
       expect(fieldsFor(raw({ entries: [{ ...entry, entryFee: 'free' }] }))).toEqual(['entries[0].entryFee']);
     });
 
+    it('reads whether rain is allowed, and rejects anything but true or false', () => {
+      expect(parseSeries(raw({ rain: false }), 'test.json').series?.rain).toBe(false);
+      expect(fieldsFor(raw({ rain: 'no' }))).toEqual(['rain']);
+      expect(fieldsFor(raw({ rain: 0 }))).toEqual(['rain']);
+    });
+
     it('rejects a description that is not a string', () => {
       expect(codesFor(raw({ description: 42 }))).toEqual(['seriesFile.field.invalid']);
     });

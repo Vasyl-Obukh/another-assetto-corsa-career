@@ -10,6 +10,7 @@ import {
   authoredSteps,
   drawDays,
   drawSession,
+  driedSteps,
   offeredSteps,
   seasonalProfile,
   sessionAmbient,
@@ -25,6 +26,7 @@ import type {
   Conditions,
   Content,
   EventFormat,
+  ForecastStep,
   Round,
   RoundDraw,
   RoundForecast,
@@ -35,6 +37,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { namesWeather, resolveConditions } from '../../shared/utils/conditions/index.ts';
 import { weatherOffer } from '../../shared/utils/weather-types/index.ts';
+import { dryOffer } from '../../shared/utils/wet-weather/index.ts';
 import { dayOf } from '../event/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 
@@ -145,39 +148,46 @@ export const drawRound = (
  *
  * Pure and drawless: it may be run again whenever the offer moves without the
  * weather itself changing, which is what lets a forecast issued a week out
- * follow a weather switched off in settings the day before the race.
+ * follow a weather switched off in settings the day before the race. Rain not
+ * allowed is a swap of the same kind, and reaches authored weather too.
  * @param draw The round as its climate drew it
  * @param offer What the install and settings can race in
+ * @param rain Whether the round may race in the wet
  * @returns One forecast per session of the draw, in the same order
  */
-export const offerForecast = (draw: RoundDraw, offer: WeatherOffer): RoundForecast => ({
-  series: draw.series,
-  round: draw.round,
-  climate: draw.climate,
-  sessions: draw.sessions.map((session): SessionForecast => {
-    const steps = session.generated
-      ? offeredSteps(session.steps, offer)
-      : statedSteps(session.steps);
+export const offerForecast = (draw: RoundDraw, offer: WeatherOffer, rain = true): RoundForecast => {
+  const offered = rain ? offer : dryOffer(offer);
 
-    return {
-      index: session.index,
-      day: session.day,
-      type: session.type,
-      ...(session.name === undefined ? {} : { name: session.name }),
-      generated: session.generated,
-      steps,
-      ambient: session.ambient,
-      windMin: session.windMin,
-      windMax: session.windMax,
-      conditions: {
-        ...(session.generated
-          ? weatherFields(steps, session.ambient, session.wind, session.windDirection)
-          : {}),
-        ...session.conditions,
-      },
-    };
-  }),
-});
+  return {
+    series: draw.series,
+    round: draw.round,
+    climate: draw.climate,
+    sessions: draw.sessions.map((session): SessionForecast => {
+      let steps: ForecastStep[];
+      if (session.generated) steps = offeredSteps(session.steps, offered);
+      else if (rain) steps = statedSteps(session.steps);
+      else steps = driedSteps(session.steps, offered.types);
+
+      return {
+        index: session.index,
+        day: session.day,
+        type: session.type,
+        ...(session.name === undefined ? {} : { name: session.name }),
+        generated: session.generated,
+        steps,
+        ambient: session.ambient,
+        windMin: session.windMin,
+        windMax: session.windMax,
+        conditions: {
+          ...(session.generated
+            ? weatherFields(steps, session.ambient, session.wind, session.windDirection)
+            : {}),
+          ...session.conditions,
+        },
+      };
+    }),
+  };
+};
 
 /**
  * Forecasts one round's event.
@@ -191,6 +201,7 @@ export const offerForecast = (draw: RoundDraw, offer: WeatherOffer): RoundForeca
  * @param climate The climate its weather is drawn from
  * @param offer What the install and settings can race in
  * @param options The season's salt, the date it races on and its hemisphere
+ * @param rain Whether the round may race in the wet
  * @returns One forecast per session of the format, in format order
  */
 export const forecastRound = (
@@ -200,7 +211,8 @@ export const forecastRound = (
   climate: Climate,
   offer: WeatherOffer,
   options: DrawOptions = {},
-): RoundForecast => offerForecast(drawRound(seriesId, round, format, climate, options), offer);
+  rain = true,
+): RoundForecast => offerForecast(drawRound(seriesId, round, format, climate, options), offer, rain);
 
 /**
  * Writes a forecast onto the sessions it was made for.

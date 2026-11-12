@@ -57,6 +57,7 @@ export {
 } from './paddock-news/index.ts';
 export { PATH_KINDS, PathList, PathsCard } from './paths-card/index.ts';
 export { ProblemList } from './ProblemList.tsx';
+export { RainChip } from './RainChip.tsx';
 export { RatingBadge, RatingChange, RatingLink } from './rating/index.ts';
 export type { PathKind } from './paths-card/index.ts';
 export {
@@ -91,6 +92,8 @@ export {
   WeatherStepIcons,
   WeatherStepsLabel,
   EventForecast,
+  driedAny,
+  weatherWords,
 } from './weather-forecast/index.ts';
 export { WEATHER_KINDS, WeatherPicker, weatherKindOf } from './weather-picker/index.ts';
 export type { WeatherKind } from './weather-picker/index.ts';

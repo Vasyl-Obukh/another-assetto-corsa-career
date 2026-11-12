@@ -816,6 +816,15 @@ export interface Championship {
    */
   generatedWeather?: GeneratedWeather;
   /**
+   * Whether its rounds may race in the wet - false for none, absent for any.
+   *
+   * For a car or a track that cannot be driven on a wet road. Weather is still
+   * drawn as ever; what is wet races as the nearest dry weather instead, so
+   * allowing rain again gives back the forecast drawn. A career's edition and
+   * round may each say otherwise.
+   */
+  rain?: boolean;
+  /**
    * What entering a round costs, which a round may override.
    */
   entryFee?: number;

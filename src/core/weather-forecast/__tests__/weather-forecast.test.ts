@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { DEFAULT_ALLOWED_WEATHER, WeatherType } from '../../../shared/constants/index.ts';
+import { DEFAULT_ALLOWED_WEATHER, WeatherType, WET_WEATHER_TYPES } from '../../../shared/constants/index.ts';
 import { Climate, Hemisphere } from '../../../shared/types/index.ts';
 import type {
   Conditions, Content, EventFormat, Round, RoundForecast, Weather, WeatherOffer,
@@ -205,9 +205,51 @@ describe('core/weather-forecast/weather-forecast', () => {
         WEATHER_KEYS.forEach((key) => expect(session.conditions).not.toHaveProperty(key));
       });
     });
+
+    it('races wet weather as the nearest dry one when rain is not allowed', () => {
+      const draws = ROUND_IDS.map((id) => drawRound('test-cup', makeRound(id), FORMAT, Climate.OCEANIC));
+      const wet = draws.find((draw) => draw.sessions.some((session) => session.steps.some(
+        (step) => WET_WEATHER_TYPES.has(step.weather),
+      )));
+      if (!wet) throw new Error('an oceanic season should rain somewhere');
+
+      const dried = offerForecast(wet, OFFER, false);
+      const steps = dried.sessions.flatMap((session) => session.steps);
+
+      expect(steps.some((step) => WET_WEATHER_TYPES.has(step.intended))).toBe(true);
+      steps.forEach((step) => expect(WET_WEATHER_TYPES.has(step.weather)).toBe(false));
+      dried.sessions.forEach((session) => {
+        expect(WET_WEATHER_TYPES.has(session.conditions.weatherType ?? WeatherType.CLEAR)).toBe(false);
+      });
+    });
+
+    it('leaves the draw untouched, so allowing rain again gives back the forecast drawn', () => {
+      const draw = drawRound('test-cup', makeRound('monza'), FORMAT, Climate.OCEANIC);
+      offerForecast(draw, OFFER, false);
+
+      expect(offerForecast(draw, OFFER, true)).toEqual(offerForecast(draw, OFFER));
+    });
+
+    it('dries authored weather too when rain is not allowed, writing no weather of its own', () => {
+      const round = makeRound('monza', { weatherType: WeatherType.HEAVY_RAIN });
+      const draw = drawRound('test-cup', round, FORMAT, Climate.OCEANIC);
+
+      offerForecast(draw, OFFER, false).sessions.forEach((session) => {
+        expect(session.generated).toBe(false);
+        expect(session.steps).toEqual([{ weather: WeatherType.OVERCAST_CLOUDS, intended: WeatherType.HEAVY_RAIN }]);
+        WEATHER_KEYS.forEach((key) => expect(session.conditions).not.toHaveProperty(key));
+      });
+    });
   });
 
   describe('forecastRound', () => {
+    it('passes whether rain is allowed on to the forecast', () => {
+      const round = makeRound('monza', { weatherType: WeatherType.RAIN });
+
+      expect(forecastRound('test-cup', round, FORMAT, Climate.OCEANIC, OFFER, {}, false))
+        .toEqual(offerForecast(drawRound('test-cup', round, FORMAT, Climate.OCEANIC), OFFER, false));
+    });
+
     it('forecasts the same event every time it is asked', () => {
       expect(forecast(makeRound('monza'))).toEqual(forecast(makeRound('monza')));
     });

@@ -67,6 +67,15 @@ export interface CareerState {
    */
   setStrength: (series: string, edition: number, strength: number) => Promise<void>;
   /**
+   * Says whether every round of an edition the career is in may race in the
+   * wet.
+   * @param series Which championship
+   * @param edition Which of the season's editions of it
+   * @param rain Whether rain is allowed, or null to follow the championship
+   * @returns Resolves once it has been kept
+   */
+  setRain: (series: string, edition: number, rain: boolean | null) => Promise<void>;
+  /**
    * Moves the clock forward.
    * @param date The ISO date to advance towards
    * @param skip Whether to go all the way, past rounds of the career's the

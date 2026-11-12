@@ -58,4 +58,9 @@ export interface RoundRaceRequest {
    * stable across a championship's rounds.
    */
   field?: readonly FieldSeat[];
+  /**
+   * Whether the round may race in the wet, as the career's edition and round
+   * resolve it. Absent outside a career, where the championship's own says.
+   */
+  rain?: boolean;
 }

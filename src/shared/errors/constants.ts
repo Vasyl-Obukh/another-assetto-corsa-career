@@ -134,6 +134,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'career.event.notFound': 'Round {{round}} is not on the calendar of {{series}}',
   'career.event.notEntered': 'Enter {{series}} before racing its rounds',
   'career.event.closed': '{{round}} is over: it has been raced or its event has passed',
+  'career.event.weatherSet': '{{round}} has begun, so its weather is already set',
   'career.event.earlierPending': 'Race {{event}} first: it comes earlier in your season and has not been raced',
   'career.event.otherInProgress': '{{event}} is part-way through. Finish its event before starting another',
   'career.event.sameDay': '{{event}} is on the same day, and only one of the two can be raced',

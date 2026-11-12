@@ -634,3 +634,15 @@ export const SPONSOR_END_ACCENT = {
  * from what can be used.
  */
 export const USED_ACCENT = INVITATION_ACCENT.declined;
+
+/**
+ * Whether a round may race in the wet, in the weather picker's own wet and dry
+ * colours, so the chip and the weather it allows wear one colour.
+ *
+ * Read by the championship page's and the round page's Wet weather cards and
+ * by the rules sheet.
+ */
+export const RAIN_ACCENT = {
+  allowed: 'border-transparent bg-weather-wet text-weather-wet-foreground',
+  notAllowed: 'border-transparent bg-weather-dry text-weather-dry-foreground',
+} as const;
