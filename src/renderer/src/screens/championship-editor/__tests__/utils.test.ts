@@ -15,6 +15,7 @@ import {
   changedTabs,
   coeffOf,
   daysOf,
+  diagramField,
   emptyHistoric,
   emptySeries,
   freeId,
@@ -765,6 +766,35 @@ describe('renderer/screens/championship-editor/utils', () => {
 
     it('never offers a session itself', () => {
       expect(sessionSources([{ type: 'qualify' }], 0, 'race')).toEqual([]);
+    });
+  });
+
+  describe('diagramField', () => {
+    it('draws three cars of each class, placed as the whole field qualified', () => {
+      const field = diagramField(3);
+
+      expect(field).toHaveLength(9);
+      expect(field.map((car) => car.place)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
+
+    it('lets a class\'s quickest beat the slowest of the class ahead', () => {
+      const field = diagramField(2);
+
+      expect(field.map((car) => [car.slot, car.classPlace])).toEqual([
+        [0, 1], [0, 2], [1, 1], [0, 3], [1, 2], [1, 3],
+      ]);
+    });
+
+    it('leaves the second class\'s last car without a time, behind everyone', () => {
+      const field = diagramField(3);
+
+      expect(field.filter((car) => !car.timed)).toEqual([{
+        slot: 1, classPlace: 3, place: 9, timed: false,
+      }]);
+    });
+
+    it('leaves a field of one class\'s last car without a time', () => {
+      expect(diagramField(1).map((car) => car.timed)).toEqual([true, true, false]);
     });
   });
 

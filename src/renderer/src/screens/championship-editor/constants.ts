@@ -11,7 +11,9 @@ import { MAX_EVENT_DAYS } from '../../../../shared/constants';
 import {
   Climate, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../../../shared/types';
-import type { Championship, Conditions } from '../../../../shared/types';
+import type {
+  Championship, ClassGrid, Conditions, QualifyingClasses,
+} from '../../../../shared/types';
 
 /**
  * The value a select carries when the answer is the championship's default.
@@ -501,6 +503,44 @@ export const ROUND_TABS: readonly RoundTab[] = ['basics', 'conditions', 'cars'];
  * they are offered.
  */
 export const START_KINDS: readonly StartKind[] = ['last', 'pole', 'position', 'random'];
+
+/**
+ * How a qualifying may run a field's classes, in the order they are offered.
+ */
+export const QUALIFYING_CHOICES: readonly QualifyingClasses[] = ['together', 'apart'];
+
+/**
+ * The label of each way a qualifying runs a field's classes.
+ */
+export const QUALIFYING_LABEL = {
+  together: 'editor.sessions.qualifying.together',
+  apart: 'editor.sessions.qualifying.apart',
+} as const satisfies Record<QualifyingClasses, ParseKeys>;
+
+/**
+ * How a race may line a field's classes up, in the order they are offered.
+ */
+export const CLASS_GRID_CHOICES: readonly ClassGrid[] = ['byClass', 'mixed'];
+
+/**
+ * The label of each way a race lines a field's classes up.
+ */
+export const CLASS_GRID_LABEL = {
+  byClass: 'editor.sessions.classGrid.byClass',
+  mixed: 'editor.sessions.classGrid.mixed',
+} as const satisfies Record<ClassGrid, ParseKeys>;
+
+/**
+ * How many cars of each class the grid diagram draws.
+ */
+export const DIAGRAM_CARS = 3;
+
+/**
+ * How far behind the class before it each class of the grid diagram sets its
+ * times, in steps of one car: under the cars a class holds, so its quickest
+ * beat the class ahead's slowest.
+ */
+export const DIAGRAM_CLASS_GAP = 1.6;
 
 /**
  * What each start is called.

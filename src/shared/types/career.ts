@@ -17,7 +17,7 @@ import type { LaunchRecord } from './event.ts';
 import type { RoundDraw, SessionForecast } from './forecast.ts';
 import type { Mail } from './inbox.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
-import type { GridEntry, SessionType } from './race.ts';
+import type { ClassGrid, GridEntry, SessionType } from './race.ts';
 import type {
   AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability, TeamBudget,
 } from './series.ts';
@@ -1623,6 +1623,17 @@ export interface EventSession {
      */
     reverse?: number;
   } | null;
+  /**
+   * How a race of several classes lines them up - by class, or mixed on the
+   * order it follows, whether or not anything before it sets its grid. Absent
+   * for one class, and for anything but a race.
+   */
+  classGrid?: ClassGrid;
+  /**
+   * Whether it is a qualifying whose classes each ran on their own, the
+   * player's driven and the rest simulated. Only ever true with several classes.
+   */
+  apart: boolean;
   /**
    * Whether it has run, runs next, or waits on the ones before it.
    */

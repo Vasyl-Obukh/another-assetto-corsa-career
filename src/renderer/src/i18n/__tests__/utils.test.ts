@@ -99,6 +99,15 @@ describe('renderer/i18n/utils', () => {
       expect(formattersFor('en').formatYear(987)).toBe('987');
     });
 
+    it('joins names as the language joins them', () => {
+      expect(formattersFor('en').formatList(['GT3', 'GT4', 'LMP2'])).toBe('GT3, GT4 and LMP2');
+      expect(formattersFor('uk').formatList(['GT3', 'GT4'])).toBe('GT3 і GT4');
+    });
+
+    it('leaves a single name as it is', () => {
+      expect(formattersFor('en').formatList(['GT3'])).toBe('GT3');
+    });
+
     it('formats money without a fractional part', () => {
       const money = formattersFor('en').formatMoney(1500);
 

@@ -1,5 +1,6 @@
 import { CheckIcon, InfoIcon } from 'lucide-react';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ALL_CLASSES, RESULT_SKELETON } from './constants.ts';
@@ -53,7 +54,7 @@ export const SessionResult = ({
   view, session, record, series = null,
 }: SessionResultProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const { formatList, formatNumber } = useFormat();
   const speed = prizeSpeed(useSlot().career);
   const simulated = record.skipped === true;
   // A simulated session archived nothing, so there is no file to ask for.
@@ -170,21 +171,36 @@ export const SessionResult = ({
     }] : []),
   ] : [];
 
+  // A qualifying run apart drove the player's class alone, so the classes
+  // around it were simulated.
+  const apartNames = (record.simulatedClasses ?? [])
+    .map((id) => series?.entries.find((one) => one.id === id)?.name ?? id);
+
   // A knockout segment the player was out of has nothing archived: it could
   // not be launched at all, so its order was simulated from the one before.
-  const footnote = simulated
-    ? (
+  let footnote: ReactNode;
+  if (simulated) {
+    footnote = (
       <>
         <InfoIcon className="size-3.5" />
         {view.status === 'missed' ? t('event.result.simulatedRound') : t('event.result.simulated')}
       </>
-    )
-    : (
+    );
+  } else if (apartNames.length > 0) {
+    footnote = (
+      <>
+        <InfoIcon className="size-3.5" />
+        {t('event.result.apartSimulated', { classes: formatList(apartNames), count: apartNames.length })}
+      </>
+    );
+  } else {
+    footnote = (
       <>
         <CheckIcon className="size-3.5 text-success" />
         {summary?.order === 'raceResult' ? t('results.order.raceResultHint') : t('results.order.inferredHint')}
       </>
     );
+  }
 
   return (
     <div className="flex flex-col gap-4">

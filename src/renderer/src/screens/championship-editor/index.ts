@@ -10,6 +10,7 @@ export { AiResultSkeleton } from './AiResultSkeleton.tsx';
 export { ChoiceChips } from './ChoiceChips.tsx';
 export { ConditionsEditor } from './ConditionsEditor.tsx';
 export { EligibilityField } from './EligibilityField.tsx';
+export { FastestFirst } from './FastestFirst.tsx';
 export { GridFields } from './GridFields.tsx';
 // A nation picked from the flags Assetto Corsa ships, which New career and a
 // career's own settings ask for the driver's.

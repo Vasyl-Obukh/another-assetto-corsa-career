@@ -4,7 +4,9 @@ import type { DragEvent } from 'react';
 
 import { groupsSet } from './utils.ts';
 import type { SeriesSession } from '../../../../shared/types';
-import { WEATHER_ICON, WEATHER_TYPE_LABEL, weatherKindOf } from '@/components';
+import {
+  ApartMark, WEATHER_ICON, WEATHER_TYPE_LABEL, weatherKindOf,
+} from '@/components';
 import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
@@ -26,6 +28,10 @@ interface SessionBlockProps {
    * What sets its grid, already translated, or null for nothing.
    */
   from: string | null;
+  /**
+   * Whether it is a qualifying whose classes each run on their own.
+   */
+  apart: boolean;
   /**
    * Whether it is the session open beside the list.
    */
@@ -68,7 +74,7 @@ interface SessionBlockProps {
  * called, how long it runs, what sets its grid, and any conditions of its own.
  */
 export const SessionBlock = ({
-  session, name, length, from, selected, dragging, draggable, onSelect,
+  session, name, length, from, apart, selected, dragging, draggable, onSelect,
   onDragStart, onDragEnd, onDragOver, onDrop,
 }: SessionBlockProps) => {
   const { t } = useKindTranslation();
@@ -136,7 +142,10 @@ export const SessionBlock = ({
           </span>
         )}
       </span>
-      <span className="text-xs whitespace-nowrap tabular-nums">{length}</span>
+      <span className="flex items-center gap-1.5 text-xs whitespace-nowrap tabular-nums">
+        {apart ? <ApartMark className="opacity-85" /> : null}
+        {length}
+      </span>
     </button>
   );
 };

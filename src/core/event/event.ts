@@ -7,18 +7,23 @@
 // have run needs tracking.
 
 import {
+  apartClassification,
   bestLapOrder,
+  byClass,
   chainOf,
+  classRanks,
   composeOrder,
   dayOf,
   defaultOrder,
   fieldFor,
   gripAfter,
   lastSessionOf,
+  launchField,
+  linedUp,
   materialiseRace,
   placePlayer,
   playerFirst,
-  reverseFront,
+  runsApart,
   sessionRain,
   simulateSegment,
 } from './utils.ts';
@@ -43,7 +48,8 @@ import { buildGrid, DEFAULT_RACE_LAPS, SESSION_TYPE } from '../race-ini/index.ts
 import { finishingOrder } from '../results/index.ts';
 
 export {
-  bestLapTimes, chainOf, composeOrder, dayOf, fieldFor, lastSessionOf, reverseFront, runsToClock,
+  bestLapTimes, byClass, chainOf, classRanks, composeOrder, dayOf, fieldFor, lastSessionOf, linedUp,
+  mixesClasses, reverseFront, runsApart, runsToClock,
 } from './utils.ts';
 
 /**
@@ -85,6 +91,7 @@ export const planEvent = (race: RaceDefinition, content: Content): EventPlan => 
     grid,
     launches,
     ...(race.classStrength ? { classStrength: race.classStrength } : {}),
+    ...(race.classOrder ? { classOrder: race.classOrder } : {}),
     ...(race.aiBase === undefined ? {} : { aiBase: race.aiBase }),
   };
 };
@@ -152,13 +159,13 @@ export const startingGrid = (
   // event authored before links existed gets.
   const inherited = composeOrder(chainOf(plan, index), state.completed, plan.grid.length);
   // With no qualifying anywhere behind it, the field lines up on skill and the
-  // session says where in their class the player starts.
+  // session says where in their class the player starts. Only an inherited
+  // order is reversed: a grid lined up on skill has no result behind it to
+  // turn round.
   const seed = `${plan.raceId}:${index}`;
-  const lined = inherited ?? placePlayer(defaultOrder(plan.grid, seed), plan.grid, launch.session.start, seed);
-  // Only an inherited order is reversed: a grid lined up on skill has no
-  // result behind it to turn round.
-  const reverse = launch.session.inherit?.reverse;
-  const order = inherited && reverse !== undefined ? reverseFront(lined, reverse) : lined;
+  const order = inherited
+    ? linedUp(plan, index, inherited)
+    : placePlayer(defaultOrder(plan.grid, seed, plan.classOrder), plan.grid, launch.session.start, seed);
 
   return { order, playerSlot: order.indexOf(0) + 1 };
 };
@@ -181,8 +188,9 @@ export const appliedOrder = (
 ): number[] => {
   const grid = startingGrid(plan, state, index);
   // A qualifying segment behind an elimination runs only who is left, in the
-  // order the segment before classified them. Everything else runs the lot.
-  const field = grid?.order ?? fieldFor(plan, state, index);
+  // order the segment before classified them, and one run apart only the
+  // player's class. Everything else runs the lot.
+  const field = grid?.order ?? launchField(plan, state, index);
 
   return field ? playerFirst(field) : plan.grid.map((unused, car) => car);
 };
@@ -191,7 +199,8 @@ export const appliedOrder = (
  * Whether a launch is one the player is in.
  *
  * A knockout eliminates them like anyone else, and Assetto Corsa has no session
- * without them - so a segment they are out of is not a launch that can be run.
+ * without them - so a segment they are out of is not a launch that can be run,
+ * whether it runs the whole field or their class alone.
  * @param plan The event plan
  * @param state How far through it we are
  * @param index Which launch
@@ -203,7 +212,7 @@ export const launchRunnable = (
   state: EventState,
   index: number,
 ): boolean => {
-  const field = fieldFor(plan, state, index);
+  const field = launchField(plan, state, index);
 
   return field === null || field.includes(0);
 };
@@ -264,8 +273,13 @@ export const skipLaunch = (
     throw new AppError('event.launch.runnable', { index, race: plan.raceId });
   }
 
-  // Never null in practice: launchRunnable above answers true when it is.
+  // Never null in practice: a field nothing narrows always holds the player.
   const field = fieldFor(plan, state, index) ?? [];
+  // Faster classes first, as every simulated qualifying stands.
+  const classification = byClass(
+    simulateSegment(field, `${plan.raceId}:simulate:${index}`),
+    classRanks(plan.grid, plan.classOrder),
+  );
 
   return {
     ...state,
@@ -274,7 +288,7 @@ export const skipLaunch = (
       completedAt,
       archive: '',
       gridOrder: field,
-      classification: simulateSegment(field, `${plan.raceId}:simulate:${index}`),
+      classification,
       ...carClassesOf(plan),
       skipped: true,
     }],
@@ -328,7 +342,7 @@ export const prepareLaunch = (
   }
 
   const grid = startingGrid(plan, state, index);
-  const field = grid?.order ?? fieldFor(plan, state, index);
+  const field = grid?.order ?? launchField(plan, state, index);
   // Nothing orders this launch and nothing narrows it, so it runs the entry
   // list exactly as materialiseRace froze it.
   if (!field) return launch.race;
@@ -427,9 +441,15 @@ export const advanceEvent = (
   // we launched cannot be mapped at all.
   const translatable = classified != null && (raceOut.players ?? []).length === size;
   const order = translatable && isRace ? finishingOrder(classified, size) : null;
-  const classification = translatable
+  const driven = translatable
     ? (order ?? bestLapOrder(classified, size)).map((car) => gridOrder[car])
     : null;
+  // Run apart, the player's class was all that was on track, so the rest of
+  // the field is simulated around it.
+  const apart = driven !== null && runsApart(plan.launches[index]?.session)
+    ? apartClassification(plan, state, index, driven)
+    : null;
+  const classification = apart?.classification ?? driven;
 
   return {
     ...state,
@@ -444,6 +464,7 @@ export const advanceEvent = (
       ...(plan.classStrength ? { classStrength: plan.classStrength } : {}),
       ...strengthOverOf(plan),
       ...carClassesOf(plan),
+      ...(apart && apart.simulated.length > 0 ? { simulatedClasses: apart.simulated } : {}),
       // Kept only for a race that ran short, so a full one reads as it always has.
       ...(record.scale !== undefined && record.scale > 1 ? { scale: record.scale } : {}),
     }],

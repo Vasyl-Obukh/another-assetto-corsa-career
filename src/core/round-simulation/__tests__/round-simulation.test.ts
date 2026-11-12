@@ -163,6 +163,52 @@ describe('core/round-simulation', () => {
       expect(seat[1].substitute).toBeUndefined();
     });
 
+    // A fixed bug: grids stand by class now, so the back of the whole grid put a
+    // driver of the faster class behind every car of the slower one.
+    it('starts a stand-in in the faster class from the back of that class', () => {
+      const { plan, sessions } = simulateRound(request({
+        player: { entry: 'gt3' }, completed: [DRIVEN_QUALIFYING],
+      }));
+      const order = sessions[1].gridOrder;
+
+      expect(order.indexOf(0)).toBe(3);
+      expect(order.slice(4).map((car) => plan.grid[car]?.entry)).toEqual(['gt4', 'gt4', 'gt4', 'gt4']);
+    });
+
+    it('starts a stand-in from the back of the whole grid in a race that mixes its classes', () => {
+      const { sessions } = simulateRound({
+        ...racing([
+          { id: 'q', type: 'qualify', minutes: 10 },
+          {
+            type: 'race', laps: 10, inherit: { from: 'q' }, classGrid: 'mixed',
+          },
+        ]),
+        player: { entry: 'gt3' },
+        completed: [DRIVEN_QUALIFYING],
+      });
+
+      expect(sessions[1].gridOrder.at(-1)).toBe(0);
+    });
+
+    it('stands a simulated qualifying faster classes first', () => {
+      const { plan, sessions } = simulateRound(request());
+      const classes = (sessions[0].classification ?? []).map((car) => plan.grid[car]?.entry);
+
+      expect(classes).toEqual(['gt3', 'gt3', 'gt3', 'gt3', 'gt4', 'gt4', 'gt4', 'gt4']);
+    });
+
+    it('keeps the count a knockout run apart carries over of each class', () => {
+      const { plan, sessions } = simulateRound(racing([
+        { id: 'q1', type: 'qualify', minutes: 10, classes: 'apart' },
+        {
+          id: 'q2', type: 'qualify', minutes: 10, classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+        { type: 'race', laps: 10 },
+      ]));
+
+      expect(sessions[1].gridOrder.map((car) => plan.grid[car]?.entry)).toEqual(['gt3', 'gt3', 'gt4', 'gt4']);
+    });
+
     it('gives the stand-in its own qualifying when the player drove none of the event', () => {
       const { places } = simulateRound(request({ player: { entry: 'gt4' } })).score.races[0];
       const seat = places.filter((place) => place.seat === 'gt4-4');
@@ -188,7 +234,7 @@ describe('core/round-simulation', () => {
       const { sessions } = simulateRound(racing([
         { id: 'feature', type: 'race', laps: 10 },
         {
-          id: 'sprint', type: 'race', laps: 5, inherit: { from: 'feature', reverse: 4 },
+          id: 'sprint', type: 'race', laps: 5, inherit: { from: 'feature', reverse: 4 }, classGrid: 'mixed',
         },
       ]));
       const feature = sessions[0].classification ?? [];

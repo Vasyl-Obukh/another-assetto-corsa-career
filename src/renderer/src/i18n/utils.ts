@@ -7,7 +7,7 @@ import type { TFunction } from 'i18next';
 import {
   DAYS_PER_MONTH, DAYS_PER_YEAR, DEFAULT_CURRENCY, FALLBACK_LANGUAGE, HOME_NATION_NAMES, LOCALES,
 } from './constants.ts';
-import type { Formatters } from './types.ts';
+import type { CachedFormat, Formatters } from './types.ts';
 import {
   CONTENT_ISSUE_REASONS, DAYS_PER_WEEK, HOURS_PER_DAY, M_PER_KM, MINUTES_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND,
 } from '../../../shared/constants';
@@ -71,7 +71,7 @@ export const formatDayRange = (
 /**
  * Intl formatters are expensive to build and are reused constantly.
  */
-const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator | Intl.RelativeTimeFormat>();
+const cache = new Map<string, CachedFormat>();
 
 /**
  * Reads a formatter from the cache, building it on first use.
@@ -79,7 +79,7 @@ const cache = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat | Intl.Col
  * @param build Builds the formatter when it is not already cached
  * @returns The cached formatter
  */
-const cached = <T extends Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator | Intl.RelativeTimeFormat>(
+const cached = <T extends CachedFormat>(
   key: string,
   build: () => T,
 ): T => {
@@ -154,6 +154,11 @@ export const formattersFor = (language: Language): Formatters => {
       `y:${locale}`,
       () => new Intl.NumberFormat(locale, { useGrouping: false }),
     ).format(value),
+
+    formatList: (items) => cached(
+      `l:${locale}`,
+      () => new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }),
+    ).format(items),
 
     formatMoney: (value, currency = DEFAULT_CURRENCY) => cached(
       `m:${locale}:${currency}`,

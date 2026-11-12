@@ -4,7 +4,9 @@ import { WeatherType } from '../../shared/constants/index.ts';
 import {
   Climate, Hemisphere, SeasonLength, TeamBudget, Weekday,
 } from '../../shared/types/index.ts';
-import type { GridStart, SessionType, TrackStateName } from '../../shared/types/index.ts';
+import type {
+  ClassGrid, GridStart, QualifyingClasses, SessionType, TrackStateName,
+} from '../../shared/types/index.ts';
 import { numericEnumValues, stringEnumValues } from '../../shared/utils/coerce/index.ts';
 
 /**
@@ -53,6 +55,16 @@ export const SESSION_TYPES: readonly SessionType[] = [
  * Every place a race may start the player at by name, beside a slot number.
  */
 export const GRID_START_PLACES: readonly GridStart[] = ['last', 'pole', 'random'];
+
+/**
+ * Every way a qualifying may run a field's classes.
+ */
+export const QUALIFYING_CLASSES: readonly QualifyingClasses[] = ['together', 'apart'];
+
+/**
+ * Every way a race may line a field's classes up.
+ */
+export const CLASS_GRIDS: readonly ClassGrid[] = ['byClass', 'mixed'];
 
 /**
  * Every track state, for the same reason.

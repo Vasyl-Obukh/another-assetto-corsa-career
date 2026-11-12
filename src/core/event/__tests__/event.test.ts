@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  makeContent, makeEvent, makeKnockout, makeQualifying, makeRaceOut, makeSession,
+  CLASS_ORDER, makeClassPlan, makeContent, makeEvent, makeKnockout, makeQualifying, makeRaceOut, makeSession,
 } from './fixtures.ts';
 import type {
-  EventPlan, EventState, RaceDefinition, RaceOutSession,
+  EventPlan, EventState, LaunchRecord, RaceDefinition, RaceOutSession,
 } from '../../../shared/types/index.ts';
 import {
   advanceEvent,
@@ -58,6 +58,36 @@ const complete = (
   makeRaceOut(sessions),
   { archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z' },
 );
+
+/**
+ * Progress through the three-class plan, its opening launch classified.
+ * @param classification The order the opening launch classified the field in
+ * @returns The state
+ */
+const classesQualified = (classification: number[]): EventState => {
+  const opening: LaunchRecord = {
+    index: 0,
+    completedAt: '2026-01-01T00:00:00.000Z',
+    archive: 'archive.json',
+    gridOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    classification,
+  };
+
+  return { raceId: 'test-classes', launchCount: 2, completed: [opening] };
+};
+
+/**
+ * Whether an order of the three-class plan holds each class in one unbroken
+ * run, the faster first.
+ * @param eventPlan The plan
+ * @param order Car indices
+ * @returns True when the classes stand one behind another
+ */
+const standsByClass = (eventPlan: EventPlan, order: readonly number[]): boolean => {
+  const ranks = order.map((car) => CLASS_ORDER.indexOf(eventPlan.grid[car]?.entry ?? ''));
+
+  return ranks.every((rank, at) => at === 0 || rank >= ranks[at - 1]);
+};
 
 /**
  * Runs the fixture's practice and then its qualifying, which is what leaves a
@@ -130,6 +160,14 @@ const makeRace = (order: number[]): RaceOutSession => ({
 
 describe('core/event', () => {
   describe('planEvent', () => {
+    it('carries the order the event lists its classes in', () => {
+      expect(plan({ ...makeEvent(), classOrder: ['proto', 'gt3'] }).classOrder).toEqual(['proto', 'gt3']);
+    });
+
+    it('carries no class order for an event that lists none', () => {
+      expect(plan()).not.toHaveProperty('classOrder');
+    });
+
     it('runs every session as a launch of its own', () => {
       expect(plan().launches.map((launch) => (launch.race.sessions ?? []).map((s) => s.name)))
         .toEqual([['Practice'], ['Qualifying'], ['Sprint'], ['Feature']]);
@@ -317,6 +355,34 @@ describe('core/event', () => {
   });
 
   describe('startingGrid', () => {
+    // A GT3 (4) out-qualified the slowest prototype (3), and the last GT3 (6)
+    // set no time, so it qualified behind both GT4s.
+    const onTimes = [1, 2, 4, 3, 0, 5, 7, 8, 6];
+
+    it('lines a field of classes up faster classes first, whatever their times', () => {
+      const eventPlan = makeClassPlan([{ id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q' } }]);
+
+      expect(startingGrid(eventPlan, classesQualified(onTimes), 1)).toEqual({
+        order: [1, 2, 3, 4, 0, 5, 6, 7, 8], playerSlot: 5,
+      });
+    });
+
+    it('lines a race that mixes its classes up on the times as they stand', () => {
+      const eventPlan = makeClassPlan([
+        { id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' },
+      ]);
+
+      expect(startingGrid(eventPlan, classesQualified(onTimes), 1)?.order).toEqual(onTimes);
+    });
+
+    it('lines a grid nothing sets up in the event\'s class order, the player at the back of theirs', () => {
+      const eventPlan = makeClassPlan([{ type: 'race' }]);
+      const order = startingGrid(eventPlan, initEventState(eventPlan), 0)?.order ?? [];
+
+      expect(standsByClass(eventPlan, order)).toBe(true);
+      expect(order.indexOf(0)).toBe(6);
+    });
+
     it('is ours to write for a race, since qualifying can no longer own it', () => {
       // The case this replaces: a launch holding qualifying and a race had its
       // grid built by AC, and STARTING_POSITION was silently disregarded. That
@@ -399,6 +465,12 @@ describe('core/event', () => {
   });
 
   describe('appliedOrder', () => {
+    it('runs a qualifying apart with the player\'s class alone', () => {
+      const eventPlan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+
+      expect(appliedOrder(eventPlan, initEventState(eventPlan), 0)).toEqual([0, 4, 5, 6]);
+    });
+
     it('leaves the entry list alone for a session with no grid', () => {
       const eventPlan = plan();
       expect(appliedOrder(eventPlan, initEventState(eventPlan), 1))
@@ -416,6 +488,14 @@ describe('core/event', () => {
   });
 
   describe('prepareLaunch', () => {
+    it('writes a qualifying apart as a field of the player\'s class alone', () => {
+      const eventPlan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+      const race = prepareLaunch(eventPlan, initEventState(eventPlan), 0);
+
+      expect(race.grid?.size).toBe(4);
+      expect(race.grid?.opponents?.map((one) => one.driver)).toEqual(['AI 4', 'AI 5', 'AI 6']);
+    });
+
     it('hands back a session that lines nobody up untouched', () => {
       const eventPlan = plan();
       const state = initEventState(eventPlan);
@@ -458,6 +538,23 @@ describe('core/event', () => {
   });
 
   describe('launchRunnable', () => {
+    it('runs a qualifying apart, whose field is the player\'s own class', () => {
+      const eventPlan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+
+      expect(launchRunnable(eventPlan, initEventState(eventPlan), 0)).toBe(true);
+    });
+
+    it('cannot run a segment apart the player was knocked out of in their class', () => {
+      const eventPlan = makeClassPlan([
+        { id: 'q1', type: 'qualify', classes: 'apart' },
+        {
+          type: 'qualify', classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+      ]);
+
+      expect(launchRunnable(eventPlan, classesQualified([1, 2, 3, 4, 5, 0, 6, 7, 8]), 1)).toBe(false);
+    });
+
     it('says yes to every launch of an event that eliminates nobody', () => {
       const eventPlan = plan();
       const state = initEventState(eventPlan);
@@ -484,6 +581,30 @@ describe('core/event', () => {
   });
 
   describe('skipLaunch', () => {
+    it('simulates a segment apart for every class it kept, faster classes first', () => {
+      const eventPlan = makeClassPlan([
+        { id: 'q1', type: 'qualify', classes: 'apart' },
+        {
+          type: 'qualify', classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+      ]);
+      const after = skipLaunch(eventPlan, classesQualified([1, 2, 3, 4, 5, 0, 6, 7, 8]), '2026-01-02T00:00:00.000Z');
+      const classification = after.completed[1].classification ?? [];
+
+      expect([...classification].sort((left, right) => left - right)).toEqual([1, 2, 4, 5, 7, 8]);
+      expect(standsByClass(eventPlan, classification)).toBe(true);
+    });
+
+    it('stands a simulated segment run together by class too', () => {
+      const eventPlan = makeClassPlan([
+        { id: 'q1', type: 'qualify' },
+        { type: 'qualify', inherit: { from: 'q1', top: 5 } },
+      ]);
+      const after = skipLaunch(eventPlan, classesQualified([4, 1, 7, 2, 3, 0, 5, 6, 8]), '2026-01-02T00:00:00.000Z');
+
+      expect(standsByClass(eventPlan, after.completed[1].classification ?? [])).toBe(true);
+    });
+
     it('records the segment as simulated, with nothing archived', () => {
       const knockout = plan(makeKnockout());
       const state = throughFirstSegment(knockout, [3, 1, 5, 2, 0, 4]);
@@ -709,6 +830,32 @@ describe('core/event', () => {
   });
 
   describe('advanceEvent', () => {
+    it('simulates every other class around the player\'s, for a qualifying apart', () => {
+      const eventPlan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+      // The launch ran the player's class in [CAR_n] order 0, 4, 5, 6.
+      const after = advanceEvent(eventPlan, initEventState(eventPlan), makeRaceOut([makeQualifying([1, 0, 2, 3])], 4), {
+        archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z',
+      });
+      const { classification, simulatedClasses } = after.completed[0];
+
+      expect(classification).toHaveLength(9);
+      expect(classification?.filter((car) => eventPlan.grid[car]?.entry === 'gt3')).toEqual([4, 0, 5, 6]);
+      expect(standsByClass(eventPlan, classification ?? [])).toBe(true);
+      expect(simulatedClasses).toEqual(['proto', 'gt4']);
+    });
+
+    it('names no simulated classes for a qualifying run together', () => {
+      const eventPlan = makeClassPlan([{ type: 'qualify' }]);
+      const after = advanceEvent(
+        eventPlan,
+        initEventState(eventPlan),
+        makeRaceOut([makeQualifying([1, 2, 3, 4, 0, 5, 6, 7, 8])], 9),
+        { archive: 'archive.json', completedAt: '2026-01-01T00:00:00.000Z' },
+      );
+
+      expect(after.completed[0]).not.toHaveProperty('simulatedClasses');
+    });
+
     it('records the step a shortened race ran at', () => {
       const eventPlan = plan();
       const after = advanceEvent(eventPlan, initEventState(eventPlan), makeRaceOut([makeSession(1, 'Practice')]), {

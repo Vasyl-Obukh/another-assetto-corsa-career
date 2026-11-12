@@ -94,6 +94,44 @@ describe('renderer/lib/classification/classification', () => {
       ]);
     });
 
+    describe('a qualifying run apart', () => {
+      // The player's GT3 class ran alone, and the prototype and GT4 around it
+      // were simulated: the archive holds the two GT3s, the record everyone.
+      const apartGrid = [
+        gridRow('gt3-1', { entry: 'gt3' }),
+        gridRow('proto-1', { entry: 'proto' }),
+        gridRow('gt3-2', { entry: 'gt3' }),
+        gridRow('gt4-1', { entry: 'gt4' }),
+      ];
+      const apartRecord = record({
+        gridOrder: [0, 2],
+        classification: [1, 0, 2, 3],
+        simulatedClasses: ['proto', 'gt4'],
+      });
+      const archived = [standing(0, { bestLap: 90_000, player: true }), standing(1, { bestLap: 91_000 })];
+
+      it('lists the whole field in its recorded order, laps only for the class driven', () => {
+        const rows = classifiedRows({
+          type: 'qualify', standings: archived, record: apartRecord, grid: apartGrid,
+        });
+
+        expect(rows.map((row) => [row.key, row.position, row.bestLap])).toEqual([
+          ['proto-1', 1, null],
+          ['gt3-1', 2, 90_000],
+          ['gt3-2', 3, 91_000],
+          ['gt4-1', 4, null],
+        ]);
+        expect(rows[2].gap).toEqual({ ms: 1_000 });
+        expect(rows.find((row) => row.player)?.key).toBe('gt3-1');
+      });
+
+      it('lists the archive alone where no grid names the cars it never held', () => {
+        const rows = classifiedRows({ type: 'qualify', standings: archived, record: apartRecord });
+
+        expect(rows.map((row) => row.driver)).toEqual(['Archived 0', 'Archived 1']);
+      });
+    });
+
     it('lists a simulated session off the order the career recorded', () => {
       const rows = classifiedRows({
         type: 'race',

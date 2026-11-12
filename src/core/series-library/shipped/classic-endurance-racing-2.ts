@@ -71,7 +71,7 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 45, day: 0 },
-        { type: 'race', name: 'One hour', distance: 165, day: 1 },
+        { type: 'race', classGrid: 'mixed', name: 'One hour', distance: 165, day: 1 },
       ],
     },
   ],

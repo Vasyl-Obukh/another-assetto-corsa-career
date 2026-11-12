@@ -87,7 +87,7 @@ export const SUPERCAR_CLASSIC: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
-        { type: 'race', name: 'Race', distance: 95, day: 1 },
+        { type: 'race', classGrid: 'mixed', name: 'Race', distance: 95, day: 1 },
       ],
     },
   ],

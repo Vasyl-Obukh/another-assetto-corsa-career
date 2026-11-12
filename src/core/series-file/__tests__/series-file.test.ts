@@ -410,6 +410,29 @@ describe('core/series-file', () => {
       expect(fieldsFor(withStart(true))).toEqual(['eventFormats[0].sessions[0].start']);
     });
 
+    it('reads how a session runs and lines up its classes', () => {
+      /**
+       * The fixture with its one session saying how it treats classes.
+       * @param classes How a qualifying runs them
+       * @param classGrid How a race lines them up
+       * @returns The value JSON.parse would have returned
+       */
+      const withClasses = (classes: unknown, classGrid: unknown): Record<string, unknown> => raw({
+        eventFormats: [{
+          id: 'standard',
+          name: 'Standard',
+          sessions: [{
+            type: 'race', name: 'Race', laps: 8, day: 0, classes, classGrid,
+          }],
+        }],
+      });
+
+      expect(codesFor(withClasses('apart', 'mixed'))).toEqual([]);
+      expect(codesFor(withClasses('together', 'byClass'))).toEqual([]);
+      expect(fieldsFor(withClasses('separate', 'mixed'))).toEqual(['eventFormats[0].sessions[0].classes']);
+      expect(fieldsFor(withClasses('apart', true))).toEqual(['eventFormats[0].sessions[0].classGrid']);
+    });
+
     it('accepts a championship that names no teams at all', () => {
       const { teams, ...rest } = raw();
 

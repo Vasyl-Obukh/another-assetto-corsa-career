@@ -114,7 +114,7 @@ file header says which.
 | IndyCar 2021 | Daytona's 120 laps stand for Texas's 212 at roughly the same 300 miles |
 | BTCC 1998 | Points table, race lengths (40 and 80 km worked out), which Silverstone layout |
 | Trans-Am TA2 | Race length (an hour) and points (25-18-15) |
-| WEC 2024 (LFM) | Multipliers as for the other WEC seasons; qualifying is shared by both classes |
+| WEC 2024 (LFM) | Multipliers as for the other WEC seasons |
 | GT World Challenge Sprint Cup | Points 16.5-12-9.5 "as understood"; which circuits a real season ran |
 | GT World Challenge Endurance 2024 | The 2024 calendar (Paul Ricard, Spa, Nurburgring, Monza, Jeddah) as understood |
 | Intercontinental GT Challenge | The season's other rounds; drivers' points are a 25-18-15 stand-in |
@@ -439,8 +439,12 @@ Each came up in at least one real season and is worth a ROADMAP decision:
 - [ ] Compulsory pit stop or tyre change (F2 feature race, Super Formula, BTCC
       feature race)
 - [ ] Formula E's energy management and attack mode
-- [ ] Per-class qualifying and Hyperpole (WEC); manufacturers' points (IGTC);
-      driver changes (GT World Challenge, ADAC GT Masters)
+- [x] Per-class qualifying and Hyperpole - a qualifying may run each class
+      apart, a knockout keeping its count of each class: WEC's ordinary rounds,
+      Le Mans from 2025, IMSA, ELMS and ALMS. Classes a real series groups in
+      one session (WEC's LMP1 and LMP2, ALMS's GT and GTS) each run alone
+- [ ] Manufacturers' points (IGTC); driver changes (GT World Challenge, ADAC GT
+      Masters)
 - [ ] IndyCar's points for leading a lap and leading the most laps
 - [ ] Best of two qualifying sessions (F1 1990 and similar) - only one session is run
 

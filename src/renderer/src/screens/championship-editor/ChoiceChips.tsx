@@ -31,6 +31,12 @@ interface ChoiceChipsProps<T extends string | number> {
    */
   disabled?: boolean;
   /**
+   * Whether one choice cannot be made just now, while the rest can.
+   * @param option The choice
+   * @returns True to hold it out of reach
+   */
+  unavailable?: (option: T) => boolean;
+  /**
    * Called with the choice made.
    * @param next The choice
    */
@@ -42,7 +48,7 @@ interface ChoiceChipsProps<T extends string | number> {
  * would hide what the options are.
  */
 export const ChoiceChips = <T extends string | number>({
-  label, options, value, labelOf, accentOf, disabled, onChange,
+  label, options, value, labelOf, accentOf, disabled, unavailable, onChange,
 }: ChoiceChipsProps<T>) => (
   <div role="radiogroup" aria-label={label} className="inline-flex w-fit flex-wrap gap-0.5 rounded-lg border p-0.5">
     {options.map((option) => {
@@ -54,7 +60,7 @@ export const ChoiceChips = <T extends string | number>({
           type="button"
           role="radio"
           aria-checked={chosen}
-          disabled={disabled}
+          disabled={disabled || unavailable?.(option)}
           className={cn(
             'rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
             !chosen && 'text-muted-foreground hover:bg-accent hover:text-foreground',

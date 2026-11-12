@@ -192,6 +192,28 @@ export type ConditionGroup = 'weather' | 'time' | 'temperature' | 'track' | 'win
 export type RoundTab = 'basics' | 'conditions' | 'cars';
 
 /**
+ * One car of the example field the grid diagram draws.
+ */
+export interface DiagramCar {
+  /**
+   * Where its class stands, the fastest at nought.
+   */
+  slot: number;
+  /**
+   * Its place in its own class's session, counting from one.
+   */
+  classPlace: number;
+  /**
+   * Its place in the whole field's session, counting from one.
+   */
+  place: number;
+  /**
+   * Whether it set a time.
+   */
+  timed: boolean;
+}
+
+/**
  * Where a race with nothing to line it up starts the player, as the editor
  * offers it: a slot of the player's choosing is one choice, whatever its
  * number.

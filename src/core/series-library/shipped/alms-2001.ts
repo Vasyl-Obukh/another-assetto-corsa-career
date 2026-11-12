@@ -118,7 +118,7 @@ export const ALMS_2001: Championship = {
       name: 'Two hours forty-five',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
         { type: 'race', name: '2 Hours 45', distance: 480, day: 2 },
       ],
     },
@@ -127,7 +127,7 @@ export const ALMS_2001: Championship = {
       name: 'Four hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
         { id: 'race', type: 'race', name: 'Road America 500', laps: 124, day: 2 },
       ],
     },
@@ -136,7 +136,7 @@ export const ALMS_2001: Championship = {
       name: 'Ten hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
         { id: 'race', type: 'race', name: 'Petit Le Mans', laps: 394, day: 2 },
       ],
     },
@@ -145,7 +145,7 @@ export const ALMS_2001: Championship = {
       name: 'Twelve hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
         { id: 'race', type: 'race', name: '12 Hours', laps: 370, day: 2 },
       ],
     },

@@ -30,18 +30,31 @@ export const SessionBriefing = ({ session, length }: SessionBriefingProps) => {
   // will.
   const missing = pending ? t('event.brief.pending') : t('event.brief.authored');
 
+  // A grid of several classes reverses the front of each class unless it
+  // mixes them.
+  const each = session.classGrid === 'byClass';
   let source: string;
   if (inherit === null) {
     source = race ? t('event.source.skill') : t('event.source.pitLane');
   } else if (inherit.reverse !== undefined) {
-    source = inherit.from === null
-      ? t('event.source.previousReversed', { count: inherit.reverse })
-      : t('event.source.reversed', { from: inherit.from, count: inherit.reverse });
+    const count = inherit.reverse;
+    if (inherit.from === null) {
+      source = each
+        ? t('event.source.previousReversedEach', { count })
+        : t('event.source.previousReversed', { count });
+    } else {
+      source = each
+        ? t('event.source.reversedEach', { from: inherit.from, count })
+        : t('event.source.reversed', { from: inherit.from, count });
+    }
   } else {
     source = inherit.from === null
       ? t('event.source.previous')
       : t('event.source.from', { from: inherit.from });
   }
+  let classes: string | null = null;
+  if (session.classGrid === 'byClass') classes = t('event.source.byClass');
+  else if (session.classGrid === 'mixed') classes = t('event.source.mixed');
 
   let start: string;
   if (!race) start = t('event.start.pitLane');
@@ -82,7 +95,9 @@ export const SessionBriefing = ({ session, length }: SessionBriefingProps) => {
         </BriefTile>
       </div>
 
-      <p className="text-sm text-muted-foreground">{source}</p>
+      <p className="text-sm text-muted-foreground">
+        {classes === null ? source : t('common.sentences', { first: source, second: classes })}
+      </p>
     </div>
   );
 };

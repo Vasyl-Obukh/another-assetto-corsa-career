@@ -124,10 +124,11 @@ export const WEC_2024_VRC: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 12, day: 1 },
+        { id: 'qualifying', type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 12, day: 1 },
         {
           id: 'hyperpole',
           type: 'qualify',
+          classes: 'apart',
           name: 'Hyperpole',
           minutes: 10,
           day: 1,
@@ -173,10 +174,11 @@ export const WEC_2024_VRC: Championship = {
       name: 'Eight hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { id: 'qualifying', type: 'qualify', name: 'Qualifying', minutes: 12, day: 1 },
+        { id: 'qualifying', type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 12, day: 1 },
         {
           id: 'hyperpole',
           type: 'qualify',
+          classes: 'apart',
           name: 'Hyperpole',
           minutes: 10,
           day: 1,

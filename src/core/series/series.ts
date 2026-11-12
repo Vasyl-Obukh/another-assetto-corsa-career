@@ -573,6 +573,9 @@ export const roundRace = (
     classStrength: Object.fromEntries(series.entries
       .filter((entry) => aiSeats(entry, playerEntry.id).length > 0)
       .map((entry) => [entry.id, aiFigure(base.strength, classOffset(series, entry, round).strength)])),
+    // The championship lists its classes fastest first, which is how a grid
+    // keeping them apart stands them.
+    ...(series.entries.length > 1 ? { classOrder: series.entries.map((entry) => entry.id) } : {}),
     aiBase: base.strength,
   };
 };

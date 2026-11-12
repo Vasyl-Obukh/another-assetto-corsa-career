@@ -108,7 +108,7 @@ export const ELMS_2025: Championship = {
       name: 'Four hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '4 Hours', laps: 126, day: 2 },
       ],
     },

@@ -23,7 +23,7 @@ import type {
   EventLaunch, EventPlan, EventState, LaunchRecord, RacePlace,
 } from '../../shared/types/index.ts';
 import {
-  carClassesOf, chainOf, composeOrder, dayOf, fieldFor, reverseFront,
+  byClass, carClassesOf, chainOf, classRanks, composeOrder, dayOf, fieldFor, linedUp, mixesClasses,
 } from '../event/index.ts';
 import { scoreRound } from '../season-scoring/index.ts';
 import type { LaunchResult } from '../season-scoring/index.ts';
@@ -94,6 +94,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
     raceId,
     raceName: `${series.name} - ${round.name}`,
     grid: cars.map((one) => one.entry),
+    classOrder: series.entries.map((entry) => entry.id),
     launches: roundSessions(format, round).map((session, index): EventLaunch => ({
       index,
       day: dayOf(session),
@@ -104,6 +105,9 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
     })),
   };
 
+  // Every simulated session stands its classes one behind another, the faster
+  // ahead, whatever the event says about mixing them.
+  const ranks = classRanks(plan.grid, plan.classOrder);
   const sessions: LaunchRecord[] = [...completed];
   const simulated: LaunchResult[] = [];
   // The player's seat is raced by the driver it names. Car 0 is that seat,
@@ -137,18 +141,21 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
       // anyone last for having earned nothing.
       const chain = chainOf(plan, index);
       const inherited = composeOrder(chain, sessions, cars.length);
-      const lined = inherited ?? rankBy(everyone, (car) => paceOf(car) + luckOf(car));
-      const reverse = session.inherit?.reverse;
-      gridOrder = inherited && reverse !== undefined ? reverseFront(lined, reverse) : lined;
+      gridOrder = inherited
+        ? linedUp(plan, index, inherited)
+        : byClass(rankBy(everyone, (car) => paceOf(car) + luckOf(car)), ranks);
       // A driver put in after the player qualified set no time of their own, so
-      // they start from the back rather than from the player's slot. Only where
+      // they start from the back of their class - of the whole grid, where the
+      // race mixes the classes - rather than from the player's slot. Only where
       // the player's own launch is what placed the car - the latest one in the
       // chain to classify it, as composeOrder reads it - and not behind a race
       // the stand-in drove themselves.
       const placedBy = chain.find((at) => sessions.find((one) => one.index === at)?.classification?.includes(0));
       if (standIn && placedBy !== undefined && placedBy < completed.length) {
         afterDriven.add(index);
-        gridOrder = [...gridOrder.filter((car) => car !== 0), 0];
+        const rest = gridOrder.filter((car) => car !== 0);
+        const behind = mixesClasses(plan, index) ? -1 : rest.findIndex((car) => (ranks[car] ?? 0) > (ranks[0] ?? 0));
+        gridOrder = behind < 0 ? [...rest, 0] : [...rest.slice(0, behind), 0, ...rest.slice(behind)];
       }
 
       const slot = new Map(gridOrder.map((car, at) => [car, at]));
@@ -166,7 +173,7 @@ export const simulateRound = (request: SimulationRequest): SimulatedRound => {
       });
     } else {
       gridOrder = fieldFor(plan, state, index) ?? everyone;
-      classification = rankBy(gridOrder, (car) => paceOf(car) + luckOf(car) * QUALIFY_JITTER);
+      classification = byClass(rankBy(gridOrder, (car) => paceOf(car) + luckOf(car) * QUALIFY_JITTER), ranks);
     }
 
     sessions.push({

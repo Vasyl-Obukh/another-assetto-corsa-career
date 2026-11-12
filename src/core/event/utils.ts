@@ -26,6 +26,7 @@ import type {
   SessionDefinition,
 } from '../../shared/types/index.ts';
 import { resolveConditions } from '../../shared/utils/conditions/index.ts';
+import { mixesClasses as mixesIn, runsApart, sessionChain } from '../../shared/utils/session-chain/index.ts';
 import { staticWeatherType } from '../../shared/utils/weather-types/index.ts';
 import { TRACK_STATE } from '../race-ini/index.ts';
 import { isDistinctSubset } from '../results/index.ts';
@@ -139,27 +140,65 @@ export const sessionRain = (
 };
 
 /**
- * Orders a grid with no qualifying result to order it.
+ * Where each car's class stands among the event's, the fastest at nought.
  *
- * The field lines up class by class, in the order the classes first appear
- * among the AI - the entry list's, since the player leads every grid whatever
- * class they race in - and within a class on skill with enough jitter that the
- * order is not simply the entry list every time. The player starts at the back
- * of their own class, having earned nothing; a class only the player races in
- * has no place among the AI and lines up last. A grid that names no classes is
- * one class, which is every race but a multi-class one.
+ * Off the event's own list of classes where it has one. Without one the
+ * classes stand in the order they first appear among the AI - the entry
+ * list's, since the player leads every grid whatever class they race in - and
+ * a class only the player races in stands last. A grid that names no classes
+ * is one class, which is every race but a multi-class one.
  * @param grid The event's materialised entry list, the player first
- * @param seed Stable label for this launch, so the shuffle is reproducible
- * @returns Car indices in grid order
+ * @param classOrder The event's classes by entry id, fastest first, if it says
+ * @returns One rank per car, by car index
  */
-export const defaultOrder = (grid: readonly GridEntry[], seed: string): number[] => {
-  const random = randomFrom(seedFrom(seed));
-  const classes = [...new Set(grid.slice(1).map((entry) => entry.entry))];
-  const groupOf = (index: number): number => {
-    const at = classes.indexOf(grid[index]?.entry);
+export const classRanks = (
+  grid: readonly GridEntry[],
+  classOrder?: readonly string[],
+): number[] => {
+  const classes: readonly (string | undefined)[] = classOrder
+    ?? [...new Set(grid.slice(1).map((entry) => entry.entry))];
+
+  return grid.map((entry) => {
+    const at = classes.indexOf(entry.entry);
 
     return at < 0 ? classes.length : at;
-  };
+  });
+};
+
+/**
+ * Stands an order's classes one behind another, the faster ahead, each keeping
+ * its own cars in the order they had.
+ * @param order Car indices
+ * @param ranks Each car's class rank, by car index
+ * @returns The same cars, class by class
+ */
+export const byClass = (order: readonly number[], ranks: readonly number[]): number[] => order
+  .map((car, at) => ({ car, at, rank: ranks[car] ?? 0 }))
+  .sort((left, right) => left.rank - right.rank || left.at - right.at)
+  .map((one) => one.car);
+
+export { runsApart } from '../../shared/utils/session-chain/index.ts';
+
+/**
+ * Orders a grid with no qualifying result to order it.
+ *
+ * The field lines up class by class, the faster ahead, and within a class on
+ * skill with enough jitter that the order is not simply the entry list every
+ * time. The player starts at the back of their own class, having earned
+ * nothing.
+ * @param grid The event's materialised entry list, the player first
+ * @param seed Stable label for this launch, so the shuffle is reproducible
+ * @param classOrder The event's classes by entry id, fastest first, if it says
+ * @returns Car indices in grid order
+ */
+export const defaultOrder = (
+  grid: readonly GridEntry[],
+  seed: string,
+  classOrder?: readonly string[],
+): number[] => {
+  const random = randomFrom(seedFrom(seed));
+  const ranks = classRanks(grid, classOrder);
+  const groupOf = (index: number): number => ranks[index] ?? 0;
   const ai = grid
     .map((entry, index) => ({ index, aiLevel: entry.aiLevel ?? 0 }))
     .slice(1)
@@ -275,6 +314,27 @@ export const reverseFront = (order: readonly number[], count: number): number[] 
 };
 
 /**
+ * Stands an order class by class and reverses the front of each class.
+ * @param order Car indices in grid order
+ * @param ranks Each car's class rank, by car index
+ * @param count How many of each class's front runners to reverse
+ * @returns A new order
+ */
+export const reverseByClass = (
+  order: readonly number[],
+  ranks: readonly number[],
+  count: number,
+): number[] => {
+  const groups = new Map<number, number[]>();
+  byClass(order, ranks).forEach((car) => {
+    const rank = ranks[car] ?? 0;
+    groups.set(rank, [...groups.get(rank) ?? [], car]);
+  });
+
+  return [...groups.values()].flatMap((cars) => reverseFront(cars, count));
+};
+
+/**
  * Finds the launch that runs a named session.
  * @param plan The event plan
  * @param id The session id to look for
@@ -286,40 +346,15 @@ export const launchOf = (plan: EventPlan, id: string, before: number): number =>
 );
 
 /**
- * The launches whose classifications order a launch, latest first.
- *
- * Two ways of producing one chain rather than two rules: a session naming an
- * `inherit.from` is followed back link by link, and one naming none falls back
- * to every qualifying launch before it, newest first - which is exactly what
- * the event did before links existed. A link that does not resolve is
- * dropped, so an event edited into an inconsistent shape still runs.
+ * The launches whose classifications order a launch, latest first - its
+ * session's chain, as `sessionChain` reads it, one launch per session.
  * @param plan The event plan
  * @param index Which launch the chain leads into
  * @returns Launch indices, the most recent first
  */
-export const chainOf = (plan: EventPlan, index: number): number[] => {
-  const chain: number[] = [];
-  const declared = plan.launches[index]?.session.inherit?.from;
-
-  if (declared !== undefined) {
-    let at = launchOf(plan, declared, index);
-    // A cycle cannot be authored past validation, but a hand-edited event is
-    // not validated - so the seen set is what stops this spinning.
-    while (at >= 0 && !chain.includes(at)) {
-      chain.push(at);
-      const next = plan.launches[at]?.session.inherit?.from;
-      at = next === undefined ? -1 : launchOf(plan, next, at);
-    }
-
-    return chain;
-  }
-
-  for (let earlier = index - 1; earlier >= 0; earlier -= 1) {
-    if (plan.launches[earlier]?.session.type === 'qualify') chain.push(earlier);
-  }
-
-  return chain;
-};
+export const chainOf = (plan: EventPlan, index: number): number[] => (
+  sessionChain(plan.launches.map((launch) => launch.session), index)
+);
 
 /**
  * Composes an order out of a chain of classifications.
@@ -389,7 +424,40 @@ export const fieldFor = (
 
   // Truncated rather than refused: a format written for twenty cars run on
   // twelve eliminates nobody instead of failing to plan.
-  return classified.slice(0, Math.max(1, inherit.top));
+  const top = Math.max(1, inherit.top);
+  if (!runsApart(plan.launches[index]?.session)) return classified.slice(0, top);
+
+  // Run apart, a knockout keeps that many of each class.
+  const kept = new Map<string | undefined, number>();
+
+  return classified.filter((car) => {
+    const own = plan.grid[car]?.entry;
+    const count = kept.get(own) ?? 0;
+    kept.set(own, count + 1);
+
+    return count < top;
+  });
+};
+
+/**
+ * The cars a launch puts on track: the field a knockout leaves, narrowed to
+ * the player's own class in a qualifying run apart.
+ * @param plan The event plan
+ * @param state How far through it we are
+ * @param index Which launch
+ * @returns Car indices into the event's grid, or null for the whole field
+ */
+export const launchField = (
+  plan: EventPlan,
+  state: EventState,
+  index: number,
+): number[] | null => {
+  const field = fieldFor(plan, state, index);
+  if (!runsApart(plan.launches[index]?.session)) return field;
+
+  const own = plan.grid[0]?.entry;
+
+  return (field ?? plan.grid.map((unused, car) => car)).filter((car) => plan.grid[car]?.entry === own);
 };
 
 /**
@@ -432,6 +500,73 @@ export const simulateSegment = (previous: readonly number[], seed: string): numb
   ranked.sort((left, right) => left.rating - right.rating);
 
   return ranked.map((entry) => entry.car);
+};
+
+/**
+ * Classifies a qualifying run apart: the player's class as it was driven, and
+ * every other class simulated - off the order the session it follows left
+ * them in, or off skill where it follows none - then the classes one behind
+ * another, the faster ahead.
+ * @param plan The event plan
+ * @param state How far through it we were before this launch
+ * @param index Which launch
+ * @param driven The player's class, in the order it was classified
+ * @returns The whole field's classification, and the classes simulated
+ */
+export const apartClassification = (
+  plan: EventPlan,
+  state: EventState,
+  index: number,
+  driven: readonly number[],
+): { classification: number[]; simulated: string[] } => {
+  const own = plan.grid[0]?.entry;
+  const entrants = fieldFor(plan, state, index) ?? plan.grid.map((unused, car) => car);
+  // The order the sessions before it left, composed as a grid would be - every
+  // car in it - or the field on skill where none has classified anyone.
+  const previous = composeOrder(chainOf(plan, index), state.completed, plan.grid.length)
+    ?? plan.grid
+      .map((entry, car) => ({ car, level: entry.aiLevel ?? 0 }))
+      .sort((left, right) => right.level - left.level)
+      .map((one) => one.car);
+  const others = previous.filter((car) => entrants.includes(car) && plan.grid[car]?.entry !== own);
+
+  return {
+    classification: byClass(
+      [...driven, ...simulateSegment(others, `${plan.raceId}:apart:${index}`)],
+      classRanks(plan.grid, plan.classOrder),
+    ),
+    simulated: [...new Set(others.flatMap((car) => plan.grid[car]?.entry ?? []))],
+  };
+};
+
+/**
+ * Whether a race lines its classes up mixed on the order it follows, as the
+ * shared session chain's `mixesClasses` reads it.
+ * @param plan The event plan
+ * @param index Which launch
+ * @returns True for a race that mixes them
+ */
+export const mixesClasses = (plan: EventPlan, index: number): boolean => (
+  mixesIn(plan.launches.map((launch) => launch.session), index)
+);
+
+/**
+ * Lines a race up off the order the sessions before it composed: class by
+ * class, the faster ahead, with the front of each class turned round for a
+ * reverse grid - or, for a race that mixes its classes, that order as it
+ * stands, with the front of the whole grid turned round.
+ * @param plan The event plan
+ * @param index Which launch
+ * @param inherited The order the chain behind it composed
+ * @returns The race's grid order
+ */
+export const linedUp = (plan: EventPlan, index: number, inherited: readonly number[]): number[] => {
+  const reverse = plan.launches[index]?.session.inherit?.reverse;
+  if (mixesClasses(plan, index)) return reverse === undefined ? [...inherited] : reverseFront(inherited, reverse);
+
+  const ranks = classRanks(plan.grid, plan.classOrder);
+
+  return reverse === undefined ? byClass(inherited, ranks) : reverseByClass(inherited, ranks, reverse);
 };
 
 /**

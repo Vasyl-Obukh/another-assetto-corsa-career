@@ -61,6 +61,11 @@ export interface EventPlan {
    */
   classStrength?: Record<string, number>;
   /**
+   * The event's classes by entry id, fastest first, carried from the
+   * definition - which is what a grid keeping them apart lines up in.
+   */
+  classOrder?: readonly string[];
+  /**
    * The player's own AI strength the field was lowered over, carried from the
    * definition so a launch can record each driver against it.
    */
@@ -150,6 +155,12 @@ export interface LaunchRecord {
    * every car as the overall order does.
    */
   carClasses?: string[];
+  /**
+   * The classes whose order in this launch was simulated rather than driven,
+   * by entry id - every class but the player's in a qualifying run apart, whose
+   * launch put their class alone on track. Absent where everyone was driven.
+   */
+  simulatedClasses?: string[];
   /**
    * The factor this launch's race was shortened by, when it ran short of the
    * length its event states - 48 for a race run at a forty-eighth of its laps.

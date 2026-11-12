@@ -106,7 +106,7 @@ export const PORSCHE_CLUB_RACE: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 30, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 20, day: 0 },
-        { type: 'race', name: 'Sprint race', distance: 75, day: 1 },
+        { type: 'race', classGrid: 'mixed', name: 'Sprint race', distance: 75, day: 1 },
       ],
     },
   ],

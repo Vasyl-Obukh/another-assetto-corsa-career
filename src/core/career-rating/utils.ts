@@ -30,6 +30,15 @@ const driven = (record: LaunchRecord | undefined): record is LaunchRecord => (
 );
 
 /**
+ * How many cars the event a launch belongs to fields - which a launch that put
+ * fewer on track, a qualifying run apart or a knockout segment, does not say
+ * by its own order.
+ * @param record The launch
+ * @returns The event's grid size
+ */
+const fieldSize = (record: LaunchRecord): number => record.carClasses?.length ?? record.gridOrder.length;
+
+/**
  * A knockout's segments, the one given first and back along what each
  * inherits from.
  * @param sessions The round's sessions
@@ -75,8 +84,7 @@ const placeIn = (
   record: LaunchRecord,
 ): { place: number; offsets: number[] } | null => {
   const classes = record.carClasses;
-  const size = record.gridOrder.length;
-  const classmates = Array.from({ length: size }, (_, car) => car)
+  const classmates = Array.from({ length: fieldSize(record) }, (_, car) => car)
     .filter((car) => car !== 0 && (!classes || classes[car] === classes[0]));
   if (classmates.length === 0) return null;
 
@@ -157,7 +165,7 @@ export const pendingSessions = (career: Career): PendingSession[] => {
               return segment !== undefined && (!segment.gridOrder.includes(0) || driven(segment));
             });
             if (!driven(first) || !theirs) return;
-            const order = composeOrder(chain, event.sessions, first.gridOrder.length);
+            const order = composeOrder(chain, event.sessions, fieldSize(first));
             if (order) add(season, entry, event, session, index, order, first, record.completedAt);
           }
         });

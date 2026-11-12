@@ -80,6 +80,7 @@ export const YOUNGTIMER_TROPHY: Championship = {
         {
           id: 'heat-1',
           type: 'race',
+          classGrid: 'mixed',
           name: 'Heat 1',
           distance: 65,
           day: 0,
@@ -87,6 +88,7 @@ export const YOUNGTIMER_TROPHY: Championship = {
         },
         {
           type: 'race', name: 'Heat 2', distance: 65, day: 1, inherit: { from: 'heat-1' },
+          classGrid: 'mixed',
         },
       ],
     },

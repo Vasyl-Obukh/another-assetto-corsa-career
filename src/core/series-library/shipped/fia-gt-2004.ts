@@ -15,7 +15,7 @@ const EVENT: EventFormat = {
   sessions: [
     { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
     { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
-    { id: 'race', type: 'race', name: '500 km', distance: 500, day: 1 },
+    { id: 'race', type: 'race', classGrid: 'mixed', name: '500 km', distance: 500, day: 1 },
   ],
 };
 
@@ -109,7 +109,7 @@ export const FIA_GT_2004: Championship = {
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 60, day: 1 },
-        { id: 'race', type: 'race', name: '24 Hours', laps: 558, day: 2 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '24 Hours', laps: 558, day: 2 },
       ],
     },
   ],

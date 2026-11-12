@@ -1,9 +1,10 @@
 // Shared fixtures for the event tests. Deliberately small: one car with
 // enough liveries to go round a six-car field, one track with room for it, and
-// two four-session events - a plain one and a knockout.
+// two four-session events - a plain one and a knockout - plus a planned field of
+// three classes.
 
 import type {
-  Car, Content, RaceDefinition, RaceOut, RaceOutLap, RaceOutSession, Skin,
+  Car, Content, EventPlan, GridEntry, RaceDefinition, RaceOut, RaceOutLap, RaceOutSession, SessionDefinition, Skin,
 } from '../../../shared/types/index.ts';
 import { carProvenance, trackProvenance } from '../../content-catalogue/index.ts';
 
@@ -188,3 +189,56 @@ export const makeQualifying = (order: number[]): RaceOutSession => makeSession(
   'Qualifying',
   order.map((car, position) => lap(car, 60_000 + position * 500)),
 );
+
+/**
+ * The classes of the multi-class plan, fastest first, and each car's - the
+ * player in the middle class, then three prototypes, three GT3s and two GT4s.
+ */
+export const CLASS_ORDER = ['proto', 'gt3', 'gt4'];
+const CAR_CLASSES = ['gt3', 'proto', 'proto', 'proto', 'gt3', 'gt3', 'gt3', 'gt4', 'gt4'];
+
+/**
+ * A planned event of three classes, built by hand rather than through
+ * planEvent, so each car's class and skill read straight off the list: car 0
+ * is the player, and the AI slow steadily down the entry list.
+ * @param sessions The event's sessions
+ * @param classOrder The classes fastest first, or none to leave it to the grid
+ * @returns The plan
+ */
+export const makeClassPlan = (
+  sessions: SessionDefinition[],
+  classOrder: readonly string[] | undefined = CLASS_ORDER,
+): EventPlan => {
+  const grid: GridEntry[] = CAR_CLASSES.map((entry, car) => ({
+    model: 'test_car',
+    skin: `skin_${car % 8}`,
+    driver: car === 0 ? 'Player' : `AI ${car}`,
+    nationality: '',
+    nationCode: '',
+    setup: '',
+    ballast: 0,
+    restrictor: 0,
+    entry,
+    ...(car === 0 ? {} : { aiLevel: 96 - car }),
+  }));
+
+  return {
+    raceId: 'test-classes',
+    raceName: 'Test Classes',
+    grid,
+    launches: sessions.map((session, index) => ({
+      index,
+      day: 0,
+      session,
+      race: {
+        id: 'test-classes',
+        name: 'Test Classes',
+        track: { id: 'test_track' },
+        playerCar: { model: 'test_car' },
+        grid: { size: grid.length, opponents: grid.slice(1) },
+        sessions: [session],
+      },
+    })),
+    ...(classOrder ? { classOrder } : {}),
+  };
+};

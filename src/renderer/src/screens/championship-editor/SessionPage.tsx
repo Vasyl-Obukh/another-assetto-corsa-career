@@ -4,8 +4,10 @@ import { Trash2Icon } from 'lucide-react';
 import { ChoiceChips } from './ChoiceChips.tsx';
 import { ConditionsEditor } from './ConditionsEditor.tsx';
 import {
-  DEFAULT_REF, LENGTH_LABEL, LENGTH_UNITS, MIN_INHERIT_TOP, MIN_SESSION_LENGTH, START_KINDS, START_LABEL,
+  CLASS_GRID_CHOICES, CLASS_GRID_LABEL, DEFAULT_REF, LENGTH_LABEL, LENGTH_UNITS, MIN_INHERIT_TOP, MIN_SESSION_LENGTH,
+  QUALIFYING_CHOICES, QUALIFYING_LABEL, START_KINDS, START_LABEL,
 } from './constants.ts';
+import { GridDiagram } from './GridDiagram.tsx';
 import { ReverseDiagram } from './ReverseDiagram.tsx';
 import { RuleHeading } from './RuleHeading.tsx';
 import { StartPosition } from './StartPosition.tsx';
@@ -18,8 +20,11 @@ import {
 } from './utils.ts';
 import { MIN_REVERSED } from '../../../../shared/constants';
 import type {
-  Championship, EventFormat, SeriesSession, SessionType, Weather, WeatherController, WeatherSystem,
+  Championship, ClassGrid, EventFormat, QualifyingClasses, SeriesSession, SessionType, Weather, WeatherController,
+  WeatherSystem,
 } from '../../../../shared/types';
+import { runsApart, sessionChain } from '../../../../shared/utils/session-chain';
+import { InfoTip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -120,6 +125,11 @@ export const SessionPage = ({
   const sources = sessionSources(format.sessions, index, session.type);
   const unit = lengthUnit(session);
   const types = MAIN_TYPES.includes(session.type) ? MAIN_TYPES : [...MAIN_TYPES, session.type];
+  // How classes qualify and line up means nothing to a field of one.
+  const multi = series.entries.length > 1;
+  const chain = session.type === 'race' ? sessionChain(format.sessions, index) : [];
+  // Behind a qualifying run apart, the classes line up apart whatever the race says.
+  const behindApart = chain.find((at) => runsApart(format.sessions[at]));
 
   /**
    * Applies a change to the session and to what it follows.
@@ -181,13 +191,19 @@ export const SessionPage = ({
             onChange={(type) => {
               // Only a race scores, so anything else drops its points system;
               // and only a race counts laps, so anything else runs the clock.
+              // How classes qualify and line up belongs to one type each.
               const scored = type === 'race' ? session.pointsSystem : undefined;
               // The shipped championships name their sessions in English,
               // whatever language the app is in.
               const label = SESSION_TYPE_LABEL[session.type];
               const generic = namesItsType(session.name, session.type, [t(label), t(label, { lng: 'en' })]);
               const next = {
-                ...session, type, pointsSystem: scored, name: generic ? undefined : session.name,
+                ...session,
+                type,
+                pointsSystem: scored,
+                name: generic ? undefined : session.name,
+                classes: type === 'qualify' ? session.classes : undefined,
+                classGrid: type === 'race' ? session.classGrid : undefined,
               };
               edit(countsLaps(type) ? next : withLengthUnit(next, 'minutes'));
             }}
@@ -268,6 +284,7 @@ export const SessionPage = ({
                     disabled={locked}
                     onChange={(event) => edit({}, { top: toNumber(event.target.value) })}
                   />
+                  {multi && runsApart(session) ? <span>{t('editor.sessions.ofEachClass')}</span> : null}
                 </>
               )}
               {from !== null && session.type === 'race' ? (
@@ -332,6 +349,56 @@ export const SessionPage = ({
           ) : null}
         </>
       )}
+
+      {multi && session.type === 'qualify' ? (
+        <>
+          <RuleHeading>{t('editor.sessions.classes')}</RuleHeading>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t('editor.sessions.qualifyClasses')}</span>
+            <ChoiceChips<QualifyingClasses>
+              label={t('editor.sessions.qualifyClasses')}
+              options={QUALIFYING_CHOICES}
+              value={session.classes ?? 'together'}
+              labelOf={(one) => t(QUALIFYING_LABEL[one])}
+              disabled={locked}
+              onChange={(one) => edit({ classes: one === 'together' ? undefined : one })}
+            />
+          </div>
+        </>
+      ) : null}
+
+      {/* A race nothing lines up stands class by class already. */}
+      {multi && session.type === 'race' && chain.length > 0 ? (
+        <>
+          <RuleHeading>{t('editor.sessions.classes')}</RuleHeading>
+          <div className="flex flex-col gap-1.5">
+            <span className="flex items-center gap-1.5 text-sm font-medium">
+              {t('editor.sessions.onGrid')}
+              <InfoTip text={t('editor.sessions.onGridTip')} />
+            </span>
+            <ChoiceChips<ClassGrid>
+              label={t('editor.sessions.onGrid')}
+              options={CLASS_GRID_CHOICES}
+              value={behindApart === undefined ? session.classGrid ?? 'byClass' : 'byClass'}
+              labelOf={(one) => t(CLASS_GRID_LABEL[one])}
+              disabled={locked}
+              unavailable={(one) => one === 'mixed' && behindApart !== undefined}
+              onChange={(one) => edit({ classGrid: one === 'byClass' ? undefined : one })}
+            />
+            {behindApart === undefined ? null : (
+              <span className="text-xs text-muted-foreground">
+                {t('editor.sessions.apartBehind', { name: nameOf(format.sessions[behindApart]) })}
+              </span>
+            )}
+            <GridDiagram
+              classes={series.entries}
+              from={nameOf(format.sessions[chain[0]])}
+              apart={behindApart !== undefined}
+              mixed={session.classGrid === 'mixed'}
+            />
+          </div>
+        </>
+      ) : null}
 
       {session.type === 'race' && scoring ? (
         <>

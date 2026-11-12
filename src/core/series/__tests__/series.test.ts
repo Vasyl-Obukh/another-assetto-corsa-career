@@ -678,6 +678,20 @@ describe('core/series', () => {
       expect(lowerWith(series).classStrength).toEqual({ second: DEFAULT_OPPONENTS.strength });
     });
 
+    it('carries the order the championship lists its classes in, fastest first', () => {
+      const base = makeSeries();
+      const series = {
+        ...base,
+        entries: [base.entries[0], { ...base.entries[0], id: 'second', name: 'Second' }],
+      };
+
+      expect(lowerWith(series).classOrder).toEqual(['main', 'second']);
+    });
+
+    it('carries no class order for a championship of one class', () => {
+      expect(lowerWith(makeSeries())).not.toHaveProperty('classOrder');
+    });
+
     it("records the player's own strength setting as the base, before any championship offset", () => {
       const series = makeSeries({ grid: { strength: 10 } });
 

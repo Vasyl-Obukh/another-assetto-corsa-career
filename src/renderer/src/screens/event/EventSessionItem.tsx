@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SessionStatusDot } from './SessionStatusDot.tsx';
 import { dotted, playerPosition, sessionLength } from './utils.ts';
 import type { EventSession } from '../../../../shared/types';
-import { ResultCell, WeatherStepIcons } from '@/components';
+import { ApartMark, ResultCell, WeatherStepIcons } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
@@ -64,7 +64,10 @@ export const EventSessionItem = ({
         <span className="truncate text-sm font-medium">
           {sessionName(session, t)}
         </span>
-        <span className="truncate text-xs text-muted-foreground">{when}</span>
+        <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="truncate">{when}</span>
+          {session.apart ? <ApartMark className="shrink-0" /> : null}
+        </span>
       </span>
 
       <span className="flex items-center gap-2">

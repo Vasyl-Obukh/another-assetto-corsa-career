@@ -773,7 +773,11 @@
       "previous": "The grid is the order the session before finished in.",
       "previousReversed": "The grid is the order the session before finished in, with the top {{count}} turned round.",
       "skill": "No qualifying sets this grid: the field lines up on skill.",
-      "pitLane": "Everyone starts from the pit lane."
+      "pitLane": "Everyone starts from the pit lane.",
+      "reversedEach": "The grid is the order {{from}} finished in, with the top {{count}} of each class turned round.",
+      "previousReversedEach": "The grid is the order the session before finished in, with the top {{count}} of each class turned round.",
+      "byClass": "Faster classes start ahead.",
+      "mixed": "The classes start mixed."
     },
     "start": {
       "pitLane": "Pit lane",
@@ -784,7 +788,9 @@
       "best": "Best lap",
       "points": "Points",
       "simulated": "You were knocked out before this segment, so it was simulated from the one before rather than driven.",
-      "simulatedRound": "You were not there, so the field raced this without you: only the order is known."
+      "simulatedRound": "You were not there, so the field raced this without you: only the order is known.",
+      "apartSimulated_one": "{{classes}} qualified apart, so its session was simulated: only the order is known.",
+      "apartSimulated_other": "{{classes}} qualified apart, so their sessions were simulated: only the order is known."
     },
     "summary": {
       "title": "Round results",
@@ -883,7 +889,8 @@
         "climbs": "Climbs with you",
         "racePay": "Race pay"
       }
-    }
+    },
+    "apart": "Each class apart"
   },
   "championships": {
     "title": "Championships",
@@ -1402,7 +1409,10 @@
       "startSeatsHint": "Empty seats, drawn each season",
       "teamsFrom": "Teams from",
       "teamsFromHint": "Another class's teams, seat by seat",
-      "teamsFromNothing": "No teams"
+      "teamsFromNothing": "No teams",
+      "fastestFirst": "Fastest first",
+      "slower": "slower",
+      "fastestFirstTip": "On a grid with faster classes first, every car of a class starts ahead of the classes below it."
     },
     "eligibility": {
       "kind": "Cars from",
@@ -1566,7 +1576,24 @@
       "slot": "P{{slot}}",
       "slotIn": "in",
       "slotOf_one": "of {{count}} car",
-      "slotOf_other": "of {{count}} cars"
+      "slotOf_other": "of {{count}} cars",
+      "classes": "Classes",
+      "qualifyClasses": "Qualify",
+      "qualifying": {
+        "together": "All together",
+        "apart": "Each class apart"
+      },
+      "onGrid": "On the grid",
+      "onGridTip": "A faster class is one listed higher among the classes.",
+      "classGrid": {
+        "byClass": "Faster classes first",
+        "mixed": "Mixed on times"
+      },
+      "apartBehind": "{{name}} runs each class apart, so the classes line up apart too.",
+      "followsMixed": ", mixed on times",
+      "ofEachClass": "of each class",
+      "byClassLine": "{{name}}, by class",
+      "noTime": "Dashed: no time set"
     },
     "points": {
       "title": "Points systems",
@@ -2089,7 +2116,8 @@
   "common": {
     "new": "New",
     "dash": "-",
-    "loading": "Loading"
+    "loading": "Loading",
+    "sentences": "{{first}} {{second}}"
   },
   "diagnostics": {
     "ready": "Ready to race",

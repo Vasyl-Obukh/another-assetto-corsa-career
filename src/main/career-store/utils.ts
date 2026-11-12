@@ -16,7 +16,9 @@ import type { BackupContents, EnteredEvent, OfferDraft } from './types.ts';
 import {
   feeOf, payOut, post, sponsorLine,
 } from '../../core/career-money/index.ts';
-import { chainOf, startingGrid } from '../../core/event/index.ts';
+import {
+  carClassesOf, chainOf, mixesClasses, runsApart, startingGrid,
+} from '../../core/event/index.ts';
 import { historicRung } from '../../core/historic-draw/index.ts';
 import { teamNotice } from '../../core/paddock-news/index.ts';
 import { simulateRound } from '../../core/round-simulation/index.ts';
@@ -842,6 +844,7 @@ export const eventSessions = (
   const state: EventState = {
     raceId: plan.raceId, launchCount: plan.launches.length, completed: [...records],
   };
+  const multi = carClassesOf(plan).carClasses !== undefined;
 
   return plan.launches.map((launch): EventSession => {
     const { index, session } = launch;
@@ -873,6 +876,8 @@ export const eventSessions = (
         from: plan.launches[source]?.session.name ?? null,
         reverse: session.inherit?.reverse,
       },
+      ...(multi && session.type === 'race' ? { classGrid: mixesClasses(plan, index) ? 'mixed' : 'byClass' } : {}),
+      apart: multi && runsApart(session),
       status,
       record,
       startSlot: status === 'next' ? startingGrid(plan, state, index)?.playerSlot ?? null : null,

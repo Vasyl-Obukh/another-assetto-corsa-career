@@ -84,6 +84,7 @@ export const MASTERS_RACING_LEGENDS: Championship = {
         {
           id: 'race-1',
           type: 'race',
+          classGrid: 'mixed',
           name: 'Race 1',
           distance: 70,
           day: 0,
@@ -91,6 +92,7 @@ export const MASTERS_RACING_LEGENDS: Championship = {
         },
         {
           type: 'race', name: 'Race 2', distance: 70, day: 1, inherit: { from: 'race-1' },
+          classGrid: 'mixed',
         },
       ],
     },

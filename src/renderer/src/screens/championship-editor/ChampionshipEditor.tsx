@@ -71,7 +71,7 @@ export const ChampionshipEditor = ({ kind = 'series' }: ChampionshipEditorProps)
   // Held here rather than on the Classes tab, so another tab can open one
   // class's part - the prize money a class pays of its own.
   const [picked, setPicked] = useState<string | null>(null);
-  const [section, setSection] = useState<ClassSection>('seats');
+  const [section, setSection] = useState<ClassSection>('cars');
 
   const {
     draft, listing, checked, locked,

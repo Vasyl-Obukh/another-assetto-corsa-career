@@ -107,7 +107,7 @@ export const LOTUS_CUP: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 25, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 15, day: 0 },
-        { type: 'race', name: 'Race', distance: 55, day: 1 },
+        { type: 'race', classGrid: 'mixed', name: 'Race', distance: 55, day: 1 },
       ],
     },
   ],

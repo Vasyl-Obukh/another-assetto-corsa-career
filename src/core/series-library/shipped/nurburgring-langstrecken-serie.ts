@@ -141,7 +141,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       name: 'Four hours',
       sessions: [
         { type: 'qualify', name: 'Qualifying', minutes: 90, day: 0 },
-        { id: 'race', type: 'race', name: '4 Hours', laps: 27, day: 0 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '4 Hours', laps: 27, day: 0 },
       ],
     },
     {
@@ -149,7 +149,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'qualify', name: 'Qualifying', minutes: 90, day: 0 },
-        { id: 'race', type: 'race', name: '6 Hours', laps: 35, day: 0 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '6 Hours', laps: 35, day: 0 },
       ],
     },
     {
@@ -158,7 +158,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 120, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 120, day: 1 },
-        { id: 'race', type: 'race', name: '24 Hours', laps: 159, day: 2 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '24 Hours', laps: 159, day: 2 },
       ],
     },
   ],

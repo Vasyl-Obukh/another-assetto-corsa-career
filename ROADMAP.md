@@ -1546,6 +1546,28 @@ catalogue.
       would make the slower class's drivers weak as well as their cars, which is
       not what a class difference is. (The linear ramp down each class's seat
       list has since gone too - see the persistent AI field in Phase 5.)
+- [x] **How a multi-class field qualifies and lines up** - two settings on a
+      session, offered only to an event of more than one class. A qualifying runs
+      every class together or **each class apart**: apart, the player drives with
+      their own class alone, every other class is simulated around them, and a
+      knockout keeps its count of each class. A race lines up **faster classes
+      first** - every car of a class ahead of every car of the classes listed
+      below it, a car with no time included - or **mixed on times**, as NLS
+      does; its reverse grid turns the front of each class round unless it mixes.
+      A class's pace is its place in the class list, which the editor's Classes
+      tab and the Race tab head with *Fastest first*. Behind an apart qualifying
+      the classes line up apart, and the editor holds Mixed out of reach.
+      Simulated qualifying always stands faster classes first. Mixed was set on
+      the shipped championships whose real grids form on overall times: NLS,
+      VLN, the Youngtimer Trophy, both Masters series, Classic Endurance Racing,
+      the Supercar Classic, the production car endurance series, the Porsche club
+      races, JDM production, the 2010 GT4 European Cup, FIA GT 2004, the Tour
+      Auto and the Lotus Cup. Apart was set where each class really qualifies on
+      its own: every WEC season's ordinary rounds, Le Mans only from 2025 - it
+      ran every class at once until then - and IMSA 2017 and 2025, ELMS 2025 and
+      ALMS 2001 throughout. Real series sometimes group two classes in one
+      session (WEC's LMP1 and LMP2 before 2021, ALMS's GT and GTS); apart runs
+      each alone, the nearest the setting comes.
 - [x] **Class and spec management UI**: create classes and specs, classify mods the
       shipped catalogue does not name, and override what we ship. The shipped
       catalogue is the base layer; the user layer is resolved over it at runtime.

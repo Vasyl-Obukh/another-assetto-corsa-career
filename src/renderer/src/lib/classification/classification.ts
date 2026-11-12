@@ -53,16 +53,27 @@ export const classifiedRows = (source: ClassificationSource): ClassifiedRow[] =>
   const inClass = (car: number | undefined): boolean => (
     source.entry === undefined || (car !== undefined && classOf(car) === source.entry)
   );
+  // A qualifying run apart put the player's class alone on track, so its
+  // archive holds that class and the recorded order holds everyone: the rows
+  // follow the order, and only the class driven has laps to show.
+  // Only with the event's grid to hand, which is what names a car never archived.
+  const apart = (record?.simulatedClasses?.length ?? 0) > 0 && source.standings != null && grid.length > 0;
+  const drivenAt = (car: number): Standing | undefined => source.standings?.find((one) => (
+    one.slot !== undefined && record?.gridOrder[one.slot] === car
+  ));
   // A class listed alone is filtered before anything is measured, so its
   // leader, its gaps and its fastest lap are its own.
-  const standings = source.standings?.filter((one, at) => inClass(carOf(one, at))) ?? null;
+  const ordered = apart ? record?.classification?.filter((car) => inClass(car)) ?? [] : null;
+  const standings = ordered
+    ? ordered.map((car) => drivenAt(car))
+    : source.standings?.filter((one, at) => inClass(carOf(one, at))) ?? null;
   const order = standings ? null : record?.classification?.filter((car) => inClass(car)) ?? null;
-  const cars = standings
+  const cars = ordered ?? (standings
     ? source.standings?.map((one, at) => carOf(one, at)).filter((car) => inClass(car)) ?? []
-    : order ?? [];
+    : order ?? []);
   const count = standings?.length ?? order?.length ?? 0;
-  const leader = standings?.[0];
-  const best = Math.min(...(standings ?? []).map((one) => one.bestLap ?? Infinity));
+  const leader = standings?.find((one) => one !== undefined);
+  const best = Math.min(...(standings ?? []).map((one) => one?.bestLap ?? Infinity));
   const seen = new Map<string, number>();
 
   return Array.from({ length: count }, (unused, at): ClassifiedRow => {

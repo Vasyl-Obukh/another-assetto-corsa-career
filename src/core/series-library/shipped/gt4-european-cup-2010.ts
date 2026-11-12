@@ -94,9 +94,11 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
         { id: 'qualifying-2', type: 'qualify', name: 'Qualifying 2', minutes: 20, day: 0 },
         {
           type: 'race', name: 'Race 1', distance: 140, day: 0, inherit: { from: 'qualifying-1' },
+          classGrid: 'mixed',
         },
         {
           type: 'race', name: 'Race 2', distance: 140, day: 1, inherit: { from: 'qualifying-2' },
+          classGrid: 'mixed',
         },
       ],
     },

@@ -3,9 +3,11 @@
 // rather than the first.
 
 import {
+  CLASS_GRIDS,
   CLIMATES,
   GRID_START_PLACES,
   HEMISPHERES,
+  QUALIFYING_CLASSES,
   SESSION_TYPES,
   TEAM_BUDGETS,
   TRACK_STATE_NAMES,
@@ -142,8 +144,13 @@ export const readFormat = (value: unknown, field: string, report: Reporter): boo
     const start = session.start === undefined
       || typeof session.start === 'number'
       || report.closedSet(session.start, GRID_START_PLACES, `${where}.start`);
+    const classes = session.classes === undefined
+      || report.closedSet(session.classes, QUALIFYING_CLASSES, `${where}.classes`);
+    const classGrid = session.classGrid === undefined
+      || report.closedSet(session.classGrid, CLASS_GRIDS, `${where}.classGrid`);
 
-    return readConditions(session.conditions, `${where}.conditions`, report) && type && start;
+    return readConditions(session.conditions, `${where}.conditions`, report)
+      && type && start && classes && classGrid;
   }).every(Boolean);
 
   return id && sessions;

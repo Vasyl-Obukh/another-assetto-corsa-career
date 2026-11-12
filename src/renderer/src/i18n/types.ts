@@ -1,6 +1,12 @@
 /**
  * Locale-aware formatters, bound to the language currently in force.
  */
+/**
+ * Every kind of Intl formatter the formatters build once per locale and keep.
+ */
+export type CachedFormat = Intl.DateTimeFormat | Intl.NumberFormat | Intl.Collator | Intl.RelativeTimeFormat
+  | Intl.ListFormat;
+
 export interface Formatters {
   /**
    * The BCP 47 locale the formatters were built for.
@@ -76,6 +82,13 @@ export interface Formatters {
    * @returns The year, ungrouped, in the active locale's digits
    */
   formatYear(value: number): string;
+  /**
+   * Joins a few names into one phrase, as the language joins them - "GT3,
+   * GT4 and LMP2".
+   * @param items The names, in order
+   * @returns The phrase
+   */
+  formatList(items: readonly string[]): string;
   /**
    * Formats an amount of money. Display only - there is no conversion anywhere
    * in this app.

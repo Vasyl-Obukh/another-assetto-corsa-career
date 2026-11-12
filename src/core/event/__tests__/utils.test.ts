@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  lap, makeContent, makeEvent, makeKnockout, makeSession,
+  CLASS_ORDER, lap, makeClassPlan, makeContent, makeEvent, makeKnockout, makeSession,
 } from './fixtures.ts';
 import type {
   Content, EventPlan, EventState, GridEntry, LaunchRecord, RaceDefinition, RaceOutSession,
@@ -9,19 +9,26 @@ import type {
 import { RAIN_FOR_FULL_WASH } from '../constants.ts';
 import { planEvent } from '../event.ts';
 import {
+  apartClassification,
   bestLapOrder,
   bestLapTimes,
+  byClass,
   chainOf,
+  classRanks,
   composeOrder,
   dayOf,
   defaultOrder,
   fieldFor,
   gripAfter,
   lastSessionOf,
+  launchField,
   launchOf,
+  linedUp,
   materialiseRace,
+  mixesClasses,
   placePlayer,
   playerFirst,
+  reverseByClass,
   reverseFront,
   runsToClock,
   sessionRain,
@@ -95,6 +102,28 @@ const stateOf = (records: LaunchRecord[]): EventState => ({
   launchCount: 4,
   completed: records,
 });
+
+/**
+ * Each car's class in the three-class plan, by car index.
+ * @param plan The plan
+ * @param cars Car indices
+ * @returns Their classes, in the same order
+ */
+const classesOf = (plan: EventPlan, cars: readonly number[]): (string | undefined)[] => (
+  cars.map((car) => plan.grid[car]?.entry)
+);
+
+/**
+ * Whether an order holds each class in one unbroken run, the faster first.
+ * @param plan The plan
+ * @param order Car indices
+ * @returns True when the classes stand one behind another
+ */
+const standsByClass = (plan: EventPlan, order: readonly number[]): boolean => {
+  const classes = classesOf(plan, order);
+
+  return classes.every((one, at) => at === 0 || CLASS_ORDER.indexOf(one ?? '') >= CLASS_ORDER.indexOf(classes[at - 1] ?? ''));
+};
 
 /**
  * The rain of a run of dry sessions, as gripAfter reads what came before.
@@ -304,6 +333,57 @@ describe('core/event/utils', () => {
       const grid = [inClass(entry('Player'), 'solo'), inClass(entry('GT3', 80), 'gt3')];
 
       expect(defaultOrder(grid, 'test:1')).toEqual([1, 0]);
+    });
+
+    it('stands the classes in the order the event lists them, the player\'s class included', () => {
+      const grid = [
+        inClass(entry('Player'), 'gt3'),
+        inClass(entry('GT4', 80), 'gt4'),
+        inClass(entry('Prototype', 90), 'proto'),
+      ];
+
+      expect(defaultOrder(grid, 'test:1', ['proto', 'gt3', 'gt4'])).toEqual([2, 0, 1]);
+    });
+  });
+
+  describe('classRanks', () => {
+    it('ranks each car by where its class stands in the event\'s list', () => {
+      expect(classRanks(makeClassPlan([]).grid, CLASS_ORDER)).toEqual([1, 0, 0, 0, 1, 1, 1, 2, 2]);
+    });
+
+    it('takes the order the classes first appear among the AI where the event lists none', () => {
+      expect(classRanks(makeClassPlan([]).grid)).toEqual([1, 0, 0, 0, 1, 1, 1, 2, 2]);
+    });
+
+    it('stands a class the list leaves out behind every class it names', () => {
+      expect(classRanks(makeClassPlan([]).grid, ['proto', 'gt4'])).toEqual([2, 0, 0, 0, 2, 2, 2, 1, 1]);
+    });
+
+    it('ranks a grid that names no classes as one', () => {
+      expect(classRanks([entry('Player'), entry('AI', 90)])).toEqual([0, 0]);
+    });
+  });
+
+  describe('byClass', () => {
+    it('stands the classes one behind another, each keeping its own order', () => {
+      const { grid } = makeClassPlan([]);
+
+      expect(byClass([7, 4, 1, 0, 8, 2], classRanks(grid, CLASS_ORDER))).toEqual([1, 2, 4, 0, 7, 8]);
+    });
+  });
+
+  describe('reverseByClass', () => {
+    it('turns the front of each class round rather than the front of the grid', () => {
+      const { grid } = makeClassPlan([]);
+
+      expect(reverseByClass([1, 2, 3, 4, 0, 5, 6, 7, 8], classRanks(grid, CLASS_ORDER), 2))
+        .toEqual([2, 1, 3, 0, 4, 5, 6, 8, 7]);
+    });
+
+    it('stands the order by class before turning anything round', () => {
+      const { grid } = makeClassPlan([]);
+
+      expect(reverseByClass([4, 1, 0, 2], classRanks(grid, CLASS_ORDER), 2)).toEqual([2, 1, 0, 4]);
     });
   });
 
@@ -555,6 +635,124 @@ describe('core/event/utils', () => {
       ];
 
       expect(fieldFor(planned(event), stateOf([record(0, [2, 0, 1])]), 1)).toEqual([2]);
+    });
+
+    it('keeps that many of each class from a segment run apart', () => {
+      const plan = makeClassPlan([
+        { id: 'q1', type: 'qualify', classes: 'apart' },
+        {
+          type: 'qualify', classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+      ]);
+
+      expect(fieldFor(plan, stateOf([record(0, [2, 3, 1, 4, 5, 0, 6, 7, 8])]), 1)).toEqual([2, 3, 4, 5, 7, 8]);
+    });
+  });
+
+  describe('launchField', () => {
+    it('puts the player\'s class alone on track for a qualifying run apart', () => {
+      const plan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+
+      expect(launchField(plan, stateOf([]), 0)).toEqual([0, 4, 5, 6]);
+    });
+
+    it('narrows a knockout run apart to what is left of the player\'s class', () => {
+      const plan = makeClassPlan([
+        { id: 'q1', type: 'qualify', classes: 'apart' },
+        {
+          type: 'qualify', classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+      ]);
+
+      // The player was third of their class, so the segment runs without them.
+      expect(launchField(plan, stateOf([record(0, [1, 2, 3, 4, 5, 0, 6, 7, 8])]), 1)).toEqual([4, 5]);
+    });
+
+    it('leaves a qualifying run together to the whole field', () => {
+      expect(launchField(makeClassPlan([{ type: 'qualify' }]), stateOf([]), 0)).toBeNull();
+    });
+  });
+
+  describe('apartClassification', () => {
+    it('keeps the player\'s class as driven and stands every class one behind another', () => {
+      const plan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+      const { classification, simulated } = apartClassification(plan, stateOf([]), 0, [5, 0, 4, 6]);
+
+      expect(classification).toHaveLength(9);
+      expect(classification.filter((car) => plan.grid[car]?.entry === 'gt3')).toEqual([5, 0, 4, 6]);
+      expect(standsByClass(plan, classification)).toBe(true);
+      expect(simulated).toEqual(['proto', 'gt4']);
+    });
+
+    it('simulates only what a knockout run apart let through', () => {
+      const plan = makeClassPlan([
+        { id: 'q1', type: 'qualify', classes: 'apart' },
+        {
+          type: 'qualify', classes: 'apart', inherit: { from: 'q1', top: 2 },
+        },
+      ]);
+      const state = stateOf([record(0, [2, 3, 1, 4, 0, 5, 6, 7, 8])]);
+      const { classification } = apartClassification(plan, state, 1, [0, 4]);
+
+      expect([...classification].sort((left, right) => left - right)).toEqual([0, 2, 3, 4, 7, 8]);
+      expect(standsByClass(plan, classification)).toBe(true);
+    });
+
+    it('invents the same order every time it is asked', () => {
+      const plan = makeClassPlan([{ type: 'qualify', classes: 'apart' }]);
+
+      expect(apartClassification(plan, stateOf([]), 0, [0, 4, 5, 6]))
+        .toEqual(apartClassification(plan, stateOf([]), 0, [0, 4, 5, 6]));
+    });
+  });
+
+  describe('mixesClasses', () => {
+    it('reads the plan\'s sessions as the shared session chain does', () => {
+      const plan = makeClassPlan([{ id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' }]);
+
+      expect(mixesClasses(plan, 1)).toBe(true);
+    });
+  });
+
+  describe('linedUp', () => {
+    // Qualifying on times: a GT3 (4) beat the slowest prototype (3), and the
+    // last GT3 (6) set no time, so stands behind the GT4s.
+    const inherited = [1, 2, 4, 3, 0, 5, 7, 8, 6];
+
+    it('stands faster classes first, a car with no time ahead of every slower class', () => {
+      const plan = makeClassPlan([{ id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q' } }]);
+
+      expect(linedUp(plan, 1, inherited)).toEqual([1, 2, 3, 4, 0, 5, 6, 7, 8]);
+    });
+
+    it('keeps the order as it stands for a race that mixes its classes', () => {
+      const plan = makeClassPlan([{ id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' }]);
+
+      expect(linedUp(plan, 1, inherited)).toEqual(inherited);
+    });
+
+    it('turns the front of the whole grid round for a mixed reverse grid', () => {
+      const plan = makeClassPlan([
+        { id: 'q', type: 'qualify' },
+        { type: 'race', inherit: { from: 'q', reverse: 3 }, classGrid: 'mixed' },
+      ]);
+
+      expect(linedUp(plan, 1, inherited)).toEqual([4, 2, 1, 3, 0, 5, 7, 8, 6]);
+    });
+
+    it('turns the front of each class round for a reverse grid by class', () => {
+      const plan = makeClassPlan([{ id: 'q', type: 'qualify' }, { type: 'race', inherit: { from: 'q', reverse: 2 } }]);
+
+      expect(linedUp(plan, 1, inherited)).toEqual([2, 1, 3, 0, 4, 5, 6, 8, 7]);
+    });
+
+    it('stands the classes apart behind a qualifying run apart, whatever the race says', () => {
+      const plan = makeClassPlan([
+        { id: 'q', type: 'qualify', classes: 'apart' },
+        { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' },
+      ]);
+
+      expect(standsByClass(plan, linedUp(plan, 1, inherited))).toBe(true);
     });
   });
 

@@ -118,7 +118,7 @@ export const VLN_2004: Championship = {
       name: 'Four hours',
       sessions: [
         { type: 'practice', name: 'Qualifying practice', minutes: 90, day: 0 },
-        { id: 'race', type: 'race', name: '4 Hours', laps: 24, day: 0 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '4 Hours', laps: 24, day: 0 },
       ],
     },
     {
@@ -126,7 +126,7 @@ export const VLN_2004: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'practice', name: 'Qualifying practice', minutes: 90, day: 0 },
-        { id: 'race', type: 'race', name: '6 Hours', laps: 39, day: 0 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '6 Hours', laps: 39, day: 0 },
       ],
     },
     {
@@ -135,7 +135,7 @@ export const VLN_2004: Championship = {
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 180, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 120, day: 1 },
-        { id: 'race', type: 'race', name: '24 Hours', laps: 137, day: 2 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '24 Hours', laps: 137, day: 2 },
       ],
     },
   ],

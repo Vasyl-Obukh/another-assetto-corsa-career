@@ -108,7 +108,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 0 },
-        { type: 'race', name: 'Race', distance: 140, day: 1 },
+        { type: 'race', classGrid: 'mixed', name: 'Race', distance: 140, day: 1 },
       ],
     },
     {
@@ -117,7 +117,7 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
-        { id: 'race', type: 'race', name: '6 Hours', laps: 131, day: 2 },
+        { id: 'race', type: 'race', classGrid: 'mixed', name: '6 Hours', laps: 131, day: 2 },
       ],
     },
   ],

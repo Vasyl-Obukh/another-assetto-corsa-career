@@ -11,6 +11,7 @@ import {
 import type {
   Championship, EventFormat, SeriesSession, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
+import { mixesClasses, runsApart } from '../../../../shared/utils/session-chain';
 import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
@@ -87,6 +88,8 @@ export const SessionsSplit = ({
   // document says it is there, and it goes if it is left empty.
   const [extra, setExtra] = useState(0);
   const days = flat ? 1 : Math.min(MAX_DAY + 1, daysOf(format) + extra);
+  // How classes qualify and line up means nothing to a field of one.
+  const multi = series.entries.length > 1;
   const onHead = head !== undefined && selected < 0;
   const index = Math.max(0, Math.min(selected, format.sessions.length - 1));
 
@@ -121,6 +124,13 @@ export const SessionsSplit = ({
   };
 
   /**
+   * Says whether one session is a qualifying run apart, which its row marks.
+   * @param session The session
+   * @returns True for one, in a field of several classes
+   */
+  const apartOf = (session: SeriesSession): boolean => multi && runsApart(session);
+
+  /**
    * Says what sets one session's grid.
    * @param session The session
    * @returns What it follows, or null
@@ -130,8 +140,13 @@ export const SessionsSplit = ({
     if (at === null) return null;
     const name = nameOf(format.sessions[at]);
     const top = session.inherit?.top === undefined ? name : t('editor.sessions.followsTop', { name, top: session.inherit.top });
+    const reversed = session.inherit?.reverse === undefined
+      ? top
+      : top + t('editor.sessions.followsReverse', { reverse: session.inherit.reverse });
+    // Mixing is the exception, so it is the one said.
+    const mixed = multi && session.type === 'race' && mixesClasses(format.sessions, format.sessions.indexOf(session));
 
-    return session.inherit?.reverse === undefined ? top : top + t('editor.sessions.followsReverse', { reverse: session.inherit.reverse });
+    return mixed ? reversed + t('editor.sessions.followsMixed') : reversed;
   };
 
   return (
@@ -159,6 +174,7 @@ export const SessionsSplit = ({
           nameOf={nameOf}
           lengthOf={lengthOf}
           fromOf={fromOf}
+          apartOf={apartOf}
           onSelect={setSelected}
           onMove={(from, before, day) => land(withSessionMoved(format, from, before, day))}
           onAdd={(day) => land(withSessionMoved(

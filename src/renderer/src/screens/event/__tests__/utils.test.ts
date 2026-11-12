@@ -23,6 +23,7 @@ const session = (overrides: Partial<EventSession> = {}): EventSession => ({
   forecast: null,
   pending: false,
   inherit: null,
+  apart: false,
   status: 'later',
   record: null,
   startSlot: null,

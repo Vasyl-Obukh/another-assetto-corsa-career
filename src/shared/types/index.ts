@@ -91,11 +91,13 @@ export type {
 export type {
   Assists,
   CarEntry,
+  ClassGrid,
   Conditions,
   GridDefinition,
   GridEntry,
   GridStart,
   PlayerCar,
+  QualifyingClasses,
   RaceDefinition,
   SessionDefinition,
   SessionInheritance,

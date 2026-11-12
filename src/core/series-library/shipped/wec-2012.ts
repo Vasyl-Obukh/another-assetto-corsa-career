@@ -106,7 +106,7 @@ export const WEC_2012: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '6 Hours', laps: 191, day: 2 },
       ],
     },
@@ -115,7 +115,7 @@ export const WEC_2012: Championship = {
       name: 'Twelve hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '12 Hours', laps: 325, day: 2 },
       ],
     },

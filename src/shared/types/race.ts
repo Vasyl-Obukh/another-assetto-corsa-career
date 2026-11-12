@@ -28,6 +28,18 @@ export type TrackStateName = 'green' | 'fast' | 'optimum';
 export type GridStart = 'last' | 'pole' | 'random' | number;
 
 /**
+ * How the classes of a multi-class field qualify: every class in one session,
+ * or each in a session of its own.
+ */
+export type QualifyingClasses = 'together' | 'apart';
+
+/**
+ * How the classes of a multi-class field line up on a race's grid: every car of
+ * a faster class ahead of every car of a slower one, or mixed on times.
+ */
+export type ClassGrid = 'byClass' | 'mixed';
+
+/**
  * Where a session takes its field and its order from.
  *
  * One shape for what reads as two rules, because they are the same rule. On a
@@ -124,6 +136,22 @@ export interface SessionDefinition {
    * the player starts where that session put them.
    */
   start?: GridStart;
+  /**
+   * How a qualifying session runs a field of several classes. Unset is
+   * together. Apart, the player drives with their own class alone and every
+   * other class's session is simulated; a knockout's `inherit.top` then keeps
+   * that many of each class. Ignored on anything but a qualifying.
+   */
+  classes?: QualifyingClasses;
+  /**
+   * How a race lines a field of several classes up. Unset is by class, the
+   * faster - earlier in the event's list of classes - ahead; mixed is the
+   * order the sessions before it left, and its reverse turns the front of the
+   * whole grid round rather than of each class. Behind a qualifying run apart
+   * there are no times to mix on, so it lines up by class whatever this says.
+   * Ignored on anything but a race.
+   */
+  classGrid?: ClassGrid;
   /**
    * What this session overrides of the event's own conditions.
    *
@@ -467,6 +495,13 @@ export interface RaceDefinition {
    * absent from a race written by hand, which has no classes.
    */
   classStrength?: Record<string, number>;
+  /**
+   * The event's classes by entry id, fastest first - the order they line up in
+   * wherever a grid keeps them apart. Set by a championship round's lowering
+   * for a field of more than one class; absent, the classes stand in the order
+   * they first appear among the AI.
+   */
+  classOrder?: readonly string[];
   /**
    * The player's own AI strength the field was lowered over - their Opponents
    * setting - which every figure in the grid is that plus its offsets.

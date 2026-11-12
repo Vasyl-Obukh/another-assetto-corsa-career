@@ -7,10 +7,11 @@
 
 import {
   CONDITION_GROUP_ORDER, CONDITION_GROUPS, DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER,
-  EDITOR_TABS, HISTORIC_IDS, HISTORIC_TAB_OF, PROBLEM_TAB, PURSE_ROUNDING, PURSE_WEIGHT, TAB_FIELDS,
+  DIAGRAM_CARS, DIAGRAM_CLASS_GAP, EDITOR_TABS, HISTORIC_IDS, HISTORIC_TAB_OF, PROBLEM_TAB, PURSE_ROUNDING,
+  PURSE_WEIGHT, TAB_FIELDS,
 } from './constants.ts';
 import type {
-  ConditionGroup, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit, SetAside,
+  ConditionGroup, DiagramCar, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit, SetAside,
   StartKind,
 } from './types.ts';
 import {
@@ -713,6 +714,32 @@ export const sessionSource = (
   const at = sessions.findIndex((one) => one.id === from);
 
   return at < 0 ? null : at;
+};
+
+/**
+ * The example field the grid diagram draws: a few cars of each class, each
+ * class a little slower than the one before so the classes overlap, and one
+ * car of the second class with no time - in the order the whole field
+ * qualified.
+ * @param classes How many classes the field has
+ * @returns The cars, fastest first and the untimed last
+ */
+export const diagramField = (classes: number): DiagramCar[] => {
+  const untimed = Math.min(1, classes - 1);
+  const cars = Array.from({ length: classes }, (unused, slot) => slot).flatMap((slot) => (
+    Array.from({ length: DIAGRAM_CARS }, (none, at) => ({
+      slot,
+      classPlace: at + 1,
+      time: slot === untimed && at === DIAGRAM_CARS - 1 ? null : slot * DIAGRAM_CLASS_GAP + at,
+    }))
+  ));
+  const ranked = [...cars].sort((left, right) => (
+    (left.time ?? Infinity) - (right.time ?? Infinity) || left.slot - right.slot
+  ));
+
+  return ranked.map(({ slot, classPlace, time }, at) => ({
+    slot, classPlace, place: at + 1, timed: time !== null,
+  }));
 };
 
 /**

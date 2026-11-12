@@ -102,6 +102,26 @@ describe('core/career-rating/utils', () => {
       ]);
     });
 
+    // A fixed bug: a qualifying run apart put the player's class alone on track,
+    // so its own order was too short to compose the whole field's on, and the
+    // session was never rated.
+    it('rates a qualifying run apart among the classmates who drove it', () => {
+      const career = careerWith([makeEntry({
+        events: [makeEvent('two', '2027-03-07', [
+          makeRecord(0, FIELD),
+          makeRecord(1, [1, 2, 0, 3, 4, 5], {
+            gridOrder: [0, 2, 4],
+            carClasses: ['pro', 'am', 'pro', 'am', 'pro', 'am'],
+            simulatedClasses: ['am'],
+          }),
+        ])],
+      })]);
+
+      expect(pendingSessions(career)).toEqual([expect.objectContaining({
+        key: 'session:test-cup/two@0.0:1', type: 'qualify', place: 2,
+      })]);
+    });
+
     it('leaves out a class that is not on the ladder', () => {
       const career = careerWith([makeEntry({
         entry: 'gone',

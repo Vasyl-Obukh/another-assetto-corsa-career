@@ -14,6 +14,7 @@ import type {
   CareerSeason,
   Contract,
   ContractTerms,
+  GridEntry,
   HistoricDraw,
   InvitationDraw,
   LaunchRecord,
@@ -1973,6 +1974,59 @@ describe('main/career-store/utils', () => {
       expect(sessions[0].inherit).toBeNull();
       expect(sessions[1].inherit).toBeNull();
       expect(sessions[2].inherit).toEqual({ from: 'Qualifying', reverse: undefined });
+    });
+
+    describe('a field of several classes', () => {
+      const GRID = ['pro', 'pro', 'am', 'am'].map((entry, at) => (
+        { driver: `Driver ${at}`, aiLevel: 95 - at, entry } as GridEntry
+      ));
+
+      /**
+       * Runs eventSessions over sessions of a two-class field, with nothing run.
+       * @param sessions The event's sessions
+       * @param grid The field, two classes unless the test says otherwise
+       * @returns The sessions as the event page would show them
+       */
+      const multi = (sessions: SeriesSession[], grid: GridEntry[] = GRID) => eventSessions(
+        makePlan(sessions, { grid }), sessions, [], null, false, undefined, 'seat-2', true,
+      );
+
+      it('marks a qualifying whose classes run apart', () => {
+        const sessions = multi([{ type: 'qualify', classes: 'apart' }, { type: 'qualify' }]);
+
+        expect(sessions.map((one) => one.apart)).toEqual([true, false]);
+      });
+
+      it('marks nothing apart in a field of one class', () => {
+        const [one] = multi([{ type: 'qualify', classes: 'apart' }], GRID.map((car) => ({ ...car, entry: 'pro' })));
+
+        expect(one.apart).toBe(false);
+      });
+
+      it('says how a race lines its classes up, one nothing sets the grid of included', () => {
+        const sessions = multi([
+          { type: 'race' },
+          { id: 'q', type: 'qualify' },
+          { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' },
+        ]);
+
+        expect(sessions.map((one) => one.classGrid)).toEqual(['byClass', undefined, 'mixed']);
+      });
+
+      it('says a race behind a qualifying run apart lines up by class, whatever it says', () => {
+        const sessions = multi([
+          { id: 'q', type: 'qualify', classes: 'apart' },
+          { type: 'race', inherit: { from: 'q' }, classGrid: 'mixed' },
+        ]);
+
+        expect(sessions[1].classGrid).toBe('byClass');
+      });
+
+      it('says nothing of classes for a field of one', () => {
+        const [race] = multi([{ type: 'race' }], GRID.map((car) => ({ ...car, entry: 'pro' })));
+
+        expect(race).not.toHaveProperty('classGrid');
+      });
     });
 
     it('keeps the distance a race was stated as alongside its lap count', () => {

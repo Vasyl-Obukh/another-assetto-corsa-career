@@ -75,6 +75,12 @@ interface SessionListProps {
    */
   fromOf: (session: SeriesSession) => string | null;
   /**
+   * Says whether one session is a qualifying whose classes run apart.
+   * @param session The session
+   * @returns True when its row should say so
+   */
+  apartOf: (session: SeriesSession) => boolean;
+  /**
    * Called to open a session.
    * @param index Where it sits
    */
@@ -109,7 +115,7 @@ interface SessionListProps {
  * list, to the three an event may span.
  */
 export const SessionList = ({
-  head, flat = false, sessions, days, selected, locked, nameOf, lengthOf, fromOf,
+  head, flat = false, sessions, days, selected, locked, nameOf, lengthOf, fromOf, apartOf,
   onSelect, onMove, onAdd, onAddDay, onRemoveDay,
 }: SessionListProps) => {
   const { t } = useKindTranslation();
@@ -210,6 +216,7 @@ export const SessionList = ({
                   name={nameOf(session)}
                   length={lengthOf(session)}
                   from={fromOf(session)}
+                  apart={apartOf(session)}
                   selected={selected === index}
                   dragging={dragging === index}
                   draggable={!locked}

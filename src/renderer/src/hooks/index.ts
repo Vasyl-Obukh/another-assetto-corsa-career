@@ -69,6 +69,7 @@ export { useLatestResults } from './use-latest-results/index.ts';
 export { useLoadSave } from './use-load-save/index.ts';
 export type { LoadSave } from './use-load-save/index.ts';
 export type { LatestResultsState } from './use-latest-results/index.ts';
+export { useRoomBelow } from './use-room-below/index.ts';
 export { useRowDrag } from './use-row-drag/index.ts';
 export type { RowDrag, RowEdge } from './use-row-drag/index.ts';
 export { useRowEdit } from './use-row-edit/index.ts';

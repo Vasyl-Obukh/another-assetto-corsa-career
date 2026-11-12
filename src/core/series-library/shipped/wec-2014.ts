@@ -134,7 +134,7 @@ export const WEC_2014: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '6 Hours', laps: 188, day: 2 },
       ],
     },

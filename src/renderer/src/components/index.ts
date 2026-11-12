@@ -1,6 +1,7 @@
 // Entry point for our own components. Vendored shadcn source under ui/ is
 // imported directly from @/components/ui/<name>.tsx, the way the CLI writes it.
 
+export { ApartMark } from './ApartMark.tsx';
 export { AppHeader } from './AppHeader.tsx';
 export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
@@ -41,6 +42,7 @@ export {
 } from './results/index.ts';
 export type { StandingsView, StripFigure } from './results/index.ts';
 export { HistoricChip } from './HistoricChip.tsx';
+export { InfoTip } from './InfoTip.tsx';
 export { LibrarySwitch, withId } from './library-switch/index.ts';
 export { LiveryPlate } from './LiveryPlate.tsx';
 export {

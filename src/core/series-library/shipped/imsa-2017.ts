@@ -122,7 +122,7 @@ export const IMSA_2017: Championship = {
       name: 'Two hours forty',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { type: 'race', name: '2 Hours 40', distance: 470, day: 2 },
       ],
     },
@@ -131,7 +131,7 @@ export const IMSA_2017: Championship = {
       name: 'Six hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '6 Hours', laps: 200, day: 2 },
       ],
     },
@@ -140,7 +140,7 @@ export const IMSA_2017: Championship = {
       name: 'Ten hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: 'Petit Le Mans', laps: 402, day: 2 },
       ],
     },
@@ -149,7 +149,7 @@ export const IMSA_2017: Championship = {
       name: 'Twelve hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: '12 Hours', laps: 348, day: 2 },
       ],
     },
@@ -158,7 +158,7 @@ export const IMSA_2017: Championship = {
       name: 'Twenty-four hours',
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 240, day: 0 },
-        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { id: 'race', type: 'race', name: 'Rolex 24', laps: 659, day: 2 },
       ],
     },

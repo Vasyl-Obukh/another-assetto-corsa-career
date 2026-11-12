@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card.tsx';
 import { useCars } from '@/hooks';
 import { classAccent } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
+import { FastestFirst } from '@/screens/championship-editor';
 
 interface ClassesCardProps {
   /**
@@ -91,6 +92,7 @@ export const ClassesCard = ({
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
           <div className="flex flex-col gap-2">
+            {race.classes.length > 1 ? <FastestFirst /> : null}
             {race.classes.map((one, slot) => (
               <QuickClassItem
                 key={one.id}
