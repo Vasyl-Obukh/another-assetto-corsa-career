@@ -22,8 +22,12 @@ export const TROFEO_ABARTH_500_2009: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'trofeo-abarth-500-2009',
   name: 'Trofeo Abarth 500 Italia 2009',
-  description: 'The Abarth 500 Assetto Corse\'s one-make trophy in its first season: two races a '
-    + 'event, each from its own qualifying. Magione stands in for Le Castellet.',
+  description: {
+    en: 'The Abarth 500 Assetto Corse\'s one-make trophy in its first season: two races a '
+      + 'event, each from its own qualifying. Magione stands in for Le Castellet.',
+    uk: 'Монокубок Abarth 500 Assetto Corse у його першому сезоні: дві гонки за етап, кожна зі своєю '
+      + 'кваліфікацією. Маджоне замінює Ле-Кастелле.',
+  },
   teams: [
     team('torino', 'Torino Squadra Corse', 'ITA', TeamBudget.INDEPENDENT),
     team('scorpione', 'Scorpione Racing', 'ITA', TeamBudget.INDEPENDENT),

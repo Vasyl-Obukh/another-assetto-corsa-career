@@ -27,9 +27,13 @@ export const WEC_2014: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2014',
   name: 'World Endurance Championship 2014',
-  description: 'The first season of the hybrid LMP1s, R18 against TS040, with Yezhrod\'s Ligier in LMP2'
-    + ' and the 458 and the Corvette in GTE Pro and GTE Am: all eight rounds at their real lengths, Le'
-    + ' Mans at double points.',
+  description: {
+    en: 'The first season of the hybrid LMP1s, R18 against TS040, with Yezhrod\'s Ligier in LMP2'
+      + ' and the 458 and the Corvette in GTE Pro and GTE Am: all eight rounds at their real lengths, Le'
+      + ' Mans at double points.',
+    uk: 'Перший сезон гібридних LMP1, R18 проти TS040, з Ligier від Yezhrod в LMP2 та 458 і Corvette в '
+      + 'GTE Pro та GTE Am: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
+  },
   teams: [
     team('ingolstadt-lmp', 'Neuburg Prototype Team', 'DEU', TeamBudget.WORKS),
     team('higashi-fuji', 'Higashi-Fuji Racing', 'JPN', TeamBudget.WORKS),

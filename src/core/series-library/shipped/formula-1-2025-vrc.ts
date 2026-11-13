@@ -118,8 +118,12 @@ export const FORMULA_1_2025_VRC: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2025-vrc',
   name: 'Formula 1 2025 (VRC)',
-  description: 'Lando Norris\' first title, with the real entry list on VRC\'s Formula Alpha 2025 and '
-    + 'fifteen of its grands prix at their real distances.',
+  description: {
+    en: 'Lando Norris\' first title, with the real entry list on VRC\'s Formula Alpha 2025 and '
+      + 'fifteen of its grands prix at their real distances.',
+    uk: 'Перший титул Ландо Норріса: реальний список учасників на Formula Alpha 2025 від VRC і '
+      + 'п\'ятнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),

@@ -58,8 +58,12 @@ export const FORMULA_3_2024: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-3-2024',
   name: 'FIA Formula 3 2024',
-  description: 'FIA Formula 3 on RSS\'s Formula RSS 3: eight rounds of a reverse-grid sprint and a '
-    + 'feature race, three cars to a team.',
+  description: {
+    en: 'FIA Formula 3 on RSS\'s Formula RSS 3: eight rounds of a reverse-grid sprint and a '
+      + 'feature race, three cars to a team.',
+    uk: 'FIA Formula 3 на Formula RSS 3 від RSS: вісім етапів зі спринтом за зворотною стартовою решіткою '
+      + 'та основною гонкою, по три машини в команді.',
+  },
   teams: [
     team('glenmore', 'Glenmore Racing', 'GBR', TeamBudget.WORKS),
     team('ligure', 'Scuderia Ligure', 'ITA', TeamBudget.INDEPENDENT),

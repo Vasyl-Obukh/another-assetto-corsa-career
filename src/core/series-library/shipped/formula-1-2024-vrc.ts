@@ -116,8 +116,12 @@ export const FORMULA_1_2024_VRC: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2024-vrc',
   name: 'Formula 1 2024 (VRC)',
-  description: 'Max Verstappen\'s fourth title, with the real entry list on VRC\'s Formula Alpha 2024 and '
-    + 'fifteen of its grands prix at their real distances.',
+  description: {
+    en: 'Max Verstappen\'s fourth title, with the real entry list on VRC\'s Formula Alpha 2024 and '
+      + 'fifteen of its grands prix at their real distances.',
+    uk: 'Четвертий титул Макса Ферстаппена: реальний список учасників на Formula Alpha 2024 від VRC і '
+      + 'п\'ятнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),

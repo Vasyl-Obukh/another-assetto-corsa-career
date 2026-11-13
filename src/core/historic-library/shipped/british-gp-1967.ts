@@ -10,7 +10,11 @@ export const BRITISH_GP_1967: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'british-gp-1967',
   name: 'British Grand Prix 1967',
-  description: 'Jim Clark\'s home race, and one the Lotus 49 was built to win. Silverstone as it was, flat out between the oil drums.',
+  description: {
+    en: 'Jim Clark\'s home race, and one the Lotus 49 was built to win. Silverstone as it was, flat out between the oil drums.',
+    uk: 'Домашня гонка Джима Кларка, і саме для таких перемог створили Lotus 49. Старий Сільверстоун: газ '
+      + 'у підлогу між бочками.',
+  },
   teams: [
     team('brabham', 'Brabham Racing Organisation', 'GBR', TeamBudget.WORKS),
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),

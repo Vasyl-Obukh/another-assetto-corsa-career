@@ -20,8 +20,12 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'classic-endurance-racing-2',
   name: 'Classic Endurance Racing 2',
-  description: 'Today\'s historic series for seventies endurance cars: the 935/78 in Group 5 and the '
-    + 'Carrera RSR in GT, over an hour at Spa, Imola and Estoril.',
+  description: {
+    en: 'Today\'s historic series for seventies endurance cars: the 935/78 in Group 5 and the '
+      + 'Carrera RSR in GT, over an hour at Spa, Imola and Estoril.',
+    uk: 'Сучасна історична серія для машин на витривалість сімдесятих: 935/78 у Групі 5 і '
+      + 'Carrera RSR у GT, годинні гонки у Спа, Імолі та Ешторілі.',
+  },
   teams: [
     team('cer-kremer', 'Rennstall Rheinland', 'DEU', TeamBudget.INDEPENDENT),
     team('cer-fr', 'Écurie Francorchamps Historique', 'BEL', TeamBudget.PRIVATEER),

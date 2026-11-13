@@ -41,9 +41,14 @@ export const FORMULA_1_1962: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1962',
   name: 'Formula 1 1962',
-  description: 'The season the Lotus 25 arrived, with the real entry list in the base game\'s Lotus 25 '
-    + 'and six of its grands prix at their real distances, the Nordschleife and Watkins Glen '
-    + 'included. Aintree\'s British Grand Prix is raced at Silverstone as it was in the sixties.',
+  description: {
+    en: 'The season the Lotus 25 arrived, with the real entry list in the base game\'s Lotus 25 '
+      + 'and six of its grands prix at their real distances, the Nordschleife and Watkins Glen '
+      + 'included. Aintree\'s British Grand Prix is raced at Silverstone as it was in the sixties.',
+    uk: 'Сезон появи Lotus 25 зі справжнім списком учасників на Lotus 25 з базової гри та шістьма '
+      + 'гран-прі на справжніх дистанціях, включно з Нордшляйфе та Воткінс-Гленом. Гран-прі '
+      + 'Великої Британії з Ейнтрі проходить у Сільверстоуні, як і бувало в шістдесяті.',
+  },
   teams: [
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),
     team('brm', 'Owen Racing Organisation', 'GBR', TeamBudget.WORKS),

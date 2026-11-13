@@ -57,8 +57,12 @@ export const FORMULA_1_2020: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2020',
   name: 'Formula 1 2020',
-  description: 'The pandemic season and Lewis Hamilton\'s seventh title, with the real entry list on RSS\'s '
-    + 'Formula Hybrid 2020 and sixteen of its seventeen grands prix at their real distances.',
+  description: {
+    en: 'The pandemic season and Lewis Hamilton\'s seventh title, with the real entry list on RSS\'s '
+      + 'Formula Hybrid 2020 and sixteen of its seventeen grands prix at their real distances.',
+    uk: 'Пандемічний сезон і сьомий титул Льюїса Гемілтона зі справжнім списком учасників на '
+      + 'Formula Hybrid 2020 від RSS і шістнадцятьма з сімнадцяти гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),
     team('red-bull', 'Aston Martin Red Bull Racing', 'AUT', TeamBudget.WORKS),

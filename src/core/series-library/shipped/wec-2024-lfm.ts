@@ -32,8 +32,12 @@ export const WEC_2024_LFM: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2024-lfm',
   name: 'World Endurance Championship 2024 (LFM)',
-  description: 'The 2024 World Endurance Championship on LFM\'s cars: Hypercar and LMGT3, seven rounds at'
-    + ' their real lengths, Le Mans at double points.',
+  description: {
+    en: 'The 2024 World Endurance Championship on LFM\'s cars: Hypercar and LMGT3, seven rounds at'
+      + ' their real lengths, Le Mans at double points.',
+    uk: 'Чемпіонат світу з гонок на витривалість 2024 року на машинах LFM: Hypercar і LMGT3, сім етапів '
+      + 'у реальній тривалості, Ле-Ман із подвійними очками.',
+  },
   teams: [
     team('stellaris', 'Stellaris Endurance', 'ITA', TeamBudget.WORKS),
     team('cotswold', 'Cotswold Hypercar', 'GBR', TeamBudget.WORKS),

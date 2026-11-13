@@ -31,9 +31,14 @@ export const WORLD_SPORTSCAR_1969: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'world-sportscar-1969',
   name: 'World Sportscar Championship 1969',
-  description: 'The GT40\'s last season and the 917\'s first: eight rounds at their real lengths, from '
-    + 'Daytona to Le Mans and the banked Monza. The 330 P4, 908 and 917 join the grid if you own their '
-    + 'packs.',
+  description: {
+    en: 'The GT40\'s last season and the 917\'s first: eight rounds at their real lengths, from '
+      + 'Daytona to Le Mans and the banked Monza. The 330 P4, 908 and 917 join the grid if you own their '
+      + 'packs.',
+    uk: 'Останній сезон GT40 і перший для 917: вісім етапів у реальній тривалості, від Дайтони до '
+      + 'Ле-Мана й Монци з віражами. 330 P4, 908 і 917 виходять на стартову решітку, якщо у вас є їхні '
+      + 'паки.',
+  },
   teams: [
     team('gulf-wyer', 'Slough Engineering', 'GBR', TeamBudget.WORKS),
     team('zuffenhausen', 'Salzburg Sportwagen', 'AUT', TeamBudget.WORKS),

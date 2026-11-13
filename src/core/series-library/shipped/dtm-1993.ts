@@ -27,8 +27,13 @@ export const DTM_1993: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dtm-1993',
   name: 'DTM 1993',
-  description: 'The first Class 1 season, raced in two heats a meeting. It runs on the base game\'s BMW '
-    + 'M3 Sport Evolution, and the Alfa 155 and Mercedes 190E join the grid if you own Dream Pack 1.',
+  description: {
+    en: 'The first Class 1 season, raced in two heats a meeting. It runs on the base game\'s BMW '
+      + 'M3 Sport Evolution, and the Alfa 155 and Mercedes 190E join the grid if you own Dream Pack 1.',
+    uk: 'Перший сезон за регламентом Class 1, з двома заїздами на етапі. Він проходить на BMW '
+      + 'M3 Sport Evolution з базової гри, а Alfa 155 і Mercedes 190E поповнюють стартову решітку, '
+      + 'якщо у вас є Dream Pack 1.',
+  },
   teams: [
     team('stern', 'Stern Tourenwagen', 'DEU', TeamBudget.WORKS),
     team('biscione', 'Squadra Biscione', 'ITA', TeamBudget.WORKS),

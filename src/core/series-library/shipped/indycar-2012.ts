@@ -44,8 +44,12 @@ export const INDYCAR_2012: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'indycar-2012',
   name: 'IndyCar 2012',
-  description: 'IndyCar\'s first DW12 season on VRC\'s Formula North America 2012: Sonoma, and the Fontana'
-    + ' 500-mile finale run at Daytona.',
+  description: {
+    en: 'IndyCar\'s first DW12 season on VRC\'s Formula North America 2012: Sonoma, and the Fontana'
+      + ' 500-mile finale run at Daytona.',
+    uk: 'Перший сезон IndyCar на DW12, на Formula North America 2012 від VRC: Сонома і фінальні 500 миль '
+      + 'Фонтани, які розігруються в Дайтоні.',
+  },
   teams: [
     team('lakeshore', 'Lakeshore Racing', 'USA', TeamBudget.WORKS),
     team('crossroads', 'Crossroads Motorsports', 'USA', TeamBudget.WORKS),

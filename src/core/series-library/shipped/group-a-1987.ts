@@ -26,9 +26,13 @@ export const GROUP_A_1987: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'group-a-1987',
   name: 'World Touring Car Championship 1987',
-  description: 'Group A\'s one world season, in the BMW M3\'s own division, at its real lengths: the '
-    + 'Monza 500 km, the Spa 24 Hours, the Bathurst 1000 and 500 km at the Nurburgring, Silverstone '
-    + 'and Fuji.',
+  description: {
+    en: 'Group A\'s one world season, in the BMW M3\'s own division, at its real lengths: the '
+      + 'Monza 500 km, the Spa 24 Hours, the Bathurst 1000 and 500 km at the Nurburgring, Silverstone '
+      + 'and Fuji.',
+    uk: 'Єдиний сезон чемпіонату світу в Групі A, у власному дивізіоні BMW M3, на справжніх дистанціях: '
+      + '500 км Монци, 24 години Спа, Батерст 1000 і по 500 км на Нюрбургринзі, у Сільверстоуні та Фудзі.',
+  },
   teams: [
     team('schwaben', 'Schwaben Tourenwagen', 'DEU', TeamBudget.WORKS),
     team('bologna', 'Squadra Petronio', 'ITA', TeamBudget.WORKS),

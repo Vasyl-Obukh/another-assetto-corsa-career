@@ -41,8 +41,12 @@ export const FIA_GT_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'fia-gt-2004',
   name: 'FIA GT Championship 2004',
-  description: 'The FIA GT Championship of 2004, on RSS\'s GT and GT-N cars and the MC12: 500 km races at'
-    + ' Monza, Valencia, Magny-Cours and Imola, and the Spa 24 Hours.',
+  description: {
+    en: 'The FIA GT Championship of 2004, on RSS\'s GT and GT-N cars and the MC12: 500 km races at'
+      + ' Monza, Valencia, Magny-Cours and Imola, and the Spa 24 Hours.',
+    uk: 'FIA GT Championship 2004 року на машинах GT і GT-N від RSS та MC12: гонки на 500 км '
+      + 'у Монці, Валенсії, Маньї-Курі та Імолі, а також 24 години Спа.',
+  },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
     team('brescia', 'Scuderia Bresciana', 'ITA', TeamBudget.INDEPENDENT),

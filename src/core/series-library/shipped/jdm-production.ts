@@ -17,7 +17,10 @@ export const JDM_PRODUCTION: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'jdm-production',
   name: 'JDM Production',
-  description: 'Invented: the Japanese Pack\'s road cars in two production classes, on Japanese circuits.',
+  description: {
+    en: 'Invented: the Japanese Pack\'s road cars in two production classes, on Japanese circuits.',
+    uk: 'Вигаданий: дорожні машини з Japanese Pack у двох серійних класах на японських трасах.',
+  },
   teams: [
     team('gunma', 'Gunma Street Racing', 'JPN', TeamBudget.INDEPENDENT),
     team('shizuoka', 'Shizuoka Motorsport', 'JPN', TeamBudget.PRIVATEER),

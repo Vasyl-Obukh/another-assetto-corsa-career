@@ -11,9 +11,15 @@ import type {
 export const THEME_CHOICES: readonly ThemeChoice[] = ['system', 'light', 'dark'];
 
 /**
- * Every language the UI offers, in menu order. English is the fallback.
+ * Every language the UI offers, in menu order.
  */
 export const LANGUAGES: readonly Language[] = ['en', 'uk'];
+
+/**
+ * The language whatever is missing in the reader's own falls back to - the
+ * app's own copy and a document's author's text alike.
+ */
+export const FALLBACK_LANGUAGE: Language = 'en';
 
 /**
  * Every weather system the UI offers, in menu order.

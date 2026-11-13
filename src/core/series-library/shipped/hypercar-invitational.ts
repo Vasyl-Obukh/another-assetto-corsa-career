@@ -18,8 +18,12 @@ export const HYPERCAR_INVITATIONAL: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'hypercar-invitational',
   name: 'Hypercar Invitational',
-  description: 'Invented, with no real series behind it: the base game\'s hypercars and track specials '
-    + 'balanced against each other, by invitation only.',
+  description: {
+    en: 'Invented, with no real series behind it: the base game\'s hypercars and track specials '
+      + 'balanced against each other, by invitation only.',
+    uk: 'Вигаданий чемпіонат без реальної серії за ним: гіперкари й трекові версії базової гри, '
+      + 'збалансовані між собою, участь лише за запрошеннями.',
+  },
   teams: [
     team('modena-hyper', 'Atelier Modena', 'ITA', TeamBudget.WORKS),
     team('sant-agata', 'Squadra Sant\'Agata', 'ITA', TeamBudget.WORKS),

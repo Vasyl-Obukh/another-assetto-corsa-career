@@ -30,8 +30,12 @@ export const FORMULA_E_2020_21: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-e-2020-21',
   name: 'Formula E 2020-21',
-  description: 'Formula E\'s first world championship season on VRC\'s Formula Lithium 2019, the Gen2 car:'
-    + ' its Valencia double header, the only venue of the season Assetto Corsa has.',
+  description: {
+    en: 'Formula E\'s first world championship season on VRC\'s Formula Lithium 2019, the Gen2 car:'
+      + ' its Valencia double header, the only venue of the season Assetto Corsa has.',
+    uk: 'Перший сезон Formula E у статусі чемпіонату світу на Formula Lithium 2019 від VRC, машині Gen2: '
+      + 'здвоєний етап у Валенсії, єдиній трасі сезону, яка є в Assetto Corsa.',
+  },
   teams: [
     team('lumen-e', 'Lumen E-Racing', 'FRA', TeamBudget.WORKS),
     team('voltaic', 'Voltaic Racing', 'GBR', TeamBudget.WORKS),

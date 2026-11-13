@@ -10,7 +10,11 @@ export const GERMAN_GP_1957: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'german-gp-1957',
   name: 'German Grand Prix 1957',
-  description: 'Fangio\'s greatest drive: nearly a minute lost at his pit stop, then the lap record broken again and again to catch the Ferraris on the Nordschleife.',
+  description: {
+    en: 'Fangio\'s greatest drive: nearly a minute lost at his pit stop, then the lap record broken again and again to catch the Ferraris on the Nordschleife.',
+    uk: 'Найвеличніша гонка Фанхіо: майже хвилина втрачена на піт-стопі, а потім рекорд кола, побитий '
+      + 'знову і знову, щоб наздогнати Ferrari на Нордшляйфе.',
+  },
   teams: [
     team('maserati', 'Officine Alfieri Maserati', 'ITA', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

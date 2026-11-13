@@ -10,7 +10,11 @@ export const MONZA_1000_1969: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'monza-1000-1969',
   name: '1000 km of Monza 1969',
-  description: 'Monza\'s full circuit, banking and all, with the sports prototypes flat out for six hours.',
+  description: {
+    en: 'Monza\'s full circuit, banking and all, with the sports prototypes flat out for six hours.',
+    uk: 'Повна конфігурація Монци разом із похилими віражами, і спортивні прототипи на повному газі шість '
+      + 'годин поспіль.',
+  },
   teams: [
     team('gulf-wyer', 'Slough Engineering', 'GBR', TeamBudget.WORKS),
     team('zuffenhausen', 'Salzburg Sportwagen', 'AUT', TeamBudget.WORKS),

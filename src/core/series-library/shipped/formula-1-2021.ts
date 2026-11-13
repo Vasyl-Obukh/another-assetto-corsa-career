@@ -105,8 +105,12 @@ export const FORMULA_1_2021: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2021',
   name: 'Formula 1 2021',
-  description: 'Max Verstappen\'s first title, with the real entry list on RSS\'s Formula Hybrid 2021, '
-    + 'sixteen of its grands prix at their real distances and the first three sprint rounds.',
+  description: {
+    en: 'Max Verstappen\'s first title, with the real entry list on RSS\'s Formula Hybrid 2021, '
+      + 'sixteen of its grands prix at their real distances and the first three sprint rounds.',
+    uk: 'Перший титул Макса Ферстаппена: реальний список учасників на Formula Hybrid 2021 від RSS, '
+      + 'шістнадцять гран-прі сезону на їхніх справжніх дистанціях і перші три етапи зі спринтом.',
+  },
   teams: [
     team('red-bull', 'Red Bull Racing Honda', 'AUT', TeamBudget.WORKS),
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),

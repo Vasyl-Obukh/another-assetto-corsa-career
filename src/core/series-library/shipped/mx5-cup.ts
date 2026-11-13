@@ -20,8 +20,12 @@ export const MX5_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'mx5-cup',
   name: 'Mazda MX-5 Cup 2024',
-  description: 'America\'s one-make MX-5 series in 2024: double headers of forty-five-minute races at '
-    + 'five of its seven IMSA circuits.',
+  description: {
+    en: 'America\'s one-make MX-5 series in 2024: double headers of forty-five-minute races at '
+      + 'five of its seven IMSA circuits.',
+    uk: 'Американський монокубок MX-5 сезону 2024: по дві гонки по сорок п\'ять хвилин за етап на п\'яти з '
+      + 'семи його трас IMSA.',
+  },
   teams: [
     team('hiroshima-usa', 'Irvine Motorsports', 'USA', TeamBudget.WORKS),
     team('ohio-mx5', 'Buckeye Roadster Racing', 'USA', TeamBudget.INDEPENDENT),

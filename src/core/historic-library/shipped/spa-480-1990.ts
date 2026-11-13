@@ -10,7 +10,10 @@ export const SPA_480_1990: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spa-480-1990',
   name: '480 km of Spa 1990',
-  description: 'Group C at its peak, Sauber-Mercedes against Jaguar through Eau Rouge.',
+  description: {
+    en: 'Group C at its peak, Sauber-Mercedes against Jaguar through Eau Rouge.',
+    uk: 'Група C на піку: Sauber-Mercedes проти Jaguar крізь О-Руж.',
+  },
   teams: [
     team('silberpfeil', 'Silberpfeil Sportwagen', 'CHE', TeamBudget.WORKS),
     team('coventry', 'Coventry Prototypes', 'GBR', TeamBudget.WORKS),

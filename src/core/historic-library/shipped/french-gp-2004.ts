@@ -10,7 +10,10 @@ export const FRENCH_GP_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'french-gp-2004',
   name: 'French Grand Prix 2004',
-  description: 'Magny-Cours, and the four-stop strategy that took Schumacher past Alonso.',
+  description: {
+    en: 'Magny-Cours, and the four-stop strategy that took Schumacher past Alonso.',
+    uk: 'Магні-Кур і тактика з чотирма піт-стопами, яка вивела Шумахера попереду Алонсо.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('bar', 'Lucky Strike BAR Honda', 'GBR', TeamBudget.WORKS),

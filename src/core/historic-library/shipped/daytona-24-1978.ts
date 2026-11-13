@@ -10,7 +10,10 @@ export const DAYTONA_24_1978: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'daytona-24-1978',
   name: '24 Hours of Daytona 1978',
-  description: 'Group 5 silhouettes round the banking and the infield through the Florida night.',
+  description: {
+    en: 'Group 5 silhouettes round the banking and the infield through the Florida night.',
+    uk: 'Силуети Групи 5 на похилих віражах та в інфілді крізь флоридську ніч.',
+  },
   teams: [
     team('kremer-78', 'Kölner Rennstall', 'DEU', TeamBudget.WORKS),
     team('loos-78', 'Gelo Sportwagen', 'DEU', TeamBudget.WORKS),

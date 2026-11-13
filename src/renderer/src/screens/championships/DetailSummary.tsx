@@ -20,7 +20,7 @@ import { ClimateBadge, SWITCH_TRACK } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
 import type { SeriesCommandsState } from '@/hooks';
-import { useFormat } from '@/i18n';
+import { useFormat, useLocalizedText } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 
 interface DetailSummaryProps {
@@ -62,6 +62,8 @@ export const DetailSummary = ({
   listing, manage, commands, onDeleted, entered, next, onOpen,
 }: DetailSummaryProps) => {
   const { t } = useTranslation();
+  const describe = useLocalizedText();
+  const description = describe(listing.series.description);
   const { formatMoney } = useFormat();
   const { settings, patch } = useSettings();
   const { series, availability, origin } = listing;
@@ -134,8 +136,8 @@ export const DetailSummary = ({
         {manage && state !== 'available' ? <AvailabilityBadge availability={availability} /> : null}
       </div>
 
-      {series.description ? (
-        <p className="text-sm text-muted-foreground">{series.description}</p>
+      {description ? (
+        <p className="text-sm text-muted-foreground">{description}</p>
       ) : null}
       {/* Only ever set by Duplicate: a record of where the copy came from
           rather than a live link. */}

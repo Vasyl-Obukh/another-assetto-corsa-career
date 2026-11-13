@@ -10,7 +10,11 @@ export const BRANDS_HATCH_1998: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'brands-hatch-1998',
   name: 'Brands Hatch 1998',
-  description: 'Super Touring at its height: the Indy circuit, a full grid and door handles into Paddock Hill bend.',
+  description: {
+    en: 'Super Touring at its height: the Indy circuit, a full grid and door handles into Paddock Hill bend.',
+    uk: 'Super Touring на піку: коротка конфігурація Indy, повна стартова решітка і боротьба борт у борт '
+      + 'у повороті Педдок-Гілл.',
+  },
   teams: [
     team('pennine', 'Pennine Motorsport', 'GBR', TeamBudget.WORKS),
     team('wessex', 'Wessex Racing', 'GBR', TeamBudget.WORKS),

@@ -21,8 +21,12 @@ export const CAN_AM_1973: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'can-am-1973',
   name: 'Can-Am 1973',
-  description: 'The 917/30\'s season, one-make: four of the 1973 Can-Am rounds over their real two '
-    + 'hundred miles.',
+  description: {
+    en: 'The 917/30\'s season, one-make: four of the 1973 Can-Am rounds over their real two '
+      + 'hundred miles.',
+    uk: 'Сезон 917/30 як монокубок: чотири етапи Can-Am 1973 року на справжній дистанції '
+      + 'у двісті миль.',
+  },
   teams: [
     team('reading', 'Brandywine Racing', 'USA', TeamBudget.WORKS),
     team('rinzler', 'Lakeshore Can-Am', 'USA', TeamBudget.INDEPENDENT),

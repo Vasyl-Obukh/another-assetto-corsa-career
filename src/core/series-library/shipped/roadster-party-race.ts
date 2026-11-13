@@ -19,8 +19,12 @@ export const ROADSTER_PARTY_RACE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'roadster-party-race',
   name: 'Roadster Party Race',
-  description: 'Japan\'s one-make series for the ND MX-5, on the road car the club racer is built from, '
-    + 'at Japanese circuits.',
+  description: {
+    en: 'Japan\'s one-make series for the ND MX-5, on the road car the club racer is built from, '
+      + 'at Japanese circuits.',
+    uk: 'Японський монокубок для MX-5 ND на дорожній машині, з якої будують клубний гоночний автомобіль, '
+      + 'на японських трасах.',
+  },
   teams: [
     team('roadster-club', 'Roadster Club Hiroshima', 'JPN', TeamBudget.INDEPENDENT),
     team('kanto-nd', 'Kanto ND Racing', 'JPN', TeamBudget.PRIVATEER),

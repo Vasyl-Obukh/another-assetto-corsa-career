@@ -25,9 +25,13 @@ export const FIA_GT_1997: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'fia-gt-1997',
   name: 'FIA GT Championship 1997',
-  description: 'The GT1 homologation specials at their height: seven of the 1997 season\'s rounds at '
-    + 'their real lengths, on whichever of the F1 GTR, the 911 GT1 and the mod GT1 cars you '
-    + 'own.',
+  description: {
+    en: 'The GT1 homologation specials at their height: seven of the 1997 season\'s rounds at '
+      + 'their real lengths, on whichever of the F1 GTR, the 911 GT1 and the mod GT1 cars you '
+      + 'own.',
+    uk: 'Омологаційні спецверсії GT1 у розквіті: сім етапів сезону 1997 року в справжній '
+      + 'тривалості на тих із F1 GTR, 911 GT1 і модових машин GT1, які у вас є.',
+  },
   teams: [
     team('stuttgart-gt', 'Neckar GT Racing', 'DEU', TeamBudget.WORKS),
     team('weissach-gt', 'Schwarzwald Motorsport', 'DEU', TeamBudget.WORKS),

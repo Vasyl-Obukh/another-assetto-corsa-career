@@ -10,7 +10,10 @@ export const PETIT_LE_MANS_2001: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'petit-le-mans-2001',
   name: 'Petit Le Mans 2001',
-  description: 'Ten hours at Road Atlanta, the Audi R8s against the Corvettes and Porsches of the GT classes.',
+  description: {
+    en: 'Ten hours at Road Atlanta, the Audi R8s against the Corvettes and Porsches of the GT classes.',
+    uk: 'Десять годин у Роуд-Атланті: Audi R8 проти Corvette та Porsche з класів GT.',
+  },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
     team('brescia', 'Scuderia Bresciana', 'ITA', TeamBudget.INDEPENDENT),

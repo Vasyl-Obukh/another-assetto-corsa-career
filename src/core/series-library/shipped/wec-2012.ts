@@ -27,9 +27,14 @@ export const WEC_2012: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2012',
   name: 'World Endurance Championship 2012',
-  description: 'The first World Endurance Championship on Yezhrod\'s R18 e-tron quattro and the base '
-    + 'game\'s GTEs in GTE Pro and GTE Am: all eight rounds at their real lengths, Le Mans at double '
-    + 'points.',
+  description: {
+    en: 'The first World Endurance Championship on Yezhrod\'s R18 e-tron quattro and the base '
+      + 'game\'s GTEs in GTE Pro and GTE Am: all eight rounds at their real lengths, Le Mans at double '
+      + 'points.',
+    uk: 'Перший чемпіонат світу з гонок на витривалість на R18 e-tron quattro від Yezhrod і GTE з '
+      + 'базової гри в GTE Pro та GTE Am: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними '
+      + 'очками.',
+  },
   teams: [
     team('ingolstadt-lmp', 'Neuburg Prototype Team', 'DEU', TeamBudget.WORKS),
     team('higashi-fuji', 'Higashi-Fuji Racing', 'JPN', TeamBudget.WORKS),

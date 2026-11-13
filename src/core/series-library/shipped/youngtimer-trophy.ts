@@ -25,8 +25,12 @@ export const YOUNGTIMER_TROPHY: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'youngtimer-trophy',
   name: 'Youngtimer Trophy',
-  description: 'Today\'s club championship for seventies and eighties saloons: the Escort RS1600 and the '
-    + 'Group A M3 as two classes, in two 30-minute heats a meeting.',
+  description: {
+    en: 'Today\'s club championship for seventies and eighties saloons: the Escort RS1600 and the '
+      + 'Group A M3 as two classes, in two 30-minute heats a meeting.',
+    uk: 'Сучасний клубний чемпіонат для седанів сімдесятих і вісімдесятих: Escort RS1600 і M3 Групи A як '
+      + 'два класи, у двох 30-хвилинних заїздах за етап.',
+  },
   teams: [
     team('eifel', 'Eifel Youngtimer Team', 'DEU', TeamBudget.INDEPENDENT),
     team('rotterdam', 'Maasvlakte Classic Racing', 'NLD', TeamBudget.PRIVATEER),

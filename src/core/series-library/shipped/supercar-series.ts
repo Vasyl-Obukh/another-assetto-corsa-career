@@ -17,8 +17,12 @@ export const SUPERCAR_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'supercar-series',
   name: 'Supercar Series',
-  description: 'Invented, with no real series behind it: the base game\'s road supercars balanced '
-    + 'against each other, over 100 km races on the grand prix circuits.',
+  description: {
+    en: 'Invented, with no real series behind it: the base game\'s road supercars balanced '
+      + 'against each other, over 100 km races on the grand prix circuits.',
+    uk: 'Вигаданий, без реальної серії за ним: дорожні суперкари з базової гри, вирівняні між собою, у '
+      + 'гонках на 100 км на трасах Гран-прі.',
+  },
   teams: [
     team('maranello-road', 'Rosso Strada', 'ITA', TeamBudget.WORKS),
     team('woking-road', 'Surrey Supercars', 'GBR', TeamBudget.WORKS),

@@ -18,7 +18,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import { useInstalledTrack } from '@/hooks';
-import { useFormat } from '@/i18n';
+import { useFormat, useLocalizedText } from '@/i18n';
 import { DISCIPLINE_ACCENT, HISTORIC_ACCENT } from '@/lib/accents';
 import type { InboxItem } from '@/lib/inbox';
 import { cn } from '@/lib/utils.ts';
@@ -66,6 +66,8 @@ export const MailReader = ({
   career, item, car, event, busy, onAccept, onDecline, onUnread,
 }: MailReaderProps) => {
   const { t } = useTranslation();
+  const describe = useLocalizedText();
+  const description = describe(item.event?.description);
   const { formatDay, formatMoney } = useFormat();
   const navigate = useNavigate();
   const { mail, entry, round } = item;
@@ -146,9 +148,9 @@ export const MailReader = ({
                 })}
               </p>
               <p>{t('inbox.letter.terms')}</p>
-              {item.event?.description ? (
+              {description ? (
                 <p className="border-l-2 border-historic-foreground/40 pl-3 text-muted-foreground italic">
-                  {item.event.description}
+                  {description}
                 </p>
               ) : null}
               <p>

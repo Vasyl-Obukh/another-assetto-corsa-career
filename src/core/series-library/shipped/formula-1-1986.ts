@@ -44,8 +44,13 @@ export const FORMULA_1_1986: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1986',
   name: 'Formula 1 1986',
-  description: 'The height of the turbo era, with the real entry list in the base game\'s Lotus 98T and '
-    + 'eight grands prix at their real distances. RSS\'s Formula 1986 joins the grid if you own it.',
+  description: {
+    en: 'The height of the turbo era, with the real entry list in the base game\'s Lotus 98T and '
+      + 'eight grands prix at their real distances. RSS\'s Formula 1986 joins the grid if you own it.',
+    uk: 'Розквіт турбоери зі справжнім списком учасників на Lotus 98T з базової гри та вісьмома '
+      + 'гран-прі на справжніх дистанціях. Formula 1986 від RSS поповнює стартову решітку, '
+      + 'якщо вона у вас є.',
+  },
   teams: [
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),
     team('mclaren', 'Marlboro McLaren International', 'GBR', TeamBudget.WORKS),

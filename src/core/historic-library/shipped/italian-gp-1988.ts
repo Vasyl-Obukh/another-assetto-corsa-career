@@ -10,7 +10,11 @@ export const ITALIAN_GP_1988: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-gp-1988',
   name: 'Italian Grand Prix 1988',
-  description: 'The only race McLaren lost all year: a Ferrari one-two at Monza, a month after Enzo Ferrari died.',
+  description: {
+    en: 'The only race McLaren lost all year: a Ferrari one-two at Monza, a month after Enzo Ferrari died.',
+    uk: 'Єдина гонка, яку McLaren програв того року: дубль Ferrari в Монці через місяць після смерті Енцо '
+      + 'Феррарі.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

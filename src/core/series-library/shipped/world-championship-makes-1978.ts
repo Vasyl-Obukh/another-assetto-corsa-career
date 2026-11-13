@@ -22,8 +22,12 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'world-championship-makes-1978',
   name: 'World Championship for Makes 1978',
-  description: 'Group 5\'s silhouette era, one-make on the 935/78 that stands for the whole 935 field: '
-    + 'seven rounds of 1978 at their real lengths.',
+  description: {
+    en: 'Group 5\'s silhouette era, one-make on the 935/78 that stands for the whole 935 field: '
+      + 'seven rounds of 1978 at their real lengths.',
+    uk: 'Епоха силуетів Групи 5 як монокубок на 935/78, що замінює весь пелотон 935: сім етапів 1978 '
+      + 'року в реальній тривалості.',
+  },
   teams: [
     team('kremer-78', 'Kölner Rennstall', 'DEU', TeamBudget.WORKS),
     team('loos-78', 'Gelo Sportwagen', 'DEU', TeamBudget.WORKS),

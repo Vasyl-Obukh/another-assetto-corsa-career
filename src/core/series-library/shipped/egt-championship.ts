@@ -20,8 +20,12 @@ export const EGT_CHAMPIONSHIP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'egt-championship',
   name: 'EGT Championship',
-  description: 'Invented: URD\'s EGT cars in a season of 170 km sprints and races of 1000 and 1700 km, '
-    + 'the 9SR in its sprint or endurance version to suit.',
+  description: {
+    en: 'Invented: URD\'s EGT cars in a season of 170 km sprints and races of 1000 and 1700 km, '
+      + 'the 9SR in its sprint or endurance version to suit.',
+    uk: 'Вигаданий чемпіонат: машини EGT від URD у сезоні зі спринтів на 170 км і гонок на 1000 '
+      + 'та 1700 км, а 9SR - у спринтерській версії або версії для витривалості, залежно від гонки.',
+  },
   teams: [
     team('arrowhead', 'Arrowhead Endurance', 'GBR', TeamBudget.WORKS),
     team('donau', 'Donau Racing', 'DEU', TeamBudget.WORKS),

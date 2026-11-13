@@ -5,6 +5,7 @@ import {
 import { CHECK_DEBOUNCE_MS } from './constants.ts';
 import type { SeriesEditorState } from './types.ts';
 import type { Championship, SeriesAvailability, SeriesListing } from '../../../../shared/types';
+import { tidyText } from '../../../../shared/utils/localized-text';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { invoke, subscribe, toDisplayableError } from '@/lib/ipc';
 import type { DisplayableError } from '@/lib/ipc';
@@ -129,6 +130,8 @@ export const useSeriesEditor = (
     // flight - which is not instant: it is a file write, a reload of the whole
     // library and a content scan.
     const sent = current.current;
+    // A translation added and never written is dropped rather than saved empty.
+    const written = { ...sent, description: tidyText(sent.description) };
 
     setBusy(true);
     setError(null);
@@ -137,7 +140,7 @@ export const useSeriesEditor = (
       // where its id comes from: the screen then moves to that id's own URL.
       const target = id ?? minted.current;
       if (target === undefined) {
-        const created = await invoke(channels.create, { series: sent });
+        const created = await invoke(channels.create, { series: written });
         minted.current = created.id ?? undefined;
         // Settled, or the screen's own guard against leaving with a draft
         // unwritten would block the move to the new id's URL. Only when the
@@ -147,7 +150,7 @@ export const useSeriesEditor = (
         return created.id;
       }
 
-      const saved = await invoke(channels.save, { id: target, series: sent });
+      const saved = await invoke(channels.save, { id: target, series: written });
 
       // Adopting what comes back rather than what was sent: parseSeries
       // normalises in main, so the two would otherwise drift wherever it

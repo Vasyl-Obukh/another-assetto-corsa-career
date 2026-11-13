@@ -28,8 +28,12 @@ export const ITALIAN_F4: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-f4',
   name: 'Italian F4 Championship',
-  description: 'The Italian Formula 4 championship on RSS\'s Formula RSS 4: three races a round, one of'
-    + ' them from a reversed grid, on Italian circuits.',
+  description: {
+    en: 'The Italian Formula 4 championship on RSS\'s Formula RSS 4: three races a round, one of'
+      + ' them from a reversed grid, on Italian circuits.',
+    uk: 'Італійський чемпіонат Формули-4 на Formula RSS 4 від RSS: три гонки за етап, одна з них зі '
+      + 'зворотної стартової решітки, на італійських трасах.',
+  },
   teams: [
     team('adria', 'Adria Junior Team', 'ITA', TeamBudget.INDEPENDENT),
     team('romagna', 'Romagna Corse', 'ITA', TeamBudget.INDEPENDENT),

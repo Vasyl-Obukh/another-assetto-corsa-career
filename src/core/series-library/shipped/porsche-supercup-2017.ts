@@ -24,8 +24,12 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-supercup-2017',
   name: 'Porsche Supercup 2017',
-  description: 'Formula 1\'s one-make support series in 2017, on the 911 GT3 Cup: seven of its races, '
-    + 'Spa\'s double header included.',
+  description: {
+    en: 'Formula 1\'s one-make support series in 2017, on the 911 GT3 Cup: seven of its races, '
+      + 'Spa\'s double header included.',
+    uk: 'Монокубок підтримки Формули-1 сезону 2017 на 911 GT3 Cup: сім його гонок, зокрема дві гонки в '
+      + 'Спа.',
+  },
   teams: [
     team('lechner-sc', 'Salzach Racing', 'AUT', TeamBudget.WORKS),
     team('fach-sc', 'Rhein-Main Motorsport', 'DEU', TeamBudget.INDEPENDENT),

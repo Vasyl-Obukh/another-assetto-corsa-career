@@ -27,9 +27,14 @@ export const MASTERS_RACING_LEGENDS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'masters-racing-legends',
   name: 'Masters Racing Legends',
-  description: 'Today\'s historic championship for three-litre Formula 1 cars, classed by era: the '
-    + 'Lotus 49 and 72D in the Stewart class, the Ferrari 312T in the Fittipaldi class. One '
-    + 'qualifying and two 25-minute races a round.',
+  description: {
+    en: 'Today\'s historic championship for three-litre Formula 1 cars, classed by era: the '
+      + 'Lotus 49 and 72D in the Stewart class, the Ferrari 312T in the Fittipaldi class. One '
+      + 'qualifying and two 25-minute races a round.',
+    uk: 'Сучасний історичний чемпіонат для трилітрових машин Формули-1 з класами за епохами: Lotus 49 і '
+      + '72D у класі Стюарта, Ferrari 312T у класі Фіттіпальді. Одна кваліфікація та дві 25-хвилинні '
+      + 'гонки за етап.',
+  },
   teams: [
     team('cosworth-heritage', 'DFV Heritage Racing', 'GBR', TeamBudget.INDEPENDENT),
     team('hethel-historic', 'Hethel Historic', 'GBR', TeamBudget.INDEPENDENT),

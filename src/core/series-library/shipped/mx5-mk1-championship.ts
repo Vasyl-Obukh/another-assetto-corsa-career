@@ -22,8 +22,12 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'mx5-mk1-championship',
   name: 'Mk1 MX-5 Championship',
-  description: 'British club racing\'s one-make series for the original Miata: three 35 km races '
-    + 'a meeting, around the British club circuits it races at.',
+  description: {
+    en: 'British club racing\'s one-make series for the original Miata: three 35 km races '
+      + 'a meeting, around the British club circuits it races at.',
+    uk: 'Британський клубний монокубок для першої Miata: три гонки по 35 км за етап на британських '
+      + 'клубних трасах, де він проходить.',
+  },
   teams: [
     team('roadster', 'Roadster Workshop', 'GBR', TeamBudget.INDEPENDENT),
     team('eunos', 'Eunos Motorsport', 'GBR', TeamBudget.PRIVATEER),

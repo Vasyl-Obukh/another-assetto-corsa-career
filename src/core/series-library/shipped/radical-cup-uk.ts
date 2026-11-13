@@ -22,8 +22,12 @@ export const RADICAL_CUP_UK: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'radical-cup-uk',
   name: 'Radical Cup UK',
-  description: 'Radical\'s own club series on URD\'s SR10 XXR and SR3 XXR: two classes, two short races a '
-    + 'meeting at British circuits.',
+  description: {
+    en: 'Radical\'s own club series on URD\'s SR10 XXR and SR3 XXR: two classes, two short races a '
+      + 'meeting at British circuits.',
+    uk: 'Власна клубна серія Radical на SR10 XXR і SR3 XXR від URD: два класи, дві короткі гонки за етап '
+      + 'на британських трасах.',
+  },
   teams: [
     team('grampian', 'Grampian Motorsport', 'GBR', TeamBudget.PRIVATEER),
     team('wolds', 'Wolds Racing', 'GBR', TeamBudget.PRIVATEER),

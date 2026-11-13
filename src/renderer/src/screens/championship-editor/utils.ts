@@ -185,19 +185,6 @@ export const withoutRound = (series: Championship, id: string): Championship => 
 });
 
 /**
- * Reads a text box, treating an emptied one as nothing said.
- *
- * Every optional string on a championship goes through this, so a field the
- * author cleared is dropped by JSON.stringify rather than written as `""` - a
- * document that says a thing is empty rather than saying nothing about it.
- * @param value What the box holds
- * @returns The text, or undefined when the box is empty
- */
-export const optionalText = (value: string): string | undefined => (
-  value === '' ? undefined : value
-);
-
-/**
  * Every seat id a championship already spends.
  *
  * Gathered across every class entry rather than within one, because

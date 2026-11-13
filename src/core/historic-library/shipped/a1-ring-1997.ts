@@ -10,7 +10,10 @@ export const A1_RING_1997: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'a1-ring-1997',
   name: 'A1-Ring 1997',
-  description: 'FIA GT\'s purpose-built GT1 cars in the Styrian hills.',
+  description: {
+    en: 'FIA GT\'s purpose-built GT1 cars in the Styrian hills.',
+    uk: 'Спеціально збудовані машини GT1 чемпіонату FIA GT на пагорбах Штирії.',
+  },
   teams: [
     team('stuttgart-gt', 'Neckar GT Racing', 'DEU', TeamBudget.WORKS),
     team('weissach-gt', 'Schwarzwald Motorsport', 'DEU', TeamBudget.WORKS),

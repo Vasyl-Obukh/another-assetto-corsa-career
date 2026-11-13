@@ -1404,6 +1404,8 @@
     "details": {
       "name": "Назва",
       "description": "Опис",
+      "addTranslation": "Додати переклад",
+      "removeTranslation": "Видалити переклад",
       "entryFee": "Внесок за участь",
       "generatedWeather": "Згенерована погода",
       "climate": "Клімат",

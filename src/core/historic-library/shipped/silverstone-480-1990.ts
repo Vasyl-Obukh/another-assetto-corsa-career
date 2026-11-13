@@ -10,7 +10,10 @@ export const SILVERSTONE_480_1990: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'silverstone-480-1990',
   name: '480 km of Silverstone 1990',
-  description: 'Jaguar\'s home race, and a full field of Group C cars at Silverstone.',
+  description: {
+    en: 'Jaguar\'s home race, and a full field of Group C cars at Silverstone.',
+    uk: 'Домашня гонка Jaguar і повна стартова решітка машин Групи C у Сільверстоуні.',
+  },
   teams: [
     team('silberpfeil', 'Silberpfeil Sportwagen', 'CHE', TeamBudget.WORKS),
     team('coventry', 'Coventry Prototypes', 'GBR', TeamBudget.WORKS),

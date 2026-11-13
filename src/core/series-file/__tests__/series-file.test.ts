@@ -509,8 +509,26 @@ describe('core/series-file', () => {
       expect(fieldsFor(raw({ rain: 0 }))).toEqual(['rain']);
     });
 
-    it('rejects a description that is not a string', () => {
+    it('reads a description as one text or as a text per language', () => {
+      const translated = { en: 'Club racing', uk: 'Клубні перегони' };
+
+      expect(parseSeries(raw({ description: 'Club racing' }), 'test.json').series?.description).toBe('Club racing');
+      expect(parseSeries(raw({ description: translated }), 'test.json').series?.description).toEqual(translated);
+    });
+
+    it('rejects a description that is neither a string nor a text per language', () => {
       expect(codesFor(raw({ description: 42 }))).toEqual(['seriesFile.field.invalid']);
+      expect(fieldsFor(raw({ description: ['Club racing'] }))).toEqual(['description']);
+      expect(fieldsFor(raw({ description: {} }))).toEqual(['description']);
+    });
+
+    it('rejects a translation into a language the app does not speak, naming it', () => {
+      expect(fieldsFor(raw({ description: { en: 'Club racing', fr: 'Course de club' } })))
+        .toEqual(['description.fr']);
+    });
+
+    it('rejects a translation that is not a string', () => {
+      expect(fieldsFor(raw({ description: { en: 'Club racing', uk: 7 } }))).toEqual(['description.uk']);
     });
   });
 

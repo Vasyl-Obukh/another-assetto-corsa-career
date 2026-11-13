@@ -28,8 +28,12 @@ export const FORMULA_E_2023_24: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-e-2023-24',
   name: 'Formula E 2023-24',
-  description: 'Formula E\'s tenth season on VRC\'s Formula Lithium 2023, the Gen3 car: Mexico City and '
-    + 'the Shanghai double header.',
+  description: {
+    en: 'Formula E\'s tenth season on VRC\'s Formula Lithium 2023, the Gen3 car: Mexico City and '
+      + 'the Shanghai double header.',
+    uk: 'Десятий сезон Formula E на Formula Lithium 2023 від VRC, машині Gen3: Мехіко і здвоєний етап у '
+      + 'Шанхаї.',
+  },
   teams: [
     team('lumen-e', 'Lumen E-Racing', 'FRA', TeamBudget.WORKS),
     team('voltaic', 'Voltaic Racing', 'GBR', TeamBudget.WORKS),

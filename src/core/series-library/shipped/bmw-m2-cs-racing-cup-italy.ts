@@ -20,8 +20,12 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'bmw-m2-cs-racing-cup-italy',
   name: 'BMW M2 CS Racing Cup Italy',
-  description: 'BMW\'s Italian one-make series on Guerilla\'s M2 CS Racing: two races a round at '
-    + 'Vallelunga, Imola, Mugello and Monza.',
+  description: {
+    en: 'BMW\'s Italian one-make series on Guerilla\'s M2 CS Racing: two races a round at '
+      + 'Vallelunga, Imola, Mugello and Monza.',
+    uk: 'Італійський монокубок BMW на M2 CS Racing від Guerilla: дві гонки за етап у '
+      + 'Валлелунзі, Імолі, Муджелло та Монці.',
+  },
   teams: [
     team('brianza', 'Brianza Motorsport', 'ITA', TeamBudget.INDEPENDENT),
     team('langhe', 'Langhe Racing', 'ITA', TeamBudget.INDEPENDENT),

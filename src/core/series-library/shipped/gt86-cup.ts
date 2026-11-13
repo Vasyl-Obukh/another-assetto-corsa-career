@@ -18,8 +18,12 @@ export const GT86_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt86-cup',
   name: 'GT86 Cup',
-  description: 'A one-make cup for the Toyota GT86, in the shape of the car\'s real 86 series - one '
-    + 'qualifying and two short races - on an invented calendar of base circuits.',
+  description: {
+    en: 'A one-make cup for the Toyota GT86, in the shape of the car\'s real 86 series - one '
+      + 'qualifying and two short races - on an invented calendar of base circuits.',
+    uk: 'Монокубок для Toyota GT86 за зразком справжньої серії 86 - одна кваліфікація й дві короткі гонки '
+      + '- на вигаданому календарі трас базової гри.',
+  },
   teams: [
     team('hachiroku', 'Hachiroku Racing', 'JPN', TeamBudget.INDEPENDENT),
     team('boxer', 'Boxer Sport', 'DEU', TeamBudget.PRIVATEER),

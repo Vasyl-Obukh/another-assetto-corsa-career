@@ -10,7 +10,11 @@ export const BRITISH_GP_1954: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'british-gp-1954',
   name: 'British Grand Prix 1954',
-  description: 'Silverstone in the year of the Mercedes W196, whose streamlined bodywork made the oil drums marking the corners hard to place.',
+  description: {
+    en: 'Silverstone in the year of the Mercedes W196, whose streamlined bodywork made the oil drums marking the corners hard to place.',
+    uk: 'Сільверстоун у рік Mercedes W196, через обтічний кузов якого пілотам важко було бачити бочки, що '
+      + 'позначали повороти.',
+  },
   teams: [
     team('mercedes', 'Daimler-Benz AG', 'DEU', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

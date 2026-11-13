@@ -21,8 +21,12 @@ export const GT_MANUFACTURERS_1962: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-manufacturers-1962',
   name: 'GT Manufacturers Championship 1962',
-  description: 'The 250 GTO\'s first season: five rounds of the 1962 GT championship at their real '
-    + 'lengths, from Sebring to Le Mans.',
+  description: {
+    en: 'The 250 GTO\'s first season: five rounds of the 1962 GT championship at their real '
+      + 'lengths, from Sebring to Le Mans.',
+    uk: 'Перший сезон 250 GTO: п\'ять етапів чемпіонату GT 1962 року на справжніх дистанціях, від '
+      + 'Себрінга до Ле-Мана.',
+  },
   teams: [
     team('maranello-gt', 'Scuderia Serenissima Veneta', 'ITA', TeamBudget.WORKS),
     team('ecurie-francorchamps', 'Écurie des Hautes Fagnes', 'BEL', TeamBudget.INDEPENDENT),

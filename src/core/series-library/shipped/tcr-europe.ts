@@ -25,8 +25,12 @@ export const TCR_EUROPE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'tcr-europe',
   name: 'TCR Europe',
-  description: 'Europe\'s TCR touring car series on LFM\'s Audi, Cupra and Hyundai: two races a round, '
-    + 'the second from a reversed grid.',
+  description: {
+    en: 'Europe\'s TCR touring car series on LFM\'s Audi, Cupra and Hyundai: two races a round, '
+      + 'the second from a reversed grid.',
+    uk: 'Європейська турингова серія TCR на Audi, Cupra і Hyundai від LFM: дві гонки за етап, друга зі '
+      + 'зворотної стартової решітки.',
+  },
   teams: [
     team('adriatic', 'Adriatic Touring', 'HRV', TeamBudget.INDEPENDENT),
     team('castilla', 'Castilla Touring', 'ESP', TeamBudget.INDEPENDENT),

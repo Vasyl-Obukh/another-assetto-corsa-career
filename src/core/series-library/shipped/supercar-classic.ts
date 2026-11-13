@@ -19,9 +19,14 @@ export const SUPERCAR_CLASSIC: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'supercar-classic',
   name: 'Supercar Classic',
-  description: 'Invented, with no real series behind it: road icons of the sixties to the eighties in '
-    + 'two classes by era - the F40 and the Yellowbird, and the Miura, Countach, 33 Stradale and Sport '
-    + 'quattro balanced against each other.',
+  description: {
+    en: 'Invented, with no real series behind it: road icons of the sixties to the eighties in '
+      + 'two classes by era - the F40 and the Yellowbird, and the Miura, Countach, 33 Stradale and Sport '
+      + 'quattro balanced against each other.',
+    uk: 'Вигаданий, без реальної серії за ним: дорожні ікони від шістдесятих до вісімдесятих у двох '
+      + 'класах за епохами - F40 і Yellowbird, а також вирівняні між собою Miura, Countach, 33 Stradale '
+      + 'та Sport quattro.',
+  },
   teams: [
     team('collezione', 'Collezione Privata', 'ITA', TeamBudget.WORKS),
     team('pfaffenhausen-classic', 'Allgäu Klassik', 'DEU', TeamBudget.INDEPENDENT),

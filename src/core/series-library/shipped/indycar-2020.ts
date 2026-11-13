@@ -45,8 +45,12 @@ export const INDYCAR_2020: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'indycar-2020',
   name: 'IndyCar 2020',
-  description: 'IndyCar\'s first aeroscreen season on RSS\'s Formula Americas 2020: Road America\'s double '
-    + 'header, the two road courses the pandemic cancelled, and an oval opener at Daytona.',
+  description: {
+    en: 'IndyCar\'s first aeroscreen season on RSS\'s Formula Americas 2020: Road America\'s double '
+      + 'header, the two road courses the pandemic cancelled, and an oval opener at Daytona.',
+    uk: 'Перший сезон IndyCar з аероскріном на Formula Americas 2020 від RSS: здвоєний етап на '
+      + 'Роуд-Америці, дві дорожні траси, скасовані через пандемію, і старт сезону на овалі в Дайтоні.',
+  },
   teams: [
     team('lakeshore', 'Lakeshore Racing', 'USA', TeamBudget.WORKS),
     team('crossroads', 'Crossroads Motorsports', 'USA', TeamBudget.WORKS),

@@ -24,6 +24,13 @@ export type ResolvedTheme = 'light' | 'dark';
 export type Language = 'en' | 'uk';
 
 /**
+ * Text written by whoever wrote a document, in one language or several: a plain
+ * string, which reads the same in every language, or a text per language, keyed
+ * by the language it is written in.
+ */
+export type LocalizedText = string | Partial<Record<Language, string>>;
+
+/**
  * How often a career season draws a historic event: never, about once a
  * quarter, a month, a fortnight or a week.
  */

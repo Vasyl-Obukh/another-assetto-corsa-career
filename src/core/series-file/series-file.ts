@@ -22,8 +22,8 @@ import {
   readGeneratedWeather,
   readGrid,
   readOptionalBoolean,
+  readOptionalLocalizedText,
   readOptionalNumber,
-  readOptionalString,
   readPoints,
   readPrizes,
   readRound,
@@ -103,7 +103,7 @@ export const parseSeries = (raw: unknown, file: string): ParsedSeries => {
     raw.raceWeekday === undefined
       || report.closedSet(raw.raceWeekday, WEEKDAYS, 'raceWeekday'),
     readOptionalNumber(raw.entryFee, 'entryFee', report),
-    readOptionalString(raw.description, 'description', report),
+    readOptionalLocalizedText(raw.description, 'description', report),
   ].every(Boolean);
 
   // Cast rather than rebuilt: every value with a catalogue behind it has been

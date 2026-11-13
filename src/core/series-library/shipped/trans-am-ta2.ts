@@ -24,8 +24,12 @@ export const TRANS_AM_TA2: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'trans-am-ta2',
   name: 'Trans-Am TA2',
-  description: 'America\'s spec pony-car class on VRC\'s TA2 Chevrette, Dagger and Mare: hour-long races '
-    + 'at seven American road courses.',
+  description: {
+    en: 'America\'s spec pony-car class on VRC\'s TA2 Chevrette, Dagger and Mare: hour-long races '
+      + 'at seven American road courses.',
+    uk: 'Американський уніфікований клас понікарів на TA2 Chevrette, Dagger і Mare від VRC: годинні '
+      + 'гонки на семи американських кільцевих трасах.',
+  },
   teams: [
     team('smoky', 'Smoky Mountain Racing', 'USA', TeamBudget.INDEPENDENT),
     team('bayou', 'Bayou Motorsports', 'USA', TeamBudget.INDEPENDENT),

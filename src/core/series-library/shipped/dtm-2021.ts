@@ -25,8 +25,12 @@ export const DTM_2021: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dtm-2021',
   name: 'DTM 2021',
-  description: 'The DTM\'s first GT3 season on RSS\'s GT-M cars: two qualifyings and two races a round '
-    + 'at Monza, Zolder, the Nurburgring, the Red Bull Ring and Assen.',
+  description: {
+    en: 'The DTM\'s first GT3 season on RSS\'s GT-M cars: two qualifyings and two races a round '
+      + 'at Monza, Zolder, the Nurburgring, the Red Bull Ring and Assen.',
+    uk: 'Перший сезон DTM у класі GT3 на машинах GT-M від RSS: дві кваліфікації та дві гонки '
+      + 'за етап у Монці, Золдері, на Нюрбургринзі, Ред Булл Рінгу та в Ассені.',
+  },
   teams: [
     team('lausitz', 'Lausitz Racing', 'DEU', TeamBudget.WORKS),
     team('franken', 'Frankenland Motorsport', 'DEU', TeamBudget.WORKS),

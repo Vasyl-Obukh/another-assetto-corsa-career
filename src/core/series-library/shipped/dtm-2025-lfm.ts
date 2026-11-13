@@ -27,8 +27,12 @@ export const DTM_2025_LFM: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dtm-2025-lfm',
   name: 'DTM 2025 (LFM)',
-  description: 'The 2025 DTM season on LFM\'s GT3 cars: two qualifyings and two races a round at '
-    + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
+  description: {
+    en: 'The 2025 DTM season on LFM\'s GT3 cars: two qualifyings and two races a round at '
+      + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
+    uk: 'Сезон DTM 2025 року на машинах GT3 від LFM: дві кваліфікації та дві гонки за етап у '
+      + 'Зандворті, на Нюрбургринзі, Заксенринзі та Ред Булл Рінгу.',
+  },
   teams: [
     team('elbe', 'Elbe Racing', 'DEU', TeamBudget.WORKS),
     team('pfalz', 'Pfalz Motorsport', 'DEU', TeamBudget.WORKS),

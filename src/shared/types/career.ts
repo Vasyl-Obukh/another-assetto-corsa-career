@@ -21,7 +21,9 @@ import type { ClassGrid, GridEntry, SessionType } from './race.ts';
 import type {
   AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability, TeamBudget,
 } from './series.ts';
-import type { Currency, DrivingAids, HistoricFrequency } from './settings.ts';
+import type {
+  Currency, DrivingAids, HistoricFrequency, LocalizedText,
+} from './settings.ts';
 import type { SponsorDeal, SponsorPerkKind } from './sponsor.ts';
 import type {
   RacePlace, RaceScore, RoundScore, SeasonStandings,
@@ -2077,7 +2079,7 @@ export interface HistoricView {
   /**
    * What it says about itself, or null when it says nothing.
    */
-  description: string | null;
+  description: LocalizedText | null;
   /**
    * The event itself, as the season holds it, which is what its classes, field
    * and prizes are read from.

@@ -24,8 +24,12 @@ export const ELMS_2025: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'elms-2025',
   name: 'European Le Mans Series 2025',
-  description: 'Europe\'s endurance series of 2025 on the Oreca 07 in LMP2 and LMP2 Pro/Am and LFM\'s GT3s'
-    + ' in LMGT3: five four-hour races.',
+  description: {
+    en: 'Europe\'s endurance series of 2025 on the Oreca 07 in LMP2 and LMP2 Pro/Am and LFM\'s GT3s'
+      + ' in LMGT3: five four-hour races.',
+    uk: 'Європейська серія гонок на витривалість 2025 року на Oreca 07 у LMP2 і LMP2 Pro/Am '
+      + 'та на GT3 від LFM у LMGT3: п\'ять чотиригодинних гонок.',
+  },
   teams: [
     team('rhone', 'Rhône Endurance', 'FRA', TeamBudget.INDEPENDENT),
     team('algarve', 'Algarve Prototypes', 'PRT', TeamBudget.INDEPENDENT),

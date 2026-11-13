@@ -10,7 +10,10 @@ export const ITALIAN_GP_1957: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-gp-1957',
   name: 'Italian Grand Prix 1957',
-  description: 'Monza\'s road course, and Moss in the Vanwall taking on the Maseratis in front of the tifosi.',
+  description: {
+    en: 'Monza\'s road course, and Moss in the Vanwall taking on the Maseratis in front of the tifosi.',
+    uk: 'Дорожня конфігурація Монци: Мосс на Vanwall кидає виклик Maserati на очах у тифозі.',
+  },
   teams: [
     team('maserati', 'Officine Alfieri Maserati', 'ITA', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

@@ -42,8 +42,12 @@ export const FORMULA_1_1975: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1975',
   name: 'Formula 1 1975',
-  description: 'Niki Lauda\'s first title season, with the real entry list in the base game\'s '
-    + 'Ferrari 312T and seven of its grands prix at their real distances.',
+  description: {
+    en: 'Niki Lauda\'s first title season, with the real entry list in the base game\'s '
+      + 'Ferrari 312T and seven of its grands prix at their real distances.',
+    uk: 'Сезон першого титулу Нікі Лауди зі справжнім списком учасників на Ferrari 312T з базової '
+      + 'гри та сімома гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'Marlboro Team Texaco', 'GBR', TeamBudget.WORKS),

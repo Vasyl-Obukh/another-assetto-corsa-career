@@ -24,8 +24,12 @@ export const ADAC_GT_MASTERS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'adac-gt-masters',
   name: 'ADAC GT Masters',
-  description: 'Germany\'s GT3 championship on LFM\'s GT3 cars: two 55-minute races a round at '
-    + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
+  description: {
+    en: 'Germany\'s GT3 championship on LFM\'s GT3 cars: two 55-minute races a round at '
+      + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
+    uk: 'Німецький чемпіонат GT3 на машинах GT3 від LFM: дві 55-хвилинні гонки за етап у '
+      + 'Зандворті, на Нюрбургринзі, Заксенринзі та Ред Булл Рінгу.',
+  },
   teams: [
     team('hanse', 'Hanse Motorsport', 'DEU', TeamBudget.WORKS),
     team('westfalen', 'Westfalen Racing', 'DEU', TeamBudget.WORKS),

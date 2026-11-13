@@ -29,8 +29,12 @@ export const MASTERS_GENTLEMEN_DRIVERS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'masters-gentlemen-drivers',
   name: 'Masters Gentlemen Drivers',
-  description: 'Today\'s historic hour for pre-1966 GT and touring cars on one grid: the Shelby Cobra in '
-    + 'GT and the Abarth 595 SS in Touring, with a mandatory stop.',
+  description: {
+    en: 'Today\'s historic hour for pre-1966 GT and touring cars on one grid: the Shelby Cobra in '
+      + 'GT and the Abarth 595 SS in Touring, with a mandatory stop.',
+    uk: 'Сучасна історична годинна гонка для GT і турингових машин до 1966 року на одній стартовій '
+      + 'решітці: Shelby Cobra в GT і Abarth 595 SS у Touring, з обов\'язковим піт-стопом.',
+  },
   teams: [
     team('carroll', 'Venice Beach Racing', 'USA', TeamBudget.INDEPENDENT),
     team('goodwood', 'Lavant Historic', 'GBR', TeamBudget.INDEPENDENT),

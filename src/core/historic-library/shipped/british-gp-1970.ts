@@ -10,7 +10,10 @@ export const BRITISH_GP_1970: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'british-gp-1970',
   name: 'British Grand Prix 1970',
-  description: 'Brands Hatch, Rindt\'s Lotus 72 against Brabham, settled on the very last lap.',
+  description: {
+    en: 'Brands Hatch, Rindt\'s Lotus 72 against Brabham, settled on the very last lap.',
+    uk: 'Брендс-Хетч, Lotus 72 Ріндта проти Брабема, і все вирішилося на останньому колі.',
+  },
   teams: [
     team('lotus', 'Gold Leaf Team Lotus', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

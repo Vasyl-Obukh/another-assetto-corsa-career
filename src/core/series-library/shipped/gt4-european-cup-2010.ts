@@ -27,9 +27,14 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt4-european-cup-2010',
   name: 'GT4 European Cup 2010',
-  description: 'Two classes on one grid: SuperSport for the 2-Eleven GT4 and the X-Bow R, and GT4, '
-    + 'where the Evora GTC is restricted to stand in for Lotus\' own GT4 car. Five of the 2010 '
-    + 'season\'s six meetings; Paul Ricard is not in Assetto Corsa.',
+  description: {
+    en: 'Two classes on one grid: SuperSport for the 2-Eleven GT4 and the X-Bow R, and GT4, '
+      + 'where the Evora GTC is restricted to stand in for Lotus\' own GT4 car. Five of the 2010 '
+      + 'season\'s six meetings; Paul Ricard is not in Assetto Corsa.',
+    uk: 'Два класи на одній стартовій решітці: SuperSport для 2-Eleven GT4 і X-Bow R та GT4, де обмежена '
+      + 'Evora GTC замінює власну машину GT4 від Lotus. П\'ять із шести етапів сезону 2010 року; '
+      + 'Поль-Рікара в Assetto Corsa немає.',
+  },
   teams: [
     team('rhenus', 'Rhenus Racing', 'NLD', TeamBudget.INDEPENDENT),
     team('lindhoven', 'Lindhoven Motorsport', 'NLD', TeamBudget.PRIVATEER),

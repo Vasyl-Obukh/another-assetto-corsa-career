@@ -57,9 +57,14 @@ export const FORMULA_1_2017: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2017',
   name: 'Formula 1 2017',
-  description: 'The first season of the wider, faster cars, with the real entry list and thirteen of its '
-    + 'grands prix at their real distances. It runs on the Ferrari 70th pack\'s SF70H or RSS\'s '
-    + 'Formula Hybrid 2017, whichever you own.',
+  description: {
+    en: 'The first season of the wider, faster cars, with the real entry list and thirteen of its '
+      + 'grands prix at their real distances. It runs on the Ferrari 70th pack\'s SF70H or RSS\'s '
+      + 'Formula Hybrid 2017, whichever you own.',
+    uk: 'Перший сезон ширших і швидших машин зі справжнім списком учасників і тринадцятьма '
+      + 'гран-прі на справжніх дистанціях. Він проходить на SF70H з пакета Ferrari 70th або на '
+      + 'Formula Hybrid 2017 від RSS, залежно від того, що у вас є.',
+  },
   teams: [
     team('mercedes', 'Mercedes AMG Petronas', 'DEU', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

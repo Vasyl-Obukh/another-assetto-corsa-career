@@ -40,8 +40,12 @@ export const FORMULA_1_1991: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1991',
   name: 'Formula 1 1991',
-  description: 'Ayrton Senna\'s third title, with the real entry list in VRC\'s Jordan 191 and eleven of its'
-    + ' grands prix at their real distances.',
+  description: {
+    en: 'Ayrton Senna\'s third title, with the real entry list in VRC\'s Jordan 191 and eleven of its'
+      + ' grands prix at their real distances.',
+    uk: 'Третій титул Айртона Сенни зі справжнім списком учасників на Jordan 191 від VRC '
+      + 'та одинадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),

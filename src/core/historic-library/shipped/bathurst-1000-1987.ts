@@ -10,7 +10,10 @@ export const BATHURST_1000_1987: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'bathurst-1000-1987',
   name: 'Bathurst 1000 1987',
-  description: 'A thousand kilometres round Mount Panorama with the touring cars of the world championship.',
+  description: {
+    en: 'A thousand kilometres round Mount Panorama with the touring cars of the world championship.',
+    uk: 'Тисяча кілометрів трасою Маунт-Панорама з туринговими машинами чемпіонату світу.',
+  },
   teams: [
     team('schwaben', 'Schwaben Tourenwagen', 'DEU', TeamBudget.WORKS),
     team('bologna', 'Squadra Petronio', 'ITA', TeamBudget.WORKS),

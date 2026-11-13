@@ -40,8 +40,12 @@ export const SUPER_FORMULA_2019: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'super-formula-2019',
   name: 'Super Formula 2019',
-  description: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme, the SF19: the two rounds '
-    + 'of its 2019 season that Assetto Corsa has, at Fuji and Okayama.',
+  description: {
+    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme, the SF19: the two rounds '
+      + 'of its 2019 season that Assetto Corsa has, at Fuji and Okayama.',
+    uk: 'Найвища японська формульна серія на Formula RSS Supreme від RSS, тобто SF19: два етапи сезону '
+      + '2019, наявні в Assetto Corsa, на Фудзі та в Окаямі.',
+  },
   teams: [
     team('aoba', 'Team Aoba', 'JPN', TeamBudget.WORKS),
     team('shinano', 'Shinano Racing', 'JPN', TeamBudget.WORKS),

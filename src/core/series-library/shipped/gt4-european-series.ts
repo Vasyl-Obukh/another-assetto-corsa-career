@@ -29,8 +29,12 @@ export const GT4_EUROPEAN_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt4-european-series',
   name: 'GT4 European Series',
-  description: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a round at six of'
-    + ' the GT World Challenge circuits.',
+  description: {
+    en: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a round at six of'
+      + ' the GT World Challenge circuits.',
+    uk: 'Європейський чемпіонат GT4 на машинах GT4 від Guerilla: дві годинні гонки за етап на шести '
+      + 'трасах GT World Challenge.',
+  },
   teams: [
     team('hanse', 'Hanse Motorsport', 'DEU', TeamBudget.WORKS),
     team('westfalen', 'Westfalen Racing', 'DEU', TeamBudget.WORKS),

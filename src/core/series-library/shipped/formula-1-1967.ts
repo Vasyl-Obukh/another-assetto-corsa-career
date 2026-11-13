@@ -40,9 +40,13 @@ export const FORMULA_1_1967: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1967',
   name: 'Formula 1 1967',
-  description: 'The season of the Lotus 49\'s debut, with the real entry list and seven of its grands '
-    + 'prix at their real distances. The Ferrari 312/67 joins the grid if you own the Ferrari 70th '
-    + 'pack.',
+  description: {
+    en: 'The season of the Lotus 49\'s debut, with the real entry list and seven of its grands '
+      + 'prix at their real distances. The Ferrari 312/67 joins the grid if you own the Ferrari 70th '
+      + 'pack.',
+    uk: 'Сезон дебюту Lotus 49 зі справжнім списком учасників і сімома гран-прі на справжніх '
+      + 'дистанціях. Ferrari 312/67 поповнює стартову решітку, якщо у вас є пакет Ferrari 70th.',
+  },
   teams: [
     team('brabham', 'Brabham Racing Organisation', 'GBR', TeamBudget.WORKS),
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),

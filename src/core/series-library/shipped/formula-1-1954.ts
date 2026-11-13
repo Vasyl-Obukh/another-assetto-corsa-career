@@ -40,8 +40,12 @@ export const FORMULA_1_1954: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1954',
   name: 'Formula 1 1954',
-  description: 'The first season of the Maserati 250F, with the real entry list in the six-cylinder car '
-    + 'and four of its grands prix at their real distances.',
+  description: {
+    en: 'The first season of the Maserati 250F, with the real entry list in the six-cylinder car '
+      + 'and four of its grands prix at their real distances.',
+    uk: 'Перший сезон Maserati 250F зі справжнім списком учасників на шестициліндровій машині '
+      + 'та чотирма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mercedes', 'Daimler-Benz AG', 'DEU', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

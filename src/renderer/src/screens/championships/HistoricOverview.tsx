@@ -5,7 +5,7 @@ import { FormatStrip } from './FormatStrip.tsx';
 import type { Championship, SeriesAvailability } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge } from '@/components';
-import { useFormat } from '@/i18n';
+import { useFormat, useLocalizedText } from '@/i18n';
 import { path } from '@/lib/routes';
 import { raceLength } from '@/lib/session-labels';
 import { LayoutMap } from '@/screens/track-browser';
@@ -30,6 +30,8 @@ const TILE_LABEL = 'text-[0.65rem] font-semibold tracking-wide text-muted-foregr
 // track, its format, how long its race is and where its weather comes from.
 export const HistoricOverview = ({ event, availability }: HistoricOverviewProps) => {
   const { t } = useTranslation();
+  const describe = useLocalizedText();
+  const description = describe(event.description);
   const { formatNumber } = useFormat();
 
   const round = event.rounds[0];
@@ -40,12 +42,12 @@ export const HistoricOverview = ({ event, availability }: HistoricOverviewProps)
 
   return (
     <div className="flex flex-col gap-4">
-      {event.description ? (
+      {description ? (
         <div className="flex flex-col gap-1 border-l-2 pl-3">
           <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {t('historic.about.title')}
           </span>
-          <p className="text-sm">{event.description}</p>
+          <p className="text-sm">{description}</p>
         </div>
       ) : null}
 

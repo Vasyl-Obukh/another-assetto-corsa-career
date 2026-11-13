@@ -14,7 +14,7 @@ import {
   WEATHER_TYPES,
 } from './constants.ts';
 import type { Reporter } from './types.ts';
-import { DISCIPLINES, NATION_CODES } from '../../shared/constants/index.ts';
+import { DISCIPLINES, LANGUAGES, NATION_CODES } from '../../shared/constants/index.ts';
 import { appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { isRecord, memberOf } from '../../shared/utils/coerce/index.ts';
@@ -80,6 +80,29 @@ export const readOptionalString = (
   field: string,
   report: Reporter,
 ): boolean => value === undefined || typeof value === 'string' || report.bad(field, value);
+
+/**
+ * Checks a text a document's author wrote when it is there at all: a plain
+ * string, or a string per language keyed by languages the app speaks - a code
+ * it does not would never be shown to anyone.
+ * @param value The value
+ * @param field Dotted path to it
+ * @param report Where to record what is wrong
+ * @returns True when it reads
+ */
+export const readOptionalLocalizedText = (
+  value: unknown,
+  field: string,
+  report: Reporter,
+): boolean => {
+  if (value === undefined || typeof value === 'string') return true;
+  if (!isRecord(value) || Object.keys(value).length === 0) return report.bad(field, value);
+
+  return Object.entries(value)
+    .map(([language, text]) => report.closedSet(language, LANGUAGES, `${field}.${language}`)
+      && (typeof text === 'string' || report.bad(`${field}.${language}`, text)))
+    .every(Boolean);
+};
 
 /**
  * Checks an AI grid's offsets, wherever a championship carries one.

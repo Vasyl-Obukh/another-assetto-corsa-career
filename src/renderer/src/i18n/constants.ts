@@ -31,11 +31,6 @@ export const DAYS_PER_MONTH = 30;
 export const DAYS_PER_YEAR = 365;
 
 /**
- * Language every missing translation falls back to.
- */
-export const FALLBACK_LANGUAGE: Language = 'en';
-
-/**
  * What each language calls the four home nations AC flags apart from the United
  * Kingdom. Intl names regions and not subdivisions, so these are the only
  * nation names the app translates itself; a language missing here falls back

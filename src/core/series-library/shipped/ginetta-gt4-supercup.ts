@@ -23,8 +23,12 @@ export const GINETTA_GT4_SUPERCUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'ginetta-gt4-supercup',
   name: 'Ginetta GT4 Supercup',
-  description: 'Ginetta\'s one-make series on the BTCC support bill, on Guerilla\'s G55 GT4: three races a'
-    + ' meeting at British circuits.',
+  description: {
+    en: 'Ginetta\'s one-make series on the BTCC support bill, on Guerilla\'s G55 GT4: three races a'
+      + ' meeting at British circuits.',
+    uk: 'Монокубок Ginetta в програмі підтримки BTCC на G55 GT4 від Guerilla: три гонки за етап на '
+      + 'британських трасах.',
+  },
   teams: [
     team('grampian', 'Grampian Motorsport', 'GBR', TeamBudget.PRIVATEER),
     team('wolds', 'Wolds Racing', 'GBR', TeamBudget.PRIVATEER),

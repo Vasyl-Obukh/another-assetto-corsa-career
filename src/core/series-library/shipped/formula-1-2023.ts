@@ -117,8 +117,12 @@ export const FORMULA_1_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2023',
   name: 'Formula 1 2023 (VRC)',
-  description: 'Max Verstappen\'s nineteen-win season, with the real entry list on VRC\'s Formula Alpha 2023'
-    + ' and thirteen of its grands prix at their real distances.',
+  description: {
+    en: 'Max Verstappen\'s nineteen-win season, with the real entry list on VRC\'s Formula Alpha 2023'
+      + ' and thirteen of its grands prix at their real distances.',
+    uk: 'Сезон дев\'ятнадцяти перемог Макса Ферстаппена: реальний список учасників на Formula Alpha 2023 '
+      + 'від VRC і тринадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

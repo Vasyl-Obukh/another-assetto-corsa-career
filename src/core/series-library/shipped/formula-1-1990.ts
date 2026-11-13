@@ -41,8 +41,12 @@ export const FORMULA_1_1990: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1990',
   name: 'Formula 1 1990',
-  description: 'Ayrton Senna\'s second title season, with the real entry list on RSS\'s Formula 1990 and '
-    + 'nine of its grands prix at their real distances.',
+  description: {
+    en: 'Ayrton Senna\'s second title season, with the real entry list on RSS\'s Formula 1990 and '
+      + 'nine of its grands prix at their real distances.',
+    uk: 'Сезон другого титулу Айртона Сенни зі справжнім списком учасників на Formula 1990 '
+      + 'від RSS і дев\'ятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

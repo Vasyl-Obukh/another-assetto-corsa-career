@@ -42,8 +42,12 @@ export const FORMULA_1_1988: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1988',
   name: 'Formula 1 1988',
-  description: 'Ayrton Senna\'s first title and McLaren\'s fifteen wins, with the real entry list in VRC\'s '
-    + 'MP4/4 and eight of its grands prix at their real distances.',
+  description: {
+    en: 'Ayrton Senna\'s first title and McLaren\'s fifteen wins, with the real entry list in VRC\'s '
+      + 'MP4/4 and eight of its grands prix at their real distances.',
+    uk: 'Перший титул Айртона Сенни і п\'ятнадцять перемог McLaren зі справжнім списком учасників '
+      + 'на MP4/4 від VRC та вісьмома гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

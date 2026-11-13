@@ -39,9 +39,13 @@ export const FORMULA_1_1971: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1971',
   name: 'Formula 1 1971',
-  description: 'Jackie Stewart\'s second title season, with the real entry list in the base game\'s '
-    + 'Lotus 72D and five of its grands prix at their real distances, Monza before its chicanes '
-    + 'included.',
+  description: {
+    en: 'Jackie Stewart\'s second title season, with the real entry list in the base game\'s '
+      + 'Lotus 72D and five of its grands prix at their real distances, Monza before its chicanes '
+      + 'included.',
+    uk: 'Сезон другого титулу Джекі Стюарта зі справжнім списком учасників на Lotus 72D з базової '
+      + 'гри та п\'ятьма гран-прі на справжніх дистанціях, включно з Монцою ще без шикан.',
+  },
   teams: [
     team('tyrrell', 'Elf Team Tyrrell', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

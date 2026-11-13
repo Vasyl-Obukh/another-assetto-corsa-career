@@ -38,8 +38,12 @@ export const FORMULA_1_2005: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2005',
   name: 'Formula 1 2005',
-  description: 'Fernando Alonso\'s first title, with the real entry list in VRC\'s MP4-20 and R25 and '
-    + 'fourteen of its grands prix at their real distances.',
+  description: {
+    en: 'Fernando Alonso\'s first title, with the real entry list in VRC\'s MP4-20 and R25 and '
+      + 'fourteen of its grands prix at their real distances.',
+    uk: 'Перший титул Фернандо Алонсо зі справжнім списком учасників на MP4-20 і R25 від VRC '
+      + 'та чотирнадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('renault', 'Mild Seven Renault F1 Team', 'FRA', TeamBudget.WORKS),
     team('mclaren', 'West McLaren Mercedes', 'GBR', TeamBudget.WORKS),

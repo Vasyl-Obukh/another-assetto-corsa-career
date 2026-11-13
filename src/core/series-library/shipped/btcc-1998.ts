@@ -56,9 +56,14 @@ export const BTCC_1998: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'btcc-1998',
   name: 'British Touring Car Championship 1998',
-  description: 'The British Touring Car Championship of 1998 on VRC\'s Super Tourers: a sprint and a '
-    + 'feature race a meeting at Thruxton, Silverstone, Brands Hatch, Oulton Park, Croft and '
-    + 'Knockhill.',
+  description: {
+    en: 'The British Touring Car Championship of 1998 on VRC\'s Super Tourers: a sprint and a '
+      + 'feature race a meeting at Thruxton, Silverstone, Brands Hatch, Oulton Park, Croft and '
+      + 'Knockhill.',
+    uk: 'British Touring Car Championship 1998 року на машинах Super Touring від VRC: спринт '
+      + 'і основна гонка за етап у Тракстоні, Сільверстоуні, Брендс-Хетчі, Оултон-Парку, Крофті '
+      + 'та Нокхіллі.',
+  },
   teams: [
     team('pennine', 'Pennine Motorsport', 'GBR', TeamBudget.WORKS),
     team('wessex', 'Wessex Racing', 'GBR', TeamBudget.WORKS),

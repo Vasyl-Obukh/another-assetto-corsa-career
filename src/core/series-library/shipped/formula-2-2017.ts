@@ -56,8 +56,12 @@ export const FORMULA_2_2017: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-2-2017',
   name: 'FIA Formula 2 2017',
-  description: 'The first season of FIA Formula 2, on RSS\'s Formula RSS 2: eight rounds of a feature '
-    + 'race and a reverse-grid sprint, at their real lengths.',
+  description: {
+    en: 'The first season of FIA Formula 2, on RSS\'s Formula RSS 2: eight rounds of a feature '
+      + 'race and a reverse-grid sprint, at their real lengths.',
+    uk: 'Перший сезон FIA Formula 2 на Formula RSS 2 від RSS: вісім етапів з основною гонкою та спринтом '
+      + 'за зворотною стартовою решіткою, на справжніх дистанціях.',
+  },
   teams: [
     team('arcadia', 'Arcadia Motorsport', 'ITA', TeamBudget.WORKS),
     team('north-sea', 'North Sea Racing', 'NLD', TeamBudget.INDEPENDENT),

@@ -10,7 +10,10 @@ export const HUNGARIAN_GP_1986: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'hungarian-gp-1986',
   name: 'Hungarian Grand Prix 1986',
-  description: 'Formula 1\'s first race behind the Iron Curtain, and Piquet\'s pass round the outside of Senna.',
+  description: {
+    en: 'Formula 1\'s first race behind the Iron Curtain, and Piquet\'s pass round the outside of Senna.',
+    uk: 'Перша гонка Формули-1 за залізною завісою і обгін Піке по зовнішній траєкторії навколо Сенни.',
+  },
   teams: [
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),
     team('mclaren', 'Marlboro McLaren International', 'GBR', TeamBudget.WORKS),

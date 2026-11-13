@@ -37,8 +37,12 @@ export const FORMULA_1_2000: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2000',
   name: 'Formula 1 2000',
-  description: 'Michael Schumacher\'s first title with Ferrari, with the real entry list on RSS\'s Formula '
-    + '2000 and twelve of its grands prix at their real distances.',
+  description: {
+    en: 'Michael Schumacher\'s first title with Ferrari, with the real entry list on RSS\'s Formula '
+      + '2000 and twelve of its grands prix at their real distances.',
+    uk: 'Перший титул Міхаеля Шумахера з Ferrari зі справжнім списком учасників на Formula 2000 '
+      + 'від RSS і дванадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'West McLaren Mercedes', 'GBR', TeamBudget.WORKS),

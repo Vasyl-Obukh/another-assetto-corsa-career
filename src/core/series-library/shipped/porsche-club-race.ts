@@ -23,8 +23,12 @@ export const PORSCHE_CLUB_RACE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-club-race',
   name: 'Porsche Club Race',
-  description: 'Road Porsches in the Porsche Club of America\'s stock classes, S4 and S6, on an invented '
-    + 'season at American circuits. It needs all three Porsche Packs.',
+  description: {
+    en: 'Road Porsches in the Porsche Club of America\'s stock classes, S4 and S6, on an invented '
+      + 'season at American circuits. It needs all three Porsche Packs.',
+    uk: 'Дорожні Porsche у серійних класах Porsche Club of America, S4 і S6, у вигаданому сезоні на '
+      + 'американських трасах. Потрібні всі три Porsche Packs.',
+  },
   teams: [
     team('pca-atlanta', 'Peach State Porsche Racing', 'USA', TeamBudget.INDEPENDENT),
     team('pca-florida', 'Gulf Coast Club Racing', 'USA', TeamBudget.PRIVATEER),

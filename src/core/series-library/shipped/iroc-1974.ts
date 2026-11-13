@@ -24,8 +24,12 @@ export const IROC_1974: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'iroc-1974',
   name: 'International Race of Champions 1974',
-  description: 'Twelve champions in identical Porsche Carrera RSRs: the first IROC, with Laguna Seca '
-    + 'standing in for Riverside and each race lined up in reverse of the one before.',
+  description: {
+    en: 'Twelve champions in identical Porsche Carrera RSRs: the first IROC, with Laguna Seca '
+      + 'standing in for Riverside and each race lined up in reverse of the one before.',
+    uk: 'Дванадцять чемпіонів на однакових Porsche Carrera RSR: перший IROC, де Лагуна-Сека замінює '
+      + 'Ріверсайд, а кожна гонка стартує у зворотному порядку фінішу попередньої.',
+  },
   teams: [
     team('iroc', 'International Race of Champions', 'USA', TeamBudget.WORKS),
   ],

@@ -27,8 +27,12 @@ export const IMSA_2025: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'imsa-2025',
   name: 'IMSA SportsCar Championship 2025',
-  description: 'America\'s sports car championship of 2025 on LFM\'s GTP cars and GT3s and the Oreca 07: '
-    + 'four classes, seven rounds from the Rolex 24 to Petit Le Mans.',
+  description: {
+    en: 'America\'s sports car championship of 2025 on LFM\'s GTP cars and GT3s and the Oreca 07: '
+      + 'four classes, seven rounds from the Rolex 24 to Petit Le Mans.',
+    uk: 'Американський чемпіонат спортивних машин 2025 року на машинах GTP і GT3 від LFM та Oreca 07: '
+      + 'чотири класи, сім етапів від Rolex 24 до Petit Le Mans.',
+  },
   teams: [
     team('dixie', 'Dixie Prototypes', 'USA', TeamBudget.WORKS),
     team('sunshine', 'Sunshine State Racing', 'USA', TeamBudget.WORKS),

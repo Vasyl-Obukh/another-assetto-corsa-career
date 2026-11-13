@@ -58,9 +58,13 @@ export const FORMULA_2_2024_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-2-2024-rss',
   name: 'FIA Formula 2 2024 (RSS)',
-  description: 'Formula 2 on RSS\'s Formula RSS 2 V6 2024: nine rounds'
-    + ' of a reverse-grid sprint and a feature race, on'
-    + ' the 2024 calendar\'s circuits.',
+  description: {
+    en: 'Formula 2 on RSS\'s Formula RSS 2 V6 2024: nine rounds'
+      + ' of a reverse-grid sprint and a feature race, on'
+      + ' the 2024 calendar\'s circuits.',
+    uk: 'Formula 2 на Formula RSS 2 V6 2024 від RSS: дев\'ять етапів зі спринтом за зворотною стартовою '
+      + 'решіткою та основною гонкою на трасах календаря 2024 року.',
+  },
   teams: [
     team('halcyon', 'Halcyon Racing', 'GBR', TeamBudget.WORKS),
     team('cervino', 'Cervino Corse', 'ITA', TeamBudget.INDEPENDENT),

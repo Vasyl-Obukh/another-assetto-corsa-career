@@ -30,9 +30,14 @@ export const GT3_SPRINT_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt3-sprint-series',
   name: 'GT3 Sprint Series',
-  description: 'Hour-long sprint races for 2010s GT3 machinery, the Blancpain Sprint way: a qualifying '
-    + 'race sets the grid for the main race. The field is drawn from whichever of the class you own, '
-    + 'so DLC widens the grid rather than unlocking the series.',
+  description: {
+    en: 'Hour-long sprint races for 2010s GT3 machinery, the Blancpain Sprint way: a qualifying '
+      + 'race sets the grid for the main race. The field is drawn from whichever of the class you own, '
+      + 'so DLC widens the grid rather than unlocking the series.',
+    uk: 'Годинні спринти для машин GT3 2010-х у дусі Blancpain Sprint: кваліфікаційна гонка визначає '
+      + 'стартову решітку основної. Пелотон набирається з тих машин класу, які у вас є, тож DLC розширює '
+      + 'стартову решітку, а не відкриває серію.',
+  },
   teams: [
     team('kestrel', 'Kestrel Autosport', 'GBR', TeamBudget.WORKS),
     team('rheinwerk', 'Rheinwerk Motorsport', 'DEU', TeamBudget.WORKS),

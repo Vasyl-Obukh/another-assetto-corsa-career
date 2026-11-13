@@ -29,8 +29,12 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'nurburgring-langstrecken-serie',
   name: 'Nurburgring Langstrecken-Serie',
-  description: 'The Nordschleife\'s endurance series: six classes from GT3 to the BMW Cup on one grid, '
-    + 'six four-hour races, a six-hour round and the Nurburgring 24 Hours.',
+  description: {
+    en: 'The Nordschleife\'s endurance series: six classes from GT3 to the BMW Cup on one grid, '
+      + 'six four-hour races, a six-hour round and the Nurburgring 24 Hours.',
+    uk: 'Серія гонок на витривалість на Нордшляйфе: шість класів від GT3 до BMW Cup на одній стартовій '
+      + 'решітці, шість чотиригодинних гонок, шестигодинний етап і 24 години Нюрбургринга.',
+  },
   teams: [
     team('eifel-gt', 'Eifelwind Racing', 'DEU', TeamBudget.WORKS),
     team('hohe-acht', 'Hohe Acht Motorsport', 'DEU', TeamBudget.INDEPENDENT),

@@ -118,8 +118,12 @@ export const FORMULA_1_2025_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2025-rss',
   name: 'Formula 1 2025 (RSS)',
-  description: 'Lando Norris\' first title, with the real entry list on RSS\'s Formula Hybrid Alpine 2025 '
-    + 'and fifteen of its grands prix at their real distances.',
+  description: {
+    en: 'Lando Norris\' first title, with the real entry list on RSS\'s Formula Hybrid Alpine 2025 '
+      + 'and fifteen of its grands prix at their real distances.',
+    uk: 'Перший титул Ландо Норріса: реальний список учасників на Formula Hybrid Alpine 2025 від RSS і '
+      + 'п\'ятнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),

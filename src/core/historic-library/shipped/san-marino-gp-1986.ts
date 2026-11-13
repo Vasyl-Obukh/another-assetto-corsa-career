@@ -10,7 +10,10 @@ export const SAN_MARINO_GP_1986: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'san-marino-gp-1986',
   name: 'San Marino Grand Prix 1986',
-  description: 'Imola in the turbo era, where fuel was rationed and the leaders ran dry in the closing laps.',
+  description: {
+    en: 'Imola in the turbo era, where fuel was rationed and the leaders ran dry in the closing laps.',
+    uk: 'Імола в епоху турбо, коли пальне було обмежене, а лідерам його забракло на останніх колах.',
+  },
   teams: [
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),
     team('mclaren', 'Marlboro McLaren International', 'GBR', TeamBudget.WORKS),

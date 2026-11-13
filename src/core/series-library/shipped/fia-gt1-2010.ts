@@ -27,8 +27,12 @@ export const FIA_GT1_2010: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'fia-gt1-2010',
   name: 'FIA GT1 World Championship 2010',
-  description: 'GT1 cars\' only world championship on the MC12, Yezhrod\'s GT-R and RSS\'s GTs: a '
-    + 'qualifying race and a championship race at six of its rounds.',
+  description: {
+    en: 'GT1 cars\' only world championship on the MC12, Yezhrod\'s GT-R and RSS\'s GTs: a '
+      + 'qualifying race and a championship race at six of its rounds.',
+    uk: 'Єдиний світовий чемпіонат для машин GT1 на MC12, GT-R від Yezhrod і GT від RSS: '
+      + 'кваліфікаційна гонка та основна гонка на шести його етапах.',
+  },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
     team('brescia', 'Scuderia Bresciana', 'ITA', TeamBudget.INDEPENDENT),

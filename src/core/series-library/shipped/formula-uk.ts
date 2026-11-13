@@ -25,8 +25,12 @@ export const FORMULA_UK: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-uk',
   name: 'Formula UK',
-  description: 'The one-make Lotus T125 series announced in 2016 and never raced: everything but the car'
-    + ' and the country is invented, on a calendar of British circuits.',
+  description: {
+    en: 'The one-make Lotus T125 series announced in 2016 and never raced: everything but the car'
+      + ' and the country is invented, on a calendar of British circuits.',
+    uk: 'Монокубок Lotus T125, оголошений 2016 року, але так і не проведений: вигадано все, крім машини й '
+      + 'країни, а календар складено з британських трас.',
+  },
   teams: [
     team('chadwell', 'Chadwell Racing', 'GBR', TeamBudget.WORKS),
     team('pennine-f', 'Pennine Formula', 'GBR', TeamBudget.INDEPENDENT),

@@ -36,7 +36,6 @@ import {
   nextSeat,
   nextTeam,
   offsetBounds,
-  optionalText,
   paysInAll,
   problemTab,
   problemTabs,
@@ -278,17 +277,6 @@ describe('renderer/screens/championship-editor/utils', () => {
 
     it('leaves the calendar alone when nothing matches', () => {
       expect(withoutRound(series([round('a')]), 'spa').rounds).toHaveLength(1);
-    });
-  });
-
-  describe('optionalText', () => {
-    it('reads an emptied box as nothing said, so it is left out of the file', () => {
-      expect(optionalText('')).toBeUndefined();
-    });
-
-    it('keeps whatever the box holds otherwise, whitespace included', () => {
-      expect(optionalText('Round one')).toBe('Round one');
-      expect(optionalText(' ')).toBe(' ');
     });
   });
 

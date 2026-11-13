@@ -30,8 +30,12 @@ export const IMSA_2017: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'imsa-2017',
   name: 'IMSA SportsCar Championship 2017',
-  description: 'America\'s sports car championship of 2017 on Yezhrod\'s Oreca 07, the GTEs and the base '
-    + 'game\'s GT3s: nine rounds from the Rolex 24 to Petit Le Mans.',
+  description: {
+    en: 'America\'s sports car championship of 2017 on Yezhrod\'s Oreca 07, the GTEs and the base '
+      + 'game\'s GT3s: nine rounds from the Rolex 24 to Petit Le Mans.',
+    uk: 'Американський чемпіонат спортивних машин 2017 року на Oreca 07 від Yezhrod, машинах GTE і GT3 '
+      + 'базової гри: дев\'ять етапів від Rolex 24 до Petit Le Mans.',
+  },
   teams: [
     team('dixie', 'Dixie Prototypes', 'USA', TeamBudget.WORKS),
     team('sunshine', 'Sunshine State Racing', 'USA', TeamBudget.WORKS),

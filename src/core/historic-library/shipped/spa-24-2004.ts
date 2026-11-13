@@ -10,7 +10,10 @@ export const SPA_24_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spa-24-2004',
   name: 'Spa 24 Hours 2004',
-  description: 'Twenty-four hours of GT and N-GT at Spa, through the night and the rain.',
+  description: {
+    en: 'Twenty-four hours of GT and N-GT at Spa, through the night and the rain.',
+    uk: 'Двадцять чотири години GT і N-GT у Спа, крізь ніч і дощ.',
+  },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
     team('brescia', 'Scuderia Bresciana', 'ITA', TeamBudget.INDEPENDENT),

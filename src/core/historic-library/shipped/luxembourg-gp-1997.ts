@@ -10,7 +10,11 @@ export const LUXEMBOURG_GP_1997: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'luxembourg-gp-1997',
   name: 'Luxembourg Grand Prix 1997',
-  description: 'The Nürburgring late in a tight season, both McLarens out of the lead with engine failures.',
+  description: {
+    en: 'The Nürburgring late in a tight season, both McLarens out of the lead with engine failures.',
+    uk: 'Нюрбургринг наприкінці напруженого сезону: обидва McLaren втратили лідерство через відмову '
+      + 'двигунів.',
+  },
   teams: [
     team('williams', 'Rothmans Williams Renault', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),

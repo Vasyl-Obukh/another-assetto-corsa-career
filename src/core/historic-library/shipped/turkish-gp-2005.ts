@@ -10,7 +10,11 @@ export const TURKISH_GP_2005: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'turkish-gp-2005',
   name: 'Turkish Grand Prix 2005',
-  description: 'Istanbul Park\'s first Grand Prix, and the first time anyone took Turn 8 flat out in anger.',
+  description: {
+    en: 'Istanbul Park\'s first Grand Prix, and the first time anyone took Turn 8 flat out in anger.',
+    uk: 'Перше Гран-прі на Істанбул-Парку - і вперше хтось пройшов восьмий поворот без скидання газу в '
+      + 'гонці.',
+  },
   teams: [
     team('renault', 'Mild Seven Renault F1 Team', 'FRA', TeamBudget.WORKS),
     team('mclaren', 'West McLaren Mercedes', 'GBR', TeamBudget.WORKS),

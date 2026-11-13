@@ -26,7 +26,7 @@ import type {
 } from './content.ts';
 import type { LadderPosition } from './ladder.ts';
 import type { Assists, Conditions, SessionDefinition } from './race.ts';
-import type { DrivingAids } from './settings.ts';
+import type { DrivingAids, LocalizedText } from './settings.ts';
 import type { AppErrorInfo } from '../errors/types.ts';
 
 /**
@@ -726,9 +726,9 @@ export interface Championship {
   name: string;
   /**
    * Free-text description, shown on the championship's own page and on its
-   * card in the library.
+   * card in the library - one text, or one per language.
    */
-  description?: string;
+  description?: LocalizedText;
   /**
    * The ways into this championship, one per class it runs. Usually one.
    */

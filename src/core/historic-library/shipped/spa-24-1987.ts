@@ -10,7 +10,10 @@ export const SPA_24_1987: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spa-24-1987',
   name: 'Spa 24 Hours 1987',
-  description: 'Group A saloons through a day and a night in the Ardennes.',
+  description: {
+    en: 'Group A saloons through a day and a night in the Ardennes.',
+    uk: 'Седани Групи A крізь день і ніч в Арденнах.',
+  },
   teams: [
     team('schwaben', 'Schwaben Tourenwagen', 'DEU', TeamBudget.WORKS),
     team('bologna', 'Squadra Petronio', 'ITA', TeamBudget.WORKS),

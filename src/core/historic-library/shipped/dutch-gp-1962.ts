@@ -10,7 +10,10 @@ export const DUTCH_GP_1962: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dutch-gp-1962',
   name: 'Dutch Grand Prix 1962',
-  description: 'The season opener in the dunes at Zandvoort, and the first win for Graham Hill and BRM.',
+  description: {
+    en: 'The season opener in the dunes at Zandvoort, and the first win for Graham Hill and BRM.',
+    uk: 'Відкриття сезону серед дюн Зандворта і перша перемога Грема Гілла та BRM.',
+  },
   teams: [
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),
     team('brm', 'Owen Racing Organisation', 'GBR', TeamBudget.WORKS),

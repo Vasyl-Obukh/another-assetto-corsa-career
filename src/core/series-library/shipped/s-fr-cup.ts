@@ -15,8 +15,12 @@ export const S_FR_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 's-fr-cup',
   name: 'S-FR Cup',
-  description: 'Invented: a one-make cup for Guerilla\'s S-FR Racing, the Toyota concept that never '
-    + 'reached production, at Japanese club circuits.',
+  description: {
+    en: 'Invented: a one-make cup for Guerilla\'s S-FR Racing, the Toyota concept that never '
+      + 'reached production, at Japanese club circuits.',
+    uk: 'Вигаданий: монокубок для S-FR Racing від Guerilla, концепту Toyota, що так і не дійшов до '
+      + 'серії, на японських клубних трасах.',
+  },
   teams: [
     team('roadster-club', 'Roadster Club Hiroshima', 'JPN', TeamBudget.INDEPENDENT),
     team('kanto-nd', 'Kanto ND Racing', 'JPN', TeamBudget.PRIVATEER),

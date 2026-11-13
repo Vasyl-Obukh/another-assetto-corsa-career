@@ -27,9 +27,14 @@ export const FORMULA_ABARTH: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-abarth',
   name: 'Formula Abarth',
-  description: 'The 2010 season of the Italian single-chassis junior formula: two 28-minute races a '
-    + 'event, the second from the first\'s result with the top eight reversed. Misano and Varano '
-    + 'are not in Assetto Corsa, so five of its rounds are raced.',
+  description: {
+    en: 'The 2010 season of the Italian single-chassis junior formula: two 28-minute races a '
+      + 'event, the second from the first\'s result with the top eight reversed. Misano and Varano '
+      + 'are not in Assetto Corsa, so five of its rounds are raced.',
+    uk: 'Сезон 2010 року італійської юніорської формули з єдиним шасі: дві 28-хвилинні гонки за етап, '
+      + 'друга стартує за результатами першої з переверненою першою вісімкою. Мізано й Варано в Assetto '
+      + 'Corsa немає, тож розігруються п\'ять етапів.',
+  },
   teams: [
     team('arcadia', 'Scuderia Arcadia', 'ITA', TeamBudget.INDEPENDENT),
     team('vento', 'Vento Corse', 'ITA', TeamBudget.INDEPENDENT),

@@ -10,7 +10,10 @@ export const GERMAN_GP_1962: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'german-gp-1962',
   name: 'German Grand Prix 1962',
-  description: 'A wet Nordschleife, with Hill, Surtees and Gurney covered by seconds after more than two hours.',
+  description: {
+    en: 'A wet Nordschleife, with Hill, Surtees and Gurney covered by seconds after more than two hours.',
+    uk: 'Мокра Нордшляйфе, і Гілл, Сертіс та Герні в межах кількох секунд після понад двох годин гонки.',
+  },
   teams: [
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),
     team('brm', 'Owen Racing Organisation', 'GBR', TeamBudget.WORKS),

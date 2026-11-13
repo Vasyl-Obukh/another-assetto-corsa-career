@@ -28,9 +28,13 @@ export const WEC_2016: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2016',
   name: 'World Endurance Championship 2016',
-  description: 'Porsche\'s 919 Hybrid season, with Yezhrod\'s Ligier in LMP2 and GTE Pro and GTE Am from '
-    + 'Corvette, Porsche and whatever GTE mods you own: eight rounds at their real lengths, Le Mans at '
-    + 'double points.',
+  description: {
+    en: 'Porsche\'s 919 Hybrid season, with Yezhrod\'s Ligier in LMP2 and GTE Pro and GTE Am from '
+      + 'Corvette, Porsche and whatever GTE mods you own: eight rounds at their real lengths, Le Mans at '
+      + 'double points.',
+    uk: 'Сезон Porsche 919 Hybrid з Ligier від Yezhrod в LMP2, а в GTE Pro та GTE Am - Corvette, Porsche '
+      + 'і будь-які ваші моди GTE: вісім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
+  },
   teams: [
     team('ingolstadt-lmp', 'Neuburg Prototype Team', 'DEU', TeamBudget.WORKS),
     team('higashi-fuji', 'Higashi-Fuji Racing', 'JPN', TeamBudget.WORKS),

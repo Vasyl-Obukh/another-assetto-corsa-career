@@ -19,8 +19,12 @@ export const AUDI_TT_CUP_2016: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'audi-tt-cup-2016',
   name: 'Audi Sport TT Cup 2016',
-  description: 'The DTM\'s one-make support series on the Audi TT Cup: two thirty-minute races a meeting,'
-    + ' four of the 2016 season\'s meetings.',
+  description: {
+    en: 'The DTM\'s one-make support series on the Audi TT Cup: two thirty-minute races a meeting,'
+      + ' four of the 2016 season\'s meetings.',
+    uk: 'Монокубок підтримки DTM на Audi TT Cup: дві тридцятихвилинні гонки за етап, '
+      + 'чотири етапи сезону 2016 року.',
+  },
   teams: [
     team('ingolstadt-tt', 'Altmühl Racing', 'DEU', TeamBudget.WORKS),
     team('tt-junior', 'Juniorteam Donau', 'DEU', TeamBudget.INDEPENDENT),

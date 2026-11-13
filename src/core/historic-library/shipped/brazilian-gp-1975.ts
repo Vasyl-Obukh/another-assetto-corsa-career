@@ -10,7 +10,10 @@ export const BRAZILIAN_GP_1975: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'brazilian-gp-1975',
   name: 'Brazilian Grand Prix 1975',
-  description: 'Interlagos, and Carlos Pace\'s only Grand Prix win, in front of his home crowd.',
+  description: {
+    en: 'Interlagos, and Carlos Pace\'s only Grand Prix win, in front of his home crowd.',
+    uk: 'Інтерлагос і єдина перемога Карлоса Пасе в Гран-прі - перед рідними трибунами.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'Marlboro Team Texaco', 'GBR', TeamBudget.WORKS),

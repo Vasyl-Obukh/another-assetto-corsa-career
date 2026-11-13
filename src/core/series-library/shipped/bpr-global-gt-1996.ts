@@ -20,8 +20,12 @@ export const BPR_GLOBAL_GT_1996: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'bpr-global-gt-1996',
   name: 'BPR Global GT Series 1996',
-  description: 'The McLaren F1 GTR\'s championship: five of the 1996 season\'s four-hour races, on the car'
-    + ' that dominated them.',
+  description: {
+    en: 'The McLaren F1 GTR\'s championship: five of the 1996 season\'s four-hour races, on the car'
+      + ' that dominated them.',
+    uk: 'Чемпіонат McLaren F1 GTR: п\'ять чотиригодинних гонок сезону 1996 року на машині, '
+      + 'яка в них домінувала.',
+  },
   teams: [
     team('woking-gt', 'Albion GT', 'GBR', TeamBudget.WORKS),
     team('gulf-gt', 'Harrow Racing', 'GBR', TeamBudget.INDEPENDENT),

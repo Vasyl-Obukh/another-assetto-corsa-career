@@ -10,7 +10,10 @@ export const AUSTRIAN_GP_1970: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'austrian-gp-1970',
   name: 'Austrian Grand Prix 1970',
-  description: 'The first Grand Prix in the Styrian hills, and a Ferrari one-two for Ickx and Regazzoni.',
+  description: {
+    en: 'The first Grand Prix in the Styrian hills, and a Ferrari one-two for Ickx and Regazzoni.',
+    uk: 'Перше Гран-прі на пагорбах Штирії і дубль Ferrari - Ікс попереду Регаццоні.',
+  },
   teams: [
     team('lotus', 'Gold Leaf Team Lotus', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

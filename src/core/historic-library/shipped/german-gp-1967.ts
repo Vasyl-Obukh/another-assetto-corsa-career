@@ -10,7 +10,10 @@ export const GERMAN_GP_1967: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'german-gp-1967',
   name: 'German Grand Prix 1967',
-  description: 'Fourteen miles of the Nürburgring in cars with no downforce at all, fifteen times over.',
+  description: {
+    en: 'Fourteen miles of the Nürburgring in cars with no downforce at all, fifteen times over.',
+    uk: 'Чотирнадцять миль Нюрбургрингу на машинах зовсім без притискної сили - і так п\'ятнадцять разів.',
+  },
   teams: [
     team('brabham', 'Brabham Racing Organisation', 'GBR', TeamBudget.WORKS),
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),

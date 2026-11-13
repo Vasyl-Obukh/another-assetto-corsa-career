@@ -38,7 +38,10 @@ export const OverviewSkeleton = () => {
           <PaneHeading>{t('editor.details.identity')}</PaneHeading>
           {field(t('editor.details.name'))}
           <div className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-sm font-medium">{t('editor.details.description')}</span>
+            <div className="flex min-h-8 items-center justify-between gap-2">
+              <span className="text-sm font-medium">{t('editor.details.description')}</span>
+              <Shimmer className="h-8 w-24" />
+            </div>
             <div className="flex min-h-28 flex-col gap-2 rounded-md border px-3 py-3">
               <Shimmer className="h-3 w-11/12" />
               <Shimmer className="h-3 w-1/3" />

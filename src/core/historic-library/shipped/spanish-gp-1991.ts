@@ -10,7 +10,10 @@ export const SPANISH_GP_1991: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spanish-gp-1991',
   name: 'Spanish Grand Prix 1991',
-  description: 'The first race at the Circuit de Catalunya, and Senna and Mansell wheel to wheel down the main straight.',
+  description: {
+    en: 'The first race at the Circuit de Catalunya, and Senna and Mansell wheel to wheel down the main straight.',
+    uk: 'Перша гонка на трасі Каталунья і Сенна з Менселлом колесо в колесо на головній прямій.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),

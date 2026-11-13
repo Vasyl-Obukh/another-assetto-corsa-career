@@ -26,8 +26,12 @@ export const TOUR_AUTO: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'tour-auto',
   name: 'Tour Auto',
-  description: 'The revived Tour de France Automobile\'s circuit stages: the 250 GTO, Miura, Carrera RSR '
-    + 'and Cobra in GT and the Alfa GTA in Touring.',
+  description: {
+    en: 'The revived Tour de France Automobile\'s circuit stages: the 250 GTO, Miura, Carrera RSR '
+      + 'and Cobra in GT and the Alfa GTA in Touring.',
+    uk: 'Кільцеві етапи відродженого Tour de France Automobile: 250 GTO, Miura, Carrera RSR і Cobra в GT '
+      + 'та Alfa GTA у Touring.',
+  },
   teams: [
     team('tour-paris', 'Écurie Rive Gauche', 'FRA', TeamBudget.INDEPENDENT),
     team('tour-lyon', 'Écurie Lyonnaise', 'FRA', TeamBudget.PRIVATEER),

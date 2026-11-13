@@ -10,7 +10,10 @@ export const SEBRING_1969: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'sebring-1969',
   name: '12 Hours of Sebring 1969',
-  description: 'Twelve hours on the bumps of an old Florida airfield, finishing in the dark.',
+  description: {
+    en: 'Twelve hours on the bumps of an old Florida airfield, finishing in the dark.',
+    uk: 'Дванадцять годин на вибоїнах старого флоридського аеродрому з фінішем у темряві.',
+  },
   teams: [
     team('gulf-wyer', 'Slough Engineering', 'GBR', TeamBudget.WORKS),
     team('zuffenhausen', 'Salzburg Sportwagen', 'AUT', TeamBudget.WORKS),

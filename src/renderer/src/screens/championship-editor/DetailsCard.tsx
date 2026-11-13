@@ -3,10 +3,10 @@ import { ChoiceChips } from './ChoiceChips.tsx';
 import {
   CLIMATES, DEFAULT_CLIMATE, DEFAULT_HEMISPHERE, DEFAULT_REF, HEMISPHERES, MIN_MONEY, SEASON_LENGTHS, WEEKDAYS,
 } from './constants.ts';
+import { DescriptionField } from './DescriptionField.tsx';
 import { NumberField } from './NumberField.tsx';
 import { PaneHeading } from './PaneHeading.tsx';
 import { SwitchLine } from './SwitchLine.tsx';
-import { optionalText } from './utils.ts';
 import { DEFAULT_SEASON_LENGTH } from '../../../../shared/constants';
 import type {
   Championship, Climate, Hemisphere, SeasonLength, Weekday,
@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
-import { Textarea } from '@/components/ui/textarea.tsx';
 import { useKindTranslation } from '@/i18n';
 import { CLIMATE_ACCENT } from '@/lib/accents';
 import { Field } from '@/screens/race';
@@ -66,18 +65,12 @@ export const DetailsCard = ({
           />
         </Field>
 
-        <Field id="editor-description" label={t('editor.details.description')}>
-          <Textarea
-            id="editor-description"
-            className="min-h-28"
-            value={series.description ?? ''}
-            disabled={locked}
-            onChange={(event) => onChange({
-              ...series,
-              description: optionalText(event.target.value),
-            })}
-          />
-        </Field>
+        <DescriptionField
+          id="editor-description"
+          value={series.description}
+          disabled={locked}
+          onChange={(description) => onChange({ ...series, description })}
+        />
       </div>
 
       <div className="flex flex-col gap-4 border-t p-6 lg:border-t-0 lg:border-l">

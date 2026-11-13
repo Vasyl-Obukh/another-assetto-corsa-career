@@ -28,8 +28,12 @@ export const PORSCHE_SUPERCUP_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-supercup-2023',
   name: 'Porsche Supercup 2023',
-  description: 'Formula 1\'s one-make support series of 2023 on Guerilla\'s 911 GT3 Cup: seven races, '
-    + 'Zandvoort twice.',
+  description: {
+    en: 'Formula 1\'s one-make support series of 2023 on Guerilla\'s 911 GT3 Cup: seven races, '
+      + 'Zandvoort twice.',
+    uk: 'Монокубок підтримки Формули-1 сезону 2023 на 911 GT3 Cup від Guerilla: сім гонок, із них дві в '
+      + 'Зандворті.',
+  },
   teams: [
     team('elbflorenz', 'Elbflorenz Racing', 'DEU', TeamBudget.INDEPENDENT),
     team('taunus', 'Taunus Motorsport', 'DEU', TeamBudget.INDEPENDENT),

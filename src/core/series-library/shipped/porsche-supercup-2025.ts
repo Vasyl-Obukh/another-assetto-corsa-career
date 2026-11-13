@@ -26,8 +26,12 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-supercup-2025',
   name: 'Porsche Supercup 2025',
-  description: 'Formula 1\'s one-make support series of 2025 on LFM\'s 911 GT3 Cup: seven European grands '
-    + 'prix, one race each.',
+  description: {
+    en: 'Formula 1\'s one-make support series of 2025 on LFM\'s 911 GT3 Cup: seven European grands '
+      + 'prix, one race each.',
+    uk: 'Монокубок підтримки Формули-1 сезону 2025 на 911 GT3 Cup від LFM: сім європейських Гран-прі, по '
+      + 'одній гонці на кожному.',
+  },
   teams: [
     team('elbflorenz', 'Elbflorenz Racing', 'DEU', TeamBudget.INDEPENDENT),
     team('taunus', 'Taunus Motorsport', 'DEU', TeamBudget.INDEPENDENT),

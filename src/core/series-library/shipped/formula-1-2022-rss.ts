@@ -107,9 +107,13 @@ export const FORMULA_1_2022_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2022-rss',
   name: 'Formula 1 2022 (RSS)',
-  description: 'Max Verstappen\'s second title and the first season of the ground-effect cars, with the '
-    + 'real entry list on RSS\'s Formula Hybrid 2022 and fourteen of its grands prix at their real'
-    + ' distances.',
+  description: {
+    en: 'Max Verstappen\'s second title and the first season of the ground-effect cars, with the '
+      + 'real entry list on RSS\'s Formula Hybrid 2022 and fourteen of its grands prix at their real'
+      + ' distances.',
+    uk: 'Другий титул Макса Ферстаппена і перший сезон машин із граунд-ефектом: реальний список учасників '
+      + 'на Formula Hybrid 2022 від RSS і чотирнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

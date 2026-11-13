@@ -30,8 +30,12 @@ export const WEC_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2023',
   name: 'World Endurance Championship 2023',
-  description: 'The World Endurance Championship of 2023 on Yezhrod\'s Cadillac and Vanwall, the Oreca 07'
-    + ' and the GTEs\' last season: seven rounds at their real lengths.',
+  description: {
+    en: 'The World Endurance Championship of 2023 on Yezhrod\'s Cadillac and Vanwall, the Oreca 07'
+      + ' and the GTEs\' last season: seven rounds at their real lengths.',
+    uk: 'Чемпіонат світу з гонок на витривалість 2023 року на Cadillac і Vanwall від Yezhrod, Oreca 07 і '
+      + 'GTE в їхньому останньому сезоні: сім етапів у реальній тривалості.',
+  },
   teams: [
     team('stellaris', 'Stellaris Endurance', 'ITA', TeamBudget.WORKS),
     team('cotswold', 'Cotswold Hypercar', 'GBR', TeamBudget.WORKS),

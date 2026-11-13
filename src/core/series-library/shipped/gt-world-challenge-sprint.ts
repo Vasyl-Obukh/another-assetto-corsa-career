@@ -26,8 +26,12 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-world-challenge-sprint',
   name: 'GT World Challenge Europe Sprint Cup',
-  description: 'Europe\'s GT3 sprint series on LFM\'s GT3 cars: two one-hour races a round at Brands '
-    + 'Hatch, Magny-Cours, Zandvoort and Valencia.',
+  description: {
+    en: 'Europe\'s GT3 sprint series on LFM\'s GT3 cars: two one-hour races a round at Brands '
+      + 'Hatch, Magny-Cours, Zandvoort and Valencia.',
+    uk: 'Європейська спринтерська серія GT3 на машинах GT3 від LFM: дві годинні гонки за етап у '
+      + 'Брендс-Хетчі, Магні-Курі, Зандворті та Валенсії.',
+  },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
     team('valcorte', 'Valcorte Motorsport', 'ITA', TeamBudget.WORKS),

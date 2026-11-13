@@ -30,8 +30,12 @@ export const VLN_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'vln-2004',
   name: 'VLN 2004',
-  description: 'The Nordschleife\'s endurance series of 2004 on RSS\'s and Guerilla\'s cars: the big GTs, '
-    + 'the E46 GTR\'s class and the N24 Skyline, ten VLN races and the 24 Hours.',
+  description: {
+    en: 'The Nordschleife\'s endurance series of 2004 on RSS\'s and Guerilla\'s cars: the big GTs, '
+      + 'the E46 GTR\'s class and the N24 Skyline, ten VLN races and the 24 Hours.',
+    uk: 'Серія гонок на витривалість на Нордшляйфе сезону 2004 на машинах RSS і Guerilla: великі GT, '
+      + 'клас E46 GTR і Skyline N24, десять гонок VLN і 24 години.',
+  },
   teams: [
     team('eifel-gt', 'Eifelwind Racing', 'DEU', TeamBudget.WORKS),
     team('hohe-acht', 'Hohe Acht Motorsport', 'DEU', TeamBudget.INDEPENDENT),

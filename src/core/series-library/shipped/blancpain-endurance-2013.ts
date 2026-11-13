@@ -29,9 +29,14 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'blancpain-endurance-2013',
   name: 'Blancpain Endurance Series 2013',
-  description: 'GT3 endurance racing at its real length: three three-hour races, the Spa 24 Hours '
-    + 'and the Nurburgring 1000 km, on the four GT3 cars of 2013 the base game ships. Mugello '
-    + 'stands in for Paul Ricard.',
+  description: {
+    en: 'GT3 endurance racing at its real length: three three-hour races, the Spa 24 Hours '
+      + 'and the Nurburgring 1000 km, on the four GT3 cars of 2013 the base game ships. Mugello '
+      + 'stands in for Paul Ricard.',
+    uk: 'Гонки GT3 на витривалість у справжній тривалості: три тригодинні гонки, 24 години Спа '
+      + 'та 1000 км Нюрбургрингу на чотирьох машинах GT3 2013 року з базової гри. Муджелло '
+      + 'замінює Поль-Рікар.',
+  },
   teams: [
     team('meuse', 'Meuse Racing Club', 'BEL', TeamBudget.WORKS),
     team('vds', 'Vauclair Racing Team', 'BEL', TeamBudget.WORKS),

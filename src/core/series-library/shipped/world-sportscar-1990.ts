@@ -45,8 +45,12 @@ export const WORLD_SPORTSCAR_1990: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'world-sportscar-1990',
   name: 'World Sports-Prototype Championship 1990',
-  description: 'Group C at its height: five rounds of 480 kilometres. It runs on the base game\'s Mazda '
-    + '787B, and the Mercedes C9 and Porsche 962 C join the grid if you own their packs.',
+  description: {
+    en: 'Group C at its height: five rounds of 480 kilometres. It runs on the base game\'s Mazda '
+      + '787B, and the Mercedes C9 and Porsche 962 C join the grid if you own their packs.',
+    uk: 'Група C у розквіті: п\'ять етапів по 480 кілометрів. Основна машина - Mazda 787B з базової гри, '
+      + 'а Mercedes C9 і Porsche 962 C виходять на стартову решітку, якщо у вас є їхні паки.',
+  },
   teams: [
     team('silberpfeil', 'Silberpfeil Sportwagen', 'CHE', TeamBudget.WORKS),
     team('coventry', 'Coventry Prototypes', 'GBR', TeamBudget.WORKS),

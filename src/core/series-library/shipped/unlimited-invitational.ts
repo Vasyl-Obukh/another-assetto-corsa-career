@@ -16,8 +16,12 @@ export const UNLIMITED_INVITATIONAL: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'unlimited-invitational',
   name: 'Unlimited Invitational',
-  description: 'Invented: RSS\'s rule-free cars - the P91 Evo prototype, the GT-MX pair and the Hyperion '
-    + '2020 - in three classes.',
+  description: {
+    en: 'Invented: RSS\'s rule-free cars - the P91 Evo prototype, the GT-MX pair and the Hyperion '
+      + '2020 - in three classes.',
+    uk: 'Вигаданий: машини RSS без жодного регламенту - прототип P91 Evo, пара GT-MX і Hyperion 2020 - у '
+      + 'трьох класах.',
+  },
   teams: [
     team('black-arrow', 'Black Arrow Racing', 'GBR', TeamBudget.WORKS),
     team('furia', 'Squadra Furia', 'ITA', TeamBudget.WORKS),

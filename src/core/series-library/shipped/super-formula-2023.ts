@@ -39,8 +39,12 @@ export const SUPER_FORMULA_2023: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'super-formula-2023',
   name: 'Super Formula 2023',
-  description: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme 25, the SF23: the three '
-    + 'rounds of its 2023 season that Assetto Corsa has, all at Fuji.',
+  description: {
+    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme 25, the SF23: the three '
+      + 'rounds of its 2023 season that Assetto Corsa has, all at Fuji.',
+    uk: 'Найвища японська формульна серія на Formula RSS Supreme 25 від RSS, тобто SF23: три етапи '
+      + 'сезону 2023, наявні в Assetto Corsa, усі на Фудзі.',
+  },
   teams: [
     team('aoba', 'Team Aoba', 'JPN', TeamBudget.WORKS),
     team('shinano', 'Shinano Racing', 'JPN', TeamBudget.WORKS),

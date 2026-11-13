@@ -13,8 +13,12 @@ import { filler } from './utils.ts';
 export const FORMULA_ABARTH_PLUS = filler(
   FORMULA_ABARTH,
   1,
-  'Filler: Formula Abarth again, a rung up, with longer races and a stronger field. It stands in '
-    + 'for a tier no base-game series fills.',
+  {
+    en: 'Filler: Formula Abarth again, a rung up, with longer races and a stronger field. It stands in '
+      + 'for a tier no base-game series fills.',
+    uk: 'Проміжний чемпіонат: знову Formula Abarth, рівнем вище, з довшими гонками й сильнішим пелотоном. '
+      + 'Замінює рівень, який не заповнює жодна серія базової гри.',
+  },
 );
 
 /**
@@ -23,6 +27,10 @@ export const FORMULA_ABARTH_PLUS = filler(
 export const FORMULA_ABARTH_PLUS_PLUS = filler(
   FORMULA_ABARTH,
   2,
-  'Filler: Formula Abarth two rungs up, with longer races again and the strongest field it runs. '
-    + 'It stands in for a tier no base-game series fills.',
+  {
+    en: 'Filler: Formula Abarth two rungs up, with longer races again and the strongest field it runs. '
+      + 'It stands in for a tier no base-game series fills.',
+    uk: 'Проміжний чемпіонат: Formula Abarth на два рівні вище, з ще довшими гонками й найсильнішим своїм '
+      + 'пелотоном. Замінює рівень, який не заповнює жодна серія базової гри.',
+  },
 );

@@ -10,7 +10,10 @@ export const SPA_1000_1969: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spa-1000-1969',
   name: '1000 km of Spa 1969',
-  description: 'Siffert and Redman\'s Porsche 908 against the Ford GT40s, in the rain that always finds Spa.',
+  description: {
+    en: 'Siffert and Redman\'s Porsche 908 against the Ford GT40s, in the rain that always finds Spa.',
+    uk: 'Porsche 908 Сіфферта і Редмана проти Ford GT40 під дощем, який завжди знаходить Спа.',
+  },
   teams: [
     team('gulf-wyer', 'Slough Engineering', 'GBR', TeamBudget.WORKS),
     team('zuffenhausen', 'Salzburg Sportwagen', 'AUT', TeamBudget.WORKS),

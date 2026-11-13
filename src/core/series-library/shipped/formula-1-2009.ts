@@ -56,8 +56,12 @@ export const FORMULA_1_2009: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2009',
   name: 'Formula 1 2009',
-  description: 'Brawn GP\'s single season and Jenson Button\'s title, with the real entry list in VRC\'s FW31'
-    + ' and twelve of its grands prix at their real distances.',
+  description: {
+    en: 'Brawn GP\'s single season and Jenson Button\'s title, with the real entry list in VRC\'s FW31'
+      + ' and twelve of its grands prix at their real distances.',
+    uk: 'Єдиний сезон Brawn GP і титул Дженсона Баттона зі справжнім списком учасників на FW31 '
+      + 'від VRC та дванадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('brawn', 'Brawn GP', 'GBR', TeamBudget.WORKS),
     team('red-bull', 'Red Bull Racing', 'AUT', TeamBudget.WORKS),

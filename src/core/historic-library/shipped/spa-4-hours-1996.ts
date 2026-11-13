@@ -10,7 +10,10 @@ export const SPA_4_HOURS_1996: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'spa-4-hours-1996',
   name: 'Spa 4 Hours 1996',
-  description: 'The BPR\'s GT1 cars at Spa: McLaren F1 GTRs against the Porsches and Ferraris.',
+  description: {
+    en: 'The BPR\'s GT1 cars at Spa: McLaren F1 GTRs against the Porsches and Ferraris.',
+    uk: 'Машини GT1 серії BPR у Спа: McLaren F1 GTR проти Porsche та Ferrari.',
+  },
   teams: [
     team('woking-gt', 'Albion GT', 'GBR', TeamBudget.WORKS),
     team('gulf-gt', 'Harrow Racing', 'GBR', TeamBudget.INDEPENDENT),

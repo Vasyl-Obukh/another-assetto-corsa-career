@@ -10,7 +10,11 @@ export const ITALIAN_GP_1967: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-gp-1967',
   name: 'Italian Grand Prix 1967',
-  description: 'Clark lost a lap to a puncture and fought all the way back into the lead, only to run short of fuel on the last lap.',
+  description: {
+    en: 'Clark lost a lap to a puncture and fought all the way back into the lead, only to run short of fuel on the last lap.',
+    uk: 'Кларк втратив коло через прокол, з боєм повернувся на перше місце - і на останньому колі йому '
+      + 'забракло пального.',
+  },
   teams: [
     team('brabham', 'Brabham Racing Organisation', 'GBR', TeamBudget.WORKS),
     team('lotus', 'Team Lotus', 'GBR', TeamBudget.WORKS),

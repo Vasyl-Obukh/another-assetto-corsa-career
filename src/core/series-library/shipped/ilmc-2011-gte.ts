@@ -28,9 +28,14 @@ export const ILMC_2011_GTE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'ilmc-2011-gte',
   name: 'Intercontinental Le Mans Cup 2011 GTE',
-  description: 'The 2011 GTE Pro field, which is exactly the base game\'s three GT2 cars, over the '
-    + 'season at its real lengths - Sebring, Spa, Le Mans, Imola, Silverstone and Petit Le Mans - '
-    + 'with a Monza 1000 km standing in for Zhuhai. Each crew\'s regulars drive a car each.',
+  description: {
+    en: 'The 2011 GTE Pro field, which is exactly the base game\'s three GT2 cars, over the '
+      + 'season at its real lengths - Sebring, Spa, Le Mans, Imola, Silverstone and Petit Le Mans - '
+      + 'with a Monza 1000 km standing in for Zhuhai. Each crew\'s regulars drive a car each.',
+    uk: 'Пелотон GTE Pro 2011 року - рівно три машини GT2 з базової гри - на сезоні справжніх дистанцій: '
+      + 'Себрінг, Спа, Ле-Ман, Імола, Сільверстоун і Petit Le Mans, а 1000 км Монци замінюють Чжухай. '
+      + 'Кожен постійний пілот екіпажу отримує власну машину.',
+  },
   teams: [
     team('bmw', 'BMW Motorsport', 'DEU', TeamBudget.WORKS),
     team('af-corse', 'AF Corse', 'ITA', TeamBudget.WORKS),

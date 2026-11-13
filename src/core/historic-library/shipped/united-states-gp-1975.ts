@@ -10,7 +10,10 @@ export const UNITED_STATES_GP_1975: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'united-states-gp-1975',
   name: 'United States Grand Prix 1975',
-  description: 'Watkins Glen at the close of the season, Lauda already champion in the Ferrari 312T.',
+  description: {
+    en: 'Watkins Glen at the close of the season, Lauda already champion in the Ferrari 312T.',
+    uk: 'Воткінс-Глен наприкінці сезону, Лауда вже чемпіон на Ferrari 312T.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'Marlboro Team Texaco', 'GBR', TeamBudget.WORKS),

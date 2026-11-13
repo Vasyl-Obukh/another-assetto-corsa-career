@@ -316,6 +316,7 @@ export type {
   HiddenContentSources,
   HistoricFrequency,
   Language,
+  LocalizedText,
   ResolvedTheme,
   Settings,
   ThemeChoice,

@@ -117,8 +117,12 @@ export const FORMULA_1_2023_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2023-rss',
   name: 'Formula 1 2023 (RSS)',
-  description: 'Max Verstappen\'s nineteen-win season, with the real entry list on RSS\'s Formula Hybrid '
-    + '2023 and thirteen of its grands prix at their real distances.',
+  description: {
+    en: 'Max Verstappen\'s nineteen-win season, with the real entry list on RSS\'s Formula Hybrid '
+      + '2023 and thirteen of its grands prix at their real distances.',
+    uk: 'Сезон дев\'ятнадцяти перемог Макса Ферстаппена: реальний список учасників на Formula Hybrid 2023 '
+      + 'від RSS і тринадцять гран-прі сезону на їхніх справжніх дистанціях.',
+  },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

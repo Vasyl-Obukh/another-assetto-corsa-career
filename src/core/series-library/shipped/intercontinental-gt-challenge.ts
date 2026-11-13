@@ -24,8 +24,11 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'intercontinental-gt-challenge',
   name: 'Intercontinental GT Challenge',
-  description: 'The GT3 world tour\'s two classics on LFM\'s GT3 cars: the Bathurst 12 Hour and the Spa 24'
-    + ' Hours.',
+  description: {
+    en: 'The GT3 world tour\'s two classics on LFM\'s GT3 cars: the Bathurst 12 Hour and the Spa 24'
+      + ' Hours.',
+    uk: 'Дві класичні гонки світового туру GT3 на машинах GT3 від LFM: 12 годин Батерста і 24 години Спа.',
+  },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
     team('valcorte', 'Valcorte Motorsport', 'ITA', TeamBudget.WORKS),

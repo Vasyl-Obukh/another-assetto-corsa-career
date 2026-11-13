@@ -39,9 +39,14 @@ export const FORMULA_1_1957: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1957',
   name: 'Formula 1 1957',
-  description: 'Fangio\'s last title, with the real entry list in the twelve-cylinder Maserati 250F, the '
-    + 'Nordschleife and Monza at their real distances, and Aintree\'s British Grand Prix raced at '
-    + 'Silverstone.',
+  description: {
+    en: 'Fangio\'s last title, with the real entry list in the twelve-cylinder Maserati 250F, the '
+      + 'Nordschleife and Monza at their real distances, and Aintree\'s British Grand Prix raced at '
+      + 'Silverstone.',
+    uk: 'Останній титул Фанхіо зі справжнім списком учасників на дванадцятициліндровому Maserati '
+      + '250F, Нордшляйфе та Монца на справжніх дистанціях, а Гран-прі Великої Британії з Ейнтрі '
+      + 'проходить у Сільверстоуні.',
+  },
   teams: [
     team('maserati', 'Officine Alfieri Maserati', 'ITA', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

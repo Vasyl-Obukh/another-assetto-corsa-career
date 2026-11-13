@@ -32,8 +32,12 @@ export const WEC_2024_VRC: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2024-vrc',
   name: 'World Endurance Championship 2024 (VRC)',
-  description: 'The 2024 World Endurance Championship on VRC\'s Prototype H hypercars and LFM\'s LMGT3s: '
-    + 'seven rounds at their real lengths, Le Mans at double points.',
+  description: {
+    en: 'The 2024 World Endurance Championship on VRC\'s Prototype H hypercars and LFM\'s LMGT3s: '
+      + 'seven rounds at their real lengths, Le Mans at double points.',
+    uk: 'Чемпіонат світу з гонок на витривалість 2024 року на гіперкарах Prototype H від VRC і LMGT3 від '
+      + 'LFM: сім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
+  },
   teams: [
     team('stellaris', 'Stellaris Endurance', 'ITA', TeamBudget.WORKS),
     team('cotswold', 'Cotswold Hypercar', 'GBR', TeamBudget.WORKS),

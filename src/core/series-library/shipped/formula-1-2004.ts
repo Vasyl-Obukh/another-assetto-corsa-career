@@ -40,8 +40,12 @@ export const FORMULA_1_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2004',
   name: 'Formula 1 2004',
-  description: 'The Ferrari F2004\'s season, with the real entry list in the F2004 and fourteen of its '
-    + 'grands prix at their real distances.',
+  description: {
+    en: 'The Ferrari F2004\'s season, with the real entry list in the F2004 and fourteen of its '
+      + 'grands prix at their real distances.',
+    uk: 'Сезон Ferrari F2004 зі справжнім списком учасників на F2004 і чотирнадцятьма гран-прі '
+      + 'на справжніх дистанціях.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('bar', 'Lucky Strike BAR Honda', 'GBR', TeamBudget.WORKS),

@@ -27,9 +27,14 @@ export const BOSS_GP_OPEN: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'boss-gp-open',
   name: 'BOSS GP Open',
-  description: 'The Open class of the series for privately owned big single-seaters, run by the Lotus '
-    + 'Exos 125 and its Stage 1 upgrade balanced to it, on the 2019 calendar. The Nurburgring and '
-    + 'Mugello stand in for Hockenheim and Brno.',
+  description: {
+    en: 'The Open class of the series for privately owned big single-seaters, run by the Lotus '
+      + 'Exos 125 and its Stage 1 upgrade balanced to it, on the 2019 calendar. The Nurburgring and '
+      + 'Mugello stand in for Hockenheim and Brno.',
+    uk: 'Клас Open серії для великих формульних машин приватних власників: Lotus Exos 125 '
+      + 'і його версія Stage 1, зрівняна з ним за характеристиками, за календарем 2019 року. '
+      + 'Нюрбургринг і Муджелло замінюють Хоккенхайм і Брно.',
+  },
   teams: [
     team('ascari', 'Scuderia Ascari', 'NLD', TeamBudget.WORKS),
     team('bruhl', 'Brühl Grand Prix', 'DEU', TeamBudget.INDEPENDENT),

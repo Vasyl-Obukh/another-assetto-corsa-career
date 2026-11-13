@@ -27,8 +27,12 @@ export const LOTUS_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'lotus-cup',
   name: 'Lotus Cup',
-  description: 'Lotus Cup Europe\'s three classes on one grid, scored separately: V6, Open and '
-    + 'Production. The race cars in V6 are balanced to the Exige S.',
+  description: {
+    en: 'Lotus Cup Europe\'s three classes on one grid, scored separately: V6, Open and '
+      + 'Production. The race cars in V6 are balanced to the Exige S.',
+    uk: 'Три класи Lotus Cup Europe на одній стартовій решітці з окремим заліком: V6, Open і Production. '
+      + 'Гоночні машини у V6 вирівняно під Exige S.',
+  },
   teams: [
     team('hethel', 'Hethel Race Group', 'GBR', TeamBudget.INDEPENDENT),
     team('brooklands', 'Brooklands Lightweight', 'GBR', TeamBudget.INDEPENDENT),

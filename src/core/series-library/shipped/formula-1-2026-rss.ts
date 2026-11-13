@@ -115,9 +115,14 @@ export const FORMULA_1_2026_RSS: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2026-rss',
   name: 'Formula 1 2026 (RSS)',
-  description: 'The 2026 season - new power units, active aerodynamics and Cadillac\'s arrival - with the '
-    + 'entry list on RSS\'s Formula Hybrid 2026 and fourteen of its grands prix at their real '
-    + 'distances.',
+  description: {
+    en: 'The 2026 season - new power units, active aerodynamics and Cadillac\'s arrival - with the '
+      + 'entry list on RSS\'s Formula Hybrid 2026 and fourteen of its grands prix at their real '
+      + 'distances.',
+    uk: 'Сезон 2026 року - нові силові установки, активна аеродинаміка й дебют Cadillac - зі списком '
+      + 'учасників на Formula Hybrid 2026 від RSS і чотирнадцятьма гран-прі сезону на їхніх справжніх '
+      + 'дистанціях.',
+  },
   teams: [
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),
     team('mercedes', 'Mercedes-AMG Petronas F1 Team', 'DEU', TeamBudget.WORKS),

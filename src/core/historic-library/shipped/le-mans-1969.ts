@@ -10,7 +10,11 @@ export const LE_MANS_1969: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'le-mans-1969',
   name: '24 Hours of Le Mans 1969',
-  description: 'Ickx walked to his car in protest at the running start, then won by barely a hundred metres after twenty-four hours.',
+  description: {
+    en: 'Ickx walked to his car in protest at the running start, then won by barely a hundred metres after twenty-four hours.',
+    uk: 'Ікс на знак протесту проти ле-манівського старту пішов до машини кроком, а через двадцять чотири '
+      + 'години виграв із перевагою ледве в сотню метрів.',
+  },
   teams: [
     team('gulf-wyer', 'Slough Engineering', 'GBR', TeamBudget.WORKS),
     team('zuffenhausen', 'Salzburg Sportwagen', 'AUT', TeamBudget.WORKS),

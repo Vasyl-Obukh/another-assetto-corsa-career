@@ -31,8 +31,12 @@ export const WEC_2025: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2025',
   name: 'World Endurance Championship 2025',
-  description: 'The 2025 World Endurance Championship on RSS\'s MP-H hypercars and LFM\'s LMGT3s: seven '
-    + 'rounds at their real lengths, Le Mans at double points.',
+  description: {
+    en: 'The 2025 World Endurance Championship on RSS\'s MP-H hypercars and LFM\'s LMGT3s: seven '
+      + 'rounds at their real lengths, Le Mans at double points.',
+    uk: 'Чемпіонат світу з гонок на витривалість 2025 року на гіперкарах MP-H від RSS і LMGT3 від LFM: '
+      + 'сім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
+  },
   teams: [
     team('stellaris', 'Stellaris Endurance', 'ITA', TeamBudget.WORKS),
     team('cotswold', 'Cotswold Hypercar', 'GBR', TeamBudget.WORKS),

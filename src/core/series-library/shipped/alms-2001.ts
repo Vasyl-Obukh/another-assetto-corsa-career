@@ -29,8 +29,12 @@ export const ALMS_2001: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'alms-2001',
   name: 'American Le Mans Series 2001',
-  description: 'The American Le Mans Series of 2001 on RSS\'s and Guerilla\'s cars: the 333 SP in LMP900, '
-    + 'the GTS class, and the E46 GTR\'s GT class, five rounds at their real lengths.',
+  description: {
+    en: 'The American Le Mans Series of 2001 on RSS\'s and Guerilla\'s cars: the 333 SP in LMP900, '
+      + 'the GTS class, and the E46 GTR\'s GT class, five rounds at their real lengths.',
+    uk: 'American Le Mans Series 2001 року на машинах RSS і Guerilla: 333 SP у класі LMP900, '
+      + 'клас GTS і клас GT з E46 GTR, п\'ять етапів у їхній справжній тривалості.',
+  },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
     team('brescia', 'Scuderia Bresciana', 'ITA', TeamBudget.INDEPENDENT),

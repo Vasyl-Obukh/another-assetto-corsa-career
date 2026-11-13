@@ -10,7 +10,11 @@ export const ITALIAN_GP_1971: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'italian-gp-1971',
   name: 'Italian Grand Prix 1971',
-  description: 'Monza without chicanes, and the closest finish there has ever been: five cars across the line inside two tenths of a second.',
+  description: {
+    en: 'Monza without chicanes, and the closest finish there has ever been: five cars across the line inside two tenths of a second.',
+    uk: 'Монца без шикан і найщільніший фініш в історії: п\'ять машин перетнули лінію в межах двох '
+      + 'десятих секунди.',
+  },
   teams: [
     team('tyrrell', 'Elf Team Tyrrell', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

@@ -31,8 +31,12 @@ export const WEC_2017: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'wec-2017',
   name: 'World Endurance Championship 2017',
-  description: 'The World Endurance Championship of 2017 on the 919 Hybrids and Yezhrod\'s Oreca 07s and '
-    + 'GTEs: LMP1, LMP2 and GTE Pro, all nine rounds at their real lengths.',
+  description: {
+    en: 'The World Endurance Championship of 2017 on the 919 Hybrids and Yezhrod\'s Oreca 07s and '
+      + 'GTEs: LMP1, LMP2 and GTE Pro, all nine rounds at their real lengths.',
+    uk: 'Чемпіонат світу з гонок на витривалість 2017 року на 919 Hybrid та Oreca 07 і GTE від Yezhrod: '
+      + 'LMP1, LMP2 і GTE Pro, усі дев\'ять етапів у реальній тривалості.',
+  },
   teams: [
     team('weissach-lmp', 'Leonberg Hybrid Racing', 'DEU', TeamBudget.WORKS),
     team('higashi-fuji', 'Higashi-Fuji Racing', 'JPN', TeamBudget.WORKS),

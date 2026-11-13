@@ -56,9 +56,14 @@ export const FORMULA_1_2013: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2013',
   name: 'Formula 1 2013',
-  description: 'The last season of the V8s, with the real entry list and thirteen of its grands prix at '
-    + 'their real distances. It runs on the Red Pack\'s F138 or RSS\'s Formula 2013, whichever '
-    + 'you own.',
+  description: {
+    en: 'The last season of the V8s, with the real entry list and thirteen of its grands prix at '
+      + 'their real distances. It runs on the Red Pack\'s F138 or RSS\'s Formula 2013, whichever '
+      + 'you own.',
+    uk: 'Останній сезон V8 зі справжнім списком учасників і тринадцятьма гран-прі на справжніх '
+      + 'дистанціях. Він проходить на F138 з Red Pack або на Formula 2013 від RSS, залежно від '
+      + 'того, що у вас є.',
+  },
   teams: [
     team('red-bull', 'Infiniti Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('mercedes', 'Mercedes AMG Petronas', 'DEU', TeamBudget.WORKS),

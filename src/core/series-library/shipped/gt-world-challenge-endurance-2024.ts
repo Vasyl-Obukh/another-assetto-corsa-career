@@ -27,8 +27,12 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-world-challenge-endurance-2024',
   name: 'GT World Challenge Europe Endurance Cup 2024',
-  description: 'Europe\'s GT3 endurance series of 2024 on LFM\'s GT3 cars: three hours at Monza and the '
-    + 'Nurburgring, and the Spa 24 Hours.',
+  description: {
+    en: 'Europe\'s GT3 endurance series of 2024 on LFM\'s GT3 cars: three hours at Monza and the '
+      + 'Nurburgring, and the Spa 24 Hours.',
+    uk: 'Європейська серія гонок на витривалість GT3 сезону 2024 на машинах GT3 від LFM: три години в '
+      + 'Монці та на Нюрбургринзі і 24 години Спа.',
+  },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
     team('valcorte', 'Valcorte Motorsport', 'ITA', TeamBudget.WORKS),

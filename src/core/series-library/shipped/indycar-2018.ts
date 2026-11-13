@@ -46,8 +46,12 @@ export const INDYCAR_2018: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'indycar-2018',
   name: 'IndyCar 2018',
-  description: 'IndyCar\'s first universal-aero-kit season on VRC\'s Formula North America 2018: Road '
-    + 'America, the double-points Sonoma finale, and the Pocono 500 run at Daytona.',
+  description: {
+    en: 'IndyCar\'s first universal-aero-kit season on VRC\'s Formula North America 2018: Road '
+      + 'America, the double-points Sonoma finale, and the Pocono 500 run at Daytona.',
+    uk: 'Перший сезон IndyCar з універсальним аеропакетом на Formula North America 2018 від VRC: '
+      + 'Роуд-Америка, фінал у Сономі з подвійними очками і Поконо 500, що розігрується в Дайтоні.',
+  },
   teams: [
     team('lakeshore', 'Lakeshore Racing', 'USA', TeamBudget.WORKS),
     team('crossroads', 'Crossroads Motorsports', 'USA', TeamBudget.WORKS),

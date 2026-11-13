@@ -26,8 +26,12 @@ export const GT2_EUROPEAN_SERIES: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt2-european-series',
   name: 'GT2 European Series',
-  description: 'SRO\'s track-only GT2 class on Guerilla\'s GT2 cars, real and imagined: two 50-minute '
-    + 'races a round at Monza, Spa, Valencia and Portimao.',
+  description: {
+    en: 'SRO\'s track-only GT2 class on Guerilla\'s GT2 cars, real and imagined: two 50-minute '
+      + 'races a round at Monza, Spa, Valencia and Portimao.',
+    uk: 'Трековий клас GT2 від SRO на машинах GT2 від Guerilla, реальних і вигаданих: дві 50-хвилинні '
+      + 'гонки за етап у Монці, Спа, Валенсії та Портімау.',
+  },
   teams: [
     team('lugano', 'Lugano GT', 'CHE', TeamBudget.INDEPENDENT),
     team('riviera', 'Riviera GT', 'MCO', TeamBudget.INDEPENDENT),

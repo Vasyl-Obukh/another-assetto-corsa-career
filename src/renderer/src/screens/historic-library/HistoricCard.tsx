@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
 import type { SeriesCommandsState } from '@/hooks';
+import { useLocalizedText } from '@/i18n';
 import { managePath } from '@/lib/series-kind';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -37,6 +38,8 @@ interface HistoricCardProps {
 // draw it, where it runs, what stops it being drawn, and its format at its foot.
 export const HistoricCard = ({ listing, commands }: HistoricCardProps) => {
   const { t } = useTranslation();
+  const describe = useLocalizedText();
+  const description = describe(listing.series.description);
   const navigate = useNavigate();
   const { settings, patch } = useSettings();
   const { series, availability } = listing;
@@ -86,8 +89,8 @@ export const HistoricCard = ({ listing, commands }: HistoricCardProps) => {
             </div>
 
             <div className={cn('flex flex-col gap-3', dimmed)}>
-              {series.description ? (
-                <p className="line-clamp-2 text-sm text-muted-foreground">{series.description}</p>
+              {description ? (
+                <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
               ) : null}
 
               {series.entries.length > 1 ? (

@@ -56,8 +56,12 @@ export const FORMULA_1_2007: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2007',
   name: 'Formula 1 2007',
-  description: 'Kimi Räikkönen\'s title by a point, with the real entry list in VRC\'s Formula Alpha 2007 '
-    + 'and fifteen of its grands prix at their real distances.',
+  description: {
+    en: 'Kimi Räikkönen\'s title by a point, with the real entry list in VRC\'s Formula Alpha 2007 '
+      + 'and fifteen of its grands prix at their real distances.',
+    uk: 'Титул Кімі Райкконена з перевагою в одне очко, зі справжнім списком учасників на Formula '
+      + 'Alpha 2007 від VRC і п\'ятнадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'Vodafone McLaren Mercedes', 'GBR', TeamBudget.WORKS),

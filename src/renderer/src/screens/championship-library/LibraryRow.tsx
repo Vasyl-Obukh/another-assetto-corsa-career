@@ -14,7 +14,7 @@ import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
 import type { SeriesCommandsState } from '@/hooks';
-import { useFormat } from '@/i18n';
+import { useFormat, useLocalizedText } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
@@ -37,6 +37,8 @@ interface LibraryRowProps {
 // cell at a time, with the card's menu on its button and on a right-click.
 export const LibraryRow = ({ listing, commands }: LibraryRowProps) => {
   const { t } = useTranslation();
+  const describe = useLocalizedText();
+  const description = describe(listing.series.description);
   const { formatNumber } = useFormat();
   const navigate = useNavigate();
   const { settings, patch } = useSettings();
@@ -85,9 +87,9 @@ export const LibraryRow = ({ listing, commands }: LibraryRowProps) => {
           <td className={cn('px-2.5 py-2', dimmed)}>
             <div className="flex min-w-0 flex-col">
               <Link to={page} className="leading-snug font-semibold hover:underline">{series.name}</Link>
-              {series.description ? (
+              {description ? (
                 <span className="hidden max-w-[24ch] truncate text-xs text-muted-foreground @[64rem]:block @[88rem]:max-w-[34ch]">
-                  {series.description}
+                  {description}
                 </span>
               ) : null}
             </div>

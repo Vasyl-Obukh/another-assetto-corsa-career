@@ -39,8 +39,12 @@ export const FORMULA_1_1997: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1997',
   name: 'Formula 1 1997',
-  description: 'Jacques Villeneuve\'s title season, with the real entry list in VRC\'s F310B and FW19 and '
-    + 'eleven of its grands prix at their real distances.',
+  description: {
+    en: 'Jacques Villeneuve\'s title season, with the real entry list in VRC\'s F310B and FW19 and '
+      + 'eleven of its grands prix at their real distances.',
+    uk: 'Чемпіонський сезон Жака Вільнева зі справжнім списком учасників на F310B і FW19 від VRC '
+      + 'та одинадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('williams', 'Rothmans Williams Renault', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),

@@ -15,8 +15,12 @@ export const FORMULA_X_INVITATIONAL: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-x-invitational',
   name: 'Formula X Invitational',
-  description: 'Invented: RSS\'s rule-free Formula Hybrid X, X EVO and V12-R in one class, at grand prix '
-    + 'circuits.',
+  description: {
+    en: 'Invented: RSS\'s rule-free Formula Hybrid X, X EVO and V12-R in one class, at grand prix '
+      + 'circuits.',
+    uk: 'Вигаданий чемпіонат: Formula Hybrid X, X EVO і V12-R від RSS, машини без жодного регламенту, в '
+      + 'одному класі на трасах гран-прі.',
+  },
   teams: [
     team('vanguard', 'Vanguard X', 'GBR', TeamBudget.WORKS),
     team('zenith', 'Zenith Racing', 'ITA', TeamBudget.WORKS),

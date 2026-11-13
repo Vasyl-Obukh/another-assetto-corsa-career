@@ -25,8 +25,12 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'lamborghini-super-trofeo-2016',
   name: 'Lamborghini Super Trofeo Europe 2016',
-  description: 'The Huracan Super Trofeo\'s one-make championship: double headers of 50-minute '
-    + 'races, each with its own qualifying. Mugello stands in for Paul Ricard.',
+  description: {
+    en: 'The Huracan Super Trofeo\'s one-make championship: double headers of 50-minute '
+      + 'races, each with its own qualifying. Mugello stands in for Paul Ricard.',
+    uk: 'Монокубок Huracan Super Trofeo: по дві 50-хвилинні гонки за етап, кожна зі своєю кваліфікацією. '
+      + 'Муджелло замінює Поль-Рікар.',
+  },
   teams: [
     team('baldoni', 'Scuderia Baldoni', 'ITA', TeamBudget.WORKS),
     team('imperatore', 'Imperatore Racing', 'ITA', TeamBudget.INDEPENDENT),

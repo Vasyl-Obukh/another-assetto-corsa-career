@@ -10,7 +10,10 @@ export const ZOLDER_1993: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'zolder-1993',
   name: 'Zolder 1993',
-  description: 'The first round of the Class 1 DTM, where the Mercedes 190E met the Alfa Romeo 155.',
+  description: {
+    en: 'The first round of the Class 1 DTM, where the Mercedes 190E met the Alfa Romeo 155.',
+    uk: 'Перший етап DTM за регламентом Class 1, де Mercedes 190E зійшовся з Alfa Romeo 155.',
+  },
   teams: [
     team('stern', 'Stern Tourenwagen', 'DEU', TeamBudget.WORKS),
     team('biscione', 'Squadra Biscione', 'ITA', TeamBudget.WORKS),

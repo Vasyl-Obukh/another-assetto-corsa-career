@@ -44,8 +44,12 @@ export const INDYCAR_2021: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'indycar-2021',
   name: 'IndyCar 2021',
-  description: 'IndyCar 2021 on VRC\'s Formula North America 2021: Road America, Laguna Seca, and Texas\'s'
-    + ' 300 miles run at Daytona.',
+  description: {
+    en: 'IndyCar 2021 on VRC\'s Formula North America 2021: Road America, Laguna Seca, and Texas\'s'
+      + ' 300 miles run at Daytona.',
+    uk: 'IndyCar 2021 на Formula North America 2021 від VRC: Роуд-Америка, Лагуна-Сека і 300 миль Техасу, '
+      + 'що розігруються в Дайтоні.',
+  },
   teams: [
     team('lakeshore', 'Lakeshore Racing', 'USA', TeamBudget.WORKS),
     team('crossroads', 'Crossroads Motorsports', 'USA', TeamBudget.WORKS),

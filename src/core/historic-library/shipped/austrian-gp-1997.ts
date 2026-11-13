@@ -10,7 +10,10 @@ export const AUSTRIAN_GP_1997: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'austrian-gp-1997',
   name: 'Austrian Grand Prix 1997',
-  description: 'Formula 1 back at the A1-Ring after ten years away.',
+  description: {
+    en: 'Formula 1 back at the A1-Ring after ten years away.',
+    uk: 'Формула-1 повертається на А1-Рінг після десяти років відсутності.',
+  },
   teams: [
     team('williams', 'Rothmans Williams Renault', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),

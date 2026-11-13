@@ -17,8 +17,12 @@ export const PORSCHE_RS60_SPYDER_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-rs60-spyder-cup',
   name: 'RS 60 Spyder Cup',
-  description: 'Invented: a one-make cup for the 718 RS 60 Spyder, which has no grid in Assetto Corsa to'
-    + ' join, on circuits of its era.',
+  description: {
+    en: 'Invented: a one-make cup for the 718 RS 60 Spyder, which has no grid in Assetto Corsa to'
+      + ' join, on circuits of its era.',
+    uk: 'Вигаданий: монокубок для 718 RS 60 Spyder, якому в Assetto Corsa більше ніде виступати, на '
+      + 'трасах його епохи.',
+  },
   teams: [
     team('zuffenhausen-spyder', 'Spyder Klassik', 'DEU', TeamBudget.INDEPENDENT),
     team('scuderia-spyder', 'Scuderia Piccola', 'ITA', TeamBudget.PRIVATEER),

@@ -56,9 +56,14 @@ export const FORMULA_1_2015: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2015',
   name: 'Formula 1 2015',
-  description: 'The hybrid era\'s second season, with the real entry list and thirteen of its grands prix '
-    + 'at their real distances. It runs on the Red Pack\'s SF15-T or VRC\'s FW37, whichever you '
-    + 'own.',
+  description: {
+    en: 'The hybrid era\'s second season, with the real entry list and thirteen of its grands prix '
+      + 'at their real distances. It runs on the Red Pack\'s SF15-T or VRC\'s FW37, whichever you '
+      + 'own.',
+    uk: 'Другий сезон гібридної ери зі справжнім списком учасників і тринадцятьма гран-прі '
+      + 'на справжніх дистанціях. Він проходить на SF15-T з Red Pack або на FW37 від VRC, '
+      + 'залежно від того, що у вас є.',
+  },
   teams: [
     team('mercedes', 'Mercedes AMG Petronas', 'DEU', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

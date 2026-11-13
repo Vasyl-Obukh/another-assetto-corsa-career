@@ -5,11 +5,12 @@
 import type { TFunction } from 'i18next';
 
 import {
-  DAYS_PER_MONTH, DAYS_PER_YEAR, DEFAULT_CURRENCY, FALLBACK_LANGUAGE, HOME_NATION_NAMES, LOCALES,
+  DAYS_PER_MONTH, DAYS_PER_YEAR, DEFAULT_CURRENCY, HOME_NATION_NAMES, LOCALES,
 } from './constants.ts';
 import type { CachedFormat, Formatters } from './types.ts';
 import {
-  CONTENT_ISSUE_REASONS, DAYS_PER_WEEK, HOURS_PER_DAY, M_PER_KM, MINUTES_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND,
+  CONTENT_ISSUE_REASONS, DAYS_PER_WEEK, FALLBACK_LANGUAGE, HOURS_PER_DAY, M_PER_KM, MINUTES_PER_HOUR, MS_PER_MINUTE,
+  MS_PER_SECOND,
 } from '../../../shared/constants';
 import type { AppErrorInfo } from '../../../shared/errors';
 import type { ContentIssueReason, Language } from '../../../shared/types';

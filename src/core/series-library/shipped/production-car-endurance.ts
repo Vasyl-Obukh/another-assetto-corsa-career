@@ -24,8 +24,12 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'production-car-endurance',
   name: 'Production Car Endurance',
-  description: 'Road cars racing in two classes on the Bathurst 6 Hour\'s class rules: 140 km races '
-    + 'and the Bathurst 6 Hour as the finale. The series is invented; its classes are real.',
+  description: {
+    en: 'Road cars racing in two classes on the Bathurst 6 Hour\'s class rules: 140 km races '
+      + 'and the Bathurst 6 Hour as the finale. The series is invented; its classes are real.',
+    uk: 'Дорожні машини у двох класах за регламентом класів 6 годин Батерста: гонки по 140 км, а фіналом '
+      + 'стають самі 6 годин Батерста. Серія вигадана, але її класи справжні.',
+  },
   teams: [
     team('bavaria', 'Bavaria Road Racing', 'DEU', TeamBudget.INDEPENDENT),
     team('mountain', 'Mountain Straight Motorsport', 'AUS', TeamBudget.INDEPENDENT),

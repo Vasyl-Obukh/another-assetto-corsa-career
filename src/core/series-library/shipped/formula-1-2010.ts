@@ -56,8 +56,12 @@ export const FORMULA_1_2010: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2010',
   name: 'Formula 1 2010',
-  description: 'Sebastian Vettel\'s first title, with the real entry list on RSS\'s Formula 2010 and twelve '
-    + 'of its grands prix at their real distances.',
+  description: {
+    en: 'Sebastian Vettel\'s first title, with the real entry list on RSS\'s Formula 2010 and twelve '
+      + 'of its grands prix at their real distances.',
+    uk: 'Перший титул Себастьяна Феттеля зі справжнім списком учасників на Formula 2010 від RSS '
+      + 'і дванадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('red-bull', 'Red Bull Racing', 'AUT', TeamBudget.WORKS),
     team('mclaren', 'Vodafone McLaren Mercedes', 'GBR', TeamBudget.WORKS),

@@ -22,8 +22,12 @@ export const TUNER_INVITATIONAL: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'tuner-invitational',
   name: 'Tuner Invitational',
-  description: 'Invented: the base game\'s stage-tuned road cars and the Japanese Pack\'s tuners, raced in'
-    + ' three classes by pace. It needs the Japanese Pack.',
+  description: {
+    en: 'Invented: the base game\'s stage-tuned road cars and the Japanese Pack\'s tuners, raced in'
+      + ' three classes by pace. It needs the Japanese Pack.',
+    uk: 'Вигаданий: тюнінговані за ступенями дорожні машини з базової гри та тюнери з Japanese Pack у '
+      + 'трьох класах за темпом. Потрібен Japanese Pack.',
+  },
   teams: [
     team('tuner-tokyo', 'Daikoku Tuning', 'JPN', TeamBudget.INDEPENDENT),
     team('tuner-uk', 'Stage Three Motorsport', 'GBR', TeamBudget.PRIVATEER),

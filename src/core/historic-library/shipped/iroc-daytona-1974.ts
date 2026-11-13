@@ -10,7 +10,10 @@ export const IROC_DAYTONA_1974: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'iroc-daytona-1974',
   name: 'IROC at Daytona 1974',
-  description: 'The best drivers of every discipline in identical Porsche Carrera RSRs, and no excuses.',
+  description: {
+    en: 'The best drivers of every discipline in identical Porsche Carrera RSRs, and no excuses.',
+    uk: 'Найкращі пілоти всіх дисциплін в однакових Porsche Carrera RSR - і жодних виправдань.',
+  },
   teams: [
     team('iroc', 'International Race of Champions', 'USA', TeamBudget.WORKS),
   ],

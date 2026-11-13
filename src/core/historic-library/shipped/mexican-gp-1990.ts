@@ -10,7 +10,10 @@ export const MEXICAN_GP_1990: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'mexican-gp-1990',
   name: 'Mexican Grand Prix 1990',
-  description: 'Prost from thirteenth on the grid to the win, round the bumps of the Peraltada.',
+  description: {
+    en: 'Prost from thirteenth on the grid to the win, round the bumps of the Peraltada.',
+    uk: 'Прост пройшов від тринадцятого місця на старті до перемоги - через вибоїни Пералтади.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

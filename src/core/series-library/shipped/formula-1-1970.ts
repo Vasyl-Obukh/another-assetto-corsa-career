@@ -40,8 +40,12 @@ export const FORMULA_1_1970: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1970',
   name: 'Formula 1 1970',
-  description: 'Jochen Rindt\'s posthumous title season, with the real entry list on RSS\'s Formula 1970 and'
-    + ' nine of its grands prix at their real distances, Charade and Mont-Tremblant included.',
+  description: {
+    en: 'Jochen Rindt\'s posthumous title season, with the real entry list on RSS\'s Formula 1970 and'
+      + ' nine of its grands prix at their real distances, Charade and Mont-Tremblant included.',
+    uk: 'Сезон посмертного титулу Йохена Рінта зі справжнім списком учасників на Formula 1970 '
+      + 'від RSS і дев\'ятьма гран-прі на справжніх дистанціях, включно з Шарадом і Мон-Трамбланом.',
+  },
   teams: [
     team('lotus', 'Gold Leaf Team Lotus', 'GBR', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

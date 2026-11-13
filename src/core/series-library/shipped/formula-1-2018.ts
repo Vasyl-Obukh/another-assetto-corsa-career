@@ -54,8 +54,12 @@ export const FORMULA_1_2018: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-2018',
   name: 'Formula 1 2018',
-  description: 'Lewis Hamilton\'s fifth title, with the real entry list on RSS\'s Formula Hybrid 2018 and '
-    + 'thirteen of its grands prix at their real distances.',
+  description: {
+    en: 'Lewis Hamilton\'s fifth title, with the real entry list on RSS\'s Formula Hybrid 2018 and '
+      + 'thirteen of its grands prix at their real distances.',
+    uk: 'П\'ятий титул Льюїса Гемілтона зі справжнім списком учасників на Formula Hybrid 2018 '
+      + 'від RSS і тринадцятьма гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('mercedes', 'Mercedes AMG Petronas Motorsport', 'DEU', TeamBudget.WORKS),
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),

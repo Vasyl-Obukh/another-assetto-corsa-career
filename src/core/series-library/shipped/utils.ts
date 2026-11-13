@@ -10,7 +10,7 @@ import {
 } from './constants.ts';
 import { TeamBudget } from '../../../shared/types/index.ts';
 import type {
-  Championship, PrizeMoney, Seat, SeriesSession, Team,
+  Championship, LocalizedText, PrizeMoney, Seat, SeriesSession, Team,
 } from '../../../shared/types/index.ts';
 
 /**
@@ -70,7 +70,7 @@ export const seat = (
  * @param description What the filler says about itself
  * @returns The filler championship
  */
-export const filler = (base: Championship, step: number, description: string): Championship => {
+export const filler = (base: Championship, step: number, description: LocalizedText): Championship => {
   const scale = 1 + FILLER_RACE_GROWTH * step;
   const longer = <L extends Pick<SeriesSession, 'laps' | 'minutes' | 'distance'>>(length: L): L => ({
     ...length,

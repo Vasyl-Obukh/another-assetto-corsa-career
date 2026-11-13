@@ -10,7 +10,10 @@ export const LE_MANS_1962: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'le-mans-1962',
   name: '24 Hours of Le Mans 1962',
-  description: 'The GT cars of the early sixties at the Sarthe, in the year the Ferrari 250 GTO arrived.',
+  description: {
+    en: 'The GT cars of the early sixties at the Sarthe, in the year the Ferrari 250 GTO arrived.',
+    uk: 'GT-машини початку шістдесятих на Сарті - у рік, коли з\'явився Ferrari 250 GTO.',
+  },
   teams: [
     team('maranello-gt', 'Scuderia Serenissima Veneta', 'ITA', TeamBudget.WORKS),
     team('ecurie-francorchamps', 'Écurie des Hautes Fagnes', 'BEL', TeamBudget.INDEPENDENT),

@@ -39,8 +39,12 @@ export const FORMULA_1_1979: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-1-1979',
   name: 'Formula 1 1979',
-  description: 'Jody Scheckter\'s title season, with the real entry list on RSS\'s Formula 1979 and eight of'
-    + ' its grands prix at their real distances.',
+  description: {
+    en: 'Jody Scheckter\'s title season, with the real entry list on RSS\'s Formula 1979 and eight of'
+      + ' its grands prix at their real distances.',
+    uk: 'Чемпіонський сезон Джоді Шектера зі справжнім списком учасників на Formula 1979 від RSS '
+      + 'і вісьмома гран-прі на справжніх дистанціях.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('williams', 'Albilad-Saudia Racing Team', 'GBR', TeamBudget.INDEPENDENT),

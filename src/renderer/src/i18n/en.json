@@ -1304,6 +1304,8 @@
     "details": {
       "name": "Name",
       "description": "Description",
+      "addTranslation": "Add translation",
+      "removeTranslation": "Remove translation",
       "entryFee": "Entry fee",
       "generatedWeather": "Generated weather",
       "climate": "Climate",

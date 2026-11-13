@@ -18,8 +18,12 @@ export const GT_M_CHAMPIONSHIP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'gt-m-championship',
   name: 'GT-M Championship',
-  description: 'Invented: RSS\'s GT-M cars in a GT3 sprint series, two one-hour races a round at '
-    + 'European circuits.',
+  description: {
+    en: 'Invented: RSS\'s GT-M cars in a GT3 sprint series, two one-hour races a round at '
+      + 'European circuits.',
+    uk: 'Вигаданий чемпіонат: машини GT-M від RSS у спринтерській серії GT3, дві годинні гонки за етап на '
+      + 'європейських трасах.',
+  },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
     team('valcorte', 'Valcorte Motorsport', 'ITA', TeamBudget.WORKS),

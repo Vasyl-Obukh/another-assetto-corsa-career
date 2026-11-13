@@ -19,8 +19,12 @@ export const XX_PROGRAMME: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'xx-programme',
   name: 'XX Programme Invitational',
-  description: 'Invented: the track-only specials of Ferrari\'s XX Programme and McLaren\'s P1 GTR, raced '
-    + 'against each other, by invitation.',
+  description: {
+    en: 'Invented: the track-only specials of Ferrari\'s XX Programme and McLaren\'s P1 GTR, raced '
+      + 'against each other, by invitation.',
+    uk: 'Вигаданий: суто трекові спецверсії з програми XX від Ferrari і McLaren P1 GTR одна проти одної, '
+      + 'лише за запрошенням.',
+  },
   teams: [
     team('xx-maranello', 'Corse Clienti Privati', 'ITA', TeamBudget.WORKS),
     team('xx-woking', 'Surrey Track Collection', 'GBR', TeamBudget.WORKS),

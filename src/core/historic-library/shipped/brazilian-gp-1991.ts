@@ -10,7 +10,10 @@ export const BRAZILIAN_GP_1991: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'brazilian-gp-1991',
   name: 'Brazilian Grand Prix 1991',
-  description: 'Senna\'s first win at home, the last laps driven stuck in sixth gear.',
+  description: {
+    en: 'Senna\'s first win at home, the last laps driven stuck in sixth gear.',
+    uk: 'Перша перемога Сенни вдома - останні кола він проїхав, застрягши на шостій передачі.',
+  },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
     team('williams', 'Canon Williams Team', 'GBR', TeamBudget.WORKS),

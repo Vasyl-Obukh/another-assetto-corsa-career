@@ -10,7 +10,10 @@ export const BRAZILIAN_GP_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'brazilian-gp-2004',
   name: 'Brazilian Grand Prix 2004',
-  description: 'The season\'s end at Interlagos on a damp track, and Montoya\'s last win for Williams.',
+  description: {
+    en: 'The season\'s end at Interlagos on a damp track, and Montoya\'s last win for Williams.',
+    uk: 'Фінал сезону в Інтерлагосі на вологій трасі і остання перемога Монтої у Williams.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('bar', 'Lucky Strike BAR Honda', 'GBR', TeamBudget.WORKS),

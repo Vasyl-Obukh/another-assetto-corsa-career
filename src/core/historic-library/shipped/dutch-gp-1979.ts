@@ -10,7 +10,10 @@ export const DUTCH_GP_1979: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'dutch-gp-1979',
   name: 'Dutch Grand Prix 1979',
-  description: 'Zandvoort in the summer of ground effect, and Villeneuve\'s three-wheeled drive back to the pits.',
+  description: {
+    en: 'Zandvoort in the summer of ground effect, and Villeneuve\'s three-wheeled drive back to the pits.',
+    uk: 'Зандворт у літо граунд-ефекту, і Вільнев, який дотягнув до боксів на трьох колесах.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('williams', 'Albilad-Saudia Racing Team', 'GBR', TeamBudget.INDEPENDENT),

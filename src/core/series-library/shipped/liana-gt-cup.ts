@@ -14,7 +14,10 @@ export const LIANA_GT_CUP: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'liana-gt-cup',
   name: 'Liana GT Cup',
-  description: 'Invented: a one-make cup for Guerilla\'s Liana GT V6 Cup, at Italian circuits.',
+  description: {
+    en: 'Invented: a one-make cup for Guerilla\'s Liana GT V6 Cup, at Italian circuits.',
+    uk: 'Вигаданий: монокубок для Liana GT V6 Cup від Guerilla на італійських трасах.',
+  },
   teams: [
     team('torino', 'Torino Squadra Corse', 'ITA', TeamBudget.INDEPENDENT),
     team('scorpione', 'Scorpione Racing', 'ITA', TeamBudget.INDEPENDENT),

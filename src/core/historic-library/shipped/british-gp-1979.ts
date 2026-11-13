@@ -10,7 +10,10 @@ export const BRITISH_GP_1979: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'british-gp-1979',
   name: 'British Grand Prix 1979',
-  description: 'Silverstone, and Clay Regazzoni\'s win - the first ever for Williams.',
+  description: {
+    en: 'Silverstone, and Clay Regazzoni\'s win - the first ever for Williams.',
+    uk: 'Сільверстоун і перемога Клея Регаццоні - перша в історії Williams.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
     team('williams', 'Albilad-Saudia Racing Team', 'GBR', TeamBudget.INDEPENDENT),

@@ -27,8 +27,12 @@ export const PORSCHE_SUPERCUP_2021: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'porsche-supercup-2021',
   name: 'Porsche Supercup 2021',
-  description: 'The Supercup\'s first 992 season on URD\'s Darche 992 Cup: six races supporting Formula '
-    + '1\'s European rounds.',
+  description: {
+    en: 'The Supercup\'s first 992 season on URD\'s Darche 992 Cup: six races supporting Formula '
+      + '1\'s European rounds.',
+    uk: 'Перший сезон Supercup з 992 на Darche 992 Cup від URD: шість гонок у програмі європейських '
+      + 'етапів Формули-1.',
+  },
   teams: [
     team('elbflorenz', 'Elbflorenz Racing', 'DEU', TeamBudget.INDEPENDENT),
     team('taunus', 'Taunus Motorsport', 'DEU', TeamBudget.INDEPENDENT),

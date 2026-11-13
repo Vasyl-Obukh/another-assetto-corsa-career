@@ -10,7 +10,10 @@ export const ROAD_AMERICA_1973: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'road-america-1973',
   name: 'Road America 1973',
-  description: 'Over a thousand horsepower and no rules to speak of: the Porsche 917/30 at the height of its power.',
+  description: {
+    en: 'Over a thousand horsepower and no rules to speak of: the Porsche 917/30 at the height of its power.',
+    uk: 'Понад тисяча кінських сил і майже жодних правил: Porsche 917/30 на піку своєї могутності.',
+  },
   teams: [
     team('reading', 'Brandywine Racing', 'USA', TeamBudget.WORKS),
     team('rinzler', 'Lakeshore Can-Am', 'USA', TeamBudget.INDEPENDENT),

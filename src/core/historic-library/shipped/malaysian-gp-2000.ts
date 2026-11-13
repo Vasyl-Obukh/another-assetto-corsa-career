@@ -10,7 +10,10 @@ export const MALAYSIAN_GP_2000: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'malaysian-gp-2000',
   name: 'Malaysian Grand Prix 2000',
-  description: 'Sepang at the end of the season, Schumacher already champion and Ferrari chasing the constructors\' title.',
+  description: {
+    en: 'Sepang at the end of the season, Schumacher already champion and Ferrari chasing the constructors\' title.',
+    uk: 'Сепанг наприкінці сезону: Шумахер уже чемпіон, а Ferrari б\'ється за Кубок конструкторів.',
+  },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
     team('mclaren', 'West McLaren Mercedes', 'GBR', TeamBudget.WORKS),

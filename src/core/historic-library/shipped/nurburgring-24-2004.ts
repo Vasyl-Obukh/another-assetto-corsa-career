@@ -10,7 +10,10 @@ export const NURBURGRING_24_2004: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'nurburgring-24-2004',
   name: 'Nürburgring 24 Hours 2004',
-  description: 'Twenty-four hours round the Nordschleife and the Grand Prix circuit together.',
+  description: {
+    en: 'Twenty-four hours round the Nordschleife and the Grand Prix circuit together.',
+    uk: 'Двадцять чотири години на Нордшляйфе та трасі Гран-прі, об\'єднаних в одне коло.',
+  },
   teams: [
     team('eifel-gt', 'Eifelwind Racing', 'DEU', TeamBudget.WORKS),
     team('hohe-acht', 'Hohe Acht Motorsport', 'DEU', TeamBudget.INDEPENDENT),

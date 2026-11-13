@@ -22,9 +22,14 @@ export const HOT_HATCH_TROPHY: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'hot-hatch-trophy',
   name: 'Hot Hatch Trophy',
-  description: 'Invented, with no real series behind it: the base game\'s hot hatches balanced into one '
-    + 'class, the way production-car endurance racing classes them. Club sprints on short circuits, '
-    + 'the second race from the first\'s result with the top six reversed.',
+  description: {
+    en: 'Invented, with no real series behind it: the base game\'s hot hatches balanced into one '
+      + 'class, the way production-car endurance racing classes them. Club sprints on short circuits, '
+      + 'the second race from the first\'s result with the top six reversed.',
+    uk: 'Вигаданий чемпіонат без реальної серії за ним: хот-хетчі базової гри, збалансовані в один клас '
+      + 'так, як це роблять у гонках на витривалість серійних машин. Клубні спринти на коротких трасах, '
+      + 'друга гонка стартує за результатами першої з переверненою першою шісткою.',
+  },
   teams: [
     team('shed', 'Back Shed Racing', 'GBR', TeamBudget.PRIVATEER),
     team('biscione', 'Biscione Club', 'ITA', TeamBudget.INDEPENDENT),

@@ -1,13 +1,14 @@
 import i18next from 'i18next';
 import { useContext, useMemo } from 'react';
-import { initReactI18next, useTranslation } from 'react-i18next';
+import { initReactI18next } from 'react-i18next';
 
-import { FALLBACK_LANGUAGE, MoneyCurrency } from './constants.ts';
+import { MoneyCurrency } from './constants.ts';
 import en from './en.json';
 import type { Formatters } from './types.ts';
 import uk from './uk.json';
+import { useLanguage } from './use-language.ts';
 import { formattersFor } from './utils.ts';
-import { CONTENT_ISSUE_REASONS } from '../../../shared/constants';
+import { CONTENT_ISSUE_REASONS, FALLBACK_LANGUAGE } from '../../../shared/constants';
 import { ERROR_MESSAGES } from '../../../shared/errors';
 import type { Language } from '../../../shared/types';
 
@@ -19,6 +20,8 @@ export { MoneyCurrency, WordingKind } from './constants.ts';
 export { useAppError } from './use-app-error.ts';
 export { useContentIssueReason } from './use-content-issue-reason.ts';
 export { useKindTranslation } from './use-kind-translation.ts';
+export { useLanguage } from './use-language.ts';
+export { useLocalizedText } from './use-localized-text.ts';
 
 /**
  * Every catalogue, keyed by language.
@@ -68,9 +71,8 @@ export const setLanguage = async (language: Language): Promise<void> => {
  * @returns Formatters for dates, numbers, money and durations
  */
 export const useFormat = (): Formatters => {
-  const { i18n } = useTranslation();
   const currency = useContext(MoneyCurrency);
-  const language = (i18n.language.split('-')[0] as Language) ?? FALLBACK_LANGUAGE;
+  const language = useLanguage();
 
   return useMemo<Formatters>(() => {
     const formatters = formattersFor(language);

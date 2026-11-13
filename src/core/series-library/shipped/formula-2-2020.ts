@@ -59,8 +59,13 @@ export const FORMULA_2_2020: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'formula-2-2020',
   name: 'FIA Formula 2 2020',
-  description: 'Formula 2\'s pandemic season on RSS\'s 2020 car: eleven rounds of a feature race and a '
-    + 'reverse-grid sprint, doubled up at the Red Bull Ring, Silverstone and Bahrain.',
+  description: {
+    en: 'Formula 2\'s pandemic season on RSS\'s 2020 car: eleven rounds of a feature race and a '
+      + 'reverse-grid sprint, doubled up at the Red Bull Ring, Silverstone and Bahrain.',
+    uk: 'Пандемічний сезон Formula 2 на машині 2020 року від RSS: одинадцять етапів з основною гонкою та '
+      + 'спринтом за зворотною стартовою решіткою, зі здвоєними етапами на Ред Булл Рінгу, у '
+      + 'Сільверстоуні та Бахрейні.',
+  },
   teams: [
     team('solent', 'Solent Racing', 'GBR', TeamBudget.WORKS),
     team('caspian', 'Caspian Motorsport', 'AZE', TeamBudget.INDEPENDENT),
