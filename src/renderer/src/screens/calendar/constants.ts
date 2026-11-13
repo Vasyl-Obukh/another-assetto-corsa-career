@@ -1,6 +1,18 @@
 import type {
   CalendarCriteria, CalendarEventKind, CalendarStatus, CalendarView, MonthTick,
 } from './types.ts';
+import type { Discipline } from '../../../../shared/types';
+
+/**
+ * The map well of an event on a rung not reached yet: its discipline's tint
+ * faded, while the map itself stays legible.
+ */
+export const FADED_WELL = {
+  'single-seater': 'bg-discipline-single-seater/40',
+  sportscar: 'bg-discipline-sportscar/40',
+  touring: 'bg-discipline-touring/40',
+  road: 'bg-discipline-road/40',
+} as const satisfies Record<Discipline, string>;
 
 /**
  * The status filters the toolbar offers, in the order they are shown.

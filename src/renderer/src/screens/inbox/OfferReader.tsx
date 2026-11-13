@@ -11,6 +11,7 @@ import { OfferStrip } from './OfferStrip.tsx';
 import { feePerRound } from './utils.ts';
 import type { Career, SeatOffer } from '../../../../shared/types';
 import { seatBacker } from '../../../../shared/utils/sponsors';
+import { Callout } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -152,14 +153,11 @@ export const OfferReader = ({
             </p>
 
             {first.lifeline ? (
-              <p className="flex items-start gap-2 rounded-md border-l-3 border-contract-foreground bg-contract/40 p-3 text-sm">
-                <LifeBuoyIcon className="mt-0.5 size-4 shrink-0" />
-                <span>
-                  <span className="font-semibold">{t('inbox.offer.lifeline')}</span>
-                  {' '}
-                  {t('inbox.offer.lifelineHint')}
-                </span>
-              </p>
+              <Callout tone="contract" icon={LifeBuoyIcon} className="text-foreground">
+                <span className="font-semibold">{t('inbox.offer.lifeline')}</span>
+                {' '}
+                {t('inbox.offer.lifelineHint')}
+              </Callout>
             ) : null}
 
             <OfferStrip offers={offers} edition={edition} link={link} />

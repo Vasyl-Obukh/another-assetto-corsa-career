@@ -70,11 +70,10 @@ export const QuickClassItem = ({
   return (
     <div
       className={cn(
-        'relative flex items-center gap-3 overflow-hidden rounded-lg border bg-card py-2.5 pr-2.5 pl-4',
+        'relative flex items-center gap-3 rounded-lg border bg-card py-2.5 pr-2.5 pl-3',
         selected ? 'border-primary ring-1 ring-primary' : 'hover:bg-accent/50',
       )}
     >
-      <span className={cn('absolute inset-y-0 left-0 w-1', accent.mark)} aria-hidden />
       {/* The whole row opens the class, the stepper sitting above it. */}
       <button
         type="button"
@@ -83,6 +82,8 @@ export const QuickClassItem = ({
         onClick={onSelect}
       >
         <span className="flex min-w-0 items-center gap-1.5">
+          {/* The class's colour as the classification's legend shows it. */}
+          <span className={cn('size-2.5 shrink-0 rounded-full', accent.mark)} aria-hidden />
           <span className="truncate font-semibold">{entry.name}</span>
           {yours ? <Badge className="shrink-0 px-1.5 text-[11px]">{t('race.classes.yours')}</Badge> : null}
           {misfit ? (

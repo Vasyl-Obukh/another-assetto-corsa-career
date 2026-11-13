@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
+import { DISCIPLINE_TEXT } from './constants.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useCarNames } from '@/hooks';
 import { useFormat } from '@/i18n';
-import { disciplineDot, EVENT_ACCENT, resultAccent } from '@/lib/accents';
+import { DISCIPLINE_DOT, EVENT_ACCENT, resultAccent } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import type { HistoricRow } from '@/lib/season-review';
 import { cn } from '@/lib/utils.ts';
+import { disciplineKey } from '@/screens/championships';
 
 interface HistoricTileProps {
   /**
@@ -32,12 +34,24 @@ export const HistoricTile = ({ row, next }: HistoricTileProps) => {
     <Link
       to={path.event({ series: row.series, round: row.round })}
       className={cn(
-        'relative flex min-w-0 flex-col gap-1 overflow-hidden rounded-lg border py-2.5 pr-3 pl-4 hover-outline',
+        'flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2.5 hover-outline',
         past ? 'bg-transparent' : 'bg-card',
       )}
     >
-      <span aria-hidden className={cn('absolute inset-y-0 left-0 w-1', disciplineDot(row.ladder))} />
-      <span className="text-xs text-muted-foreground tabular-nums">{formatDayShort(row.date)}</span>
+      {/* Nothing else on the tile names the discipline, so it leads, in its colour. */}
+      <span className="flex min-w-0 items-center gap-1.5 text-xs">
+        {row.ladder ? (
+          <>
+            <span aria-hidden className={cn('size-2 shrink-0 rounded-full', DISCIPLINE_DOT[row.ladder.discipline])} />
+            <span className={cn('truncate font-semibold', DISCIPLINE_TEXT[row.ladder.discipline])}>
+              {t(disciplineKey(row.ladder.discipline))}
+            </span>
+          </>
+        ) : null}
+        <span className={cn('shrink-0 text-muted-foreground tabular-nums', row.ladder && "before:mr-1.5 before:content-['·']")}>
+          {formatDayShort(row.date)}
+        </span>
+      </span>
       <span className="truncate text-sm font-semibold">{row.name}</span>
       <span className="truncate text-xs text-muted-foreground">
         {row.car ? carName(row.car) : t(`home.historic.${row.outcome === 'open' ? 'open' : 'notEntered'}`)}

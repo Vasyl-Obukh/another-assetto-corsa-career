@@ -1,3 +1,4 @@
+import { InfoIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SUMMARY_TRACK } from './constants.ts';
@@ -5,7 +6,7 @@ import { DISCIPLINES } from '../../../../shared/constants';
 import type { Discipline } from '../../../../shared/types';
 import { ratingFloor } from '../../../../shared/utils/career-eligibility';
 import {
-  ContentImage, NationFlag, Shimmer, trackPictureSources,
+  Callout, ContentImage, NationFlag, Shimmer, trackPictureSources,
 } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
@@ -111,9 +112,9 @@ export const SummaryPanel = ({
           })}
         </ul>
 
-        <p className="rounded-r-md border-l-3 border-primary bg-primary/6 px-3 py-2 text-xs text-muted-foreground">
+        <Callout tone="primary" icon={InfoIcon} className="text-xs">
           {t('newCareer.summary.note')}
-        </p>
+        </Callout>
       </div>
     </aside>
   );

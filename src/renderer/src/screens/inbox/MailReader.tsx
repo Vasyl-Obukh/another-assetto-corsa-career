@@ -1,5 +1,5 @@
 import {
-  AlertTriangleIcon, CarIcon, ExternalLinkIcon, LandmarkIcon, MailIcon, MoreVerticalIcon,
+  AlertTriangleIcon, CarIcon, ExternalLinkIcon, LandmarkIcon, MailIcon, MoreVerticalIcon, QuoteIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
@@ -149,8 +149,9 @@ export const MailReader = ({
               </p>
               <p>{t('inbox.letter.terms')}</p>
               {description ? (
-                <p className="border-l-2 border-historic-foreground/40 pl-3 text-muted-foreground italic">
-                  {description}
+                <p className="flex gap-2.5 rounded-lg bg-historic/65 px-3 py-2.5 text-historic-foreground italic">
+                  <QuoteIcon className="mt-0.5 size-4 shrink-0 opacity-70" aria-hidden />
+                  <span>{description}</span>
                 </p>
               ) : null}
               <p>

@@ -2,7 +2,7 @@ import { LockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { RUNGS_SHOWN } from './constants.ts';
+import { RUNG_LANE, RUNGS_SHOWN } from './constants.ts';
 import { RungCard } from './RungCard.tsx';
 import type { Rung } from './types.ts';
 import { opensWith } from './utils.ts';
@@ -50,6 +50,7 @@ export const LadderCell = ({
     <div
       className={cn(
         'flex min-h-24 flex-col gap-2 border-t border-l p-2.5',
+        RUNG_LANE[discipline],
         // A rung nobody races at is hatched rather than blank, so a gap in the
         // ladder reads as one rather than as a cell that failed to load.
         (rungs.length === 0 || hidden)

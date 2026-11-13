@@ -88,14 +88,14 @@ export const SESSION_SHORT_KEYS = {
 } as const satisfies Record<SessionType, ParseKeys>;
 
 /**
- * The left edge a rung's card wears, in its discipline's colour - the column
- * already says the discipline, so the edge is the only fill it needs.
+ * The tint a ladder row's cells take, carrying its head's colour along the row
+ * under plain cards. A touch stronger in dark, where the pale tone sits near the card.
  */
-export const RUNG_EDGE = {
-  'single-seater': 'border-l-discipline-single-seater-foreground',
-  sportscar: 'border-l-discipline-sportscar-foreground',
-  touring: 'border-l-discipline-touring-foreground',
-  road: 'border-l-discipline-road-foreground',
+export const RUNG_LANE = {
+  'single-seater': 'bg-discipline-single-seater/30 dark:bg-discipline-single-seater/35',
+  sportscar: 'bg-discipline-sportscar/30 dark:bg-discipline-sportscar/35',
+  touring: 'bg-discipline-touring/30 dark:bg-discipline-touring/35',
+  road: 'bg-discipline-road/30 dark:bg-discipline-road/35',
 } as const satisfies Record<Discipline, string>;
 
 /**

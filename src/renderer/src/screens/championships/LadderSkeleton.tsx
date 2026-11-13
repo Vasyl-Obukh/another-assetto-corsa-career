@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ALL_TIERS, LADDER_SKELETON } from './constants.ts';
+import { ALL_TIERS, LADDER_SKELETON, RUNG_LANE } from './constants.ts';
 import { FormatStripSkeleton } from './FormatStripSkeleton.tsx';
 import { LadderGrid } from './LadderGrid.tsx';
 import { disciplineKey } from './utils.ts';
@@ -42,9 +42,9 @@ export const LadderSkeleton = () => {
                 ) : null}
               </div>
               {rungs.map((cards, column) => (
-                <div key={ALL_TIERS[column]} className="flex min-h-24 flex-col gap-2 border-t border-l p-2.5">
+                <div key={ALL_TIERS[column]} className={cn('flex min-h-24 flex-col gap-2 border-t border-l p-2.5', RUNG_LANE[discipline])}>
                   {slots(cards).map((at) => (
-                    <div key={at} className="flex flex-col gap-2.5 rounded-lg border border-l-[3px] bg-background p-3">
+                    <div key={at} className="flex flex-col gap-2.5 rounded-lg border bg-card p-3">
                       <Shimmer className="my-0.5 h-3.5 w-4/5" />
                       <Shimmer className="h-5.5 w-12" />
                       <div className="flex items-center justify-between gap-2">

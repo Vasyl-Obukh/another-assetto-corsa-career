@@ -1,3 +1,4 @@
+import { CarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { TradeButton } from './TradeButton.tsx';
@@ -5,6 +6,7 @@ import { TradeError } from './TradeError.tsx';
 import type { Car } from '../../../../shared/types';
 import { rentOf } from '../../../../shared/utils/car-prices';
 import { roundUnderWay } from '../../../../shared/utils/garage';
+import { Callout } from '@/components/callout/index.ts';
 import { SkipNote } from '@/components/skip-dialog/index.ts';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -74,12 +76,12 @@ export const SellDialog = ({ car, garage, onClose }: SellDialogProps) => {
           </dl>
         )}
         {!busy && racing.length > 0 ? (
-          <p className="rounded-r-lg border-l-3 border-primary bg-primary/7 px-3 py-2 text-sm text-muted-foreground">
+          <Callout tone="primary" icon={CarIcon}>
             {t('trade.rentedAfter', {
               series: racing.map((entry) => entry.championship.name).join(', '),
               rent: formatMoney(rentOf(garage.listedOf(car))),
             })}
-          </p>
+          </Callout>
         ) : null}
         <TradeError garage={garage} />
 

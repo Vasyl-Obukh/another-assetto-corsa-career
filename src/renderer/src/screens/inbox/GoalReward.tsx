@@ -22,7 +22,8 @@ export const GoalReward = ({ car }: GoalRewardProps) => {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-wrap items-center gap-3.5 rounded-lg border border-l-4 border-l-sponsor-solid p-3">
+    // Washed lighter than its chip, so the chip still stands on it.
+    <div className="flex flex-wrap items-center gap-3.5 rounded-lg bg-sponsor/45 p-3">
       <span className="relative aspect-[16/10] w-28 shrink-0 overflow-hidden rounded-md bg-scrim">
         <ContentImage
           sources={carPictureSources(car.model, car.skin)}

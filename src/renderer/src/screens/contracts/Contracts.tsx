@@ -45,7 +45,7 @@ export const Contracts = () => {
       </ScreenHeader>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MoneyTile lead label={t('contracts.figures.signed')} value={figures.signed} hint={origins || t('contracts.figures.none')} />
+        <MoneyTile lead="contracts" label={t('contracts.figures.signed')} value={figures.signed} hint={origins || t('contracts.figures.none')} />
         <MoneyTile label={t('contracts.figures.teams')} value={figures.teams} hint={t('contracts.figures.teamsHint')} />
         <MoneyTile
           label={t('contracts.figures.earned')}

@@ -1,4 +1,4 @@
-import { CarIcon, MailIcon } from 'lucide-react';
+import { BriefcaseIcon, CarIcon, MailIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -104,12 +104,13 @@ export const ContractCard = ({
   ];
 
   return (
-    <Card className="gap-0 overflow-hidden border-t-3 border-t-contract-solid py-0">
+    <Card className="gap-0 overflow-hidden py-0">
+      <div className="flex items-center gap-2 border-b border-contract-foreground/15 bg-contract/70 px-3 py-2">
+        <BriefcaseIcon className="size-4 text-contract-foreground" />
+        <span className="font-semibold">{t('championships.contract.title')}</span>
+        <BudgetBadge budget={contract.budget} className="ml-auto" />
+      </div>
       <CardContent className="flex flex-col gap-3 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-semibold">{t('championships.contract.title')}</span>
-          <BudgetBadge budget={contract.budget} />
-        </div>
         <div className="flex items-center gap-3">
           <span className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
             <ContentImage

@@ -169,17 +169,13 @@
      quick races. Shown on the start screen and the Careers list, which carry
      no session, podium or tier chip, so each borrows the hue of the thing it
      stands for there: a career the app's own primary (262), a championship the
-     trophy's gold (88) and quick races the race session's green (150). The
-     solid shade is the stripe along a tile's top edge. */
+     trophy's gold (88) and quick races the race session's green (150). */
   --mode-career: oklch(0.93 0.045 262);
   --mode-career-foreground: oklch(0.42 0.17 262);
-  --mode-career-solid: oklch(0.48 0.2 262);
   --mode-championship: oklch(0.9 0.085 88);
   --mode-championship-foreground: oklch(0.42 0.1 75);
-  --mode-championship-solid: oklch(0.72 0.14 85);
   --mode-quick: oklch(0.89 0.085 150);
   --mode-quick-foreground: oklch(0.33 0.1 152);
-  --mode-quick-solid: oklch(0.58 0.14 152);
 
   /* What kind of save a row is. A named save on custom origin's 340 and the
      quick save on budget independent's 18 - the hues a race's classes also
@@ -359,19 +355,19 @@
      295, the mod provenance hue: none of those places shows content's
      provenance, and the qualifying 310 a seat offer could meet is kept off it,
      since an offer shows no format. A fine is the destructive red, being a
-     penalty rather than a term; who is offering is the budget chip's. The
-     solid tone is the contract card's top edge. */
+     penalty rather than a term; who is offering is the budget chip's. A
+     contract card's head band is the pale tone at 70%. */
   --contract: oklch(0.93 0.05 295);
   --contract-foreground: oklch(0.42 0.14 295);
-  --contract-solid: oklch(0.55 0.17 295);
 
   /* A sponsor: a main sponsor, and everything any sponsor pays on the ledger,
      in pink-magenta 350 - the free arc between custom origin 340, which only
      the Championships list and the saves list show, and the destructive 27.
      A partner in cyan 200, on the rent and modified-origin hue: rent shows on
      Finances, the Garage and an Enter panel, modified origin on the
-     Championships list, and none of them shows a sponsor's slot. The solid
-     tones are a sponsor card's top edge. */
+     Championships list, and none of them shows a sponsor's slot. A deal
+     card's head band is the pale tone at 70%; the solid tones ring a logo's
+     plate and dash a free slot's outline. */
   --sponsor: oklch(0.93 0.05 350);
   --sponsor-foreground: oklch(0.43 0.15 352);
   --sponsor-solid: oklch(0.58 0.18 352);
@@ -569,13 +565,10 @@
 
   --mode-career: oklch(0.33 0.07 262);
   --mode-career-foreground: oklch(0.87 0.09 262);
-  --mode-career-solid: oklch(0.58 0.19 262);
   --mode-championship: oklch(0.36 0.07 88);
   --mode-championship-foreground: oklch(0.89 0.12 92);
-  --mode-championship-solid: oklch(0.72 0.13 85);
   --mode-quick: oklch(0.35 0.09 150);
   --mode-quick-foreground: oklch(0.88 0.13 150);
-  --mode-quick-solid: oklch(0.62 0.14 152);
 
   --save-named: oklch(0.33 0.07 340);
   --save-named-foreground: oklch(0.86 0.1 340);
@@ -632,7 +625,6 @@
   --ledger-rent-foreground: oklch(0.86 0.09 195);
   --contract: oklch(0.33 0.07 295);
   --contract-foreground: oklch(0.87 0.1 295);
-  --contract-solid: oklch(0.62 0.16 295);
   --sponsor: oklch(0.33 0.07 350);
   --sponsor-foreground: oklch(0.87 0.09 352);
   --sponsor-solid: oklch(0.65 0.17 352);
@@ -750,13 +742,10 @@
   --color-race-class-4-foreground: var(--race-class-4-foreground);
   --color-mode-career: var(--mode-career);
   --color-mode-career-foreground: var(--mode-career-foreground);
-  --color-mode-career-solid: var(--mode-career-solid);
   --color-mode-championship: var(--mode-championship);
   --color-mode-championship-foreground: var(--mode-championship-foreground);
-  --color-mode-championship-solid: var(--mode-championship-solid);
   --color-mode-quick: var(--mode-quick);
   --color-mode-quick-foreground: var(--mode-quick-foreground);
-  --color-mode-quick-solid: var(--mode-quick-solid);
   --color-save-named: var(--save-named);
   --color-save-named-foreground: var(--save-named-foreground);
   --color-save-quick: var(--save-quick);
@@ -815,7 +804,6 @@
   --color-ledger-rent-foreground: var(--ledger-rent-foreground);
   --color-contract: var(--contract);
   --color-contract-foreground: var(--contract-foreground);
-  --color-contract-solid: var(--contract-solid);
   --color-sponsor: var(--sponsor);
   --color-sponsor-foreground: var(--sponsor-foreground);
   --color-sponsor-solid: var(--sponsor-solid);

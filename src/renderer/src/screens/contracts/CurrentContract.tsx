@@ -61,8 +61,8 @@ export const CurrentContract = ({ row, current }: CurrentContractProps) => {
   ];
 
   return (
-    <section className="flex flex-col overflow-hidden rounded-xl border border-t-3 border-t-contract-solid bg-card">
-      <div className="flex items-center gap-3 border-b bg-muted/30 p-3">
+    <section className="flex flex-col overflow-hidden rounded-xl border bg-card">
+      <div className="flex items-center gap-3 border-b border-contract-foreground/15 bg-contract/70 p-3">
         <span className="relative aspect-[16/9] w-24 shrink-0 overflow-hidden rounded-md bg-muted">
           <ContentImage
             sources={carPictureSources(entry.car.model, entry.car.skin)}
@@ -83,7 +83,8 @@ export const CurrentContract = ({ row, current }: CurrentContractProps) => {
             ) : null}
             {ladder ? <Badge className={tierAccent(ladder.tier)}>{t('championships.tier', { tier: ladder.tier })}</Badge> : null}
             {contract.renews ? (
-              <Badge className={cn('gap-1', CONTRACT_ACCENT)}>
+              // On a card fill, since the band it sits on is the chip's own violet.
+              <Badge className={cn('gap-1', CONTRACT_ACCENT, 'bg-card')}>
                 <RefreshCwIcon className="size-3" />
                 {t('contracts.origin.renewal')}
               </Badge>

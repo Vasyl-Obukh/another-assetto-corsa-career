@@ -84,7 +84,7 @@ export const Sponsors = () => {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MoneyTile
-          lead
+          lead="sponsors"
           label={t('sponsors.figures.slots')}
           value={t('sponsors.figures.slotsValue', { held: live.length, of: slots + 1 })}
           hint={t('sponsors.figures.slotsHint', { rung: t(tierMetalKey(best)), count: slots })}

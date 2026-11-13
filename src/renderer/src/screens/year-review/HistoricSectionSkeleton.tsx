@@ -48,7 +48,6 @@ export const HistoricSectionSkeleton = () => {
                 <td className="py-2 pr-3 pl-4"><Shimmer className="h-3.5 w-16" /></td>
                 <td className="py-2 pr-3">
                   <span className="flex items-center gap-3">
-                    <Shimmer className="h-8 w-1 rounded-full" />
                     <Shimmer deep className="aspect-[16/10] w-12 rounded" />
                     <Shimmer className="h-3.5 w-40" />
                   </span>

@@ -31,11 +31,19 @@ export const FreeSlot = ({ slot, renewal }: FreeSlotProps) => {
   return (
     <div
       className={cn(
-        'flex min-h-48 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-t-4 p-6 text-center text-sm text-muted-foreground',
-        slot === 'main' ? 'border-t-sponsor-solid' : 'border-t-partner-solid',
+        'flex min-h-48 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed p-6 text-center text-sm text-muted-foreground',
+        // The empty shape of a deal's card: its slot's colour, dashed and faint.
+        slot === 'main' ? 'border-sponsor-solid/45 bg-sponsor/35' : 'border-partner-solid/45 bg-partner/35',
       )}
     >
-      <SparklesIcon className={cn('size-5', slot === 'main' ? 'text-sponsor-foreground' : 'text-partner-foreground')} />
+      <span
+        className={cn(
+          'grid size-9 place-items-center rounded-full',
+          slot === 'main' ? 'bg-sponsor text-sponsor-foreground' : 'bg-partner text-partner-foreground',
+        )}
+      >
+        <SparklesIcon className="size-4.5" />
+      </span>
       <span className="font-semibold text-foreground">{t(`sponsors.free.${slot}`)}</span>
       {renewal?.sponsor ? (
         <>

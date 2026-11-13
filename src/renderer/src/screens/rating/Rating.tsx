@@ -25,6 +25,7 @@ import {
 import type { RatingFilter } from '@/lib/rating';
 import { path } from '@/lib/routes';
 import { disciplineKey } from '@/screens/championships';
+import { MoneyTile } from '@/screens/finances';
 
 /**
  * The season picker's value for every season at once.
@@ -120,16 +121,20 @@ export const Rating = () => {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="flex flex-col gap-1 rounded-xl border border-t-4 border-t-foreground bg-card px-4 py-3">
-          <span className="text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">{t('rating.global')}</span>
-          <span className="text-2xl font-semibold tabular-nums">{formatNumber(career.globalRating)}</span>
-          <span className="text-xs text-muted-foreground">
-            <RatingChange change={career.globalRating - opened.global} className="text-xs" />
-            {' '}
-            {t('rating.thisSeason')}
-          </span>
+        <MoneyTile
+          lead="rating"
+          label={t('rating.global')}
+          value={formatNumber(career.globalRating)}
+          hint={(
+            <>
+              <RatingChange change={career.globalRating - opened.global} className="text-xs" />
+              {' '}
+              {t('rating.thisSeason')}
+            </>
+          )}
+        >
           <span className="text-xs text-muted-foreground">{t('rating.globalHint')}</span>
-        </div>
+        </MoneyTile>
         {DISCIPLINES.map((discipline) => (
           <DisciplineTile
             key={discipline}

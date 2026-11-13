@@ -1,4 +1,4 @@
-import { CarIcon, Undo2Icon } from 'lucide-react';
+import { CarIcon, InfoIcon, Undo2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +10,7 @@ import {
 } from '../../../../shared/utils/car-prices';
 import { useClasses, useSettings } from '@/app';
 import {
-  carPictureSources, ContentImage, Loading, PriceOriginBadge, Shimmer,
+  Callout, carPictureSources, ContentImage, Loading, PriceOriginBadge, Shimmer,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -229,9 +229,9 @@ export const EditPriceDialog = ({ car, onClose }: EditPriceDialogProps) => {
           </>
         )}
 
-        <p className="rounded-r-lg border-l-[3px] border-primary bg-primary/7 px-3 py-2 text-xs text-muted-foreground">
+        <Callout tone="primary" icon={InfoIcon} className="text-xs">
           {t('prices.note')}
-        </p>
+        </Callout>
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>{t('confirm.cancel')}</Button>

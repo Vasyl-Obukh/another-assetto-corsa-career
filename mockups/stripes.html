@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coloured stripes</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. Nothing new is proposed:
+   every replacement reuses a family the stripe was already drawn from. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --ss: oklch(0.925 0.06 212); --ss-fg: oklch(0.36 0.11 215);
+  --sc: oklch(0.925 0.06 112); --sc-fg: oklch(0.36 0.1 118);
+  --to: oklch(0.925 0.055 175); --to-fg: oklch(0.35 0.09 178);
+  --ro: oklch(0.925 0.06 270); --ro-fg: oklch(0.37 0.12 270);
+  --works: oklch(0.91 0.075 320); --works-fg: oklch(0.38 0.15 320);
+  --privateer: oklch(0.93 0.055 132); --privateer-fg: oklch(0.4 0.09 135);
+  --bronze: oklch(0.89 0.07 52); --bronze-fg: oklch(0.41 0.09 48);
+  --silver: oklch(0.91 0.008 255); --silver-fg: oklch(0.42 0.015 260);
+  --gold: oklch(0.9 0.085 88); --gold-fg: oklch(0.42 0.1 75);
+  --historic: oklch(0.915 0.04 40); --historic-fg: oklch(0.42 0.075 38);
+  --contract: oklch(0.93 0.05 295); --contract-fg: oklch(0.42 0.14 295); --contract-solid: oklch(0.55 0.17 295);
+  --sponsor: oklch(0.93 0.05 350); --sponsor-fg: oklch(0.43 0.15 352); --sponsor-solid: oklch(0.58 0.18 352);
+  --partner: oklch(0.93 0.05 200); --partner-fg: oklch(0.38 0.09 205); --partner-solid: oklch(0.6 0.11 205);
+  --rc1: oklch(0.92 0.055 195); --rc1-fg: oklch(0.38 0.09 200);
+  --rc2: oklch(0.92 0.06 18); --rc2-fg: oklch(0.42 0.13 22);
+  --rc3: oklch(0.92 0.06 340); --rc3-fg: oklch(0.4 0.13 340);
+  --raced: oklch(0.93 0.05 155); --raced-fg: oklch(0.34 0.09 155);
+  --plate: oklch(0.995 0.002 255);
+  --missed: oklch(0.925 0.035 8); --missed-fg: oklch(0.42 0.09 12);
+  --warn: oklch(0.79 0.15 80); --warn-fg: oklch(0.28 0.06 70);
+  --player-row: color-mix(in srgb, var(--primary) 8%, var(--card));
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --ss: oklch(0.32 0.07 212); --ss-fg: oklch(0.86 0.1 212);
+  --sc: oklch(0.32 0.07 112); --sc-fg: oklch(0.86 0.1 112);
+  --to: oklch(0.32 0.065 175); --to-fg: oklch(0.86 0.09 175);
+  --ro: oklch(0.32 0.07 270); --ro-fg: oklch(0.86 0.1 270);
+  --works: oklch(0.34 0.085 320); --works-fg: oklch(0.87 0.11 320);
+  --privateer: oklch(0.32 0.06 132); --privateer-fg: oklch(0.86 0.08 135);
+  --bronze: oklch(0.33 0.06 50); --bronze-fg: oklch(0.85 0.09 55);
+  --silver: oklch(0.33 0.006 260); --silver-fg: oklch(0.86 0.008 260);
+  --gold: oklch(0.36 0.07 88); --gold-fg: oklch(0.89 0.12 92);
+  --historic: oklch(0.33 0.04 40); --historic-fg: oklch(0.86 0.06 45);
+  --contract: oklch(0.33 0.07 295); --contract-fg: oklch(0.87 0.1 295); --contract-solid: oklch(0.62 0.16 295);
+  --sponsor: oklch(0.33 0.07 350); --sponsor-fg: oklch(0.87 0.09 352); --sponsor-solid: oklch(0.65 0.17 352);
+  --partner: oklch(0.33 0.06 200); --partner-fg: oklch(0.86 0.08 200); --partner-solid: oklch(0.66 0.11 200);
+  --rc1: oklch(0.33 0.06 195); --rc1-fg: oklch(0.86 0.09 195);
+  --rc2: oklch(0.33 0.07 18); --rc2-fg: oklch(0.86 0.09 22);
+  --rc3: oklch(0.33 0.07 340); --rc3-fg: oklch(0.86 0.1 340);
+  --raced: oklch(0.32 0.06 155); --raced-fg: oklch(0.86 0.11 155);
+  --plate: oklch(0.94 0.004 255);
+  --missed: oklch(0.32 0.035 8); --missed-fg: oklch(0.86 0.075 12);
+  --warn: oklch(0.8 0.14 82); --warn-fg: oklch(0.2 0.04 70);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: oklch(0.9 0.008 255); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+svg.i.sm { width: 12px; height: 12px; }
+svg.i.lg { width: 18px; height: 18px; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.end { margin-left: auto; }
+.trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.xs { font-size: 12px; }
+.b { font-weight: 600; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.picker a { font-size: 13px; opacity: .75; }
+.picker a:hover { opacity: 1; }
+.wrap { max-width: 1320px; margin: 16px auto 60px; padding: 0 24px; display: flex; flex-direction: column; gap: 18px; }
+.box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
+.box h2 { margin: 0 0 6px; font-size: 16px; }
+.box p { margin: 6px 0; max-width: 90ch; }
+.box ul { margin: 4px 0; padding-left: 18px; }
+table.inv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+table.inv th { text-align: left; font-weight: 600; color: var(--muted-foreground); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+table.inv td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.inv tr:last-child td { border-bottom: 0; }
+table.inv code { font-size: 11.5px; }
+table.inv a { color: var(--primary); }
+.verdict { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+.v-drop { background: var(--muted); color: var(--foreground); }
+.v-wash { background: var(--sponsor); color: var(--sponsor-fg); }
+.v-head { background: var(--contract); color: var(--contract-fg); }
+.v-mark { background: var(--rc1); color: var(--rc1-fg); }
+.v-note { background: var(--gold); color: var(--gold-fg); }
+
+.group-title { margin: 14px 0 -6px; font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+.group-sub { margin: 0; color: var(--muted-foreground); font-size: 13px; max-width: 95ch; }
+.item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; scroll-margin-top: 60px; }
+.item > header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.item > header h3 { margin: 0; font-size: 14.5px; }
+.item > header .n { font-weight: 700; color: var(--primary); }
+.item > header code { font-size: 11.5px; color: var(--muted-foreground); }
+.pairs { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); background: var(--background); }
+.side { padding: 14px 16px 16px; background: var(--background); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.side:last-child { border-right: 0; }
+.side > .lbl { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+.side.now > .lbl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: oklch(0.6 0.2 27); }
+.side.new > .lbl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+.side.alt > .lbl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--success); }
+.item > footer { padding: 9px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.item > footer b { color: var(--foreground); }
+.stage { width: 100%; max-width: 420px; }
+.stage.wide { max-width: 560px; }
+
+/* ---------- App atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; line-height: 1; padding: 3px 6px; border-radius: 6px; white-space: nowrap; border: 1px solid transparent; }
+.chip.outline { border-color: var(--border); }
+.c-ss { background: var(--ss); color: var(--ss-fg); }
+.c-sc { background: var(--sc); color: var(--sc-fg); }
+.c-to { background: var(--to); color: var(--to-fg); }
+.c-ro { background: var(--ro); color: var(--ro-fg); }
+.c-bronze { background: var(--bronze); color: var(--bronze-fg); }
+.c-silver { background: var(--silver); color: var(--silver-fg); }
+.c-gold { background: var(--gold); color: var(--gold-fg); }
+.c-works { background: var(--works); color: var(--works-fg); }
+.c-privateer { background: var(--privateer); color: var(--privateer-fg); }
+.c-contract { background: var(--contract); color: var(--contract-fg); }
+.c-raced { background: var(--raced); color: var(--raced-fg); }
+.c-base { background: var(--success-soft); color: var(--success-soft-fg); }
+.c-pri { background: var(--primary); color: var(--primary-foreground); }
+.c-plain { background: var(--muted); color: var(--foreground); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.icon { width: 28px; padding: 0; }
+.mapwell { position: relative; width: 64px; aspect-ratio: 16/10; flex: none; border-radius: 6px; background: var(--muted); display: grid; place-items: center; color: var(--foreground); overflow: hidden; }
+.mapwell svg { width: 86%; height: 86%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
+.carpic { position: relative; flex: none; aspect-ratio: 16/10; border-radius: 6px; overflow: hidden; background: linear-gradient(160deg, oklch(0.42 0.03 255), oklch(0.2 0.02 260)); display: grid; place-items: center; color: oklch(1 0 0 / .55); }
+.stepper { display: inline-flex; align-items: center; height: 28px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); width: 112px; }
+.stepper span { flex: 1; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.stepper button { width: 28px; height: 26px; border: 0; background: transparent; color: var(--muted-foreground); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.plate { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--plate); font-weight: 750; font-size: 13px; color: oklch(0.3 0.02 260); flex: none; }
+.plate.sm { width: 26px; height: 26px; border-radius: 7px; font-size: 10px; }
+.plate.main { box-shadow: 0 0 0 2px var(--sponsor-solid); }
+.plate.partner { box-shadow: 0 0 0 2px var(--partner-solid); }
+.medal { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 11px; font-weight: 700; }
+dl.terms { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; margin: 0; font-size: 12px; }
+dl.terms dt { color: var(--muted-foreground); }
+dl.terms dd { margin: 0; text-align: right; font-weight: 600; }
+.ico { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; flex: none; }
+.lane-tint { background: color-mix(in srgb, var(--sc) 45%, var(--card)); }
+
+/* ---------- The "Now" stripes, as the app draws them ---------- */
+.stripe-l { position: relative; overflow: hidden; }
+.stripe-l::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--s); }
+.bar-l { border-left: 3px solid var(--s) !important; }
+.bar-t { border-top: 4px solid var(--s) !important; }
+.inset-l { box-shadow: inset 3px 0 0 var(--s); }
+
+/* ---------- The proposed Callout ---------- */
+.callout { display: flex; gap: 9px; align-items: flex-start; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; }
+.callout svg.i { margin-top: 1px; }
+.callout.pri { background: color-mix(in srgb, var(--primary) 9%, transparent); }
+.callout.pri svg.i { color: var(--primary); }
+.callout.con { background: color-mix(in srgb, var(--contract) 70%, transparent); }
+.callout.con svg.i { color: var(--contract-fg); }
+.callout .t { color: var(--muted-foreground); }
+.callout b { color: var(--foreground); }
+
+table.res { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.res th { text-align: left; font-weight: 500; font-size: 11.5px; color: var(--muted-foreground); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+table.res td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+table.res tr:last-child td { border-bottom: 0; }
+table.res .r { text-align: right; }
+.pos { display: inline-grid; place-items: center; min-width: 24px; height: 20px; border-radius: 5px; font-size: 11px; font-weight: 650; }
+.p1 { background: var(--gold); color: var(--gold-fg); }
+.p2 { background: var(--silver); color: var(--silver-fg); }
+.p3 { background: var(--bronze); color: var(--bronze-fg); }
+tr.me td { background: var(--player-row); font-weight: 600; }
+tr.me.now td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+tr.me.strong td { background: color-mix(in srgb, var(--primary) 11%, var(--card)); }
+.you { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--primary); margin-left: 6px; }
+:root { --wash-light: 30%; --wash-lighter: 16%; }
+:root[data-theme="dark"] { --wash-light: 50%; --wash-lighter: 30%; }
+.washed { background: color-mix(in srgb, var(--w) var(--amt), var(--card)); border-color: color-mix(in srgb, var(--wf) 16%, var(--border)); }
+.status { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.status.open { background: var(--gold); color: var(--gold-fg); }
+.status.ok { background: var(--success-soft); color: var(--success-soft-fg); }
+.status.keep { background: var(--muted); color: var(--muted-foreground); }
+.item.keep .side:not(.now), .item.keep > footer { display: none; }
+.pairs.ladders { grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); }
+.pairs.ladders .side, .pairs[data-events] .side { border-bottom: 1px solid var(--border); }
+.ev { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.evtile { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9px; flex: none; line-height: 1; }
+.evtile b { font-size: 16px; }
+.evtile small { font-size: 8.5px; font-weight: 700; letter-spacing: .06em; opacity: .8; }
+.lad { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--card); display: grid; grid-template-columns: 124px 1fr 1fr; }
+.lad > .hd { padding: 10px 12px; font-weight: 600; border-top: 1px solid var(--border); }
+.lad > .hd:first-child { border-top: 0; }
+.lad > .cell { border-left: 1px solid var(--border); border-top: 1px solid var(--border); padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+.lad > .cell.first { border-top: 0; }
+.rung { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; }
+.rung .body { padding: 9px; }
+.rung.locked { background: color-mix(in srgb, var(--muted) 60%, transparent) !important; }
+.rung.locked .body, .rung.locked .band { opacity: .55; filter: grayscale(1); }
+.rung .lockic { position: absolute; top: 7px; right: 7px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); z-index: 1; }
+.c-missed { background: var(--missed); color: var(--missed-fg); }
+.c-warn { background: var(--warn); color: var(--warn-fg); }
+.c-fine { background: color-mix(in srgb, oklch(0.58 0.22 27) 15%, transparent); color: oklch(0.58 0.22 27); }
+.pos.pts { background: var(--success-soft); color: var(--success-soft-fg); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-sign" viewBox="0 0 24 24"><path d="M15 12h-5M15 8h-5M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></symbol>
+    <symbol id="i-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.62L2.37 11.04a.5.5 0 0 1 0-.96L8.5 8.5a2 2 0 0 0 1.44-1.44l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13A2 2 0 0 0 15.5 8.5l6.13 1.58a.5.5 0 0 1 0 .96L15.5 12.62a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/></symbol>
+    <symbol id="i-car" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="track" viewBox="0 0 100 62"><path d="M12 44c-4-10 2-24 14-26l30-5c10-2 20 2 26 9 7 8 6 18-2 22l-10 5c-6 3-11 0-15-4-3-3-8-3-11 0l-7 6c-8 6-21 3-25-7z"/></symbol>
+  </defs>
+</svg>
+
+<div class="picker">
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-theme-opt="light">Light</button>
+    <button class="opt" data-theme-opt="dark">Dark</button>
+  </div>
+  <div class="grp"><strong>Jump to</strong>
+    <a href="#g-left">Left stripes on cards</a>
+    <a href="#g-top">Top stripes on cards</a>
+    <a href="#g-callout">Notes with a bar</a>
+    <a href="#g-rows">Row bars</a>
+    <a href="#g-bars">Loose bars</a>
+    <a href="#g-found">Found later</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section class="box">
+  <h2>Coloured stripes - every place, and what replaces each</h2>
+  <p><b>Decided.</b> #1 takes A (the map well), #2 the alternative (discipline named above the title), #3 the class dot, #4 A (the row tinted, cards plain). 5-18, 21 and 23 as proposed; 19, 20 and 22 stay as they are. All of that is built.</p>
+  <p><b>Round 3.</b> Five more discipline bars turned up after building - <a href="#g-found" style="color:var(--primary)">#24-28</a> - and all five stay as they are.</p>
+  <p>24 places draw a coloured bar along one side of something, in five shapes: a left stripe on a card, a top stripe on a card, a note with a bar down its left, a row with an inset bar, and a loose vertical pill standing for a discipline. One constant draws a stripe nobody uses (<code>MODE_STRIPE</code> in <code>lib/accents.ts</code>) and just gets deleted.</p>
+  <p>Four replacements, picked per place by what the stripe was actually saying:</p>
+  <ul>
+    <li><span class="verdict v-drop">Drop</span> - something else on the element already says it (a chip, a ringed mark, a tinted row). The stripe goes and nothing replaces it.</li>
+    <li><span class="verdict v-head">Tinted head</span> - a card whose stripe names its kind (a contract, a sponsor) gets that colour as the fill of its header band, the band it already has.</li>
+    <li><span class="verdict v-wash">Wash</span> - the stripe's colour becomes a translucent background over the whole element, or over the map well a card already shows.</li>
+    <li><span class="verdict v-mark">Mark</span> - the colour moves into a small object that is the app's own vocabulary: a class dot, an icon well.</li>
+    <li><span class="verdict v-note">Callout</span> - the five notes with a bar become one <code>&lt;Callout&gt;</code> component: a rounded tint with a leading icon, no bar.</li>
+  </ul>
+  <p class="muted xs">Left out on purpose: things that only look like stripes but do a job - drag-and-drop insertion lines (<code>SeatSheetRow</code>, <code>TeamTile</code>, <code>SessionList</code>), the calendar's today line, underline tabs, gauge ticks, round progress segments and the ladder head's reach bar.</p>
+
+  <table class="inv">
+    <thead><tr><th>#</th><th>Where</th><th>File</th><th>Stripe now</th><th>Proposal</th></tr></thead>
+    <tbody>
+      <tr><td><a href="#s1">1</a></td><td>Calendar - event card</td><td><code>screens/calendar/EventCard.tsx</code> (+ skeleton)</td><td>left, discipline</td><td><span class="verdict v-wash">Wash</span> map well in the discipline</td></tr>
+      <tr><td><a href="#s2">2</a></td><td>Home - historic event tile</td><td><code>screens/home/HistoricTile.tsx</code></td><td>left, discipline</td><td><span class="verdict v-wash">Wash</span> whole tile</td></tr>
+      <tr><td><a href="#s3">3</a></td><td>Race - class in the list</td><td><code>screens/race/QuickClassItem.tsx</code></td><td>left, class slot</td><td><span class="verdict v-mark">Mark</span> class dot, as the classification's legend</td></tr>
+      <tr><td><a href="#s4">4</a></td><td>Championships - ladder rung card</td><td><code>screens/championships/RungCard.tsx</code>, <code>LadderSkeleton.tsx</code>, <code>RUNG_EDGE</code></td><td>left, discipline</td><td><span class="verdict v-wash">Wash</span> the lane, cards plain</td></tr>
+      <tr><td><a href="#s5">5</a></td><td>Inbox - sponsor goal's car reward</td><td><code>screens/inbox/GoalReward.tsx</code></td><td>left, sponsor</td><td><span class="verdict v-wash">Wash</span> sponsor pink</td></tr>
+      <tr><td><a href="#s6">6</a></td><td>Contracts - contract held now</td><td><code>screens/contracts/CurrentContract.tsx</code></td><td>top, contract</td><td><span class="verdict v-head">Tinted head</span></td></tr>
+      <tr><td><a href="#s7">7</a></td><td>Championship sidebar - Your contract</td><td><code>screens/championships/ContractCard.tsx</code></td><td>top, contract</td><td><span class="verdict v-head">Tinted head</span></td></tr>
+      <tr><td><a href="#s8">8</a></td><td>Sponsors - deal card</td><td><code>screens/sponsors/SponsorCard.tsx</code>, <code>SPONSOR_SOLID</code></td><td>top, slot</td><td><span class="verdict v-head">Tinted head</span></td></tr>
+      <tr><td><a href="#s9">9</a></td><td>Sponsors - free slot</td><td><code>screens/sponsors/FreeSlot.tsx</code></td><td>top, slot</td><td><span class="verdict v-wash">Wash</span> + dashed border in the slot</td></tr>
+      <tr><td><a href="#s10">10</a></td><td>Finances - Balance tile</td><td><code>screens/finances/MoneyTile.tsx</code></td><td>top, success</td><td><span class="verdict v-mark">Mark</span> icon well + wash</td></tr>
+      <tr><td><a href="#s11">11</a></td><td>Rating - Global tile</td><td><code>screens/rating/Rating.tsx</code></td><td>top, foreground</td><td><span class="verdict v-mark">Mark</span> icon well + wash</td></tr>
+      <tr><td><a href="#s12">12</a></td><td>Championship - contract note above rounds</td><td><code>screens/championships/ChampionshipDetail.tsx</code></td><td>left, contract</td><td><span class="verdict v-note">Callout</span></td></tr>
+      <tr><td><a href="#s13">13</a></td><td>Inbox - lifeline offer</td><td><code>screens/inbox/OfferReader.tsx</code></td><td>left, contract</td><td><span class="verdict v-note">Callout</span></td></tr>
+      <tr><td><a href="#s14">14</a></td><td>New career - summary note</td><td><code>screens/new-career/SummaryPanel.tsx</code></td><td>left, primary</td><td><span class="verdict v-note">Callout</span></td></tr>
+      <tr><td><a href="#s15">15</a></td><td>Sell dialog - rented afterwards</td><td><code>components/car-trade/SellDialog.tsx</code></td><td>left, primary</td><td><span class="verdict v-note">Callout</span></td></tr>
+      <tr><td><a href="#s16">16</a></td><td>Edit price dialog - note</td><td><code>screens/your-content/EditPriceDialog.tsx</code></td><td>left, primary</td><td><span class="verdict v-note">Callout</span></td></tr>
+      <tr><td><a href="#s17">17</a></td><td>Inbox - invitation's quoted description</td><td><code>screens/inbox/MailReader.tsx</code></td><td>left, historic</td><td><span class="verdict v-wash">Wash</span> leather with a quote mark</td></tr>
+      <tr><td><a href="#s18">18</a></td><td>Historic event - About this event</td><td><code>screens/championships/HistoricOverview.tsx</code></td><td>left, neutral</td><td><span class="verdict v-drop">Drop</span></td></tr>
+      <tr><td><a href="#s19">19</a></td><td>Every results table - your row</td><td><code>components/results/constants.ts</code> <code>PLAYER_ROW</code> (4 tables)</td><td>inset left, primary</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s20">20</a></td><td>Careers - picked slot row</td><td><code>screens/careers/CareerRow.tsx</code>, <code>StandaloneRow.tsx</code>, <code>UnreadableRow.tsx</code></td><td>inset left, primary</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s21">21</a></td><td>Round page - Sponsors panel rows</td><td><code>screens/event/RoundSponsors.tsx</code></td><td>inset left, slot</td><td><span class="verdict v-drop">Drop</span></td></tr>
+      <tr><td><a href="#s22">22</a></td><td>History - season's editions table</td><td><code>screens/history/HistoryTable.tsx</code> (+ skeleton)</td><td>pill, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s23">23</a></td><td>Year review - historic events table</td><td><code>screens/year-review/HistoricEventRow.tsx</code> (+ skeleton)</td><td>pill, discipline</td><td><span class="verdict v-wash">Wash</span> map well, as #1</td></tr>
+      <tr><td><a href="#s24">24</a></td><td>Home - Your championships</td><td><code>screens/home/ChampionshipRow.tsx</code></td><td>bar, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s25">25</a></td><td>Home - a new season's list</td><td><code>screens/home/NewSeason.tsx</code></td><td>bar, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s26">26</a></td><td>Skip dialog - rounds lost</td><td><code>components/skip-dialog/SkipRow.tsx</code></td><td>bar, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s27">27</a></td><td>Circuit page - championships here</td><td><code>screens/track-detail/TrackChampionships.tsx</code></td><td>bar, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td><a href="#s28">28</a></td><td>Year review - a season's editions</td><td><code>screens/year-review/EditionCard.tsx</code></td><td>bar, discipline</td><td><span class="verdict v-drop">Keep</span> as it is today</td></tr>
+      <tr><td>-</td><td>Start screen tiles (unused)</td><td><code>lib/accents.ts</code> <code>MODE_STRIPE</code></td><td>top, mode</td><td>Delete</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-left">Left stripes on cards</h2>
+<p class="group-sub">The most "generated" of the five. Where a map well already sits on the card it carries the colour; where nothing does, the tile itself is washed.</p>
+
+<!-- 1 -->
+<article class="item" id="s1">
+  <header><span class="n">1</span><h3>Calendar - event card</h3><code>screens/calendar/EventCard.tsx</code><span class="status ok">Decided</span></header>
+  <div class="pairs" data-events>
+    <div class="side now"><span class="lbl">Now</span><div class="stage" data-ev="now"></div></div>
+    <div class="side new"><span class="lbl">A - the map well wears the discipline</span><div class="stage" data-ev="well"></div></div>
+    <div class="side new"><span class="lbl">B - only the track line is coloured</span><div class="stage" data-ev="line"></div></div>
+    <div class="side new"><span class="lbl">C - a faint wash over the whole card</span><div class="stage" data-ev="wash"></div></div>
+    <div class="side new"><span class="lbl">D - the map as a full-height side panel</span><div class="stage" data-ev="panel"></div></div>
+    <div class="side new"><span class="lbl">E - the colour fades in from the map's corner</span><div class="stage" data-ev="fade"></div></div>
+    <div class="side new"><span class="lbl">F - the round number as a coloured tile</span><div class="stage" data-ev="tile"></div></div>
+  </div>
+  <footer>Each variant is shown for two disciplines, sportscar and single-seater, so you can see how cards of different disciplines look side by side on the calendar. <b>A</b> and <b>B</b> change only the thumbnail. <b>C</b> and <b>E</b> colour the card itself, quietly. <b>D</b> turns the thumbnail into part of the card's shape. <b>F</b> swaps the small "Round 3" text for a tile, like a date on a fixture list. A historic event has no round number, so under F its tile would show the historic icon instead.</footer>
+</article>
+
+<!-- 2 -->
+<article class="item" id="s2">
+  <header><span class="n">2</span><h3>Home - historic event tile</h3><code>screens/home/HistoricTile.tsx</code><span class="status ok">Decided</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <div class="card stripe-l" style="--s: var(--sc-fg); flex:1; padding:10px 12px 10px 16px;"><div class="col" style="gap:3px;"><span class="xs muted num">14 Jun</span><span class="b trunc">1966 Le Mans 24 Hours</span><span class="xs muted trunc">Ford GT40 Mk II</span><span class="row" style="gap:4px; padding-top:2px;"><span class="chip c-raced">Raced</span><span class="chip outline">P4</span></span></div></div>
+        <div class="card stripe-l" style="--s: var(--ss-fg); flex:1; padding:10px 12px 10px 16px;"><div class="col" style="gap:3px;"><span class="xs muted num">2 Aug</span><span class="b trunc">1976 German GP</span><span class="xs muted trunc">Open to enter</span><span class="row" style="gap:4px; padding-top:2px;"><span style="font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--primary);">NEXT</span></span></div></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Wash - light</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <div class="card washed" style="--w: var(--sc); --wf: var(--sc-fg); --amt: var(--wash-light); flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="xs muted num">14 Jun</span><span class="b trunc">1966 Le Mans 24 Hours</span><span class="xs muted trunc">Ford GT40 Mk II</span><span class="row" style="gap:4px; padding-top:2px;"><span class="chip c-raced">Raced</span><span class="chip outline">P4</span></span></div></div>
+        <div class="card washed" style="--w: var(--ss); --wf: var(--ss-fg); --amt: var(--wash-light); flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="xs muted num">2 Aug</span><span class="b trunc">1976 German GP</span><span class="xs muted trunc">Open to enter</span><span class="row" style="gap:4px; padding-top:2px;"><span style="font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--primary);">NEXT</span></span></div></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Wash - lighter still</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <div class="card washed" style="--w: var(--sc); --wf: var(--sc-fg); --amt: var(--wash-lighter); flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="xs muted num">14 Jun</span><span class="b trunc">1966 Le Mans 24 Hours</span><span class="xs muted trunc">Ford GT40 Mk II</span><span class="row" style="gap:4px; padding-top:2px;"><span class="chip c-raced">Raced</span><span class="chip outline">P4</span></span></div></div>
+        <div class="card washed" style="--w: var(--ss); --wf: var(--ss-fg); --amt: var(--wash-lighter); flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="xs muted num">2 Aug</span><span class="b trunc">1976 German GP</span><span class="xs muted trunc">Open to enter</span><span class="row" style="gap:4px; padding-top:2px;"><span style="font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--primary);">NEXT</span></span></div></div>
+      </div>
+    </div>
+    <div class="side alt"><span class="lbl">Alternative - discipline named above the title</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <div class="card" style="flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="row xs" style="gap:5px;"><span class="dot" style="width:8px;height:8px;background:var(--sc-fg)"></span><span style="color:var(--sc-fg); font-weight:600;">Sportscar</span><span class="muted num">· 14 Jun</span></span><span class="b trunc">1966 Le Mans 24 Hours</span><span class="xs muted trunc">Ford GT40 Mk II</span><span class="row" style="gap:4px; padding-top:2px;"><span class="chip c-raced">Raced</span><span class="chip outline">P4</span></span></div></div>
+        <div class="card" style="flex:1; padding:10px 12px;"><div class="col" style="gap:3px;"><span class="row xs" style="gap:5px;"><span class="dot" style="width:8px;height:8px;background:var(--ss-fg)"></span><span style="color:var(--ss-fg); font-weight:600;">Single-seater</span><span class="muted num">· 2 Aug</span></span><span class="b trunc">1976 German GP</span><span class="xs muted trunc">Open to enter</span><span class="row" style="gap:4px; padding-top:2px;"><span style="font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--primary);">NEXT</span></span></div></div>
+      </div>
+    </div>
+  </div>
+  <footer>The two wash strengths: <b>light</b> is about 30% of the discipline's chip colour in light mode and 50% in dark; <b>lighter still</b> is about 16% and 30%. Dark mode needs more because its chip colours are already near the card's. The border picks up a hint of the same colour, so the edge doesn't look grey against the tint.</footer>
+</article>
+
+<!-- 3 -->
+<article class="item" id="s3">
+  <header><span class="n">3</span><h3>Race tab - class in the side list</h3><code>screens/race/QuickClassItem.tsx</code><span class="status ok">Decided</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage col" style="gap:6px;">
+        <div class="card stripe-l row" style="--s: var(--rc1-fg); padding:9px 10px 9px 16px; gap:12px; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);"><div class="col" style="flex:1; gap:1px;"><span class="row" style="gap:6px;"><span class="b">GT3</span><span class="chip c-pri">Yours</span></span><span class="xs muted">GT3 2020s</span></div><span class="stepper"><button>−</button><span>12</span><button>+</button></span></div>
+        <div class="card stripe-l row" style="--s: var(--rc2-fg); padding:9px 10px 9px 16px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">GT4</span><span class="xs muted">GT4 2010s</span></div><span class="stepper"><button>−</button><span>10</span><button>+</button></span></div>
+        <div class="card stripe-l row" style="--s: var(--rc3-fg); padding:9px 10px 9px 16px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">Cup</span><span class="xs muted">Porsche Cup 2020s</span></div><span class="stepper"><button>−</button><span>6</span><button>+</button></span></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">The class dot the results use</span>
+      <div class="stage col" style="gap:6px;">
+        <div class="card row" style="padding:9px 10px 9px 12px; gap:10px; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);"><span class="dot" style="background:var(--rc1-fg); align-self:flex-start; margin-top:5px;"></span><div class="col" style="flex:1; gap:1px;"><span class="row" style="gap:6px;"><span class="b">GT3</span><span class="chip c-pri">Yours</span></span><span class="xs muted">GT3 2020s</span></div><span class="stepper"><button>−</button><span>12</span><button>+</button></span></div>
+        <div class="card row" style="padding:9px 10px 9px 12px; gap:10px;"><span class="dot" style="background:var(--rc2-fg); align-self:flex-start; margin-top:5px;"></span><div class="col" style="flex:1; gap:1px;"><span class="b">GT4</span><span class="xs muted">GT4 2010s</span></div><span class="stepper"><button>−</button><span>10</span><button>+</button></span></div>
+        <div class="card row" style="padding:9px 10px 9px 12px; gap:10px;"><span class="dot" style="background:var(--rc3-fg); align-self:flex-start; margin-top:5px;"></span><div class="col" style="flex:1; gap:1px;"><span class="b">Cup</span><span class="xs muted">Porsche Cup 2020s</span></div><span class="stepper"><button>−</button><span>6</span><button>+</button></span></div>
+      </div>
+    </div>
+    <div class="side alt"><span class="lbl">Wash - light</span>
+      <div class="stage col" style="gap:6px;">
+        <div class="card row washed" style="--w: var(--rc1); --wf: var(--rc1-fg); --amt: var(--wash-light); padding:9px 10px 9px 12px; gap:12px; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);"><div class="col" style="flex:1; gap:1px;"><span class="row" style="gap:6px;"><span class="b">GT3</span><span class="chip c-pri">Yours</span></span><span class="xs muted">GT3 2020s</span></div><span class="stepper"><button>−</button><span>12</span><button>+</button></span></div>
+        <div class="card row washed" style="--w: var(--rc2); --wf: var(--rc2-fg); --amt: var(--wash-light); padding:9px 10px 9px 12px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">GT4</span><span class="xs muted">GT4 2010s</span></div><span class="stepper"><button>−</button><span>10</span><button>+</button></span></div>
+        <div class="card row washed" style="--w: var(--rc3); --wf: var(--rc3-fg); --amt: var(--wash-light); padding:9px 10px 9px 12px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">Cup</span><span class="xs muted">Porsche Cup 2020s</span></div><span class="stepper"><button>−</button><span>6</span><button>+</button></span></div>
+      </div>
+    </div>
+    <div class="side alt"><span class="lbl">Wash - lighter still</span>
+      <div class="stage col" style="gap:6px;">
+        <div class="card row washed" style="--w: var(--rc1); --wf: var(--rc1-fg); --amt: var(--wash-lighter); padding:9px 10px 9px 12px; gap:12px; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);"><div class="col" style="flex:1; gap:1px;"><span class="row" style="gap:6px;"><span class="b">GT3</span><span class="chip c-pri">Yours</span></span><span class="xs muted">GT3 2020s</span></div><span class="stepper"><button>−</button><span>12</span><button>+</button></span></div>
+        <div class="card row washed" style="--w: var(--rc2); --wf: var(--rc2-fg); --amt: var(--wash-lighter); padding:9px 10px 9px 12px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">GT4</span><span class="xs muted">GT4 2010s</span></div><span class="stepper"><button>−</button><span>10</span><button>+</button></span></div>
+        <div class="card row washed" style="--w: var(--rc3); --wf: var(--rc3-fg); --amt: var(--wash-lighter); padding:9px 10px 9px 12px; gap:12px;"><div class="col" style="flex:1; gap:1px;"><span class="b">Cup</span><span class="xs muted">Porsche Cup 2020s</span></div><span class="stepper"><button>−</button><span>6</span><button>+</button></span></div>
+      </div>
+    </div>
+  </div>
+  <footer>Washes at the same two strengths as #2, with a third class added so three tints are side by side. The open class keeps its primary ring over whichever tint it has.</footer>
+</article>
+
+<!-- 4 -->
+<article class="item" id="s4">
+  <header><span class="n">4</span><h3>Championships - ladder rung card</h3><code>screens/championships/RungCard.tsx</code>, <code>LadderSkeleton.tsx</code>, <code>RUNG_EDGE</code> in <code>constants.ts</code><span class="status ok">Decided</span></header>
+  <div class="pairs ladders" data-ladders>
+    <div class="side now"><span class="lbl">Now</span><div class="stage wide" data-lad="now"></div></div>
+    <div class="side new"><span class="lbl">A - the row is lightly tinted, the cards are plain</span><div class="stage wide" data-lad="lane"></div></div>
+    <div class="side new"><span class="lbl">B - the cards are lightly tinted, the row stays white</span><div class="stage wide" data-lad="cards"></div></div>
+    <div class="side new"><span class="lbl">C - each card's name sits on a coloured band</span><div class="stage wide" data-lad="head"></div></div>
+    <div class="side new"><span class="lbl">D - plain cards with a coloured outline</span><div class="stage wide" data-lad="outline"></div></div>
+    <div class="side new"><span class="lbl">E - no colour on the cards at all</span><div class="stage wide" data-lad="plain"></div></div>
+  </div>
+  <footer>Each variant shows two rows, sportscar and touring, the way the ladder stacks them. The row's heading cell is coloured already in every version. <b>A</b> continues the heading's colour along the row. <b>C</b> follows the coloured header bands agreed for #6-8. <b>E</b> leaves the heading cell as the only colour in the row. A locked card stays grey with its lock in every version.</footer>
+</article>
+
+<!-- 5 -->
+<article class="item" id="s5">
+  <header><span class="n">5</span><h3>Inbox - a sponsor goal's car reward</h3><code>screens/inbox/GoalReward.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide">
+        <div class="card row" style="border-left:4px solid var(--sponsor-solid); padding:12px; gap:14px;"><span class="carpic" style="width:112px;"><svg class="i lg"><use href="#i-car"/></svg></span><div class="col" style="flex:1; gap:2px;"><span class="caps">Car reward</span><span class="b">Porsche 911 GT3 Cup (992)</span></div><span class="btn">Open the Garage</span></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - washed in sponsor pink</span>
+      <div class="stage wide">
+        <div class="row" style="border-radius:8px; padding:12px; gap:14px; background: color-mix(in srgb, var(--sponsor) 75%, transparent);"><span class="carpic" style="width:112px;"><svg class="i lg"><use href="#i-car"/></svg></span><div class="col" style="flex:1; gap:2px;"><span class="caps row" style="gap:5px; color: var(--sponsor-fg);"><svg class="i sm"><use href="#i-gift"/></svg>Car reward</span><span class="b">Porsche 911 GT3 Cup (992)</span></div><span class="btn">Open the Garage</span></div>
+      </div>
+    </div>
+  </div>
+  <footer>A reward is the one thing in that mail worth celebrating, so it earns a filled panel rather than an edge. The caps label takes the sponsor's foreground and a gift icon.</footer>
+</article>
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-top">Top stripes on cards</h2>
+<p class="group-sub">Each of these cards already has a header band or a header row. That band takes the colour, and the 3-4px edge goes.</p>
+
+<!-- 6 -->
+<article class="item" id="s6">
+  <header><span class="n">6</span><h3>Contracts - the contract held now</h3><code>screens/contracts/CurrentContract.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide">
+        <section style="border:1px solid var(--border); border-top:3px solid var(--contract-solid); border-radius:12px; overflow:hidden; background:var(--card);">
+          <div class="row" style="padding:12px; gap:12px; border-bottom:1px solid var(--border); background: color-mix(in srgb, var(--muted) 30%, transparent);"><span class="carpic" style="width:88px; aspect-ratio:16/9;"><svg class="i"><use href="#i-car"/></svg></span><div class="col" style="flex:1; gap:4px;"><span class="row" style="gap:4px;"><span class="chip c-works">Works</span><span class="chip c-sc">Sportscar</span><span class="chip c-bronze">Tier 3</span></span><span class="b">Team Parker Racing</span><span class="xs muted trunc">British GT 2027 · GT3 · Bentley Continental GT3</span></div><span class="xs muted row" style="align-self:flex-start; gap:2px;">Open<svg class="i"><use href="#i-chev"/></svg></span></div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr);">
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Pay</span><span class="b num">€84,000</span><span class="xs muted">A season</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Earned so far</span><span class="b num">€31,500</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Rounds</span><span class="b num">3 of 9</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px;"><span class="caps">Standing</span><span class="b num">P4</span><span class="xs muted">Teammate P7</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - the head band in contract violet</span>
+      <div class="stage wide">
+        <section style="border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card);">
+          <div class="row" style="padding:12px; gap:12px; border-bottom:1px solid color-mix(in srgb, var(--contract-fg) 15%, transparent); background: color-mix(in srgb, var(--contract) 70%, var(--card));"><span class="carpic" style="width:88px; aspect-ratio:16/9;"><svg class="i"><use href="#i-car"/></svg></span><div class="col" style="flex:1; gap:4px;"><span class="row" style="gap:4px;"><span class="chip c-works">Works</span><span class="chip c-sc">Sportscar</span><span class="chip c-bronze">Tier 3</span></span><span class="b">Team Parker Racing</span><span class="xs muted trunc">British GT 2027 · GT3 · Bentley Continental GT3</span></div><span class="xs muted row" style="align-self:flex-start; gap:2px;">Open<svg class="i"><use href="#i-chev"/></svg></span></div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr);">
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Pay</span><span class="b num">€84,000</span><span class="xs muted">A season</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Earned so far</span><span class="b num">€31,500</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px; border-right:1px solid var(--border);"><span class="caps">Rounds</span><span class="b num">3 of 9</span></div>
+            <div class="col" style="gap:1px; padding:9px 12px;"><span class="caps">Standing</span><span class="b num">P4</span><span class="xs muted">Teammate P7</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <footer>The header row was already a band (<code>bg-muted/30</code>); it becomes <code>bg-contract/70</code>. Chips keep their own fills on it - works magenta 320 and violet 295 are the nearest pair, and the chip's border keeps them apart.</footer>
+</article>
+
+<!-- 7 -->
+<article class="item" id="s7">
+  <header><span class="n">7</span><h3>Championship sidebar - Your contract</h3><code>screens/championships/ContractCard.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage" style="max-width:300px;">
+        <div class="card" style="border-top:3px solid var(--contract-solid); border-radius:12px; overflow:hidden;">
+          <div style="padding:12px; display:flex; flex-direction:column; gap:10px;">
+            <div class="row"><span class="b">Your contract</span><span class="chip c-works end">Works</span></div>
+            <div class="row" style="gap:10px;"><span class="carpic" style="width:64px;"><svg class="i sm"><use href="#i-car"/></svg></span><div class="col" style="gap:0;"><span style="font-weight:500; font-size:13px;">Bentley Continental GT3</span><span class="xs muted">Team Parker Racing</span></div></div>
+            <dl class="terms" style="border-top:1px solid var(--border); padding-top:9px;"><dt>Salary</dt><dd>€84,000 a season</dd><dt>Entry fees</dt><dd>Covered</dd><dt>Prizes</dt><dd>40% yours</dd></dl>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - the title row becomes the band</span>
+      <div class="stage" style="max-width:300px;">
+        <div class="card" style="border-radius:12px; overflow:hidden;">
+          <div class="row" style="padding:9px 12px; background: color-mix(in srgb, var(--contract) 70%, var(--card)); border-bottom:1px solid color-mix(in srgb, var(--contract-fg) 15%, transparent);"><svg class="i" style="color:var(--contract-fg)"><use href="#i-sign"/></svg><span class="b">Your contract</span><span class="chip c-works end">Works</span></div>
+          <div style="padding:12px; display:flex; flex-direction:column; gap:10px;">
+            <div class="row" style="gap:10px;"><span class="carpic" style="width:64px;"><svg class="i sm"><use href="#i-car"/></svg></span><div class="col" style="gap:0;"><span style="font-weight:500; font-size:13px;">Bentley Continental GT3</span><span class="xs muted">Team Parker Racing</span></div></div>
+            <dl class="terms" style="border-top:1px solid var(--border); padding-top:9px;"><dt>Salary</dt><dd>€84,000 a season</dd><dt>Entry fees</dt><dd>Covered</dd><dt>Prizes</dt><dd>40% yours</dd></dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>Same treatment as #6, so the two contract cards stay one family. The title moves out of <code>CardContent</code> into its own band, with the contract icon in violet.</footer>
+</article>
+
+<!-- 8 -->
+<article class="item" id="s8">
+  <header><span class="n">8</span><h3>Sponsors - a deal's card</h3><code>screens/sponsors/SponsorCard.tsx</code>, <code>SPONSOR_SOLID</code> in <code>lib/accents.ts</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <article class="card" style="flex:1; border-radius:12px; overflow:hidden; border-top:4px solid var(--sponsor-solid);"><div class="row" style="padding:12px 12px 8px; gap:10px;"><span class="plate main">BO</span><div class="col" style="gap:0; flex:1;"><span class="b trunc">Bosch</span><span class="xs muted trunc">Main sponsor · Parts</span></div></div><div class="xs muted" style="padding:0 12px 12px;">€2,400 a race · win bonus €6,000</div><div class="row xs muted" style="border-top:1px solid var(--border); padding:6px 12px; gap:10px;"><span>Paid <b style="color:var(--foreground)">€14,400</b></span><span>Until 3 Mar 2028</span><span class="btn ghost icon end"><svg class="i"><use href="#i-dots"/></svg></span></div></article>
+        <article class="card" style="flex:1; border-radius:12px; overflow:hidden; border-top:4px solid var(--partner-solid);"><div class="row" style="padding:12px 12px 8px; gap:10px;"><span class="plate partner">MO</span><div class="col" style="gap:0; flex:1;"><span class="b trunc">Motul</span><span class="xs muted trunc">Partner · Lubricants</span></div></div><div class="xs muted" style="padding:0 12px 12px;">Half of every entry fee</div><div class="row xs muted" style="border-top:1px solid var(--border); padding:6px 12px; gap:10px;"><span>Paid <b style="color:var(--foreground)">€3,100</b></span><span>Until 9 May 2028</span><span class="btn ghost icon end"><svg class="i"><use href="#i-dots"/></svg></span></div></article>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - the head band in the slot's tint</span>
+      <div class="stage row" style="gap:10px; align-items:stretch;">
+        <article class="card" style="flex:1; border-radius:12px; overflow:hidden;"><div class="row" style="padding:12px; gap:10px; background: color-mix(in srgb, var(--sponsor) 70%, var(--card));"><span class="plate main">BO</span><div class="col" style="gap:0; flex:1;"><span class="b trunc">Bosch</span><span class="xs trunc" style="color:var(--sponsor-fg)">Main sponsor · Parts</span></div></div><div class="xs muted" style="padding:10px 12px 12px;">€2,400 a race · win bonus €6,000</div><div class="row xs muted" style="border-top:1px solid var(--border); padding:6px 12px; gap:10px;"><span>Paid <b style="color:var(--foreground)">€14,400</b></span><span>Until 3 Mar 2028</span><span class="btn ghost icon end"><svg class="i"><use href="#i-dots"/></svg></span></div></article>
+        <article class="card" style="flex:1; border-radius:12px; overflow:hidden;"><div class="row" style="padding:12px; gap:10px; background: color-mix(in srgb, var(--partner) 70%, var(--card));"><span class="plate partner">MO</span><div class="col" style="gap:0; flex:1;"><span class="b trunc">Motul</span><span class="xs trunc" style="color:var(--partner-fg)">Partner · Lubricants</span></div></div><div class="xs muted" style="padding:10px 12px 12px;">Half of every entry fee</div><div class="row xs muted" style="border-top:1px solid var(--border); padding:6px 12px; gap:10px;"><span>Paid <b style="color:var(--foreground)">€3,100</b></span><span>Until 9 May 2028</span><span class="btn ghost icon end"><svg class="i"><use href="#i-dots"/></svg></span></div></article>
+      </div>
+    </div>
+  </div>
+  <footer>The logo plate's ring already says the slot; the band gives the card its colour without an edge, and the "Main sponsor · Parts" line takes the slot's foreground. <code>SPONSOR_SOLID</code> then has no top-edge use and becomes a <code>SPONSOR_HEAD</code> map of the two tints.</footer>
+</article>
+
+<!-- 9 -->
+<article class="item" id="s9">
+  <header><span class="n">9</span><h3>Sponsors - a free slot</h3><code>screens/sponsors/FreeSlot.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage" style="max-width:260px;">
+        <div style="min-height:150px; border:2px dashed var(--border); border-top:4px solid var(--partner-solid); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:18px; text-align:center; font-size:13px;" class="muted"><svg class="i lg" style="color:var(--partner-fg)"><use href="#i-spark"/></svg><span class="b" style="color:var(--foreground)">Partner slot - free</span><span>Offers come as you race</span></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - a dashed outline in the slot, faintly filled</span>
+      <div class="stage" style="max-width:260px;">
+        <div style="min-height:150px; border:2px dashed color-mix(in srgb, var(--partner-solid) 45%, transparent); background: color-mix(in srgb, var(--partner) 35%, transparent); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:18px; text-align:center; font-size:13px;" class="muted"><span class="ico" style="width:34px;height:34px;border-radius:50%; background:var(--partner); color:var(--partner-fg);"><svg class="i"><use href="#i-spark"/></svg></span><span class="b" style="color:var(--foreground)">Partner slot - free</span><span>Offers come as you race</span></div>
+      </div>
+    </div>
+  </div>
+  <footer>Reads as the empty shape of the card next to it (#8): same colour, dashed and faint instead of solid. The sparkle sits in a round well.</footer>
+</article>
+
+<!-- 10 + 11 -->
+<article class="item" id="s10">
+  <header><span class="n">10</span><h3>Finances - the Balance tile</h3><code>screens/finances/MoneyTile.tsx</code> (<code>lead</code>)<span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage row" style="gap:10px;">
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px; border-top:4px solid var(--success);"><div class="caps">Balance</div><div class="num" style="font-size:22px; font-weight:600;">€148,250</div><div class="xs muted">On 14 Jun 2027</div></div>
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px;"><div class="caps">Earned this season</div><div class="num" style="font-size:22px; font-weight:600;">€96,400</div><div class="xs muted">Prize money from 7 races</div></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - an icon well and a light wash</span>
+      <div class="stage row" style="gap:10px;">
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px; background: color-mix(in srgb, var(--success-soft) 55%, var(--card)); border-color: color-mix(in srgb, var(--success) 22%, transparent);"><div class="row" style="gap:6px;"><span class="ico" style="width:20px;height:20px;border-radius:6px; background:var(--success-soft); color:var(--success-soft-fg);"><svg class="i sm"><use href="#i-wallet"/></svg></span><span class="caps">Balance</span></div><div class="num" style="font-size:22px; font-weight:600;">€148,250</div><div class="xs muted">On 14 Jun 2027</div></div>
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px;"><div class="caps">Earned this season</div><div class="num" style="font-size:22px; font-weight:600;">€96,400</div><div class="xs muted">Prize money from 7 races</div></div>
+      </div>
+    </div>
+  </div>
+  <footer>The balance sits in the header with a wallet icon in success green already, so the tile repeats that icon. The wash marks it as the lead tile without the edge.</footer>
+</article>
+
+<article class="item" id="s11">
+  <header><span class="n">11</span><h3>Rating - the Global tile</h3><code>screens/rating/Rating.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage row" style="gap:10px;">
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px; border-top:4px solid var(--foreground);"><div class="caps">Global</div><div class="num" style="font-size:22px; font-weight:600;">2,814</div><div class="xs"><span style="color:var(--success); font-weight:600;">+212</span> <span class="muted">this season</span></div></div>
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px;"><div class="row"><span class="chip c-sc">Sportscar</span><span class="medal c-bronze end">3</span></div><div class="num" style="font-size:22px; font-weight:600;">3,102</div><div class="xs"><span style="color:var(--success); font-weight:600;">+340</span> <span class="muted">this season</span></div></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - an icon well and a primary wash</span>
+      <div class="stage row" style="gap:10px;">
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px; background: color-mix(in srgb, var(--primary) 7%, var(--card)); border-color: color-mix(in srgb, var(--primary) 22%, transparent);"><div class="row" style="gap:6px;"><span class="ico" style="width:20px;height:20px;border-radius:6px; background: color-mix(in srgb, var(--primary) 15%, var(--card)); color:var(--primary);"><svg class="i sm"><use href="#i-gauge"/></svg></span><span class="caps">Global</span></div><div class="num" style="font-size:22px; font-weight:600;">2,814</div><div class="xs"><span style="color:var(--success); font-weight:600;">+212</span> <span class="muted">this season</span></div></div>
+        <div class="card" style="flex:1; border-radius:12px; padding:10px 14px;"><div class="row"><span class="chip c-sc">Sportscar</span><span class="medal c-bronze end">3</span></div><div class="num" style="font-size:22px; font-weight:600;">3,102</div><div class="xs"><span style="color:var(--success); font-weight:600;">+340</span> <span class="muted">this season</span></div></div>
+      </div>
+    </div>
+  </div>
+  <footer>Rating is laid out as Finances is, so its lead tile gets the same shape as #10. The header shows the global rating beside the balance with a gauge icon; the tile repeats it, in primary since a rating has no family of its own.</footer>
+</article>
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-callout">Notes with a bar</h2>
+<p class="group-sub">Five hand-rolled copies of the same note (<code>rounded-r-md border-l-3 bg-*/7</code>), each spelled slightly differently. Proposed: one <code>&lt;Callout tone="primary" | "contract" icon={...}&gt;</code> in <code>src/renderer/src/components/</code>, a rounded tint with a leading icon.</p>
+
+<article class="item" id="s12">
+  <header><span class="n">12-13</span><h3>Contract notes - above a championship's rounds, and the lifeline offer</h3><code>screens/championships/ChampionshipDetail.tsx</code>, <code>screens/inbox/OfferReader.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide col" style="gap:10px;">
+        <p style="margin:0; border-left:3px solid var(--contract-fg); background: color-mix(in srgb, var(--contract) 30%, transparent); border-radius:6px; padding:8px 12px; font-size:12.5px;" class="muted">Every round is yours to race - a contract covers the whole season. A round not raced pays no salary and costs its entry fee as a fine, and the team's reserve driver races it.</p>
+        <p style="margin:0; border-left:3px solid var(--contract-fg); background: color-mix(in srgb, var(--contract) 40%, transparent); border-radius:6px; padding:10px 12px; font-size:12.5px; display:flex; gap:8px;"><svg class="i"><use href="#i-buoy"/></svg><span><b>A way back.</b> You have no car and nothing you can afford to enter, so a team at the bottom rung always offers a seat that costs nothing. This is it.</span></p>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - Callout, contract tone</span>
+      <div class="stage wide col" style="gap:10px;">
+        <div class="callout con"><svg class="i"><use href="#i-sign"/></svg><span class="t">Every round is yours to race - a contract covers the whole season. A round not raced pays no salary and costs its entry fee as a fine, and the team's reserve driver races it.</span></div>
+        <div class="callout con"><svg class="i"><use href="#i-buoy"/></svg><span><b>A way back.</b> You have no car and nothing you can afford to enter, so a team at the bottom rung always offers a seat that costs nothing. This is it.</span></div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="item" id="s14">
+  <header><span class="n">14-16</span><h3>Primary notes - new career summary, Sell dialog, Edit price dialog</h3><code>screens/new-career/SummaryPanel.tsx</code>, <code>components/car-trade/SellDialog.tsx</code>, <code>screens/your-content/EditPriceDialog.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide col" style="gap:10px;">
+        <p style="margin:0; border-left:3px solid var(--primary); background: color-mix(in srgb, var(--primary) 6%, transparent); border-radius:0 6px 6px 0; padding:8px 12px; font-size:12px;" class="muted">Home opens on an empty season. Championships are entered from their own page.</p>
+        <p style="margin:0; border-left:3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); border-radius:0 8px 8px 0; padding:8px 12px; font-size:13px;" class="muted">British GT still races it: you race the rounds left in a rented one, €1,700 a round, in the livery it wears now.</p>
+        <p style="margin:0; border-left:3px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); border-radius:0 8px 8px 0; padding:8px 12px; font-size:12px;" class="muted">Every career pays the new price from now on, in the Store and in rent for rounds still to launch. A car already bought keeps what was paid for it: it sells and repaints on that.</p>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - Callout, primary tone</span>
+      <div class="stage wide col" style="gap:10px;">
+        <div class="callout pri"><svg class="i"><use href="#i-info"/></svg><span class="t">Home opens on an empty season. Championships are entered from their own page.</span></div>
+        <div class="callout pri" style="font-size:13px;"><svg class="i"><use href="#i-car"/></svg><span class="t">British GT still races it: you race the rounds left in a rented one, €1,700 a round, in the livery it wears now.</span></div>
+        <div class="callout pri"><svg class="i"><use href="#i-info"/></svg><span class="t">Every career pays the new price from now on, in the Store and in rent for rounds still to launch. A car already bought keeps what was paid for it: it sells and repaints on that.</span></div>
+      </div>
+    </div>
+  </div>
+  <footer>Three callers spell the same note three ways (<code>rounded-r-md</code> vs <code>rounded-r-lg</code>, <code>/6</code> vs <code>/7</code>, <code>border-l-3</code> vs <code>border-l-[3px]</code>). The component settles it once; the size stays the caller's.</footer>
+</article>
+
+<!-- 17 -->
+<article class="item" id="s17">
+  <header><span class="n">17</span><h3>Inbox - the event's description quoted in an invitation</h3><code>screens/inbox/MailReader.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide col" style="gap:9px; font-size:13px;">
+        <p style="margin:0;">Racing it costs you nothing: the seat, the car and the entry are ours.</p>
+        <p style="margin:0; border-left:2px solid color-mix(in srgb, var(--historic-fg) 40%, transparent); padding-left:12px; font-style:italic;" class="muted">Ford finally beat Ferrari at La Sarthe, three GT40s crossing the line together in a staged finish that cost Ken Miles the win.</p>
+        <p style="margin:0;">Let us know by return.<br>Shelby American</p>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - a leather-tinted passage with a quote mark</span>
+      <div class="stage wide col" style="gap:9px; font-size:13px;">
+        <p style="margin:0;">Racing it costs you nothing: the seat, the car and the entry are ours.</p>
+        <div style="display:flex; gap:10px; border-radius:8px; padding:10px 12px; background: color-mix(in srgb, var(--historic) 65%, transparent);"><svg class="i" style="color:var(--historic-fg); opacity:.7; margin-top:2px;"><use href="#i-quote"/></svg><span style="font-style:italic; color: var(--historic-fg);">Ford finally beat Ferrari at La Sarthe, three GT40s crossing the line together in a staged finish that cost Ken Miles the win.</span></div>
+        <p style="margin:0;">Let us know by return.<br>Shelby American</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- 18 -->
+<article class="item" id="s18">
+  <header><span class="n">18</span><h3>Historic event - About this event</h3><code>screens/championships/HistoricOverview.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide"><div class="col" style="gap:3px; border-left:2px solid var(--border); padding-left:12px;"><span class="caps">About this event</span><span style="font-size:13px;">Ford finally beat Ferrari at La Sarthe, three GT40s crossing the line together in a staged finish that cost Ken Miles the win.</span></div></div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - no bar</span>
+      <div class="stage wide"><div class="col" style="gap:3px;"><span class="caps">About this event</span><span style="font-size:13px; max-width:68ch;">Ford finally beat Ferrari at La Sarthe, three GT40s crossing the line together in a staged finish that cost Ken Miles the win.</span></div></div>
+    </div>
+  </div>
+  <footer>A heading over a paragraph needs nothing more. The paragraph gets a <code>max-w-prose</code> so it does not run the width of the page.</footer>
+</article>
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-rows">Rows with an inset bar</h2>
+<p class="group-sub">Drawn with <code>shadow-[inset_3px_0_0_...]</code> rather than a border, so they are easy to miss in a grep.</p>
+
+<article class="item keep" id="s19">
+  <header><span class="n">19</span><h3>Every results table - your own row</h3><code>components/results/constants.ts</code> <code>PLAYER_ROW</code>: classification, standings, standings grid, team standings<span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><thead><tr><th>Pos</th><th>Driver</th><th>Team</th><th class="r">Pts</th></tr></thead><tbody>
+          <tr><td><span class="pos p1">1</span></td><td>Jonny Adam</td><td class="muted">Beechdean AMR</td><td class="r b num">96</td></tr>
+          <tr><td><span class="pos p2">2</span></td><td>Sandy Mitchell</td><td class="muted">Barwell</td><td class="r b num">88</td></tr>
+          <tr class="me now"><td><span class="pos p3">3</span></td><td>Alex Marlow</td><td class="muted">Team Parker Racing</td><td class="r b num">81</td></tr>
+          <tr><td><span class="pos">4</span></td><td>Ian Loggie</td><td class="muted">RAM Racing</td><td class="r b num">70</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - the tint alone, a step stronger</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><thead><tr><th>Pos</th><th>Driver</th><th>Team</th><th class="r">Pts</th></tr></thead><tbody>
+          <tr><td><span class="pos p1">1</span></td><td>Jonny Adam</td><td class="muted">Beechdean AMR</td><td class="r b num">96</td></tr>
+          <tr><td><span class="pos p2">2</span></td><td>Sandy Mitchell</td><td class="muted">Barwell</td><td class="r b num">88</td></tr>
+          <tr class="me strong"><td><span class="pos p3">3</span></td><td>Alex Marlow</td><td class="muted">Team Parker Racing</td><td class="r b num">81</td></tr>
+          <tr><td><span class="pos">4</span></td><td>Ian Loggie</td><td class="muted">RAM Racing</td><td class="r b num">70</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="side alt"><span class="lbl">Alternative - tint plus a You marker</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><thead><tr><th>Pos</th><th>Driver</th><th>Team</th><th class="r">Pts</th></tr></thead><tbody>
+          <tr><td><span class="pos p1">1</span></td><td>Jonny Adam</td><td class="muted">Beechdean AMR</td><td class="r b num">96</td></tr>
+          <tr><td><span class="pos p2">2</span></td><td>Sandy Mitchell</td><td class="muted">Barwell</td><td class="r b num">88</td></tr>
+          <tr class="me"><td><span class="pos p3">3</span></td><td>Alex Marlow<span class="you">You</span></td><td class="muted">Team Parker Racing</td><td class="r b num">81</td></tr>
+          <tr><td><span class="pos">4</span></td><td>Ian Loggie</td><td class="muted">RAM Racing</td><td class="r b num">70</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <footer><code>--color-player-row</code> goes from 8% to about 11% primary, and the row stays semibold. The marker version costs a word in every table, including the standings grid where columns are tight - so the plain tint is the recommendation.</footer>
+</article>
+
+<article class="item keep" id="s20">
+  <header><span class="n">20</span><h3>Careers - the picked slot in the list</h3><code>screens/careers/CareerRow.tsx</code>, <code>StandaloneRow.tsx</code>, <code>UnreadableRow.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage card" style="border-radius:10px; overflow:hidden;">
+        <div class="row inset-l" style="--s: var(--primary); padding:10px 12px; gap:10px; background: color-mix(in srgb, var(--primary) 8%, transparent); border-bottom:1px solid var(--border);"><span class="ico c-plain" style="border-radius:50%; font-weight:700; font-size:11px;">AM</span><div class="col" style="gap:0; flex:1;"><span class="b">Alex Marlow</span><span class="xs muted">2027 · Sportscar, Tier 3</span></div></div>
+        <div class="row" style="padding:10px 12px; gap:10px;"><span class="ico c-plain" style="border-radius:50%; font-weight:700; font-size:11px;">JR</span><div class="col" style="gap:0; flex:1;"><span class="b">Jo Rees</span><span class="xs muted">2026 · Rookie</span></div></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - tint and a check at the end</span>
+      <div class="stage card" style="border-radius:10px; overflow:hidden;">
+        <div class="row" style="padding:10px 12px; gap:10px; background: color-mix(in srgb, var(--primary) 8%, transparent); border-bottom:1px solid var(--border);"><span class="ico c-plain" style="border-radius:50%; font-weight:700; font-size:11px;">AM</span><div class="col" style="gap:0; flex:1;"><span class="b">Alex Marlow</span><span class="xs muted">2027 · Sportscar, Tier 3</span></div><svg class="i lg" style="color:var(--primary)"><use href="#i-check"/></svg></div>
+        <div class="row" style="padding:10px 12px; gap:10px;"><span class="ico c-plain" style="border-radius:50%; font-weight:700; font-size:11px;">JR</span><div class="col" style="gap:0; flex:1;"><span class="b">Jo Rees</span><span class="xs muted">2026 · Rookie</span></div></div>
+      </div>
+    </div>
+  </div>
+  <footer>The row is a toggle (<code>aria-pressed</code>), and a check is how a picked option reads everywhere else. Shown here simplified - the row's own content stays as it is today.</footer>
+</article>
+
+<article class="item" id="s21">
+  <header><span class="n">21</span><h3>Round page - the Sponsors panel</h3><code>screens/event/RoundSponsors.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage card" style="border-radius:12px; overflow:hidden; max-width:320px;">
+        <div class="b" style="padding:10px 12px;">Sponsors</div>
+        <div class="row inset-l" style="--s: var(--sponsor-solid); padding:9px 12px; gap:8px; border-top:1px solid var(--border);"><span class="plate sm main">BO</span><span class="b" style="flex:1; font-size:13px;">Bosch</span><span class="chip c-raced">On course</span></div>
+        <div class="row inset-l" style="--s: var(--partner-solid); padding:9px 12px; gap:8px; border-top:1px solid var(--border);"><span class="plate sm partner">MO</span><span class="b" style="flex:1; font-size:13px;">Motul</span></div>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - no bar; the ringed mark says the slot</span>
+      <div class="stage card" style="border-radius:12px; overflow:hidden; max-width:320px;">
+        <div class="b" style="padding:10px 12px;">Sponsors</div>
+        <div class="row" style="padding:9px 12px; gap:8px; border-top:1px solid var(--border);"><span class="plate sm main">BO</span><span class="b" style="flex:1; font-size:13px;">Bosch</span><span class="chip c-raced">On course</span></div>
+        <div class="row" style="padding:9px 12px; gap:8px; border-top:1px solid var(--border);"><span class="plate sm partner">MO</span><span class="b" style="flex:1; font-size:13px;">Motul</span></div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-bars">Loose discipline bars</h2>
+<p class="group-sub">A free-standing vertical pill at the start of a table row.</p>
+
+<article class="item keep" id="s22">
+  <header><span class="n">22</span><h3>History - a season's editions</h3><code>screens/history/HistoryTable.tsx</code>, <code>HistorySkeleton.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><thead><tr><th style="width:8px"></th><th>Championship</th><th>Edition</th><th></th><th class="r">You</th></tr></thead><tbody>
+          <tr><td style="padding-right:0"><span style="display:block; width:4px; height:28px; border-radius:99px; background:var(--sc-fg)"></span></td><td class="b">British GT</td><td><span class="chip c-plain">2027</span></td><td><span class="chip c-sc">Sportscar · Tier 3</span></td><td class="r"><span class="pos p3">P3</span></td></tr>
+          <tr><td style="padding-right:0"><span style="display:block; width:4px; height:28px; border-radius:99px; background:var(--to-fg)"></span></td><td class="b">Mini Challenge</td><td><span class="chip c-plain">H1 2027</span></td><td><span class="chip c-to">Touring · Tier 4</span></td><td class="r"><span class="pos">P6</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - no bar; the ladder chip says it</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><thead><tr><th>Championship</th><th>Edition</th><th></th><th class="r">You</th></tr></thead><tbody>
+          <tr><td class="b">British GT</td><td><span class="chip c-plain">2027</span></td><td><span class="chip c-sc">Sportscar · Tier 3</span></td><td class="r"><span class="pos p3">P3</span></td></tr>
+          <tr><td class="b">Mini Challenge</td><td><span class="chip c-plain">H1 2027</span></td><td><span class="chip c-to">Touring · Tier 4</span></td><td class="r"><span class="pos">P6</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <footer>The row's <code>LadderChip</code> two columns along is the same colour - the bar and its empty header column both go.</footer>
+</article>
+
+<article class="item" id="s23">
+  <header><span class="n">23</span><h3>Year review - historic events</h3><code>screens/year-review/HistoricEventRow.tsx</code>, <code>HistoricSectionSkeleton.tsx</code><span class="status ok">Agreed</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><tbody>
+          <tr><td class="num muted">14 Jun</td><td><span class="row" style="gap:10px;"><span style="display:block; width:4px; height:32px; border-radius:99px; background:var(--sc-fg)"></span><span class="mapwell" style="width:48px;"><svg><use href="#track"/></svg></span><span style="font-weight:500;">1966 Le Mans 24 Hours</span></span></td><td class="muted xs">Ford GT40 Mk II</td></tr>
+          <tr><td class="num muted">2 Aug</td><td><span class="row" style="gap:10px;"><span style="display:block; width:4px; height:32px; border-radius:99px; background:var(--ss-fg)"></span><span class="mapwell" style="width:48px;"><svg><use href="#track"/></svg></span><span style="font-weight:500;">1976 German GP</span></span></td><td class="muted xs">Raced without you</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="side new"><span class="lbl">Proposed - the map well wears the discipline, as #1</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;">
+        <table class="res"><tbody>
+          <tr><td class="num muted">14 Jun</td><td><span class="row" style="gap:10px;"><span class="mapwell" style="width:48px; background:var(--sc); color:var(--sc-fg);"><svg><use href="#track"/></svg></span><span style="font-weight:500;">1966 Le Mans 24 Hours</span></span></td><td class="muted xs">Ford GT40 Mk II</td></tr>
+          <tr><td class="num muted">2 Aug</td><td><span class="row" style="gap:10px;"><span class="mapwell" style="width:48px; background:var(--ss); color:var(--ss-fg);"><svg><use href="#track"/></svg></span><span style="font-weight:500;">1976 German GP</span></span></td><td class="muted xs">Raced without you</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ======================================================= -->
+<h2 class="group-title" id="g-found">Found later - bars drawn with <code>self-stretch</code></h2>
+<p class="group-sub">Five more discipline bars the first search missed: they take their height from the row's grid (<code>self-stretch</code>) instead of a width class. They are the same kind of bar as the History table's (#22), which stays. Each item shows today's bar first, then the options; the one I'd pick is marked <b>Recommended</b>.</p>
+
+<!-- 24 -->
+<article class="item keep" id="s24">
+  <header><span class="n">24</span><h3>Home - Your championships</h3><code>screens/home/ChampionshipRow.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs" style="grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide card" style="padding:6px; border-radius:12px;" data-champs="now"></div>
+    </div>
+    <div class="side new"><span class="lbl">A - one chip saying discipline and tier (Recommended)</span>
+      <div class="stage wide card" style="padding:6px; border-radius:12px;" data-champs="chip"></div>
+    </div>
+    <div class="side alt"><span class="lbl">B - discipline named above the title, as Home's historic tiles</span>
+      <div class="stage wide card" style="padding:6px; border-radius:12px;" data-champs="named"></div>
+    </div>
+    <div class="side alt"><span class="lbl">C - a discipline dot before the name</span>
+      <div class="stage wide card" style="padding:6px; border-radius:12px;" data-champs="dot"></div>
+    </div>
+  </div>
+  <footer>Today the bar is the row's only sign of the discipline; the tier has a chip of its own. <b>A</b> swaps the tier chip for the <code>LadderChip</code> the History table and the year review already use ("Sportscar · Tier 3", in the discipline's colour), so the row loses nothing and gains no extra chip. <b>B</b> matches the historic tiles just below it on Home (#2), at the cost of a line per row. <b>C</b> is the smallest change.</footer>
+</article>
+
+<!-- 25 -->
+<article class="item keep" id="s25">
+  <header><span class="n">25</span><h3>Home - a new season's list of last year's championships</h3><code>screens/home/NewSeason.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs" style="grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));">
+    <div class="side now"><span class="lbl">Now</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;" data-season="now"></div>
+    </div>
+    <div class="side new"><span class="lbl">A - no bar; the discipline chip on the right says it (Recommended)</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;" data-season="plain"></div>
+    </div>
+    <div class="side alt"><span class="lbl">B - the chip moves beside the name</span>
+      <div class="stage wide card" style="border-radius:10px; overflow:hidden;" data-season="beside"></div>
+    </div>
+  </div>
+  <footer>Every row already carries a discipline chip, so the bar repeats it. <b>B</b> moves that chip next to the championship name, where the eye starts reading, which keeps the Enter link alone at the right.</footer>
+</article>
+
+<!-- 26 -->
+<article class="item keep" id="s26">
+  <header><span class="n">26</span><h3>Skip dialog - rounds that will be lost</h3><code>components/skip-dialog/SkipRow.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span><div class="stage wide" data-skip="now"></div></div>
+    <div class="side new"><span class="lbl">A - no bar (Recommended)</span><div class="stage wide" data-skip="plain"></div></div>
+    <div class="side alt"><span class="lbl">B - a discipline dot before the round</span><div class="stage wide" data-skip="dot"></div></div>
+  </div>
+  <footer>The dialog is about what you lose - a round, why and what it costs - and its rows already sit under each championship's name. The discipline adds nothing to that decision, so <b>A</b> drops it. <b>B</b> keeps the colour as a small dot, if you'd rather still be able to scan by discipline.</footer>
+</article>
+
+<!-- 27 -->
+<article class="item keep" id="s27">
+  <header><span class="n">27</span><h3>Circuit page - championships racing here</h3><code>screens/track-detail/TrackChampionships.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span><div class="stage wide" data-track="now"></div></div>
+    <div class="side new"><span class="lbl">A - no bar (Recommended)</span><div class="stage wide" data-track="plain"></div></div>
+    <div class="side alt"><span class="lbl">B - the group's heading becomes a tinted band</span><div class="stage wide" data-track="band"></div></div>
+  </div>
+  <footer>The list is already grouped under a heading per discipline with its dot, and every card carries a <code>LadderChip</code> in the discipline's colour - the bar is a third copy. <b>A</b> just drops it. <b>B</b> also gives each group heading a pale band, if the page feels too plain without the bars.</footer>
+</article>
+
+<!-- 28 -->
+<article class="item keep" id="s28">
+  <header><span class="n">28</span><h3>Year review - a season's editions</h3><code>screens/year-review/EditionCard.tsx</code><span class="status keep">Stays as it is</span></header>
+  <div class="pairs">
+    <div class="side now"><span class="lbl">Now</span><div class="stage wide" data-edition="now"></div></div>
+    <div class="side new"><span class="lbl">A - no bar (Recommended)</span><div class="stage wide" data-edition="plain"></div></div>
+    <div class="side alt"><span class="lbl">B - a faint wash in the discipline</span><div class="stage wide" data-edition="wash"></div></div>
+  </div>
+  <footer>The card's <code>LadderChip</code> already names the discipline in its colour. <b>A</b> drops the bar, as #22's History table would have. <b>B</b> washes the card lightly, like the lighter options shown for #2 - more colour on a page that is mostly figures.</footer>
+</article>
+
+</div>
+
+<script>
+const root = document.documentElement;
+const setTheme = (theme) => {
+  root.dataset.theme = theme;
+  document.querySelectorAll('[data-theme-opt]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeOpt === theme)));
+};
+document.querySelectorAll('[data-theme-opt]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeOpt)));
+const EVENTS = [
+  { d: 'sc', chip: 'GT3', name: 'British GT Championship', meta: 'Snetterton 300 · 120 min · Grid 24', prize: '€12,000', round: 3 },
+  { d: 'ss', chip: 'F4', name: 'F4 British Championship', meta: 'Brands Hatch Indy · 3 races · Grid 18', prize: '€4,500', round: 7 },
+];
+const tint = (d, amt) => `color-mix(in srgb, var(--${d}) ${amt}, var(--card))`;
+const evCard = (e, v) => {
+  const map = (style) => `<span class="mapwell" style="${style}"><svg><use href="#track"/></svg></span>`;
+  let wellStyle = '';
+  if (v === 'well') wellStyle = `background: var(--${e.d}); color: var(--${e.d}-fg);`;
+  if (v === 'line') wellStyle = `color: var(--${e.d}-fg);`;
+  if (v === 'wash') wellStyle = `background: ${tint(e.d, '60%')}; color: var(--${e.d}-fg);`;
+  if (v === 'fade') wellStyle = `background: transparent; color: var(--${e.d}-fg);`;
+  const roundText = v === 'tile' ? '' : `<span class="muted num" style="font-size:10.5px; font-family:ui-monospace,monospace;">Round ${e.round}</span>`;
+  const chips = `<div class="row" style="gap:6px;">${roundText}<span class="chip c-${e.d}">${e.chip}</span><span class="chip c-bronze">Tier 3</span></div>`;
+  const text = `<div class="col" style="flex:1; gap:4px;">${chips}<span class="b" style="font-size:13.5px;">${e.name}</span><span class="xs muted trunc">${e.meta}</span></div>`;
+  const tile = v === 'tile' ? `<span class="evtile" style="background: var(--${e.d}); color: var(--${e.d}-fg);"><span style="display:grid; place-items:center; gap:2px;"><small>RND</small><b>${e.round}</b></span></span>` : '';
+  const footer = `<div class="row" style="border-top:1px solid var(--border); padding-top:8px; gap:6px;"><span class="b num">${e.prize}</span><span class="xs muted">to the winner</span><span class="end row xs b" style="color:var(--primary); gap:4px;">Enter <svg class="i sm"><use href="#i-arrow"/></svg></span></div>`;
+  if (v === 'panel') {
+    return `<div class="card row" style="align-items:stretch; overflow:hidden; gap:0;">
+      <div class="ev" style="flex:1; min-width:0;"><div class="row" style="align-items:flex-start;">${text}</div>${footer}</div>
+      <div style="width:84px; flex:none; display:grid; place-items:center; background: var(--${e.d}); color: var(--${e.d}-fg);"><svg style="width:64px; height:40px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linejoin:round;"><use href="#track"/></svg></div>
+    </div>`;
+  }
+  let cls = 'card ev';
+  let style = '';
+  if (v === 'now') { cls += ' stripe-l'; style = `--s: var(--${e.d}-fg); padding-left:16px;`; }
+  if (v === 'wash') { cls += ' washed'; style = `--w: var(--${e.d}); --wf: var(--${e.d}-fg); --amt: var(--wash-lighter);`; }
+  if (v === 'fade') style = `background: linear-gradient(to left, ${tint(e.d, '85%')} 0, var(--card) 48%); border-color: color-mix(in srgb, var(--${e.d}-fg) 14%, var(--border));`;
+  return `<div class="${cls}" style="${style}"><div class="row" style="align-items:flex-start; gap:12px;">${tile}${text}${map(wellStyle)}</div>${footer}</div>`;
+};
+document.querySelectorAll('[data-ev]').forEach((stage) => {
+  stage.classList.add('col');
+  stage.style.gap = '8px';
+  stage.innerHTML = EVENTS.map((e) => evCard(e, stage.dataset.ev)).join('');
+});
+
+const LANES = [
+  { d: 'sc', label: 'Sportscar', count: 41, cards: [['GT World Challenge', 10], ['Porsche Carrera Cup', 8]] },
+  { d: 'to', label: 'Touring', count: 23, cards: [['British Touring Car', 10], ['TCR Europe', 7, true]] },
+];
+const rung = (d, [name, rounds, locked], v) => {
+  const lock = locked ? '<span class="lockic"><svg class="i sm"><use href="#i-lock"/></svg></span>' : '';
+  const meta = `<div class="row" style="gap:4px; margin-top:6px;"><span class="chip c-base">Base game</span></div><div class="xs muted" style="margin-top:6px;">${rounds} rounds</div>`;
+  let style = 'background: var(--card);';
+  if (!locked) {
+    if (v === 'now') style = `background: var(--background); border-left: 3px solid var(--${d}-fg);`;
+    if (v === 'cards') style = `background: ${tint(d, 'var(--wash-light)')}; border-color: color-mix(in srgb, var(--${d}-fg) 16%, var(--border));`;
+    if (v === 'outline') style = `background: var(--card); border-color: color-mix(in srgb, var(--${d}-fg) 45%, var(--border));`;
+  } else if (v === 'now') style = 'border-left: 3px solid var(--border);';
+  const cls = `rung${locked ? ' locked' : ''}`;
+  if (v === 'head') {
+    const band = locked ? 'background: var(--muted);' : `background: ${tint(d, '70%')}; border-bottom: 1px solid color-mix(in srgb, var(--${d}-fg) 15%, transparent);`;
+    return `<div class="${cls}" style="background: var(--card);">${lock}<div class="band b" style="font-size:12.5px; padding:6px 9px; ${band}">${name}</div><div class="body" style="padding-top:2px;">${meta}</div></div>`;
+  }
+  return `<div class="${cls}" style="${style}">${lock}<div class="body"><div class="b" style="font-size:12.5px; padding-right:${locked ? 22 : 0}px;">${name}</div>${meta}</div></div>`;
+};
+const ladder = (v) => `<div class="lad">${LANES.map((lane, at) => {
+  const cellStyle = v === 'lane' ? `background: ${tint(lane.d, 'var(--wash-light)')};` : '';
+  return `<div class="hd c-${lane.d}">${lane.label}<div class="xs" style="font-weight:400; opacity:.75;">${lane.count} championships</div></div>${
+    lane.cards.map((card) => `<div class="cell${at === 0 ? ' first' : ''}" style="${cellStyle}">${rung(lane.d, card, v)}</div>`).join('')}`;
+}).join('')}</div>`;
+document.querySelectorAll('[data-lad]').forEach((stage) => { stage.innerHTML = ladder(stage.dataset.lad); });
+
+const DNAME = { sc: 'Sportscar', ss: 'Single-seater', to: 'Touring', ro: 'Road' };
+const bar = (d) => `<span aria-hidden style="align-self:stretch; width:4px; border-radius:99px; background:var(--${d}-fg); flex:none;"></span>`;
+const dDot = (d, size = 8) => `<span class="dot" style="width:${size}px; height:${size}px; background:var(--${d}-fg);"></span>`;
+const ladderChip = (d, tier) => `<span class="chip c-${d}">${DNAME[d]} · Tier ${tier}</span>`;
+const TIER = { 3: 'c-bronze', 4: 'c-silver', 5: 'c-raced', 2: 'c-gold' };
+const MARK = { r: 'var(--success)', m: 'color-mix(in srgb, var(--missed-fg) 60%, transparent)', n: 'var(--primary)', l: 'var(--muted)' };
+
+// 24 - Home, Your championships
+const CHAMPS = [
+  { d: 'sc', name: 'British GT Championship', tier: 3, cls: 'GT3', team: 'Team Parker Racing', marks: 'rrmrnllll', next: 'Next: round 5 · Sat 14 Jun', pos: 'P4', field: '/ 24', pts: '62 pts' },
+  { d: 'ss', name: 'F4 British Championship', tier: 5, cls: '', team: '', marks: 'rrrnlllll', next: 'Next: round 4 · Sun 15 Jun', pos: 'P2', field: '/ 18', pts: '88 pts' },
+];
+const champRow = (c, v) => {
+  const tierChip = v === 'chip' ? ladderChip(c.d, c.tier) : `<span class="chip ${TIER[c.tier]}">Tier ${c.tier}</span>`;
+  const team = c.team ? `<span class="chip c-contract">${c.team}</span>` : '';
+  const cls = c.cls ? `<span class="xs muted trunc">${c.cls}</span>` : '';
+  const named = v === 'named' ? `<span class="row xs" style="gap:5px;">${dDot(c.d)}<span style="color:var(--${c.d}-fg); font-weight:600;">${DNAME[c.d]}</span></span>` : '';
+  const lead = v === 'dot' ? dDot(c.d) : '';
+  const segs = `<span class="row" style="gap:2px;">${[...c.marks].map((m) => `<span style="flex:1; height:6px; border-radius:99px; background:${MARK[m]};"></span>`).join('')}</span>`;
+  return `<div style="display:flex; align-items:center; gap:12px; padding:8px; border-radius:8px;">
+    ${v === 'now' ? bar(c.d) : ''}
+    <div class="col" style="flex:1; gap:6px;">
+      ${named}
+      <span class="row" style="gap:8px; min-width:0;">${lead}<span class="b trunc" style="font-size:13.5px;">${c.name}</span>${tierChip}${team}${cls}</span>
+      ${segs}
+      <span class="xs muted">${c.next}</span>
+    </div>
+    <div class="col" style="gap:0; align-items:flex-end;"><span class="num"><b style="font-size:17px;">${c.pos}</b><span class="xs muted"> ${c.field}</span></span><span class="xs muted num">${c.pts}</span></div>
+  </div>`;
+};
+document.querySelectorAll('[data-champs]').forEach((s) => { s.innerHTML = CHAMPS.map((c) => champRow(c, s.dataset.champs)).join(''); });
+
+// 25 - Home, a new season
+const SEASON = [
+  { d: 'ss', name: 'Italian F4 Championship', pos: 'P2', posCls: 'p2', opens: '2026 opens Tue 6 Jan' },
+  { d: 'ro', name: 'Mk1 MX-5 Championship', pos: 'P5', posCls: 'pts', opens: '2026 opens Mon 12 Jan' },
+  { d: 'sc', name: 'GT4 European Series', pos: 'P6', posCls: 'pts', opens: '2026 opens Mon 26 Jan' },
+];
+const seasonRow = (r, v) => {
+  const chip = `<span class="chip c-${r.d}">${DNAME[r.d]}</span>`;
+  return `<div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-top:1px solid var(--border);">
+    ${v === 'now' ? bar(r.d) : ''}
+    <div class="col" style="flex:1; gap:2px;">
+      <span class="row" style="gap:8px;"><span class="b trunc" style="font-size:13.5px;">${r.name}</span>${v === 'beside' ? chip : ''}</span>
+      <span class="row xs muted" style="gap:6px;">Last year <span class="pos ${r.posCls}">${r.pos}</span> ${r.opens}</span>
+    </div>
+    ${v === 'beside' ? '' : chip}
+    <span class="row" style="gap:3px; color:var(--primary); font-size:13px; font-weight:500;">Enter 2026<svg class="i"><use href="#i-chev"/></svg></span>
+  </div>`;
+};
+document.querySelectorAll('[data-season]').forEach((s) => { s.innerHTML = SEASON.map((r) => seasonRow(r, s.dataset.season)).join('').replace('border-top:1px solid var(--border);', ''); });
+
+// 26 - Skip dialog
+const SKIPS = [
+  { series: 'British GT Championship', rows: [
+    { d: 'sc', title: 'R5 · Snetterton', day: 'Sat 14 Jun', fine: 'Fine $4,000', reason: ['Non-start', 'c-missed'] },
+    { d: 'sc', title: 'R6 · Brands Hatch GP', day: 'Sat 28 Jun', fine: 'Fine $4,000', reason: ['Non-start', 'c-missed'] },
+  ] },
+  { series: 'F4 British Championship', rows: [
+    { d: 'ss', title: 'R4 · Thruxton', day: 'Sun 15 Jun', fine: '', reason: ['Clash', 'c-warn'] },
+  ] },
+];
+const skipList = (v) => `<div class="card" style="border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:10px;">${SKIPS.map((g) => `
+  <div class="col" style="gap:2px;"><span class="caps">${g.series}</span>
+    <div>${g.rows.map((r, at) => `<div style="display:flex; align-items:center; gap:12px; padding:8px 0; ${at ? 'border-top:1px solid var(--border);' : ''}">
+      ${v === 'now' ? `<span aria-hidden style="align-self:stretch; width:4px; background:var(--${r.d}-fg); flex:none;"></span>` : ''}
+      ${v === 'dot' ? dDot(r.d) : ''}
+      <div class="col" style="flex:1; gap:0;"><span style="font-size:13px; font-weight:500;">${r.title}</span><span class="xs muted">${r.day}</span></div>
+      ${r.fine ? `<span class="chip c-fine">${r.fine}</span>` : ''}<span class="chip ${r.reason[1]}">${r.reason[0]}</span>
+    </div>`).join('')}</div>
+  </div>`).join('')}</div>`;
+document.querySelectorAll('[data-skip]').forEach((s) => { s.innerHTML = skipList(s.dataset.skip); });
+
+// 27 - Circuit page
+const TRACKS = [
+  { d: 'sc', count: 2, cards: [
+    { name: 'British GT Championship', round: 'Round 5 · Snetterton 300', ladders: [['sc', 3]], yours: true },
+    { name: 'GT4 European Series', round: 'Round 2 · Snetterton 300', ladders: [['sc', 4]], yours: false },
+  ] },
+  { d: 'to', count: 1, cards: [
+    { name: 'British Touring Car Championship', round: 'Round 7 · Snetterton 300', ladders: [['to', 2]], yours: false },
+  ] },
+];
+const trackList = (v) => TRACKS.map((g) => {
+  const head = v === 'band'
+    ? `<div class="row caps" style="gap:8px; padding:6px 10px; border-radius:8px; background: color-mix(in srgb, var(--${g.d}) 70%, transparent); color: var(--${g.d}-fg);">${dDot(g.d)}${DNAME[g.d]}<span style="font-weight:400;">${g.count}</span></div>`
+    : `<div class="row caps" style="gap:8px; padding:4px 0;">${dDot(g.d)}${DNAME[g.d]}<span style="font-weight:400;">${g.count}</span></div>`;
+  const cards = g.cards.map((c) => `<div class="card" style="display:flex; align-items:center; gap:12px; padding:10px 10px 10px 12px; border-radius:8px;">
+    ${v === 'now' ? bar(g.d) : ''}
+    <div class="col" style="flex:1; gap:2px;"><span class="b trunc" style="font-size:13px;">${c.name}</span><span class="xs muted trunc">${c.round}</span>
+      <span class="row" style="gap:4px; margin-top:4px;">${c.ladders.map(([d, t]) => ladderChip(d, t)).join('')}${c.yours ? '<span class="chip c-plain">Your career</span>' : ''}</span></div>
+    <svg class="i muted"><use href="#i-chev"/></svg>
+  </div>`).join('');
+  return `<div class="col" style="gap:8px;">${head}${cards}</div>`;
+}).join('<div style="height:8px"></div>');
+document.querySelectorAll('[data-track]').forEach((s) => { s.classList.add('col'); s.innerHTML = trackList(s.dataset.track); });
+
+// 28 - Year review
+const EDITIONS = [
+  { d: 'sc', name: 'British GT Championship', ed: '2026', tier: 3, state: ['Finished', 'c-raced'], pos: 'P3', posCls: 'p3', pts: '118 pts · 1 win', path: [9, 7, 6, 5, 4, 4, 3, 3] },
+  { d: 'ss', name: 'F4 British Championship', ed: '2026', tier: 5, state: ['Champion', 'c-gold'], pos: 'P1', posCls: 'p1', pts: '204 pts · 6 wins', path: [4, 2, 1, 1, 1, 1, 1, 1] },
+];
+const spark = (pts) => {
+  const w = 160; const h = 26; const step = w / (pts.length - 1);
+  const ys = pts.map((p) => 2 + ((p - 1) / 9) * (h - 4));
+  return `<svg width="${w}" height="${h}" style="display:block; overflow:visible;"><polyline fill="none" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round" points="${ys.map((y, i) => `${i * step},${y}`).join(' ')}"/></svg>`;
+};
+const editionCard = (e, v) => {
+  const bg = v === 'wash' ? `background: color-mix(in srgb, var(--${e.d}) var(--wash-light), var(--card)); border-color: color-mix(in srgb, var(--${e.d}-fg) 16%, var(--border));` : '';
+  return `<div class="card" style="display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; min-height:104px; ${bg}">
+    ${v === 'now' ? bar(e.d) : ''}
+    <div class="col" style="flex:1; gap:6px;"><span class="b" style="font-size:13.5px;">${e.name}</span>
+      <span class="row" style="gap:6px; flex-wrap:wrap;"><span class="chip c-plain">${e.ed}</span>${ladderChip(e.d, e.tier)}<span class="chip ${e.state[1]}">${e.state[0]}</span></span>
+      ${spark(e.path)}</div>
+    <div class="col" style="gap:4px; align-items:flex-end;"><span class="pos ${e.posCls}" style="min-width:36px; height:26px; font-size:14px;">${e.pos}</span><span class="xs muted num">${e.pts}</span></div>
+  </div>`;
+};
+document.querySelectorAll('[data-edition]').forEach((s) => { s.classList.add('col'); s.style.gap = '10px'; s.innerHTML = EDITIONS.map((e) => editionCard(e, s.dataset.edition)).join(''); });
+
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+</script>
+</body>
+</html>

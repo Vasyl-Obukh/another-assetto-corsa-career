@@ -1,12 +1,13 @@
 import { ArrowRightIcon, LockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { FADED_WELL } from './constants.ts';
 import type { CalendarEntry } from '../../../../shared/types';
 import { HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useFormat } from '@/i18n';
 import {
-  CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_DOT, EVENT_ACCENT, INVITATION_ACCENT,
+  CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_WELL, EVENT_ACCENT, INVITATION_ACCENT,
 } from '@/lib/accents';
 import { editionName } from '@/lib/edition-names';
 import { raceLength } from '@/lib/session-labels';
@@ -56,7 +57,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
       type="button"
       onClick={onOpen}
       className={cn(
-        'relative flex w-full flex-col gap-2 overflow-hidden rounded-lg border bg-card py-2.5 pr-3 pl-4 text-left',
+        'relative flex w-full flex-col gap-2 rounded-lg border bg-card px-3 py-2.5 text-left',
         'hover-outline',
         // A ring rather than a fill for an event you are in, so it stays legible.
         event.enrolled ? 'border-primary/60 ring-1 ring-primary/60' : '',
@@ -66,15 +67,6 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
         event.eligible ? '' : 'border-dashed bg-transparent',
       )}
     >
-      <span
-        aria-hidden
-        className={cn(
-          'absolute inset-y-0 left-0 w-1',
-          DISCIPLINE_DOT[event.ladder.discipline],
-          event.eligible ? '' : 'opacity-40',
-        )}
-      />
-
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -121,7 +113,12 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
           </p>
         </div>
 
-        <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+        <div
+          className={cn(
+            'relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-md',
+            (event.eligible ? DISCIPLINE_WELL : FADED_WELL)[event.ladder.discipline],
+          )}
+        >
           <LayoutMap track={event.track} alt={event.roundName} className="p-1" />
         </div>
       </div>

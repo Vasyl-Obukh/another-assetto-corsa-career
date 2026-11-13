@@ -1,3 +1,5 @@
+import type { Discipline } from '../../../../shared/types';
+
 /**
  * The badge width of each session row in the event's skeleton - three, the
  * shortest event a championship runs.
@@ -64,3 +66,14 @@ export const NEW_SEASON_LIST = 'max-h-[15.8rem]';
  * the three gaps between them.
  */
 export const ENTERED_LIST = 'max-h-[18.6rem]';
+
+/**
+ * A discipline's name in its chip's deep tone, where it is written out rather
+ * than chipped - a historic tile's, which carries no discipline chip.
+ */
+export const DISCIPLINE_TEXT = {
+  'single-seater': 'text-discipline-single-seater-foreground',
+  sportscar: 'text-discipline-sportscar-foreground',
+  touring: 'text-discipline-touring-foreground',
+  road: 'text-discipline-road-foreground',
+} as const satisfies Record<Discipline, string>;

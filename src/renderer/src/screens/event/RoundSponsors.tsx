@@ -64,13 +64,8 @@ export const RoundSponsors = ({ career, view }: RoundSponsorsProps) => {
           const mark = on === true ? 'kept' : on === false ? 'short' : null;
 
           return (
-            <div
-              key={deal.id}
-              className={cn(
-                'flex flex-col gap-2 border-t px-3 py-2.5',
-                deal.slot === 'main' ? 'shadow-[inset_3px_0_0_var(--sponsor-solid)]' : 'shadow-[inset_3px_0_0_var(--partner-solid)]',
-              )}
-            >
+            // The mark's ring says the slot.
+            <div key={deal.id} className="flex flex-col gap-2 border-t px-3 py-2.5">
               <div className="flex items-center gap-2">
                 <SponsorMark sponsor={deal.sponsor} slot={deal.slot} small />
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">{deal.sponsor.name}</span>

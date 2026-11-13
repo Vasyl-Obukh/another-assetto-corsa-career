@@ -2,6 +2,7 @@ import { MailIcon, MoreVerticalIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
+import { SPONSOR_HEAD } from './constants.ts';
 import { DealNotes } from './DealNotes.tsx';
 import type { Career, SponsorDeal } from '../../../../shared/types';
 import { dealPaid, dealScale, goalStanding } from '../../../../shared/utils/sponsors';
@@ -13,7 +14,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import { useFormat } from '@/i18n';
-import { SPONSOR_SOLID } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
@@ -43,19 +43,20 @@ export const SponsorCard = ({ career, deal, onEnd }: SponsorCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <article className={cn('flex flex-col overflow-hidden rounded-xl border border-t-4 bg-card shadow-sm', SPONSOR_SOLID[deal.slot])}>
-      <div className="flex items-center gap-3 px-4 pt-3.5 pb-2.5">
+    <article className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+      <div className={cn('mb-3 flex items-center gap-3 px-4 py-3', SPONSOR_HEAD[deal.slot])}>
         <SponsorMark sponsor={deal.sponsor} slot={deal.slot} />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="flex items-center gap-1.5 font-semibold">
             <span className="truncate">{deal.sponsor.name}</span>
             <NationFlag code={deal.sponsor.nation} />
           </span>
-          <span className="truncate text-xs text-muted-foreground">
+          <span className={cn('truncate text-xs', deal.slot === 'main' ? 'text-sponsor-foreground' : 'text-partner-foreground')}>
             {t('sponsors.card.who', { slot: t(`sponsors.slot.${deal.slot}`), trade: t(`sponsors.trade.${deal.sponsor.trade}`) })}
           </span>
         </div>
-        <CoversBadge covers={deal.covers} />
+        {/* Outlined in its own colour, since a single-seater's cyan meets a partner's band. */}
+        <CoversBadge covers={deal.covers} className="border-current/25" />
       </div>
       <div className="flex flex-col gap-3 px-4 pb-3.5">
         <SponsorPerks terms={deal} scale={dealScale(deal, career.level)} />

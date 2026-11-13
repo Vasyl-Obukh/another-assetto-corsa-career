@@ -2,7 +2,6 @@ import { LockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { RUNG_EDGE } from './constants.ts';
 import { FormatStrip } from './FormatStrip.tsx';
 import { NeedsChips } from './NeedsChips.tsx';
 import { OriginBadge } from './OriginBadge.tsx';
@@ -40,9 +39,10 @@ export const RungCard = ({ rung, locked }: RungCardProps) => {
       to={path.championship({ id: series.id })}
       aria-description={locked}
       className={cn(
-        'hover-outline relative flex flex-col gap-2 rounded-lg border border-l-[3px] bg-background p-3 transition-colors',
-        'focus-visible:border-y-primary focus-visible:border-r-primary focus-visible:outline-none',
-        locked === undefined ? RUNG_EDGE[entry.ladder.discipline] : 'border-l-border bg-muted/60 [&>*:not(.lock)]:opacity-55 [&>*:not(.lock)]:grayscale',
+        // Plain on purpose: the row the card sits in carries its discipline.
+        'hover-outline relative flex flex-col gap-2 rounded-lg border p-3 transition-colors',
+        'focus-visible:border-primary focus-visible:outline-none',
+        locked === undefined ? 'bg-card' : 'bg-muted [&>*:not(.lock)]:opacity-55 [&>*:not(.lock)]:grayscale',
       )}
     >
       {locked === undefined ? null : (

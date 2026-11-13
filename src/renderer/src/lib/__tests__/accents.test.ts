@@ -2,7 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 
 import { Discipline } from '../../../../shared/types';
 import {
-  classAccent, DISCIPLINE_DOT, disciplineDot, PODIUM_ACCENT, POINTS_ACCENT, RACE_CLASS_ACCENT, resultAccent,
+  classAccent, DISCIPLINE_DOT, DISCIPLINE_WELL, disciplineDot, disciplineWell, PODIUM_ACCENT, POINTS_ACCENT,
+  RACE_CLASS_ACCENT, resultAccent,
 } from '../accents.ts';
 
 describe('renderer/lib/accents', () => {
@@ -29,6 +30,17 @@ describe('renderer/lib/accents', () => {
     it('stays muted for a class the championship no longer has', () => {
       expect(disciplineDot(null)).toBe('bg-muted');
       expect(disciplineDot(undefined)).toBe('bg-muted');
+    });
+  });
+
+  describe('disciplineWell', () => {
+    it('tints a track map\'s well in the class\'s discipline', () => {
+      expect(disciplineWell({ discipline: Discipline.SPORTSCAR, tier: 2 })).toBe(DISCIPLINE_WELL[Discipline.SPORTSCAR]);
+    });
+
+    it('stays muted for a class the championship no longer has', () => {
+      expect(disciplineWell(null)).toBe('bg-muted');
+      expect(disciplineWell(undefined)).toBe('bg-muted');
     });
   });
 

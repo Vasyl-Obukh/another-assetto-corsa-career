@@ -5,9 +5,7 @@ import { Shimmer } from '@/components';
  * and prize row, at the card's own size.
  */
 export const EventCardSkeleton = () => (
-  <div className="relative flex w-full flex-col gap-2 overflow-hidden rounded-lg border bg-card py-2.5 pr-3 pl-4">
-    <Shimmer className="absolute inset-y-0 left-0 w-1 rounded-none" />
-
+  <div className="flex w-full flex-col gap-2 rounded-lg border bg-card px-3 py-2.5">
     <div className="flex items-start gap-3">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-1.5">

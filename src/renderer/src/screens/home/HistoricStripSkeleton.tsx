@@ -19,8 +19,8 @@ export const HistoricStripSkeleton = () => {
       </header>
       <div className="grid gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
         {slots(HISTORIC_SHOWN).map((at) => (
-          <div key={at} className="flex flex-col gap-1.5 rounded-lg border bg-card py-2.5 pr-3 pl-4">
-            <Shimmer className="h-3 w-16" />
+          <div key={at} className="flex flex-col gap-1.5 rounded-lg border bg-card px-3 py-2.5">
+            <Shimmer className="h-3 w-28" />
             <Shimmer className="my-0.5 h-4 w-32" />
             <Shimmer className="h-3 w-20" />
             <Shimmer className="mt-0.5 h-4 w-12" />

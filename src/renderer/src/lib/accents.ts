@@ -43,15 +43,6 @@ export const MODE_ACCENT = {
 } as const satisfies Record<AppMode, string>;
 
 /**
- * The stripe along the top of a start screen tile, in its mode's solid shade.
- */
-export const MODE_STRIPE = {
-  career: 'border-t-mode-career-solid',
-  championship: 'border-t-mode-championship-solid',
-  quick: 'border-t-mode-quick-solid',
-} as const satisfies Record<AppMode, string>;
-
-/**
  * The colour each kind of session is chipped in.
  *
  * A record over the type rather than a lookup by string, so adding a session
@@ -180,13 +171,33 @@ export const TIER_ACCENT: readonly string[] = [
 ];
 
 /**
- * The colour of a stripe or dot standing for a class's discipline: its own, or
+ * The colour of a dot or a bar standing for a class's discipline: its own, or
  * muted for a class the championship no longer has.
  * @param ladder The class's discipline and rung, or null
  * @returns Its background class
  */
 export const disciplineDot = (ladder: LadderPosition | null | undefined): string => (
   ladder ? DISCIPLINE_DOT[ladder.discipline] : 'bg-muted'
+);
+
+/**
+ * The well a round's track map sits in, in its discipline's pale tone.
+ */
+export const DISCIPLINE_WELL = {
+  'single-seater': 'bg-discipline-single-seater',
+  sportscar: 'bg-discipline-sportscar',
+  touring: 'bg-discipline-touring',
+  road: 'bg-discipline-road',
+} as const satisfies Record<Discipline, string>;
+
+/**
+ * The well a class's track map sits in: its discipline's, or muted for a class
+ * the championship no longer has.
+ * @param ladder The class's discipline and rung, or null
+ * @returns Its background class
+ */
+export const disciplineWell = (ladder: LadderPosition | null | undefined): string => (
+  ladder ? DISCIPLINE_WELL[ladder.discipline] : 'bg-muted'
 );
 
 /**
@@ -272,14 +283,6 @@ export const SPONSOR_ACCENT = {
  * The tag a renewal's mail wears, a sponsor's and a team's alike.
  */
 export const RENEWAL_ACCENT = 'border-transparent bg-renewal text-renewal-foreground';
-
-/**
- * A slot's deep tone, for a card's top edge and a dot.
- */
-export const SPONSOR_SOLID = {
-  main: 'border-t-sponsor-solid',
-  partner: 'border-t-partner-solid',
-} as const satisfies Record<SponsorSlot, string>;
 
 /**
  * A sponsor's pink as a dot, for the inbox's folder of sponsors' mail.

@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon, BriefcaseIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PathParam } from 'react-router';
@@ -32,7 +32,7 @@ import { standaloneEntry, standaloneStanding } from '../../../../shared/utils/st
 import { rainAllowed } from '../../../../shared/utils/wet-weather';
 import { useSlot } from '@/app';
 import {
-  ErrorCard, ResultCell, ScreenBody, ScreenHeader, SkipRoundDialog,
+  Callout, ErrorCard, ResultCell, ScreenBody, ScreenHeader, SkipRoundDialog,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -345,9 +345,9 @@ export const ChampionshipDetail = ({ manage = false, standalone = false }: Champ
 
             <TabsContent value="rounds" className="flex flex-col gap-3">
               {contract ? (
-                <p className="rounded-md border-l-3 border-contract-foreground bg-contract/30 px-3 py-2 text-sm text-muted-foreground">
+                <Callout tone="contract" icon={BriefcaseIcon}>
                   {t(CONTRACT_NOTE[contract.pay])}
-                </p>
+                </Callout>
               ) : null}
               <RoundTable
                 listing={listing}

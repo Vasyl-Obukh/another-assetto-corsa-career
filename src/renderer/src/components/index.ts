@@ -7,6 +7,8 @@ export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
 export { BackToTop } from './BackToTop.tsx';
 export { BudgetBadge, TEAM_BUDGET_LABEL } from './budget-badge/index.ts';
+export { Callout } from './callout/index.ts';
+export type { CalloutTone } from './callout/index.ts';
 export {
   ActiveFilters, BrowserGrid, BrowserLayout, CARD_COVER, CARD_LINK, FigureLine, FilterRail, PosterCaption,
   PosterSkeleton, RacedIn, RailList, RailOption, RailRange, RailSearch, RailSection, RailSkeleton, RailSwitch,

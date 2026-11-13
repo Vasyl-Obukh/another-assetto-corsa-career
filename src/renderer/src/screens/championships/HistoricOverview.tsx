@@ -43,11 +43,11 @@ export const HistoricOverview = ({ event, availability }: HistoricOverviewProps)
   return (
     <div className="flex flex-col gap-4">
       {description ? (
-        <div className="flex flex-col gap-1 border-l-2 pl-3">
+        <div className="flex flex-col gap-1">
           <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {t('historic.about.title')}
           </span>
-          <p className="text-sm">{description}</p>
+          <p className="max-w-prose text-sm">{description}</p>
         </div>
       ) : null}
 

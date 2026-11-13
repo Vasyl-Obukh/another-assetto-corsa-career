@@ -95,7 +95,7 @@ export const Finances = () => {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MoneyTile
-          lead
+          lead="balance"
           label={t('finances.tile.balance')}
           value={formatMoney(career.money)}
           hint={t('finances.tile.on', { date: formatDay(career.date) })}

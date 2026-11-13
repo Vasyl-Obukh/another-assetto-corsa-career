@@ -5,7 +5,7 @@ import { ResultCell } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useCarNames } from '@/hooks';
 import { useFormat } from '@/i18n';
-import { disciplineDot, EVENT_ACCENT } from '@/lib/accents';
+import { disciplineWell, EVENT_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import type { HistoricRow } from '@/lib/season-review';
 import { cn } from '@/lib/utils.ts';
@@ -41,8 +41,8 @@ export const HistoricEventRow = ({ row, season, current }: HistoricEventRowProps
           to={path.event({ series: row.series, round: row.round }, season === current ? undefined : { season })}
           className="flex items-center gap-3 hover:underline"
         >
-          <span aria-hidden className={cn('h-8 w-1 shrink-0 rounded-full', disciplineDot(row.ladder))} />
-          <span className="relative block aspect-[16/10] w-12 shrink-0 overflow-hidden rounded bg-muted">
+          {/* The well wears the discipline the event is raced in. */}
+          <span className={cn('relative block aspect-[16/10] w-12 shrink-0 overflow-hidden rounded', disciplineWell(row.ladder))}>
             <LayoutMap track={row.track} alt={row.name} className="p-0.5" />
           </span>
           <span className="font-medium">{row.name}</span>
