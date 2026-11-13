@@ -73,7 +73,14 @@ export const EditorDialog = ({
 
   return (
     <Dialog open onOpenChange={(next) => { if (!next) onCancel(); }}>
-      <DialogContent className={cn('flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl', className)}>
+      {/* Pinned from the top rather than centred, so a body that grows or
+          shrinks moves only the bottom edge and nothing above it shifts. */}
+      <DialogContent
+        className={cn(
+          'top-[max(1rem,6dvh)] flex max-h-[calc(100dvh_-_max(1rem,6dvh)_-_1rem)] translate-y-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl',
+          className,
+        )}
+      >
         <form
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
