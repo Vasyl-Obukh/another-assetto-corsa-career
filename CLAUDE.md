@@ -789,8 +789,8 @@ long enough to look at, and it is reverted before committing.
   information. It was adopted anyway, because it is AC's answer and therefore
   cannot inherit a bug in ours. Practice and qualifying carry none, so those
   stay inferred, and `SessionSummary.order` says which of the two produced any
-  given table. It is still corroboration rather than the route to real
-  positions, which wait on Phase 12.
+  given table. It is corroboration rather than new information, and nothing
+  more is planned: the CSP recorder that would have gone further was dropped.
 - **A qualifying segment the player is eliminated from is simulated, not
   driven.** Knockout qualifying runs each segment with only the cars still in
   it, so a segment the player is out of has no field they are in - and Assetto
@@ -827,7 +827,8 @@ long enough to look at, and it is reverted before committing.
 - **Retirements genuinely cannot be observed.** AC writes no retirement flag,
   so a car that stops is indistinguishable from one never classified, and
   being lapped is the only under-distance case that can be produced on purpose.
-  Positions with retirements and penalties still wait on Phase 12.
+  Retirements and penalties stay out of reach, since the CSP recorder that
+  would have read them was dropped.
 - **Closing the app while a race is running loses that launch.** The wait for
   `race_out.json` is a watcher in main, and it dies with the process, so a result
   written meanwhile is never adopted: the launch simply reads as still pending

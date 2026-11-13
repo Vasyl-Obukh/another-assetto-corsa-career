@@ -44,7 +44,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | Question                        | Decision                                                                                                                                                                                                                                  |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Career depth                    | **Championship manager with a full economy.** Series, calendars, standings, progression, money, contracts, ratings, sponsors and an inbox. The Zero to Apex "living world" of ~1300 simulated drivers with their own careers comes later. |
-| Results fidelity                | **Inferred now, CSP Lua recorder later.** Positions derived from laps-then-time until an in-game recorder replaces them.                                                                                                                  |
+| Results fidelity                | **AC's own results, no in-game recorder.** Race order is AC's `raceResult`, everything else is inferred from laps. A CSP Lua recorder was planned as Phase 12 and dropped - see *Later*.                                                  |
 | Series authoring                | **In-app editor.**                                                                                                                                                                                                                        |
 | In-game UI                      | **Desktop only for now.**                                                                                                                                                                                                                 |
 | Race weekends                   | **User-defined session lists, one session per launch.** Each session is started from the app and run on its own. Reversed from bundling - see *Weekends and sessions*.                                                            |
@@ -630,9 +630,9 @@ Real AC limitations, not scope cuts:
 
 - **No finishing positions, DNFs or penalties in results.** `race_out.json` has
   laps and lap times only. A car that retires on lap 1 is indistinguishable from
-  one never classified. Inferred until Phase 12.
-- **No damage data**, so repair costs cannot be a money sink until the CSP
-  recorder lands.
+  one never classified. Race order is AC's `raceResult`; the rest is inferred.
+- **No damage data**, so repair costs cannot be a money sink without a CSP
+  recorder, which is not planned.
 - **No safety car, full-course yellow, formation or rolling starts.**
 - **No structured penalty system** - a `cuts` count per lap and nothing else.
 - **No car class taxonomy.** AMS2 knows what a GT3 is; AC has an optional `class`
@@ -889,8 +889,8 @@ Spikes first - they decide what weekend formats are expressible.
       that was skipped: AC has no retirement flag, and a car that stops is
       indistinguishable from one never classified. Being lapped is the only
       under-distance case that can be created on purpose.
-      So `raceResult` is corroboration rather than new information, and real
-      positions still wait on Phase 12. It is worth adopting anyway - see below
+      So `raceResult` is corroboration rather than new information, and
+      retirements stay unobservable. It is worth adopting anyway - see below
 - [x] **Weekend model** - a weekend is a `RaceDefinition` whose `sessions`
       cover the whole event, rather than a second format beside it. Sessions
       gained `day` and `timeOfDay`: the day is what Phase 5's calendar will
@@ -3374,14 +3374,14 @@ happened, and filed.
 - [x] **Reserve driver, never stand-in**, wherever the app says who raced a round
       the player missed
 
-## Phase 12 - Real results (CSP Lua recorder)
+## Phase 12 - Real results (CSP Lua recorder) - dropped
 
-- [ ] CSP Lua app in `assettocorsa/apps/lua` recording live session state
-- [ ] Authoritative results to a handoff JSON the desktop app reads
-- [ ] Finishing positions, retirements, incidents, pit stops, compounds, damage
-- [ ] Reconcile with `race_out.json`; prefer the recorder when both exist
-- [ ] Keep inference working for users without the plugin
-- [ ] Unlocks repair costs as an economic sink
+Dropped on 2026-11-14 and moved to *Later*. AC's own `raceResult` already gives
+race order, so a recorder would add only retirements, incidents, pit stops,
+compounds and damage - and damage is wanted only for repair costs, which risk
+feeling like admin. Against that it costs a second runtime inside the game,
+another folder written into the AC install, and two results paths kept forever.
+The number is kept so Phases 13 and 14 keep theirs.
 
 ## Phase 13 - Customization and settings
 
@@ -3442,6 +3442,11 @@ happened, and filed.
 - **Living world**: ~1300 simulated drivers with their own careers, retirements,
   rookie intakes, seat disputes and rival arcs.
 - **In-game career panel** as a CSP Lua app, solving alt-tab and VR.
+- **CSP Lua results recorder** - retirements, incidents, pit stops, compounds
+  and damage, read live in the game and handed to the app beside
+  `race_out.json`, with inference kept for users without it. Once dropped as
+  Phase 12; worth reviving with the career panel, since both need a Lua app
+  installed and talking to the desktop app, and that is most of the work.
 - **Series generator**: "build me a championship from these cars".
 - **Community series repository.**
 - Endurance features: driver swaps, mid-race saves - both blocked by AC.
@@ -3482,7 +3487,7 @@ happened, and filed.
 - ~~**Event scheduling.**~~ Settled: historic events are placed by the
   career, on weekdays and on a day it races nothing else where it can; a clash
   that remains is a clash like any other.
-- **Car condition and maintenance.** Needs damage data from Phase 12, and risks
+- **Car condition and maintenance.** Needs damage data from a CSP recorder, and risks
   feeling like admin.
 - **Reputation as a separate axis from rating** - covering reliability and
   behaviour rather than pace?
