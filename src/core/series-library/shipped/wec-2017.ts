@@ -57,7 +57,7 @@ export const WEC_2017: Championship = {
         seat('lmp-hig-1', 'higashi-fuji', 'Kenta Murayoshi', 'JPN'),
         seat('lmp-hig-2', 'higashi-fuji', 'Adrian Wolstenholme', 'JPN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2016, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2016 },
     },
     {
       id: 'lmp2',
@@ -75,7 +75,7 @@ export const WEC_2017: Championship = {
         seat('p2-war-1', 'warta', 'Bartosz Kędzierski', 'POL'),
         seat('p2-war-2', 'warta', 'Mikołaj Szczepanik', 'POL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2017, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2017 },
       entryFee: 10800,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
@@ -98,7 +98,7 @@ export const WEC_2017: Championship = {
         seat('gte-fr-3', 'gte-fr', 'Clément Voisard', 'FRA'),
         seat('gte-ita-b-1', 'gte-italia', 'Valerio Castelnuovo', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017 },
       grid: { strength: -1 },
       entryFee: 10800,
       prizes: {

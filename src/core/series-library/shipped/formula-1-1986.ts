@@ -93,7 +93,7 @@ export const FORMULA_1_1986: Championship = {
         seat('minardi-nannini', 'minardi', 'Alessandro Nannini', 'ITA'),
         seat('osella-ghinzani', 'osella', 'Piercarlo Ghinzani', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1986, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1986 },
     },
   ],
   eventFormats: [EVENT],

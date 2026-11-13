@@ -1503,9 +1503,9 @@ catalogue.
       it must be installed, because a one-make series' cars *are* the series and a
       missing one changes what you are racing; a spec is satisfied by whichever of
       its grid you own, because demanding all fourteen GT3 cars would make every
-      spec-based series unavailable to everybody. A spec carries a `minModels`
-      floor so that owning one car of it reads as unavailable rather than as a
-      grid of clones
+      spec-based series unavailable to everybody. A spec once carried a
+      `minModels` floor so that owning one car of it read as unavailable; it was
+      dropped on 2026-11-13, and one installed model of a spec now races it
 - [x] **Per-round eligibility override.** The championship declares eligibility
       once; a round may override it, because some fields change car with the track.
       IndyCar is the case that forces it - road, short-oval and superspeedway kits

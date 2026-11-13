@@ -150,7 +150,7 @@ export const FORMULA_1_2022_RSS: Championship = {
         seat('williams-albon', 'williams', 'Alexander Albon', 'THA'),
         seat('williams-latifi', 'williams', 'Nicholas Latifi', 'CAN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2022_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2022_RSS },
     },
   ],
   eventFormats: [EVENT, SPRINT],

@@ -73,7 +73,7 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
         seat('tas-1', 'tasman-cup', 'Josh Burrowes', 'AUS'),
         seat('tas-2', 'tasman-cup', 'Riley Fairbairn', 'AUS'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_992_LFM, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_992_LFM },
     },
   ],
   eventFormats: [

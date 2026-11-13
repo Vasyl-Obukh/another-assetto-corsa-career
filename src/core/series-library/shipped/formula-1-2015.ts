@@ -99,7 +99,7 @@ export const FORMULA_1_2015: Championship = {
         seat('manor-stevens', 'manor', 'Will Stevens', 'GBR'),
         seat('manor-merhi', 'manor', 'Roberto Merhi', 'ESP'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2015, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2015 },
     },
   ],
   eventFormats: [EVENT],

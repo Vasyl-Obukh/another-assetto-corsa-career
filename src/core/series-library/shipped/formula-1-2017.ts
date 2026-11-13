@@ -100,7 +100,7 @@ export const FORMULA_1_2017: Championship = {
         seat('toro-rosso-kvyat', 'toro-rosso', 'Daniil Kvyat', 'RUS'),
         seat('sauber-ericsson', 'sauber', 'Marcus Ericsson', 'SWE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2017, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2017 },
     },
   ],
   eventFormats: [EVENT],

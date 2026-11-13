@@ -160,7 +160,7 @@ export const FORMULA_1_2025_RSS: Championship = {
         seat('alpine-gasly', 'alpine', 'Pierre Gasly', 'FRA'),
         seat('alpine-colapinto', 'alpine', 'Franco Colapinto', 'ARG'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2025_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2025_RSS },
     },
   ],
   eventFormats: [EVENT, SPRINT],

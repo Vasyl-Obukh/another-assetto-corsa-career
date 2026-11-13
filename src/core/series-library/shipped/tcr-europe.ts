@@ -72,7 +72,7 @@ export const TCR_EUROPE: Championship = {
         seat('hel-1', 'helvetic', 'Kevin Ammeter', 'CHE'),
         seat('hel-2', 'helvetic', 'Dario Zanoli', 'CHE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.TCR_2024, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.TCR_2024 },
     },
   ],
   eventFormats: [

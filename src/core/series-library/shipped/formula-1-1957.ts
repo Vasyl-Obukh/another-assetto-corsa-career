@@ -74,7 +74,7 @@ export const FORMULA_1_1957: Championship = {
         seat('coo-salvadori', 'cooper', 'Roy Salvadori', 'GBR'),
         seat('bon-bonnier', 'bonnier', 'Jo Bonnier', 'SWE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1957, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1957 },
     },
   ],
   eventFormats: [EVENT],

@@ -325,6 +325,17 @@ describe('core/series', () => {
       expect(availability.entries[0]).toMatchObject({ enough: true });
     });
 
+    // A spec used to need three of its models before it read as raceable.
+    it('races a spec on one installed model of a wider grid', () => {
+      const wide = resolveCatalogue({
+        ...USER_CATALOGUE_LAYER,
+        cars: { test_car: ['user-spec'], absent_one: ['user-spec'], absent_two: ['user-spec'] },
+      });
+      const entry = seriesAvailability(USER_SPEC_SERIES, makeContent(), wide).entries[0];
+
+      expect(entry).toMatchObject({ eligible: ['test_car'], missing: [], enough: true });
+    });
+
     // Owning none of an empty grid is not owning enough of it.
     it('never reads a class as raceable on a spec with no cars', () => {
       const empty = resolveCatalogue({ ...USER_CATALOGUE_LAYER, cars: {} });

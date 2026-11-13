@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add session and day - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 1000px; margin: 14px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 3px 0; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; }
+.newring { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 3px; border-radius: 8px; }
+
+/* ---------- Format page, as SessionsSplit lays it out ---------- */
+.stage { max-width: 1000px; margin: 16px auto 40px; padding: 0 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.split { display: grid; grid-template-columns: 19rem minmax(0, 1fr); }
+.left { border-right: 1px solid var(--border); background: color-mix(in oklch, var(--muted) 30%, transparent); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.right { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.ph { border: 1px dashed var(--border); border-radius: 10px; padding: 14px; color: var(--muted-foreground); font-size: 12.5px; text-align: center; }
+@media (max-width: 720px) { .split { grid-template-columns: 1fr; } .left { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* RuleHeading */
+.rule { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); min-height: 24px; }
+.rule::after { content: ''; flex: 1; border-top: 1px solid var(--border); }
+.rule .dots { order: 2; width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 6px; color: var(--muted-foreground); }
+
+/* SessionBlock */
+.sb { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 6px; align-items: start; width: 100%; border: 0; border-radius: 8px; padding: 8px; text-align: left; }
+.sb .grip { opacity: .5; margin-top: 2px; }
+.sb b { font-size: 13.5px; }
+.sb .len { font-size: 12px; white-space: nowrap; }
+.sb.practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.sb.qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.sb.race { background: var(--s-race); color: var(--s-race-fg); }
+.sb.on { box-shadow: 0 0 0 2px var(--primary); }
+
+/* An empty day's own drop target, as today. */
+.emptyday { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--muted-foreground); background: transparent; text-align: center; }
+
+/* Today's two buttons: outline and ghost, both dashed. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; font-size: 13.5px; font-weight: 500; }
+.btn.outline { border: 1px dashed var(--border); background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .05); }
+.btn.outline:hover { background: var(--accent); }
+.btn.ghost { border: 1px dashed var(--border); background: transparent; }
+.btn.ghost:hover { background: var(--accent); }
+
+/* AddButton - the editor's shared "one more of this list". */
+.add { display: flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px dashed var(--border); border-radius: 8px; background: transparent; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); transition: color .15s, border-color .15s; }
+.add:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Proposed: the next day's heading, waiting. */
+.nextday { display: flex; align-items: center; gap: 6px; margin-top: 6px; width: 100%; min-height: 24px; padding: 0; border: 0; background: transparent; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: color-mix(in oklch, var(--muted-foreground) 75%, transparent); transition: color .15s; }
+.nextday::after { content: ''; flex: 1; border-top: 1px dashed var(--border); transition: border-color .15s; }
+.nextday svg.i { width: 13px; height: 13px; }
+.nextday:hover { color: var(--primary); }
+.nextday:hover::after { border-top-color: var(--primary); }
+.most { margin-top: 6px; font-size: 12px; color: var(--muted-foreground); min-height: 24px; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage"><div class="card"><div class="split">
+  <div class="left" id="list"></div>
+  <div class="right">
+    <div class="ph">The selected session's settings - as today</div>
+  </div>
+</div></div></div>
+
+<script>
+const I = {
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  grip: '<svg class="i grip" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>',
+  dots: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
+};
+
+const state = { version: 'new', days: 'one', theme: 'light' };
+
+const PICKS = [
+  { key: 'version', label: 'Version', opts: [['today', 'Today'], ['new', 'Proposed']] },
+  { key: 'days', label: 'Format', opts: [['one', 'One day'], ['two', 'Two days'], ['empty', 'Day 2 just added'], ['three', 'Three days (most)'], ['flat', 'Race tab (no days)']] },
+  { key: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+const DAYS = {
+  one: [[['practice', 'Practice', '30 min'], ['qualify', 'Qualifying', '15 min'], ['race', 'Race', '12 laps']]],
+  two: [[['practice', 'Practice', '45 min'], ['qualify', 'Qualifying', '15 min']], [['race', 'Race 1', '20 laps'], ['race', 'Race 2', '20 laps']]],
+  empty: [[['practice', 'Practice', '30 min'], ['qualify', 'Qualifying', '15 min'], ['race', 'Race', '12 laps']], []],
+  three: [[['practice', 'Practice 1', '60 min'], ['practice', 'Practice 2', '60 min']], [['practice', 'Practice 3', '60 min'], ['qualify', 'Qualifying', '18 min']], [['race', 'Race', '57 laps']]],
+  flat: [[['practice', 'Practice', '20 min'], ['qualify', 'Qualifying', '10 min'], ['race', 'Race', '10 laps']]],
+};
+
+const block = ([type, name, len], on) => `<button type="button" class="sb ${type} ${on ? 'on' : ''}">${I.grip}<b>${name}</b><span class="len num">${len}</span></button>`;
+
+const list = () => {
+  const days = DAYS[state.days];
+  const flat = state.days === 'flat';
+  const proposed = state.version === 'new';
+  let first = true;
+
+  const body = days.map((sessions, d) => `
+    ${flat ? '' : `<div class="rule">Day ${d + 1}${days.length > 1 ? `<button type="button" class="dots" aria-label="More for day ${d + 1}">${I.dots}</button>` : ''}</div>`}
+    ${sessions.length === 0
+      ? '<button type="button" class="emptyday">Nothing runs on this day yet. Drag a session here or click to add one.</button>'
+      : sessions.map((s) => { const html = block(s, first); first = false; return html; }).join('')}
+  `).join('');
+
+  const addSession = proposed
+    ? `<button type="button" class="add newring">${I.plus}Add a session</button>`
+    : `<button type="button" class="btn outline">${I.plus}Add a session</button>`;
+
+  let addDay = '';
+  if (!flat) {
+    if (days.length >= 3) addDay = '<span class="most">Three days - the most an event spans</span>';
+    else if (proposed) addDay = `<button type="button" class="nextday newring">${I.plus}Day ${days.length + 1}</button>`;
+    else addDay = `<button type="button" class="btn ghost">${I.plus}Add day ${days.length + 1}</button>`;
+  }
+
+  return body + addSession + addDay;
+};
+
+const WHY = {
+  today: '<b>Today.</b> Add a session is an outline button and Add day N a ghost one, both dashed and the same size, one on top of the other - two buttons that differ only in their fill.',
+  new: `<b>Proposed.</b> Hover each to see its highlight.
+    <ul>
+      <li><b>Add a session</b> becomes the editor's shared <code>AddButton</code>, the dashed tile Add a team, a class, a round and a format already use.</li>
+      <li><b>Add day N</b> is no longer a button. It is the next day's heading waiting to be filled: the same small capitals as <i>Day 1</i>, a dashed rule instead of a solid one, fainter, with a + in front. Hovering turns the label and its rule primary. Its accessible name stays <i>Add day 2</i>.</li>
+      <li>At three days the existing note takes its place, so nothing below the list moves.</li>
+      <li>On the Race tab a race has no days, so only Add a session shows, as today.</li>
+      <li>An empty day keeps its own dashed drop target. It holds a sentence rather than a + and it sits inside the day, so it is not read as a third add control.</li>
+    </ul>`,
+};
+
+const render = () => {
+  document.documentElement.dataset.theme = state.theme;
+  document.getElementById('picker').innerHTML = PICKS.map((p) => `<div class="grp"><strong>${p.label}</strong>${p.opts.map(([v, l]) => `<button type="button" class="opt" data-k="${p.key}" data-v="${v}" aria-pressed="${state[p.key] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = WHY[state.version];
+  document.getElementById('list').innerHTML = list();
+};
+
+document.getElementById('picker').addEventListener('click', (event) => {
+  const b = event.target.closest('.opt');
+  if (!b) return;
+  state[b.dataset.k] = b.dataset.v;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

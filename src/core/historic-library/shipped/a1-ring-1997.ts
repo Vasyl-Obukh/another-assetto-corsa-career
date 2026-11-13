@@ -49,7 +49,6 @@ export const A1_RING_1997: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.GT1_1990S,
-        minModels: 1,
       },
     },
   ],

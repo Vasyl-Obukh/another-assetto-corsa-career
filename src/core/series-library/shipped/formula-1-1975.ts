@@ -84,7 +84,7 @@ export const FORMULA_1_1975: Championship = {
         seat('hill-brise', 'hill', 'Tony Brise', 'GBR'),
         seat('march-lombardi', 'march', 'Lella Lombardi', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1975, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1975 },
     },
   ],
   eventFormats: [EVENT],

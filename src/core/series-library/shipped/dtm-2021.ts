@@ -66,7 +66,7 @@ export const DTM_2021: Championship = {
         seat('nor-1', 'nordsee', 'Hauke Johannsen', 'DEU'),
         seat('nor-2', 'nordsee', 'Ole Feddersen', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.DTM_2021_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.DTM_2021_RSS },
     },
   ],
   eventFormats: [

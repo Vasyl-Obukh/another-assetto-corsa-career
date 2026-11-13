@@ -95,7 +95,7 @@ export const ChampionshipLibrary = () => {
 
             {/* Nothing is written until the editor's first Save, so this is a
                 navigation rather than a command. */}
-            <Button variant="outline" onClick={() => navigate(path.championshipNew())}>
+            <Button onClick={() => navigate(path.championshipNew())}>
               <PlusIcon />
               {t('common.new')}
             </Button>

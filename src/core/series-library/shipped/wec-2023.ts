@@ -64,7 +64,7 @@ export const WEC_2023: Championship = {
         seat('hy-bre-1', 'bretagne', 'Erwan Le Goff', 'FRA'),
         seat('hy-bre-2', 'bretagne', 'Yann Kerbrat', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMH_YZD, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMH_YZD },
     },
     {
       id: 'lmp2',
@@ -82,7 +82,7 @@ export const WEC_2023: Championship = {
         seat('p2-war-1', 'warta', 'Bartosz Kędzierski', 'POL'),
         seat('p2-war-2', 'warta', 'Mikołaj Szczepanik', 'POL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
       grid: { strength: -3 },
       entryFee: 12000,
       prizes: {
@@ -108,7 +108,7 @@ export const WEC_2023: Championship = {
         seat('gt-dun-1', 'dune', 'Sultan Al Kaabi', 'ARE'),
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'ARE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017 },
       grid: { strength: -6 },
       entryFee: 9000,
       prizes: {

@@ -3,7 +3,7 @@ import {
 } from '@jest/globals';
 import path from 'node:path';
 
-import { DEFAULT_MIN_MODELS, NATION_CODES } from '../../../shared/constants/index.ts';
+import { NATION_CODES } from '../../../shared/constants/index.ts';
 import { isAppError } from '../../../shared/errors/index.ts';
 import { ContentSource } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
@@ -39,10 +39,7 @@ const isBaseOnly = (series: Championship): boolean => {
   return series.entries.every(({ eligibility }) => {
     if (eligibility.kind === 'cars') return eligibility.cars.every(isBase);
 
-    const cars = specCars(eligibility.spec, SHIPPED_CATALOGUE);
-    const floor = Math.min(eligibility.minModels ?? DEFAULT_MIN_MODELS, cars.length);
-
-    return cars.filter(isBase).length >= floor;
+    return specCars(eligibility.spec, SHIPPED_CATALOGUE).some(isBase);
   });
 };
 

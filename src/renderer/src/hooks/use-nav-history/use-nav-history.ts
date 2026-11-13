@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useNavigationType } from 'react-router';
 
 import { MOUSE_BACK, MOUSE_FORWARD } from './constants.ts';
 import {
-  currentIndex, hasNextVisit, previousVisit, recordVisit,
+  currentIndex, hasNextVisit, previousVisit, recordVisit, visitIndex,
 } from '@/lib/nav-history';
 
 /**
@@ -15,16 +15,19 @@ export const useNavHistory = (): void => {
   const location = useLocation();
   const action = useNavigationType();
   const navigate = useNavigate();
+  // The keys read it rather than re-subscribing on every page.
+  const key = useRef(location.key);
 
   useEffect(() => {
+    key.current = location.key;
     recordVisit(currentIndex(), location.key, location.pathname, action);
   }, [location.key, location.pathname, action]);
 
   useEffect(() => {
     // Only within the app's own pages: past the first one there is nothing of
-    // ours to go back to.
+    // ours to go back to. Placed by the router's location, as Back is.
     const step = (by: -1 | 1): boolean => {
-      const index = currentIndex();
+      const index = visitIndex(key.current);
       const possible = by < 0 ? previousVisit(index) !== null : hasNextVisit(index);
       if (possible) void navigate(by);
 

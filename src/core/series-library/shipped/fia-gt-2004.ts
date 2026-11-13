@@ -72,7 +72,7 @@ export const FIA_GT_2004: Championship = {
         seat('gt-lus-1', 'lusitania', 'Nuno Carvalhal', 'PRT'),
         seat('gt-lus-2', 'lusitania', 'Rui Bettencourt', 'PRT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S },
     },
     {
       id: 'n-gt',
@@ -92,7 +92,7 @@ export const FIA_GT_2004: Championship = {
         seat('ngt-tha-1', 'thames-valley', 'Nigel Throckmorton', 'GBR'),
         seat('ngt-tha-2', 'thames-valley', 'Stuart Mallinder', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.N_GT, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.N_GT },
       grid: { strength: -3 },
       entryFee: 7200,
       prizes: {

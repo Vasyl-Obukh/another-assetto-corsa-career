@@ -56,7 +56,6 @@ export const BRANDS_HATCH_1998: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.SUPER_TOURING_1990S,
-        minModels: 3,
       },
     },
   ],

@@ -105,14 +105,6 @@ export type Eligibility =
      * The grid the class entry races on - shipped, or one the user made.
      */
     spec: SpecId;
-    /**
-     * How many distinct models must be installed for the entry to be raceable.
-     *
-     * One installed model is a grid of clones rather than the championship, so
-     * a floor is what stops a spec reading available on a library holding
-     * almost none of it. Defaults to DEFAULT_MIN_MODELS.
-     */
-    minModels?: number;
   }
   | {
     /**
@@ -900,7 +892,7 @@ export interface EntryAvailability {
   missing: readonly MissingCar[];
   /**
    * Whether enough is installed to race it - nothing missing from a car list,
-   * or at least minModels distinct models of a spec.
+   * or any model of a spec.
    */
   enough: boolean;
 }
@@ -972,14 +964,10 @@ export interface RoundRaceLength {
  * One spec a championship races, as the content source toggles see it.
  *
  * A spec is satisfied by whichever of its grid the user owns, so none of its
- * cars is needed on its own - what matters is whether enough of them come from
- * sources still switched on.
+ * cars is needed on its own - what matters is whether any of them comes from a
+ * source still switched on.
  */
 export interface RequirementPool {
-  /**
-   * How many distinct models the spec needs to be a grid.
-   */
-  minModels: number;
   /**
    * Where each car of the spec comes from, one per car.
    */
@@ -1005,7 +993,7 @@ export interface SeriesRequirements {
   sources: readonly ContentSource[];
   /**
    * DLC packs it cannot be offered without - a car a car list names, or a spec
-   * that falls below its floor without the pack's cars. Never a track: a round
+   * with nothing of its grid left without the pack's cars. Never a track: a round
    * whose circuit is missing is one round the player cannot race, and the rest
    * of the calendar still runs - see `rounds`.
    */

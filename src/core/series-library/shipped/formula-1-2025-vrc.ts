@@ -160,7 +160,7 @@ export const FORMULA_1_2025_VRC: Championship = {
         seat('alpine-gasly', 'alpine', 'Pierre Gasly', 'FRA'),
         seat('alpine-colapinto', 'alpine', 'Franco Colapinto', 'ARG'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2025_VRC, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2025_VRC },
     },
   ],
   eventFormats: [EVENT, SPRINT],

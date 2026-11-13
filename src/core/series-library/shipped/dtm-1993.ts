@@ -58,7 +58,7 @@ export const DTM_1993: Championship = {
         seat('lim-1', 'limburg', 'Jos Vranken', 'NLD'),
         seat('lim-2', 'limburg', 'Frans Coolsaet', 'BEL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.DTM_1993, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.DTM_1993 },
     },
   ],
   eventFormats: [

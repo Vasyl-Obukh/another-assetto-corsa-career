@@ -1,7 +1,7 @@
-import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
+import { AddButton } from './AddButton.tsx';
 import { ClassDialog } from './ClassDialog.tsx';
 import { ClassListItem } from './ClassListItem.tsx';
 import { ClassPanel } from './ClassPanel.tsx';
@@ -14,7 +14,6 @@ import {
 import type { Championship, SeriesAvailability } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
 import { useClasses } from '@/app';
-import { Button } from '@/components/ui/button.tsx';
 import { useRoomBelow, useRowDrag } from '@/hooks';
 import type { RowEditState } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
@@ -128,17 +127,12 @@ export const EntriesCard = ({
 
         {/* A tile as tall as the cards while they run across, a line under
             them once they stack. */}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="h-auto shrink-0 rounded-lg border-dashed px-5 text-muted-foreground lg:h-8 lg:shrink lg:justify-start lg:rounded-md lg:px-3 lg:text-foreground"
+        <AddButton
+          label={t('editor.entries.add')}
+          className="shrink-0 px-5 lg:h-8 lg:shrink lg:justify-start lg:px-3"
           disabled={locked || !rows.editable}
           onClick={() => rows.add(ROW_SCOPE.ENTRIES)}
-        >
-          <PlusIcon />
-          {t('editor.entries.add')}
-        </Button>
+        />
       </div>
 
       {entry === undefined ? null : (
@@ -183,6 +177,7 @@ export const EntriesCard = ({
           entry={editing}
           adding={false}
           locked={locked}
+          nameOf={nameOf}
           onConfirm={(next) => {
             onChange(withEntry(series, editing.id, next));
             rows.close();
@@ -197,6 +192,7 @@ export const EntriesCard = ({
           entry={nextEntry(series)}
           adding
           locked={locked}
+          nameOf={nameOf}
           onConfirm={(next) => {
             onChange({ ...series, entries: [...series.entries, next] });
             // The class just added is the one worth looking at.

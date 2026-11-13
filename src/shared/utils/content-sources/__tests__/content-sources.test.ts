@@ -37,19 +37,14 @@ const requiring = (overrides: Partial<SeriesRequirements> = {}): SeriesRequireme
 });
 
 /**
- * A spec grid of two base cars, one Ready to Race car and one RSS car.
- * @param minModels How many of them the spec needs
- * @returns The pool
+ * A spec grid of one Ready to Race car and one RSS car.
  */
-const mixedPool = (minModels: number): RequirementPool => ({
-  minModels,
+const modPool: RequirementPool = {
   cars: [
-    { pack: null, maker: null, distributor: null },
-    { pack: null, maker: null, distributor: null },
     { pack: DLCPack.READY_TO_RACE, maker: null, distributor: null },
     { pack: null, maker: ModMaker.RSS, distributor: null },
   ],
-});
+};
 
 /**
  * A listing carrying nothing but what the switches read.
@@ -68,21 +63,17 @@ const listing = (origin: SeriesOrigin, requires: SeriesRequirements): SeriesList
 
 describe('shared/utils/content-sources', () => {
   describe('poolHolds', () => {
-    it('holds while enough of the grid is still switched on', () => {
-      expect(poolHolds(mixedPool(3), hiding({ packs: [DLCPack.READY_TO_RACE] }))).toBe(true);
+    it('holds while any of the grid is still switched on', () => {
+      expect(poolHolds(modPool, hiding({ packs: [DLCPack.READY_TO_RACE] }))).toBe(true);
     });
 
-    it('falls short once the switched-off sources take it below its floor', () => {
-      expect(poolHolds(mixedPool(3), hiding({ packs: [DLCPack.READY_TO_RACE], makers: [ModMaker.RSS] }))).toBe(false);
+    it('falls short once the switched-off sources take every car of it', () => {
+      expect(poolHolds(modPool, hiding({ packs: [DLCPack.READY_TO_RACE], makers: [ModMaker.RSS] }))).toBe(false);
     });
 
     it('counts a redistributor\'s cars as switched off with it', () => {
       const pool: RequirementPool = {
-        minModels: 2,
-        cars: [
-          { pack: null, maker: null, distributor: null },
-          { pack: null, maker: null, distributor: ModDistributor.LFM },
-        ],
+        cars: [{ pack: null, maker: null, distributor: ModDistributor.LFM }],
       };
 
       expect(poolHolds(pool, NONE)).toBe(true);
@@ -90,7 +81,9 @@ describe('shared/utils/content-sources', () => {
     });
 
     it('never counts base content as switched off', () => {
-      expect(poolHolds(mixedPool(2), {
+      const pool: RequirementPool = { cars: [...modPool.cars, { pack: null, maker: null, distributor: null }] };
+
+      expect(poolHolds(pool, {
         packs: Object.values(DLCPack), makers: Object.values(ModMaker), distributors: Object.values(ModDistributor),
       }))
         .toBe(true);
@@ -119,8 +112,8 @@ describe('shared/utils/content-sources', () => {
       expect(isOffered(requiring({ distributors: lfm }), hiding({ distributors: lfm }))).toBe(false);
     });
 
-    it('offers a spec championship while its grid keeps its floor', () => {
-      const requires = requiring({ pools: [mixedPool(3)] });
+    it('offers a spec championship while any of its grid is switched on', () => {
+      const requires = requiring({ pools: [modPool] });
 
       expect(isOffered(requires, hiding({ packs: [DLCPack.READY_TO_RACE] }))).toBe(true);
     });
@@ -128,7 +121,7 @@ describe('shared/utils/content-sources', () => {
     // Two sources neither of which the spec needs alone can still leave it short
     // together, which is why the pools travel beside the needed lists.
     it('withholds a spec championship once several switches together empty its grid', () => {
-      const requires = requiring({ pools: [mixedPool(3)] });
+      const requires = requiring({ pools: [modPool] });
 
       expect(isOffered(requires, hiding({ packs: [DLCPack.READY_TO_RACE], makers: [ModMaker.RSS] }))).toBe(false);
     });

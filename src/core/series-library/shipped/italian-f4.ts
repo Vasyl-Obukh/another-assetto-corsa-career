@@ -71,7 +71,7 @@ export const ITALIAN_F4: Championship = {
         seat('lev-2', 'levante', 'Marc Ferrús', 'ESP'),
         seat('lev-3', 'levante', 'Joel Sanchis', 'ESP'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_4, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_4 },
     },
   ],
   eventFormats: [

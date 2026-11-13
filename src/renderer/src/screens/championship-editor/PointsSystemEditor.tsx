@@ -9,7 +9,9 @@ import { PlaceStrip } from './PlaceStrip.tsx';
 import { RacesPaying } from './RacesPaying.tsx';
 import { RowActions } from './RowActions.tsx';
 import type { PointsTemplate } from './types.ts';
-import { nextPoints, withoutPoints, withPoints } from './utils.ts';
+import {
+  nextPoints, withAddedPoints, withoutPoints, withPoints,
+} from './utils.ts';
 import type { Championship, PointsSystem } from '../../../../shared/types';
 import { ConfirmDialog } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -109,7 +111,7 @@ export const PointsSystemEditor = ({
               icon: <CopyIcon />,
               onSelect: () => {
                 const copy = { ...points, id: nextPoints(series).id, name: t('editor.points.copyName', { name: points.name }) };
-                onChange({ ...series, pointsSystems: [...series.pointsSystems, copy] });
+                onChange(withAddedPoints(series, copy));
                 onPick(copy.id);
               },
             }]}

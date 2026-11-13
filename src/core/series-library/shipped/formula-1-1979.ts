@@ -79,7 +79,7 @@ export const FORMULA_1_1979: Championship = {
         seat('brabham-piquet', 'brabham', 'Nelson Piquet', 'BRA'),
         seat('mclaren-tambay', 'mclaren', 'Patrick Tambay', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1979, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1979 },
     },
   ],
   eventFormats: [EVENT],

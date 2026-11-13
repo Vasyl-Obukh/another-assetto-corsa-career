@@ -64,7 +64,7 @@ export const IMSA_2025: Championship = {
         seat('pr-baj-1', 'baja', 'Rodrigo Villaseñor', 'MEX'),
         seat('pr-baj-2', 'baja', 'Emilio Treviño', 'MEX'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMH_LFM, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMH_LFM },
     },
     {
       id: 'lmp2',
@@ -78,7 +78,7 @@ export const IMSA_2025: Championship = {
         seat('p2-cas-1', 'cascadia', 'Noah Charbonneau', 'CAN'),
         seat('p2-cas-2', 'cascadia', 'Liam Ouellette', 'CAN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
       grid: { strength: -1 },
       entryFee: 10800,
       prizes: {
@@ -100,7 +100,7 @@ export const IMSA_2025: Championship = {
         seat('rou-1', 'route-66', 'Hunter Blankenship', 'USA'),
         seat('rou-2', 'route-66', 'Mason Tedrick', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
       grid: { strength: -2 },
       entryFee: 6500,
       prizes: {
@@ -122,7 +122,7 @@ export const IMSA_2025: Championship = {
         seat('lau-1', 'laurentian', 'Olivier Bergevin', 'CAN'),
         seat('lau-2', 'laurentian', 'Samuel Pouliot', 'CAN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
       grid: { strength: -7 },
       entryFee: 4900,
       prizes: {

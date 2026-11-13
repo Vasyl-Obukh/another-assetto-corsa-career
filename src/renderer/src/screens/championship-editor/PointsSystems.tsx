@@ -1,10 +1,10 @@
-import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
+import { AddButton } from './AddButton.tsx';
 import { PointsSparkline } from './PointsSparkline.tsx';
 import { PointsSystemEditor } from './PointsSystemEditor.tsx';
-import { nextPoints, racesPaying } from './utils.ts';
+import { nextPoints, racesPaying, withAddedPoints } from './utils.ts';
 import type { Championship } from '../../../../shared/types';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
@@ -65,19 +65,16 @@ export const PointsSystems = ({ series, locked, onChange }: PointsSystemsProps) 
             <PointsSparkline values={one.positions} />
           </button>
         ))}
-        <button
-          type="button"
-          className="flex min-w-48 shrink-0 items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 lg:min-w-0"
+        <AddButton
+          label={t('editor.points.add')}
+          className="min-w-48 shrink-0 justify-start px-3 py-2 lg:min-w-0"
           disabled={locked}
           onClick={() => {
             const next = nextPoints(series);
-            onChange({ ...series, pointsSystems: [...systems, next] });
+            onChange(withAddedPoints(series, next));
             setPicked(next.id);
           }}
-        >
-          <PlusIcon className="size-4" />
-          {t('editor.points.add')}
-        </button>
+        />
       </div>
 
       {points === undefined ? null : (

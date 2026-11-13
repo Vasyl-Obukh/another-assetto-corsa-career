@@ -82,7 +82,7 @@ export const FORMULA_1_1962: Championship = {
         seat('udt-gregory', 'udt', 'Masten Gregory', 'USA'),
         seat('walker-trintignant', 'walker', 'Maurice Trintignant', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1962, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1962 },
     },
   ],
   eventFormats: [EVENT],

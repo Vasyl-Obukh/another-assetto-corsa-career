@@ -147,7 +147,7 @@ export const FORMULA_1_2021: Championship = {
         seat('haas-schumacher', 'haas', 'Mick Schumacher', 'DEU'),
         seat('haas-mazepin', 'haas', 'Nikita Mazepin', 'RUS'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2021, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2021 },
     },
   ],
   eventFormats: [EVENT, SPRINT],

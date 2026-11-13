@@ -56,7 +56,6 @@ export const FRENCH_GP_2004: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_2004,
-        minModels: 1,
       },
     },
   ],

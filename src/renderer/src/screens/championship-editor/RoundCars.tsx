@@ -83,6 +83,7 @@ export const RoundCars = ({
                   eligibility={override.eligibility}
                   locked={locked}
                   nameOf={nameOf}
+                  pictureSpec={false}
                   onChange={(next) => onChange(entry.id, next)}
                 />
               </div>

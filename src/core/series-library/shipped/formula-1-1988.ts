@@ -87,7 +87,7 @@ export const FORMULA_1_1988: Championship = {
         seat('dallara-caffi', 'dallara', 'Alex Caffi', 'ITA'),
         seat('ags-streiff', 'ags', 'Philippe Streiff', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1988, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1988 },
     },
   ],
   eventFormats: [EVENT],

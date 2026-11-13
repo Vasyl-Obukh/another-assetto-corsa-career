@@ -79,7 +79,7 @@ export const FORMULA_1_1971: Championship = {
         seat('brabham-hill', 'brabham', 'Graham Hill', 'GBR'),
         seat('surtees-stommelen', 'surtees', 'Rolf Stommelen', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1971, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1971 },
     },
   ],
   eventFormats: [EVENT],

@@ -3,6 +3,7 @@ import type { DragEvent, ReactNode } from 'react';
 import { Fragment, useState } from 'react';
 
 
+import { AddButton } from './AddButton.tsx';
 import { MAX_DAY } from './constants.ts';
 import { RuleHeading } from './RuleHeading.tsx';
 import { SessionBlock } from './SessionBlock.tsx';
@@ -236,17 +237,25 @@ export const SessionList = ({
         );
       })}
 
-      <Button type="button" size="sm" variant="outline" className="border-dashed" disabled={locked} onClick={() => onAdd(days - 1)}>
-        <PlusIcon />
-        {t('editor.sessions.add')}
-      </Button>
-      {flat ? null : days <= MAX_DAY ? (
-        <Button type="button" size="sm" variant="ghost" className="border border-dashed" disabled={locked} onClick={onAddDay}>
-          <PlusIcon />
-          {t('editor.days.add', { number: days + 1 })}
-        </Button>
-      ) : (
-        <span className="text-xs text-muted-foreground">{t('editor.days.most')}</span>
+      <AddButton label={t('editor.sessions.add')} className="h-8 px-3" disabled={locked} onClick={() => onAdd(days - 1)} />
+      {/* The next day's heading, waiting to be filled - a control of the
+          event's shape rather than a second "one more" beside the session's. */}
+      {flat || days > MAX_DAY ? null : (
+        <button
+          type="button"
+          aria-label={t('editor.days.add', { number: days + 1 })}
+          disabled={locked}
+          className={cn(
+            'mt-1 flex min-h-6 w-full items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground/75 uppercase transition-colors',
+            'after:flex-1 after:border-t after:border-dashed after:transition-colors hover:text-primary hover:after:border-primary',
+            'focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+            'disabled:cursor-not-allowed disabled:opacity-60',
+          )}
+          onClick={onAddDay}
+        >
+          <PlusIcon className="size-3.5" aria-hidden />
+          {t('championships.format.day', { number: days + 1 })}
+        </button>
       )}
     </div>
   );

@@ -91,7 +91,7 @@ export const INDYCAR_2012: Championship = {
         seat('tid-1', 'tidewater', 'Garrison Pettus', 'USA'),
         seat('tid-b-1', 'tidewater', 'Oskar Brantberg', 'SWE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_ROAD, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_ROAD },
     },
   ],
   eventFormats: [
@@ -114,7 +114,7 @@ export const INDYCAR_2012: Championship = {
       name: 'Daytona International Speedway',
       track: { id: 'rt_daytona', layout: 'tri-oval' },
       eventFormat: 'oval',
-      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_OVAL, minModels: 1 } }],
+      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_OVAL } }],
       climate: Climate.TEMPERATE,
     },
   ],

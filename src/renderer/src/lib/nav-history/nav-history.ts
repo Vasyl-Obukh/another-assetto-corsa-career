@@ -68,3 +68,20 @@ export const currentIndex = (): number => {
 
   return typeof state?.idx === 'number' ? state.idx : 0;
 };
+
+/**
+ * Where an entry sits in the window's history, for code that renders off it.
+ *
+ * The recorded position wins over `history.state`: a navigation a blocker
+ * stops leaves the browser on the entry it was heading for until the router's
+ * own `history.go` puts it back, and the router renders the blocked state in
+ * between and not again after. An entry not recorded yet - the first render
+ * after a push - has nothing stale to read, so it falls back to the live one.
+ * @param key The router location's key
+ * @returns The position
+ */
+export const visitIndex = (key: string): number => {
+  const recorded = VISITS.findIndex((visit) => visit?.key === key);
+
+  return recorded === -1 ? currentIndex() : recorded;
+};

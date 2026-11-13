@@ -93,7 +93,7 @@ export const INDYCAR_2018: Championship = {
         seat('tid-1', 'tidewater', 'Garrison Pettus', 'USA'),
         seat('tid-b-1', 'tidewater', 'Oskar Brantberg', 'SWE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_ROAD, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_ROAD },
     },
   ],
   eventFormats: [
@@ -132,7 +132,7 @@ export const INDYCAR_2018: Championship = {
       name: 'Daytona International Speedway',
       track: { id: 'rt_daytona', layout: 'tri-oval' },
       eventFormat: 'oval',
-      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_OVAL, minModels: 1 } }],
+      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2018_OVAL } }],
       climate: Climate.TEMPERATE,
     },
     {

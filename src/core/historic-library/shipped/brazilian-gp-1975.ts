@@ -56,7 +56,6 @@ export const BRAZILIAN_GP_1975: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1975,
-        minModels: 1,
       },
     },
   ],

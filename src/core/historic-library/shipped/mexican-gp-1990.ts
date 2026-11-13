@@ -57,7 +57,6 @@ export const MEXICAN_GP_1990: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1990,
-        minModels: 1,
       },
     },
   ],

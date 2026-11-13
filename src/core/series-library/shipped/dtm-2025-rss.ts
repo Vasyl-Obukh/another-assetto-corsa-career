@@ -73,7 +73,7 @@ export const DTM_2025_RSS: Championship = {
         seat('jut-1', 'jutland', 'Anders Kjeldgaard', 'DNK'),
         seat('jut-2', 'jutland', 'Emil Toftegaard', 'DNK'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.DTM_2025_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.DTM_2025_RSS },
     },
   ],
   eventFormats: [

@@ -38,14 +38,9 @@ export const DEFAULT_REF = '/default';
 export const MIN_MONEY = 0;
 
 /**
- * The lowest tier there is. Tier 1 is the top of a ladder.
- */
-export const MIN_TIER = 1;
-
-/**
  * Which rung a class entry is put on when it is first added.
  *
- * Deliberately not MIN_TIER: tier 1 is the top of a discipline, and a new class
+ * Deliberately not tier 1: that is the top of a discipline, and a new class
  * entry claiming the top flight by default is a number nobody chose. Mid-ladder
  * is wrong too, but it is wrong in a way that reads as a placeholder.
  */
@@ -123,16 +118,6 @@ export const MAX_RESTRICTOR = 100;
  * How far one press of a card's ballast buttons moves it, in kilograms.
  */
 export const BALLAST_STEP = 5;
-
-/**
- * How few distinct models a spec may be asked to have installed.
- *
- * One is a grid of clones and the whole reason DEFAULT_MIN_MODELS exists, but
- * it is a coherent thing to ask for - a series raced against a single model is
- * a one-make series written the lazy way - so it is the floor rather than an
- * error.
- */
-export const MIN_MODELS = 1;
 
 /**
  * How well funded a team may be, from the best off down.
@@ -373,7 +358,7 @@ export const PURSE_SCALES: readonly number[] = [0.5, 1, 1.5, 2];
 
 /**
  * The rungs a class's dialog offers as medals, bottom rung first, the order
- * the Championships page lays the ladder out in. Deeper ones are typed.
+ * the Championships page lays the ladder out in.
  */
 export const RUNGS_OFFERED: readonly number[] = [5, 4, 3, 2, 1];
 

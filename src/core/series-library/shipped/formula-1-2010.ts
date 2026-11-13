@@ -104,7 +104,7 @@ export const FORMULA_1_2010: Championship = {
         seat('virgin-grassi', 'virgin', 'Lucas di Grassi', 'BRA'),
         seat('hrt-chandhok', 'hrt', 'Karun Chandhok', 'IND'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2010, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2010 },
     },
   ],
   eventFormats: [EVENT],

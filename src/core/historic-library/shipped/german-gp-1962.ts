@@ -53,7 +53,6 @@ export const GERMAN_GP_1962: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1962,
-        minModels: 1,
       },
     },
   ],

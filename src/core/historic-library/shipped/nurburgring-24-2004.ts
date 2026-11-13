@@ -42,7 +42,6 @@ export const NURBURGRING_24_2004: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.GT1_2000S,
-        minModels: 2,
       },
     },
     {

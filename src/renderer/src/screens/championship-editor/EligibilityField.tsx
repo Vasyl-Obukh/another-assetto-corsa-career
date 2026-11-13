@@ -1,20 +1,15 @@
 import { useState } from 'react';
 
 
-import { CarListField } from './CarListField.tsx';
 import { CarShots } from './CarShots.tsx';
 import { ChoiceChips } from './ChoiceChips.tsx';
-import { MIN_MODELS } from './constants.ts';
-import { OffsetStepper } from './OffsetStepper.tsx';
-import { DEFAULT_MIN_MODELS } from '../../../../shared/constants';
 import type { ClassCatalogue, Eligibility, SpecId } from '../../../../shared/types';
-import { carSpecName, carSpecsOf } from '../../../../shared/utils/car-classes';
+import { carSpecsOf } from '../../../../shared/utils/car-classes';
 import { carsOf } from '../../../../shared/utils/eligibility';
 import { useClasses } from '@/app';
 import { CarPicker, SpecField } from '@/components';
 import { useKindTranslation } from '@/i18n';
-import { cn } from '@/lib/utils.ts';
-import { Field } from '@/screens/race';
+import { Field, moveTo } from '@/screens/race';
 
 /**
  * The two ways a rule can be written, in the order the menu offers them.
@@ -67,15 +62,10 @@ interface EligibilityFieldProps {
    */
   onChange: (next: Eligibility) => void;
   /**
-   * Whether a list of cars is shown as chips, or every car as pictures - a
-   * class panel's way, with the add tile first in a list.
+   * Whether a spec's cars are pictured under it. A list's always are, since
+   * they are what the author edits.
    */
-  showCars?: boolean;
-  /**
-   * Whether a grid asks how many of its models must be installed. A single race
-   * of the player's own asks nothing of the kind: it races whatever is there.
-   */
-  minModels?: boolean;
+  pictureSpec?: boolean;
   /**
    * The cars a grid is pictured by, where that is not every car it names - a
    * championship's class shows only what the install can field.
@@ -89,7 +79,7 @@ interface EligibilityFieldProps {
  * for a class of a race of the player's own.
  */
 export const EligibilityField = ({
-  idPrefix, eligibility, locked, nameOf, onChange, showCars = true, minModels = true, pictured,
+  idPrefix, eligibility, locked, nameOf, onChange, pictureSpec = true, pictured,
 }: EligibilityFieldProps) => {
   const { t } = useKindTranslation();
   const { catalogue } = useClasses();
@@ -100,7 +90,7 @@ export const EligibilityField = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={cn('grid items-end gap-4', minModels ? 'md:grid-cols-[auto_minmax(0,1fr)_9rem]' : 'md:grid-cols-[auto_minmax(0,1fr)]')}>
+      <div className="grid items-end gap-4 md:grid-cols-[auto_minmax(0,1fr)]">
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">{t('editor.eligibility.kind')}</span>
           {/* Neutral on purpose: two ways of writing one rule, not a set any
@@ -123,69 +113,33 @@ export const EligibilityField = ({
         </div>
 
         {eligibility.kind === 'spec' ? (
-          <>
-            <Field id={`${idPrefix}-spec`} label={t('editor.eligibility.specLabel')}>
-              <SpecField
-                id={`${idPrefix}-spec`}
-                value={eligibility.spec}
-                disabled={locked}
-                onChange={(spec) => onChange({ ...eligibility, spec })}
-              />
-            </Field>
-
-            {minModels ? (
-              <Field id={`${idPrefix}-min-models`} label={t('editor.eligibility.minModels')}>
-                {/* Bounded by the spec itself: it cannot ask for more models
-                    than the catalogue puts on the grid. */}
-                <OffsetStepper
-                  id={`${idPrefix}-min-models`}
-                  label={t('editor.eligibility.minModels')}
-                  value={eligibility.minModels ?? DEFAULT_MIN_MODELS}
-                  min={MIN_MODELS}
-                  limit={Math.max(MIN_MODELS, carsOf(eligibility, catalogue).length)}
-                  signed={false}
-                  disabled={locked}
-                  onChange={(next) => onChange({ ...eligibility, minModels: next })}
-                />
-              </Field>
-            ) : null}
-          </>
+          <Field id={`${idPrefix}-spec`} label={t('editor.eligibility.specLabel')}>
+            <SpecField
+              id={`${idPrefix}-spec`}
+              value={eligibility.spec}
+              disabled={locked}
+              onChange={(spec) => onChange({ kind: 'spec', spec })}
+            />
+          </Field>
         ) : null}
       </div>
 
-      {eligibility.kind === 'spec' && minModels ? (
-        <p className="-mt-2 text-xs text-muted-foreground">
-          {t('editor.eligibility.minModelsOf', {
-            count: carsOf(eligibility, catalogue).length,
-            spec: carSpecName(eligibility.spec, catalogue),
-          })}
-          {' '}
-          {t('editor.eligibility.minModelsHint')}
-        </p>
-      ) : null}
-
-      {eligibility.kind === 'cars' && showCars ? (
-        <CarListField
-          cars={eligibility.cars}
-          locked={locked}
-          nameOf={nameOf}
-          onChange={(next) => onChange({ kind: 'cars', cars: next })}
-          onAdd={() => setPicking(true)}
-        />
-      ) : null}
-
-      {/* The cars as pictures, the add tile first in a list the author writes. */}
-      {!showCars && listed.length === 0 && eligibility.kind === 'spec' ? (
+      {eligibility.kind === 'spec' && pictureSpec && listed.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('editor.eligibility.noCars')}</p>
       ) : null}
-      {!showCars && (listed.length > 0 || eligibility.kind === 'cars') ? (
+      {/* The cars as pictures, the add tile first in a list the author writes,
+          dragged into the order the field draws from them. */}
+      {eligibility.kind === 'cars' || (pictureSpec && listed.length > 0) ? (
         <CarShots
           cars={listed}
           nameOf={nameOf}
           locked={locked}
           onAdd={eligibility.kind === 'cars' ? () => setPicking(true) : undefined}
           onRemove={eligibility.kind === 'cars'
-            ? (car) => onChange({ kind: 'cars', cars: listed.filter((one) => one !== car) })
+            ? (car) => onChange({ kind: 'cars', cars: cars.filter((one) => one !== car) })
+            : undefined}
+          onMove={eligibility.kind === 'cars'
+            ? (from, to) => onChange({ kind: 'cars', cars: moveTo([...cars], from, to) })
             : undefined}
         />
       ) : null}

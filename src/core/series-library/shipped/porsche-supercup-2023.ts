@@ -75,7 +75,7 @@ export const PORSCHE_SUPERCUP_2023: Championship = {
         seat('tas-1', 'tasman-cup', 'Josh Burrowes', 'AUS'),
         seat('tas-2', 'tasman-cup', 'Riley Fairbairn', 'AUS'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_992_GUERILLA, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_992_GUERILLA },
     },
   ],
   eventFormats: [

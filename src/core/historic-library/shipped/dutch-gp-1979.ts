@@ -54,7 +54,6 @@ export const DUTCH_GP_1979: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1979,
-        minModels: 1,
       },
     },
   ],

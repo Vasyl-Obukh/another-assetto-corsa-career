@@ -53,7 +53,7 @@ export const ELMS_2025: Championship = {
         seat('p2-tre-1', 'trent-valley', 'Oscar Hazeldine', 'GBR'),
         seat('p2-tre-2', 'trent-valley', 'Ewan Pargeter', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
     },
     {
       id: 'lmp2-pro-am',
@@ -67,7 +67,7 @@ export const ELMS_2025: Championship = {
         seat('p2-all-1', 'allegheny', 'Brett Lindell', 'USA'),
         seat('p2-all-2', 'allegheny', 'Cole Harrigan', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
       grid: { strength: -3 },
       entryFee: 11200,
       prizes: {
@@ -93,7 +93,7 @@ export const ELMS_2025: Championship = {
         seat('gt-dun-1', 'dune', 'Sultan Al Kaabi', 'ARE'),
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'ARE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
       grid: { strength: -2 },
       entryFee: 9000,
       prizes: {

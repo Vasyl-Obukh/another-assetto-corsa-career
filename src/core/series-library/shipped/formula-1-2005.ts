@@ -80,7 +80,7 @@ export const FORMULA_1_2005: Championship = {
         seat('minardi-albers', 'minardi', 'Christijan Albers', 'NLD'),
         seat('minardi-friesacher', 'minardi', 'Patrick Friesacher', 'AUT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2005, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2005 },
     },
   ],
   eventFormats: [EVENT],

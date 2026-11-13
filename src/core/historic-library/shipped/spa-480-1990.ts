@@ -50,7 +50,6 @@ export const SPA_480_1990: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.GROUP_C,
-        minModels: 1,
       },
     },
   ],

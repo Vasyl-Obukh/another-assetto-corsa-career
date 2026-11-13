@@ -82,7 +82,7 @@ export const FORMULA_1_2000: Championship = {
         seat('minardi-gene', 'minardi', 'Marc Gené', 'ESP'),
         seat('minardi-mazzacane', 'minardi', 'Gastón Mazzacane', 'ARG'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2000, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2000 },
     },
   ],
   eventFormats: [EVENT],

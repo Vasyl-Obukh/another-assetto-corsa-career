@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class cars on add - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --destructive: oklch(0.58 0.22 27);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t-platinum: oklch(0.945 0.022 210); --t-platinum-fg: oklch(0.4 0.05 215);
+  --t-gold: oklch(0.9 0.085 88); --t-gold-fg: oklch(0.42 0.1 75);
+  --t-silver: oklch(0.91 0.008 255); --t-silver-fg: oklch(0.42 0.015 260);
+  --t-bronze: oklch(0.89 0.07 52); --t-bronze-fg: oklch(0.41 0.09 48);
+  --t-rookie: oklch(0.8 0.14 142); --t-rookie-fg: oklch(0.27 0.08 145);
+  --scrim: oklch(0 0 0 / 0.5);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --destructive: oklch(0.65 0.2 25);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t-platinum: oklch(0.34 0.025 210); --t-platinum-fg: oklch(0.9 0.03 210);
+  --t-gold: oklch(0.36 0.07 88); --t-gold-fg: oklch(0.89 0.12 92);
+  --t-silver: oklch(0.33 0.006 260); --t-silver-fg: oklch(0.86 0.008 260);
+  --t-bronze: oklch(0.33 0.06 50); --t-bronze-fg: oklch(0.85 0.09 55);
+  --t-rookie: oklch(0.48 0.12 142); --t-rookie-fg: oklch(0.96 0.03 142);
+  --scrim: oklch(0 0 0 / 0.65);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 920px; margin: 14px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 3px 0; }
+.why code { font-size: 12.5px; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; margin-left: 6px; }
+.newring { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 6px; border-radius: 8px; }
+
+/* ---------- Stage: the editor dimmed behind the dialog ---------- */
+.stage { position: relative; max-width: 1180px; margin: 16px auto 32px; padding: 0 16px; }
+.behind { border: 1px solid var(--border); border-radius: 12px; background: var(--background); padding: 16px 20px 360px; }
+.behind h1 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+.behind .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.behind .tabs span { padding: 8px 12px; font-size: 13.5px; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.behind .tabs span.on { color: var(--foreground); font-weight: 600; border-color: var(--primary); }
+.behind .rows { display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
+.behind .blk { background: var(--card); border: 1px solid var(--border); border-radius: 12px; height: 220px; }
+.scrim { position: absolute; inset: 0 16px; border-radius: 12px; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding-top: 40px; }
+
+/* ---------- Dialog, as EditorDialog draws it at sm:max-w-3xl ---------- */
+.dialog { width: min(768px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 48px oklch(0 0 0 / .25); display: flex; flex-direction: column; }
+.d-head { padding: 20px 24px 12px; display: flex; flex-direction: column; gap: 4px; }
+.d-head .cap { font-size: 12px; color: var(--muted-foreground); }
+.d-head .title { font-size: 18px; font-weight: 600; }
+.d-body { border-top: 1px solid var(--border); padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.d-foot { border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.d-foot .note { margin-right: auto; font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lbl { font-size: 13.5px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.input { height: 36px; border: 1px solid var(--border); border-radius: 6px; background: transparent; padding: 0 12px; display: flex; align-items: center; font-size: 13.5px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); font-size: 13.5px; font-weight: 500; white-space: nowrap; }
+.btn.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn:disabled { opacity: .5; }
+.rule { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.rule::after { content: ''; flex: 1; border-top: 1px solid var(--border); }
+
+/* ChoiceChips */
+.choices { display: inline-flex; flex-wrap: wrap; gap: 2px; border: 1px solid var(--border); border-radius: 8px; padding: 2px; width: fit-content; }
+.choices button { border: 0; background: transparent; border-radius: 6px; padding: 4px 10px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); }
+.choices button[aria-checked="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08), 0 0 0 1px var(--border); }
+.choices button[aria-checked="true"].single { background: var(--d-single); color: var(--d-single-fg); box-shadow: none; }
+
+/* RungPicker */
+.rungs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rungs .set { display: flex; gap: 4px; }
+.rung { width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 8px; border: 0; background: transparent; font-size: 12px; color: var(--muted-foreground); }
+.rung[aria-checked="true"] { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--foreground); box-shadow: 0 0 0 2px var(--primary); }
+.medal { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.m5 { background: var(--t-rookie); color: var(--t-rookie-fg); }
+.m4 { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.m3 { background: var(--t-silver); color: var(--t-silver-fg); }
+.m2 { background: var(--t-gold); color: var(--t-gold-fg); }
+.m1 { background: var(--t-platinum); color: var(--t-platinum-fg); }
+.deeper { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-foreground); }
+.deeper .input { width: 64px; height: 32px; justify-content: flex-end; }
+
+/* SpecField */
+.spec { height: 33px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 6px; padding: 0 12px; font-size: 13.5px; }
+.spec .name { flex: 1; min-width: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spec .meta { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+
+/* OffsetStepper */
+.stepper { height: 36px; display: grid; grid-template-columns: 32px 1fr 32px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.stepper span { display: grid; place-items: center; color: var(--muted-foreground); }
+.stepper b { display: grid; place-items: center; font-size: 13.5px; }
+.select { justify-content: space-between; }
+
+/* CarShots */
+.shots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 8px; }
+.shots li { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--card); }
+.shots .pic { aspect-ratio: 16 / 9; background: var(--muted); position: relative; overflow: hidden; }
+.shots .pic i { position: absolute; inset: 0; }
+.shots .cap { padding: 6px 8px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shots .x { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 6px; border: 0; background: var(--muted); display: grid; place-items: center; opacity: .9; }
+.shots .x svg { width: 13px; height: 13px; }
+.shots li.add { border-style: dashed; background: transparent; color: var(--muted-foreground); }
+.shots li.add .cap { visibility: hidden; }
+.shots li.add .lab { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13.5px; font-weight: 500; }
+
+.empty { font-size: 13.5px; color: var(--muted-foreground); margin: 0; }
+
+.g-cars { display: grid; gap: 16px; grid-template-columns: auto minmax(0, 1fr); align-items: end; }
+.g3 { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.g2 { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+@media (max-width: 640px) { .g3, .g2, .rtabs { display: flex; gap: 4px; margin: 8px -4px 0; }
+.rtabs span { padding: 8px 12px; font-size: 13.5px; color: var(--muted-foreground); border-bottom: 2px solid transparent; display: inline-flex; gap: 6px; align-items: center; }
+.rtabs span.on { color: var(--foreground); font-weight: 500; border-color: var(--primary); }
+.rtabs i { font-style: normal; font-size: 12px; background: var(--muted); border-radius: 99px; padding: 0 6px; }
+.rc { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.rc.on { border-color: color-mix(in oklch, var(--primary) 50%, transparent); }
+.rc-h { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; font-size: 13.5px; }
+.rc-sw { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.rc-b { border-top: 1px solid var(--border); background: color-mix(in oklch, var(--primary) 5%, transparent); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.switch { width: 32px; height: 18px; border-radius: 99px; background: var(--border); position: relative; flex: none; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .2); }
+.switch[aria-checked="true"] { background: var(--primary); }
+.switch[aria-checked="true"]::after { left: 16px; }
+.g-cars { grid-template-columns: 1fr; } .behind .rows { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage">
+  <div class="behind" aria-hidden="true">
+    <h1>Formula Abarth Trophy</h1>
+    <div class="tabs"><span>Overview</span><span>Teams</span><span class="on">Classes</span><span>Calendar</span><span>Formats</span><span>Points &amp; money</span></div>
+    <div class="rows"><div class="blk"></div><div class="blk"></div></div>
+  </div>
+  <div class="scrim"><div class="dialog" id="dialog"></div></div>
+</div>
+
+<script>
+const I = {
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  minus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
+  x: '<svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24" style="opacity:.5"><path d="m6 9 6 6 6-6"/></svg>',
+};
+
+const state = { version: 'new', kind: 'list3', theme: 'light' };
+
+const PICKS = [
+  { key: 'version', label: 'Dialog', opts: [['today', 'Add a class - today'], ['new', 'Add a class - proposed'], ['round', 'Round - Cars tab']] },
+  { key: 'kind', label: 'Cars from', when: () => state.version !== 'today', opts: [['spec', 'Spec'], ['list0', 'List, nothing picked'], ['list3', 'List, three cars']] },
+  { key: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+// Stand-in pictures: each car's own preview in the app.
+const CARS = [
+  ['Tatuus FA01', 'linear-gradient(135deg, oklch(0.62 0.17 27), oklch(0.42 0.12 20))'],
+  ['Tatuus F4-T014', 'linear-gradient(135deg, oklch(0.7 0.12 230), oklch(0.45 0.1 250))'],
+  ['Mygale M14-F4', 'linear-gradient(135deg, oklch(0.8 0.12 95), oklch(0.55 0.1 80))'],
+];
+
+const DISC = ['Single-seater', 'Sportscar', 'Touring', 'Road'];
+const RUNGS = [[5, 'Rookie'], [4, 'Bronze'], [3, 'Silver'], [2, 'Gold'], [1, 'Platinum']];
+
+const field = (label, body, hint = '') => `<div class="field"><span class="lbl">${label}</span>${body}${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
+const spec = `<div class="spec"><span class="name">Formula 4</span><span class="meta">Junior formulae · 3 of 5 installed</span>${I.chev}</div>`;
+const seats = field('Seats', `<div class="stepper"><span>${I.minus}</span><b class="num">10</b><span>${I.plus}</span></div>`, 'Empty seats, drawn each season');
+const teams = field('Teams from', `<div class="input select">No teams${I.chev}</div>`, 'Another class&#39;s teams, seat by seat');
+
+const basics = (deeper) => `
+  ${field('Name', '<div class="input">New class</div>')}
+  ${field('Discipline', `<div class="choices">${DISC.map((d, i) => `<button type="button" class="${i === 0 ? 'single' : ''}" aria-checked="${i === 0}">${d}</button>`).join('')}</div>`)}
+  ${field('Rung of the ladder', `<div class="rungs"><div class="set">${RUNGS.map(([n, m]) => `<button type="button" class="rung" aria-checked="${n === 5}"><span class="medal m${n}">${n}</span>${m}</button>`).join('')}</div>${deeper ? '<label class="deeper">or tier <span class="input num">5</span></label>' : ''}</div>`, '1 is the top of a discipline. A driver may enter any series at or below their level in it.')}`;
+
+const shots = (cars) => `<ul class="shots">
+  <li class="add"><div class="pic" style="background:transparent"></div><div class="cap">Add a car</div><span class="lab">${I.plus}Add a car</span></li>
+  ${cars.map(([name, bg]) => `<li><div class="pic"><i style="background:${bg}"></i></div><div class="cap">${name}</div><button type="button" class="x" aria-label="Take ${name} off the list">${I.x}</button></li>`).join('')}
+</ul>`;
+
+const today = () => `
+  <div class="rule">Start it with</div>
+  <div class="g3">
+    ${field('Cars', spec, 'A catalogued grid. A list of cars is on its Cars tab.')}
+    ${seats}
+    ${teams}
+  </div>`;
+
+const proposed = () => {
+  const list = state.kind !== 'spec';
+  const cars = state.kind === 'list3' ? CARS : [];
+  const kind = `<div class="choices"><button type="button" aria-checked="${!list}">Spec</button><button type="button" aria-checked="${list}">List</button></div>`;
+
+  return `
+  <div class="rule">Start it with</div>
+  <div class="newring" style="display:flex;flex-direction:column;gap:12px">
+    <div class="g-cars">
+      ${field('Cars from<span class="newtag">new</span>', kind)}
+      ${list ? '<span></span>' : field('Spec', spec)}
+    </div>
+    ${list ? shots(cars) : ''}
+  </div>
+  <div class="g2">
+    ${seats}
+    ${teams}
+  </div>`;
+};
+
+const ROUND_CLASSES = [['Formula 4', 5, 'Season: Formula 4', true], ['Formula Regional', 4, 'Season: 2 cars', false]];
+
+const roundCars = () => {
+  const list = state.kind !== 'spec';
+  const cars = state.kind === 'list3' ? CARS : [];
+  const kind = `<div class="choices"><button type="button" aria-checked="${!list}">Spec</button><button type="button" aria-checked="${list}">List</button></div>`;
+  const models = field('Models needed', `<div class="stepper"><span>${I.minus}</span><b class="num">3</b><span>${I.plus}</span></div>`);
+
+  return `<p class="hint" style="margin:0">Which cars each class runs here instead of its usual ones. Only the car varies - the entry list, the calendar and the standings stay at championship level.</p>
+  ${ROUND_CLASSES.map(([name, tier, season, on]) => `<div class="rc ${on ? 'on' : ''}">
+    <div class="rc-h"><span class="medal m${tier}" style="width:28px;height:28px;font-size:12px">${tier}</span><b>${name}</b><span class="hint" style="flex:1">${season}</span>
+      <label class="rc-sw">${on ? 'Runs different cars here' : 'Its season cars'}<span class="switch" aria-checked="${on}"></span></label></div>
+    ${on ? `<div class="rc-b">
+      <div class="g-cars" style="${list ? '' : 'grid-template-columns:auto minmax(0,1fr) 9rem'}">${field('Cars from', kind)}${list ? '<span></span>' : `${field('Spec', spec)}${models}`}</div>
+      ${list ? `<div class="newring">${shots(cars)}</div>` : '<p class="hint" style="margin:0">Of 5 models in Formula 4. How many distinct models must be installed before the class can be raced. One model is a field of clones rather than the championship.</p>'}
+    </div>` : ''}
+  </div>`).join('')}`;
+};
+
+const roundDialog = () => `
+  <div class="d-head" style="padding-bottom:0"><span class="cap">Round 3 of 8</span><span class="title">Misano</span>
+    <div class="rtabs"><span>Basics</span><span>Conditions</span><span class="on">Cars <i>1 set</i></span></div></div>
+  <div class="d-body">${roundCars()}</div>
+  <div class="d-foot"><span class="note">Nothing is written until the championship is saved</span><button type="button" class="btn">Cancel</button><button type="button" class="btn primary">Apply</button></div>`;
+
+const dialog = () => {
+  if (state.version === 'round') return roundDialog();
+  const blocked = state.version === 'new' && state.kind === 'list0';
+
+  return `
+  <div class="d-head"><span class="cap">New class</span><span class="title">Add a class to Formula Abarth Trophy</span></div>
+  <div class="d-body">${basics(state.version === 'today')}${state.version === 'today' ? today() : proposed()}</div>
+  <div class="d-foot">
+    ${blocked ? '<span class="note">Pick a car to start the class with.</span>' : ''}
+    <button type="button" class="btn">Cancel</button>
+    <button type="button" class="btn primary" ${blocked ? 'disabled' : ''}>Add a class</button>
+  </div>`;
+};
+
+const WHY = {
+  round: `<b>Round - Cars tab.</b> A class running different cars at this round, written as a List, now shows the car pictures the class's own Cars tab shows, with Add a car first, in place of the numbered chips. With this change, pictures are the only way a list of cars appears in the app, and <code>CarListField</code> goes. On Spec it is unchanged.`,
+  today: `<b>Today.</b> The new class starts on a spec and nothing else; a list of cars waits until it exists, on its Cars tab. The hint under Cars says as much.`,
+  new: `<b>Proposed.</b> <i>Start it with</i> gets the Cars tab's own <b>Cars from: Spec | List</b> chips, drawn by the same <code>EligibilityField</code>, minus <i>Models needed</i> (that stays on the Cars tab). <b>Rung of the ladder</b> loses its <i>or tier</i> box: the five medals are the only choice. Seats and Teams from move to a row of their own beneath it. <b>Add a car</b> opens the same <code>CarPicker</code> over the dialog, as the round dialog's car override already does.
+    <ul>
+      <li>Switching to List starts it empty, as on the Cars tab - nothing is copied out of the spec.</li>
+      <li>With List and nothing picked, <b>Add a class</b> is disabled and the footer says why - this dialog exists so a class is never born with nothing to race.</li>
+      <li>A list is shown as pictures alone, here and everywhere else.</li>
+      <li>The old hint (<i>A list of cars is on its Cars tab</i>) goes, and no new one replaces it: the chips say it.</li>
+    </ul>`,
+};
+
+const render = () => {
+  document.documentElement.dataset.theme = state.theme;
+  document.getElementById('picker').innerHTML = PICKS.map((p) => `<div class="grp" ${p.when && !p.when() ? 'hidden' : ''}><strong>${p.label}</strong>${p.opts.map(([v, l]) => `<button type="button" class="opt" data-k="${p.key}" data-v="${v}" aria-pressed="${state[p.key] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = WHY[state.version];
+  const box = document.getElementById('dialog');
+  // RoundDialog is sm:max-w-4xl, ClassDialog sm:max-w-3xl.
+  box.style.width = state.version === 'round' ? 'min(896px, 100%)' : '';
+  box.innerHTML = dialog();
+};
+
+document.getElementById('picker').addEventListener('click', (event) => {
+  const b = event.target.closest('.opt');
+  if (!b) return;
+  state[b.dataset.k] = b.dataset.v;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

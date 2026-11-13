@@ -73,7 +73,7 @@ export const WEC_2025: Championship = {
         seat('atl-1', 'atlantico', 'Rodrigo Amaral', 'PRT'),
         seat('atl-2', 'atlantico', 'Gonçalo Brandão', 'PRT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMH_RSS, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMH_RSS },
     },
     {
       id: 'lmgt3',

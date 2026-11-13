@@ -80,7 +80,7 @@ export const FORMULA_1_1970: Championship = {
         seat('march-siffert', 'march', 'Jo Siffert', 'CHE'),
         seat('lotus-miles', 'lotus', 'John Miles', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1970, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1970 },
     },
   ],
   eventFormats: [EVENT],

@@ -84,7 +84,7 @@ export const FORMULA_1_1990: Championship = {
         seat('dallara-pirro', 'dallara', 'Emanuele Pirro', 'ITA'),
         seat('minardi-martini', 'minardi', 'Pierluigi Martini', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1990, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1990 },
     },
   ],
   eventFormats: [EVENT],

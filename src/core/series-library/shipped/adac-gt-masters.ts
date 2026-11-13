@@ -71,7 +71,7 @@ export const ADAC_GT_MASTERS: Championship = {
         seat('lim-1', 'limmat', 'Joel Frischknecht', 'CHE'),
         seat('lim-2', 'limmat', 'Nico Stäheli', 'CHE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
     },
   ],
   eventFormats: [

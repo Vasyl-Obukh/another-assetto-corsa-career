@@ -3,7 +3,7 @@ import {
 } from '@jest/globals';
 
 import {
-  currentIndex, forgetVisits, hasNextVisit, nameVisit, previousVisit, recordVisit,
+  currentIndex, forgetVisits, hasNextVisit, nameVisit, previousVisit, recordVisit, visitIndex,
 } from '../nav-history.ts';
 
 describe('renderer/lib/nav-history/nav-history', () => {
@@ -108,6 +108,32 @@ describe('renderer/lib/nav-history/nav-history', () => {
       global.window = { history: { state: null } };
 
       expect(currentIndex()).toBe(0);
+    });
+  });
+
+  describe('visitIndex', () => {
+    const global = globalThis as { window?: unknown };
+
+    afterEach(() => {
+      delete global.window;
+    });
+
+    // Back read history.state, which a blocked Back leaves on the page it was
+    // heading for while the leave dialog is up, and named the wrong page.
+    it('places a recorded entry where it was recorded, whatever the history state says', () => {
+      recordVisit(0, 'a', '/settings', 'POP');
+      recordVisit(1, 'b', '/settings/championships', 'PUSH');
+      recordVisit(2, 'c', '/settings/championships/x/edit', 'PUSH');
+      global.window = { history: { state: { idx: 1 } } };
+
+      expect(visitIndex('c')).toBe(2);
+    });
+
+    it('falls back to the history state for an entry not recorded yet', () => {
+      recordVisit(0, 'a', '/home', 'POP');
+      global.window = { history: { state: { idx: 1 } } };
+
+      expect(visitIndex('b')).toBe(1);
     });
   });
 });

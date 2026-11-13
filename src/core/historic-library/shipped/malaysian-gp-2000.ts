@@ -59,7 +59,6 @@ export const MALAYSIAN_GP_2000: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_2000,
-        minModels: 1,
       },
     },
   ],

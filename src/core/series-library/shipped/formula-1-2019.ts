@@ -99,7 +99,7 @@ export const FORMULA_1_2019: Championship = {
         seat('williams-kubica', 'williams', 'Robert Kubica', 'POL'),
         seat('williams-russell', 'williams', 'George Russell', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2019, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2019 },
     },
   ],
   eventFormats: [EVENT],

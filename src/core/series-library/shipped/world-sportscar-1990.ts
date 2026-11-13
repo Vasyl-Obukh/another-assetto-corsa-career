@@ -80,7 +80,7 @@ export const WORLD_SPORTSCAR_1990: Championship = {
         seat('spi-1', 'spice', 'Tim Harrowby', 'GBR'),
         seat('spi-2', 'spice', 'Fermín Ortega', 'ESP'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GROUP_C, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.GROUP_C },
     },
   ],
   eventFormats: [

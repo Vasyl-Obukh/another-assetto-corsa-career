@@ -133,7 +133,7 @@ export const CarClasses = () => {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted-foreground">{t('carClasses.subtitle')}</p>
 
-        <Button variant="outline" disabled={commands.busy} onClick={() => show({ kind: 'add-class' })}>
+        <Button disabled={commands.busy} onClick={() => show({ kind: 'add-class' })}>
           <PlusIcon />
           {t('carClasses.addClass')}
         </Button>

@@ -67,7 +67,7 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
         seat('nor-2', 'walter-sc', 'Frederik Lund', 'DNK'),
         seat('nor-3', 'walter-sc', 'Anders Kjærholm', 'DNK'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_991, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.PORSCHE_CUP_991 },
     },
   ],
   eventFormats: [

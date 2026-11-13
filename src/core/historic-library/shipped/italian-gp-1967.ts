@@ -56,7 +56,6 @@ export const ITALIAN_GP_1967: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1967,
-        minModels: 1,
       },
     },
   ],

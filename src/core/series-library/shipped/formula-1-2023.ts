@@ -159,7 +159,7 @@ export const FORMULA_1_2023: Championship = {
         seat('haas-magnussen', 'haas', 'Kevin Magnussen', 'DNK'),
         seat('williams-sargeant', 'williams', 'Logan Sargeant', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2023_VRC, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2023_VRC },
     },
   ],
   eventFormats: [EVENT, SPRINT],

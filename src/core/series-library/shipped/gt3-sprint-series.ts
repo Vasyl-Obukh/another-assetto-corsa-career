@@ -64,7 +64,7 @@ export const GT3_SPRINT_SERIES: Championship = {
         seat('bfr-1', 'black-fen', 'Owen Lattimer', 'GBR'),
         seat('bfr-2', 'black-fen', 'Ilya Sokolenko', 'UKR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S },
     },
   ],
   eventFormats: [

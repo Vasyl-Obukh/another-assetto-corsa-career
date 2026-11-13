@@ -74,7 +74,7 @@ export const WEC_2024_VRC: Championship = {
         seat('atl-1', 'atlantico', 'Rodrigo Amaral', 'PRT'),
         seat('atl-2', 'atlantico', 'Gonçalo Brandão', 'PRT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMH_VRC, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMH_VRC },
     },
     {
       id: 'lmgt3',

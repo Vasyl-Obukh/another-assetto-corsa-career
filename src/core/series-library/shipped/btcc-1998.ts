@@ -98,7 +98,7 @@ export const BTCC_1998: Championship = {
         seat('sol-1', 'solway', 'Alan Gatehouse', 'GBR'),
         seat('sol-2', 'solway', 'Rob Annandale', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.SUPER_TOURING_1990S, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.SUPER_TOURING_1990S },
     },
   ],
   eventFormats: [

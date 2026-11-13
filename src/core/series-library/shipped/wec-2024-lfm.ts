@@ -72,7 +72,7 @@ export const WEC_2024_LFM: Championship = {
         seat('ard-1', 'ardenne', 'Thomas Collignon', 'BEL'),
         seat('ard-2', 'ardenne', 'Nicolas Deprez', 'BEL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMH_LFM, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMH_LFM },
     },
     {
       id: 'lmgt3',

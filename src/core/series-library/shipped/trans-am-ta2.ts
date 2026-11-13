@@ -71,7 +71,7 @@ export const TRANS_AM_TA2: Championship = {
         seat('pal-1', 'palmetto', 'Carson Legare', 'USA'),
         seat('pal-2', 'palmetto', 'Heath Rawl', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.TRANS_AM_TA2, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.TRANS_AM_TA2 },
     },
   ],
   eventFormats: [

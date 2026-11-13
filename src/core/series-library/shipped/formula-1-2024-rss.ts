@@ -158,7 +158,7 @@ export const FORMULA_1_2024_RSS: Championship = {
         seat('sauber-bottas', 'sauber', 'Valtteri Bottas', 'FIN'),
         seat('williams-sargeant', 'williams', 'Logan Sargeant', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2024_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2024_RSS },
     },
   ],
   eventFormats: [EVENT, SPRINT],

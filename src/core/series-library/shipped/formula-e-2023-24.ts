@@ -72,7 +72,7 @@ export const FORMULA_E_2023_24: Championship = {
         seat('kai-1', 'kaizen', 'Kazuto Hirayama', 'JPN'),
         seat('kai-2', 'kaizen', 'Sho Kawaguchi', 'JPN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_3, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_3 },
     },
   ],
   eventFormats: [

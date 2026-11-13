@@ -5,7 +5,7 @@ import {
   RUN_SEPARATOR, TIER_WEEKDAY, WEEKDAY_NUMBER, WORKDAYS,
 } from './constants.ts';
 import {
-  DEFAULT_MIN_MODELS, DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_EVENT_DAYS, MAX_GRID_OFFSET,
+  DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_EVENT_DAYS, MAX_GRID_OFFSET,
   MIN_REVERSED,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
@@ -159,25 +159,6 @@ export const roundOf = (series: Championship, id: string): Round => {
 export const eligibilityFor = (entry: ClassEntry, round?: Round): Eligibility => (
   round?.eligibility?.find((override) => override.entry === entry.id)?.eligibility
   ?? entry.eligibility
-);
-
-/**
- * How many distinct models an eligibility rule needs installed to be raceable.
- *
- * A car list needs all of them, since a one-make series' cars are the series. A
- * spec needs enough of its grid to be a grid, and never none - a spec nobody
- * races in is not satisfied by owning nothing.
- * @param eligibility The rule to read
- * @param catalogue The class catalogue a spec resolves against
- * @returns The number of installed models required
- */
-export const minModelsOf = (eligibility: Eligibility, catalogue: ClassCatalogue): number => (
-  eligibility.kind === 'cars'
-    ? eligibility.cars.length
-    : Math.max(1, Math.min(
-      eligibility.minModels ?? DEFAULT_MIN_MODELS,
-      specCars(eligibility.spec, catalogue).length,
-    ))
 );
 
 /**
@@ -721,7 +702,8 @@ export const availabilityOf = (
         .filter((car) => !have.has(car))
         .map((car) => ({ id: car, provenance: carProvenance(car) }))
       : [],
-    enough: installed.length >= minModelsOf(eligibility, catalogue),
+    // A spec races on whatever of its grid is installed, so one model will do.
+    enough: eligibility.kind === 'cars' ? installed.length >= eligibility.cars.length : installed.length > 0,
   };
 };
 
@@ -779,8 +761,8 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     if (provenance.distributor) distributors.add(provenance.distributor);
   };
 
-  // A car list needs every car it names; a spec needs only enough of its grid,
-  // so its cars are pooled and what they reach is recorded apart.
+  // A car list needs every car it names; a spec needs any one of its grid, so
+  // its cars are pooled and what they reach is recorded apart.
   const rule = (eligibility: Eligibility): void => {
     if (eligibility.kind === 'cars') {
       eligibility.cars.forEach((car) => need(carProvenance(car)));
@@ -794,7 +776,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
       if (distributor) reachedDistributors.add(distributor);
       return { pack, maker, distributor };
     });
-    pools.push({ minModels: minModelsOf(eligibility, catalogue), cars });
+    pools.push({ cars });
   };
 
   series.entries.forEach((entry) => rule(entry.eligibility));
@@ -808,7 +790,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     round.eligibility?.forEach((override) => rule(override.eligibility));
   });
 
-  // A source a spec cannot keep its floor without is needed after all - a mod
+  // A source a spec cannot be raced without is needed after all - a mod
   // chassis in twenty liveries is a spec only that mod can fill.
   pools.forEach((pool) => pool.cars.forEach(({ pack, maker, distributor }) => {
     if (pack && !poolHolds(pool, { packs: [pack], makers: [], distributors: [] })) {

@@ -96,7 +96,7 @@ export const FORMULA_1_2018: Championship = {
         seat('toro-rosso-hartley', 'toro-rosso', 'Brendon Hartley', 'NZL'),
         seat('williams-sirotkin', 'williams', 'Sergey Sirotkin', 'RUS'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2018, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2018 },
     },
   ],
   eventFormats: [EVENT],

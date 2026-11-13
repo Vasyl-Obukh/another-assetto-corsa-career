@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 
 import type { Back, BackFallback } from './types.ts';
-import { currentIndex, previousVisit } from '@/lib/nav-history';
+import { previousVisit, visitIndex } from '@/lib/nav-history';
 import { BACK_LABEL, routeOf } from '@/lib/routes';
 
 /**
@@ -17,10 +17,11 @@ import { BACK_LABEL, routeOf } from '@/lib/routes';
 export const useBack = (fallback: BackFallback): Back => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  // Read for its re-render: the label follows the entry the window is on.
-  useLocation();
+  // The router's location rather than the browser's: a blocked Back leaves the
+  // two apart while the leave dialog is up.
+  const { key } = useLocation();
 
-  const previous = previousVisit(currentIndex());
+  const previous = previousVisit(visitIndex(key));
   if (previous === null) return { label: fallback.label, go: () => { void navigate(fallback.to); } };
 
   const route = routeOf(previous.pathname);

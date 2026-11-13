@@ -103,7 +103,7 @@ export const FORMULA_2_2020: Championship = {
         seat('dan-1', 'danube', 'Lorenz Pichlmayr', 'AUT'),
         seat('dan-2', 'danube', 'Valentin Grabner', 'AUT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2020, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2020 },
     },
   ],
   eventFormats: [EVENT],

@@ -25,21 +25,21 @@ const isOn = (
 );
 
 /**
- * Whether a spec keeps its floor with some sources switched off.
+ * Whether a spec can still be raced with some sources switched off.
  * @param pool The spec's grid, by where each car comes from
  * @param hidden The sources switched off
- * @returns True while enough of its cars are still switched on
+ * @returns True while any of its cars is still switched on
  */
 export const poolHolds = (pool: RequirementPool, hidden: HiddenContentSources): boolean => (
-  pool.cars.filter((car) => isOn(car, hidden)).length >= pool.minModels
+  pool.cars.some((car) => isOn(car, hidden))
 );
 
 /**
  * Works out whether a championship is offered under the user's content sources.
  *
  * Everything it needs outright has to be switched on. A spec only has to keep
- * enough of its grid, so switching a pack off hides a spec championship only
- * when what is left falls below its floor.
+ * one car of its grid, so switching a pack off hides a spec championship only
+ * when nothing of it is left.
  * @param requires What the championship needs, from its availability
  * @param hidden The sources the user switched off
  * @returns True when it is offered

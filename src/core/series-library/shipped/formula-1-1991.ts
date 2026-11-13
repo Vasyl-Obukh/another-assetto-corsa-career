@@ -89,7 +89,7 @@ export const FORMULA_1_1991: Championship = {
         seat('brabham-blundell', 'brabham', 'Mark Blundell', 'GBR'),
         seat('ligier-boutsen', 'ligier', 'Thierry Boutsen', 'BEL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1991, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1991 },
     },
   ],
   eventFormats: [EVENT],

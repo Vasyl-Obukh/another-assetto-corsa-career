@@ -56,7 +56,7 @@ export const WEC_2014: Championship = {
         seat('lmp-leo-1', 'weissach-lmp', 'Florian Hessenauer', 'DEU'),
         seat('lmp-leo-2', 'weissach-lmp', 'Nick Halbrook', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2014, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2014 },
     },
     {
       id: 'lmp2',

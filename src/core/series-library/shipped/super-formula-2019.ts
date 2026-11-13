@@ -81,7 +81,7 @@ export const SUPER_FORMULA_2019: Championship = {
         seat('izu-1', 'izumo', 'Daigo Fukunaga', 'JPN'),
         seat('izu-b-1', 'izumo', 'Mathis Ferreol', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.SUPER_FORMULA_2019, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.SUPER_FORMULA_2019 },
     },
   ],
   eventFormats: [

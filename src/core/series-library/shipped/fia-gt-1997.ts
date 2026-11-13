@@ -60,7 +60,7 @@ export const FIA_GT_1997: Championship = {
         seat('tir-1', 'konrad', 'Franz Obermoser', 'AUT'),
         seat('tir-2', 'konrad', 'Walter Kostner', 'AUT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT1_1990S, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT1_1990S },
     },
   ],
   eventFormats: [

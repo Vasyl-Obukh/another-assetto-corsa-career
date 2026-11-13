@@ -99,7 +99,7 @@ export const FORMULA_1_2020: Championship = {
         seat('haas-magnussen', 'haas', 'Kevin Magnussen', 'DNK'),
         seat('williams-latifi', 'williams', 'Nicholas Latifi', 'CAN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2020, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2020 },
     },
   ],
   eventFormats: [EVENT],

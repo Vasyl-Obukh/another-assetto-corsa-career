@@ -56,7 +56,6 @@ export const TURKISH_GP_2005: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_2005,
-        minModels: 1,
       },
     },
   ],

@@ -98,7 +98,7 @@ export const FORMULA_1_2009: Championship = {
         seat('renault-piquet', 'renault', 'Nelson Piquet Jr.', 'BRA'),
         seat('toro-rosso-bourdais', 'toro-rosso', 'Sébastien Bourdais', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2009, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2009 },
     },
   ],
   eventFormats: [EVENT],

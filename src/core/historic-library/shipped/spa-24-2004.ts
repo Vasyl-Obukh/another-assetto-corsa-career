@@ -46,7 +46,6 @@ export const SPA_24_2004: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.GT1_2000S,
-        minModels: 2,
       },
     },
     {
@@ -73,7 +72,6 @@ export const SPA_24_2004: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.N_GT,
-        minModels: 2,
       },
       grid: {
         strength: -3,

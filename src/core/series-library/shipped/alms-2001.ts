@@ -72,7 +72,7 @@ export const ALMS_2001: Championship = {
         seat('gts-vla-2', 'vlaanderen', 'Pieter Vanoverbeke', 'BEL'),
         seat('gts-rhe-1', 'rheintal', 'Uwe Kellersmann', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S },
       entryFee: 9000,
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],

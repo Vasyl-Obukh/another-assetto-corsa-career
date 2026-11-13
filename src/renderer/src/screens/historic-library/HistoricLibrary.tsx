@@ -88,7 +88,7 @@ export const HistoricLibrary = () => {
               <span aria-hidden className="mx-1 h-6 w-px bg-border" />
 
               {/* Nothing is written until the editor's first Save. */}
-              <Button variant="outline" onClick={() => navigate(newPath('historic'))}>
+              <Button onClick={() => navigate(newPath('historic'))}>
                 <PlusIcon />
                 {t('common.new')}
               </Button>

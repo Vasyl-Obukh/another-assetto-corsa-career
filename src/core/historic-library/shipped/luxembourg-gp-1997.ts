@@ -59,7 +59,6 @@ export const LUXEMBOURG_GP_1997: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1997,
-        minModels: 1,
       },
     },
   ],

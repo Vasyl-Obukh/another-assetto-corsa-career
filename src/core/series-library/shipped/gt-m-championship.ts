@@ -65,7 +65,7 @@ export const GT_M_CHAMPIONSHIP: Championship = {
         seat('vlt-1', 'vltava', 'Jakub Hrubeš', 'CZE'),
         seat('vlt-2', 'vltava', 'Ondřej Pokorný', 'CZE'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_RSS, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_RSS },
     },
   ],
   eventFormats: [

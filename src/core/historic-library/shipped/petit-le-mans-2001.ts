@@ -64,7 +64,6 @@ export const PETIT_LE_MANS_2001: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.GT1_2000S,
-        minModels: 2,
       },
       entryFee: 3000,
       prizes: {

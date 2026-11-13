@@ -66,7 +66,7 @@ export const WORLD_SPORTSCAR_1969: Championship = {
         seat('ost-2', 'ostschweiz', 'Herbert Rüegg', 'CHE'),
         seat('dea-3', 'dearborn', 'Chuck Maddox', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.SPORTS_PROTOTYPE_60S, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.SPORTS_PROTOTYPE_60S },
     },
   ],
   eventFormats: [

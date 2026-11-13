@@ -161,7 +161,7 @@ export const FORMULA_1_2026_RSS: Championship = {
         seat('cadillac-perez', 'cadillac', 'Sergio Pérez', 'MEX'),
         seat('cadillac-bottas', 'cadillac', 'Valtteri Bottas', 'FIN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2026_RSS, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2026_RSS },
     },
   ],
   eventFormats: [EVENT, SPRINT],

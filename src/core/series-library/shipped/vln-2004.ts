@@ -57,7 +57,7 @@ export const VLN_2004: Championship = {
         seat('sp8-eif-b-1', 'eifel-gt', 'Benno Rathmann', 'DEU'),
         seat('sp8-hoh-b-1', 'hohe-acht', 'Christoph Linnartz', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT1_2000S },
     },
     {
       id: 'sp7',

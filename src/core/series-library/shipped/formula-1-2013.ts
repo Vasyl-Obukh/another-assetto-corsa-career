@@ -102,7 +102,7 @@ export const FORMULA_1_2013: Championship = {
         seat('caterham-garde', 'caterham', 'Giedo van der Garde', 'NLD'),
         seat('marussia-chilton', 'marussia', 'Max Chilton', 'GBR'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2013, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2013 },
     },
   ],
   eventFormats: [EVENT],

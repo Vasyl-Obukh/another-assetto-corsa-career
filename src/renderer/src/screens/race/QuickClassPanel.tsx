@@ -106,8 +106,6 @@ export const QuickClassPanel = ({
           eligibility={entry.eligibility}
           locked={locked}
           nameOf={carName}
-          showCars={false}
-          minModels={false}
           onChange={(eligibility) => onChange({ eligibility })}
         />
 

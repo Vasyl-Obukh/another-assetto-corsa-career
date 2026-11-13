@@ -83,7 +83,7 @@ export const FORMULA_1_1967: Championship = {
         seat('parnell-irwin', 'parnell', 'Chris Irwin', 'GBR'),
         seat('ligier-ligier', 'ligier', 'Guy Ligier', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1967, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1967 },
     },
   ],
   eventFormats: [EVENT],

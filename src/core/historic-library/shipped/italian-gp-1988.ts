@@ -59,7 +59,6 @@ export const ITALIAN_GP_1988: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1988,
-        minModels: 1,
       },
     },
   ],

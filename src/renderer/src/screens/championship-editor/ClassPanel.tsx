@@ -193,7 +193,6 @@ export const ClassPanel = ({
             eligibility={entry.eligibility}
             locked={quiet}
             nameOf={nameOf}
-            showCars={false}
             pictured={installed}
             onChange={onEligibility}
           />

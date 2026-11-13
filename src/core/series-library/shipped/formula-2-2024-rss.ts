@@ -103,7 +103,7 @@ export const FORMULA_2_2024_RSS: Championship = {
         seat('sch-1', 'schwarzwald', 'Moritz Kienzle', 'DEU'),
         seat('sch-2', 'schwarzwald', 'Elias Frommknecht', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2024, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2024 },
     },
   ],
   eventFormats: [EVENT],

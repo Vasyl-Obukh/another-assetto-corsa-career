@@ -48,6 +48,8 @@ import {
   sessionSources,
   startingSeats,
   startKindOf,
+  withAddedFormat,
+  withAddedPoints,
   withBop,
   withDefaultFormat,
   withEntry,
@@ -610,6 +612,27 @@ describe('renderer/screens/championship-editor/utils', () => {
     });
   });
 
+  describe('withAddedFormat', () => {
+    const added: EventFormat = { id: 'endurance', name: 'Endurance', sessions: [{ type: 'race' }] };
+
+    it('appends the format and leaves a default that resolves alone', () => {
+      const next = withAddedFormat(series([]), added);
+
+      expect(next.eventFormats.map((one) => one.id)).toEqual(['sprint', 'endurance']);
+      expect(next.defaultEventFormat).toBe('sprint');
+    });
+
+    it('makes the first format of a new championship its default', () => {
+      const next = withAddedFormat(series([], { eventFormats: [], defaultEventFormat: '' }), added);
+
+      expect(next.defaultEventFormat).toBe('endurance');
+    });
+
+    it('takes over a default that names no format', () => {
+      expect(withAddedFormat(series([], { defaultEventFormat: 'gone' }), added).defaultEventFormat).toBe('endurance');
+    });
+  });
+
   describe('withDefaultFormat', () => {
     it('moves the rounds naming no format onto the new default, dropping what it does not run', () => {
       const championship = series([
@@ -707,6 +730,23 @@ describe('renderer/screens/championship-editor/utils', () => {
   describe('nextPoints', () => {
     it('numbers the system after the ones already there, paying the default table', () => {
       expect(nextPoints(series([]))).toEqual({ id: 'points-2', name: 'Points 2', positions: DEFAULT_POINTS });
+    });
+  });
+
+  describe('withAddedPoints', () => {
+    const added = { id: 'sprint', name: 'Sprint', positions: [5] };
+
+    it('appends the system and leaves a default that resolves alone', () => {
+      const next = withAddedPoints(series([]), added);
+
+      expect(next.pointsSystems.map((one) => one.id)).toEqual(['race', 'sprint']);
+      expect(next.defaultPointsSystem).toBe('race');
+    });
+
+    it('makes the first system of a new championship its default', () => {
+      const next = withAddedPoints(series([], { pointsSystems: [], defaultPointsSystem: '' }), added);
+
+      expect(next.defaultPointsSystem).toBe('sprint');
     });
   });
 

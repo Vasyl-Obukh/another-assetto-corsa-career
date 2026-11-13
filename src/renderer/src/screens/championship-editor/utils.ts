@@ -40,7 +40,7 @@ import type {
   Weather,
 } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
-import { formatOf } from '../../../../shared/utils/event-format';
+import { defaultFormatOf, formatOf } from '../../../../shared/utils/event-format';
 import { parseClock } from '../../../../shared/utils/road-temperature';
 
 /**
@@ -584,6 +584,19 @@ export const withDefaultFormat = (series: Championship, id: string): Championshi
 );
 
 /**
+ * Appends an event format, which becomes the default while there is none to
+ * run - a new championship's first format, always.
+ * @param series The championship
+ * @param format The format to append
+ * @returns The championship, with it
+ */
+export const withAddedFormat = (series: Championship, format: EventFormat): Championship => {
+  const added = { ...series, eventFormats: [...series.eventFormats, format] };
+
+  return defaultFormatOf(series) === null ? withDefaultFormat(added, format.id) : added;
+};
+
+/**
  * Drops one event format, and whatever named it.
  *
  * Two references go with it. A round that ran this format falls back to the
@@ -640,6 +653,21 @@ export const withPoints = (
 ): Championship => ({
   ...series,
   pointsSystems: replaced(series.pointsSystems, id, points),
+});
+
+/**
+ * Appends a points system, which becomes the default while there is none to
+ * score by - a new championship's first system, always.
+ * @param series The championship
+ * @param points The system to append
+ * @returns The championship, with it
+ */
+export const withAddedPoints = (series: Championship, points: PointsSystem): Championship => ({
+  ...series,
+  pointsSystems: [...series.pointsSystems, points],
+  defaultPointsSystem: series.pointsSystems.some((one) => one.id === series.defaultPointsSystem)
+    ? series.defaultPointsSystem
+    : points.id,
 });
 
 /**

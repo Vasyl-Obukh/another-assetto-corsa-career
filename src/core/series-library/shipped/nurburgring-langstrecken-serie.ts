@@ -54,7 +54,7 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
         seat('sp9-bru-1', 'brunnchen', 'Tobias Leiendecker', 'DEU'),
         seat('sp9-vla-1', 'flemish-ring', 'Kobe Verstraeten', 'BEL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S },
     },
     {
       id: 'sp-x',

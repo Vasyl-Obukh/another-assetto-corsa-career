@@ -38,6 +38,11 @@ interface EditorDialogProps {
    */
   locked: boolean;
   /**
+   * Whether what is drafted is not yet enough to keep, which holds the
+   * confirming button back - the note says why.
+   */
+  incomplete?: boolean;
+  /**
    * The dialog's width, as classes.
    */
   className?: string;
@@ -61,7 +66,7 @@ interface EditorDialogProps {
  * what was typed.
  */
 export const EditorDialog = ({
-  title, caption, description, tabs, note, confirmLabel, locked, className,
+  title, caption, description, tabs, note, confirmLabel, locked, incomplete = false, className,
   onConfirm, onCancel, children,
 }: EditorDialogProps) => {
   const { t } = useKindTranslation();
@@ -73,7 +78,8 @@ export const EditorDialog = ({
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault();
-            onConfirm();
+            // Enter submits too, so the button being disabled is not enough.
+            if (!incomplete) onConfirm();
           }}
         >
           <DialogHeader className={cn('gap-1 px-5 pt-5 pb-3 text-left sm:px-6', tabs && 'pb-0')}>
@@ -90,7 +96,7 @@ export const EditorDialog = ({
           <div className="flex flex-wrap items-center justify-end gap-2 border-t px-5 py-3 sm:px-6">
             {note ? <span className="mr-auto text-xs text-muted-foreground">{note}</span> : null}
             <Button type="button" variant="outline" onClick={onCancel}>{t('confirm.cancel')}</Button>
-            <Button type="submit" disabled={locked}>{confirmLabel}</Button>
+            <Button type="submit" disabled={locked || incomplete}>{confirmLabel}</Button>
           </div>
         </form>
       </DialogContent>

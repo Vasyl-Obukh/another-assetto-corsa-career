@@ -83,7 +83,7 @@ export const SUPER_FORMULA_2023: Championship = {
         seat('shr-1', 'shirakawa', 'Yuto Kasamatsu', 'JPN'),
         seat('shr-2', 'shirakawa', 'Haruma Shinozuka', 'JPN'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.SUPER_FORMULA_2023, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.SUPER_FORMULA_2023 },
     },
   ],
   eventFormats: [

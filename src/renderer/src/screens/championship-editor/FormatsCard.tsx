@@ -1,9 +1,9 @@
-import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
+import { AddButton } from './AddButton.tsx';
 import { FormatPage } from './FormatPage.tsx';
-import { nextFormat, roundsRunning } from './utils.ts';
+import { nextFormat, roundsRunning, withAddedFormat } from './utils.ts';
 import type {
   Championship, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
@@ -82,20 +82,17 @@ export const FormatsCard = ({
             </button>
           );
         })}
-        <button
-          type="button"
-          className="flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+        <AddButton
+          label={t('editor.formats.add')}
+          className="px-3 py-1.5"
           disabled={locked}
           onClick={() => {
             // A new format starts as one day with one race, edited from there.
             const next = nextFormat(series, [nextSession([])]);
-            onChange({ ...series, eventFormats: [...formats, next] });
+            onChange(withAddedFormat(series, next));
             setPicked(next.id);
           }}
-        >
-          <PlusIcon className="size-4" />
-          {t('editor.formats.add')}
-        </button>
+        />
       </div>
 
       {format === undefined ? null : (
@@ -110,7 +107,7 @@ export const FormatsCard = ({
           onChange={onChange}
           onDuplicate={() => {
             const copy = { ...nextFormat(series, format.sessions), name: t('editor.formats.copyName', { name: format.name }) };
-            onChange({ ...series, eventFormats: [...formats, copy] });
+            onChange(withAddedFormat(series, copy));
             setPicked(copy.id);
           }}
         />

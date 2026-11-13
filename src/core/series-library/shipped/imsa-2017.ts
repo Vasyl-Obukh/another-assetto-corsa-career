@@ -66,7 +66,7 @@ export const IMSA_2017: Championship = {
         seat('pr-baj-1', 'baja', 'Rodrigo Villaseñor', 'MEX'),
         seat('pr-baj-2', 'baja', 'Emilio Treviño', 'MEX'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2017, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2017 },
     },
     {
       id: 'gtlm',
@@ -82,7 +82,7 @@ export const IMSA_2017: Championship = {
         seat('rou-1', 'route-66', 'Hunter Blankenship', 'USA'),
         seat('rou-2', 'route-66', 'Mason Tedrick', 'USA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017, minModels: 2 },
+      eligibility: { kind: 'spec', spec: CarSpec.GTE_2017 },
       entryFee: 9000,
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
@@ -107,7 +107,7 @@ export const IMSA_2017: Championship = {
         seat('rio-1', 'rioplatense', 'Tomás Albarracín', 'ARG'),
         seat('rio-2', 'rioplatense', 'Joaquín Laprida', 'ARG'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S },
       grid: { strength: -3 },
       entryFee: 5400,
       prizes: {

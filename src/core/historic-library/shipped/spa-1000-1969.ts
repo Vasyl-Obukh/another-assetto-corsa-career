@@ -49,7 +49,6 @@ export const SPA_1000_1969: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.SPORTS_PROTOTYPE_60S,
-        minModels: 1,
       },
     },
   ],

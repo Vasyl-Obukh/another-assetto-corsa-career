@@ -77,7 +77,7 @@ export const FORMULA_E_2020_21: Championship = {
         seat('hel-1', 'helios', 'Diego Carrasquer', 'ESP'),
         seat('hel-2', 'helios', 'Unai Beristain', 'ESP'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_2, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_E_GEN_2 },
     },
   ],
   eventFormats: [

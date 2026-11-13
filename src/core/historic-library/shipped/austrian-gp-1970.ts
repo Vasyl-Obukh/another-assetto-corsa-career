@@ -54,7 +54,6 @@ export const AUSTRIAN_GP_1970: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1970,
-        minModels: 1,
       },
     },
   ],

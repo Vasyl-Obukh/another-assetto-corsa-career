@@ -88,7 +88,7 @@ export const GT4_EUROPEAN_SERIES: Championship = {
         seat('pgt-1', 'provence-gt', 'Lucas Amalric', 'FRA'),
         seat('pgt-2', 'provence-gt', 'Théo Barjavel', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT4, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT4 },
     },
   ],
   eventFormats: [

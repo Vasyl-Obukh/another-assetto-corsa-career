@@ -4,8 +4,9 @@ import { CarIcon, PlusIcon, XIcon } from 'lucide-react';
 import { ContentImage } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { useCars } from '@/hooks';
+import { useCars, useRowDrag } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
+import { cn } from '@/lib/utils.ts';
 import { carImageSources } from '@/screens/car-browser';
 
 interface CarShotsProps {
@@ -34,6 +35,14 @@ interface CarShotsProps {
    * car" tile first, the size of a car.
    */
   onAdd?: () => void;
+  /**
+   * Called as a car is dragged to another place, for a list the author
+   * writes - its order is the one the field draws from, so the first car is
+   * the one most of the field races in.
+   * @param from The index it was dragged from
+   * @param to The index it was dropped at
+   */
+  onMove?: (from: number, to: number) => void;
 }
 
 /**
@@ -41,10 +50,15 @@ interface CarShotsProps {
  * to check by eye than by folder name.
  */
 export const CarShots = ({
-  cars, nameOf, locked, onRemove, onAdd,
+  cars, nameOf, locked, onRemove, onAdd, onMove,
 }: CarShotsProps) => {
   const { t } = useKindTranslation();
   const installed = useCars(cars);
+  const drag = useRowDrag({
+    count: cars.length,
+    locked: locked || onMove === undefined,
+    onMove: (from, to) => onMove?.(from, to),
+  });
   const placeholder = (
     <div className="absolute inset-0 flex items-center justify-center">
       <CarIcon className="size-6 text-muted-foreground/40" />
@@ -73,11 +87,26 @@ export const CarShots = ({
           </button>
         </li>
       ) : null}
-      {cars.map((model) => {
+      {cars.map((model, index) => {
         const car = installed.get(model);
+        const edge = drag.edgeOf(index);
 
         return (
-          <li key={model} className="relative flex flex-col overflow-hidden rounded-md border bg-card">
+          <li
+            key={model}
+            draggable={drag.enabled}
+            className={cn(
+              'relative flex flex-col overflow-hidden rounded-md border bg-card',
+              drag.enabled && 'cursor-grab',
+              drag.dragging === index && 'opacity-50',
+              edge === 'before' && 'shadow-[-3px_0_0_0_var(--color-primary)]',
+              edge === 'after' && 'shadow-[3px_0_0_0_var(--color-primary)]',
+            )}
+            onDragStart={(event) => drag.onRowDragStart(index, event)}
+            onDragOver={(event) => drag.onRowDragOver(index, event)}
+            onDrop={(event) => drag.onRowDrop(index, event)}
+            onDragEnd={drag.onRowDragEnd}
+          >
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
               {car === undefined ? placeholder : (
                 <ContentImage sources={carImageSources(car)} alt={car.name} className="object-cover" fallback={placeholder} />

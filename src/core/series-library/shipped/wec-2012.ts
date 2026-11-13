@@ -55,7 +55,7 @@ export const WEC_2012: Championship = {
         seat('lmp-leo-1', 'weissach-lmp', 'Florian Hessenauer', 'DEU'),
         seat('lmp-leo-2', 'weissach-lmp', 'Nick Halbrook', 'DEU'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2012, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.LMP1_2012 },
     },
     {
       id: 'gte',
@@ -72,7 +72,7 @@ export const WEC_2012: Championship = {
         seat('gte-fr-2', 'gte-fr', 'Hugo Chassagne', 'FRA'),
         seat('gte-fr-3', 'gte-fr', 'Clément Voisard', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2011, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.GTE_2011 },
       entryFee: 12000,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
@@ -91,7 +91,7 @@ export const WEC_2012: Championship = {
         seat('gt-lum-1', 'lumiere', 'Hugo Delacourt', 'FRA'),
         seat('gt-lum-2', 'lumiere', 'Mathis Garrigue', 'FRA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2011, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.GTE_2011 },
       grid: { strength: -5 },
       entryFee: 9000,
       prizes: {

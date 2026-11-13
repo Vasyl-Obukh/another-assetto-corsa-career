@@ -82,7 +82,7 @@ export const FORMULA_1_2004: Championship = {
         seat('min-baumgartner', 'minardi', 'Zsolt Baumgartner', 'HUN'),
         seat('min-bruni', 'minardi', 'Gianmaria Bruni', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2004, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2004 },
     },
   ],
   eventFormats: [EVENT],

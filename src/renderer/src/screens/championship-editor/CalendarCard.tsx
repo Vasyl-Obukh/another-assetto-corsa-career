@@ -1,7 +1,7 @@
-import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
+import { AddButton } from './AddButton.tsx';
 import { EditorSection } from './EditorSection.tsx';
 import { RoundDialog } from './RoundDialog.tsx';
 import { RoundHeading } from './RoundHeading.tsx';
@@ -11,7 +11,6 @@ import { nextRound, withoutRound } from './utils.ts';
 import type {
   Championship, SeriesAvailability, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
-import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { moveAt, moveTo } from '@/screens/race';
@@ -129,20 +128,15 @@ export const CalendarCard = ({
       )}
 
       <div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="border-dashed"
+        <AddButton
+          label={t('editor.calendar.add')}
+          className="h-8 px-3"
           disabled={locked}
           onClick={() => {
             const round = nextRound(series);
             setOpen({ round: round.id, tab: 'basics', adding: { ...series, rounds: [...rounds, round] } });
           }}
-        >
-          <PlusIcon />
-          {t('editor.calendar.add')}
-        </Button>
+        />
       </div>
 
       {/* Mounted only while open, so its copy of the championship seeds afresh. */}

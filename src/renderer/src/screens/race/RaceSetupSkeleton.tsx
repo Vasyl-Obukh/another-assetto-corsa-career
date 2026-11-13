@@ -80,7 +80,7 @@ export const RaceSetupSkeleton = () => {
               <Shimmer className="h-12 w-full rounded-lg" />
               <Shimmer className="h-10 w-full rounded-lg" />
               <Shimmer className="h-10 w-full rounded-lg" />
-              <span className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-dashed text-sm font-medium text-muted-foreground">
+              <span className="flex h-8 items-center justify-center gap-2 rounded-lg border border-dashed text-sm font-medium text-muted-foreground">
                 <PlusIcon className="size-4" />
                 {t('editor.sessions.add')}
               </span>

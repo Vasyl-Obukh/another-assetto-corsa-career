@@ -92,7 +92,7 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
         seat('aot-1', 'aotearoa', 'Blair McKellar', 'NZL'),
         seat('aot-2', 'aotearoa', 'Ethan Waitoa', 'NZL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM, minModels: 3 },
+      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
     },
   ],
   eventFormats: [

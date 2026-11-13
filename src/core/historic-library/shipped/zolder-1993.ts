@@ -46,7 +46,6 @@ export const ZOLDER_1993: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.DTM_1993,
-        minModels: 1,
       },
     },
   ],

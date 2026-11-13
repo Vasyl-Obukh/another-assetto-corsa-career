@@ -97,7 +97,7 @@ export const FORMULA_2_2017: Championship = {
         seat('cos-1', 'costa-azul', 'Duarte Meireles', 'PRT'),
         seat('cos-2', 'costa-azul', 'Tomás Albergaria', 'PRT'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2017, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_2_2017 },
     },
   ],
   eventFormats: [EVENT],

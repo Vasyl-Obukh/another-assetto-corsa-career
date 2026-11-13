@@ -84,7 +84,7 @@ export const FORMULA_1_1997: Championship = {
         seat('minardi-trulli', 'minardi', 'Jarno Trulli', 'ITA'),
         seat('sauber-larini', 'sauber', 'Nicola Larini', 'ITA'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1997, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1997 },
     },
   ],
   eventFormats: [EVENT],

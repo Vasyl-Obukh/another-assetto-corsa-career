@@ -101,7 +101,7 @@ export const FORMULA_3_2024: Championship = {
         seat('sou-2', 'southern-cross', 'Jack Rutherglen', 'NZL'),
         seat('sou-3', 'southern-cross', 'Ruben Takerei', 'NZL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_3, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_3 },
     },
   ],
   eventFormats: [EVENT],

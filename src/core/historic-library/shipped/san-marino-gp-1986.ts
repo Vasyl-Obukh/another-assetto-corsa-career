@@ -63,7 +63,6 @@ export const SAN_MARINO_GP_1986: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1986,
-        minModels: 1,
       },
     },
   ],

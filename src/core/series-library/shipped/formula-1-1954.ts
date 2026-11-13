@@ -77,7 +77,7 @@ export const FORMULA_1_1954: Championship = {
         seat('sch-schell', 'ecurie-schell', 'Harry Schell', 'USA'),
         seat('gor-pilette', 'gordini', 'André Pilette', 'BEL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1954, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_1954 },
     },
   ],
   eventFormats: [EVENT],

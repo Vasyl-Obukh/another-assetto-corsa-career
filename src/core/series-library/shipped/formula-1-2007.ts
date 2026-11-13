@@ -101,7 +101,7 @@ export const FORMULA_1_2007: Championship = {
         seat('spyker-sutil', 'spyker', 'Adrian Sutil', 'DEU'),
         seat('spyker-albers', 'spyker', 'Christijan Albers', 'NLD'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2007, minModels: 1 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_1_2007 },
     },
   ],
   eventFormats: [EVENT],

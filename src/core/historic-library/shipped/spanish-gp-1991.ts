@@ -63,7 +63,6 @@ export const SPANISH_GP_1991: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1991,
-        minModels: 1,
       },
     },
   ],

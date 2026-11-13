@@ -3,17 +3,19 @@ import { useState } from 'react';
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
-  DEFAULT_CLASS_SEATS, MAX_CLASS_SEATS, MIN_TIER,
+  DEFAULT_CLASS_SEATS, MAX_CLASS_SEATS,
 } from './constants.ts';
 import { EditorDialog } from './EditorDialog.tsx';
+import { EligibilityField } from './EligibilityField.tsx';
 import { OffsetStepper } from './OffsetStepper.tsx';
 import { RuleHeading } from './RuleHeading.tsx';
 import { RungPicker } from './RungPicker.tsx';
 import { startingSeats } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
-import type { Championship, ClassEntry, Discipline } from '../../../../shared/types';
+import type {
+  Championship, ClassEntry, Discipline, Eligibility,
+} from '../../../../shared/types';
 import { useClasses } from '@/app';
-import { SpecField } from '@/components';
 import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -42,6 +44,12 @@ interface ClassDialogProps {
    */
   locked: boolean;
   /**
+   * Names a car, for the ones the library could resolve.
+   * @param car The car folder ID
+   * @returns What to show for it
+   */
+  nameOf: (car: string) => string;
+  /**
    * Called with the class as edited.
    * @param next The class entry
    */
@@ -54,20 +62,25 @@ interface ClassDialogProps {
 
 /**
  * A class's name, discipline and rung - and, for a new one, what it starts
- * with: a grid of cars and a number of seats, so it is never born with nothing
- * to race.
+ * with: its cars, a spec or a list, and a number of seats, so it is never born
+ * with nothing to race.
  */
 export const ClassDialog = ({
-  series, entry, adding, locked, onConfirm, onCancel,
+  series, entry, adding, locked, nameOf, onConfirm, onCancel,
 }: ClassDialogProps) => {
   const { t } = useKindTranslation();
   const { catalogue } = useClasses();
   const [draft, setDraft] = useState(entry);
-  const [spec, setSpec] = useState<string>(() => catalogue.specById.keys().next().value ?? '');
+  const [eligibility, setEligibility] = useState<Eligibility>(() => {
+    const first = catalogue.specById.keys().next().value;
+    return first === undefined ? entry.eligibility : { kind: 'spec', spec: first };
+  });
   const [seats, setSeats] = useState(DEFAULT_CLASS_SEATS);
   const [teamsFrom, setTeamsFrom] = useState<string>(NOT_SET);
   const name = useFocusOnMount<HTMLInputElement>();
   const idPrefix = `entry-${entry.id}`;
+  // A list with nothing on it would start the class with nothing to race.
+  const incomplete = adding && eligibility.kind === 'cars' && eligibility.cars.length === 0;
 
   /**
    * The class as it will be written: a new one given its cars and its seats.
@@ -79,7 +92,7 @@ export const ClassDialog = ({
 
     return {
       ...draft,
-      eligibility: spec === '' ? draft.eligibility : { kind: 'spec', spec },
+      eligibility,
       seats: startingSeats(series, draft.id, seats, source?.seats.map((seat) => seat.team) ?? []),
     };
   };
@@ -89,8 +102,10 @@ export const ClassDialog = ({
       caption={adding ? t('editor.entries.new') : undefined}
       title={adding ? t('editor.entries.adding', { name: series.name }) : draft.name}
       description={adding ? undefined : t('editor.entries.formHint')}
+      note={incomplete ? t('editor.entries.needsCar') : undefined}
       confirmLabel={adding ? t('editor.entries.add') : t('editor.save')}
       locked={locked}
+      incomplete={incomplete}
       className="sm:max-w-3xl"
       onConfirm={() => onConfirm(confirmed())}
       onCancel={onCancel}
@@ -122,10 +137,9 @@ export const ClassDialog = ({
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium">{t('editor.entries.rung')}</span>
         <RungPicker
-          idPrefix={idPrefix}
           tier={draft.ladder.tier}
           disabled={locked}
-          onChange={(tier) => setDraft({ ...draft, ladder: { ...draft.ladder, tier: Math.max(MIN_TIER, tier) } })}
+          onChange={(tier) => setDraft({ ...draft, ladder: { ...draft.ladder, tier } })}
         />
         <span className="text-xs text-muted-foreground">{t('editor.entries.tierHint')}</span>
       </div>
@@ -133,10 +147,15 @@ export const ClassDialog = ({
       {adding ? (
         <>
           <RuleHeading>{t('editor.entries.startWith')}</RuleHeading>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field id={`${idPrefix}-spec`} label={t('editor.entries.startCars')} hint={t('editor.entries.startCarsHint')}>
-              <SpecField id={`${idPrefix}-spec`} value={spec} disabled={locked} onChange={setSpec} />
-            </Field>
+          <EligibilityField
+            idPrefix={idPrefix}
+            eligibility={eligibility}
+            locked={locked}
+            nameOf={nameOf}
+            pictureSpec={false}
+            onChange={setEligibility}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field id={`${idPrefix}-seats`} label={t('editor.entries.startSeats')} hint={t('editor.entries.startSeatsHint')}>
               <OffsetStepper
                 id={`${idPrefix}-seats`}

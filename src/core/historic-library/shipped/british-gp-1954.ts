@@ -51,7 +51,6 @@ export const BRITISH_GP_1954: Championship = {
       eligibility: {
         kind: 'spec',
         spec: CarSpec.FORMULA_1_1954,
-        minModels: 1,
       },
     },
   ],

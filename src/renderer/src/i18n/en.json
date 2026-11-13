@@ -1246,7 +1246,7 @@
     "mods": "Mod teams and redistributors",
     "modsHint": "Third-party cars and tracks the catalogue recognises.",
     "modsFooter": "A source switched off hides the championships whose cars need it. Rounds at its circuits are only skipped - the season still runs without them.",
-    "specHint": "A championship that only races a spec stays offered while enough of its grid is left.",
+    "specHint": "A championship that only races a spec stays offered while any car of its grid is left.",
     "neededBy_one": "Needed by {{shown}} championship",
     "neededBy_other": "Needed by {{shown}} championships",
     "neededByNone": "No championship needs it",
@@ -1408,12 +1408,10 @@
       "listLine_one": "{{count}} seat · {{cars}}",
       "listLine_other": "{{count}} seats · {{cars}}",
       "rung": "Rung of the ladder",
-      "deeper": "or tier",
       "new": "New class",
       "adding": "Add a class to {{name}}",
       "startWith": "Start it with",
-      "startCars": "Cars",
-      "startCarsHint": "A catalogued grid. A list of cars is on its Cars tab.",
+      "needsCar": "Pick a car to start the class with.",
       "startSeats": "Seats",
       "startSeatsHint": "Empty seats, drawn each season",
       "teamsFrom": "Teams from",
@@ -1428,14 +1426,10 @@
       "spec": "Spec",
       "cars": "List",
       "specLabel": "Spec",
-      "minModels": "Models needed",
-      "minModelsHint": "How many distinct models must be installed before the class can be raced. One model is a field of clones rather than the championship.",
       "noCars": "No cars named yet. A class that names none cannot be raced.",
       "addCar": "Add a car",
       "removeCar": "Take {{car}} off the list",
-      "notInstalled": "Not installed",
-      "minModelsOf_one": "Of {{count}} model in {{spec}}.",
-      "minModelsOf_other": "Of {{count}} models in {{spec}}."
+      "notInstalled": "Not installed"
     },
     "bop": {
       "ballastShort": "Ballast kg",
@@ -1756,7 +1750,6 @@
       "add": "Add day {{number}}",
       "empty": "Nothing runs on this day yet. Drag a session here or click to add one.",
       "menu": "More for day {{number}}",
-      "most": "Three days - the most an event spans",
       "remove": "Remove the day, moving its sessions onto the day before",
       "removeFirst": "Remove the day, moving its sessions onto the day after"
     },
@@ -2720,9 +2713,6 @@
           "prizesHint": "What this class pays, in place of the event's own prize money. A multi-class grid pays its classes differently; classes sharing a purse leave both tables empty.",
           "prizesShared": "Pays what the event pays.",
           "startSeatsHint": "Empty seats, drawn each time it is raced"
-        },
-        "eligibility": {
-          "minModelsHint": "How many distinct models must be installed before the class can be raced. One model is a field of clones rather than the event."
         },
         "roundEligibility": {
           "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list stays the event's."

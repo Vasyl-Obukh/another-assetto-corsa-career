@@ -11,7 +11,7 @@ import type {
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
-  aiSeats, baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor, minModelsOf,
+  aiSeats, baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor,
   nationOf, raceLengths, raceWeekdayOf, requirementsOf, roundRaceId, roundSessions, runRaceId, seatDraw, seatSkin,
   validateFormat, validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
@@ -387,35 +387,6 @@ describe('core/series/utils', () => {
     });
   });
 
-  describe('minModelsOf', () => {
-    /**
-     * The catalogue of a user whose spec holds the given cars.
-     * @param cars The cars they put in it
-     * @returns The resolved catalogue
-     */
-    const holding = (cars: string[]) => resolveCatalogue({
-      version: 1,
-      classes: [{ id: 'user-class', name: 'Hillclimb' }],
-      specs: [{ id: 'user-spec', name: 'Hillclimb (2020s)', class: 'user-class' }],
-      cars: Object.fromEntries(cars.map((car) => [car, ['user-spec']])),
-    });
-
-    it('needs every car a car list names', () => {
-      expect(minModelsOf({ kind: 'cars', cars: ['a', 'b'] }, SHIPPED_CATALOGUE)).toBe(2);
-    });
-
-    it('needs no more of a spec than its grid holds', () => {
-      expect(minModelsOf({ kind: 'spec', spec: 'user-spec', minModels: 5 }, holding(['a', 'b']))).toBe(2);
-    });
-
-    // A spec the user emptied, or one this catalogue lacks, would otherwise be
-    // satisfied by owning nothing and read as raceable.
-    it('needs at least one car of a spec with nobody on its grid', () => {
-      expect(minModelsOf({ kind: 'spec', spec: 'user-spec' }, holding([]))).toBe(1);
-      expect(minModelsOf({ kind: 'spec', spec: 'ghost-spec' }, SHIPPED_CATALOGUE)).toBe(1);
-    });
-  });
-
   describe('eligibleCars', () => {
     it('resolves a spec through the catalogue it is handed, skipping cars not installed', () => {
       const catalogue = resolveCatalogue({
@@ -754,18 +725,18 @@ describe('core/series/utils', () => {
 
     it('records what a spec only reaches as widening it rather than as needed', () => {
       const catalogue = specOf(['abarth500', 'abarth500_s1', 'bmw_1m', 'ks_audi_r8_lms_2016']);
-      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 3 }), catalogue);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec' }), catalogue);
 
       expect(requires.packs).toEqual([]);
       expect(requires.widenedBy.packs).toEqual([DLCPack.READY_TO_RACE]);
       expect(requires.sources).toEqual([ContentSource.BASE]);
-      expect(requires.pools).toEqual([{ minModels: 3, cars: expect.any(Array) }]);
+      expect(requires.pools).toEqual([{ cars: expect.any(Array) }]);
       expect(requires.pools[0].cars).toHaveLength(4);
     });
 
-    it('needs a source the spec cannot keep its floor without', () => {
-      const catalogue = specOf(['abarth500', 'rss_formula_2000', 'rss_formula_2010']);
-      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+    it('needs a source the spec cannot be raced without', () => {
+      const catalogue = specOf(['rss_formula_2000', 'rss_formula_2010']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec' }), catalogue);
 
       expect(requires.makers).toEqual([ModMaker.RSS]);
       expect(requires.widenedBy.makers).toEqual([]);
@@ -795,7 +766,7 @@ describe('core/series/utils', () => {
         ...base,
         rounds: [{
           ...base.rounds[0],
-          eligibility: [{ entry: 'main', eligibility: { kind: 'spec', spec: 'user-spec', minModels: 1 } }],
+          eligibility: [{ entry: 'main', eligibility: { kind: 'spec', spec: 'user-spec' } }],
         }],
       };
 
@@ -813,16 +784,16 @@ describe('core/series/utils', () => {
 
     it('records a redistributor a spec only reaches as widening it', () => {
       const catalogue = specOf(['abarth500', 'bmw_1m', 'alpine_a424']);
-      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec' }), catalogue);
 
       expect(requires.distributors).toEqual([]);
       expect(requires.widenedBy.distributors).toEqual([ModDistributor.LFM]);
       expect(requires.pools[0].cars).toContainEqual({ pack: null, maker: null, distributor: ModDistributor.LFM });
     });
 
-    it('needs a redistributor the spec cannot keep its floor without', () => {
-      const catalogue = specOf(['abarth500', 'alpine_a424', 'bmw_m_hybrid_v8_2023']);
-      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec', minModels: 2 }), catalogue);
+    it('needs a redistributor the spec cannot be raced without', () => {
+      const catalogue = specOf(['alpine_a424', 'bmw_m_hybrid_v8_2023']);
+      const requires = requirementsOf(racing({ kind: 'spec', spec: 'user-spec' }), catalogue);
 
       expect(requires.distributors).toEqual([ModDistributor.LFM]);
       expect(requires.widenedBy.distributors).toEqual([]);

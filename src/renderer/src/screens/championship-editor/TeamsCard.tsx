@@ -1,6 +1,4 @@
-import { PlusIcon } from 'lucide-react';
-
-
+import { AddButton } from './AddButton.tsx';
 import { ROW_SCOPE } from './constants.ts';
 import { EditorSection } from './EditorSection.tsx';
 import { TeamDialog } from './TeamDialog.tsx';
@@ -95,15 +93,12 @@ export const TeamsCard = ({
           />
         ))}
 
-        <button
-          type="button"
-          className="flex min-h-16 items-center justify-center gap-2 rounded-lg border border-dashed text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+        <AddButton
+          label={t('editor.teams.add')}
+          className="min-h-16"
           disabled={locked || !rows.editable}
           onClick={() => rows.add(ROW_SCOPE.TEAMS)}
-        >
-          <PlusIcon className="size-4" />
-          {t('editor.teams.add')}
-        </button>
+        />
       </div>
 
       {/* Mounted only while open, so each seeds its draft afresh. */}

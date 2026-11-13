@@ -29,15 +29,6 @@ export const MAX_EVENT_DAYS = 3;
 export const MIN_REVERSED = 2;
 
 /**
- * How many distinct models a spec needs installed before it is raceable.
- *
- * A spec is a grid, so it is satisfied by whichever of it the user owns - but
- * one installed model is a field of clones rather than the championship, which
- * is a different thing from the series being available.
- */
-export const DEFAULT_MIN_MODELS = 3;
-
-/**
  * Which revision of the series schema this build reads.
  *
  * A championship declaring anything else is refused rather than guessed at: a
