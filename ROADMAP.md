@@ -2894,15 +2894,27 @@ proof that no layer below learned what a series is.
       its own. Edit price, in Your content alone, shows the rent and repaint a
       price comes to, the suggestion and the listed cars nearest it. Kept in
       `settings.carPrices`; a car already bought sells and repaints on what
-      was paid
+      was paid - a sale since only for selling: a repaint is on the price it
+      was listed at when bought
 - [x] **Store page**: the car browser with every card closing on its price
-      and its rent a round, Purchase on the card and the row, a price sort,
+      - its rent is the table's and the Enter panel's to say - Purchase on the card and the row, a price sort,
       a logarithmic price range and switches for what the career owns and
       can afford. The livery is picked, then the purchase confirmed. Tracks
       left a career's navigation: the track browser is only ever a picker
+- [x] **A weekly car sale**, on the career's own calendar, Monday to Sunday:
+      a Deal of the week at 50-70% off and 5-7% of the library at 20-50%,
+      drawn at random from every car the career does not own, seeded on the
+      career and the week and kept on `CareerState.sale` as drawn. Only the
+      purchase is discounted - rent stays on the listed price - and backing
+      pays half of the sale price. The Store leads with the Deal of the week
+      as a banner while nothing but On sale narrows the list, every car on sale wears its
+      discount on its picture and its sale price over the struck listed one,
+      This week's **On sale** switch keeps them alone and a Discount sort
+      orders them; the car page, the purchase dialog, every picker and the
+      ledger's Car bought line say the same. Nothing announces a new week
 - [x] Buy, sell and own cars. One per model, in a livery the player picks;
       **the Garage** is the car browser over them. A repaint costs 1.5% of the
-      price and reaches every round still to come at once. Selling pays the
+      price it was listed at when bought and reaches every round still to come at once. Selling pays the
       price on the day it was bought, 7.5% a year less, a day at a time, never
       under 70%; it is refused while a round is under way in the car, and
       otherwise the rounds left are raced rented. The AI field's liveries no

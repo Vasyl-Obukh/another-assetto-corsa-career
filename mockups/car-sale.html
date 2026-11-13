@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car sale</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The sale family is the one
+   proposal, and says where its hue sits. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --border: oklch(0.885 0.01 255);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.01 155);
+  --success-soft: oklch(0.93 0.05 155); --success-soft-fg: oklch(0.34 0.09 155);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27); --destructive-soft-fg: oklch(0.45 0.17 27);
+  --base: oklch(0.93 0.05 155); --base-fg: oklch(0.36 0.09 155);
+  --dlc: oklch(0.94 0.07 75); --dlc-fg: oklch(0.42 0.1 70);
+  --owned: oklch(0.92 0.06 340); --owned-fg: oklch(0.4 0.13 340);
+  --sponsor: oklch(0.93 0.05 350); --sponsor-fg: oklch(0.43 0.15 352);
+  --scrim: oklch(0.14 0.012 265); --on-scrim: oklch(0.98 0.004 260);
+}
+/* Proposed: a tag orange on 45 - the hue every price tag wears.
+   Clear of can't-afford's red 27 by 18 degrees and of chroma: the chip is a
+   pale orange, the refusal an outlined red, and the two sit on different rows
+   of a card. Bronze 52 and Sell's amber 62 are near it, and neither shows on a
+   car that is for sale. */
+:root[data-hue="orange"] {
+  --sale: oklch(0.93 0.06 45); --sale-fg: oklch(0.47 0.15 42);
+  --sale-solid: oklch(0.66 0.17 45); --sale-solid-fg: oklch(0.99 0.01 45);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --border: oklch(1 0 0 / 12%);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.18 0.03 158);
+  --success-soft: oklch(0.32 0.06 155); --success-soft-fg: oklch(0.86 0.11 155);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-soft: oklch(0.32 0.07 27); --destructive-soft-fg: oklch(0.86 0.09 27);
+  --base: oklch(0.32 0.06 155); --base-fg: oklch(0.86 0.11 155);
+  --dlc: oklch(0.34 0.06 75); --dlc-fg: oklch(0.88 0.1 80);
+  --owned: oklch(0.33 0.07 340); --owned-fg: oklch(0.86 0.09 340);
+  --sponsor: oklch(0.33 0.07 350); --sponsor-fg: oklch(0.87 0.09 352);
+}
+:root[data-theme="dark"][data-hue="orange"] {
+  --sale: oklch(0.34 0.07 45); --sale-fg: oklch(0.87 0.1 50);
+  --sale-solid: oklch(0.7 0.16 48); --sale-solid-fg: oklch(0.18 0.03 45);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: oklch(0.9 0.008 255); color: var(--foreground); font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+:root[data-theme="dark"] body { background: oklch(0.12 0.01 265); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.caps { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.row { display: flex; align-items: center; gap: 8px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.end { margin-left: auto; }
+s.was { color: var(--muted-foreground); text-decoration-thickness: 1px; font-weight: 500; }
+.new-outline { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 2px; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 16px; background: oklch(0.16 0.01 260); color: oklch(0.965 0.007 250); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid oklch(1 0 0 / 25%); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: oklch(0.965 0.007 250); color: oklch(0.16 0.01 260); }
+.why { max-width: 1320px; margin: 16px auto 0; padding: 0 24px; font-size: 13.5px; }
+.why .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
+.why h2 { margin: 0 0 6px; font-size: 15px; }
+.why h3 { margin: 12px 0 4px; font-size: 13.5px; }
+.why ul { margin: 4px 0 0; padding-left: 18px; }
+.why li { margin: 2px 0; }
+.why .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.why .q { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.why .q b { color: var(--primary); }
+.why .vnote { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--muted); }
+.stage { max-width: 1320px; margin: 14px auto 60px; padding: 0 24px; }
+
+/* ---------- The app window ---------- */
+.win { position: relative; height: 1080px; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border-radius: 12px; box-shadow: 0 0 0 1px oklch(0 0 0 / .12), 0 18px 50px oklch(0 0 0 / .18); }
+.titlebar { height: 30px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 14px; font-size: 11px; color: var(--muted-foreground); background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar span:first-child { margin-right: auto; }
+.hd { flex: none; display: flex; align-items: center; gap: 22px; padding: 12px 28px; border-bottom: 1px solid var(--border); background: var(--background); position: relative; z-index: 5; }
+.slotbtn { display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; flex: none; }
+.slotbtn b { display: block; font-size: 13.5px; line-height: 1.2; white-space: nowrap; }
+.slotbtn small { display: block; font-size: 11.5px; color: var(--muted-foreground); white-space: nowrap; }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.nav a.on { color: var(--primary); background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.nav .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--primary); color: var(--primary-foreground); font-size: 11px; font-weight: 600; display: inline-grid; place-items: center; }
+.nav .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--sale-solid); box-shadow: 0 0 0 2px var(--background); }
+.bal { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.bal .i { color: var(--success); }
+.flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); }
+.body { flex: 1; min-height: 0; overflow: auto; position: relative; }
+.shdr { display: flex; align-items: center; gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--border); flex: none; background: var(--background); }
+.shdr h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.backlink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+.chip .i { width: 12px; height: 12px; }
+.c-base { background: var(--base); color: var(--base-fg); }
+.c-dlc { background: var(--dlc); color: var(--dlc-fg); }
+/* A spec name - a catalogue name, neutral on purpose. */
+.c-plain { background: var(--muted); color: var(--foreground); }
+.c-sale { background: var(--sale); color: var(--sale-fg); font-weight: 650; }
+.c-dotw { background: var(--sale-solid); color: var(--sale-solid-fg); font-weight: 650; }
+.c-sponsor { background: var(--sponsor); color: var(--sponsor-fg); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
+.btn.lg { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn.go { background: var(--success); color: var(--success-foreground); border-color: transparent; }
+.btn.cant { background: var(--destructive-soft); color: var(--destructive); border-color: color-mix(in oklch, var(--destructive) 30%, transparent); cursor: not-allowed; }
+/* TradeButton's Repaint and Sell, as TRADE_BUTTON fills them. */
+.btn.paint { background: linear-gradient(90deg, oklch(0.58 0.2 345), oklch(0.54 0.2 295), oklch(0.56 0.14 225)); color: white; border-color: transparent; }
+.btn.sellb { background: oklch(0.6 0.15 62); color: oklch(0.985 0.005 62); border-color: transparent; }
+.c-owned { background: var(--owned); color: var(--owned-fg); }
+.swatch { width: 14px; height: 14px; border-radius: 4px; background: linear-gradient(135deg, oklch(0.6 0.2 25), oklch(0.85 0.01 260)); box-shadow: 0 0 0 1px var(--border); }
+.btn.pri { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.placeholder { border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted-foreground); font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.placeholder b { color: var(--foreground); font-weight: 600; font-size: 13px; }
+.switch { width: 34px; height: 20px; border-radius: 99px; background: var(--muted); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--border); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px oklch(0 0 0 / .3); }
+.switch.on { background: var(--primary); box-shadow: none; }
+.switch.on::after { left: 17px; }
+
+/* ---------- The car browser, as CarBrowserBody lays it out ---------- */
+.browser { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 100%; }
+.rail { border-right: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; }
+.rsec { padding: 10px 0 8px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.rsec .caps { padding: 0 2px 2px; }
+.rsw { display: flex; align-items: center; gap: 10px; font-size: 13px; padding: 3px 2px; cursor: pointer; }
+.rsw > span:first-child { flex: 1; }
+.rsw small { display: block; font-size: 11.5px; color: var(--muted-foreground); }
+.rfold { padding: 9px 2px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; }
+.rfold::after { content: '+'; margin-left: auto; color: var(--muted-foreground); }
+.main { padding: 18px 24px 30px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ph h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.015em; }
+.ph p { margin: 2px 0 0; color: var(--muted-foreground); font-size: 13.5px; }
+.toolbar { display: flex; align-items: center; gap: 8px; }
+.search { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--muted-foreground); font-size: 13px; }
+.count { font-size: 12.5px; color: var(--muted-foreground); }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+
+/* CarCard + PriceFoot */
+.cc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.cc .pic { position: relative; flex: none; aspect-ratio: 4 / 3; background: var(--scrim); overflow: hidden; }
+.cc .pic img.p { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cc .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, oklch(0.14 0.012 265 / .85)); }
+.cc .tl { position: absolute; top: 8px; left: 8px; right: 54px; display: flex; flex-wrap: wrap; gap: 4px; z-index: 1; }
+.cc .tr { position: absolute; top: 8px; right: 8px; z-index: 1; }
+.cc .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 99px; padding: 2px 8px; font-size: 11.5px; font-weight: 500; background: oklch(0.14 0.012 265 / .6); color: var(--on-scrim); }
+.cc .pill .i { width: 12px; height: 12px; }
+.cc .cap { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; color: var(--on-scrim); }
+.cc .cap .ov { display: flex; align-items: center; gap: 6px; font-size: 11.5px; opacity: .9; }
+.cc .cap .nm { font-size: 15px; font-weight: 650; line-height: 1.2; margin-top: 2px; }
+.cc .bd { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.fig { display: flex; gap: 10px; font-size: 12px; color: var(--muted-foreground); }
+.fig b { color: var(--foreground); font-weight: 600; }
+.raced { font-size: 12px; color: var(--muted-foreground); display: flex; gap: 5px; align-items: center; margin-top: auto; }
+.raced .i { width: 13px; height: 13px; }
+.pf { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--muted); min-height: 60px; }
+.pf b { font-size: 17px; font-weight: 650; line-height: 1.15; }
+.pf b.dim { color: var(--muted-foreground); }
+.pf small { font-size: 12px; color: var(--muted-foreground); }
+.pf .was { font-size: 12px; }
+.pf.own { background: var(--owned); color: var(--owned-fg); }
+.pf.own small { color: inherit; opacity: .75; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.pf.own b { font-size: 15px; }
+
+/* Variant A: the Deal of the week as a banner over the grid */
+.dotw { display: grid; grid-template-columns: 420px minmax(0, 1fr); background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 2px var(--sale-solid); }
+.dotw .dpic { position: relative; background: var(--scrim); min-height: 236px; }
+.dotw .dpic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dotw .dpic .tl { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; }
+.dotw .db { padding: 18px 22px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.dotw h3 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.dotw .ov { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.dotw .buy { margin-top: auto; display: flex; align-items: flex-end; gap: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.dotw .buy b { font-size: 30px; font-weight: 650; letter-spacing: -.02em; line-height: 1; }
+.dotw .buy small { font-size: 12.5px; color: var(--muted-foreground); }
+
+/* ---------- Car page ---------- */
+.cp { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; padding: 18px 28px; align-items: start; }
+.cp .hero { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: var(--scrim); position: relative; }
+.cp .hero img { width: 100%; height: 100%; object-fit: cover; }
+.tp { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.tp .big { font-size: 30px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+
+/* ---------- Dialogs ---------- */
+.scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .45); display: grid; place-items: center; z-index: 30; }
+.dlg { width: 520px; background: var(--card); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px oklch(0 0 0 / .35); border: 1px solid var(--border); }
+.dlg.wide { width: 980px; max-height: 760px; }
+.dlg h3 { margin: 0; font-size: 17px; font-weight: 650; }
+.dlg p { margin: 0; font-size: 13.5px; color: var(--muted-foreground); }
+.dlg .ppic { aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: var(--scrim); }
+.dlg .ppic img { width: 100%; height: 100%; object-fit: cover; }
+.dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; font-size: 13.5px; }
+.dl dt { color: var(--muted-foreground); display: flex; align-items: center; gap: 6px; }
+.dl dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dl .pos { color: var(--success); }
+.swt { display: flex; align-items: center; gap: 14px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+.swt .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.swt b { font-size: 13.5px; font-weight: 500; }
+.swt small { font-size: 12px; color: var(--muted-foreground); }
+.dfoot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+
+/* ---------- Finances ---------- */
+.ledger { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ledger th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted-foreground); padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.ledger td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ledger td.amt { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.neg { color: var(--destructive); }
+.posn { color: var(--success); }
+
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why"><div class="box" id="why"></div></div>
+<div class="stage" id="stage"></div>
+
+<script>
+const AC = 'file:///D:/SteamLibrary/steamapps/common/assettocorsa/content/';
+const P = (d) => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
+const I = {
+  home: P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  mail: P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
+  cal: P('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  trophy: P('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4"/>'),
+  race: P('<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>'),
+  store: P('<path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/>'),
+  garage: P('<path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/>'),
+  gear: P('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
+  wallet: P('<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/>'),
+  down: P('<path d="m6 9 6 6 6-6"/>'),
+  back: P('<path d="m15 18-6-6 6-6"/>'),
+  search: P('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  sort: P('<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>'),
+  gridv: P('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+  brush: P('<path d="M18 3 9 12l3 3 9-9z"/><path d="M9 12c-3 0-5 2-5 5 0 1-1 2-2 2 2 2 7 2 9-1 1-1.5 1-3 1-3"/>'),
+  lock: P('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  tag: P('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/>'),
+  pct: P('<path d="M12 2.5 14.6 5l3.5-.3.6 3.4 3 1.9-1.6 3.1 1.6 3.1-3 1.9-.6 3.4-3.5-.3L12 21.5 9.4 19l-3.5.3-.6-3.4-3-1.9L3.9 12 2.3 8.9l3-1.9.6-3.4 3.5.3z"/><path d="m9 15 6-6"/><circle cx="9.5" cy="9.5" r=".6"/><circle cx="14.5" cy="14.5" r=".6"/>'),
+  spark: P('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>'),
+  chev: P('<path d="m9 6 6 6-6 6"/>'),
+  more: P('<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>'),
+  inboxI: P('<path d="M3 13h5l1 3h6l1-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/>'),
+};
+const flag = (c) => `<img class="flag" src="${AC}gui/NationFlags/${c}.png" alt="" onerror="this.remove()">`;
+const chip = (cls, t) => `<span class="chip ${cls}">${t}</span>`;
+const money = (n) => `$${Math.round(Math.abs(n)).toLocaleString('en-US')}`;
+const PREV = (car, skin) => `${AC}cars/${car}/skins/${skin}/preview.jpg`;
+const img = (c, cls = 'p') => `<img class="${cls}" src="${PREV(c.id, c.skin)}" alt="" onerror="this.style.visibility='hidden'">`;
+
+// ---------- The career: Wed 10 Mar 2027, the week of Mon 8 - Sun 14 Mar ----------
+const BAL = 171400;
+const UNTIL = 'Until Sun 14 Mar';
+// Each car at its listed price. `off` is this week's discount, `dotw` the Deal of the week.
+const CARS = [
+  { id: 'ks_porsche_cayman_gt4_clubsport', src: 'dlc', liveries: 20, skin: '02_cup_01', livery: 'Cup #01', name: 'Porsche Cayman GT4 Clubsport', brand: 'Porsche', nat: 'DEU', year: 2016, spec: 'GT4 2010s', bhp: 385, kg: 1300, price: 100000, raced: 'GT4 European Series and 4 more', off: 38, dotw: true, back: true },
+  { id: 'ks_bmw_m235i_racing', src: 'base', liveries: 12, skin: '00_racing_1', name: 'BMW M235i Racing', brand: 'BMW', nat: 'DEU', year: 2014, spec: 'VLN Cup', bhp: 333, kg: 1230, price: 50000, raced: 'BMW M235i Racing Cup', off: 15 },
+  { id: 'ferrari_f40', src: 'base', liveries: 1, skin: '01_red', name: 'Ferrari F40', brand: 'Ferrari', nat: 'ITA', year: 1987, spec: 'Supercar 80s', bhp: 478, kg: 1100, price: 3300000, raced: 'No championship races it yet', off: 17 },
+  { id: 'ks_audi_r18_etron_quattro', src: 'dlc', liveries: 2, skin: '00_lm1', name: 'Audi R18 e-tron quattro 2014', brand: 'Audi', nat: 'DEU', year: 2014, spec: 'LMP1 Hybrid 2014', bhp: 540, kg: 870, price: 2500000, raced: '1 championship', off: 20 },
+  { id: 'ferrari_laferrari', src: 'base', liveries: 6, skin: '00_rosso_scuderia', name: 'Ferrari LaFerrari', brand: 'Ferrari', nat: 'ITA', year: 2013, spec: 'Hypercar 2010s', bhp: 950, kg: 1255, price: 4000000, raced: 'No championship races it yet', off: 12 },
+  { id: 'ks_mclaren_p1', src: 'dlc', liveries: 9, skin: '0_mclaren_orange', name: 'McLaren P1', brand: 'McLaren', nat: 'GBR', year: 2013, spec: 'Hypercar 2010s', bhp: 903, kg: 1395, price: 1150000, raced: 'No championship races it yet' },
+  { id: 'ks_mazda_mx5_cup', src: 'base', liveries: 17, skin: '02_cup_23', name: 'Mazda MX-5 Cup', brand: 'Mazda', nat: 'JPN', year: 2016, spec: 'MX-5 Cup', bhp: 155, kg: 1050, price: 59000, raced: 'MX-5 Cup and 2 more', owned: ['Cup #23', 53100] },
+  { id: 'ks_maserati_gt_mc_gt4', src: 'dlc', liveries: 16, skin: '01_racing_12', name: 'Maserati GranTurismo MC GT4', brand: 'Maserati', nat: 'ITA', year: 2016, spec: 'GT4 2010s', bhp: 430, kg: 1400, price: 96000, raced: 'GT4 European Series and 4 more', off: 20 },
+  { id: 'ks_porsche_911_gt3_cup_2017', src: 'dlc', liveries: 22, skin: '02_racing_917', name: 'Porsche 911 GT3 Cup 2017', brand: 'Porsche', nat: 'DEU', year: 2017, spec: 'Carrera Cup 991', bhp: 485, kg: 1200, price: 190000, raced: 'Porsche Supercup and 3 more' },
+  { id: 'bmw_z4_gt3', src: 'base', liveries: 12, skin: '0_bmw_motorsport_2013_black', name: 'BMW Z4 GT3', brand: 'BMW', nat: 'DEU', year: 2013, spec: 'GT3 2010s', bhp: 515, kg: 1230, price: 190000, raced: 'ADAC GT Masters and 5 more', off: 12 },
+  { id: 'ks_audi_r8_lms_2016', src: 'dlc', liveries: 24, skin: '00_racing_06', name: 'Audi R8 LMS 2016', brand: 'Audi', nat: 'DEU', year: 2016, spec: 'GT3 2010s', bhp: 585, kg: 1225, price: 280000, raced: 'ADAC GT Masters and 6 more', off: 22 },
+  { id: 'ks_ferrari_488_gt3', src: 'dlc', liveries: 22, skin: '00_rosso_scuderia', name: 'Ferrari 488 GT3', brand: 'Ferrari', nat: 'ITA', year: 2016, spec: 'GT3 2010s', bhp: 600, kg: 1260, price: 320000, raced: 'ADAC GT Masters and 6 more' },
+];
+// The sale price, to the nearest hundred.
+const now = (c) => (c.off ? Math.round((c.price * (1 - c.off / 100)) / 100) * 100 : c.price);
+const DOTW = CARS.find((c) => c.dotw);
+const ON_SALE = 27; // 5-7% of 412, drawn
+
+// ---------- State ----------
+const S = { screen: 'store', view: 'none', price: 'under', theme: 'light', backed: false };
+const OPTS = [
+  { k: 'screen', label: 'Screen', opts: [['store', 'Store'], ['car', 'Car page'], ['buy', 'Purchase'], ['owned', 'Owned car'], ['pick', 'Enter picker'], ['fin', 'Finances']] },
+  { k: 'view', label: 'Store', opts: [['none', 'No filters'], ['search', 'Search "Porsche"'], ['onSale', 'On sale on']] },
+  { k: 'price', label: 'Card price', opts: [['beside', 'Now · side by side'], ['under', '1 · Old price under (chosen)'], ['only', '2 · Sale price only'], ['both', '3 · Old price + rent'], ['short', '4 · Short millions']] },
+  { k: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+// ---------- Shell ----------
+const NAV = [['home', 'Home', I.home], ['inbox', 'Inbox', I.mail], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['race', 'Race', I.race], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
+const hdr = (on, { bal = BAL } = {}) => `<header class="hd">
+  <button class="slotbtn">${flag('GBR')}<span><b>Sam Whitaker</b><small>Career · 2027 · Wed 10 Mar</small></span>${I.down}</button>
+  <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>
+  <span class="end row"><a class="bal">${I.wallet}<span class="num">${money(bal)}</span></a></span></header>`;
+const win = (inner) => `<div class="win"><div class="titlebar"><span>Assetto Corsa Career</span><span>-</span><span>☐</span><span>✕</span></div>${inner}</div>`;
+const nb = (html) => `<span class="new-outline" style="border-radius:6px;display:inline-flex">${html}</span>`;
+
+// ---------- Cards ----------
+const buyBtn = (c, size = 'sm') => (now(c) <= BAL
+  ? `<button class="btn ${size} go">${I.store}Purchase</button>`
+  : `<button class="btn ${size} cant">${I.lock}Can't afford</button>`);
+
+// A price as a card writes it: in full, or from a million up as $2.74M in the
+// short-millions variant.
+const cardMoney = (n) => (S.price === 'short' && n >= 1000000
+  ? `$${(n / 1000000).toLocaleString('en-US', { maximumFractionDigits: 2 })}M`
+  : money(n));
+
+// PriceFoot: the price a car is bought at, and the listed price it is struck
+// from while on sale - placed by the Card price variant. The rent stays on the
+// listed price.
+const foot = (c, { buy = true } = {}) => {
+  if (c.owned) {
+    return `<div class="pf own"><span class="col" style="gap:0"><small>Owned</small><b>${c.owned[0]}</b></span><span class="col end" style="gap:0;align-items:flex-end"><small>Sells for</small><b class="num" style="font-size:14px">${money(c.owned[1])}</b></span></div>`;
+  }
+  const reach = now(c) <= BAL;
+  const rentText = `or ${money(c.price * 0.02)} a round`;
+  const btn = buy ? `<span class="end" style="flex:none">${buyBtn(c)}</span>` : '';
+  const price = `<b class="num${reach ? '' : ' dim'}" style="white-space:nowrap">${cardMoney(now(c))}</b>`;
+  const struck = `<s class="was num" style="white-space:nowrap">${cardMoney(c.price)}</s>`;
+  let lines;
+  if (!c.off && S.price === 'under') {
+    // Chosen: no rent line on a card at all.
+    lines = price;
+  } else if (!c.off || S.price === 'only') {
+    lines = `${price}<small>${rentText}</small>`;
+  } else if (S.price === 'under') {
+    lines = `${price}${nb(struck)}`;
+  } else if (S.price === 'both') {
+    lines = `${price}${nb(`<small>${struck} · ${rentText}</small>`)}`;
+  } else {
+    lines = `<span class="row" style="gap:6px;align-items:baseline">${price}${nb(struck)}</span><small>${rentText}</small>`;
+  }
+
+  return `<div class="pf"><span class="col" style="gap:0;min-width:0">${lines}</span>${btn}</div>`;
+};
+
+// The sale's chip on the picture, beside the source: the discount, or the Deal of
+// the week with its discount where the banner is not showing it.
+const saleChip = (c) => (c.dotw
+  ? nb(chip('c-dotw', `${I.pct}Deal of the week · -${c.off}%`))
+  : nb(chip('c-sale', `${I.tag}-${c.off}%`)));
+
+const card = (c, { buy = true } = {}) => {
+  const tl = [chip(c.src === 'base' ? 'c-base' : 'c-dlc', c.src === 'base' ? 'Base game' : 'DLC')];
+  if (c.off) tl.push(saleChip(c));
+  return `<div class="cc"><div class="pic">${img(c)}
+    <div class="tl">${tl.join('')}</div>
+    <div class="tr"><span class="pill">${I.brush}${c.liveries}</span></div>
+    <div class="cap"><div class="ov">${c.brand}${flag(c.nat)}<span class="end num">${c.year}</span></div><div class="nm">${c.name}</div></div></div>
+    <div class="bd"><div class="row" style="gap:4px;flex-wrap:wrap"><span class="chip c-plain">${c.spec}</span></div>
+      <div class="fig"><span><b class="num">${c.bhp}</b> bhp</span><span><b class="num">${c.kg.toLocaleString('en-US')}</b> kg</span><span><b class="num">${Math.round(c.bhp / c.kg * 1000)}</b> bhp/t</span></div>
+      <div class="raced">${I.trophy}${c.raced}</div></div>
+    ${foot(c, { buy })}</div>`;
+};
+
+const banner = (c) => `<div class="dotw new-outline"><div class="dpic">${img(c, '')}<div class="tl">${chip(c.src === 'base' ? 'c-base' : 'c-dlc', c.src === 'base' ? 'Base game' : 'DLC')}</div></div>
+  <div class="db">
+    <div class="row">${chip('c-dotw', `${I.pct}Deal of the week`)}<span class="muted" style="font-size:12.5px">${UNTIL}</span></div>
+    <h3>${c.name}</h3>
+    <div class="ov">${c.brand}${flag(c.nat)}<span class="num">${c.year}</span><span>·</span><span class="chip c-plain">${c.spec}</span></div>
+    <div class="fig"><span><b class="num">${c.bhp}</b> bhp</span><span><b class="num">${c.kg.toLocaleString('en-US')}</b> kg</span><span><b class="num">${Math.round(c.bhp / c.kg * 1000)}</b> bhp/t</span></div>
+    <div class="raced">${I.trophy}${c.raced}</div>
+    <div class="buy"><span class="col" style="gap:4px"><s class="was num">${money(c.price)}</s><span class="row" style="gap:8px"><b class="num">${money(now(c))}</b>${chip('c-dotw', `-${c.off}%`)}</span><small>or ${money(c.price * 0.02)} a round</small></span>
+      <span class="end">${buyBtn(c, 'lg')}</span></div>
+  </div></div>`;
+
+// ---------- Screens ----------
+const rail = () => `<aside class="rail">
+  <div class="rsec new-outline" style="border-radius:8px;padding:10px 6px 8px"><span class="caps">This week</span>
+    <label class="rsw" data-view="onSale"><span>On sale<small>${ON_SALE} cars · ${UNTIL}</small></span><span class="switch${S.view === 'onSale' ? ' on' : ''}"></span></label></div>
+  <div class="rsec"><span class="caps">Yours</span>
+    <label class="rsw"><span>Owned</span><span class="switch"></span></label>
+    <label class="rsw"><span>Can afford to purchase</span><span class="switch"></span></label></div>
+  ${['Source', 'Class', 'Brand', 'Country', 'Price', 'Power', 'Year'].map((f) => `<div class="rfold">${f}</div>`).join('')}
+</aside>`;
+
+const storeBody = () => {
+  let list = [...CARS];
+  if (S.view === 'onSale') list = list.filter((c) => c.off).sort((a, b) => b.off - a.off);
+  if (S.view === 'search') list = list.filter((c) => c.brand === 'Porsche');
+  // The banner stands only over the whole Store, and the card it stands for leaves
+  // the grid while it does - so the Deal of the week is never shown twice.
+  const showBanner = S.view !== 'search';
+  if (showBanner) list = list.filter((c) => c !== DOTW);
+  const sortLabel = S.view === 'onSale' ? nb('Discount') : 'Name';
+  const search = S.view === 'search' ? '<span style="color:var(--foreground)">Porsche</span>' : 'Search cars';
+  const count = { none: '412 cars', search: '2 cars', onSale: `${ON_SALE} cars` }[S.view];
+  return `<div class="browser">${rail()}
+    <div class="main">
+      <div class="ph"><h2>Store</h2><p>Every car in your library, to buy or to rent as you enter a championship</p></div>
+      <div class="toolbar"><div class="search">${I.search}${search}</div><button class="btn">${I.sort}${sortLabel}</button><button class="btn" style="width:34px;padding:0">${I.gridv}</button></div>
+      <span class="count">${count}</span>
+      ${showBanner ? banner(DOTW) : ''}
+      <div class="grid">${list.map((c) => card(c)).join('')}</div>
+    </div></div>`;
+};
+const storeScreen = () => win(`${hdr('store')}<div class="body">${storeBody()}</div>`);
+
+const carShell = (c, panel) => win(`${hdr('store')}<div class="shdr"><span class="backlink">${I.back}Store</span><h2 style="margin-left:12px">${c.name}</h2></div>
+  <div class="body"><div class="cp">
+    <div class="col"><div class="hero">${img(c, '')}</div><div class="placeholder"><b>Figures, description and curves</b>As today.</div><div class="placeholder"><b>Championships racing it</b>As today.</div></div>
+    <div class="col">${panel}<div class="placeholder"><b>Where it comes from</b>As today.</div></div>
+  </div></div>`);
+
+const carScreen = () => carShell(DOTW, `<div class="panel tp new-outline">
+    <span class="caps">Price</span>
+    <div style="margin-top:-8px"><s class="was num">${money(DOTW.price)}</s></div>
+    <div class="row" style="margin-top:-10px"><span class="big num">${money(now(DOTW))}</span>${chip('c-dotw', `-${DOTW.off}%`)}</div>
+    <div class="row" style="font-size:12.5px;color:var(--sale-fg);font-weight:600;margin-top:-6px">${I.tag}Deal of the week · ${UNTIL}</div>
+    ${buyBtn(DOTW, 'lg').replace('class="btn lg', 'style="width:100%" class="btn lg')}
+  </div>`);
+
+// The Cayman after it was bought on sale: it sells on what was paid, and repaints
+// on the price it was listed at.
+const ownedScreen = () => carShell(DOTW, `<div class="panel tp">
+    <div class="row"><span class="chip c-owned">Owned</span><span class="end muted" style="font-size:12px">Bought for ${money(now(DOTW))} · Wed 10 Mar</span></div>
+    <div class="row" style="font-size:14px;font-weight:600"><span class="swatch"></span>${DOTW.livery}</div>
+    <div class="row"><button class="btn paint new-outline" style="flex:1">${I.brush}Repaint · ${money(DOTW.price * 0.015)}</button><button class="btn sellb" style="flex:1">${I.wallet}Sell · ${money(now(DOTW))}</button></div>
+  </div>`);
+
+const buyScreen = () => {
+  const c = DOTW;
+  const backing = Math.round(now(c) / 2);
+  const pays = now(c) - (S.backed ? backing : 0);
+  return win(`${hdr('store')}<div class="body" style="overflow:hidden">${storeBody()}
+  <div class="scrim"><div class="dlg">
+    <h3>Purchase the ${c.name}?</h3><p>In ${c.livery}.</p>
+    <div class="ppic">${img(c, '')}</div>
+    <div class="swt" data-act="backed"><span class="grow"><b>Use Brightwater's backing</b><small>Half of this car, ${money(backing)}. Its one car until 5 Feb 2028.</small></span><span class="switch${S.backed ? ' on' : ''}"></span></div>
+    <dl class="dl">
+      <dt>Price</dt><dd><s class="was num">${money(c.price)}</s></dd>
+      <dt>${nb(chip('c-dotw', `${I.pct}Deal of the week`))}</dt><dd class="pos new-outline" style="border-radius:4px">-${money(c.price - now(c))}</dd>
+      ${S.backed ? `<dt>${I.spark.replace('class="i"', 'class="i" style="color:var(--sponsor-fg);width:14px;height:14px"')}Brightwater pays half</dt><dd class="pos">${money(backing)}</dd>` : ''}
+      <dt>Your balance after</dt><dd>${money(BAL - pays)}</dd>
+    </dl>
+    <div class="dfoot"><button class="btn ghost" style="margin-right:auto">${I.back}Another livery</button><button class="btn ghost">Cancel</button><button class="btn go">${I.store}Purchase</button></div>
+  </div></div></div>`);
+};
+
+const pickScreen = () => {
+  const cars = CARS.filter((c) => c.spec === 'GT4 2010s');
+  const ex = cars[1];
+  return win(`${hdr('champs')}<div class="shdr"><span class="backlink">${I.back}Championships</span><h2 style="margin-left:12px">GT4 European Series</h2></div>
+  <div class="body" style="overflow:hidden"><div style="padding:18px 28px" class="col"><div class="placeholder" style="height:600px"><b>Championship page</b>As today: the Enter panel's Change opens the car picker over the class's cars.</div></div>
+  <div class="scrim"><div class="dlg wide">
+    <h3>Pick a car</h3><p>GT4 · 2 cars</p>
+    <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">${cars.map((c) => card(c, { buy: false })).join('')}<div class="placeholder" style="justify-content:center"><b>A picker shows no banner</b>The Deal of the week is a card like any other here, with its chip.</div></div>
+    <div class="row" style="padding-top:8px;border-top:1px solid var(--border)"><span class="muted" style="font-size:12.5px">The livery step's foot, after picking the Maserati:</span>
+      <span class="end row"><button class="btn">Rent · ${money(ex.price * 0.02)} a round</button><button class="btn go new-outline">${I.store}Purchase · ${money(now(ex))}</button></span></div>
+  </div></div></div>`);
+};
+
+const finScreen = () => win(`${hdr('home', { bal: BAL - now(DOTW) })}<div class="shdr"><span class="backlink">${I.back}Home</span><h2 style="margin-left:12px">Finances</h2></div>
+  <div class="body"><div style="padding:18px 28px" class="col">
+    <div class="placeholder"><b>Balance, season figures, by kind and by championship</b>As today.</div>
+    <div class="panel"><table class="ledger"><thead><tr><th>Day</th><th>Kind</th><th>What</th><th style="text-align:right">Amount</th><th style="text-align:right">Balance</th></tr></thead><tbody>
+      <tr><td>Wed 10 Mar</td><td><span class="chip c-plain">Car bought</span></td><td><span class="row">Porsche Cayman GT4 Clubsport · Cup #01${nb(chip('c-dotw', '-38%'))}</span></td><td class="amt neg">-${money(now(DOTW))}</td><td class="amt">${money(BAL - now(DOTW))}</td></tr>
+      <tr><td>Sun 7 Mar</td><td><span class="chip c-plain">Prize</span></td><td>GT4 European Series · R2 Race 2 · P4</td><td class="amt posn">+$9,600</td><td class="amt">${money(BAL)}</td></tr>
+      <tr><td>Wed 3 Mar</td><td><span class="chip c-plain">Car bought</span></td><td><span class="row">BMW M235i Racing · #1${nb(chip('c-sale', '-15%'))}</span></td><td class="amt neg">-$42,500</td><td class="amt">$161,800</td></tr>
+    </tbody></table></div>
+    <span class="muted" style="font-size:12.5px">The kind chips are drawn neutral here only for brevity - they keep their Finances colours.</span>
+  </div></div>`);
+
+const SCREENS = { store: storeScreen, car: carScreen, buy: buyScreen, owned: ownedScreen, pick: pickScreen, fin: finScreen };
+
+// ---------- Concept ----------
+const WHY = `
+<h2>Car sale - every career week, a Deal of the week and a share of the Store on sale</h2>
+<div class="grid2">
+<div>
+<h3>The rules</h3>
+<ul>
+  <li><b>A sale runs Monday to Sunday on the career's own calendar.</b> It is drawn the first time the clock reaches a new week (in <code>settle</code>), and a new career draws one as it is made. Jumping the clock over several weeks draws only the week it lands in.</li>
+  <li><b>One Deal of the week at 50-70% off, and 5-7% of the Store's cars at 20-50% off</b>, in whole percent - about 21-29 cars over a library of 412, and never fewer than one. The sale price is rounded to the nearest hundred.</li>
+  <li><b>Drawn at random from the whole Store</b>: every car in the library, catalogued and added, priced, that the career does not own. Nothing remembers last week - a car may be on sale, or the Deal of the week, two weeks running.</li>
+  <li><b>Seeded on the career and the week, and stored as drawn</b> (<code>CareerState.sale</code>: the week and each car with its discount), so a mod added mid-week does not reshuffle it and loading a save restores the sale that was running then.</li>
+  <li><b>Only the purchase is discounted.</b> Rent stays at 2% of the listed price.</li>
+  <li><b>Sell is what was paid; Repaint is the listed price.</b> An owned car keeps the price it was listed at when bought beside what was paid, so a repaint costs 1.5% of that whether or not the car came on sale, and a price of the user's changed since still never reaches it. A car bought on sale sells from its sale price.</li>
+  <li><b>Sponsor backing pays half of the sale price</b> - half of what the car costs that day. A sponsor's car reward is still valued at the listed price.</li>
+  <li><b>The ledger's Car bought line records the discount.</b> The clock moves only when the player acts, so a sale cannot end while a dialog is open.</li>
+  <li><b>Not in a standalone championship</b>, which has no money. Nothing announces a new week.</li>
+</ul>
+</div>
+<div>
+<h3>Where it shows</h3>
+<ul>
+  <li><b>Store, with no filters and no search</b>: the Deal of the week is a banner over the grid, and its card leaves the grid. <b>Any filter or search</b> but the On sale switch drops the banner, and the Deal of the week is a card like the rest wherever the filters put it, its chip reading <i>Deal of the week · -38%</i>. A sort is not a filter, so the banner stays through one. Either way it is shown once.</li>
+  <li><b>Every car on sale</b> wears its discount as a chip on the picture, beside the source. <b>Card price</b> above picks how its foot says the sale price and the listed price: <i>Now</i> is what is built, which runs out of room once a price reaches six or seven figures beside Can't afford - the F40, the R18 and the LaFerrari show it. <b>1</b> puts the struck listed price on the second line in place of the rent while the car is on sale; <b>2</b> shows the sale price alone, the chip saying it is reduced; <b>3</b> puts the struck price and the rent on the second line together; <b>4</b> writes a million and up as $2.74M on cards. The car page, the banner and the purchase dialog keep both prices in full whichever is picked.</li>
+  <li><b>A new rail section <i>This week</i></b> has an <b>On sale</b> switch with the count and the end date. With the switch on the list sorts by the new <b>Discount</b> sort, which stays in the sort menu.</li>
+  <li><b>Price sort, price filter and <i>Can afford to purchase</i></b> all use the sale price.</li>
+  <li><b>Car page</b>: the listed price struck above the sale price, the discount and when the sale ends. An owned car's Repaint is on its listed price.</li>
+  <li><b>Purchase dialog</b>: Price struck, then a discount line taking the amount off, before backing and the balance after.</li>
+  <li><b>Enter panel's car picker</b>: no banner; the same cards and chips, and the livery step's <i>Purchase · $X</i> at the sale price.</li>
+  <li><b>Garage</b>: unchanged, since an owned car is never on sale.</li>
+</ul>
+<div class="vnote"><b>Colour.</b> A new closed set of two on orange 45: <i>on sale</i>, a tinted chip, and <i>Deal of the week</i>, a solid fill. It sits 18° from can't-afford's red 27, kept apart by chroma and by place - the chip on the picture, the refusal in the foot. Bronze 52 and Sell's amber 62 never show on a car that is for sale.</div>
+</div>
+</div>`;
+
+// ---------- Render ----------
+const render = () => {
+  document.documentElement.dataset.theme = S.theme;
+  document.documentElement.dataset.hue = 'orange';
+  document.getElementById('picker').innerHTML = OPTS.map((g) => `<div class="grp"><strong>${g.label}</strong>${g.opts.map(([v, l]) => `<button class="opt" data-k="${g.k}" data-v="${v}" aria-pressed="${S[g.k] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = WHY;
+  document.getElementById('stage').innerHTML = SCREENS[S.screen]();
+};
+document.addEventListener('click', (e) => {
+  const o = e.target.closest('.opt');
+  if (o) { S[o.dataset.k] = o.dataset.v; render(); return; }
+  const v = e.target.closest('[data-view]');
+  if (v) { S.view = S.view === v.dataset.view ? 'none' : v.dataset.view; render(); return; }
+  const a = e.target.closest('[data-act]');
+  if (a) { S[a.dataset.act] = !S[a.dataset.act]; render(); }
+});
+// A state can be linked to: #screen=store&view=search
+new URLSearchParams(location.hash.slice(1)).forEach((val, k) => { if (k in S) S[k] = val === 'true' ? true : val; });
+render();
+</script>
+</body>
+</html>

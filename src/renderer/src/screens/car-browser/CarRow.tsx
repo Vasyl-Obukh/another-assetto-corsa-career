@@ -9,7 +9,7 @@ import { rentOf } from '../../../../shared/utils/car-prices';
 import { nationOfCountry } from '../../../../shared/utils/nations';
 import {
   BackingMark, ContentImage, NationFlag, PriceOriginBadge, ProvenanceBadges, PurchaseButton,
-  RacedIn, SpecBadge, SWITCH_TRACK,
+  RacedIn, SaleBadge, SpecBadge, SWITCH_TRACK,
 } from '@/components';
 import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -68,6 +68,7 @@ export const CarRow = ({
   const owned = trade?.garage.owned(car.id) ?? null;
   const backing = trade && trade.mode !== 'garage' ? trade.garage.backingOf(car) : null;
   const price = trade?.garage.priceOf(car) ?? 0;
+  const deal = trade?.garage.dealOf(car) ?? null;
   // Priced, the row makes room for what the car costs by giving up the
   // columns a buyer can do without, its provenance moving under its name.
   const priced = trade !== undefined;
@@ -203,12 +204,13 @@ export const CarRow = ({
           )}
           >
             <span className="inline-flex items-center gap-1.5">
+              {deal ? <SaleBadge deal={deal} /> : null}
               {backing ? <BackingMark sponsor={backing.sponsor} amount={backing.amount} /> : null}
               {formatMoney(price)}
             </span>
           </td>
           <td className="px-2.5 py-1.5 text-right whitespace-nowrap tabular-nums">
-            {owned ? dash : formatMoney(rentOf(price))}
+            {owned ? dash : formatMoney(rentOf(trade.garage.listedOf(car)))}
           </td>
         </>
       ) : null}

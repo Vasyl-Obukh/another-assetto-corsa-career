@@ -26,6 +26,12 @@ export const CAR_SORTS: readonly SortItem<CarSortKey>[] = CAR_SORT_ITEMS;
 export const PRICE_SORT: SortItem<CarSortKey> = { key: 'price', label: 'cars.sort.price' };
 
 /**
+ * Sorting by what the week's sale takes off, which only a browser selling cars
+ * in a career offers.
+ */
+export const DISCOUNT_SORT: SortItem<CarSortKey> = { key: 'discount', label: 'cars.sort.discount' };
+
+/**
  * The power to weight a table's bar is drawn against, in bhp per tonne. Fixed
  * rather than the page's own best, so a bar means the same on every page; past
  * it, which only a few modern single-seaters reach, the bar is simply full.

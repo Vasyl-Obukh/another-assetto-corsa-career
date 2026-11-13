@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { describeLine } from './utils.ts';
 import type { Career } from '../../../../shared/types';
-import { LedgerBadge, MoneyAmount } from '@/components';
+import { LedgerBadge, MoneyAmount, SaleBadge } from '@/components';
 import { useFormat } from '@/i18n';
 import type { LedgerRow } from '@/lib/finances';
 import { cn } from '@/lib/utils.ts';
@@ -20,7 +20,8 @@ interface LedgerTableProps {
 
 /**
  * A career's ledger, a line per change of its money: when, what kind, what it
- * was for, how much and what the career held after. Its headings stay put
+ * was for - a car bought on sale saying what the sale took off - how much and
+ * what the career held after. Its headings stay put
  * while its rows scroll beneath them.
  */
 export const LedgerTable = ({ rows, career }: LedgerTableProps) => {
@@ -48,7 +49,14 @@ export const LedgerTable = ({ rows, career }: LedgerTableProps) => {
               <td className="border-b px-4 py-2 whitespace-nowrap tabular-nums">{formatDayShort(line.date)}</td>
               <td className="border-b px-2 py-2"><LedgerBadge kind={line.kind} /></td>
               <td className="border-b px-2 py-2">
-                <div className="font-medium">{title}</div>
+                <div className="flex items-center gap-2 font-medium">
+                  {title}
+                  {line.kind === 'purchase' && line.car?.off !== undefined ? (
+                    <SaleBadge
+                      deal={{ model: line.car.model, off: line.car.off, headline: line.car.headline === true }}
+                    />
+                  ) : null}
+                </div>
                 <div className="text-xs text-muted-foreground">{detail}</div>
               </td>
               <td className="border-b px-2 py-2 text-right"><MoneyAmount amount={line.amount} /></td>

@@ -135,6 +135,10 @@ interface HarnessOptions {
    * Whether no install has been located, which is what a car's lookup refuses on.
    */
   noInstall?: boolean;
+  /**
+   * The cars a weekly sale may draw from, by folder ID - none unless given.
+   */
+  onSale?: readonly string[];
 }
 
 /**
@@ -221,7 +225,7 @@ const harness = async (options: HarnessOptions = {}): Promise<Harness> => {
   const series = fakeSeriesStore(options.listings ?? [makeListing(CUP)]);
   const historic = fakeSeriesStore(options.historic ?? []);
   const race = fakeRaceStore();
-  const content = fakeContentStore({ cars: [...options.cars ?? []] }, options.prices);
+  const content = fakeContentStore({ cars: [...options.cars ?? []] }, options.prices, options.onSale);
   if (options.noInstall) content.car = async () => { throw new Error('no install'); };
   const store = await createCareerStore(
     'D:\\userData',
@@ -403,7 +407,7 @@ const garaged = (entries: SeasonEntry[] = [], money = 100_000): Career => makeCa
   ...careerWith({ entries }),
   money,
   garage: [{
-    model: 'test_car', skin: 'blue', paid: 40_000, bought: '2026-01-01',
+    model: 'test_car', skin: 'blue', paid: 40_000, listed: 40_000, bought: '2026-01-01',
   }],
 });
 
@@ -1034,6 +1038,15 @@ describe('main/career-store', () => {
   });
 
   describe('create', () => {
+    it('opens on a sale for the week it starts in, drawn from the library', async () => {
+      const { store } = await build({ closed: true, onSale: ['one_car', 'two_car'] });
+      await store.create(NEW_CAREER);
+      const sale = store.get()?.sale;
+
+      expect(sale?.week).toBe('2026-12-28');
+      expect([sale?.headline?.model, ...sale?.deals.map((deal) => deal.model) ?? []].sort()).toEqual(['one_car', 'two_car']);
+    });
+
     it('takes an autosave as its first season opens, so it always has a save to carry on from', async () => {
       const { store } = await build({ closed: true });
       const files = memoryDisk();
@@ -1170,6 +1183,13 @@ describe('main/career-store', () => {
   });
 
   describe('createChampionship', () => {
+    it('draws no sale, a standalone championship having no money', async () => {
+      const { store } = await build({ closed: true, onSale: ['one_car', 'two_car'] });
+      await store.createChampionship(NEW_CHAMPIONSHIP);
+
+      expect(store.get()?.sale).toBeUndefined();
+    });
+
     it("opens the year's first edition in the class and car asked for, with nothing else on its calendar", async () => {
       const { store } = await build({ closed: true, historic: [historicListing('old-race')] });
       await store.createChampionship(NEW_CHAMPIONSHIP);
@@ -1957,11 +1977,37 @@ describe('main/career-store', () => {
 
       expect(store.get()?.money).toBe(60_000);
       expect(store.get()?.garage).toEqual([{
-        model: 'test_car', skin: 'blue', paid: 40_000, bought: '2027-01-01',
+        model: 'test_car', skin: 'blue', paid: 40_000, listed: 40_000, bought: '2027-01-01',
       }]);
       expect(store.get()?.ledger).toEqual([expect.objectContaining({
         kind: 'purchase', amount: -40_000, car: { model: 'test_car', name: 'Car test_car', livery: 'Livery blue' },
       })]);
+    });
+
+    it("buys a car on this week's sale at its sale price, keeping the price it was listed at", async () => {
+      const career = makeCareer({
+        ...careerWith({}),
+        sale: { week: '2026-12-28', headline: { model: 'test_car', off: 40 }, deals: [] },
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car', skin: 'blue' });
+
+      expect(store.get()?.money).toBe(76_000);
+      expect(store.get()?.garage[0]).toMatchObject({ paid: 24_000, listed: 40_000 });
+      expect(store.get()?.ledger).toEqual([expect.objectContaining({
+        kind: 'purchase', amount: -24_000, car: expect.objectContaining({ off: 40, headline: true }),
+      })]);
+    });
+
+    it('charges the listed price once the week of its sale has passed', async () => {
+      const career = makeCareer({
+        ...careerWith({}, '2027-01-04'),
+        sale: { week: '2026-12-28', headline: { model: 'test_car', off: 40 }, deals: [] },
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.buyCar({ model: 'test_car' });
+
+      expect(store.get()?.money).toBe(60_000);
     });
 
     it('buys a car in its first livery when none is picked', async () => {
@@ -2201,7 +2247,20 @@ describe('main/career-store', () => {
       expect(store.get()?.ledger).toEqual([]);
     });
 
-    it('charges a repaint off what was paid and paints the car at once, every round to come included', async () => {
+    it('charges a repaint off the price a car was listed at, whatever a sale took off it', async () => {
+      const career = makeCareer({
+        ...garaged(),
+        garage: [{
+          model: 'test_car', skin: 'blue', paid: 24_000, listed: 40_000, bought: '2026-01-01',
+        }],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: PRICES });
+      await store.repaintCar({ model: 'test_car', skin: 'red' });
+
+      expect(store.get()?.money).toBe(99_400);
+    });
+
+    it('charges a repaint off its listed price and paints the car at once, every round to come included', async () => {
       const career = garaged([makeEntry({
         car: { model: 'test_car', skin: 'blue', source: 'owned' }, events: [makeEvent('one', '2027-03-07')],
       })]);
@@ -3155,6 +3214,29 @@ describe('main/career-store', () => {
   });
 
   describe('advanceTo', () => {
+    describe('the weekly car sale', () => {
+      const SOLD = ['one_car', 'two_car', 'three_car', 'test_car'];
+
+      it('draws a new sale once the clock reaches another week, never naming a car the career owns', async () => {
+        const { store } = await build({ career: garaged(), onSale: SOLD });
+        const opened = store.get()?.sale;
+        await store.advanceTo('2027-01-04');
+        const sale = store.get()?.sale;
+
+        expect(opened?.week).toBe('2026-12-28');
+        expect(sale?.week).toBe('2027-01-04');
+        expect([sale?.headline?.model, ...sale?.deals.map((deal) => deal.model) ?? []]).not.toContain('test_car');
+      });
+
+      it('keeps the sale drawn while the clock stays in its week', async () => {
+        const { store } = await build({ career: careerWith({}), onSale: SOLD });
+        const opened = store.get()?.sale;
+        await store.advanceTo('2027-01-03');
+
+        expect(store.get()?.sale).toEqual(opened);
+      });
+    });
+
     describe('moving sponsors on', () => {
       /**
        * A career that raced a round in March, holding a deal.
@@ -3172,7 +3254,7 @@ describe('main/career-store', () => {
 
         expect(store.get()?.sponsors[0].goalMet).toBe('2027-03-07');
         expect(store.get()?.garage).toEqual([{
-          model: 'test_car', skin: 'red', paid: 15_000, bought: '2027-03-07', reward: 'Halden Lubricants',
+          model: 'test_car', skin: 'red', paid: 15_000, listed: 40_000, bought: '2027-03-07', reward: 'Halden Lubricants',
         }]);
         expect(store.get()?.ledger).toContainEqual(expect.objectContaining({
           kind: 'sponsorBonus', amount: 5_000, date: '2027-03-07',

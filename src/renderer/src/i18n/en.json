@@ -1922,7 +1922,8 @@
       "bhp": "Power",
       "weight": "Weight",
       "powerToWeight": "Power to weight",
-      "price": "Price"
+      "price": "Price",
+      "discount": "Discount"
     },
     "filter": {
       "brands": "Brand",
@@ -3219,7 +3220,18 @@
     "subtitle": "Every car in your library, to buy or to rent as you enter a championship",
     "yours": "Yours",
     "owned": "Owned",
-    "affordable": "Can afford to purchase"
+    "affordable": "Can afford to purchase",
+    "thisWeek": "This week",
+    "onSale": "On sale",
+    "onSaleHint_one": "{{cars}} car · Until {{day}}",
+    "onSaleHint_other": "{{cars}} cars · Until {{day}}"
+  },
+  "sale": {
+    "off": "-{{off}}%",
+    "headlineOff": "Deal of the week · {{off}}",
+    "until": "Until {{day}}",
+    "headlineUntil": "Deal of the week · Until {{day}}",
+    "saving": "-{{amount}}"
   },
   "garage": {
     "title": "Garage",
@@ -3243,7 +3255,6 @@
     },
     "price": "Price",
     "rentRound": "Rent a round",
-    "orRent": "or {{rent}} a round",
     "sellsFor": "Sells for",
     "balanceAfter": "Your balance after",
     "livery": "Livery",

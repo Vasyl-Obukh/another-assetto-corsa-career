@@ -133,6 +133,8 @@ export type {
   CalendarEntry,
   CalendarInvitation,
   Career,
+  CarDeal,
+  CarSale,
   CarSource,
   CareerBackup,
   CareerCalendar,

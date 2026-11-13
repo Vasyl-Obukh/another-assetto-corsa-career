@@ -22,12 +22,15 @@ export type { CarBrowser, CarCriteria } from './types.ts';
  *   restricted set of cars to offer
  * @param memoryId Which browser this is, for one that comes back where it was
  * @param raced Every car a championship races, or undefined until that is known
+ * @param lead The car the page leads with above the list, by folder ID, left
+ * out of the list while nothing narrows it
  * @returns The current state and the actions the screen binds to
  */
 export const useCarBrowser = (
   base?: CarQuery,
   memoryId?: string,
   raced?: readonly string[],
+  lead?: string,
 ): CarBrowser => {
   // Read once, at mount: the store keeps being written while the screen is
   // open, and reading it again would answer with what the user is looking at
@@ -54,10 +57,11 @@ export const useCarBrowser = (
   // Serialised rather than depended on directly, since a picker rebuilds its
   // base query object on every render and the identity would never settle.
   const baseKey = useMemo(() => JSON.stringify(base ?? null), [base]);
+  const leading = lead !== undefined && !isCarFiltered(criteria, settled);
   const query = useMemo(
-    () => toCarQuery(criteria, settled, base, raced),
+    () => toCarQuery(criteria, settled, leading ? { ...base, except: [...(base?.except ?? []), lead] } : base, raced),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- baseKey stands in for base
-    [criteria, settled, baseKey, raced],
+    [criteria, settled, baseKey, raced, leading, lead],
   );
   // A price changed in settings, or a car added on its suggestion, moves a car
   // only where the list is ordered or narrowed by price, so only there does it
@@ -137,6 +141,7 @@ export const useCarBrowser = (
     list,
     stale,
     filtered: isCarFiltered(criteria, search),
+    leading,
     setSearch,
     setCriteria,
     // The layout is a way of looking rather than a filter, so it survives.

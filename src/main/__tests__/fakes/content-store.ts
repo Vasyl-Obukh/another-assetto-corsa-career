@@ -9,11 +9,14 @@ import type { ContentStore } from '../../content-store/index.ts';
  * @param content What the install holds, empty unless the test says otherwise
  * @param prices What each installed car costs, by folder ID - nothing for one
  * the test leaves out
+ * @param onSale The cars a weekly sale may draw from, by folder ID - none
+ * unless the test says otherwise
  * @returns The store
  */
 export const fakeContentStore = (
   content: Partial<Content> = {},
   prices: Readonly<Record<string, number>> = {},
+  onSale: readonly string[] = [],
 ): ContentStore => {
   const cars = content.cars ?? [];
 
@@ -22,6 +25,8 @@ export const fakeContentStore = (
       cars: [], tracks: [], weather: [], controllers: [], issues: [], ...content,
     }),
     car: async (id) => cars.find((one) => one.id === id) ?? null,
+    // Nothing to put on sale unless a test says so, so a price is what it lists.
+    models: async () => [...onSale],
     price: async (id) => (cars.some((one) => one.id === id) ? prices[id] ?? 0 : null),
   });
 };

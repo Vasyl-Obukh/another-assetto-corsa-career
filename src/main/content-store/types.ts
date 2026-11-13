@@ -158,6 +158,13 @@ export interface ContentStore {
    */
   car(id: string, installed?: boolean): Promise<Car | null>;
   /**
+   * Every car in the library, by folder ID: what the Store sells, and what a
+   * career's weekly sale is drawn from.
+   * @returns The folder IDs
+   * @throws AppError when no install has been located
+   */
+  models(): Promise<string[]>;
+  /**
    * What an installed car costs to buy: its listed price, the user's own on a
    * car they added, or else one derived over the class catalogue the store was
    * last handed.

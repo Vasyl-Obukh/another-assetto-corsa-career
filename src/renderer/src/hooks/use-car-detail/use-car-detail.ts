@@ -12,9 +12,12 @@ export type { CarDetail } from './types.ts';
  * during render rather than written by an effect - the same arrangement
  * usePagedContent uses, and for the same reason.
  * @param id The car's folder name, from the route
+ * @param installed True to look over everything installed rather than the
+ * library alone - what a car's page wants, since Your content opens mods the
+ * library does not hold yet
  * @returns The current state and the actions the screen binds to
  */
-export const useCarDetail = (id: string): CarDetail => {
+export const useCarDetail = (id: string, installed = true): CarDetail => {
   const [nonce, setNonce] = useState(0);
   const key = `${nonce}:${id}`;
 
@@ -25,9 +28,7 @@ export const useCarDetail = (id: string): CarDetail => {
   useEffect(() => {
     let live = true;
 
-    // Over everything installed, since Your content opens mods the library
-    // does not hold yet.
-    invoke('content:car', { id, installed: true }).then(
+    invoke('content:car', { id, installed }).then(
       (car) => { if (live) setState({ key, car, error: null }); },
       (thrown: unknown) => {
         if (live) setState({ key, car: null, error: toDisplayableError(thrown) });
@@ -35,7 +36,7 @@ export const useCarDetail = (id: string): CarDetail => {
     );
 
     return () => { live = false; };
-  }, [key, id]);
+  }, [key, id, installed]);
 
   // The car can change under the page - a livery added, or the folder removed -
   // and one car is cheap enough to simply read again.

@@ -2191,7 +2191,8 @@
       "bhp": "Потужність",
       "weight": "Вага",
       "powerToWeight": "Потужність до ваги",
-      "price": "Ціна"
+      "price": "Ціна",
+      "discount": "Знижка"
     },
     "filter": {
       "brands": "Марка",
@@ -3648,7 +3649,20 @@
     "subtitle": "Кожен автомобіль вашої бібліотеки - купити чи орендувати, заявляючись на чемпіонат",
     "yours": "Ваше",
     "owned": "Ваші",
-    "affordable": "По кишені"
+    "affordable": "По кишені",
+    "thisWeek": "Цього тижня",
+    "onSale": "Зі знижкою",
+    "onSaleHint_one": "{{cars}} автомобіль · До {{day}}",
+    "onSaleHint_few": "{{cars}} автомобілі · До {{day}}",
+    "onSaleHint_many": "{{cars}} автомобілів · До {{day}}",
+    "onSaleHint_other": "{{cars}} автомобіля · До {{day}}"
+  },
+  "sale": {
+    "off": "-{{off}}%",
+    "headlineOff": "Пропозиція тижня · {{off}}",
+    "until": "До {{day}}",
+    "headlineUntil": "Пропозиція тижня · До {{day}}",
+    "saving": "-{{amount}}"
   },
   "garage": {
     "title": "Гараж",
@@ -3672,7 +3686,6 @@
     },
     "price": "Ціна",
     "rentRound": "Оренда за етап",
-    "orRent": "або {{rent}} за етап",
     "sellsFor": "Продається за",
     "balanceAfter": "Баланс після",
     "livery": "Ліврея",

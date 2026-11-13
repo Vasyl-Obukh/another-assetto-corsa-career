@@ -72,7 +72,7 @@ export interface Spread {
 /**
  * What a car list can be sorted by.
  */
-export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerToWeight' | 'price';
+export type CarSortKey = 'name' | 'brand' | 'year' | 'bhp' | 'weight' | 'powerToWeight' | 'price' | 'discount';
 
 /**
  * A filtered, searched, sorted and paged request for cars.
@@ -177,6 +177,21 @@ export interface CarQuery {
    * Keep only cars a career can pay for.
    */
   payable?: CarPayable;
+  /**
+   * What a career's sale takes off each car this week, as a whole percentage,
+   * by folder ID. Every price the query reads - its sort, its filter, what a
+   * career can pay - is the price after it.
+   */
+  sale?: Record<string, number>;
+  /**
+   * Keep only cars on sale, as `sale` names them.
+   */
+  onSale?: boolean;
+  /**
+   * Leave these cars out, by folder ID - the Deal of the week while the Store
+   * shows it above the list.
+   */
+  except?: string[];
   /**
    * Keep only cars priced this way. Only a car the user added is ever priced
    * by them or suggested; one they have not added is neither.

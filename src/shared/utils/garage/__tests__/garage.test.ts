@@ -42,7 +42,7 @@ const season = (entries: SeasonEntry[]): CareerSeason => ({
 });
 
 const OWNED: OwnedCar = {
-  model: 'test_car', skin: 'red', paid: 40_000, bought: '2027-02-01',
+  model: 'test_car', skin: 'red', paid: 40_000, listed: 40_000, bought: '2027-02-01',
 };
 
 describe('shared/utils/garage', () => {

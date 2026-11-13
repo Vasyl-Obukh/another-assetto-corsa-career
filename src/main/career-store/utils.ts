@@ -70,6 +70,7 @@ import type {
   NewCareerRequest,
   NewChampionshipRequest,
   OfferPick,
+  OwnedCar,
   Paddocker,
   RoundForecast,
   RoundScore,
@@ -158,6 +159,7 @@ export const stateOf = (career: Career): CareerState => ({
   seasons: career.seasons,
   inbox: career.inbox,
   sponsors: career.sponsors,
+  ...(career.sale === undefined ? {} : { sale: career.sale }),
   ...(career.newsFrom === undefined ? {} : { newsFrom: career.newsFrom }),
 });
 
@@ -212,6 +214,10 @@ export const readState = (value: unknown): CareerState | null => {
     && typeof state.money === 'number'
     && Array.isArray(state.ledger)
     && Array.isArray(state.garage)
+    // Repainting reads the price a car was listed at, which a car bought before
+    // sales kept nothing of.
+    && (state.garage as readonly Partial<OwnedCar>[]).every((owned) => typeof owned?.listed === 'number')
+    && (state.sale === undefined || (typeof state.sale?.week === 'string' && Array.isArray(state.sale.deals)))
     && typeof state.rating === 'object' && state.rating !== null
     && typeof state.globalRating === 'number'
     && Array.isArray(state.ratingLog)
@@ -2098,7 +2104,7 @@ export const withGoalMet = (career: Career, deal: SponsorDeal, skin: string | nu
     next = {
       ...next,
       garage: [...next.garage, {
-        model: car.model, ...painted, paid: worth, bought: on, reward: deal.sponsor.name,
+        model: car.model, ...painted, paid: worth, listed: car.price, bought: on, reward: deal.sponsor.name,
       }],
     };
     if (seasonNow) {

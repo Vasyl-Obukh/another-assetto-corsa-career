@@ -57,7 +57,9 @@ import {
 } from '../../shared/utils/sponsors/index.ts';
 import type { FormBand } from '../../shared/utils/sponsors/index.ts';
 import { rungPosition } from '../seat-offers/index.ts';
-import { randomFrom, seedFrom, shuffle } from '../seeded-random/index.ts';
+import {
+  intIn, randomFrom, seedFrom, shuffle,
+} from '../seeded-random/index.ts';
 
 export type { RewardCar, SponsorDrawRequest, SponsorRenewalRequest } from './types.ts';
 export { OFFER_DAYS } from './constants.ts';
@@ -86,16 +88,6 @@ export const openSponsors = (trade: SponsorTrade, rung: number): readonly BookSp
     const [top, bottom] = STATURE_RUNGS[stature];
     return rung >= top && rung <= bottom;
   })
-);
-
-/**
- * A whole number drawn inside a range, both ends included.
- * @param range The fewest and the most
- * @param random The generator
- * @returns The number
- */
-const countIn = (range: readonly [number, number], random: () => number): number => (
-  range[0] + Math.floor(random() * (range[1] - range[0] + 1))
 );
 
 /**
@@ -310,7 +302,7 @@ const drawSignature = (
 const drawTarget = (kind: SponsorTargetKind, quality: Quality, random: () => number): SponsorTarget => {
   if (kind === 'classPlace') return { kind, share: pickOne(PLACE_SHARES[quality], random) };
   if (kind === 'qualifying') return { kind, share: pickOne(QUALIFYING_SHARES, random) };
-  if (kind === 'clean') return { kind, cuts: countIn(CLEAN_CUTS, random) };
+  if (kind === 'clean') return { kind, cuts: intIn(CLEAN_CUTS, random) };
 
   return { kind };
 };
@@ -329,11 +321,11 @@ const drawGoal = (kind: SponsorGoalKind, quality: Quality, random: () => number)
       : { kind, count: CHAMPIONSHIP_PLACE.top };
   }
   if (kind === 'onTarget') return { kind, share: quality === 'low' ? ON_TARGET_SHARES[0] : pickOne(ON_TARGET_SHARES, random) };
-  if (kind === 'racesStarted') return { kind, count: countIn(RACES_STARTED, random) };
+  if (kind === 'racesStarted') return { kind, count: intIn(RACES_STARTED, random) };
   const result = pickOne(['podium', 'win', 'pole'] as const, random);
   const counts = RESULT_COUNTS[result];
 
-  return { kind, result, count: quality === 'low' ? counts[0] : countIn(counts, random) };
+  return { kind, result, count: quality === 'low' ? counts[0] : intIn(counts, random) };
 };
 
 /**
@@ -371,7 +363,7 @@ export const drawSponsorOffer = (request: SponsorDrawRequest): SponsorOffer | nu
 
   const pool = (quality === 'low' ? BASIC_PERKS : lean.perks)
     .filter((kind) => !(slot === 'main' ? PARTNER_ONLY : MAIN_ONLY).includes(kind));
-  const count = Math.min(pool.length, countIn(PERK_COUNT[slot], random) + (quality === 'high' ? 1 : 0));
+  const count = Math.min(pool.length, intIn(PERK_COUNT[slot], random) + (quality === 'high' ? 1 : 0));
   for (const kind of shuffle(pool, random).slice(0, count)) perks.push(drawnPerk(kind, slot, fee, at, speed));
   if (slot === 'main') perks.push({ kind: 'goalBonus', amount: figure('goalBonus', slot, fee, at, speed) });
 

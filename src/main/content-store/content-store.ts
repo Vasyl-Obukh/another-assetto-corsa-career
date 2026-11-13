@@ -271,6 +271,10 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
       return cars.find((entry) => entry.id === id) ?? null;
     },
 
+    async models() {
+      return libraryOf((await current()).content, added).cars.map((entry) => entry.id);
+    },
+
     async price(id) {
       const { content } = await current();
       // Over everything installed: a car renting for a round may have left the

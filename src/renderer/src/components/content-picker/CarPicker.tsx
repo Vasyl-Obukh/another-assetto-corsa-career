@@ -174,7 +174,7 @@ export const CarPicker = ({
                     />
                     <Button type="button" onClick={() => pick(chosen, livery)}>
                       <KeyRoundIcon />
-                      {t('trade.rent', { rent: formatMoney(rentOf(trade.garage.priceOf(chosen))) })}
+                      {t('trade.rent', { rent: formatMoney(rentOf(trade.garage.listedOf(chosen))) })}
                     </Button>
                   </span>
                 </div>

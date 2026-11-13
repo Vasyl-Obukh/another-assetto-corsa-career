@@ -367,6 +367,17 @@ describe('core/career-money', () => {
       expect(purchaseLine(makeCareer({ seasons: [] }), 'test_car', 'Test Car', undefined, 40_000).season).toBe(0);
     });
 
+    it('says what a sale took off, and whether the car was the Deal of the week', () => {
+      expect(purchaseLine(makeCareer(), 'test_car', 'Test Car', undefined, 24_000, {
+        model: 'test_car', off: 40, headline: true,
+      }).car).toEqual({
+        model: 'test_car', name: 'Test Car', off: 40, headline: true,
+      });
+      expect(purchaseLine(makeCareer(), 'test_car', 'Test Car', undefined, 32_000, {
+        model: 'test_car', off: 20, headline: false,
+      }).car).toEqual({ model: 'test_car', name: 'Test Car', off: 20 });
+    });
+
     it('keys each purchase of one car apart from the ones before it', () => {
       const career = makeCareer({ seasons: [makeSeason()] });
       const first = purchaseLine(career, 'test_car', 'Test Car', undefined, 40_000);
@@ -379,7 +390,7 @@ describe('core/career-money', () => {
   describe('saleLine', () => {
     it('pays what the car sells for, saying what was paid for it and when', () => {
       const owned: OwnedCar = {
-        model: 'test_car', skin: 'red', paid: 40_000, bought: '2027-02-01',
+        model: 'test_car', skin: 'red', paid: 40_000, listed: 40_000, bought: '2027-02-01',
       };
       const career = makeCareer({ date: '2027-08-01', seasons: [makeSeason()] });
 

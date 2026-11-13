@@ -7,6 +7,7 @@ import type {
   Car, CarBacking, CarSource, OwnedCar,
 } from '../../../../shared/types';
 import { carPrice, repaintOf, resaleValue } from '../../../../shared/utils/car-prices';
+import { liveSale, saleDeals, salePrice } from '../../../../shared/utils/car-sale';
 import { ownedCar, racingIn } from '../../../../shared/utils/garage';
 import { percentOf, repaintDeal } from '../../../../shared/utils/sponsors';
 import { useClasses, useSettings, useSlot } from '@/app';
@@ -64,7 +65,16 @@ export const useGarage = (): Garage | null => {
   return useMemo(() => {
     if (mode !== 'career' || !career) return null;
     const season = career.seasons[career.seasons.length - 1];
-    const priceOf = (car: Car): number => carPrice(car, catalogue, carPrices);
+    const sale = liveSale(career.sale, career.date);
+    // A car owned already is never on sale to its owner.
+    const deals = saleDeals(sale).filter((deal) => !ownedCar(career, deal.model));
+    const listedOf = (car: Car): number => carPrice(car, catalogue, carPrices);
+    const dealFor = (car: Car) => deals.find((deal) => deal.model === car.id) ?? null;
+    const priceOf = (car: Car): number => {
+      const deal = dealFor(car);
+
+      return deal ? salePrice(listedOf(car), deal.off) : listedOf(car);
+    };
     const backingOf = (car: Car) => (backing?.models.includes(car.id) && !ownedCar(career, car.id) ? {
       sponsor: backing.sponsor,
       amount: percentOf(priceOf(car), backing.share),
@@ -77,12 +87,16 @@ export const useGarage = (): Garage | null => {
       cars: career.garage,
       owned: (model: string) => ownedCar(career, model),
       priceOf,
+      listedOf,
+      dealOf: dealFor,
+      sale,
+      deals,
       backingOf,
       backing: backing && {
         share: backing.share, models: backing.models.filter((model) => !ownedCar(career, model)),
       },
       payableFor: (car: Car) => priceOf(car) - (backingOf(car)?.amount ?? 0),
-      repaintCost: (owned: OwnedCar) => (repaintDeal(career) ? 0 : repaintOf(owned.paid)),
+      repaintCost: (owned: OwnedCar) => (repaintDeal(career) ? 0 : repaintOf(owned.listed)),
       repaintSponsor: repaintDeal(career)?.sponsor.name ?? null,
       valueOf: (owned: OwnedCar) => resaleValue(owned.paid, owned.bought, career.date),
       racingIn: (model: string, source?: CarSource) => (season ? racingIn(season, model, source) : []),

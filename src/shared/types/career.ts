@@ -510,6 +510,11 @@ export interface OwnedCar {
    */
   paid: number;
   /**
+   * The price it was listed at when it was bought, before any sale took
+   * something off, which is what repainting it is worked out from.
+   */
+  listed: number;
+  /**
    * The day it was bought, as an ISO date.
    */
   bought: string;
@@ -518,6 +523,39 @@ export interface OwnedCar {
    * from rather than money the player spent.
    */
   reward?: string;
+}
+
+/**
+ * One car on sale for a week, and what the sale takes off it.
+ */
+export interface CarDeal {
+  /**
+   * Car folder ID.
+   */
+  model: string;
+  /**
+   * What is taken off its listed price, as a whole percentage.
+   */
+  off: number;
+}
+
+/**
+ * A week's car sale: the Deal of the week, and the rest of the cars on sale.
+ * Drawn once per week of the career's own calendar and kept as drawn.
+ */
+export interface CarSale {
+  /**
+   * The Monday the week opens on, as an ISO date. The sale runs to the Sunday.
+   */
+  week: string;
+  /**
+   * The Deal of the week, or null when there was nothing to draw it from.
+   */
+  headline: CarDeal | null;
+  /**
+   * Every other car on sale that week.
+   */
+  deals: readonly CarDeal[];
 }
 
 /**
@@ -642,6 +680,15 @@ export interface LedgerLine {
      * The day it was bought, as an ISO date, on a sale.
      */
     bought?: string;
+    /**
+     * What the week's sale took off it, as a whole percentage, on a purchase
+     * made while it was on sale.
+     */
+    off?: number;
+    /**
+     * Whether it was the Deal of the week, on a purchase made while it was.
+     */
+    headline?: boolean;
   };
   /**
    * The team behind a contract's line, by its display name.
@@ -1030,6 +1077,12 @@ export interface CareerState {
    * Every sponsor's deal it has signed, oldest first - those ended included.
    */
   sponsors: readonly SponsorDeal[];
+  /**
+   * The car sale of the week the clock last reached, kept as it was drawn so
+   * nothing added to the library reshuffles it. None in a standalone
+   * championship, nor before the library could first be read.
+   */
+  sale?: CarSale;
   /**
    * The day news starts from, as an ISO date: nothing that happened before it
    * sends a debrief, a result or any other news. The day a career first read

@@ -77,7 +77,7 @@ export const SellDialog = ({ car, garage, onClose }: SellDialogProps) => {
           <p className="rounded-r-lg border-l-3 border-primary bg-primary/7 px-3 py-2 text-sm text-muted-foreground">
             {t('trade.rentedAfter', {
               series: racing.map((entry) => entry.championship.name).join(', '),
-              rent: formatMoney(rentOf(garage.priceOf(car))),
+              rent: formatMoney(rentOf(garage.listedOf(car))),
             })}
           </p>
         ) : null}

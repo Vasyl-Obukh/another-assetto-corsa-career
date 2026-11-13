@@ -8,7 +8,7 @@ import { carBadgeUrl, isSafeSegment } from '../../../../shared/utils/content-url
 import { nationOfCountry } from '../../../../shared/utils/nations';
 import {
   AppraiseFoot, CARD_COVER, CARD_LINK, carPictureSources, ContentImage, FigureLine, GarageFoot, NationFlag,
-  PosterCaption, PriceFoot, ProvenanceBadges, RacedIn, SpecBadge, ToggleCard,
+  PosterCaption, PriceFoot, ProvenanceBadges, RacedIn, SaleBadge, SpecBadge, ToggleCard,
 } from '@/components';
 import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
@@ -74,6 +74,7 @@ export const CarCard = ({
   const nation = nationOfCountry(car.country);
   const figure = (value: number | null): string | null => (value === null ? null : formatNumber(Math.round(value)));
   const owned = trade?.garage.owned(car.id) ?? null;
+  const deal = trade?.garage.dealOf(car) ?? null;
   // A card with buttons of its own is not one link: the link covers the card
   // from inside it, and the buttons sit above it.
   const buttons = trade !== undefined && trade.mode !== 'pick' && toggle === undefined && onSelect === undefined;
@@ -99,8 +100,15 @@ export const CarCard = ({
           )}
         />
         {/* No Custom chip on a toggling card: its switch already says so. */}
-        <div className="absolute top-2 left-2 flex flex-wrap gap-1 [&>*]:shadow-sm">
+        {/* Kept clear of the livery count, so a sale's tag wraps under a long
+            pack name rather than sliding beneath it. */}
+        <div className={cn(
+          'absolute top-2 left-2 flex flex-wrap gap-1 [&>*]:shadow-sm',
+          toggle ? 'right-28' : 'right-16',
+        )}
+        >
           <ProvenanceBadges provenance={car.provenance} carId={toggle ? undefined : car.id} />
+          {deal ? <SaleBadge deal={deal} named /> : null}
         </div>
         {car.skins.length > 0 ? (
           <span

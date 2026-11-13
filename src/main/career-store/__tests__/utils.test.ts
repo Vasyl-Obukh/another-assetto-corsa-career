@@ -452,6 +452,13 @@ describe('main/career-store/utils', () => {
       expect({ ...profileOf(career), ...stateOf(career) }).toEqual(career);
     });
 
+    it('keeps the car sale the career holds, once there is one', () => {
+      const sale = { week: '2027-03-08', headline: { model: 'deal_car', off: 60 }, deals: [] };
+
+      expect(stateOf({ ...wholeCareer(), sale }).sale).toEqual(sale);
+      expect('sale' in stateOf(wholeCareer())).toBe(false);
+    });
+
     it('keeps the day news starts from, once there is one', () => {
       expect(stateOf({ ...wholeCareer(), newsFrom: '2026-01-04' }).newsFrom).toBe('2026-01-04');
       expect('newsFrom' in stateOf(wholeCareer())).toBe(false);
@@ -515,6 +522,17 @@ describe('main/career-store/utils', () => {
 
     it('refuses a career written against another revision of the format', () => {
       expect(readState({ ...wholeCareer(), version: 2 })).toBeNull();
+    });
+
+    it('refuses a garage holding a car with no listed price to repaint it from', () => {
+      expect(readState({
+        ...wholeCareer(), garage: [{ model: 'test_car', paid: 40_000, bought: '2026-01-04' }],
+      })).toBeNull();
+    });
+
+    it('refuses a sale that is not one, and accepts a career holding none', () => {
+      expect(readState({ ...wholeCareer(), sale: { week: '2027-03-08' } })).toBeNull();
+      expect(readState({ ...wholeCareer(), sale: undefined })).not.toBeNull();
     });
 
     it('refuses a state missing the day its clock stands at', () => {
@@ -3909,7 +3927,7 @@ describe('main/career-store/utils', () => {
 
     it("puts the car in the garage at three goal bonuses, saying whose it was", () => {
       expect(withGoalMet(holding(), deal, 'red').garage).toEqual([{
-        model: 'prize_car', skin: 'red', paid: 15_000, bought: '2026-03-02', reward: 'Halden Lubricants',
+        model: 'prize_car', skin: 'red', paid: 15_000, listed: 100_000, bought: '2026-03-02', reward: 'Halden Lubricants',
       }]);
     });
 
@@ -3951,7 +3969,7 @@ describe('main/career-store/utils', () => {
 
     it('pays what the car would sell for when the career already owns one', () => {
       const garage = [{
-        model: 'prize_car', paid: 1, bought: '2026-01-04',
+        model: 'prize_car', paid: 1, listed: 1, bought: '2026-01-04',
       }];
       const met = withGoalMet(holding({ garage }), deal, 'red');
 

@@ -464,6 +464,18 @@ describe('main/content-store', () => {
     });
   });
 
+  describe('models', () => {
+    it('lists every car in the library - catalogued, or added by the user - and nothing else installed', async () => {
+      rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30', 'my_mod', 'other_mod'])));
+
+      const store = await createContentStore('D:\\userData');
+      store.use(DIR);
+      store.include({ cars: ['my_mod'], tracks: [] });
+
+      await expect(store.models()).resolves.toEqual(['bmw_m3_e30', 'my_mod']);
+    });
+  });
+
   describe('price', () => {
     it("answers a listed car's price", async () => {
       rescanMock.mockResolvedValue(makeScan(makeContent(['bmw_m3_e30'])));

@@ -5,6 +5,7 @@ import { CarClass, ContentSource, DLCPack } from '../../../shared/types/index.ts
 import type { CarPricing, Track } from '../../../shared/types/index.ts';
 import { resolveCatalogue } from '../../../shared/utils/car-classes/index.ts';
 import { CAR_PRICES, PRICE_FLOOR } from '../../../shared/utils/car-prices/index.ts';
+import { salePrice } from '../../../shared/utils/car-sale/index.ts';
 import {
   carFacets, circuitOf, queryCars, queryTracks, trackFacets,
 } from '../content-query.ts';
@@ -167,6 +168,38 @@ describe('core/content-query', () => {
       const payable = { money: 250_000, share: 50, models: ['ferrari_488_gt3'] };
 
       expect(ids(queryCars(makeCars(), { payable, priceTo: 100_000 }, undefined, PRICING))).not.toContain('ferrari_488_gt3');
+    });
+
+    it('reads every price of a car on sale at its sale price - its sort, its range and what a career can pay', () => {
+      const sale = { ferrari_f40: 95 };
+      const onSale = salePrice(CAR_PRICES.ferrari_f40, 95);
+
+      expect(ids(queryCars(makeCars(), { sort: 'price', sale }, undefined, PRICING)).indexOf('ferrari_f40'))
+        .toBeLessThan(ids(queryCars(makeCars(), { sort: 'price', sale }, undefined, PRICING)).indexOf('ferrari_488_gt3'));
+      expect(ids(queryCars(makeCars(), { sale, priceFrom: onSale, priceTo: onSale }, undefined, PRICING)))
+        .toEqual(['ferrari_f40']);
+      expect(ids(queryCars(makeCars(), { sale, payable: { money: onSale, share: 0, models: [] } }, undefined, PRICING)))
+        .toContain('ferrari_f40');
+    });
+
+    it('keeps only the cars on sale, and none with no sale given', () => {
+      const sale = { ferrari_f40: 20, citroen_ds3: 10 };
+
+      expect(ids(queryCars(makeCars(), { sale, onSale: true }, undefined, PRICING))).toEqual(['citroen_ds3', 'ferrari_f40']);
+      expect(ids(queryCars(makeCars(), { onSale: true }, undefined, PRICING))).toEqual([]);
+    });
+
+    it('leaves out the cars it is asked to', () => {
+      expect(ids(queryCars(makeCars(), { except: ['ferrari_f40', 'nameless_mod'] })))
+        .toEqual(['citroen_ds3', 'ferrari_488_gt3', 'ks_porsche_911_gt3_r_2016']);
+    });
+
+    it('sorts by discount, the largest first and every car not on sale after them', () => {
+      const sale = { ferrari_f40: 20, ferrari_488_gt3: 40 };
+
+      expect(ids(queryCars(makeCars(), { sort: 'discount', sale }, undefined, PRICING))).toEqual([
+        'ferrari_488_gt3', 'ferrari_f40', 'citroen_ds3', 'nameless_mod', 'ks_porsche_911_gt3_r_2016',
+      ]);
     });
 
     it('filters by where a price comes from, a suggestion counting only for a car the user added', () => {
@@ -363,6 +396,20 @@ describe('core/content-query', () => {
       expect(prices?.min).toBeCloseTo(Math.log10(PRICE_FLOOR));
       expect(prices?.max).toBeCloseTo(Math.log10(CAR_PRICES.ferrari_f40));
       expect(prices?.counts.reduce((sum, count) => sum + count, 0)).toBe(5);
+    });
+
+    // The Store's Deal of the week leaves the list while it leads it, and the
+    // rail once counted a brand one short until a filter brought it back.
+    it('still counts a car left out of the list', () => {
+      const { brands } = carFacets(makeCars(), { except: ['ferrari_f40'] });
+
+      expect(brands.find((facet) => facet.value === 'Ferrari')?.count).toBe(2);
+    });
+
+    it('spreads prices at the sale price of a car on sale', () => {
+      const { prices } = carFacets(makeCars(), { sale: { ferrari_f40: 50 } }, undefined, PRICING);
+
+      expect(prices?.max).toBeCloseTo(Math.log10(salePrice(CAR_PRICES.ferrari_f40, 50)));
     });
 
     it('spreads power over every car installed, counting what the other filters leave', () => {

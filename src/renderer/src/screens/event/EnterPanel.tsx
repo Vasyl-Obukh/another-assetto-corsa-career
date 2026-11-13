@@ -131,7 +131,7 @@ export const EnterPanel = ({
   const livery = owned && car ? car.skins.find((one) => one.id === owned.skin) ?? skin : skin;
   // What entering costs a round: the class's fee, and a rented car's rent.
   const fee = chosen?.fee ?? null;
-  const rent = car && garage && !owned ? rentOf(garage.priceOf(car)) : null;
+  const rent = car && garage && !owned ? rentOf(garage.listedOf(car)) : null;
   const enter = (): void => {
     if (car) onEnter(entry, { model: car.id, skin: livery?.id });
   };

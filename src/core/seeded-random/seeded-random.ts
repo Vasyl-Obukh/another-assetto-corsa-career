@@ -39,6 +39,16 @@ export const randomFrom = (seed: number): (() => number) => {
 };
 
 /**
+ * A whole number drawn evenly inside a range, both ends included.
+ * @param range The fewest and the most
+ * @param random The generator
+ * @returns The number
+ */
+export const intIn = (range: readonly [number, number], random: () => number): number => (
+  range[0] + Math.floor(random() * (range[1] - range[0] + 1))
+);
+
+/**
  * Shuffles a list with a supplied generator, leaving the original alone.
  *
  * Fisher-Yates over the generator rather than over Math.random, so a shuffle

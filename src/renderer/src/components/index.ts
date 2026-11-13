@@ -18,7 +18,7 @@ export type {
 } from './browser/index.ts';
 export {
   BackingMark, CarSourceBadge, GarageFoot, PriceFoot, PurchaseButton, PurchaseDialog, RepaintDialog,
-  SparkleMark, SellDialog,
+  SaleBadge, SparkleMark, SellDialog,
   TradeButton,
 } from './car-trade/index.ts';
 export { AppraiseFoot, PriceOriginBadge } from './car-pricing/index.ts';

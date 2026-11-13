@@ -6,9 +6,10 @@ import { CarCard } from './CarCard.tsx';
 import { CarCardSkeleton } from './CarCardSkeleton.tsx';
 import { CarRail } from './CarRail.tsx';
 import { CarTable } from './CarTable.tsx';
-import { CAR_SORTS, PRICE_SORT } from './constants.ts';
+import { CAR_SORTS, DISCOUNT_SORT, PRICE_SORT } from './constants.ts';
 import { carPills } from './pills.ts';
 import type { Car, CarQuery } from '../../../../shared/types';
+import { saleOffs } from '../../../../shared/utils/car-sale';
 import { useClasses, useSettings } from '@/app';
 import {
   ActiveFilters, BrowserGrid, BrowserLayout, SearchField, SortMenu, TOOLBAR_SEARCH, ViewToggle,
@@ -16,6 +17,7 @@ import {
 import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { useCarBrowser, useInfiniteScroll, useRacingIndex } from '@/hooks';
 import { useFormat } from '@/i18n';
+import type { Racing } from '@/lib/racing-index';
 import { isListed } from '@/screens/championships';
 
 interface CarBrowserBodyProps {
@@ -70,10 +72,16 @@ interface CarBrowserBodyProps {
    * it heads nothing.
    */
   heading?: { title: string; subtitle: string };
+  /**
+   * A car the page leads with above the list - the Store's Deal of the week -
+   * and what stands there for it, while nothing narrows the list. Meanwhile
+   * the list leaves it out.
+   */
+  lead?: { model: string; render: (racing: Racing | undefined) => ReactNode };
 }
 
 export const CarBrowserBody = ({
-  onSelect, selectedId, baseQuery, memoryId, toggle, trade, appraise, railTop, heading,
+  onSelect, selectedId, baseQuery, memoryId, toggle, trade, appraise, railTop, heading, lead,
 }: CarBrowserBodyProps) => {
   const { t } = useTranslation();
   const format = useFormat();
@@ -84,11 +92,21 @@ export const CarBrowserBody = ({
   const racing = useRacingIndex((listing) => isListed(listing, settings));
   const raced = useMemo(() => (racing === null ? undefined : [...racing.cars.keys()]), [racing]);
 
-  const browser = useCarBrowser(baseQuery, memoryId, raced);
+  // A browser selling cars prices them at the week's sale, which its sort, its
+  // price filter and what the career can pay all read.
+  const deals = trade !== undefined && trade.mode !== 'garage' ? trade.garage.deals : null;
+  const offs = useMemo(() => (deals && deals.length > 0 ? saleOffs(deals) : null), [deals]);
+  const query = offs ? { ...baseQuery, sale: offs } : baseQuery;
+  const browser = useCarBrowser(query, memoryId, raced, lead?.model);
   const { list, criteria } = browser;
   const view = criteria.view ?? 'cards';
-  const sort = criteria.sort ?? 'name';
+  // A Discount sort remembered from a week with a sale reads as Name in one
+  // without, which is how the list falls back anyway.
+  const sort = criteria.sort === 'discount' && !offs ? 'name' : criteria.sort ?? 'name';
   const direction = criteria.direction ?? 'asc';
+
+  let sortItems = CAR_SORTS;
+  if (trade || appraise) sortItems = offs ? [...CAR_SORTS, PRICE_SORT, DISCOUNT_SORT] : [...CAR_SORTS, PRICE_SORT];
 
   const { scrollRef, sentinelRef } = useInfiniteScroll(
     list.loadMore,
@@ -125,7 +143,7 @@ export const CarBrowserBody = ({
               onChange={browser.setSearch}
             />
             <SortMenu
-              items={trade || appraise ? [...CAR_SORTS, PRICE_SORT] : CAR_SORTS}
+              items={sortItems}
               value={sort}
               direction={direction}
               onChange={(next) => browser.setCriteria({ ...criteria, sort: next })}
@@ -147,6 +165,7 @@ export const CarBrowserBody = ({
       scrollRef={scrollRef}
       backToTop={heading !== undefined}
     >
+      {lead && browser.leading ? <div className="pb-4">{lead.render(racing?.cars.get(lead.model))}</div> : null}
       <BrowserGrid
         list={list}
         view={view}

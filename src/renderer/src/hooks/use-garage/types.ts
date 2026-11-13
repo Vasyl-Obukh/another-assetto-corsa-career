@@ -1,6 +1,7 @@
 import type {
-  Car, CarBacking, CarSource, OwnedCar, SeasonEntry,
+  Car, CarBacking, CarSale, CarSource, OwnedCar, SeasonEntry,
 } from '../../../../shared/types';
+import type { LiveDeal } from '../../../../shared/utils/car-sale';
 import type { DisplayableError } from '@/lib/ipc';
 
 /**
@@ -46,11 +47,33 @@ export interface Garage {
    */
   owned(model: string): OwnedCar | null;
   /**
-   * What a car costs to buy.
+   * What a car costs to buy this week, after any sale.
    * @param car The car
    * @returns The price
    */
   priceOf(car: Car): number;
+  /**
+   * What a car is listed at, before any sale - which renting it is worked out
+   * from.
+   * @param car The car
+   * @returns The price
+   */
+  listedOf(car: Car): number;
+  /**
+   * The week's deal on a car.
+   * @param car The car
+   * @returns The deal, or null when it is not on sale or is owned already
+   */
+  dealOf(car: Car): LiveDeal | null;
+  /**
+   * The sale running this week, or null with none.
+   */
+  sale: CarSale | null;
+  /**
+   * The cars on sale this week, the Deal of the week first, those the career
+   * owns left out.
+   */
+  deals: readonly LiveDeal[];
   /**
    * What the career's main sponsor can pay of a car.
    * @param car The car

@@ -23,6 +23,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { carClassesOf, carSpecsOf, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carPrice, priceOrigin } from '../../shared/utils/car-prices/index.ts';
+import { salePrice } from '../../shared/utils/car-sale/index.ts';
 import { nationOfCountry } from '../../shared/utils/nations/index.ts';
 import { percentOf } from '../../shared/utils/sponsors/index.ts';
 
@@ -55,13 +56,22 @@ const pricedAs = (car: Car, pricing: CarPricing): string | null => {
  * walks the class catalogue.
  * @param catalogue The class catalogue a mod's price is derived over
  * @param pricing The user's prices and the cars they added
- * @returns A car's price
+ * @param sale What a career's sale takes off each car this week, by folder ID
+ * @returns A car's price, after the sale
  */
-const pricesFor = (catalogue: ClassCatalogue, pricing: CarPricing): ((car: Car) => number) => {
+const pricesFor = (
+  catalogue: ClassCatalogue,
+  pricing: CarPricing,
+  sale: Readonly<Record<string, number>> = {},
+): ((car: Car) => number) => {
   const known = new Map<string, number>();
 
   return (car) => {
-    const price = known.get(car.id) ?? carPrice(car, catalogue, pricing.prices);
+    const cached = known.get(car.id);
+    if (cached !== undefined) return cached;
+    const listed = carPrice(car, catalogue, pricing.prices);
+    const off = sale[car.id];
+    const price = off === undefined ? listed : salePrice(listed, off);
     known.set(car.id, price);
 
     return price;
@@ -71,9 +81,13 @@ const pricesFor = (catalogue: ClassCatalogue, pricing: CarPricing): ((car: Car) 
 /**
  * What each car sort key reads off a car.
  * @param priceOf What a car costs
+ * @param sale What a career's sale takes off each car this week, by folder ID
  * @returns The readers, by key
  */
-const carSorts = (priceOf: (car: Car) => number): Record<CarSortKey, (car: Car) => SortValue> => ({
+const carSorts = (
+  priceOf: (car: Car) => number,
+  sale: Readonly<Record<string, number>> = {},
+): Record<CarSortKey, (car: Car) => SortValue> => ({
   name: (car) => car.name,
   brand: (car) => car.brand,
   year: (car) => car.year,
@@ -81,6 +95,13 @@ const carSorts = (priceOf: (car: Car) => number): Record<CarSortKey, (car: Car) 
   weight: (car) => car.performance.weightKg,
   powerToWeight: (car) => car.performance.powerToWeight,
   price: priceOf,
+  // The largest discount first, as the cheapest price is, and a car not on sale
+  // after every one that is.
+  discount: (car) => {
+    const off = sale[car.id];
+
+    return off === undefined ? null : -off;
+  },
 });
 
 /**
@@ -137,6 +158,8 @@ const carFilters = (
     bhp: (car) => inBounds(car.performance.bhp, query.bhpFrom, query.bhpTo),
     price: (car) => inBounds(priceOf(car), query.priceFrom, query.priceTo) && canPay(car),
     priceOrigin: (car) => isOneOf(pricedAs(car, pricing), query.priceOrigins),
+    onSale: (car) => query.onSale !== true || query.sale?.[car.id] !== undefined,
+    except: (car) => !(query.except ?? []).includes(car.id),
   };
 };
 
@@ -191,9 +214,9 @@ export const queryCars = (
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
   pricing: CarPricing = NO_PRICING,
 ): Page<Car> => {
-  const priceOf = pricesFor(catalogue, pricing);
+  const priceOf = pricesFor(catalogue, pricing, query.sale);
   const matched = applyFilters(cars, carFilters(query, catalogue, pricing, priceOf));
-  const sorted = sortBy(matched, carSorts(priceOf)[query.sort ?? 'name'], (car) => car.name, query.direction);
+  const sorted = sortBy(matched, carSorts(priceOf, query.sale)[query.sort ?? 'name'], (car) => car.name, query.direction);
 
   return paginate(sorted, query.offset, query.limit);
 };
@@ -253,8 +276,10 @@ export const carFacets = (
   catalogue: ClassCatalogue = SHIPPED_CATALOGUE,
   pricing: CarPricing = NO_PRICING,
 ): CarFacets => {
-  const priceOf = pricesFor(catalogue, pricing);
-  const filters = carFilters(query, catalogue, pricing, priceOf);
+  const priceOf = pricesFor(catalogue, pricing, query.sale);
+  // A car left out to stand above the list is still one the rail counts, or
+  // ticking a filter that brings it back would find one more than it said.
+  const filters = carFilters({ ...query, except: undefined }, catalogue, pricing, priceOf);
   const without = (except: string): Car[] => applyFilters(cars, filters, except);
 
   return {

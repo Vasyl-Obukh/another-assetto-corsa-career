@@ -33,9 +33,8 @@ export const CarCardSkeleton = ({ trade }: CarCardSkeletonProps) => (
     )}
     {trade !== undefined && trade !== 'garage' ? (
       <div className="-mx-3 -mb-3 flex items-center gap-3 bg-muted px-3 py-2.5">
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-h-11 flex-col justify-center">
           <Shimmer deep className="h-4.5 w-20" />
-          <Shimmer deep className="h-3 w-24" />
         </div>
       </div>
     ) : null}

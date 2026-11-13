@@ -20,6 +20,7 @@ import type {
   SponsorPerk,
   SponsorPerkKind,
 } from '../../shared/types/index.ts';
+import type { LiveDeal } from '../../shared/utils/car-sale/index.ts';
 import {
   activeContract, bonusFor, coveredFee, roundFine, roundSalary,
 } from '../../shared/utils/contracts/index.ts';
@@ -260,7 +261,8 @@ const carLine = (
  * @param model The car's folder ID
  * @param name The car's name
  * @param livery The livery it is bought in, by name
- * @param price What it costs
+ * @param price What it costs, after any sale
+ * @param deal The week's deal it was bought on, if any
  * @returns The line
  */
 export const purchaseLine = (
@@ -269,10 +271,16 @@ export const purchaseLine = (
   name: string,
   livery: string | undefined,
   price: number,
+  deal: LiveDeal | null = null,
 ): LedgerLine => ({
   ...carLine(career, 'purchase', model),
   amount: -price,
-  car: { model, name, ...(livery === undefined ? {} : { livery }) },
+  car: {
+    model,
+    name,
+    ...(livery === undefined ? {} : { livery }),
+    ...(deal ? { off: deal.off, ...(deal.headline ? { headline: true } : {}) } : {}),
+  },
 });
 
 /**

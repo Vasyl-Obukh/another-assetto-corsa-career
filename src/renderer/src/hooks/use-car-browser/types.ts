@@ -50,6 +50,11 @@ export interface CarBrowser {
    */
   filtered: boolean;
   /**
+   * Whether the car the page leads with is left out of the list, to stand
+   * above it - so while nothing narrows the list.
+   */
+  leading: boolean;
+  /**
    * Replaces the search text.
    * @param next What the user has typed
    */

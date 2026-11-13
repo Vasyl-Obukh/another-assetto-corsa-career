@@ -414,6 +414,19 @@
   --sell: oklch(0.6 0.15 62);
   --sell-foreground: oklch(0.985 0.005 62);
 
+  /* A week's car sale, on the Store, the car page, a car picker and Finances:
+     a car on sale as a pale chip, the Deal of the week as the same hue solid.
+     Tag orange at 45, the colour a price tag wears. It is 18 degrees from
+     can't-afford's red 27, which stands on the same cards - kept apart by
+     place, the chip on the picture and the refusal in the price band, and by
+     the refusal being an outlined red rather than a fill. Bronze 52 and Sell's
+     amber 62 never show on a car that is for sale, since the podium and the
+     tier metals are on no car card and an owned car is never on sale. */
+  --sale: oklch(0.93 0.06 45);
+  --sale-foreground: oklch(0.47 0.15 42);
+  --sale-solid: oklch(0.66 0.17 45);
+  --sale-solid-foreground: oklch(0.99 0.01 45);
+
   /* Where the price of a car the user added comes from, shown in Your content
      alone. A price of their own wears the custom origin's 340, the colour a
      spec of theirs already does there, so "yours" reads one way across
@@ -639,6 +652,10 @@
   --paint-foreground: oklch(0.985 0.005 295);
   --sell: oklch(0.66 0.14 64);
   --sell-foreground: oklch(0.18 0.03 60);
+  --sale: oklch(0.34 0.07 45);
+  --sale-foreground: oklch(0.87 0.1 50);
+  --sale-solid: oklch(0.7 0.16 48);
+  --sale-solid-foreground: oklch(0.18 0.03 45);
   --price-suggested: oklch(0.34 0.06 80);
   --price-suggested-foreground: oklch(0.88 0.1 85);
 
@@ -818,6 +835,10 @@
   --color-paint-foreground: var(--paint-foreground);
   --color-sell: var(--sell);
   --color-sell-foreground: var(--sell-foreground);
+  --color-sale: var(--sale);
+  --color-sale-foreground: var(--sale-foreground);
+  --color-sale-solid: var(--sale-solid);
+  --color-sale-solid-foreground: var(--sale-solid-foreground);
   --color-price-suggested: var(--price-suggested);
   --color-price-suggested-foreground: var(--price-suggested-foreground);
   --color-mail-awaiting: var(--mail-awaiting);

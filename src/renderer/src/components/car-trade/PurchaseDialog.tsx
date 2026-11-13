@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LIVERY_DIALOG } from './constants.ts';
+import { SaleBadge } from './SaleBadge.tsx';
 import { TradeError } from './TradeError.tsx';
 import type { Car, Skin } from '../../../../shared/types';
 import { carPictureSources, ContentImage } from '@/components/content-image/index.ts';
@@ -39,8 +40,9 @@ interface PurchaseDialogProps {
 
 /**
  * Buying a car: its livery first, as the car picker asks it, then a dialog
- * confirming the car in that livery, its price and what the career is left
- * with. A car shipping fewer than two liveries goes straight to confirming.
+ * confirming the car in that livery, its price and what the week's sale takes
+ * off it, and what the career is left with. A car shipping fewer than two
+ * liveries goes straight to confirming.
  */
 export const PurchaseDialog = ({
   car, skin: initial = null, garage, onClose,
@@ -69,6 +71,8 @@ export const PurchaseDialog = ({
     garage.buy(car.id, picked?.id, backed).then((ok) => { if (ok) onClose(picked); }, () => undefined);
   };
   const price = garage.priceOf(car);
+  const listed = garage.listedOf(car);
+  const deal = garage.dealOf(car);
   const backing = garage.backingOf(car);
   const pays = price - (backed && backing ? backing.amount : 0);
   const short = pays - garage.balance;
@@ -117,7 +121,17 @@ export const PurchaseDialog = ({
         ) : null}
         <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">{t('trade.price')}</dt>
-          <dd className="text-right font-semibold tabular-nums">{formatMoney(price)}</dd>
+          <dd className="text-right font-semibold tabular-nums">
+            {deal ? <s className="font-medium text-muted-foreground">{formatMoney(listed)}</s> : formatMoney(price)}
+          </dd>
+          {deal ? (
+            <>
+              <dt className="flex items-center"><SaleBadge deal={deal} named /></dt>
+              <dd className="text-right font-semibold text-success tabular-nums">
+                {t('sale.saving', { amount: formatMoney(listed - price) })}
+              </dd>
+            </>
+          ) : null}
           {backed && backing ? (
             <>
               <dt className="flex items-center gap-1.5 text-muted-foreground">

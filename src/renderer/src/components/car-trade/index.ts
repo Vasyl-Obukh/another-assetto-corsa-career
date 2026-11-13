@@ -5,6 +5,7 @@ export { PriceFoot } from './PriceFoot.tsx';
 export { PurchaseButton } from './PurchaseButton.tsx';
 export { PurchaseDialog } from './PurchaseDialog.tsx';
 export { RepaintDialog } from './RepaintDialog.tsx';
+export { SaleBadge } from './SaleBadge.tsx';
 export { SparkleMark } from './SparkleMark.tsx';
 export { SellDialog } from './SellDialog.tsx';
 export { TradeButton } from './TradeButton.tsx';

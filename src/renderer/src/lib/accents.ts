@@ -381,6 +381,15 @@ export const CAR_SOURCE_ACCENT = {
 } as const satisfies Record<CarSource, string>;
 
 /**
+ * A car on the week's sale: a pale tag for a car on sale, the same hue solid
+ * for the Deal of the week. globals.css says why the hue.
+ */
+export const SALE_ACCENT = {
+  deal: 'border-transparent bg-sale text-sale-foreground',
+  headline: 'border-transparent bg-sale-solid text-sale-solid-foreground',
+} as const;
+
+/**
  * The tinted foot of a Store card - the garage's magenta for a car the
  * career owns, the muted grey for one it could buy.
  */

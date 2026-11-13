@@ -4,7 +4,6 @@ import { BackingMark } from './BackingMark.tsx';
 import { PurchaseButton } from './PurchaseButton.tsx';
 import type { CarTrade } from './types.ts';
 import type { Car } from '../../../../shared/types';
-import { rentOf } from '../../../../shared/utils/car-prices';
 import { liveryName } from '../../../../shared/utils/garage';
 import { useFormat } from '@/i18n';
 import { PRICE_FOOT } from '@/lib/accents';
@@ -23,7 +22,8 @@ interface PriceFootProps {
 
 /**
  * The tinted band closing a car's card in the Store and its pickers: the price
- * large and the rent a round beside it, with Purchase in the Store. A car the
+ * large, with its listed price struck under it while it is on sale, and
+ * Purchase in the Store. A car the
  * career owns closes on the garage's magenta instead - its livery, and what it
  * sells for.
  */
@@ -33,6 +33,7 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
   const { garage } = trade;
   const owned = garage.owned(car.id);
   const price = garage.priceOf(car);
+  const deal = garage.dealOf(car);
   const backing = garage.backingOf(car);
   const band = '-mx-3 -mb-3 flex items-center gap-3 px-3 py-2.5';
 
@@ -55,7 +56,9 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
 
   return (
     <div className={cn(band, PRICE_FOOT.forSale)}>
-      <div className="flex min-w-0 flex-col">
+      {/* Two lines high whether or not the car is on sale, so cards side by
+          side close level. */}
+      <div className="flex min-h-11 min-w-0 flex-col justify-center">
         <span className="flex items-center gap-1.5">
           <span className={cn(
             'text-lg leading-tight font-semibold tabular-nums',
@@ -66,9 +69,9 @@ export const PriceFoot = ({ car, trade }: PriceFootProps) => {
           </span>
           {backing ? <BackingMark sponsor={backing.sponsor} amount={backing.amount} /> : null}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {t('trade.orRent', { rent: formatMoney(rentOf(price)) })}
-        </span>
+        {deal ? (
+          <s className="text-xs text-muted-foreground tabular-nums">{formatMoney(garage.listedOf(car))}</s>
+        ) : null}
       </div>
       {trade.mode === 'store' && trade.onPurchase ? (
         // Above the card's own link, which covers the rest of the card.

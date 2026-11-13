@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { randomFrom, seedFrom } from '../seeded-random.ts';
+import { intIn, randomFrom, seedFrom } from '../seeded-random.ts';
 
 describe('core/seeded-random/seeded-random', () => {
   describe('seedFrom', () => {
@@ -35,6 +35,19 @@ describe('core/seeded-random/seeded-random', () => {
         expect(value).toBeGreaterThanOrEqual(0);
         expect(value).toBeLessThan(1);
       });
+    });
+  });
+
+  describe('intIn', () => {
+    it('draws whole numbers inside the range, reaching both ends', () => {
+      const random = randomFrom(seedFrom('range'));
+      const drawn = new Set(Array.from({ length: 200 }, () => intIn([3, 6], random)));
+
+      expect([...drawn].sort()).toEqual([3, 4, 5, 6]);
+    });
+
+    it('draws the one number a range of one holds', () => {
+      expect(intIn([5, 5], randomFrom(1))).toBe(5);
     });
   });
 });

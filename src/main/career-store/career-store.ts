@@ -109,6 +109,7 @@ import {
   withReply,
   withSeason,
 } from './utils.ts';
+import { drawSale } from '../../core/car-sale/index.ts';
 import {
   coveringSponsor,
   feeLine,
@@ -193,6 +194,9 @@ import type {
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
 import { rentOf, repaintOf, resaleValue } from '../../shared/utils/car-prices/index.ts';
+import {
+  dealOf, liveSale, salePrice, saleWeek,
+} from '../../shared/utils/car-sale/index.ts';
 import {
   isEligible, levelsAt, LOWEST_RUNG, openLevels, ratingFloor, ratingsAt,
 } from '../../shared/utils/career-eligibility/index.ts';
@@ -1480,11 +1484,35 @@ export const createCareerStore = async (
   };
 
   /**
+   * Draws the week's car sale once the clock has reached a week the career
+   * holds none for. Only the week the clock stands in: one jumped over is never
+   * drawn.
+   * @param career The career
+   * @returns The career with the week's sale - or unchanged when it has it
+   * already, is a standalone championship, or the library cannot be read yet,
+   * so it is drawn on a later move
+   */
+  const drawCarSale = async (career: Career): Promise<Career> => {
+    const week = saleWeek(career.date);
+    if (career.kind !== 'career' || career.sale?.week === week) return career;
+
+    let models: string[];
+    try {
+      models = await content.models();
+    } catch {
+      return career;
+    }
+
+    return { ...career, sale: drawSale(models.filter((model) => !ownedCar(career, model)), week, career.id) };
+  };
+
+  /**
    * Brings the career's missed rounds and its mail up to date, after anything
    * that can have moved the clock or given a round up.
    */
   const catchUp = async (): Promise<void> => {
     if (current) {
+      current = await drawCarSale(current);
       // Sponsors first, so a deal whose year ran out helps no seat or invitation.
       const mailed = await sendInvitations(await sponsorsMove(await simulateMissed(current)));
       current = await sendMarket(await sendOffers(mailed));
@@ -2144,10 +2172,10 @@ export const createCareerStore = async (
       const first = currentSeason(started);
       const ready = first
         ? await sendMarket(await sendOffers(await sendInvitations(withSeason(
-          started,
+          await drawCarSale(started),
           issueForecasts(started, await drawHistoric(started, first, startDate), startDate),
         ))))
-        : started;
+        : await drawCarSale(started);
       await makeCurrent(ready);
       const made = settle();
       // Its first season opening, so even a career that never races has a save
@@ -2548,8 +2576,10 @@ export const createCareerStore = async (
       const names = await namesOf(model);
       if (owned) throw new AppError('career.car.owned', { car: names.name });
       // Bought from the library alone, which is what the Store sells.
-      const price = await content.car(model) ? await content.price(model) : null;
-      if (price === null || !names.car) throw new AppError('career.car.unknown', { car: model });
+      const listed = await content.car(model) ? await content.price(model) : null;
+      if (listed === null || !names.car) throw new AppError('career.car.unknown', { car: model });
+      const deal = dealOf(liveSale(career.sale, career.date), model);
+      const price = deal ? salePrice(listed, deal.off) : listed;
       if (skin !== undefined && !names.car.skins.some((one) => one.id === skin)) {
         throw new AppError('career.car.livery', { car: names.name, livery: skin });
       }
@@ -2563,7 +2593,7 @@ export const createCareerStore = async (
       const painted = livery === undefined ? {} : { skin: livery };
       const at = currentSeason(career)?.index ?? 0;
       const paid = post(career, [
-        purchaseLine(career, model, names.name, names.livery(livery), price),
+        purchaseLine(career, model, names.name, names.livery(livery), price, deal),
         ...(backer ? [{
           ...sponsorLine(backer, 'carBacking', `sponsor:${backer.id}:car`, backing, { date: career.date, season: at }),
           car: { model, name: names.name },
@@ -2573,7 +2603,9 @@ export const createCareerStore = async (
       // livery bought - the round already paid for keeps its rent. What a
       // sponsor backed is not the player's to sell back.
       current = withSeason(
-        { ...paid, garage: [...career.garage, { model, ...painted, paid: price - backing, bought: career.date }] },
+        { ...paid, garage: [...career.garage, {
+          model, ...painted, paid: price - backing, listed, bought: career.date,
+        }] },
         withCarIn(season, racingIn(season, model, 'rented'), { model, ...painted, source: 'owned' }),
       );
 
@@ -2610,9 +2642,9 @@ export const createCareerStore = async (
       if (!names.car?.skins.some((one) => one.id === skin)) {
         throw new AppError('career.car.livery', { car: names.name, livery: skin });
       }
-      // Priced off what was paid for it, as its sale is, so a price changed
-      // since in settings never reaches a car already bought.
-      const cost = repaintDeal(career) ? 0 : repaintOf(owned.paid);
+      // Priced off the price it was listed at when bought, whatever a sale took
+      // off it, so a price changed since in settings never reaches it either.
+      const cost = repaintDeal(career) ? 0 : repaintOf(owned.listed);
       if (cost > career.money) throw new AppError('career.car.short', { price: cost, money: career.money });
 
       const painted = post(career, cost > 0
