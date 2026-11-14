@@ -74,6 +74,8 @@ export interface RaceSlot {
 export interface RaceStore {
   /**
    * Points the store at an install, or at nothing when the paths are unresolved.
+   * While nothing is launching, takes back out any weather plan a launch the
+   * app was closed during left installed.
    * @param paths Every resolved Assetto Corsa path, or null when they are not
    */
   use(paths: AcPaths | null): void;

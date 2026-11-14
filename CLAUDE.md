@@ -192,7 +192,7 @@ per project.
 | `src/core/launch/` | Cut-base64, URI construction, spawning CM, and rendering assists both ways - Content Manager's serialized JSON for the URI, AC's `assists.ini` layout for reading back what arrived |
 | `src/core/results/` | Watching, stable-reading and summarising results |
 | `src/core/event/` | Lowering an event into launches, one per session, and carrying the grid and the track across the seams between them. Pure: no I/O, so the state machine is a reducer over a value rather than a store. A launch's field is its own: `SessionDefinition.inherit` names which session a launch follows and how many of it carry over, so a knockout qualifying segment goes out with a short `[CAR_n]` list and a race composes its grid back along the whole chain. A race records its finishing order as its `classification`, so a later race may follow it, and `inherit.reverse` turns the front of an inherited order round for a reverse-grid race. A grid nothing lines up stands on pace **class by class**, the faster first, and a race nothing lines up says where the player joins it - last, pole, a slot, or a seeded random one - through `SessionDefinition.start`, which `placePlayer` honours **among the player's own class**: a slot is a place among classmates, never an overall one. **A class's pace is its place in the event's class list** - `classOrder`, the championship's `entries` as `roundRace` carries them - and a race lines its classes up one behind another unless it says `classGrid: 'mixed'`, its reverse then turning the front of each class round rather than of the grid; behind a qualifying run `classes: 'apart'` it stands by class whatever it says. **A qualifying run apart launches the player's class alone** (`launchField`), a knockout's `top` keeping that many of each class, and on landing every other class is simulated around it (`apartClassification`) and named on the record as `simulatedClasses`. Every simulated qualifying - a segment the player was out of, and every round nobody drove - stands faster classes first. `scaleLaunch` shortens a launch's race by one of the steps `src/shared/utils/race-scale/` offers and speeds its clock up by as much - fuel and tyre wear are left alone, so it simply stops less - and `advanceEvent` keeps the step on the launch's `LaunchRecord` as `scale`, only where it ran short. **Every launch of a grid of several classes records each car's class** as `carClasses`, by car index - driven, skipped or simulated alike - which is what places the player in their class wherever only a record and an archive are to hand: the Results page, Home's preview, a round's session list and the Race tab's cards |
-| `src/core/weather/` | Career weather presets installed into AC's content folder |
+| `src/core/weather/` | The user's own CSP weather settings, read and never written: which controller `weather_fx.ini` runs, and whether WeatherFX and RainFX are on |
 | `src/core/weather-plan/` | Weather plans for the PURE and Sol planner apps: our own step model, a writer per format, and installing them into a slot we own without disturbing the user's. Dynamic weather is driven by those apps, not by `race.ini` |
 | `src/core/ini/` | Minimal INI reader/writer for AC's flavour |
 | `src/core/cm-arguments/` | Content Manager's own `Arguments.txt`, one flag per line. Line-level and backup-free, unlike `weather-plan`: a flag's presence is the state, so turning it off is a complete undo. The settings screen writes two of the flags; race INI test mode is set through `npm run testmode` alone |
@@ -779,7 +779,7 @@ long enough to look at, and it is reverted before committing.
   while the race already written stays put. Inside a career that cannot happen: the draw is
   stored, and only the substitution over it follows the install.
 - **A wet session washing the rubber off is an approximation.**
-  `RAIN_FOR_FULL_WASH` is the career preset's own Rain, not a measurement of
+  `RAIN_FOR_FULL_WASH` is PURE's own Rain, not a measurement of
   what AC does to grip across a wet session, and nobody has driven one to check.
   It sits beside `GRIP_GAIN_PER_SESSION`, which was never measured either. A plan
   run under plain CSP races only its opening stretch while grip weighs every
@@ -836,7 +836,9 @@ long enough to look at, and it is reverted before committing.
   written meanwhile is never adopted: the launch simply reads as still pending
   and has to be run again. The CLI has the same hole and an answer for it -
   `npm run watch` reads whatever AC last wrote - and the app wants the same
-  "adopt the last result" action rather than a longer-lived watcher.
+  "adopt the last result" action rather than a longer-lived watcher. A weather
+  plan that launch installed is taken back out the next time the race store is
+  pointed at the install, so the planner apps are never left running ours.
 - **Quitting a race does not abort it.** AC runs it to completion without the
   player, at normal AI pace, and writes a full result recording them on the
   laps they managed. So a launch never half-runs and there is nothing to resume
@@ -884,8 +886,7 @@ long enough to look at, and it is reverted before committing.
   `[OPTIONS] USE_MPH`, the key Kunos' launcher binds its mph/km/h choice to,
   and the app leaves that alone: its units setting is the app's own.
 - **Sending assists rewrites the user's own `cfg/assists.ini` and does not put
-  it back** - the same intrusion `__CM_WEATHER_CONTROLLER` makes on
-  `weather_fx.ini`. CM does it from its own Quick Drive too, so it is not new
+  it back**. CM does it from its own Quick Drive too, so it is not new
   behaviour, but it is ours to own now.
 - **A launch ends at its first race**, and **qualifying in a launch owns its
   grid** - both measured, and both now routed around rather than worked within.
@@ -934,16 +935,18 @@ long enough to look at, and it is reverted before committing.
   than guessed at.
 - **PURE ships no weather presets.** It renders the CSP weather type, so a
   race asks for one of `ac.WeatherType`'s 33 values and a preset is resolved
-  behind it only because `[WEATHER] NAME` needs a folder. Our own `career_*`
-  presets win that resolution where one declares the type, since they carry
-  the `[RAINFX]` section that makes rain deterministic.
-- `__CM_WEATHER_CONTROLLER` overrides the user's own `weather_fx.ini` for the
-  race and does not restore it, so it is now written only when the race names
-  a controller. What would otherwise render is read back out of
-  `weather_fx.ini` and shown, which is what lets the setup screen warn when a
-  static weather is about to be ignored by a dynamic controller.
-- Career weather presets are written into the AC install (`content/weather/`)
-  and stay until `npm run weather -- remove`.
+  behind it only because `[WEATHER] NAME` needs a folder - one declaring the
+  type, preferring one carrying `[RAINFX]`. **The app installs no presets of
+  its own**: a type nothing installed declares is simply not on offer, and
+  generated weather races the nearest type that is (`nearestOffered`). Sol's
+  presets declare every type, and vanilla AC's only dry ones.
+- **`__CM_WEATHER_CONTROLLER` overrides the user's controller for one race and
+  never touches their `weather_fx.ini`** - measured: a launch sending `base`
+  left a file naming `pureCtrl static` unchanged, its modified time included,
+  so CSP reads the key from `race.ini` itself. Nothing needs restoring. What
+  would otherwise render is read back out of `weather_fx.ini` and shown, which
+  is what lets the setup screen warn when a static weather is about to be
+  ignored by a dynamic controller.
 - **Rain works under any controller, including plain CSP** - driven, not just
   read. `races/spikes/plain-rain.json` with the `base` controller and weather
   type 7 put water on the road and spray off the car. **The gate is Custom
@@ -955,8 +958,8 @@ long enough to look at, and it is reverted before committing.
   `extension/` tree finds that section in `pureCtrl` and `sol2` and nowhere
   else, so it is their convention rather than a CSP one. Plain CSP still rains -
   RainFX is a core module and `base/controller.lua` sets an intensity
-  unconditionally - but from a hardcoded per-type table, so `career_rain` runs
-  at CSP's 0.1 rather than the 0.125 it asks for. Three things are involved and
+  unconditionally - but from a hardcoded per-type table, so a Rain preset asking
+  for 0.125 runs at CSP's 0.1. Three things are involved and
   confusing them is easy: **RainFX** draws the rain, the **implementation**
   (`extension/weather/`) draws sky and clouds, and the **controller** only
   decides the numbers.

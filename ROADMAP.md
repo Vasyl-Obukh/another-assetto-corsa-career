@@ -380,7 +380,8 @@ reports it.
 2. **The controller** is a Lua script under `extension/weather-controllers/`
    that renders it. One is always running, named by the user's
    `cfg/extension/weather_fx.ini`, and `__CM_WEATHER_CONTROLLER` overrides that
-   for one race without restoring it afterwards.
+   for one race - read by CSP out of `race.ini`, so the user's file is never
+   written.
 3. **Whether the weather is read at all** is the controller's own decision,
    declared as `FOLLOWS_SELECTED_WEATHER` in its `manifest.ini`. Set to 0 it
    ignores the race and drives the weather itself; absent or 1 it renders what
@@ -1101,8 +1102,8 @@ Spikes first - they decide what weekend formats are expressible.
       folder carrying a type, and PURE renders Sol's presets perfectly well by
       reading that type. Nothing is lost by dropping them, because
       `presetForType` already resolves a type to the best preset behind it,
-      preferring one carrying `[RAINFX]` - which is what the `career_*` presets
-      exist for. Picking "Rain" gets `career_rain` without anyone knowing.
+      preferring one carrying `[RAINFX]`. (The `career_*` presets that carried
+      one were dropped in Phase 13: the app installs nothing of its own.)
       `Conditions.weather` survives for hand-written race files, which the
       spikes use
 - [x] **Conditions moved into a dialog**, having first been squeezed into a grid
@@ -1832,7 +1833,7 @@ catalogue.
       **Landed as the labelled approximation.** A session still rubbers the
       track in, then gives back a share of what the weekend laid down - never
       what the track started with - scaled by how hard it rained against
-      `RAIN_FOR_FULL_WASH`, the career preset's own Rain. Rain is weighted by
+      `RAIN_FOR_FULL_WASH`, PURE's own Rain. Rain is weighted by
       how long each stretch of a plan lasted rather than taken at its peak, so a
       sprinkle at the end of an hour's dry practice does not wash the hour away.
       On a green track, dry-dry starts the next session at 86, dry-rain at 80 and
@@ -3383,7 +3384,7 @@ feeling like admin. Against that it costs a second runtime inside the game,
 another folder written into the AC install, and two results paths kept forever.
 The number is kept so Phases 13 and 14 keep theirs.
 
-## Phase 13 - Customization and settings
+## Phase 13 - Customization and settings ✅
 
 - [x] **Settings UI**: paths on the Diagnostics tab, Content Manager's two safe
       flags, theme, language and currency on General - currency also per career,
@@ -3436,12 +3437,19 @@ The number is kept so Phases 13 and 14 keep theirs.
       every wet type as the nearest dry one on offer - its forecast, authored
       conditions and plan steps alike - so allowing rain again restores what
       was drawn
-- [ ] Weather preset management; surface that installing touches the AC folder
-- [ ] **Put the user's `weather_fx.ini` controller back** after every launch:
-      `__CM_WEATHER_CONTROLLER` writes ours into it, so the race store keeps
-      theirs before launching and restores it as the launch settles, as it
-      removes a generated plan - with one line in settings saying so
-- [ ] Uninstall/cleanup: remove career weathers, restore CM arguments
+- [x] ~~Weather preset management~~ - **dropped**: the app installs no presets.
+      A race names whichever installed folder declares its weather, and
+      generated weather races the nearest one installed when its own is not.
+      The `career_*` presets and `npm run weather -- install` / `remove` are
+      gone; `npm run weather -- plan` stays for the spikes
+- [x] ~~Put the user's `weather_fx.ini` controller back~~ - **dropped, nothing
+      to put back**: measured, a launch sending `__CM_WEATHER_CONTROLLER=base`
+      left a `weather_fx.ini` naming `pureCtrl static` untouched, modified time
+      and all. CSP reads the controller out of `race.ini` for that race alone
+- [x] ~~Uninstall/cleanup~~ - **dropped**: nothing the app writes outlives a
+      launch. A generated plan is removed as each launch settles - or, for one
+      the app was closed during, as it next starts - and Content Manager's two
+      flags are switches whose off is a complete undo
 
 ## Phase 14 - Distribution
 

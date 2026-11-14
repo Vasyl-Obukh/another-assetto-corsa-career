@@ -85,9 +85,9 @@ export const findWeather = (content: Content, id: string | undefined): Weather |
  * Picks the installed preset that best stands for a CSP weather type.
  *
  * A type needs a preset behind it whatever else happens: `[WEATHER] NAME` wants
- * a folder and the road temperature wants its coefficient. Our own career
- * presets win where one declares the type, since their `[RAINFX]` section is
- * what makes rain deterministic. Sol's set is the usual fallback.
+ * a folder and the road temperature wants its coefficient. Where several
+ * declare the type, one carrying a `[RAINFX]` section wins, since PURE and Sol
+ * read its rain amounts directly.
  * @param content Installed content to look in
  * @param type The CSP weather type asked for
  * @returns The preset to name, or null when nothing installed declares the type
@@ -407,8 +407,8 @@ export const buildLighting = (
   }
 
   // CSP weather controller, by folder id under extension/weather-controllers.
-  // This overrides the user's cfg/extension/weather_fx.ini for the race and does
-  // not put it back, so it is written only when the race names one. A controller
+  // CSP reads it from here for this race alone and leaves the user's own
+  // cfg/extension/weather_fx.ini untouched - measured. A controller
   // whose manifest sets FOLLOWS_SELECTED_WEATHER to 0 ignores the type below and
   // drives the weather from its own planner app instead.
   if (conditions.weatherController) {

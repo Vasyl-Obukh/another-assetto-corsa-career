@@ -345,6 +345,19 @@ export const createRaceStore = async (
   };
 
   /**
+   * Gives the planner apps their own settings back, taking out any plan of ours.
+   * @param acRoot The AC install root the planners live in
+   * @returns Resolves once done; a failure is logged rather than thrown
+   */
+  const restorePlanners = async (acRoot: string): Promise<void> => {
+    try {
+      await removePlans(acRoot);
+    } catch (error) {
+      console.warn('Could not remove the generated weather plan.', error);
+    }
+  };
+
+  /**
    * Ends the launch in flight and tells everyone.
    * @param failure Why it ended badly, or null when it did not
    * @returns Resolves once listeners have been told
@@ -352,13 +365,7 @@ export const createRaceStore = async (
   const settle = async (failure: AppErrorInfo | null): Promise<void> => {
     // Every ending goes through here, so this is where the planner's own
     // settings are given back.
-    if (paths) {
-      try {
-        await removePlans(paths.acRoot);
-      } catch (error) {
-        console.warn('Could not remove the generated weather plan.', error);
-      }
-    }
+    if (paths) await restorePlanners(paths.acRoot);
 
     watching = null;
     status = {
@@ -470,6 +477,9 @@ export const createRaceStore = async (
       // A different install has its own CSP config, and the probe re-runs
       // whenever the user changes an override.
       csp = null;
+      // A launch the app was closed during never settled, so its plan may still
+      // be installed.
+      if (next && status.phase === 'idle') void restorePlanners(next.acRoot);
     },
 
     get: describe,

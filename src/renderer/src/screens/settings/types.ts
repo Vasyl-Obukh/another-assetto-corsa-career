@@ -7,7 +7,7 @@ import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
 /**
  * Something a weather system can or cannot do, as its card lists them.
  */
-export type WeatherCapability = 'rain' | 'dynamic' | 'exactRain';
+export type WeatherCapability = 'rain' | 'dynamic';
 
 /**
  * A point of a percentage slider worth naming, offered as a chip.

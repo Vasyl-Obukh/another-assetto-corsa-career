@@ -28,7 +28,7 @@
   ],
 
   "conditions": {
-    "weather": "career_heavy_rain",
+    "weatherType": 8,
     "weatherController": "pureCtrl static",
     "timeOfDay": "15:30",
     "ambient": 14,

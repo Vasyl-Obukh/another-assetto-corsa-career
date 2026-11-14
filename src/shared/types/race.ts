@@ -288,7 +288,8 @@ export interface Conditions {
    */
   weatherType?: WeatherType;
   /**
-   * CSP weather controller folder ID. Overrides the user's own weather_fx.ini.
+   * CSP weather controller folder ID. Overrides the user's own weather_fx.ini
+   * for this race alone, without writing to it.
    *
    * Two quite different things travel through this one field, because AC has
    * one key for them. A controller that follows the selected weather is a

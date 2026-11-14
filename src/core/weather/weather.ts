@@ -1,57 +1,15 @@
-// Career weather presets, installed into AC's content folder as ordinary
-// weathers (so they show up in Content Manager's list too).
-//
-// Each carries a [RAINFX] section, which no shipped weather has. PURE's
-// controller reads those values directly and skips preset_rain(), which is what
-// makes rain deterministic rather than dependent on how a controller resolves a
-// weather type.
+// The user's own CSP weather settings, read and never written: which controller
+// weather_fx.ini runs, and whether WeatherFX and RainFX are switched on.
 
-import {
-  mkdir, readdir, readFile, rm, writeFile,
-} from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  CAREER_WEATHERS, CSP_CONFIG_DIR, QUOTES, RAIN_FX_FILE, WEATHER_FX_FILE,
+  CSP_CONFIG_DIR, QUOTES, RAIN_FX_FILE, WEATHER_FX_FILE,
 } from './constants.ts';
-import { readIniValue, weatherIniFor } from './utils.ts';
+import { readIniValue } from './utils.ts';
 import type { WeatherFxState } from '../../shared/types/index.ts';
 import { parseIni } from '../ini/index.ts';
-
-export type { WeatherPreset } from './types.ts';
-export { CAREER_WEATHERS } from './constants.ts';
-
-/**
- * Installs every career weather into AC's content folder. Idempotent.
- * @param contentDir The AC content directory
- * @returns The IDs that were installed
- */
-export const installCareerWeathers = async (contentDir: string): Promise<string[]> => {
-  await Promise.all(CAREER_WEATHERS.map(async (preset) => {
-    const dir = path.join(contentDir, 'weather', preset.id);
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, 'weather.ini'), weatherIniFor(preset));
-  }));
-
-  return CAREER_WEATHERS.map((preset) => preset.id);
-};
-
-/**
- * Removes the career weathers again. Only touches folders this app created.
- * @param contentDir The AC content directory
- * @returns The IDs that were actually present and have been removed
- */
-export const removeCareerWeathers = async (contentDir: string): Promise<string[]> => {
-  const ids = new Set(CAREER_WEATHERS.map((preset) => preset.id));
-  const present = (await readdir(path.join(contentDir, 'weather'))).filter((id) => ids.has(id));
-
-  await Promise.all(present.map((id) => rm(path.join(contentDir, 'weather', id), {
-    recursive: true,
-    force: true,
-  })));
-
-  return present;
-};
 
 /**
  * Reads which weather controller the user's own CSP settings name.

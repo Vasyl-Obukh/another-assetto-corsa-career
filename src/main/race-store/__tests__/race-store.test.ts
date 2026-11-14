@@ -2,11 +2,12 @@ import {
   afterEach, beforeEach, describe, expect, it, jest,
 } from '@jest/globals';
 import {
-  readdir, readFile, rename, writeFile,
+  readdir, readFile, rename, rm, writeFile,
 } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { EventState, LaunchRecord } from '../../../shared/types/index.ts';
+import { purePlanFile } from '../../../core/weather-plan/index.ts';
+import type { AcPaths, EventState, LaunchRecord } from '../../../shared/types/index.ts';
 import { fakeContentStore, fakeSettingsStore } from '../../__tests__/fakes/index.ts';
 import { createRaceStore } from '../race-store.ts';
 import type { RaceStore } from '../race-store.ts';
@@ -141,6 +142,41 @@ describe('main/race-store', () => {
       store.empty();
 
       expect(read).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('use', () => {
+    const paths: AcPaths = {
+      contentManager: 'D:\\cm\\Content Manager.exe',
+      acRoot: 'D:\\ac',
+      documents: 'D:\\docs\\Assetto Corsa',
+      content: 'D:\\ac\\content',
+      cfg: 'D:\\docs\\Assetto Corsa\\cfg',
+      out: 'D:\\docs\\Assetto Corsa\\out',
+      raceOut: 'D:\\docs\\Assetto Corsa\\out\\race_out.json',
+    };
+
+    it('takes out a weather plan a launch the app was closed during left installed', async () => {
+      const store = await build();
+      const left = purePlanFile(paths.acRoot);
+      jest.mocked(readFile).mockImplementation((async (file: unknown) => {
+        if (String(file) === left) return '{}';
+        throw errno('ENOENT');
+      }) as typeof readFile);
+
+      store.use(paths);
+      await jest.runAllTimersAsync();
+
+      expect(rm).toHaveBeenCalledWith(left, { force: true });
+    });
+
+    it('leaves the planners alone when pointed at no install', async () => {
+      const store = await build();
+
+      store.use(null);
+      await jest.runAllTimersAsync();
+
+      expect(rm).not.toHaveBeenCalled();
     });
   });
 

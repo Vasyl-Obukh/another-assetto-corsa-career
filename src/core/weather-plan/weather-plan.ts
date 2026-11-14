@@ -2,7 +2,7 @@
 // and taking it back out again.
 //
 // Both planners live in the user's mod folders alongside their own work, so the
-// rule is the one the career weather presets follow: write only what we own.
+// rule is to write only what we own.
 // PURE's `Plans/last_used.json` and Sol's preset slots 0 to 3 are theirs. Two
 // things of theirs do have to change - PURE's "load last used" flag and whatever
 // Sol had in the slot we claim - and both are recorded before being touched and

@@ -34,7 +34,7 @@ export const GRIP_GAIN_PER_SESSION = 0.25;
  * event laid down back off the track.
  *
  * An approximation too, and unmeasured: what AC does to grip across a wet
- * session has not been driven. The figure is the career preset's own Rain, so
+ * session has not been driven. The figure is PURE's own Rain, so
  * a session of steady rain returns the track to its starting state, a light
  * shower takes back less than half, and drizzle barely registers. Lighter rain
  * scales down linearly; anything heavier washes no further, since there is

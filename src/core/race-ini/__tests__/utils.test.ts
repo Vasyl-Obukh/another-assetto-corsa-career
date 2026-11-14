@@ -72,13 +72,13 @@ describe('core/race-ini/utils', () => {
       expect(presetForType(makeContent(), 8)?.id).toBe('test_rain');
     });
 
-    // A preset carrying [RAINFX] is what makes rain deterministic, so one is
-    // preferred over another declaring the same type without it.
+    // PURE and Sol read a [RAINFX] section's figures directly, so a preset
+    // carrying one is preferred over another declaring the same type.
     it('prefers a preset that carries rain figures', () => {
       const content = makeContent();
       content.weather.push({
-        id: 'career_rain',
-        name: 'Career Rain',
+        id: 'rainfx_rain',
+        name: 'RainFX Rain',
         type: 8,
         temperatureCoeff: -0.5,
         author: null,
@@ -88,7 +88,7 @@ describe('core/race-ini/utils', () => {
         forceHeadlights: false,
       });
 
-      expect(presetForType(content, 8)?.id).toBe('career_rain');
+      expect(presetForType(content, 8)?.id).toBe('rainfx_rain');
     });
 
     it('is null when nothing installed declares the type', () => {

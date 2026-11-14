@@ -27,12 +27,9 @@ interface WeatherSystemCardProps {
  */
 export const WeatherSystemCard = ({ system, selected, onSelect }: WeatherSystemCardProps) => {
   const { t } = useTranslation();
-  // Rain under plain CSP is real, only its strength comes from the type; PURE
-  // and Sol read a preset's own figures, and only they have a planner.
   const can = {
     rain: true,
     dynamic: supportsDynamic(system),
-    exactRain: system !== 'none',
   };
 
   return (

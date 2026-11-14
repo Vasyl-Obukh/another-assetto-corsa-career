@@ -81,7 +81,7 @@ export const AID_TILES = 'grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] g
 /**
  * What a weather system card says it can and cannot do, in order.
  */
-export const WEATHER_CAPABILITIES: readonly WeatherCapability[] = ['rain', 'dynamic', 'exactRain'];
+export const WEATHER_CAPABILITIES: readonly WeatherCapability[] = ['rain', 'dynamic'];
 
 /**
  * The aids Assetto Corsa gives three settings rather than two.

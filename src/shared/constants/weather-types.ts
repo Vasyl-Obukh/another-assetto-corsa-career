@@ -129,9 +129,8 @@ export const PURE_MISSING_TYPES: ReadonlySet<WeatherType> = new Set([
  * How hard each weather type rains, from 0 to 1.
  *
  * Read off the `rain` column of PURE's own defaults table
- * (apps/lua/PurePlanner/settings/settings_defaults.lua), the same table the
- * career presets took their values from, rather than invented. Snow, hail and
- * everything dry put no water on the track and read 0.
+ * (apps/lua/PurePlanner/settings/settings_defaults.lua) rather than invented.
+ * Snow, hail and everything dry put no water on the track and read 0.
  */
 export const RAIN_INTENSITY: Record<WeatherType, number> = {
   [WeatherType.LIGHT_THUNDERSTORM]: 0.1,

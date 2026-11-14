@@ -220,8 +220,7 @@
     "aggressionHigh": "Ruthless",
     "weatherCan": {
       "rain": "Rain and wet roads",
-      "dynamic": "Weather changes mid-session",
-      "exactRain": "Rain as strong as the preset asks"
+      "dynamic": "Weather changes mid-session"
     },
     "historic": {
       "label": "Historic events",

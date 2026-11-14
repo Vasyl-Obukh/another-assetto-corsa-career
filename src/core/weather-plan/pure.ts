@@ -43,7 +43,7 @@ export const pureWeather = (step: WeatherStep): Record<string, number | boolean>
   if (step.rain !== undefined) {
     out.rain_amount = step.rain;
     // Wetness and standing water follow the rain rather than being asked for
-    // separately, which is what the career weather presets already assume.
+    // separately.
     out.rain_wetness = step.rain;
     out.rain_water = step.rain;
   }
