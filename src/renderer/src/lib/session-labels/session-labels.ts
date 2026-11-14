@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 
 import { SESSION_TYPE_LABEL } from './constants.ts';
 import type { SessionType } from '../../../../shared/types';
+import type { Units } from '@/hooks';
 
 /**
  * What a session is called: the name it was given, or its kind's.
@@ -23,18 +24,18 @@ export const sessionName = (
  * @param race.laps Its laps, or null for a distance the track cannot turn into laps
  * @param race.distance The distance it was stated as, in kilometres
  * @param t The translator
- * @param formatNumber The locale's number formatter
+ * @param units The unit formatters, which write the distance
  * @returns The length, already translated
  */
 export const raceLength = (
   race: { laps?: number | null; distance?: number },
   t: TFunction,
-  formatNumber: (value: number) => string,
+  units: Pick<Units, 'format'>,
 ): string => {
   const laps = t('championships.format.laps', { count: race.laps ?? 0 });
 
   return race.distance === undefined ? laps : t('championships.detail.lengthDistance', {
-    distance: t('championships.format.distance', { value: formatNumber(race.distance) }),
+    distance: units.format('distance', race.distance),
     laps,
   });
 };

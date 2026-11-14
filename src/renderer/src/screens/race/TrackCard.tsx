@@ -2,11 +2,12 @@ import { MapIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LAP_DIGITS } from './constants.ts';
 import type { Track } from '../../../../shared/types';
 import { ContentImage, ProvenanceBadges, TrackPicker } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { Card } from '@/components/ui/card.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 import { layoutImageSources, layoutOutline } from '@/screens/track-browser';
 
 interface TrackCardProps {
@@ -39,7 +40,7 @@ export const TrackCard = ({
   track, gridSize, locked, onPick,
 }: TrackCardProps) => {
   const { t } = useTranslation();
-  const { formatDistance } = useFormat();
+  const units = useUnits();
   const [picking, setPicking] = useState(false);
   const outline = track ? layoutOutline(track) : null;
   const [photo] = track ? layoutImageSources(track) : [];
@@ -81,7 +82,9 @@ export const TrackCard = ({
           <span className="truncate font-medium" title={track.name}>{track.name}</span>
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <ProvenanceBadges provenance={track.provenance} trackId={track.id} />
-            {track.lengthM === null ? null : <span>{formatDistance(track.lengthM)}</span>}
+            {track.lengthM === null ? null : (
+              <span>{units.formatLap(track.lengthM, LAP_DIGITS)}</span>
+            )}
             {track.pitboxes === null ? null : (
               // Amber where the classes hold more cars than the pits do.
               <span className={cramped ? 'font-medium text-warning-foreground dark:text-warning' : undefined}>

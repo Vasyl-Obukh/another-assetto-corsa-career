@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { sessionLength } from '@/screens/race';
@@ -29,7 +29,7 @@ interface FormatsCardProps {
 // down one narrow list.
 export const FormatsCard = ({ series, className }: FormatsCardProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
   const formats = series.eventFormats;
 
   /**
@@ -42,7 +42,7 @@ export const FormatsCard = ({ series, className }: FormatsCardProps) => {
     // A distance becomes laps only on a round's track, which the rounds table says.
     if (session.distance !== undefined) {
       return t('championships.format.session', {
-        name, length: t('championships.format.distance', { value: formatNumber(session.distance) }),
+        name, length: units.format('distance', session.distance),
       });
     }
     const length = sessionLength(session);

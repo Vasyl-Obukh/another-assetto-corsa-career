@@ -2,7 +2,8 @@
 
 import { WeatherType } from './weather-types.ts';
 import type {
-  AiBase, CareerSettings, Currency, HistoricFrequency, Language, Settings, ThemeChoice, WeatherSystem,
+  AiBase, CareerSettings, Currency, HistoricFrequency, Language, Settings, ThemeChoice, UnitSystem,
+  WeatherSystem,
 } from '../types/index.ts';
 
 /**
@@ -47,6 +48,11 @@ export const AUTOSAVE_COUNTS = [1, 3, 5, 10] as const;
  * Every currency money may be shown in, in menu order.
  */
 export const CURRENCIES: readonly Currency[] = ['USD', 'EUR', 'GBP'];
+
+/**
+ * Every unit system measurements may be shown in, in menu order.
+ */
+export const UNIT_SYSTEMS: readonly UnitSystem[] = ['metric', 'uk', 'us'];
 
 /**
  * The progression speeds a career may run at, slowest first - what every prize
@@ -125,6 +131,7 @@ export const DEFAULT_SETTINGS: Settings = {
   historicActive: {},
   autosaves: 3,
   currency: 'USD',
+  units: 'metric',
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

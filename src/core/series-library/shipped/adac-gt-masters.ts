@@ -125,7 +125,7 @@ export const ADAC_GT_MASTERS: Championship = {
   grid: { strength: 1, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

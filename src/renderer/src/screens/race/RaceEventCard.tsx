@@ -12,7 +12,7 @@ import type {
 import { CarSwatch, ResultCell } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu.tsx';
-import { useCarNames } from '@/hooks';
+import { useCarNames, useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
@@ -50,6 +50,7 @@ export const RaceEventCard = ({
 }: RaceEventCardProps) => {
   const { t } = useTranslation();
   const { formatDay, formatNumber } = useFormat();
+  const units = useUnits();
   const { race } = view;
   const carName = useCarNames(race.car ? [race.car.model] : []);
   const title = view.title || t('race.untitled');
@@ -97,7 +98,7 @@ export const RaceEventCard = ({
     return row(session.index, session.status, session, session.status === 'done' && position !== null ? (
       <ResultCell position={position} scored={false} quiet={session.type !== 'race'} prefixed size="sm" />
     ) : (
-      <span className="text-xs text-muted-foreground tabular-nums">{sessionLength(session, t, formatNumber)}</span>
+      <span className="text-xs text-muted-foreground tabular-nums">{sessionLength(session, t, formatNumber, units)}</span>
     ));
   };
 

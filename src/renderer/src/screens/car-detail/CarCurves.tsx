@@ -4,6 +4,7 @@ import { CHART_BOX, RPM_PER_K } from './constants.ts';
 import { curveAxis, curvePath, rpmTicks } from './utils.ts';
 import type { CarCurves as Curves } from '../../../../shared/types';
 import { DetailPanel } from '@/components';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 
 interface CarCurvesProps {
@@ -20,9 +21,12 @@ interface CarCurvesProps {
 export const CarCurves = ({ curves }: CarCurvesProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
+  // Torque is drawn in the unit the player reads, its axis rounded in that unit.
+  const torqueShown: Curves['torque'] = curves.torque.map(([rpm, nm]) => [rpm, units.shown('torque', nm, 1)]);
   const power = curveAxis(curves.power);
-  const torque = curveAxis(curves.torque);
+  const torque = curveAxis(torqueShown);
   const rpms = [...curves.power, ...curves.torque].map(([rpm]) => rpm);
   const from = Math.min(...rpms);
   const to = Math.max(...rpms);
@@ -52,7 +56,7 @@ export const CarCurves = ({ curves }: CarCurvesProps) => {
           {torque ? (
             <span className="inline-flex items-center gap-1.5">
               <i aria-hidden className="h-0.75 w-3.5 rounded-full bg-curve-torque" />
-              {t('cars.detail.curveTorque', { peak: peak(curves.torque), unit: t('cars.unitNm') })}
+              {t('cars.detail.curveTorque', { peak: peak(torqueShown), unit: units.unit('torque') })}
             </span>
           ) : null}
         </span>
@@ -80,7 +84,7 @@ export const CarCurves = ({ curves }: CarCurvesProps) => {
           </text>
         ))}
         {torque ? (
-          <path d={curvePath(curves.torque, x, y(torque.max))} fill="none" strokeWidth={2.2} className="stroke-curve-torque" />
+          <path d={curvePath(torqueShown, x, y(torque.max))} fill="none" strokeWidth={2.2} className="stroke-curve-torque" />
         ) : null}
         {power ? (
           <path d={curvePath(curves.power, x, y(power.max))} fill="none" strokeWidth={2.2} className="stroke-curve-power" />

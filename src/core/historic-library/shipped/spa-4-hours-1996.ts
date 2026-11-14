@@ -110,7 +110,6 @@ export const SPA_4_HOURS_1996: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

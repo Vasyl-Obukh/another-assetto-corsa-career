@@ -5,6 +5,7 @@ import { dotted, playerPosition, sessionLength } from './utils.ts';
 import type { EventSession } from '../../../../shared/types';
 import { ApartMark, ResultCell, WeatherStepIcons } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
@@ -37,6 +38,7 @@ export const EventSessionItem = ({
 }: EventSessionItemProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
   // A race says what it paid; anything else where the player's car finished,
   // which is someone else's place in a round raced without them.
@@ -45,7 +47,7 @@ export const EventSessionItem = ({
   const when = dotted([
     day,
     session.startsAt,
-    sessionLength(session, t, formatNumber),
+    sessionLength(session, t, formatNumber, units),
   ]);
 
   return (

@@ -197,7 +197,7 @@ export const WORLD_SPORTSCAR_1969: Championship = {
   grid: { strength: 3, aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

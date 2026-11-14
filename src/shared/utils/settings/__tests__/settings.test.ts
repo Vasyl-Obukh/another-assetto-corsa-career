@@ -279,6 +279,20 @@ describe('shared/utils/settings', () => {
       expect(aids).not.toHaveProperty('idealLine');
     });
 
+    // Damage became the player's own, read from a file they may edit, and
+    // nothing between here and the launch bounds it again.
+    it('holds a number to the range Assetto Corsa accepts, in whole steps', () => {
+      expect(readDrivingAids({
+        damage: 400, stabilityControl: -20, abs: 7, tractionControl: 1.4,
+      })).toEqual({
+        damage: 100, stabilityControl: 0, abs: 2, tractionControl: 1,
+      });
+    });
+
+    it('reads mechanical damage as the player\'s own', () => {
+      expect(readDrivingAids({ damage: 50 })).toEqual({ damage: 50 });
+    });
+
     it('keeps a switch turned deliberately off', () => {
       expect(readDrivingAids({ visualDamage: false })).toEqual({ visualDamage: false });
     });
@@ -289,8 +303,8 @@ describe('shared/utils/settings', () => {
     });
 
     it('ignores keys that are not driving aids at all', () => {
-      // Damage is a regulation and belongs to the race, not to the player.
-      expect(readDrivingAids({ damage: 50, tyreWear: 3, abs: 1 })).toEqual({ abs: 1 });
+      // Tyre wear is a regulation and belongs to the race, not to the player.
+      expect(readDrivingAids({ tyreWear: 3, abs: 1 })).toEqual({ abs: 1 });
     });
 
     it('reads anything that is not an object as no aids at all', () => {
@@ -347,6 +361,7 @@ describe('shared/utils/settings', () => {
         historicActive: { 'british-gp-1967': false },
         autosaves: 5,
         currency: 'EUR',
+        units: 'uk',
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -376,6 +391,20 @@ describe('shared/utils/settings', () => {
       expect(readSettings({ currency: 'EUR' }).currency).toBe('EUR');
       expect(readSettings({ currency: 'eur' }).currency).toBe(DEFAULT_SETTINGS.currency);
       expect(readSettings({}).currency).toBe(DEFAULT_SETTINGS.currency);
+    });
+
+    it('keeps a unit system it offers and falls back to the default for any other', () => {
+      expect(readSettings({ units: 'us' }).units).toBe('us');
+      expect(readSettings({ units: 'imperial' }).units).toBe(DEFAULT_SETTINGS.units);
+    });
+
+    it("falls back to the defaults it is handed, such as this machine's units", () => {
+      const defaults = { ...DEFAULT_SETTINGS, units: 'uk' as const };
+
+      expect(readSettings({}, defaults).units).toBe('uk');
+      expect(readSettings({ units: 'imperial' }, defaults).units).toBe('uk');
+      expect(readSettings({ units: 'us' }, defaults).units).toBe('us');
+      expect(readSettings('corrupt', defaults)).toEqual(defaults);
     });
 
     it("reads the historic switches as the championships' are, dropping what is not a switch", () => {

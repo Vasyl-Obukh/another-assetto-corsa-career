@@ -131,7 +131,7 @@ export const GINETTA_GT4_SUPERCUP: Championship = {
   grid: { strength: -2, aggression: 25 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

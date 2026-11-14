@@ -140,7 +140,6 @@ export const BRANDS_HATCH_1998: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

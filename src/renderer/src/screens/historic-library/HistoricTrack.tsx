@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import type { SeriesListing } from '../../../../shared/types';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 import { raceLength } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { LayoutMap } from '@/screens/track-browser';
@@ -21,7 +21,7 @@ interface HistoricTrackProps {
 // beside the race's length, which is what tells two events apart at a glance.
 export const HistoricTrack = ({ listing, className }: HistoricTrackProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
   const round = listing.series.rounds[0];
   const races = listing.availability.rounds[0]?.races ?? [];
 
@@ -33,7 +33,7 @@ export const HistoricTrack = ({ listing, className }: HistoricTrackProps) => {
         <LayoutMap track={round.track} alt={round.name} className="p-1" />
       </span>
       <span className="min-w-0 truncate text-sm text-muted-foreground">
-        {races.map((race) => raceLength(race, t, formatNumber)).join(' · ')}
+        {races.map((race) => raceLength(race, t, units)).join(' · ')}
       </span>
     </div>
   );

@@ -161,6 +161,7 @@
   "settings": {
     "theme": "Theme",
     "language": "Language",
+    "units": "Units",
     "title": "Settings",
     "appearance": "Appearance",
     "weather": "Weather",
@@ -185,7 +186,7 @@
     "driverNamePlaceholder": "Player",
     "driverNameHint": "Leave this empty to race under whatever name Assetto Corsa picks.",
     "drivingAids": "Driving aids",
-    "drivingAidsHint": "The aids you drive with in quick races, and in every career that does not set its own. A race or a championship may still ask for something stricter, and what it names wins.",
+    "drivingAidsHint": "The aids you drive with in quick races, and in every career that does not set its own.",
     "contentManager": "Content Manager",
     "contentManagerHint": "Flags Content Manager reads when it starts. They live in its own Arguments.txt, so anything you put there by hand stays where it is.",
     "contentManagerRestart": "Content Manager reads these the next time it starts.",
@@ -208,9 +209,10 @@
     "opponentsStrength": "AI strength",
     "opponentsAggression": "AI aggression",
     "opponentsOffsets": "A championship, a class and a round may each move these, and so may you, for a season or a round of your career on its own page. Every driver sits a little either side of their class for the season. A change reaches the next session launched, an event part-way through included, and each session records the strength it ran at.",
-    "appearanceHint": "How the app looks.",
+    "appearanceHint": "How the app looks and reads.",
     "sections": "Sections",
     "aidsElectronics": "Electronics",
+    "aidsDamage": "Damage",
     "aidsHelpers": "Helpers",
     "stabilityOff": "0 is off",
     "percent": "{{value}}%",
@@ -251,7 +253,7 @@
     "careerDriver": "Driver",
     "careerDriverHint": "This career's own. Your default driver, in the app's settings, stays as it is.",
     "careerOpponentsHint": "Every championship's offsets sit over these. The steps you take per season and per round stay on their own pages.",
-    "careerAidsHint": "The aids this career's sessions launch with. A race or a championship may still ask for something stricter, and what it names wins.",
+    "careerAidsHint": "The aids this career's sessions launch with.",
     "follow": {
       "following": "Follows App settings",
       "followingHint": "Switch on to set this career apart.",
@@ -268,7 +270,7 @@
       "hint": "One is taken after every session and as each season begins, and the oldest goes."
     },
     "championshipDriverHint": "This championship's own. Your default driver, in the app's settings, stays as it is.",
-    "championshipAidsHint": "The aids this championship's sessions launch with. A championship may still ask for something stricter, and what it names wins.",
+    "championshipAidsHint": "The aids this championship's sessions launch with.",
     "followChampionship": {
       "followingHint": "Switch on to set this championship apart.",
       "own": "This championship's own"
@@ -348,6 +350,31 @@
       "tracks": "Tracks"
     }
   },
+  "units": {
+    "kph": "km/h",
+    "mph": "mph",
+    "km": "km",
+    "mi": "mi",
+    "m": "m",
+    "ft": "ft",
+    "kg": "kg",
+    "lb": "lb",
+    "nm": "Nm",
+    "lbft": "lb-ft",
+    "c": "°C",
+    "f": "°F",
+    "value": "{{value}} {{unit}}",
+    "range": "{{min}}-{{max}} {{unit}}",
+    "acceleration": {
+      "kph": "0-100 km/h",
+      "mph": "0-62 mph"
+    },
+    "system": {
+      "metric": "Metric",
+      "uk": "UK",
+      "us": "US"
+    }
+  },
   "theme": {
     "system": "System",
     "light": "Light",
@@ -415,7 +442,7 @@
       "drag": "Drag"
     },
     "conditions": {
-      "ambient": "Air temperature (°C)",
+      "ambient": "Air temperature",
       "trackState": "Track state",
       "windDirection": "Wind direction (°)",
       "slot": "Slot {{index}}",
@@ -423,7 +450,6 @@
       "slotRemove": "Remove this slot",
       "slotHint": "The weather moves through these in order. The last one holds until the session ends, however long it turns out to be.",
       "summarySlots": "{{count}} weather slots",
-      "summaryAmbient": "{{value}}°C",
       "summaryNothing": "Nothing set - Assetto Corsa decides."
     },
     "trackState": {
@@ -504,7 +530,6 @@
       "hurricane": "Hurricane"
     },
     "regulations": {
-      "damage": "Damage",
       "fuelRate": "Fuel use",
       "tyreWear": "Tyre wear",
       "tyreBlankets": "Tyre blankets",
@@ -514,7 +539,6 @@
         "half": "Half",
         "real": "Real"
       },
-      "percent": "{{value}} %",
       "times": "×{{value}}",
       "isReal": "{{value}} · Real",
       "default": "Default",
@@ -746,8 +770,6 @@
       "weather": "Weather",
       "wind": "Wind",
       "start": "You start",
-      "temperature": "{{value}}°C",
-      "windRange": "{{min}}-{{max}} km/h",
       "authored": "As the event sets it",
       "authoredDry": "As the event sets it, without rain",
       "dried": "{{weather}} · no rain allowed",
@@ -935,7 +957,6 @@
       "eligible_other": "{{count}} cars installed",
       "notEnough": "Not enough installed to race this class.",
       "bop": "Balance of performance",
-      "ballast": "{{value}} kg",
       "restrictor": "{{value}}% restrictor",
       "bopRow": "{{car}} - {{adjustments}}",
       "seats": "Entry list",
@@ -958,8 +979,7 @@
       "minutes_one": "{{count}} minute",
       "minutes_other": "{{count}} minutes",
       "session": "{{name}} - {{length}}",
-      "sessionPlain": "{{name}}",
-      "distance": "{{value}} km"
+      "sessionPlain": "{{name}}"
     },
     "points": {
       "default": "Default"
@@ -1434,7 +1454,7 @@
       "notInstalled": "Not installed"
     },
     "bop": {
-      "ballastShort": "Ballast kg",
+      "ballastShort": "Ballast {{unit}}",
       "restrictorShort": "Restrictor %",
       "ballastFor": "ballast for {{car}}",
       "restrictorFor": "restrictor for {{car}}",
@@ -1514,7 +1534,6 @@
       "hintShort": "Click a round to edit it. Drag to reorder.",
       "lapsHere_one": "{{count}} lap at this track",
       "lapsHere_other": "{{count}} laps at this track",
-      "length": "{{km}} km",
       "pitboxes_one": "{{count}} pit box",
       "pitboxes_other": "{{count}} pit boxes",
       "raceLengths": "Race length at this round",
@@ -1553,7 +1572,7 @@
       "followsReverse": ", top {{reverse}} reversed",
       "reverse": "Cars reversed",
       "conditions": "Conditions",
-      "distance": "Distance (km)",
+      "distance": "Distance ({{unit}})",
       "all": "all",
       "conditionsWin": "A group set here wins over the round's, wherever this format is raced.",
       "finish": "{{name}} finish",
@@ -1756,14 +1775,13 @@
       "removeFirst": "Remove the day, moving its sessions onto the day after"
     },
     "temperature": {
-      "celsius": "{{value}} °C",
       "road": "Road",
       "roadFollows": "Follows the air",
       "roadSet": "Set",
-      "about": "≈ {{value}} °C",
-      "followsAt": "at {{time}}, with {{ambient}} °C air",
+      "about": "≈ {{value}}",
+      "followsAt": "at {{time}}, with {{ambient}} air",
       "followsHint": "Warms and cools with the air and the time of day.",
-      "wouldFollow": "following the air: {{value}} °C"
+      "wouldFollow": "following the air: {{value}}"
     },
     "time": {
       "jump": "Jump to",
@@ -1797,8 +1815,8 @@
       "untilEnd": "until the session ends"
     },
     "wind": {
-      "from": "From (km/h)",
-      "to": "To (km/h)",
+      "from": "From ({{unit}})",
+      "to": "To ({{unit}})",
       "north": "N"
     }
   },
@@ -1887,7 +1905,6 @@
       "weight": "Weight",
       "powerToWeight": "Power to weight",
       "topSpeed": "Top speed",
-      "acceleration": "0-100 km/h",
       "about": "About",
       "curves": "Power and torque",
       "curvePower": "Power, {{unit}} - peak {{peak}}",
@@ -1937,10 +1954,7 @@
     },
     "subtitle": "Every car in your library, and which championships race it.",
     "unitBhp": "bhp",
-    "unitKg": "kg",
     "unitBhpPerTonne": "bhp/t",
-    "unitNm": "Nm",
-    "unitKph": "km/h",
     "unitSeconds": "s",
     "column": {
       "car": "Car",
@@ -1976,7 +1990,6 @@
     },
     "subtitle": "Every circuit in your library, and which championships race there.",
     "stat": {
-      "length": "km",
       "pitboxes": "pit boxes",
       "layouts_one": "layout",
       "layouts_other": "layouts"
@@ -2001,7 +2014,6 @@
       "photoCount": "{{shown}} / {{total}}",
       "showPhoto": "Show photograph {{number}}",
       "place": "{{country}} · {{city}}",
-      "km": "{{value}} km",
       "figureSeparator": " · ",
       "listSeparator": ", ",
       "championships_one": "{{count}} championship",
@@ -2012,7 +2024,6 @@
       "wholeCircuit": "Whole circuit",
       "length": "Length",
       "width": "Width",
-      "metres": "m",
       "pitboxes": "Pit boxes",
       "direction": "Direction",
       "run": {
@@ -2083,8 +2094,6 @@
     "title": "Event forecast",
     "hint": "Generated from the round's climate. The race runs in exactly this weather.",
     "day": "Day {{number}}",
-    "ambient": "{{value}}°C",
-    "wind": "{{min}}-{{max}} km/h",
     "change": "{{from}}, then {{to}}",
     "substituted": "{{intended}} is switched off or not installed, so this runs {{actual}} instead",
     "authored": "Set by the championship rather than generated",
@@ -2100,7 +2109,8 @@
     "abs": "ABS",
     "tractionControl": "Traction control",
     "stabilityControl": "Stability control",
-    "visualDamage": "Visual damage"
+    "visualDamage": "Visual damage",
+    "damage": "Mechanical damage"
   },
   "assistMode": {
     "0": "Off",
@@ -2122,7 +2132,8 @@
     "new": "New",
     "dash": "-",
     "loading": "Loading",
-    "sentences": "{{first}} {{second}}"
+    "sentences": "{{first}} {{second}}",
+    "dotted": "{{first}} · {{second}}"
   },
   "diagnostics": {
     "ready": "Ready to race",

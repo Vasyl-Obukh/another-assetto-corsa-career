@@ -144,7 +144,7 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
   defaultPointsSystem: 'race',
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

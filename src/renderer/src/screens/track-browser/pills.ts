@@ -4,11 +4,11 @@
 
 import type { TFunction } from 'i18next';
 
-import { kilometres } from './utils.ts';
+import { M_PER_KM } from '../../../../shared/constants';
 import type { TrackFacets } from '../../../../shared/types';
 import { provenancePills, rangeName } from '@/components';
 import type { ActiveFilter } from '@/components';
-import type { TrackCriteria } from '@/hooks';
+import type { TrackCriteria, Units } from '@/hooks';
 import type { Formatters } from '@/i18n';
 
 /**
@@ -16,20 +16,18 @@ import type { Formatters } from '@/i18n';
  * their rail sections show them.
  * @param criteria The filters currently applied
  * @param facets The counts, for the open ends of a range
- * @param t The translation function
  * @param format The formatters
+ * @param units The unit formatters
  * @returns How a lap length is written, and the lengths and the pit boxes
  * picked, each null when nothing is
  */
 export const trackRanges = (
   criteria: TrackCriteria,
   facets: TrackFacets | null,
-  t: TFunction,
   format: Formatters,
+  units: Pick<Units, 'format'>,
 ): { formatLength: (metres: number) => string; length: string | null; pitboxes: string | null } => {
-  const formatLength = (metres: number): string => (
-    `${kilometres(metres, format.formatNumber)} ${t('tracks.stat.length')}`
-  );
+  const formatLength = (metres: number): string => units.format('distance', metres / M_PER_KM);
 
   return {
     formatLength,
@@ -48,6 +46,7 @@ export const trackRanges = (
  * @param facets The counts, for the open ends of a range
  * @param t The translation function
  * @param format The formatters
+ * @param units The unit formatters
  * @param onChange Replaces the filters
  * @returns The pills, in the rail's order
  */
@@ -56,9 +55,10 @@ export const trackPills = (
   facets: TrackFacets | null,
   t: TFunction,
   format: Formatters,
+  units: Pick<Units, 'format'>,
   onChange: (next: TrackCriteria) => void,
 ): ActiveFilter[] => {
-  const { length, pitboxes } = trackRanges(criteria, facets, t, format);
+  const { length, pitboxes } = trackRanges(criteria, facets, format, units);
 
   return [
     ...(criteria.raced === true ? [{

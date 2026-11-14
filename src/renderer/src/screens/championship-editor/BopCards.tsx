@@ -8,7 +8,7 @@ import { OffsetStepper } from './OffsetStepper.tsx';
 import { withBop } from './utils.ts';
 import type { BopEntry } from '../../../../shared/types';
 import { ContentImage } from '@/components';
-import { useCars } from '@/hooks';
+import { useCars, useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { carImageSources } from '@/screens/car-browser';
@@ -52,6 +52,7 @@ export const BopCards = ({
   idPrefix, bop, fieldable, locked, nameOf, onChange,
 }: BopCardsProps) => {
   const { t } = useKindTranslation();
+  const units = useUnits();
   const installed = useCars(fieldable);
 
   return (
@@ -88,7 +89,7 @@ export const BopCards = ({
               <span className="truncate text-sm font-medium" title={name}>{name}</span>
               <div className="grid grid-cols-2 gap-2">
                 <label htmlFor={`${id}-ballast`} className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">{t('editor.bop.ballastShort')}</span>
+                  <span className="text-xs text-muted-foreground">{t('editor.bop.ballastShort', { unit: units.unit('weight') })}</span>
                   <OffsetStepper
                     id={`${id}-ballast`}
                     label={t('editor.bop.ballastFor', { car: name })}
@@ -96,6 +97,7 @@ export const BopCards = ({
                     min={MIN_BOP}
                     limit={MAX_BALLAST}
                     step={BALLAST_STEP}
+                    quantity="weight"
                     signed={false}
                     small
                     disabled={locked}

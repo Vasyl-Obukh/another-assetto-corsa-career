@@ -145,7 +145,7 @@ export const FORMULA_1_1990: Championship = {
   grid: { strength: 5, aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: true },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },
     penalties: true,
     jumpStartPenalty: 10,
   },

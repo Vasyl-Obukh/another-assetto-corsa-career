@@ -166,7 +166,6 @@ export const PETIT_LE_MANS_2001: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

@@ -12,8 +12,8 @@ import type {
   Championship, EventFormat, SeriesSession, Weather, WeatherController, WeatherSystem,
 } from '../../../../shared/types';
 import { mixesClasses, runsApart } from '../../../../shared/utils/session-chain';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
-import { useFormat } from '@/i18n';
 import { sessionName } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
 import { nextSession, sessionLength } from '@/screens/race';
@@ -81,7 +81,7 @@ export const SessionsSplit = ({
   onChange,
 }: SessionsSplitProps) => {
   const { t } = useKindTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
   // -1 is the head, when there is one.
   const [selected, setSelected] = useState(0);
   // A day just added, which holds no session yet - so nothing in the
@@ -117,7 +117,7 @@ export const SessionsSplit = ({
    * @returns Its length, already translated
    */
   const lengthOf = (session: SeriesSession): string => {
-    if (session.distance !== undefined) return t('championships.format.distance', { value: formatNumber(session.distance) });
+    if (session.distance !== undefined) return units.format('distance', session.distance);
     const length = sessionLength(session);
 
     return length === null ? '' : t(length.key, { count: length.count });

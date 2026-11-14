@@ -15,7 +15,7 @@ import type {
   StartKind,
 } from './types.ts';
 import {
-  AI_RANGE, MAX_GRID_OFFSET, MINUTES_PER_HOUR, SERIES_FORMAT_VERSION,
+  AI_RANGE, M_PER_KM, MAX_GRID_OFFSET, MINUTES_PER_HOUR, SERIES_FORMAT_VERSION,
 } from '../../../../shared/constants';
 import { Discipline } from '../../../../shared/types';
 import type {
@@ -42,6 +42,7 @@ import type {
 import { fieldableCars } from '../../../../shared/utils/eligibility';
 import { defaultFormatOf, formatOf } from '../../../../shared/utils/event-format';
 import { parseClock } from '../../../../shared/utils/road-temperature';
+import type { Units } from '@/hooks';
 
 /**
  * The ids a list spends.
@@ -877,6 +878,36 @@ export const withLengthUnit = <S extends Pick<SeriesSession, 'laps' | 'minutes' 
   minutes: unit === 'minutes' ? session.minutes ?? DEFAULT_LENGTH.minutes : undefined,
   distance: unit === 'distance' ? session.distance ?? DEFAULT_LENGTH.distance : undefined,
 });
+
+/**
+ * A session's length as its field shows it: a distance in the units the player
+ * reads, laps and minutes as they are.
+ * @param value The length as kept, a distance in kilometres
+ * @param unit What it is measured in
+ * @param units The unit formatters
+ * @returns The figure the field shows, or undefined for none
+ */
+export const shownLength = (
+  value: number | undefined,
+  unit: LengthUnit,
+  units: Pick<Units, 'shown'>,
+): number | undefined => (value === undefined || unit !== 'distance' ? value : units.shown('distance', value));
+
+/**
+ * A session's length as typed, back as it is kept: a distance in kilometres to
+ * the metre, so 500 miles keeps as 804.672.
+ * @param typed The figure typed, or undefined for none
+ * @param unit What it is measured in
+ * @param units The unit formatters
+ * @returns The length to keep
+ */
+export const storedLength = (
+  typed: number | undefined,
+  unit: LengthUnit,
+  units: Pick<Units, 'stored'>,
+): number | undefined => (typed === undefined || unit !== 'distance'
+  ? typed
+  : Math.round(units.stored('distance', typed) * M_PER_KM) / M_PER_KM);
 
 /**
  * Replaces or drops one session's length on a round.

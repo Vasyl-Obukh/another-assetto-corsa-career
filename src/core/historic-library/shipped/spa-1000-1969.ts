@@ -109,7 +109,6 @@ export const SPA_1000_1969: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

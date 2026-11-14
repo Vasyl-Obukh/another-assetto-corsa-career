@@ -3385,27 +3385,47 @@ The number is kept so Phases 13 and 14 keep theirs.
 
 ## Phase 13 - Customization and settings
 
-- [ ] Settings UI: paths, CM flags, units (`USE_MPH`), theme, language, currency
+- [x] **Settings UI**: paths on the Diagnostics tab, Content Manager's two safe
+      flags, theme, language and currency on General - currency also per career,
+      following the app's until a career sets its own
+- [x] **Units**: Metric, UK or US, three tiles on Appearance, for every
+      measurement the app shows. Kept metric on disk, converted only as shown
+      and typed. A fresh install starts on the country Windows is set to. **The
+      app's alone**: the game keeps whatever unit the player set in it
 - [x] **A table view for the Championships tab in settings**, beside its cards,
       through the same `ViewToggle` the car and track browsers have - a
       library of 130-odd championships is easier to manage a row at a time.
       What is missing or misconfigured is a tooltip on the row's state chip,
       and the Championship and Ladder headings sort as the sort menu does
-- [ ] Progression speed, with the career flagged when it changes
-- [ ] Autosave count and save behaviour
-- [ ] Difficulty profiles (AI level, assists, damage, tyre wear, fuel rate).
-      **AI strength and aggression landed in Phase 5** as `settings.opponents`,
-      the base every championship's offsets are laid over, with a step of the
-      player's own per season or round of the career on top
-- [ ] Economy tuning: prize and fee multipliers, starting money, price overrides
-- [ ] **Weather system**: PURE, Sol or none, chosen once. Decides who renders
-      static weather and which planner a dynamic race drives. "None" is CSP's
-      `base` controller, which has no rain FX and so means no rain ever
-- [ ] **Generated weather plans** for PURE Planner and Sol Planner, so dynamic
-      weather is ours rather than whatever the user last set. See *Weather, and
-      how dynamic weather is actually driven* for both file formats and both
-      autoload hooks. Wants a spike per system first, and has to be honest that
-      it writes into the user's mod folders and overwrites a plan slot of theirs
+- [x] **Progression speed**, with the career flagged when it changes: a prize
+      speed and a rating speed per career, each change a `speed` line in the
+      ledger or the rating log
+- [x] **Autosave count and save behaviour**: `settings.autosaves`, an autosave
+      after every session and as a season opens, F5 a quick save, Ctrl+S a
+      named one (Phase 6)
+- [x] **Difficulty: AI and driving aids.** AI strength and aggression landed in
+      Phase 5 as `settings.opponents`, the base every championship's offsets
+      are laid over, with a step of the player's own per season or round of the
+      career on top; driving aids are the app's, and a career's where it sets
+      its own. Tyre wear and fuel rate stay a championship's rules
+- [x] **Damage moves from the championship to the player**: app-wide and per
+      career, a Damage group in the driving aids beside visual damage, by
+      moving it from `RegulationKey` into the `DrivingAids` `Pick` - a
+      championship is the wrong place to say how much a crash costs the person
+      driving. No championship states it any more, and lowering reads only the
+      regulation keys (`REGULATION_KEYS`), so a file that still names damage
+      is never read for it
+- [x] **Economy tuning**: prize speed per career, starting money on a new
+      career, and prices on the cars the user added. Fees stay unscaled and the
+      catalogue's prices fixed, on purpose
+- [x] **Weather system**: PURE, Sol or none, chosen once on General. Decides
+      who renders static weather and which planner a dynamic race drives. "None"
+      is CSP's `base` controller - which rains after all, from CSP's own table
+- [x] **Generated weather plans** for PURE Planner and Sol Planner, so dynamic
+      weather is ours rather than whatever the user last set: the race store
+      installs one per launch and removes it as the launch settles, spiked per
+      system (`weather-plan`, `weather-plan-sol`), and the Weather section warns
+      that PURE keeps the last plan it ran over the user's own
 - [x] **Allow rain, per championship, edition and round** - some cars and
       tracks aquaplane on any water, and nobody can check every pairing. A
       championship's `rain: false` is set in the editor's Overview; a career's
@@ -3417,7 +3437,10 @@ The number is kept so Phases 13 and 14 keep theirs.
       conditions and plan steps alike - so allowing rain again restores what
       was drawn
 - [ ] Weather preset management; surface that installing touches the AC folder
-- [ ] Warn that `__CM_WEATHER_CONTROLLER` overrides the user's `weather_fx.ini`
+- [ ] **Put the user's `weather_fx.ini` controller back** after every launch:
+      `__CM_WEATHER_CONTROLLER` writes ours into it, so the race store keeps
+      theirs before launching and restores it as the launch settles, as it
+      removes a generated plan - with one line in settings saying so
 - [ ] Uninstall/cleanup: remove career weathers, restore CM arguments
 
 ## Phase 14 - Distribution

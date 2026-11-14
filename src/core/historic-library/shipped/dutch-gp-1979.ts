@@ -115,7 +115,6 @@ export const DUTCH_GP_1979: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

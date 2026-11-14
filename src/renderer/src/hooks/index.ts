@@ -95,3 +95,5 @@ export type { TrackBrowser, TrackCriteria } from './use-track-browser/index.ts';
 export { useViewportScale } from './use-viewport-scale/index.ts';
 export { useWeatherContent } from './use-weather-content/index.ts';
 export type { WeatherContent } from './use-weather-content/index.ts';
+export { useUnits } from './use-units/index.ts';
+export type { Units } from './use-units/index.ts';

@@ -45,8 +45,10 @@ import {
   seatRuns,
   sessionSource,
   sessionSources,
+  shownLength,
   startingSeats,
   startKindOf,
+  storedLength,
   withAddedFormat,
   withAddedPoints,
   withBop,
@@ -974,6 +976,41 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('starts a unit the session had no value in at its default', () => {
       expect(withLengthUnit({ laps: 10 }, 'distance'))
         .toEqual({ laps: undefined, minutes: undefined, distance: DEFAULT_LENGTH.distance });
+    });
+  });
+
+  describe('shownLength', () => {
+    const miles = { shown: (quantity: string, metric: number) => Math.round(metric * 0.621371 * 10) / 10 };
+
+    it('shows a distance in the units the player reads', () => {
+      expect(shownLength(100, 'distance', miles)).toBe(62.1);
+    });
+
+    it('shows laps and minutes as they are', () => {
+      expect(shownLength(20, 'laps', miles)).toBe(20);
+      expect(shownLength(30, 'minutes', miles)).toBe(30);
+    });
+
+    it('is undefined for no length', () => {
+      expect(shownLength(undefined, 'distance', miles)).toBeUndefined();
+    });
+  });
+
+  describe('storedLength', () => {
+    const miles = { stored: (quantity: string, typed: number) => typed * 1.609344 };
+
+    it('keeps a distance typed in miles as kilometres, to the metre', () => {
+      expect(storedLength(500, 'distance', miles)).toBe(804.672);
+      expect(storedLength(1, 'distance', { stored: () => 1.2345678 })).toBe(1.235);
+    });
+
+    it('keeps laps and minutes as typed', () => {
+      expect(storedLength(20, 'laps', miles)).toBe(20);
+      expect(storedLength(30, 'minutes', miles)).toBe(30);
+    });
+
+    it('is undefined for no length', () => {
+      expect(storedLength(undefined, 'distance', miles)).toBeUndefined();
     });
   });
 

@@ -13,6 +13,7 @@ import {
 } from '@/components';
 import type { BrowserToggle } from '@/components';
 import { Switch } from '@/components/ui/switch.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import type { Racing } from '@/lib/racing-index';
 import { path } from '@/lib/routes';
@@ -50,6 +51,7 @@ export const TrackRow = ({
 }: TrackRowProps) => {
   const { t } = useTranslation();
   const { formatNation, formatNumber } = useFormat();
+  const units = useUnits();
   const nation = nationOfCountry(group.country);
   const [first] = group.layouts;
   const outline = first === undefined ? null : layoutOutline(first);
@@ -93,7 +95,7 @@ export const TrackRow = ({
     );
   }
   const dash = <span className="text-muted-foreground">{t('common.dash')}</span>;
-  const length = lengthText(group.layouts, formatNumber);
+  const length = lengthText(group.layouts, units);
   const pitboxes = spanText(spanOf(group.layouts, (layout) => layout.pitboxes), formatNumber);
   const place = (
     <>

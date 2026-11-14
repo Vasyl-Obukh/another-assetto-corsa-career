@@ -7,6 +7,7 @@ import {
   SourceTree, toggledIn,
 } from '@/components';
 import type { TrackCriteria } from '@/hooks';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 
 interface TrackRailProps {
@@ -44,7 +45,8 @@ export const TrackRail = ({
   const { formatNation, formatNumber } = format;
 
   const countries = criteria.countries ?? [];
-  const { formatLength, length, pitboxes } = trackRanges(criteria, facets, t, format);
+  const units = useUnits();
+  const { formatLength, length, pitboxes } = trackRanges(criteria, facets, format, units);
 
   return (
     <FilterRail filtered={filtered} onClear={onClear}>

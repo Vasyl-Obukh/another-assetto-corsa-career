@@ -110,7 +110,7 @@ export const TROFEO_ABARTH_500_2009: Championship = {
   grid: { strength: -6, aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },
+    assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },
     penalties: true,
     jumpStartPenalty: 10,
   },

@@ -145,7 +145,7 @@ export const GT_MANUFACTURERS_1962: Championship = {
   grid: { strength: 1, aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

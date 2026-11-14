@@ -126,7 +126,6 @@ export const MALAYSIAN_GP_2000: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: true,

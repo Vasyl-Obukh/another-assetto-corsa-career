@@ -2,7 +2,9 @@ import { useTranslation } from 'react-i18next';
 
 import { TENTHS } from './constants.ts';
 import type { CarPerformance } from '../../../../shared/types';
+import type { Quantity } from '../../../../shared/utils/units';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -21,16 +23,31 @@ interface CarFiguresProps {
 export const CarFigures = ({ performance }: CarFiguresProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
+  /**
+   * A figure no unit system converts, whole.
+   * @param value The figure, or null where it is not stated
+   * @returns It written out, or null
+   */
   const whole = (value: number | null): string | null => (value === null ? null : formatNumber(Math.round(value)));
+  /**
+   * A metric figure in the player's units, without its unit.
+   * @param quantity What is measured
+   * @param value The figure, or null where it is not stated
+   * @returns It written out, or null
+   */
+  const shown = (quantity: Quantity, value: number | null): string | null => (
+    value === null ? null : units.figure(quantity, value)
+  );
   const figures = [
     { label: t('cars.detail.power'), unit: t('cars.unitBhp'), value: whole(performance.bhp) },
-    { label: t('cars.detail.torque'), unit: t('cars.unitNm'), value: whole(performance.torqueNm) },
-    { label: t('cars.detail.weight'), unit: t('cars.unitKg'), value: whole(performance.weightKg) },
+    { label: t('cars.detail.torque'), unit: units.unit('torque'), value: shown('torque', performance.torqueNm) },
+    { label: t('cars.detail.weight'), unit: units.unit('weight'), value: shown('weight', performance.weightKg) },
     { label: t('cars.detail.powerToWeight'), unit: t('cars.unitBhpPerTonne'), value: whole(performance.powerToWeight) },
-    { label: t('cars.detail.topSpeed'), unit: t('cars.unitKph'), value: whole(performance.topSpeedKph) },
+    { label: t('cars.detail.topSpeed'), unit: units.unit('speed'), value: shown('speed', performance.topSpeedKph) },
     {
-      label: t('cars.detail.acceleration'),
+      label: units.acceleration,
       unit: t('cars.unitSeconds'),
       value: performance.accelerationSeconds === null
         ? null

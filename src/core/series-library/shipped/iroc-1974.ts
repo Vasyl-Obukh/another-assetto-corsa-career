@@ -102,7 +102,7 @@ export const IROC_1974: Championship = {
   grid: { strength: 6, aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

@@ -1,6 +1,8 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import type { Quantity } from '../../../../shared/utils/units';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { fromNumber, toNumber } from '@/screens/race';
@@ -41,6 +43,11 @@ interface OffsetStepperProps {
    */
   small?: boolean;
   /**
+   * What it measures, for a figure kept metric: it is shown and typed in the
+   * units the player reads, while its steps and limits stay metric.
+   */
+  quantity?: Quantity;
+  /**
    * What an empty box shows, already translated.
    */
   placeholder?: string;
@@ -62,10 +69,11 @@ interface OffsetStepperProps {
  * well as pressed, and held within its limits either way.
  */
 export const OffsetStepper = ({
-  id, label, value, limit, min = -limit, step = 1, signed = true, small = false, placeholder = '0',
+  id, label, value, limit, min = -limit, step = 1, signed = true, small = false, quantity, placeholder = '0',
   disabled, onChange,
 }: OffsetStepperProps) => {
   const { t } = useKindTranslation();
+  const units = useUnits();
   // What is being typed, kept as typed until the box is left - a lone minus
   // is no number yet, and must not be wiped while it is written.
   const [draft, setDraft] = useState<string | null>(null);
@@ -86,7 +94,8 @@ export const OffsetStepper = ({
     onChange(held((value ?? 0) + by));
   };
 
-  const shown = signed && value !== undefined && value > 0 ? `+${value}` : fromNumber(value);
+  const figure = value === undefined || quantity === undefined ? value : units.shown(quantity, value);
+  const shown = signed && figure !== undefined && figure > 0 ? `+${figure}` : fromNumber(figure);
 
   return (
     <div
@@ -122,7 +131,8 @@ export const OffsetStepper = ({
           const text = event.target.value;
           setDraft(text);
           const next = toNumber(text);
-          if (next !== undefined) onChange(held(Math.round(next)));
+          const kept = next === undefined || quantity === undefined ? next : units.stored(quantity, next);
+          if (kept !== undefined) onChange(held(Math.round(kept)));
           else if (text.trim() === '') onChange(undefined);
         }}
         onBlur={() => setDraft(null)}

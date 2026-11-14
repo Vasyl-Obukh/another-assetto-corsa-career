@@ -131,7 +131,6 @@ export const MEXICAN_GP_1990: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: true,

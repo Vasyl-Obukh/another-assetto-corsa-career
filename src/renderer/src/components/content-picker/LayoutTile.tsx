@@ -9,10 +9,11 @@ import { ContentImage } from '@/components/content-image/index.ts';
 import { DistributorBadge } from '@/components/provenance-badges/index.ts';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_DOT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
-import { kilometres, layoutImageSources, layoutOutline } from '@/screens/track-browser';
+import { layoutImageSources, layoutOutline } from '@/screens/track-browser';
 import type { CircuitChampionship } from '@/screens/track-detail';
 import { byDiscipline } from '@/screens/track-detail';
 
@@ -54,6 +55,7 @@ export const LayoutTile = ({
 }: LayoutTileProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const outline = layoutOutline(layout);
   const [photo] = layoutImageSources(layout);
@@ -115,7 +117,7 @@ export const LayoutTile = ({
           <span className="truncate text-sm font-semibold" title={layout.name}>{name}</span>
           <div className="flex items-center text-xs text-muted-foreground tabular-nums [&>span+span]:ml-2 [&>span+span]:border-l [&>span+span]:pl-2">
             {layout.lengthM === null ? null : (
-              <span>{t('tracks.detail.km', { value: kilometres(layout.lengthM, formatNumber) })}</span>
+              <span>{units.formatLap(layout.lengthM)}</span>
             )}
             {layout.pitboxes === null ? null : <span>{t('tracks.pitboxes', { count: layout.pitboxes })}</span>}
             {layout.run === null ? null : (

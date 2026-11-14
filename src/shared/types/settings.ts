@@ -43,6 +43,13 @@ export type HistoricFrequency = 'off' | 'quarterly' | 'monthly' | 'fortnightly' 
 export type Currency = 'USD' | 'EUR' | 'GBP';
 
 /**
+ * Which units measurements are shown in: metric, the UK's mix of mph and miles
+ * beside kilograms and Celsius, or the US's. Display only - everything is kept
+ * in metric, Assetto Corsa's own units.
+ */
+export type UnitSystem = 'metric' | 'uk' | 'us';
+
+/**
  * Where the window was last time, so it can be put back.
  */
 export interface WindowState {
@@ -70,11 +77,11 @@ export interface WindowState {
 
 /**
  * The half of the assists that belongs to the person playing rather than to a
- * race.
+ * race - damage included, since how much a crash costs is theirs to decide.
  *
  * A `Pick` off `Assists` rather than a list of its own, so the two can never
- * drift apart. The rest - damage, fuel rate, tyre wear, slipstream and tyre
- * blankets - are regulations, and a series sets those. Tyre blankets in
+ * drift apart. The rest - fuel rate, tyre wear, slipstream and tyre blankets -
+ * are regulations, and a series sets those. Tyre blankets in
  * particular are a rule a championship writes down, not a preference: real
  * series allow or ban them, and the same driver races under both.
  */
@@ -89,6 +96,7 @@ export type DrivingAids = Pick<
   | 'tractionControl'
   | 'stabilityControl'
   | 'visualDamage'
+  | 'damage'
 >;
 
 /**
@@ -274,6 +282,11 @@ export interface Settings {
    * Which currency money is shown in, unless a career sets its own.
    */
   currency: Currency;
+  /**
+   * Which units the app shows measurements in. The game's own speedometer is
+   * left as the player set it. A fresh install takes it from Windows' region.
+   */
+  units: UnitSystem;
   /**
    * Paths the user has corrected by hand.
    */

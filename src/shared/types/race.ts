@@ -479,7 +479,9 @@ export interface RaceDefinition {
    */
   jumpStartPenalty?: number;
   /**
-   * Show speed in miles per hour rather than kilometres.
+   * Show speed in miles per hour rather than kilometres. Written into race.ini,
+   * which Assetto Corsa ignores: the game reads the unit from its own
+   * gameplay settings.
    */
   useMph?: boolean;
   /**

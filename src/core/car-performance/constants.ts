@@ -1,25 +1,10 @@
-// Unit conversions and sanity bounds for the free text mod authors write into
+// Power's conversion and sanity bounds for the free text mod authors write into
 // ui_car.json's specs block.
 
 /**
  * Brake horsepower per kilowatt.
  */
 export const BHP_PER_KW = 1.34102;
-
-/**
- * Newton metres per pound-foot.
- */
-export const NM_PER_LBFT = 1.35582;
-
-/**
- * Kilograms per pound.
- */
-export const KG_PER_LB = 0.453592;
-
-/**
- * Kilometres per hour per mile per hour.
- */
-export const KPH_PER_MPH = 1.60934;
 
 /**
  * Kilograms in a tonne, for the power-to-weight ratio.

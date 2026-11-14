@@ -13,7 +13,7 @@ import {
   ActiveFilters, BrowserGrid, BrowserLayout, SearchField, SortMenu, TOOLBAR_SEARCH, ViewToggle,
 } from '@/components';
 import type { BrowserToggle } from '@/components';
-import { useInfiniteScroll, useRacingIndex, useTrackBrowser } from '@/hooks';
+import { useInfiniteScroll, useRacingIndex, useTrackBrowser, useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { isListed } from '@/screens/championships';
 
@@ -53,6 +53,7 @@ export const TrackBrowserBody = ({
 }: TrackBrowserBodyProps) => {
   const { t } = useTranslation();
   const format = useFormat();
+  const units = useUnits();
   const { settings } = useSettings();
 
   // What a career can race, which is what the Championships page lists.
@@ -106,7 +107,7 @@ export const TrackBrowserBody = ({
             <ViewToggle value={view} onChange={(next) => browser.setCriteria({ ...criteria, view: next })} />
           </div>
           <ActiveFilters
-            filters={trackPills(criteria, browser.facets, t, format, browser.setCriteria)}
+            filters={trackPills(criteria, browser.facets, t, format, units, browser.setCriteria)}
             shown={list.items.length}
             total={list.total}
             stale={browser.stale}

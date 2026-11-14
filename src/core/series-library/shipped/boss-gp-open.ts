@@ -121,7 +121,7 @@ export const BOSS_GP_OPEN: Championship = {
   grid: { strength: 3, aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, slipstream: 1 },
+    assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },
     penalties: true,
     jumpStartPenalty: 15,
   },

@@ -15,6 +15,7 @@ import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { CAR_SOURCE_ACCENT } from '@/lib/accents';
 import type { Racing } from '@/lib/racing-index';
@@ -65,6 +66,7 @@ export const CarRow = ({
   const {
     formatMoney, formatNation, formatNumber, formatYear,
   } = useFormat();
+  const units = useUnits();
   const owned = trade?.garage.owned(car.id) ?? null;
   const backing = trade && trade.mode !== 'garage' ? trade.garage.backingOf(car) : null;
   const price = trade?.garage.priceOf(car) ?? 0;
@@ -170,7 +172,7 @@ export const CarRow = ({
         {performance.bhp === null ? dash : formatNumber(performance.bhp)}
       </td>
       <td className={cn('px-2.5 py-1.5 text-right whitespace-nowrap tabular-nums', CAR_COLUMN.weight)}>
-        {performance.weightKg === null ? dash : formatNumber(performance.weightKg)}
+        {performance.weightKg === null ? dash : units.figure('weight', performance.weightKg)}
       </td>
       <td className={cn('px-2.5 py-1.5 text-right whitespace-nowrap tabular-nums', priced && 'hidden')}>
         {performance.powerToWeight === null ? dash : (

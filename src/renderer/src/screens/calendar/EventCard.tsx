@@ -5,6 +5,7 @@ import { FADED_WELL } from './constants.ts';
 import type { CalendarEntry } from '../../../../shared/types';
 import { HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import {
   CAUTION_ACCENT, DISCIPLINE_ACCENT, DISCIPLINE_WELL, EVENT_ACCENT, INVITATION_ACCENT,
@@ -29,7 +30,8 @@ interface EventCardProps {
 
 export const EventCard = ({ event, onOpen }: EventCardProps) => {
   const { t } = useTranslation();
-  const { formatDayShort, formatMoney, formatNumber } = useFormat();
+  const { formatDayShort, formatMoney } = useFormat();
+  const units = useUnits();
   // Where a historic event's invitation stands, which its chip says - an
   // event entered at the player's own cost says Entered as any round does.
   const state = event.invitation?.state;
@@ -38,7 +40,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
 
   const labels = raceLabels(event.races.map((race) => race.name), t('calendar.raceFallback'));
   const lengths = event.races.map((race, at) => {
-    const length = raceLength(race, t, formatNumber);
+    const length = raceLength(race, t, units);
 
     return event.races.length > 1
       ? t('championships.format.session', { name: labels[at], length })

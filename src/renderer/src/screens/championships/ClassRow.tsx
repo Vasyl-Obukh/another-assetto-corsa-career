@@ -11,7 +11,7 @@ import type { ClassEntry, EntryAvailability, Team } from '../../../../shared/typ
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { useClasses } from '@/app';
 import { Badge } from '@/components/ui/badge.tsx';
-import { useCars } from '@/hooks';
+import { useCars, useUnits } from '@/hooks';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
 
@@ -51,6 +51,7 @@ export const ClassRow = ({
   entry, availability, teams, showDiscipline, playerSeat, playerName,
 }: ClassRowProps) => {
   const { t } = useTranslation();
+  const units = useUnits();
   const { catalogue } = useClasses();
   const [open, setOpen] = useState(false);
   const eligible = availability?.eligible ?? [];
@@ -114,7 +115,7 @@ export const ClassRow = ({
                   {t('championships.entries.bopRow', {
                     car: cars.get(bop.car)?.name ?? bop.car,
                     adjustments: [
-                      bop.ballast ? t('championships.entries.ballast', { value: bop.ballast }) : null,
+                      bop.ballast ? units.format('weight', bop.ballast) : null,
                       bop.restrictor
                         ? t('championships.entries.restrictor', { value: bop.restrictor })
                         : null,

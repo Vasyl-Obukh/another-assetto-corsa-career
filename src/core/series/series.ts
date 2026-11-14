@@ -27,6 +27,7 @@ import {
   nationOf,
   pickModels,
   raceLengths,
+  regulatedOnly,
   requirementsOf,
   roundOf,
   roundRaceId,
@@ -577,7 +578,7 @@ export const roundRace = (
         ? offerForecast(request.draw, offer, rain)
         : forecastRound(series.id, round, format, climate, offer, {}, rain)),
     conditions: dry(round.conditions),
-    assists: series.regulations?.assists,
+    assists: regulatedOnly(series.regulations?.assists),
     penalties: series.regulations?.penalties,
     jumpStartPenalty: series.regulations?.jumpStartPenalty,
     allowedTyresOut: series.regulations?.allowedTyresOut,

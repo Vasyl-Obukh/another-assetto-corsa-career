@@ -15,8 +15,8 @@ import type {
   LengthUnit, SessionEdit, StartClass, StartKind,
 } from './types.ts';
 import {
-  lengthUnit, namesItsType, sessionSource, sessionSources, startKindOf, withLengthUnit, withSession,
-  withSessionConditionsOf,
+  lengthUnit, namesItsType, sessionSource, sessionSources, shownLength, startKindOf, storedLength, withLengthUnit,
+  withSession, withSessionConditionsOf,
 } from './utils.ts';
 import { MIN_REVERSED } from '../../../../shared/constants';
 import type {
@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
@@ -119,6 +120,7 @@ export const SessionPage = ({
   undated = false, startClass, onChange, onRemove,
 }: SessionPageProps) => {
   const { t } = useKindTranslation();
+  const units = useUnits();
   const session = format.sessions[index];
   const idPrefix = `session-${format.id}-${index}`;
   const from = sessionSource(format.sessions, session);
@@ -228,9 +230,9 @@ export const SessionPage = ({
             type="number"
             className="w-24 text-right tabular-nums"
             min={MIN_SESSION_LENGTH}
-            value={fromNumber(session[unit])}
+            value={fromNumber(shownLength(session[unit], unit, units))}
             disabled={locked}
-            onChange={(event) => edit({ [unit]: toNumber(event.target.value) })}
+            onChange={(event) => edit({ [unit]: storedLength(toNumber(event.target.value), unit, units) })}
           />
           {/* Only a race is offered the choice: everything else runs to the
               clock, and AC reads LAPS on a race session alone. */}
@@ -239,7 +241,7 @@ export const SessionPage = ({
               label={t('editor.sessions.lengthUnit')}
               options={LENGTH_UNITS}
               value={unit}
-              labelOf={(one) => t(LENGTH_LABEL[one])}
+              labelOf={(one) => t(LENGTH_LABEL[one], { unit: units.unit('distance') })}
               disabled={locked}
               onChange={(one) => edit(withLengthUnit(session, one))}
             />

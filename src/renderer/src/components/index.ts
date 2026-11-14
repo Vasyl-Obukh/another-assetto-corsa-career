@@ -26,7 +26,7 @@ export {
 export { AppraiseFoot, PriceOriginBadge } from './car-pricing/index.ts';
 export type { CarAppraise } from './car-pricing/index.ts';
 export type { CarTrade } from './car-trade/index.ts';
-export { LanguagePicker, ThemePicker } from './choice-tiles/index.ts';
+export { LanguagePicker, ThemePicker, UnitsPicker } from './choice-tiles/index.ts';
 export {
   carPictureSources, CarSwatch, carSwatchSources, ContentImage, trackPictureSources,
 } from './content-image/index.ts';

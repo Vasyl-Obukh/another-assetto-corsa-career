@@ -6,10 +6,10 @@ import { byDiscipline } from './utils.ts';
 import type { Track } from '../../../../shared/types';
 import { CARD_LINK, ContentImage, DistributorBadge } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 import { DISCIPLINE_DOT } from '@/lib/accents';
 import { cn } from '@/lib/utils.ts';
-import { kilometres, layoutMapSources } from '@/screens/track-browser';
+import { layoutMapSources } from '@/screens/track-browser';
 
 interface LayoutCardProps {
   /**
@@ -47,10 +47,10 @@ export const LayoutCard = ({
   layout, name, racing, showRun, selected, onToggle,
 }: LayoutCardProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const figures = [
-    layout.lengthM === null ? null : t('tracks.detail.km', { value: kilometres(layout.lengthM, formatNumber) }),
+    layout.lengthM === null ? null : units.formatLap(layout.lengthM),
     layout.pitboxes === null ? null : t('tracks.pitboxes', { count: layout.pitboxes }),
     showRun && layout.run !== null ? t(`tracks.detail.run.${layout.run}`) : null,
   ].filter((figure): figure is string => figure !== null);

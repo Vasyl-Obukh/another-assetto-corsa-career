@@ -7,9 +7,10 @@ import {
 } from 'lucide-react';
 
 import type {
-  AidMode, SectionLink, SettingsCmFlag, SettingsTab, WeatherCapability,
+  AidMode, PercentStop, SectionLink, SettingsCmFlag, SettingsTab, WeatherCapability,
 } from './types.ts';
-import type { HistoricFrequency } from '../../../../shared/types';
+import { DRIVING_AID_FLAGS } from '../../../../shared/constants';
+import type { DrivingAidFlag, HistoricFrequency } from '../../../../shared/types';
 import { path } from '@/lib/routes';
 
 /**
@@ -93,9 +94,21 @@ export const AID_MODES: readonly AidMode[] = ['abs', 'tractionControl'];
 export const ASSIST_MODES = [0, 1, 2] as const;
 
 /**
- * Highest stability control percentage Assetto Corsa accepts.
+ * The points of the damage slider worth naming, offered as chips.
  */
-export const MAX_STABILITY_CONTROL = 100;
+export const DAMAGE_STOPS: readonly PercentStop[] = [
+  { value: 0, label: 'race.regulations.stop.off' },
+  { value: 50, label: 'race.regulations.stop.half' },
+  { value: 100, label: 'race.regulations.stop.real' },
+];
+
+/**
+ * The helpers, in the order their switches show - every aid that is on or off
+ * but visual damage, which stands in the damage group.
+ */
+export const HELPER_AIDS = DRIVING_AID_FLAGS.filter(
+  (key): key is Exclude<DrivingAidFlag, 'visualDamage'> => key !== 'visualDamage',
+);
 
 /**
  * The Content Manager flags that are ordinary preferences.

@@ -128,7 +128,6 @@ export const LUXEMBOURG_GP_1997: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: true,

@@ -129,7 +129,6 @@ export const SAN_MARINO_GP_1986: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

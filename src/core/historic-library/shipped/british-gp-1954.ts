@@ -119,7 +119,6 @@ export const BRITISH_GP_1954: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

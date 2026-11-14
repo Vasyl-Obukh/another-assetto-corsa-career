@@ -11,6 +11,7 @@ import type { EventSession } from '../../../../shared/types';
 import { scalesFor } from '../../../../shared/utils/race-scale';
 import { Button } from '@/components/ui/button.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 
 interface LengthTileProps {
@@ -33,6 +34,7 @@ interface LengthTileProps {
 export const LengthTile = ({ session, length }: LengthTileProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const laps = session.type === 'race' ? session.laps : undefined;
   // A race too short to shorten offers only the full race, and no button.
@@ -62,7 +64,7 @@ export const LengthTile = ({ session, length }: LengthTileProps) => {
       <span className="text-lg font-semibold">
         {laps !== undefined && scale > 1
           ? shortLaps(laps, scale, t)
-          : sessionLength(session, t, formatNumber) ?? '-'}
+          : sessionLength(session, t, formatNumber, units) ?? '-'}
       </span>
       {laps !== undefined && scale > 1 ? (
         <span className="text-xs text-muted-foreground">

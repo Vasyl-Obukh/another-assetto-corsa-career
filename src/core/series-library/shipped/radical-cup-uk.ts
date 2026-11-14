@@ -125,7 +125,7 @@ export const RADICAL_CUP_UK: Championship = {
   grid: { strength: -3, aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

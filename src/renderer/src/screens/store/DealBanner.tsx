@@ -11,7 +11,7 @@ import {
 } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
 import type { Garage } from '@/hooks';
-import { useCarDetail } from '@/hooks';
+import { useCarDetail, useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import type { Racing } from '@/lib/racing-index';
 import { path } from '@/lib/routes';
@@ -51,6 +51,7 @@ export const DealBanner = ({
   // Over the library alone: a car taken out of it since the sale was drawn is
   // no longer for sale.
   const { car, loading } = useCarDetail(deal.model, false);
+  const units = useUnits();
 
   if (loading) return <DealBannerSkeleton />;
   // A car gone from the install has nothing to show, and the list still offers the rest.
@@ -59,6 +60,7 @@ export const DealBanner = ({
   const { performance } = car;
   const nation = nationOfCountry(car.country);
   const figure = (value: number | null): string | null => (value === null ? null : formatNumber(Math.round(value)));
+  const weight = performance.weightKg === null ? null : units.figure('weight', performance.weightKg);
 
   return (
     <Card className="relative grid grid-cols-[minmax(0,26rem)_minmax(0,1fr)] gap-0 overflow-hidden py-0 ring-2 ring-sale-solid">
@@ -88,7 +90,7 @@ export const DealBanner = ({
         </div>
         <FigureLine figures={[
           { unit: t('cars.unitBhp'), value: figure(performance.bhp) },
-          { unit: t('cars.unitKg'), value: figure(performance.weightKg) },
+          { unit: units.unit('weight'), value: weight },
           { unit: t('cars.unitBhpPerTonne'), value: figure(performance.powerToWeight) },
         ]}
         />

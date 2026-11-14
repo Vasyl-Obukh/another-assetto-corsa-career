@@ -67,7 +67,7 @@ export type RegulatedAssists = Pick<Assists, RegulationKey>;
  */
 export interface Regulations {
   /**
-   * Damage, fuel rate, tyre wear, slipstream and tyre blankets. Merged over the
+   * Fuel rate, tyre wear, slipstream and tyre blankets. Merged over the
    * player's own aids when the race is launched, so a rule the series states
    * wins and every field it leaves alone defers to the player.
    */

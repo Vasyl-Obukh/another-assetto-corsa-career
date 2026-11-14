@@ -6,7 +6,7 @@ import type { Round, SeriesListing } from '../../../../shared/types';
 import { roundAvailability } from '../../../../shared/utils/round-availability';
 import { NationFlag } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 import type { RoundColumn } from '@/lib/season-results';
 import { seatNation } from '@/lib/season-results';
 import { raceLength, SESSION_TYPE_LABEL } from '@/lib/session-labels';
@@ -45,11 +45,11 @@ export const RoundRaces = ({
   listing, round, column, entry, playerSeat, playerName,
 }: RoundRacesProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
   const state = roundAvailability(listing, round.id);
   const names = raceLabels(state?.races.map((race) => race.name) ?? [], t(SESSION_TYPE_LABEL.race));
 
-  const lengths = state?.races.map((race) => raceLength(race, t, formatNumber)) ?? [];
+  const lengths = state?.races.map((race) => raceLength(race, t, units)) ?? [];
   // An event of identical races says so once rather than repeating itself.
   const same = lengths.length > 1 && lengths.every((length) => length === lengths[0]);
   const winners = column?.scored ? column.races.flatMap((race) => {

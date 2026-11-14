@@ -42,6 +42,30 @@ describe('main/settings-store', () => {
       expect(store.get()).toEqual(DEFAULT_SETTINGS);
     });
 
+    it('starts a fresh install on the units the machine reads', async () => {
+      readFileMock.mockRejectedValue(enoent());
+
+      const store = await createSettingsStore('D:\\userData', async () => 'us');
+      expect(store.get().units).toBe('us');
+    });
+
+    it('asks the machine for the units a file has not chosen', async () => {
+      readFileMock.mockResolvedValue('{"theme":"dark","units":"imperial"}');
+
+      const store = await createSettingsStore('D:\\userData', async () => 'uk');
+      expect(store.get()).toMatchObject({ theme: 'dark', units: 'uk' });
+    });
+
+    // Reading the region spawns reg.exe, which a file that already chose is spared.
+    it('does not ask the machine once the file has chosen its units', async () => {
+      readFileMock.mockResolvedValue('{"units":"metric"}');
+      const machineUnits = jest.fn(async () => 'us' as const);
+
+      const store = await createSettingsStore('D:\\userData', machineUnits);
+      expect(store.get().units).toBe('metric');
+      expect(machineUnits).not.toHaveBeenCalled();
+    });
+
     it('does not quarantine a file that simply does not exist', async () => {
       readFileMock.mockRejectedValue(enoent());
 

@@ -106,7 +106,6 @@ export const BATHURST_1000_1987: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

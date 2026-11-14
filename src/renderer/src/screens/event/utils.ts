@@ -4,6 +4,7 @@ import type {
   CostShare, EventSession, LaunchRecord, SkippedRound,
 } from '../../../../shared/types';
 import { scaledLaps } from '../../../../shared/utils/race-scale';
+import type { Units } from '@/hooks';
 import { raceLength } from '@/lib/session-labels';
 
 /**
@@ -104,18 +105,20 @@ export const dotted = (parts: readonly (string | null | undefined)[]): string =>
  * @param session The session
  * @param t The translator
  * @param formatNumber The locale's number formatter
+ * @param units The unit formatters, which write a distance
  * @returns The length, or null when the session states none
  */
 export const sessionLength = (
   session: EventSession,
   t: TFunction,
   formatNumber: (value: number) => string,
+  units: Pick<Units, 'format'>,
 ): string | null => {
   const scale = session.record?.scale;
   if (session.laps !== undefined && scale !== undefined) {
     return dotted([shortLaps(session.laps, scale, t), shareOf(session.laps, scale, t, formatNumber)]);
   }
-  if (session.laps !== undefined) return raceLength(session, t, formatNumber);
+  if (session.laps !== undefined) return raceLength(session, t, units);
 
   return session.minutes === undefined
     ? null

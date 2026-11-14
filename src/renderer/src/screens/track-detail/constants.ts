@@ -50,6 +50,12 @@ export const NAME_SEPARATORS = /^[\s\-\u2013\u2014\u00b7:,/]+/;
 export const COORDINATE_PRECISION = 1e3;
 
 /**
+ * Decimal places a track's width is shown to, since a ui_track.json often
+ * states it to the half metre.
+ */
+export const WIDTH_DIGITS = 1;
+
+/**
  * The fewest characters a description needs, once the circuit's own name is
  * taken out, to be shown at all.
  */

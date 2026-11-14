@@ -128,10 +128,6 @@ export interface RegulationSpec {
    */
   step: number;
   /**
-   * Whether it reads as a percentage or as a multiple of real.
-   */
-  unit: 'percent' | 'times';
-  /**
    * The points offered as chips, in order.
    */
   stops: readonly RegulationStop[];

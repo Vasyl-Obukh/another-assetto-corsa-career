@@ -23,7 +23,9 @@ export {
   TRACK_PREVIEW_FILE,
 } from './content.ts';
 
-export { DEFAULT_ASSISTS, DRIVING_AID_FLAGS, DRIVING_AID_NUMBERS } from './assists.ts';
+export {
+  DEFAULT_ASSISTS, DRIVING_AID_FLAGS, DRIVING_AID_MAX, DRIVING_AID_NUMBERS, REGULATION_KEYS,
+} from './assists.ts';
 
 export { CLASS_LAYER_VERSION, EMPTY_CLASS_LAYER } from './car-classes.ts';
 
@@ -85,6 +87,7 @@ export {
   LANGUAGES,
   PROGRESSION_SPEEDS,
   THEME_CHOICES,
+  UNIT_SYSTEMS,
   WEATHER_SYSTEMS,
 } from './settings.ts';
 

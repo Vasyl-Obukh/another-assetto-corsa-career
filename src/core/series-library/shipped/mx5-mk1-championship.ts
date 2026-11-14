@@ -156,7 +156,7 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
   grid: { strength: -7, aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
-    assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

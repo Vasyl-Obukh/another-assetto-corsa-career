@@ -6,6 +6,7 @@ import { DEFAULT_AMBIENT, DEFAULT_TIME_OF_DAY } from '../../../../shared/constan
 import type { Conditions } from '../../../../shared/types';
 import { followedRoad } from '../../../../shared/utils/road-temperature';
 import { Slider } from '@/components/ui/slider.tsx';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 
 interface TemperatureControlProps {
@@ -49,6 +50,7 @@ export const TemperatureControl = ({
   idPrefix, conditions, coeff, disabled, onChange,
 }: TemperatureControlProps) => {
   const { t } = useKindTranslation();
+  const units = useUnits();
   const ambient = conditions.ambient ?? DEFAULT_AMBIENT;
   const clock = conditions.timeOfDay ?? DEFAULT_TIME_OF_DAY;
   // Kunos' curve, as race.ini will write it. Approximate where the weather
@@ -62,7 +64,7 @@ export const TemperatureControl = ({
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${idPrefix}-ambient`} className="flex items-baseline justify-between text-sm font-medium">
           {t('race.conditions.ambient')}
-          <span className="text-sm font-semibold tabular-nums">{t('editor.temperature.celsius', { value: ambient })}</span>
+          <span className="text-sm font-semibold tabular-nums">{units.format('temperature', ambient)}</span>
         </label>
         <input
           id={`${idPrefix}-ambient`}
@@ -75,8 +77,8 @@ export const TemperatureControl = ({
           onChange={(event) => onChange({ ...conditions, ambient: Number(event.target.value) })}
         />
         <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
-          <span>{t('editor.temperature.celsius', { value: AMBIENT_RANGE.min })}</span>
-          <span>{t('editor.temperature.celsius', { value: AMBIENT_RANGE.max })}</span>
+          <span>{units.format('temperature', AMBIENT_RANGE.min)}</span>
+          <span>{units.format('temperature', AMBIENT_RANGE.max)}</span>
         </div>
       </div>
 
@@ -97,16 +99,22 @@ export const TemperatureControl = ({
         {road === undefined ? (
           <>
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-lg font-bold tabular-nums">{t('editor.temperature.about', { value: followed })}</span>
-              <span className="text-xs text-muted-foreground">{t('editor.temperature.followsAt', { time: clock, ambient })}</span>
+              <span className="text-lg font-bold tabular-nums">
+                {t('editor.temperature.about', { value: units.format('temperature', followed) })}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {t('editor.temperature.followsAt', { time: clock, ambient: units.format('temperature', ambient) })}
+              </span>
             </div>
             <span className="text-xs text-muted-foreground">{t('editor.temperature.followsHint')}</span>
           </>
         ) : (
           <>
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-lg font-bold tabular-nums">{t('editor.temperature.celsius', { value: road })}</span>
-              <span className="text-xs text-muted-foreground">{t('editor.temperature.wouldFollow', { value: followed })}</span>
+              <span className="text-lg font-bold tabular-nums">{units.format('temperature', road)}</span>
+              <span className="text-xs text-muted-foreground">
+                {t('editor.temperature.wouldFollow', { value: units.format('temperature', followed) })}
+              </span>
             </div>
             <div className="relative py-1.5">
               {/* Where following the air would put it. */}
@@ -127,8 +135,8 @@ export const TemperatureControl = ({
               />
             </div>
             <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
-              <span>{t('editor.temperature.celsius', { value: ROAD_RANGE.min })}</span>
-              <span>{t('editor.temperature.celsius', { value: ROAD_RANGE.max })}</span>
+              <span>{units.format('temperature', ROAD_RANGE.min)}</span>
+              <span>{units.format('temperature', ROAD_RANGE.max)}</span>
             </div>
           </>
         )}

@@ -101,7 +101,6 @@ export const ROAD_AMERICA_1973: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

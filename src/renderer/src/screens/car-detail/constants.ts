@@ -42,8 +42,9 @@ export const CHART_BOX = {
 export const TENTHS = 10;
 
 /**
- * The label of each of a car's six figures, in the order the strip shows them -
- * what the page's skeleton draws before the car arrives.
+ * The label of each of a car's figures but the last, in the order the strip
+ * shows them - what the page's skeleton draws before the car arrives. The last,
+ * the standing start, is named in the units the player reads.
  */
 export const FIGURE_LABELS: readonly ParseKeys[] = [
   'cars.detail.power',
@@ -51,7 +52,6 @@ export const FIGURE_LABELS: readonly ParseKeys[] = [
   'cars.detail.weight',
   'cars.detail.powerToWeight',
   'cars.detail.topSpeed',
-  'cars.detail.acceleration',
 ];
 
 /**

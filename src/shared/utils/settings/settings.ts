@@ -13,9 +13,11 @@ import {
   DEFAULT_OPPONENTS,
   DEFAULT_SETTINGS,
   DRIVING_AID_FLAGS,
+  DRIVING_AID_MAX,
   DRIVING_AID_NUMBERS,
   LANGUAGES,
   THEME_CHOICES,
+  UNIT_SYSTEMS,
   WEATHER_SYSTEMS,
   WEATHER_TYPE_ORDER,
 } from '../../constants/index.ts';
@@ -188,7 +190,8 @@ export const optionalBoolean = (value: unknown): boolean | undefined => (
 );
 
 /**
- * Reads the persisted driving aids, dropping anything malformed.
+ * Reads the persisted driving aids, dropping anything malformed and holding a
+ * number to its range.
  *
  * Absent rather than defaulted, field by field: an aid nobody has chosen has to
  * stay distinguishable from one deliberately set to what Assetto Corsa ships,
@@ -205,9 +208,11 @@ export const readDrivingAids = (raw: unknown): DrivingAids => {
     const value = optionalBoolean(raw[key]);
     if (value !== undefined) aids[key] = value;
   });
+  // Held to what Assetto Corsa accepts, since nothing between here and the
+  // launch bounds them again.
   DRIVING_AID_NUMBERS.forEach((key) => {
     const value = finiteNumber(raw[key]);
-    if (value !== undefined) aids[key] = value;
+    if (value !== undefined) aids[key] = Math.min(Math.max(Math.round(value), 0), DRIVING_AID_MAX[key]);
   });
 
   return aids;
@@ -271,10 +276,12 @@ export const readWindow = (raw: unknown): WindowState => {
  * A tolerant reader rather than a migration: nothing branches on the incoming
  * version. It earns its keep because settings.json may reasonably be hand-edited.
  * @param raw The parsed contents of settings.json, or anything else
+ * @param defaults What a missing or unreadable field falls back to - this
+ * machine's own where they differ, such as its units
  * @returns Valid settings
  */
-export const readSettings = (raw: unknown): Settings => {
-  if (!isRecord(raw)) return structuredClone(DEFAULT_SETTINGS);
+export const readSettings = (raw: unknown, defaults: Settings = DEFAULT_SETTINGS): Settings => {
+  if (!isRecord(raw)) return structuredClone(defaults);
 
   const setupCompletedAt = cleanString(raw.setupCompletedAt);
   const driverName = cleanString(raw.driverName);
@@ -282,9 +289,9 @@ export const readSettings = (raw: unknown): Settings => {
 
   return {
     version: 1,
-    theme: oneOf(raw.theme, THEME_CHOICES, DEFAULT_SETTINGS.theme),
-    language: oneOf(raw.language, LANGUAGES, DEFAULT_SETTINGS.language),
-    weatherSystem: oneOf(raw.weatherSystem, WEATHER_SYSTEMS, DEFAULT_SETTINGS.weatherSystem),
+    theme: oneOf(raw.theme, THEME_CHOICES, defaults.theme),
+    language: oneOf(raw.language, LANGUAGES, defaults.language),
+    weatherSystem: oneOf(raw.weatherSystem, WEATHER_SYSTEMS, defaults.weatherSystem),
     allowedWeather: readAllowedWeather(raw.allowedWeather),
     // Absent rather than empty, so clearing the field means "let Assetto Corsa
     // decide" rather than racing under a blank name.
@@ -298,11 +305,12 @@ export const readSettings = (raw: unknown): Settings => {
     seriesActive: readSeriesActive(raw.seriesActive),
     showFillerSeries: typeof raw.showFillerSeries === 'boolean'
       ? raw.showFillerSeries
-      : DEFAULT_SETTINGS.showFillerSeries,
+      : defaults.showFillerSeries,
     // The same shape as the championships' switches, so read the same way.
     historicActive: readSeriesActive(raw.historicActive),
-    autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, DEFAULT_SETTINGS.autosaves),
-    currency: oneOf(raw.currency, CURRENCIES, DEFAULT_SETTINGS.currency),
+    autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, defaults.autosaves),
+    currency: oneOf(raw.currency, CURRENCIES, defaults.currency),
+    units: oneOf(raw.units, UNIT_SYSTEMS, defaults.units),
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

@@ -110,7 +110,6 @@ export const SILVERSTONE_480_1990: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

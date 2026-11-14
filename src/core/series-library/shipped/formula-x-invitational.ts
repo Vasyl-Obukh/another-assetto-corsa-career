@@ -112,7 +112,7 @@ export const FORMULA_X_INVITATIONAL: Championship = {
   grid: { strength: 6, aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: true },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },
     penalties: true,
     jumpStartPenalty: 10,
   },

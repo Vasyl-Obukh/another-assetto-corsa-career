@@ -131,7 +131,6 @@ export const BRAZILIAN_GP_2004: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: true,

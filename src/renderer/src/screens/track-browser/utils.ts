@@ -1,6 +1,7 @@
 import { M_PER_KM } from '../../../../shared/constants';
 import type { Track, TrackGroup } from '../../../../shared/types';
 import { isServableLayout, trackOutlineUrl, trackPreviewUrl } from '../../../../shared/utils/content-url';
+import type { Units } from '@/hooks';
 
 /**
  * Preview URLs for one layout, best first.
@@ -116,23 +117,21 @@ export const spanText = (
 };
 
 /**
- * Writes metres out as kilometres to one decimal place, without a unit, for a
- * figure whose unit is written beside it.
+ * Writes a lap length out in the units the player reads, to one decimal place
+ * and without a unit, for a figure whose unit is written beside it.
  * @param metres The distance
- * @param formatNumber The locale's number formatter
- * @returns The kilometres as text
+ * @param units The unit formatters
+ * @returns The length as text
  */
-export const kilometres = (metres: number, formatNumber: (value: number) => string): string => (
-  formatNumber(Math.round((metres / M_PER_KM) * 10) / 10)
-);
+export const lapLength = (metres: number, units: Pick<Units, 'figure'>): string => units.figure('distance', metres / M_PER_KM);
 
 /**
- * A set of layouts' lap lengths in kilometres, without a unit: one figure, or
- * the span from the shortest to the longest.
+ * A set of layouts' lap lengths in the units the player reads, without a unit:
+ * one figure, or the span from the shortest to the longest.
  * @param layouts The layouts
- * @param formatNumber The locale's number formatter
+ * @param units The unit formatters
  * @returns The lengths as text, or null when none is stated
  */
-export const lengthText = (layouts: readonly Track[], formatNumber: (value: number) => string): string | null => (
-  spanText(spanOf(layouts, (layout) => layout.lengthM), (metres) => kilometres(metres, formatNumber))
+export const lengthText = (layouts: readonly Track[], units: Pick<Units, 'figure'>): string | null => (
+  spanText(spanOf(layouts, (layout) => layout.lengthM), (metres) => lapLength(metres, units))
 );

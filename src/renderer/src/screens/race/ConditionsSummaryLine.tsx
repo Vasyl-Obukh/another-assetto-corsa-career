@@ -4,6 +4,7 @@ import { TRACK_STATE_LABEL } from './constants.ts';
 import { conditionsSummary } from './utils.ts';
 import type { Conditions } from '../../../../shared/types';
 import { WEATHER_TYPE_LABEL } from '@/components';
+import { useUnits } from '@/hooks';
 import { cn } from '@/lib/utils.ts';
 
 interface ConditionsSummaryLineProps {
@@ -27,6 +28,7 @@ interface ConditionsSummaryLineProps {
  */
 export const ConditionsSummaryLine = ({ conditions, className }: ConditionsSummaryLineProps) => {
   const { t } = useTranslation();
+  const units = useUnits();
   const summary = conditionsSummary(conditions);
 
   const parts = [
@@ -34,9 +36,7 @@ export const ConditionsSummaryLine = ({ conditions, className }: ConditionsSumma
     summary.weather === null ? null : t(WEATHER_TYPE_LABEL[summary.weather]),
     summary.preset,
     summary.timeOfDay,
-    summary.ambient === null
-      ? null
-      : t('race.conditions.summaryAmbient', { value: summary.ambient }),
+    summary.ambient === null ? null : units.format('temperature', summary.ambient),
     summary.trackState === null ? null : t(TRACK_STATE_LABEL[summary.trackState]),
   ].filter((part): part is string => Boolean(part));
 

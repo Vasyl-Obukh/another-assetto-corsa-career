@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { TFunction } from 'i18next';
 
 import { raceLength, sessionName } from '../session-labels.ts';
+import type { Units } from '@/hooks';
 
 /**
  * A translator that spells out the key and its parameters, so a test can see
@@ -17,11 +18,11 @@ const translate = ((key: string, params?: Record<string, unknown>): string => {
 }) as unknown as TFunction;
 
 /**
- * A number formatter that marks what it touched, standing in for the locale's.
- * @param value The number to format
- * @returns The number, marked
+ * Unit formatters that mark what they wrote, standing in for the player's.
  */
-const formatNumber = (value: number): string => `#${value}`;
+const units: Pick<Units, 'format'> = {
+  format: (quantity, metric) => `${quantity}#${metric}`,
+};
 
 describe('renderer/lib/session-labels/session-labels', () => {
   describe('sessionName', () => {
@@ -41,19 +42,19 @@ describe('renderer/lib/session-labels/session-labels', () => {
 
   describe('raceLength', () => {
     it('states a race set in laps as its laps', () => {
-      expect(raceLength({ laps: 12 }, translate, formatNumber)).toBe('championships.format.laps(count=12)');
+      expect(raceLength({ laps: 12 }, translate, units)).toBe('championships.format.laps(count=12)');
     });
 
     it('puts a race set as a distance beside the laps it comes to', () => {
-      expect(raceLength({ laps: 44, distance: 305 }, translate, formatNumber)).toBe(
+      expect(raceLength({ laps: 44, distance: 305 }, translate, units)).toBe(
         'championships.detail.lengthDistance('
-        + 'distance=championships.format.distance(value=#305),'
+        + 'distance=distance#305,'
         + 'laps=championships.format.laps(count=44))',
       );
     });
 
     it('counts no laps for a distance the track cannot turn into laps', () => {
-      expect(raceLength({ laps: null, distance: 100 }, translate, formatNumber)).toContain(
+      expect(raceLength({ laps: null, distance: 100 }, translate, units)).toContain(
         'laps=championships.format.laps(count=0)',
       );
     });

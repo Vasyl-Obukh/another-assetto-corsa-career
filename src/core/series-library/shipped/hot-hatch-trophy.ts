@@ -142,7 +142,7 @@ export const HOT_HATCH_TROPHY: Championship = {
   grid: { strength: -7, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
-    assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

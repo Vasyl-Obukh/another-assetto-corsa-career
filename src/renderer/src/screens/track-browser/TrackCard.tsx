@@ -13,6 +13,7 @@ import {
 } from '@/components';
 import type { BrowserToggle } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import type { Racing } from '@/lib/racing-index';
 import { path } from '@/lib/routes';
@@ -53,13 +54,14 @@ export const TrackCard = ({
 }: TrackCardProps) => {
   const { t } = useTranslation();
   const { formatNation, formatNumber } = useFormat();
+  const units = useUnits();
 
   const picked = group.layouts.some((layout) => layout.key === selectedKey);
   const on = toggle?.isOn(group.id) ?? false;
   const nation = nationOfCountry(group.country);
   const [first] = group.layouts;
   const outline = first === undefined ? null : layoutOutline(first);
-  const length = lengthText(group.layouts, formatNumber);
+  const length = lengthText(group.layouts, units);
   const pitboxes = spanText(spanOf(group.layouts, (layout) => layout.pitboxes), formatNumber);
   // A circuit with more layouts than fit shows one fewer, and how many are left.
   const outlines = group.layouts.length > LAYOUT_OUTLINES
@@ -129,7 +131,7 @@ export const TrackCard = ({
 
       <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-3">
         <FigureLine figures={[
-          { unit: t('tracks.stat.length'), value: length },
+          { unit: units.unit('distance'), value: length },
           { unit: t('tracks.stat.pitboxes'), value: pitboxes },
           {
             unit: t('tracks.stat.layouts', { count: group.layouts.length }),

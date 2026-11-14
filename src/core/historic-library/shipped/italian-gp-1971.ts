@@ -114,7 +114,6 @@ export const ITALIAN_GP_1971: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

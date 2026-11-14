@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SessionsSkeleton } from './SessionsSkeleton.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
-import { useCareerEvent } from '@/hooks';
+import { useCareerEvent, useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { SESSION_ACCENT } from '@/lib/accents';
 import { sessionName } from '@/lib/session-labels';
@@ -32,6 +32,7 @@ interface EventSessionsProps {
 export const EventSessions = ({ series, round, edition }: EventSessionsProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
   const { view } = useCareerEvent(series, round, { edition });
 
   if (!view) return <SessionsSkeleton />;
@@ -53,7 +54,7 @@ export const EventSessions = ({ series, round, edition }: EventSessionsProps) =>
               {sessionName(session, t)}
             </Badge>
             <span className="truncate text-xs text-muted-foreground">
-              {dotted([session.startsAt, sessionLength(session, t, formatNumber)])}
+              {dotted([session.startsAt, sessionLength(session, t, formatNumber, units)])}
             </span>
           </li>
         );

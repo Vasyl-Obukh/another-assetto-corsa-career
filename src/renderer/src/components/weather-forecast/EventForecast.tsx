@@ -6,7 +6,7 @@ import { forecastDays } from './utils.ts';
 import { WeatherStepIcons } from './WeatherStepIcons.tsx';
 import { WeatherStepsLabel } from './WeatherStepsLabel.tsx';
 import type { RoundForecast } from '../../../../shared/types';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 
 interface EventForecastProps {
   /**
@@ -23,7 +23,7 @@ interface EventForecastProps {
  */
 export const EventForecast = ({ forecast }: EventForecastProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
 
   return (
     <div className="flex flex-col gap-3 rounded-md border p-3">
@@ -52,13 +52,10 @@ export const EventForecast = ({ forecast }: EventForecastProps) => {
               <WeatherStepIcons steps={session.steps} />
               <span className="truncate"><WeatherStepsLabel steps={session.steps} generated={session.generated} /></span>
               <span className="flex gap-3 text-xs text-muted-foreground tabular-nums">
-                <span>{t('forecast.ambient', { value: formatNumber(session.ambient) })}</span>
+                <span>{units.format('temperature', session.ambient)}</span>
                 {session.windMin !== null && session.windMax !== null ? (
                   <span className="hidden sm:inline">
-                    {t('forecast.wind', {
-                      min: formatNumber(session.windMin),
-                      max: formatNumber(session.windMax),
-                    })}
+                    {units.formatRange('speed', session.windMin, session.windMax)}
                   </span>
                 ) : null}
               </span>

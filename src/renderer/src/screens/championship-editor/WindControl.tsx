@@ -2,6 +2,7 @@
 import { MAX_WIND } from './constants.ts';
 import type { Conditions } from '../../../../shared/types';
 import { Input } from '@/components/ui/input.tsx';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { Field, fromNumber, toNumber } from '@/screens/race';
 
@@ -38,33 +39,48 @@ export const WindControl = ({
   idPrefix, conditions, disabled, onChange,
 }: WindControlProps) => {
   const { t } = useKindTranslation();
+  const units = useUnits();
   const direction = conditions.windDirection ?? 0;
+  /**
+   * A wind speed as its field shows it, in the player's units.
+   * @param kph The speed as kept
+   * @returns The figure shown, or undefined for none
+   */
+  const shown = (kph: number | undefined): number | undefined => (kph === undefined ? kph : units.shown('speed', kph));
+  /**
+   * A wind speed as typed, back in whole km/h, as race.ini takes it.
+   * @param typed The figure typed
+   * @returns The speed to keep, or undefined for none
+   */
+  const stored = (typed: number | undefined): number | undefined => (
+    typed === undefined ? typed : Math.round(units.stored('speed', typed))
+  );
 
   return (
     <div className="flex flex-wrap items-end gap-4">
       <div className="grid grid-cols-2 gap-3">
-        <Field id={`${idPrefix}-wind-min`} label={t('editor.wind.from')}>
+        <Field id={`${idPrefix}-wind-min`} label={t('editor.wind.from', { unit: units.unit('speed') })}>
           <Input
             id={`${idPrefix}-wind-min`}
             type="number"
             min={0}
-            max={MAX_WIND}
+            max={units.shown('speed', MAX_WIND)}
             className="w-24 text-right tabular-nums"
-            value={fromNumber(conditions.windMin)}
+            value={fromNumber(shown(conditions.windMin))}
             disabled={disabled}
-            onChange={(event) => onChange({ ...conditions, windMin: toNumber(event.target.value) })}
+            onChange={(event) => onChange({ ...conditions, windMin: stored(toNumber(event.target.value)) })}
           />
         </Field>
-        <Field id={`${idPrefix}-wind-max`} label={t('editor.wind.to')}>
+        <Field id={`${idPrefix}-wind-max`} label={t('editor.wind.to', { unit: units.unit('speed') })}>
           <Input
             id={`${idPrefix}-wind-max`}
             type="number"
             min={0}
-            max={MAX_WIND}
+            max={units.shown('speed', MAX_WIND)}
             className="w-24 text-right tabular-nums"
-            value={fromNumber(conditions.windMax)}
+            value={fromNumber(shown(conditions.windMax))}
             disabled={disabled}
-            onChange={(event) => onChange({ ...conditions, windMax: toNumber(event.target.value) })}
+            onChange={(event) => onChange({ ...conditions, windMax: stored(toNumber(event.target.value)) })}
           />
         </Field>
       </div>

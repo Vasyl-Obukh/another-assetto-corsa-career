@@ -14,6 +14,8 @@ import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
 import { createWindow, followRace } from './window/index.ts';
 import { historicProblems, SHIPPED_HISTORIC } from '../core/historic-library/index.ts';
+import { homeRegion } from '../core/home-region/index.ts';
+import { regionOfLocale, unitsOfRegion } from '../shared/utils/units/index.ts';
 
 // The app sits alongside a running game; a second copy racing it for the same
 // settings file and the same AC folders helps nobody.
@@ -33,7 +35,12 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(async () => {
-    const settings = await createSettingsStore(app.getPath('userData'));
+    // The country Windows is set to decides the units a fresh install reads
+    // in, its regional format standing in where the country cannot be read.
+    const settings = await createSettingsStore(
+      app.getPath('userData'),
+      async () => unitsOfRegion((await homeRegion()) ?? regionOfLocale(app.getSystemLocale())),
+    );
     const content = await createContentStore(app.getPath('userData'));
     content.include(settings.get().addedContent);
     content.priceWith(settings.get().carPrices);

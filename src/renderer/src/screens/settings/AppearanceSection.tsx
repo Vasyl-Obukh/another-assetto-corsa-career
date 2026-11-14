@@ -2,7 +2,9 @@ import { MonitorIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SubHeading } from './SubHeading.tsx';
-import { LanguagePicker, SettingsSection, ThemePicker } from '@/components';
+import {
+  LanguagePicker, SettingsSection, ThemePicker, UnitsPicker,
+} from '@/components';
 
 export const AppearanceSection = () => {
   const { t } = useTranslation();
@@ -24,6 +26,11 @@ export const AppearanceSection = () => {
         <div className="flex flex-col">
           <SubHeading>{t('settings.language')}</SubHeading>
           <LanguagePicker />
+        </div>
+
+        <div className="flex flex-col">
+          <SubHeading>{t('settings.units')}</SubHeading>
+          <UnitsPicker />
         </div>
       </div>
     </SettingsSection>

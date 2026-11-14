@@ -31,9 +31,7 @@ export const RuleScale = ({ spec, value, real }: RuleScaleProps) => {
   // rules themselves go past it.
   const top = Math.max(spec.stops.at(-1)?.value ?? spec.max, shown);
   const at = (point: number): string => `calc(0.25rem + (100% - 0.5rem) * ${point / top})`;
-  const written = (point: number): string => (spec.unit === 'percent'
-    ? t('race.regulations.percent', { value: formatNumber(point) })
-    : t('race.regulations.times', { value: formatNumber(point) }));
+  const written = (point: number): string => t('race.regulations.times', { value: formatNumber(point) });
 
   let figure = written(shown);
   if (value === undefined) figure = t('race.regulations.defaultIs', { value: written(real) });

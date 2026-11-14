@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FIGURE_LABELS, LIVERY_SKELETON } from './constants.ts';
 import { DetailPanel, Loading, Shimmer } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { slots } from '@/lib/slots.ts';
 import { cn } from '@/lib/utils.ts';
 
@@ -22,6 +23,7 @@ interface CarDetailSkeletonProps {
  */
 export const CarDetailSkeleton = ({ priced = false }: CarDetailSkeletonProps) => {
   const { t } = useTranslation();
+  const units = useUnits();
 
   return (
     <Loading className="flex flex-col gap-4">
@@ -51,7 +53,7 @@ export const CarDetailSkeleton = ({ priced = false }: CarDetailSkeletonProps) =>
         <div className="flex min-w-0 flex-col gap-4">
           <Card className="@container gap-0 py-0">
             <dl className="grid grid-cols-3 @3xl:grid-cols-6">
-              {FIGURE_LABELS.map((label, at) => (
+              {[...FIGURE_LABELS.map((label) => t(label)), units.acceleration].map((label, at) => (
                 <div
                   key={label}
                   className={cn(
@@ -61,7 +63,7 @@ export const CarDetailSkeleton = ({ priced = false }: CarDetailSkeletonProps) =>
                     at === 3 && '@3xl:border-l',
                   )}
                 >
-                  <dt className="text-xs text-muted-foreground">{t(label)}</dt>
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
                   <dd><Shimmer className="my-1 h-5 w-16" /></dd>
                 </div>
               ))}

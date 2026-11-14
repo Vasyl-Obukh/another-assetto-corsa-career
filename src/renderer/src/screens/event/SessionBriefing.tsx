@@ -11,7 +11,7 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 
 interface SessionBriefingProps {
   /**
@@ -32,7 +32,7 @@ interface SessionBriefingProps {
 
 export const SessionBriefing = ({ session, length, rain = true }: SessionBriefingProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const { forecast, inherit, pending } = session;
   const race = session.type === 'race';
@@ -86,7 +86,7 @@ export const SessionBriefing = ({ session, length, rain = true }: SessionBriefin
             <>
               <span className="flex items-center gap-2 text-lg font-semibold">
                 <WeatherStepIcons steps={forecast.steps} />
-                {t('event.brief.temperature', { value: formatNumber(forecast.ambient) })}
+                {units.format('temperature', forecast.ambient)}
               </span>
               {dried ? (
                 <Tooltip>
@@ -115,9 +115,7 @@ export const SessionBriefing = ({ session, length, rain = true }: SessionBriefin
         <BriefTile label={t('event.brief.wind')}>
           {forecast && forecast.windMin !== null && forecast.windMax !== null ? (
             <span className="text-lg font-semibold">
-              {t('event.brief.windRange', {
-                min: formatNumber(forecast.windMin), max: formatNumber(forecast.windMax),
-              })}
+              {units.formatRange('speed', forecast.windMin, forecast.windMax)}
             </span>
           ) : <span className="text-sm text-muted-foreground">{missing}</span>}
         </BriefTile>

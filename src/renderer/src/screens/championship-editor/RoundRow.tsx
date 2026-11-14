@@ -13,6 +13,7 @@ import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
+import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
@@ -95,7 +96,8 @@ export const RoundRow = ({
   onEdit, onConditions, onCars, onMove, onRemove,
 }: RoundRowProps) => {
   const { t } = useKindTranslation();
-  const { formatMoney, formatNumber } = useFormat();
+  const { formatMoney } = useFormat();
+  const units = useUnits();
 
   const trackKey = trackKeyOf(round);
   // Counted a group at a time, as the round's dialog sets them.
@@ -110,7 +112,7 @@ export const RoundRow = ({
    */
   const lengthOf = (race: RoundRaceLength): string => (race.distance === undefined
     ? t('championships.format.laps', { count: race.laps ?? 0 })
-    : t('championships.format.distance', { value: formatNumber(race.distance) }));
+    : units.format('distance', race.distance));
   const lengths = availability?.races.map(lengthOf) ?? [];
   // An event of identical races says so once rather than repeating itself.
   const races = lengths.length > 1 && lengths.every((length) => length === lengths[0])

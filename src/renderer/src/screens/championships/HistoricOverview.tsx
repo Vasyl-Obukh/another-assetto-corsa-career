@@ -5,7 +5,8 @@ import { FormatStrip } from './FormatStrip.tsx';
 import type { Championship, SeriesAvailability } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
 import { ClimateBadge } from '@/components';
-import { useFormat, useLocalizedText } from '@/i18n';
+import { useUnits } from '@/hooks';
+import { useLocalizedText } from '@/i18n';
 import { path } from '@/lib/routes';
 import { raceLength } from '@/lib/session-labels';
 import { LayoutMap } from '@/screens/track-browser';
@@ -32,7 +33,7 @@ export const HistoricOverview = ({ event, availability }: HistoricOverviewProps)
   const { t } = useTranslation();
   const describe = useLocalizedText();
   const description = describe(event.description);
-  const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const round = event.rounds[0];
   const format = round ? formatOf(event, round) : null;
@@ -76,7 +77,7 @@ export const HistoricOverview = ({ event, availability }: HistoricOverviewProps)
           {races.map((race, at) => (
             // A race's name may repeat across a format, so its place is the key.
             // eslint-disable-next-line react/no-array-index-key
-            <span key={at} className="text-sm font-semibold tabular-nums">{raceLength(race, t, formatNumber)}</span>
+            <span key={at} className="text-sm font-semibold tabular-nums">{raceLength(race, t, units)}</span>
           ))}
         </div>
 

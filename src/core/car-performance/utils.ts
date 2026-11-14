@@ -7,16 +7,14 @@
 
 import {
   BHP_PER_KW,
-  KG_PER_LB,
-  KPH_PER_MPH,
   MAX_ACCELERATION_S,
   MAX_BHP,
   MAX_SPEED_KPH,
   MAX_TORQUE_NM,
   MAX_WEIGHT_KG,
   MIN_WEIGHT_KG,
-  NM_PER_LBFT,
 } from './constants.ts';
+import { toMetric } from '../../shared/utils/units/index.ts';
 import {
   inRange, parseLooseNumber, readNumericToken, specString,
 } from '../loose-number/index.ts';
@@ -54,7 +52,7 @@ export const parseTorque = (value: unknown): number | null => {
   if (number === null) return null;
 
   const text = specString(value) ?? '';
-  const nm = /lb\s*[-.]?\s*ft|ft\s*[-.]?\s*lb/i.test(text) ? number * NM_PER_LBFT : number;
+  const nm = /lb\s*[-.]?\s*ft|ft\s*[-.]?\s*lb/i.test(text) ? toMetric('torque', number, 'us') : number;
 
   return inRange(nm, Number.MIN_VALUE, MAX_TORQUE_NM);
 };
@@ -69,7 +67,7 @@ export const parseWeight = (value: unknown): number | null => {
   if (number === null) return null;
 
   const text = specString(value) ?? '';
-  const kg = /lbs?(?![a-z])/i.test(text) ? number * KG_PER_LB : number;
+  const kg = /lbs?(?![a-z])/i.test(text) ? toMetric('weight', number, 'us') : number;
 
   return inRange(kg, MIN_WEIGHT_KG, MAX_WEIGHT_KG);
 };
@@ -84,7 +82,7 @@ export const parseSpeed = (value: unknown): number | null => {
   if (number === null) return null;
 
   const text = specString(value) ?? '';
-  const kph = /mph/i.test(text) ? number * KPH_PER_MPH : number;
+  const kph = /mph/i.test(text) ? toMetric('speed', number, 'us') : number;
 
   return inRange(kph, Number.MIN_VALUE, MAX_SPEED_KPH);
 };

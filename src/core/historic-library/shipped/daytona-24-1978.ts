@@ -105,7 +105,6 @@ export const DAYTONA_24_1978: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

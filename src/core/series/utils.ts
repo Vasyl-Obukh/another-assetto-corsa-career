@@ -6,12 +6,13 @@ import {
 } from './constants.ts';
 import {
   DRIVER_AGGRESSION_SPREAD, DRIVER_STRENGTH_SPREAD, MAX_EVENT_DAYS, MAX_GRID_OFFSET,
-  MIN_REVERSED,
+  MIN_REVERSED, REGULATION_KEYS,
 } from '../../shared/constants/index.ts';
 import { AppError, appErrorInfo } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import { ContentSource, Hemisphere } from '../../shared/types/index.ts';
 import type {
+  Assists,
   BopEntry,
   Car,
   CarEntry,
@@ -28,6 +29,7 @@ import type {
   EventFormat,
   ModDistributor,
   ModMaker,
+  RegulatedAssists,
   RequirementPool,
   Round,
   RoundAvailability,
@@ -159,6 +161,21 @@ export const roundOf = (series: Championship, id: string): Round => {
 export const eligibilityFor = (entry: ClassEntry, round?: Round): Eligibility => (
   round?.eligibility?.find((override) => override.entry === entry.id)?.eligibility
   ?? entry.eligibility
+);
+
+/**
+ * The regulations' assists, keeping only what a series may set. A file written
+ * when damage was still a rule may name it, and it is never read: damage is the
+ * player's own.
+ * @param assists The assists the regulations state, if any
+ * @returns Those a series sets, or undefined for none
+ */
+export const regulatedOnly = (assists: Assists | undefined): RegulatedAssists | undefined => (
+  assists === undefined
+    ? undefined
+    : Object.fromEntries(REGULATION_KEYS
+      .filter((key) => assists[key] !== undefined)
+      .map((key) => [key, assists[key]]))
 );
 
 /**

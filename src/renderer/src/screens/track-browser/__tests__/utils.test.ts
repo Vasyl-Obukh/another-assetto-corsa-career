@@ -4,9 +4,10 @@ import {
   makeGroup, makeGroupOf, makeGroupOfLengths, makeTrack,
 } from './fixtures.ts';
 import {
-  coordinatesOf, isLocated, kilometres, layoutImageSources, layoutMapSources, layoutOutline, lengthText, spanOf,
+  coordinatesOf, isLocated, lapLength, layoutImageSources, layoutMapSources, layoutOutline, lengthText, spanOf,
   spanText, trackImageSources,
 } from '../utils.ts';
+import type { Units } from '@/hooks';
 
 /**
  * A number formatter that writes the figure as it is, so a test reads what was
@@ -15,6 +16,20 @@ import {
  * @returns The figure as plain text
  */
 const plain = (value: number): string => String(value);
+
+/**
+ * Unit formatters measuring a distance in kilometres to a tenth.
+ */
+const kilometres: Pick<Units, 'figure'> = {
+  figure: (quantity, metric) => plain(Math.round(metric * 10) / 10),
+};
+
+/**
+ * Unit formatters measuring a distance in miles to a tenth.
+ */
+const miles: Pick<Units, 'figure'> = {
+  figure: (quantity, metric) => plain(Math.round(metric * 0.621371 * 10) / 10),
+};
 
 describe('renderer/screens/track-browser/utils', () => {
   describe('layoutImageSources', () => {
@@ -219,7 +234,7 @@ describe('renderer/screens/track-browser/utils', () => {
 
     // 5.79 km and 5.81 km both read 5.8, and "5.8-5.8" says nothing.
     it('writes one figure when the ends only agree once written out', () => {
-      expect(spanText({ from: 5790, to: 5810 }, (metres) => kilometres(metres, plain))).toBe('5.8');
+      expect(spanText({ from: 5790, to: 5810 }, (metres) => lapLength(metres, kilometres))).toBe('5.8');
     });
 
     it('is null when there is no span', () => {
@@ -227,28 +242,28 @@ describe('renderer/screens/track-browser/utils', () => {
     });
   });
 
-  describe('kilometres', () => {
-    it('writes metres as kilometres to one decimal place', () => {
-      expect(kilometres(5793, plain)).toBe('5.8');
-      expect(kilometres(7004, plain)).toBe('7');
+  describe('lapLength', () => {
+    it('measures metres as a distance in kilometres, to one decimal place', () => {
+      expect(lapLength(5793, kilometres)).toBe('5.8');
+      expect(lapLength(7004, kilometres)).toBe('7');
     });
 
-    it('writes the figure through the locale formatter it is given', () => {
-      expect(kilometres(25378, (value) => value.toFixed(2).replace('.', ','))).toBe('25,40');
+    it('writes the figure in the units it is handed', () => {
+      expect(lapLength(7004, miles)).toBe('4.4');
     });
   });
 
   describe('lengthText', () => {
     it('writes a single length in kilometres', () => {
-      expect(lengthText(makeGroupOfLengths('spa', [7004]).layouts, plain)).toBe('7');
+      expect(lengthText(makeGroupOfLengths('spa', [7004]).layouts, kilometres)).toBe('7');
     });
 
     it('spans the shortest and the longest layout', () => {
-      expect(lengthText(makeGroupOfLengths('ks_nordschleife', [20832, 25378, 3800]).layouts, plain)).toBe('3.8-25.4');
+      expect(lengthText(makeGroupOfLengths('ks_nordschleife', [20832, 25378, 3800]).layouts, kilometres)).toBe('3.8-25.4');
     });
 
     it('is null when no layout states a length', () => {
-      expect(lengthText(makeGroupOfLengths('x', [null]).layouts, plain)).toBeNull();
+      expect(lengthText(makeGroupOfLengths('x', [null]).layouts, kilometres)).toBeNull();
     });
   });
 });

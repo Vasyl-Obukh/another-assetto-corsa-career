@@ -3,6 +3,7 @@
 // shows them as placeholders and may not import core.
 
 import type { Assists } from '../types/race.ts';
+import type { RegulationKey } from '../types/series.ts';
 import type { DrivingAidFlag, DrivingAidNumber } from '../types/settings.ts';
 
 /**
@@ -48,10 +49,31 @@ export const DRIVING_AID_FLAGS: readonly DrivingAidFlag[] = [
 ];
 
 /**
+ * The most each driving aid that carries a number goes to, from nought: the
+ * two electronics as off, factory and on, the others as percentages.
+ */
+export const DRIVING_AID_MAX: Readonly<Record<DrivingAidNumber, number>> = {
+  abs: 2,
+  tractionControl: 2,
+  stabilityControl: 100,
+  damage: 100,
+};
+
+/**
  * The driving aids that carry a number.
  */
-export const DRIVING_AID_NUMBERS: readonly DrivingAidNumber[] = [
-  'abs',
-  'tractionControl',
-  'stabilityControl',
-];
+export const DRIVING_AID_NUMBERS = Object.keys(DRIVING_AID_MAX) as readonly DrivingAidNumber[];
+
+/**
+ * Every assist a series sets rather than the player, as a record so that one
+ * moved between the two halves fails the typecheck until it is moved here too.
+ */
+const REGULATED: Record<RegulationKey, true> = {
+  fuelRate: true, tyreWear: true, slipstream: true, tyreBlankets: true,
+};
+
+/**
+ * Every assist a series sets rather than the player, which is all a
+ * championship's regulations may carry into a race.
+ */
+export const REGULATION_KEYS = Object.keys(REGULATED) as readonly RegulationKey[];

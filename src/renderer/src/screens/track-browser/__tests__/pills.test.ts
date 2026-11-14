@@ -6,7 +6,7 @@ import type { TFunction } from 'i18next';
 import { ModMaker } from '../../../../../shared/types';
 import type { TrackFacets } from '../../../../../shared/types';
 import { trackPills, trackRanges } from '../pills.ts';
-import type { TrackCriteria } from '@/hooks';
+import type { TrackCriteria, Units } from '@/hooks';
 import type { Formatters } from '@/i18n';
 
 // The component barrel reaches components that need the whole app around them,
@@ -34,6 +34,13 @@ const format = {
 } as Formatters;
 
 /**
+ * Unit formatters that write a figure to a tenth and name its quantity as the unit.
+ */
+const units: Pick<Units, 'format'> = {
+  format: (quantity, metric) => `${Math.round(metric * 10) / 10} unit:${quantity}`,
+};
+
+/**
  * Facets with only the two spreads the range pills read for open ends.
  */
 const facets = {
@@ -43,29 +50,29 @@ const facets = {
 
 describe('renderer/screens/track-browser/pills', () => {
   describe('trackRanges', () => {
-    it('writes a lap length in kilometres with its unit', () => {
-      expect(trackRanges({}, facets, t, format).formatLength(5793)).toBe('5.8 tracks.stat.length');
+    it('writes a lap length in the units the player reads, with its unit', () => {
+      expect(trackRanges({}, facets, format, units).formatLength(5793)).toBe('5.8 unit:distance');
     });
 
     it('writes each range picked, open ends at the library\'s own edges', () => {
-      const ranges = trackRanges({ lengthFrom: 5000, pitboxesTo: 30 }, facets, t, format);
+      const ranges = trackRanges({ lengthFrom: 5000, pitboxesTo: 30 }, facets, format, units);
 
-      expect(ranges.length).toBe('5 tracks.stat.length-25.4 tracks.stat.length');
+      expect(ranges.length).toBe('5 unit:distance-25.4 unit:distance');
       expect(ranges.pitboxes).toBe('8-30');
     });
 
     it('writes nothing for a range not picked', () => {
-      expect(trackRanges({}, facets, t, format)).toMatchObject({ length: null, pitboxes: null });
+      expect(trackRanges({}, facets, format, units)).toMatchObject({ length: null, pitboxes: null });
     });
 
     it('leaves an open end blank before the library has been counted', () => {
-      expect(trackRanges({ pitboxesFrom: 20 }, null, t, format).pitboxes).toBe('20-');
+      expect(trackRanges({ pitboxesFrom: 20 }, null, format, units).pitboxes).toBe('20-');
     });
   });
 
   describe('trackPills', () => {
     it('has no pills when no filter is in force', () => {
-      expect(trackPills({}, facets, t, format, () => undefined)).toEqual([]);
+      expect(trackPills({}, facets, t, format, units, () => undefined)).toEqual([]);
     });
 
     it('has one pill per filter, in the rail\'s order', () => {
@@ -78,13 +85,13 @@ describe('renderer/screens/track-browser/pills', () => {
         pitboxesFrom: 24,
       };
 
-      expect(trackPills(criteria, facets, t, format, () => undefined).map((pill) => pill.key)).toEqual([
+      expect(trackPills(criteria, facets, t, format, units, () => undefined).map((pill) => pill.key)).toEqual([
         'raced', 'located', `makers-${ModMaker.RSS}`, 'country-BEL', 'length', 'pitboxes',
       ]);
     });
 
     it('names a country by its nation', () => {
-      const [pill] = trackPills({ countries: ['BEL'] }, facets, t, format, () => undefined);
+      const [pill] = trackPills({ countries: ['BEL'] }, facets, t, format, units, () => undefined);
 
       expect(pill?.value).toBe('nation:BEL');
     });
@@ -92,7 +99,7 @@ describe('renderer/screens/track-browser/pills', () => {
     it('lifts just the one country a pill stands for', () => {
       const onChange = jest.fn<(next: TrackCriteria) => void>();
 
-      trackPills({ countries: ['BEL', 'ITA'], raced: true }, facets, t, format, onChange)
+      trackPills({ countries: ['BEL', 'ITA'], raced: true }, facets, t, format, units, onChange)
         .find((pill) => pill.key === 'country-BEL')
         ?.onRemove();
 
@@ -102,7 +109,7 @@ describe('renderer/screens/track-browser/pills', () => {
     it('lifts both ends of a range together', () => {
       const onChange = jest.fn<(next: TrackCriteria) => void>();
 
-      trackPills({ pitboxesFrom: 10, pitboxesTo: 30 }, facets, t, format, onChange)
+      trackPills({ pitboxesFrom: 10, pitboxesTo: 30 }, facets, t, format, units, onChange)
         .find((pill) => pill.key === 'pitboxes')
         ?.onRemove();
 
@@ -112,7 +119,7 @@ describe('renderer/screens/track-browser/pills', () => {
     it('lifts the switch a pill stands for', () => {
       const onChange = jest.fn<(next: TrackCriteria) => void>();
 
-      trackPills({ hasGeotags: true, raced: true }, facets, t, format, onChange)
+      trackPills({ hasGeotags: true, raced: true }, facets, t, format, units, onChange)
         .find((pill) => pill.key === 'located')
         ?.onRemove();
 

@@ -121,7 +121,7 @@ export const GT86_CUP: Championship = {
   grid: { strength: -6, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
-    assists: { damage: 50, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

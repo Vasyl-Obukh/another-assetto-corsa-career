@@ -26,3 +26,9 @@ export const THEME_PREVIEW = {
   light: { page: 'bg-preview-light-page', card: 'bg-preview-light-card' },
   dark: { page: 'bg-preview-dark-page', card: 'bg-preview-dark-card' },
 } as const satisfies Record<ThemeChoice, { page: string; card: string }>;
+
+/**
+ * The figures each units tile shows itself in, all metric: a car's top speed,
+ * its weight and a warm day's air.
+ */
+export const UNITS_PREVIEW = { speed: 310, weight: 1420, temperature: 21 } as const;

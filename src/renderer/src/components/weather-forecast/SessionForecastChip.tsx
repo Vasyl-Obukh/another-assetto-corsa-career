@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
-import { useFormat } from '@/i18n';
+import { useUnits } from '@/hooks';
 
 interface SessionForecastChipProps {
   /**
@@ -26,7 +26,7 @@ interface SessionForecastChipProps {
  */
 export const SessionForecastChip = ({ session }: SessionForecastChipProps) => {
   const { t } = useTranslation();
-  const { formatNumber } = useFormat();
+  const units = useUnits();
   const name = session.name ?? t(`race.sessionType.${session.type}`);
   const swapped = session.steps.filter((step) => step.intended !== step.weather);
 
@@ -35,7 +35,7 @@ export const SessionForecastChip = ({ session }: SessionForecastChipProps) => {
       <TooltipTrigger asChild>
         <Badge variant="outline" className="relative z-10 gap-1 tabular-nums" tabIndex={0}>
           <WeatherStepIcons steps={session.steps} />
-          {t('forecast.ambient', { value: formatNumber(session.ambient) })}
+          {units.format('temperature', session.ambient)}
         </Badge>
       </TooltipTrigger>
 

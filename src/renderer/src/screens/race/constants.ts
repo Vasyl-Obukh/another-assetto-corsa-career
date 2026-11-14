@@ -51,27 +51,14 @@ export const DEFAULT_SLOT_MINUTES = 10;
 /**
  * The regulations that are measured, each as a slider from nothing up to its
  * most, with the points worth naming offered as chips. Real is Assetto Corsa's
- * own figure - 100 % damage, one times the fuel, wear and slipstream.
+ * own figure - one times the fuel, wear and slipstream.
  */
 export const REGULATIONS: readonly RegulationSpec[] = [
-  {
-    key: 'damage',
-    id: 'race-damage',
-    max: 100,
-    step: 1,
-    unit: 'percent',
-    stops: [
-      { value: 0, label: 'race.regulations.stop.off' },
-      { value: 50, label: 'race.regulations.stop.half' },
-      { value: 100, label: 'race.regulations.stop.real' },
-    ],
-  },
   {
     key: 'fuelRate',
     id: 'race-fuel-rate',
     max: 5,
     step: 0.1,
-    unit: 'times',
     stops: [
       { value: 0, label: 'race.regulations.stop.off' },
       { value: 1, label: 'race.regulations.stop.real' },
@@ -84,7 +71,6 @@ export const REGULATIONS: readonly RegulationSpec[] = [
     id: 'race-tyre-wear',
     max: 5,
     step: 0.1,
-    unit: 'times',
     stops: [
       { value: 0, label: 'race.regulations.stop.off' },
       { value: 1, label: 'race.regulations.stop.real' },
@@ -97,7 +83,6 @@ export const REGULATIONS: readonly RegulationSpec[] = [
     id: 'race-slipstream',
     max: 10,
     step: 0.1,
-    unit: 'times',
     stops: [
       { value: 0, label: 'race.regulations.stop.off' },
       { value: 1, label: 'race.regulations.stop.real' },
@@ -157,3 +142,9 @@ export const EVENT_ROW_SKELETON = 3;
  * class: past it a grid outgrows every track's pit lane anyway.
  */
 export const MAX_CLASS_CARS = 60;
+
+/**
+ * Decimal places the track card states a lap length to. The third is
+ * load-bearing: Spa is 7.004 km, and 7 loses the circuit.
+ */
+export const LAP_DIGITS = 3;

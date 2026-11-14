@@ -97,7 +97,7 @@ export const S_FR_CUP: Championship = {
   grid: { strength: -7, aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
-    assists: { damage: 100, tyreWear: 1, fuelRate: 1, tyreBlankets: false },
+    assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },
     penalties: true,
     jumpStartPenalty: 10,
   },

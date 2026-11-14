@@ -4,7 +4,7 @@ import {
 import { copyFile, unlink } from 'node:fs/promises';
 
 
-import { quarantine } from '../utils.ts';
+import { hasUnits, quarantine } from '../utils.ts';
 
 jest.mock('node:fs/promises');
 
@@ -20,6 +20,22 @@ const eexist = (): NodeJS.ErrnoException => (
 );
 
 describe('main/settings-store/utils', () => {
+  describe('hasUnits', () => {
+    it('is true for a file holding a unit system the app offers', () => {
+      expect(hasUnits({ units: 'uk' })).toBe(true);
+    });
+
+    it('is false for a file without one, or with one the app does not offer', () => {
+      expect(hasUnits({})).toBe(false);
+      expect(hasUnits({ units: 'imperial' })).toBe(false);
+    });
+
+    it('is false where there is no file to read', () => {
+      expect(hasUnits(undefined)).toBe(false);
+      expect(hasUnits('corrupt')).toBe(false);
+    });
+  });
+
   beforeEach(() => {
     unlinkMock.mockResolvedValue(undefined);
   });

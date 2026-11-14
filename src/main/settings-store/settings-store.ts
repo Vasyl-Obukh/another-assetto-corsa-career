@@ -7,9 +7,9 @@ import path from 'node:path';
 
 import { SETTINGS_FILE, WRITE_DEBOUNCE_MS } from './constants.ts';
 import type { SettingsStore } from './types.ts';
-import { quarantine } from './utils.ts';
+import { hasUnits, quarantine } from './utils.ts';
 import { DEFAULT_SETTINGS } from '../../shared/constants/index.ts';
-import type { Settings } from '../../shared/types/index.ts';
+import type { Settings, UnitSystem } from '../../shared/types/index.ts';
 import { applyPatch, readSettings } from '../../shared/utils/settings/index.ts';
 
 export type { SettingsStore } from './types.ts';
@@ -17,24 +17,30 @@ export type { SettingsStore } from './types.ts';
 /**
  * Loads the settings file and returns a store over it.
  * @param userDataDir Folder to keep settings.json in
+ * @param machineUnits The units this machine's region reads, asked only when
+ * the file has none chosen yet, such as on a fresh install
  * @returns A store holding the loaded settings, or the defaults when none loaded
  */
-export const createSettingsStore = async (userDataDir: string): Promise<SettingsStore> => {
+export const createSettingsStore = async (
+  userDataDir: string,
+  machineUnits: () => Promise<UnitSystem> = async () => DEFAULT_SETTINGS.units,
+): Promise<SettingsStore> => {
   const file = path.join(userDataDir, SETTINGS_FILE);
   const tmp = `${file}.tmp`;
 
-  let current: Settings;
+  let raw: unknown;
   try {
-    const text = await readFile(file, 'utf8');
-    current = readSettings(JSON.parse(text));
+    raw = JSON.parse(await readFile(file, 'utf8'));
   } catch (error) {
     const missing = (error as NodeJS.ErrnoException).code === 'ENOENT';
     if (!missing) {
       const moved = await quarantine(file);
       console.warn(`Settings file was unreadable; ${moved ? `moved to ${moved}` : 'ignoring it'}.`, error);
     }
-    current = structuredClone(DEFAULT_SETTINGS);
   }
+  let current = hasUnits(raw)
+    ? readSettings(raw)
+    : readSettings(raw, { ...DEFAULT_SETTINGS, units: await machineUnits() });
 
   const listeners = new Set<(settings: Settings) => void>();
   let timer: NodeJS.Timeout | null = null;

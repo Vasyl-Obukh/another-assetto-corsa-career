@@ -320,6 +320,7 @@ export type {
   ResolvedTheme,
   Settings,
   ThemeChoice,
+  UnitSystem,
   WindowState,
 } from './settings.ts';
 

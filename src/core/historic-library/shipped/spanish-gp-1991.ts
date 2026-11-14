@@ -136,7 +136,6 @@ export const SPANISH_GP_1991: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: true,

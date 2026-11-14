@@ -13,9 +13,10 @@ import {
   ContentImage, NationFlag, ProvenanceBadges,
 } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
-import { kilometres, layoutOutline } from '@/screens/track-browser';
+import { layoutOutline } from '@/screens/track-browser';
 
 interface TrackStageProps {
   /**
@@ -59,6 +60,7 @@ export const TrackStage = ({
 }: TrackStageProps) => {
   const { t } = useTranslation();
   const { formatNation, formatNumber } = useFormat();
+  const units = useUnits();
   const strip = useRef<HTMLDivElement>(null);
 
   const photo = photos.at(index);
@@ -165,7 +167,7 @@ export const TrackStage = ({
             <span className="truncate font-semibold" title={shown.name}>{layoutShortName(shown, circuit.name)}</span>
             {shown.lengthM === null ? null : (
               <span className="ml-auto shrink-0 tabular-nums opacity-80">
-                {t('tracks.detail.km', { value: kilometres(shown.lengthM, formatNumber) })}
+                {units.formatLap(shown.lengthM)}
               </span>
             )}
           </div>

@@ -12,6 +12,7 @@ import {
 } from '@/components';
 import type { BrowserToggle, CarAppraise, CarTrade } from '@/components';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import type { Racing } from '@/lib/racing-index';
 import { path } from '@/lib/routes';
@@ -68,6 +69,7 @@ export const CarCard = ({
 }: CarCardProps) => {
   const { t } = useTranslation();
   const { formatNation, formatNumber, formatYear } = useFormat();
+  const units = useUnits();
 
   const { performance } = car;
   const on = toggle?.isOn(car.id) ?? false;
@@ -150,7 +152,10 @@ export const CarCard = ({
 
         <FigureLine figures={[
           { unit: t('cars.unitBhp'), value: figure(performance.bhp) },
-          { unit: t('cars.unitKg'), value: figure(performance.weightKg) },
+          {
+            unit: units.unit('weight'),
+            value: performance.weightKg === null ? null : units.figure('weight', performance.weightKg),
+          },
           { unit: t('cars.unitBhpPerTonne'), value: figure(performance.powerToWeight) },
         ]}
         />

@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AID_MODES, AID_TILES, MAX_STABILITY_CONTROL } from './constants.ts';
+import {
+  AID_MODES, AID_TILES, DAMAGE_STOPS, HELPER_AIDS,
+} from './constants.ts';
 import { ModeSegments } from './ModeSegments.tsx';
+import { PercentTile } from './PercentTile.tsx';
 import { SubHeading } from './SubHeading.tsx';
 import type { AssistMode } from './types.ts';
-import { DEFAULT_ASSISTS, DRIVING_AID_FLAGS } from '../../../../shared/constants';
+import { DEFAULT_ASSISTS, DRIVING_AID_MAX } from '../../../../shared/constants';
 import type { DrivingAids } from '../../../../shared/types';
 import { SwitchTile } from '@/components';
-import { Slider } from '@/components/ui/slider.tsx';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -41,12 +42,14 @@ export const DrivingAidsFields = ({
 }: DrivingAidsFieldsProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
-  // Held while dragging and written once the thumb is let go, so a drag is one
-  // write rather than one per step.
-  const [dragged, setDragged] = useState<number | null>(null);
 
   const set = (change: DrivingAids) => onChange({ ...value, ...change });
-  const stability = dragged ?? value.stabilityControl ?? DEFAULT_ASSISTS.stabilityControl;
+  /**
+   * Writes a percentage out.
+   * @param figure The percentage
+   * @returns It, as the tiles show it
+   */
+  const percent = (figure: number): string => t('settings.percent', { value: formatNumber(figure) });
 
   /**
    * What the app has for an aid, where it parts from what is shown.
@@ -61,6 +64,11 @@ export const DrivingAidsFields = ({
     return theirs === (value[key] ?? DEFAULT_ASSISTS[key]) ? null : theirs;
   };
   const appsStability = appsWhereDifferent('stabilityControl');
+  const appsDamage = appsWhereDifferent('damage');
+  const appsVisual = appsWhereDifferent('visualDamage');
+  const visualHint = appsVisual === null
+    ? undefined
+    : t('settings.follow.app', { value: t(appsVisual ? 'settings.follow.on' : 'settings.follow.off') });
 
   return (
     // Following the app's, the aids are shown but offered to neither the mouse
@@ -90,39 +98,45 @@ export const DrivingAidsFields = ({
           );
         })}
 
-        <div className="flex flex-col gap-2 rounded-lg border p-3">
-          <span className="flex items-baseline justify-between gap-2 text-sm font-medium">
-            {t('assist.stabilityControl')}
-            <span className="text-xs font-normal text-muted-foreground">
-              {appsStability === null
-                ? t('settings.stabilityOff')
-                : t('settings.follow.app', { value: t('settings.percent', { value: formatNumber(appsStability) }) })}
-            </span>
-          </span>
-          <div className="flex h-8 items-center gap-3">
-            <Slider
-              min={0}
-              max={MAX_STABILITY_CONTROL}
-              step={1}
-              value={[stability]}
-              disabled={disabled}
-              aria-label={t('assist.stabilityControl')}
-              onValueChange={([next]) => setDragged(next)}
-              onValueCommit={([next]) => {
-                setDragged(null);
-                set({ stabilityControl: next });
-              }}
-            />
-            <span className="w-11 shrink-0 text-right text-sm font-semibold tabular-nums">
-              {t('settings.percent', { value: formatNumber(stability) })}
-            </span>
-          </div>
+        <PercentTile
+          label={t('assist.stabilityControl')}
+          hint={appsStability === null
+            ? t('settings.stabilityOff')
+            : t('settings.follow.app', { value: percent(appsStability) })}
+          value={value.stabilityControl ?? DEFAULT_ASSISTS.stabilityControl}
+          max={DRIVING_AID_MAX.stabilityControl}
+          disabled={disabled}
+          onChange={(stabilityControl) => set({ stabilityControl })}
+        />
+      </div>
+
+      <SubHeading className="mt-5">{t('settings.aidsDamage')}</SubHeading>
+      <div className={AID_TILES}>
+        <PercentTile
+          label={t('assist.damage')}
+          hint={appsDamage === null ? undefined : t('settings.follow.app', { value: percent(appsDamage) })}
+          value={value.damage ?? DEFAULT_ASSISTS.damage}
+          max={DRIVING_AID_MAX.damage}
+          stops={DAMAGE_STOPS}
+          disabled={disabled}
+          onChange={(damage) => set({ damage })}
+        />
+        {/* Its height alone, rather than stretched to the slider's beside it. */}
+        <div className="self-start">
+          <SwitchTile
+            label={t('assist.visualDamage')}
+            hint={visualHint}
+            checked={value.visualDamage ?? DEFAULT_ASSISTS.visualDamage}
+            disabled={disabled}
+            tinted
+            onChange={(next) => set({ visualDamage: next })}
+          />
         </div>
       </div>
 
       <SubHeading className="mt-5">{t('settings.aidsHelpers')}</SubHeading>
       <div className={AID_TILES}>
-        {DRIVING_AID_FLAGS.map((key) => {
+        {HELPER_AIDS.map((key) => {
           const theirs = appsWhereDifferent(key);
 
           return (

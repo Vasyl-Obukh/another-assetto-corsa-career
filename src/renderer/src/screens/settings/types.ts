@@ -10,6 +10,20 @@ import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
 export type WeatherCapability = 'rain' | 'dynamic' | 'exactRain';
 
 /**
+ * A point of a percentage slider worth naming, offered as a chip.
+ */
+export interface PercentStop {
+  /**
+   * The percentage.
+   */
+  value: number;
+  /**
+   * The catalogue key for its name.
+   */
+  label: ParseKeys;
+}
+
+/**
  * One entry of the index beside the General tab's sections.
  */
 export interface SectionLink {
@@ -58,7 +72,7 @@ export interface SettingsTab {
  * it is only about which control the screen draws, since stability control is
  * a number here and a choice of three there.
  */
-export type AidMode = Exclude<DrivingAidNumber, 'stabilityControl'>;
+export type AidMode = Exclude<DrivingAidNumber, 'stabilityControl' | 'damage'>;
 
 /**
  * A Content Manager flag the settings screen may offer.

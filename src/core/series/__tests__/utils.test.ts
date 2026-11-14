@@ -12,7 +12,8 @@ import type {
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import {
   aiSeats, baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, lapsFor,
-  nationOf, raceLengths, raceWeekdayOf, requirementsOf, roundRaceId, roundSessions, runRaceId, seatDraw, seatSkin,
+  nationOf, raceLengths, raceWeekdayOf, regulatedOnly, requirementsOf, roundRaceId, roundSessions, runRaceId, seatDraw,
+  seatSkin,
   validateFormat, validateLength, validateMoney, validateOffsets, withDistancesInLaps,
 } from '../utils.ts';
 import { makeContent } from './fixtures.ts';
@@ -364,6 +365,30 @@ describe('core/series/utils', () => {
       ])).toEqual([
         'series.inherit.unknown', 'series.inherit.topInvalid', 'series.inherit.unknown',
       ]);
+    });
+  });
+
+  describe('regulatedOnly', () => {
+    it('keeps the assists a series sets', () => {
+      expect(regulatedOnly({
+        fuelRate: 2, tyreWear: 1.5, slipstream: 3, tyreBlankets: false,
+      })).toEqual({
+        fuelRate: 2, tyreWear: 1.5, slipstream: 3, tyreBlankets: false,
+      });
+    });
+
+    // Damage moved from the regulations to the player; a file written before
+    // that may still name it, and it must not reach the race.
+    it('drops damage and every other aid the player sets', () => {
+      expect(regulatedOnly({ damage: 50, tyreWear: 2, abs: 0 })).toEqual({ tyreWear: 2 });
+    });
+
+    it('leaves out what the regulations do not state', () => {
+      expect(regulatedOnly({ damage: 50 })).toEqual({});
+    });
+
+    it('is undefined when the regulations state no assists', () => {
+      expect(regulatedOnly(undefined)).toBeUndefined();
     });
   });
 

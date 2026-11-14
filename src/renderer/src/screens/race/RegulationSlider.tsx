@@ -42,7 +42,7 @@ const chipClass = (active: boolean): string => cn(
 );
 
 /**
- * A measured regulation - damage, fuel, wear, slipstream - as a slider from
+ * A measured regulation - fuel, wear, slipstream - as a slider from
  * nothing up to its most, with a tick where real sits, the points worth naming
  * as chips, and a Default chip that hands it back to Assetto Corsa.
  */
@@ -56,11 +56,9 @@ export const RegulationSlider = ({
   /**
    * Writes a value the way the regulation reads.
    * @param figure The value
-   * @returns It, as a percentage or a multiple
+   * @returns It, as a multiple of real
    */
-  const written = (figure: number): string => (spec.unit === 'percent'
-    ? t('race.regulations.percent', { value: formatNumber(figure) })
-    : t('race.regulations.times', { value: formatNumber(figure) }));
+  const written = (figure: number): string => t('race.regulations.times', { value: formatNumber(figure) });
 
   return (
     <div className="flex flex-col gap-1.5">

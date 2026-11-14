@@ -124,7 +124,6 @@ export const ITALIAN_GP_1967: Championship = {
   },
   regulations: {
     assists: {
-      damage: 100,
       tyreWear: 1,
       fuelRate: 1,
       tyreBlankets: false,

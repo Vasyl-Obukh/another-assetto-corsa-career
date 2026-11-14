@@ -9,8 +9,9 @@ import { GridFields } from './GridFields.tsx';
 import { NumberField } from './NumberField.tsx';
 import type { LengthUnit } from './types.ts';
 import {
-  lengthUnit, withLengthUnit, withRoundLength, withRoundLengthsPruned,
+  lengthUnit, shownLength, storedLength, withLengthUnit, withRoundLength, withRoundLengthsPruned,
 } from './utils.ts';
+import { M_PER_KM } from '../../../../shared/constants';
 import type {
   Championship, Climate, Hemisphere, Round, RoundAvailability, Track,
 } from '../../../../shared/types';
@@ -22,7 +23,7 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
-import { useFocusOnMount } from '@/hooks';
+import { useFocusOnMount, useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { CLIMATE_ACCENT, SESSION_ACCENT } from '@/lib/accents';
@@ -72,7 +73,8 @@ export const RoundBasics = ({
   series, round, availability, locked, single = false, onChange,
 }: RoundBasicsProps) => {
   const { t } = useKindTranslation();
-  const { formatMoney, formatNumber } = useFormat();
+  const { formatMoney } = useFormat();
+  const units = useUnits();
   const [picking, setPicking] = useState(false);
   // Only a pick brings a circuit's name back - no channel resolves a list of
   // track keys - so an unpicked track shows its key.
@@ -119,7 +121,7 @@ export const RoundBasics = ({
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               {fresh?.lengthM ? (
-                <span>{t('editor.calendar.length', { km: formatNumber(Math.round(fresh.lengthM / 100) / 10) })}</span>
+                <span>{units.format('distance', fresh.lengthM / M_PER_KM)}</span>
               ) : null}
               {fresh?.pitboxes ? <span>{t('editor.calendar.pitboxes', { count: fresh.pitboxes })}</span> : null}
               {availability?.track ? <Badge variant="destructive">{t('editor.calendar.missingTrack')}</Badge> : null}
@@ -201,12 +203,13 @@ export const RoundBasics = ({
                   aria-label={t('editor.calendar.raceLength', { name: labels[index] })}
                   className="text-right tabular-nums"
                   min={MIN_SESSION_LENGTH}
-                  value={fromNumber(own?.[unit])}
-                  placeholder={fromNumber(race[unit])}
+                  value={fromNumber(shownLength(own?.[unit], unit, units))}
+                  placeholder={fromNumber(shownLength(race[unit], unit, units))}
                   disabled={locked}
                   onChange={(event) => {
                     const value = toNumber(event.target.value);
-                    onChange(withRoundLength(round, id, value === undefined ? null : { [unit]: value }));
+                    const kept = storedLength(value, unit, units);
+                    onChange(withRoundLength(round, id, kept === undefined ? null : { [unit]: kept }));
                   }}
                 />
                 <Select
@@ -221,7 +224,7 @@ export const RoundBasics = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="laps">{t(LENGTH_LABEL.laps)}</SelectItem>
-                    <SelectItem value="distance">{t(LENGTH_LABEL.distance)}</SelectItem>
+                    <SelectItem value="distance">{t(LENGTH_LABEL.distance, { unit: units.unit('distance') })}</SelectItem>
                   </SelectContent>
                 </Select>
                 <span className="text-xs text-muted-foreground">

@@ -2,8 +2,10 @@ import { RotateCcwIcon, RotateCwIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { WIDTH_DIGITS } from './constants.ts';
 import type { Track } from '../../../../shared/types';
 import { Card } from '@/components/ui/card.tsx';
+import { useUnits } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 import { lengthText, spanOf, spanText } from '@/screens/track-browser';
@@ -26,6 +28,7 @@ interface TrackFiguresProps {
 export const TrackFigures = ({ layouts, total }: TrackFiguresProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
+  const units = useUnits();
 
   const runs = new Set(layouts.map((layout) => layout.run).filter((run) => run !== null));
   const [run] = runs;
@@ -44,13 +47,13 @@ export const TrackFigures = ({ layouts, total }: TrackFiguresProps) => {
   const figures: { label: string; unit?: string; value: ReactNode }[] = [
     {
       label: t('tracks.detail.length'),
-      unit: t('tracks.stat.length'),
-      value: lengthText(layouts, formatNumber),
+      unit: units.unit('distance'),
+      value: lengthText(layouts, units),
     },
     {
       label: t('tracks.detail.width'),
-      unit: t('tracks.detail.metres'),
-      value: spanText(spanOf(layouts, (layout) => layout.widthM), formatNumber),
+      unit: units.unit('length'),
+      value: spanText(spanOf(layouts, (layout) => layout.widthM), (metres) => units.figure('length', metres, WIDTH_DIGITS)),
     },
     { label: t('tracks.detail.pitboxes'), value: spanText(spanOf(layouts, (layout) => layout.pitboxes), formatNumber) },
     { label: t('tracks.detail.direction'), value: direction },

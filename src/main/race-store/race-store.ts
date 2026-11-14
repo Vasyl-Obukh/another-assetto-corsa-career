@@ -292,9 +292,9 @@ export const createRaceStore = async (
    * app's.
    *
    * The same arrangement `withDriver` uses, and for the same reason: aids belong
-   * to the person playing, while damage, fuel rate, tyre wear and slipstream are
-   * regulations and belong to the race. A race naming any of them keeps it,
-   * field by field, so a spike can still pin the lot.
+   * to the person playing, damage included, while fuel rate, tyre wear,
+   * slipstream and tyre blankets are regulations and belong to the race. A race
+   * naming any of them keeps it, field by field, so a spike can still pin the lot.
    * @param race The launch, already prepared
    * @param aids The aids the launch was asked to run with, if any
    * @returns The launch with its assists filled in

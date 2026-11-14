@@ -493,6 +493,16 @@ describe('core/series', () => {
       makeContent(),
     );
 
+    // Damage is the player's now; a championship written before still naming it
+    // must not override their setting.
+    it('carries only the regulations a series sets into the race', () => {
+      // Not a literal, since the type no longer allows damage there.
+      const assists = { damage: 50, tyreWear: 2 };
+      const race = lower(makeSeries({ regulations: { assists } }));
+
+      expect(race.assists).toEqual({ tyreWear: 2 });
+    });
+
     it('fields one car per seat, the player taking one of them', () => {
       const race = lower(makeSeries());
 

@@ -8,6 +8,7 @@ import {
   defaultSession, dotted, launchNote, moneyNote, playerPosition, racedStrength, scaleName, sessionDay,
   sessionLength, shareOf, sharesText, shortLaps,
 } from '../utils.ts';
+import type { Units } from '@/hooks';
 
 /**
  * One session of an event, carrying only what these helpers read.
@@ -73,6 +74,13 @@ const translate = ((key: string, params?: Record<string, unknown>): string => {
  * @returns The number, marked
  */
 const formatNumber = (value: number): string => `#${value}`;
+
+/**
+ * Unit formatters that mark what they wrote, standing in for the player's.
+ */
+const units: Pick<Units, 'format'> = {
+  format: (quantity, metric) => `${quantity}#${metric}`,
+};
 
 describe('renderer/screens/event/utils', () => {
   describe('sharesText', () => {
@@ -140,25 +148,25 @@ describe('renderer/screens/event/utils', () => {
 
   describe('sessionLength', () => {
     it('states a session measured in laps as laps', () => {
-      expect(sessionLength(session({ laps: 12 }), translate, formatNumber))
+      expect(sessionLength(session({ laps: 12 }), translate, formatNumber, units))
         .toBe('championships.format.laps(count=12)');
     });
 
     it('states a session as minutes only when it has no laps', () => {
-      expect(sessionLength(session({ minutes: 20 }), translate, formatNumber))
+      expect(sessionLength(session({ minutes: 20 }), translate, formatNumber, units))
         .toBe('championships.format.minutes(count=20)');
-      expect(sessionLength(session({ laps: 12, minutes: 20 }), translate, formatNumber))
+      expect(sessionLength(session({ laps: 12, minutes: 20 }), translate, formatNumber, units))
         .toBe('championships.format.laps(count=12)');
     });
 
     it('states nothing for a session that states neither', () => {
-      expect(sessionLength(session(), translate, formatNumber)).toBeNull();
+      expect(sessionLength(session(), translate, formatNumber, units)).toBeNull();
     });
 
     it('shows a race\'s distance beside the laps it comes to', () => {
-      expect(sessionLength(session({ type: 'race', laps: 44, distance: 305 }), translate, formatNumber))
+      expect(sessionLength(session({ type: 'race', laps: 44, distance: 305 }), translate, formatNumber, units))
         .toBe('championships.detail.lengthDistance('
-          + 'distance=championships.format.distance(value=#305),'
+          + 'distance=distance#305,'
           + 'laps=championships.format.laps(count=44))');
     });
 
@@ -167,7 +175,7 @@ describe('renderer/screens/event/utils', () => {
         type: 'race', laps: 781, distance: 4500, record: { ...record([0]), scale: 48 },
       });
 
-      expect(sessionLength(shortened, translate, formatNumber))
+      expect(sessionLength(shortened, translate, formatNumber, units))
         .toBe('championships.format.laps(count=16) · event.length.of(share=event.length.share(scale=48),full=#781)');
     });
   });
