@@ -1,3 +1,4 @@
+import { SUPER_FORMULA_2019 } from './super-formula-2019.ts';
 import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
@@ -23,12 +24,13 @@ const EVENT: EventFormat = {
 /**
  * Super Formula, 2023 - the first season of the SF23, built for closer racing.
  *
- * RSS's Formula RSS Supreme 25 is that car. Three of nine rounds are on a
- * circuit Assetto Corsa has, and all three at Fuji: the opening double header
- * and the summer round. Suzuka, Autopolis, Sportsland SUGO and Motegi are not
- * in Assetto Corsa. Race lengths are the series' usual ones at Fuji rather
- * than checked round by round; the compulsory tyre change cannot be stated
- * yet. Qualifying is two parts, twenty-two cars cut to twelve.
+ * RSS's Formula RSS Supreme 25 is that car. The calendar is Super Formula
+ * 2019's six rounds - Suzuka, Fuji and Okayama twice each - rather than this
+ * season's nine, of which Assetto Corsa has only Fuji's three and Suzuka's
+ * two; Okayama was not on the 2023 calendar. Every race is the series' usual
+ * 185 km rather than checked round by round; the compulsory tyre change
+ * cannot be stated yet. Qualifying is two parts, twenty-two cars cut
+ * to twelve.
  *
  * Points are 20-15-11-8-6-5-4-3-2-1 with a point for pole; whether 2023 paid
  * more for pole was not checked. The field is invented.
@@ -40,10 +42,10 @@ export const SUPER_FORMULA_2023: Championship = {
   id: 'super-formula-2023',
   name: 'Super Formula 2023',
   description: {
-    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme 25, the SF23: the three '
-      + 'rounds of its 2023 season that Assetto Corsa has, all at Fuji.',
-    uk: 'Найвища японська формульна серія на Formula RSS Supreme 25 від RSS, тобто SF23: три етапи '
-      + 'сезону 2023, наявні в Assetto Corsa, усі на Фудзі.',
+    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme 25, the SF23: six '
+      + 'rounds at Suzuka, Fuji and Okayama.',
+    uk: 'Найвища японська формульна серія на Formula RSS Supreme 25 від RSS, тобто SF23: шість етапів '
+      + 'на Сузуці, Фудзі та в Окаямі.',
   },
   teams: [
     team('aoba', 'Team Aoba', 'JPN', TeamBudget.WORKS),
@@ -94,31 +96,12 @@ export const SUPER_FORMULA_2023: Championship = {
     EVENT,
   ],
   defaultEventFormat: 'standard',
-  rounds: [
-    {
-      id: 'fuji-1',
-      name: 'Fuji Speedway, round 1',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'fuji-2',
-      name: 'Fuji Speedway, round 2',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'fuji-6',
-      name: 'Fuji Speedway, round 6',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
-      climate: Climate.TEMPERATE,
-    },
-  ],
+  rounds: SUPER_FORMULA_2019.rounds,
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [20, 15, 11, 8, 6, 5, 4, 3, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

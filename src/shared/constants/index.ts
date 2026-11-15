@@ -44,7 +44,11 @@ export {
 
 export { INVITATION_CHANCE_STEP, INVITATION_LEAD_DAYS, INVITATION_MAIL_PREFIX } from './inbox.ts';
 
-export { DISTRIBUTOR_PAGES, MAKER_PAGES, PACK_PAGES } from './content-links.ts';
+export {
+  DISTRIBUTOR_PAGES, MAKER_PAGES, PACK_PAGES, TRACK_SOURCE_PAGES,
+} from './content-links.ts';
+
+export { RECOMMENDED_CIRCUITS } from './recommended-tracks.ts';
 
 export { M_PER_KM, M_PER_MILE } from './distance.ts';
 

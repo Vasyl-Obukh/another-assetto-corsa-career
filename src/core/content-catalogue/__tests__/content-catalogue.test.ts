@@ -6,11 +6,9 @@ import {
   BASE_TRACKS,
   carProvenance,
   DISTRIBUTOR_CARS,
-  DISTRIBUTOR_TRACKS,
   DLC_CARS,
   DLC_TRACKS,
   MOD_CARS,
-  MOD_TRACKS,
   trackProvenance,
 } from '../content-catalogue.ts';
 
@@ -23,13 +21,7 @@ const [firstBaseTrack] = BASE_TRACKS;
 const [dlcCar, dlcCarPack] = Object.entries(DLC_CARS)[0];
 const [dlcTrack, dlcTrackPack] = Object.entries(DLC_TRACKS)[0];
 const [modCar, modCarMaker] = Object.entries(MOD_CARS)[0];
-const [modTrack, modTrackMaker] = Object.entries(MOD_TRACKS)[0];
 const [distributedCar, carDistributor] = Object.entries(DISTRIBUTOR_CARS)[0];
-
-// The one track record keyed by layout rather than by track, which is the whole
-// reason redistribution is a separate field.
-const [distributedLayout, layoutDistributor] = Object.entries(DISTRIBUTOR_TRACKS)
-  .find(([key]) => key.includes('/')) ?? [];
 
 describe('core/content-catalogue', () => {
   describe('carProvenance', () => {
@@ -70,46 +62,21 @@ describe('core/content-catalogue', () => {
 
   describe('trackProvenance', () => {
     it('reads a base track off the base list', () => {
-      expect(trackProvenance(firstBaseTrack, '')).toMatchObject({
+      expect(trackProvenance(firstBaseTrack)).toMatchObject({
         source: ContentSource.BASE, pack: null,
       });
     });
 
-    // Base, DLC and maker are keyed by the track, because a pack ships a circuit
-    // and every layout of it comes along.
-    it('gives every layout of a DLC track the same pack', () => {
-      expect(trackProvenance(dlcTrack, '').pack).toBe(dlcTrackPack);
-      expect(trackProvenance(dlcTrack, 'layout_gp').pack).toBe(dlcTrackPack);
-      expect(trackProvenance(dlcTrack, 'anything_at_all').pack).toBe(dlcTrackPack);
-    });
-
-    it('names the team behind a mod track, whatever the layout', () => {
-      expect(trackProvenance(modTrack, 'gp').maker).toBe(modTrackMaker);
+    it('reads the pack of a DLC track off its folder', () => {
+      expect(trackProvenance(dlcTrack).pack).toBe(dlcTrackPack);
     });
 
     it('calls anything in no record a mod with nothing else known', () => {
-      expect(trackProvenance('someones_circuit', 'gp')).toEqual({
+      expect(trackProvenance('someones_circuit')).toEqual({
         source: ContentSource.MOD, pack: null, maker: null, distributor: null,
       });
     });
 
-    // LFM adds layouts to circuits it did not ship, so the redistributor is the
-    // one field keyed per layout. Marking the whole track would credit LFM with
-    // Kunos' Nordschleife.
-    it('reports a redistributor for the layout it shipped, not its siblings', () => {
-      const [id, layout] = (distributedLayout ?? '').split('/');
-
-      expect(trackProvenance(id, layout).distributor).toBe(layoutDistributor);
-      expect(trackProvenance(id, 'a_layout_nobody_redistributes').distributor).toBeNull();
-    });
-
-    it('looks a single-layout track up under its bare ID', () => {
-      const bare = Object.keys(DISTRIBUTOR_TRACKS).find((key) => !key.includes('/'));
-
-      if (bare !== undefined) {
-        expect(trackProvenance(bare, '').distributor).toBe(DISTRIBUTOR_TRACKS[bare]);
-      }
-    });
   });
 
   // The one place this file names rows on purpose, against its own header. The

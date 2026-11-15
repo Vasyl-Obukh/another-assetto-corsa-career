@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -96,9 +97,7 @@ export const ZOLDER_1993: Championship = {
     {
       id: 'event',
       name: 'Zolder 1993',
-      track: {
-        id: 'rt_zolder',
-      },
+      track: recommendedTrack('zolder/gp'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -111,7 +110,6 @@ export const ZOLDER_1993: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 2,
     aggression: 20,
   },
   generatedWeather: {

@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LayoutStep } from './LayoutStep.tsx';
-import type { Track, TrackGroup } from '../../../../shared/types';
+import type { Track, TrackGroup, TrackQuery } from '../../../../shared/types';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import { TrackBrowserBody } from '@/screens/track-browser';
+
+/**
+ * The query a picker over every installed track browses.
+ */
+const EVERYTHING: TrackQuery = { everything: true };
 
 interface TrackPickerProps {
   /**
@@ -33,10 +38,19 @@ interface TrackPickerProps {
    * @param layout The chosen layout
    */
   onPick: (layout: Track) => void;
+  /**
+   * What the picker is choosing for, as its title and the line under it, in
+   * place of picking a race's track. Leaves the layout step's own alone.
+   */
+  heading?: { title: string; hint: string };
+  /**
+   * Browse every track installed rather than the library alone.
+   */
+  everything?: boolean;
 }
 
 export const TrackPicker = ({
-  open, selectedKey, gridSize, onOpenChange, onPick,
+  open, selectedKey, gridSize, onOpenChange, onPick, heading, everything = false,
 }: TrackPickerProps) => {
   const { t } = useTranslation();
 
@@ -59,11 +73,11 @@ export const TrackPicker = ({
     <Dialog open={open} onOpenChange={close}>
       <DialogContent className="flex h-[85vh] max-w-[min(90rem,calc(100vw-4rem))] flex-col gap-4 px-0 sm:max-w-[min(90rem,calc(100vw-4rem))]">
         <DialogHeader className="px-6">
-          <DialogTitle>{chosen ? t('race.pick.layout') : t('race.pick.track')}</DialogTitle>
+          <DialogTitle>{chosen ? t('race.pick.layout') : heading?.title ?? t('race.pick.track')}</DialogTitle>
           <DialogDescription>
             {chosen
               ? t('race.pick.layoutHint', { count: chosen.layouts.length, circuit: chosen.name })
-              : t('race.pick.trackHint')}
+              : heading?.hint ?? t('race.pick.trackHint')}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,6 +92,7 @@ export const TrackPicker = ({
           <div className="h-full" inert={chosen !== null}>
             <TrackBrowserBody
               selectedKey={selectedKey}
+              baseQuery={everything ? EVERYTHING : undefined}
               onSelect={(group) => {
                 const [only] = group.layouts;
                 if (group.layouts.length === 1 && only) pick(only);

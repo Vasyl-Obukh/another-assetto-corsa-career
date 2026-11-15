@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recommended tracks - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour.
+   A layout's state is a closed set of four and spends no new hue:
+   - installed, found by itself: the accepted mail's pale success 155
+   - your choice: the custom origin's 340, which "yours" already wears in Settings (a price, a spec)
+   - to confirm: the suggested price's amber 80 - a guess nobody has confirmed yet
+   - not installed: the missed round's rose 8, since a round there is lost the same way
+   - Kunos' version: the autosave's slate 232 at half chroma - it races, but nothing to act on unless the grid
+     matters; kept off single-seater's 212 by chroma, as the declined invitation is
+   Discipline chips are the ladder's own. The two places to get tracks are actions, not chips, and stay outline. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --border: oklch(0.885 0.01 255);
+  --warning-fg: oklch(0.42 0.1 70);
+  --found: oklch(0.93 0.06 155); --found-fg: oklch(0.4 0.1 155);
+  --yours: oklch(0.93 0.05 340); --yours-fg: oklch(0.38 0.12 340);
+  --confirm: oklch(0.94 0.06 80); --confirm-fg: oklch(0.42 0.1 70);
+  --missing: oklch(0.925 0.035 8); --missing-fg: oklch(0.42 0.09 12);
+  --kunos: oklch(0.925 0.03 232); --kunos-fg: oklch(0.4 0.05 235);
+  --d-single-seater: oklch(0.925 0.06 212); --d-single-seater-fg: oklch(0.36 0.11 215);
+  --d-sportscar: oklch(0.925 0.06 112); --d-sportscar-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --scrim: oklch(0.14 0.012 265 / 55%);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --border: oklch(1 0 0 / 12%);
+  --warning-fg: oklch(0.88 0.1 85);
+  --found: oklch(0.33 0.06 155); --found-fg: oklch(0.86 0.1 155);
+  --yours: oklch(0.33 0.07 340); --yours-fg: oklch(0.86 0.1 340);
+  --confirm: oklch(0.34 0.06 80); --confirm-fg: oklch(0.88 0.1 85);
+  --missing: oklch(0.32 0.035 8); --missing-fg: oklch(0.86 0.075 12);
+  --kunos: oklch(0.33 0.035 232); --kunos-fg: oklch(0.86 0.045 232);
+  --d-single-seater: oklch(0.32 0.07 212); --d-single-seater-fg: oklch(0.86 0.1 212);
+  --d-sportscar: oklch(0.32 0.07 112); --d-sportscar-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.picker a { color: inherit; font-size: 13px; opacity: .85; }
+.why { max-width: 1180px; margin: 18px auto 0; padding: 0 24px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); font-weight: 600; }
+.why h3 { color: var(--foreground); font-size: 15px; margin: 22px 0 6px; }
+.why ul, .why ol { margin: 4px 0 0; padding-left: 20px; }
+.why li { margin: 4px 0; }
+.why code { font-size: 12.5px; }
+.why table { border-collapse: collapse; margin-top: 6px; font-size: 12.5px; width: 100%; }
+.why th, .why td { text-align: left; padding: 4px 12px 4px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.why th { color: var(--foreground); font-weight: 600; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; }
+.newring { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 5px; border-radius: 8px; }
+.frame { max-width: 1180px; margin: 0 auto; padding: 18px 24px 40px; display: flex; flex-direction: column; gap: 36px; }
+.label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 10px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.label .asis { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.illus { font-size: 11px; font-weight: 600; color: var(--warning-fg); border: 1px dashed currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; white-space: nowrap; }
+
+/* ---------- App pieces ---------- */
+.window { border: 1px solid var(--border); border-radius: 12px; background: var(--background); overflow: hidden; }
+.strip { padding: 22px 24px 0; display: flex; flex-direction: column; gap: 14px; }
+.strip h1 { font-size: 24px; font-weight: 600; }
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tabs span { display: flex; align-items: center; gap: 8px; margin-bottom: -1px; padding-bottom: 8px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.tabs span.on { border-color: var(--primary); color: var(--foreground); }
+.tabs span.on svg { color: var(--primary); }
+.body { padding: 22px 24px 28px; display: flex; flex-direction: column; gap: 16px; max-width: 80rem; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted-foreground); }
+.btn.icon { width: 28px; padding: 0; justify-content: center; }
+.btn svg.i { width: 14px; height: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; width: fit-content; }
+.s-found { background: var(--found); color: var(--found-fg); }
+.s-yours { background: var(--yours); color: var(--yours-fg); }
+.s-confirm { background: var(--confirm); color: var(--confirm-fg); }
+.s-missing { background: var(--missing); color: var(--missing-fg); }
+.s-kunos { background: var(--kunos); color: var(--kunos-fg); }
+.d-single-seater { background: var(--d-single-seater); color: var(--d-single-seater-fg); }
+.d-sportscar { background: var(--d-sportscar); color: var(--d-sportscar-fg); }
+.d-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.d-road { background: var(--d-road); color: var(--d-road-fg); }
+.flag { display: inline-grid; place-items: center; width: 22px; height: 15px; border-radius: 2px; background: var(--muted); border: 1px solid var(--border); font-size: 7.5px; font-weight: 700; color: var(--muted-foreground); flex: none; }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.search { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); width: 280px; color: var(--muted-foreground); }
+.search input { border: 0; outline: 0; background: transparent; font: inherit; color: var(--foreground); width: 100%; }
+.seg { display: flex; gap: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 2px; }
+.seg button { border: 0; background: transparent; border-radius: 6px; padding: 4px 10px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.seg button .n { font-size: 12px; opacity: .8; font-variant-numeric: tabular-nums; }
+.seg button[aria-checked="true"] { background: var(--primary); color: var(--primary-foreground); }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.found { background: var(--found-fg); } .dot.confirm { background: var(--confirm-fg); } .dot.missing { background: var(--missing-fg); } .dot.yours { background: var(--yours-fg); } .dot.kunos { background: var(--kunos-fg); }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; margin-left: auto; }
+
+/* Circuit card */
+.list { display: flex; flex-direction: column; gap: 10px; }
+.circuit { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.circuit > header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 16px; }
+.circuit .name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.circuit .name b { font-size: 15px; font-weight: 600; }
+.circuit .uses { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.circuit .uses .tot { font-size: 12.5px; color: var(--muted-foreground); margin-right: 4px; }
+.intro { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
+.intro p { margin: 0; flex: 1 1 360px; }
+.sources { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; color: var(--muted-foreground); }
+.sources span { margin-right: 4px; }
+a.btn { color: inherit; text-decoration: none; }
+.layouts { border-top: 1px solid var(--border); }
+.lrow { display: grid; grid-template-columns: minmax(150px, 210px) 112px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 9px 16px; min-height: 58px; }
+.lrow .act .gap { width: 28px; }
+.menus { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-top: 16px; }
+.menus figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.menus figcaption { font-size: 12px; color: var(--muted-foreground); }
+.menu { min-width: 220px; padding: 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); box-shadow: 0 8px 24px oklch(0 0 0 / 14%); font-size: 13.5px; }
+.menu div { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+.menu div:first-child { background: var(--muted); }
+.menu svg { width: 15px; height: 15px; color: var(--muted-foreground); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px -4px; }
+.lrow + .lrow { border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent); }
+.lrow .ln { font-weight: 500; }
+.lrow .yt { display: flex; flex-direction: column; min-width: 0; }
+.lrow .yt .tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lrow .yt .meta { display: flex; gap: 10px; color: var(--muted-foreground); font-size: 12px; }
+.lrow .yt .meta .mono { font-size: 11.5px; }
+.lrow .yt .none { color: var(--muted-foreground); font-size: 13px; }
+.lrow .act { display: flex; gap: 6px; justify-content: flex-end; }
+.cmp { color: var(--warning-fg); }
+.more { padding: 10px 16px; font-size: 13px; color: var(--muted-foreground); text-align: center; }
+
+/* Dialog */
+.dialog-stage { position: relative; border-radius: 12px; background: var(--scrim); padding: 36px; display: grid; place-items: center; }
+.dialog { width: min(760px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 20px 50px oklch(0 0 0 / 30%); }
+.dialog.wide { width: 100%; }
+.dialog > header { padding: 18px 22px 10px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+.dialog > header h2 { font-size: 17px; font-weight: 600; }
+.dialog > header p { color: var(--muted-foreground); font-size: 14px; }
+.dialog .x { position: absolute; right: 14px; top: 14px; color: var(--muted-foreground); }
+.dialog .content { padding: 6px 22px 20px; }
+.dialog .circuit { box-shadow: none; }
+.browser { display: grid; grid-template-columns: 220px 1fr; gap: 16px; min-height: 260px; }
+.browser .rail { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; font-size: 12.5px; color: var(--muted-foreground); display: flex; flex-direction: column; gap: 8px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; }
+.tcard { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.tcard .img { height: 74px; background: linear-gradient(135deg, var(--muted), color-mix(in oklch, var(--muted) 60%, var(--border))); }
+.tcard .t { padding: 8px 10px; font-size: 13px; font-weight: 500; }
+.tcard .t span { display: block; font-weight: 400; font-size: 12px; color: var(--muted-foreground); }
+.tcard.hit { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+
+.toast { display: flex; align-items: flex-start; gap: 10px; width: 420px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 8px 24px oklch(0 0 0 / 12%); }
+.toast b { font-weight: 600; }
+.toast .ok { color: var(--found-fg); margin-top: 2px; }
+
+/* Round page pieces */
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.panel h2 { font-size: 16px; font-weight: 600; }
+.panel .hint { color: var(--muted-foreground); }
+.need { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.need b { font-weight: 600; }
+.rounds { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.rnd { display: grid; grid-template-columns: 44px 1fr auto auto; gap: 14px; align-items: center; padding: 10px 16px; }
+.rnd + .rnd { border-top: 1px solid var(--border); }
+.rnd .no { font-weight: 600; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.rnd .tr { display: flex; align-items: center; gap: 10px; }
+.rnd .tr span:not(.flag) { color: var(--muted-foreground); font-size: 12.5px; }
+.linkchip { border: 0; cursor: pointer; }
+.linkchip:hover { filter: brightness(.97); text-decoration: underline; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; align-items: start; }
+/* Setup wizard - Setup.tsx and SetupRail.tsx as they are. The rail is the welcome gradient. */
+:root { --welcome-from: oklch(0.5 0.2 262); --welcome-to: oklch(0.4 0.18 290); --welcome-fg: oklch(0.98 0.005 260);
+  --success: oklch(0.55 0.13 155); --success-fg: oklch(0.985 0.005 155);
+  --prov-base: oklch(0.93 0.05 155); --prov-base-fg: oklch(0.34 0.09 155);
+  --prov-dlc: oklch(0.93 0.06 75); --prov-dlc-fg: oklch(0.38 0.1 62);
+  --prov-mod: oklch(0.93 0.05 295); --prov-mod-fg: oklch(0.38 0.13 295);
+  --prov-dist: oklch(0.93 0.05 235); --prov-dist-fg: oklch(0.38 0.12 250); }
+:root[data-theme="dark"] { --success: oklch(0.7 0.15 158); --success-fg: oklch(0.17 0.03 158);
+  --prov-base: oklch(0.32 0.06 155); --prov-base-fg: oklch(0.86 0.11 155);
+  --prov-dlc: oklch(0.33 0.06 70); --prov-dlc-fg: oklch(0.87 0.11 80);
+  --prov-mod: oklch(0.33 0.07 295); --prov-mod-fg: oklch(0.86 0.1 295);
+  --prov-dist: oklch(0.33 0.07 245); --prov-dist-fg: oklch(0.86 0.09 240); }
+.wiz-stage { background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.wiz { display: grid; grid-template-columns: 15rem minmax(0, 1fr); max-width: 64rem; margin: 0 auto; min-height: 38rem; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--card); box-shadow: 0 10px 30px oklch(0 0 0 / 12%); }
+.wiz aside { background: linear-gradient(170deg, var(--welcome-from), var(--welcome-to)); color: var(--welcome-fg); padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.wiz aside .logo { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: oklch(0.98 0.005 260 / 18%); }
+.wiz aside .logo svg { width: 24px; height: 24px; }
+.wiz aside .ttl { font-size: 18px; font-weight: 600; line-height: 1.35; }
+.wiz aside ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.wiz aside li { display: flex; gap: 12px; align-items: flex-start; }
+.wiz aside li.ahead { opacity: .65; }
+.wiz aside .dot { width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0; display: grid; place-items: center; font-size: 14px; font-weight: 600; background: oklch(0.98 0.005 260 / 18%); }
+.wiz aside li.done .dot { background: var(--success); color: var(--success-fg); }
+.wiz aside li.now .dot { background: var(--welcome-fg); color: var(--welcome-to); }
+.wiz aside .dot svg { width: 14px; height: 14px; }
+.wiz aside .st { display: flex; flex-direction: column; }
+.wiz aside .st b { font-size: 14px; font-weight: 600; }
+.wiz aside .st span { font-size: 12px; opacity: .8; }
+.wiz main { padding: 32px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.wiz main > header { display: flex; flex-direction: column; gap: 4px; }
+.wiz main > header .of { font-size: 12px; color: var(--muted-foreground); }
+.wiz main > header h1 { font-size: 24px; font-weight: 600; }
+.wiz main > header p { font-size: 14px; color: var(--muted-foreground); }
+.wiz main > footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--border); padding-top: 16px; }
+.wiz .fade { position: relative; max-height: 440px; overflow: hidden; }
+.wiz .fade::after { content: ""; position: absolute; inset: auto 0 0; height: 90px; background: linear-gradient(transparent, var(--card)); }
+.ss { border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.ss > header { display: flex; gap: 12px; align-items: flex-start; padding: 16px 20px 0; }
+.ss .well { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; }
+.ss .well svg { width: 20px; height: 20px; }
+.ss h2 { font-size: 15px; font-weight: 600; }
+.ss header p { font-size: 13.5px; color: var(--muted-foreground); }
+.ss .rows { padding: 12px 20px 16px; }
+.srow { display: grid; grid-template-columns: 4rem minmax(0, 1fr) 10.5rem 11rem 2.5rem; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.srow:first-child { border-top: 0; }
+.srow .stat { font-size: 12px; color: var(--muted-foreground); }
+.srow .stat.warn { color: var(--warning-fg); }
+.srow .off { color: var(--muted-foreground); }
+.srow .host { justify-self: end; font-size: 12px; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; overflow: hidden; }
+.srow .host svg { width: 13px; height: 13px; flex-shrink: 0; }
+.sw { justify-self: end; width: 36px; height: 20px; border-radius: 999px; background: var(--primary); position: relative; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 18px; width: 16px; height: 16px; border-radius: 999px; background: white; }
+.sw.offsw { background: var(--border); }
+.sw.offsw::after { left: 2px; }
+.t-base { background: var(--prov-base); color: var(--prov-base-fg); }
+.t-dlc { background: var(--prov-dlc); color: var(--prov-dlc-fg); }
+.t-mod { background: var(--prov-mod); color: var(--prov-mod-fg); }
+.t-dist { background: var(--prov-dist); color: var(--prov-dist-fg); }
+.ss footer { border-top: 1px solid var(--border); padding: 10px 20px; font-size: 12px; color: var(--muted-foreground); }
+.wiz .lrow { grid-template-columns: minmax(110px, 160px) 104px minmax(0, 1fr) auto; }
+</style>
+</head>
+<body>
+
+<div class="picker">
+  <div class="grp"><strong>Theme</strong>
+    <button class="opt" data-theme-pick="light" aria-pressed="true">Light</button>
+    <button class="opt" data-theme-pick="dark" aria-pressed="false">Dark</button>
+  </div>
+  <div class="grp"><strong>Jump to</strong>
+    <a href="#page">Tracks tab</a> · <a href="#choose">Choose</a> · <a href="#round">Round page</a> · <a href="#champ">Championship page</a> · <a href="#wizard">Setup</a> · <a href="#concept">Concept</a> · <a href="#questions">Questions</a>
+  </div>
+</div>
+
+<div class="why">
+  <p><b>Recommended tracks.</b> Shipped championships stop naming LFM's folders. A round names a <b>recommended
+    track</b> - a real circuit's layout, such as <i>Suzuka - Grand Prix</i> - and each one races whichever installed
+    track stands for it: one the app finds by itself from the folders it knows, or one the player chooses from
+    every track installed, in the library or not. LFM can rename, add and drop layouts as often as it likes: a
+    round only cares that <i>something</i> installed is Suzuka.</p>
+  <p style="margin-top:8px">The list below is <b>your install, for real</b>: 83 circuits and 107 layouts drawn from the LFM layouts the library
+    races today, the tracks you added in Your content, the ones you kept in <code>missing-tracks.md</code> and the
+    Formula E circuits.
+    Only three rows are made up to show the other states, and say so.</p>
+</div>
+
+<div class="frame">
+
+  <!-- ===== 1. Settings -> Tracks ===== -->
+  <div id="page">
+    <div class="label">Settings - Tracks <span class="newtag">new tab</span> <span class="asis">at /settings/tracks, after Content sources</span></div>
+    <div class="window">
+      <div class="strip">
+        <h1>Settings</h1>
+        <nav class="tabs">
+          <span><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>General</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Diagnostics</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>Content sources</span>
+          <span class="on newring"><svg class="i" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15M9 3.236v15"/></svg>Tracks</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="m12.83 2.18 8.58 3.91a1 1 0 0 1 0 1.83l-8.58 3.9a2 2 0 0 1-1.66 0L2.6 7.93a1 1 0 0 1 0-1.83l8.58-3.9a2 2 0 0 1 1.66 0Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>Car classes</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>Championships</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="M10 18v-7M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949zM14 18v-7M18 18v-7M3 22h18M6 18v-7"/></svg>Historic events</span>
+          <span><svg class="i" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Your content</span>
+        </nav>
+      </div>
+
+      <div class="body">
+        <div class="intro newring">
+          <p class="muted"><b style="color:var(--foreground);font-weight:500" id="summary"></b> The circuits the championships race beyond Assetto Corsa's own, and the track each layout races on.</p>
+          <div class="sources"><span>Get them from</span>
+            <a class="btn sm" href="https://lowfuelmotorsport.com/lfmapp" target="_blank" rel="noreferrer">Low Fuel Motorsport <svg class="i" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+            <a class="btn sm" href="https://docs.google.com/spreadsheets/d/1UcjQGfjGOAzGPf2VqraRgZsKHmZiTqWJmrnMHHh323A/edit?gid=904041304#gid=904041304" target="_blank" rel="noreferrer">Track list <svg class="i" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="q" placeholder="Search circuits, layouts and tracks"></label>
+          <div class="seg" role="radiogroup" id="filters"></div>
+          <span class="select">Most championships <svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+        </div>
+
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+    <div class="menus">
+      <figure><figcaption><span class="chip s-found">Installed</span> <span class="chip s-kunos">Kunos' version</span></figcaption><div class="menu"><div><svg viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15M9 3.236v15"/></svg>Open track page</div></div></figure>
+      <figure><figcaption><span class="chip s-yours">Your choice</span></figcaption><div class="menu"><div><svg viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15M9 3.236v15"/></svg>Open track page</div><hr><div><svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>Use the one found</div></div></figure>
+      <figure><figcaption><span class="chip s-confirm">To confirm</span></figcaption><div class="menu"><div><svg viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15M9 3.236v15"/></svg>Open track page</div><hr><div><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>Not this one</div></div></figure>
+      <p class="muted" style="font-size:13px;max-width:330px;margin:22px 0 0">The row menu. <i>Not installed</i> has none: there is no track to open or undo.</p>
+    </div>
+  </div>
+
+  <!-- ===== 2. Choose ===== -->
+  <div id="choose">
+    <div class="label">Choose - the track picker <span class="asis">TrackPicker as today, over every installed track; only the title and hint are new</span></div>
+    <div class="dialog-stage">
+      <div class="dialog wide">
+        <header>
+          <h2>Choose a track for Jerez - Grand Prix</h2>
+          <p>Every track installed, in your library or not.</p>
+          <svg class="i x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </header>
+        <div class="content">
+          <div class="browser">
+            <div class="rail">TrackRail, as today<br>search · source tree · country · length · pit boxes</div>
+            <div class="cards">
+              <div class="tcard hit"><div class="img"></div><div class="t">Circuito de Jerez - Angel Nieto<span>Spain · 2 layouts · not in your library</span></div></div>
+              <div class="tcard"><div class="img"></div><div class="t">Circuito de Navarra<span>Spain · 3 layouts</span></div></div>
+              <div class="tcard"><div class="img"></div><div class="t">Ricardo Tormo<span>Spain · 3 layouts</span></div></div>
+              <div class="tcard"><div class="img"></div><div class="t">Barcelona 2023<span>Spain · 4 layouts</span></div></div>
+              <div class="tcard"><div class="img"></div><div class="t">Madrid Street Circuit<span>Spain · 2 layouts</span></div></div>
+              <div class="tcard"><div class="img"></div><div class="t">Kunos' Barcelona<span>Spain · 2 layouts</span></div></div>
+            </div>
+          </div>
+          <p class="muted" style="margin-top:12px;font-size:13px">A circuit with more than one layout goes on to the layout step, as today - LayoutTile, with the pit-box warning against the most cars any championship races there.</p>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-top:16px;flex-wrap:wrap">
+      <div class="toast">
+        <svg class="i ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        <div><b>Jerez - Grand Prix races Circuito de Jerez - Angel Nieto.</b><div class="muted" style="font-size:13px">5 championships race there.</div></div>
+      </div>
+      <p class="muted" style="max-width:520px;font-size:13px">Picking a track for one layout also looks inside it for the circuit's other layouts, by name and length. Those it finds come back <span class="chip s-confirm">To confirm</span>, never chosen for the player.</p>
+    </div>
+  </div>
+
+  <!-- ===== 3. Round page ===== -->
+  <div id="round">
+    <div class="label">Round page - a round whose track is not installed <span class="asis">SkipPanel, as today, with the missing track in it</span></div>
+    <div class="panel" style="max-width:760px">
+      <div>
+        <h2>This round can't be raced as things stand.</h2>
+        <p class="hint">What it needs is not installed. Install it and come back, or skip it: a reserve driver races it in your seat, as for any round you miss.</p>
+      </div>
+      <div class="need newring">
+        <span class="flag">SAU</span>
+        <div style="display:flex;flex-direction:column"><b>Jeddah Corniche - Grand Prix</b><span class="chip s-missing" style="margin-top:4px">Not installed</span></div>
+        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm ghost">Where to get it</button>
+          <button class="btn sm">Choose a track…</button>
+        </div>
+      </div>
+      <div><button class="btn primary">Skip round 2</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 4. Championship page ===== -->
+  <div id="champ" class="grid2">
+    <div>
+      <div class="label">Championship page - Rounds tab <span class="asis">the chip it shows today becomes a button</span></div>
+      <div class="rounds">
+        <div class="rnd"><span class="no">R1</span><div class="tr"><span class="flag">BHR</span>Bahrain International Circuit<span>Grand Prix</span></div><span class="muted num">2 Mar</span><span></span></div>
+        <div class="rnd"><span class="no">R2</span><div class="tr"><span class="flag">SAU</span>Jeddah Corniche<span>Grand Prix</span></div><span class="muted num">9 Mar</span><button class="chip s-missing linkchip newring">Track not installed</button></div>
+        <div class="rnd"><span class="no">R3</span><div class="tr"><span class="flag">AUS</span>Albert Park<span>Grand Prix</span></div><span class="muted num">23 Mar</span><span></span></div>
+        <div class="rnd"><span class="no">R4</span><div class="tr"><span class="flag">JPN</span>Suzuka<span>Grand Prix</span></div><span class="muted num">6 Apr</span><span></span></div>
+      </div>
+      <p class="muted" style="margin-top:10px;font-size:13px">The same button on a round's card in the championship editor's Calendar tab, where it reads "Circuit not installed" today.</p>
+    </div>
+    <div>
+      <div class="label">…opens the circuit's card in a dialog <span class="asis">the Tracks tab's own card</span></div>
+      <div class="dialog-stage" style="padding:24px">
+        <div class="dialog">
+          <header>
+            <h2>Round 2's track</h2>
+            <svg class="i x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </header>
+          <div class="content" id="dialogCard"></div>
+          <footer style="padding:0 18px 16px;display:flex;justify-content:flex-start"><button class="btn sm ghost">Where to get it</button></footer>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 5. Setup wizard ===== -->
+  <div id="wizard">
+    <div class="label">First-run setup - two optional steps <span class="newtag">new</span> <span class="asis">Setup and SetupRail as today; steps 3 and 4 are the Settings tabs' own bodies. Counts are made up.</span></div>
+    <div class="wiz-stage">
+      <div class="wiz">
+        <aside><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg></span><span class="ttl">Welcome to Assetto Corsa Career</span><ol><li class="done"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="st"><b>Find Assetto Corsa</b><span>Three folders</span></span></li><li class="done"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="st"><b>Scan your content</b><span>Cars, tracks, weather</span></span></li><li class="now"><span class="dot">3</span><span class="st newring" style="outline-offset:3px"><b>Content sources</b><span>DLC and mods</span></span></li><li class="ahead"><span class="dot">4</span><span class="st newring" style="outline-offset:3px"><b>Tracks</b><span>Circuits beyond Kunos'</span></span></li><li class="ahead"><span class="dot">5</span><span class="st"><b>Make it yours</b><span>Name, difficulty, look</span></span></li></ol></aside>
+        <main>
+          <header><span class="of">Step 3 of 5</span><h1>Content sources</h1><p>Switch on the DLC and mods you have.</p></header>
+          <div class="fade" style="display:flex;flex-direction:column;gap:16px">
+            <p class="muted" style="font-size:13.5px"><b style="color:var(--foreground);font-weight:500">61 of 215 championships offered.</b> Which championships are offered, by the content they need. This hides championships and nothing else: your cars and tracks stay in the library either way.</p>
+            <section class="ss"><header><span class="well t-dlc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg></span><div><h2>Kunos</h2><p>The base game and its DLC packs.</p></div></header><div class="rows"><div class="srow"><span><span class="chip t-base">Base</span></span><span class="">Base game</span><span class="stat">Always offered</span><span></span><span></span></div><div class="srow"><span><span class="chip t-dlc">DLC</span></span><span class="">Dream Pack 1</span><span class="stat">Needed by 6 championships</span><span class="host">store.steampowered.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw"></span></div><div class="srow"><span><span class="chip t-dlc">DLC</span></span><span class="off">Dream Pack 2</span><span class="stat">Needed by 4 championships</span><span class="host">store.steampowered.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw offsw"></span></div><div class="srow"><span><span class="chip t-dlc">DLC</span></span><span class="off">Dream Pack 3</span><span class="stat">Needed by 3 championships</span><span class="host">store.steampowered.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw offsw"></span></div><div class="srow"><span><span class="chip t-dlc">DLC</span></span><span class="off">Japanese Pack</span><span class="stat">Needed by 5 championships</span><span class="host">store.steampowered.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw offsw"></span></div></div></section>
+            <section class="ss"><header><span class="well t-mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg></span><div><h2>Mod teams and redistributors</h2><p>Third-party cars and tracks the catalogue recognises.</p></div></header><div class="rows"><div class="srow"><span><span class="chip t-mod">RSS</span></span><span class="">Race Sim Studio</span><span class="stat">Needed by 31 championships</span><span class="host">store.racesimstudio.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw"></span></div><div class="srow"><span><span class="chip t-mod">VRC</span></span><span class="off">Virtual Racing Cars</span><span class="stat">Needed by 24 championships</span><span class="host">virtual-racing-cars.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw offsw"></span></div><div class="srow"><span><span class="chip t-dist">LFM</span></span><span class="off">Low Fuel Motorsport</span><span class="stat">Needed by 18 championships</span><span class="host">lowfuelmotorsport.com<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span><span class="sw offsw"></span></div></div></section>
+          </div>
+          <footer><button class="btn"><svg class="i" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>Back</button><button class="btn primary newring">Continue<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></footer>
+        </main>
+      </div>
+    </div>
+
+    <div class="wiz-stage" style="margin-top:20px">
+      <div class="wiz">
+        <aside><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg></span><span class="ttl">Welcome to Assetto Corsa Career</span><ol><li class="done"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="st"><b>Find Assetto Corsa</b><span>Three folders</span></span></li><li class="done"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="st"><b>Scan your content</b><span>Cars, tracks, weather</span></span></li><li class="done"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="st newring" style="outline-offset:3px"><b>Content sources</b><span>DLC and mods</span></span></li><li class="now"><span class="dot">4</span><span class="st newring" style="outline-offset:3px"><b>Tracks</b><span>Circuits beyond Kunos'</span></span></li><li class="ahead"><span class="dot">5</span><span class="st"><b>Make it yours</b><span>Name, difficulty, look</span></span></li></ol></aside>
+        <main>
+          <header><span class="of">Step 4 of 5</span><h1>Tracks</h1><p>Choose a track for each layout the app did not find.</p></header>
+          <div class="fade" style="display:flex;flex-direction:column;gap:12px">
+            <div class="intro"><p class="muted" style="font-size:13.5px"><b style="color:var(--foreground);font-weight:500" id="wizSummary"></b></p>
+              <div class="sources"><span>Get them from</span>
+                <a class="btn sm" href="https://lowfuelmotorsport.com/lfmapp" target="_blank" rel="noreferrer">Low Fuel Motorsport <svg class="i" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+                <a class="btn sm" href="https://docs.google.com/spreadsheets/d/1UcjQGfjGOAzGPf2VqraRgZsKHmZiTqWJmrnMHHh323A/edit?gid=904041304#gid=904041304" target="_blank" rel="noreferrer">Track list <svg class="i" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+              </div></div>
+            <div class="seg" style="width:fit-content" id="wizFilters"></div>
+            <div class="list" id="wizList"></div>
+          </div>
+          <footer><button class="btn"><svg class="i" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>Back</button><button class="btn primary newring">Skip<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></footer>
+        </main>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:12px;font-size:13px;max-width:900px">Neither step holds the wizard back. Until something on it is changed its button reads <b>Skip</b>, after that <b>Continue</b> - the first frame has Dream Pack 1 and Race Sim Studio switched on. The Tracks step opens on <i>To confirm</i> while there are guesses to look at, else on <i>Not installed</i>.</p>
+  </div>
+</div>
+
+<div class="why" id="concept">
+  <h3>The concept</h3>
+  <ol>
+    <li><b>A recommended track is a real circuit's layout, shipped as a catalogue.</b> <code>src/shared/constants/</code>
+      gains the list: each circuit has a name, a nation, the layouts the library races (each with its real length); each layout lists the folders the app knows stand for it, best first -
+      <code>rt_suzuka/suzukagp_lfm_nodrs</code>, then <code>rt_suzuka/suzukagp</code>. Ids are ours and readable:
+      <code>suzuka/gp</code>. Adding a folder LFM renamed is one line in that list, and changes nothing anyone stored.</li>
+    <li><b>A shipped round at a mod track names the recommended track</b>, <code>track: { recommended: 'suzuka/gp' }</code>,
+      beside today's <code>{ id, layout }</code>, which every round at Kunos' own circuits keeps - those never move.
+      A user's championship may name either; the editor saves a track that stands for a recommended one as the
+      recommended one, so a championship exported to another machine finds that machine's Suzuka.</li>
+    <li><b>Where Kunos ship the layout, their circuit is the fallback.</b> Spa 2022, LFM's Monza, Imola 2025,
+      Barcelona 2023, the OSRW Brands Hatch and Nurburgring and Zandvoort 2023 stay recommended, for the cars they
+      hold. Without one installed, the round races Kunos' own - <span class="chip s-kunos">Kunos' version</span>,
+      never <span class="chip s-missing">Not installed</span> - and its grid is cut to Kunos' pit boxes. An older
+      version of the same layout counts; a different layout does not - Silverstone International never stands for
+      National.</li>
+    <li><b>Which track a layout races is worked out, never stored, unless the player chose it.</b>
+      <code>settings.trackChoices</code> holds only what the player picked, as <code>seriesActive</code> holds only
+      what they flipped. Otherwise it is the first folder the catalogue lists that is installed. Nothing found means
+      <span class="chip s-missing">Not installed</span>, and the round is unavailable exactly as a missing track is today.</li>
+    <li><b>Every row ends the same way</b>: <i>Choose…</i>, and the menu wherever there is a track. The menu opens
+      that track's page; on <i>Your choice</i> it also goes back to what the app would race by itself - the first
+      known folder, else Kunos' version, else nothing - and on <i>To confirm</i> it says <i>Not this one</i>, which
+      keeps the guess from coming back and leaves the row <i>Not installed</i>. That refusal is kept in
+      <code>settings.trackChoices</code> beside the picks.</li>
+    <li><b>Guessing is offered, never applied.</b> For a layout with nothing found, an installed track whose name,
+      country and length (within 2%) match is shown <span class="chip s-confirm">To confirm</span> with <i>Use it</i>.
+      A wrong guess would race a round on the wrong layout without a word, which is the silent kind of failure this
+      project refuses.</li>
+    <li><b>A track standing for a recommended one is in the library.</b> Choosing a track from Your content's
+      uncatalogued mods here does what switching it on there does. That is what lets <code>DISTRIBUTOR_TRACKS</code> and
+      <code>MOD_TRACKS</code> go: no shipped championship names an LFM folder any more, LFM's switch in Content sources
+      counts for its cars alone, and the known gap <i>"a mod's layout inside a base circuit reads as base"</i> closes
+      for every shipped championship - <code>spa/2022_lfm_standing</code> is simply <i>Spa-Francorchamps, 2022 on</i>.</li>
+    <li><b>Resolved when a round is lowered, so a season's own copy names the recommended track.</b> Installing
+      Suzuka mid-season makes its round raceable; a round part-way through keeps the race the slot already holds.
+      Results, history and the calendar name the circuit, which reads the same whatever the folder is called.
+      Distances still become laps off the installed layout's own length, and grids are still capped by its pit boxes.</li>
+  </ol>
+
+  <h3>Where it shows</h3>
+  <ul>
+    <li><b>Settings - Tracks</b>, a tab of its own after Content sources: every circuit as a card, a row per layout,
+      searchable and filtered by state. The card is one component, <code>RecommendedTrackCard</code>, reused below.</li>
+    <li><b>Where to get them is said once</b>, at the head of the Tracks tab: Low Fuel Motorsport and the community
+      track list, which between them hold nearly every circuit here. No card or row carries a link of its own.</li>
+    <li><b>A round that cannot be raced</b> - its page's SkipPanel names the missing track with <i>Choose a track</i>
+      and <i>Where to get it</i>, which opens the Tracks tab, beside Skip as today.</li>
+    <li><b>"Track not installed"</b> on a championship's Rounds tab and the editor's Calendar tab becomes a button
+      opening the card in a dialog, with the same <i>Where to get it</i> under it.</li>
+    <li><b>The championship library's filter rail</b> already says what a championship needs; a missing recommended
+      track takes the place of a missing LFM layout there with no new UI.</li>
+    <li><b>First-run setup</b> gains Content sources and Tracks as steps 3 and 4, between the scan and
+      <i>Make it yours</i>, each the Settings tab's own body. Neither blocks: a step reads <i>Skip</i> until something
+      on it is changed. Content sources comes first, since switching a pack off changes which championships, and so
+      which tracks, matter.</li>
+    <li><b>Content sources switch on, not off.</b> Every DLC pack, mod team and LFM starts off, in setup and in
+      Settings alike, and the player switches on what they have; only the base game is always offered.
+      <code>settings.hiddenContentSources</code> becomes <code>offeredContentSources</code>, holding what is switched
+      <i>on</i>, so anything the catalogue gains later arrives off too. A row's status reads the same either way -
+      "Needed by 6 championships" - with no amber, since off is where every row starts. Your own
+      <code>settings.json</code> needs nothing deleted: the old key is ignored, so you switch on what you have once.</li>
+    <li><b>Content sources loses half a sentence.</b> With no circuit credited to a mod team or LFM, the mods footer
+      stops at "hides the championships whose cars need it"; "rounds at its circuits are only skipped" goes. LFM's
+      own page there becomes <code>/lfmapp</code> too.</li>
+  </ul>
+
+  <h3>What follows once this is agreed</h3>
+  <ul>
+    <li><b>No per-circuit link research.</b> The two links live in <code>src/shared/constants/</code> beside the
+      packs' and mod teams' pages. LFM's is <code>https://lowfuelmotorsport.com/lfmapp</code>.</li>
+    <li><b>Rework the calendars.</b> With Monaco, Suzuka, Hockenheim, Albert Park, Paul Ricard, Baku, Marina Bay,
+      Losail and the rest recommended, the rounds <code>missing-tracks.md</code> places get added to their
+      championships - Monaco alone completes 44 - and every round now on an LFM folder moves to its recommended
+      track, the seven with Kunos behind them included. Silverstone rounds from the 1950s to the 1980s race
+      International. The Formula E seasons gain their missing rounds as the circuits arrive. <code>missing-tracks.md</code> is then regenerated against the recommended list, so it lists only what
+      nobody has built.</li>
+    <li><b>The content cache has to be deleted</b> once the catalogue drops the LFM track entries.</li>
+  </ul>
+
+  <h3>Decided</h3>
+  <ol>
+    <li><b>Period layouts</b> were kept by accident and are gone, Magny-Cours before 2003 with them. <b>Formula E</b>
+      is added instead: nine street and Formula E circuits, plus a Formula E layout at Ricardo Tormo and Misano, and
+      VRC's Mexico layout named as the Formula E one it is. Monaco needs no row of its own: the E-Prix has raced the
+      Grand Prix layout since 2021.</li>
+    <li><b>Kunos as the fallback</b> for the seven, which stay recommended for their pit boxes - point 3 of the concept.</li>
+    <li><b>Portland</b> has its Formula E layout only.</li>
+    <li><b>LFM leaves the track catalogue.</b></li>
+    <li><b>Kunos' circuits stay off the page.</b></li>
+    <li><b>First run</b>: Content sources and Tracks become optional setup steps, drawn above.</li>
+  </ol>
+
+  <h3 id="questions">Questions</h3>
+  <p>None left open. Agree the mockup and I will start on the code.</p>
+
+  <h3>The list as drafted</h3>
+  <p>Grouped by where each came from. "Championships" counts those racing the circuit today, plus those
+    <code>missing-tracks.md</code> places it in. "Your track" is what your install would race.</p>
+  <table id="draft"></table>
+  <p style="margin:18px 0 40px">Left off: the period layouts,
+    and <b>Mexico City</b> as a missing venue - it is recommended above with VRC's two layouts and ACU's Grand Prix
+    layout from your install.</p>
+</div>
+
+<script>
+// Drawn from this install: content-cache.json, settings.json and the shipped library.
+const DATA = [{"n":"Hungaroring","nat":"HUN","from":"lfm","ch":39,"d":{"single-seater":33,"sportscar":4,"touring":2},"a":"Reboot Team","l":[{"n":"Grand Prix","k":["rt_hungaroring","rt_hungaroring/lfm_nodrs"],"f":"rt_hungaroring","tn":"Hungaroring","len":4381,"p":38}]},{"n":"Bahrain International Circuit","nat":"BHR","from":"lfm","ch":36,"d":{"single-seater":27,"sportscar":9},"a":"Fenryr","l":[{"n":"Grand Prix","k":["fn_bahrain/gp","fn_bahrain/gp_lfm","fn_bahrain/gp_shortroll"],"f":"fn_bahrain/gp","tn":"Bahrain International Circuit - GP","len":5412,"p":36},{"n":"Outer","k":["fn_bahrain/outer"],"f":"fn_bahrain/outer","tn":"Bahrain International Circuit - Outer Loop","len":3543,"p":36},{"n":"Endurance","k":["fn_bahrain/endurance"],"f":"fn_bahrain/endurance","tn":"Bahrain International Circuit - Endurance","len":6299,"p":36}]},{"n":"Interlagos","nat":"BRA","from":"lfm","ch":33,"d":{"single-seater":27,"sportscar":6},"a":"VheEth","l":[{"n":"Grand Prix","k":["vhe_interlagos/gp","vhe_interlagos/acf_gp","vhe_interlagos/acf_gp_lfm"],"f":"vhe_interlagos/gp","tn":"GP Endurance - Interlagos - GP","len":4309,"p":30}]},{"n":"Yas Marina","nat":"ARE","from":"lfm","ch":27,"d":{"single-seater":24,"sportscar":2,"road":1},"a":"EShglz","l":[{"n":"Grand Prix, 2021 on","k":["yas_marina_2021/gp","yas_marina_2021/gp_lfm_standing","yas_marina_2021/gp_lfm_rolling"],"f":"yas_marina_2021/gp","tn":"Yas Marina","len":5554,"p":28},{"n":"Grand Prix, 2009-2020","k":["acu_yasmarina/gp"],"f":"acu_yasmarina/gp","tn":"Yas Marina Grand Prix Circuit","len":5554,"p":28}]},{"n":"Circuit Gilles Villeneuve","nat":"CAN","from":"lfm","ch":27,"d":{"single-seater":26,"sportscar":1},"a":"Marc_13000","l":[{"n":"Grand Prix","k":["canada_2021/lfm","canada_2021","canada_2021/lfm-zfr","canada_2021/lfm_shortroll"],"f":"canada_2021/lfm","tn":"Canada 2021 - LFM","len":4361,"p":50}]},{"n":"Circuit of the Americas","nat":"USA","from":"lfm","ch":25,"d":{"single-seater":17,"sportscar":7,"touring":1},"a":null,"l":[{"n":"Grand Prix","k":["acu_unitedstates","acu_unitedstates/a","acu_unitedstates/a_lfm"],"f":"acu_unitedstates","tn":"United States GP","len":5513,"p":30}]},{"n":"Shanghai International Circuit","nat":"CHN","from":"lfm","ch":21,"d":{"single-seater":17,"sportscar":4},"a":null,"l":[{"n":"Grand Prix","k":["shanghai_v2/gp","shanghai_v2/gp_lfm","shanghai_v2/gp_lfm_nodrs"],"f":"shanghai_v2/gp","tn":"Shanghai","len":5451,"p":32},{"n":"Formula E","k":["shanghai_v2/fe"],"f":"shanghai_v2/fe","tn":"Shanghai Formula E","len":3051,"p":32}]},{"n":"Autodromo Hermanos Rodriguez","nat":"MEX","from":"lfm","ch":19,"d":{"single-seater":18,"sportscar":1},"a":"ACU - Marc_13000","l":[{"n":"Grand Prix","k":["acu_mexico_2021/lfm_nodrs","acu_mexico_2021"],"f":"acu_mexico_2021/lfm_nodrs","tn":"Mexico 2021 - LFM (NO DRS)","len":4304,"p":41},{"n":"Formula Alpha","k":["vrc_mexico/fa_layout"],"f":"vrc_mexico/fa_layout","tn":"Mexico - Formula Alpha Layout","len":2606,"p":40},{"n":"Formula E","k":["vrc_mexico/fl_layout"],"f":"vrc_mexico/fl_layout","tn":"Mexico - Formula Lithium Layout","len":2606,"p":40}]},{"n":"Sebring","nat":"USA","from":"lfm","ch":14,"d":{"sportscar":11,"touring":2,"road":1},"a":"Reboot Team","l":[{"n":"Full course","k":["mx_sebring/raceday_standing","mx_sebring/lfm_rollstart"],"f":"mx_sebring/raceday_standing","tn":"Sebring (Standing Start)","len":6004,"p":52}]},{"n":"Fuji Speedway","nat":"JPN","from":"lfm","ch":16,"d":{"single-seater":3,"sportscar":8,"road":4,"touring":1},"a":"Reboot Team","l":[{"n":"Grand Prix","k":["rt_fuji_speedway/layout_gp","rt_fuji_speedway/layout_gp_lfmv2","rt_fuji_speedway/layout_gp_lfm_nodrs"],"f":"rt_fuji_speedway/layout_gp","tn":"Fuji Speedway GP","len":4549,"p":36},{"n":"Grand Prix short","k":["rt_fuji_speedway/layout_gpshort","rt_fuji_speedway/layout_gpshort_lfmv2"],"f":"rt_fuji_speedway/layout_gpshort","tn":"Fuji Speedway GP Short","len":4526,"p":36}]},{"n":"Magny-Cours","nat":"FRA","from":"lfm","ch":11,"d":{"single-seater":6,"sportscar":4,"road":1},"a":"chilenaoexiste","l":[{"n":"Grand Prix","k":["magnycours22","magny_cours"],"f":"magnycours22","tn":"Magny-Cours 2023","len":4411,"p":26}]},{"n":"Road America","nat":"USA","from":"lfm","ch":10,"d":{"single-seater":3,"sportscar":5,"touring":1,"road":1},"a":"LilSki","l":[{"n":"Full course","k":["lilski_road_america","lilski_road_america/gp_lfm"],"f":"lilski_road_america","tn":"Road America","len":6515,"p":43}]},{"n":"Sepang","nat":"MYS","from":"lfm","ch":9,"d":{"single-seater":9},"a":"ACU","l":[{"n":"Grand Prix","k":["acu_sepang","acu_sepang/46_pits_lfm"],"f":"acu_sepang","tn":"Sepang","len":5543,"p":26}]},{"n":"Circuit de la Sarthe","nat":"FRA","from":"lfm","ch":11,"d":{"sportscar":11},"a":"Turn10","l":[{"n":"24 Hours","k":["sx_lemans_lfm/chicane","lemans_2017/no_lights"],"f":"sx_lemans_lfm/chicane","tn":"Le Mans","len":13626,"p":70},{"n":"Without chicanes","k":["sx_lemans_lfm/nochicane","lemans_2017/nochic_no_lights"],"f":"sx_lemans_lfm/nochicane","tn":"Le Mans no chicane","len":13100,"p":70}]},{"n":"Road Atlanta","nat":"USA","from":"lfm","ch":9,"d":{"sportscar":6,"touring":2,"road":1},"a":"Uzzi & Rainmaker & Jim LLoyd","l":[{"n":"Grand Prix","k":["road_atlanta2018/grandprix"],"f":"road_atlanta2018/grandprix","tn":"Road Atlanta Grand Prix","len":4088,"p":50}]},{"n":"Portimao","nat":"PRT","from":"lfm","ch":8,"d":{"single-seater":2,"sportscar":5,"touring":1},"a":null,"l":[{"n":"Grand Prix","k":["algarve_portimao_2023/lfm_nodrs"],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Ricardo Tormo","nat":"ESP","from":"lfm","ch":7,"d":{"single-seater":1,"sportscar":5,"touring":1},"a":"Fenryr","l":[{"n":"Grand Prix","k":["fn_valencia/gp","fn_valencia/gp_lfm"],"f":"fn_valencia/gp","tn":"Circuit Ricardo Tormo 2025","len":4005,"p":45},{"n":"Formula E","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Virginia International Raceway","nat":"USA","from":"lfm","ch":6,"d":{"sportscar":3,"touring":2,"road":1},"a":null,"l":[{"n":"Full course","k":["vir/full course"],"f":"vir/full course","tn":"VIR Full Course","len":5260,"p":33}]},{"n":"Okayama","nat":"JPN","from":"lfm","ch":5,"d":{"single-seater":1,"road":4},"a":"Mitja Bonca","l":[{"n":"Grand Prix","k":["okayama/circuit_gp"],"f":"okayama/circuit_gp","tn":"Okayama Grand Prix","len":3703,"p":36}]},{"n":"Croft","nat":"GBR","from":"lfm","ch":5,"d":{"single-seater":1,"sportscar":2,"road":1,"touring":1},"a":"Zwiss","l":[{"n":"Full circuit","k":["zw_croft/full","zw_croft/full_lfm"],"f":"zw_croft/full","tn":"Croft 2019","len":3436,"p":32}]},{"n":"Watkins Glen","nat":"USA","from":"lfm","ch":14,"d":{"sportscar":6,"touring":1,"road":1,"single-seater":6},"a":"LilSki","l":[{"n":"Boot","k":["lilski_watkins_glen/boot","lilski_watkins_glen/boot_lfm"],"f":"lilski_watkins_glen/boot","tn":"Watkins Glen Boot","len":5430,"p":43},{"n":"Boot, classic","k":["lilski_watkins_glen/boot_classic"],"f":"lilski_watkins_glen/boot_classic","tn":"Watkins Glen Boot Classic","len":5430,"p":43},{"n":"Short, classic","k":["lilski_watkins_glen/short_classic"],"f":"lilski_watkins_glen/short_classic","tn":"Watkins Glen Short Classic","len":3950,"p":43}]},{"n":"Zolder","nat":"BEL","from":"lfm","ch":5,"d":{"touring":3,"single-seater":2},"a":"Reboot Team","l":[{"n":"Grand Prix","k":["rt_zolder"],"f":"rt_zolder","tn":"Circuit Zolder","len":4011,"p":38}]},{"n":"Daytona","nat":"USA","from":"lfm","ch":10,"d":{"single-seater":4,"touring":1,"sportscar":5},"a":"Reboot Team","l":[{"n":"Tri-oval","k":["rt_daytona/tri-oval"],"f":"rt_daytona/tri-oval","tn":"Daytona Tri-Oval","len":4023,"p":40},{"n":"Road course","k":["rt_daytona/sportscar","rt_daytona/sportscar_m4x","rt_daytona/sportscar_m4x_lfm_nodrs"],"f":"rt_daytona/sportscar","tn":"Daytona Road Course","len":5729,"p":40}]},{"n":"Oulton Park","nat":"GBR","from":"lfm","ch":5,"d":{"single-seater":1,"sportscar":2,"road":1,"touring":1},"a":"Reboot Team","l":[{"n":"International","k":["rt_oulton_park/international"],"f":"rt_oulton_park/international","tn":"Oulton Park - International Hislops","len":4293,"p":34},{"n":"Island","k":["rt_oulton_park/island"],"f":"rt_oulton_park/island","tn":"Oulton Park - Island","len":3541,"p":34}]},{"n":"Thruxton","nat":"GBR","from":"lfm","ch":4,"d":{"single-seater":1,"sportscar":1,"road":1,"touring":1},"a":"James Skinner","l":[{"n":"Full circuit","k":["js_thruxton/lfm","js_thruxton"],"f":"js_thruxton/lfm","tn":"Thruxton - LFM","len":3800,"p":32}]},{"n":"Istanbul Park","nat":"TUR","from":"lfm","ch":6,"d":{"single-seater":6},"a":"Pyyer","l":[{"n":"Grand Prix, 2005","k":["rj_istanbul_park/layout_f1_2005"],"f":"rj_istanbul_park/layout_f1_2005","tn":"Istanbul Park 2021 - F1 2005","len":5338,"p":28},{"n":"Grand Prix, 2020","k":["rj_istanbul_park/layout_f1_2020"],"f":"rj_istanbul_park/layout_f1_2020","tn":"Istanbul Park 2021 - F1 2020","len":5338,"p":28}]},{"n":"Tsukuba","nat":"JPN","from":"lfm","ch":4,"d":{"road":4},"a":"ДЯДЯ ДИМА","l":[{"n":"Full circuit","k":["ddm_gts_tsukuba/full_lfm","ddm_gts_tsukuba/full"],"f":"ddm_gts_tsukuba/full_lfm","tn":"Tsukuba Circuit Full LFM","len":2045,"p":30}]},{"n":"Lime Rock Park","nat":"USA","from":"lfm","ch":3,"d":{"sportscar":2,"touring":1},"a":"Reboot Team","l":[{"n":"Full circuit","k":["rt_lime_rock_park/no_chicane"],"f":"rt_lime_rock_park/no_chicane","tn":"Lime Rock Park - Full Circuit","len":2414,"p":35}]},{"n":"Mount Panorama","nat":"AUS","from":"lfm","ch":3,"d":{"sportscar":1,"road":1,"touring":1},"a":"Reboot Team","l":[{"n":"Full circuit","k":["rt_bathurst"],"f":"rt_bathurst","tn":"Bathurst (Mount Panorama)","len":6213,"p":36}]},{"n":"Sachsenring","nat":"DEU","from":"lfm","ch":3,"d":{"sportscar":1,"touring":2},"a":"gunnar333","l":[{"n":"Grand Prix","k":["g333_sachsenring_2022/lfm_event"],"f":"g333_sachsenring_2022/lfm_event","tn":"LFM - Sachsenring 2022","len":3671,"p":32}]},{"n":"Knockhill","nat":"SCT","from":"lfm","ch":3,"d":{"sportscar":1,"road":1,"touring":1},"a":null,"l":[{"n":"Full circuit","k":["knockhill2017/knockhill","knockhill2017/knockhill_lfm"],"f":"knockhill2017/knockhill","tn":"Knockhill","len":2092,"p":26}]},{"n":"Sendai Hi-Land","nat":"JPN","from":"lfm","ch":3,"d":{"road":3},"a":"Soramame","l":[{"n":"Grand Prix","k":["sendai_hiland/gp"],"f":"sendai_hiland/gp","tn":"Sendai Hi-Land Raceway","len":4030,"p":30}]},{"n":"Estoril","nat":"PRT","from":"lfm","ch":5,"d":{"single-seater":4,"sportscar":1},"a":"Edit 101creative","l":[{"n":"Grand Prix","k":["estoril_2021/estoril_gp","estoril_2021/estoril_gp_lfm"],"f":"estoril_2021/estoril_gp","tn":"Estoril 2021 GP","len":4138,"p":30},{"n":"Without chicane","k":["estoril_2021/estoril_no_chicane","estoril_2021/estoril_no_chicane_lfm"],"f":"estoril_2021/estoril_no_chicane","tn":"Estoril 2021 No chicane","len":4130,"p":30}]},{"n":"Sonoma","nat":"USA","from":"lfm","ch":3,"d":{"single-seater":2,"sportscar":1},"a":"Reboot Team","l":[{"n":"IndyCar","k":["rt_sonoma/indy"],"f":"rt_sonoma/indy","tn":"Sonoma Raceway Indy Circuit","len":3838,"p":40},{"n":"Long","k":["rt_sonoma/long","rt_sonoma/long_lfm"],"f":"rt_sonoma/long","tn":"Sonoma Raceway Long Circuit","len":4056,"p":40}]},{"n":"TT Circuit Assen","nat":"NLD","from":"lfm","ch":2,"d":{"single-seater":1,"touring":1},"a":"NightEye","l":[{"n":"Autosport","k":["ne_ttassen/autosport","ne_ttassen/autosport_lfm"],"f":"ne_ttassen/autosport","tn":"TT Circuit Assen Autosport","len":4555,"p":34}]},{"n":"Circuit Bugatti","nat":"FRA","from":"lfm","ch":2,"d":{"single-seater":1,"road":1},"a":null,"l":[{"n":"Grand Prix","k":["bugatti_GPE2023/lfm_standing","bugatti_GPE2023/lfm_rolling"],"f":"bugatti_GPE2023/lfm_standing","tn":"GP Explorer - Circuit Bugatti - LFM (Standing Start)","len":4185,"p":58}]},{"n":"Cadwell Park","nat":"GBR","from":"lfm","ch":1,"d":{"road":1},"a":"LuisB","l":[{"n":"Full circuit","k":["cadwell/gpzfr","cadwell/gp"],"f":"cadwell/gpzfr","tn":"Cadwell Park - Full zfr ext","len":3450,"p":32}]},{"n":"Charade","nat":"FRA","from":"lfm","ch":2,"d":{"road":1,"single-seater":1},"a":null,"l":[{"n":"4 km","k":["circuit_charade2023/charade2023_4km"],"f":null,"tn":null,"len":null,"p":null},{"n":"8 km","k":["circuit_charade2023/charade2023_8km"],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Mont-Tremblant","nat":"CAN","from":"lfm","ch":1,"d":{"single-seater":1},"a":"Reboot Team","l":[{"n":"Without chicane","k":["rt_mont_tremblant/no_chicane","rt_mont_tremblant/no_chicane-lfm"],"f":"rt_mont_tremblant/no_chicane","tn":"Mont Tremblant GT (No Chicane)","len":4260,"p":30}]},{"n":"Barcelona-Catalunya, 2023 on","nat":"ESP","from":"lfm","ch":15,"d":{"single-seater":11,"sportscar":3,"touring":1},"a":"Fenryr","l":[{"n":"Grand Prix","k":["fn_barcelona/barcelona_2023","fn_barcelona/barcelona_2023_48_pits_lfm_nodrs_v2","fn_barcelona/barcelona_gp_2023"],"f":"fn_barcelona/barcelona_2023","tn":"Barcelona 2023","len":4727,"p":24,"kb":{"f":"ks_barcelona/layout_gp","tn":"Barcelona - GP","len":4655,"p":24}}]},{"n":"Zandvoort","nat":"NLD","from":"lfm","ch":21,"d":{"single-seater":11,"sportscar":7,"touring":3},"a":"RacingSounds","l":[{"n":"Grand Prix, 2020 on","k":["zandvoort2023/2023","zandvoort2023/2023_lfm_v2","zandvoort2023/2023_Raceday"],"f":"zandvoort2023/2023","tn":"Circuit Zandvoort 2023","len":4259,"p":32,"kb":{"f":"ks_zandvoort","tn":"Zandvoort","len":4307,"p":18}}]},{"n":"Spa-Francorchamps, 2022 on","nat":"BEL","from":"lfm","ch":8,"d":{"sportscar":8},"a":null,"l":[{"n":"Grand Prix","k":["spa/2022_lfm_standing","spa/2022_lfm_rolling","spa/2022"],"f":"spa/2022_lfm_standing","tn":"Spa 2022 - LFM (Standing Start)","len":7004,"p":47,"kb":{"f":"spa","tn":"Spa","len":7004,"p":24}}]},{"n":"Imola, 2025","nat":"ITA","from":"lfm","ch":4,"d":{"sportscar":4},"a":"Fenryr","l":[{"n":"Grand Prix","k":["fn_imola/lfm","fn_imola"],"f":"fn_imola/lfm","tn":"Imola 2025 - LFM","len":4909,"p":38,"kb":{"f":"imola","tn":"Imola","len":4909,"p":24}}]},{"n":"Monza, LFM pit lane","nat":"ITA","from":"lfm","ch":3,"d":{"sportscar":3},"a":null,"l":[{"n":"Grand Prix","k":["monza/lfm","monza/lfmv2"],"f":"monza/lfm","tn":"Monza - LFM","len":5793,"p":52,"kb":{"f":"monza","tn":"Monza","len":5793,"p":26}}]},{"n":"Brands Hatch, OSRW","nat":"GBR","from":"lfm","ch":2,"d":{"sportscar":2},"a":null,"l":[{"n":"Grand Prix","k":["ks_brands_hatch/gp_osrw"],"f":"ks_brands_hatch/gp_osrw","tn":"Brands Hatch - GP OSRW","len":3908,"p":32,"kb":{"f":"ks_brands_hatch/gp","tn":"Brands Hatch - GP","len":3908,"p":24}}]},{"n":"Nurburgring, OSRW","nat":"DEU","from":"lfm","ch":2,"d":{"sportscar":2},"a":null,"l":[{"n":"Grand Prix (GT)","k":["ks_nurburgring/layout_gp_b_osrw_lfm_tracklimits","ks_nurburgring/layout_gp_b_osrw"],"f":"ks_nurburgring/layout_gp_b_osrw_lfm_tracklimits","tn":"Nurburgring - GP (GT) OSRW / LFM - Track Limits","len":5137,"p":36,"kb":{"f":"ks_nurburgring/layout_gp_b","tn":"Nurburgring - GP (GT)","len":5137,"p":24}}]},{"n":"Suzuka","nat":"JPN","from":"yours","ch":29,"d":{"single-seater":26,"sportscar":3},"a":"Reboot Team","l":[{"n":"Grand Prix","k":["rt_suzuka/suzukagp_lfm_nodrs","rt_suzuka/suzukagp"],"f":"rt_suzuka/suzukagp_lfm_nodrs","tn":"Suzuka International Circuit GP - LFM (NO DRS)","len":5807,"p":36},{"n":"East","k":["rt_suzuka/suzukaeast"],"f":"rt_suzuka/suzukaeast","tn":"Suzuka International Circuit East","len":2243,"p":36}]},{"n":"Monaco","nat":"MCO","from":"yours","ch":44,"d":{"single-seater":40,"sportscar":4},"a":null,"l":[{"n":"Grand Prix","k":["monaco"],"f":"monaco","tn":"Monaco GP Circuit","len":3340,"p":22}]},{"n":"Hockenheim","nat":"DEU","from":"yours","ch":26,"d":{"single-seater":15,"sportscar":6,"touring":5},"a":"VheEth","l":[{"n":"Grand Prix","k":["vhe_hockenheim/gp_mx_zfr_nodrs","vhe_hockenheim/gp","vhe_hockenheim/gp_mx"],"f":"vhe_hockenheim/gp_mx_zfr_nodrs","tn":"Hockenheim - GP - LFM (NO DRS)","len":4574,"p":56},{"n":"National","k":["vhe_hockenheim/national"],"f":"vhe_hockenheim/national","tn":"Hockenheim - National","len":3692,"p":26}]},{"n":"Albert Park","nat":"AUS","from":"yours","ch":25,"d":{"single-seater":25},"a":"acu","l":[{"n":"Grand Prix","k":["melbourne_2019"],"f":"melbourne_2019","tn":"Melbourne 2019","len":5027,"p":26}]},{"n":"Paul Ricard","nat":"FRA","from":"yours","ch":22,"d":{"single-seater":11,"sportscar":10,"touring":1},"a":null,"l":[{"n":"Grand Prix","k":["paul_ricard/lfm","paul_ricard/blancpain"],"f":"paul_ricard/lfm","tn":"Paul Ricard LFM v0.9.7","len":5752,"p":36}]},{"n":"Baku City Circuit","nat":"AZE","from":"yours","ch":17,"d":{"single-seater":17},"a":"Terra21 reworked patrikPat","l":[{"n":"Grand Prix","k":["baku_2022"],"f":"baku_2022","tn":"Baku GP 2022","len":6003,"p":30}]},{"n":"Marina Bay","nat":"SGP","from":"yours","ch":17,"d":{"single-seater":17},"a":"ACU","l":[{"n":"Grand Prix, 2023 on","k":["singapore_2020/er_singapore_2025"],"f":"singapore_2020/er_singapore_2025","tn":"Euroracers Singapore GP 2025","len":4094,"p":30},{"n":"Grand Prix, to 2022","k":["singapore_2020"],"f":"singapore_2020","tn":"Singapore Grand Prix 2020","len":5063,"p":30}]},{"n":"Losail","nat":"QAT","from":"yours","ch":14,"d":{"single-seater":11,"sportscar":3},"a":"chilenaoexiste","l":[{"n":"Grand Prix","k":["losail23/lfm","losail23"],"f":"losail23/lfm","tn":"Losail 2023 LFM","len":5400,"p":46}]},{"n":"Misano","nat":"ITA","from":"yours","ch":11,"d":{"single-seater":5,"sportscar":4,"touring":2},"a":"Reboot Team","l":[{"n":"Grand Prix","k":["rt_misano/lfm","rt_misano"],"f":"rt_misano/lfm","tn":"Misano World Circuit - LFM","len":4011,"p":38},{"n":"Formula E","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Donington Park","nat":"GBR","from":"yours","ch":9,"d":{"sportscar":6,"road":1,"touring":2},"a":"Brun","l":[{"n":"Grand Prix","k":["rj_doningtonpark2023/gphr","rj_doningtonpark2023/gp"],"f":"rj_doningtonpark2023/gphr","tn":"Donington Park 2023 GP 40 Pits","len":4020,"p":40},{"n":"National","k":["rj_doningtonpark2023/nationalhr_LFM","rj_doningtonpark2023/national"],"f":"rj_doningtonpark2023/nationalhr_LFM","tn":"Donington Park 2023 National 40 Pits - LFM","len":3185,"p":40}]},{"n":"Indianapolis","nat":"USA","from":"yours","ch":10,"d":{"single-seater":8,"sportscar":2},"a":"legion","l":[{"n":"Road course","k":["indianapolis_sp/road"],"f":"indianapolis_sp/road","tn":"Indianapolis - Road Course","len":4018,"p":38},{"n":"Oval","k":["indianapolis_sp"],"f":"indianapolis_sp","tn":"Indianapolis","len":4064,"p":46}]},{"n":"Kyalami","nat":"ZAF","from":"yours","ch":5,"d":{"single-seater":5},"a":"prototype","l":[{"n":"Grand Prix","k":["kyalami_2016/gt_challenge_lfm","kyalami_2016/gt_challenge"],"f":"kyalami_2016/gt_challenge_lfm","tn":"Kyalami 2016 - LFM ","len":4522,"p":30}]},{"n":"Norisring","nat":"DEU","from":"yours","ch":5,"d":{"touring":5},"a":"gunnar333","l":[{"n":"Full circuit","k":["norisring"],"f":"norisring","tn":"Norisring","len":2170,"p":36}]},{"n":"Adelaide","nat":"AUS","from":"yours","ch":4,"d":{"single-seater":4},"a":null,"l":[{"n":"Street circuit","k":["adelaide2021/lfmv1","adelaide2021"],"f":"adelaide2021/lfmv1","tn":"Adelaide 2021 - LFM","len":3219,"p":30}]},{"n":"Snetterton","nat":"GBR","from":"yours","ch":4,"d":{"sportscar":2,"road":1,"touring":1},"a":"Lasercutter","l":[{"n":"300","k":["snetterton2011/300pitfix","snetterton2011/300"],"f":"snetterton2011/300pitfix","tn":"Snetterton 2011 300 - pitfix","len":4779,"p":30},{"n":"200","k":["snetterton2011/200pitfix","snetterton2011/200"],"f":"snetterton2011/200pitfix","tn":"Snetterton 2011 200 - pitfix","len":3220,"p":30}]},{"n":"Salzburgring","nat":"AUT","from":"yours","ch":1,"d":{"touring":1},"a":null,"l":[{"n":"Full circuit","k":["salzburgring/zfr","salzburgring"],"f":"salzburgring/zfr","tn":"Salzburgring - ZFR","len":4255,"p":42}]},{"n":"Phillip Island","nat":"AUS","from":"yours","ch":0,"d":{},"a":"R1CHO","l":[{"n":"Grand Prix","k":["phillip_island_2013/lfm","phillip_island_2013"],"f":"phillip_island_2013/lfm","tn":"Phillip Island - LFM","len":4450,"p":32}]},{"n":"Madring","nat":"ESP","from":"yours","ch":2,"d":{"single-seater":2},"a":"bensrac32","l":[{"n":"Grand Prix","k":["madrid_street_circuit_2026"],"f":"madrid_street_circuit_2026","tn":"Madrid Street Circuit - NO SPONSORS","len":5474,"p":35}]},{"n":"Jeddah Corniche","nat":"SAU","from":"wanted","ch":14,"d":{"single-seater":13,"sportscar":1},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Miami International Autodrome","nat":"USA","from":"wanted","ch":10,"d":{"single-seater":10},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Las Vegas Strip Circuit","nat":"USA","from":"wanted","ch":8,"d":{"single-seater":8},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Mid-Ohio","nat":"USA","from":"wanted","ch":7,"d":{"single-seater":4,"touring":1,"sportscar":2},"a":null,"l":[{"n":"Full course","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Long Beach","nat":"USA","from":"wanted","ch":6,"d":{"single-seater":4,"sportscar":2},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Jerez","nat":"ESP","from":"wanted","ch":5,"d":{"single-seater":5},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Lausitzring","nat":"DEU","from":"wanted","ch":4,"d":{"sportscar":1,"touring":3},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Oschersleben","nat":"DEU","from":"wanted","ch":4,"d":{"sportscar":2,"touring":2},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Osterreichring","nat":"AUT","from":"wanted","ch":4,"d":{"single-seater":3,"sportscar":1},"a":null,"l":[{"n":"Grand Prix, to 1995","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Canadian Tire Motorsport Park","nat":"CAN","from":"wanted","ch":7,"d":{"sportscar":4,"touring":1,"single-seater":2},"a":null,"l":[{"n":"Grand Prix","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Diriyah Street Circuit","nat":"SAU","from":"fe","ch":2,"d":{"single-seater":2},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"ExCeL London","nat":"GBR","from":"fe","ch":2,"d":{"single-seater":2},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Tempelhof Airport Street Circuit","nat":"DEU","from":"fe","ch":2,"d":{"single-seater":2},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Circuito Cittadino dell'EUR","nat":"ITA","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Brooklyn Street Circuit","nat":"USA","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Autodromo Miguel E. Abed","nat":"MEX","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Formula E","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Sao Paulo Street Circuit","nat":"BRA","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Tokyo Street Circuit","nat":"JPN","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Street circuit","k":[],"f":null,"tn":null,"len":null,"p":null}]},{"n":"Portland International Raceway","nat":"USA","from":"fe","ch":1,"d":{"single-seater":1},"a":null,"l":[{"n":"Formula E","k":[],"f":null,"tn":null,"len":null,"p":null}]}];
+</script>
+<script>
+// Four rows made up to show the states your install has none of.
+const ILLUS = {
+  'Paul Ricard/Grand Prix': { s: 'yours', f: 'paul_ricard/blancpain', tn: 'Paul Ricard BLANCPAIN v0.9.7', len: 5752, p: 36 },
+  'Jerez/Grand Prix': { s: 'confirm', f: 'jerez_2019/gp', tn: 'Circuito de Jerez - Angel Nieto', len: 4428, p: 30, real: 4428 },
+  'Mid-Ohio/Full course': { s: 'confirm', f: 'mid_ohio/full', tn: 'Mid-Ohio Sports Car Course', len: 3640, p: 24, real: 3634 },
+  'Zandvoort/Grand Prix, 2020 on': { s: 'kunos' },
+};
+const DISC = { 'single-seater': 'Single-seater', sportscar: 'Sportscar', touring: 'Touring', road: 'Road' };
+const STATE = { found: ['s-found', 'Installed'], yours: ['s-yours', 'Your choice'], confirm: ['s-confirm', 'To confirm'], kunos: ['s-kunos', 'Kunos\' version'], missing: ['s-missing', 'Not installed'] };
+const dots = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
+const km = (m) => `${(m / 1000).toLocaleString('en-GB', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} km`;
+
+for (const c of DATA) {
+  for (const l of c.l) {
+    const il = ILLUS[`${c.n}/${l.n}`];
+    if (il?.s === 'kunos') Object.assign(l, { s: 'kunos', ...l.kb });
+    else if (il) Object.assign(l, il);
+    else l.s = l.f ? 'found' : (l.kb ? 'kunos' : 'missing');
+  }
+}
+
+const row = (l) => {
+  const [cls, txt] = STATE[l.s];
+  let yt;
+  if (l.s === 'missing') yt = ''; // the chip says it
+  else {
+    const off = l.real && Math.abs(l.len - l.real) / l.real > 0.02;
+    yt = `<span class="tn">${l.s === 'confirm' ? 'Looks like ' : ''}${l.tn}</span>
+      <span class="meta"><span class="mono">${l.f}</span><span class="num ${off ? 'cmp' : ''}">${km(l.len)}${off ? ` - this layout is ${km(l.real)}` : ''}</span><span class="num">${l.p} pit boxes</span></span>`;
+  }
+  const use = l.s === 'confirm' ? '<button class="btn sm primary">Use it</button>' : '';
+  const menu = l.s === 'missing' ? '<span class="gap"></span>' : `<button class="btn sm icon ghost">${dots}</button>`;
+  const act = `${use}<button class="btn sm">Choose…</button>${menu}`;
+  return `<div class="lrow"><span class="ln">${l.n}</span><span class="chip ${cls}">${txt}</span><div class="yt">${yt}</div><div class="act">${act}</div></div>`;
+};
+
+const card = (c) => {
+  const disc = Object.entries(c.d).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<span class="chip d-${k}">${DISC[k]} ${n}</span>`).join('');
+  return `<article class="circuit">
+    <header>
+      <div class="name"><span class="flag">${c.nat}</span><b>${c.n}</b></div>
+      <div class="uses"><span class="tot">${c.ch === 1 ? '1 championship' : `${c.ch} championships`}</span>${disc}</div>
+    </header>
+    <div class="layouts">${c.l.map(row).join('')}</div>
+  </article>`;
+};
+
+let filter = 'all';
+const has = (c, s) => c.l.some((l) => l.s === s || (s === 'found' && l.s === 'yours'));
+const count = (s) => DATA.filter((c) => (s === 'all' ? true : has(c, s))).length;
+const FILTERS = [['all', 'All', null], ['missing', 'Not installed', 'missing'], ['confirm', 'To confirm', 'confirm'], ['kunos', 'Kunos\' version', 'kunos'], ['found', 'Installed', 'found']];
+
+const render = () => {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  document.getElementById('filters').innerHTML = FILTERS.map(([id, label, dot]) => `<button data-f="${id}" aria-checked="${filter === id}">${dot ? `<span class="dot ${dot}"></span>` : ''}${label}<span class="n">${count(id)}</span></button>`).join('');
+  document.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { filter = b.dataset.f; render(); }));
+  const shown = DATA
+    .filter((c) => filter === 'all' || has(c, filter))
+    .filter((c) => !q || [c.n, ...c.l.flatMap((l) => [l.n, l.tn || '', l.f || ''])].join(' ').toLowerCase().includes(q))
+    .sort((a, b) => b.ch - a.ch || a.n.localeCompare(b.n));
+  document.getElementById('list').innerHTML = shown.map(card).join('') || '<div class="more">No circuit matches.</div>';
+};
+
+const layouts = DATA.flatMap((c) => c.l);
+const installed = layouts.filter((l) => l.s === 'found' || l.s === 'yours').length;
+document.getElementById('summary').textContent = `${installed} of ${layouts.length} layouts installed.`;
+document.getElementById('q').addEventListener('input', render);
+render();
+
+document.getElementById('dialogCard').innerHTML = card(DATA.find((c) => c.n === 'Jeddah Corniche'));
+
+// The wizard's Tracks step: the same list, opened on what wants looking at.
+const wizOn = count('confirm') ? 'confirm' : 'missing';
+document.getElementById('wizSummary').textContent = document.getElementById('summary').textContent;
+document.getElementById('wizFilters').innerHTML = FILTERS.map(([id, label, dot]) => `<button aria-checked="${wizOn === id}">${dot ? `<span class="dot ${dot}"></span>` : ''}${label}<span class="n">${count(id)}</span></button>`).join('');
+document.getElementById('wizList').innerHTML = DATA.filter((c) => has(c, wizOn)).sort((a, b) => b.ch - a.ch).slice(0, 3).map(card).join('');
+
+// The drafted list, grouped by origin.
+const ORIGIN = { lfm: 'Raced today on LFM folders', yours: 'Added from your Your content', wanted: 'Kept in missing-tracks.md, nothing installed', fe: 'Formula E, nothing installed' };
+let html = '<tr><th>Circuit</th><th>Layout</th><th>Folders the app knows, best first</th><th>Championships</th><th>Your track</th></tr>';
+for (const o of ['lfm', 'yours', 'wanted', 'fe']) {
+  html += `<tr><th colspan="5" style="padding-top:14px">${ORIGIN[o]}</th></tr>`;
+  for (const c of DATA.filter((x) => x.from === o).sort((a, b) => b.ch - a.ch)) {
+    c.l.forEach((l, i) => {
+      html += `<tr><td>${i === 0 ? `${c.n} <span class="muted">${c.nat}</span>` : ''}</td><td>${l.n}</td><td class="mono">${l.k.join('<br>') || '<span class="muted">none yet</span>'}${l.kb ? `<br><span class="muted">then Kunos' ${l.kb.f}</span>` : ''}</td><td class="num">${i === 0 ? c.ch : ''}</td><td>${l.s === 'missing' ? '<span class="chip s-missing">Not installed</span>' : `<span class="mono">${l.f}</span>${l.s === 'kunos' ? ' <span class="chip s-kunos">Kunos\' version</span>' : ''}`}</td></tr>`;
+    });
+  }
+}
+document.getElementById('draft').innerHTML = html;
+
+document.querySelectorAll('[data-theme-pick]').forEach((b) => b.addEventListener('click', () => {
+  document.documentElement.dataset.theme = b.dataset.themePick;
+  document.querySelectorAll('[data-theme-pick]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+}));
+</script>
+</body>
+</html>

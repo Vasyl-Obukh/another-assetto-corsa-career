@@ -8,6 +8,7 @@ import type {
   Championship, ClassEntry, Content, FieldSeat, Round, Seat, WeatherOffer,
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
+import { withRecommendedTracks } from '../../../shared/utils/recommended-tracks/index.ts';
 import { defaultWeatherOffer, drawRound, offerForecast } from '../../weather-forecast/index.ts';
 import {
   drawField, formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
@@ -133,6 +134,16 @@ describe('core/series', () => {
     // off the race and left it running AC's default.
     it('refuses an override that states no length', () => {
       expect(lengthCodes([{ session: 'race' }])).toEqual(['series.round.lengthMissing']);
+    });
+
+    it('passes a round at a recommended layout the catalogue has', () => {
+      expect(codesFor({ rounds: [{ id: 'magione', name: 'Magione', track: { recommended: 'magione/full', id: 'magione' } }] }))
+        .toEqual([]);
+    });
+
+    it('refuses a round at a recommended layout the catalogue does not have', () => {
+      expect(codesFor({ rounds: [{ id: 'magione', name: 'Magione', track: { recommended: 'magione/club', id: 'magione' } }] }))
+        .toEqual(['series.round.trackUnknown']);
     });
 
     it('holds an override to the rules a format\'s own length follows', () => {
@@ -298,6 +309,50 @@ describe('core/series', () => {
 
       expect(availability.rounds[0].races).toEqual([{ name: 'Race', laps: null, distance: 10 }]);
       expect(availability.available).toBe(false);
+    });
+
+    // Any folder standing for the layout would do, so the layout is what is
+    // missing, not the folder the round happened to be written with.
+    it('names a missing track at a recommended layout by the layout', () => {
+      const series = makeSeries({
+        rounds: [{ id: 'suzuka', name: 'Suzuka', track: { recommended: 'suzuka/gp', id: 'rt_suzuka', layout: 'suzukagp' } }],
+      });
+
+      expect(seriesAvailability(series, makeContent(), SHIPPED_CATALOGUE).rounds[0].track).toMatchObject({
+        key: 'suzuka/gp', recommended: 'suzuka/gp', id: 'rt_suzuka', layout: 'suzukagp',
+      });
+    });
+
+    // Decided 2026-11-15: a track standing in for a recommended layout -
+    // Kunos' version or the player's own pick - with too few pit boxes leaves
+    // the round unraceable rather than cutting the grid down to fit.
+    describe('at a recommended layout', () => {
+      const atMagione = makeSeries({
+        rounds: [{ id: 'magione', name: 'Magione', track: { recommended: 'magione/full', id: 'magione' } }],
+      });
+      const needed = atMagione.entries.reduce((sum, entry) => sum + entry.seats.length, 0);
+
+      it('cannot race a round on Kunos\' version when it has too few pit boxes', () => {
+        const content = makeContent();
+        const short = {
+          ...content,
+          tracks: content.tracks.map((one) => (one.id === 'magione' ? { ...one, pitboxes: needed - 1 } : one)),
+        };
+        const availability = seriesAvailability(withRecommendedTracks(atMagione, short.tracks, {}), short);
+
+        expect(availability.rounds[0].pitboxes).toEqual({ needed, available: needed - 1 });
+        expect(availability.available).toBe(false);
+      });
+
+      it('cannot race a round on the player\'s pick when it has too few pit boxes', () => {
+        const content = makeContent();
+        const placed = withRecommendedTracks(atMagione, content.tracks, { 'magione/full': { track: 'tiny' } });
+        const availability = seriesAvailability(placed, content);
+
+        expect(placed.rounds[0].track).toEqual({ recommended: 'magione/full', id: 'tiny' });
+        expect(availability.rounds[0].pitboxes).toEqual({ needed, available: 2 });
+        expect(availability.available).toBe(false);
+      });
     });
 
     // A circuit is one round's: missing it costs that round and no other.
@@ -474,6 +529,16 @@ describe('core/series', () => {
       );
 
       expect(race.sessions?.[1]).toMatchObject({ laps: 3 });
+    });
+
+    it('races the folder a recommended round is at, without the layout it stands for', () => {
+      const rounds = [{ id: 'magione', name: 'Magione', track: { recommended: 'magione/full', id: 'magione' } }];
+      const race = roundRace(
+        { series: byDistance(rounds), entry: 'main', round: 'magione', car: { model: 'test_car' } },
+        withLapOf(2400),
+      );
+
+      expect(race.track).toEqual({ id: 'magione' });
     });
 
     it('refuses a distance on a track that does not say how long a lap is', () => {

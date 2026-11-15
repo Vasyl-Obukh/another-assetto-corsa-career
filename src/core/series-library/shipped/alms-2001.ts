@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -13,11 +14,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Ferrari 333 SP in all but name; GTS is the GT1 (2000s) spec, RSS's front-
  * engined GTs and the base game's MC12; GT is Guerilla's E46 GTR - the car BMW
  * built for this very class - with RSS's 911 and 360 of the N-GT spec. LMP675
- * has no car and is left out. Five rounds at their real lengths as understood
- * - the Sebring 12 Hours, Sonoma, Road America, Petit Le Mans at Road Atlanta
- * and Laguna Seca - in an order that was not checked; Texas, Donington,
- * Jarama, Portland, Mosport and Mid-Ohio are not in Assetto Corsa. Laguna
- * Seca's twenty-four boxes cap the grid.
+ * has no car and is left out. Six of ten rounds at their real lengths: the
+ * Sebring 12 Hours, Petit Le Mans at Road Atlanta, and two hours forty-five at
+ * Donington, Sonoma, Mid-Ohio and Laguna Seca. Texas, Jarama, Portland and
+ * Mosport are not in Assetto Corsa. Laguna Seca's twenty-four boxes cap the
+ * grid.
  *
  * The 25-18-15 scale scores each class, a stand-in: the season's own table was
  * not checked. The field is invented: the FIA GT 2004 paddock and three
@@ -31,9 +32,9 @@ export const ALMS_2001: Championship = {
   name: 'American Le Mans Series 2001',
   description: {
     en: 'The American Le Mans Series of 2001 on RSS\'s and Guerilla\'s cars: the 333 SP in LMP900, '
-      + 'the GTS class, and the E46 GTR\'s GT class, five rounds at their real lengths.',
+      + 'the GTS class, and the E46 GTR\'s GT class, six rounds at their real lengths.',
     uk: 'American Le Mans Series 2001 року на машинах RSS і Guerilla: 333 SP у класі LMP900, '
-      + 'клас GTS і клас GT з E46 GTR, п\'ять етапів у їхній справжній тривалості.',
+      + 'клас GTS і клас GT з E46 GTR, шість етапів у їхній справжній тривалості.',
   },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
@@ -108,7 +109,6 @@ export const ALMS_2001: Championship = {
           'rss_gtn_furiano_36',
         ],
       },
-      grid: { strength: -3 },
       entryFee: 5400,
       prizes: {
         positions: [18000, 12600, 9000, 6850, 5200, 3950, 2900, 2150, 1450, 900],
@@ -124,15 +124,6 @@ export const ALMS_2001: Championship = {
         { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
         { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
         { type: 'race', name: '2 Hours 45', distance: 480, day: 2 },
-      ],
-    },
-    {
-      id: 'four-hours',
-      name: 'Four hours',
-      sessions: [
-        { type: 'practice', name: 'Free practice', minutes: 90, day: 0 },
-        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 30, day: 1 },
-        { id: 'race', type: 'race', name: 'Road America 500', laps: 124, day: 2 },
       ],
     },
     {
@@ -159,37 +150,42 @@ export const ALMS_2001: Championship = {
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/gp'),
+      climate: Climate.OCEANIC,
+    },
+    {
       id: 'sonoma',
       name: 'Grand Prix of Sonoma',
-      track: { id: 'rt_sonoma', layout: 'long' },
+      track: recommendedTrack('sonoma/long'),
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'road-america',
-      name: 'Road America 500',
-      track: { id: 'lilski_road_america' },
-      eventFormat: 'four-hours',
+      id: 'mid-ohio',
+      name: 'Grand Prix of Mid-Ohio',
+      track: recommendedTrack('mid-ohio/full'),
       climate: Climate.TEMPERATE,
     },
+    { id: 'laguna-seca', name: 'Monterey Sports Car Championships', track: recommendedTrack('laguna-seca/full') },
     {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Grand Prix of Monterey', track: { id: 'ks_laguna_seca' } },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -27,9 +27,10 @@ export const useSeasonListing = (entry: SeasonEntry | null, library: SeriesListi
     if (copy === null) return undefined;
 
     let live = true;
-    invoke('series:validate', { series: JSON.parse(copy) as Championship }).then(
-      (availability) => { if (live) setLoad({ copy, availability }); },
-      () => { if (live) setLoad({ copy, availability: null }); },
+    const series = JSON.parse(copy) as Championship;
+    Promise.all([invoke('series:place', { series }), invoke('series:validate', { series })]).then(
+      ([placed, availability]) => { if (live) setLoad({ copy, series: placed, availability }); },
+      () => { if (live) setLoad({ copy, series: null, availability: null }); },
     );
 
     return () => { live = false; };
@@ -37,14 +38,15 @@ export const useSeasonListing = (entry: SeasonEntry | null, library: SeriesListi
 
   // What the install can race changes with it, as the library's own listing does.
   useEffect(() => subscribe('content:changed', () => setNonce((prev) => prev + 1)), []);
+  // A track chosen for a recommended layout moves what its rounds race.
+  useEffect(() => subscribe('series:changed', () => setNonce((prev) => prev + 1)), []);
 
   if (!entry) return { listing: library, loading: false };
   // The answer for this copy is kept while a content change reads it again.
   if (load?.copy !== copy) return { listing: null, loading: true };
-  if (!load.availability) return { listing: library, loading: false };
+  if (!load.series || !load.availability) return { listing: library, loading: false };
 
-  const series = entry.championship;
-  const { availability } = load;
+  const { series, availability } = load;
 
   return {
     // Only a championship of the player's own can leave the library, so that

@@ -42,9 +42,9 @@ import type {
   Track,
 } from '../../shared/types/index.ts';
 import { specCars } from '../../shared/utils/car-classes/index.ts';
-import { poolHolds } from '../../shared/utils/content-sources/index.ts';
 import { carsOf } from '../../shared/utils/eligibility/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
+import { trackKeyOf } from '../../shared/utils/recommended-tracks/index.ts';
 import { carProvenance, trackProvenance } from '../content-catalogue/index.ts';
 import { randomFrom, seedFrom, shuffle } from '../seeded-random/index.ts';
 
@@ -734,18 +734,22 @@ export const findLayout = (content: Content, track: Round['track']): Track | und
   .find((layout) => layout.id === track.id && layout.layout === (track.layout ?? ''));
 
 /**
- * Describes the layout a round needs but the library does not have.
+ * Describes the layout a round needs but the library does not have. One at a
+ * recommended layout is keyed by the layout, whatever folder it was written
+ * with, since any folder standing for it would do.
  * @param round The round
  * @returns The missing layout, named through the provenance catalogue
  */
 export const missingTrack = (round: Round): RoundAvailability['track'] => {
   const layout = round.track.layout ?? '';
+  const { recommended } = round.track;
 
   return {
-    key: layout ? `${round.track.id}/${layout}` : round.track.id,
+    key: recommended ?? trackKeyOf(round.track),
     id: round.track.id,
     layout,
-    provenance: trackProvenance(round.track.id, layout),
+    provenance: trackProvenance(round.track.id),
+    ...(recommended ? { recommended } : {}),
   };
 };
 
@@ -767,8 +771,6 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
   const reachedMakers = new Set<ModMaker>();
   const reachedDistributors = new Set<ModDistributor>();
   const roundPacks = new Set<DLCPack>();
-  const roundMakers = new Set<ModMaker>();
-  const roundDistributors = new Set<ModDistributor>();
   const pools: RequirementPool[] = [];
 
   const need = (provenance: ContentProvenance): void => {
@@ -800,25 +802,23 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
   // A circuit is never needed: missing one costs that round and no other, so
   // where it comes from is recorded for the rounds alone.
   series.rounds.forEach((round) => {
-    const { pack, maker, distributor } = trackProvenance(round.track.id, round.track.layout ?? '');
+    const { pack } = trackProvenance(round.track.id);
     if (pack) roundPacks.add(pack);
-    if (maker) roundMakers.add(maker);
-    if (distributor) roundDistributors.add(distributor);
     round.eligibility?.forEach((override) => rule(override.eligibility));
   });
 
   // A source a spec cannot be raced without is needed after all - a mod
   // chassis in twenty liveries is a spec only that mod can fill.
   pools.forEach((pool) => pool.cars.forEach(({ pack, maker, distributor }) => {
-    if (pack && !poolHolds(pool, { packs: [pack], makers: [], distributors: [] })) {
+    if (pack && pool.cars.every((car) => car.pack === pack)) {
       packs.add(pack);
       sources.add(ContentSource.DLC);
     }
-    if (maker && !poolHolds(pool, { packs: [], makers: [maker], distributors: [] })) {
+    if (maker && pool.cars.every((car) => car.maker === maker)) {
       makers.add(maker);
       sources.add(ContentSource.MOD);
     }
-    if (distributor && !poolHolds(pool, { packs: [], makers: [], distributors: [distributor] })) {
+    if (distributor && pool.cars.every((car) => car.distributor === distributor)) {
       distributors.add(distributor);
       sources.add(ContentSource.MOD);
     }
@@ -830,11 +830,7 @@ export const requirementsOf = (series: Championship, catalogue: ClassCatalogue):
     makers: [...makers],
     distributors: [...distributors],
     pools,
-    rounds: {
-      packs: [...roundPacks],
-      makers: [...roundMakers],
-      distributors: [...roundDistributors],
-    },
+    rounds: { packs: [...roundPacks] },
     widenedBy: {
       packs: [...reachedPacks].filter((pack) => !packs.has(pack)),
       makers: [...reachedMakers].filter((maker) => !makers.has(maker)),

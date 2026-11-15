@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -111,38 +112,38 @@ export const GT_MANUFACTURERS_1962: Championship = {
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '500 km of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-500',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'nochicane' },
+      track: recommendedTrack('le-mans/no-chicanes'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
-    { id: 'monza', name: 'Coppa Inter-Europa', track: { id: 'ks_monza66', layout: 'road' } },
+    { id: 'monza', name: 'Coppa Inter-Europa', track: recommendedTrack('monza/1966-road') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

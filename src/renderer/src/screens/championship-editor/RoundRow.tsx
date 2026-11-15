@@ -10,14 +10,15 @@ import type {
   Championship, Round, RoundAvailability, RoundRaceLength,
 } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
-import { ClimateBadge } from '@/components';
+import { trackKeyOf } from '../../../../shared/utils/recommended-tracks';
+import { ClimateBadge, MissingTrackButton } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
 import { useUnits } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
-import { FormatStrip, trackKeyOf } from '@/screens/championships';
+import { FormatStrip } from '@/screens/championships';
 import { ConditionsSummaryLine } from '@/screens/race';
 import { LayoutMap } from '@/screens/track-browser';
 
@@ -99,7 +100,7 @@ export const RoundRow = ({
   const { formatMoney } = useFormat();
   const units = useUnits();
 
-  const trackKey = trackKeyOf(round);
+  const trackKey = trackKeyOf(round.track);
   // Counted a group at a time, as the round's dialog sets them.
   const overrides = groupsSet(round.conditions ?? {}).length;
   const swapped = round.eligibility?.length ?? 0;
@@ -153,7 +154,13 @@ export const RoundRow = ({
     >
       {/* What this install cannot race, right where the eye is reading. */}
       {availability?.track ? (
-        <Badge variant="destructive" className="shrink-0">{t('editor.calendar.missingTrack')}</Badge>
+        <MissingTrackButton
+          layout={availability.track.recommended}
+          label={t('editor.calendar.missingTrack')}
+          title={t('recommendedTracks.roundTrack', { number: index + 1 })}
+          // Lifted over the row's stretched name button, as the grip is.
+          className="relative z-10 shrink-0"
+        />
       ) : null}
 
       {availability?.pitboxes ? (

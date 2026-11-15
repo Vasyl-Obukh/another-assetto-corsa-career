@@ -250,6 +250,11 @@ export interface TrackQuery {
    */
   anonymous?: boolean;
   /**
+   * Ask about every track installed, in the library or not - what a
+   * recommended layout is chosen from.
+   */
+  everything?: boolean;
+  /**
    * Free text. Every whitespace-separated term must match the name, folder ID
    * or country.
    */

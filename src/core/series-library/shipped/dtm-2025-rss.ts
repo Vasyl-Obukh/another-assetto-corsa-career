@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,10 +11,10 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The DTM 2025 (RSS) spec is RSS's GT-M cars standing for the nine makes that
  * raced; the same season on LFM's real GT3 cars is a championship of its own.
- * Four of eight events, each a qualifying and a race on Saturday and again
- * on Sunday: Zandvoort, the Nurburgring's sprint circuit, the Sachsenring and
- * the Red Bull Ring. Oschersleben, the Norisring, the Lausitzring and
- * Hockenheim are not in Assetto Corsa.
+ * All eight events, each a qualifying and a race on Saturday and again on
+ * Sunday: Oschersleben, the Lausitzring, Zandvoort, the Norisring, the
+ * Nurburgring's sprint circuit, the Sachsenring, the Red Bull Ring and
+ * Hockenheim.
  *
  * The real races run 55 minutes and a lap; Assetto Corsa times a race on a
  * server alone, so each is the 150 km that hour covers at GT3 pace.
@@ -27,10 +28,10 @@ export const DTM_2025_RSS: Championship = {
   id: 'dtm-2025-rss',
   name: 'DTM 2025 (RSS)',
   description: {
-    en: 'The 2025 DTM season on RSS\'s GT-M cars: two qualifyings and two races a round at '
-      + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
-    uk: 'Сезон DTM 2025 року на машинах GT-M від RSS: дві кваліфікації та дві гонки за етап у '
-      + 'Зандворті, на Нюрбургринзі, Заксенринзі та Ред Булл Рінгу.',
+    en: 'The 2025 DTM season on RSS\'s GT-M cars: two qualifyings and two races a round '
+      + 'at all eight of the season\'s events.',
+    uk: 'Сезон DTM 2025 року на машинах GT-M від RSS: дві кваліфікації та дві гонки за етап '
+      + 'на всіх восьми етапах сезону.',
   },
   teams: [
     team('elbe', 'Elbe Racing', 'DEU', TeamBudget.WORKS),
@@ -96,27 +97,51 @@ export const DTM_2025_RSS: Championship = {
   defaultEventFormat: 'standard',
   rounds: [
     {
+      id: 'oschersleben',
+      name: 'Oschersleben',
+      track: recommendedTrack('oschersleben/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'lausitzring',
+      name: 'Lausitzring',
+      track: recommendedTrack('lausitzring/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'norisring',
+      name: 'Norisring',
+      track: recommendedTrack('norisring/full'),
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_sprint_b' },
+      track: recommendedTrack('nurburgring/sprint-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sachsenring',
       name: 'Sachsenring',
-      track: { id: 'g333_sachsenring_2022', layout: 'lfm_event' },
+      track: recommendedTrack('sachsenring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'red-bull-ring',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -129,7 +154,7 @@ export const DTM_2025_RSS: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

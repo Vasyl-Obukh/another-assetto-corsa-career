@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -87,10 +88,7 @@ export const SILVERSTONE_480_1990: Championship = {
     {
       id: 'event',
       name: '480 km of Silverstone 1990',
-      track: {
-        id: 'ks_silverstone',
-        layout: 'gp',
-      },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -102,9 +100,6 @@ export const SILVERSTONE_480_1990: Championship = {
     },
   ],
   defaultPointsSystem: 'none',
-  grid: {
-    strength: 4,
-  },
   generatedWeather: {
     climate: Climate.MEDITERRANEAN,
   },

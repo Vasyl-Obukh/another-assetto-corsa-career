@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,11 +11,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * The BRSCC runs it as a twenty-minute qualifying and three twenty-minute
  * races a meeting, and that is the event here, with the third race lined up
  * on the second's result. Its circuits are the British club tracks it races
- * at: Silverstone in two of its layouts, Brands Hatch Indy, Oulton Park, Croft,
- * Knockhill, Cadwell Park and Thruxton. Snetterton and Donington are not in
- * Assetto Corsa. The points are a common club scale over fifteen places: the
- * BRSCC's own table was not found, nor a single season's calendar, so the
- * rounds are the championship's usual circuits rather than one year's.
+ * at: Silverstone in three of its layouts, Brands Hatch Indy, Oulton Park,
+ * Croft, Knockhill, Cadwell Park, Thruxton, Snetterton and Donington. The
+ * points are a common club scale over fifteen places: the BRSCC's own table
+ * was not found, nor a single season's calendar, so the rounds are the
+ * championship's usual circuits rather than one year's.
  *
  * Source: https://brscc.co.uk/formulae/mazda-mx-5-championship/
  */
@@ -92,55 +93,67 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
     {
       id: 'silverstone-national',
       name: 'Silverstone National',
-      track: { id: 'ks_silverstone', layout: 'national' },
+      track: recommendedTrack('silverstone/national'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'brands-hatch',
       name: 'Brands Hatch Indy',
-      track: { id: 'ks_brands_hatch', layout: 'indy' },
+      track: recommendedTrack('brands-hatch/indy'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'oulton-park',
       name: 'Oulton Park',
-      track: { id: 'rt_oulton_park', layout: 'international' },
+      track: recommendedTrack('oulton-park/international'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'croft',
       name: 'Croft',
-      track: { id: 'zw_croft', layout: 'full' },
+      track: recommendedTrack('croft/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone-international',
       name: 'Silverstone International',
-      track: { id: 'ks_silverstone', layout: 'international' },
+      track: recommendedTrack('silverstone/international'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'knockhill',
       name: 'Knockhill',
-      track: { id: 'knockhill2017', layout: 'knockhill' },
+      track: recommendedTrack('knockhill/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'cadwell-park',
       name: 'Cadwell Park',
-      track: { id: 'cadwell', layout: 'gpzfr' },
+      track: recommendedTrack('cadwell/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'thruxton',
       name: 'Thruxton',
-      track: { id: 'js_thruxton', layout: 'lfm' },
+      track: recommendedTrack('thruxton/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone-gp',
       name: 'Silverstone GP',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'snetterton',
+      name: 'Snetterton',
+      track: recommendedTrack('snetterton/300'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/gp'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -153,7 +166,7 @@ export const MX5_MK1_CHAMPIONSHIP: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -7, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

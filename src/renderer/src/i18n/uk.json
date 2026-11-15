@@ -84,6 +84,7 @@
       "ferrari-70th": "Ferrari 70th Anniversary"
     },
     "maker": {
+      "fsr": "First Studio Race",
       "guerilla": "GUERILLA Mods",
       "rss": "Race Sim Studio",
       "urd": "United Racing Design",
@@ -99,6 +100,7 @@
     "packsTag": "DLC: {{packs}}",
     "customTag": "Власний",
     "makerTag": {
+      "fsr": "FSR",
       "guerilla": "GUERILLA",
       "rss": "RSS",
       "urd": "URD",
@@ -206,7 +208,8 @@
       "classes": "Класи",
       "championships": "Чемпіонати",
       "sources": "Джерела контенту",
-      "historic": "Історичні події"
+      "historic": "Історичні події",
+      "tracks": "Траси"
     },
     "opponents": "Суперники ШІ",
     "calendar": "Календар",
@@ -421,8 +424,15 @@
       "scanHint": "Читає всі встановлені автомобілі, траси й погоду, разом із модами. Назви папок є ідентифікаторами, тож моди рахуються так само, як офіційний контент.",
       "yours": "Налаштувати під себе",
       "yoursSub": "Ім'я, складність, вигляд",
-      "yoursHint": "Усе це можна змінити пізніше в налаштуваннях."
-    }
+      "yoursHint": "Усе це можна змінити пізніше в налаштуваннях.",
+      "sources": "Джерела контенту",
+      "sourcesSub": "DLC і моди",
+      "sourcesHint": "Увімкніть DLC і моди, які у вас є.",
+      "tracks": "Траси",
+      "tracksSub": "Усі траси чемпіонатів",
+      "tracksHint": "Виберіть трасу для кожної конфігурації, яку застосунок не знайшов."
+    },
+    "skip": "Пропустити"
   },
   "race": {
     "title": "Гонки",
@@ -1136,8 +1146,6 @@
       "championships_few": "{{count}} чемпіонати",
       "championships_many": "{{count}} чемпіонатів",
       "championships_other": "{{count}} чемпіонатів",
-      "more": "Ще {{count}}",
-      "fewer": "Згорнути",
       "enters": "Ви виступаєте в класі {{name}}",
       "alsoOnGrid": "Також на стартовій решітці, рівень {{tier}}",
       "opensAt": "Рівень {{tier}}: {{rating}} у дисципліні {{discipline}}",
@@ -1356,17 +1364,13 @@
     "kunosHint": "Базова гра та її DLC-пакети.",
     "mods": "Команди модів і розповсюджувачі",
     "modsHint": "Сторонні автомобілі й траси, які знає каталог.",
-    "modsFooter": "Вимкнене джерело ховає чемпіонати, чиїм автомобілям воно потрібне. Етапи на його трасах лише пропускаються - сезон без них усе одно відбудеться.",
+    "modsFooter": "Вимкнене джерело ховає чемпіонати, чиїм автомобілям воно потрібне.",
     "specHint": "Чемпіонат, що їздить лише за специфікацією, лишається доступним, поки від його сітки лишається хоч одна машина.",
     "neededBy_one": "Потрібне {{shown}} чемпіонату",
     "neededBy_few": "Потрібне {{shown}} чемпіонатам",
     "neededBy_many": "Потрібне {{shown}} чемпіонатам",
     "neededBy_other": "Потрібне {{shown}} чемпіонату",
     "neededByNone": "Жодному чемпіонату не потрібне",
-    "hiddenNow_one": "Приховано {{shown}} чемпіонат",
-    "hiddenNow_few": "Приховано {{shown}} чемпіонати",
-    "hiddenNow_many": "Приховано {{shown}} чемпіонатів",
-    "hiddenNow_other": "Приховано {{shown}} чемпіонату",
     "table": {
       "column": {
         "championship": "Чемпіонат",
@@ -2871,7 +2875,8 @@
     "rating": "Рейтинг",
     "inbox": "Пошта",
     "contracts": "Контракти",
-    "sponsors": "Спонсори"
+    "sponsors": "Спонсори",
+    "settingsTracks": "Налаштування · Траси"
   },
   "standings": {
     "title": "Турнірна таблиця",
@@ -4684,5 +4689,59 @@
     "raced": "Проведено",
     "fixed": "Задано для всієї події, щойно пройшла сесія «{{session}}».",
     "reset": "Скинути"
+  },
+  "recommendedTracks": {
+    "summary": "Встановлено {{installed}} з {{total}} конфігурацій.",
+    "hint": "Усі траси, на яких їдуть чемпіонати, і траса, на якій їде кожна конфігурація.",
+    "getFrom": "Де їх узяти",
+    "sources": {
+      "lfm": "Low Fuel Motorsport",
+      "list": "Список трас"
+    },
+    "search": "Шукати траси, конфігурації та папки",
+    "filter": {
+      "all": "Усі",
+      "missing": "Не встановлено",
+      "guess": "Підтвердити",
+      "kunos": "Версія Kunos",
+      "found": "Встановлено",
+      "state": "Стан",
+      "discipline": "Хто їде"
+    },
+    "state": {
+      "found": "Встановлено",
+      "choice": "Ваш вибір",
+      "guess": "Підтвердити",
+      "kunos": "Версія Kunos",
+      "missing": "Не встановлено"
+    },
+    "empty": "Жодна траса не підходить.",
+    "championships_one": "{{shown}} чемпіонат",
+    "championships_few": "{{shown}} чемпіонати",
+    "championships_many": "{{shown}} чемпіонатів",
+    "championships_other": "{{shown}} чемпіонату",
+    "looksLike": "Схоже на {{name}}",
+    "useIt": "Використати",
+    "choose": "Вибрати…",
+    "chooseTrack": "Вибрати трасу…",
+    "whereToGet": "Де її взяти",
+    "menu": "Дії з конфігурацією",
+    "openTrack": "Відкрити сторінку траси",
+    "forget": "Повернути знайдену",
+    "refuse": "Не ця",
+    "chooseTitle": "Траса для {{layout}}",
+    "chooseHint": "Усі встановлені траси, у бібліотеці чи ні.",
+    "chosen": "{{layout}} їде на {{track}}.",
+    "chosenDetail_one": "Там їде {{shown}} чемпіонат.",
+    "chosenDetail_few": "Там їдуть {{shown}} чемпіонати.",
+    "chosenDetail_many": "Там їдуть {{shown}} чемпіонатів.",
+    "chosenDetail_other": "Там їде {{shown}} чемпіонату.",
+    "roundTrack": "Траса етапу {{number}}",
+    "layoutName": "{{circuit}} - {{layout}}",
+    "sort": {
+      "championships": "Чемпіонати",
+      "name": "Назва",
+      "country": "Країна"
+    }
   }
 }

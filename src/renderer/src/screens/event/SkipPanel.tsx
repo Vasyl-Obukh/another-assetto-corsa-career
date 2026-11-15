@@ -1,6 +1,7 @@
 import { SkipForwardIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { MissingTrack } from './MissingTrack.tsx';
 import type { CareerEventView } from '../../../../shared/types';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -35,6 +36,7 @@ export const SkipPanel = ({ view, busy, onSkip }: SkipPanelProps) => {
           title={view.historic ? t('event.skip.titleEvent') : t('event.skip.title')}
           hint={t('event.skip.hint')}
         />
+        {view.track.recommended ? <MissingTrack layout={view.track.recommended} /> : null}
         <div className="flex justify-end">
           <Button type="button" size="lg" variant="outline" disabled={busy} onClick={onSkip}>
             <SkipForwardIcon />

@@ -3,16 +3,17 @@ import {
   CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Formula E, season ten - the second on the Gen3 car.
  *
- * VRC's Formula Lithium 2023 is the Gen3 car. Three of sixteen races are at
- * venues Assetto Corsa has: Mexico City on the layout VRC made for it, and the
- * Shanghai double header on the circuit's own Formula E layout. Diriyah, Sao
- * Paulo, Tokyo, Misano, Monaco, Berlin, Portland and London are not in Assetto
- * Corsa.
+ * VRC's Formula Lithium 2023 is the Gen3 car. Eight of sixteen races are at
+ * venues Assetto Corsa has: Mexico City on the layout VRC made for it, the
+ * Misano double header, Monaco on the Grand Prix circuit, and the Shanghai and
+ * Portland double headers on those circuits' own Formula E layouts. Diriyah,
+ * Sao Paulo, Tokyo, Berlin and London are not in Assetto Corsa.
  *
  * Qualifying is the group stage and the knockout duels, run here as a knockout
  * of the fastest eight, four and two. The E-Prix is 85 km, the distance 45
@@ -29,10 +30,10 @@ export const FORMULA_E_2023_24: Championship = {
   id: 'formula-e-2023-24',
   name: 'Formula E 2023-24',
   description: {
-    en: 'Formula E\'s tenth season on VRC\'s Formula Lithium 2023, the Gen3 car: Mexico City and '
-      + 'the Shanghai double header.',
-    uk: 'Десятий сезон Formula E на Formula Lithium 2023 від VRC, машині Gen3: Мехіко і здвоєний етап у '
-      + 'Шанхаї.',
+    en: 'Formula E\'s tenth season on VRC\'s Formula Lithium 2023, the Gen3 car: Mexico City, '
+      + 'Misano, Monaco, Shanghai and Portland.',
+    uk: 'Десятий сезон Formula E на Formula Lithium 2023 від VRC, машині Gen3: Мехіко, Мізано, '
+      + 'Монако, Шанхай і Портленд.',
   },
   teams: [
     team('lumen-e', 'Lumen E-Racing', 'FRA', TeamBudget.WORKS),
@@ -110,7 +111,7 @@ export const FORMULA_E_2023_24: Championship = {
           day: 0,
           inherit: { from: 'semi-finals', top: 2 },
         },
-        { type: 'race', name: 'E-Prix', distance: 85, day: 0, inherit: { from: 'final' } },
+        { id: 'race', type: 'race', name: 'E-Prix', distance: 85, day: 0, inherit: { from: 'final' } },
       ],
     },
   ],
@@ -121,20 +122,51 @@ export const FORMULA_E_2023_24: Championship = {
     {
       id: 'mexico-city',
       name: 'Mexico City E-Prix',
-      track: { id: 'vrc_mexico', layout: 'fl_layout' },
+      track: recommendedTrack('mexico-city/fe'),
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'misano-1',
+      name: 'Misano E-Prix, race 1',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'misano-2',
+      name: 'Misano E-Prix, race 2',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco E-Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 29 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'shanghai-1',
       name: 'Shanghai E-Prix, race 1',
-      track: { id: 'shanghai_v2', layout: 'fe' },
+      track: recommendedTrack('shanghai/fe'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'shanghai-2',
       name: 'Shanghai E-Prix, race 2',
-      track: { id: 'shanghai_v2', layout: 'fe' },
+      track: recommendedTrack('shanghai/fe'),
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'portland-1',
+      name: 'Portland E-Prix, race 1',
+      track: recommendedTrack('portland/fe'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'portland-2',
+      name: 'Portland E-Prix, race 2',
+      track: recommendedTrack('portland/fe'),
+      climate: Climate.OCEANIC,
     },
   ],
   pointsSystems: [
@@ -147,7 +179,7 @@ export const FORMULA_E_2023_24: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

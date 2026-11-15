@@ -156,6 +156,14 @@ export interface SeriesStore {
    */
   validate: (series: Championship) => Promise<SeriesAvailability>;
   /**
+   * A championship as it races: each round at a recommended layout pointed at
+   * the installed track it races, as the install and the player's choices
+   * stand. What every other answer of the store is worked out over.
+   * @param series The championship, as the caller holds it
+   * @returns It, its rounds pointed at what they race
+   */
+  place: (series: Championship) => Promise<Championship>;
+  /**
    * Writes a championship the user owns back over its own file.
    *
    * A document that does not validate is written and reported rather than

@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -23,11 +24,11 @@ const EVENT: EventFormat = {
 /**
  * Formula 1, 2000 - Michael Schumacher's first title with Ferrari.
  *
- * The real entry list on RSS's Formula 2000, every seat in it. Twelve of
- * seventeen rounds at their real distances: where a circuit has changed since
- * - Silverstone, Barcelona, the Nurburgring, Montreal, Magny-Cours and the
- * Hungaroring - the laps cover the real race's distance. Melbourne, Monaco,
- * Hockenheim, Indianapolis and Suzuka are not in Assetto Corsa.
+ * The real entry list on RSS's Formula 2000, every seat in it. All seventeen
+ * rounds at their real distances: where a circuit has changed since - Imola,
+ * Silverstone, Barcelona, the Nurburgring, Montreal, Magny-Cours, Hockenheim,
+ * the Hungaroring, Indianapolis and Suzuka - the laps cover the real race's
+ * distance. Monaco's boxes just hold the twenty-two cars.
  *
  * Points are 10-6-4-3-2-1.
  *
@@ -39,9 +40,9 @@ export const FORMULA_1_2000: Championship = {
   name: 'Formula 1 2000',
   description: {
     en: 'Michael Schumacher\'s first title with Ferrari, with the real entry list on RSS\'s Formula '
-      + '2000 and twelve of its grands prix at their real distances.',
+      + '2000 and all seventeen of its grands prix at their real distances.',
     uk: 'Перший титул Міхаеля Шумахера з Ferrari зі справжнім списком учасників на Formula 2000 '
-      + 'від RSS і дванадцятьма гран-прі на справжніх дистанціях.',
+      + 'від RSS і всіма сімнадцятьма гран-прі на справжніх дистанціях.',
   },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
@@ -93,60 +94,92 @@ export const FORMULA_1_2000: Championship = {
   defaultEventFormat: 'grand-prix',
   rounds: [
     {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'san-marino',
       name: 'San Marino Grand Prix',
-      track: { id: 'imola' },
+      track: recommendedTrack('imola/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 62 }],
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 53 }],
       climate: Climate.OCEANIC,
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
     {
       id: 'europe',
       name: 'European Grand Prix',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 79 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'france', name: 'French Grand Prix', track: { id: 'magnycours22' }, climate: Climate.TEMPERATE },
+    { id: 'france', name: 'French Grand Prix', track: recommendedTrack('magny-cours/gp'), climate: Climate.TEMPERATE },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
-    { id: 'malaysia', name: 'Malaysian Grand Prix', track: { id: 'acu_sepang' }, climate: Climate.TEMPERATE },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    {
+      id: 'indianapolis',
+      name: 'United States Grand Prix',
+      track: recommendedTrack('indianapolis/road'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'malaysia', name: 'Malaysian Grand Prix', track: recommendedTrack('sepang/gp'), climate: Climate.TEMPERATE },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [10, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

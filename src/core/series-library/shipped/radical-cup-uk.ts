@@ -1,17 +1,17 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Radical Cup UK - Radical's own club series for its sports prototypes.
  *
  * URD's SR10 XXR and SR3 XXR race as two classes on one grid, the way the
- * series splits its field. The calendar is the British circuits it races that
- * Assetto Corsa has - Silverstone, Brands Hatch, Oulton Park and Croft -
- * rather than one season's, which was not checked; Donington Park and
- * Snetterton are not in Assetto Corsa. Two 25-minute races a meeting, the
- * second from the first's result.
+ * series splits its field. The calendar is the British circuits it races -
+ * Silverstone, Brands Hatch, Oulton Park, Croft, Donington Park and
+ * Snetterton - rather than one season's, which was not checked. Two 25-minute
+ * races a meeting, the second from the first's result.
  *
  * The 25-18-15 scale scores each class, a stand-in: the series' own table and
  * race lengths were not checked. The field is invented.
@@ -76,7 +76,6 @@ export const RADICAL_CUP_UK: Championship = {
         seat('sr3-mar-2', 'marches', 'Iwan Probert', 'GBR'),
       ],
       eligibility: { kind: 'cars', cars: ['urd_radical_sr3xxr_2023'] },
-      grid: { strength: -2 },
       entryFee: 1500,
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
@@ -101,28 +100,40 @@ export const RADICAL_CUP_UK: Championship = {
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'international' },
+      track: recommendedTrack('silverstone/international'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'brands-hatch',
       name: 'Brands Hatch',
-      track: { id: 'ks_brands_hatch', layout: 'indy' },
+      track: recommendedTrack('brands-hatch/indy'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'oulton-park',
       name: 'Oulton Park',
-      track: { id: 'rt_oulton_park', layout: 'international' },
+      track: recommendedTrack('oulton-park/international'),
       climate: Climate.OCEANIC,
     },
-    { id: 'croft', name: 'Croft', track: { id: 'zw_croft', layout: 'full' }, climate: Climate.OCEANIC },
+    { id: 'croft', name: 'Croft', track: recommendedTrack('croft/full'), climate: Climate.OCEANIC },
+    {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/gp'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'snetterton',
+      name: 'Snetterton',
+      track: recommendedTrack('snetterton/300'),
+      climate: Climate.OCEANIC,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -3, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

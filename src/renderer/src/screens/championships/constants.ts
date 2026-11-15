@@ -55,10 +55,11 @@ export const CHAMPIONSHIP_MEMORY = {
 } as const;
 
 /**
- * How many championships a rung of the ladder shows before the rest fold away
- * behind a count. Formula 1 alone has more than twenty seasons at tier 1.
+ * How tall a rung of the ladder grows before its championships scroll: about
+ * three plain cards, fewer where badge rows wrap.
+ * Formula 1 alone has more than twenty seasons at tier 1.
  */
-export const RUNGS_SHOWN = 3;
+export const RUNG_LIST_HEIGHT = 'max-h-[30rem]';
 
 /**
  * The name of each rung's metal, the top rung first - the same ramp TIER_ACCENT
@@ -99,10 +100,11 @@ export const RUNG_LANE = {
 } as const satisfies Record<Discipline, string>;
 
 /**
- * How many of a class's cars its row pictures before the row is opened: one
- * line of them, which is what keeps a nine-class grid readable.
+ * How many of a class's cars its row pictures before the row is opened: two
+ * lines of three, about the height of the teams listed beside them, which is
+ * what keeps a nine-class grid readable.
  */
-export const CLASS_CARS_SHOWN = 3;
+export const CLASS_CARS_SHOWN = 6;
 
 /**
  * How many of a class's teams its row lists before the row is opened, one to

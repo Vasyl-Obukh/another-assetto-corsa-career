@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -104,9 +105,7 @@ export const ITALIAN_GP_1988: Championship = {
     {
       id: 'event',
       name: 'Italian Grand Prix 1988',
-      track: {
-        id: 'monza',
-      },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -124,7 +123,6 @@ export const ITALIAN_GP_1988: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 10,
   },
   generatedWeather: {

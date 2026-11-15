@@ -29,6 +29,7 @@ import { NewCareer } from '@/screens/new-career';
 import { NewChampionship } from '@/screens/new-championship';
 import { Race, RaceEvent } from '@/screens/race';
 import { Rating } from '@/screens/rating';
+import { RecommendedTracks } from '@/screens/recommended-tracks';
 import { ResultDetail, Results } from '@/screens/results';
 import { CareerSettings, Settings, SettingsLayout } from '@/screens/settings';
 import { Setup } from '@/screens/setup';
@@ -71,6 +72,7 @@ export const App = ({ initialReport }: AppProps) => {
       <Route path={ROUTE.settingsClasses} element={<CarClasses />} />
       <Route path={ROUTE.settingsChampionships} element={<ChampionshipLibrary />} />
       <Route path={ROUTE.settingsSources} element={<ContentSources />} />
+      <Route path={ROUTE.settingsTracks} element={<RecommendedTracks />} />
       <Route path={ROUTE.settingsHistoric} element={<HistoricLibrary />} />
     </Route>,
     <Route key="settingsChampionship" path={ROUTE.settingsChampionship} element={<ChampionshipDetail manage />} />,

@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -9,9 +10,10 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * The championship was Porsche 935s against each other, and Porsche Pack 1's
  * 935/78 "Moby Dick" - the factory's own ultimate version, which won the
  * Silverstone Six Hours - stands for the whole 935 field here, one-make. Seven
- * rounds at their real lengths: the Daytona 24 Hours, six hours at Mugello,
- * Silverstone, Watkins Glen, Brands Hatch and Vallelunga, and the Nurburgring
- * 1000 km on the Nordschleife. Dijon and Misano are not in Assetto Corsa.
+ * of the eight rounds at their real lengths: the Daytona 24 Hours, six hours
+ * at Mugello, Silverstone, Misano, Watkins Glen and Vallelunga, and the
+ * Nurburgring 1000 km on the Nordschleife. Dijon is not in Assetto Corsa, and
+ * Misano races today's circuit over the distance the old one ran.
  *
  * The points are the 20-15-12 scale of the day; the season's own table was not
  * confirmed. The field is invented.
@@ -92,47 +94,47 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
     {
       id: 'daytona',
       name: '24 Hours of Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar' },
+      track: recommendedTrack('daytona/road'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mugello',
       name: 'Mugello 6 Hours',
-      track: { id: 'mugello' },
+      track: recommendedTrack('mugello/gp'),
       sessionLengths: [{ session: 'race', laps: 176 }],
     },
     {
       id: 'silverstone',
       name: 'Silverstone 6 Hours',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'misano',
+      name: 'Misano 6 Hours',
+      track: recommendedTrack('misano/gp'),
+      sessionLengths: [{ session: 'race', laps: 227 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'watkins-glen',
       name: 'Watkins Glen 6 Hours',
-      track: { id: 'lilski_watkins_glen', layout: 'boot_classic' },
+      track: recommendedTrack('watkins-glen/boot-classic'),
       sessionLengths: [{ session: 'race', laps: 146 }],
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'brands-hatch',
-      name: 'Brands Hatch 6 Hours',
-      track: { id: 'ks_brands_hatch', layout: 'gp' },
-      sessionLengths: [{ session: 'race', laps: 249 }],
-      climate: Climate.OCEANIC,
-    },
-    {
       id: 'vallelunga',
       name: 'Vallelunga 6 Hours',
-      track: { id: 'ks_vallelunga', layout: 'extended_circuit' },
+      track: recommendedTrack('vallelunga/full'),
       sessionLengths: [{ session: 'race', laps: 209 }],
     },
   ],
@@ -140,7 +142,6 @@ export const WORLD_CHAMPIONSHIP_MAKES_1978: Championship = {
     { id: 'race', name: 'Championship points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

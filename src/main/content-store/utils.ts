@@ -10,6 +10,7 @@ import type {
 } from '../../shared/types/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { isCatalogued, isInLibrary } from '../../shared/utils/library/index.ts';
+import { isRecommendedCircuit } from '../../shared/utils/recommended-tracks/index.ts';
 
 /**
  * Checks that a value is an array of things that at least have string IDs.
@@ -79,10 +80,9 @@ const ANONYMOUS = new WeakMap<Content, ContentLibrary>();
  * up and a championship naming its cars both reach content the library leaves
  * out - naming a car is itself an act of choosing it.
  *
- * Tracks are judged per layout, exactly as every other track filter is, so a
- * circuit with LFM layouts inside a folder nobody claims narrows to those rather
- * than disappearing. The user's list names the circuit, so adding one brings
- * every layout of it back.
+ * A track folder holding a layout the catalogue recommends is in it whoever
+ * made it, every layout of it along. The user's list names the circuit, so
+ * adding one brings every layout of it in.
  * @param content The scanned content
  * @param added The folder IDs the user added
  * @returns The cars and track layouts the library offers
@@ -93,7 +93,9 @@ export const libraryOf = (content: Content, added: AddedContent): ContentLibrary
 
   const library: ContentLibrary = {
     cars: content.cars.filter((car) => isInLibrary(car.provenance, car.id, added.cars)),
-    tracks: content.tracks.filter((track) => isInLibrary(track.provenance, track.id, added.tracks)),
+    tracks: content.tracks.filter((track) => (
+      isRecommendedCircuit(track.id) || isInLibrary(track.provenance, track.id, added.tracks)
+    )),
   };
 
   LIBRARIES.set(content, { added, library });
@@ -112,7 +114,7 @@ export const anonymousOf = (content: Content): ContentLibrary => {
 
   const anonymous: ContentLibrary = {
     cars: content.cars.filter((car) => !isCatalogued(car.provenance)),
-    tracks: content.tracks.filter((track) => !isCatalogued(track.provenance)),
+    tracks: content.tracks.filter((track) => !isCatalogued(track.provenance) && !isRecommendedCircuit(track.id)),
   };
 
   ANONYMOUS.set(content, anonymous);

@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, Hemisphere, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -106,10 +107,7 @@ export const BRAZILIAN_GP_2004: Championship = {
     {
       id: 'event',
       name: 'Brazilian Grand Prix 2004',
-      track: {
-        id: 'vhe_interlagos',
-        layout: 'gp',
-      },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
@@ -123,7 +121,6 @@ export const BRAZILIAN_GP_2004: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 5,
   },
   generatedWeather: {

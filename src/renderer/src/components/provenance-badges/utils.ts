@@ -48,6 +48,7 @@ const PACK_KEYS = {
  * The i18n key for each mod maker, as a filter option.
  */
 const MAKER_KEYS = {
+  [ModMaker.FSR]: 'content.maker.fsr',
   [ModMaker.GUERILLA]: 'content.maker.guerilla',
   [ModMaker.RSS]: 'content.maker.rss',
   [ModMaker.URD]: 'content.maker.urd',
@@ -59,6 +60,7 @@ const MAKER_KEYS = {
  * The i18n key for each mod maker, as a badge.
  */
 const MAKER_TAG_KEYS = {
+  [ModMaker.FSR]: 'content.makerTag.fsr',
   [ModMaker.GUERILLA]: 'content.makerTag.guerilla',
   [ModMaker.RSS]: 'content.makerTag.rss',
   [ModMaker.URD]: 'content.makerTag.urd',

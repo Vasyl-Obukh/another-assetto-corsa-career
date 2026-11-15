@@ -44,6 +44,7 @@ import type { MailAnswer } from './inbox.ts';
 import type { PathOverrides, PathsReport } from './paths.ts';
 import type { QuickRace, QuickRaceArchives, QuickRaceView } from './quick-race.ts';
 import type { LatestResults, RaceSetup, ResultRecord } from './race-run.ts';
+import type { RecommendedTrackState } from './recommended-tracks.ts';
 import type { CareerSaves, LoadedSave, SaveSummary } from './saves.ts';
 import type {
   Championship,
@@ -130,6 +131,12 @@ export interface IpcContract {
    * circuits the library does not hold yet.
    */
   'content:circuit': { req: { id: string }; res: TrackGroup | null };
+  /**
+   * Every recommended layout as the install and the player's choices stand:
+   * the track it races and where that came from, or an installed track that
+   * looks like it. Over everything installed, in the library or not.
+   */
+  'tracks:recommended': { req: void; res: RecommendedTrackState[] };
   /**
    * Every installed weather preset and CSP weather controller.
    *
@@ -236,6 +243,12 @@ export interface IpcContract {
    * and main has the content scan in hand.
    */
   'series:validate': { req: { series: Championship }; res: SeriesAvailability };
+  /**
+   * A championship as it races: each round at a recommended layout pointed at
+   * the installed track it races, as the install and the player's choices
+   * stand. A season's copy is written once, so it is placed on every read.
+   */
+  'series:place': { req: { series: Championship }; res: Championship };
   /**
    * Write a championship the user owns back over its own file.
    *

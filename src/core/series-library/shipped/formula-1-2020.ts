@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -112,73 +113,73 @@ export const FORMULA_1_2020: Championship = {
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'styria',
       name: 'Styrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'anniversary',
       name: '70th Anniversary Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
-    { id: 'tuscany', name: 'Tuscan Grand Prix', track: { id: 'mugello' } },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    { id: 'tuscany', name: 'Tuscan Grand Prix', track: recommendedTrack('mugello/gp') },
     {
       id: 'eifel',
       name: 'Eifel Grand Prix',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'portugal',
       name: 'Portuguese Grand Prix',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 66 }],
       climate: Climate.MEDITERRANEAN,
     },
-    { id: 'emilia-romagna', name: 'Emilia Romagna Grand Prix', track: { id: 'imola' } },
+    { id: 'emilia-romagna', name: 'Emilia Romagna Grand Prix', track: recommendedTrack('imola/gp') },
     {
       id: 'turkey',
       name: 'Turkish Grand Prix',
-      track: { id: 'rj_istanbul_park', layout: 'layout_f1_2020' },
+      track: recommendedTrack('istanbul/gp-2020'),
       climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
     {
       id: 'sakhir',
       name: 'Sakhir Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'outer' },
+      track: recommendedTrack('bahrain/outer'),
       climate: Climate.ARID,
     },
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -186,7 +187,7 @@ export const FORMULA_1_2020: Championship = {
     { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 1 },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

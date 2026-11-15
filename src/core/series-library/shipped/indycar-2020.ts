@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,18 +27,20 @@ const EVENT: EventFormat = {
  *
  * RSS's Formula Americas 2020 is the road-course car and its oval version the
  * speedway kit, and a round fields whichever its circuit needs. The season as
- * run had one venue Assetto Corsa has, Road America, with two races; the
- * Circuit of the Americas and Laguna Seca were on the calendar as first
- * published and cancelled by the pandemic, and race here at the lengths they
- * ran in 2019. Texas's oval opener runs at Daytona's tri-oval over the same
- * 300 miles, because Texas is not in Assetto Corsa; the IndyCar field never
- * raced there. St. Petersburg, Indianapolis, Iowa, Gateway, Mid-Ohio and
- * Harvest GP are not in Assetto Corsa either.
+ * run is raced at Indianapolis - the Grand Prix, the 500 at double points and
+ * the Harvest Grand Prix's two races - and at Road America and Mid-Ohio, two
+ * races each; the Circuit of the Americas and Laguna Seca were on the
+ * calendar as first published and cancelled by the pandemic, and race here
+ * at the lengths they ran in 2019. Texas's oval opener runs at Daytona's tri-
+ * oval over the same 300 miles, because Texas has no recommended track; the
+ * IndyCar field never raced there. St. Petersburg, Iowa and Gateway have none
+ * either.
  *
  * Qualifying is the road-course knockout, twenty-four cars cut to twelve and
- * then to the Fast Six; the oval runs a single session. Points are
+ * then to the Fast Six; the ovals run a single session. Points are
  * 50-40-35-32-30-28-26 and down, a point for pole; the points for leading a
- * lap and leading the most cannot be stated yet. The field is invented.
+ * lap and leading the most cannot be stated yet. The Indianapolis 500 pays
+ * double. The field is invented.
  *
  * Source: https://en.wikipedia.org/wiki/2020_IndyCar_Series
  */
@@ -110,40 +113,87 @@ export const INDYCAR_2020: Championship = {
         { type: 'race', name: 'Race', laps: 120, day: 2 },
       ],
     },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500, double points',
+      sessions: [
+        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'race', name: 'Race', laps: 200, day: 2, pointsSystem: 'double' },
+      ],
+    },
   ],
   defaultEventFormat: 'road-course',
   rounds: [
     {
       id: 'daytona',
       name: 'Daytona International Speedway',
-      track: { id: 'rt_daytona', layout: 'tri-oval' },
+      track: recommendedTrack('daytona/oval'),
       eventFormat: 'oval',
       eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2020_OVAL } }],
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'indianapolis',
+      name: 'Indianapolis',
+      track: recommendedTrack('indianapolis/road'),
+      climate: Climate.TEMPERATE,
+    },
+    {
       id: 'road-america-1',
       name: 'Road America, race 1',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america-2',
       name: 'Road America, race 2',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500',
+      track: recommendedTrack('indianapolis/oval'),
+      eventFormat: 'indianapolis-500',
+      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2020_OVAL } }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mid-ohio-1',
+      name: 'Mid-Ohio, race 1',
+      track: recommendedTrack('mid-ohio/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mid-ohio-2',
+      name: 'Mid-Ohio, race 2',
+      track: recommendedTrack('mid-ohio/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis-1',
+      name: 'Harvest Grand Prix, race 1',
+      track: recommendedTrack('indianapolis/road'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis-2',
+      name: 'Harvest Grand Prix, race 2',
+      track: recommendedTrack('indianapolis/road'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'circuit-of-the-americas',
       name: 'Circuit of the Americas',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       sessionLengths: [{ session: 'race', laps: 60 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'laguna-seca',
       name: 'Laguna Seca',
-      track: { id: 'ks_laguna_seca' },
+      track: recommendedTrack('laguna-seca/full'),
       sessionLengths: [{ session: 'race', laps: 90 }],
     },
   ],
@@ -154,9 +204,15 @@ export const INDYCAR_2020: Championship = {
       positions: [50, 40, 35, 32, 30, 28, 26, 24, 22, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5],
       qualifying: [1],
     },
+    {
+      id: 'double',
+      name: 'Double points',
+      positions: [100, 80, 70, 64, 60, 56, 52, 48, 44, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10],
+      qualifying: [1],
+    },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

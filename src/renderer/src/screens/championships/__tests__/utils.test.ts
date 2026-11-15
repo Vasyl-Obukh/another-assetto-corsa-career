@@ -13,6 +13,7 @@ import type {
   Championship,
   ClassEntry,
   Mail,
+  Round,
   SeasonEntry,
   Seat,
   SeriesAvailability,
@@ -31,7 +32,9 @@ import {
   fieldSize,
   isListed,
   ladderDepth,
+  layoutLabel,
   missingContent,
+  missingTrackLabel,
   opensWith,
   pursesOf,
   raceLabels,
@@ -41,6 +44,7 @@ import {
   teamGroups,
   tierAccent,
   tierMetalKey,
+  trackLabelOf,
   withPicked,
 } from '../utils.ts';
 import { TIER_ACCENT } from '@/lib/accents';
@@ -79,7 +83,7 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
     makers: [],
     distributors: [],
     pools: [],
-    rounds: { packs: [], makers: [], distributors: [] },
+    rounds: { packs: [] },
     widenedBy: { packs: [], makers: [], distributors: [] },
   },
   ...overrides,
@@ -134,7 +138,9 @@ describe('renderer/screens/championships/utils', () => {
 
   describe('isListed', () => {
     const everything = {
-      seriesActive: {}, showFillerSeries: true, hiddenContentSources: { packs: [], makers: [], distributors: [] },
+      seriesActive: {},
+      showFillerSeries: true,
+      offeredContentSources: { packs: [DLCPack.RED_PACK], makers: [], distributors: [] },
     };
 
     it('lists a championship that is switched on, offered and available', () => {
@@ -168,15 +174,15 @@ describe('renderer/screens/championships/utils', () => {
             makers: [],
             distributors: [],
             pools: [],
-            rounds: { packs: [], makers: [], distributors: [] },
+            rounds: { packs: [] },
             widenedBy: { packs: [], makers: [], distributors: [] },
           },
         }),
         origin: 'shipped',
       };
 
-      expect(isListed(shipped, { ...everything, hiddenContentSources: {
-        packs: [DLCPack.RED_PACK], makers: [], distributors: [],
+      expect(isListed(shipped, { ...everything, offeredContentSources: {
+        packs: [], makers: [], distributors: [],
       } }))
         .toBe(false);
     });
@@ -307,22 +313,35 @@ describe('renderer/screens/championships/utils', () => {
   });
 
   describe('rungsAt', () => {
-    it('stands a championship on a rung once per class entering there, in list order', () => {
-      const elms = laddered('elms', [
-        { entry: 'lmp2', discipline: Discipline.SPORTSCAR, tier: 2 },
-        { entry: 'lmp2-pro-am', discipline: Discipline.SPORTSCAR, tier: 2 },
-        { entry: 'lmp3', discipline: Discipline.SPORTSCAR, tier: 3 },
-      ]);
-      const imsa = laddered('imsa', [{ entry: 'gtd', discipline: Discipline.SPORTSCAR, tier: 2 }]);
+    const elms = laddered('elms', [
+      { entry: 'lmp2', discipline: Discipline.SPORTSCAR, tier: 2 },
+      { entry: 'lmgt3', discipline: Discipline.SPORTSCAR, tier: 3 },
+      { entry: 'lmp3', discipline: Discipline.SPORTSCAR, tier: 3 },
+    ]);
+    const imsa = laddered('imsa', [{ entry: 'gtd', discipline: Discipline.SPORTSCAR, tier: 3 }]);
 
-      expect(rungsAt([elms, imsa], Discipline.SPORTSCAR, 2).map((rung) => [rung.listing.series.id, rung.entry.id]))
-        .toEqual([['elms', 'lmp2'], ['elms', 'lmp2-pro-am'], ['imsa', 'gtd']]);
+    it('stands a championship on a rung once, with every class entering there, in list order', () => {
+      expect(rungsAt([elms, imsa], Discipline.SPORTSCAR, 3)
+        .map((rung) => [rung.listing.series.id, rung.entries.map((entry) => entry.id)]))
+        .toEqual([['elms', ['lmgt3', 'lmp3']], ['imsa', ['gtd']]]);
     });
 
     it('leaves out a class at the same tier in another discipline', () => {
       const mixed = laddered('mixed', [{ entry: 'gt', discipline: Discipline.SPORTSCAR, tier: 2 }]);
 
       expect(rungsAt([mixed], Discipline.TOURING, 2)).toEqual([]);
+    });
+
+    it('carries only the classes the filter keeps', () => {
+      const rungs = rungsAt([elms, imsa], Discipline.SPORTSCAR, 3, (_, entry) => entry.id !== 'lmp3');
+
+      expect(rungs.map((rung) => rung.entries.map((entry) => entry.id))).toEqual([['lmgt3'], ['gtd']]);
+    });
+
+    it('leaves a championship off the rung once the filter keeps none of its classes there', () => {
+      const rungs = rungsAt([elms, imsa], Discipline.SPORTSCAR, 3, (one) => one.series.id !== 'elms');
+
+      expect(rungs.map((rung) => rung.listing.series.id)).toEqual(['imsa']);
     });
   });
 
@@ -588,6 +607,21 @@ describe('renderer/screens/championships/utils', () => {
     it('lists nothing for a championship the install can race', () => {
       expect(missingContent(listing())).toEqual({ cars: [], tracks: [] });
     });
+
+    // Found in review: two rounds at one layout listed it twice, under one
+    // React key.
+    it('lists a track two rounds race once', () => {
+      const track = {
+        key: 'spa/gp', id: 'spa', layout: '', provenance: base, recommended: 'spa/gp',
+      };
+      const missing = missingContent(listing({
+        rounds: ['sprint', 'feature'].map((round) => ({
+          round, track, pitboxes: null, entries: [], races: [],
+        })),
+      }));
+
+      expect(missing.tracks).toEqual([track]);
+    });
   });
 
   describe('carsFor', () => {
@@ -613,6 +647,51 @@ describe('renderer/screens/championships/utils', () => {
 
     it('answers with nothing for a class the championship does not hold', () => {
       expect(carsFor(listing(), 'other', 'magione')).toEqual([]);
+    });
+  });
+
+  describe('layoutLabel', () => {
+    it('names a recommended layout by its circuit and its own name', () => {
+      expect(layoutLabel('suzuka/east', t)).toBe(t('recommendedTracks.layoutName', { circuit: 'Suzuka', layout: 'East' }));
+    });
+
+    it('names nothing the catalogue does not have', () => {
+      expect(layoutLabel('suzuka/west', t)).toBeNull();
+    });
+  });
+
+  describe('trackLabelOf', () => {
+    const round = (track: Round['track']): Round => ({ id: 'r1', name: 'Round 1', track });
+
+    it('names a round at a recommended layout by the layout, whatever folder races it', () => {
+      expect(trackLabelOf(round({ recommended: 'suzuka/east', id: 'my_suzuka' }), t)).toBe(layoutLabel('suzuka/east', t));
+    });
+
+    it('names any other round by its track key', () => {
+      expect(trackLabelOf(round({ id: 'ks_brands_hatch', layout: 'indy' }), t)).toBe('ks_brands_hatch/indy');
+      expect(trackLabelOf(round({ id: 'magione' }), t)).toBe('magione');
+    });
+
+    it('falls back to the key for a layout the catalogue does not have', () => {
+      expect(trackLabelOf(round({ recommended: 'suzuka/west', id: 'my_suzuka' }), t)).toBe('my_suzuka');
+    });
+  });
+
+  describe('missingTrackLabel', () => {
+    const provenance = {
+      source: ContentSource.MOD, pack: null, maker: null, distributor: null,
+    };
+
+    it('names a missing recommended layout by the layout', () => {
+      expect(missingTrackLabel({
+        key: 'suzuka/east', id: 'rt_suzuka', layout: 'suzukaeast', provenance, recommended: 'suzuka/east',
+      }, t)).toBe(layoutLabel('suzuka/east', t));
+    });
+
+    it('names any other missing track by its key', () => {
+      expect(missingTrackLabel({
+        key: 'rt_lusail', id: 'rt_lusail', layout: '', provenance,
+      }, t)).toBe('rt_lusail');
     });
   });
 

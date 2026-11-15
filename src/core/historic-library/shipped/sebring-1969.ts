@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -87,10 +88,7 @@ export const SEBRING_1969: Championship = {
     {
       id: 'event',
       name: '12 Hours of Sebring 1969',
-      track: {
-        id: 'mx_sebring',
-        layout: 'raceday_standing',
-      },
+      track: recommendedTrack('sebring/full'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -103,7 +101,6 @@ export const SEBRING_1969: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 3,
     aggression: -5,
   },
   generatedWeather: {

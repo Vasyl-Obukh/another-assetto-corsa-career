@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -92,10 +93,7 @@ export const ITALIAN_GP_1971: Championship = {
     {
       id: 'event',
       name: 'Italian Grand Prix 1971',
-      track: {
-        id: 'ks_monza66',
-        layout: 'road',
-      },
+      track: recommendedTrack('monza/1966-road'),
     },
   ],
   pointsSystems: [
@@ -106,9 +104,6 @@ export const ITALIAN_GP_1971: Championship = {
     },
   ],
   defaultPointsSystem: 'none',
-  grid: {
-    strength: 4,
-  },
   generatedWeather: {
     climate: Climate.MEDITERRANEAN,
   },

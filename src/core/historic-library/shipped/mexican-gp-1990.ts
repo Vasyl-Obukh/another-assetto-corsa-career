@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -101,10 +102,7 @@ export const MEXICAN_GP_1990: Championship = {
     {
       id: 'event',
       name: 'Mexican Grand Prix 1990',
-      track: {
-        id: 'vrc_mexico',
-        layout: 'fa_layout',
-      },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -123,7 +121,6 @@ export const MEXICAN_GP_1990: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 10,
   },
   generatedWeather: {

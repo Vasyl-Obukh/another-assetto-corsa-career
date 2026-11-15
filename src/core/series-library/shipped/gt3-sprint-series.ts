@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -100,37 +101,37 @@ export const GT3_SPRINT_SERIES: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Main race', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
     { id: 'qualifying-race', name: 'Qualifying race', positions: [8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

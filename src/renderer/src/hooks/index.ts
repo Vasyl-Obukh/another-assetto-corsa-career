@@ -12,6 +12,8 @@ export { useCarDetail } from './use-car-detail/index.ts';
 export type { CarDetail } from './use-car-detail/index.ts';
 export { useTrackDetail } from './use-track-detail/index.ts';
 export { useInstalledTrack } from './use-installed-track/index.ts';
+export { useRecommendedTracks } from './use-recommended-tracks/index.ts';
+export type { RecommendedTracks } from './use-recommended-tracks/index.ts';
 export type { TrackDetail } from './use-track-detail/index.ts';
 export { useCarNames } from './use-car-names/index.ts';
 export { useCars } from './use-cars/index.ts';

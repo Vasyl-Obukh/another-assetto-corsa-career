@@ -43,8 +43,8 @@ export const HistoricLibrary = () => {
   const error = events.error ?? commands.error;
   // Ours only where this install has what each needs; the user's own always.
   const offered = useMemo(
-    () => events.listings.filter((listing) => offeredHere(listing, settings.hiddenContentSources)),
-    [events.listings, settings.hiddenContentSources],
+    () => events.listings.filter((listing) => offeredHere(listing, settings.offeredContentSources)),
+    [events.listings, settings.offeredContentSources],
   );
   // The championship list's own filters over the historic events' switches,
   // which are kept the same way.

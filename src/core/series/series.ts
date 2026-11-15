@@ -63,6 +63,7 @@ import { aiFigure } from '../../shared/utils/ai-figure/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { formatOf } from '../../shared/utils/event-format/index.ts';
+import { recommendedLayout } from '../../shared/utils/recommended-tracks/index.ts';
 import { dryOffer, rainAllowed, withoutRain } from '../../shared/utils/wet-weather/index.ts';
 import { nextSkin, skinKey } from '../race-ini/index.ts';
 import { randomFrom, seedFrom } from '../seeded-random/index.ts';
@@ -74,8 +75,8 @@ import {
 // beside the validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
-  baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, roundOf, roundRaceId,
-  roundSessions, runRaceId, seatDraw,
+  baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, requirementsOf, roundOf,
+  roundRaceId, roundSessions, runRaceId, seatDraw,
 } from './utils.ts';
 export { formatOf } from '../../shared/utils/event-format/index.ts';
 
@@ -187,6 +188,10 @@ export const validateSeries = (
 
   const entryIds = new Set(series.entries.map((entry) => entry.id));
   series.rounds.forEach((round) => {
+    const { recommended } = round.track;
+    if (recommended !== undefined && !recommendedLayout(recommended)) {
+      problems.push(appErrorInfo('series.round.trackUnknown', { round: round.id, track: recommended }));
+    }
     round.eligibility?.forEach((override) => {
       if (!entryIds.has(override.entry)) {
         problems.push(appErrorInfo('series.entry.unknown', {
@@ -560,7 +565,8 @@ export const roundRace = (
   return {
     id: roundRaceId(series.id, round.id),
     name: `${series.name} - ${round.name}`,
-    track: round.track,
+    // The folder raced, without the recommended layout it stands for.
+    track: round.track.layout ? { id: round.track.id, layout: round.track.layout } : { id: round.track.id },
     playerCar: {
       model: car.model,
       skin: car.skin,

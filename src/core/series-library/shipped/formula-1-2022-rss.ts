@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -89,12 +90,11 @@ const SPRINT: EventFormat = {
  *
  * The real entry list on RSS's Formula Hybrid 2022, standard or S, every seat
  * in it. The 2022 season is a championship per spec, so VRC's car of the same
- * year races its own. 14 of 22 rounds at their real distances, the three
+ * year races its own. All 22 rounds at their real distances, the three
  * sprint rounds included - Friday's knockout still set the sprint grid, and
  * the sprint the grand prix's; Barcelona runs the layout with its final
  * chicane. Yas Marina runs the layout before its 2021 rebuild, so its laps
- * cover the real distance. Jeddah, Melbourne, Miami, Monaco, Baku, Paul
- * Ricard, Marina Bay and Suzuka are not in Assetto Corsa.
+ * cover the real distance.
  *
  * Qualifying is the three-part knockout, twenty cars cut to fifteen and then
  * to ten. Points are 25-18-15-12-10-8-6-4-2-1 and one for the fastest lap,
@@ -109,10 +109,10 @@ export const FORMULA_1_2022_RSS: Championship = {
   name: 'Formula 1 2022 (RSS)',
   description: {
     en: 'Max Verstappen\'s second title and the first season of the ground-effect cars, with the '
-      + 'real entry list on RSS\'s Formula Hybrid 2022 and fourteen of its grands prix at their real'
-      + ' distances.',
+      + 'real entry list on RSS\'s Formula Hybrid 2022 and all twenty-two of its grands prix at their '
+      + 'real distances.',
     uk: 'Другий титул Макса Ферстаппена і перший сезон машин із граунд-ефектом: реальний список учасників '
-      + 'на Formula Hybrid 2022 від RSS і чотирнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+      + 'на Formula Hybrid 2022 від RSS і всі двадцять два гран-прі сезону на їхніх справжніх дистанціях.',
   },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
@@ -163,66 +163,116 @@ export const FORMULA_1_2022_RSS: Championship = {
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
+    },
+    {
+      id: 'jeddah',
+      name: 'Saudi Arabian Grand Prix',
+      track: recommendedTrack('jeddah/gp'),
+      climate: Climate.ARID,
+    },
+    {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'emilia-romagna',
       name: 'Emilia Romagna Grand Prix',
-      track: { id: 'imola' },
+      track: recommendedTrack('imola/gp'),
       eventFormat: 'sprint',
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    {
+      id: 'miami',
+      name: 'Miami Grand Prix',
+      track: recommendedTrack('miami/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 64 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'baku',
+      name: 'Azerbaijan Grand Prix',
+      track: recommendedTrack('baku/gp'),
+      climate: Climate.ARID,
+    },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'paul-ricard',
+      name: 'French Grand Prix',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp-2008'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico-city',
       name: 'Mexico City Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
@@ -230,7 +280,7 @@ export const FORMULA_1_2022_RSS: Championship = {
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -239,7 +289,7 @@ export const FORMULA_1_2022_RSS: Championship = {
     { id: 'sprint', name: 'Sprint points', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

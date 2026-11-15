@@ -1,8 +1,10 @@
 import { seat, team } from './utils.ts';
+import { Hemisphere } from '../../../shared/types/index.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -24,11 +26,11 @@ const EVENT: EventFormat = {
  *
  * The real entry list on RSS's Formula 1970, its V8 and V8 S between them, cut
  * to eighteen by Zandvoort's pit boxes: the drivers who started most of the
- * season. Nine of thirteen rounds at their real distances. Monza's road
+ * season. Twelve of thirteen rounds at their real distances. Monza's road
  * course, Charade, Mont-Tremblant and Watkins Glen's short circuit are the
- * period ones and run their real laps; Spa, Zandvoort, Brands Hatch and the
- * Osterreichring have changed since, so their laps cover the real distance.
- * Kyalami, Jarama, Monaco and Hockenheim are not in Assetto Corsa.
+ * period ones and run their real laps; Kyalami, Monaco, Spa, Zandvoort, Brands
+ * Hatch, Hockenheim, the Osterreichring and Mexico City have changed since, so
+ * their laps cover the real distance. Jarama is not in Assetto Corsa.
  *
  * Points are 9-6-4-3-2-1; the season counted a driver's best six of the first
  * seven rounds and best five of the last six, which a points system cannot say
@@ -42,9 +44,9 @@ export const FORMULA_1_1970: Championship = {
   name: 'Formula 1 1970',
   description: {
     en: 'Jochen Rindt\'s posthumous title season, with the real entry list on RSS\'s Formula 1970 and'
-      + ' nine of its grands prix at their real distances, Charade and Mont-Tremblant included.',
+      + ' twelve of its grands prix at their real distances, Charade and Mont-Tremblant included.',
     uk: 'Сезон посмертного титулу Йохена Рінта зі справжнім списком учасників на Formula 1970 '
-      + 'від RSS і дев\'ятьма гран-прі на справжніх дистанціях, включно з Шарадом і Мон-Трамбланом.',
+      + 'від RSS і дванадцятьма гран-прі на справжніх дистанціях, включно з Шарадом і Мон-Трамбланом.',
   },
   teams: [
     team('lotus', 'Gold Leaf Team Lotus', 'GBR', TeamBudget.WORKS),
@@ -90,54 +92,76 @@ export const FORMULA_1_1970: Championship = {
   eventFormats: [EVENT],
   defaultEventFormat: 'grand-prix',
   rounds: [
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    {
+      id: 'kyalami',
+      name: 'South African Grand Prix',
+      track: recommendedTrack('kyalami/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 73 }],
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 75 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       sessionLengths: [{ session: 'grand-prix', laps: 78 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'france',
       name: 'French Grand Prix',
-      track: { id: 'circuit_charade2023', layout: 'charade2023_8km' },
+      track: recommendedTrack('charade/8km'),
       sessionLengths: [{ session: 'grand-prix', laps: 38 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_brands_hatch', layout: 'gp' },
+      track: recommendedTrack('brands-hatch/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 87 }],
       climate: Climate.OCEANIC,
     },
     {
-      id: 'austria',
-      name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      sessionLengths: [{ session: 'grand-prix', laps: 82 }],
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 75 }],
       climate: Climate.TEMPERATE,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'ks_monza66', layout: 'road' } },
+    {
+      id: 'austria',
+      name: 'Austrian Grand Prix',
+      track: recommendedTrack('osterreichring/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 60 }],
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/1966-road') },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'rt_mont_tremblant', layout: 'no_chicane' },
+      track: recommendedTrack('mont-tremblant/no-chicane'),
       sessionLengths: [{ session: 'grand-prix', laps: 90 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'lilski_watkins_glen', layout: 'short_classic' },
+      track: recommendedTrack('watkins-glen/short-classic'),
       sessionLengths: [{ session: 'grand-prix', laps: 108 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico',
       name: 'Mexican Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 76 }],
       climate: Climate.TEMPERATE,
     },
@@ -146,7 +170,7 @@ export const FORMULA_1_1970: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -42,10 +43,10 @@ const EVENT: EventFormat = {
  *
  * The real entry list on the 2013 spec - the Red Pack's Ferrari F138 and
  * RSS's Formula 2013, either of which fields the grid on its own - with every
- * seat in whichever of it is installed. 13 rounds at their real distances;
- * Barcelona runs the layout with its final chicane, and where a circuit has
- * changed since, the laps cover the real race's distance. Melbourne, Monaco,
- * Marina Bay, Yeongam, Suzuka and the Buddh circuit are not in Assetto Corsa.
+ * seat in whichever of it is installed. 17 of 19 rounds at their real
+ * distances; Barcelona runs the layout with its final chicane, and where a
+ * circuit has changed since, the laps cover the real race's distance. Yeongam
+ * and the Buddh circuit are not in Assetto Corsa.
  *
  * Qualifying is the three-part knockout, 22 cars cut to 16 and
  * then to 10. Points are 25-18-15-12-10-8-6-4-2-1.
@@ -57,10 +58,10 @@ export const FORMULA_1_2013: Championship = {
   id: 'formula-1-2013',
   name: 'Formula 1 2013',
   description: {
-    en: 'The last season of the V8s, with the real entry list and thirteen of its grands prix at '
+    en: 'The last season of the V8s, with the real entry list and seventeen of its grands prix at '
       + 'their real distances. It runs on the Red Pack\'s F138 or RSS\'s Formula 2013, whichever '
       + 'you own.',
-    uk: 'Останній сезон V8 зі справжнім списком учасників і тринадцятьма гран-прі на справжніх '
+    uk: 'Останній сезон V8 зі справжнім списком учасників і сімнадцятьма гран-прі на справжніх '
       + 'дистанціях. Він проходить на F138 з Red Pack або на Formula 2013 від RSS, залежно від '
       + 'того, що у вас є.',
   },
@@ -113,62 +114,88 @@ export const FORMULA_1_2013: Championship = {
   eventFormats: [EVENT],
   defaultEventFormat: 'grand-prix',
   rounds: [
-    { id: 'malaysia', name: 'Malaysian Grand Prix', track: { id: 'acu_sepang' }, climate: Climate.TEMPERATE },
+    {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    { id: 'malaysia', name: 'Malaysian Grand Prix', track: recommendedTrack('sepang/gp'), climate: Climate.TEMPERATE },
     {
       id: 'china',
       name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'germany',
       name: 'German Grand Prix',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp-2008'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
@@ -177,7 +204,7 @@ export const FORMULA_1_2013: Championship = {
     { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

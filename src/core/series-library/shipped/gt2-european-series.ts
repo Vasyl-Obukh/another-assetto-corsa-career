@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -12,10 +13,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * EVO2 and the AMG - and a few of its own imagining, the BMW M2 GT2, the 488
  * GT2 and the Liana; its Cayman RSR has no series of its own and races here
  * too. The class names all twelve. Two 50-minute races a round, each from a
- * qualifying of its own. The calendar is the circuits the series races that
- * Assetto Corsa has - Monza, Spa, Valencia and Portimao - rather than one
- * season's, which was not checked; Paul Ricard, Misano and Hockenheim are not
- * in Assetto Corsa.
+ * qualifying of its own. The calendar is the circuits the series races - Monza,
+ * Spa, Valencia, Portimao, Paul Ricard, Misano and Hockenheim - rather than one
+ * season's, which was not checked.
  *
  * The 25-18-15 scale scores each race, a stand-in: the series' own table was
  * not checked. The field is invented.
@@ -28,9 +28,9 @@ export const GT2_EUROPEAN_SERIES: Championship = {
   name: 'GT2 European Series',
   description: {
     en: 'SRO\'s track-only GT2 class on Guerilla\'s GT2 cars, real and imagined: two 50-minute '
-      + 'races a round at Monza, Spa, Valencia and Portimao.',
+      + 'races a round at Monza, Spa, Valencia, Portimao, Paul Ricard, Misano and Hockenheim.',
     uk: 'Трековий клас GT2 від SRO на машинах GT2 від Guerilla, реальних і вигаданих: дві 50-хвилинні '
-      + 'гонки за етап у Монці, Спа, Валенсії та Портімау.',
+      + 'гонки за етап у Монці, Спа, Валенсії, Портімау, Поль-Рікарі, Мізано та Гоккенгаймі.',
   },
   teams: [
     team('lugano', 'Lugano GT', 'CHE', TeamBudget.INDEPENDENT),
@@ -105,14 +105,32 @@ export const GT2_EUROPEAN_SERIES: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'valencia', name: 'Valencia', track: { id: 'fn_valencia', layout: 'gp' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'valencia', name: 'Valencia', track: recommendedTrack('valencia/gp') },
     {
       id: 'portimao',
       name: 'Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
   ],
   pointsSystems: [

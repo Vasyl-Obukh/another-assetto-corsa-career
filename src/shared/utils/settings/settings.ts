@@ -24,7 +24,7 @@ import {
 import type { WeatherType } from '../../constants/index.ts';
 import { DLCPack, ModDistributor, ModMaker } from '../../types/index.ts';
 import type {
-  AddedContent, AiBase, DrivingAids, HiddenContentSources, PathOverrides, Settings, UserPrices, WindowState,
+  AddedContent, AiBase, ContentSources, DrivingAids, PathOverrides, Settings, TrackChoice, UserPrices, WindowState,
 } from '../../types/index.ts';
 import { aiFigure } from '../ai-figure/index.ts';
 import { isCarPrice } from '../car-prices/index.ts';
@@ -150,14 +150,14 @@ const readMembers = <T extends string | number>(raw: unknown, members: readonly 
 };
 
 /**
- * Reads the content sources the user switched off.
+ * Reads the content sources the player switched on.
  *
- * Anything unreadable falls back to nothing hidden, which offers every
- * championship - the safe way round, since hiding one says nothing about why.
+ * Anything unreadable falls back to nothing switched on, which offers the base
+ * game's championships alone - where a fresh install starts too.
  * @param raw The value read from disk
  * @returns Every list, empty where nothing usable was there
  */
-export const readHiddenContentSources = (raw: unknown): HiddenContentSources => {
+export const readContentSources = (raw: unknown): ContentSources => {
   if (!isRecord(raw)) return { packs: [], makers: [], distributors: [] };
 
   return {
@@ -165,6 +165,34 @@ export const readHiddenContentSources = (raw: unknown): HiddenContentSources => 
     makers: readMembers(raw.makers, stringEnumValues(ModMaker)),
     distributors: readMembers(raw.distributors, stringEnumValues(ModDistributor)),
   };
+};
+
+/**
+ * Reads what the player decided about recommended tracks.
+ *
+ * A layout id is kept whatever it names, since the catalogue may gain it; a
+ * choice holding nothing usable is dropped, so the file only ever lists the
+ * layouts something was decided about.
+ * @param raw The value read from disk
+ * @returns Every usable choice, by layout id, sorted so the file diffs cleanly
+ */
+export const readTrackChoices = (raw: unknown): Record<string, TrackChoice> => {
+  if (!isRecord(raw)) return {};
+
+  const choices = Object.entries(raw).flatMap(([id, value]): [string, TrackChoice][] => {
+    if (cleanString(id) !== id || !isRecord(value)) return [];
+
+    const track = cleanString(value.track);
+    const refused = readIds(value.refused);
+    const choice: TrackChoice = {
+      ...(track ? { track } : {}),
+      ...(refused.length > 0 ? { refused } : {}),
+    };
+
+    return choice.track || choice.refused ? [[id, choice]] : [];
+  });
+
+  return Object.fromEntries(choices.sort(([left], [right]) => left.localeCompare(right)));
 };
 
 /**
@@ -301,7 +329,8 @@ export const readSettings = (raw: unknown, defaults: Settings = DEFAULT_SETTINGS
     opponents: readOpponents(raw.opponents),
     addedContent: readAddedContent(raw.addedContent),
     carPrices: readCarPrices(raw.carPrices),
-    hiddenContentSources: readHiddenContentSources(raw.hiddenContentSources),
+    offeredContentSources: readContentSources(raw.offeredContentSources),
+    trackChoices: readTrackChoices(raw.trackChoices),
     seriesActive: readSeriesActive(raw.seriesActive),
     showFillerSeries: typeof raw.showFillerSeries === 'boolean'
       ? raw.showFillerSeries

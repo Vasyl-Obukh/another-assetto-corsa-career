@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -11,9 +12,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Two races a round, each an hour less five minutes from a qualifying of its
  * own, with a compulsory stop and driver change that cannot be said yet. The
  * calendar is the circuits the series races that Assetto Corsa has -
- * Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring - rather
- * than one season's, which was not checked; Oschersleben, the Lausitzring and
- * Hockenheim are not in Assetto Corsa.
+ * Zandvoort, the Nurburgring, the Sachsenring, the Red Bull Ring,
+ * Oschersleben, the Lausitzring and Hockenheim - rather than one season's,
+ * which was not checked.
  *
  * Points are 25-20-16-13-11-10-9-8-7-6-5-4-3-2-1 a race, the table as
  * understood rather than checked. The field is invented.
@@ -26,9 +27,11 @@ export const ADAC_GT_MASTERS: Championship = {
   name: 'ADAC GT Masters',
   description: {
     en: 'Germany\'s GT3 championship on LFM\'s GT3 cars: two 55-minute races a round at '
-      + 'Zandvoort, the Nurburgring, the Sachsenring and the Red Bull Ring.',
+      + 'Zandvoort, the Nurburgring, the Sachsenring, the Red Bull Ring, Oschersleben, the '
+      + 'Lausitzring and Hockenheim.',
     uk: 'Німецький чемпіонат GT3 на машинах GT3 від LFM: дві 55-хвилинні гонки за етап у '
-      + 'Зандворті, на Нюрбургринзі, Заксенринзі та Ред Булл Рінгу.',
+      + 'Зандворті, на Нюрбургринзі, Заксенринзі, Ред Булл Рінгу, в Ошерслебені, на Лаузіцринзі '
+      + 'та в Хоккенхаймі.',
   },
   teams: [
     team('hanse', 'Hanse Motorsport', 'DEU', TeamBudget.WORKS),
@@ -96,25 +99,43 @@ export const ADAC_GT_MASTERS: Championship = {
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sachsenring',
       name: 'Sachsenring',
-      track: { id: 'g333_sachsenring_2022', layout: 'lfm_event' },
+      track: recommendedTrack('sachsenring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'red-bull-ring',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'oschersleben',
+      name: 'Oschersleben',
+      track: recommendedTrack('oschersleben/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'lausitzring',
+      name: 'Lausitzring',
+      track: recommendedTrack('lausitzring/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -122,7 +143,7 @@ export const ADAC_GT_MASTERS: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -120,7 +120,7 @@ export const Championships = () => {
             listings={browser.shown}
             depth={depth}
             keepRung={affordableOnly || ladder?.openOnly
-              ? ({ listing, entry }) => (!affordableOnly || costs.affordable(listing.series.id, entry.id))
+              ? (listing, entry) => (!affordableOnly || costs.affordable(listing.series.id, entry.id))
                 && (!ladder?.openOnly || isEligible(entry.ladder, ladder.open))
               : undefined}
             ladder={ladder}

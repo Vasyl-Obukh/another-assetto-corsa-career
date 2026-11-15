@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { missingContent } from './utils.ts';
+import { missingContent, missingTrackLabel } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { ProvenanceBadges } from '@/components';
 
@@ -37,7 +37,7 @@ export const MissingContent = ({ listing }: MissingContentProps) => {
           <span className="text-xs text-muted-foreground">{t('championships.missing.tracks')}</span>
           {tracks.map((track) => (
             <div key={track.key} className="flex flex-wrap items-center gap-2">
-              <span className="min-w-0 flex-1 truncate text-sm">{track.key}</span>
+              <span className="min-w-0 flex-1 truncate text-sm">{missingTrackLabel(track, t)}</span>
               <ProvenanceBadges provenance={track.provenance} compact />
             </div>
           ))}

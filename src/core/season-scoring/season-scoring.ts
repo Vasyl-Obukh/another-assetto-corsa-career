@@ -12,9 +12,8 @@
 //   - points for leading a lap, or for leading the most laps
 //   - a team championship counting only its best two cars
 //
-// All five are real rules of real championships and all five are listed in
-// championship-review.md, where they wait for a decision rather than being
-// half-built here.
+// All five are real rules of real championships, and none is planned: each
+// championship's header says where its real season scored that way.
 //
 // One more is a measurement gap rather than a schema one: Assetto Corsa writes
 // no retirement flag, so every car in the classification scores by where it

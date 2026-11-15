@@ -45,7 +45,7 @@ interface ClassRowProps {
 }
 
 // One class of the grid across the page: who it is, what it drives, who is
-// entered. Held to a line of cars and a few teams, so a nine-class grid
+// entered. Held to two lines of cars and a few teams, so a nine-class grid
 // stays readable, with a strip along its foot that opens the whole row.
 export const ClassRow = ({
   entry, availability, teams, showDiscipline, playerSeat, playerName,

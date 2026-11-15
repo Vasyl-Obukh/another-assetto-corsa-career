@@ -3,19 +3,22 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * IMSA WeatherTech SportsCar Championship, 2025 - GTP, LMP2, GTD Pro and GTD.
+ * IMSA WeatherTech SportsCar Championship, 2025 - GTP, LMP2 and GTD.
  *
- * Four classes. GTP is the Hypercar (LFM) spec, LFM's Porsche 963, Cadillac,
- * BMW and Lamborghini among them; LMP2 the LMP2 (2021) spec; GTD Pro and GTD
- * both the GT3 (LFM) spec, the season's GT3 field car for car, raced by
- * professionals in one and amateurs in the other. Seven of eleven rounds at
+ * GTP is the Hypercar (LFM) spec, LFM's Porsche 963, Cadillac, BMW and
+ * Lamborghini among them; LMP2 the LMP2 (2021) spec; GTD the GT3 (LFM) spec,
+ * the season's GT3 field car for car, one class where the real season split
+ * GTD Pro from GTD, since a split by driver means nothing to AI drivers. Eight
+ * of eleven rounds at
  * their real lengths - the Rolex 24, the Sebring 12 Hours, Laguna Seca, the
- * Watkins Glen 6 Hours, Road America, VIR and Petit Le Mans. Long Beach,
- * Detroit, Canadian Tire Motorsport Park and Indianapolis are not in Assetto
- * Corsa. VIR's thirty-three boxes cap the grid.
+ * Watkins Glen 6 Hours, Road America, VIR, Indianapolis and Petit Le Mans.
+ * Long Beach's only known version has thirty boxes for thirty-two cars, and
+ * Detroit and Canadian Tire Motorsport Park have no recommended track. VIR's
+ * thirty-three boxes cap the grid.
  *
  * Points are 350-320-300-280-260 and down to 10 in each class, the table as
  * understood rather than checked. The field is invented: the 2017 season's
@@ -29,9 +32,9 @@ export const IMSA_2025: Championship = {
   name: 'IMSA SportsCar Championship 2025',
   description: {
     en: 'America\'s sports car championship of 2025 on LFM\'s GTP cars and GT3s and the Oreca 07: '
-      + 'four classes, seven rounds from the Rolex 24 to Petit Le Mans.',
+      + 'three classes, eight rounds from the Rolex 24 to Petit Le Mans.',
     uk: 'Американський чемпіонат спортивних машин 2025 року на машинах GTP і GT3 від LFM та Oreca 07: '
-      + 'чотири класи, сім етапів від Rolex 24 до Petit Le Mans.',
+      + 'три класи, вісім етапів від Rolex 24 до Petit Le Mans.',
   },
   teams: [
     team('dixie', 'Dixie Prototypes', 'USA', TeamBudget.WORKS),
@@ -83,7 +86,6 @@ export const IMSA_2025: Championship = {
         seat('p2-cas-2', 'cascadia', 'Liam Ouellette', 'CAN'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
-      grid: { strength: -1 },
       entryFee: 10800,
       prizes: {
         positions: [42000, 29400, 21000, 15950, 12200, 9250, 6700, 5050, 3350, 2100],
@@ -91,8 +93,8 @@ export const IMSA_2025: Championship = {
       },
     },
     {
-      id: 'gtd-pro',
-      name: 'GTD Pro',
+      id: 'gtd',
+      name: 'GTD',
       ladder: { discipline: Discipline.SPORTSCAR, tier: 3 },
       seats: [
         seat('arr-1', 'arrowhead', 'Edward Halsbury', 'GBR'),
@@ -103,20 +105,6 @@ export const IMSA_2025: Championship = {
         seat('rub-2', 'rubicone', 'Nicola Verucchi', 'ITA'),
         seat('rou-1', 'route-66', 'Hunter Blankenship', 'USA'),
         seat('rou-2', 'route-66', 'Mason Tedrick', 'USA'),
-      ],
-      eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
-      grid: { strength: -2 },
-      entryFee: 6500,
-      prizes: {
-        positions: [25200, 17650, 12600, 9600, 7300, 5550, 4050, 3000, 2000, 1250],
-        standings: [201500, 126000, 80500, 53000, 33000],
-      },
-    },
-    {
-      id: 'gtd',
-      name: 'GTD',
-      ladder: { discipline: Discipline.SPORTSCAR, tier: 3 },
-      seats: [
         seat('nec-1', 'neckar', 'Jonas Eisenlohr', 'DEU'),
         seat('nec-2', 'neckar', 'Pascal Wohlfahrt', 'DEU'),
         seat('loi-1', 'loire', 'Victor Aubineau', 'FRA'),
@@ -127,11 +115,10 @@ export const IMSA_2025: Championship = {
         seat('lau-2', 'laurentian', 'Samuel Pouliot', 'CAN'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
-      grid: { strength: -7 },
-      entryFee: 4900,
+      entryFee: 6500,
       prizes: {
-        positions: [18900, 13250, 9450, 7200, 5500, 4150, 3000, 2250, 1500, 950],
-        standings: [151000, 94500, 60500, 39500, 24500],
+        positions: [25200, 17650, 12600, 9600, 7300, 5550, 4050, 3000, 2000, 1250],
+        standings: [201500, 126000, 80500, 53000, 33000],
       },
     },
   ],
@@ -187,41 +174,47 @@ export const IMSA_2025: Championship = {
     {
       id: 'daytona',
       name: 'Rolex 24 at Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar_m4x' },
+      track: recommendedTrack('daytona/road'),
       eventFormat: 'daytona',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca', layout: 'laguna_seca_osrw' } },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full') },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen 6 Hours',
-      track: { id: 'lilski_watkins_glen', layout: 'boot' },
+      track: recommendedTrack('watkins-glen/boot'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
+      track: recommendedTrack('vir/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis',
+      name: 'Indianapolis',
+      track: recommendedTrack('indianapolis/road'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
@@ -237,7 +230,7 @@ export const IMSA_2025: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

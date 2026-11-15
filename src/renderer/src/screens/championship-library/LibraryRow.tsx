@@ -52,7 +52,7 @@ export const LibraryRow = ({ listing, commands }: LibraryRowProps) => {
   const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
   const tiers = [...new Set(series.entries.map((entry) => entry.ladder.tier))].sort((a, b) => a - b);
   const { rounds } = availability.requires;
-  const roundsNeed = rounds.packs.length + rounds.makers.length + rounds.distributors.length > 0;
+  const roundsNeed = rounds.packs.length > 0;
   // Everything but the switch goes pale when the championship is off, as on
   // its card.
   const dimmed = !active && 'opacity-50';
@@ -148,7 +148,7 @@ export const LibraryRow = ({ listing, commands }: LibraryRowProps) => {
                   </TooltipTrigger>
                   <TooltipContent className="flex flex-wrap items-center gap-1.5">
                     {t('championshipLibrary.roundsNeed')}
-                    <SourceChips packs={rounds.packs} makers={rounds.makers} distributors={rounds.distributors} />
+                    <SourceChips packs={rounds.packs} makers={[]} />
                   </TooltipContent>
                 </Tooltip>
               ) : null}

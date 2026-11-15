@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -86,11 +87,11 @@ export const IROC_1974: Championship = {
   ],
   defaultEventFormat: 'riverside',
   rounds: [
-    { id: 'riverside', name: 'Riverside', track: { id: 'ks_laguna_seca' } },
+    { id: 'riverside', name: 'Riverside', track: recommendedTrack('laguna-seca/full') },
     {
       id: 'daytona',
       name: 'Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar' },
+      track: recommendedTrack('daytona/road'),
       eventFormat: 'daytona',
       climate: Climate.TEMPERATE,
     },
@@ -99,7 +100,7 @@ export const IROC_1974: Championship = {
     { id: 'race', name: 'Race points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 6, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

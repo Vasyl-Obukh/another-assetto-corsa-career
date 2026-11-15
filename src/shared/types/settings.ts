@@ -4,6 +4,7 @@ import type { UserPrices } from './car-prices.ts';
 import type { DLCPack, ModDistributor, ModMaker } from './content.ts';
 import type { PathOverrides } from './paths.ts';
 import type { Assists } from './race.ts';
+import type { TrackChoice } from './recommended-tracks.ts';
 import type { AiBase } from './series.ts';
 import type { WeatherSystem } from './weather-plan.ts';
 import type { WeatherType } from '../constants/weather-types.ts';
@@ -137,26 +138,26 @@ export interface AddedContent {
 }
 
 /**
- * The content sources the user switched off, which governs which championships
- * are offered and nothing else.
+ * Content sources by kind - DLC packs, mod teams and redistributors - which
+ * governs which championships are offered and nothing else.
  *
- * What is switched off rather than what is on - the opposite of
- * `allowedWeather` - so a pack or mod team the catalogue gains later arrives
- * switched on, rather than quietly hiding every championship that needs it.
- * Base content has no entry, because a base-only ladder is always offered.
+ * Settings keep the ones switched on, like `allowedWeather`, so a pack or mod
+ * team the catalogue gains later arrives switched off along with everything
+ * else the player has not said they own. Base content has no entry, because a
+ * base-only ladder is always offered.
  */
-export interface HiddenContentSources {
+export interface ContentSources {
   /**
-   * DLC packs whose championships are not offered.
+   * DLC packs.
    */
   packs: DLCPack[];
   /**
-   * Mod teams whose championships are not offered.
+   * Mod teams.
    */
   makers: ModMaker[];
   /**
-   * Redistributors whose championships are not offered - those whose cars a
-   * championship needs. A round at one of their circuits is only skipped.
+   * Redistributors - which count for the cars a championship needs, never for
+   * its circuits.
    */
   distributors: ModDistributor[];
 }
@@ -245,11 +246,18 @@ export interface Settings {
    */
   carPrices: UserPrices;
   /**
-   * The content sources whose championships are not offered.
+   * The content sources the player switched on, whose championships are
+   * offered. Everything starts off.
    *
    * See src/shared/utils/content-sources/.
    */
-  hiddenContentSources: HiddenContentSources;
+  offeredContentSources: ContentSources;
+  /**
+   * What the player decided about recommended tracks, by layout id - only the
+   * layouts they decided something about. Everything else races whatever the
+   * app finds. See src/shared/utils/recommended-tracks/.
+   */
+  trackChoices: Record<string, TrackChoice>;
   /**
    * The championships the user switched on or off, by id.
    *

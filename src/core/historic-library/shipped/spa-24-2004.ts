@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -76,9 +77,6 @@ export const SPA_24_2004: Championship = {
         kind: 'spec',
         spec: CarSpec.N_GT,
       },
-      grid: {
-        strength: -3,
-      },
       entryFee: 2700,
       prizes: {
         positions: [27000, 18900, 13500, 10250, 7850, 5950, 4300, 3250, 2150, 1350],
@@ -117,9 +115,7 @@ export const SPA_24_2004: Championship = {
     {
       id: 'event',
       name: 'Spa 24 Hours 2004',
-      track: {
-        id: 'spa',
-      },
+      track: recommendedTrack('spa/gp'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -132,7 +128,6 @@ export const SPA_24_2004: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 1,
     aggression: 5,
   },
   generatedWeather: {

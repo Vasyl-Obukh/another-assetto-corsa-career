@@ -3,17 +3,18 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * European Le Mans Series, 2025 - four-hour races for LMP2 and LMGT3.
  *
- * Three classes of the real four. LMP2 and LMP2 Pro/Am are both the LMP2
- * (2021) spec, the Oreca 07 of Yezhrod, LFM and URD - the same car, the Pro/Am
- * class for crews with an amateur in them; LMGT3 is the GT3 (LFM) spec. LMP3
- * has no car and is left out. Five of six rounds, four hours each - Barcelona, Imola, Spa,
- * Silverstone and Portimao; Paul Ricard is not in Assetto Corsa. Silverstone's
- * twenty-four boxes cap the grid.
+ * LMP2 and LMGT3. LMP2 is the LMP2 (2021) spec, the Oreca 07 of Yezhrod, LFM
+ * and URD, one class where the real season split LMP2 from LMP2 Pro/Am, since
+ * a split by driver means nothing to AI drivers; LMGT3 is the GT3 (LFM) spec.
+ * LMP3 is left out; ELMS_2025_URD races LMP3 too, every class on URD's cars. All six
+ * rounds, four hours each - Barcelona, Paul Ricard, Imola, Spa, Silverstone
+ * and Portimao. Silverstone's twenty-four boxes cap the grid.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 in each class with a point for pole. The
  * field is invented, from the LMP2 and LMGT3 paddocks of the WEC seasons.
@@ -25,10 +26,10 @@ export const ELMS_2025: Championship = {
   id: 'elms-2025',
   name: 'European Le Mans Series 2025',
   description: {
-    en: 'Europe\'s endurance series of 2025 on the Oreca 07 in LMP2 and LMP2 Pro/Am and LFM\'s GT3s'
-      + ' in LMGT3: five four-hour races.',
-    uk: 'Європейська серія гонок на витривалість 2025 року на Oreca 07 у LMP2 і LMP2 Pro/Am '
-      + 'та на GT3 від LFM у LMGT3: п\'ять чотиригодинних гонок.',
+    en: 'Europe\'s endurance series of 2025 on the Oreca 07 in LMP2 and LFM\'s GT3s in LMGT3: six'
+      + ' four-hour races.',
+    uk: 'Європейська серія гонок на витривалість 2025 року на Oreca 07 у LMP2 '
+      + 'та на GT3 від LFM у LMGT3: шість чотиригодинних гонок.',
   },
   teams: [
     team('rhone', 'Rhône Endurance', 'FRA', TeamBudget.INDEPENDENT),
@@ -56,14 +57,6 @@ export const ELMS_2025: Championship = {
         seat('p2-alg-2', 'algarve', 'Henrique Salgueiro', 'PRT'),
         seat('p2-tre-1', 'trent-valley', 'Oscar Hazeldine', 'GBR'),
         seat('p2-tre-2', 'trent-valley', 'Ewan Pargeter', 'GBR'),
-      ],
-      eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
-    },
-    {
-      id: 'lmp2-pro-am',
-      name: 'LMP2 Pro/Am',
-      ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
-      seats: [
         seat('p2-eng-1', 'engadin', 'Gian Andri Salis', 'CHE'),
         seat('p2-eng-2', 'engadin', 'Fadri Clalüna', 'CHE'),
         seat('p2-war-1', 'warta', 'Bartosz Kędzierski', 'POL'),
@@ -72,12 +65,6 @@ export const ELMS_2025: Championship = {
         seat('p2-all-2', 'allegheny', 'Cole Harrigan', 'USA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
-      grid: { strength: -3 },
-      entryFee: 11200,
-      prizes: {
-        positions: [37500, 26250, 18750, 14250, 10900, 8250, 6000, 4500, 3000, 1900],
-        standings: [300000, 187500, 120000, 79000, 49000],
-      },
     },
     {
       id: 'lmgt3',
@@ -98,7 +85,6 @@ export const ELMS_2025: Championship = {
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'ARE'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_LFM },
-      grid: { strength: -2 },
       entryFee: 9000,
       prizes: {
         positions: [30000, 21000, 15000, 11400, 8700, 6600, 4800, 3600, 2400, 1500],
@@ -122,28 +108,34 @@ export const ELMS_2025: Championship = {
     {
       id: 'barcelona',
       name: '4 Hours of Barcelona',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023_48_pits_lfm_nodrs_v2' },
+      track: recommendedTrack('barcelona/gp'),
       sessionLengths: [{ session: 'race', laps: 130 }],
     },
-    { id: 'imola', name: '4 Hours of Imola', track: { id: 'fn_imola', layout: 'lfm' } },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'imola', name: '4 Hours of Imola', track: recommendedTrack('imola/gp') },
     {
       id: 'spa',
       name: '4 Hours of Spa',
-      track: { id: 'spa', layout: '2022_lfm_standing' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 88 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone',
       name: '4 Hours of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 104 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'portimao',
       name: '4 Hours of Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       sessionLengths: [{ session: 'race', laps: 135 }],
       climate: Climate.MEDITERRANEAN,
     },
@@ -152,7 +144,6 @@ export const ELMS_2025: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

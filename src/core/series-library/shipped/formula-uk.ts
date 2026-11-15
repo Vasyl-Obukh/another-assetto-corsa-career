@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -81,38 +82,38 @@ export const FORMULA_UK: Championship = {
     {
       id: 'brands-hatch',
       name: 'Brands Hatch',
-      track: { id: 'ks_brands_hatch', layout: 'gp' },
+      track: recommendedTrack('brands-hatch/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone-gp',
       name: 'Silverstone GP',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'oulton-park',
       name: 'Oulton Park',
-      track: { id: 'rt_oulton_park', layout: 'international' },
+      track: recommendedTrack('oulton-park/international'),
       climate: Climate.OCEANIC,
     },
-    { id: 'croft', name: 'Croft', track: { id: 'zw_croft', layout: 'full' }, climate: Climate.OCEANIC },
+    { id: 'croft', name: 'Croft', track: recommendedTrack('croft/full'), climate: Climate.OCEANIC },
     {
       id: 'silverstone-international',
       name: 'Silverstone International',
-      track: { id: 'ks_silverstone', layout: 'international' },
+      track: recommendedTrack('silverstone/international'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'thruxton',
       name: 'Thruxton',
-      track: { id: 'js_thruxton', layout: 'lfm' },
+      track: recommendedTrack('thruxton/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone-national',
       name: 'Silverstone National',
-      track: { id: 'ks_silverstone', layout: 'national' },
+      track: recommendedTrack('silverstone/national'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -120,7 +121,7 @@ export const FORMULA_UK: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

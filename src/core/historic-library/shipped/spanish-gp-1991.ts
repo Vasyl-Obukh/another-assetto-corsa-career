@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -107,10 +108,7 @@ export const SPANISH_GP_1991: Championship = {
     {
       id: 'event',
       name: 'Spanish Grand Prix 1991',
-      track: {
-        id: 'ks_barcelona',
-        layout: 'layout_gp',
-      },
+      track: recommendedTrack('barcelona/gp-2007'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -128,7 +126,6 @@ export const SPANISH_GP_1991: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 10,
   },
   generatedWeather: {

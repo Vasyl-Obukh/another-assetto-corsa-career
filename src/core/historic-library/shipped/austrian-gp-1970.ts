@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -92,10 +93,7 @@ export const AUSTRIAN_GP_1970: Championship = {
     {
       id: 'event',
       name: 'Austrian Grand Prix 1970',
-      track: {
-        id: 'ks_red_bull_ring',
-        layout: 'layout_gp',
-      },
+      track: recommendedTrack('red-bull-ring/gp'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -114,7 +112,6 @@ export const AUSTRIAN_GP_1970: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 10,
   },
   generatedWeather: {

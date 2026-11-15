@@ -73,7 +73,7 @@ const makeTrack = (id: string, pitboxes: number): Track => ({
   year: null,
   photos: [],
   logo: false,
-  provenance: trackProvenance(id, ''),
+  provenance: trackProvenance(id),
 });
 
 /**

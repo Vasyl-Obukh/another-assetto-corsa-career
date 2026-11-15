@@ -525,6 +525,13 @@ export interface Round {
      * Layout folder name; omitted for single-layout tracks.
      */
     layout?: string;
+    /**
+     * The recommended layout the round races, by its id in the catalogue -
+     * src/shared/constants/recommended-tracks.ts. With one, `id` and `layout`
+     * are only what it was written with: whichever installed track the layout
+     * races replaces them as a library is listed and a round is lowered.
+     */
+    recommended?: string;
   };
   /**
    * Which event format this round runs, by its id in `eventFormats`.
@@ -870,6 +877,11 @@ export interface MissingTrack {
    * Where it would have come from.
    */
   provenance: ContentProvenance;
+  /**
+   * The recommended layout the round races, when it names one: nothing that
+   * stands for it is installed, Kunos' own version included.
+   */
+  recommended?: string;
 }
 
 /**
@@ -1015,21 +1027,15 @@ export interface SeriesRequirements {
   pools: readonly RequirementPool[];
   /**
    * Where the circuits of rounds not on the base game come from. Owning them
-   * adds those rounds; lacking them loses those rounds and nothing else.
+   * adds those rounds; lacking them loses those rounds and nothing else. Only
+   * a DLC pack is ever credited with a circuit: a mod one stands for a
+   * recommended layout, whoever made the folder.
    */
   rounds: {
     /**
      * DLC packs some rounds race in.
      */
     packs: readonly DLCPack[];
-    /**
-     * Mod teams some rounds race at.
-     */
-    makers: readonly ModMaker[];
-    /**
-     * Redistributors - LFM - whose layouts some rounds race on.
-     */
-    distributors: readonly ModDistributor[];
   };
   /**
    * DLC packs, mod teams and redistributors reached only through a spec: they

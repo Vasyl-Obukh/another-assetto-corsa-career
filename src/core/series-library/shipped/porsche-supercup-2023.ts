@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,10 +11,12 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * 992 GT3 Cup.
  *
  * The Porsche Cup 992 (Guerilla) spec, which is Guerilla's 911 GT3 Cup; the
- * 992s of LFM and URD are specs of their own. Seven of eight races, as
- * understood rather than checked: the Red Bull Ring, Silverstone, the
- * Hungaroring, Spa, Zandvoort's double header and Monza. Monaco is not in
- * Assetto Corsa. The real races run half an hour and a lap, which Assetto
+ * 992s of LFM and URD are specs of their own. All eight races, as understood
+ * rather than checked: Monaco, the Red Bull Ring, Silverstone, the
+ * Hungaroring, Spa, Zandvoort's double header and Monza. Monaco races the
+ * 17 laps of a full race there, on monaco_2020's layouts - the older monaco mod has
+ * twenty-two boxes for twenty-four cars.
+ * The real races run half an hour and a lap, which Assetto
  * Corsa cannot time offline, so the race is the 75 km that covers at Cup pace.
  * The
  * base circuits' twenty-four boxes cap the grid.
@@ -29,9 +32,9 @@ export const PORSCHE_SUPERCUP_2023: Championship = {
   id: 'porsche-supercup-2023',
   name: 'Porsche Supercup 2023',
   description: {
-    en: 'Formula 1\'s one-make support series of 2023 on Guerilla\'s 911 GT3 Cup: seven races, '
+    en: 'Formula 1\'s one-make support series of 2023 on Guerilla\'s 911 GT3 Cup: eight races, '
       + 'Zandvoort twice.',
-    uk: 'Монокубок підтримки Формули-1 сезону 2023 на 911 GT3 Cup від Guerilla: сім гонок, із них дві в '
+    uk: 'Монокубок підтримки Формули-1 сезону 2023 на 911 GT3 Cup від Guerilla: вісім гонок, із них дві в '
       + 'Зандворті.',
   },
   teams: [
@@ -89,39 +92,46 @@ export const PORSCHE_SUPERCUP_2023: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
-        { type: 'race', name: 'Race', distance: 75, day: 2 },
+        { id: 'race', type: 'race', name: 'Race', distance: 75, day: 2 },
       ],
     },
   ],
   defaultEventFormat: 'standard',
   rounds: [
     {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 17 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'spielberg',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'budapest', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'budapest', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'zandvoort-2',
       name: 'Zandvoort, second race',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 20, 17, 14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },

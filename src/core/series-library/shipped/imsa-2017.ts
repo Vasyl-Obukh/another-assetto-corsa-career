@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -13,12 +14,12 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * IMSA version among them, and LFM's Ligier - standing for the prototype class
  * of LMP2s and DPis; GTLM the GTE (2017) spec, Dream Pack 1's Corvette and the
  * 911 RSRs and 488s; GTD the GT3 (2010s) spec of the base game and its packs.
- * Nine of twelve rounds at their real lengths - the Rolex 24 at Daytona, the
- * Sebring 12 Hours, the Circuit of the Americas, the Watkins Glen 6 Hours,
- * Lime Rock, Road America, VIR, Laguna Seca and Petit Le Mans. Long Beach,
- * Detroit and Canadian Tire Motorsport Park are not in Assetto Corsa. Every
- * class races every round, where Lime Rock and VIR were GT only. The Circuit
- * of the Americas' thirty boxes cap the grid.
+ * Ten of twelve rounds at their real lengths - the Rolex 24 at Daytona, the
+ * Sebring 12 Hours, Long Beach's hundred minutes, the Circuit of the Americas,
+ * the Watkins Glen 6 Hours, Lime Rock, Road America, VIR, Laguna Seca and Petit
+ * Le Mans. Detroit and Canadian Tire Motorsport Park have no recommended track.
+ * Every class races every round, where Lime Rock and VIR were GT only. Long
+ * Beach's and the Circuit of the Americas' thirty boxes cap the grid.
  *
  * Points are 35-32-30-28-26 and down to 1 in each class, the table as
  * understood rather than checked. The field is invented: five prototype teams
@@ -32,9 +33,9 @@ export const IMSA_2017: Championship = {
   name: 'IMSA SportsCar Championship 2017',
   description: {
     en: 'America\'s sports car championship of 2017 on Yezhrod\'s Oreca 07, the GTEs and the base '
-      + 'game\'s GT3s: nine rounds from the Rolex 24 to Petit Le Mans.',
+      + 'game\'s GT3s: ten rounds from the Rolex 24 to Petit Le Mans.',
     uk: 'Американський чемпіонат спортивних машин 2017 року на Oreca 07 від Yezhrod, машинах GTE і GT3 '
-      + 'базової гри: дев\'ять етапів від Rolex 24 до Petit Le Mans.',
+      + 'базової гри: десять етапів від Rolex 24 до Petit Le Mans.',
   },
   teams: [
     team('dixie', 'Dixie Prototypes', 'USA', TeamBudget.WORKS),
@@ -112,7 +113,6 @@ export const IMSA_2017: Championship = {
         seat('rio-2', 'rioplatense', 'Joaquín Laprida', 'ARG'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GT3_2010S },
-      grid: { strength: -3 },
       entryFee: 5400,
       prizes: {
         positions: [21600, 15100, 10800, 8200, 6250, 4750, 3450, 2600, 1750, 1100],
@@ -128,6 +128,16 @@ export const IMSA_2017: Championship = {
         { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
         { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
         { type: 'race', name: '2 Hours 40', distance: 470, day: 2 },
+      ],
+    },
+    {
+      id: 'hundred-minutes',
+      name: 'Hundred minutes',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 60, day: 0 },
+        { type: 'qualify', classes: 'apart', name: 'Qualifying', minutes: 20, day: 1 },
+        // The winner's laps of the real race
+        { type: 'race', name: '100 Minutes', laps: 63, day: 2 },
       ],
     },
     {
@@ -172,53 +182,60 @@ export const IMSA_2017: Championship = {
     {
       id: 'daytona',
       name: 'Rolex 24 at Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar_m4x' },
+      track: recommendedTrack('daytona/road'),
       eventFormat: 'daytona',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'long-beach',
+      name: 'Long Beach',
+      track: recommendedTrack('long-beach/street'),
+      eventFormat: 'hundred-minutes',
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'cota',
       name: 'Circuit of the Americas',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen 6 Hours',
-      track: { id: 'lilski_watkins_glen', layout: 'boot' },
+      track: recommendedTrack('watkins-glen/boot'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'lime-rock',
       name: 'Lime Rock Park',
-      track: { id: 'rt_lime_rock_park', layout: 'no_chicane' },
+      track: recommendedTrack('lime-rock/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
+      track: recommendedTrack('vir/full'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca', layout: 'laguna_seca_osrw' } },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full') },
     {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
@@ -234,7 +251,7 @@ export const IMSA_2017: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

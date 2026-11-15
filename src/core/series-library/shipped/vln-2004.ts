@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -86,7 +87,6 @@ export const VLN_2004: Championship = {
           'rss_gtn_furiano_36',
         ],
       },
-      grid: { strength: -1 },
       entryFee: 3600,
       prizes: {
         positions: [15000, 10500, 7500, 5700, 4350, 3300, 2400, 1800, 1200, 750],
@@ -108,7 +108,6 @@ export const VLN_2004: Championship = {
         seat('sky-bru-1', 'brunnchen', 'Heiko Gehlen', 'DEU'),
       ],
       eligibility: { kind: 'cars', cars: ['gue_nissan_skyline_r34_24h'] },
-      grid: { strength: -4 },
       entryFee: 2200,
       prizes: {
         positions: [9000, 6300, 4500, 3400, 2600, 2000, 1450, 1100, 700, 450],
@@ -150,72 +149,72 @@ export const VLN_2004: Championship = {
     {
       id: 'vln-1',
       name: 'VLN 1',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-2',
       name: 'VLN 2',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       sessionLengths: [{ session: 'race', laps: 26 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-3',
       name: 'VLN 3',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       sessionLengths: [{ session: 'race', laps: 27 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'n24',
       name: 'Nurburgring 24 Hours',
-      track: { id: 'ks_nordschleife', layout: 'endurance' },
+      track: recommendedTrack('nordschleife/endurance'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-4',
       name: 'VLN 4',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-5',
       name: 'VLN 5',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       sessionLengths: [{ session: 'race', laps: 25 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-6',
       name: 'VLN 6',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-7',
       name: 'VLN 6 Hours',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-8',
       name: 'VLN 8',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-9',
       name: 'VLN 9',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vln-10',
       name: 'VLN 10',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       sessionLengths: [{ session: 'race', laps: 27 }],
       climate: Climate.TEMPERATE,
     },

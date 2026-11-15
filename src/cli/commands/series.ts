@@ -23,6 +23,7 @@ import type {
   WeatherOffer,
 } from '../../shared/types/index.ts';
 import { SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
+import { trackKeyOf, withRecommendedTracks } from '../../shared/utils/recommended-tracks/index.ts';
 import { OUT_DIR } from '../constants.ts';
 import { describeProblems } from '../utils.ts';
 
@@ -105,7 +106,7 @@ const printDetail = (
   const widened = [...requires.widenedBy.packs, ...requires.widenedBy.makers, ...requires.widenedBy.distributors];
   console.log(`  Needs     ${needed.length ? needed.join(', ') : 'base only'}`);
   if (widened.length) console.log(`  Widened   ${widened.join(', ')}`);
-  const rounds = [...requires.rounds.packs, ...requires.rounds.makers, ...requires.rounds.distributors];
+  const rounds = requires.rounds.packs;
   if (rounds.length) console.log(`  Rounds    ${rounds.join(', ')} (some rounds only)`);
 
   const teams = new Map((series.teams ?? []).map((one) => [one.id, one]));
@@ -177,7 +178,7 @@ const printDetail = (
   console.log('\n  Calendar');
   series.rounds.forEach((round, index) => {
     const state = availability.rounds.find((one) => one.round === round.id);
-    const key = round.track.layout ? `${round.track.id}/${round.track.layout}` : round.track.id;
+    const key = trackKeyOf(round.track);
     const track = content.tracks.find((layout) => layout.key === key);
     const note = state?.track
       ? '  MISSING'
@@ -243,11 +244,14 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
   // folder to point at, so it sees the shipped half alone. That is what makes
   // it the regression harness for the shipped championships specifically.
   const library = await loadSeriesLibrary();
+  // Recommended tracks race whatever the install has of them; the CLI has no
+  // settings, so no choice of the player's comes into it.
+  const placed = (series: Championship): Championship => withRecommendedTracks(series, content.tracks, {});
 
   const [id, entry, round, car] = args;
   if (!id) {
     library.series.forEach((held) => {
-      printSeries(held.series, seriesAvailability(held.series, content));
+      printSeries(placed(held.series), seriesAvailability(placed(held.series), content));
     });
 
     return;
@@ -256,7 +260,7 @@ export const cmdSeries = async (args: string[]): Promise<void> => {
   const held = seriesById(library, id);
   if (!held) throw new AppError('series.notFound', { series: id });
 
-  const { series } = held;
+  const series = placed(held.series);
   const availability = seriesAvailability(series, content);
   // The CLI has no settings of its own, but the install's RainFX switch is real.
   const { rainFx } = await readWeatherFx(paths.acRoot, paths.documents);

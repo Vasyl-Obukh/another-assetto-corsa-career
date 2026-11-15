@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -96,7 +97,6 @@ export const LOTUS_CUP: Championship = {
         seat('prd-val-1', 'valdarno', 'Rocco Santambrogio', 'ITA'),
       ],
       eligibility: { kind: 'cars', cars: ['lotus_elise_sc'] },
-      grid: { strength: -4 },
       entryFee: 1200,
       prizes: {
         positions: [3600, 2500, 1800, 1300, 950, 700, 550, 350, 250, 100],
@@ -117,14 +117,14 @@ export const LOTUS_CUP: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
+    { id: 'magione', name: 'Magione', track: recommendedTrack('magione/full') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
     {
-      id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' }, climate: Climate.TEMPERATE,
+      id: 'zandvoort', name: 'Zandvoort', track: recommendedTrack('zandvoort/gp-1999'), climate: Climate.TEMPERATE,
     },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
   ],
   pointsSystems: [
@@ -136,7 +136,6 @@ export const LOTUS_CUP: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

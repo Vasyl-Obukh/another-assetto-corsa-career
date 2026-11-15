@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,12 +11,15 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * 992 GT3 Cup.
  *
  * The Porsche Cup 992 (LFM) spec, which is LFM's 911 GT3 Cup; the 992s of URD
- * and Guerilla are specs of their own. Seven of the European grands prix it
- * supported, as understood rather than checked: Imola, Barcelona, the Red Bull
- * Ring, Spa, the Hungaroring, Zandvoort and Monza, one race each. Monaco is
- * not in Assetto Corsa. The real races run half an hour and a lap, which
- * Assetto Corsa cannot time offline, so the race is the 75 km that covers at
- * Cup pace. The base circuits' twenty-four boxes cap a grid that runs past thirty.
+ * and Guerilla are specs of their own. The eight European grands prix it
+ * supported, as understood rather than checked: Imola, Monaco, Barcelona, the
+ * Red Bull Ring, Spa, the Hungaroring, Zandvoort and Monza, one race each.
+ * Monaco races the
+ * 17 laps of a full race there, on monaco_2020's layouts - the older monaco mod has
+ * twenty-two boxes for twenty-four cars. The real races run half an hour and a
+ * lap, which Assetto Corsa cannot time offline, so the race is the 75 km that
+ * covers at Cup pace. The base circuits' twenty-four boxes cap a grid that runs
+ * past thirty.
  *
  * Points are 25-20-17-14-12-10-9-8-7-6-5-4-3-2-1, the table as understood
  * rather than checked. The field is invented.
@@ -27,9 +31,9 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
   id: 'porsche-supercup-2025',
   name: 'Porsche Supercup 2025',
   description: {
-    en: 'Formula 1\'s one-make support series of 2025 on LFM\'s 911 GT3 Cup: seven European grands '
+    en: 'Formula 1\'s one-make support series of 2025 on LFM\'s 911 GT3 Cup: eight European grands '
       + 'prix, one race each.',
-    uk: 'Монокубок підтримки Формули-1 сезону 2025 на 911 GT3 Cup від LFM: сім європейських Гран-прі, по '
+    uk: 'Монокубок підтримки Формули-1 сезону 2025 на 911 GT3 Cup від LFM: вісім європейських Гран-прі, по '
       + 'одній гонці на кожному.',
   },
   teams: [
@@ -87,29 +91,36 @@ export const PORSCHE_SUPERCUP_2025: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
-        { type: 'race', name: 'Race', distance: 75, day: 2 },
+        { id: 'race', type: 'race', name: 'Race', distance: 75, day: 2 },
       ],
     },
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'fn_barcelona', layout: 'barcelona_2023' } },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 17 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp') },
     {
       id: 'spielberg',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'budapest', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'budapest', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 20, 17, 14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },

@@ -32,6 +32,7 @@ export const CLASS_NAMES: Readonly<Record<CarClass, string>> = {
   [CarClass.LMH]: 'Le Mans Hypercar',
   [CarClass.LMP1]: 'LMP1',
   [CarClass.LMP2]: 'LMP2',
+  [CarClass.LMP3]: 'LMP3',
   [CarClass.GROUP_C]: 'Group C',
   [CarClass.SPORTS_PROTOTYPE]: 'Sports Prototype',
   [CarClass.GT1]: 'GT1',
@@ -41,7 +42,13 @@ export const CLASS_NAMES: Readonly<Record<CarClass, string>> = {
   [CarClass.GTE]: 'GTE',
   [CarClass.N_GT]: 'N-GT',
   [CarClass.DTM]: 'DTM',
+  [CarClass.GT500]: 'GT500',
   [CarClass.TCR]: 'TCR',
+  [CarClass.NGTC]: 'BTCC NGTC',
+  [CarClass.SUPERCARS]: 'Supercars',
+  [CarClass.NASCAR]: 'NASCAR',
+  [CarClass.STOCK_CAR]: 'Stock Car',
+  [CarClass.MARCAS]: 'Brasileiro de Marcas',
   [CarClass.SUPER_TOURING]: 'Super Touring',
   [CarClass.TRANS_AM]: 'Trans-Am',
   [CarClass.PORSCHE_CUP]: 'Porsche Cup',
@@ -97,12 +104,17 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.FORMULA_2_2020]: { class: CarClass.FORMULA_2, name: 'Formula 2 2020' },
   [CarSpec.FORMULA_2_2024]: { class: CarClass.FORMULA_2, name: 'Formula 2 2024' },
   [CarSpec.FORMULA_2_2024_VRC]: { class: CarClass.FORMULA_2, name: 'Formula 2 2024 (VRC)' },
-  [CarSpec.FORMULA_3]: { class: CarClass.FORMULA_3, name: 'Formula 3' },
-  [CarSpec.FORMULA_4]: { class: CarClass.FORMULA_4, name: 'Formula 4' },
+  [CarSpec.FORMULA_3_2019]: { class: CarClass.FORMULA_3, name: 'Formula 3 2019' },
+  [CarSpec.FORMULA_3_2025]: { class: CarClass.FORMULA_3, name: 'Formula 3 2025' },
+  [CarSpec.FORMULA_4_GEN_1]: { class: CarClass.FORMULA_4, name: 'Formula 4 Gen 1' },
+  [CarSpec.FORMULA_4_GEN_2]: { class: CarClass.FORMULA_4, name: 'Formula 4 Gen 2' },
   [CarSpec.FORMULA_E_GEN_2]: { class: CarClass.FORMULA_E, name: 'Formula E Gen 2' },
   [CarSpec.FORMULA_E_GEN_3]: { class: CarClass.FORMULA_E, name: 'Formula E Gen 3' },
+  [CarSpec.FORMULA_E_GEN_4]: { class: CarClass.FORMULA_E, name: 'Formula E Gen 4' },
   [CarSpec.INDYCAR_2012_ROAD]: { class: CarClass.INDYCAR, name: 'IndyCar 2012 (road kit)' },
   [CarSpec.INDYCAR_2012_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2012 (oval kit)' },
+  [CarSpec.INDYCAR_2016_ROAD]: { class: CarClass.INDYCAR, name: 'IndyCar 2016 (road kit)' },
+  [CarSpec.INDYCAR_2016_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2016 (oval kit)' },
   [CarSpec.INDYCAR_2018_ROAD]: { class: CarClass.INDYCAR, name: 'IndyCar 2018 (road kit)' },
   [CarSpec.INDYCAR_2018_SHORT]: { class: CarClass.INDYCAR, name: 'IndyCar 2018 (short oval kit)' },
   [CarSpec.INDYCAR_2018_OVAL]: { class: CarClass.INDYCAR, name: 'IndyCar 2018 (oval kit)' },
@@ -115,24 +127,37 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.LMH_VRC]: { class: CarClass.LMH, name: 'Hypercar (VRC)' },
   [CarSpec.LMH_RSS]: { class: CarClass.LMH, name: 'Hypercar (RSS)' },
   [CarSpec.LMH_YZD]: { class: CarClass.LMH, name: 'Hypercar (Yezhrod)' },
+  [CarSpec.LMH_URD]: { class: CarClass.LMH, name: 'Hypercar (URD)' },
   [CarSpec.LMP1_2012]: { class: CarClass.LMP1, name: 'LMP1 Hybrid 2012' },
   [CarSpec.LMP1_2014]: { class: CarClass.LMP1, name: 'LMP1 Hybrid 2014' },
+  [CarSpec.LMP1_2015_URD]: { class: CarClass.LMP1, name: 'LMP1 2015 (URD)' },
   [CarSpec.LMP1_2016]: { class: CarClass.LMP1, name: 'LMP1 Hybrid 2016' },
   [CarSpec.LMP2_2017]: { class: CarClass.LMP2, name: 'LMP2 (2017)' },
   [CarSpec.LMP2_2021]: { class: CarClass.LMP2, name: 'LMP2 (2021)' },
+  [CarSpec.LMP2_2017_FSR]: { class: CarClass.LMP2, name: 'LMP2 and DPi (2017, FSR)' },
+  [CarSpec.LMP3_2015_FSR]: { class: CarClass.LMP3, name: 'LMP3 (2015, FSR)' },
+  [CarSpec.LMP3_2020_FSR]: { class: CarClass.LMP3, name: 'LMP3 (2020, FSR)' },
+  [CarSpec.LMP3_2020_URD]: { class: CarClass.LMP3, name: 'LMP3 (2020, URD)' },
   [CarSpec.GROUP_C]: { class: CarClass.GROUP_C, name: 'Group C' },
+  [CarSpec.GROUP_C_FSR]: { class: CarClass.GROUP_C, name: 'Group C (FSR)' },
   [CarSpec.SPORTS_PROTOTYPE_60S]: { class: CarClass.SPORTS_PROTOTYPE, name: 'Sports Prototype (60s)' },
   [CarSpec.GT1_1990S]: { class: CarClass.GT1, name: 'GT1 (1990s)' },
   [CarSpec.GT1_2000S]: { class: CarClass.GT1, name: 'GT1 (2000s)' },
   [CarSpec.GT2]: { class: CarClass.GT2, name: 'GT2' },
+  [CarSpec.GT2_FSR]: { class: CarClass.GT2, name: 'GT2 (FSR)' },
   [CarSpec.GT3_2010S]: { class: CarClass.GT3, name: 'GT3 (2010s)' },
   [CarSpec.GT3_2010S_PLUS]: { class: CarClass.GT3, name: 'GT3 (2010s, unrestricted)' },
   [CarSpec.GT3_LFM]: { class: CarClass.GT3, name: 'GT3 (LFM)' },
   [CarSpec.GT3_RSS]: { class: CarClass.GT3, name: 'GT3 (RSS)' },
+  [CarSpec.GT3_URD]: { class: CarClass.GT3, name: 'GT3 (URD)' },
+  [CarSpec.GT3_FSR]: { class: CarClass.GT3, name: 'GT3 (FSR)' },
+  [CarSpec.GT3_2010S_FSR]: { class: CarClass.GT3, name: 'GT3 (2010s, FSR)' },
   [CarSpec.E1_XP2]: { class: CarClass.GT3, name: 'E1-XP2' },
   [CarSpec.SPX]: { class: CarClass.GT3, name: 'SPX' },
   [CarSpec.GT4]: { class: CarClass.GT4, name: 'GT4' },
+  [CarSpec.GT4_FSR]: { class: CarClass.GT4, name: 'GT4 (FSR)' },
   [CarSpec.GTE_2011]: { class: CarClass.GTE, name: 'GTE (2011)' },
+  [CarSpec.GTE_2013]: { class: CarClass.GTE, name: 'GTE (2013)' },
   [CarSpec.GTE_2017]: { class: CarClass.GTE, name: 'GTE (2017)' },
   [CarSpec.GTE_2020S]: { class: CarClass.GTE, name: 'GTE (2020s)' },
   [CarSpec.GTE_LOTUS]: { class: CarClass.GTE, name: 'Lotus Evora GTE' },
@@ -141,12 +166,26 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
   [CarSpec.PORSCHE_CUP_992_LFM]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (LFM)' },
   [CarSpec.PORSCHE_CUP_992_URD]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (URD)' },
   [CarSpec.PORSCHE_CUP_992_GUERILLA]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (GUERILLA)' },
+  [CarSpec.PORSCHE_CUP_992_FSR]: { class: CarClass.PORSCHE_CUP, name: 'Porsche Cup 992 (FSR)' },
   [CarSpec.DTM_1993]: { class: CarClass.DTM, name: 'DTM 1993' },
+  [CarSpec.DTM_1995_FSR]: { class: CarClass.DTM, name: 'DTM 1995 (FSR)' },
+  [CarSpec.DTM_2013_URD]: { class: CarClass.DTM, name: 'DTM 2013 (URD)' },
+  [CarSpec.DTM_2015_URD]: { class: CarClass.DTM, name: 'DTM 2015 (URD)' },
+  [CarSpec.DTM_2018_URD]: { class: CarClass.DTM, name: 'DTM 2018 (URD)' },
   [CarSpec.DTM_2021_RSS]: { class: CarClass.DTM, name: 'DTM 2021 (RSS)' },
   [CarSpec.DTM_2025_LFM]: { class: CarClass.DTM, name: 'DTM 2025 (LFM)' },
   [CarSpec.DTM_2025_RSS]: { class: CarClass.DTM, name: 'DTM 2025 (RSS)' },
+  [CarSpec.GT500_2021]: { class: CarClass.GT500, name: 'GT500 2021' },
   [CarSpec.TCR_2024]: { class: CarClass.TCR, name: 'TCR' },
+  [CarSpec.TCR_FSR]: { class: CarClass.TCR, name: 'TCR (FSR)' },
+  [CarSpec.NGTC_FSR]: { class: CarClass.NGTC, name: 'BTCC NGTC (FSR)' },
+  [CarSpec.SUPERCARS_FSR]: { class: CarClass.SUPERCARS, name: 'V8 Supercars (FSR)' },
+  [CarSpec.NASCAR_NEXT_GEN_FSR]: { class: CarClass.NASCAR, name: 'NASCAR Next Gen (FSR)' },
+  [CarSpec.NASCAR_BRASIL_FSR]: { class: CarClass.NASCAR, name: 'NASCAR Brasil (FSR)' },
+  [CarSpec.STOCK_CAR_2023_FSR]: { class: CarClass.STOCK_CAR, name: 'Stock Car Pro 2023 (FSR)' },
+  [CarSpec.MARCAS_FSR]: { class: CarClass.MARCAS, name: 'Brasileiro de Marcas (FSR)' },
   [CarSpec.SUPER_TOURING_1990S]: { class: CarClass.SUPER_TOURING, name: 'Super Touring (1990s)' },
+  [CarSpec.SUPER_TOURING_FSR]: { class: CarClass.SUPER_TOURING, name: 'Super Touring (1990s, FSR)' },
   [CarSpec.TRANS_AM_TA2]: { class: CarClass.TRANS_AM, name: 'Trans-Am TA2' },
 };
 
@@ -163,7 +202,12 @@ export const SPECS: Readonly<Record<CarSpec, { class: CarClass; name: string }>>
  * Shaders Patch, so the plain variant is the lesser car on every install we
  * support, and a grid drawing from both would field the same model twice. The
  * plain one stays in the provenance catalogue and is simply unclassified, which
- * the user's own layer can undo.
+ * the user's own layer can undo. URD's second versions of a car under the same
+ * name - urd_px1_darche_s1, urd_egt_ferruccio2, urd_egt_venom2 - are left out
+ * for the same reason, as are First Studio Race's: two more Mercedes DTM 95s,
+ * acfsk_ligier_jsp320, and the versions of a car for the races the spec does not
+ * list (bmw_m4_gt4_endurence, mclaren_720s_gt3_evo_sprint,
+ * fsr_ktm_xbow_gt2_endurance, mercedes_amg_gt2_enduro).
  */
 export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.FORMULA_1_1954]: [
@@ -308,12 +352,16 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.FORMULA_2_2024_VRC]: [
     'vrc_formula_beta_2024_csp',
   ],
-  [CarSpec.FORMULA_3]: [
+  [CarSpec.FORMULA_3_2019]: [
     'rss_formula_rss_3_v6',
+  ],
+  [CarSpec.FORMULA_3_2025]: [
     'rss_formula_rss_3_v6_2026',
   ],
-  [CarSpec.FORMULA_4]: [
+  [CarSpec.FORMULA_4_GEN_1]: [
     'rss_formula_rss_4',
+  ],
+  [CarSpec.FORMULA_4_GEN_2]: [
     'rss_formula_rss_4_2024',
   ],
   [CarSpec.FORMULA_E_GEN_2]: [
@@ -322,11 +370,22 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.FORMULA_E_GEN_3]: [
     'vrc_formula_lithium_2023_csp',
   ],
+  [CarSpec.FORMULA_E_GEN_4]: [
+    'formula_e_gen4',
+  ],
   [CarSpec.INDYCAR_2012_ROAD]: [
     'vrc_formula_na_2012_road',
   ],
   [CarSpec.INDYCAR_2012_OVAL]: [
     'vrc_formula_na_2012_oval',
+  ],
+  [CarSpec.INDYCAR_2016_ROAD]: [
+    'urd_fcdetroit_road',
+    'urd_fcsuzuka_road',
+  ],
+  [CarSpec.INDYCAR_2016_OVAL]: [
+    'urd_fcdetroit_oval',
+    'urd_fcsuzuka_oval',
   ],
   [CarSpec.INDYCAR_2018_ROAD]: [
     'vrc_formula_na_2018_road',
@@ -379,12 +438,26 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'yzd_cadillac_v_lmdh',
     'yzd_vanwall_vandervell_680',
   ],
+  [CarSpec.LMH_URD]: [
+    'urd_akuma_axr006',
+    'urd_bayro_m_hybrid_v8',
+    'urd_dallas_vsr_hybrid',
+    'urd_gr010',
+    'urd_scg007_lmh',
+  ],
   [CarSpec.LMP1_2012]: [
     'yzd_audi_r18_etron_2012',
   ],
   [CarSpec.LMP1_2014]: [
     'ks_audi_r18_etron_quattro',
     'ks_toyota_ts040',
+  ],
+  [CarSpec.LMP1_2015_URD]: [
+    'urd_px1_aura',
+    'urd_px1_darche',
+    'urd_px1_revolution',
+    'urd_px1_revolution_v6',
+    'urd_px1_shiro',
   ],
   [CarSpec.LMP1_2016]: [
     'ks_porsche_919_hybrid_2015',
@@ -401,11 +474,36 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'yzd_oreca_07_2021',
     'yzd_oreca_07_2022',
   ],
+  [CarSpec.LMP2_2017_FSR]: [
+    'ligier_jsp217',
+    'lmp2_dallara_p217',
+    'mazda_rt24',
+  ],
+  [CarSpec.LMP3_2015_FSR]: [
+    'ginetta_g57_lmp3',
+    'ligier_jsp3',
+  ],
+  [CarSpec.LMP3_2020_FSR]: [
+    'acfsk_adess_03_evo',
+    'acfsk_duqueine_d08_lmp3_2020',
+    'acfsk_ginetta_g61_lt_p3',
+    'fsr_ligier_jsp320',
+    'ginetta_g61_evo',
+  ],
+  [CarSpec.LMP3_2020_URD]: [
+    'urd_px320',
+  ],
   [CarSpec.GROUP_C]: [
     'ks_mercedes_c9',
     'ks_mazda_787b',
     'ks_porsche_962c_longtail',
     'ks_porsche_962c_shorttail',
+  ],
+  [CarSpec.GROUP_C_FSR]: [
+    'alfa_romeu_se048',
+    'fsr_jaguar_xjr12',
+    'fsr_nissan_r90ck_rr',
+    'fsr_porsche_962_rr',
   ],
   [CarSpec.SPORTS_PROTOTYPE_60S]: [
     'ks_ford_gt40',
@@ -416,6 +514,8 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.GT1_1990S]: [
     'ks_porsche_911_gt1',
     'ks_mclaren_f1_gtr',
+    'urd_egt1_darche_evo_97',
+    'urd_maures_gtr_97',
     'rss_lmgt_nisumo_r39_v8',
     'rss_lmgt_toyama_2zero_v8',
     'urd_mercedes_clr_lm',
@@ -442,6 +542,14 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'gue_maserati_mc20_gt2',
     'gue_lamborghini_huracan_st_evo2',
     'gue_amg_gt2',
+  ],
+  [CarSpec.GT2_FSR]: [
+    'audi_r8_lms_gt2',
+    'fsr_ktm_xbow_gt2_sprint',
+    'maserati_mc20_gt2',
+    'mercedes_amg_gt2_sprint',
+    'porsche_935',
+    'porsche_991ii_gt2_rs_cs_evo',
   ],
   [CarSpec.GT3_2010S]: [
     'ks_audi_r8_lms_2016',
@@ -492,6 +600,34 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'rss_gtm_mercer_v8',
     'rss_gtm_protech_p92_f6',
   ],
+  [CarSpec.GT3_URD]: [
+    'urd_amr_gt3_evo',
+    'urd_bayro_gt3_evo',
+    'urd_darche_992_23',
+    'urd_detroit_coyote_gt3',
+    'urd_ferrucci_926t_gt3_v2',
+    'urd_michigan_gtd',
+    'urd_rekus_rcf_gt3',
+  ],
+  [CarSpec.GT3_FSR]: [
+    'fsr_aston_martin_vantage_gt3',
+    'fsr_audi_lms_evo_ii_gt3',
+    'fsr_ford_mustang_gt3',
+    'ks_ferrari_296_gt3',
+    'lamborghini_huracan_gt3_evo2',
+    'mclaren_720s_gt3_evo_endurance',
+    'porsche_992_gt3_r',
+    'toyota_gr_gt3',
+  ],
+  [CarSpec.GT3_2010S_FSR]: [
+    'amr_v12_vantage_gt3',
+    'dodge_viper17',
+    'fsr_ford_gt_gt3_rr',
+    'fsr_porsche_997r_13',
+    'fsr_ruf-rt12r_rr',
+    'jaguar_f-type_racing',
+    'porsche_911_gt3_r_acc',
+  ],
   [CarSpec.E1_XP2]: [
     'p4-5_2011',
   ],
@@ -519,26 +655,46 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'ks_maserati_gt_mc_gt4',
     'toyota_supra_gt4_cup_2019',
   ],
+  [CarSpec.GT4_FSR]: [
+    'alpine_a110_gt4',
+    'amr_v8_vantage_gt4',
+    'aston_martin_vantage_gt4_evo',
+    'audi_r8_gt4',
+    'bmw_m4_gt4',
+    'chevrolet_camaro_gt4r',
+    'ford_mustang_GT4_2024',
+    'fsr_bmw_m4_g86_gt4',
+    'ginetta_g55_gt4',
+    'maserati_gt_mc_gt4',
+    'mclaren_570s_gt4',
+    'mercedes_amg_gt4',
+    'nisssan_z_gt4_2023',
+    'porsche_718_cayman_gt4_mr',
+  ],
   [CarSpec.GTE_2011]: [
     'bmw_m3_gt2',
     'ferrari_458_gt2',
+  ],
+  [CarSpec.GTE_2013]: [
+    'urd_egt_am',
+    'urd_egt_bayro',
+    'urd_egt_corvette',
+    'urd_egt_darche',
+    'urd_egt_ferruccio',
+    'urd_egt_venom',
   ],
   [CarSpec.GTE_2017]: [
     'ks_corvette_c7r',
     'ks_porsche_911_rsr_2017',
     'yzd_porsche_911_rsr_gte_2018',
     'yzd_ferrari_488_gte',
-    'yzd_ferrari_488_gte_lm',
     'yzd_ferrari_488_gte_evo',
-    'yzd_ferrari_488_gte_evo_lm',
     'Yzd_Aston_Martin_V8_Vantage_GTE',
   ],
   [CarSpec.GTE_2020S]: [
     'urd_amr_egt_2019_v2',
     'urd_bayro_egt_2018',
-    'urd_darche_egt_2020',
     'urd_darche_egt_2020_sprint',
-    'urd_darche_egt_2021',
     'urd_darche_egt_2021_sprint',
     'urd_detroit_egt_2019',
     'urd_ferrucci_448t_egt',
@@ -565,10 +721,32 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
   [CarSpec.PORSCHE_CUP_992_GUERILLA]: [
     'gue_porsche_911_gt3_cup_992',
   ],
+  [CarSpec.PORSCHE_CUP_992_FSR]: [
+    'fsr_porsche_992_gt3_cup',
+  ],
   [CarSpec.DTM_1993]: [
     'bmw_m3_e30_dtm',
     'ks_alfa_romeo_155_v6',
     'ks_mercedes_190_evo2',
+  ],
+  [CarSpec.DTM_1995_FSR]: [
+    'alfa_romeu-dtm_94',
+    'fsr_mercedes_1995_dtm',
+  ],
+  [CarSpec.DTM_2013_URD]: [
+    'urd_t5_aura',
+    'urd_t5_bayro',
+    'urd_t5_maures',
+  ],
+  [CarSpec.DTM_2015_URD]: [
+    'urd_t5_aura_2015',
+    'urd_t5_bayro_2015',
+    'urd_t5_maures_2015',
+  ],
+  [CarSpec.DTM_2018_URD]: [
+    'urd_t5_aura_2018',
+    'urd_t5_bayro_2018',
+    'urd_t5_maures_2018',
   ],
   [CarSpec.DTM_2021_RSS]: [
     'rss_gtm_bayer_v8',
@@ -597,10 +775,63 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'rss_gtm_mercer_v8',
     'rss_gtm_protech_p92_f6',
   ],
+  [CarSpec.GT500_2021]: [
+    'urd_jt5_moyoda_2021',
+    'urd_jt5_shiro_2021',
+    'urd_jt5_snx_2021',
+  ],
   [CarSpec.TCR_2024]: [
     'fw_audi_rs3_tcr_2024',
     'fw_cupra_tcr_2024',
     'fw_elantra_tcr_2024',
+  ],
+  [CarSpec.TCR_FSR]: [
+    'fsr_hyundai_elantra_n_tcr',
+    'fsr_renault_megane_rs',
+    'opel_astra_tcr',
+  ],
+  [CarSpec.NGTC_FSR]: [
+    'btcc_bmw_125i_m',
+    'btcc_mg6',
+    'civic_btcc_2021',
+    'civic_btcc_2023',
+    'fsr_aud_s3saloon_14',
+    'fsr_bmw_125i_14',
+    'fsr_corolla_btcc',
+    'fsr_cruze_btcc',
+    'fsr_cupra_leon_btcc',
+    'fsr_focus_btcc',
+    'fsr_mercedes_aclass_14',
+    'fsr_toyota_avensis_14',
+    'fsr_vauxhall_astra_2021',
+    'subaru_levog_btcc',
+  ],
+  [CarSpec.SUPERCARS_FSR]: [
+    'ford_falcon_fg_sv8',
+    'fsr_ford_falcon_11',
+    'fsr_hol_commodore_11',
+  ],
+  [CarSpec.NASCAR_NEXT_GEN_FSR]: [
+    'fsr_chevrolet_camaro_2022',
+    'fsr_ford_mustang_2022',
+    'fsr_ford_mustang_2024',
+    'fsr_toyota_camry_2022',
+    'fsr_toyota_camry_2024',
+  ],
+  [CarSpec.NASCAR_BRASIL_FSR]: [
+    'camaro_nascar_br',
+    'mustang_nascar_br',
+  ],
+  [CarSpec.STOCK_CAR_2023_FSR]: [
+    'stockcorolla_2023',
+    'stockcruze_2023',
+  ],
+  [CarSpec.MARCAS_FSR]: [
+    'copa_marcas_corolla_v4',
+    'copa_marcas_ford_v4',
+    'copa_marcas_honda_v4',
+    'copa_marcas_lancer_v4',
+    'copa_marcas_renault_v4',
   ],
   [CarSpec.SUPER_TOURING_1990S]: [
     'vrc_erc_1994_vokker_csp',
@@ -612,6 +843,11 @@ export const SPEC_CARS: Readonly<Record<CarSpec, readonly string[]>> = {
     'vrc_erc_1999_gojira_csp',
     'vrc_erc_1999_renoir_csp',
     'vrc_erc_1999_vorax_csp',
+  ],
+  [CarSpec.SUPER_TOURING_FSR]: [
+    'btcc_bmw_320i_stw',
+    'btcc_ford_mondeo_stw',
+    'btcc_volvo_850',
   ],
   [CarSpec.TRANS_AM_TA2]: [
     'vrc_arc_ta2_chevrette_csp',

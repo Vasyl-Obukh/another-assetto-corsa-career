@@ -73,7 +73,7 @@ export const makeContent = (): Content => ({
     year: null,
     photos: [],
     logo: false,
-    provenance: trackProvenance('test_track', ''),
+    provenance: trackProvenance('test_track'),
   }],
   weather: [{
     id: 'test_clear',

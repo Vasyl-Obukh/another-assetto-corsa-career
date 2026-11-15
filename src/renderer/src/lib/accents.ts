@@ -26,6 +26,7 @@ import type {
   SponsorEnd,
   SponsorSlot,
   TeamBudget,
+  TrackSource,
 } from '../../../shared/types';
 
 /**
@@ -421,6 +422,34 @@ export const PRICE_ORIGIN_ACCENT = {
   yours: 'border-transparent bg-origin-custom text-origin-custom-foreground',
   suggested: 'border-transparent bg-price-suggested text-price-suggested-foreground',
 } as const satisfies Record<Exclude<PriceOrigin, 'catalogue'>, string>;
+
+/**
+ * How a recommended layout stands, a chip each on a hue the app already spends
+ * on the same idea: a track found by itself is the accepted mail's pale green,
+ * the player's own pick the custom origin's 340 that "yours" wears everywhere,
+ * a guess still to confirm the suggested price's amber, Kunos' older version
+ * the declined invitation's half-chroma slate - it races, but nothing asks for
+ * a look - and nothing installed the missed round's rose, since a round there
+ * is lost the same way. No screen showing them shows a mail, a price or a save.
+ */
+export const TRACK_STATE_ACCENT = {
+  found: 'border-transparent bg-mail-accepted text-mail-accepted-foreground',
+  choice: 'border-transparent bg-origin-custom text-origin-custom-foreground',
+  guess: 'border-transparent bg-price-suggested text-price-suggested-foreground',
+  kunos: 'border-transparent bg-mail-declined text-mail-declined-foreground',
+  missing: 'border-transparent bg-event-missed text-event-missed-foreground',
+} as const satisfies Record<TrackSource | 'guess', string>;
+
+/**
+ * The same as a dot, for the Tracks tab's filter on it.
+ */
+export const TRACK_STATE_DOT = {
+  found: 'bg-mail-accepted-foreground',
+  choice: 'bg-origin-custom-foreground',
+  guess: 'bg-price-suggested-foreground',
+  kunos: 'bg-mail-declined-foreground',
+  missing: 'bg-event-missed-foreground',
+} as const satisfies Record<TrackSource | 'guess', string>;
 
 /**
  * The same as a dot, for the rail's filter on it.

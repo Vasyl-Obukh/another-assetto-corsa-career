@@ -3,17 +3,20 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Porsche Mobil 1 Supercup, 2017 - the one-make support series of Formula 1,
  * on the 991 GT3 Cup.
  *
- * The Porsche Cup 991 spec, which is Porsche Pack 3's 911 GT3 Cup 2017. Seven
- * of the eleven races: Barcelona, the Red Bull Ring, Silverstone, the
- * Hungaroring, Spa's double header and Monza; Monaco and Mexico City are not
- * in Assetto Corsa. Races run half an hour. The base circuits' twenty-four
- * boxes cap a grid that ran thirty and more.
+ * The Porsche Cup 991 spec, which is Porsche Pack 3's 911 GT3 Cup 2017. All
+ * eleven races: Barcelona, Monaco, the Red Bull Ring, Silverstone, the
+ * Hungaroring, Spa's double header, Monza and Mexico City's double header.
+ * Monaco races the
+ * 17 laps of a full race there, on monaco_2020's layouts - the older monaco mod has
+ * twenty-two boxes for twenty-four cars. Races run half an hour.
+ * The base circuits' twenty-four boxes cap a grid that ran thirty and more.
  *
  * The points are the 20-18-16 table the Supercup is described as using; it was
  * not confirmed for 2017. The field is invented.
@@ -25,10 +28,10 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
   id: 'porsche-supercup-2017',
   name: 'Porsche Supercup 2017',
   description: {
-    en: 'Formula 1\'s one-make support series in 2017, on the 911 GT3 Cup: seven of its races, '
-      + 'Spa\'s double header included.',
-    uk: 'Монокубок підтримки Формули-1 сезону 2017 на 911 GT3 Cup: сім його гонок, зокрема дві гонки в '
-      + 'Спа.',
+    en: 'Formula 1\'s one-make support series in 2017, on the 911 GT3 Cup: all eleven races, '
+      + 'the double headers at Spa and Mexico City included.',
+    uk: 'Монокубок підтримки Формули-1 сезону 2017 на 911 GT3 Cup: усі одинадцять гонок, зокрема по дві '
+      + 'гонки в Спа та Мехіко.',
   },
   teams: [
     team('lechner-sc', 'Salzach Racing', 'AUT', TeamBudget.WORKS),
@@ -81,7 +84,7 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
       sessions: [
         { type: 'practice', name: 'Free practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
-        { type: 'race', name: 'Race', distance: 75, day: 2 },
+        { id: 'race', type: 'race', name: 'Race', distance: 75, day: 2 },
       ],
     },
     {
@@ -97,28 +100,51 @@ export const PORSCHE_SUPERCUP_2017: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'spain', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'spain', name: 'Barcelona', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 17 }],
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'austria',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'hungary', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
+    { id: 'hungary', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
     {
       id: 'belgium',
       name: 'Spa-Francorchamps',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'double',
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Monza', track: { id: 'monza' } },
+    { id: 'italy', name: 'Monza', track: recommendedTrack('monza/gp') },
+    {
+      id: 'mexico-city-1',
+      name: 'Mexico City, race 1',
+      track: recommendedTrack('mexico-city/gp'),
+      // VRC's Mexico reports a 2.6 km lap for the 4.3 km circuit.
+      sessionLengths: [{ session: 'race', laps: 18 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mexico-city-2',
+      name: 'Mexico City, race 2',
+      track: recommendedTrack('mexico-city/gp'),
+      // VRC's Mexico reports a 2.6 km lap for the 4.3 km circuit.
+      sessionLengths: [{ session: 'race', laps: 18 }],
+      climate: Climate.TEMPERATE,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [20, 18, 16, 14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },

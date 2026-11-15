@@ -10,6 +10,7 @@ import {
 import { readCmArguments, setCmArgument } from '../../core/cm-arguments/index.ts';
 import { probePaths } from '../../core/paths/index.ts';
 import type { PathsReport } from '../../shared/types/index.ts';
+import { recommendedStates } from '../../shared/utils/recommended-tracks/index.ts';
 import type { CareerStore } from '../career-store/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
@@ -83,6 +84,9 @@ export const registerHandlers = (
   handle('content:trackFacets', async ({ query }) => content.trackFacets(query));
   handle('content:track', async ({ key }) => content.track(key));
   handle('content:circuit', async ({ id }) => content.circuit(id));
+  handle('tracks:recommended', async () => (
+    recommendedStates((await content.content()).tracks, settings.get().trackChoices)
+  ));
   handle('content:weather', async () => {
     const installed = await content.content();
 
@@ -110,6 +114,7 @@ export const registerHandlers = (
   handle('series:list', async () => series.list());
   handle('series:get', async ({ id }) => series.get(id));
   handle('series:validate', async ({ series: draft }) => series.validate(draft));
+  handle('series:place', async ({ series: draft }) => series.place(draft));
   handle('series:save', async ({ id, series: draft }) => series.save(id, draft));
   handle('series:customise', async ({ id }) => series.customise(id));
   handle('series:duplicate', async ({ id, name }) => series.duplicate(id, name));

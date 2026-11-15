@@ -41,6 +41,7 @@ import type {
   WeatherOffer,
 } from '../../shared/types/index.ts';
 import { usesSpec } from '../../shared/utils/eligibility/index.ts';
+import { withRecommendedTracks } from '../../shared/utils/recommended-tracks/index.ts';
 import { weatherOffer } from '../../shared/utils/weather-types/index.ts';
 import type { ClassStore } from '../class-store/index.ts';
 import type { ContentStore } from '../content-store/index.ts';
@@ -95,9 +96,21 @@ export const createSeriesStore = async (
   const listeners = new Set<(next: SeriesLibrary) => void>();
 
   /**
+   * Points a championship's rounds at recommended layouts at the tracks they
+   * race, as the install and the player's choices stand. Every answer the
+   * store gives is over this, never over the document as written.
+   * @param series The championship
+   * @param installed Everything installed, in the library or not
+   * @returns The championship as it races
+   */
+  const placed = (series: Championship, installed: Content): Championship => (
+    withRecommendedTracks(series, installed.tracks, settings.get().trackChoices)
+  );
+
+  /**
    * What the install can race of one championship, and everything wrong with
    * it - the library's own rules included, which make it unavailable.
-   * @param series The championship
+   * @param series The championship, already placed
    * @param installed What content the library has
    * @returns Its availability
    */
@@ -116,14 +129,18 @@ export const createSeriesStore = async (
    * @param installed What content the library has
    * @returns The listing, including any event of it that is under way
    */
-  const listing = (one: LoadedSeries, installed: Content): SeriesListing => ({
-    series: one.series,
-    availability: availabilityOf(one.series, installed),
-    origin: one.origin,
-    activeByDefault: one.activeByDefault,
-    filler: one.filler,
-    event: eventOf(one.series, race.progress()),
-  });
+  const listing = (one: LoadedSeries, installed: Content): SeriesListing => {
+    const series = placed(one.series, installed);
+
+    return {
+      series,
+      availability: availabilityOf(series, installed),
+      origin: one.origin,
+      activeByDefault: one.activeByDefault,
+      filler: one.filler,
+      event: eventOf(one.series, race.progress()),
+    };
+  };
 
   /**
    * What generated weather may be drawn over, as the install and settings stand.
@@ -165,7 +182,7 @@ export const createSeriesStore = async (
   const lowerRound: SeriesStore['lowerRound'] = async (series, request, step = 0, opponents = settings.get().opponents) => {
     const installed = await content.content();
     const lowered = roundRace(
-      { series, ...request },
+      { series: placed(series, installed), ...request },
       installed,
       classes.catalogue(),
       await offer(installed),
@@ -326,7 +343,12 @@ export const createSeriesStore = async (
     },
 
     async validate(series) {
-      return availabilityOf(series, await content.content());
+      const installed = await content.content();
+      return availabilityOf(placed(series, installed), installed);
+    },
+
+    async place(series) {
+      return placed(series, await content.content());
     },
 
     async save(id, series) {

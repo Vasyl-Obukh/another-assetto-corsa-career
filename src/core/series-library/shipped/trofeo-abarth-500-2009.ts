@@ -1,17 +1,16 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Trofeo Abarth 500 Italia, 2009 - the Abarth 500 Assetto Corse's own
  * one-make trophy, and the bottom rung of touring cars.
  *
- * Its first season: six meetings of two races at Monza, Mugello, Imola, Le
- * Castellet, Valencia and Vallelunga. Five are raced as they were; Le Castellet
- * is not in Assetto Corsa, so Magione - the other home of the Italian trophies -
- * stands in, and its eighteen boxes cap the grid. The event is the 2010
- * Italia one, two 20-minute qualifyings each setting one race's grid and two
+ * Its first season, all of it: six meetings of two races at Monza, Mugello,
+ * Imola, Le Castellet, Valencia and Vallelunga. The event is the 2010 Italia
+ * one, two 20-minute qualifyings each setting one race's grid and two
  * 25-minute races, and the points the trophy's 21-18-16 scale over twelve places
  * with a point for fastest lap, as the 2010 season paid them.
  *
@@ -24,9 +23,9 @@ export const TROFEO_ABARTH_500_2009: Championship = {
   name: 'Trofeo Abarth 500 Italia 2009',
   description: {
     en: 'The Abarth 500 Assetto Corse\'s one-make trophy in its first season: two races a '
-      + 'event, each from its own qualifying. Magione stands in for Le Castellet.',
+      + 'event, each from its own qualifying.',
     uk: 'Монокубок Abarth 500 Assetto Corse у його першому сезоні: дві гонки за етап, кожна зі своєю '
-      + 'кваліфікацією. Маджоне замінює Ле-Кастелле.',
+      + 'кваліфікацією.',
   },
   teams: [
     team('torino', 'Torino Squadra Corse', 'ITA', TeamBudget.INDEPENDENT),
@@ -83,19 +82,24 @@ export const TROFEO_ABARTH_500_2009: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'le-castellet', name: 'Magione', track: { id: 'magione' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    {
+      id: 'le-castellet',
+      name: 'Le Castellet',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'valencia',
       name: 'Valencia',
-      track: { id: 'fn_valencia', layout: 'gp' },
+      track: recommendedTrack('valencia/gp'),
     },
     {
       id: 'vallelunga',
       name: 'Vallelunga',
-      track: { id: 'ks_vallelunga', layout: 'extended_circuit' },
+      track: recommendedTrack('vallelunga/full'),
     },
   ],
   pointsSystems: [
@@ -107,7 +111,7 @@ export const TROFEO_ABARTH_500_2009: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -6, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

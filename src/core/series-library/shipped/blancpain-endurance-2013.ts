@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -12,13 +13,13 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Ultra. The later 650S, Huracan and AMG GT3 are left out - they arrived after
  * the season - and so is everything DLC, since a car list is a requirement.
  *
- * Real lengths: three-hour races at Monza, Silverstone and Paul Ricard, the Spa
- * 24 Hours, and the Nurburgring 1000 km, raced here as the laps a thousand
- * kilometres takes on the GT layout. Paul Ricard is not in Assetto Corsa, so
- * Mugello stands in. The Pro, Pro-Am and Gentlemen cups raced one car against
- * another and are one class entry. The points are the 25-18-15 scale with a
- * point for pole; the Spa 24 Hours also paid at six and twelve hours, which a
- * points system cannot say yet.
+ * All five rounds at their real lengths: three-hour races at Monza,
+ * Silverstone and Paul Ricard, the Spa 24 Hours, and the Nurburgring 1000 km,
+ * raced here as the laps a thousand kilometres takes on the GT layout. The
+ * Pro, Pro-Am and Gentlemen cups raced one car against another and are one
+ * class entry. The points are the 25-18-15 scale with a point for pole; the
+ * Spa 24 Hours also paid at six and twelve hours, which a points system cannot
+ * say yet.
  *
  * Grids capped at 24, the boxes Silverstone, Spa and the Nurburgring have,
  * against real fields of fifty and more.
@@ -31,11 +32,9 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
   name: 'Blancpain Endurance Series 2013',
   description: {
     en: 'GT3 endurance racing at its real length: three three-hour races, the Spa 24 Hours '
-      + 'and the Nurburgring 1000 km, on the four GT3 cars of 2013 the base game ships. Mugello '
-      + 'stands in for Paul Ricard.',
+      + 'and the Nurburgring 1000 km, on the four GT3 cars of 2013 the base game ships.',
     uk: 'Гонки GT3 на витривалість у справжній тривалості: три тригодинні гонки, 24 години Спа '
-      + 'та 1000 км Нюрбургрингу на чотирьох машинах GT3 2013 року з базової гри. Муджелло '
-      + 'замінює Поль-Рікар.',
+      + 'та 1000 км Нюрбургрингу на чотирьох машинах GT3 2013 року з базової гри.',
   },
   teams: [
     team('meuse', 'Meuse Racing Club', 'BEL', TeamBudget.WORKS),
@@ -115,25 +114,30 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
   ],
   defaultEventFormat: 'three-hours',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring 1000 km',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       eventFormat: 'thousand-km',
       climate: Climate.TEMPERATE,
     },
@@ -144,7 +148,6 @@ export const BLANCPAIN_ENDURANCE_2013: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

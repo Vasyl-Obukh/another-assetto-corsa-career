@@ -1,8 +1,10 @@
 import { seat, team } from './utils.ts';
+import { Hemisphere } from '../../../shared/types/index.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -24,11 +26,12 @@ const EVENT: EventFormat = {
  *
  * The real entry list, on the 1967 spec: the base game's Lotus 49, with the
  * Ferrari 312/67 of the Ferrari 70th pack joining the field for anyone who owns
- * it. Seven of eleven rounds at their real distances - Zandvoort, where the 49
- * won first time out, Spa, Le Mans' Bugatti circuit, Silverstone as it was, the
- * Nordschleife, Monza's road course and Watkins Glen. Where the circuit is the
- * one raced the laps are the real ones; elsewhere they cover the same distance.
- * Kyalami, Monaco, Mosport and Mexico City are not in Assetto Corsa.
+ * it. Ten of eleven rounds at their real distances - Kyalami, Monaco,
+ * Zandvoort, where the 49 won first time out, Spa, Le Mans' Bugatti circuit,
+ * Silverstone as it was, the Nordschleife, Monza's road course, Watkins Glen
+ * and Mexico City. Where the circuit is the one raced the laps are the real
+ * ones; elsewhere they cover the same distance. Mosport is not in Assetto
+ * Corsa.
  *
  * Points are 9-6-4-3-2-1; the season counted a driver's best five of the first
  * six rounds and best four of the last five, which a points system cannot say
@@ -41,10 +44,10 @@ export const FORMULA_1_1967: Championship = {
   id: 'formula-1-1967',
   name: 'Formula 1 1967',
   description: {
-    en: 'The season of the Lotus 49\'s debut, with the real entry list and seven of its grands '
+    en: 'The season of the Lotus 49\'s debut, with the real entry list and ten of its grands '
       + 'prix at their real distances. The Ferrari 312/67 joins the grid if you own the Ferrari 70th '
       + 'pack.',
-    uk: 'Сезон дебюту Lotus 49 зі справжнім списком учасників і сімома гран-прі на справжніх '
+    uk: 'Сезон дебюту Lotus 49 зі справжнім списком учасників і десятьма гран-прі на справжніх '
       + 'дистанціях. Ferrari 312/67 поповнює стартову решітку, якщо у вас є пакет Ferrari 70th.',
   },
   teams: [
@@ -94,44 +97,67 @@ export const FORMULA_1_1967: Championship = {
   defaultEventFormat: 'grand-prix',
   rounds: [
     {
+      id: 'kyalami',
+      name: 'South African Grand Prix',
+      track: recommendedTrack('kyalami/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 73 }],
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 94 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'france',
       name: 'French Grand Prix',
-      track: { id: 'bugatti_GPE2023', layout: 'lfm_standing' },
+      track: recommendedTrack('bugatti/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 80 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       sessionLengths: [{ session: 'grand-prix', laps: 80 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'germany',
       name: 'German Grand Prix',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       sessionLengths: [{ session: 'grand-prix', laps: 15 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'ks_monza66', layout: 'road' },
+      track: recommendedTrack('monza/1966-road'),
       sessionLengths: [{ session: 'grand-prix', laps: 68 }],
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'lilski_watkins_glen', layout: 'short_classic' },
+      track: recommendedTrack('watkins-glen/short-classic'),
       sessionLengths: [{ session: 'grand-prix', laps: 108 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mexico-city',
+      name: 'Mexican Grand Prix',
+      track: recommendedTrack('mexico-city/gp'),
+      // VRC's Mexico reports a 2.6 km lap for the 4.3 km circuit.
+      sessionLengths: [{ session: 'grand-prix', laps: 76 }],
       climate: Climate.TEMPERATE,
     },
   ],
@@ -139,7 +165,7 @@ export const FORMULA_1_1967: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -12,9 +13,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * LFM's Audi RS3 LMS, Cupra Leon Competicion and Hyundai Elantra N make up the
  * TCR 2024 spec. Two races a round: the first from qualifying, the second
  * with qualifying's top ten reversed. The calendar is the circuits the series
- * races that Assetto Corsa has - Portimao, Spa, Zandvoort, Monza, Barcelona
- * and the Hungaroring - rather than one season's, which was not checked;
- * Salzburgring and Misano are not in Assetto Corsa.
+ * races that Assetto Corsa has - Portimao, Spa, Zandvoort, Monza, Barcelona,
+ * the Hungaroring, the Salzburgring and Misano - rather than one season's,
+ * which was not checked.
  *
  * Races run half an hour and the 25-18-15 scale scores them, both stand-ins
  * for the series' own, which were not checked. The field is invented.
@@ -96,25 +97,37 @@ export const TCR_EUROPE: Championship = {
     {
       id: 'portimao',
       name: 'Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       climate: Climate.MEDITERRANEAN,
     },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'fn_barcelona', layout: 'barcelona_2023' } },
-    { id: 'hungaroring', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp') },
+    { id: 'hungaroring', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
+    {
+      id: 'salzburgring',
+      name: 'Salzburgring',
+      track: recommendedTrack('salzburgring/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -1, aggression: 30 },
+  grid: { aggression: 30 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

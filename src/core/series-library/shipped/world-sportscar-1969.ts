@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -135,21 +136,21 @@ export const WORLD_SPORTSCAR_1969: Championship = {
     {
       id: 'daytona',
       name: '24 Hours of Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar' },
+      track: recommendedTrack('daytona/road'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'boac-500',
       name: 'BOAC 500',
-      track: { id: 'ks_brands_hatch', layout: 'gp' },
+      track: recommendedTrack('brands-hatch/gp'),
       sessionLengths: [{ session: 'race', laps: 248 }],
       eventFormat: 'six-hours',
       climate: Climate.OCEANIC,
@@ -157,27 +158,27 @@ export const WORLD_SPORTSCAR_1969: Championship = {
     {
       id: 'monza',
       name: '1000 km of Monza',
-      track: { id: 'ks_monza66', layout: 'full' },
+      track: recommendedTrack('monza/1966-full'),
       eventFormat: 'monza-1000',
     },
     {
       id: 'spa',
       name: '1000 km of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-1000',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '1000 km of the Nurburgring',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       eventFormat: 'nurburgring-1000',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'nochicane' },
+      track: recommendedTrack('le-mans/no-chicanes'),
       sessionLengths: [{ session: 'race', laps: 382 }],
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
@@ -185,8 +186,14 @@ export const WORLD_SPORTSCAR_1969: Championship = {
     {
       id: 'watkins-glen',
       name: 'Watkins Glen Six Hours',
-      track: { id: 'lilski_watkins_glen', layout: 'short_classic' },
+      track: recommendedTrack('watkins-glen/short-classic'),
       eventFormat: 'six-hours',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'osterreichring',
+      name: 'Osterreichring',
+      track: recommendedTrack('osterreichring/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -194,7 +201,7 @@ export const WORLD_SPORTSCAR_1969: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

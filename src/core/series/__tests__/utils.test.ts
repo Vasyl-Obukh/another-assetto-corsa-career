@@ -775,6 +775,14 @@ describe('core/series/utils', () => {
       expect(requires.rounds.packs).toEqual([DLCPack.DREAM_PACK_3]);
     });
 
+    // Recommended tracks stand for whoever made the folder, so no mod team or
+    // redistributor is credited with a circuit.
+    it('credits nobody with a round at a mod circuit', () => {
+      const requires = requirementsOf(racing({ kind: 'cars', cars: ['abarth500'] }, 'rt_suzuka'), SHIPPED_CATALOGUE);
+
+      expect(requires.rounds).toEqual({ packs: [] });
+    });
+
     // A mod nobody is credited with has no maker, so this is the only trace of
     // it - the settings card read "Needs: Base game" without it.
     it('keeps an uncredited mod a car list names as a needed source', () => {

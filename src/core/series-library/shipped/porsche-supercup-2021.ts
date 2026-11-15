@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,9 +11,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The Porsche Cup 992 (URD) spec, which is URD's Darche 992 Cup - the 911 GT3
  * Cup under a made-up name; the 992s of LFM and Guerilla are specs of their
- * own. Six of its races, as understood rather than checked: two at the Red
- * Bull Ring, then the Hungaroring, Spa, Zandvoort and Monza. Monaco is not in
- * Assetto Corsa. The real races run half an hour and a lap, which Assetto
+ * own. Its seven races, as understood rather than checked: Monaco, two at the
+ * Red Bull Ring, then the Hungaroring, Spa, Zandvoort and Monza. Monaco races the
+ * 17 laps of a full race there, on monaco_2020's layouts - the older monaco mod has
+ * twenty-two boxes for twenty-four cars.
+ * The real races run half an hour and a lap, which Assetto
  * Corsa cannot time offline, so the race is the 75 km that covers at Cup pace.
  * The
  * base circuits' twenty-four boxes cap the grid.
@@ -28,9 +31,9 @@ export const PORSCHE_SUPERCUP_2021: Championship = {
   id: 'porsche-supercup-2021',
   name: 'Porsche Supercup 2021',
   description: {
-    en: 'The Supercup\'s first 992 season on URD\'s Darche 992 Cup: six races supporting Formula '
+    en: 'The Supercup\'s first 992 season on URD\'s Darche 992 Cup: seven races supporting Formula '
       + '1\'s European rounds.',
-    uk: 'Перший сезон Supercup з 992 на Darche 992 Cup від URD: шість гонок у програмі європейських '
+    uk: 'Перший сезон Supercup з 992 на Darche 992 Cup від URD: сім гонок у програмі європейських '
       + 'етапів Формули-1.',
   },
   teams: [
@@ -88,33 +91,40 @@ export const PORSCHE_SUPERCUP_2021: Championship = {
       sessions: [
         { type: 'practice', name: 'Practice', minutes: 45, day: 0 },
         { type: 'qualify', name: 'Qualifying', minutes: 30, day: 1 },
-        { type: 'race', name: 'Race', distance: 75, day: 2 },
+        { id: 'race', type: 'race', name: 'Race', distance: 75, day: 2 },
       ],
     },
   ],
   defaultEventFormat: 'standard',
   rounds: [
     {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 17 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'spielberg',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spielberg-2',
       name: 'Red Bull Ring, second race',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'budapest', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'budapest', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 20, 17, 14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },

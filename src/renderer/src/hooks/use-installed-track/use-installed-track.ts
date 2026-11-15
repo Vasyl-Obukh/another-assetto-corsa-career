@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { Track } from '../../../../shared/types';
+import { trackKeyOf } from '../../../../shared/utils/recommended-tracks';
 import { invoke, subscribe } from '@/lib/ipc';
 
 /**
@@ -17,7 +18,7 @@ import { invoke, subscribe } from '@/lib/ipc';
 export const useInstalledTrack = (track: { id: string; layout?: string } | null): Track | null => {
   const [resolved, setResolved] = useState<{ key: string; track: Track | null }>({ key: '', track: null });
   const [nonce, setNonce] = useState(0);
-  const key = track ? (track.layout ? `${track.id}/${track.layout}` : track.id) : '';
+  const key = track ? trackKeyOf(track) : '';
 
   useEffect(() => {
     if (key === '') return undefined;

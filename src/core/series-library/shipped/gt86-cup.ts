@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -86,31 +87,31 @@ export const GT86_CUP: Championship = {
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' }, climate: Climate.TEMPERATE,
+      id: 'zandvoort', name: 'Zandvoort', track: recommendedTrack('zandvoort/gp-1999'), climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone International',
-      track: { id: 'ks_silverstone', layout: 'international' },
+      track: recommendedTrack('silverstone/international'),
       climate: Climate.OCEANIC,
     },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring-sprint',
       name: 'Nurburgring Sprint',
-      track: { id: 'ks_nurburgring', layout: 'layout_sprint_b' },
+      track: recommendedTrack('nurburgring/sprint-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nordschleife',
       name: 'Nordschleife',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -118,7 +119,7 @@ export const GT86_CUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -6, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

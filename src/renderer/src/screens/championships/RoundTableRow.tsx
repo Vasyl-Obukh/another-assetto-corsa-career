@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 
 import { FormatStrip } from './FormatStrip.tsx';
 import { RoundRaces } from './RoundRaces.tsx';
-import { trackKeyOf } from './utils.ts';
+import { trackLabelOf } from './utils.ts';
 import type { Round, SeasonEvent, SeriesListing } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
 import { seatRaceableIn } from '../../../../shared/utils/round-availability';
@@ -114,7 +114,7 @@ export const RoundTableRow = ({
       <td className="py-2.5 pr-3 align-middle">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="font-semibold">{round.name}</span>
-          <span className="truncate text-xs text-muted-foreground">{trackKeyOf(round)}</span>
+          <span className="truncate text-xs text-muted-foreground">{trackLabelOf(round, t)}</span>
           {/* Only what this round says for itself: the championship's own
               climate, fee and conditions are the sidebar's. */}
           {ownClimate || round.conditions
@@ -164,6 +164,7 @@ export const RoundTableRow = ({
           entry={entry}
           playerSeat={playerSeat}
           playerName={playerName}
+          number={number}
         />
       </td>
 

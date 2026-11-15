@@ -1,9 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { SERIES_FORMAT_VERSION } from '../../../../shared/constants/index.ts';
-import { Discipline, Weekday } from '../../../../shared/types/index.ts';
+import { CarSpec, Discipline, Weekday } from '../../../../shared/types/index.ts';
 import type { Championship } from '../../../../shared/types/index.ts';
-import { filler, seat } from '../utils.ts';
+import {
+  filler, reclassed, reclassedBy, seat,
+} from '../utils.ts';
 
 /**
  * A championship to derive fillers from, stating a length and a sum
@@ -88,17 +90,54 @@ describe('core/series-library/shipped/utils', () => {
       expect(plus.rounds[0].entryFee).toBe(300);
     });
 
-    it('fields a stronger grid', () => {
-      expect(plus.grid).toEqual({ strength: 5, aggression: 5 });
+    it('races its base grid unchanged, the AI at the player strength on every rung', () => {
+      expect(plus.grid).toEqual({ strength: 3, aggression: 5 });
     });
 
     it('adds nothing its base does not state', () => {
       const bare = filler({ ...BASE, entryFee: undefined, prizes: undefined, grid: undefined }, 1, '');
 
       expect(bare.prizes).toBeUndefined();
-      // An offset rather than a level, so a base that states none is still
-      // raced a step stronger.
-      expect(bare.grid).toEqual({ strength: 2 });
+      expect(bare.grid).toBeUndefined();
+    });
+  });
+
+  describe('reclassed', () => {
+    const TWO: Championship = { ...BASE, entries: [BASE.entries[0], { ...BASE.entries[0], id: 'second' }] };
+    const FSR = { kind: 'spec', spec: CarSpec.GT4_FSR } as const;
+
+    it('puts every class on the cars it is given', () => {
+      expect(reclassed(TWO, FSR).map((entry) => entry.eligibility)).toEqual([FSR, FSR]);
+    });
+
+    it('keeps the seats, rung and money of every class', () => {
+      expect(reclassed(TWO, FSR)[0]).toEqual({ ...TWO.entries[0], eligibility: FSR });
+    });
+
+    it('leaves the championship it copies racing its own cars', () => {
+      reclassed(TWO, FSR);
+
+      expect(TWO.entries[0].eligibility).toEqual({ kind: 'cars', cars: ['tatuusfa1'] });
+    });
+  });
+
+  describe('reclassedBy', () => {
+    const TWO: Championship = { ...BASE, entries: [BASE.entries[0], { ...BASE.entries[0], id: 'second' }] };
+    const FSR = { kind: 'spec', spec: CarSpec.GT4_FSR } as const;
+
+    it('puts only the classes it names on other cars, the rest racing the original\'s', () => {
+      expect(reclassedBy(TWO, { second: FSR }).map((entry) => entry.eligibility))
+        .toEqual([{ kind: 'cars', cars: ['tatuusfa1'] }, FSR]);
+    });
+
+    it('keeps the seats, rung and money of a class it moves', () => {
+      expect(reclassedBy(TWO, { main: FSR })[0]).toEqual({ ...TWO.entries[0], eligibility: FSR });
+    });
+
+    it('leaves the championship it copies racing its own cars', () => {
+      reclassedBy(TWO, { main: FSR });
+
+      expect(TWO.entries[0].eligibility).toEqual({ kind: 'cars', cars: ['tatuusfa1'] });
     });
   });
 

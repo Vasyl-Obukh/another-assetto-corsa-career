@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -87,7 +88,6 @@ export const WEC_2023: Championship = {
         seat('p2-war-2', 'warta', 'Mikołaj Szczepanik', 'POL'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.LMP2_2021 },
-      grid: { strength: -3 },
       entryFee: 12000,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
@@ -113,7 +113,6 @@ export const WEC_2023: Championship = {
         seat('gt-dun-2', 'dune', 'Rashed Al Shamsi', 'ARE'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017 },
-      grid: { strength: -6 },
       entryFee: 9000,
       prizes: {
         positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
@@ -204,7 +203,7 @@ export const WEC_2023: Championship = {
     {
       id: 'sebring',
       name: '1000 Miles of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       sessionLengths: [{ session: 'race', laps: 239 }],
       eventFormat: 'eight-hours',
       climate: Climate.TEMPERATE,
@@ -212,40 +211,40 @@ export const WEC_2023: Championship = {
     {
       id: 'portimao',
       name: '6 Hours of Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'spa',
       name: '6 Hours of Spa',
-      track: { id: 'spa', layout: '2022_lfm_standing' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 148 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'chicane' },
+      track: recommendedTrack('le-mans/24h'),
       eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'monza',
       name: '6 Hours of Monza',
-      track: { id: 'monza', layout: 'lfm' },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [{ session: 'race', laps: 200 }],
     },
     {
       id: 'fuji',
       name: '6 Hours of Fuji',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp_lfmv2' },
+      track: recommendedTrack('fuji/gp'),
       sessionLengths: [{ session: 'race', laps: 229 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: '8 Hours of Bahrain',
-      track: { id: 'fn_bahrain', layout: 'gp_lfm' },
+      track: recommendedTrack('bahrain/gp'),
       eventFormat: 'eight-hours',
       climate: Climate.ARID,
     },
@@ -266,7 +265,6 @@ export const WEC_2023: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

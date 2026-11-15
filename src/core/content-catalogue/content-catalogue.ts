@@ -6,13 +6,11 @@ import {
   BASE_CARS,
   BASE_TRACKS,
   DISTRIBUTOR_CARS,
-  DISTRIBUTOR_TRACKS,
   DLC_CARS,
   DLC_TRACKS,
   MOD_CARS,
-  MOD_TRACKS,
 } from './constants.ts';
-import type { ContentProvenance, DLCPack, ModMaker } from '../../shared/types/index.ts';
+import type { ContentProvenance, DLCPack } from '../../shared/types/index.ts';
 import { ContentSource } from '../../shared/types/index.ts';
 
 // Re-exported for callers, following the pattern in src/core/content/: the
@@ -22,11 +20,9 @@ export {
   BASE_TRACKS,
   CONTENT_CATALOGUE_VERSION,
   DISTRIBUTOR_CARS,
-  DISTRIBUTOR_TRACKS,
   DLC_CARS,
   DLC_TRACKS,
   MOD_CARS,
-  MOD_TRACKS,
 } from './constants.ts';
 
 // Lives in shared so the renderer can badge what the user added, but it is this
@@ -66,24 +62,21 @@ export const carProvenance = (id: string): ContentProvenance => {
 };
 
 /**
- * Where a track layout came from.
- *
- * Everything but the redistributor is keyed by the track, since a pack ships a
- * circuit and every layout of it comes along. The redistributor is keyed by the
- * layout, because it adds layouts to circuits it did not ship - LFM's
- * nordschleife-lfm sits inside Kunos' Dream Pack 1 Nordschleife.
+ * Where a track came from: the base game or a DLC pack, keyed by the folder,
+ * since a pack ships a circuit and every layout of it comes along. No mod team
+ * or redistributor is credited with a circuit any more: the shipped
+ * championships race recommended tracks, whoever made the folder that stands
+ * for one - see src/shared/utils/recommended-tracks/.
  * @param id Folder name under content/tracks
- * @param layout Layout folder name, or an empty string for a single-layout track
- * @returns Its source, DLC pack, mod maker and redistributor
+ * @returns Its source and DLC pack
  */
-export const trackProvenance = (id: string, layout: string): ContentProvenance => {
+export const trackProvenance = (id: string): ContentProvenance => {
   const pack = DLC_TRACKS[id];
-  const maker: ModMaker | undefined = MOD_TRACKS[id];
 
   return {
     source: sourceOf(BASE_TRACK_IDS.has(id), pack),
     pack: pack ?? null,
-    maker: maker ?? null,
-    distributor: DISTRIBUTOR_TRACKS[layout ? `${id}/${layout}` : id] ?? null,
+    maker: null,
+    distributor: null,
   };
 };

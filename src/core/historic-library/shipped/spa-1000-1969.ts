@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -86,9 +87,7 @@ export const SPA_1000_1969: Championship = {
     {
       id: 'event',
       name: '1000 km of Spa 1969',
-      track: {
-        id: 'spa',
-      },
+      track: recommendedTrack('spa/gp'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -101,7 +100,6 @@ export const SPA_1000_1969: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 3,
     aggression: -5,
   },
   generatedWeather: {

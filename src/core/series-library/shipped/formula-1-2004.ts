@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,11 +27,10 @@ const EVENT: EventFormat = {
  * Formula 1, 2004 - the Ferrari F2004's season, thirteen wins from eighteen.
  *
  * The real entry list on the 2004 spec, which is the Ferrari 70th pack's F2004
- * and nothing else, so every seat drives one. Fourteen of the eighteen rounds
- * at their real distances, from Sepang to Interlagos; Barcelona runs the
- * layout without its later chicane, and where a circuit has changed since, the
- * laps cover the real race's distance. Melbourne, Monaco, Indianapolis,
- * Hockenheim and Suzuka are not in Assetto Corsa.
+ * and nothing else, so every seat drives one. All eighteen rounds at their
+ * real distances, from Melbourne to Interlagos; Barcelona runs the layout
+ * without its later chicane, and where a circuit has changed since, the laps
+ * cover the real race's distance.
  *
  * Points are 10-8-6-5-4-3-2-1.
  *
@@ -41,10 +41,10 @@ export const FORMULA_1_2004: Championship = {
   id: 'formula-1-2004',
   name: 'Formula 1 2004',
   description: {
-    en: 'The Ferrari F2004\'s season, with the real entry list in the F2004 and fourteen of its '
-      + 'grands prix at their real distances.',
-    uk: 'Сезон Ferrari F2004 зі справжнім списком учасників на F2004 і чотирнадцятьма гран-прі '
-      + 'на справжніх дистанціях.',
+    en: 'The Ferrari F2004\'s season, with the real entry list in the F2004 and all eighteen of '
+      + 'its grands prix at their real distances.',
+    uk: 'Сезон Ferrari F2004 зі справжнім списком учасників на F2004 і всіма вісімнадцятьма '
+      + 'гран-прі на справжніх дистанціях.',
   },
   teams: [
     team('ferrari', 'Scuderia Ferrari Marlboro', 'ITA', TeamBudget.WORKS),
@@ -92,62 +92,94 @@ export const FORMULA_1_2004: Championship = {
   eventFormats: [EVENT],
   defaultEventFormat: 'grand-prix',
   rounds: [
-    { id: 'malaysia', name: 'Malaysian Grand Prix', track: { id: 'acu_sepang' }, climate: Climate.TEMPERATE },
+    {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    { id: 'malaysia', name: 'Malaysian Grand Prix', track: recommendedTrack('sepang/gp'), climate: Climate.TEMPERATE },
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
     {
       id: 'san-marino',
       name: 'San Marino Grand Prix',
-      track: { id: 'imola' },
+      track: recommendedTrack('imola/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 62 }],
     },
     {
       id: 'spain',
       name: 'Spanish Grand Prix',
-      track: { id: 'ks_barcelona', layout: 'layout_moto' },
+      track: recommendedTrack('barcelona/moto'),
       sessionLengths: [{ session: 'grand-prix', laps: 66 }],
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 77 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'europe',
       name: 'European Grand Prix',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'france', name: 'French Grand Prix', track: { id: 'magnycours22' }, climate: Climate.TEMPERATE },
+    {
+      id: 'indianapolis',
+      name: 'United States Grand Prix',
+      track: recommendedTrack('indianapolis/road'),
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'france', name: 'French Grand Prix', track: recommendedTrack('magny-cours/gp'), climate: Climate.TEMPERATE },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
     {
       id: 'china',
       name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
@@ -156,7 +188,7 @@ export const FORMULA_1_2004: Championship = {
     { id: 'race', name: 'Championship points', positions: [10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

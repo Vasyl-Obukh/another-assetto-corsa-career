@@ -121,6 +121,7 @@ export enum ModMaker {
   URD = 'urd',
   GUERILLA = 'guerilla',
   YEZHROD = 'yezhrod',
+  FSR = 'fsr',
 }
 
 /**

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LadderCell } from './LadderCell.tsx';
 import { LadderGrid } from './LadderGrid.tsx';
 import { LadderRowHead } from './LadderRowHead.tsx';
-import type { CareerLadder, Rung } from './types.ts';
+import type { CareerLadder, KeepClass } from './types.ts';
 import { disciplineKey, rungsAt } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
 import type { SeriesListing } from '../../../../shared/types';
@@ -25,7 +25,7 @@ interface LadderBoardProps {
    * Which rungs to stand, where a filter answers per class rather than per
    * championship - every rung of a championship shown when absent.
    */
-  keepRung?: (rung: Rung) => boolean;
+  keepRung?: KeepClass;
   /**
    * Where the career stands on the ladder, when there is a career: what each
    * discipline's row heads with, and which rungs are not open to it yet.
@@ -47,7 +47,7 @@ export const LadderBoard = ({
       <LadderGrid tiers={tiers}>
         {DISCIPLINES.map((discipline) => {
           const count = listings.filter((listing) => listing.series.entries.some(
-            (entry) => entry.ladder.discipline === discipline && keepRung({ listing, entry }),
+            (entry) => entry.ladder.discipline === discipline && keepRung(listing, entry),
           )).length;
 
           return (
@@ -67,7 +67,7 @@ export const LadderBoard = ({
               {tiers.map((tier) => (
                 <LadderCell
                   key={tier}
-                  rungs={rungsAt(listings, discipline, tier).filter(keepRung)}
+                  rungs={rungsAt(listings, discipline, tier, keepRung)}
                   locked={ladder ? tier < ladder.open[discipline] : false}
                   folded={ladder?.openOnly ?? false}
                   discipline={discipline}

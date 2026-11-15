@@ -141,6 +141,7 @@ export type ErrorCode =
   | 'series.entry.noCars'
   | 'series.spec.unknown'
   | 'series.round.specUnknown'
+  | 'series.round.trackUnknown'
   | 'series.seats.empty'
   | 'series.seat.teamUnknown'
   | 'series.seat.carNotEligible'

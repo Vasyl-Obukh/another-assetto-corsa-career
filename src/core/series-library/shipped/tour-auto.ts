@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -81,7 +82,6 @@ export const TOUR_AUTO: Championship = {
         seat('tc-de-1', 'tour-de', 'Detlef Kronshage', 'DEU'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_alfa_romeo_gta'] },
-      grid: { strength: -4 },
       entryFee: 3600,
       prizes: {
         positions: [14400, 10100, 7200, 5450, 4150, 3200, 2300, 1750, 1150, 700],
@@ -105,14 +105,14 @@ export const TOUR_AUTO: Championship = {
     {
       id: 'bugatti',
       name: 'Circuit Bugatti',
-      track: { id: 'bugatti_GPE2023', layout: 'lfm_standing' },
+      track: recommendedTrack('bugatti/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'magny-cours', name: 'Magny-Cours', track: { id: 'magnycours22' }, climate: Climate.TEMPERATE },
+    { id: 'magny-cours', name: 'Magny-Cours', track: recommendedTrack('magny-cours/gp'), climate: Climate.TEMPERATE },
     {
       id: 'charade',
       name: 'Charade',
-      track: { id: 'circuit_charade2023', layout: 'charade2023_4km' },
+      track: recommendedTrack('charade/4km'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -120,7 +120,6 @@ export const TOUR_AUTO: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -2 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

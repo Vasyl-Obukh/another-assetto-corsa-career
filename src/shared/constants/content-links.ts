@@ -59,6 +59,7 @@ export const MAKER_PAGES = {
   [ModMaker.URD]: 'https://shop.unitedracingdesign.com/assetto-corsa/',
   [ModMaker.GUERILLA]: 'https://www.patreon.com/c/guerilla',
   [ModMaker.YEZHROD]: 'https://www.patreon.com/yezhrod',
+  [ModMaker.FSR]: 'https://firststudioracing.com/',
 } as const satisfies Record<ModMaker, string>;
 
 /**
@@ -68,5 +69,15 @@ export const MAKER_PAGES = {
  * link is the platform itself and the user goes on from there.
  */
 export const DISTRIBUTOR_PAGES = {
-  [ModDistributor.LFM]: 'https://lowfuelmotorsport.com/',
+  [ModDistributor.LFM]: 'https://lowfuelmotorsport.com/lfmapp',
 } as const satisfies Record<ModDistributor, string>;
+
+/**
+ * Where the recommended tracks are got from, said once at the head of the
+ * Tracks tab rather than per circuit: between them, LFM's app and the
+ * community's track list hold nearly every circuit recommended.
+ */
+export const TRACK_SOURCE_PAGES = {
+  lfm: 'https://lowfuelmotorsport.com/lfmapp',
+  list: 'https://docs.google.com/spreadsheets/d/1UcjQGfjGOAzGPf2VqraRgZsKHmZiTqWJmrnMHHh323A/edit?gid=904041304#gid=904041304',
+} as const;

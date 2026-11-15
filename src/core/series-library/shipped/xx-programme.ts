@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -69,14 +70,14 @@ export const XX_PROGRAMME: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp-2007') },
     {
       id: 'yas-marina',
       name: 'Yas Marina',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -84,7 +85,6 @@ export const XX_PROGRAMME: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

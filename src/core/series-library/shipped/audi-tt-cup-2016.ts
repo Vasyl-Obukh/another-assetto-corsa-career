@@ -1,17 +1,18 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Audi Sport TT Cup, 2016 - the DTM's one-make support series, on Ready to
  * Race's Audi TT Cup.
  *
- * Two thirty-minute races a meeting. Four of the season's seven meetings are
- * raced: the Nurburgring twice, Zandvoort and the Hungaroring; Hockenheim, the
- * Norisring and the Moscow Raceway are not in Assetto Corsa. Points are the
- * series' 25-21-18-16-14 table down to eighteenth. Zandvoort's eighteen boxes
- * cap the grid. The field is invented.
+ * Two thirty-minute races a meeting, at all seven of the season's meetings:
+ * Hockenheim to open and close, the Nurburgring twice, the Norisring,
+ * Zandvoort and the Hungaroring. Points are the series' 25-21-18-16-14 table
+ * down to eighteenth. Zandvoort's eighteen boxes cap the grid. The field is
+ * invented.
  *
  * Source: https://en.wikipedia.org/wiki/2016_Audi_Sport_TT_Cup
  */
@@ -21,9 +22,9 @@ export const AUDI_TT_CUP_2016: Championship = {
   name: 'Audi Sport TT Cup 2016',
   description: {
     en: 'The DTM\'s one-make support series on the Audi TT Cup: two thirty-minute races a meeting,'
-      + ' four of the 2016 season\'s meetings.',
+      + ' at all seven of the 2016 season\'s meetings.',
     uk: 'Монокубок підтримки DTM на Audi TT Cup: дві тридцятихвилинні гонки за етап, '
-      + 'чотири етапи сезону 2016 року.',
+      + 'на всіх семи етапах сезону 2016 року.',
   },
   teams: [
     team('ingolstadt-tt', 'Altmühl Racing', 'DEU', TeamBudget.WORKS),
@@ -73,19 +74,37 @@ export const AUDI_TT_CUP_2016: Championship = {
   defaultEventFormat: 'standard',
   rounds: [
     {
-      id: 'nurburgring-1',
-      name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' }, climate: Climate.TEMPERATE },
+    {
+      id: 'nurburgring-1',
+      name: 'Nurburgring',
+      track: recommendedTrack('nurburgring/gp-gt'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'norisring',
+      name: 'Norisring',
+      track: recommendedTrack('norisring/full'),
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'zandvoort', name: 'Zandvoort', track: recommendedTrack('zandvoort/gp-1999'), climate: Climate.TEMPERATE },
     {
       id: 'nurburgring-2',
       name: 'Nurburgring II',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'hungaroring', name: 'Hungaroring', track: { id: 'rt_hungaroring' }, climate: Climate.TEMPERATE },
+    { id: 'hungaroring', name: 'Hungaroring', track: recommendedTrack('hungaroring/gp'), climate: Climate.TEMPERATE },
+    {
+      id: 'hockenheim-final',
+      name: 'Hockenheim, finale',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
+    },
   ],
   pointsSystems: [
     {
@@ -95,7 +114,7 @@ export const AUDI_TT_CUP_2016: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -4, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

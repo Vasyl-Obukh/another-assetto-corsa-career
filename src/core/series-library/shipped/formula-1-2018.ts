@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -41,9 +42,8 @@ const EVENT: EventFormat = {
  * Formula 1, 2018 - Lewis Hamilton's fifth title, over Sebastian Vettel's Ferrari.
  *
  * The real entry list on RSS's Formula Hybrid 2018, standard or S1, every seat
- * in it. Thirteen of twenty-one rounds at their real distances; Barcelona runs
- * the layout with its final chicane. Melbourne, Baku, Monaco, Paul Ricard,
- * Hockenheim, Marina Bay, Sochi and Suzuka are not in Assetto Corsa.
+ * in it. Twenty of twenty-one rounds at their real distances; Barcelona runs
+ * the layout with its final chicane. Sochi is not in Assetto Corsa.
  *
  * Qualifying is the three-part knockout, twenty cars cut to fifteen and then
  * to ten. Points are 25-18-15-12-10-8-6-4-2-1.
@@ -56,9 +56,9 @@ export const FORMULA_1_2018: Championship = {
   name: 'Formula 1 2018',
   description: {
     en: 'Lewis Hamilton\'s fifth title, with the real entry list on RSS\'s Formula Hybrid 2018 and '
-      + 'thirteen of its grands prix at their real distances.',
+      + 'twenty of its grands prix at their real distances.',
     uk: 'П\'ятий титул Льюїса Гемілтона зі справжнім списком учасників на Formula Hybrid 2018 '
-      + 'від RSS і тринадцятьма гран-прі на справжніх дистанціях.',
+      + 'від RSS і двадцятьма гран-прі на справжніх дистанціях.',
   },
   teams: [
     team('mercedes', 'Mercedes AMG Petronas Motorsport', 'DEU', TeamBudget.WORKS),
@@ -107,68 +107,112 @@ export const FORMULA_1_2018: Championship = {
   defaultEventFormat: 'grand-prix',
   rounds: [
     {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
     {
       id: 'china',
       name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    {
+      id: 'baku',
+      name: 'Azerbaijan Grand Prix',
+      track: recommendedTrack('baku/gp'),
+      climate: Climate.ARID,
+    },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'paul-ricard',
+      name: 'French Grand Prix',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp-2008'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico',
       name: 'Mexican Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -176,7 +220,7 @@ export const FORMULA_1_2018: Championship = {
     { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

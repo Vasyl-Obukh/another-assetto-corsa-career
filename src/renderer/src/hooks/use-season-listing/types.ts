@@ -1,4 +1,4 @@
-import type { SeriesAvailability, SeriesListing } from '../../../../shared/types';
+import type { Championship, SeriesAvailability, SeriesListing } from '../../../../shared/types';
 
 /**
  * What the install can race of a season's copy, and which copy that answers.
@@ -8,6 +8,11 @@ export interface SeasonAvailability {
    * The copy it answers, as JSON, so a late answer for another is never shown.
    */
   copy: string;
+  /**
+   * The copy as it races, its rounds pointed at the tracks they race now, or
+   * null when it could not be read.
+   */
+  series: Championship | null;
   /**
    * What the install can race of it, or null when it could not be read.
    */

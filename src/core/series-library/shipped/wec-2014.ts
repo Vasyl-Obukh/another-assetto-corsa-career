@@ -3,18 +3,26 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
+
+/**
+ * The GTEs of the season.
+ */
+const GTE = ['ferrari_458_gt2', 'ks_corvette_c7r', 'urd_egt_am', 'urd_egt_darche', 'urd_egt_ferruccio'];
 
 /**
  * FIA World Endurance Championship, 2014 - the first season of the hybrid
  * LMP1s.
  *
- * All four classes. LMP1 is the 2014 spec - Ready to Race's Audi R18 e-tron
+ * LMP1, LMP2 and GTE. LMP1 is the 2014 spec - Ready to Race's Audi R18 e-tron
  * quattro and Toyota TS040, the two that won that year. LMP2 is Yezhrod's
- * Ligier JS P2, which raced the season. GTE Pro and GTE Am are the base game's
- * Ferrari 458 GT2 and Dream Pack 1's Corvette C7.R. Silverstone's twenty-four
- * boxes cap the grid. All eight rounds
- * at their real lengths: six hours at Silverstone, Spa, the Circuit of the
+ * Ligier JS P2, which raced the season. GTE is the base game's Ferrari 458 GT2
+ * and Dream Pack 1's Corvette C7.R, with URD's Valor, Darche and Ferruccio -
+ * the Aston Martin, Porsche and Ferrari of the season - for anyone who has
+ * them; one class where the real season split GTE Pro from GTE Am, since a
+ * split by driver means nothing to AI drivers. Silverstone's twenty-four boxes
+ * cap the grid. All eight rounds at their real lengths: six hours at Silverstone, Spa, the Circuit of the
  * Americas, Fuji, Shanghai, Bahrain and Interlagos, and Le Mans at double
  * points.
  *
@@ -29,10 +37,10 @@ export const WEC_2014: Championship = {
   name: 'World Endurance Championship 2014',
   description: {
     en: 'The first season of the hybrid LMP1s, R18 against TS040, with Yezhrod\'s Ligier in LMP2'
-      + ' and the 458 and the Corvette in GTE Pro and GTE Am: all eight rounds at their real lengths, Le'
-      + ' Mans at double points.',
+      + ' and the 458 and the Corvette in GTE: all eight rounds at their real lengths, Le Mans at double'
+      + ' points.',
     uk: 'Перший сезон гібридних LMP1, R18 проти TS040, з Ligier від Yezhrod в LMP2 та 458 і Corvette в '
-      + 'GTE Pro та GTE Am: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
+      + 'GTE: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
   },
   teams: [
     team('ingolstadt-lmp', 'Neuburg Prototype Team', 'DEU', TeamBudget.WORKS),
@@ -78,7 +86,6 @@ export const WEC_2014: Championship = {
           'yzd_ligier_jsp2',
         ],
       },
-      grid: { strength: -4 },
       entryFee: 12000,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
@@ -87,7 +94,7 @@ export const WEC_2014: Championship = {
     },
     {
       id: 'gte',
-      name: 'GTE Pro',
+      name: 'GTE',
       ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
       seats: [
         seat('gte-ita-1', 'gte-italia', 'Davide Rinaldini', 'ITA'),
@@ -99,36 +106,16 @@ export const WEC_2014: Championship = {
         seat('gte-fr-1', 'gte-fr', 'Romain Lebreton', 'FRA'),
         seat('gte-fr-2', 'gte-fr', 'Hugo Chassagne', 'FRA'),
         seat('gte-fr-3', 'gte-fr', 'Clément Voisard', 'FRA'),
-      ],
-      eligibility: { kind: 'cars', cars: ['ferrari_458_gt2', 'ks_corvette_c7r'] },
-      entryFee: 12000,
-      prizes: {
-        positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
-        standings: [384000, 240000, 153500, 101000, 62500],
-      },
-    },
-    {
-      id: 'gte-am',
-      name: 'GTE Am',
-      ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
-      seats: [
         seat('gt-ren-1', 'rennsport-eifel', 'Florian Wirtgen', 'DEU'),
         seat('gt-ren-2', 'rennsport-eifel', 'Matthias Lehnhoff', 'DEU'),
         seat('gt-lar-1', 'lario', 'Gabriele Tentori', 'ITA'),
         seat('gt-lar-2', 'lario', 'Luca Bonacina', 'ITA'),
       ],
-      eligibility: {
-        kind: 'cars',
-        cars: [
-          'ferrari_458_gt2',
-          'ks_corvette_c7r',
-        ],
-      },
-      grid: { strength: -6 },
-      entryFee: 9000,
+      eligibility: { kind: 'cars', cars: GTE },
+      entryFee: 12000,
       prizes: {
-        positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
-        standings: [288000, 180000, 115000, 75500, 47000],
+        positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
+        standings: [384000, 240000, 153500, 101000, 62500],
       },
     },
   ],
@@ -157,55 +144,55 @@ export const WEC_2014: Championship = {
     {
       id: 'silverstone',
       name: '6 Hours of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 167 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: '6 Hours of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 171 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'chicane' },
+      track: recommendedTrack('le-mans/24h'),
       eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'cota',
       name: '6 Hours of the Circuit of the Americas',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       sessionLengths: [{ session: 'race', laps: 186 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'fuji',
       name: '6 Hours of Fuji',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       sessionLengths: [{ session: 'race', laps: 236 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'shanghai',
       name: '6 Hours of Shanghai',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: '6 Hours of Bahrain',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       sessionLengths: [{ session: 'race', laps: 195 }],
       climate: Climate.ARID,
     },
     {
       id: 'sao-paulo',
       name: '6 Hours of Sao Paulo',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       sessionLengths: [{ session: 'race', laps: 249 }],
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
@@ -221,7 +208,6 @@ export const WEC_2014: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

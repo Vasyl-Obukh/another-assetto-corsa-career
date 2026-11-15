@@ -157,7 +157,7 @@ const checked = (overrides: Partial<SeriesAvailability> = {}): SeriesAvailabilit
     makers: [],
     distributors: [],
     pools: [],
-    rounds: { packs: [], makers: [], distributors: [] },
+    rounds: { packs: [] },
     widenedBy: { packs: [], makers: [], distributors: [] },
   },
   ...overrides,

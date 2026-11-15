@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -88,10 +89,7 @@ export const LE_MANS_1969: Championship = {
     {
       id: 'event',
       name: '24 Hours of Le Mans 1969',
-      track: {
-        id: 'sx_lemans_lfm',
-        layout: 'nochicane',
-      },
+      track: recommendedTrack('le-mans/no-chicanes'),
       sessionLengths: [
         {
           session: 'race',
@@ -110,7 +108,6 @@ export const LE_MANS_1969: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 3,
     aggression: -5,
   },
   generatedWeather: {

@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,17 +27,19 @@ const EVENT: EventFormat = {
  *
  * VRC's Formula North America 2021 is the car, its road kit for road courses
  * and its oval kit for the speedway; a round fields whichever kit its circuit
- * needs. Of its sixteen rounds, Road America and Laguna Seca are in Assetto
- * Corsa. Texas's opening 300 miles run at Daytona's tri-oval over the same
- * distance, because Texas is not in Assetto Corsa; the IndyCar field never
- * raced there. The short-oval kit has no short oval to race on. Barber, St.
- * Petersburg, Indianapolis, Detroit, Mid-Ohio, Nashville, Gateway, Portland
- * and Long Beach are not in Assetto Corsa.
+ * needs. Of its sixteen rounds, both Grands Prix of Indianapolis, the
+ * Indianapolis 500 at double points, Road America, Mid-Ohio, Laguna Seca and
+ * Long Beach are raced. Texas's opening 300 miles run at Daytona's tri-oval
+ * over the same distance, because Texas has no recommended track; the IndyCar
+ * field never raced there. The short-oval kit has no short oval to race on.
+ * Barber, St. Petersburg, Detroit, Nashville, Gateway and Portland have no
+ * recommended track.
  *
  * Qualifying is the road-course knockout, twenty-four cars cut to twelve and
- * then to the Fast Six; the oval runs a single session. Points are
+ * then to the Fast Six; the ovals run a single session. Points are
  * 50-40-35-32-30-28-26 and down, a point for pole; the points for leading a
- * lap and leading the most cannot be stated yet. The field is invented.
+ * lap and leading the most cannot be stated yet. The Indianapolis 500 pays
+ * double. The field is invented.
  *
  * Source: https://en.wikipedia.org/wiki/2021_IndyCar_Series
  */
@@ -109,28 +112,69 @@ export const INDYCAR_2021: Championship = {
         { type: 'race', name: 'Race', laps: 120, day: 2 },
       ],
     },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500, double points',
+      sessions: [
+        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'race', name: 'Race', laps: 200, day: 2, pointsSystem: 'double' },
+      ],
+    },
   ],
   defaultEventFormat: 'road-course',
   rounds: [
     {
       id: 'daytona',
       name: 'Daytona International Speedway',
-      track: { id: 'rt_daytona', layout: 'tri-oval' },
+      track: recommendedTrack('daytona/oval'),
       eventFormat: 'oval',
+      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2021_OVAL } }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis',
+      name: 'Indianapolis',
+      track: recommendedTrack('indianapolis/road'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500',
+      track: recommendedTrack('indianapolis/oval'),
+      eventFormat: 'indianapolis-500',
       eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2021_OVAL } }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mid-ohio',
+      name: 'Mid-Ohio',
+      track: recommendedTrack('mid-ohio/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis-2',
+      name: 'Indianapolis, race 2',
+      track: recommendedTrack('indianapolis/road'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'laguna-seca',
       name: 'Laguna Seca',
-      track: { id: 'ks_laguna_seca' },
+      track: recommendedTrack('laguna-seca/full'),
       sessionLengths: [{ session: 'race', laps: 95 }],
+    },
+    {
+      id: 'long-beach',
+      name: 'Long Beach',
+      track: recommendedTrack('long-beach/street'),
+      climate: Climate.MEDITERRANEAN,
     },
   ],
   pointsSystems: [
@@ -140,9 +184,15 @@ export const INDYCAR_2021: Championship = {
       positions: [50, 40, 35, 32, 30, 28, 26, 24, 22, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5],
       qualifying: [1],
     },
+    {
+      id: 'double',
+      name: 'Double points',
+      positions: [100, 80, 70, 64, 60, 56, 52, 48, 44, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10],
+      qualifying: [1],
+    },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

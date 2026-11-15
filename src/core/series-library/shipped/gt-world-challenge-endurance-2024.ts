@@ -3,23 +3,26 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * GT World Challenge Europe Endurance Cup, 2024 - the GT3 endurance series, on
  * LFM's GT3 cars.
  *
- * Three of five rounds at their real lengths, on LFM's large-box layouts:
- * three hours at Monza and the Nurburgring, and the Spa 24 Hours with its
- * Superpole of the fastest twenty. Paul Ricard and Jeddah are not in Assetto
- * Corsa. The Nurburgring's thirty-six boxes cap a grid that ran fifty at Spa.
+ * Four of five rounds at their real lengths, in the real order, on LFM's
+ * large-box layouts: three hours at Paul Ricard, the Spa 24 Hours with its
+ * Superpole of the fastest twenty, and three hours at the Nurburgring and
+ * Monza. Jeddah's only known version has twenty-six boxes for thirty-six cars.
+ * The Nurburgring's and Paul Ricard's thirty-six boxes cap a grid that ran
+ * fifty at Spa.
  * The Pro, Gold, Silver and Bronze cups share one grid and one class here;
  * qualifying is one session where the real one averages three drivers'.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 with a point for pole. The Spa 24 Hours
  * paid points at six and twelve hours as well as at the finish, which a points
- * system cannot say yet. The field is invented: the GT-M Championship's
- * paddock and six more teams.
+ * system cannot say yet. The field is invented: the Sprint Cup's paddock and
+ * six more teams.
  *
  * Source: https://en.wikipedia.org/wiki/2024_GT_World_Challenge_Europe_Endurance_Cup
  */
@@ -28,10 +31,10 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
   id: 'gt-world-challenge-endurance-2024',
   name: 'GT World Challenge Europe Endurance Cup 2024',
   description: {
-    en: 'Europe\'s GT3 endurance series of 2024 on LFM\'s GT3 cars: three hours at Monza and the '
-      + 'Nurburgring, and the Spa 24 Hours.',
+    en: 'Europe\'s GT3 endurance series of 2024 on LFM\'s GT3 cars: three hours at Paul Ricard, the '
+      + 'Nurburgring and Monza, and the Spa 24 Hours.',
     uk: 'Європейська серія гонок на витривалість GT3 сезону 2024 на машинах GT3 від LFM: три години в '
-      + 'Монці та на Нюрбургринзі і 24 години Спа.',
+      + 'Поль-Рікарі, на Нюрбургринзі та в Монці і 24 години Спа.',
   },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
@@ -136,26 +139,32 @@ export const GT_WORLD_CHALLENGE_ENDURANCE_2024: Championship = {
   ],
   defaultEventFormat: 'three-hours',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza', layout: 'lfm' } },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
-      track: { id: 'spa', layout: '2022_lfm_standing' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b_osrw_lfm_tracklimits' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -94,10 +95,7 @@ export const GERMAN_GP_1967: Championship = {
     {
       id: 'event',
       name: 'German Grand Prix 1967',
-      track: {
-        id: 'ks_nordschleife',
-        layout: 'nordschleife',
-      },
+      track: recommendedTrack('nordschleife/full'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -116,7 +114,6 @@ export const GERMAN_GP_1967: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 4,
     aggression: -5,
   },
   generatedWeather: {

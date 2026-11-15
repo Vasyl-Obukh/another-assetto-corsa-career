@@ -45,9 +45,9 @@ export const ChampionshipLibrary = () => {
   // switched off that way, so they are always here.
   const offered = useMemo(
     () => championships.listings.filter(
-      (listing) => !hiddenBySources(listing, settings.hiddenContentSources),
+      (listing) => !hiddenBySources(listing, settings.offeredContentSources),
     ),
-    [championships.listings, settings.hiddenContentSources],
+    [championships.listings, settings.offeredContentSources],
   );
   // Rebuilt with the switches, since whether one is on is one of the filters.
   const filters = useMemo(

@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -15,11 +16,13 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * the Alfa and the Mercedes for anyone who owns the pack.
  *
  * Two heats a meeting, each paying 20-15-12-10-8-6-4-3-2-1. Zolder opened the
- * season and the Nurburgring hosted two rounds; Zandvoort, Spa and Silverstone
- * stand in for Hockenheim, the Norisring, Donington and the airfield rounds,
- * which are not in Assetto Corsa. Both heats line up on qualifying and run
- * 25 minutes, which is an assumption: the sources found give the points and the
- * calendar but not the heats' length or grids. The field is invented.
+ * season, Hockenheim opened and closed the German rounds, and the Nurburgring
+ * hosted two: its Grand Prix circuit and the Nordschleife, the DTM's last
+ * visit there. Zandvoort and Spa stand in for the airfield rounds at Wunstorf
+ * and Diepholz; the Alemannenring and AVUS are not in Assetto Corsa, and
+ * neither is the Hockenheim of the time. Both heats line up on qualifying and
+ * run 25 minutes, which is an assumption: the sources found give the points
+ * and the calendar but not the heats' length or grids. The field is invented.
  *
  * Source: https://en.wikipedia.org/wiki/1993_Deutsche_Tourenwagen_Meisterschaft
  */
@@ -87,37 +90,49 @@ export const DTM_1993: Championship = {
     {
       id: 'zolder',
       name: 'Zolder',
-      track: { id: 'rt_zolder' },
+      track: recommendedTrack('zolder/gp'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_sprint_b' },
+      track: recommendedTrack('nurburgring/sprint-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'nordschleife',
+      name: 'Nordschleife',
+      track: recommendedTrack('nordschleife/full'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'norisring',
+      name: 'Norisring',
+      track: recommendedTrack('norisring/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: 'Spa-Francorchamps',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       climate: Climate.OCEANIC,
     },
     {
-      id: 'silverstone',
-      name: 'Silverstone National',
-      track: { id: 'ks_silverstone', layout: 'national' },
-      climate: Climate.OCEANIC,
-    },
-    {
-      id: 'nurburgring-gp',
-      name: 'Nurburgring GP',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      id: 'hockenheim-final',
+      name: 'Hockenheim, finale',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -125,7 +140,7 @@ export const DTM_1993: Championship = {
     { id: 'race', name: 'Heat points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

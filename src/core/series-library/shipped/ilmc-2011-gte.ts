@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -135,41 +136,41 @@ export const ILMC_2011_GTE: Championship = {
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'sebring-12',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '1000 km of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-1000',
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'chicane' },
+      track: recommendedTrack('le-mans/24h'),
       eventFormat: 'le-mans-24',
       climate: Climate.TEMPERATE,
     },
-    { id: 'imola', name: '6 Hours of Imola', track: { id: 'imola' } },
+    { id: 'imola', name: '6 Hours of Imola', track: recommendedTrack('imola/gp') },
     {
       id: 'silverstone',
       name: '6 Hours of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 168 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'petit-le-mans',
       name: 'Petit Le Mans',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       eventFormat: 'petit-le-mans',
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'zhuhai', name: '1000 km of Monza', track: { id: 'monza' }, eventFormat: 'monza-1000',
+      id: 'zhuhai', name: '1000 km of Monza', track: recommendedTrack('monza/gp'), eventFormat: 'monza-1000',
     },
   ],
   pointsSystems: [
@@ -184,7 +185,6 @@ export const ILMC_2011_GTE: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

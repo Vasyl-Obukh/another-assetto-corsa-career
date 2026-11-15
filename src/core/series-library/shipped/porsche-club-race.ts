@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -62,7 +63,6 @@ export const PORSCHE_CLUB_RACE: Championship = {
       bop: [
         { car: 'ks_porsche_991_turbo_s', ballast: 30 },
       ],
-      grid: { strength: 2 },
     },
     {
       id: 's4',
@@ -95,7 +95,6 @@ export const PORSCHE_CLUB_RACE: Championship = {
       bop: [
         { car: 'ks_porsche_cayman_gt4_std', ballast: 60 },
       ],
-      grid: { strength: -1 },
       entryFee: 1500,
       prizes: {
         positions: [6000, 4200, 3000, 2300, 1750, 1300, 950, 700, 500, 300],
@@ -119,40 +118,39 @@ export const PORSCHE_CLUB_RACE: Championship = {
     {
       id: 'road-atlanta',
       name: 'Road Atlanta',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: 'Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
+      track: recommendedTrack('vir/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen',
-      track: { id: 'lilski_watkins_glen', layout: 'boot' },
+      track: recommendedTrack('watkins-glen/boot'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' } },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -3 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

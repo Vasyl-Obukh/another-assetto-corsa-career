@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -106,9 +107,7 @@ export const FRENCH_GP_2004: Championship = {
     {
       id: 'event',
       name: 'French Grand Prix 2004',
-      track: {
-        id: 'magnycours22',
-      },
+      track: recommendedTrack('magny-cours/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -121,7 +120,6 @@ export const FRENCH_GP_2004: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 5,
   },
   generatedWeather: {

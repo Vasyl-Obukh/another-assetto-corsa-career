@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -98,12 +99,11 @@ const SPRINT: EventFormat = {
  *
  * The real entry list on RSS's Formula Hybrid Alpine 2025 - one team's car,
  * which the whole field drives, every seat in it. The 2025 season is a
- * championship per spec, so VRC's car of the same year races its own. 15 of 24
- * rounds at their real distances, four of its six sprint rounds included -
- * sprint qualifying on Friday, the sprint and the grand prix knockout on
- * Saturday. Yas Marina runs the layout before its 2021 rebuild, so its laps
- * cover the real distance. Melbourne, Suzuka, Jeddah, Miami, Monaco, Baku,
- * Marina Bay, Las Vegas and Losail are not in Assetto Corsa.
+ * championship per spec, so VRC's car of the same year races its own. All 24
+ * rounds at their real distances, the six sprint rounds included - sprint
+ * qualifying on Friday, the sprint and the grand prix knockout on Saturday.
+ * Yas Marina runs the layout before its 2021 rebuild, so its laps cover the
+ * real distance.
  *
  * Qualifying is the three-part knockout, twenty cars cut to fifteen and then
  * to ten. Points are 25-18-15-12-10-8-6-4-2-1, and a sprint pays
@@ -120,9 +120,9 @@ export const FORMULA_1_2025_RSS: Championship = {
   name: 'Formula 1 2025 (RSS)',
   description: {
     en: 'Lando Norris\' first title, with the real entry list on RSS\'s Formula Hybrid Alpine 2025 '
-      + 'and fifteen of its grands prix at their real distances.',
+      + 'and all twenty-four of its grands prix at their real distances.',
     uk: 'Перший титул Ландо Норріса: реальний список учасників на Formula Hybrid Alpine 2025 від RSS і '
-      + 'п\'ятнадцять гран-прі сезону на їхніх справжніх дистанціях.',
+      + 'всі двадцять чотири гран-прі сезону на їхніх справжніх дистанціях.',
   },
   teams: [
     team('mclaren', 'McLaren Formula 1 Team', 'GBR', TeamBudget.WORKS),
@@ -171,42 +171,78 @@ export const FORMULA_1_2025_RSS: Championship = {
   defaultEventFormat: 'sprint',
   rounds: [
     {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      eventFormat: 'grand-prix',
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
       id: 'china',
       name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      eventFormat: 'grand-prix',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.ARID,
     },
     {
+      id: 'jeddah',
+      name: 'Saudi Arabian Grand Prix',
+      track: recommendedTrack('jeddah/gp'),
+      eventFormat: 'grand-prix',
+      climate: Climate.ARID,
+    },
+    {
+      id: 'miami',
+      name: 'Miami Grand Prix',
+      track: recommendedTrack('miami/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
       id: 'emilia-romagna',
       name: 'Emilia Romagna Grand Prix',
-      track: { id: 'imola' },
+      track: recommendedTrack('imola/gp'),
       eventFormat: 'grand-prix',
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      eventFormat: 'grand-prix',
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'spain',
       name: 'Spanish Grand Prix',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
+      track: recommendedTrack('barcelona/gp'),
       eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 66 }],
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 70 }],
       climate: Climate.TEMPERATE,
@@ -214,36 +250,51 @@ export const FORMULA_1_2025_RSS: Championship = {
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.OCEANIC,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, eventFormat: 'grand-prix' },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp'), eventFormat: 'grand-prix' },
+    {
+      id: 'baku',
+      name: 'Azerbaijan Grand Prix',
+      track: recommendedTrack('baku/gp'),
+      eventFormat: 'grand-prix',
+      climate: Climate.ARID,
+    },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp'),
+      eventFormat: 'grand-prix',
+      sessionLengths: [{ session: 'grand-prix', laps: 62 }],
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico-city',
       name: 'Mexico City Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       eventFormat: 'grand-prix',
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
@@ -251,14 +302,28 @@ export const FORMULA_1_2025_RSS: Championship = {
     {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
+      id: 'las-vegas',
+      name: 'Las Vegas Grand Prix',
+      track: recommendedTrack('las-vegas/gp'),
+      eventFormat: 'grand-prix',
+      sessionLengths: [{ session: 'grand-prix', laps: 50 }],
+      climate: Climate.ARID,
+    },
+    {
+      id: 'losail',
+      name: 'Qatar Grand Prix',
+      track: recommendedTrack('losail/gp'),
+      climate: Climate.ARID,
+    },
+    {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       eventFormat: 'grand-prix',
       climate: Climate.ARID,
     },
@@ -268,7 +333,7 @@ export const FORMULA_1_2025_RSS: Championship = {
     { id: 'sprint', name: 'Sprint points', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

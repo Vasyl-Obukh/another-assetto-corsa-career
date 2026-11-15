@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -41,10 +42,10 @@ const EVENT: EventFormat = {
  * FIA Formula 2, 2017 - the first season under the name, on the GP2 car it
  * inherited.
  *
- * RSS's Formula RSS 2 is that car. Eight of eleven rounds, each a feature race
- * and a sprint at their real lengths - the sprint from the feature race's
- * result with the top eight reversed. Monaco, Baku and Jerez are not in
- * Assetto Corsa. The feature race's compulsory pit stop cannot be stated yet.
+ * RSS's Formula RSS 2 is that car. All eleven rounds, each a feature race and
+ * a sprint at their real lengths - the sprint from the feature race's result
+ * with the top eight reversed. The feature race's compulsory pit stop cannot be
+ * stated yet.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 in the feature race, with 4 for pole and
  * 2 for the fastest lap, and 15-12-10-8-6-4-2-1 in the sprint, with 2 for the
@@ -57,10 +58,10 @@ export const FORMULA_2_2017: Championship = {
   id: 'formula-2-2017',
   name: 'FIA Formula 2 2017',
   description: {
-    en: 'The first season of FIA Formula 2, on RSS\'s Formula RSS 2: eight rounds of a feature '
-      + 'race and a reverse-grid sprint, at their real lengths.',
-    uk: 'Перший сезон FIA Formula 2 на Formula RSS 2 від RSS: вісім етапів з основною гонкою та спринтом '
-      + 'за зворотною стартовою решіткою, на справжніх дистанціях.',
+    en: 'The first season of FIA Formula 2, on RSS\'s Formula RSS 2: all eleven rounds of a '
+      + 'feature race and a reverse-grid sprint, at their real lengths.',
+    uk: 'Перший сезон FIA Formula 2 на Formula RSS 2 від RSS: усі одинадцять етапів з основною '
+      + 'гонкою та спринтом за зворотною стартовою решіткою, на справжніх дистанціях.',
   },
   teams: [
     team('arcadia', 'Arcadia Motorsport', 'ITA', TeamBudget.WORKS),
@@ -107,33 +108,52 @@ export const FORMULA_2_2017: Championship = {
   eventFormats: [EVENT],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'bahrain', name: 'Sakhir', track: recommendedTrack('bahrain/gp'), climate: Climate.ARID },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'sprint', laps: 30 }, { session: 'feature', laps: 42 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'baku',
+      name: 'Baku',
+      track: recommendedTrack('baku/gp'),
+      climate: Climate.ARID,
+    },
     {
       id: 'spielberg',
       name: 'Spielberg',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'budapest',
       name: 'Budapest',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       sessionLengths: [{ session: 'feature', laps: 37 }],
       climate: Climate.TEMPERATE,
     },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    {
+      id: 'jerez',
+      name: 'Jerez',
+      track: recommendedTrack('jerez/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'yas-marina',
       name: 'Yas Marina',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       sessionLengths: [{ session: 'sprint', laps: 21 }],
       climate: Climate.ARID,
     },
@@ -149,7 +169,7 @@ export const FORMULA_2_2017: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 2 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { strength: 3, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

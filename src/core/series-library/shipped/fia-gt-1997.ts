@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,11 +11,13 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The 1990s GT1 spec: Dream Pack 1's McLaren F1 GTR and Porsche Pack 2's 911
  * GT1, with the mods that model the Mercedes CLR and the Le Mans prototypes
- * joining for anyone who has them. Seven of eleven rounds at their real
- * lengths: four hours at Silverstone, the Nurburgring, Spa, the A1-Ring - the
- * Red Bull Ring's layout before it was renamed - and Mugello, and three at
- * Sebring and Laguna Seca. Hockenheim, Helsinki, Suzuka and Donington are not
- * in Assetto Corsa.
+ * joining for anyone who has them - URD's Maures LCK and Darche 996 EVO
+ * among them, the season's own Mercedes CLK GTR and 911 GT1 Evo. Ten of
+ * eleven rounds at their real lengths: four hours at Hockenheim, Silverstone,
+ * the Nurburgring, Spa, the A1-Ring - the Red Bull Ring's layout before it was
+ * renamed - Donington and Mugello, the Suzuka 1000 km, and three hours at
+ * Sebring and Laguna Seca. Helsinki is not in Assetto Corsa, and Hockenheim
+ * races today's circuit over the distance the old one ran.
  *
  * Points are 10-6-4-3-2-1, which is how the sources found read the table; it
  * is not confirmed. The field is invented.
@@ -26,10 +29,10 @@ export const FIA_GT_1997: Championship = {
   id: 'fia-gt-1997',
   name: 'FIA GT Championship 1997',
   description: {
-    en: 'The GT1 homologation specials at their height: seven of the 1997 season\'s rounds at '
+    en: 'The GT1 homologation specials at their height: ten of the 1997 season\'s rounds at '
       + 'their real lengths, on whichever of the F1 GTR, the 911 GT1 and the mod GT1 cars you '
       + 'own.',
-    uk: 'Омологаційні спецверсії GT1 у розквіті: сім етапів сезону 1997 року в справжній '
+    uk: 'Омологаційні спецверсії GT1 у розквіті: десять етапів сезону 1997 року в справжній '
       + 'тривалості на тих із F1 GTR, 911 GT1 і модових машин GT1, які у вас є.',
   },
   teams: [
@@ -90,52 +93,72 @@ export const FIA_GT_1997: Championship = {
   defaultEventFormat: 'four-hours',
   rounds: [
     {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      sessionLengths: [{ session: 'race', laps: 169 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 119 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: 'Spa-Francorchamps',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 101 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'a1-ring',
       name: 'A1-Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       sessionLengths: [{ session: 'race', laps: 161 }],
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'sebring',
-      name: 'Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
-      eventFormat: 'three-hours',
+      id: 'suzuka',
+      name: 'Suzuka 1000 km',
+      track: recommendedTrack('suzuka/gp'),
+      sessionLengths: [{ session: 'race', laps: 173 }],
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, eventFormat: 'three-hours' },
+    {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/gp'),
+      sessionLengths: [{ session: 'race', laps: 159 }],
+      climate: Climate.OCEANIC,
+    },
     {
       id: 'mugello',
       name: 'Mugello',
-      track: { id: 'mugello' },
+      track: recommendedTrack('mugello/gp'),
       sessionLengths: [{ session: 'race', laps: 132 }],
     },
+    {
+      id: 'sebring',
+      name: 'Sebring',
+      track: recommendedTrack('sebring/full'),
+      eventFormat: 'three-hours',
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full'), eventFormat: 'three-hours' },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [10, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

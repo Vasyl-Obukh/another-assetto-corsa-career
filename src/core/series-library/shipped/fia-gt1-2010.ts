@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, Hemisphere, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -12,10 +13,10 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * D9 and Lanzo V12 for the Aston Martin DBR9 and the Lamborghini Murcielago.
  * The Corvette C6.R and the Ford GT are not. The event is the qualifying
  * race and the championship race, each an hour, the second from the first's
- * result, after a three-part qualifying. Six of ten rounds, in the order and
- * on the calendar as understood rather than checked: Abu Dhabi, Silverstone,
- * Spa, the Nurburgring, Portimao and Interlagos. Brno, Paul Ricard, Navarra
- * and San Luis are not in Assetto Corsa.
+ * result, after a three-part qualifying. Seven of ten rounds: Abu Dhabi on
+ * Yas Marina's original layout, Silverstone, Paul Ricard, Spa, the
+ * Nurburgring, Portimao and Interlagos. Brno, Navarra and San Luis are not in
+ * Assetto Corsa.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 in the championship race and 8-6-4-3-2-1
  * in the qualifying race. The field is invented, and is the FIA GT 2004
@@ -29,9 +30,9 @@ export const FIA_GT1_2010: Championship = {
   name: 'FIA GT1 World Championship 2010',
   description: {
     en: 'GT1 cars\' only world championship on the MC12, Yezhrod\'s GT-R and RSS\'s GTs: a '
-      + 'qualifying race and a championship race at six of its rounds.',
+      + 'qualifying race and a championship race at seven of its rounds.',
     uk: 'Єдиний світовий чемпіонат для машин GT1 на MC12, GT-R від Yezhrod і GT від RSS: '
-      + 'кваліфікаційна гонка та основна гонка на шести його етапах.',
+      + 'кваліфікаційна гонка та основна гонка на семи його етапах.',
   },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
@@ -114,32 +115,38 @@ export const FIA_GT1_2010: Championship = {
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp-2009'),
       climate: Climate.ARID,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'portimao',
       name: 'Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'interlagos',
       name: 'Interlagos',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
@@ -149,7 +156,7 @@ export const FIA_GT1_2010: Championship = {
     { id: 'qualifying-race', name: 'Qualifying race', positions: [8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

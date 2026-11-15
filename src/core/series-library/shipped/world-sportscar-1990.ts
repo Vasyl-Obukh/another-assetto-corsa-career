@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -30,10 +31,10 @@ const event = (id: string, laps: number): EventFormat => ({
  * Group C car the base game has, and the spec is the grid it would have raced
  * against.
  *
- * Every round of 1990 ran 480 kilometres. Five of its nine circuits are raced
- * - Monza, Silverstone, Spa, the Nurburgring and Montreal - each over the laps
- * 480 kilometres takes on the layout Assetto Corsa has. Suzuka, Dijon,
- * Donington and Mexico City are not in it. Points are the season's
+ * Every round of 1990 ran 480 kilometres. Eight of its nine circuits are
+ * raced - Suzuka, Monza, Silverstone, Spa, the Nurburgring, Donington,
+ * Montreal and Mexico City - each over the laps 480 kilometres takes on the
+ * recommended layout. Dijon has no recommended track. Points are the season's
  * 20-15-12-10-8-6-4-3-2-1.
  *
  * The field is invented, since cars are assigned from whatever of the spec is
@@ -46,9 +47,9 @@ export const WORLD_SPORTSCAR_1990: Championship = {
   id: 'world-sportscar-1990',
   name: 'World Sports-Prototype Championship 1990',
   description: {
-    en: 'Group C at its height: five rounds of 480 kilometres. It runs on the base game\'s Mazda '
+    en: 'Group C at its height: eight rounds of 480 kilometres. It runs on the base game\'s Mazda '
       + '787B, and the Mercedes C9 and Porsche 962 C join the grid if you own their packs.',
-    uk: 'Група C у розквіті: п\'ять етапів по 480 кілометрів. Основна машина - Mazda 787B з базової гри, '
+    uk: 'Група C у розквіті: вісім етапів по 480 кілометрів. Основна машина - Mazda 787B з базової гри, '
       + 'а Mercedes C9 і Porsche 962 C виходять на стартову решітку, якщо у вас є їхні паки.',
   },
   teams: [
@@ -88,43 +89,67 @@ export const WORLD_SPORTSCAR_1990: Championship = {
     },
   ],
   eventFormats: [
+    event('suzuka', 83),
     event('monza', 83),
     event('silverstone', 82),
     event('spa', 69),
     event('nurburgring', 94),
+    event('donington', 120),
     event('montreal', 110),
+    event('mexico-city', 112),
   ],
   defaultEventFormat: 'monza',
   rounds: [
     {
-      id: 'monza', name: '480 km of Monza', track: { id: 'monza' }, eventFormat: 'monza',
+      id: 'suzuka',
+      name: '480 km of Suzuka',
+      track: recommendedTrack('suzuka/gp'),
+      eventFormat: 'suzuka',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'monza', name: '480 km of Monza', track: recommendedTrack('monza/gp'), eventFormat: 'monza',
     },
     {
       id: 'silverstone',
       name: '480 km of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       eventFormat: 'silverstone',
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: '480 km of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa',
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: '480 km of the Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       eventFormat: 'nurburgring',
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'donington-park',
+      name: '480 km of Donington',
+      track: recommendedTrack('donington/gp'),
+      eventFormat: 'donington',
+      climate: Climate.OCEANIC,
+    },
+    {
       id: 'montreal',
       name: '480 km of Montreal',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       eventFormat: 'montreal',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mexico-city',
+      name: '480 km of Mexico City',
+      track: recommendedTrack('mexico-city/gp'),
+      eventFormat: 'mexico-city',
       climate: Climate.TEMPERATE,
     },
   ],
@@ -132,7 +157,6 @@ export const WORLD_SPORTSCAR_1990: Championship = {
     { id: 'race', name: 'Championship points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

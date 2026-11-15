@@ -151,6 +151,11 @@ describe('main/content-store/utils', () => {
         .toEqual(['portimao', 'portimao/lfm']);
     });
 
+    it('offers a circuit some recommended layout races, whoever made it', () => {
+      expect(libraryOf(makeContent([], ['rt_suzuka', 'my_track']), NONE).tracks.map((track) => track.id))
+        .toEqual(['rt_suzuka']);
+    });
+
     // Settings are replaced wholesale on every change, so a new list is a new
     // object - and a memo keyed on the scan alone would serve the old library.
     it('answers again when handed a different list for the same scan', () => {
@@ -173,6 +178,11 @@ describe('main/content-store/utils', () => {
 
       expect(anonymous.cars.map((car) => car.id)).toEqual(['my_mod']);
       expect(anonymous.tracks.map((track) => track.id)).toEqual(['my_track']);
+    });
+
+    it('leaves out a circuit some recommended layout races', () => {
+      expect(anonymousOf(makeContent([], ['rt_suzuka', 'my_track'])).tracks.map((track) => track.id))
+        .toEqual(['my_track']);
     });
 
     it('judges a circuit per layout, leaving out the ones LFM redistributes', () => {

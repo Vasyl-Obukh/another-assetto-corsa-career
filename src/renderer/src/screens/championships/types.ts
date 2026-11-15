@@ -45,10 +45,11 @@ export interface CareerLadder {
 }
 
 /**
- * One championship on one rung of the ladder: the way in a class entry offers.
+ * One championship on one rung of the ladder: the ways in its classes offer
+ * there.
  *
- * A multi-class championship is one of these per class, so it stands on every
- * rung it lets a driver in at.
+ * A multi-class championship stands on every rung it lets a driver in at, once
+ * per rung however many of its classes enter there.
  */
 export interface Rung {
   /**
@@ -56,10 +57,16 @@ export interface Rung {
    */
   listing: SeriesListing;
   /**
-   * The class entry that puts it on this rung.
+   * Every class entry that puts it on this rung, in the championship's order.
    */
-  entry: ClassEntry;
+  entries: readonly ClassEntry[];
 }
+
+/**
+ * Whether a class of a championship stands on the ladder, for a filter that
+ * answers per class rather than per championship.
+ */
+export type KeepClass = (listing: SeriesListing, entry: ClassEntry) => boolean;
 
 /**
  * What a championship menu's items are drawn with.

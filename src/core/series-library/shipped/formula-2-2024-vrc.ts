@@ -1,3 +1,4 @@
+import { FORMULA_2_2024_RSS } from './formula-2-2024-rss.ts';
 import { seat, team } from './utils.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
@@ -41,12 +42,11 @@ const EVENT: EventFormat = {
  * FIA Formula 2, 2024 - the second season of the current car.
  *
  * VRC's Formula Beta 2024 is that car; the same season on RSS's Formula RSS 2
- * V6 2024 is a championship of its own. Nine of fourteen rounds, each a sprint
- * on Saturday with qualifying's top ten reversed and a feature race on Sunday
- * from qualifying as it stood. The lengths are the series' usual ones; Imola's
- * are worked out from its distances rather than checked. Jeddah, Melbourne,
- * Monaco, Baku and Losail are not in Assetto Corsa. The feature race's
- * compulsory pit stop cannot be stated yet.
+ * V6 2024 is a championship of its own, on the same calendar. All fourteen
+ * rounds, each a sprint on Saturday with qualifying's top ten reversed and a
+ * feature race on Sunday from qualifying as it stood. The lengths are the
+ * series' usual ones; Imola's are worked out from its distances rather than
+ * checked. The feature race's compulsory pit stop cannot be stated yet.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 in the feature race, with 2 for pole and
  * 1 for the fastest lap, and 10-8-6-5-4-3-2-1 in the sprint, with 1 for the
@@ -59,11 +59,11 @@ export const FORMULA_2_2024_VRC: Championship = {
   id: 'formula-2-2024-vrc',
   name: 'FIA Formula 2 2024 (VRC)',
   description: {
-    en: 'Formula 2 on VRC\'s Formula Beta 2024: nine rounds'
+    en: 'Formula 2 on VRC\'s Formula Beta 2024: all fourteen rounds'
       + ' of a reverse-grid sprint and a feature race, on'
       + ' the 2024 calendar\'s circuits.',
-    uk: 'Formula 2 на Formula Beta 2024 від VRC: дев\'ять етапів зі спринтом за зворотною стартовою '
-      + 'решіткою та основною гонкою на трасах календаря 2024 року.',
+    uk: 'Formula 2 на Formula Beta 2024 від VRC: усі чотирнадцять етапів зі спринтом за '
+      + 'зворотною стартовою решіткою та основною гонкою на трасах календаря 2024 року.',
   },
   teams: [
     team('halcyon', 'Halcyon Racing', 'GBR', TeamBudget.WORKS),
@@ -112,44 +112,7 @@ export const FORMULA_2_2024_VRC: Championship = {
   ],
   eventFormats: [EVENT],
   defaultEventFormat: 'standard',
-  rounds: [
-    { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    {
-      id: 'barcelona',
-      name: 'Barcelona',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
-      sessionLengths: [{ session: 'feature', laps: 37 }],
-    },
-    {
-      id: 'spielberg',
-      name: 'Spielberg',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'silverstone',
-      name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
-      climate: Climate.OCEANIC,
-    },
-    {
-      id: 'budapest',
-      name: 'Budapest',
-      track: { id: 'rt_hungaroring' },
-      sessionLengths: [{ session: 'feature', laps: 37 }],
-      climate: Climate.TEMPERATE,
-    },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
-    {
-      id: 'yas-marina',
-      name: 'Yas Marina',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
-      sessionLengths: [{ session: 'sprint', laps: 21 }],
-      climate: Climate.ARID,
-    },
-  ],
+  rounds: FORMULA_2_2024_RSS.rounds,
   pointsSystems: [
     {
       id: 'feature',
@@ -161,7 +124,7 @@ export const FORMULA_2_2024_VRC: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [10, 8, 6, 5, 4, 3, 2, 1], fastestLap: 1 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { strength: 3, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

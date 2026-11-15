@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -47,7 +48,6 @@ export const TUNER_INVITATIONAL: Championship = {
         seat('unl-us-1', 'tuner-us', 'Brent Kowalski', 'USA'),
       ],
       eligibility: { kind: 'cars', cars: ['ferrari_f40_s3', 'ferrari_458_s3', 'ks_toyota_supra_mkiv_tuned'] },
-      grid: { strength: 3 },
     },
     {
       id: 'street',
@@ -101,7 +101,6 @@ export const TUNER_INVITATIONAL: Championship = {
           'abarth500_s1',
         ],
       },
-      grid: { strength: -3 },
       entryFee: 700,
       prizes: {
         positions: [3600, 2500, 1800, 1350, 1050, 800, 600, 450, 300, 200],
@@ -125,31 +124,31 @@ export const TUNER_INVITATIONAL: Championship = {
     {
       id: 'tsukuba',
       name: 'Tsukuba',
-      track: { id: 'ddm_gts_tsukuba', layout: 'full_lfm' },
+      track: recommendedTrack('tsukuba/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'fuji',
       name: 'Fuji Speedway',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone National',
-      track: { id: 'ks_silverstone', layout: 'national' },
+      track: recommendedTrack('silverstone/national'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'okayama',
       name: 'Okayama',
-      track: { id: 'okayama', layout: 'circuit_gp' },
+      track: recommendedTrack('okayama/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -157,7 +156,7 @@ export const TUNER_INVITATIONAL: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -1, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -69,7 +69,7 @@ export const makeTrackEntry = (
   year: null,
   photos: [],
   logo: false,
-  provenance: trackProvenance(track.id, track.layout ?? ''),
+  provenance: trackProvenance(track.id),
   ...track,
 });
 

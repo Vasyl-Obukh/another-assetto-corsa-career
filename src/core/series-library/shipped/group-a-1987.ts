@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, Hemisphere, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -126,34 +127,34 @@ export const GROUP_A_1987: Championship = {
     {
       id: 'monza',
       name: 'Monza 500 km',
-      track: { id: 'monza' },
+      track: recommendedTrack('monza/gp'),
       eventFormat: 'monza-500',
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring 500 km',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       eventFormat: 'nurburgring-500',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone',
       name: 'RAC Tourist Trophy',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       eventFormat: 'silverstone-500',
       climate: Climate.OCEANIC,
     },
     {
       id: 'bathurst',
       name: 'Bathurst 1000',
-      track: { id: 'rt_bathurst' },
+      track: recommendedTrack('bathurst/full'),
       eventFormat: 'bathurst-1000',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
@@ -161,7 +162,7 @@ export const GROUP_A_1987: Championship = {
     {
       id: 'fuji',
       name: 'Fuji 500 km',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       eventFormat: 'fuji-500',
       climate: Climate.TEMPERATE,
     },

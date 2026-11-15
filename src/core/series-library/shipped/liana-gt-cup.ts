@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -68,17 +69,17 @@ export const LIANA_GT_CUP: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
-    { id: 'vallelunga', name: 'Vallelunga', track: { id: 'ks_vallelunga', layout: 'extended_circuit' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'magione', name: 'Magione', track: recommendedTrack('magione/full') },
+    { id: 'vallelunga', name: 'Vallelunga', track: recommendedTrack('vallelunga/full') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -4, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

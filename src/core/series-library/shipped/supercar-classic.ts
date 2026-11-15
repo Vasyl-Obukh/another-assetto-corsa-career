@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -77,7 +78,6 @@ export const SUPERCAR_CLASSIC: Championship = {
         { car: 'ks_lamborghini_countach', restrictor: 8 },
         { car: 'ks_alfa_33_stradale', ballast: 100, restrictor: 5 },
       ],
-      grid: { strength: -3 },
       entryFee: 3600,
       prizes: {
         positions: [13200, 9000, 6600, 4800, 3600, 2700, 2100, 1500, 1000, 600],
@@ -99,22 +99,22 @@ export const SUPERCAR_CLASSIC: Championship = {
   defaultEventFormat: 'standard',
   rounds: [
     {
-      id: 'monza', name: 'Monza Road Course', track: { id: 'ks_monza66', layout: 'road' },
+      id: 'monza', name: 'Monza Road Course', track: recommendedTrack('monza/1966-road'),
     },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone',
       name: 'Silverstone 1967',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       climate: Climate.OCEANIC,
     },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -122,7 +122,6 @@ export const SUPERCAR_CLASSIC: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

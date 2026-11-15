@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,11 +11,14 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Peter Auto's CER 2 races the three-litre prototypes and the Group 5 and GT
  * cars of the seventies over an hour with a stop. Porsche Pack 1 carries two
  * of its cars: the 935/78 in Group 5 and the Carrera RSR 3.0 in GT, which race
- * as classes. Three of its 2026 circuits are raced: Spa, Imola and Estoril;
- * Paul Ricard and Montjuic are not in Assetto Corsa. The points are the
- * 25-18-15 scale: the series' own table was not found. The field is invented.
+ * as classes. Six of its seven 2026 meetings are raced: the Espiritu de
+ * Montjuic at Barcelona, Spa, the Dix Mille Tours at Paul Ricard, Estoril,
+ * Imola, and Losail beside the Qatar 1812 km. Dijon is not in Assetto Corsa.
+ * The points are the 25-18-15 scale: the series' own table was not found. The
+ * field is invented.
  *
- * Source: https://www.peterauto.fr/en/competition/classic-endurance-racing-2/
+ * Sources: https://www.peterauto.fr/en/competition/classic-endurance-racing-2/,
+ * https://www.peterauto.fr/wp-content/uploads/peterauto-calendrier2026-lmcs.pdf
  */
 export const CLASSIC_ENDURANCE_RACING_2: Championship = {
   version: SERIES_FORMAT_VERSION,
@@ -22,9 +26,9 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
   name: 'Classic Endurance Racing 2',
   description: {
     en: 'Today\'s historic series for seventies endurance cars: the 935/78 in Group 5 and the '
-      + 'Carrera RSR in GT, over an hour at Spa, Imola and Estoril.',
+      + 'Carrera RSR in GT, over an hour at six of its 2026 meetings.',
     uk: 'Сучасна історична серія для машин на витривалість сімдесятих: 935/78 у Групі 5 і '
-      + 'Carrera RSR у GT, годинні гонки у Спа, Імолі та Ешторілі.',
+      + 'Carrera RSR у GT, годинні гонки на шести етапах сезону 2026 року.',
   },
   teams: [
     team('cer-kremer', 'Rennstall Rheinland', 'DEU', TeamBudget.INDEPENDENT),
@@ -60,7 +64,6 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
         seat('gt-uk-2', 'cer-uk', 'James Wetherby', 'GBR'),
       ],
       eligibility: { kind: 'cars', cars: ['ks_porsche_911_carrera_rsr'] },
-      grid: { strength: -3 },
       entryFee: 4200,
       prizes: {
         positions: [15600, 10900, 7800, 5950, 4550, 3400, 2500, 1850, 1250, 800],
@@ -81,20 +84,37 @@ export const CLASSIC_ENDURANCE_RACING_2: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
+    {
+      id: 'barcelona',
+      name: 'Espiritu de Montjuic',
+      track: recommendedTrack('barcelona/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'estoril',
       name: 'Estoril',
-      track: { id: 'estoril_2021', layout: 'estoril_gp' },
+      track: recommendedTrack('estoril/gp'),
       climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    {
+      id: 'losail',
+      name: 'Losail',
+      track: recommendedTrack('losail/gp'),
+      climate: Climate.ARID,
     },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -1 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

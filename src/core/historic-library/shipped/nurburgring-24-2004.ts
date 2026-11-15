@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -73,9 +74,6 @@ export const NURBURGRING_24_2004: Championship = {
           'rss_gtn_furiano_36',
         ],
       },
-      grid: {
-        strength: -1,
-      },
       entryFee: 1500,
       prizes: {
         positions: [15000, 10500, 7500, 5700, 4350, 3300, 2400, 1800, 1200, 750],
@@ -101,9 +99,6 @@ export const NURBURGRING_24_2004: Championship = {
       eligibility: {
         kind: 'cars',
         cars: ['gue_nissan_skyline_r34_24h'],
-      },
-      grid: {
-        strength: -4,
       },
       entryFee: 900,
       prizes: {
@@ -143,10 +138,7 @@ export const NURBURGRING_24_2004: Championship = {
     {
       id: 'event',
       name: 'Nürburgring 24 Hours 2004',
-      track: {
-        id: 'ks_nordschleife',
-        layout: 'endurance',
-      },
+      track: recommendedTrack('nordschleife/endurance'),
       climate: Climate.TEMPERATE,
     },
   ],

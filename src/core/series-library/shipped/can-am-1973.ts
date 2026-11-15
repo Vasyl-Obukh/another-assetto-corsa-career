@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -8,12 +9,12 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * its day.
  *
  * Porsche Pack 1's 917/30, one-make: the real grid was 917s and McLarens, and
- * the base game has nothing to race it. Four of the eight rounds at their real
- * distances: Road Atlanta, Watkins Glen, Road America and Laguna Seca.
- * Mosport, Mid-Ohio, Edmonton and Riverside are not in Assetto Corsa. The
- * season changed its event format part-way through; this is its single race,
- * over the two hundred miles each ran. Points are 20-15-12-10-8-6-4-3-2-1. The
- * field is invented.
+ * the base game has nothing to race it. Five of the eight rounds at their real
+ * distances: Road Atlanta, Watkins Glen, Mid-Ohio, Road America and Laguna
+ * Seca. Mosport, Edmonton and Riverside are not in Assetto Corsa. The season
+ * changed its event format part-way through; this is its single race, over the
+ * two hundred miles each ran. Points are 20-15-12-10-8-6-4-3-2-1. The field is
+ * invented.
  *
  * Source: https://en.wikipedia.org/wiki/1973_Can-Am_season
  */
@@ -22,9 +23,9 @@ export const CAN_AM_1973: Championship = {
   id: 'can-am-1973',
   name: 'Can-Am 1973',
   description: {
-    en: 'The 917/30\'s season, one-make: four of the 1973 Can-Am rounds over their real two '
+    en: 'The 917/30\'s season, one-make: five of the 1973 Can-Am rounds over their real two '
       + 'hundred miles.',
-    uk: 'Сезон 917/30 як монокубок: чотири етапи Can-Am 1973 року на справжній дистанції '
+    uk: 'Сезон 917/30 як монокубок: п\'ять етапів Can-Am 1973 року на справжній дистанції '
       + 'у двісті миль.',
   },
   teams: [
@@ -74,6 +75,15 @@ export const CAN_AM_1973: Championship = {
       ],
     },
     {
+      id: 'mid-ohio',
+      name: '200 miles (Mid-Ohio)',
+      sessions: [
+        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 0 },
+        { type: 'race', name: 'Race', laps: 89, day: 1 },
+      ],
+    },
+    {
       id: 'road-america',
       name: '200 miles (Road America)',
       sessions: [
@@ -97,30 +107,37 @@ export const CAN_AM_1973: Championship = {
     {
       id: 'road-atlanta',
       name: 'Road Atlanta',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen',
-      track: { id: 'lilski_watkins_glen', layout: 'boot_classic' },
+      track: recommendedTrack('watkins-glen/boot-classic'),
       eventFormat: 'watkins-glen',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mid-ohio',
+      name: 'Mid-Ohio',
+      track: recommendedTrack('mid-ohio/full'),
+      eventFormat: 'mid-ohio',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       eventFormat: 'road-america',
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' }, eventFormat: 'laguna-seca' },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full'), eventFormat: 'laguna-seca' },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

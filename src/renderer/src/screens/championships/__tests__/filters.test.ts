@@ -47,7 +47,7 @@ const listing = (
       makers: [],
       distributors: [],
       pools: [],
-      rounds: { packs: [], makers: [], distributors: [] },
+      rounds: { packs: [] },
       widenedBy: { packs: [], makers: [], distributors: [] },
     },
     ...availability,

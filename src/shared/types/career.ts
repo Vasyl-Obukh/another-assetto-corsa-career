@@ -1969,7 +1969,7 @@ export interface CareerEventView {
    */
   rounds: number;
   /**
-   * The track and layout it runs on.
+   * The track and layout it runs on, as the install stands.
    */
   track: {
     /**
@@ -1980,6 +1980,10 @@ export interface CareerEventView {
      * Layout folder name, when the circuit has more than one.
      */
     layout?: string;
+    /**
+     * The recommended layout it races, when it names one.
+     */
+    recommended?: string;
   };
   /**
    * The day it is raced on, as an ISO date.

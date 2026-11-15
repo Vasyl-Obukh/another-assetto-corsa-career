@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, Hemisphere, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -76,7 +77,6 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
         { car: 'ks_corvette_c7_stingray', ballast: 80, restrictor: 5 },
         { car: 'ks_alfa_giulia_qv', ballast: 60, restrictor: 10 },
       ],
-      grid: { strength: -1 },
     },
     {
       id: 'class-b',
@@ -97,7 +97,6 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
       eligibility: { kind: 'cars', cars: ['bmw_1m', 'bmw_z4', 'lotus_evora_s'] },
       // The Evora is the light car of the three.
       bop: [{ car: 'lotus_evora_s', ballast: 60, restrictor: 5 }],
-      grid: { strength: -4 },
       entryFee: 1500,
       prizes: {
         positions: [4800, 3350, 2400, 1800, 1300, 950, 700, 550, 350, 200],
@@ -130,24 +129,24 @@ export const PRODUCTION_CAR_ENDURANCE: Championship = {
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
     {
       id: 'bathurst',
       name: 'Bathurst 6 Hour',
-      track: { id: 'rt_bathurst' },
+      track: recommendedTrack('bathurst/full'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,

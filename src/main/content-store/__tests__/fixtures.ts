@@ -49,7 +49,7 @@ export const makeCar = (id: string): Car => ({
 export const makeTrack = (id: string): Track => ({
   id,
   layout: '',
-  provenance: trackProvenance(id, ''),
+  provenance: trackProvenance(id),
   key: id,
   name: id,
   country: null,

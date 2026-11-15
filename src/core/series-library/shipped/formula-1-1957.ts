@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -86,22 +87,29 @@ export const FORMULA_1_1957: Championship = {
   defaultEventFormat: 'grand-prix',
   rounds: [
     {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 99 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       sessionLengths: [{ session: 'grand-prix', laps: 92 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'germany',
       name: 'German Grand Prix',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'ks_monza66', layout: 'road' },
+      track: recommendedTrack('monza/1966-road'),
       sessionLengths: [{ session: 'grand-prix', laps: 87 }],
     },
   ],
@@ -111,7 +119,7 @@ export const FORMULA_1_1957: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

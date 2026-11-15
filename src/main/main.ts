@@ -84,15 +84,37 @@ if (!app.requestSingleInstanceLock()) {
       void content.revalidate({ throttleMs: MIN_REVALIDATE_MS });
     });
 
+    /**
+     * Lists both libraries afresh and pushes them, for a change that moves what
+     * a championship can race.
+     */
+    const refreshLibraries = (): void => {
+      series.refresh().catch((error: unknown) => {
+        console.error('Could not refresh the championship library.', error);
+      });
+      historic.refresh().catch((error: unknown) => {
+        console.error('Could not refresh the historic events.', error);
+      });
+    };
+
     onThemeChange((theme) => {
       if (mainWindow) send(mainWindow, 'theme:changed', theme);
     });
 
+    // Every patch reads the whole file afresh, so the choices are compared as
+    // written rather than by identity.
+    let trackChoices = JSON.stringify(settings.get().trackChoices);
     settings.onChange((next) => {
       applyThemeChoice(next.theme);
       content.include(next.addedContent);
       content.priceWith(next.carPrices);
       if (mainWindow) send(mainWindow, 'settings:changed', next);
+      // A track chosen for a recommended layout moves every round racing it.
+      const choices = JSON.stringify(next.trackChoices);
+      if (choices !== trackChoices) {
+        trackChoices = choices;
+        refreshLibraries();
+      }
     });
 
     content.onChange((change) => {
@@ -111,12 +133,7 @@ if (!app.requestSingleInstanceLock()) {
       content.classify(classes.catalogue());
       if (mainWindow) send(mainWindow, 'classes:changed', layer);
       // What a spec holds decides whether a championship can be raced.
-      series.refresh().catch((error: unknown) => {
-        console.error('Could not refresh the championship library.', error);
-      });
-      historic.refresh().catch((error: unknown) => {
-        console.error('Could not refresh the historic events.', error);
-      });
+      refreshLibraries();
     });
 
     quick.onChange((next) => {

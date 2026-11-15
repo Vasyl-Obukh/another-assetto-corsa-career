@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -14,12 +15,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * so it is not named: a car list is a requirement, and naming it would make
  * this a DLC championship.
  *
- * Six meetings of two races, five of them raced here: Silverstone, Spa, the
- * Nurburgring, Portimao and Magny-Cours. Paul Ricard is not in Assetto Corsa
- * and has no stand-in. The points are the Cup's
- * ten-point scale as its standings imply; the race length is not in the
- * sources found, so an hour, the length its rounds ran as a GT4 support race,
- * is an assumption.
+ * All six meetings of two races: Silverstone, Spa, Paul Ricard, the
+ * Nurburgring, Portimao and Magny-Cours. The points are the Cup's ten-point
+ * scale as its standings imply; the race length is not in the sources found,
+ * so an hour, the length its rounds ran as a GT4 support race, is an
+ * assumption.
  *
  * Source: https://en.wikipedia.org/wiki/2010_GT4_European_Cup
  */
@@ -29,11 +29,11 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
   name: 'GT4 European Cup 2010',
   description: {
     en: 'Two classes on one grid: SuperSport for the 2-Eleven GT4 and the X-Bow R, and GT4, '
-      + 'where the Evora GTC is restricted to stand in for Lotus\' own GT4 car. Five of the 2010 '
-      + 'season\'s six meetings; Paul Ricard is not in Assetto Corsa.',
+      + 'where the Evora GTC is restricted to stand in for Lotus\' own GT4 car. All six meetings '
+      + 'of the 2010 season.',
     uk: 'Два класи на одній стартовій решітці: SuperSport для 2-Eleven GT4 і X-Bow R та GT4, де обмежена '
-      + 'Evora GTC замінює власну машину GT4 від Lotus. П\'ять із шести етапів сезону 2010 року; '
-      + 'Поль-Рікара в Assetto Corsa немає.',
+      + 'Evora GTC замінює власну машину GT4 від Lotus. Усі шість етапів сезону '
+      + '2010 року.',
   },
   teams: [
     team('rhenus', 'Rhenus Racing', 'NLD', TeamBudget.INDEPENDENT),
@@ -62,7 +62,6 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
       // 450 bhp on 1205 kg is GT3 pace; this brings it back to the 3.3 kg per
       // horsepower GT4 runs at.
       bop: [{ car: 'lotus_evora_gtc', ballast: 150, restrictor: 20 }],
-      grid: { strength: -3 },
     },
     {
       id: 'supersport',
@@ -81,7 +80,6 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
         seat('ss-eif-2', 'eifelblick', 'Jana Wesseling', 'DEU'),
       ],
       eligibility: { kind: 'cars', cars: ['lotus_2_eleven_gt4', 'ktm_xbow_r'] },
-      grid: { strength: -6 },
       entryFee: 1100,
       prizes: {
         positions: [3000, 2100, 1500, 1150, 850, 600, 450, 300, 200, 100],
@@ -113,28 +111,34 @@ export const GT4_EUROPEAN_CUP_2010: Championship = {
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
+    },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'portimao',
       name: 'Portimao',
-      track: { id: 'algarve_portimao_2023', layout: 'lfm_nodrs' },
+      track: recommendedTrack('portimao/gp'),
       climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'magny-cours',
       name: 'Magny-Cours',
-      track: { id: 'magnycours22' },
+      track: recommendedTrack('magny-cours/gp'),
       climate: Climate.TEMPERATE,
     },
   ],

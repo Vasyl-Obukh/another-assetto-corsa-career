@@ -2,8 +2,8 @@
 // are shared, since the settings reader coerces the same fields.
 
 import {
-  ActivityIcon, BotIcon, CarIcon, CloudIcon, CoinsIcon, GaugeIcon, LandmarkIcon, LayersIcon, MonitorIcon,
-  PackageIcon, SaveIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
+  ActivityIcon, BotIcon, CarIcon, CloudIcon, CoinsIcon, GaugeIcon, LandmarkIcon, LayersIcon, MapIcon,
+  MonitorIcon, PackageIcon, SaveIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
 } from 'lucide-react';
 
 import type {
@@ -25,6 +25,9 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
   },
   {
     to: path.settingsSources(), label: 'settings.tabs.sources', icon: PackageIcon, end: false,
+  },
+  {
+    to: path.settingsTracks(), label: 'settings.tabs.tracks', icon: MapIcon, end: false,
   },
   {
     to: path.settingsClasses(), label: 'settings.tabs.classes', icon: LayersIcon, end: false,

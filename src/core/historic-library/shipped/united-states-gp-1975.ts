@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -94,10 +95,7 @@ export const UNITED_STATES_GP_1975: Championship = {
     {
       id: 'event',
       name: 'United States Grand Prix 1975',
-      track: {
-        id: 'lilski_watkins_glen',
-        layout: 'boot_classic',
-      },
+      track: recommendedTrack('watkins-glen/boot-classic'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -109,9 +107,6 @@ export const UNITED_STATES_GP_1975: Championship = {
     },
   ],
   defaultPointsSystem: 'none',
-  grid: {
-    strength: 4,
-  },
   generatedWeather: {
     climate: Climate.MEDITERRANEAN,
   },

@@ -1,13 +1,11 @@
 import { LockIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { RUNG_LANE, RUNGS_SHOWN } from './constants.ts';
+import { RUNG_LANE, RUNG_LIST_HEIGHT } from './constants.ts';
 import { RungCard } from './RungCard.tsx';
 import type { Rung } from './types.ts';
 import { opensWith } from './utils.ts';
 import type { Discipline } from '../../../../shared/types';
-import { Button } from '@/components/ui/button.tsx';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -40,10 +38,7 @@ export const LadderCell = ({
 }: LadderCellProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
-  const [open, setOpen] = useState(false);
   const hidden = locked && folded;
-  const extra = rungs.length - RUNGS_SHOWN;
-  const shown = open ? rungs : rungs.slice(0, RUNGS_SHOWN);
   const opens = locked ? opensWith(discipline, tier, t, formatNumber) : '';
 
   return (
@@ -67,24 +62,19 @@ export const LadderCell = ({
         </div>
       ) : null}
 
-      {hidden ? null : shown.map((rung) => (
-        <RungCard
-          key={`${rung.listing.series.id}/${rung.entry.id}`}
-          rung={rung}
-          locked={locked ? opens : undefined}
-        />
-      ))}
-
-      {!hidden && extra > 0 ? (
-        <Button
-          variant="link"
-          size="sm"
-          className="h-auto self-start px-1 py-0.5"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? t('championships.ladder.fewer') : t('championships.ladder.more', { count: extra })}
-        </Button>
-      ) : null}
+      {/* The padding, given back by the margin, keeps a focused card's ring
+          clear of the scroller's edge. */}
+      {hidden || rungs.length === 0 ? null : (
+        <div className={cn('-m-1 flex flex-col gap-2 overflow-y-auto p-1', RUNG_LIST_HEIGHT)}>
+          {rungs.map((rung) => (
+            <RungCard
+              key={rung.listing.series.id}
+              rung={rung}
+              locked={locked ? opens : undefined}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,15 +1,16 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Mazda MX-5 Cup, 2024 - America's one-make MX-5 series, on the Japanese
  * Pack's MX-5 Cup car.
  *
- * Seven double headers of forty-five-minute races, at IMSA's circuits. Five
- * are raced here: Daytona, Sebring, Laguna Seca, Virginia International
- * Raceway and Road Atlanta; Mid-Ohio and Canadian Tire Motorsport Park are not
+ * Seven double headers of forty-five-minute races, at IMSA's circuits. Six
+ * are raced here: Daytona, Sebring, Laguna Seca, Mid-Ohio, Virginia
+ * International Raceway and Road Atlanta; Canadian Tire Motorsport Park is not
  * in Assetto Corsa. The points are the common 25-18-15 scale: the series' own
  * table was not found in full. Laguna Seca's twenty-four boxes cap the grid.
  * The field is invented.
@@ -22,8 +23,8 @@ export const MX5_CUP: Championship = {
   name: 'Mazda MX-5 Cup 2024',
   description: {
     en: 'America\'s one-make MX-5 series in 2024: double headers of forty-five-minute races at '
-      + 'five of its seven IMSA circuits.',
-    uk: 'Американський монокубок MX-5 сезону 2024: по дві гонки по сорок п\'ять хвилин за етап на п\'яти з '
+      + 'six of its seven IMSA circuits.',
+    uk: 'Американський монокубок MX-5 сезону 2024: по дві гонки по сорок п\'ять хвилин за етап на шести з '
       + 'семи його трас IMSA.',
   },
   teams: [
@@ -82,26 +83,32 @@ export const MX5_CUP: Championship = {
     {
       id: 'daytona',
       name: 'Daytona',
-      track: { id: 'rt_daytona', layout: 'sportscar' },
+      track: recommendedTrack('daytona/road'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sebring',
       name: 'Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'laguna-seca', name: 'Laguna Seca', track: { id: 'ks_laguna_seca' } },
+    { id: 'laguna-seca', name: 'Laguna Seca', track: recommendedTrack('laguna-seca/full') },
+    {
+      id: 'mid-ohio',
+      name: 'Mid-Ohio',
+      track: recommendedTrack('mid-ohio/full'),
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
+      track: recommendedTrack('vir/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-atlanta',
       name: 'Road Atlanta',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -109,7 +116,7 @@ export const MX5_CUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -5, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

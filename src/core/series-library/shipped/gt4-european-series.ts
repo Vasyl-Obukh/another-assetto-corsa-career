@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -12,12 +13,11 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * The GT4 spec: Guerilla's seventeen GT4s, Kunos' Maserati and LFM's Supra,
  * any three to a grid. Two hour-long races a round, each from a qualifying
  * of its own, with a compulsory stop and driver change that cannot be said
- * yet. The calendar is the circuits the series races that Assetto Corsa has -
- * Brands Hatch, Monza, Spa, the Nurburgring, Zandvoort and Barcelona - rather
- * than one season's, which was not checked; Paul Ricard, Misano and Hockenheim
- * are not in Assetto Corsa. The Silver, Pro-Am and Am cups share one grid and
- * one class here, on LFM's large-box layouts; Brands Hatch's thirty-two boxes
- * cap a grid that runs past forty.
+ * yet. The calendar is the circuits the series races - Brands Hatch, Monza,
+ * Spa, the Nurburgring, Zandvoort, Barcelona, Paul Ricard, Misano and
+ * Hockenheim - rather than one season's, which was not checked. The Silver,
+ * Pro-Am and Am cups share one grid and one class here, on LFM's large-box
+ * layouts; Brands Hatch's thirty-two boxes cap a grid that runs past forty.
  *
  * The 25-18-15 scale scores each race, a stand-in: the series' own table was
  * not checked. The field is invented: the ADAC GT Masters paddock and four
@@ -30,9 +30,9 @@ export const GT4_EUROPEAN_SERIES: Championship = {
   id: 'gt4-european-series',
   name: 'GT4 European Series',
   description: {
-    en: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a round at six of'
+    en: 'Europe\'s GT4 championship on Guerilla\'s GT4 cars: two one-hour races a round at nine of'
       + ' the GT World Challenge circuits.',
-    uk: 'Європейський чемпіонат GT4 на машинах GT4 від Guerilla: дві годинні гонки за етап на шести '
+    uk: 'Європейський чемпіонат GT4 на машинах GT4 від Guerilla: дві годинні гонки за етап на дев\'яти '
       + 'трасах GT World Challenge.',
   },
   teams: [
@@ -113,39 +113,57 @@ export const GT4_EUROPEAN_SERIES: Championship = {
     {
       id: 'brands-hatch',
       name: 'Brands Hatch',
-      track: { id: 'ks_brands_hatch', layout: 'gp_osrw' },
+      track: recommendedTrack('brands-hatch/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza', layout: 'lfm' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'spa',
       name: 'Spa-Francorchamps',
-      track: { id: 'spa', layout: '2022_lfm_standing' },
+      track: recommendedTrack('spa/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b_osrw_lfm_tracklimits' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023_lfm_v2' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'barcelona',
       name: 'Barcelona',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023_48_pits_lfm_nodrs_v2' },
+      track: recommendedTrack('barcelona/gp'),
+    },
+    {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -1, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

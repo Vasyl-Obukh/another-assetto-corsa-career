@@ -40,7 +40,7 @@ export { TierMedal } from './TierMedal.tsx';
 
 export {
   availabilityState, disciplineKey, enterHintOf, fieldSize, isListed, missingContent, pointsOf, raceLabels, tierAccent,
-  tierMetalKey, trackKeyOf,
+  tierMetalKey, layoutLabel, missingTrackLabel, trackLabelOf,
 } from './utils.ts';
 export type { ChampionshipFilter, EnterHint } from './types.ts';
 export { KeepBlock } from './KeepBlock.tsx';

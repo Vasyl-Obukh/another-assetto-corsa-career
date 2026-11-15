@@ -15,7 +15,7 @@ export const Requirements = ({ requires }: RequirementsProps) => {
   const { t } = useTranslation();
   const { widenedBy, rounds } = requires;
   const widens = widenedBy.packs.length + widenedBy.makers.length + widenedBy.distributors.length > 0;
-  const roundsNeed = rounds.packs.length + rounds.makers.length + rounds.distributors.length > 0;
+  const roundsNeed = rounds.packs.length > 0;
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -27,11 +27,7 @@ export const Requirements = ({ requires }: RequirementsProps) => {
       {roundsNeed ? (
         <>
           <span className="ml-2">{t('championshipLibrary.roundsNeed')}</span>
-          <SourceChips
-            packs={rounds.packs}
-            makers={rounds.makers}
-            distributors={rounds.distributors}
-          />
+          <SourceChips packs={rounds.packs} makers={[]} />
         </>
       ) : null}
 

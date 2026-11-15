@@ -1,5 +1,6 @@
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -70,10 +71,7 @@ export const IROC_DAYTONA_1974: Championship = {
     {
       id: 'event',
       name: 'IROC at Daytona 1974',
-      track: {
-        id: 'rt_daytona',
-        layout: 'sportscar',
-      },
+      track: recommendedTrack('daytona/road'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -86,7 +84,6 @@ export const IROC_DAYTONA_1974: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 6,
     aggression: 15,
   },
   generatedWeather: {

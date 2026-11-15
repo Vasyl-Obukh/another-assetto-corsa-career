@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -117,48 +118,48 @@ export const FORMULA_2_2020: Championship = {
     {
       id: 'spielberg',
       name: 'Spielberg',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spielberg-2',
       name: 'Spielberg, second round',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'budapest',
       name: 'Budapest',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       sessionLengths: [{ session: 'feature', laps: 37 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone-2',
       name: 'Silverstone, second round',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp-2007') },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'mugello',
       name: 'Mugello',
-      track: { id: 'mugello' },
+      track: recommendedTrack('mugello/gp'),
       sessionLengths: [{ session: 'sprint', laps: 22 }],
     },
-    { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
+    { id: 'bahrain', name: 'Sakhir', track: recommendedTrack('bahrain/gp'), climate: Climate.ARID },
     {
       id: 'bahrain-outer',
       name: 'Sakhir outer circuit',
-      track: { id: 'fn_bahrain', layout: 'outer' },
+      track: recommendedTrack('bahrain/outer'),
       climate: Climate.ARID,
     },
   ],
@@ -173,7 +174,7 @@ export const FORMULA_2_2020: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [15, 12, 10, 8, 6, 4, 2, 1], fastestLap: 2 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { strength: 3, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

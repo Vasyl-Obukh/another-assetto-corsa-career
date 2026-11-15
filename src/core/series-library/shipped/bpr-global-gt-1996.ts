@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -8,11 +9,12 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The F1 GTR dominated the BPR's GT1 class, and much of its grid was F1 GTRs;
  * Dream Pack 1 ships the car, and this is its one-make version of that season.
- * Five of eleven rounds at their real four hours: Monza, Silverstone, the
- * Nurburgring, Brands Hatch and Spa. Paul Ricard, Jarama, Anderstorp, Suzuka,
- * Nogaro and Zhuhai are not in Assetto Corsa. The BPR's own points table was
- * not found, so the 20-15-12 scale of the day stands in. The field is
- * invented, since the real crews were two and three to a car.
+ * Seven of eleven rounds at their real lengths: four hours at Paul Ricard,
+ * Monza, Silverstone, the Nurburgring, Brands Hatch and Spa, and the Suzuka
+ * 1000 km. Jarama, Anderstorp, Nogaro and Zhuhai are not in Assetto Corsa.
+ * The BPR's own points table was not found, so the 20-15-12 scale of the day
+ * stands in. The field is invented, since the real crews were two and three
+ * to a car.
  *
  * Source: https://en.wikipedia.org/wiki/1996_BPR_Global_GT_Series
  */
@@ -21,10 +23,10 @@ export const BPR_GLOBAL_GT_1996: Championship = {
   id: 'bpr-global-gt-1996',
   name: 'BPR Global GT Series 1996',
   description: {
-    en: 'The McLaren F1 GTR\'s championship: five of the 1996 season\'s four-hour races, on the car'
-      + ' that dominated them.',
-    uk: 'Чемпіонат McLaren F1 GTR: п\'ять чотиригодинних гонок сезону 1996 року на машині, '
-      + 'яка в них домінувала.',
+    en: 'The McLaren F1 GTR\'s championship: six of the 1996 season\'s four-hour races and the '
+      + 'Suzuka 1000 km, on the car that dominated them.',
+    uk: 'Чемпіонат McLaren F1 GTR: шість чотиригодинних гонок сезону 1996 року та 1000 км Сузуки '
+      + 'на машині, яка в них домінувала.',
   },
   teams: [
     team('woking-gt', 'Albion GT', 'GBR', TeamBudget.WORKS),
@@ -70,35 +72,48 @@ export const BPR_GLOBAL_GT_1996: Championship = {
   defaultEventFormat: 'four-hours',
   rounds: [
     {
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'monza',
       name: 'Monza 4 Hours',
-      track: { id: 'monza' },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [{ session: 'race', laps: 126 }],
     },
     {
       id: 'silverstone',
       name: 'Silverstone 4 Hours',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 108 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring 4 Hours',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Suzuka 1000 km',
+      track: recommendedTrack('suzuka/gp'),
+      sessionLengths: [{ session: 'race', laps: 173 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'brands-hatch',
       name: 'Brands Hatch 4 Hours',
-      track: { id: 'ks_brands_hatch', layout: 'gp' },
+      track: recommendedTrack('brands-hatch/gp'),
       sessionLengths: [{ session: 'race', laps: 178 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: 'Spa 4 Hours',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 100 }],
       climate: Climate.OCEANIC,
     },
@@ -107,7 +122,6 @@ export const BPR_GLOBAL_GT_1996: Championship = {
     { id: 'race', name: 'Race points', positions: [20, 15, 12, 10, 8, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

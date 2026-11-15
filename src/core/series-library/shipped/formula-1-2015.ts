@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -42,10 +43,10 @@ const EVENT: EventFormat = {
  *
  * The real entry list on the 2015 spec - the Red Pack's Ferrari SF15-T and
  * VRC's Williams FW37, either of which fields the grid on its own - with every
- * seat in whichever of it is installed. 13 rounds at their real distances;
- * Barcelona runs the layout with its final chicane, and where a circuit has
- * changed since, the laps cover the real race's distance. Melbourne, Monaco,
- * Marina Bay, Suzuka, Sochi and Mexico City are not in Assetto Corsa.
+ * seat in whichever of it is installed. 18 of 19 rounds at their real
+ * distances; Barcelona runs the layout with its final chicane, and where a
+ * circuit has changed since, the laps cover the real race's distance. Sochi is
+ * not in Assetto Corsa.
  *
  * Qualifying is the three-part knockout, 20 cars cut to 15 and
  * then to 10. Points are 25-18-15-12-10-8-6-4-2-1.
@@ -57,10 +58,10 @@ export const FORMULA_1_2015: Championship = {
   id: 'formula-1-2015',
   name: 'Formula 1 2015',
   description: {
-    en: 'The hybrid era\'s second season, with the real entry list and thirteen of its grands prix '
+    en: 'The hybrid era\'s second season, with the real entry list and eighteen of its grands prix '
       + 'at their real distances. It runs on the Red Pack\'s SF15-T or VRC\'s FW37, whichever you '
       + 'own.',
-    uk: 'Другий сезон гібридної ери зі справжнім списком учасників і тринадцятьма гран-прі '
+    uk: 'Другий сезон гібридної ери зі справжнім списком учасників і вісімнадцятьма гран-прі '
       + 'на справжніх дистанціях. Він проходить на SF15-T з Red Pack або на FW37 від VRC, '
       + 'залежно від того, що у вас є.',
   },
@@ -110,70 +111,104 @@ export const FORMULA_1_2015: Championship = {
   eventFormats: [EVENT],
   defaultEventFormat: 'grand-prix',
   rounds: [
-    { id: 'malaysia', name: 'Malaysian Grand Prix', track: { id: 'acu_sepang' }, climate: Climate.TEMPERATE },
+    {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    { id: 'malaysia', name: 'Malaysian Grand Prix', track: recommendedTrack('sepang/gp'), climate: Climate.TEMPERATE },
     {
       id: 'china',
       name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
-    { id: 'spain', name: 'Spanish Grand Prix', track: { id: 'ks_barcelona', layout: 'layout_gp' } },
+    { id: 'spain', name: 'Spanish Grand Prix', track: recommendedTrack('barcelona/gp-2007') },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 69 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'belgium',
       name: 'Belgian Grand Prix',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 43 }],
       climate: Climate.OCEANIC,
     },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp-2008'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mexico-city',
+      name: 'Mexican Grand Prix',
+      track: recommendedTrack('mexico-city/gp'),
+      // VRC's Mexico reports a 2.6 km lap for the 4.3 km circuit.
+      sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -181,7 +216,7 @@ export const FORMULA_1_2015: Championship = {
     { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

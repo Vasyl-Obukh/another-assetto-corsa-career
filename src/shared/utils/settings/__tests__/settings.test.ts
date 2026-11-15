@@ -13,12 +13,13 @@ import {
   readAddedContent,
   readAllowedWeather,
   readCarPrices,
+  readContentSources,
   readDrivingAids,
-  readHiddenContentSources,
   readOpponents,
   readPaths,
   readSeriesActive,
   readSettings,
+  readTrackChoices,
   readWindow,
 } from '../settings.ts';
 
@@ -135,9 +136,9 @@ describe('shared/utils/settings', () => {
     });
   });
 
-  describe('readHiddenContentSources', () => {
+  describe('readContentSources', () => {
     it('reads every list through', () => {
-      expect(readHiddenContentSources({
+      expect(readContentSources({
         packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC], distributors: [ModDistributor.LFM],
       })).toEqual({
         packs: [DLCPack.RED_PACK], makers: [ModMaker.VRC], distributors: [ModDistributor.LFM],
@@ -145,21 +146,66 @@ describe('shared/utils/settings', () => {
     });
 
     it('drops anything that is not a pack or a mod team, and keeps each once', () => {
-      expect(readHiddenContentSources({
+      expect(readContentSources({
         packs: [DLCPack.RED_PACK, 'no-such-pack', DLCPack.RED_PACK, 7],
         makers: 'vrc',
       })).toEqual({ packs: [DLCPack.RED_PACK], makers: [], distributors: [] });
     });
 
     it('puts them in catalogue order, whatever order the file holds them in', () => {
-      expect(readHiddenContentSources({ packs: [], makers: [ModMaker.VRC, ModMaker.RSS] }).makers)
+      expect(readContentSources({ packs: [], makers: [ModMaker.VRC, ModMaker.RSS] }).makers)
         .toEqual([ModMaker.RSS, ModMaker.VRC]);
     });
 
-    // Hiding nothing offers every championship, which is the safe way round.
-    it('hides nothing for anything that is not an object', () => {
-      expect(readHiddenContentSources(undefined)).toEqual({ packs: [], makers: [], distributors: [] });
-      expect(readHiddenContentSources([DLCPack.RED_PACK])).toEqual({ packs: [], makers: [], distributors: [] });
+    // Nothing switched on offers the base game's championships, where a fresh
+    // install starts too.
+    it('switches nothing on for anything that is not an object', () => {
+      expect(readContentSources(undefined)).toEqual({ packs: [], makers: [], distributors: [] });
+      expect(readContentSources([DLCPack.RED_PACK])).toEqual({ packs: [], makers: [], distributors: [] });
+    });
+  });
+
+  describe('readTrackChoices', () => {
+    it('reads a pick and the guesses turned down', () => {
+      expect(readTrackChoices({
+        'suzuka/gp': { track: 'rt_suzuka/suzukagp', refused: ['suzuka_2005'] },
+      })).toEqual({
+        'suzuka/gp': { track: 'rt_suzuka/suzukagp', refused: ['suzuka_2005'] },
+      });
+    });
+
+    it('keeps a layout the catalogue does not know, which it may gain', () => {
+      expect(readTrackChoices({ 'nowhere/gp': { track: 'nowhere' } })).toEqual({ 'nowhere/gp': { track: 'nowhere' } });
+    });
+
+    it('drops a choice that holds nothing usable', () => {
+      expect(readTrackChoices({
+        'suzuka/gp': {},
+        'spa/gp': { track: '', refused: [] },
+        'monza/gp': 'ks_monza',
+        'imola/gp': { track: 7 },
+      })).toEqual({});
+    });
+
+    it('keeps the half of a choice that reads', () => {
+      expect(readTrackChoices({ 'suzuka/gp': { track: 7, refused: ['suzuka_2005'] } }))
+        .toEqual({ 'suzuka/gp': { refused: ['suzuka_2005'] } });
+    });
+
+    it('drops a layout id with stray whitespace', () => {
+      expect(readTrackChoices({ ' suzuka/gp': { track: 'rt_suzuka' } })).toEqual({});
+    });
+
+    it('sorts the layouts, so the file diffs cleanly', () => {
+      expect(Object.keys(readTrackChoices({
+        'suzuka/gp': { track: 'a' },
+        'imola/gp': { track: 'b' },
+      }))).toEqual(['imola/gp', 'suzuka/gp']);
+    });
+
+    it('reads nothing out of anything that is not an object', () => {
+      expect(readTrackChoices(undefined)).toEqual({});
+      expect(readTrackChoices(['suzuka/gp'])).toEqual({});
     });
   });
 
@@ -355,7 +401,8 @@ describe('shared/utils/settings', () => {
         opponents: { strength: 95, aggression: 40 },
         addedContent: { cars: ['my_car'], tracks: ['my_track'] },
         carPrices: { my_car: 85_000 },
-        hiddenContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
+        offeredContentSources: { packs: ['red-pack'], makers: ['vrc'], distributors: ['lfm'] },
+        trackChoices: { 'suzuka/gp': { track: 'rt_suzuka/suzukagp' } },
         seriesActive: { 'lotus-cup': false },
         showFillerSeries: false,
         historicActive: { 'british-gp-1967': false },

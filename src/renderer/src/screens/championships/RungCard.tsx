@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils.ts';
 
 interface RungCardProps {
   /**
-   * The championship, and the class entry that puts it on this rung.
+   * The championship, and the class entries that put it on this rung.
    */
   rung: Rung;
   /**
@@ -29,12 +29,12 @@ interface RungCardProps {
 
 export const RungCard = ({ rung, locked }: RungCardProps) => {
   const { t } = useTranslation();
-  const { listing, entry } = rung;
+  const { listing, entries } = rung;
   const { series } = listing;
   const format = defaultFormatOf(series);
 
   // Still a way to its page when locked, which is where it says how to open it.
-  const card = (
+  return (
     <Link
       to={path.championship({ id: series.id })}
       aria-description={locked}
@@ -45,20 +45,28 @@ export const RungCard = ({ rung, locked }: RungCardProps) => {
         locked === undefined ? 'bg-card' : 'bg-muted [&>*:not(.lock)]:opacity-55 [&>*:not(.lock)]:grayscale',
       )}
     >
+      {/* What opens the rung hangs off the lock; the card's description says
+          the same to a screen reader. z-10: each faded sibling paints on a
+          layer of its own, over the lock and its tooltip trigger. */}
       {locked === undefined ? null : (
-        <span className="lock absolute top-2 right-2 grid size-5 place-items-center rounded-md border bg-card text-muted-foreground">
-          <LockIcon className="size-3" />
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="lock absolute top-2 right-2 z-10 grid size-5 place-items-center rounded-md border bg-card text-muted-foreground">
+              <LockIcon className="size-3" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">{locked}</TooltipContent>
+        </Tooltip>
       )}
       <span className={cn('text-sm leading-snug font-semibold', locked !== undefined && 'pr-6')}>{series.name}</span>
 
       {/* Every class on the grid, so a multi-class championship says which of
-          them this rung is. That one wears its tier's metal; the rest are
+          them this rung is. Those wear their tier's metal; the rest are
           outlined on purpose - they are context here, and their own rungs
           colour them. */}
       {series.entries.length > 1 ? (
         <div className="flex flex-wrap gap-1">
-          {series.entries.map((one) => (one.id === entry.id ? (
+          {series.entries.map((one) => (entries.some((here) => here.id === one.id) ? (
             <Badge
               key={one.id}
               className={tierAccent(one.ladder.tier)}
@@ -89,14 +97,5 @@ export const RungCard = ({ rung, locked }: RungCardProps) => {
         {format ? <FormatStrip sessions={format.sessions} /> : null}
       </div>
     </Link>
-  );
-
-  if (locked === undefined) return card;
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{card}</TooltipTrigger>
-      <TooltipContent side="top">{locked}</TooltipContent>
-    </Tooltip>
   );
 };

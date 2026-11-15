@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -68,25 +69,25 @@ export const S_FR_CUP: Championship = {
     {
       id: 'tsukuba',
       name: 'Tsukuba',
-      track: { id: 'ddm_gts_tsukuba', layout: 'full_lfm' },
+      track: recommendedTrack('tsukuba/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'okayama',
       name: 'Okayama',
-      track: { id: 'okayama', layout: 'circuit_gp' },
+      track: recommendedTrack('okayama/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sendai',
       name: 'Sendai Hi-Land',
-      track: { id: 'sendai_hiland', layout: 'gp' },
+      track: recommendedTrack('sendai/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'fuji',
       name: 'Fuji Speedway Short',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gpshort' },
+      track: recommendedTrack('fuji/gp-short'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -94,7 +95,7 @@ export const S_FR_CUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -7, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

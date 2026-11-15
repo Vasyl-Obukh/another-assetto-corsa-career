@@ -5,7 +5,7 @@ import { formatOf } from '../../../../shared/utils/event-format';
 import { roundRaceableIn } from '../../../../shared/utils/round-availability';
 import { Shimmer } from '@/components';
 import { useFormat } from '@/i18n';
-import { FormatStrip, RoundRaces, trackKeyOf } from '@/screens/championships';
+import { FormatStrip, RoundRaces, trackLabelOf } from '@/screens/championships';
 import { LayoutMap } from '@/screens/track-browser';
 
 interface CalendarRowProps {
@@ -57,7 +57,7 @@ export const CalendarRow = ({
       </span>
       <span className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-sm font-semibold">{round.name}</span>
-        <span className="truncate text-xs text-muted-foreground">{trackKeyOf(round)}</span>
+        <span className="truncate text-xs text-muted-foreground">{trackLabelOf(round, t)}</span>
         {format ? <FormatStrip sessions={format.sessions} /> : null}
         {raceable ? null : <span className="text-xs text-warning-foreground dark:text-warning">{t('newChampionship.unraceable')}</span>}
       </span>
@@ -69,6 +69,7 @@ export const CalendarRow = ({
           round={round}
           entry={entry}
           playerName={playerName}
+          number={number}
         />
       </span>
     </li>

@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -91,9 +92,7 @@ export const DUTCH_GP_1962: Championship = {
     {
       id: 'event',
       name: 'Dutch Grand Prix 1962',
-      track: {
-        id: 'ks_zandvoort',
-      },
+      track: recommendedTrack('zandvoort/gp-1999'),
       sessionLengths: [
         {
           session: 'grand-prix',
@@ -112,7 +111,6 @@ export const DUTCH_GP_1962: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 4,
     aggression: -5,
   },
   generatedWeather: {

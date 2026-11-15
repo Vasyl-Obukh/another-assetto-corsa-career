@@ -308,12 +308,22 @@ export type {
 } from './series.ts';
 
 export type {
+  RecommendedCircuit,
+  RecommendedLayout,
+  RecommendedTrackInfo,
+  RecommendedTrackState,
+  ResolvedTrack,
+  TrackChoice,
+  TrackSource,
+} from './recommended-tracks.ts';
+
+export type {
   AddedContent,
+  ContentSources,
   Currency,
   DrivingAidFlag,
   DrivingAidNumber,
   DrivingAids,
-  HiddenContentSources,
   HistoricFrequency,
   Language,
   LocalizedText,

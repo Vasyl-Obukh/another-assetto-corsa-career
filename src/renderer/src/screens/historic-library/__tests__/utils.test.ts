@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-  ContentSource, DLCPack, ModDistributor, ModMaker,
+  ContentSource, DLCPack, ModMaker,
 } from '../../../../../shared/types';
 import type { SeriesListing, SeriesRequirements } from '../../../../../shared/types';
+import { ALL_CONTENT_SOURCES, allSourcesBut } from '../../../../../shared/utils/content-sources';
 import { eventRequirements, historicSwitches, offeredHere } from '../utils.ts';
 
 /**
@@ -17,7 +18,7 @@ const requires = (overrides: Partial<SeriesRequirements> = {}): SeriesRequiremen
   makers: [],
   distributors: [],
   pools: [],
-  rounds: { packs: [], makers: [], distributors: [] },
+  rounds: { packs: [] },
   widenedBy: { packs: [], makers: [], distributors: [] },
   ...overrides,
 });
@@ -47,7 +48,7 @@ const listing = (
 /**
  * No content source switched off.
  */
-const NOTHING_HIDDEN = { packs: [], makers: [], distributors: [] };
+const NOTHING_HIDDEN = ALL_CONTENT_SOURCES;
 
 describe('renderer/screens/historic-library/utils', () => {
   describe('historicSwitches', () => {
@@ -61,28 +62,24 @@ describe('renderer/screens/historic-library/utils', () => {
     it('counts what its one round needs as what the event needs', () => {
       const folded = eventRequirements(requires({
         packs: [DLCPack.RED_PACK],
-        rounds: { packs: [DLCPack.READY_TO_RACE], makers: [ModMaker.RSS], distributors: [ModDistributor.LFM] },
+        rounds: { packs: [DLCPack.READY_TO_RACE] },
       }));
 
       expect(folded.packs).toEqual([DLCPack.RED_PACK, DLCPack.READY_TO_RACE]);
-      expect(folded.makers).toEqual([ModMaker.RSS]);
-      expect(folded.distributors).toEqual([ModDistributor.LFM]);
-      expect(folded.rounds).toEqual({ packs: [], makers: [], distributors: [] });
+      expect(folded.rounds).toEqual({ packs: [] });
     });
 
-    it('adds DLC to the sources for a pack the round needs, and Mod for a maker or a redistributor', () => {
-      const pack = requires({ rounds: { packs: [DLCPack.RED_PACK], makers: [], distributors: [] } });
-      const lfm = requires({ rounds: { packs: [], makers: [], distributors: [ModDistributor.LFM] } });
+    it('adds DLC to the sources for a pack the round needs', () => {
+      const pack = requires({ rounds: { packs: [DLCPack.RED_PACK] } });
 
       expect(eventRequirements(pack).sources).toEqual([ContentSource.BASE, ContentSource.DLC]);
-      expect(eventRequirements(lfm).sources).toEqual([ContentSource.BASE, ContentSource.MOD]);
     });
 
     it('names a source or a pack once when the event and its round both need it', () => {
       const folded = eventRequirements(requires({
         sources: [ContentSource.DLC],
         packs: [DLCPack.RED_PACK],
-        rounds: { packs: [DLCPack.RED_PACK], makers: [], distributors: [] },
+        rounds: { packs: [DLCPack.RED_PACK] },
       }));
 
       expect(folded.sources).toEqual([ContentSource.DLC]);
@@ -111,7 +108,7 @@ describe('renderer/screens/historic-library/utils', () => {
     it('leaves out one of ours needing a content source switched off', () => {
       const red = listing({}, requires({ sources: [ContentSource.DLC], packs: [DLCPack.RED_PACK] }));
 
-      expect(offeredHere(red, { ...NOTHING_HIDDEN, packs: [DLCPack.RED_PACK] })).toBe(false);
+      expect(offeredHere(red, allSourcesBut({ packs: [DLCPack.RED_PACK] }))).toBe(false);
     });
 
     it("always lists one of the user's own, whatever it needs and whatever is switched off", () => {
@@ -119,7 +116,7 @@ describe('renderer/screens/historic-library/utils', () => {
 
       expect(offeredHere(
         { ...own, availability: { ...own.availability, available: false } },
-        { ...NOTHING_HIDDEN, packs: [DLCPack.RED_PACK] },
+        allSourcesBut({ packs: [DLCPack.RED_PACK] }),
       )).toBe(true);
     });
   });

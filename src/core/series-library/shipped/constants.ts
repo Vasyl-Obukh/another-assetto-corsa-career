@@ -16,8 +16,3 @@ export const FILLER_MONEY_GROWTH = 0.5;
  * arithmetic.
  */
 export const FILLER_MONEY_ROUNDING = 50;
-
-/**
- * How much stronger the field gets, per step, as an offset over the rung below.
- */
-export const FILLER_AI_STEP = 2;

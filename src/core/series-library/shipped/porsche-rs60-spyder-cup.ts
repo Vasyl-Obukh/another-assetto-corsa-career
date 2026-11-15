@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -65,20 +66,20 @@ export const PORSCHE_RS60_SPYDER_CUP: Championship = {
     {
       id: 'sebring',
       name: 'Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nordschleife',
       name: 'Nordschleife',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'monza', name: 'Monza Road Course', track: { id: 'ks_monza66', layout: 'road' } },
+    { id: 'monza', name: 'Monza Road Course', track: recommendedTrack('monza/1966-road') },
     {
       id: 'silverstone',
       name: 'Silverstone 1967',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -86,7 +87,7 @@ export const PORSCHE_RS60_SPYDER_CUP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -4, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

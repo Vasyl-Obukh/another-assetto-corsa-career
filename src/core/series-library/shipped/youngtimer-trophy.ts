@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -102,31 +103,31 @@ export const YOUNGTIMER_TROPHY: Championship = {
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'zolder',
       name: 'Zolder',
-      track: { id: 'rt_zolder' },
+      track: recommendedTrack('zolder/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: 'Spa-Francorchamps',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nurburgring-finale',
       name: 'Nurburgring Finale',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -134,7 +135,7 @@ export const YOUNGTIMER_TROPHY: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -3, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

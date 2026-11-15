@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -23,13 +24,13 @@ const EVENT: EventFormat = {
  * Formula 1, 1962 - the season Jim Clark's Lotus 25 arrived.
  *
  * The real entry list on the base game's Lotus 25, the only car of the spec:
- * every seat drives one, the way a one-chassis grid of any era would. Six of
- * the nine rounds at their real distances: Zandvoort, Spa, the Nordschleife,
- * Monza's road course and Watkins Glen as raced, and Aintree's British Grand
- * Prix at Silverstone as it was in the sixties, since Aintree is not in Assetto
- * Corsa. Where the circuit is the one raced, the laps are the real ones; where
- * it is a later layout, the laps cover the same distance. Monaco, Rouen and
- * East London are not in Assetto Corsa.
+ * every seat drives one, the way a one-chassis grid of any era would. Seven of
+ * the nine rounds at their real distances: Zandvoort, Monaco, Spa, the
+ * Nordschleife, Monza's road course and Watkins Glen as raced, and Aintree's
+ * British Grand Prix at Silverstone as it was in the sixties, since Aintree is
+ * not in Assetto Corsa. Where the circuit is the one raced, the laps are the
+ * real ones; where it is a later layout, the laps cover the same distance.
+ * Rouen and East London are not in Assetto Corsa.
  *
  * Points are 9-6-4-3-2-1. The season counted a driver's best five results,
  * which a points system cannot say yet. Zandvoort's eighteen boxes cap the
@@ -43,10 +44,10 @@ export const FORMULA_1_1962: Championship = {
   name: 'Formula 1 1962',
   description: {
     en: 'The season the Lotus 25 arrived, with the real entry list in the base game\'s Lotus 25 '
-      + 'and six of its grands prix at their real distances, the Nordschleife and Watkins Glen '
-      + 'included. Aintree\'s British Grand Prix is raced at Silverstone as it was in the sixties.',
-    uk: 'Сезон появи Lotus 25 зі справжнім списком учасників на Lotus 25 з базової гри та шістьма '
-      + 'гран-прі на справжніх дистанціях, включно з Нордшляйфе та Воткінс-Гленом. Гран-прі '
+      + 'and seven of its grands prix at their real distances, Monaco, the Nordschleife and '
+      + 'Watkins Glen included. Aintree\'s British Grand Prix is raced at Silverstone as it was in the sixties.',
+    uk: 'Сезон появи Lotus 25 зі справжнім списком учасників на Lotus 25 з базової гри та сімома '
+      + 'гран-прі на справжніх дистанціях, включно з Монако, Нордшляйфе та Воткінс-Гленом. Гран-прі '
       + 'Великої Британії з Ейнтрі проходить у Сільверстоуні, як і бувало в шістдесяті.',
   },
   teams: [
@@ -96,41 +97,48 @@ export const FORMULA_1_1962: Championship = {
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       sessionLengths: [{ session: 'grand-prix', laps: 80 }],
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 94 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'belgium',
       name: 'Belgian Grand Prix',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 64 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       sessionLengths: [{ session: 'grand-prix', laps: 77 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'germany',
       name: 'German Grand Prix',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       sessionLengths: [{ session: 'grand-prix', laps: 15 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'ks_monza66', layout: 'road' },
+      track: recommendedTrack('monza/1966-road'),
       sessionLengths: [{ session: 'grand-prix', laps: 86 }],
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'lilski_watkins_glen', layout: 'short_classic' },
+      track: recommendedTrack('watkins-glen/short-classic'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -138,7 +146,7 @@ export const FORMULA_1_1962: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: -5 },
+  grid: { aggression: -5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

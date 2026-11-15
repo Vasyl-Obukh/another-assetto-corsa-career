@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -40,10 +41,13 @@ const EVENT: EventFormat = {
  *
  * VRC's ERC cars are that era's Super Tourers under made-up names, and make up
  * the spec. Two races a meeting, each with its own qualifying: a sprint, and a
- * longer feature race. The circuits are those of the season that Assetto Corsa
- * has - Thruxton, Silverstone, Brands Hatch Indy, Oulton Park, Croft and
- * Knockhill; Donington Park and Snetterton are not in Assetto Corsa, and which
- * Silverstone layout the season used was not checked. The races are the
+ * longer feature race. All thirteen meetings, in the season's order:
+ * Thruxton, Silverstone, Donington Park, Brands Hatch, Oulton Park, Donington
+ * again, Croft, Snetterton, Thruxton again, Knockhill, then Brands Hatch,
+ * Oulton Park and Silverstone again. Donington is its National circuit and
+ * Brands Hatch its Indy circuit; Silverstone's International and Snetterton
+ * are today's, not the season's, and Oulton Park's Fosters circuit is not in
+ * Assetto Corsa, so its International stands in. The races are the
  * usual 40 and 80 kilometres, which were not checked, turned into laps off each
  * track; the feature race's compulsory pit stop cannot be stated yet.
  *
@@ -58,11 +62,9 @@ export const BTCC_1998: Championship = {
   name: 'British Touring Car Championship 1998',
   description: {
     en: 'The British Touring Car Championship of 1998 on VRC\'s Super Tourers: a sprint and a '
-      + 'feature race a meeting at Thruxton, Silverstone, Brands Hatch, Oulton Park, Croft and '
-      + 'Knockhill.',
+      + 'feature race at each of the season\'s thirteen meetings.',
     uk: 'British Touring Car Championship 1998 року на машинах Super Touring від VRC: спринт '
-      + 'і основна гонка за етап у Тракстоні, Сільверстоуні, Брендс-Хетчі, Оултон-Парку, Крофті '
-      + 'та Нокхіллі.',
+      + 'і основна гонка на кожному з тринадцяти етапів сезону.',
   },
   teams: [
     team('pennine', 'Pennine Motorsport', 'GBR', TeamBudget.WORKS),
@@ -114,32 +116,79 @@ export const BTCC_1998: Championship = {
     {
       id: 'thruxton',
       name: 'Thruxton',
-      track: { id: 'js_thruxton', layout: 'lfm' },
+      track: recommendedTrack('thruxton/full'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'national' },
+      track: recommendedTrack('silverstone/international'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/national'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'brands-hatch',
       name: 'Brands Hatch',
-      track: { id: 'ks_brands_hatch', layout: 'indy' },
+      track: recommendedTrack('brands-hatch/indy'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'oulton-park',
       name: 'Oulton Park',
-      track: { id: 'rt_oulton_park', layout: 'international' },
+      track: recommendedTrack('oulton-park/international'),
       climate: Climate.OCEANIC,
     },
-    { id: 'croft', name: 'Croft', track: { id: 'zw_croft', layout: 'full' }, climate: Climate.OCEANIC },
+    {
+      id: 'donington-park-2',
+      name: 'Donington Park II',
+      track: recommendedTrack('donington/national'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'croft',
+      name: 'Croft',
+      track: recommendedTrack('croft/full'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'snetterton',
+      name: 'Snetterton',
+      track: recommendedTrack('snetterton/300'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'thruxton-2',
+      name: 'Thruxton II',
+      track: recommendedTrack('thruxton/full'),
+      climate: Climate.OCEANIC,
+    },
     {
       id: 'knockhill',
       name: 'Knockhill',
-      track: { id: 'knockhill2017', layout: 'knockhill' },
+      track: recommendedTrack('knockhill/full'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'brands-hatch-2',
+      name: 'Brands Hatch II',
+      track: recommendedTrack('brands-hatch/indy'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'oulton-park-2',
+      name: 'Oulton Park II',
+      track: recommendedTrack('oulton-park/international'),
+      climate: Climate.OCEANIC,
+    },
+    {
+      id: 'silverstone-2',
+      name: 'Silverstone II',
+      track: recommendedTrack('silverstone/international'),
       climate: Climate.OCEANIC,
     },
   ],
@@ -147,7 +196,7 @@ export const BTCC_1998: Championship = {
     { id: 'race', name: 'Race points', positions: [15, 12, 10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 30 },
+  grid: { aggression: 30 },
   generatedWeather: { climate: Climate.OCEANIC },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

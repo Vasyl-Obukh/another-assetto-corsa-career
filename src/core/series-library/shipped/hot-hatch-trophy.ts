@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -108,26 +109,26 @@ export const HOT_HATCH_TROPHY: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
+    { id: 'magione', name: 'Magione', track: recommendedTrack('magione/full') },
     {
       id: 'silverstone',
       name: 'Silverstone National',
-      track: { id: 'ks_silverstone', layout: 'national' },
+      track: recommendedTrack('silverstone/national'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'vallelunga',
       name: 'Vallelunga Classic',
-      track: { id: 'ks_vallelunga', layout: 'classic_circuit' },
+      track: recommendedTrack('vallelunga/classic'),
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring Sprint',
-      track: { id: 'ks_nurburgring', layout: 'layout_sprint_b' },
+      track: recommendedTrack('nurburgring/sprint-gt'),
       climate: Climate.TEMPERATE,
     },
     {
-      id: 'zandvoort', name: 'Zandvoort', track: { id: 'ks_zandvoort' }, climate: Climate.TEMPERATE,
+      id: 'zandvoort', name: 'Zandvoort', track: recommendedTrack('zandvoort/gp-1999'), climate: Climate.TEMPERATE,
     },
   ],
   pointsSystems: [
@@ -139,7 +140,7 @@ export const HOT_HATCH_TROPHY: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -7, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

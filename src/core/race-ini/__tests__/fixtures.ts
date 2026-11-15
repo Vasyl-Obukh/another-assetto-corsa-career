@@ -82,7 +82,7 @@ export const makeContent = (): Content => ({
       year: null,
       photos: [],
       logo: false,
-      provenance: trackProvenance('test_track', ''),
+      provenance: trackProvenance('test_track'),
     },
     {
       id: 'multi_track',
@@ -103,7 +103,7 @@ export const makeContent = (): Content => ({
       year: null,
       photos: [],
       logo: false,
-      provenance: trackProvenance('multi_track', 'gp'),
+      provenance: trackProvenance('multi_track'),
     },
   ],
   weather: [

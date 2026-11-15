@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,11 +27,11 @@ const EVENT: EventFormat = {
  *
  * The real entry list on RSS's Formula 1990, its V12 and V10 between them, cut
  * to twenty by Silverstone's pit boxes: the drivers who started most of the
- * season. Nine of sixteen rounds at their real distances. Interlagos, Imola,
- * Silverstone before its rebuild, Spa and Monza run their real laps or near
- * them; Montreal, Mexico City, the Hungaroring and Estoril have changed since,
- * so their laps cover the real distance. Phoenix, Monaco, Paul Ricard,
- * Hockenheim, Jerez, Suzuka and Adelaide are not in Assetto Corsa.
+ * season. Fifteen of sixteen rounds at their real distances. Interlagos,
+ * Imola, Monaco, Silverstone before its rebuild, Spa, Monza and Suzuka run
+ * their real laps or near them; Montreal, Mexico City, Paul Ricard, Hockenheim,
+ * the Hungaroring, Estoril, Jerez and Adelaide have changed since, so their
+ * laps cover the real distance. Phoenix is not in Assetto Corsa.
  *
  * Points are 9-6-4-3-2-1, counting a driver's best eleven, which a points
  * system cannot say yet.
@@ -43,9 +44,9 @@ export const FORMULA_1_1990: Championship = {
   name: 'Formula 1 1990',
   description: {
     en: 'Ayrton Senna\'s second title season, with the real entry list on RSS\'s Formula 1990 and '
-      + 'nine of its grands prix at their real distances.',
+      + 'fifteen of its grands prix at their real distances.',
     uk: 'Сезон другого титулу Айртона Сенни зі справжнім списком учасників на Formula 1990 '
-      + 'від RSS і дев\'ятьма гран-прі на справжніх дистанціях.',
+      + 'від RSS і п\'ятнадцятьма гран-прі на справжніх дистанціях.',
   },
   teams: [
     team('mclaren', 'Honda Marlboro McLaren', 'GBR', TeamBudget.WORKS),
@@ -97,52 +98,90 @@ export const FORMULA_1_1990: Championship = {
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
-    { id: 'san-marino', name: 'San Marino Grand Prix', track: { id: 'imola' } },
+    { id: 'san-marino', name: 'San Marino Grand Prix', track: recommendedTrack('imola/gp') },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
+    },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico',
       name: 'Mexican Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'paul-ricard',
+      name: 'French Grand Prix',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'belgium', name: 'Belgian Grand Prix', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' } },
+    { id: 'belgium', name: 'Belgian Grand Prix', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'italy', name: 'Italian Grand Prix', track: recommendedTrack('monza/gp') },
     {
       id: 'portugal',
       name: 'Portuguese Grand Prix',
-      track: { id: 'estoril_2021', layout: 'estoril_no_chicane' },
+      track: recommendedTrack('estoril/no-chicane'),
       sessionLengths: [{ session: 'grand-prix', laps: 75 }],
       climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'jerez',
+      name: 'Spanish Grand Prix',
+      track: recommendedTrack('jerez/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'adelaide',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('adelaide/street'),
+      climate: Climate.MEDITERRANEAN,
+      hemisphere: Hemisphere.SOUTH,
     },
   ],
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

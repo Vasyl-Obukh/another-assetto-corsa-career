@@ -1,26 +1,27 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * Unlimited Invitational - invented, for RSS's cars that no rulebook contains.
  *
- * The LMP1 Protech P91 Hybrid Evo is an LMP1 after the rules ran out, the GT-
- * MX Macca and Protech P92 Renn are GTs past any class, and the Hyperion 2020
- * is a road hypercar. Nothing real races them, so this is made up and says so:
- * three classes, the two GT-MX cars balanced on the install's figures, at
- * circuits with room for them.
+ * The LMP1 Protech P91 Hybrid Evo is an LMP1 after the rules ran out, and the
+ * GT-MX Macca, Mercer Extreme and Protech P92 Renn are GTs past any class.
+ * Nothing real races them, so this is made up and says so: two classes, the
+ * GT-MX cars balanced on the install's figures, at circuits with room for
+ * them.
  */
 export const UNLIMITED_INVITATIONAL: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'unlimited-invitational',
   name: 'Unlimited Invitational',
   description: {
-    en: 'Invented: RSS\'s rule-free cars - the P91 Evo prototype, the GT-MX pair and the Hyperion '
-      + '2020 - in three classes.',
-    uk: 'Вигаданий: машини RSS без жодного регламенту - прототип P91 Evo, пара GT-MX і Hyperion 2020 - у '
-      + 'трьох класах.',
+    en: 'Invented: RSS\'s rule-free cars - the P91 Evo prototype and the GT-MX cars - in two '
+      + 'classes.',
+    uk: 'Вигаданий: машини RSS без жодного регламенту - прототип P91 Evo і машини GT-MX - у '
+      + 'двох класах.',
   },
   teams: [
     team('black-arrow', 'Black Arrow Racing', 'GBR', TeamBudget.WORKS),
@@ -59,32 +60,21 @@ export const UNLIMITED_INVITATIONAL: Championship = {
         seat('gtx-kit-1', 'kitsune', 'Ryo Amemiya', 'JPN'),
         seat('gtx-kit-2', 'kitsune', 'Kaito Sugino', 'JPN'),
       ],
-      eligibility: { kind: 'cars', cars: ['rss_gtmx_macca_v8', 'rss_gtmx_protech_p92_f6_renn'] },
-      // The Macca is a hundred horsepower up on the Renn and lighter.
+      eligibility: {
+        kind: 'cars',
+        cars: ['rss_gtmx_macca_v8', 'rss_gtmx_mercer_extreme_v8', 'rss_gtmx_protech_p92_f6_renn'],
+      },
+      // The Macca is a hundred horsepower up on the Renn and lighter; the
+      // Mercer sits between them, nearer the Renn.
       bop: [
         { car: 'rss_gtmx_macca_v8', restrictor: 15 },
+        { car: 'rss_gtmx_mercer_extreme_v8', restrictor: 5 },
       ],
-      grid: { strength: -2 },
       entryFee: 15000,
       prizes: {
         positions: [54000, 37800, 27000, 20500, 15650, 11900, 8650, 6500, 4300, 2700],
         standings: [432000, 270000, 173000, 113500, 70000],
       },
-    },
-    {
-      id: 'hypercar',
-      name: 'Hypercar',
-      ladder: { discipline: Discipline.ROAD, tier: 1 },
-      seats: [
-        seat('hyp-bla-1', 'black-arrow', 'Piers Wolverton', 'GBR'),
-        seat('hyp-fur-1', 'furia', 'Carlo Guicciardi', 'ITA'),
-        seat('hyp-nor-1', 'nordlicht', 'Henrik Stolzenberg', 'DEU'),
-        seat('hyp-hyp-1', 'hyperdrive', 'Grayson Whitfield', 'USA'),
-        seat('hyp-mir-1', 'mirage', 'Majid Al Hammadi', 'ARE'),
-        seat('hyp-kit-1', 'kitsune', 'Naoya Kurobe', 'JPN'),
-      ],
-      eligibility: { kind: 'cars', cars: ['rss_hyperion_2020'] },
-      grid: { strength: -4 },
     },
   ],
   eventFormats: [
@@ -100,25 +90,25 @@ export const UNLIMITED_INVITATIONAL: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'bahrain', name: 'Bahrain', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
+    { id: 'bahrain', name: 'Bahrain', track: recommendedTrack('bahrain/gp'), climate: Climate.ARID },
     {
       id: 'yas-marina',
       name: 'Yas Marina',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -126,7 +116,7 @@ export const UNLIMITED_INVITATIONAL: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

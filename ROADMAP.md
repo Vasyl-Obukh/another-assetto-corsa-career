@@ -60,7 +60,7 @@ only hour where the curve we ship and the one Kunos wrote disagree.
 | AI economy                      | **None.** Teams have budget tiers that shape their offers; AI drivers have no wallet.                                                                                                                                                     |
 | Currency                        | **Real currency, $ by default.** € and £ as display only - no conversion. An app setting a career may override.                                                                                                                          |
 | Progression speed               | **0.5x-4x multiplier on money and rating**, separate from AI difficulty. A career's own, changeable any time; the ledger records each change.                                                                                            |
-| AI difficulty                   | **The player's to set, never learned.** One strength in settings, and a step of their own for a season or a round of the career. Adaptive difficulty was dropped: pace against the AI moves with the car and the track, which a learned figure would chase rather than answer. |
+| AI difficulty                   | **The player's to set, never learned.** One strength in settings, and a step of their own for a season or a round of the career. Adaptive difficulty was dropped: pace against the AI moves with the car and the track, which a learned figure would chase rather than answer. **Shipped championships state no strength** - not per championship, class or round - so every rung races at the player's own; a rung changes length and money, never the AI. A championship's offset is the player's own customisation. |
 | Career clock                    | **Advances when you start a session dated later than the current day**, plus an explicit *advance to date* action so a career that isn't racing still moves.                                                                              |
 | Multiple championships          | **Calendar clashes plus contract exclusivity.** You cannot be at two events on one day, and contracts state whether outside racing is allowed.                                                                                            |
 | Saves                           | **Elder Scrolls style.** Named saves, overwrite, load any older save, plus rolling autosaves after every session (3 by default, configurable later). **Loading is free and silent**: any save, any time, and the career records no rollback. |
@@ -2068,9 +2068,9 @@ catalogue.
       states its laps per round**, from the real event's winning distance,
       because one distance over a calendar runs hours long at a slow circuit:
       Le Mans is the real 311 laps of 2024, the Rolex 24 781, the Spa 24 Hours
-      564 in 2013 and 478 in the wet 2024 edition. `championship-review.md`
-      carries every pace, every lap count and the half-dozen rounds whose real
-      race was rained off and had a normal edition stand in. The engine refuses the shape rather than trusting
+      564 in 2013 and 478 in the wet 2024 edition. Each championship's header
+      carries its pace, its lap counts and any round whose real race was rained
+      off and had a normal edition stand in. The engine refuses the shape rather than trusting
       the library: `validateSeries` reports `series.race.timed`, `buildRaceIni`
       throws `race.session.raceNotInLaps`, and neither the editor nor the race
       screen offers minutes on a race any more. **The calendar says both** -
@@ -2163,8 +2163,8 @@ read off the content cache. Five rules decide how they are written.
   Abarth's 28 minutes and a lap become 65 km. **A race of four hours or more is
   a lap count per round**, taken from the real event's own winning distance,
   because one distance across a calendar runs six hours over at a slow circuit
-  and under at a fast one. Every pace and every lap count is listed in
-  `championship-review.md`.
+  and under at a fast one. Each championship's header gives its pace and
+  lap counts.
 - **True tiers, and filler for the gaps.** A tier is where a series really
   stands. Where a discipline's base rungs skip tiers, the rung below is repeated
   in the gap with `+` and `++` in its name and longer races each step - Formula
@@ -2334,7 +2334,7 @@ landing with the last of them:
       - British Touring Car Championship 1998 (off), Trans-Am TA2, and WEC 2024
         (VRC) on the Prototype H cars
       - Formula E and IndyCar are thin: one to three real venues a season.
-        Everything unverified is in `championship-review.md`
+        Everything unverified is in each championship's header
 - [x] **LFM** - landed as eight championships: WEC 2024 (LFM), Hypercar and
       an LMGT3 class that is LFM's GT3s car for car; GT World Challenge Europe
       Sprint Cup and Endurance Cup 2024; Intercontinental GT Challenge; ADAC GT
@@ -2373,11 +2373,11 @@ landing with the last of them:
       Yezhrod's 2014 Ligier JSP2, which would put a mod on WEC 2014's
       requirements, and the GT-R's 2009, 2011 and Endurance versions
 
-**All nine batches have landed**: 133 championships. Everything unverified, every
-stand-in and every candidate for removal is in `championship-review.md`, and
-`missing-tracks.md` lists the tracks each real calendar still lacks. What
-remains of the checklist is the review, driving a round of each batch, and the
-tests the batches' core changes are owed.
+**All nine batches have landed**. Everything unverified, every stand-in and
+every venue a real calendar still lacks is in each championship's header. The
+review was done on 2026-11-16 - calendars rechecked against the real seasons,
+the batches' tests written - and its two working files retired. What remains
+is driving a round of each batch.
 
 ## Phase 5 - Championship engine and calendar
 
@@ -3450,6 +3450,33 @@ The number is kept so Phases 13 and 14 keep theirs.
       launch. A generated plan is removed as each launch settles - or, for one
       the app was closed during, as it next starts - and Content Manager's two
       flags are switches whose off is a complete undo
+
+## Recommended tracks (before Phase 14)
+
+LFM's track folders come and go, so the shipped championships stop naming
+them. Mockup: `mockups/recommended-tracks.html`.
+
+- [x] **Recommended tracks** - 82 circuits and 117 layouts in
+      `RECOMMENDED_CIRCUITS`, Kunos' own among them, each layout with the
+      folders known to be it and Kunos' version where Kunos make it. Every
+      shipped round names one, so a track chosen for a layout races every
+      round there; the player's pick, the first known folder, Kunos' version or
+      nothing decides what it races
+- [x] **Settings - Tracks** - every circuit as a card, a row per layout, five
+      states, search, a filter rail and sorting, LFM and the community track list as the two
+      places to get them; Choose over every installed track, guesses to confirm
+- [x] Round page and "Track not installed" chips open the circuit's card
+- [x] **Content sources start off**: the player switches on what they own
+- [x] First-run setup gains Content sources and Tracks as optional steps
+- [x] LFM and VRC credited with no circuit: `MOD_TRACKS` and
+      `DISTRIBUTOR_TRACKS` are gone
+- [ ] Tests for the new and changed functions, once reviewed
+- [x] **Calendars reworked** around the recommended list: 343 rounds added
+      where the real calendars placed them, each at a recommended layout, the
+      Formula E seasons' street circuits among them, Monaco with its real
+      distance in laps and the F1 sprint weekends as raced. A round whose only
+      known version has too few pit boxes for the grid is left out and named
+      in the championship's header
 
 ## Phase 14 - Distribution
 

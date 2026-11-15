@@ -4,8 +4,8 @@ import {
   CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
 } from './constants.ts';
 import type {
-  AvailabilityState, ContentList, EnterHint, MissingContentList, Purse, Rung, ShownRun, StandingsLayout,
-  TeamGroup,
+  AvailabilityState, ContentList, EnterHint, KeepClass, MissingContentList, Purse, Rung, ShownRun,
+  StandingsLayout, TeamGroup,
 } from './types.ts';
 import type {
   Career,
@@ -16,6 +16,7 @@ import type {
   EntryAvailability,
   Facet,
   Mail,
+  MissingTrack,
   PointsSystem,
   PrizeMoney,
   Round,
@@ -34,6 +35,7 @@ import { offerId } from '../../../../shared/utils/contracts';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
 import { awaitingMail } from '../../../../shared/utils/inbox';
 import { scaledPrize } from '../../../../shared/utils/prizes';
+import { recommendedLayout, trackKeyOf } from '../../../../shared/utils/recommended-tracks';
 import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { ProvenancePicks } from '@/components';
@@ -92,12 +94,37 @@ export const carsFor = (
 ): readonly string[] => eligibleCarsIn(listing.availability, round, entry);
 
 /**
- * The track key a round runs on, as the content channels want it.
- * @param round The round
- * @returns The track's own ID for a single-layout track, "id/layout" otherwise
+ * Names a recommended layout by its circuit and its own name.
+ * @param id The layout's id
+ * @param t The translation function
+ * @returns The name, or null when the catalogue has no such layout
  */
-export const trackKeyOf = (round: Round): string => (
-  round.track.layout ? `${round.track.id}/${round.track.layout}` : round.track.id
+export const layoutLabel = (id: string, t: TFunction): string | null => {
+  const entry = recommendedLayout(id);
+
+  return entry ? t('recommendedTracks.layoutName', { circuit: entry.circuit.name, layout: entry.layout.name }) : null;
+};
+
+/**
+ * What a round's track line says: a recommended layout by its name, whatever
+ * folder races it, and any other track by its key.
+ * @param round The round
+ * @param t The translation function
+ * @returns The line
+ */
+export const trackLabelOf = (round: Round, t: TFunction): string => (
+  (round.track.recommended ? layoutLabel(round.track.recommended, t) : null) ?? trackKeyOf(round.track)
+);
+
+/**
+ * What a missing track is listed as: a recommended layout by its name, any
+ * other track by its key.
+ * @param track The missing track
+ * @param t The translation function
+ * @returns The name
+ */
+export const missingTrackLabel = (track: MissingTrack, t: TFunction): string => (
+  (track.recommended ? layoutLabel(track.recommended, t) : null) ?? track.key
 );
 
 /**
@@ -229,11 +256,11 @@ export const availabilityState = (availability: SeriesAvailability): Availabilit
  */
 export const isListed = (
   listing: SeriesListing,
-  settings: Pick<Settings, 'seriesActive' | 'showFillerSeries' | 'hiddenContentSources'>,
+  settings: Pick<Settings, 'seriesActive' | 'showFillerSeries' | 'offeredContentSources'>,
 ): boolean => (
   isSeriesActive(listing, settings)
   && !hiddenAsFiller(listing, settings)
-  && !hiddenBySources(listing, settings.hiddenContentSources)
+  && !hiddenBySources(listing, settings.offeredContentSources)
   && availabilityState(listing.availability) === 'available'
 );
 
@@ -253,7 +280,7 @@ const metalIndex = (tier: number, length: number): number => Math.min(Math.max(t
  * What a championship needs that is not installed, each car and track once.
  *
  * Named by folder ID rather than by a display name, because nothing that is
- * not installed has one.
+ * not installed has one - but for a recommended layout, which has its own.
  * @param listing The championship and its availability
  * @returns The missing cars and tracks
  */
@@ -262,10 +289,11 @@ export const missingContent = ({ availability }: SeriesListing): MissingContentL
     ...availability.entries,
     ...availability.rounds.flatMap((round) => round.entries),
   ].flatMap((entry) => entry.missing);
+  const tracks = availability.rounds.flatMap((round) => (round.track ? [round.track] : []));
 
   return {
     cars: [...new Map(cars.map((car) => [car.id, car])).values()],
-    tracks: availability.rounds.map((round) => round.track).filter((track) => track !== null),
+    tracks: [...new Map(tracks.map((track) => [track.key, track])).values()],
   };
 };
 
@@ -306,23 +334,28 @@ export const ladderDepth = (listings: readonly SeriesListing[]): number => Math.
 );
 
 /**
- * Every way in at one rung of the ladder, in the order the list is sorted.
+ * Every championship at one rung of the ladder, in the order the list is
+ * sorted.
  *
- * A championship with two classes at the same rung - ELMS runs LMP2 and LMP2
- * Pro/Am both at tier 2 - stands there once per class, since each is a
- * different way in.
+ * A championship with two classes at the same rung - a GT3 race beside an
+ * LMP3 one at tier 3 - stands there once, carrying both.
  * @param listings The championships, already filtered and sorted
  * @param discipline The rung's discipline
  * @param tier The rung's tier
- * @returns The championships at that rung, each with the class that puts it there
+ * @param keep Which classes may stand on the ladder at all
+ * @returns The championships at that rung, each with the classes that put it there
  */
 export const rungsAt = (
   listings: readonly SeriesListing[],
   discipline: Discipline,
   tier: number,
-): Rung[] => listings.flatMap((listing) => listing.series.entries
-  .filter((entry) => entry.ladder.discipline === discipline && entry.ladder.tier === tier)
-  .map((entry) => ({ listing, entry })));
+  keep: KeepClass = () => true,
+): Rung[] => listings.flatMap((listing) => {
+  const entries = listing.series.entries.filter((entry) => entry.ladder.discipline === discipline
+    && entry.ladder.tier === tier && keep(listing, entry));
+
+  return entries.length > 0 ? [{ listing, entries }] : [];
+});
 
 /**
  * A class's entry list as a paddock reads it: grouped by team, in the order

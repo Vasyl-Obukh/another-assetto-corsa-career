@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -173,51 +174,51 @@ export const NURBURGRING_LANGSTRECKEN_SERIE: Championship = {
     {
       id: 'nls-1',
       name: 'NLS 1',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-2',
       name: 'NLS 2',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-3',
       name: 'NLS 3',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'n24',
       name: 'Nurburgring 24 Hours',
-      track: { id: 'ks_nordschleife', layout: 'endurance' },
+      track: recommendedTrack('nordschleife/endurance'),
       eventFormat: 'twenty-four-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-4',
       name: 'NLS 4',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-6h',
       name: 'NLS 6 Hours',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-5',
       name: 'NLS 5',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nls-6',
       name: 'NLS 6',
-      track: { id: 'ks_nordschleife', layout: 'endurance_cup' },
+      track: recommendedTrack('nordschleife/endurance-cup'),
       climate: Climate.TEMPERATE,
     },
   ],

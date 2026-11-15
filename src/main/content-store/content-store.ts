@@ -139,15 +139,17 @@ export const createContentStore = async (userDataDir: string): Promise<ContentSt
   };
 
   /**
-   * Which collection a query asks about: the library, or the anonymous mods the
-   * page that adds them browses.
+   * Which collection a query asks about: the library, the anonymous mods the
+   * page that adds them browses, or everything installed.
    * @param content The scanned content
-   * @param query The query, whose `anonymous` flag decides
+   * @param query The query, whose `anonymous` and `everything` flags decide
    * @returns The cars and track layouts to answer from
    */
-  const collection = (content: Content, query?: CarQuery | TrackQuery): ContentLibrary => (
-    query?.anonymous === true ? anonymousOf(content) : libraryOf(content, added)
-  );
+  const collection = (content: Content, query?: CarQuery | TrackQuery): ContentLibrary => {
+    if (query && 'everything' in query && query.everything === true) return content;
+
+    return query?.anonymous === true ? anonymousOf(content) : libraryOf(content, added);
+  };
 
   /**
    * What the car queries price over beyond the catalogue.

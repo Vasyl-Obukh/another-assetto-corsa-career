@@ -1945,7 +1945,7 @@ export const isListed = (listing: SeriesListing, shown: Settings): boolean => (
   listing.availability.available
   && isSeriesActive(listing, shown)
   && !hiddenAsFiller(listing, shown)
-  && !hiddenBySources(listing, shown.hiddenContentSources)
+  && !hiddenBySources(listing, shown.offeredContentSources)
 );
 
 /**

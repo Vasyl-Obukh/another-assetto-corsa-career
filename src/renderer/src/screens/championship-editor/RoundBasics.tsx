@@ -16,6 +16,7 @@ import type {
   Championship, Climate, Hemisphere, Round, RoundAvailability, Track,
 } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
+import { trackKeyOf } from '../../../../shared/utils/recommended-tracks';
 import { TrackPicker } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -29,7 +30,7 @@ import { useFormat } from '@/i18n';
 import { CLIMATE_ACCENT, SESSION_ACCENT } from '@/lib/accents';
 import { SESSION_TYPE_LABEL } from '@/lib/session-labels';
 import { cn } from '@/lib/utils.ts';
-import { FormatStrip, raceLabels, trackKeyOf } from '@/screens/championships';
+import { FormatStrip, raceLabels } from '@/screens/championships';
 import { Field, fromNumber, toNumber } from '@/screens/race';
 import { LayoutMap } from '@/screens/track-browser';
 
@@ -81,7 +82,7 @@ export const RoundBasics = ({
   const [picked, setPicked] = useState<Track | null>(null);
   const name = useFocusOnMount<HTMLInputElement>();
 
-  const trackKey = trackKeyOf(round);
+  const trackKey = trackKeyOf(round.track);
   const fresh = picked?.key === trackKey ? picked : null;
   const idPrefix = `round-${round.id}`;
   const format = formatOf(series, round);

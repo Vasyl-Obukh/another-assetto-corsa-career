@@ -1,5 +1,6 @@
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -82,9 +83,7 @@ export const SPA_4_HOURS_1996: Championship = {
     {
       id: 'event',
       name: 'Spa 4 Hours 1996',
-      track: {
-        id: 'spa',
-      },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [
         {
           session: 'race',
@@ -102,9 +101,6 @@ export const SPA_4_HOURS_1996: Championship = {
     },
   ],
   defaultPointsSystem: 'none',
-  grid: {
-    strength: 4,
-  },
   generatedWeather: {
     climate: Climate.TEMPERATE,
   },

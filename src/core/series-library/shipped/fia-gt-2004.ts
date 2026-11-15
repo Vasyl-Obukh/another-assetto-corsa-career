@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,9 +27,9 @@ const EVENT: EventFormat = {
  *
  * RSS's GT cars are that era's GT1s, and the base game's Maserati MC12 GT1
  * joins them, as the real one did at the season's last round; RSS's GT-N cars
- * are the N-GT class. Five of eleven rounds: Monza, Valencia, Magny-Cours and
- * Imola at 500 km, and the Spa 24 Hours. Hockenheim, Brno, Donington,
- * Oschersleben, Dubai and Zhuhai are not in Assetto Corsa; Valencia and Magny-
+ * are the N-GT class. Eight of eleven rounds: Monza, Valencia, Magny-Cours,
+ * Hockenheim, Donington, Imola and Oschersleben at 500 km, and the Spa 24
+ * Hours. Brno, Dubai and Zhuhai are not in Assetto Corsa; Valencia and Magny-
  * Cours run later versions of their circuits over the same distance.
  *
  * Points are 10-8-6-5-4-3-2-1 in each class. The Spa 24 Hours paid points at
@@ -43,9 +44,9 @@ export const FIA_GT_2004: Championship = {
   name: 'FIA GT Championship 2004',
   description: {
     en: 'The FIA GT Championship of 2004, on RSS\'s GT and GT-N cars and the MC12: 500 km races at'
-      + ' Monza, Valencia, Magny-Cours and Imola, and the Spa 24 Hours.',
+      + ' seven of its rounds, and the Spa 24 Hours.',
     uk: 'FIA GT Championship 2004 року на машинах GT і GT-N від RSS та MC12: гонки на 500 км '
-      + 'у Монці, Валенсії, Маньї-Курі та Імолі, а також 24 години Спа.',
+      + 'на семи його етапах, а також 24 години Спа.',
   },
   teams: [
     team('sarthe', 'Écurie Sarthoise', 'FRA', TeamBudget.INDEPENDENT),
@@ -97,7 +98,6 @@ export const FIA_GT_2004: Championship = {
         seat('ngt-tha-2', 'thames-valley', 'Stuart Mallinder', 'GBR'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.N_GT },
-      grid: { strength: -3 },
       entryFee: 7200,
       prizes: {
         positions: [27000, 18900, 13500, 10250, 7850, 5950, 4300, 3250, 2150, 1350],
@@ -119,28 +119,46 @@ export const FIA_GT_2004: Championship = {
   ],
   defaultEventFormat: 'five-hundred',
   rounds: [
-    { id: 'monza', name: 'Monza 500 km', track: { id: 'monza' } },
-    { id: 'valencia', name: 'Valencia 500 km', track: { id: 'fn_valencia', layout: 'gp' } },
+    { id: 'monza', name: 'Monza 500 km', track: recommendedTrack('monza/gp') },
+    { id: 'valencia', name: 'Valencia 500 km', track: recommendedTrack('valencia/gp') },
     {
       id: 'magny-cours',
       name: 'Magny-Cours 500 km',
-      track: { id: 'magnycours22' },
+      track: recommendedTrack('magny-cours/gp'),
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'donington-park',
+      name: 'Donington Park',
+      track: recommendedTrack('donington/gp'),
+      climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
     },
-    { id: 'imola', name: 'Imola 500 km', track: { id: 'imola' } },
+    { id: 'imola', name: 'Imola 500 km', track: recommendedTrack('imola/gp') },
+    {
+      id: 'oschersleben',
+      name: 'Oschersleben',
+      track: recommendedTrack('oschersleben/gp'),
+      climate: Climate.TEMPERATE,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

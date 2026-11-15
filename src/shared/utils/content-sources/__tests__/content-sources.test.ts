@@ -2,23 +2,23 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DLCPack, ModDistributor, ModMaker } from '../../../types/index.ts';
 import type {
-  HiddenContentSources, RequirementPool, SeriesListing, SeriesOrigin, SeriesRequirements,
+  ContentSources, RequirementPool, SeriesListing, SeriesOrigin, SeriesRequirements,
 } from '../../../types/index.ts';
 import {
-  hiddenBySources, hiddenCount, isOffered, poolHolds,
+  ALL_CONTENT_SOURCES, allSourcesBut, hiddenBySources, hiddenCount, isOffered, poolHolds,
 } from '../content-sources.ts';
 
 /**
- * Nothing switched off.
+ * Nothing switched on, as a fresh install starts.
  */
-const NONE: HiddenContentSources = { packs: [], makers: [], distributors: [] };
+const NOTHING_ON: ContentSources = { packs: [], makers: [], distributors: [] };
 
 /**
  * Some sources switched off, the rest on.
  * @param switchedOff The sources switched off
  * @returns The switches
  */
-const hiding = (switchedOff: Partial<HiddenContentSources>): HiddenContentSources => ({ ...NONE, ...switchedOff });
+const hiding = (switchedOff: Partial<ContentSources>): ContentSources => allSourcesBut(switchedOff);
 
 /**
  * Requirements naming nothing, for a test to add to.
@@ -31,7 +31,7 @@ const requiring = (overrides: Partial<SeriesRequirements> = {}): SeriesRequireme
   makers: [],
   distributors: [],
   pools: [],
-  rounds: { packs: [], makers: [], distributors: [] },
+  rounds: { packs: [] },
   widenedBy: { packs: [], makers: [], distributors: [] },
   ...overrides,
 });
@@ -62,6 +62,22 @@ const listing = (origin: SeriesOrigin, requires: SeriesRequirements): SeriesList
 });
 
 describe('shared/utils/content-sources', () => {
+  describe('allSourcesBut', () => {
+    it('switches every source on but the ones given', () => {
+      const on = allSourcesBut({ packs: [DLCPack.READY_TO_RACE], makers: [ModMaker.RSS] });
+
+      expect(on.packs).not.toContain(DLCPack.READY_TO_RACE);
+      expect(on.packs).toContain(DLCPack.RED_PACK);
+      expect(on.makers).not.toContain(ModMaker.RSS);
+      expect(on.makers).toContain(ModMaker.VRC);
+      expect(on.distributors).toEqual(ALL_CONTENT_SOURCES.distributors);
+    });
+
+    it('switches everything on when nothing is left off', () => {
+      expect(allSourcesBut({})).toEqual(ALL_CONTENT_SOURCES);
+    });
+  });
+
   describe('poolHolds', () => {
     it('holds while any of the grid is still switched on', () => {
       expect(poolHolds(modPool, hiding({ packs: [DLCPack.READY_TO_RACE] }))).toBe(true);
@@ -76,23 +92,27 @@ describe('shared/utils/content-sources', () => {
         cars: [{ pack: null, maker: null, distributor: ModDistributor.LFM }],
       };
 
-      expect(poolHolds(pool, NONE)).toBe(true);
+      expect(poolHolds(pool, ALL_CONTENT_SOURCES)).toBe(true);
       expect(poolHolds(pool, hiding({ distributors: [ModDistributor.LFM] }))).toBe(false);
     });
 
     it('never counts base content as switched off', () => {
       const pool: RequirementPool = { cars: [...modPool.cars, { pack: null, maker: null, distributor: null }] };
 
-      expect(poolHolds(pool, {
-        packs: Object.values(DLCPack), makers: Object.values(ModMaker), distributors: Object.values(ModDistributor),
-      }))
-        .toBe(true);
+      expect(poolHolds(pool, NOTHING_ON)).toBe(true);
     });
   });
 
   describe('isOffered', () => {
+    // The switches start off: only what the player says they own is offered.
+    it('offers a base-only championship and nothing else while nothing is switched on', () => {
+      expect(isOffered(requiring(), NOTHING_ON)).toBe(true);
+      expect(isOffered(requiring({ packs: [DLCPack.READY_TO_RACE] }), NOTHING_ON)).toBe(false);
+      expect(isOffered(requiring({ pools: [modPool] }), NOTHING_ON)).toBe(false);
+    });
+
     it('offers a championship whose needs are all switched on', () => {
-      expect(isOffered(requiring({ packs: [DLCPack.READY_TO_RACE] }), NONE)).toBe(true);
+      expect(isOffered(requiring({ packs: [DLCPack.READY_TO_RACE] }), ALL_CONTENT_SOURCES)).toBe(true);
     });
 
     it('withholds one needing a pack that is switched off', () => {
@@ -129,7 +149,7 @@ describe('shared/utils/content-sources', () => {
 
   describe('hiddenBySources', () => {
     const needsRtr = requiring({ packs: [DLCPack.READY_TO_RACE] });
-    const hidden = { packs: [DLCPack.READY_TO_RACE], makers: [], distributors: [] };
+    const hidden = hiding({ packs: [DLCPack.READY_TO_RACE] });
 
     it('hides a championship the app ships that is not offered', () => {
       expect(hiddenBySources(listing('shipped', needsRtr), hidden)).toBe(true);
@@ -141,7 +161,7 @@ describe('shared/utils/content-sources', () => {
     });
 
     it('leaves an offered championship alone', () => {
-      expect(hiddenBySources(listing('shipped', needsRtr), NONE)).toBe(false);
+      expect(hiddenBySources(listing('shipped', needsRtr), ALL_CONTENT_SOURCES)).toBe(false);
     });
   });
 

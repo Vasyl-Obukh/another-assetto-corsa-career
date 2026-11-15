@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -24,12 +25,13 @@ const EVENT: EventFormat = {
 /**
  * Super Formula, 2019 - the first season of the SF19.
  *
- * RSS's Formula RSS Supreme is that car. Only two of seven rounds are on
- * circuits Assetto Corsa has - Fuji and Okayama; Suzuka, Autopolis, Sportsland
- * SUGO and Motegi are not. Races run the series' usual 250 km or near it,
- * worked out per circuit rather than checked; the compulsory tyre change
- * cannot be stated yet. Qualifying is the three-part knockout, twenty cars cut
- * to fourteen and then to eight.
+ * RSS's Formula RSS Supreme is that car. Six rounds for the season's seven:
+ * Suzuka, Fuji and Okayama are real, and a second visit to Fuji and to
+ * Okayama stands in for Autopolis and Sportsland SUGO; Motegi has no round.
+ * Every race is the series' usual 250 km rather than checked round by round;
+ * the compulsory tyre change cannot be stated yet.
+ * Qualifying is the three-part knockout, twenty cars cut to fourteen and then
+ * to eight.
  *
  * Points are 20-15-11-8-6-5-4-3-2-1 with a point for pole. The field is
  * invented.
@@ -41,10 +43,10 @@ export const SUPER_FORMULA_2019: Championship = {
   id: 'super-formula-2019',
   name: 'Super Formula 2019',
   description: {
-    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme, the SF19: the two rounds '
-      + 'of its 2019 season that Assetto Corsa has, at Fuji and Okayama.',
-    uk: 'Найвища японська формульна серія на Formula RSS Supreme від RSS, тобто SF19: два етапи сезону '
-      + '2019, наявні в Assetto Corsa, на Фудзі та в Окаямі.',
+    en: 'Japan\'s top single-seater series on RSS\'s Formula RSS Supreme, the SF19: six rounds of '
+      + 'its 2019 season at Suzuka, Fuji and Okayama.',
+    uk: 'Найвища японська формульна серія на Formula RSS Supreme від RSS, тобто SF19: шість етапів '
+      + 'сезону 2019 на Сузуці, Фудзі та в Окаямі.',
   },
   teams: [
     team('aoba', 'Team Aoba', 'JPN', TeamBudget.WORKS),
@@ -94,15 +96,39 @@ export const SUPER_FORMULA_2019: Championship = {
   defaultEventFormat: 'standard',
   rounds: [
     {
+      id: 'suzuka',
+      name: 'Suzuka',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
       id: 'fuji',
       name: 'Fuji Speedway',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'okayama',
       name: 'Okayama International Circuit',
-      track: { id: 'okayama', layout: 'circuit_gp' },
+      track: recommendedTrack('okayama/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'fuji-2',
+      name: 'Fuji Speedway 2',
+      track: recommendedTrack('fuji/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'okayama-2',
+      name: 'Okayama International Circuit 2',
+      track: recommendedTrack('okayama/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka-2',
+      name: 'Suzuka 2',
+      track: recommendedTrack('suzuka/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -110,7 +136,7 @@ export const SUPER_FORMULA_2019: Championship = {
     { id: 'race', name: 'Race points', positions: [20, 15, 11, 8, 6, 5, 4, 3, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

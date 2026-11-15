@@ -1,18 +1,18 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * BMW M2 CS Racing Cup Italy - BMW's one-make series on the Italian
  * championship events, on Guerilla's M2 CS Racing.
  *
- * Two races a round. The calendar is the Italian circuits the series races
- * that Assetto Corsa has - Vallelunga, Imola, Mugello and Monza - rather than
- * one season's, which was not checked; Misano is not in Assetto Corsa. Both
- * races line up on qualifying, and the 25-minute length and the 25-18-15 scale
- * are stand-ins: the series' own format and table were not checked. The field
- * is invented.
+ * Two races a round. The calendar is the Italian circuits the series races -
+ * Vallelunga, Imola, Mugello, Monza and Misano - rather than one season's,
+ * which was not checked. Both races line up on qualifying, and the 25-minute
+ * length and the 25-18-15 scale are stand-ins: the series' own format and
+ * table were not checked. The field is invented.
  *
  * Source: https://www.bmw-motorsport.com/
  */
@@ -22,9 +22,9 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
   name: 'BMW M2 CS Racing Cup Italy',
   description: {
     en: 'BMW\'s Italian one-make series on Guerilla\'s M2 CS Racing: two races a round at '
-      + 'Vallelunga, Imola, Mugello and Monza.',
+      + 'Vallelunga, Imola, Mugello, Monza and Misano.',
     uk: 'Італійський монокубок BMW на M2 CS Racing від Guerilla: дві гонки за етап у '
-      + 'Валлелунзі, Імолі, Муджелло та Монці.',
+      + 'Валлелунзі, Імолі, Муджелло, Монці та Мізано.',
   },
   teams: [
     team('brianza', 'Brianza Motorsport', 'ITA', TeamBudget.INDEPENDENT),
@@ -82,16 +82,22 @@ export const BMW_M2_CS_RACING_CUP_ITALY: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'vallelunga', name: 'Vallelunga', track: { id: 'ks_vallelunga', layout: 'extended_circuit' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'vallelunga', name: 'Vallelunga', track: recommendedTrack('vallelunga/full') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -3, aggression: 25 },
+  grid: { aggression: 25 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

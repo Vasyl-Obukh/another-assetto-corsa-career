@@ -3,7 +3,7 @@ import type { ParseKeys } from 'i18next';
 /**
  * One step of first-run setup.
  */
-export type SetupStepId = 'paths' | 'scan' | 'yours';
+export type SetupStepId = 'paths' | 'scan' | 'sources' | 'tracks' | 'yours';
 
 /**
  * A step as the rail beside the wizard lists it.

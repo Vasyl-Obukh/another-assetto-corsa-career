@@ -5,16 +5,17 @@ import path from 'node:path';
 
 import { NATION_CODES } from '../../../shared/constants/index.ts';
 import { isAppError } from '../../../shared/errors/index.ts';
-import { ContentSource } from '../../../shared/types/index.ts';
+import { ContentSource, ModMaker } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
 import { SHIPPED_CATALOGUE, specCars } from '../../../shared/utils/car-classes/index.ts';
 import { carProvenance } from '../../content-catalogue/index.ts';
-import { SERIES_FORMAT_VERSION, validateSeries } from '../../series/index.ts';
+import { requirementsOf, SERIES_FORMAT_VERSION, validateSeries } from '../../series/index.ts';
 import { readSeries } from '../../series-file/index.ts';
 import {
   deleteUserSeries, loadSeriesLibrary, saveUserSeries, SHIPPED, SHIPPED_SERIES,
 } from '../index.ts';
 import { KUNOS_LAYOUTS, PITBOXES } from './fixtures.ts';
+import { recommendedLayout } from '../../../shared/utils/recommended-tracks/index.ts';
 
 jest.mock('node:fs/promises');
 
@@ -161,6 +162,21 @@ describe('core/series-library', () => {
       },
     );
 
+    // Guards a fixed bug: crediting two LFM-redistributed GT3s to First Studio
+    // Race made WEC 2024 and 2025 need FSR's switch, hiding them from a player
+    // who has LFM on. FSR's cars race only in FSR's own championships, so no
+    // other championship needs them or fields them through a spec either.
+    it.each(SHIPPED_SERIES
+      .filter((series) => !series.id.endsWith('-fsr'))
+      .map((series) => [series.id, series] as const))(
+      'asks nothing of First Studio Race to race %s',
+      (unused, series) => {
+        const { makers, widenedBy } = requirementsOf(series, SHIPPED_CATALOGUE);
+
+        expect([...makers, ...widenedBy.makers]).not.toContain(ModMaker.FSR);
+      },
+    );
+
     it('gives every shipped championship an id of its own', () => {
       const ids = SHIPPED_SERIES.map((series) => series.id);
 
@@ -186,7 +202,12 @@ describe('core/series-library', () => {
       .map((shipped) => [shipped.series.id, shipped] as const))(
       'leaves %s, which needs only the base game, enough rounds to race on it',
       (unused, shipped) => {
-        const onBase = shipped.series.rounds.map(trackKey).filter((key) => KUNOS_LAYOUTS.includes(key));
+        // A recommended layout with Kunos' version behind it races that on the
+        // base game, whatever folder it was written with.
+        const onBase = shipped.series.rounds.filter((round) => {
+          const kunos = round.track.recommended ? recommendedLayout(round.track.recommended)?.layout.kunos : undefined;
+          return [trackKey(round), kunos].some((key) => key !== undefined && KUNOS_LAYOUTS.includes(key));
+        });
 
         expect(onBase.length).toBeGreaterThanOrEqual(shipped.active ? MIN_BASE_ROUNDS : 1);
       },
@@ -196,9 +217,11 @@ describe('core/series-library', () => {
       'fits every grid %s lines up into the pit boxes of its circuit',
       (unused, series) => {
         const field = series.entries.reduce((total, entry) => total + entry.seats.length, 0);
+        // A recommended layout no folder is known to be yet has nothing to
+        // measure until one is.
         const short = series.rounds
           .map(trackKey)
-          .filter((key) => (PITBOXES[key] ?? 0) < field);
+          .filter((key) => key !== '' && (PITBOXES[key] ?? 0) < field);
 
         expect(short).toEqual([]);
       },

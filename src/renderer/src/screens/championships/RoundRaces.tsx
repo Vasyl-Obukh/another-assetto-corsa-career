@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { raceLabels } from './utils.ts';
 import type { Round, SeriesListing } from '../../../../shared/types';
 import { roundAvailability } from '../../../../shared/utils/round-availability';
-import { NationFlag } from '@/components';
+import { MissingTrackButton, NationFlag } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useUnits } from '@/hooks';
 import type { RoundColumn } from '@/lib/season-results';
@@ -37,12 +37,17 @@ interface RoundRacesProps {
    * What the player is called.
    */
   playerName: string;
+  /**
+   * The round's number in its season, which a missing track's dialog is titled
+   * by.
+   */
+  number: number;
 }
 
 // A round run names who won each race; one still to come, how long its races
 // are - or what stops it being raced at all.
 export const RoundRaces = ({
-  listing, round, column, entry, playerSeat, playerName,
+  listing, round, column, entry, playerSeat, playerName, number,
 }: RoundRacesProps) => {
   const { t } = useTranslation();
   const units = useUnits();
@@ -61,7 +66,11 @@ export const RoundRaces = ({
   return (
     <div className="flex flex-col items-start gap-1 text-sm tabular-nums">
       {state?.track ? (
-        <Badge variant="destructive">{t('championships.calendar.missingTrack')}</Badge>
+        <MissingTrackButton
+          layout={state.track.recommended}
+          label={t('championships.calendar.missingTrack')}
+          title={t('recommendedTracks.roundTrack', { number })}
+        />
       ) : null}
       {state?.pitboxes ? (
         <Badge variant="destructive">

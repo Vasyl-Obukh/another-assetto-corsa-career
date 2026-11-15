@@ -1,5 +1,6 @@
 import { CarSpec, Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 import { seat, team } from '../../series-library/index.ts';
 
@@ -104,10 +105,7 @@ export const LUXEMBOURG_GP_1997: Championship = {
     {
       id: 'event',
       name: 'Luxembourg Grand Prix 1997',
-      track: {
-        id: 'ks_nurburgring',
-        layout: 'layout_gp_a',
-      },
+      track: recommendedTrack('nurburgring/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -120,7 +118,6 @@ export const LUXEMBOURG_GP_1997: Championship = {
   ],
   defaultPointsSystem: 'none',
   grid: {
-    strength: 5,
     aggression: 10,
   },
   generatedWeather: {

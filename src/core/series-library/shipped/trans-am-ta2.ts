@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -94,43 +95,43 @@ export const TRANS_AM_TA2: Championship = {
     {
       id: 'sebring',
       name: 'Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-atlanta',
       name: 'Road Atlanta',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'lime-rock',
       name: 'Lime Rock Park',
-      track: { id: 'rt_lime_rock_park', layout: 'no_chicane' },
+      track: recommendedTrack('lime-rock/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: 'Watkins Glen',
-      track: { id: 'lilski_watkins_glen', layout: 'boot' },
+      track: recommendedTrack('watkins-glen/boot'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
+      track: recommendedTrack('vir/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'cota',
       name: 'Circuit of the Americas',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -138,7 +139,7 @@ export const TRANS_AM_TA2: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -1, aggression: 30 },
+  grid: { aggression: 30 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

@@ -6,7 +6,9 @@ import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
 import { useAppError } from '@/i18n';
-import { AvailabilityBadge, availabilityState, missingContent } from '@/screens/championships';
+import {
+  AvailabilityBadge, availabilityState, missingContent, missingTrackLabel,
+} from '@/screens/championships';
 
 interface AvailabilityTipProps {
   /**
@@ -58,7 +60,7 @@ export const AvailabilityTip = ({ listing }: AvailabilityTipProps) => {
             {tracks.length > 0 ? (
               <span>
                 <span className="mr-1.5 opacity-70">{t('championships.missing.tracks')}</span>
-                <span className="font-mono">{named(tracks.map((track) => track.key))}</span>
+                <span>{named(tracks.map((track) => missingTrackLabel(track, t)))}</span>
               </span>
             ) : null}
             <span className="opacity-70">{t('championshipLibrary.unavailable')}</span>

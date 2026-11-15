@@ -1,8 +1,10 @@
 import { seat, team } from './utils.ts';
+import { Hemisphere } from '../../../shared/types/index.ts';
 import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -40,13 +42,14 @@ const EVENT: EventFormat = {
 /**
  * FIA Formula 3, 2024 - the rung below Formula 2, on the same events.
  *
- * RSS's Formula RSS 3 V6 is the 2019 car the series raced until 2024, and its
- * 2026 version the one after; either fields the grid. Eight of ten rounds,
+ * RSS's Formula RSS 3 V6 is the Dallara F3 2019, which the series raced
+ * until 2024; its 2026 version races FIA Formula 3 2026. All ten rounds,
  * each a sprint on Saturday with qualifying's top twelve reversed and a
  * feature race on Sunday from qualifying. The real grid is thirty cars, three
  * to a team; the Kunos layouts' twenty-four boxes hold eight teams. The
  * lengths are worked out from the series' usual distances rather than checked
- * round by round. Melbourne and Monaco are not in Assetto Corsa.
+ * round by round; Monaco states its real 23 and 27 laps. Monaco needs
+ * monaco_2020's layouts, the older monaco mod having 22 pit boxes.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 in the feature race, with 2 for pole and
  * 1 for the fastest lap, and 10-9-8-7-6-5-4-3-2-1 in the sprint, with 1 for
@@ -59,9 +62,9 @@ export const FORMULA_3_2024: Championship = {
   id: 'formula-3-2024',
   name: 'FIA Formula 3 2024',
   description: {
-    en: 'FIA Formula 3 on RSS\'s Formula RSS 3: eight rounds of a reverse-grid sprint and a '
+    en: 'FIA Formula 3 on RSS\'s Formula RSS 3 V6: ten rounds of a reverse-grid sprint and a '
       + 'feature race, three cars to a team.',
-    uk: 'FIA Formula 3 на Formula RSS 3 від RSS: вісім етапів зі спринтом за зворотною стартовою решіткою '
+    uk: 'FIA Formula 3 на Formula RSS 3 V6 від RSS: десять етапів зі спринтом за зворотною стартовою решіткою '
       + 'та основною гонкою, по три машини в команді.',
   },
   teams: [
@@ -105,36 +108,50 @@ export const FORMULA_3_2024: Championship = {
         seat('sou-2', 'southern-cross', 'Jack Rutherglen', 'NZL'),
         seat('sou-3', 'southern-cross', 'Ruben Takerei', 'NZL'),
       ],
-      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_3 },
+      eligibility: { kind: 'spec', spec: CarSpec.FORMULA_3_2019 },
     },
   ],
   eventFormats: [EVENT],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'bahrain', name: 'Sakhir', track: { id: 'fn_bahrain', layout: 'gp' }, climate: Climate.ARID },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
-    { id: 'barcelona', name: 'Barcelona', track: { id: 'fn_barcelona', layout: 'barcelona_2023' } },
+    { id: 'bahrain', name: 'Sakhir', track: recommendedTrack('bahrain/gp'), climate: Climate.ARID },
+    {
+      id: 'albert-park',
+      name: 'Albert Park',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
+    {
+      id: 'monaco',
+      name: 'Monaco',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'sprint', laps: 23 }, { session: 'feature', laps: 27 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'barcelona', name: 'Barcelona', track: recommendedTrack('barcelona/gp') },
     {
       id: 'spielberg',
       name: 'Spielberg',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'budapest',
       name: 'Budapest',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       sessionLengths: [{ session: 'sprint', laps: 18 }],
       climate: Climate.TEMPERATE,
     },
-    { id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     {
@@ -147,7 +164,7 @@ export const FORMULA_3_2024: Championship = {
     { id: 'sprint', name: 'Sprint race', positions: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], fastestLap: 1 },
   ],
   defaultPointsSystem: 'feature',
-  grid: { strength: 1, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

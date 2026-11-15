@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -13,10 +14,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The event is BOSS GP's shape - two practices, one qualifying, two short
  * races, the second lined up on the first's result. The calendar is the 2019
- * season's: the Red Bull Ring, Monza, Assen and Imola as raced, with the
- * Nurburgring - a BOSS GP venue in later seasons - and Mugello standing in for
- * Hockenheim and Brno, which are not in Assetto Corsa. The points are the
- * common 25-18-15 scale: BOSS GP's own table was not found.
+ * season's: Hockenheim, the Red Bull Ring, Monza, Assen and Imola as raced,
+ * with Mugello standing in for Brno, which is not in Assetto Corsa. The points
+ * are the common 25-18-15 scale: BOSS GP's own table was not found.
  *
  * Grids of twelve, which is BOSS GP's usual size.
  *
@@ -29,11 +29,11 @@ export const BOSS_GP_OPEN: Championship = {
   name: 'BOSS GP Open',
   description: {
     en: 'The Open class of the series for privately owned big single-seaters, run by the Lotus '
-      + 'Exos 125 and its Stage 1 upgrade balanced to it, on the 2019 calendar. The Nurburgring and '
-      + 'Mugello stand in for Hockenheim and Brno.',
+      + 'Exos 125 and its Stage 1 upgrade balanced to it, on the 2019 calendar. Mugello stands in '
+      + 'for Brno.',
     uk: 'Клас Open серії для великих формульних машин приватних власників: Lotus Exos 125 '
       + 'і його версія Stage 1, зрівняна з ним за характеристиками, за календарем 2019 року. '
-      + 'Нюрбургринг і Муджелло замінюють Хоккенхайм і Брно.',
+      + 'Муджелло замінює Брно.',
   },
   teams: [
     team('ascari', 'Scuderia Ascari', 'NLD', TeamBudget.WORKS),
@@ -94,31 +94,31 @@ export const BOSS_GP_OPEN: Championship = {
   rounds: [
     {
       id: 'hockenheim',
-      name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'red-bull-ring',
       name: 'Red Bull Ring',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       climate: Climate.TEMPERATE,
     },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'assen',
       name: 'Assen',
-      track: { id: 'ne_ttassen', layout: 'autosport' },
+      track: recommendedTrack('assen/autosport'),
       climate: Climate.OCEANIC,
     },
-    { id: 'brno', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
+    { id: 'brno', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

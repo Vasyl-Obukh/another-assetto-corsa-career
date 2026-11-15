@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -23,12 +24,12 @@ const EVENT: EventFormat = {
  * Formula 1, 1979 - Jody Scheckter's title, and the ground-effect cars at their height.
  *
  * The real entry list on RSS's Formula 1979, cut to eighteen by Zandvoort's
- * pit boxes: the drivers who started most of the season. Eight of fifteen
+ * pit boxes: the drivers who started most of the season. Twelve of fifteen
  * rounds at their real distances. Silverstone and Watkins Glen's long circuit
- * are the period ones and run their real laps; Interlagos, Zolder, the
- * Osterreichring, Zandvoort, Monza and Montreal have changed since, so their
- * laps cover the real distance. Buenos Aires, Kyalami, Long Beach, Jarama,
- * Monaco, Dijon and Hockenheim are not in Assetto Corsa.
+ * are the period ones and run their real laps; Interlagos, Kyalami, Long Beach,
+ * Zolder, Monaco, Hockenheim, the Osterreichring, Zandvoort, Monza and Montreal
+ * have changed since, so their laps cover the real distance. Buenos Aires,
+ * Jarama and Dijon are not in Assetto Corsa.
  *
  * Points are 9-6-4-3-2-1; the season counted a driver's best four of each
  * half, which a points system cannot say yet.
@@ -40,10 +41,10 @@ export const FORMULA_1_1979: Championship = {
   id: 'formula-1-1979',
   name: 'Formula 1 1979',
   description: {
-    en: 'Jody Scheckter\'s title season, with the real entry list on RSS\'s Formula 1979 and eight of'
+    en: 'Jody Scheckter\'s title season, with the real entry list on RSS\'s Formula 1979 and twelve of'
       + ' its grands prix at their real distances.',
     uk: 'Чемпіонський сезон Джоді Шектера зі справжнім списком учасників на Formula 1979 від RSS '
-      + 'і вісьмома гран-прі на справжніх дистанціях.',
+      + 'і дванадцятьма гран-прі на справжніх дистанціях.',
   },
   teams: [
     team('ferrari', 'Scuderia Ferrari', 'ITA', TeamBudget.WORKS),
@@ -92,49 +93,77 @@ export const FORMULA_1_1979: Championship = {
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 73 }],
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
+      id: 'kyalami',
+      name: 'South African Grand Prix',
+      track: recommendedTrack('kyalami/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
+      id: 'long-beach',
+      name: 'United States Grand Prix West',
+      track: recommendedTrack('long-beach/street'),
+      sessionLengths: [{ session: 'grand-prix', laps: 83 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'belgium',
       name: 'Belgian Grand Prix',
-      track: { id: 'rt_zolder' },
+      track: recommendedTrack('zolder/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 75 }],
       climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 75 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'hockenheim',
+      name: 'German Grand Prix',
+      track: recommendedTrack('hockenheim/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 67 }],
+      climate: Climate.TEMPERATE,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      sessionLengths: [{ session: 'grand-prix', laps: 75 }],
+      track: recommendedTrack('osterreichring/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 54 }],
       climate: Climate.TEMPERATE,
     },
-    { id: 'netherlands', name: 'Dutch Grand Prix', track: { id: 'ks_zandvoort' }, climate: Climate.OCEANIC },
+    { id: 'netherlands', name: 'Dutch Grand Prix', track: recommendedTrack('zandvoort/gp-1999'), climate: Climate.OCEANIC },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'monza' },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 50 }],
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 75 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'lilski_watkins_glen', layout: 'boot_classic' },
+      track: recommendedTrack('watkins-glen/boot-classic'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -142,7 +171,7 @@ export const FORMULA_1_1979: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

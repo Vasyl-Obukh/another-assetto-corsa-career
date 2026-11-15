@@ -201,7 +201,7 @@ const BASE_ONLY: SeriesRequirements = {
   makers: [],
   distributors: [],
   pools: [],
-  rounds: { packs: [], makers: [], distributors: [] },
+  rounds: { packs: [] },
   widenedBy: { packs: [], makers: [], distributors: [] },
 };
 

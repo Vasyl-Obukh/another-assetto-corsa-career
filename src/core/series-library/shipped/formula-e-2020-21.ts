@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget, Weekday,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,10 +11,12 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * the Gen2 car.
  *
  * VRC's Formula Lithium 2019 is the Gen2 car. The season ran almost entirely
- * on city streets, and the only venue Assetto Corsa has is Valencia's Ricardo
- * Tormo circuit, where it held a double header - raced here as two rounds.
- * Diriyah, Rome, Monaco, Puebla, New York, London and Berlin are not in
- * Assetto Corsa.
+ * on city streets. Its Valencia double header at the Ricardo Tormo circuit and
+ * its Puebla double header on the Formula E layout of the Autodromo Miguel E.
+ * Abed are raced, each as two rounds, with Monaco between them over the real
+ * race's 26 laps; Monaco needs monaco_2020's layouts, the older monaco mod having
+ * twenty-two boxes for a grid of twenty-four. Diriyah, Rome, New York, London
+ * and Berlin are not in Assetto Corsa.
  *
  * Qualifying is one session for everyone and a Super Pole for the fastest six;
  * the real group stage ran four groups in championship order. The real races
@@ -32,9 +35,9 @@ export const FORMULA_E_2020_21: Championship = {
   name: 'Formula E 2020-21',
   description: {
     en: 'Formula E\'s first world championship season on VRC\'s Formula Lithium 2019, the Gen2 car:'
-      + ' its Valencia double header, the only venue of the season Assetto Corsa has.',
+      + ' its Valencia and Puebla double headers and Monaco.',
     uk: 'Перший сезон Formula E у статусі чемпіонату світу на Formula Lithium 2019 від VRC, машині Gen2: '
-      + 'здвоєний етап у Валенсії, єдиній трасі сезону, яка є в Assetto Corsa.',
+      + 'здвоєні етапи у Валенсії та Пуеблі і Монако.',
   },
   teams: [
     team('lumen-e', 'Lumen E-Racing', 'FRA', TeamBudget.WORKS),
@@ -99,7 +102,7 @@ export const FORMULA_E_2020_21: Championship = {
           day: 0,
           inherit: { from: 'qualifying', top: 6 },
         },
-        { type: 'race', name: 'E-Prix', distance: 75, day: 0, inherit: { from: 'super-pole' } },
+        { id: 'race', type: 'race', name: 'E-Prix', distance: 75, day: 0, inherit: { from: 'super-pole' } },
       ],
     },
   ],
@@ -107,8 +110,27 @@ export const FORMULA_E_2020_21: Championship = {
   // Raced on a Saturday, as the real series is.
   raceWeekday: Weekday.SATURDAY,
   rounds: [
-    { id: 'valencia-1', name: 'Valencia E-Prix, race 1', track: { id: 'fn_valencia', layout: 'gp' } },
-    { id: 'valencia-2', name: 'Valencia E-Prix, race 2', track: { id: 'fn_valencia', layout: 'gp' } },
+    { id: 'valencia-1', name: 'Valencia E-Prix, race 1', track: recommendedTrack('valencia/gp') },
+    { id: 'valencia-2', name: 'Valencia E-Prix, race 2', track: recommendedTrack('valencia/gp') },
+    {
+      id: 'monaco',
+      name: 'Monaco E-Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'race', laps: 26 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'puebla-1',
+      name: 'Puebla E-Prix, race 1',
+      track: recommendedTrack('puebla/fe'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'puebla-2',
+      name: 'Puebla E-Prix, race 2',
+      track: recommendedTrack('puebla/fe'),
+      climate: Climate.TEMPERATE,
+    },
   ],
   pointsSystems: [
     {
@@ -120,7 +142,7 @@ export const FORMULA_E_2020_21: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3, aggression: 20 },
+  grid: { aggression: 20 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

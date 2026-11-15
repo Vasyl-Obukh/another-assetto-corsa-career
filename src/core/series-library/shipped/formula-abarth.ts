@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -17,9 +18,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * Corsa cannot say at all - it times a race on a server alone - so each race is
  * the 65 km those 28 minutes cover at the FA01's pace.
  *
- * Five of its seven championship rounds are base circuits, in the season's own
- * order; Misano and Varano are not in Assetto Corsa, and the Spa round did not
- * count. The field is invented: fourteen seats, under Magione's eighteen boxes.
+ * Six of its seven championship rounds, in the season's own order; Varano is
+ * not in Assetto Corsa, and the Spa round did not count. The field is invented:
+ * fourteen seats, under Magione's eighteen boxes.
  *
  * Source: https://en.wikipedia.org/wiki/2010_Formula_Abarth_season
  */
@@ -29,11 +30,11 @@ export const FORMULA_ABARTH: Championship = {
   name: 'Formula Abarth',
   description: {
     en: 'The 2010 season of the Italian single-chassis junior formula: two 28-minute races a '
-      + 'event, the second from the first\'s result with the top eight reversed. Misano and Varano '
-      + 'are not in Assetto Corsa, so five of its rounds are raced.',
+      + 'event, the second from the first\'s result with the top eight reversed. Varano is not in '
+      + 'Assetto Corsa, so six of its rounds are raced.',
     uk: 'Сезон 2010 року італійської юніорської формули з єдиним шасі: дві 28-хвилинні гонки за етап, '
-      + 'друга стартує за результатами першої з переверненою першою вісімкою. Мізано й Варано в Assetto '
-      + 'Corsa немає, тож розігруються п\'ять етапів.',
+      + 'друга стартує за результатами першої з переверненою першою вісімкою. Варано в Assetto Corsa '
+      + 'немає, тож розігруються шість етапів.',
   },
   teams: [
     team('arcadia', 'Scuderia Arcadia', 'ITA', TeamBudget.INDEPENDENT),
@@ -99,15 +100,21 @@ export const FORMULA_ABARTH: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'magione', name: 'Magione', track: { id: 'magione' } },
-    { id: 'imola', name: 'Imola', track: { id: 'imola' } },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    { id: 'magione', name: 'Magione', track: recommendedTrack('magione/full') },
+    { id: 'imola', name: 'Imola', track: recommendedTrack('imola/gp') },
     {
       id: 'vallelunga',
       name: 'Vallelunga',
-      track: { id: 'ks_vallelunga', layout: 'extended_circuit' },
+      track: recommendedTrack('vallelunga/full'),
     },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'mugello', name: 'Mugello', track: recommendedTrack('mugello/gp') },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
   ],
   pointsSystems: [
     {
@@ -125,7 +132,6 @@ export const FORMULA_ABARTH: Championship = {
     },
   ],
   defaultPointsSystem: 'race-1',
-  grid: { strength: -4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, slipstream: 1 },

@@ -371,6 +371,7 @@ export const readRound = (value: unknown, field: string, report: Reporter): bool
   if (!isRecord(value)) return report.bad(field, value);
 
   const track = isRecord(value.track) && typeof value.track.id === 'string'
+    && (value.track.recommended === undefined || typeof value.track.recommended === 'string')
     ? true
     : report.bad(`${field}.track`, value.track);
   const fee = readOptionalNumber(value.entryFee, `${field}.entryFee`, report);

@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -9,9 +10,9 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * The 2016 season was the second on the Huracan LP620-2 Super Trofeo, which is
  * the car the base game ships: six double-header rounds of 50-minute races,
- * each race with its own qualifying. Monza, Silverstone, Spa and the
- * Nurburgring are base circuits, and the season closed at Valencia's World
- * Final; Paul Ricard is not in Assetto Corsa, so Mugello stands in.
+ * each race with its own qualifying. All six are raced here: Monza,
+ * Silverstone, Paul Ricard, Spa, the Nurburgring, and Valencia, where the
+ * season closed at the World Final.
  *
  * The Pro, Pro-Am, Am and Lamborghini Cup classes shared one grid and are one
  * class entry here: they were scored against the same car. The points are the
@@ -27,9 +28,8 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
   name: 'Lamborghini Super Trofeo Europe 2016',
   description: {
     en: 'The Huracan Super Trofeo\'s one-make championship: double headers of 50-minute '
-      + 'races, each with its own qualifying. Mugello stands in for Paul Ricard.',
-    uk: 'Монокубок Huracan Super Trofeo: по дві 50-хвилинні гонки за етап, кожна зі своєю кваліфікацією. '
-      + 'Муджелло замінює Поль-Рікар.',
+      + 'races, each with its own qualifying.',
+    uk: 'Монокубок Huracan Super Trofeo: по дві 50-хвилинні гонки за етап, кожна зі своєю кваліфікацією.',
   },
   teams: [
     team('baldoni', 'Scuderia Baldoni', 'ITA', TeamBudget.WORKS),
@@ -92,27 +92,32 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
   ],
   defaultEventFormat: 'standard',
   rounds: [
-    { id: 'monza', name: 'Monza', track: { id: 'monza' } },
+    { id: 'monza', name: 'Monza', track: recommendedTrack('monza/gp') },
     {
       id: 'silverstone',
       name: 'Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'mugello', name: 'Mugello', track: { id: 'mugello' } },
     {
-      id: 'spa', name: 'Spa-Francorchamps', track: { id: 'spa' }, climate: Climate.OCEANIC,
+      id: 'paul-ricard',
+      name: 'Paul Ricard',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'spa', name: 'Spa-Francorchamps', track: recommendedTrack('spa/gp'), climate: Climate.OCEANIC,
     },
     {
       id: 'nurburgring',
       name: 'Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_b' },
+      track: recommendedTrack('nurburgring/gp-gt'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'valencia',
       name: 'World Final, Valencia',
-      track: { id: 'fn_valencia', layout: 'gp' },
+      track: recommendedTrack('valencia/gp'),
       climate: Climate.MEDITERRANEAN,
     },
   ],
@@ -120,7 +125,7 @@ export const LAMBORGHINI_SUPER_TROFEO_2016: Championship = {
     { id: 'race', name: 'Race points', positions: [15, 12, 10, 8, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: -2, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

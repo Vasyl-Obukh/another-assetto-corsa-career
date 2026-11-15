@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -103,7 +104,6 @@ export const WEC_2017: Championship = {
         seat('gte-ita-b-1', 'gte-italia', 'Valerio Castelnuovo', 'ITA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2017 },
-      grid: { strength: -1 },
       entryFee: 10800,
       prizes: {
         positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
@@ -136,63 +136,63 @@ export const WEC_2017: Championship = {
     {
       id: 'silverstone',
       name: '6 Hours of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 197 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'spa',
       name: '6 Hours of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 173 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'chicane' },
+      track: recommendedTrack('le-mans/24h'),
       eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'nurburgring',
       name: '6 Hours of the Nurburgring',
-      track: { id: 'ks_nurburgring', layout: 'layout_gp_a' },
+      track: recommendedTrack('nurburgring/gp'),
       sessionLengths: [{ session: 'race', laps: 204 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico',
       name: '6 Hours of Mexico',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'race', laps: 240 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'cota',
       name: '6 Hours of the Circuit of the Americas',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       sessionLengths: [{ session: 'race', laps: 192 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'fuji',
       name: '6 Hours of Fuji',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       sessionLengths: [{ session: 'race', laps: 244 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'shanghai',
       name: '6 Hours of Shanghai',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       sessionLengths: [{ session: 'race', laps: 195 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'bahrain',
       name: '6 Hours of Bahrain',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -206,7 +206,6 @@ export const WEC_2017: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 3 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

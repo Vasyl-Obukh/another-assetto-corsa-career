@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -26,15 +27,15 @@ const EVENT: EventFormat = {
  *
  * VRC's Formula North America 2012 is the car, its road kit for road courses
  * and its oval kit for the speedway; a round fields whichever kit its circuit
- * needs. Of its fifteen rounds only Sonoma is in Assetto Corsa. The finale,
- * the 500 miles of Fontana, runs at Daytona's tri-oval over the same distance,
- * because Fontana is not in Assetto Corsa; the IndyCar field never raced
- * there. St. Petersburg, Barber, Long Beach, Sao Paulo, Indianapolis, Detroit,
- * Texas, Milwaukee, Iowa, Toronto, Edmonton, Mid-Ohio and Baltimore are not in
- * Assetto Corsa.
+ * needs. Of its fifteen rounds, Long Beach, the Indianapolis 500 over its 200
+ * laps, Mid-Ohio and Sonoma are raced. The finale, the 500 miles of Fontana,
+ * runs at Daytona's tri-oval over the same distance, because Fontana has no
+ * recommended track; the IndyCar field never raced there. St. Petersburg,
+ * Barber, Sao Paulo, Detroit, Texas, Milwaukee, Iowa, Toronto, Edmonton and
+ * Baltimore have none either.
  *
  * Qualifying is the road-course knockout, twenty-four cars cut to twelve and
- * then to the Fast Six; the oval runs a single session. Points are
+ * then to the Fast Six; the ovals run a single session. Points are
  * 50-40-35-32-30-28-26 and down, a point for pole; the points for leading a
  * lap and leading the most cannot be stated yet. The field is invented.
  *
@@ -109,14 +110,43 @@ export const INDYCAR_2012: Championship = {
         { type: 'race', name: 'Race', laps: 200, day: 2 },
       ],
     },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500',
+      sessions: [
+        { type: 'practice', name: 'Practice', minutes: 60, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 20, day: 1 },
+        { type: 'race', name: 'Race', laps: 200, day: 2 },
+      ],
+    },
   ],
   defaultEventFormat: 'road-course',
   rounds: [
-    { id: 'sonoma', name: 'Sonoma', track: { id: 'rt_sonoma', layout: 'indy' }, climate: Climate.TEMPERATE },
+    {
+      id: 'long-beach',
+      name: 'Long Beach',
+      track: recommendedTrack('long-beach/street'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'indianapolis-500',
+      name: 'Indianapolis 500',
+      track: recommendedTrack('indianapolis/oval'),
+      eventFormat: 'indianapolis-500',
+      eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_OVAL } }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'mid-ohio',
+      name: 'Mid-Ohio',
+      track: recommendedTrack('mid-ohio/full'),
+      climate: Climate.TEMPERATE,
+    },
+    { id: 'sonoma', name: 'Sonoma', track: recommendedTrack('sonoma/indycar'), climate: Climate.TEMPERATE },
     {
       id: 'daytona',
       name: 'Daytona International Speedway',
-      track: { id: 'rt_daytona', layout: 'tri-oval' },
+      track: recommendedTrack('daytona/oval'),
       eventFormat: 'oval',
       eligibility: [{ entry: 'indycar', eligibility: { kind: 'spec', spec: CarSpec.INDYCAR_2012_OVAL } }],
       climate: Climate.TEMPERATE,
@@ -131,7 +161,7 @@ export const INDYCAR_2012: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4, aggression: 15 },
+  grid: { aggression: 15 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

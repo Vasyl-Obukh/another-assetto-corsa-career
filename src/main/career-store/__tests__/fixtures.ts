@@ -213,7 +213,7 @@ export const makeAvailability = (
   // Needing nothing, so no content source switched off ever hides it.
   requires: {
     sources: [], packs: [], makers: [], distributors: [], pools: [],
-    rounds: { packs: [], makers: [], distributors: [] },
+    rounds: { packs: [] },
     widenedBy: { packs: [], makers: [], distributors: [] },
   },
   ...over,

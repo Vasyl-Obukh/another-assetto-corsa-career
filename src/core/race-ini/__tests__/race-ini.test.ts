@@ -147,6 +147,40 @@ describe('core/race-ini', () => {
       const race = { ...makeRace(), track: { id: 'nowhere' } };
       expect(() => buildRaceIni(race, makeContent())).toThrow('Track not installed');
     });
+
+    it('refuses a race measured in minutes, which offline AC cannot end', () => {
+      const race: RaceDefinition = {
+        ...makeRace(),
+        sessions: [{ type: 'race', name: 'Feature race', minutes: 30 }],
+      };
+
+      expect(() => buildRaceIni(race, makeContent())).toThrow(expect.objectContaining({
+        code: 'race.session.raceNotInLaps',
+        params: { session: 'Feature race' },
+      }));
+    });
+
+    it('refuses a race with no length at all, naming it by type when it has no name', () => {
+      const race: RaceDefinition = { ...makeRace(), sessions: [{ type: 'race' }] };
+
+      expect(() => buildRaceIni(race, makeContent())).toThrow(expect.objectContaining({
+        code: 'race.session.raceNotInLaps',
+        params: { session: 'race' },
+      }));
+    });
+
+    it('builds a race stated in laps alongside timed practice and qualifying', () => {
+      const race: RaceDefinition = {
+        ...makeRace(),
+        sessions: [
+          { type: 'practice', minutes: 30 },
+          { type: 'qualify', minutes: 15 },
+          { type: 'race', laps: 12 },
+        ],
+      };
+
+      expect(() => buildRaceIni(race, makeContent())).not.toThrow();
+    });
   });
 
   describe('validateRace', () => {

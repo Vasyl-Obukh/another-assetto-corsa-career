@@ -1,6 +1,6 @@
 import { ContentSource } from '../../../../shared/types';
 import type {
-  HiddenContentSources, SeriesListing, SeriesRequirements, Settings,
+  ContentSources, SeriesListing, SeriesRequirements, Settings,
 } from '../../../../shared/types';
 import { hiddenBySources } from '../../../../shared/utils/content-sources';
 
@@ -29,15 +29,12 @@ export const eventRequirements = (requires: SeriesRequirements): SeriesRequireme
   const { rounds } = requires;
   const sources = new Set(requires.sources);
   if (rounds.packs.length > 0) sources.add(ContentSource.DLC);
-  if (rounds.makers.length > 0 || rounds.distributors.length > 0) sources.add(ContentSource.MOD);
 
   return {
     ...requires,
     sources: [...sources],
     packs: [...new Set([...requires.packs, ...rounds.packs])],
-    makers: [...new Set([...requires.makers, ...rounds.makers])],
-    distributors: [...new Set([...requires.distributors, ...rounds.distributors])],
-    rounds: { packs: [], makers: [], distributors: [] },
+    rounds: { packs: [] },
   };
 };
 
@@ -50,11 +47,11 @@ export const eventRequirements = (requires: SeriesRequirements): SeriesRequireme
  * is nothing to do with but switch. One of the user's own is always listed, so
  * a file they wrote is never hidden from them.
  * @param listing The historic event and its availability
- * @param hidden The content sources switched off in settings
+ * @param offered The content sources switched on in settings
  * @returns True when the pool lists it
  */
-export const offeredHere = (listing: SeriesListing, hidden: HiddenContentSources): boolean => {
+export const offeredHere = (listing: SeriesListing, offered: ContentSources): boolean => {
   if (listing.origin !== 'shipped') return true;
 
-  return listing.availability.available && !hiddenBySources(listing, hidden);
+  return listing.availability.available && !hiddenBySources(listing, offered);
 };

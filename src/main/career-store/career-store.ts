@@ -728,7 +728,7 @@ export const createCareerStore = async (
   const drawHistoric = async (career: Career, season: CareerSeason, from: string): Promise<CareerSeason> => {
     if (season.historicDrawn) return season;
 
-    const { historicActive, hiddenContentSources } = settings.get();
+    const { historicActive, offeredContentSources } = settings.get();
     const slots = historicSlots(season, career.settings.historicFrequency);
     if (slots.length === 0) return { ...season, historicDrawn: true };
 
@@ -746,7 +746,7 @@ export const createCareerStore = async (
     const offered = library.series.filter((one) => (
       one.availability.available
       && isSeriesActive(one, { seriesActive: historicActive })
-      && !hiddenBySources(one, hiddenContentSources)
+      && !hiddenBySources(one, offeredContentSources)
     ));
     const salt = seasonSalt(career, season.index);
     const picks = planHistoric({
@@ -3159,7 +3159,8 @@ export const createCareerStore = async (
         roundName: round.name,
         number: championship.rounds.indexOf(round) + 1,
         rounds: championship.rounds.length,
-        track: round.track,
+        // As it races here, which a season's copy written elsewhere may not say.
+        track: (await series.place(championship)).rounds.find((one) => one.id === round.id)?.track ?? round.track,
         date: event.date,
         climate,
         prize: winnerPrize(career, championship, classEntry.id),

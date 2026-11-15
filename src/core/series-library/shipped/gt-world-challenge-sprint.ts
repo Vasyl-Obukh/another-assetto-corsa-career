@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -11,14 +12,13 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  *
  * An event of two one-hour races, each from a qualifying of its own, with a
  * compulsory stop and a driver change that cannot be said yet. The calendar is
- * the circuits of the Sprint Cup's recent seasons that Assetto Corsa has -
- * Brands Hatch, Magny-Cours, Zandvoort and Valencia - rather than one
- * season's, which was not checked; Misano and Hockenheim are not in Assetto
- * Corsa. The Pro, Gold and Silver cups share one grid and one class here.
+ * the circuits of the Sprint Cup's recent seasons - Brands Hatch, Magny-Cours,
+ * Zandvoort, Valencia, Misano and Hockenheim - rather than one season's, which
+ * was not checked. The Pro, Gold and Silver cups share one grid and one class
+ * here.
  *
  * Points are 16.5-12-9.5-7.5-6-4.5-3-2-1-0.5 a race, the table as understood
- * rather than checked. The field is invented, and is the same invented GT
- * paddock as the GT-M Championship's.
+ * rather than checked. The field is invented.
  *
  * Source: https://en.wikipedia.org/wiki/GT_World_Challenge_Europe_Sprint_Cup
  */
@@ -28,9 +28,9 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
   name: 'GT World Challenge Europe Sprint Cup',
   description: {
     en: 'Europe\'s GT3 sprint series on LFM\'s GT3 cars: two one-hour races a round at Brands '
-      + 'Hatch, Magny-Cours, Zandvoort and Valencia.',
+      + 'Hatch, Magny-Cours, Zandvoort, Valencia, Misano and Hockenheim.',
     uk: 'Європейська спринтерська серія GT3 на машинах GT3 від LFM: дві годинні гонки за етап у '
-      + 'Брендс-Хетчі, Магні-Курі, Зандворті та Валенсії.',
+      + 'Брендс-Хетчі, Магні-Курі, Зандворті, Валенсії, Мізано та Гоккенгаймі.',
   },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
@@ -98,23 +98,35 @@ export const GT_WORLD_CHALLENGE_SPRINT: Championship = {
     {
       id: 'brands-hatch',
       name: 'Brands Hatch',
-      track: { id: 'ks_brands_hatch', layout: 'gp_osrw' },
+      track: recommendedTrack('brands-hatch/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'magny-cours', name: 'Magny-Cours', track: { id: 'magnycours22' }, climate: Climate.TEMPERATE },
+    { id: 'magny-cours', name: 'Magny-Cours', track: recommendedTrack('magny-cours/gp'), climate: Climate.TEMPERATE },
     {
       id: 'zandvoort',
       name: 'Zandvoort',
-      track: { id: 'zandvoort2023', layout: '2023_lfm_v2' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
-    { id: 'valencia', name: 'Valencia', track: { id: 'fn_valencia', layout: 'gp_lfm' } },
+    { id: 'valencia', name: 'Valencia', track: recommendedTrack('valencia/gp') },
+    {
+      id: 'misano',
+      name: 'Misano',
+      track: recommendedTrack('misano/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
+      id: 'hockenheim',
+      name: 'Hockenheim',
+      track: recommendedTrack('hockenheim/gp'),
+      climate: Climate.TEMPERATE,
+    },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [16.5, 12, 9.5, 7.5, 6, 4.5, 3, 2, 1, 0.5] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

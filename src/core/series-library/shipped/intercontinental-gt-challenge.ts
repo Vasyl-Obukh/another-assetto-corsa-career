@@ -3,31 +3,33 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
- * Intercontinental GT Challenge - the world tour of GT3 endurance classics, on
- * LFM's GT3 cars.
+ * Intercontinental GT Challenge, 2025 - the world tour of GT3 endurance
+ * classics, on LFM's GT3 cars.
  *
- * Of its rounds, two are in Assetto Corsa and both are its classics: the
- * Bathurst 12 Hour and the Spa 24 Hours, at their real lengths. Indianapolis
- * is not in Assetto Corsa, and the season's other rounds were not checked.
- * Bathurst's thirty-six boxes cap the grid.
+ * Four of the season's five rounds at their real lengths: the Bathurst 12
+ * Hour, the Spa 24 Hours, the Suzuka 1000 km and the Indianapolis 8 Hour. The
+ * Nurburgring 24 Hours is left out: Kunos' Nordschleife has twenty-four boxes,
+ * too few for the grid. Bathurst's and Suzuka's thirty-six boxes cap it.
  *
  * The series scores manufacturers as well as drivers, which a points system
  * cannot say yet; drivers are scored 25-18-15-12-10-8-6-4-2-1 as a stand-in.
  * The field is invented, and is the same paddock as the Endurance Cup's.
  *
- * Source: https://en.wikipedia.org/wiki/Intercontinental_GT_Challenge
+ * Source: https://en.wikipedia.org/wiki/2025_Intercontinental_GT_Challenge
  */
 export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
   version: SERIES_FORMAT_VERSION,
   id: 'intercontinental-gt-challenge',
-  name: 'Intercontinental GT Challenge',
+  name: 'Intercontinental GT Challenge 2025',
   description: {
-    en: 'The GT3 world tour\'s two classics on LFM\'s GT3 cars: the Bathurst 12 Hour and the Spa 24'
-      + ' Hours.',
-    uk: 'Дві класичні гонки світового туру GT3 на машинах GT3 від LFM: 12 годин Батерста і 24 години Спа.',
+    en: 'The GT3 world tour of 2025 on LFM\'s GT3 cars: the Bathurst 12 Hour, the Spa 24 Hours, the '
+      + 'Suzuka 1000 km and the Indianapolis 8 Hour.',
+    uk: 'Світовий тур GT3 2025 року на машинах GT3 від LFM: 12 годин Батерста, 24 години Спа, '
+      + '1000 км Сузуки та 8 годин Індіанаполіса.',
   },
   teams: [
     team('ironbridge', 'Ironbridge Racing', 'GBR', TeamBudget.WORKS),
@@ -114,7 +116,7 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
           id: 'race',
           type: 'race',
           name: '12 Hours',
-          laps: 323,
+          laps: 306,
           day: 2,
           inherit: { from: 'shootout' },
         },
@@ -138,10 +140,28 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
           id: 'race',
           type: 'race',
           name: '24 Hours',
-          laps: 537,
+          laps: 549,
           day: 2,
           inherit: { from: 'superpole' },
         },
+      ],
+    },
+    {
+      id: 'thousand-km',
+      name: '1000 km',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 1 },
+        { id: 'race', type: 'race', name: '1000 km', laps: 170, day: 2 },
+      ],
+    },
+    {
+      id: 'eight-hours',
+      name: 'Eight hours',
+      sessions: [
+        { type: 'practice', name: 'Free practice', minutes: 120, day: 0 },
+        { type: 'qualify', name: 'Qualifying', minutes: 60, day: 1 },
+        { id: 'race', type: 'race', name: '8 Hours', laps: 198, day: 2 },
       ],
     },
   ],
@@ -150,23 +170,37 @@ export const INTERCONTINENTAL_GT_CHALLENGE: Championship = {
     {
       id: 'bathurst',
       name: 'Bathurst 12 Hour',
-      track: { id: 'rt_bathurst' },
+      track: recommendedTrack('bathurst/full'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
       id: 'spa',
       name: 'Spa 24 Hours',
-      track: { id: 'spa', layout: '2022_lfm_standing' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'spa-24',
       climate: Climate.OCEANIC,
+    },
+    {
+      id: 'suzuka',
+      name: 'Suzuka 1000 km',
+      track: recommendedTrack('suzuka/gp'),
+      eventFormat: 'thousand-km',
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'indianapolis',
+      name: 'Indianapolis 8 Hour',
+      track: recommendedTrack('indianapolis/road'),
+      eventFormat: 'eight-hours',
+      climate: Climate.TEMPERATE,
     },
   ],
   pointsSystems: [
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 1, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

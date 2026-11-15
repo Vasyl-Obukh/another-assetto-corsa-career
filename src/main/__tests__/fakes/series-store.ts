@@ -44,7 +44,7 @@ export const raceableAvailability = (series: Championship): SeriesAvailability =
   // Needing nothing, so no content source switched off ever hides it.
   requires: {
     sources: [], packs: [], makers: [], distributors: [], pools: [],
-    rounds: { packs: [], makers: [], distributors: [] },
+    rounds: { packs: [] },
     widenedBy: { packs: [], makers: [], distributors: [] },
   },
 });
@@ -73,6 +73,7 @@ export const fakeSeriesStore = (initial: readonly SeriesListing[] = []): FakeSer
     },
     get: async (id) => listingOf(id) ?? null,
     validate: async (series: Championship) => listingOf(series.id)?.availability ?? raceableAvailability(series),
+    place: async (series: Championship) => series,
     lowerRound: async (series, request) => ({ id: `${series.id}/${request.round}` }) as RaceDefinition,
     drawField: async () => [],
     offer: async () => ({ types: [], planner: null }) as unknown as WeatherOffer,

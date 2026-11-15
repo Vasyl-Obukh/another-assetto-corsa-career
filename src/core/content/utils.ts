@@ -464,7 +464,7 @@ export const makeTrack = (id: string, layout: string, ui: UiTrack, files: readon
     year: parseYear(ui.year),
     photos,
     logo: named.includes(TRACK_LOGO_FILE),
-    provenance: trackProvenance(id, layout),
+    provenance: trackProvenance(id),
   };
 };
 

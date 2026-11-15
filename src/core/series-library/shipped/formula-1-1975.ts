@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -97,47 +98,73 @@ export const FORMULA_1_1975: Championship = {
     {
       id: 'brazil',
       name: 'Brazilian Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
+      id: 'kyalami',
+      name: 'South African Grand Prix',
+      track: recommendedTrack('kyalami/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 74 }],
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'belgium',
       name: 'Belgian Grand Prix',
-      track: { id: 'rt_zolder' },
+      track: recommendedTrack('zolder/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 70 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'ks_zandvoort' },
+      track: recommendedTrack('zandvoort/gp-1999'),
       sessionLengths: [{ session: 'grand-prix', laps: 75 }],
       climate: Climate.TEMPERATE,
     },
     {
+      id: 'paul-ricard',
+      name: 'French Grand Prix',
+      track: recommendedTrack('paul-ricard/gp'),
+      climate: Climate.MEDITERRANEAN,
+    },
+    {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone1967' },
+      track: recommendedTrack('silverstone/1967'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'germany',
       name: 'German Grand Prix',
-      track: { id: 'ks_nordschleife', layout: 'nordschleife' },
+      track: recommendedTrack('nordschleife/full'),
       sessionLengths: [{ session: 'grand-prix', laps: 14 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'osterreichring',
+      name: 'Austrian Grand Prix',
+      track: recommendedTrack('osterreichring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'monza' },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 52 }],
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'lilski_watkins_glen', layout: 'boot_classic' },
+      track: recommendedTrack('watkins-glen/boot-classic'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -145,7 +172,6 @@ export const FORMULA_1_1975: Championship = {
     { id: 'race', name: 'Championship points', positions: [9, 6, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

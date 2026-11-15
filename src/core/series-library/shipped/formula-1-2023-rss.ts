@@ -3,6 +3,7 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -98,13 +99,11 @@ const SPRINT: EventFormat = {
  *
  * The real entry list on RSS's Formula Hybrid 2023, every seat in it. The 2023
  * season is a championship per spec, so VRC's car of the same year races its
- * own. 13 of 22 rounds at their real distances, four of its six sprint
- * events included - the sprint lined up by a shootout of its own, the grand
- * prix by Friday's knockout; Barcelona runs the layout without its final
- * chicane, as it did from that year. Yas Marina runs the layout before its
- * 2021 rebuild, so its laps cover the real distance. Jeddah, Melbourne, Baku,
- * Miami, Monaco, Marina Bay, Suzuka, Losail and Las Vegas are not in Assetto
- * Corsa.
+ * own. All 22 rounds at their real distances, the six sprint events
+ * included - the sprint lined up by a shootout of its own, the grand prix by
+ * Friday's knockout; Barcelona runs the layout without its final chicane, as
+ * it did from that year. Yas Marina runs the layout before its 2021 rebuild,
+ * so its laps cover the real distance.
  *
  * Qualifying is the three-part knockout, twenty cars cut to fifteen and then
  * to ten. Points are 25-18-15-12-10-8-6-4-2-1 and one for the fastest lap,
@@ -119,9 +118,9 @@ export const FORMULA_1_2023_RSS: Championship = {
   name: 'Formula 1 2023 (RSS)',
   description: {
     en: 'Max Verstappen\'s nineteen-win season, with the real entry list on RSS\'s Formula Hybrid '
-      + '2023 and thirteen of its grands prix at their real distances.',
+      + '2023 and all twenty-two of its grands prix at their real distances.',
     uk: 'Сезон дев\'ятнадцяти перемог Макса Ферстаппена: реальний список учасників на Formula Hybrid 2023 '
-      + 'від RSS і тринадцять гран-прі сезону на їхніх справжніх дистанціях.',
+      + 'від RSS і всі двадцять два гран-прі сезону на їхніх справжніх дистанціях.',
   },
   teams: [
     team('red-bull', 'Oracle Red Bull Racing', 'AUT', TeamBudget.WORKS),
@@ -172,85 +171,145 @@ export const FORMULA_1_2023_RSS: Championship = {
     {
       id: 'bahrain',
       name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
+    },
+    {
+      id: 'jeddah',
+      name: 'Saudi Arabian Grand Prix',
+      track: recommendedTrack('jeddah/gp'),
+      climate: Climate.ARID,
+    },
+    {
+      id: 'albert-park',
+      name: 'Australian Grand Prix',
+      track: recommendedTrack('albert-park/gp'),
+      climate: Climate.TEMPERATE,
+      hemisphere: Hemisphere.SOUTH,
+    },
+    {
+      id: 'baku',
+      name: 'Azerbaijan Grand Prix',
+      track: recommendedTrack('baku/gp'),
+      eventFormat: 'sprint',
+      climate: Climate.ARID,
+    },
+    {
+      id: 'miami',
+      name: 'Miami Grand Prix',
+      track: recommendedTrack('miami/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'monaco',
+      name: 'Monaco Grand Prix',
+      track: recommendedTrack('monaco/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 78 }],
+      climate: Climate.MEDITERRANEAN,
     },
     {
       id: 'spain',
       name: 'Spanish Grand Prix',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
+      track: recommendedTrack('barcelona/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 66 }],
     },
     {
       id: 'canada',
       name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
+      track: recommendedTrack('montreal/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'austria',
       name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
+      track: recommendedTrack('red-bull-ring/gp'),
       eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'britain',
       name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'hungary',
       name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
+      track: recommendedTrack('hungaroring/gp'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'belgium',
       name: 'Belgian Grand Prix',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       eventFormat: 'sprint',
       climate: Climate.OCEANIC,
     },
     {
       id: 'netherlands',
       name: 'Dutch Grand Prix',
-      track: { id: 'zandvoort2023', layout: '2023' },
+      track: recommendedTrack('zandvoort/gp'),
       climate: Climate.OCEANIC,
     },
     {
       id: 'italy',
       name: 'Italian Grand Prix',
-      track: { id: 'monza' },
+      track: recommendedTrack('monza/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 51 }],
+    },
+    {
+      id: 'marina-bay',
+      name: 'Singapore Grand Prix',
+      track: recommendedTrack('marina-bay/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 62 }],
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'suzuka',
+      name: 'Japanese Grand Prix',
+      track: recommendedTrack('suzuka/gp'),
+      climate: Climate.TEMPERATE,
+    },
+    {
+      id: 'losail',
+      name: 'Qatar Grand Prix',
+      track: recommendedTrack('losail/gp'),
+      eventFormat: 'sprint',
+      climate: Climate.ARID,
     },
     {
       id: 'united-states',
       name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
+      track: recommendedTrack('cota/gp'),
       eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'mexico-city',
       name: 'Mexico City Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
+      track: recommendedTrack('mexico-city/gp'),
       sessionLengths: [{ session: 'grand-prix', laps: 71 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'sao-paulo',
       name: 'São Paulo Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       eventFormat: 'sprint',
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
     },
     {
+      id: 'las-vegas',
+      name: 'Las Vegas Grand Prix',
+      track: recommendedTrack('las-vegas/gp'),
+      sessionLengths: [{ session: 'grand-prix', laps: 50 }],
+      climate: Climate.ARID,
+    },
+    {
       id: 'abu-dhabi',
       name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
+      track: recommendedTrack('yas-marina/gp'),
       climate: Climate.ARID,
     },
   ],
@@ -259,7 +318,7 @@ export const FORMULA_1_2023_RSS: Championship = {
     { id: 'sprint', name: 'Sprint points', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },

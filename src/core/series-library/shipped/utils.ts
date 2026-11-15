@@ -1,16 +1,17 @@
-// Constructors for the two things every shipped entry list is made of, and for
-// a filler championship made of another.
+// Constructors for the two things every shipped entry list is made of, for a
+// filler championship made of another, and for a copy of one on another
+// maker's cars.
 //
 // An entry list is a table, and these keep each row to a line: written out as
 // object literals, twenty drivers are a hundred and forty lines nobody can scan
 // for a missing nation.
 
 import {
-  FILLER_AI_STEP, FILLER_MONEY_GROWTH, FILLER_MONEY_ROUNDING, FILLER_RACE_GROWTH,
+  FILLER_MONEY_GROWTH, FILLER_MONEY_ROUNDING, FILLER_RACE_GROWTH,
 } from './constants.ts';
 import { TeamBudget } from '../../../shared/types/index.ts';
 import type {
-  Championship, LocalizedText, PrizeMoney, Seat, SeriesSession, Team,
+  Championship, ClassEntry, Eligibility, LocalizedText, PrizeMoney, Seat, SeriesSession, Team,
 } from '../../../shared/types/index.ts';
 
 /**
@@ -63,8 +64,8 @@ export const seat = (
  *
  * Derived rather than written out, so a filler always races exactly what its
  * base does - same field, same calendar, same rules - and differs only in what
- * a step up the ladder should change: the tier, the races' length, the AI and
- * the money.
+ * a step up the ladder should change: the tier, the races' length and the
+ * money. The AI races at the player's own strength on every rung.
  * @param base The championship being repeated
  * @param step How many rungs above it this one stands, from 1
  * @param description What the filler says about itself
@@ -92,7 +93,6 @@ export const filler = (base: Championship, step: number, description: LocalizedT
   const races = new Set(base.eventFormats.flatMap((format) => format.sessions
     .filter((session) => session.type === 'race')
     .map((session) => session.id)));
-  const grid = base.grid ?? {};
 
   // A rung up races on that rung's day, whatever day the base states.
   const { raceWeekday: unused, ...rest } = base;
@@ -120,8 +120,30 @@ export const filler = (base: Championship, step: number, description: LocalizedT
         )),
       }),
     })),
-    grid: { ...grid, strength: (grid.strength ?? 0) + FILLER_AI_STEP * step },
     ...(base.entryFee === undefined ? {} : { entryFee: fee(base.entryFee) }),
     ...(base.prizes === undefined ? {} : { prizes: purse(base.prizes) }),
   };
 };
+
+/**
+ * Puts every class of a championship on other cars, for a copy of it on
+ * another maker's: the field, seats and money stay the original's.
+ * @param base The championship being copied
+ * @param eligibility What every class of the copy races
+ * @returns The copy's classes
+ */
+export const reclassed = (base: Championship, eligibility: Eligibility): ClassEntry[] => base.entries
+  .map((entry) => ({ ...entry, eligibility }));
+
+/**
+ * Puts some classes of a championship on other cars, for a copy on a maker's
+ * who has cars for only some of them: the rest race the original's.
+ * @param base The championship being copied
+ * @param byClass What each class named races, by class id
+ * @returns The copy's classes
+ */
+export const reclassedBy = (
+  base: Championship,
+  byClass: Readonly<Record<string, Eligibility>>,
+): ClassEntry[] => base.entries
+  .map((entry) => ({ ...entry, eligibility: byClass[entry.id] ?? entry.eligibility }));

@@ -1,6 +1,7 @@
 import { seat, team } from './utils.ts';
 import { Climate, Discipline, TeamBudget } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
@@ -10,9 +11,7 @@ import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
  * 9SR, the Detroit GT, the 448T and the Clipper - and no real series races
  * them, so this one is made up and says so. It mixes hour-long sprints and
  * endurance races, the way the GTE classes of IMSA and the WEC did between
- * them, and URD ships the Darche 9SR in a sprint and an endurance version:
- * each round fields the version its length calls for, the sprint rounds
- * through their own eligibility.
+ * them. The Darche 9SR races its S versions, the only ones catalogued.
  *
  * Points are 25-18-15-12-10-8-6-4-2-1 with a point for pole, at every round.
  */
@@ -21,10 +20,9 @@ export const EGT_CHAMPIONSHIP: Championship = {
   id: 'egt-championship',
   name: 'EGT Championship',
   description: {
-    en: 'Invented: URD\'s EGT cars in a season of 170 km sprints and races of 1000 and 1700 km, '
-      + 'the 9SR in its sprint or endurance version to suit.',
+    en: 'Invented: URD\'s EGT cars in a season of 170 km sprints and races of 1000 and 1700 km.',
     uk: 'Вигаданий чемпіонат: машини EGT від URD у сезоні зі спринтів на 170 км і гонок на 1000 '
-      + 'та 1700 км, а 9SR - у спринтерській версії або версії для витривалості, залежно від гонки.',
+      + 'та 1700 км.',
   },
   teams: [
     team('arrowhead', 'Arrowhead Endurance', 'GBR', TeamBudget.WORKS),
@@ -73,8 +71,8 @@ export const EGT_CHAMPIONSHIP: Championship = {
           'urd_detroit_egt_2019',
           'urd_ferrucci_448t_egt',
           'urd_michigan_egt',
-          'urd_darche_egt_2020',
-          'urd_darche_egt_2021',
+          'urd_darche_egt_2020_sprint',
+          'urd_darche_egt_2021_sprint',
         ],
       },
     },
@@ -113,37 +111,20 @@ export const EGT_CHAMPIONSHIP: Championship = {
     {
       id: 'sebring',
       name: '6 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'lime-rock',
       name: 'Lime Rock Park',
-      track: { id: 'rt_lime_rock_park', layout: 'no_chicane' },
-      eligibility: [
-        {
-          entry: 'egt',
-          eligibility: {
-            kind: 'cars',
-            cars: [
-              'urd_amr_egt_2019_v2',
-              'urd_bayro_egt_2018',
-              'urd_detroit_egt_2019',
-              'urd_ferrucci_448t_egt',
-              'urd_michigan_egt',
-              'urd_darche_egt_2020_sprint',
-              'urd_darche_egt_2021_sprint',
-            ],
-          },
-        },
-      ],
+      track: recommendedTrack('lime-rock/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'watkins-glen',
       name: '6 Hours of Watkins Glen',
-      track: { id: 'lilski_watkins_glen', layout: 'boot' },
+      track: recommendedTrack('watkins-glen/boot'),
       sessionLengths: [{ session: 'race', laps: 196 }],
       eventFormat: 'six-hours',
       climate: Climate.TEMPERATE,
@@ -151,53 +132,19 @@ export const EGT_CHAMPIONSHIP: Championship = {
     {
       id: 'road-america',
       name: 'Road America',
-      track: { id: 'lilski_road_america' },
-      eligibility: [
-        {
-          entry: 'egt',
-          eligibility: {
-            kind: 'cars',
-            cars: [
-              'urd_amr_egt_2019_v2',
-              'urd_bayro_egt_2018',
-              'urd_detroit_egt_2019',
-              'urd_ferrucci_448t_egt',
-              'urd_michigan_egt',
-              'urd_darche_egt_2020_sprint',
-              'urd_darche_egt_2021_sprint',
-            ],
-          },
-        },
-      ],
+      track: recommendedTrack('road-america/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'vir',
       name: 'Virginia International Raceway',
-      track: { id: 'vir', layout: 'full course' },
-      eligibility: [
-        {
-          entry: 'egt',
-          eligibility: {
-            kind: 'cars',
-            cars: [
-              'urd_amr_egt_2019_v2',
-              'urd_bayro_egt_2018',
-              'urd_detroit_egt_2019',
-              'urd_ferrucci_448t_egt',
-              'urd_michigan_egt',
-              'urd_darche_egt_2020_sprint',
-              'urd_darche_egt_2021_sprint',
-            ],
-          },
-        },
-      ],
+      track: recommendedTrack('vir/full'),
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '6 Hours of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 145 }],
       eventFormat: 'six-hours',
       climate: Climate.OCEANIC,
@@ -205,29 +152,12 @@ export const EGT_CHAMPIONSHIP: Championship = {
     {
       id: 'monza',
       name: 'Monza',
-      track: { id: 'monza' },
-      eligibility: [
-        {
-          entry: 'egt',
-          eligibility: {
-            kind: 'cars',
-            cars: [
-              'urd_amr_egt_2019_v2',
-              'urd_bayro_egt_2018',
-              'urd_detroit_egt_2019',
-              'urd_ferrucci_448t_egt',
-              'urd_michigan_egt',
-              'urd_darche_egt_2020_sprint',
-              'urd_darche_egt_2021_sprint',
-            ],
-          },
-        },
-      ],
+      track: recommendedTrack('monza/gp'),
     },
     {
       id: 'road-atlanta',
       name: '10 Hours of Road Atlanta',
-      track: { id: 'road_atlanta2018', layout: 'grandprix' },
+      track: recommendedTrack('road-atlanta/gp'),
       eventFormat: 'ten-hours',
       climate: Climate.TEMPERATE,
     },
@@ -236,7 +166,7 @@ export const EGT_CHAMPIONSHIP: Championship = {
     { id: 'race', name: 'Race points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1], qualifying: [1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 2, aggression: 5 },
+  grid: { aggression: 5 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

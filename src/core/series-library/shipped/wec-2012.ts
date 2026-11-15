@@ -3,17 +3,19 @@ import {
   CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship } from '../../../shared/types/index.ts';
+import { recommendedTrack } from '../../../shared/utils/recommended-tracks/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
 
 /**
  * FIA World Endurance Championship, 2012 - the first season, and the first
  * hybrid to win Le Mans.
  *
- * Three classes of the real four. LMP1 is Yezhrod's Audi R18 e-tron quattro
- * of 2012, the LMP1 (2012) spec; GTE Pro and GTE Am are both the GTE (2011)
- * spec, the base game's Ferrari 458 GT2 and BMW M3 GT2 - the Ferrari raced the
- * season, the M3 stands for the Porsche and Aston Martin that did. LMP2 is left
- * out: the catalogue has no LMP2 of the season. Silverstone's twenty-four boxes
+ * LMP1 and GTE. LMP1 is Yezhrod's Audi R18 e-tron quattro of 2012, the LMP1
+ * (2012) spec; GTE is the GTE (2011) spec, the base game's Ferrari 458 GT2 and
+ * BMW M3 GT2 - the Ferrari raced the season, the M3 stands for the Porsche and
+ * Aston Martin that did. GTE is one class where the real season split GTE Pro
+ * from GTE Am, since a split by driver means nothing to AI drivers. LMP2 is
+ * left out: the catalogue has no LMP2 of the season. Silverstone's twenty-four boxes
  * cap the grid. All eight rounds at their real lengths - the
  * Sebring 12 Hours, six hours at Spa, Silverstone, Interlagos, Bahrain, Fuji
  * and Shanghai, and Le Mans at double points.
@@ -29,11 +31,9 @@ export const WEC_2012: Championship = {
   name: 'World Endurance Championship 2012',
   description: {
     en: 'The first World Endurance Championship on Yezhrod\'s R18 e-tron quattro and the base '
-      + 'game\'s GTEs in GTE Pro and GTE Am: all eight rounds at their real lengths, Le Mans at double '
-      + 'points.',
+      + 'game\'s GTEs: all eight rounds at their real lengths, Le Mans at double points.',
     uk: 'Перший чемпіонат світу з гонок на витривалість на R18 e-tron quattro від Yezhrod і GTE з '
-      + 'базової гри в GTE Pro та GTE Am: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними '
-      + 'очками.',
+      + 'базової гри: усі вісім етапів у реальній тривалості, Ле-Ман із подвійними очками.',
   },
   teams: [
     team('ingolstadt-lmp', 'Neuburg Prototype Team', 'DEU', TeamBudget.WORKS),
@@ -64,7 +64,7 @@ export const WEC_2012: Championship = {
     },
     {
       id: 'gte',
-      name: 'GTE Pro',
+      name: 'GTE',
       ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
       seats: [
         seat('gte-ita-1', 'gte-italia', 'Davide Rinaldini', 'ITA'),
@@ -76,19 +76,6 @@ export const WEC_2012: Championship = {
         seat('gte-fr-1', 'gte-fr', 'Romain Lebreton', 'FRA'),
         seat('gte-fr-2', 'gte-fr', 'Hugo Chassagne', 'FRA'),
         seat('gte-fr-3', 'gte-fr', 'Clément Voisard', 'FRA'),
-      ],
-      eligibility: { kind: 'spec', spec: CarSpec.GTE_2011 },
-      entryFee: 12000,
-      prizes: {
-        positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
-        standings: [384000, 240000, 153500, 101000, 62500],
-      },
-    },
-    {
-      id: 'gte-am',
-      name: 'GTE Am',
-      ladder: { discipline: Discipline.SPORTSCAR, tier: 2 },
-      seats: [
         seat('gt-ren-1', 'rennsport-eifel', 'Florian Wirtgen', 'DEU'),
         seat('gt-ren-2', 'rennsport-eifel', 'Matthias Lehnhoff', 'DEU'),
         seat('gt-lar-1', 'lario', 'Gabriele Tentori', 'ITA'),
@@ -97,11 +84,10 @@ export const WEC_2012: Championship = {
         seat('gt-lum-2', 'lumiere', 'Mathis Garrigue', 'FRA'),
       ],
       eligibility: { kind: 'spec', spec: CarSpec.GTE_2011 },
-      grid: { strength: -5 },
-      entryFee: 9000,
+      entryFee: 12000,
       prizes: {
-        positions: [36000, 25200, 18000, 13700, 10450, 7900, 5750, 4300, 2900, 1800],
-        standings: [288000, 180000, 115000, 75500, 47000],
+        positions: [48000, 33600, 24000, 18250, 13900, 10550, 7700, 5750, 3850, 2400],
+        standings: [384000, 240000, 153500, 101000, 62500],
       },
     },
   ],
@@ -139,35 +125,35 @@ export const WEC_2012: Championship = {
     {
       id: 'sebring',
       name: '12 Hours of Sebring',
-      track: { id: 'mx_sebring', layout: 'raceday_standing' },
+      track: recommendedTrack('sebring/full'),
       eventFormat: 'twelve-hours',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'spa',
       name: '6 Hours of Spa',
-      track: { id: 'spa' },
+      track: recommendedTrack('spa/gp'),
       sessionLengths: [{ session: 'race', laps: 160 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'le-mans',
       name: '24 Hours of Le Mans',
-      track: { id: 'sx_lemans_lfm', layout: 'chicane' },
+      track: recommendedTrack('le-mans/24h'),
       eventFormat: 'le-mans',
       climate: Climate.TEMPERATE,
     },
     {
       id: 'silverstone',
       name: '6 Hours of Silverstone',
-      track: { id: 'ks_silverstone', layout: 'gp' },
+      track: recommendedTrack('silverstone/gp'),
       sessionLengths: [{ session: 'race', laps: 194 }],
       climate: Climate.OCEANIC,
     },
     {
       id: 'sao-paulo',
       name: '6 Hours of Sao Paulo',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
+      track: recommendedTrack('interlagos/gp'),
       sessionLengths: [{ session: 'race', laps: 247 }],
       climate: Climate.TEMPERATE,
       hemisphere: Hemisphere.SOUTH,
@@ -175,20 +161,20 @@ export const WEC_2012: Championship = {
     {
       id: 'bahrain',
       name: '6 Hours of Bahrain',
-      track: { id: 'fn_bahrain', layout: 'gp' },
+      track: recommendedTrack('bahrain/gp'),
       climate: Climate.ARID,
     },
     {
       id: 'fuji',
       name: '6 Hours of Fuji',
-      track: { id: 'rt_fuji_speedway', layout: 'layout_gp' },
+      track: recommendedTrack('fuji/gp'),
       sessionLengths: [{ session: 'race', laps: 233 }],
       climate: Climate.TEMPERATE,
     },
     {
       id: 'shanghai',
       name: '6 Hours of Shanghai',
-      track: { id: 'shanghai_v2', layout: 'gp' },
+      track: recommendedTrack('shanghai/gp'),
       climate: Climate.TEMPERATE,
     },
   ],
@@ -202,7 +188,6 @@ export const WEC_2012: Championship = {
     },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 4 },
   generatedWeather: { climate: Climate.TEMPERATE },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: false },

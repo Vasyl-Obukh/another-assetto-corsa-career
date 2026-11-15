@@ -80,6 +80,7 @@
       "ferrari-70th": "Ferrari 70th Anniversary"
     },
     "maker": {
+      "fsr": "First Studio Race",
       "guerilla": "GUERILLA Mods",
       "rss": "Race Sim Studio",
       "urd": "United Racing Design",
@@ -95,6 +96,7 @@
     "packsTag": "DLC: {{packs}}",
     "customTag": "Custom",
     "makerTag": {
+      "fsr": "FSR",
       "guerilla": "GUERILLA",
       "rss": "RSS",
       "urd": "URD",
@@ -198,7 +200,8 @@
       "classes": "Classes",
       "championships": "Championships",
       "sources": "Content sources",
-      "historic": "Historic events"
+      "historic": "Historic events",
+      "tracks": "Tracks"
     },
     "opponents": "AI opponents",
     "calendar": "Calendar",
@@ -407,8 +410,15 @@
       "scanHint": "Reads every car, track and weather you have installed, mods included. Folder names are IDs, so mods count exactly like official content.",
       "yours": "Make it yours",
       "yoursSub": "Name, difficulty, look",
-      "yoursHint": "Everything here can be changed later in Settings."
-    }
+      "yoursHint": "Everything here can be changed later in Settings.",
+      "sources": "Content sources",
+      "sourcesSub": "DLC and mods",
+      "sourcesHint": "Switch on the DLC and mods you have.",
+      "tracks": "Tracks",
+      "tracksSub": "Every circuit raced",
+      "tracksHint": "Choose a track for each layout the app did not find."
+    },
+    "skip": "Skip"
   },
   "race": {
     "title": "Races",
@@ -1058,8 +1068,6 @@
     "ladder": {
       "championships_one": "{{count}} championship",
       "championships_other": "{{count}} championships",
-      "more": "{{count}} more",
-      "fewer": "Show fewer",
       "enters": "Enters you in {{name}}",
       "alsoOnGrid": "Also on the grid, at tier {{tier}}",
       "opensAt": "Tier {{tier}}: {{rating}} in {{discipline}}",
@@ -1264,13 +1272,11 @@
     "kunosHint": "The base game and its DLC packs.",
     "mods": "Mod teams and redistributors",
     "modsHint": "Third-party cars and tracks the catalogue recognises.",
-    "modsFooter": "A source switched off hides the championships whose cars need it. Rounds at its circuits are only skipped - the season still runs without them.",
+    "modsFooter": "A source switched off hides the championships whose cars need it.",
     "specHint": "A championship that only races a spec stays offered while any car of its grid is left.",
     "neededBy_one": "Needed by {{shown}} championship",
     "neededBy_other": "Needed by {{shown}} championships",
     "neededByNone": "No championship needs it",
-    "hiddenNow_one": "{{shown}} championship hidden",
-    "hiddenNow_other": "{{shown}} championships hidden",
     "table": {
       "column": {
         "championship": "Championship",
@@ -2510,7 +2516,8 @@
     "rating": "Rating",
     "inbox": "Inbox",
     "contracts": "Contracts",
-    "sponsors": "Sponsors"
+    "sponsors": "Sponsors",
+    "settingsTracks": "Settings · Tracks"
   },
   "standings": {
     "title": "Standings",
@@ -4185,5 +4192,55 @@
     "raced": "Raced",
     "fixed": "Fixed for the whole event once {{session}} ran.",
     "reset": "Reset"
+  },
+  "recommendedTracks": {
+    "summary": "{{installed}} of {{total}} layouts installed.",
+    "hint": "Every circuit the championships race, and the track each layout races on.",
+    "getFrom": "Get them from",
+    "sources": {
+      "lfm": "Low Fuel Motorsport",
+      "list": "Track list"
+    },
+    "search": "Search circuits, layouts and tracks",
+    "filter": {
+      "all": "All",
+      "missing": "Not installed",
+      "guess": "To confirm",
+      "kunos": "Kunos' version",
+      "found": "Installed",
+      "state": "State",
+      "discipline": "Raced by"
+    },
+    "state": {
+      "found": "Installed",
+      "choice": "Your choice",
+      "guess": "To confirm",
+      "kunos": "Kunos' version",
+      "missing": "Not installed"
+    },
+    "empty": "No circuit matches.",
+    "championships_one": "{{shown}} championship",
+    "championships_other": "{{shown}} championships",
+    "looksLike": "Looks like {{name}}",
+    "useIt": "Use it",
+    "choose": "Choose…",
+    "chooseTrack": "Choose a track…",
+    "whereToGet": "Where to get it",
+    "menu": "Layout actions",
+    "openTrack": "Open track page",
+    "forget": "Use the one found",
+    "refuse": "Not this one",
+    "chooseTitle": "Choose a track for {{layout}}",
+    "chooseHint": "Every track installed, in your library or not.",
+    "chosen": "{{layout}} races {{track}}.",
+    "chosenDetail_one": "{{shown}} championship races there.",
+    "chosenDetail_other": "{{shown}} championships race there.",
+    "roundTrack": "Round {{number}}'s track",
+    "layoutName": "{{circuit}} - {{layout}}",
+    "sort": {
+      "championships": "Championships",
+      "name": "Name",
+      "country": "Country"
+    }
   }
 }

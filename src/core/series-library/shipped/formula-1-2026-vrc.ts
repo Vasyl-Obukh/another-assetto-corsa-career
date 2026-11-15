@@ -1,6 +1,7 @@
+import { FORMULA_1_2026_RSS } from './formula-1-2026-rss.ts';
 import { seat, team } from './utils.ts';
 import {
-  CarSpec, Climate, Discipline, Hemisphere, TeamBudget,
+  CarSpec, Climate, Discipline, TeamBudget,
 } from '../../../shared/types/index.ts';
 import type { Championship, EventFormat } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION } from '../../series/index.ts';
@@ -97,13 +98,14 @@ const SPRINT: EventFormat = {
  * Formula 1, 2026 - new power units, active aerodynamics, and eleven teams.
  *
  * The entry list as the season started, on VRC's Formula Alpha 2026, every
- * seat in it: twenty-two cars, which the Kunos layouts' boxes hold. The
- * calendar is the one announced for the season, which was under way when this
- * was written, so changes since are not in it. Fourteen of twenty-four rounds
- * at their real distances, four of its six sprint rounds included; Yas
- * Marina runs the layout before its 2021 rebuild, so its laps cover the real
- * distance. Melbourne, Suzuka, Jeddah, Miami, Monaco, Madrid, Baku, Marina
- * Bay, Las Vegas and Losail are not in Assetto Corsa.
+ * seat in it: twenty-two cars, which every layout's boxes hold. RSS's car of
+ * the same year races the same calendar as a championship of its own. The
+ * calendar is the season's as it ran: the war in the Middle East cancelled the
+ * Saudi Arabian Grand Prix and moved the Bahrain Grand Prix to Sepang in
+ * October. This was written with three rounds still to run, so changes after
+ * mid-November are not in it. All twenty-three rounds at their real
+ * distances, the six sprint rounds included; Yas Marina runs the layout
+ * before its 2021 rebuild, so its laps cover the real distance.
  *
  * Qualifying is the three-part knockout, twenty-two cars cut to sixteen and
  * then to ten. Points are 25-18-15-12-10-8-6-4-2-1, and a sprint pays
@@ -117,10 +119,10 @@ export const FORMULA_1_2026_VRC: Championship = {
   name: 'Formula 1 2026 (VRC)',
   description: {
     en: 'The 2026 season - new power units, active aerodynamics and Cadillac\'s arrival - with the '
-      + 'entry list on VRC\'s Formula Alpha 2026 and fourteen of its grands prix at their real '
+      + 'entry list on VRC\'s Formula Alpha 2026 and its twenty-three grands prix at their real '
       + 'distances.',
     uk: 'Сезон 2026 року - нові силові установки, активна аеродинаміка й дебют Cadillac - зі списком '
-      + 'учасників на Formula Alpha 2026 від VRC і чотирнадцятьма гран-прі сезону на їхніх справжніх '
+      + 'учасників на Formula Alpha 2026 від VRC і двадцятьма трьома гран-прі сезону на їхніх справжніх '
       + 'дистанціях.',
   },
   teams: [
@@ -171,104 +173,13 @@ export const FORMULA_1_2026_VRC: Championship = {
   ],
   eventFormats: [EVENT, SPRINT],
   defaultEventFormat: 'sprint',
-  rounds: [
-    {
-      id: 'china',
-      name: 'Chinese Grand Prix',
-      track: { id: 'shanghai_v2', layout: 'gp' },
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'bahrain',
-      name: 'Bahrain Grand Prix',
-      track: { id: 'fn_bahrain', layout: 'gp' },
-      eventFormat: 'grand-prix',
-      climate: Climate.ARID,
-    },
-    {
-      id: 'canada',
-      name: 'Canadian Grand Prix',
-      track: { id: 'canada_2021', layout: 'lfm' },
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'barcelona',
-      name: 'Barcelona-Catalunya Grand Prix',
-      track: { id: 'fn_barcelona', layout: 'barcelona_2023' },
-      eventFormat: 'grand-prix',
-      sessionLengths: [{ session: 'grand-prix', laps: 66 }],
-    },
-    {
-      id: 'austria',
-      name: 'Austrian Grand Prix',
-      track: { id: 'ks_red_bull_ring', layout: 'layout_gp' },
-      eventFormat: 'grand-prix',
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'britain',
-      name: 'British Grand Prix',
-      track: { id: 'ks_silverstone', layout: 'gp' },
-      climate: Climate.OCEANIC,
-    },
-    {
-      id: 'belgium',
-      name: 'Belgian Grand Prix',
-      track: { id: 'spa' },
-      eventFormat: 'grand-prix',
-      climate: Climate.OCEANIC,
-    },
-    {
-      id: 'hungary',
-      name: 'Hungarian Grand Prix',
-      track: { id: 'rt_hungaroring' },
-      eventFormat: 'grand-prix',
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'netherlands',
-      name: 'Dutch Grand Prix',
-      track: { id: 'zandvoort2023', layout: '2023' },
-      climate: Climate.OCEANIC,
-    },
-    { id: 'italy', name: 'Italian Grand Prix', track: { id: 'monza' }, eventFormat: 'grand-prix' },
-    {
-      id: 'united-states',
-      name: 'United States Grand Prix',
-      track: { id: 'acu_unitedstates' },
-      eventFormat: 'grand-prix',
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'mexico-city',
-      name: 'Mexico City Grand Prix',
-      track: { id: 'vrc_mexico', layout: 'fa_layout' },
-      eventFormat: 'grand-prix',
-      sessionLengths: [{ session: 'grand-prix', laps: 71 }],
-      climate: Climate.TEMPERATE,
-    },
-    {
-      id: 'sao-paulo',
-      name: 'São Paulo Grand Prix',
-      track: { id: 'vhe_interlagos', layout: 'gp' },
-      eventFormat: 'grand-prix',
-      climate: Climate.TEMPERATE,
-      hemisphere: Hemisphere.SOUTH,
-    },
-    {
-      id: 'abu-dhabi',
-      name: 'Abu Dhabi Grand Prix',
-      track: { id: 'yas_marina_2021', layout: 'gp' },
-      eventFormat: 'grand-prix',
-      climate: Climate.ARID,
-    },
-  ],
+  rounds: FORMULA_1_2026_RSS.rounds,
   pointsSystems: [
     { id: 'race', name: 'Championship points', positions: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
     { id: 'sprint', name: 'Sprint points', positions: [8, 7, 6, 5, 4, 3, 2, 1] },
   ],
   defaultPointsSystem: 'race',
-  grid: { strength: 5, aggression: 10 },
+  grid: { aggression: 10 },
   generatedWeather: { climate: Climate.MEDITERRANEAN },
   regulations: {
     assists: { tyreWear: 1, fuelRate: 1, tyreBlankets: true },
