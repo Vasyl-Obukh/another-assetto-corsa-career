@@ -1,14 +1,6 @@
 import type { SeatLift } from './types.ts';
 
 /**
- * The typical entry fee a round of each rung charges, 1 being the top - what
- * every sponsor's figure is scaled by, so a deal on one rung pays what the
- * same deal pays on another in proportion. Every rung below the last shares
- * its figure, as it shares its colour.
- */
-export const RUNG_FEE: readonly number[] = [25_000, 10_000, 5_000, 3_000, 700];
-
-/**
  * How many partner slots a career holds on its best rung, 1 being the top:
  * one at Rookie and one more every rung up. The main sponsor's slot is always
  * there beside them.

@@ -250,7 +250,7 @@ export const SessionResult = ({
             // what they were worth.
             prizeOf={view.historic && series ? (row) => (
               row.place && !row.place.bonusOnly
-                ? prizeFor(series, row.place.entry, row.place.classPosition, speed)
+                ? prizeFor(series, row.place.entry, row.place.classPosition, speed, view.historic?.rung ?? undefined)
                 : null
             ) : undefined}
           />

@@ -26,7 +26,7 @@ import {
 } from '../../shared/utils/contracts/index.ts';
 import { editionOver } from '../../shared/utils/editions/index.ts';
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
-import { prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
+import { paidTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
 import {
   afterShares, costShares, coveringDeal, coversEntry, dealCovers, dealScale, entryDiscipline, judgedRaces, percentOf,
   perkOf, placeIs, sponsorFigure,
@@ -480,9 +480,9 @@ const shareOf = (entry: SeasonEntry, purse: number): Pick<LedgerLine, 'amount' |
  * Every prize a career has earned and not yet been paid: the player's place in
  * each race they drove, and their place in the table of every edition that has
  * run its course - a historic event paying its purse per race and standing in
- * no table. Under a contract, the player's share of each, and beside them the
- * salary of every round raced, the fine of every round not raced and the bonus
- * on the final place.
+ * no table - each at the share its class pays. Under a contract, the player's
+ * share of each, and beside them the salary of every round raced, the fine of
+ * every round not raced and the bonus on the final place.
  * @param career The career
  * @returns The lines owed, dated by the event that earned each
  */
@@ -495,8 +495,8 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
 
   for (const season of career.seasons) {
     for (const entry of season.entries) {
-      const positions = prizeTable(entry.championship, entry.entry, 'positions');
       const historic = isHistoric(entry);
+      const positions = paidTable(entry.championship, entry.entry, 'positions', historic ? entry.rung : undefined);
 
       const { contract } = entry;
       const salary = contract ? roundSalary(contract, entry.events.length) : null;
@@ -554,7 +554,7 @@ export const owedPrizes = (career: Career): LedgerLine[] => {
       // A championship the player withdrew from pays its races and no table.
       if (historic || entry.withdrawn || paid.has(key) || !settled(entry, career.date)) continue;
       const row = playerStanding(entry);
-      const standings = prizeTable(entry.championship, entry.entry, 'standings');
+      const standings = paidTable(entry.championship, entry.entry, 'standings');
       const purse = row && row.races > 0 ? scaledPrize(standings[row.position - 1] ?? 0, speed) : 0;
       const last = entry.events.reduce<string>((latest, event) => (event.date > latest ? event.date : latest), '');
       const run = {

@@ -16,6 +16,11 @@ export interface CarTrade {
    */
   garage: Garage;
   /**
+   * The rung a car rented from a picker is raced on, which caps its rent -
+   * absent elsewhere, where a rent shown is the most it can come to.
+   */
+  rung?: number;
+  /**
    * Called to buy a car, from its card or its row in the Store.
    * @param car The car
    */

@@ -118,6 +118,7 @@ import {
   withSeason,
 } from '../utils.ts';
 import {
+  FULL_GRID,
   makeAvailability,
   makeCareer,
   makeChampionship,
@@ -2241,7 +2242,7 @@ describe('main/career-store/utils', () => {
     });
 
     it('pays a class its own purse over the championship-wide one', () => {
-      const entry = makeClassEntry({ prizes: { positions: [9000] } });
+      const entry = makeClassEntry({ prizes: { positions: [9000] }, seats: FULL_GRID });
       const series = makeChampionship({ prizes: { positions: [100] }, entries: [entry] });
 
       const paid = calendarEntry(
@@ -2258,7 +2259,9 @@ describe('main/career-store/utils', () => {
     });
 
     it('pays the championship purse to a class stating none of its own', () => {
-      const series = makeChampionship({ prizes: { positions: [100] } });
+      const series = makeChampionship({
+        prizes: { positions: [100] }, entries: [makeClassEntry({ seats: FULL_GRID })],
+      });
 
       const paid = calendarEntry(
         series,
@@ -2346,12 +2349,33 @@ describe('main/career-store/utils', () => {
     });
 
     it("pays the prize at the career's progression speed", () => {
-      const series = makeChampionship({ prizes: { positions: [1000] } });
+      const series = makeChampionship({
+        prizes: { positions: [1000] }, entries: [makeClassEntry({ seats: FULL_GRID })],
+      });
       const fast = makeCareer({ settings: { ...career.settings, prizeSpeed: 2 } });
 
       expect(calendarEntry(
         series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), fast, true,
       ).prize).toBe(2000);
+    });
+
+    it('pays a class smaller than a full grid its share of the win', () => {
+      const series = makeChampionship({ prizes: { positions: [1200] } });
+
+      expect(calendarEntry(
+        series, makeAvailability(series), series.entries[0], 0, makeEvent('one', '2026-05-03'), career, true,
+      ).prize).toBe(200);
+    });
+
+    it('pays a historic event\'s win at the fees of the rung its purse is paid at, and a championship\'s in full', () => {
+      const top = makeClassEntry({ seats: FULL_GRID, ladder: { discipline: Discipline.ROAD, tier: 1 } });
+      const series = makeChampionship({ prizes: { positions: [1000] }, entries: [top] });
+      const row = (invitation?: CalendarInvitation, rung?: number) => calendarEntry(
+        series, makeAvailability(series), top, 0, makeEvent('one', '2026-05-03'), career, true, invitation, rung,
+      );
+
+      expect(row(INVITATION, 4).prize).toBe(120);
+      expect(row().prize).toBe(1000);
     });
 
     it('says what a round costs to enter, a historic event entered at its own cost included', () => {
@@ -2367,7 +2391,9 @@ describe('main/career-store/utils', () => {
   });
 
   describe('winnerPrize', () => {
-    const series = makeChampionship({ prizes: { positions: [1000, 500] } });
+    const series = makeChampionship({
+        prizes: { positions: [1000, 500] }, entries: [makeClassEntry({ seats: FULL_GRID })],
+      });
 
     it("pays a win at the career's progression speed", () => {
       const career = makeCareer({ settings: { ...makeCareer().settings, prizeSpeed: 1.5 } });
@@ -2383,7 +2409,7 @@ describe('main/career-store/utils', () => {
 
     it("pays a class its own purse over the championship's", () => {
       const own = makeChampionship({
-        prizes: { positions: [100] }, entries: [makeClassEntry({ prizes: { positions: [9000] } })],
+        prizes: { positions: [100] }, entries: [makeClassEntry({ prizes: { positions: [9000] }, seats: FULL_GRID })],
       });
 
       expect(winnerPrize(makeCareer(), own, 'main')).toBe(9000);
@@ -2391,6 +2417,20 @@ describe('main/career-store/utils', () => {
 
     it('says nothing where the championship pays nothing', () => {
       expect(winnerPrize(makeCareer(), makeChampionship(), 'main')).toBeNull();
+    });
+
+    it('pays a class smaller than a full grid its share of the win', () => {
+      expect(winnerPrize(makeCareer(), makeChampionship({ prizes: { positions: [1200] } }), 'main')).toBe(200);
+    });
+
+    it('pays a historic win at the fees of the rung it is raced from', () => {
+      const top = makeChampionship({
+        prizes: { positions: [1000] },
+        entries: [makeClassEntry({ seats: FULL_GRID, ladder: { discipline: Discipline.ROAD, tier: 1 } })],
+      });
+
+      expect(winnerPrize(makeCareer(), top, 'main', 4)).toBe(120);
+      expect(winnerPrize(makeCareer(), top, 'main', 1)).toBe(1000);
     });
   });
 

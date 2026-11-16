@@ -2,10 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 
 import { RATING_FLOORS, TOP_RUNG_WIDTH } from '../../../constants/index.ts';
 import { Discipline } from '../../../types/index.ts';
-import type { LadderPosition } from '../../../types/index.ts';
+import type { Championship, LadderPosition } from '../../../types/index.ts';
 import {
-  bestDiscipline, dropRating, fieldRating, isEligible, levelOfRating, levelsAt, LOWEST_RUNG, openLevels, ratingFloor,
-  ratingsAt, rungWidth,
+  bestDiscipline, classRung, dropRating, fieldRating, isEligible, levelOfRating, levelsAt, LOWEST_RUNG, openLevels,
+  ratingFloor, ratingsAt, rungFee, rungWidth,
 } from '../career-eligibility.ts';
 import type { DisciplineLevels } from '../career-eligibility.ts';
 
@@ -98,6 +98,38 @@ describe('shared/utils/career-eligibility', () => {
     it('is the lowest rung the floors name', () => {
       expect(LOWEST_RUNG).toBe(RATING_FLOORS.length);
       expect(LOWEST_RUNG).toBe(5);
+    });
+  });
+
+  describe('classRung', () => {
+    const championship = {
+      entries: [
+        { id: 'hypercar', ladder: { discipline: Discipline.SPORTSCAR, tier: 1 } },
+        { id: 'lmgt3', ladder: { discipline: Discipline.SPORTSCAR, tier: 3 } },
+      ],
+    } as unknown as Pick<Championship, 'entries'>;
+
+    it('is the rung of the class it names', () => {
+      expect(classRung(championship, 'lmgt3')).toBe(3);
+      expect(classRung(championship, 'hypercar')).toBe(1);
+    });
+
+    it('is the top rung for a class the championship does not hold', () => {
+      expect(classRung(championship, 'gone')).toBe(1);
+      expect(classRung(championship, null)).toBe(1);
+    });
+  });
+
+  describe('rungFee', () => {
+    it('is each rung\'s typical entry fee', () => {
+      expect(rungFee(1)).toBe(25_000);
+      expect(rungFee(4)).toBe(3000);
+      expect(rungFee(5)).toBe(700);
+    });
+
+    it('clamps a rung off either end of the ladder', () => {
+      expect(rungFee(0)).toBe(25_000);
+      expect(rungFee(8)).toBe(700);
     });
   });
 

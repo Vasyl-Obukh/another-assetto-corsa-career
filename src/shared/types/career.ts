@@ -259,6 +259,13 @@ export interface SeasonEntry {
    * came with an invitation, and costs neither fee nor rent.
    */
   historic?: true;
+  /**
+   * The rung a historic event is raced from, 1 being the top - the career's
+   * highest among its classes' disciplines as it was entered, which its purse
+   * is scaled to. Absent for a championship, and on an entry made before
+   * purses were scaled, which pays in full.
+   */
+  rung?: number;
 }
 
 /**
@@ -2102,6 +2109,11 @@ export interface HistoricView {
    * Where its invitation stands, and what it offers.
    */
   invitation: HistoricInvitation;
+  /**
+   * The rung its purse is paid at, 1 being the top: the one the career's entry
+   * keeps once it is in, the career's own until then - null when neither says.
+   */
+  rung: number | null;
 }
 
 /**

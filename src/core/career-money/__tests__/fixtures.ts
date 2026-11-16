@@ -19,8 +19,8 @@ import type {
 } from '../../../shared/types/index.ts';
 
 /**
- * The cup: two rounds, one class, a purse paying the top three of each race
- * and of the final table.
+ * The cup: two rounds, one class of a full grid, a purse paying the top three
+ * of each race and of the final table.
  */
 export const CUP: Championship = {
   version: 1,
@@ -30,7 +30,8 @@ export const CUP: Championship = {
     id: 'main',
     name: 'Main',
     ladder: { discipline: Discipline.ROAD, tier: 4 },
-    seats: [{ id: 'seat-1' }, { id: 'seat-2' }],
+    // A full grid, so the class pays its tables in full.
+    seats: Array.from({ length: 12 }, (_, at) => ({ id: `seat-${at + 1}` })),
     eligibility: { kind: 'cars', cars: ['test_car'] },
   }],
   rounds: [

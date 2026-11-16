@@ -53,3 +53,11 @@ export const RATING_PER_POINT = 75;
  * next to nothing while a crash still costs the most a race can take.
  */
 export const MIN_RATING = 1;
+
+/**
+ * The typical entry fee a round of each rung charges, 1 being the top - what
+ * sponsor figures, a historic purse raced from a lower rung and a rented car's
+ * rent are scaled by. Every rung below the last shares its figure, as it
+ * shares its colour.
+ */
+export const RUNG_FEE: readonly number[] = [25_000, 10_000, 5_000, 3_000, 700];

@@ -12,6 +12,25 @@ import {
 } from '../season-review.ts';
 
 /**
+ * The test championship with its class filled to a full grid - its three
+ * seats first - so its purse is paid in full rather than at a small field's
+ * share.
+ * @param overrides What else to change about it
+ * @returns The championship
+ */
+const fullSeries = (overrides: Parameters<typeof makeSeries>[0] = {}): ReturnType<typeof makeSeries> => {
+  const series = makeSeries(overrides);
+
+  return {
+    ...series,
+    entries: series.entries.map((one) => ({
+      ...one,
+      seats: [...one.seats, ...Array.from({ length: 12 - one.seats.length }, (_, at) => ({ id: `extra-${at}` }))],
+    })),
+  };
+};
+
+/**
  * The player's edition of the test championship, its rounds as the results
  * fixture reports them: round one won by the player in Ada's seat, round two
  * both won by Cy - so Cy is champion, Bo second and the player third.
@@ -73,7 +92,7 @@ const season = (...entries: SeasonEntry[]): CareerSeason => ({
  */
 const historic = (id: string, event: SeasonEvent, overrides: Partial<SeasonEntry> = {}): SeasonEntry => entry({
   series: id,
-  championship: makeSeries({ id, name: id, prizes: { positions: [1000, 500, 250] } }),
+  championship: fullSeries({ id, name: id, prizes: { positions: [1000, 500, 250] } }),
   events: [event],
   historic: true,
   ...overrides,
@@ -333,7 +352,7 @@ describe('renderer/lib/season-review/season-review', () => {
   });
 
   describe('prizeFor', () => {
-    const series = makeSeries({
+    const series = fullSeries({
       prizes: { positions: [100, 50] },
       entries: [
         { ...makeSeries().entries[0], prizes: { positions: [500, 300, 0] } },
@@ -364,12 +383,28 @@ describe('renderer/lib/season-review/season-review', () => {
     // Fixed: a class stating only its final-standings table read as paying
     // nothing per race, though the event's race purse covers it.
     it("pays a class out of the event's race purse where it states only a final-standings table", () => {
-      const standingsOnly = makeSeries({
+      const standingsOnly = fullSeries({
         prizes: { positions: [100] },
         entries: [{ ...makeSeries().entries[0], prizes: { standings: [5000] } }],
       });
 
       expect(prizeFor(standingsOnly, 'main', 1)).toBe(100);
+    });
+
+    it('pays a class smaller than a full grid its share', () => {
+      const small = makeSeries({ prizes: { positions: [1200] } });
+
+      expect(prizeFor(small, 'main', 1)).toBe(300);
+    });
+
+    it('pays a historic event at the fees of the rung it is raced from', () => {
+      const top = fullSeries({
+        prizes: { positions: [1000] },
+        entries: [{ ...makeSeries().entries[0], ladder: { discipline: Discipline.ROAD, tier: 1 } }],
+      });
+
+      expect(prizeFor(top, 'main', 1, 1, 5)).toBe(28);
+      expect(prizeFor(top, 'main', 1, 2, 5)).toBe(56);
     });
   });
 

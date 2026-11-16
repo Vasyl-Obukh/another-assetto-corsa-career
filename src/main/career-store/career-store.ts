@@ -193,12 +193,14 @@ import type {
   SponsorDeal,
 } from '../../shared/types/index.ts';
 import { keptStep, withStrength } from '../../shared/utils/ai-figure/index.ts';
-import { rentOf, repaintOf, resaleValue } from '../../shared/utils/car-prices/index.ts';
+import {
+  rentOf, rentRung, repaintOf, resaleValue,
+} from '../../shared/utils/car-prices/index.ts';
 import {
   dealOf, liveSale, salePrice, saleWeek,
 } from '../../shared/utils/car-sale/index.ts';
 import {
-  isEligible, levelsAt, LOWEST_RUNG, openLevels, ratingFloor, ratingsAt,
+  classRung, isEligible, levelsAt, LOWEST_RUNG, openLevels, ratingFloor, ratingsAt,
 } from '../../shared/utils/career-eligibility/index.ts';
 import { careerDrivingAids, careerOpponents, readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
@@ -217,7 +219,7 @@ import {
   awaitingMail, invitationChance, invitationDay, invitationId, mailStatus,
 } from '../../shared/utils/inbox/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
-import { prizeTable } from '../../shared/utils/prizes/index.ts';
+import { paidTable, purseRung } from '../../shared/utils/prizes/index.ts';
 import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
 import { isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
@@ -254,6 +256,18 @@ export type {
 // Re-exported because a quick race's page lists its sessions the way a
 // round's page does.
 export { eventSessions } from './utils.ts';
+
+/**
+ * The rung a career enters a historic event from, as its entry keeps it.
+ * @param career The career
+ * @param draw The historic event
+ * @returns The entry's rung field, or nothing for an event with no classes
+ */
+const enteredRung = (career: Career, draw: HistoricDraw): Pick<SeasonEntry, 'rung'> => {
+  const rung = purseRung(draw.championship, career, null, draw.invitation);
+
+  return rung === undefined ? {} : { rung };
+};
 
 /**
  * The still-scheduled round a race id belongs to, in a season.
@@ -854,11 +868,12 @@ export const createCareerStore = async (
   /**
    * A round's rent of the cheapest car a class may be raced in.
    * @param cars The installed cars the class may race, by folder ID
+   * @param rung The class's rung, which caps the rent
    * @returns The rent, or infinity when nothing installed can race it
    */
-  const cheapestRent = async (cars: readonly string[]): Promise<number> => {
+  const cheapestRent = async (cars: readonly string[], rung: number): Promise<number> => {
     if (cars.length === 0) return Number.POSITIVE_INFINITY;
-    const rents = await Promise.all(cars.map(async (car) => rentOf(await content.price(car) ?? 0)));
+    const rents = await Promise.all(cars.map(async (car) => rentOf(await content.price(car) ?? 0, rung)));
 
     return Math.min(...rents);
   };
@@ -964,7 +979,7 @@ export const createCareerStore = async (
             position: rungPosition(career.rating[discipline], tier),
             experienced: experiencedAt(career, discipline, tier),
             fees: events.map((event) => event.entryFee ?? 0),
-            winnerPrize: prizeTable(championship, entry.id, 'positions')[0] ?? 0,
+            winnerPrize: paidTable(championship, entry.id, 'positions')[0] ?? 0,
             prizeSpeed: career.settings.prizeSpeed,
             lift: seatLift(career, discipline),
           };
@@ -1002,7 +1017,7 @@ export const createCareerStore = async (
       championship,
       edition,
       await Promise.all(drafts.map(async ({ terms, events, cars }): Promise<OfferDraft> => ({
-        terms, events, rent: knownRent(await cheapestRent(cars)),
+        terms, events, rent: knownRent(await cheapestRent(cars, classRung(championship, terms.entry))),
       }))),
       today,
     )));
@@ -1015,7 +1030,9 @@ export const createCareerStore = async (
       activeContract(entry) && entry.events.some((event) => event.status === 'scheduled')
     ));
     if (sent.length === 0 && !waiting && !contracted && career.garage.length === 0 && lifelines.length > 0) {
-      const rents = await Promise.all(lifelines.map((one) => cheapestRent(one.request.cars)));
+      const rents = await Promise.all(lifelines.map((one) => (
+        cheapestRent(one.request.cars, one.request.entry.ladder.tier)
+      )));
       if (lifelines.every((one, at) => (one.events[0]?.entryFee ?? 0) + rents[at] > career.money)) {
         const found = lifelines
           .map((one, at) => ({ one, at, terms: lifelineOffer(one.request) }))
@@ -1879,7 +1896,9 @@ export const createCareerStore = async (
    * @param entry The season's entry
    * @returns The rent, zero for a car the install no longer has
    */
-  const rentFor = async (entry: SeasonEntry): Promise<number> => rentOf(await content.price(entry.car.model) ?? 0);
+  const rentFor = async (entry: SeasonEntry): Promise<number> => (
+    rentOf(await content.price(entry.car.model) ?? 0, rentRung(classRung(entry.championship, entry.entry), entry.rung))
+  );
 
   /**
    * What a round still owes before its next session launches: its entry fee,
@@ -1970,6 +1989,7 @@ export const createCareerStore = async (
       field: await historic.drawField(held.championship, held.entry, seasonSalt(career, season.index)),
       standings: buildStandings(held.championship, [], new Date().toISOString()),
       historic: true,
+      ...enteredRung(career, draw),
     };
 
     return withSeason(career, issueForecasts(career, { ...season, entries: [...season.entries, entry] }, career.date));
@@ -2905,17 +2925,19 @@ export const createCareerStore = async (
       const owned = new Set(career.garage.map((car) => car.model));
       // The lookups, not their answers, are kept: every class is priced at
       // once, so an answer would arrive too late to spare any of them.
-      const rents = new Map<string, Promise<number>>();
+      const prices = new Map<string, Promise<number>>();
       /**
-       * What a round of a car rents for, looked up once per call.
+       * What a round of a car rents for on a rung, its price looked up once
+       * per call.
        * @param model The car's folder ID
+       * @param rung The class's rung, which caps the rent
        * @returns The rent
        */
-      const rentOfCar = (model: string): Promise<number> => {
-        const rent = rents.get(model) ?? content.price(model).then((price) => rentOf(price ?? 0));
-        rents.set(model, rent);
+      const rentOfCar = async (model: string, rung: number): Promise<number> => {
+        const price = prices.get(model) ?? content.price(model).then((found) => found ?? 0);
+        prices.set(model, price);
 
-        return rent;
+        return rentOf(await price, rung);
       };
 
       const { series: listings } = await series.list();
@@ -2944,7 +2966,9 @@ export const createCareerStore = async (
           const priced = await Promise.all(championship.entries.map(async (entry): Promise<RoundCost | null> => {
             const cars = eligibleCarsIn(listing.availability, next.round, entry.id);
             if (cars.length === 0) return null;
-            const rent = cars.some((car) => owned.has(car)) ? 0 : Math.min(...await Promise.all(cars.map(rentOfCar)));
+            const rent = cars.some((car) => owned.has(car))
+              ? 0
+              : Math.min(...await Promise.all(cars.map((car) => rentOfCar(car, entry.ladder.tier))));
 
             const fee = entryFeeOf(championship, next.round, entry.id) ?? 0;
             const after = (kind: 'feeShare' | 'rentShare', cost: number): number => (
@@ -3062,6 +3086,7 @@ export const createCareerStore = async (
           events: [event],
           standings: buildStandings(championship, [], new Date().toISOString()),
           historic: true,
+          ...enteredRung(career, draw),
         },
         event,
       } : null;
@@ -3149,6 +3174,7 @@ export const createCareerStore = async (
         blocked = appErrorInfo('career.money.short', { fee: owed.fee + owed.rent, money: career.money });
       }
 
+      const paidAt = draw ? purseRung(championship, career, held?.entry, draw.invitation) : undefined;
       const view: CareerEventView = {
         series: championship.id,
         season: season.index,
@@ -3163,7 +3189,7 @@ export const createCareerStore = async (
         track: (await series.place(championship)).rounds.find((one) => one.id === round.id)?.track ?? round.track,
         date: event.date,
         climate,
-        prize: winnerPrize(career, championship, classEntry.id),
+        prize: winnerPrize(career, championship, classEntry.id, paidAt),
         gridSize: classEntry.seats.length,
         status: event.status,
         clock: career.date,
@@ -3248,6 +3274,7 @@ export const createCareerStore = async (
           availability,
           seat: held?.entry.playerSeat ?? offer?.seat ?? null,
           invitation: historicInvitation(career, season, draw, availability, held?.entry ?? null),
+          rung: paidAt ?? null,
         } : null,
       };
 

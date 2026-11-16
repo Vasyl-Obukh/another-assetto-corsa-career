@@ -13,7 +13,7 @@ import { SeatSaleList } from './SeatSaleList.tsx';
 import type {
   Car, CareerEventView, CarSource, SeatSale, Skin,
 } from '../../../../shared/types';
-import { rentOf } from '../../../../shared/utils/car-prices';
+import { rentOf, rentRung } from '../../../../shared/utils/car-prices';
 import { offerId } from '../../../../shared/utils/contracts';
 import { mailStatus } from '../../../../shared/utils/inbox';
 import { useSlot } from '@/app';
@@ -131,7 +131,10 @@ export const EnterPanel = ({
   const livery = owned && car ? car.skins.find((one) => one.id === owned.skin) ?? skin : skin;
   // What entering costs a round: the class's fee, and a rented car's rent.
   const fee = chosen?.fee ?? null;
-  const rent = car && garage && !owned ? rentOf(garage.listedOf(car)) : null;
+  // Rent is capped at the class's rung, or the lower one a historic event is
+  // raced from.
+  const rung = chosen ? rentRung(chosen.ladder.tier, view.historic?.rung ?? undefined) : undefined;
+  const rent = car && garage && !owned ? rentOf(garage.listedOf(car), rung) : null;
   const enter = (): void => {
     if (car) onEnter(entry, { model: car.id, skin: livery?.id });
   };
@@ -360,7 +363,7 @@ export const EnterPanel = ({
         // An empty id list would offer the whole library, so a class with no
         // installed car is not offered the picker at all.
         baseQuery={chosen && chosen.cars.length > 0 ? { ids: [...chosen.cars] } : undefined}
-        trade={garage ? { mode: 'pick', garage } : undefined}
+        trade={garage ? { mode: 'pick', garage, rung } : undefined}
         onOpenChange={setPicking}
         onPick={(picked, pickedSkin) => { setCar(picked); setSkin(pickedSkin); setPicking(false); }}
         onPurchase={(picked, pickedSkin) => setBuying({ car: picked, skin: pickedSkin })}

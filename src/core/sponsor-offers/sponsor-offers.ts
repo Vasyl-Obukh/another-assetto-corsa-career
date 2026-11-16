@@ -52,8 +52,9 @@ import type {
   SponsorTargetKind,
   SponsorTrade,
 } from '../../shared/types/index.ts';
+import { rungFee } from '../../shared/utils/career-eligibility/index.ts';
 import {
-  bestRung, dealRung, dealScale, rungFee, sponsorFigure,
+  bestRung, dealRung, dealScale, sponsorFigure,
 } from '../../shared/utils/sponsors/index.ts';
 import type { FormBand } from '../../shared/utils/sponsors/index.ts';
 import { rungPosition } from '../seat-offers/index.ts';

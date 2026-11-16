@@ -4,7 +4,7 @@
 // pays and ends deals on these answers and the renderer shows the same.
 
 import {
-  DEAL_DAYS, FORM_BANDS, FORM_ROUNDS, NO_SEAT_LIFT, PARTNER_SLOTS, PODIUM_PLACES, REPAY_ROUND, REWARD_BONUSES, RUNG_FEE,
+  DEAL_DAYS, FORM_BANDS, FORM_ROUNDS, NO_SEAT_LIFT, PARTNER_SLOTS, PODIUM_PLACES, REPAY_ROUND, REWARD_BONUSES,
   SPONSOR_LIFT, SPONSOR_MAIL_PREFIX, SPONSOR_NEWS_PREFIX, SPONSOR_ROUND_TO, WORKS_BAR_LIFT,
 } from './constants.ts';
 import type {
@@ -15,7 +15,7 @@ import type {
   SponsorPerk, SponsorPerkKind, SponsorSlot, SponsorTerms,
 } from '../../types/index.ts';
 import { daysBetween } from '../calendar-days/index.ts';
-import { LOWEST_RUNG } from '../career-eligibility/index.ts';
+import { LOWEST_RUNG, rungFee } from '../career-eligibility/index.ts';
 import { editionOver } from '../editions/index.ts';
 import { playerPlace, playerStanding, teammateSeat } from '../standings/index.ts';
 
@@ -71,13 +71,6 @@ export const bestRung = (level: Readonly<Record<Discipline, number>>): number =>
 export const partnerSlots = (level: Readonly<Record<Discipline, number>>): number => (
   PARTNER_SLOTS[Math.min(Math.max(1, bestRung(level)), LOWEST_RUNG) - 1]
 );
-
-/**
- * A rung's typical entry fee, which every sponsor's figure scales with.
- * @param rung The rung, 1 being the top
- * @returns The fee
- */
-export const rungFee = (rung: number): number => RUNG_FEE[Math.min(Math.max(1, rung), LOWEST_RUNG) - 1];
 
 /**
  * The day a deal's year runs out: the same date a year on, the last day of

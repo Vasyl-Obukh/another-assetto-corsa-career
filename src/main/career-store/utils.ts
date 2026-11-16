@@ -87,7 +87,7 @@ import type {
   SponsorEnd,
   SponsorTerms,
 } from '../../shared/types/index.ts';
-import { isEligible, openLevels } from '../../shared/utils/career-eligibility/index.ts';
+import { isEligible, openLevels, rungFee } from '../../shared/utils/career-eligibility/index.ts';
 import { readCareerSettings } from '../../shared/utils/career-settings/index.ts';
 import { isRecord } from '../../shared/utils/coerce/index.ts';
 import { hiddenBySources } from '../../shared/utils/content-sources/index.ts';
@@ -100,7 +100,9 @@ import { ownedCar, racingIn, withCarIn } from '../../shared/utils/garage/index.t
 import { isHistoric, isInvited } from '../../shared/utils/historic/index.ts';
 import { invitationChance, invitationId, mailStatus } from '../../shared/utils/inbox/index.ts';
 import { isNationCode } from '../../shared/utils/nations/index.ts';
-import { prizeSpeed, prizeTable, scaledPrize } from '../../shared/utils/prizes/index.ts';
+import {
+  paidTable, prizeSpeed, purseRung, scaledPrize,
+} from '../../shared/utils/prizes/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import {
   eligibleCarsIn, roundAvailabilityIn, roundRaceableIn, seatRaceableIn,
@@ -108,7 +110,7 @@ import {
 import { hiddenAsFiller, isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
   climbNewsId, dealPaid, dealRung, dealScale, dealUntil, entryDiscipline, formOf, goalNewsId, goalSettled,
-  goalStanding, invitationLift, liveDeals, partnerSlots, perkOf, rewardWorth, rungFee, signingRepay, slotFree,
+  goalStanding, invitationLift, liveDeals, partnerSlots, perkOf, rewardWorth, signingRepay, slotFree,
   sponsorFigure, sponsorMailId, sponsorNewsId, sponsorRenewalId,
 } from '../../shared/utils/sponsors/index.ts';
 import { standaloneStanding } from '../../shared/utils/standalone/index.ts';
@@ -905,10 +907,17 @@ export const eventSessions = (
  * @param career The career reading it
  * @param championship The championship
  * @param entry The class entry's id
+ * @param rung The rung a historic event is raced from - absent for a
+ * championship
  * @returns The prize, or null when the championship says nothing
  */
-export const winnerPrize = (career: Career, championship: Championship, entry: string): number | null => {
-  const [winner] = prizeTable(championship, entry, 'positions');
+export const winnerPrize = (
+  career: Career,
+  championship: Championship,
+  entry: string,
+  rung?: number,
+): number | null => {
+  const [winner] = paidTable(championship, entry, 'positions', rung);
 
   return winner === undefined ? null : scaledPrize(winner, prizeSpeed(career));
 };
@@ -1184,7 +1193,7 @@ export const saleSeats = (
     salt: seasonSalt(career, season.index, edition),
     cars: eligibleCarsIn(availability, left[0].round, entry.id),
     fees: events.map((event) => event.entryFee ?? 0),
-    winnerPrize: prizeTable(championship, entry.id, 'positions')[0] ?? 0,
+    winnerPrize: paidTable(championship, entry.id, 'positions')[0] ?? 0,
   }, left.length);
 };
 
@@ -1408,6 +1417,8 @@ export const withLapsed = (rounds: readonly SkippedRound[], lapsed: readonly Ski
  * @param enrolled Whether the career is in this class of this edition
  * @param invitation Where a historic event's invitation stands, which says the
  * row is one - absent for a round of a championship
+ * @param rung The rung a historic event's purse is paid at - `purseRung`'s
+ * answer, absent for a round of a championship
  * @returns The row
  */
 export const calendarEntry = (
@@ -1419,6 +1430,7 @@ export const calendarEntry = (
   career: Career,
   enrolled: boolean,
   invitation?: CalendarInvitation,
+  rung?: number,
 ): CalendarEntry => {
   // A round a season's copy no longer matches keeps its id as its name rather
   // than vanishing off the calendar, which would lose a round that may already
@@ -1440,7 +1452,7 @@ export const calendarEntry = (
     track: round?.track ?? { id: '' },
     races: roundAvailabilityIn(availability, event.round)?.races ?? [],
     gridSize: entry.seats.length,
-    prize: winnerPrize(career, series, entry.id),
+    prize: winnerPrize(career, series, entry.id, rung),
     // A standalone championship has no money to pay one in. An invitation's
     // event carries no fee, since the team covers it.
     entryFee: career.kind !== 'career' ? undefined : event.entryFee,
@@ -1494,11 +1506,12 @@ export const composeCalendar = (
     if (!entry || !availability) return [];
     const draw = isHistoric(held) ? drawOf(season, held.series) : null;
     const invitation = draw ? calendarInvitation(career, season, draw, availability, held) : undefined;
+    const rung = draw ? purseRung(held.championship, career, held, draw.invitation) : undefined;
 
     // What the player pays, which a contract's team covers some or all of.
     return held.events.map((event) => calendarEntry(
       held.championship, availability, entry, held.edition, { ...event, entryFee: feeOf(held, event) ?? undefined },
-      career, !held.withdrawn, invitation,
+      career, !held.withdrawn, invitation, rung,
     ));
   });
 
@@ -1522,6 +1535,7 @@ export const composeCalendar = (
         career,
         false,
         calendarInvitation(career, season, draw, availability, null),
+        purseRung(draw.championship, career, null, draw.invitation),
       )];
     });
 

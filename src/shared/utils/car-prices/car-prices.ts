@@ -16,6 +16,7 @@ import {
   PRICE_STEPS,
   REFERENCE_POWER,
   REFERENCE_PRICE,
+  RENT_CAP_FEES,
   RENT_SHARE,
   REPAINT_SHARE,
   RESALE_FLOOR,
@@ -28,6 +29,7 @@ import type {
 } from '../../types/index.ts';
 import { daysBetween } from '../calendar-days/index.ts';
 import { carSpecsOf, specCars } from '../car-classes/index.ts';
+import { rungFee } from '../career-eligibility/index.ts';
 
 /**
  * No prices of the user's.
@@ -237,11 +239,25 @@ export const appraise = (
 };
 
 /**
- * What renting a car costs each round.
+ * The rung a rented car's rent is capped at: its class's, or the lower one a
+ * historic event is raced from, so the rent follows the purse.
+ * @param tier The class's rung, 1 being the top
+ * @param raced The rung a historic event is raced from, where it has one
+ * @returns The rung
+ */
+export const rentRung = (tier: number, raced?: number): number => Math.max(tier, raced ?? tier);
+
+/**
+ * What renting a car costs each round: a share of its price, never more than
+ * the rung it is raced on can carry. Without a rung, the top one's, so a car
+ * shown on its own shows the most it can cost.
  * @param price What the car costs to buy
+ * @param rung The rung of the class it is raced in, 1 being the top
  * @returns The rent, in whole units
  */
-export const rentOf = (price: number): number => Math.round(price * RENT_SHARE);
+export const rentOf = (price: number, rung = 1): number => (
+  Math.round(Math.min(price * RENT_SHARE, rungFee(rung) * RENT_CAP_FEES))
+);
 
 /**
  * What repainting a car costs.

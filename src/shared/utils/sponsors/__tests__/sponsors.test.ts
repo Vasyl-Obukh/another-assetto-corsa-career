@@ -38,7 +38,6 @@ import {
   placeIs,
   repaintDeal,
   rewardWorth,
-  rungFee,
   seatBackedIn,
   seatBacker,
   seatBackingDeal,
@@ -151,19 +150,6 @@ describe('shared/utils/sponsors', () => {
 
     it('holds Rookie\'s on any rung below the ladder\'s lowest', () => {
       expect(partnerSlots(levels(9))).toBe(1);
-    });
-  });
-
-  describe('rungFee', () => {
-    it('is each rung\'s typical entry fee', () => {
-      expect(rungFee(1)).toBe(25_000);
-      expect(rungFee(4)).toBe(3000);
-      expect(rungFee(5)).toBe(700);
-    });
-
-    it('clamps a rung off either end of the ladder', () => {
-      expect(rungFee(0)).toBe(25_000);
-      expect(rungFee(8)).toBe(700);
     });
   });
 

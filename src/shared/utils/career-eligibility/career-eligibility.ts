@@ -6,9 +6,9 @@
 // core.
 
 import {
-  DISCIPLINES, RATING_FLOORS, TOP_RUNG_WIDTH,
+  DISCIPLINES, RATING_FLOORS, RUNG_FEE, TOP_RUNG_WIDTH,
 } from '../../constants/index.ts';
-import type { Discipline, LadderPosition } from '../../types/index.ts';
+import type { Championship, Discipline, LadderPosition } from '../../types/index.ts';
 
 /**
  * The rung a career may enter at, per discipline, 1 being the top.
@@ -28,6 +28,24 @@ export const LOWEST_RUNG = RATING_FLOORS.length;
  * @returns The rung, held to the ones the figures name
  */
 const rungOf = (tier: number): number => Math.min(Math.max(1, tier), LOWEST_RUNG);
+
+/**
+ * A rung's typical entry fee, which sponsor figures, a historic purse raced
+ * from a lower rung and a rented car's rent scale with.
+ * @param rung The rung, 1 being the top
+ * @returns The fee
+ */
+export const rungFee = (rung: number): number => RUNG_FEE[rungOf(rung) - 1];
+
+/**
+ * The rung a championship's class sits on.
+ * @param championship The championship
+ * @param entry The class entry's id
+ * @returns The rung, 1 being the top - the top for a class it does not hold
+ */
+export const classRung = (championship: Pick<Championship, 'entries'>, entry: string | null | undefined): number => (
+  championship.entries.find((one) => one.id === entry)?.ladder.tier ?? 1
+);
 
 /**
  * The rating a rung opens at, which is also what a career starting on it

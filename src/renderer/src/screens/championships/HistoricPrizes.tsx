@@ -16,15 +16,19 @@ interface HistoricPrizesProps {
    * written.
    */
   speed?: number;
+  /**
+   * The rung its purse is paid at, when a career races it.
+   */
+  rung?: number;
 }
 
 // What a historic event pays a place, in money alone: its points table pays
 // nothing, so it is left out of the table rather than shown as a column of
 // zeroes.
-export const HistoricPrizes = ({ event, speed = 1 }: HistoricPrizesProps) => {
+export const HistoricPrizes = ({ event, speed = 1, rung }: HistoricPrizesProps) => {
   const { t } = useTranslation();
   const { formatMoney } = useFormat();
-  const purses = pursesOf(event.prizes, event.entries, speed);
+  const purses = pursesOf(event, speed, rung);
   const paid = purses.some((purse) => (purse.prizes?.positions?.length ?? 0) > 0);
 
   // What entering costs without an invitation, a class at a time where the

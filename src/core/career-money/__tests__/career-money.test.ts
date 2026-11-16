@@ -657,6 +657,29 @@ describe('core/career-money', () => {
       expect(owedPrizes(career).map((line) => line.kind)).toEqual(['historic']);
     });
 
+    it('pays a class smaller than a full grid its share of both tables', () => {
+      const championship = { ...CUP, entries: [{ ...CUP.entries[0], seats: CUP.entries[0].seats.slice(0, 6) }] };
+      const career = careerIn(finished({ championship }), { date: '2027-07-01' });
+
+      expect(owedPrizes(career).map((line) => [line.kind, line.amount])).toEqual([['race', 500], ['standings', 2000]]);
+    });
+
+    describe('a historic event of a class a rung above the career', () => {
+      const championship = { ...CUP, entries: [{ ...CUP.entries[0], ladder: { ...CUP.entries[0].ladder, tier: 1 } }] };
+
+      it('pays its purse at the fees of the rung it was entered from', () => {
+        const career = careerIn(finished({ championship, historic: true, rung: 5 }), { date: '2027-07-01' });
+
+        expect(owedPrizes(career).map((line) => line.amount)).toEqual([28]);
+      });
+
+      it('pays in full where the entry keeps no rung, as one made before purses were scaled', () => {
+        const career = careerIn(finished({ championship, historic: true }), { date: '2027-07-01' });
+
+        expect(owedPrizes(career).map((line) => line.amount)).toEqual([1000]);
+      });
+    });
+
     it('pays nothing in a standalone championship', () => {
       expect(owedPrizes(careerIn(finished(), { kind: 'championship', date: '2027-07-01' }))).toEqual([]);
     });

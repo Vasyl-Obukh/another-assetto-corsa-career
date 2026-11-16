@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { TradeButton } from './TradeButton.tsx';
 import { TradeError } from './TradeError.tsx';
 import type { Car } from '../../../../shared/types';
-import { rentOf } from '../../../../shared/utils/car-prices';
+import { rentOf, rentRung } from '../../../../shared/utils/car-prices';
+import { classRung } from '../../../../shared/utils/career-eligibility';
 import { roundUnderWay } from '../../../../shared/utils/garage';
 import { Callout } from '@/components/callout/index.ts';
 import { SkipNote } from '@/components/skip-dialog/index.ts';
@@ -45,6 +46,13 @@ export const SellDialog = ({ car, garage, onClose }: SellDialogProps) => {
   const value = garage.valueOf(owned);
   const racing = garage.racingIn(car.id, 'owned');
   const held = roundUnderWay(racing);
+  // Rent is capped by the class's rung, so championships may rent it apart.
+  const rentedAfter = [...racing.reduce((groups, entry) => {
+    const rent = rentOf(garage.listedOf(car), rentRung(classRung(entry.championship, entry.entry), entry.rung));
+    groups.set(rent, new Set([...(groups.get(rent) ?? []), entry.championship.name]));
+
+    return groups;
+  }, new Map<number, Set<string>>())];
   const round = held?.entry.championship.rounds.find((one) => one.id === held.event.round);
   const busy = held ? `${held.entry.championship.name} - ${round?.name ?? held.event.round}` : null;
   const close = (): void => {
@@ -77,10 +85,10 @@ export const SellDialog = ({ car, garage, onClose }: SellDialogProps) => {
         )}
         {!busy && racing.length > 0 ? (
           <Callout tone="primary" icon={CarIcon}>
-            {t('trade.rentedAfter', {
-              series: racing.map((entry) => entry.championship.name).join(', '),
-              rent: formatMoney(rentOf(garage.listedOf(car))),
-            })}
+            {rentedAfter.map(([rent, names]) => t('trade.rentedAfter', {
+              series: [...names].join(', '),
+              rent: formatMoney(rent),
+            })).join(' ')}
           </Callout>
         ) : null}
         <TradeError garage={garage} />

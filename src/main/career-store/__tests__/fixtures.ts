@@ -17,11 +17,18 @@ import type {
   Round,
   SeasonEntry,
   SeasonEvent,
+  Seat,
   SeriesAvailability,
   SeriesListing,
   SessionDefinition,
 } from '../../../shared/types/index.ts';
 import { CAREER_VERSION } from '../constants.ts';
+
+/**
+ * A full grid of seats, the first two the ones every class here starts with,
+ * for a class whose prize money a test reads: a smaller field pays a share.
+ */
+export const FULL_GRID: readonly Seat[] = Array.from({ length: 12 }, (_, at) => ({ id: `seat-${at + 1}` }));
 
 /**
  * Builds a class entry with two seats and a one-make car list.

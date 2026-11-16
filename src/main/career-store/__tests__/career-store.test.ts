@@ -7,8 +7,8 @@ import {
 import path from 'node:path';
 
 import {
-  CAREER_ID, makeAvailability, makeCar, makeCareer, makeChampionship, makeClassEntry, makeEntry, makeEvent, makeListing,
-  makePlan, makeRound, makeSeason,
+  CAREER_ID, FULL_GRID, makeAvailability, makeCar, makeCareer, makeChampionship, makeClassEntry, makeEntry, makeEvent,
+  makeListing, makePlan, makeRound, makeSeason,
 } from './fixtures.ts';
 import { classOffers, rungPosition } from '../../../core/seat-offers/index.ts';
 import { DEFAULT_CAREER_SETTINGS } from '../../../shared/constants/index.ts';
@@ -3959,7 +3959,9 @@ describe('main/career-store', () => {
     });
 
     it("shows a round's prize at the career's progression speed", async () => {
-      const championship = makeChampionship({ prizes: { positions: [1000] } });
+      const championship = makeChampionship({
+        prizes: { positions: [1000] }, entries: [makeClassEntry({ seats: FULL_GRID })],
+      });
       const career = careerWith({
         entries: [makeEntry({ championship, events: [makeEvent('one', '2027-03-07')] })],
       });
@@ -4214,6 +4216,21 @@ describe('main/career-store', () => {
       ]);
     });
 
+    it('charges no more rent than the rung the class sits on can carry', async () => {
+      const rookie = { ...CUP, entries: [{ ...CUP.entries[0], ladder: { ...CUP.entries[0].ladder, tier: 5 } }] };
+      const career = careerWith({
+        entries: [makeEntry({
+          championship: rookie,
+          car: { model: 'test_car', source: 'rented' },
+          events: [makeEvent('one', '2027-01-01', { entryFee: 500 })],
+        })],
+      });
+      const { store } = await build({ career, cars: [TEST_CAR], prices: { test_car: 200_000 } });
+      await store.launch({ series: CUP.id, round: 'one' });
+
+      expect(store.get()?.ledger).toContainEqual(expect.objectContaining({ kind: 'rent', amount: -1050 }));
+    });
+
     it('charges an owned car no rent', async () => {
       const career = garaged([makeEntry({
         car: { model: 'test_car', skin: 'blue', source: 'owned' },
@@ -4362,6 +4379,34 @@ describe('main/career-store', () => {
         expect(store.get()?.date).toBe('2027-02-03');
         expect(store.get()?.money).toBe(100_000);
         expect(store.get()?.ledger).toEqual([]);
+      });
+
+      it('keeps the rung its invitation was decided on, on the entry its purse is paid from', async () => {
+        const draw = drawnHistoric({
+          invitation: {
+            on: '2027-01-06', outcome: 'invited', discipline: Discipline.ROAD, rung: 3, chance: 60,
+          },
+        });
+        const { store } = await build({ career: topRung(draw, '2027-01-10', [invitationTo(draw)]) });
+        await store.launch({
+          series: 'h1', round: 'only', accept: true,
+        });
+
+        expect(entryOf(store.get(), 'h1')?.rung).toBe(3);
+        expect((await store.event({ series: 'h1', round: 'only' })).historic?.rung).toBe(3);
+      });
+
+      it('says the rung its purse is paid at before it is entered: its invitation\'s, else the career\'s own', async () => {
+        const draw = drawnHistoric({
+          invitation: {
+            on: '2027-01-06', outcome: 'invited', discipline: Discipline.ROAD, rung: 3, chance: 60,
+          },
+        });
+        const decided = await build({ career: topRung(draw, '2027-01-10', [invitationTo(draw)]) });
+        const undrawn = await build({ career: topRung() });
+
+        expect((await decided.store.event({ series: 'h1', round: 'only' })).historic?.rung).toBe(3);
+        expect((await undrawn.store.event({ series: 'h1', round: 'only' })).historic?.rung).toBe(1);
       });
 
       it('refuses an invitation still to be answered unless the launch accepts it', async () => {
@@ -4695,7 +4740,9 @@ describe('main/career-store', () => {
     });
 
     it('pays a prize the career has earned whatever command settles it, and only once', async () => {
-      const championship = makeChampionship({ prizes: { positions: [1000, 600] } });
+      const championship = makeChampionship({
+        prizes: { positions: [1000, 600] }, entries: [makeClassEntry({ seats: FULL_GRID })],
+      });
       const place: RacePlace = {
         seat: 'seat-2',
         entry: 'main',

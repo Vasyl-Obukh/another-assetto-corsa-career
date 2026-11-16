@@ -21,7 +21,7 @@ import type {
 } from '../../../../shared/types';
 import { editionOver, editionsOf } from '../../../../shared/utils/editions';
 import { championshipEntries, historicEntries, isInvited } from '../../../../shared/utils/historic';
-import { prizeTable, scaledPrize } from '../../../../shared/utils/prizes';
+import { paidTable, scaledPrize } from '../../../../shared/utils/prizes';
 import { entryResults, teammateSeat } from '../../../../shared/utils/standings';
 import type { ClassSeason, DriverRow } from '@/lib/season-results';
 import { seasonResults } from '@/lib/season-results';
@@ -267,11 +267,14 @@ export const yearReview = (season: CareerSeason, today: string): YearReview => {
 
 /**
  * What one class place pays in prize money, by the purse of the class it is
- * in - its own where it has one, the event's otherwise.
+ * in - its own where it has one, the event's otherwise - at the share the
+ * class pays.
  * @param series The championship or historic event
  * @param entry The class entry's id
  * @param classPosition The place within the class, counting from one
  * @param speed The progression speed it is paid at - `prizeSpeed`'s answer
+ * @param rung The rung a historic event is raced from - absent for a
+ * championship
  * @returns The prize, or null for a place that pays nothing
  */
 export const prizeFor = (
@@ -279,8 +282,9 @@ export const prizeFor = (
   entry: string | null | undefined,
   classPosition: number,
   speed = 1,
+  rung?: number,
 ): number | null => {
-  const prize = scaledPrize(prizeTable(series, entry, 'positions')[classPosition - 1] ?? 0, speed);
+  const prize = scaledPrize(paidTable(series, entry, 'positions', rung)[classPosition - 1] ?? 0, speed);
 
   return prize > 0 ? prize : null;
 };
@@ -311,7 +315,7 @@ const historicRow = (entry: SeasonEntry, speed: number): HistoricRow => {
   const last = places.at(-1);
   // Per race, as a purse pays.
   const prize = places.reduce((sum, place) => (
-    sum + (prizeFor(entry.championship, entry.entry, place.classPosition, speed) ?? 0)
+    sum + (prizeFor(entry.championship, entry.entry, place.classPosition, speed, entry.rung) ?? 0)
   ), 0);
 
   return {

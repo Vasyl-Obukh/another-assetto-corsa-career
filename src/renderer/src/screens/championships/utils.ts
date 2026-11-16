@@ -11,7 +11,6 @@ import type {
   Career,
   Championship,
   ChampionshipRun,
-  ClassEntry,
   Discipline,
   EntryAvailability,
   Facet,
@@ -34,7 +33,7 @@ import { hiddenBySources } from '../../../../shared/utils/content-sources';
 import { offerId } from '../../../../shared/utils/contracts';
 import { editionEntry, enteredEdition } from '../../../../shared/utils/editions';
 import { awaitingMail } from '../../../../shared/utils/inbox';
-import { scaledPrize } from '../../../../shared/utils/prizes';
+import { classShare, scaledPrize } from '../../../../shared/utils/prizes';
 import { recommendedLayout, trackKeyOf } from '../../../../shared/utils/recommended-tracks';
 import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
@@ -147,40 +146,47 @@ export const pointsOf = (
 };
 
 /**
- * The purses a championship pays, each with the classes it is paid to.
+ * The purses a championship pays, each with the classes it is paid to, as
+ * they are paid: at each class's share, and at the progression speed.
  *
  * Classes paying the same are one purse, so classes that share one - leaving
- * their own out, or stating the same tables - are listed together rather than
- * as repeats. A table a class leaves out is the championship's.
- * @param prizes What the championship pays
- * @param entries Its classes, any of which may pay its own
+ * their own out, stating the same tables, or fielding enough cars to pay them
+ * in full - are listed together rather than as repeats. A table a class leaves
+ * out is the championship's.
+ * @param series The championship or historic event
  * @param speed The progression speed the amounts are paid at - `prizeSpeed`'s
  * answer in a career, 1 for the purse as written
+ * @param rung The rung a historic event is raced from - absent for a
+ * championship
  * @returns One per distinct purse, in class order
  */
 export const pursesOf = (
-  prizes: PrizeMoney | undefined,
-  entries: readonly ClassEntry[],
+  series: Pick<Championship, 'prizes' | 'entries'>,
   speed = 1,
+  rung?: number,
 ): Purse[] => {
   const purses = new Map<string, Purse>();
 
-  entries.forEach((entry) => {
-    const paid = entry.prizes && {
-      positions: entry.prizes.positions ?? prizes?.positions,
-      standings: entry.prizes.standings ?? prizes?.standings,
-    };
-    const key = JSON.stringify(paid ?? prizes ?? null);
-    const purse = purses.get(key) ?? { prizes: paid ?? prizes, classes: [] };
+  series.entries.forEach((entry) => {
+    const share = classShare(entry, rung);
+    /**
+     * A table as this class is paid it.
+     * @param table The table as written
+     * @returns The amounts, or undefined where there is no table
+     */
+    const paid = (table: readonly number[] | undefined) => table?.map((amount) => scaledPrize(amount * share, speed));
+    const positions = entry.prizes?.positions ?? series.prizes?.positions;
+    const standings = entry.prizes?.standings ?? series.prizes?.standings;
+    const prizes: PrizeMoney | undefined = positions || standings
+      ? { positions: paid(positions), standings: paid(standings) }
+      : undefined;
+    const key = JSON.stringify(prizes ?? null);
+    const purse = purses.get(key) ?? { prizes, classes: [] };
     purse.classes.push(entry.name);
     purses.set(key, purse);
   });
-  const scaled = (table: readonly number[] | undefined) => table?.map((amount) => scaledPrize(amount, speed));
 
-  return [...purses.values()].map((purse) => (speed === 1 || !purse.prizes ? purse : {
-    ...purse,
-    prizes: { positions: scaled(purse.prizes.positions), standings: scaled(purse.prizes.standings) },
-  }));
+  return [...purses.values()];
 };
 
 /**

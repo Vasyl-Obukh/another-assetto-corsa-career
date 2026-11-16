@@ -147,7 +147,12 @@ Rules that live here:
 - **Units**: everything stays metric on disk; only what is shown and typed converts.
 - **Money**: a car already bought sells and repaints on what was paid and listed
   then (`OwnedCar.listed`); a sale discounts only the purchase; sponsor backing
-  is never spent unasked.
+  is never spent unasked. A purse is paid at its class's share (`paidTable`):
+  in proportion to a field under 12 cars, and for a historic event scaled to
+  the rung it is raced from - always `purseRung`'s answer, so what is shown is
+  what is paid. Read it through `paidTable` or `prizeFor`, never `prizeTable`,
+  wherever an amount is paid or shown. Rent is capped by the rung it is raced
+  on (`rentOf(price, rentRung(...))`).
 - **The player's seat raced without them is a row of its own** in the standings.
   In copy it is a reserve driver - never write "stand-in".
 

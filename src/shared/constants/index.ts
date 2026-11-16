@@ -54,7 +54,7 @@ export { M_PER_KM, M_PER_MILE } from './distance.ts';
 
 export {
   MIN_RATING, QUALIFYING_WEIGHT, RATING_FLOORS, RATING_K, RATING_MAX_LOSS, RATING_PER_POINT, RATING_SPREAD,
-  TOP_RUNG_WIDTH,
+  RUNG_FEE, TOP_RUNG_WIDTH,
 } from './rating.ts';
 
 export {

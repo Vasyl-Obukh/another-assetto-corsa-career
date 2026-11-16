@@ -10,6 +10,7 @@ import {
   isCarPrice,
   priceOrigin,
   rentOf,
+  rentRung,
   repaintOf,
   resaleValue,
   withCarPrice,
@@ -254,6 +255,40 @@ describe('shared/utils/car-prices', () => {
     it('is a fiftieth of the price a round, in whole units', () => {
       expect(rentOf(32_000)).toBe(640);
       expect(rentOf(32_025)).toBe(641);
+    });
+
+    it('never comes to more than one and a half typical fees of the rung it is raced on', () => {
+      expect(rentOf(16_000_000, 1)).toBe(37_500);
+      expect(rentOf(150_000, 5)).toBe(1050);
+      expect(rentOf(1_200_000, 2)).toBe(15_000);
+    });
+
+    it('is a fiftieth of the price on any rung that can carry it', () => {
+      expect(rentOf(34_000, 5)).toBe(680);
+      expect(rentOf(250_000, 3)).toBe(5000);
+    });
+
+    it('caps a car shown without a rung at the top one, the most it can come to', () => {
+      expect(rentOf(16_000_000)).toBe(37_500);
+      expect(rentOf(1_200_000)).toBe(24_000);
+    });
+
+    it('holds a rung below the ladder to the lowest one', () => {
+      expect(rentOf(150_000, 7)).toBe(1050);
+    });
+  });
+
+  describe('rentRung', () => {
+    it('is the class\'s rung for a championship', () => {
+      expect(rentRung(3)).toBe(3);
+    });
+
+    it('is the lower rung a historic event is raced from', () => {
+      expect(rentRung(1, 5)).toBe(5);
+    });
+
+    it('never rises above the class\'s rung', () => {
+      expect(rentRung(4, 1)).toBe(4);
     });
   });
 

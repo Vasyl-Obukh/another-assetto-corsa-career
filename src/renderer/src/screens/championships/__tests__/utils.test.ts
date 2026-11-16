@@ -11,6 +11,7 @@ import type {
   Championship,
   ClassEntry,
   Mail,
+  PrizeMoney,
   Round,
   SeasonEntry,
   Seat,
@@ -190,25 +191,36 @@ describe('renderer/screens/championships/utils', () => {
 
   describe('pursesOf', () => {
     /**
-     * A class entry carrying only what a purse reads.
+     * A class entry carrying only what a purse reads: a full grid, so it pays
+     * its tables in full.
      * @param name Its name
      * @param prizes What it pays of its own, if anything
      * @returns The entry
      */
-    const entry = (name: string, prizes?: ClassEntry['prizes']): ClassEntry => (
-      { name, prizes } as ClassEntry
-    );
+    const entry = (name: string, prizes?: ClassEntry['prizes']): ClassEntry => ({
+      name, prizes, seats: Array.from({ length: 12 }), ladder: { tier: 3 },
+    }) as unknown as ClassEntry;
     const championship = { positions: [100, 50], standings: [1000] };
+    /**
+     * A championship paying a purse, with its classes.
+     * @param prizes What it pays
+     * @param entries Its classes
+     * @returns The championship, as a purse reads it
+     */
+    const series = (
+      prizes: PrizeMoney | undefined,
+      entries: ClassEntry[],
+    ): Pick<Championship, 'prizes' | 'entries'> => ({ prizes, entries });
 
     it('pays every class the championship\'s purse where none pays its own', () => {
-      expect(pursesOf(championship, [entry('LMP2'), entry('GTE')]))
+      expect(pursesOf(series(championship, [entry('LMP2'), entry('GTE')])))
         .toEqual([{ prizes: championship, classes: ['LMP2', 'GTE'] }]);
     });
 
     it('lists a class paying its own apart, and classes paying alike together', () => {
       const own = { positions: [300], standings: [3000] };
 
-      expect(pursesOf(championship, [entry('Hypercar', own), entry('LMP2'), entry('GTE')]))
+      expect(pursesOf(series(championship, [entry('Hypercar', own), entry('LMP2'), entry('GTE')])))
         .toEqual([
           { prizes: own, classes: ['Hypercar'] },
           { prizes: championship, classes: ['LMP2', 'GTE'] },
@@ -218,20 +230,35 @@ describe('renderer/screens/championships/utils', () => {
     // Found in review: a class stating one table paid nothing on the other,
     // while the editor told the user it paid what the championship does.
     it('pays a table a class leaves out as the championship does', () => {
-      expect(pursesOf(championship, [entry('Am', { positions: [70] })])).toEqual([{
+      expect(pursesOf(series(championship, [entry('Am', { positions: [70] })]))).toEqual([{
         prizes: { positions: [70], standings: [1000] }, classes: ['Am'],
       }]);
     });
 
     it('is one purse of nothing for a championship paying nothing', () => {
-      expect(pursesOf(undefined, [entry('Main')])).toEqual([{ prizes: undefined, classes: ['Main'] }]);
-      expect(pursesOf(undefined, [entry('Main')], 2)).toEqual([{ prizes: undefined, classes: ['Main'] }]);
+      expect(pursesOf(series(undefined, [entry('Main')]))).toEqual([{ prizes: undefined, classes: ['Main'] }]);
+      expect(pursesOf(series(undefined, [entry('Main')]), 2)).toEqual([{ prizes: undefined, classes: ['Main'] }]);
     });
 
     it('pays every table at the progression speed it is handed, grouped as the purses are written', () => {
-      expect(pursesOf(championship, [entry('Am', { positions: [70] }), entry('Pro')], 1.5)).toEqual([
+      expect(pursesOf(series(championship, [entry('Am', { positions: [70] }), entry('Pro')]), 1.5)).toEqual([
         { prizes: { positions: [105], standings: [1500] }, classes: ['Am'] },
         { prizes: { positions: [150, 75], standings: [1500] }, classes: ['Pro'] },
+      ]);
+    });
+
+    it('pays a class of a smaller field its share, apart from those its table pays in full', () => {
+      const small = { ...entry('Am'), seats: Array.from({ length: 6 }) } as ClassEntry;
+
+      expect(pursesOf(series(championship, [entry('Pro'), small]))).toEqual([
+        { prizes: championship, classes: ['Pro'] },
+        { prizes: { positions: [50, 25], standings: [500] }, classes: ['Am'] },
+      ]);
+    });
+
+    it('scales a historic purse to the rung it is raced from', () => {
+      expect(pursesOf(series(championship, [entry('GT')]), 1, 5)).toEqual([
+        { prizes: { positions: [14, 7], standings: [140] }, classes: ['GT'] },
       ]);
     });
   });

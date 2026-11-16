@@ -212,7 +212,7 @@ export const CarRow = ({
             </span>
           </td>
           <td className="px-2.5 py-1.5 text-right whitespace-nowrap tabular-nums">
-            {owned ? dash : formatMoney(rentOf(trade.garage.listedOf(car)))}
+            {owned ? dash : formatMoney(rentOf(trade.garage.listedOf(car), trade.rung))}
           </td>
         </>
       ) : null}

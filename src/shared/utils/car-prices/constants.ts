@@ -628,6 +628,13 @@ export const CAR_PRICES: Readonly<Record<string, number>> = {
 export const RENT_SHARE = 0.02;
 
 /**
+ * The most a round's rent comes to, in typical entry fees of the rung the car
+ * is raced on, so a car priced far above its rung - a modern Formula 1 car, a
+ * classic worth millions - can still be rented to race there.
+ */
+export const RENT_CAP_FEES = 1.5;
+
+/**
  * What repainting a car costs, as a share of its price.
  */
 export const REPAINT_SHARE = 0.015;

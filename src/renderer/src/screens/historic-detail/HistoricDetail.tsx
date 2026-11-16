@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { HISTORIC_TABS } from './constants.ts';
 import { HistoricDetailSkeleton } from './HistoricDetailSkeleton.tsx';
 import type { HistoricTab } from './types.ts';
+import { paidTable } from '../../../../shared/utils/prizes';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
 import {
@@ -62,7 +63,9 @@ export const HistoricDetail = () => {
   const series = listing?.series;
   const disciplines = [...new Set(series?.entries.map((entry) => entry.ladder.discipline) ?? [])];
   const tiers = [...new Set(series?.entries.map((entry) => entry.ladder.tier) ?? [])].sort((a, b) => a - b);
-  const prize = series?.prizes?.positions?.[0];
+  // The best a win pays in any of its classes, as each class pays its purse.
+  const wins = series?.entries.flatMap((entry) => paidTable(series, entry.id, 'positions').slice(0, 1)) ?? [];
+  const prize = wins.length > 0 ? Math.round(Math.max(...wins)) : undefined;
 
   return (
     <WordingKind.Provider value="historic">

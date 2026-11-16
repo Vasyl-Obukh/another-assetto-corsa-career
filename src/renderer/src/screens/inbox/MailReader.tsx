@@ -8,7 +8,9 @@ import { MailStatusChip } from './MailStatusChip.tsx';
 import { ReplyBar } from './ReplyBar.tsx';
 import type { Career } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
-import { prizeSpeed, prizeTable, scaledPrize } from '../../../../shared/utils/prizes';
+import {
+  paidTable, prizeSpeed, purseRung, scaledPrize,
+} from '../../../../shared/utils/prizes';
 import {
   carPictureSources, ContentImage, HistoricChip, NationFlag,
 } from '@/components';
@@ -80,7 +82,16 @@ export const MailReader = ({
   const track = useInstalledTrack(round?.track ?? null)?.name ?? null;
   const offerKey = track ? 'inbox.letter.offerSeatAt' : 'inbox.letter.offerSeat';
   const format = item.event && round ? formatOf(item.event, round) : null;
-  const [winner] = item.event && entry ? prizeTable(item.event, entry.id, 'positions') : [];
+  // The invitation's season holds its draw and, once accepted, the entry.
+  const drawnIn = career.seasons.find((one) => one.index === mail.season);
+  const [winner] = item.event && entry
+    ? paidTable(item.event, entry.id, 'positions', purseRung(
+      item.event,
+      career,
+      drawnIn?.entries.find((one) => one.historic && one.series === offer?.series),
+      drawnIn?.historicEvents?.find((one) => one.series === offer?.series)?.invitation,
+    ))
+    : [];
   // Another event of the career's on the same day, which accepting would put
   // beside this one - unless the career races two in a day.
   const clash = item.status === 'awaiting' && !career.settings.allowSameDayEvents

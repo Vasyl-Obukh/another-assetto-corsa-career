@@ -315,6 +315,7 @@ export const Event = () => {
                     availability={historic.availability}
                     playerSeat={historic.seat ?? undefined}
                     speed={prizeSpeed(slot.career)}
+                    rung={historic.rung ?? undefined}
                     rain={view.entered ? view.rain.allowed : undefined}
                   />
                 </CardContent>

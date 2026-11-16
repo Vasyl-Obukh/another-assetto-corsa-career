@@ -34,7 +34,7 @@ export const SeasonRules = ({ series, speed = 1, rain }: SeasonRulesProps) => {
       rainOwn={rain !== undefined && rain !== (series.rain !== false)}
     />
   );
-  const purses = pursesOf(series.prizes, series.entries, speed);
+  const purses = pursesOf(series, speed);
   const race = purses.filter((purse) => purse.prizes?.positions?.length);
   const season = purses.filter((purse) => purse.prizes?.standings?.length);
   const split = purses.length > 1;

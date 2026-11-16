@@ -2924,7 +2924,10 @@ proof that no layer below learned what a series is.
       an eligible car. Rent is 2% of the price a round, charged at launch beside
       the entry fee under the same rule - refused when short, nothing for a
       round skipped. Buying the car being rented ends the rent from its next
-      round
+      round. **Never more than 1.5 typical round fees of the class's rung**
+      (`RUNG_FEE`), so a car priced far above its rung - a 16M Formula 1 car,
+      a classic worth millions - can still be rented to race there; shown
+      without a class, a rent is the top rung's cap, the most it can be
 - [x] Entry fees charged per round, **as its first session launches** and
       only then: a round skipped or missed costs nothing. A launch the career
       cannot pay for is refused, so the balance never goes below zero. A
@@ -2935,6 +2938,13 @@ proof that no layer below learned what a series is.
       historic event's purse included. A race pays the player's place in their
       class's purse, a line per race; an edition pays its standing once it has
       run its course; a race the player did not drive pays them nothing
+- [x] **Prize balance pass** (2026-11-16, from a simulated twelve-season
+      audit of every shipped championship). A class of under 12 cars pays
+      its tables in proportion to its field, so second of three is not paid
+      as second of twenty. A historic event pays its purse scaled to the rung
+      the career races it from - `RUNG_FEE` of that rung over the class's,
+      kept on the entry as `SeasonEntry.rung` - so a Rookie invited to a
+      Grand Prix is paid like a Rookie
 - [x] Progression speed multiplier applied to all earnings. ×0.5 to ×4, a
       career's own - picked in New career, changed in its settings - and
       never applied to fees. Amounts are shown as paid; only the ledger's
