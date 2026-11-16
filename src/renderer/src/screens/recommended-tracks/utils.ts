@@ -1,10 +1,13 @@
-import type { TrackFilter, TrackSortKey } from './types.ts';
-import { RECOMMENDED_CIRCUITS } from '../../../../shared/constants';
+import { DEFAULT_TRACKS_CRITERIA, TRACK_SORT_ITEMS, TRACK_STATES } from './constants.ts';
+import type { TrackFilter, TracksCriteria, TrackSortKey } from './types.ts';
+import { DISCIPLINES, RECOMMENDED_CIRCUITS } from '../../../../shared/constants';
 import type {
   Discipline, RecommendedCircuit, RecommendedTrackState, SortDirection,
 } from '../../../../shared/types';
+import { isRecord, memberOf } from '../../../../shared/utils/coerce';
 import { matchesTerms } from '../../../../shared/utils/search';
 import type { CircuitUsage } from '@/lib/circuit-usage';
+import { readMembers, SORT_DIRECTIONS } from '@/lib/stored-preference';
 import { rowKind, shownTrack } from '@/lib/track-rows';
 
 /**
@@ -109,4 +112,21 @@ export const sortCircuits = (
   };
 
   return [...circuits].sort((left, right) => sign * by(left, right) || left.name.localeCompare(right.name));
+};
+
+/**
+ * Reads the filters and sort the Tracks tab saved, falling back field by field
+ * and dropping any value it no longer knows.
+ * @param stored Whatever the preference held
+ * @returns The criteria to open on
+ */
+export const readTracksCriteria = (stored: unknown): TracksCriteria => {
+  const held = isRecord(stored) ? stored : {};
+
+  return {
+    states: readMembers(held.states, TRACK_STATES),
+    disciplines: readMembers(held.disciplines, DISCIPLINES),
+    sort: memberOf(held.sort, TRACK_SORT_ITEMS.map((item) => item.key)) ?? DEFAULT_TRACKS_CRITERIA.sort,
+    direction: memberOf(held.direction, SORT_DIRECTIONS) ?? DEFAULT_TRACKS_CRITERIA.direction,
+  };
 };

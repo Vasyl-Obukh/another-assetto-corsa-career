@@ -26,3 +26,9 @@ export const TIER_BAND: readonly string[] = [
   'var(--tier-rookie)',
 ];
 
+
+/**
+ * Where the rating log keeps its filter. The season is not kept: it opens on
+ * the one under way, which moves on.
+ */
+export const RATING_FILTER_MEMORY = 'rating.filter';

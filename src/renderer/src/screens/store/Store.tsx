@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 import { NO_CARS } from './constants.ts';
 import { DealBanner } from './DealBanner.tsx';
+import { readStoreSwitches, storeSwitchesKey } from './utils.ts';
 import type { Car, CarQuery } from '../../../../shared/types';
 import { saleEnds } from '../../../../shared/utils/car-sale';
+import { useSlot } from '@/app';
 import { PurchaseDialog, RailSection, RailSwitch } from '@/components';
-import { useGarage } from '@/hooks';
+import { useGarage, usePreference } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { CarBrowserBody } from '@/screens/car-browser';
 
@@ -21,9 +23,9 @@ export const Store = () => {
   const { t } = useTranslation();
   const garage = useGarage();
   const [buying, setBuying] = useState<Car | null>(null);
-  const [owned, setOwned] = useState(false);
-  const [affordable, setAffordable] = useState(false);
-  const [onSale, setOnSale] = useState(false);
+  const { career } = useSlot();
+  const [switches, setSwitches] = usePreference(storeSwitchesKey(career?.id ?? ''), readStoreSwitches);
+  const { owned, affordable, onSale } = switches;
   const { formatDay, formatNumber } = useFormat();
   // Only a career has a Store, and the routes mount it in nothing else.
   if (!garage) return null;
@@ -69,13 +71,13 @@ export const Store = () => {
                     day: formatDay(saleEnds(sale.week)),
                   })}
                   checked={onSale}
-                  onChange={setOnSale}
+                  onChange={(next) => setSwitches({ ...switches, onSale: next })}
                 />
               </RailSection>
             ) : null}
             <RailSection title={t('store.yours')}>
-              <RailSwitch label={t('store.owned')} checked={owned} onChange={setOwned} />
-              <RailSwitch label={t('store.affordable')} checked={affordable} onChange={setAffordable} />
+              <RailSwitch label={t('store.owned')} checked={owned} onChange={(next) => setSwitches({ ...switches, owned: next })} />
+              <RailSwitch label={t('store.affordable')} checked={affordable} onChange={(next) => setSwitches({ ...switches, affordable: next })} />
             </RailSection>
           </>
         )}

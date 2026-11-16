@@ -6,8 +6,9 @@ import type {
   RecommendedCircuit, RecommendedTrackInfo, RecommendedTrackState, TrackSource,
 } from '../../../../../shared/types';
 import { searchTerms } from '../../../../../shared/utils/search';
+import { DEFAULT_TRACKS_CRITERIA } from '../constants.ts';
 import {
-  countUnder, matchesSearch, sortCircuits, underDisciplines, underFilter, underStates,
+  countUnder, matchesSearch, readTracksCriteria, sortCircuits, underDisciplines, underFilter, underStates,
 } from '../utils.ts';
 import type { CircuitUsage } from '@/lib/circuit-usage';
 
@@ -184,6 +185,31 @@ describe('renderer/screens/recommended-tracks/utils', () => {
       sortCircuits(circuits, usage, 'name', 'asc', named);
 
       expect(ids(circuits)).toEqual(['suzuka', 'spa']);
+    });
+  });
+
+  describe('readTracksCriteria', () => {
+    it('reads back filters and sort saved whole', () => {
+      const stored = {
+        states: ['missing', 'guess'], disciplines: [Discipline.SPORTSCAR], sort: 'name', direction: 'asc',
+      };
+
+      expect(readTracksCriteria(stored)).toEqual(stored);
+    });
+
+    it('drops picks it no longer knows, and any picked twice', () => {
+      expect(readTracksCriteria({ states: ['guess', 'gone', 'guess'], disciplines: ['hovercraft'] }))
+        .toEqual({ ...DEFAULT_TRACKS_CRITERIA, states: ['guess'] });
+    });
+
+    it('falls back to the most raced first for a sort it does not know', () => {
+      expect(readTracksCriteria({ sort: 'length', direction: 'sideways' })).toEqual(DEFAULT_TRACKS_CRITERIA);
+    });
+
+    it('opens on the defaults when nothing usable was saved', () => {
+      [undefined, null, 'name'].forEach((stored) => {
+        expect(readTracksCriteria(stored)).toEqual(DEFAULT_TRACKS_CRITERIA);
+      });
     });
   });
 });

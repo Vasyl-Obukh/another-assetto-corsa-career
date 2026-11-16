@@ -46,6 +46,8 @@ export type { InfiniteScroll } from './use-infinite-scroll/index.ts';
 export { useInstallation } from './use-installation/index.ts';
 export type { Installation } from './use-installation/index.ts';
 export { PAGE_SIZE, usePagedContent } from './use-paged-content/index.ts';
+export { usePreference } from './use-preference/index.ts';
+export { useRememberedSearch } from './use-remembered-search/index.ts';
 export { usePageName } from './use-page-name/index.ts';
 export { usePlayerName } from './use-player-name/index.ts';
 export { useQuickRace } from './use-quick-race/index.ts';

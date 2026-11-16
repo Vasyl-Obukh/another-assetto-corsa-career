@@ -8,8 +8,8 @@ import type { Championship } from '../../../../shared/types';
 import {
   Segments, StandingsMatrix, StandingsTable, TeamStandingsTable,
 } from '@/components';
+import { usePreference } from '@/hooks';
 import type { SeasonResults } from '@/lib/season-results';
-import { writePreference } from '@/lib/stored-preference';
 
 interface StandingsSectionProps {
   /**
@@ -45,15 +45,11 @@ export const StandingsSection = ({
   season, series, playerEntry, playerName, onOpenRound,
 }: StandingsSectionProps) => {
   const { t } = useTranslation();
-  const [layout, setLayout] = useState<StandingsLayout>(readStandingsLayout);
+  const [layout, setLayout] = usePreference(STANDINGS_PREFERENCE, readStandingsLayout);
   const [picked, setPicked] = useState(playerEntry ?? season.classes[0]?.entry ?? '');
 
   const held = season.classes.find((one) => one.entry === picked) ?? season.classes[0];
-  const change = (next: Partial<StandingsLayout>): void => {
-    const merged = { ...layout, ...next };
-    setLayout(merged);
-    writePreference(STANDINGS_PREFERENCE, merged);
-  };
+  const change = (next: Partial<StandingsLayout>): void => setLayout({ ...layout, ...next });
   const teams = layout.who === 'teams';
 
   return (

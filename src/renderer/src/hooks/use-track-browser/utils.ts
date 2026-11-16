@@ -1,6 +1,15 @@
+import { TRACK_CRITERIA_SHAPE } from './constants.ts';
 import type { TrackCriteria } from './types.ts';
 import type { TrackQuery } from '../../../../shared/types';
 import { racedIds } from '@/lib/racing-index';
+import { readFields } from '@/lib/stored-preference';
+
+/**
+ * Reads the filters a track browser saved, dropping any it no longer knows.
+ * @param stored Whatever the preference held
+ * @returns The criteria to open on
+ */
+export const readTrackCriteria = (stored: unknown): TrackCriteria => readFields(stored, TRACK_CRITERIA_SHAPE);
 
 /**
  * Folds the criteria, the settled search text and any base query into one.

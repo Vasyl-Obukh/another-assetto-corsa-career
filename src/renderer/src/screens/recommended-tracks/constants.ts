@@ -1,6 +1,8 @@
 import type { ParseKeys } from 'i18next';
 
-import type { TrackFilter, TrackSortKey, TrackState } from './types.ts';
+import type {
+  TrackFilter, TracksCriteria, TrackSortKey, TrackState,
+} from './types.ts';
 import type { SortItem } from '@/components';
 
 /**
@@ -28,3 +30,20 @@ export const TRACK_SORT_ITEMS: readonly SortItem<TrackSortKey>[] = [
   { key: 'name', label: 'recommendedTracks.sort.name' },
   { key: 'country', label: 'recommendedTracks.sort.country' },
 ];
+
+/**
+ * What the Tracks tab opens on the first time: nothing ticked, the most raced
+ * circuits first.
+ */
+export const DEFAULT_TRACKS_CRITERIA: TracksCriteria = {
+  states: [],
+  disciplines: [],
+  sort: 'championships',
+  direction: 'desc',
+};
+
+/**
+ * Where the Tracks tab keeps its filters and sort, and its search for the
+ * window.
+ */
+export const TRACKS_MEMORY = 'recommended-tracks';

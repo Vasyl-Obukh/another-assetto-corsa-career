@@ -1,6 +1,4 @@
-import {
-  beforeEach, describe, expect, it, jest,
-} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import type { TFunction } from 'i18next';
 
 import { appErrorInfo } from '../../../../../shared/errors';
@@ -48,9 +46,6 @@ import {
   withPicked,
 } from '../utils.ts';
 import { TIER_ACCENT } from '@/lib/accents';
-import { readPreference } from '@/lib/stored-preference';
-
-jest.mock('@/lib/stored-preference', () => ({ readPreference: jest.fn() }));
 
 /**
  * A translator that echoes the key it was handed and whatever it interpolates.
@@ -432,30 +427,22 @@ describe('renderer/screens/championships/utils', () => {
   });
 
   describe('readStandingsLayout', () => {
-    const read = jest.mocked(readPreference);
-
-    beforeEach(() => {
-      read.mockReset();
-    });
-
     it('opens on the default layout when nothing was saved', () => {
-      read.mockReturnValue(undefined);
-
-      expect(readStandingsLayout()).toEqual(DEFAULT_STANDINGS);
+      expect(readStandingsLayout(undefined)).toEqual(DEFAULT_STANDINGS);
     });
 
     it('restores a layout saved before', () => {
-      read.mockReturnValue({ who: 'teams', shape: 'table', view: 'positions' });
-
-      expect(readStandingsLayout()).toEqual({ who: 'teams', shape: 'table', view: 'positions' });
+      expect(readStandingsLayout({ who: 'teams', shape: 'table', view: 'positions' }))
+        .toEqual({ who: 'teams', shape: 'table', view: 'positions' });
     });
 
     it('narrows field by field, so only what is stale or broken falls back', () => {
-      read.mockReturnValue({ who: 'teams', shape: 'carousel', view: 7 });
-      expect(readStandingsLayout()).toEqual({ ...DEFAULT_STANDINGS, who: 'teams' });
+      expect(readStandingsLayout({ who: 'teams', shape: 'carousel', view: 7 })).toEqual({ ...DEFAULT_STANDINGS, who: 'teams' });
+      expect(readStandingsLayout('not an object')).toEqual(DEFAULT_STANDINGS);
+    });
 
-      read.mockReturnValue('not an object');
-      expect(readStandingsLayout()).toEqual(DEFAULT_STANDINGS);
+    it('reads back drivers and the grid as well as their alternatives', () => {
+      expect(readStandingsLayout({ who: 'drivers', shape: 'grid', view: 'points' })).toEqual(DEFAULT_STANDINGS);
     });
   });
 

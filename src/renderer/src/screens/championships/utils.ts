@@ -1,7 +1,7 @@
 import type { ParseKeys, TFunction } from 'i18next';
 
 import {
-  CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_PREFERENCE, TIER_METAL_KEYS,
+  CONTENT_LISTS, DEFAULT_STANDINGS, STANDINGS_SHAPE, TIER_METAL_KEYS,
 } from './constants.ts';
 import type {
   AvailabilityState, ContentList, EnterHint, KeepClass, MissingContentList, Purse, Rung, ShownRun,
@@ -41,7 +41,7 @@ import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-
 import type { ProvenancePicks } from '@/components';
 import type { ChampionshipCriteria } from '@/hooks';
 import { TIER_ACCENT } from '@/lib/accents';
-import { readPreference } from '@/lib/stored-preference';
+import { readFields } from '@/lib/stored-preference';
 
 /**
  * The label for each discipline.
@@ -461,21 +461,16 @@ export const withPicked = (
 ): ChampionshipCriteria => ({ ...criteria, picked: { ...criteria.picked, [key]: next } });
 
 /**
- * How the standings section was last laid out, or how it opens the first time.
+ * How the standings were last laid out, or how they open the first time.
  *
  * Narrowed field by field, since what is stored may predate the section.
+ * @param held Whatever the preference held
  * @returns The layout
  */
-export const readStandingsLayout = (): StandingsLayout => {
-  const held = readPreference(STANDINGS_PREFERENCE);
-  const stored = typeof held === 'object' && held !== null ? held as Partial<StandingsLayout> : {};
-
-  return {
-    who: stored.who === 'teams' ? 'teams' : DEFAULT_STANDINGS.who,
-    shape: stored.shape === 'table' ? 'table' : DEFAULT_STANDINGS.shape,
-    view: stored.view === 'positions' ? 'positions' : DEFAULT_STANDINGS.view,
-  };
-};
+export const readStandingsLayout = (held: unknown): StandingsLayout => ({
+  ...DEFAULT_STANDINGS,
+  ...readFields(held, STANDINGS_SHAPE),
+});
 
 /**
  * The class and car a link asked the Enter panel to start from, read out of

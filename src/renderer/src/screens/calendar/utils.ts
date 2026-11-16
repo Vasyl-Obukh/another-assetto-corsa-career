@@ -8,6 +8,7 @@ import { DAYS_PER_WEEK, DISCIPLINES } from '../../../../shared/constants';
 import type { CalendarEntry, Discipline } from '../../../../shared/types';
 import { addDays, weekdayOf } from '../../../../shared/utils/calendar-days';
 import { isRecord, memberOf } from '../../../../shared/utils/coerce';
+import { readMembers } from '@/lib/stored-preference';
 
 /**
  * Whether one event passes the filters.
@@ -249,18 +250,11 @@ export const defaultDay = (
 export const readCriteria = (stored: unknown): CalendarCriteria => {
   if (!isRecord(stored)) return DEFAULT_CRITERIA;
 
-  const disciplines = Array.isArray(stored.disciplines)
-    ? stored.disciplines.flatMap((one) => memberOf(one, DISCIPLINES) ?? [])
-    : [];
-  // Missing reads as nothing picked, which shows both.
-  const kinds = Array.isArray(stored.kinds)
-    ? stored.kinds.flatMap((one) => memberOf(one, CALENDAR_EVENT_KINDS) ?? [])
-    : [];
-
   return {
     status: memberOf(stored.status, CALENDAR_STATUSES) ?? DEFAULT_CRITERIA.status,
-    disciplines: [...new Set(disciplines)],
-    kinds: [...new Set(kinds)],
+    disciplines: readMembers(stored.disciplines, DISCIPLINES),
+    // Missing reads as nothing picked, which shows both.
+    kinds: readMembers(stored.kinds, CALENDAR_EVENT_KINDS),
   };
 };
 

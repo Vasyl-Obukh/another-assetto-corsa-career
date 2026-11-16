@@ -1,12 +1,13 @@
 import { ChevronRightIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import type { Championship } from '../../../../shared/types';
 import { Segments, StandingsTable, TeamStandingsTable } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
+import { usePreference } from '@/hooks';
 import type { ClassSeason } from '@/lib/season-results';
+import { readStandingsLayout, STANDINGS_PREFERENCE } from '@/screens/championships';
 
 interface FinalStandingsCardProps {
   /**
@@ -35,7 +36,10 @@ export const FinalStandingsCard = ({
   table, series, playerName, everyRace,
 }: FinalStandingsCardProps) => {
   const { t } = useTranslation();
-  const [who, setWho] = useState<'drivers' | 'teams'>('drivers');
+  // Shares drivers or teams with the championship page's standings.
+  const [layout, setLayout] = usePreference(STANDINGS_PREFERENCE, readStandingsLayout);
+  // A season with no teams has no table of them, nor the switch to leave it.
+  const who = table.teams.length > 0 ? layout.who : 'drivers';
 
   return (
     <section className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -46,7 +50,7 @@ export const FinalStandingsCard = ({
             label={t('review.standings')}
             items={[{ id: 'drivers', label: t('review.drivers') }, { id: 'teams', label: t('review.teams') }]}
             value={who}
-            onChange={setWho}
+            onChange={(next) => setLayout({ ...layout, who: next })}
           />
         ) : null}
         <Button asChild variant="outline" size="sm">

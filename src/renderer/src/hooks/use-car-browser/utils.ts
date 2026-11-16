@@ -1,6 +1,15 @@
+import { CAR_CRITERIA_SHAPE } from './constants.ts';
 import type { CarCriteria } from './types.ts';
 import type { CarQuery, ClassCatalogue } from '../../../../shared/types';
 import { racedIds } from '@/lib/racing-index';
+import { readFields } from '@/lib/stored-preference';
+
+/**
+ * Reads the filters a car browser saved, dropping any it no longer knows.
+ * @param stored Whatever the preference held
+ * @returns The criteria to open on
+ */
+export const readCarCriteria = (stored: unknown): CarCriteria => readFields(stored, CAR_CRITERIA_SHAPE);
 
 /**
  * Drops any class or spec the catalogue no longer has from the filters.

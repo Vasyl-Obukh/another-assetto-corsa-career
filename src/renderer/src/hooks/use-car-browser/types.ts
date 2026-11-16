@@ -22,6 +22,12 @@ export type CarCriteria = Omit<CarQuery, 'offset' | 'limit' | 'search' | 'ids'> 
 };
 
 /**
+ * The criteria a browser saves: what the user picks, without the fields only
+ * a base query ever sets.
+ */
+export type StoredCarCriteria = Omit<CarCriteria, 'anonymous' | 'payable' | 'sale' | 'except'>;
+
+/**
  * The car browser's whole surface.
  */
 export interface CarBrowser {

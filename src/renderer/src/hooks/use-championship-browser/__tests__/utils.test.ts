@@ -1,13 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { SeriesListing } from '../../../../../shared/types';
+import { EMPTY_CRITERIA } from '../constants.ts';
 import type { ChampionshipCriteria, ChampionshipDimension } from '../types.ts';
 import {
   championshipFacets,
   filterChampionships,
   isChampionshipFiltered,
+  readChampionshipCriteria,
   sortChampionships,
   withKnownValues,
+  withUnshownPicks,
 } from '../utils.ts';
 
 /**
@@ -134,6 +137,61 @@ describe('renderer/hooks/use-championship-browser/utils', () => {
       expect(isChampionshipFiltered(picking(), '  ')).toBe(false);
       expect(isChampionshipFiltered(picking(), 'lotus')).toBe(true);
       expect(isChampionshipFiltered(picking(['road']), '')).toBe(true);
+    });
+  });
+
+  describe('readChampionshipCriteria', () => {
+    it('reads back picks and sort saved whole', () => {
+      const stored = { picked: { tiers: ['1', '2'], origins: [] }, sort: 'ladder', direction: 'desc' };
+
+      expect(readChampionshipCriteria(stored)).toEqual(stored);
+    });
+
+    it('keeps picks of values the list may not offer yet, for withKnownValues to judge', () => {
+      expect(readChampionshipCriteria({ picked: { tiers: ['99'] } }).picked).toEqual({ tiers: ['99'] });
+    });
+
+    it('drops a dimension whose picks are not a list of strings', () => {
+      expect(readChampionshipCriteria({ picked: { tiers: '1', origins: ['user', 2], kinds: ['road'] } }).picked)
+        .toEqual({ kinds: ['road'] });
+    });
+
+    it('falls back field by field', () => {
+      expect(readChampionshipCriteria({ picked: [], sort: 'year', direction: 'desc' }))
+        .toEqual({ ...EMPTY_CRITERIA, direction: 'desc' });
+    });
+
+    it('opens on the defaults when nothing usable was saved', () => {
+      [undefined, null, 'name', ['ladder']].forEach((stored) => {
+        expect(readChampionshipCriteria(stored)).toEqual(EMPTY_CRITERIA);
+      });
+    });
+  });
+
+  describe('withUnshownPicks', () => {
+    // Guards a fixed bug: changing the sort while the list was still loading,
+    // or on a page without a dimension, saved the picks as shown and lost the rest.
+    it('keeps the saved picks of every dimension the change left alone', () => {
+      const saved: ChampionshipCriteria = { picked: { discipline: ['gt'], affordable: ['yes'] }, sort: 'ladder', direction: 'asc' };
+      const shown = withKnownValues(saved, [], []);
+
+      expect(withUnshownPicks(saved, shown, { ...shown, sort: 'name' }))
+        .toEqual({ ...saved, sort: 'name' });
+    });
+
+    it('saves the dimension the change was made to', () => {
+      const saved = picking(['gt', 'gone']);
+      const shown = withKnownValues(saved, [listing('GT Open', 'gt')], [DISCIPLINE]);
+      const next = { ...shown, picked: { ...shown.picked, discipline: [] } };
+
+      expect(withUnshownPicks(saved, shown, next).picked).toEqual({ discipline: [] });
+    });
+
+    it('clears what is shown and keeps what the page does not show', () => {
+      const saved: ChampionshipCriteria = { picked: { discipline: ['gt'], affordable: ['yes'] }, sort: 'ladder', direction: 'asc' };
+      const shown = withKnownValues(saved, [listing('GT Open', 'gt')], [DISCIPLINE]);
+
+      expect(withUnshownPicks(saved, shown, { ...shown, picked: {} }).picked).toEqual({ affordable: ['yes'] });
     });
   });
 });

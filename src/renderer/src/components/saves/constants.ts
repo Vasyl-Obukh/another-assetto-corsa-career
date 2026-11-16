@@ -29,3 +29,9 @@ export const SAVE_ROWS = 4;
  * milliseconds.
  */
 export const STATUS_TICK_MS = 30_000;
+
+/**
+ * Where the saves lists keep their filter - the Careers page's and the Load
+ * dialog's alike, since both list the same saves.
+ */
+export const SAVE_FILTER_MEMORY = 'saves.filter';

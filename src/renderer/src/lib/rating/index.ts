@@ -1,3 +1,4 @@
+export { RATING_FILTERS } from './constants.ts';
 export {
   hasRaced, ratingPoints, ratingSeasons, ratingSeriesTotals, ratingShownBy, ratingSnapshots, roundRatingLines,
   seasonOpening,

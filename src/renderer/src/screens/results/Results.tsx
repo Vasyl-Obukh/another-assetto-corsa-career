@@ -1,12 +1,13 @@
 import { SearchIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ALL_CHAMPIONSHIPS, NO_CHAMPIONSHIP, SESSION_FILTERS } from './constants.ts';
+import {
+  ALL_CHAMPIONSHIPS, NO_CHAMPIONSHIP, RESULTS_MEMORY, SESSION_FILTERS,
+} from './constants.ts';
 import { ResultCard } from './ResultCard.tsx';
 import { ResultsSkeleton } from './ResultsSkeleton.tsx';
-import type { SessionFilter } from './types.ts';
-import { filterEvents } from './utils.ts';
+import { filterEvents, readResultsFilters, shownChampionship } from './utils.ts';
 import { useSlot } from '@/app';
 import {
   ErrorCard, ScreenBody, ScreenHeader, Segments,
@@ -15,7 +16,9 @@ import { Input } from '@/components/ui/input.tsx';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
-import { useQuickArchives, useResults } from '@/hooks';
+import {
+  usePreference, useQuickArchives, useRememberedSearch, useResults,
+} from '@/hooks';
 import { archiveOrigins, quickOrigins, resultEvents } from '@/lib/result-events';
 import { path } from '@/lib/routes';
 
@@ -27,9 +30,9 @@ export const Results = () => {
   // leaves those cards unlinked.
   const quick = useQuickArchives();
   const loading = results.loading || quick.loading;
-  const [search, setSearch] = useState('');
-  const [kind, setKind] = useState<SessionFilter>('all');
-  const [championship, setChampionship] = useState(ALL_CHAMPIONSHIPS);
+  const [search, setSearch] = useRememberedSearch(RESULTS_MEMORY);
+  const [filters, setFilters] = usePreference(RESULTS_MEMORY, readResultsFilters);
+  const { kind } = filters;
 
   const events = useMemo(
     () => resultEvents(results.records, archiveOrigins(career), quickOrigins(quick.archives)),
@@ -38,6 +41,7 @@ export const Results = () => {
   const championships = useMemo(() => [...new Map(events.flatMap((event) => (
     event.origin ? [[event.origin.entry.series, event.origin.entry.championship.name] as const] : []
   ))).entries()], [events]);
+  const championship = shownChampionship(filters.championship, championships.map(([id]) => id));
   const shown = filterEvents(events, { search, kind, championship });
 
   return (
@@ -75,13 +79,17 @@ export const Results = () => {
           label={t('results.kind')}
           items={SESSION_FILTERS.map((one) => ({ id: one, label: t(`results.kinds.${one}`) }))}
           value={kind}
-          onChange={setKind}
+          onChange={(next) => setFilters({ ...filters, kind: next })}
         />
         {/* Held open, disabled, while the archives are read: nearly every
             career has a championship to pick, and the toolbar should not
             reflow when they land. */}
         {championships.length > 0 || (loading && mode === 'career') ? (
-          <Select value={championship} onValueChange={setChampionship} disabled={loading}>
+          <Select
+            value={championship}
+            onValueChange={(next) => setFilters({ ...filters, championship: next })}
+            disabled={loading}
+          >
             <SelectTrigger className="w-60" aria-label={t('results.championship')}>
               <SelectValue />
             </SelectTrigger>

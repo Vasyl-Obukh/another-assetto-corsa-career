@@ -1,3 +1,4 @@
+import type { LedgerFilter } from './types.ts';
 import type { LedgerKind } from '../../../../shared/types';
 
 /**
@@ -34,3 +35,8 @@ export const CONTRACT_KINDS: readonly LedgerKind[] = ['salary', 'bonus', 'seat',
  * The kinds of line a sponsor moved.
  */
 export const SPONSOR_KINDS: readonly LedgerKind[] = ['sponsor', 'sponsorBonus'];
+
+/**
+ * Every way the ledger can be narrowed, in the order offered.
+ */
+export const LEDGER_FILTERS: readonly LedgerFilter[] = ['all', 'prizes', 'fees', 'cars', 'contracts', 'sponsors'];

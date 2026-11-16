@@ -1,12 +1,14 @@
 import { SaveIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorCard, Shimmer } from '@/components';
-import { SaveFilters, SaveList } from '@/components/saves';
-import type { SaveFilter } from '@/components/saves';
+import {
+  SAVE_FILTER_MEMORY, SAVE_FILTERS, SaveFilters, SaveList,
+} from '@/components/saves';
 import { Badge } from '@/components/ui/badge.tsx';
+import { usePreference } from '@/hooks';
 import type { SavesState } from '@/hooks';
+import { readOneOf } from '@/lib/stored-preference';
 
 interface SavesPanelProps {
   /**
@@ -29,7 +31,7 @@ interface SavesPanelProps {
  */
 export const SavesPanel = ({ saves, loading, onLoad }: SavesPanelProps) => {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<SaveFilter>('all');
+  const [filter, setFilter] = usePreference(SAVE_FILTER_MEMORY, readOneOf(SAVE_FILTERS, 'all'));
 
   return (
     <section className="flex flex-col gap-2 rounded-xl border bg-card p-4">

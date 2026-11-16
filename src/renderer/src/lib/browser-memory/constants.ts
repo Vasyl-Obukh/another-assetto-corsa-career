@@ -1,10 +1,14 @@
 import type { BrowserMemory } from './types.ts';
 
 /**
- * What a browser that has never been visited remembers.
+ * What a list that has never been visited remembers.
  */
-export const EMPTY_MEMORY: BrowserMemory<never> = {
+export const EMPTY_MEMORY: BrowserMemory = {
   search: '',
-  criteria: null,
   scroll: 0,
 };
+
+/**
+ * Every way a browser can lay out what it found.
+ */
+export const BROWSER_VIEWS = ['cards', 'list'] as const;

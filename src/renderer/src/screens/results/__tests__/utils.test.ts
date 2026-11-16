@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { SeasonEntry, SessionType } from '../../../../../shared/types';
 import { ALL_CHAMPIONSHIPS, NO_CHAMPIONSHIP } from '../constants.ts';
 import type { ResultsCriteria } from '../types.ts';
-import { filterEvents } from '../utils.ts';
+import { filterEvents, readResultsFilters, shownChampionship } from '../utils.ts';
 import type { ResultEvent, ResultSession } from '@/lib/result-events';
 
 /**
@@ -114,6 +114,45 @@ describe('renderer/screens/results/utils', () => {
 
     it('keeps the order it was handed', () => {
       expect(filterEvents([round, quick], criteria())).toEqual([round, quick]);
+    });
+  });
+
+  describe('readResultsFilters', () => {
+    it('reads back filters saved whole', () => {
+      expect(readResultsFilters({ kind: 'qualify', championship: 'gt-world' }))
+        .toEqual({ kind: 'qualify', championship: 'gt-world' });
+    });
+
+    it('falls back field by field', () => {
+      expect(readResultsFilters({ kind: 'warmup', championship: NO_CHAMPIONSHIP }))
+        .toEqual({ kind: 'all', championship: NO_CHAMPIONSHIP });
+      expect(readResultsFilters({ kind: 'race', championship: 7 })).toEqual({ kind: 'race', championship: ALL_CHAMPIONSHIPS });
+    });
+
+    it('never keeps the search, which lasts only while the window is open', () => {
+      expect(readResultsFilters({ search: 'monza' })).toEqual({ kind: 'all', championship: ALL_CHAMPIONSHIPS });
+    });
+
+    it('opens on everything when nothing usable was saved', () => {
+      [undefined, null, 'race'].forEach((stored) => {
+        expect(readResultsFilters(stored)).toEqual({ kind: 'all', championship: ALL_CHAMPIONSHIPS });
+      });
+    });
+  });
+
+  describe('shownChampionship', () => {
+    it('narrows to a kept championship the list holds', () => {
+      expect(shownChampionship('gt-world', ['f3', 'gt-world'])).toBe('gt-world');
+    });
+
+    it('reads a kept championship the list does not hold as every one', () => {
+      expect(shownChampionship('other-career', ['f3'])).toBe(ALL_CHAMPIONSHIPS);
+      expect(shownChampionship('gt-world', [])).toBe(ALL_CHAMPIONSHIPS);
+    });
+
+    it('keeps every championship and no championship whatever the list holds', () => {
+      expect(shownChampionship(ALL_CHAMPIONSHIPS, [])).toBe(ALL_CHAMPIONSHIPS);
+      expect(shownChampionship(NO_CHAMPIONSHIP, [])).toBe(NO_CHAMPIONSHIP);
     });
   });
 });

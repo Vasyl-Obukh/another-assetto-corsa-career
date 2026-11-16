@@ -1,17 +1,18 @@
 import { FolderOpenIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { SAVE_FILTER_MEMORY, SAVE_FILTERS } from './constants.ts';
 import { SaveFilters } from './SaveFilters.tsx';
 import { SaveList } from './SaveList.tsx';
-import type { SaveFilter } from './types.ts';
 import type { SaveSummary } from '../../../../shared/types';
 import { ErrorCard } from '@/components/ErrorCard.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import { usePreference } from '@/hooks';
 import type { SavesState } from '@/hooks';
+import { readOneOf } from '@/lib/stored-preference';
 
 interface LoadDialogProps {
   /**
@@ -41,7 +42,7 @@ export const LoadDialog = ({
   saves, loading, onLoad, onClose,
 }: LoadDialogProps) => {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<SaveFilter>('all');
+  const [filter, setFilter] = usePreference(SAVE_FILTER_MEMORY, readOneOf(SAVE_FILTERS, 'all'));
 
   return (
     <Dialog open onOpenChange={(next) => { if (!next) onClose(); }}>

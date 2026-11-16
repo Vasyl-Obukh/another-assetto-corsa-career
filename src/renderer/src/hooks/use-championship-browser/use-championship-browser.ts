@@ -2,18 +2,19 @@ import {
   useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 
-import { EMPTY_CRITERIA } from './constants.ts';
-import type {
-  ChampionshipBrowser, ChampionshipCriteria, ChampionshipDimension,
-} from './types.ts';
+import type { ChampionshipBrowser, ChampionshipDimension } from './types.ts';
 import {
   championshipFacets,
   filterChampionships,
   isChampionshipFiltered,
+  readChampionshipCriteria,
   sortChampionships,
   withKnownValues,
+  withUnshownPicks,
 } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
+import { usePreference } from '../use-preference/index.ts';
+import { useRememberedSearch } from '../use-remembered-search/index.ts';
 import { useFormat } from '@/i18n';
 import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 
@@ -38,11 +39,10 @@ export const useChampionshipBrowser = (
   ready: boolean,
 ): ChampionshipBrowser => {
   const { compare } = useFormat();
-  // Read once, at mount, as the car browser does: the store keeps being
-  // written while the screen is open.
-  const [memory] = useState(() => readBrowserMemory<ChampionshipCriteria>(memoryId));
-  const [search, setSearch] = useState(memory.search);
-  const [remembered, setCriteria] = useState(memory.criteria ?? EMPTY_CRITERIA);
+  const [search, setSearch] = useRememberedSearch(memoryId);
+  const [remembered, setRemembered] = usePreference(`${memoryId}.criteria`, readChampionshipCriteria);
+  // At mount only: scrolling keeps rewriting it.
+  const [scrolled] = useState(() => readBrowserMemory(memoryId).scroll);
 
   // Checked against the list rather than stored checked, so a pick survives
   // the moment the library is still loading and nothing carries anything.
@@ -59,10 +59,6 @@ export const useChampionshipBrowser = (
     () => championshipFacets(listings, dimensions, criteria, search),
     [listings, dimensions, criteria, search],
   );
-
-  useEffect(() => {
-    rememberBrowser<ChampionshipCriteria>(memoryId, { search, criteria: remembered });
-  }, [memoryId, search, remembered]);
 
   // The position is recorded as the user scrolls rather than on the way out,
   // since by the time the screen unmounts its element may already be gone.
@@ -83,8 +79,8 @@ export const useChampionshipBrowser = (
     if (restored.current || !scroller || !ready) return;
 
     restored.current = true;
-    scroller.scrollTo({ top: memory.scroll });
-  }, [scroller, ready, memory.scroll]);
+    scroller.scrollTo({ top: scrolled });
+  }, [scroller, ready, scrolled]);
 
   return {
     search,
@@ -94,10 +90,10 @@ export const useChampionshipBrowser = (
     total: listings.length,
     filtered: isChampionshipFiltered(criteria, search),
     setSearch,
-    setCriteria,
+    setCriteria: (next) => setRemembered(withUnshownPicks(remembered, criteria, next)),
     clear: () => {
       setSearch('');
-      setCriteria({ ...criteria, picked: {} });
+      setRemembered(withUnshownPicks(remembered, criteria, { ...criteria, picked: {} }));
     },
     scrollRef: setScroller,
   };

@@ -2,17 +2,19 @@ import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
 
-import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
-import type { CarBrowser, CarCriteria } from './types.ts';
+import { CAR_PICKER_MEMORY, EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
+import type { CarBrowser } from './types.ts';
 import {
-  carQueryKey, isCarFiltered, toCarQuery, withKnownClasses,
+  carQueryKey, isCarFiltered, readCarCriteria, toCarQuery, withKnownClasses,
 } from './utils.ts';
 import type { CarFacets, CarQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
+import { usePreference } from '../use-preference/index.ts';
+import { useRememberedSearch } from '../use-remembered-search/index.ts';
 import { useClasses, useSettings } from '@/app';
-import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
 import { invoke, subscribe } from '@/lib/ipc';
+import { viewOnly } from '@/lib/stored-preference';
 
 export type { CarBrowser, CarCriteria } from './types.ts';
 
@@ -20,7 +22,9 @@ export type { CarBrowser, CarCriteria } from './types.ts';
  * Everything the car browser screen needs: criteria, facet counts and the list.
  * @param base A query every request is narrowed by, for a picker with a
  *   restricted set of cars to offer
- * @param memoryId Which browser this is, for one that comes back where it was
+ * @param memoryId Which browser this is, for one that comes back where it was;
+ *   without one it is a picker, which keeps only the layout every car picker
+ *   shares
  * @param raced Every car a championship races, or undefined until that is known
  * @param lead The car the page leads with above the list, by folder ID, left
  * out of the list while nothing narrows it
@@ -32,13 +36,12 @@ export const useCarBrowser = (
   raced?: readonly string[],
   lead?: string,
 ): CarBrowser => {
-  // Read once, at mount: the store keeps being written while the screen is
-  // open, and reading it again would answer with what the user is looking at
-  // rather than what they were.
-  const [memory] = useState(() => readBrowserMemory<CarCriteria>(memoryId));
-
-  const [search, setSearch] = useState(memory.search);
-  const [picked, setCriteria] = useState<CarCriteria>(memory.criteria ?? EMPTY_CRITERIA);
+  const [search, setSearch] = useRememberedSearch(memoryId);
+  const [picked, setCriteria] = usePreference(
+    memoryId === undefined ? CAR_PICKER_MEMORY : `${memoryId}.criteria`,
+    readCarCriteria,
+    memoryId === undefined ? viewOnly : undefined,
+  );
   const [facets, setFacets] = useState<CarFacets | null>(null);
   const [stale, setStale] = useState(false);
   // Bumped when the class catalogue changes, which moves the class and spec
@@ -94,15 +97,6 @@ export const useCarBrowser = (
 
     return () => { live = false; };
   }, [query, classified, carPrices, addedContent]);
-
-  // Written to a module store rather than lifted into a provider: nothing
-  // renders from it, and the only reader is the next mount of this browser.
-  // The list itself is not remembered - coming back to the same filters at the
-  // first page is the point, and restoring a scroll offset would mean paging
-  // every entry under it back in first.
-  useEffect(() => {
-    rememberBrowser<CarCriteria>(memoryId, { search, criteria });
-  }, [memoryId, search, criteria]);
 
   const { reload } = list;
   const refresh = useCallback(() => {

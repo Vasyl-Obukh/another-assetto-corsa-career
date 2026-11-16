@@ -9,6 +9,7 @@ import type { ContractPay, Discipline, SessionType } from '../../../../shared/ty
 import type { SortItem } from '@/components';
 import type { badgeVariants } from '@/components/ui/badge.tsx';
 import type { ChampionshipSortKey } from '@/hooks';
+import type { FieldShape } from '@/lib/stored-preference';
 
 /**
  * The badge each availability state wears.
@@ -204,7 +205,8 @@ export const ROUND_SKELETON = 5;
 export const CLASS_SKELETON = { seats: 4, cars: 2 } as const;
 
 /**
- * Where the standings section's layout is remembered.
+ * Where the standings' layout is remembered: the championship page's section,
+ * and drivers or teams on the season review's final tables.
  */
 export const STANDINGS_PREFERENCE = 'championships.standings';
 
@@ -257,3 +259,12 @@ export const CONTRACT_NOTE = {
   free: 'championships.contract.noteFree',
   seat: 'championships.contract.notePaid',
 } as const satisfies Record<ContractPay, ParseKeys>;
+
+/**
+ * What each field of a saved standings layout has to be to be read back.
+ */
+export const STANDINGS_SHAPE: FieldShape<StandingsLayout> = {
+  who: ['drivers', 'teams'],
+  shape: ['grid', 'table'],
+  view: ['points', 'positions'],
+};

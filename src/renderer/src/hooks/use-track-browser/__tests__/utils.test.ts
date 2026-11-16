@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { EMPTY_CRITERIA } from '../constants.ts';
-import { isTrackFiltered, toTrackQuery, trackQueryKey } from '../utils.ts';
+import {
+  isTrackFiltered, readTrackCriteria, toTrackQuery, trackQueryKey,
+} from '../utils.ts';
 
 describe('renderer/hooks/use-track-browser/utils', () => {
   describe('toTrackQuery', () => {
@@ -116,6 +118,44 @@ describe('renderer/hooks/use-track-browser/utils', () => {
 
     it('is false once the toggle has been turned off again', () => {
       expect(isTrackFiltered({ hasGeotags: undefined }, '')).toBe(false);
+    });
+  });
+
+  describe('readTrackCriteria', () => {
+    it('reads back filters, sort and layout saved whole', () => {
+      const stored = {
+        countries: ['Italy'],
+        lengthFrom: 3000,
+        pitboxesTo: 40,
+        makers: ['rss'],
+        hasGeotags: true,
+        sort: 'pitboxes',
+        direction: 'desc',
+        raced: false,
+        view: 'list',
+      };
+
+      expect(readTrackCriteria(stored)).toEqual(stored);
+    });
+
+    it('drops the content picks it no longer knows', () => {
+      expect(readTrackCriteria({ sources: ['mod', 'stolen'], makers: ['nobody'] })).toEqual({ sources: ['mod'], makers: [] });
+    });
+
+    it('drops what only a base query sets', () => {
+      expect(readTrackCriteria({ anonymous: true, everything: true, ids: ['monza'] })).toEqual({});
+    });
+
+    it('drops values it no longer knows and keeps the rest', () => {
+      expect(readTrackCriteria({
+        countries: [1], sort: 'corners', view: 'map', lengthTo: 7000,
+      })).toEqual({ lengthTo: 7000 });
+    });
+
+    it('opens on no filters when nothing usable was saved', () => {
+      [undefined, null, 'cards'].forEach((stored) => {
+        expect(readTrackCriteria(stored)).toEqual(EMPTY_CRITERIA);
+      });
     });
   });
 });

@@ -1,21 +1,23 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { TRACK_SORT_ITEMS, TRACK_STATES } from './constants.ts';
+import { TRACK_SORT_ITEMS, TRACK_STATES, TRACKS_MEMORY } from './constants.ts';
 import { TrackList } from './TrackList.tsx';
 import { TracksIntro } from './TracksIntro.tsx';
 import { TracksRail } from './TracksRail.tsx';
 import type { TrackSortKey, TrackState } from './types.ts';
 import {
-  countUnder, matchesSearch, sortCircuits, underDisciplines, underStates,
+  countUnder, matchesSearch, readTracksCriteria, sortCircuits, underDisciplines, underStates,
 } from './utils.ts';
 import { DISCIPLINES, RECOMMENDED_CIRCUITS } from '../../../../shared/constants';
-import type { Discipline, SortDirection } from '../../../../shared/types';
+import type { Discipline } from '../../../../shared/types';
 import { searchTerms } from '../../../../shared/utils/search';
 import {
   BrowserLayout, SearchField, SortMenu, TOOLBAR_SEARCH,
 } from '@/components';
-import { useChampionships, useRecommendedTracks } from '@/hooks';
+import {
+  useChampionships, usePreference, useRecommendedTracks, useRememberedSearch,
+} from '@/hooks';
 import { useFormat } from '@/i18n';
 import { circuitUsage } from '@/lib/circuit-usage';
 
@@ -30,11 +32,11 @@ export const RecommendedTracks = () => {
   const { listings } = useChampionships();
   const { states } = tracks;
 
-  const [search, setSearch] = useState('');
-  const [picked, setPicked] = useState<TrackState[]>([]);
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [sort, setSort] = useState<TrackSortKey>('championships');
-  const [direction, setDirection] = useState<SortDirection>('desc');
+  const [search, setSearch] = useRememberedSearch(TRACKS_MEMORY);
+  const [criteria, setCriteria] = usePreference(TRACKS_MEMORY, readTracksCriteria);
+  const {
+    states: picked, disciplines, sort, direction,
+  } = criteria;
   // The scroller is the layout's own; nothing here pages, so nothing watches it.
   const scrollRef = useCallback(() => undefined, []);
 
@@ -69,8 +71,8 @@ export const RecommendedTracks = () => {
           disciplines={disciplines}
           stateCounts={stateCounts}
           disciplineCounts={disciplineCounts}
-          onStates={setPicked}
-          onDisciplines={setDisciplines}
+          onStates={(next) => setCriteria({ ...criteria, states: next })}
+          onDisciplines={(next) => setCriteria({ ...criteria, disciplines: next })}
         />
       )}
       toolbar={(
@@ -85,8 +87,8 @@ export const RecommendedTracks = () => {
             items={TRACK_SORT_ITEMS}
             value={sort}
             direction={direction}
-            onChange={setSort}
-            onDirectionChange={setDirection}
+            onChange={(next) => setCriteria({ ...criteria, sort: next })}
+            onDirectionChange={(next) => setCriteria({ ...criteria, direction: next })}
           />
         </div>
       )}

@@ -234,7 +234,7 @@ Rules that live here:
 - `lib/` - pure read-side helpers per screen family (`finances`, `rating`,
   `inbox`, `contracts`, `season-review`, `classification`, ...), plus
   `accents.ts` (colour maps several screens share), `layout.ts` (shared
-  widths), `nav-history/` and `browser-memory/`.
+  widths), `nav-history/`, `stored-preference/` and `browser-memory/`.
 - `lib/series-kind/` - one set of screens serves both the championship and the
   historic libraries, and wording follows the kind through `useKindTranslation`.
 - `car-browser` and `track-browser` expose a `*BrowserBody`, which is also every
@@ -354,6 +354,14 @@ needs a `BACK_LABEL` entry. A screen with no Back sets `backToTop` on
 
 **A picker's second step is laid over its browser (`z-20`), never swapped for
 it** - unmounting the browser loses its filters and scroll.
+
+**Every list remembers how it was left.** Filters, sort and cards-or-table are
+`usePreference` (localStorage, survives a restart), read back through a
+tolerant reader (`readOneOf`, `readFields`) since what is stored may predate
+the screen. Search text (`useRememberedSearch`) and scroll (`browser-memory`)
+last only as long as the window. A picker keeps only its cards-or-table, shared by every
+picker of its kind; its filters start fresh. A season or round being looked
+at is not a filter and opens on the current one.
 
 **A loading page is the page with its data still to come.** Everything not
 data-dependent renders for real - titles, tabs, headings, closed sets in their

@@ -21,3 +21,9 @@ export interface ResultsCriteria {
    */
   championship: string;
 }
+
+/**
+ * The filters the Results page keeps between visits. The search is not among
+ * them: it lasts only while the window is open.
+ */
+export type ResultsFilters = Omit<ResultsCriteria, 'search'>;

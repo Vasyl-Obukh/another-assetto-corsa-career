@@ -20,6 +20,12 @@ export type TrackCriteria = Omit<TrackQuery, 'offset' | 'limit' | 'search' | 'id
 };
 
 /**
+ * The criteria a browser saves: what the user picks, without the fields only
+ * a base query ever sets.
+ */
+export type StoredTrackCriteria = Omit<TrackCriteria, 'anonymous' | 'everything'>;
+
+/**
  * The track browser's whole surface.
  */
 export interface TrackBrowser {

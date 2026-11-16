@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { RATING_FILTER_MEMORY } from './constants.ts';
 import { DisciplineTile } from './DisciplineTile.tsx';
 import { HowItMoves } from './HowItMoves.tsx';
 import { RatingBySeries } from './RatingBySeries.tsx';
@@ -17,13 +18,14 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { usePreference } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_STROKE } from '@/lib/accents';
 import {
-  hasRaced, ratingPoints, ratingSeasons, ratingShownBy, seasonOpening,
+  hasRaced, RATING_FILTERS, ratingPoints, ratingSeasons, ratingShownBy, seasonOpening,
 } from '@/lib/rating';
-import type { RatingFilter } from '@/lib/rating';
 import { path } from '@/lib/routes';
+import { readOneOf } from '@/lib/stored-preference';
 import { disciplineKey } from '@/screens/championships';
 import { MoneyTile } from '@/screens/finances';
 
@@ -47,7 +49,7 @@ export const Rating = () => {
   const { career } = useSlot();
   const current = career?.seasons.at(-1)?.index ?? 0;
   const [picked, setPicked] = useState<string>(String(current));
-  const [filter, setFilter] = useState<RatingFilter>('all');
+  const [filter, setFilter] = usePreference(RATING_FILTER_MEMORY, readOneOf(RATING_FILTERS, 'all'));
 
   const log = useMemo(() => career?.ratingLog ?? [], [career]);
   const seasons = useMemo(() => {
@@ -112,11 +114,7 @@ export const Rating = () => {
           label={t('rating.show')}
           value={filter}
           onChange={setFilter}
-          items={[
-            { id: 'all', label: t('rating.filter.all') },
-            { id: 'sessions', label: t('rating.filter.sessions') },
-            { id: 'levels', label: t('rating.filter.levels') },
-          ]}
+          items={RATING_FILTERS.map((id) => ({ id, label: t(`rating.filter.${id}`) }))}
         />
       </div>
 

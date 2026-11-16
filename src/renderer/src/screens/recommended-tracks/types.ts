@@ -1,3 +1,4 @@
+import type { Discipline, SortDirection } from '../../../../shared/types';
 import type { TrackRowKind } from '@/lib/track-rows';
 
 /**
@@ -16,3 +17,25 @@ export type TrackState = Exclude<TrackRowKind, 'choice'>;
  * What the Tracks tab sorts its circuits by.
  */
 export type TrackSortKey = 'championships' | 'name' | 'country';
+
+/**
+ * The Tracks tab's filters and sort, kept between visits.
+ */
+export interface TracksCriteria {
+  /**
+   * The states ticked, none meaning every one.
+   */
+  states: TrackState[];
+  /**
+   * The disciplines ticked, none meaning every one.
+   */
+  disciplines: Discipline[];
+  /**
+   * What the list is sorted by.
+   */
+  sort: TrackSortKey;
+  /**
+   * Which way.
+   */
+  direction: SortDirection;
+}

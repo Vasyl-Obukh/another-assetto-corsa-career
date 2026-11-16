@@ -13,12 +13,12 @@ import {
   ViewToggle,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
-import { useChampionshipBrowser, useChampionships, useSeriesCommands } from '@/hooks';
+import {
+  useChampionshipBrowser, useChampionships, usePreference, useSeriesCommands,
+} from '@/hooks';
 import { readBrowserView } from '@/lib/browser-memory';
-import type { BrowserView } from '@/lib/browser-memory';
 import { path } from '@/lib/routes';
 import { slots } from '@/lib/slots.ts';
-import { readPreference, writePreference } from '@/lib/stored-preference';
 import {
   CHAMPIONSHIP_MEMORY, CHAMPIONSHIP_SORTS, championshipFilters, championshipPills, ChampionshipRail, NoneMatch,
   SEASON_GRID, SEASON_SKELETON, SeasonCard, SeasonCardSkeleton,
@@ -35,7 +35,7 @@ export const ChampionshipLibrary = () => {
   const commands = useSeriesCommands();
   const { settings } = useSettings();
   const [refused, setRefused] = useState<SeriesImportResult | null>(null);
-  const [view, setView] = useState<BrowserView>(() => readBrowserView(readPreference(LIBRARY_VIEW_MEMORY)));
+  const [view, setView] = usePreference(LIBRARY_VIEW_MEMORY, readBrowserView);
 
   // One card rather than two: the two hooks fail for the same kinds of reason,
   // and stacking a second banner under the first says nothing extra.
@@ -61,15 +61,6 @@ export const ChampionshipLibrary = () => {
     !championships.loading,
   );
   const { criteria } = browser;
-
-  /**
-   * Shows the library as cards or a table, and keeps that for next time.
-   * @param next Which
-   */
-  const changeView = (next: BrowserView): void => {
-    setView(next);
-    writePreference(LIBRARY_VIEW_MEMORY, next);
-  };
 
   return (
     <BrowserLayout
@@ -119,7 +110,7 @@ export const ChampionshipLibrary = () => {
               {t('championships.actions.import')}
             </Button>
 
-            <ViewToggle value={view} onChange={changeView} />
+            <ViewToggle value={view} onChange={setView} />
           </div>
 
           <ActiveFilters

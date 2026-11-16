@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LEDGER_FILTER_MEMORY } from './constants.ts';
 import { KindBreakdown } from './KindBreakdown.tsx';
 import { LedgerTable } from './LedgerTable.tsx';
 import { MoneyTile } from './MoneyTile.tsx';
@@ -11,12 +12,13 @@ import { MoneyAmount, ScreenBody, ScreenHeader, Segments } from '@/components';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
+import { usePreference } from '@/hooks';
 import { useFormat } from '@/i18n';
 import {
-  ledgerRows, ledgerSeasons, moneyFigures, shownBy,
+  LEDGER_FILTERS, ledgerRows, ledgerSeasons, moneyFigures, shownBy,
 } from '@/lib/finances';
-import type { LedgerFilter } from '@/lib/finances';
 import { path } from '@/lib/routes';
+import { readOneOf } from '@/lib/stored-preference';
 
 /**
  * The season picker's value for every season at once.
@@ -36,7 +38,7 @@ export const Finances = () => {
   const { career } = useSlot();
   const current = career?.seasons.at(-1)?.index ?? 0;
   const [picked, setPicked] = useState<string>(String(current));
-  const [filter, setFilter] = useState<LedgerFilter>('all');
+  const [filter, setFilter] = usePreference(LEDGER_FILTER_MEMORY, readOneOf(LEDGER_FILTERS, 'all'));
 
   const rows = useMemo(() => ledgerRows(career?.ledger ?? []), [career]);
   const seasons = useMemo(() => {
@@ -82,14 +84,7 @@ export const Finances = () => {
           label={t('finances.show')}
           value={filter}
           onChange={setFilter}
-          items={[
-            { id: 'all', label: t('finances.filter.all') },
-            { id: 'prizes', label: t('finances.filter.prizes') },
-            { id: 'fees', label: t('finances.filter.fees') },
-            { id: 'cars', label: t('finances.filter.cars') },
-            { id: 'contracts', label: t('finances.filter.contracts') },
-            { id: 'sponsors', label: t('finances.filter.sponsors') },
-          ]}
+          items={LEDGER_FILTERS.map((id) => ({ id, label: t(`finances.filter.${id}`) }))}
         />
       </div>
 

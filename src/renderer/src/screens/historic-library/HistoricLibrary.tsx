@@ -15,13 +15,13 @@ import {
   ViewToggle,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
-import { useChampionshipBrowser, useChampionships, useSeriesCommands } from '@/hooks';
+import {
+  useChampionshipBrowser, useChampionships, usePreference, useSeriesCommands,
+} from '@/hooks';
 import { WordingKind } from '@/i18n';
 import { readBrowserView } from '@/lib/browser-memory';
-import type { BrowserView } from '@/lib/browser-memory';
 import { newPath } from '@/lib/series-kind';
 import { slots } from '@/lib/slots.ts';
-import { readPreference, writePreference } from '@/lib/stored-preference';
 import {
   CHAMPIONSHIP_SORTS, championshipFilters, championshipPills, ChampionshipRail, NoneMatch,
 } from '@/screens/championships';
@@ -38,7 +38,7 @@ export const HistoricLibrary = () => {
   const commands = useSeriesCommands('historic');
   const { settings } = useSettings();
   const [refused, setRefused] = useState<SeriesImportResult | null>(null);
-  const [view, setView] = useState<BrowserView>(() => readBrowserView(readPreference(HISTORIC_VIEW_MEMORY)));
+  const [view, setView] = usePreference(HISTORIC_VIEW_MEMORY, readBrowserView);
 
   const error = events.error ?? commands.error;
   // Ours only where this install has what each needs; the user's own always.
@@ -54,15 +54,6 @@ export const HistoricLibrary = () => {
   );
   const browser = useChampionshipBrowser(offered, filters, HISTORIC_MEMORY, !events.loading);
   const { criteria } = browser;
-
-  /**
-   * Shows the pool as cards or a table, and keeps that for next time.
-   * @param next Which
-   */
-  const changeView = (next: BrowserView): void => {
-    setView(next);
-    writePreference(HISTORIC_VIEW_MEMORY, next);
-  };
 
   return (
     <WordingKind.Provider value="historic">
@@ -109,7 +100,7 @@ export const HistoricLibrary = () => {
                 {t('championships.actions.import')}
               </Button>
 
-              <ViewToggle value={view} onChange={changeView} />
+              <ViewToggle value={view} onChange={setView} />
             </div>
 
             <ActiveFilters

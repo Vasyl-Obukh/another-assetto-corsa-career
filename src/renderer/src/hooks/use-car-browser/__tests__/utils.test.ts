@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../../../shared/utils/car-classes';
 import { EMPTY_CRITERIA } from '../constants.ts';
 import {
-  carQueryKey, isCarFiltered, toCarQuery, withKnownClasses,
+  carQueryKey, isCarFiltered, readCarCriteria, toCarQuery, withKnownClasses,
 } from '../utils.ts';
 
 describe('renderer/hooks/use-car-browser/utils', () => {
@@ -157,6 +157,50 @@ describe('renderer/hooks/use-car-browser/utils', () => {
 
       expect(withKnownClasses(criteria, SHIPPED_CATALOGUE)).toBe(criteria);
       expect(withKnownClasses(EMPTY_CRITERIA, SHIPPED_CATALOGUE)).toBe(EMPTY_CRITERIA);
+    });
+  });
+
+  describe('readCarCriteria', () => {
+    it('reads back filters, sort and layout saved whole', () => {
+      const stored = {
+        brands: ['Ferrari'],
+        classes: ['gt3'],
+        yearFrom: 1990,
+        priceTo: 250000,
+        onSale: true,
+        priceOrigins: ['yours'],
+        sources: ['mod'],
+        sort: 'powerToWeight',
+        direction: 'desc',
+        raced: true,
+        view: 'list',
+      };
+
+      expect(readCarCriteria(stored)).toEqual(stored);
+    });
+
+    it('drops what only a base query sets, so a saved one cannot narrow the next visit', () => {
+      expect(readCarCriteria({
+        anonymous: true, payable: { money: 1, share: 0, models: [] }, sale: { a: 10 }, except: ['a'], ids: ['a'],
+      })).toEqual({});
+    });
+
+    it('drops values it no longer knows and keeps the rest', () => {
+      expect(readCarCriteria({
+        brands: 'Ferrari', sort: 'torque', direction: 'up', view: 'grid', priceOrigins: 'yours', yearTo: 2001,
+      })).toEqual({ yearTo: 2001 });
+    });
+
+    // Guards a fixed bug: the price origins were read as one value rather than
+    // a list, so that filter alone never came back.
+    it('reads back the price origins picked, dropping any it no longer knows', () => {
+      expect(readCarCriteria({ priceOrigins: ['yours', 'shop', 'suggested'] })).toEqual({ priceOrigins: ['yours', 'suggested'] });
+    });
+
+    it('opens on no filters when nothing usable was saved', () => {
+      [undefined, null, 'list', []].forEach((stored) => {
+        expect(readCarCriteria(stored)).toEqual(EMPTY_CRITERIA);
+      });
     });
   });
 });

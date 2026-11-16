@@ -20,7 +20,6 @@ import { MonthStripSkeleton } from './MonthStripSkeleton.tsx';
 import { MonthView } from './MonthView.tsx';
 import { MonthViewSkeleton } from './MonthViewSkeleton.tsx';
 import { ToToday } from './ToToday.tsx';
-import type { CalendarCriteria, CalendarView } from './types.ts';
 import {
   defaultDay, monthOf, nextEvent, offeredDisciplines, readCriteria, readView, seasonMonths, shownEvents,
   statusCounts,
@@ -32,10 +31,9 @@ import {
   AdvanceDialog, ErrorCard, ScreenBody, Segments, toggledIn,
 } from '@/components';
 import {
-  useCareer, useChampionships, useClockMove, useElementHeight,
+  useCareer, useChampionships, useClockMove, useElementHeight, usePreference,
 } from '@/hooks';
 import { linkRun, path } from '@/lib/routes';
-import { readPreference, writePreference } from '@/lib/stored-preference';
 import { isListed } from '@/screens/championships';
 
 export const Calendar = () => {
@@ -46,12 +44,8 @@ export const Calendar = () => {
   const championships = useChampionships();
   const { settings } = useSettings();
 
-  const [criteria, setCriteria] = useState<CalendarCriteria>(
-    () => readCriteria(readPreference(CALENDAR_MEMORY)),
-  );
-  const [view, setView] = useState<CalendarView>(
-    () => readView(readPreference(CALENDAR_VIEW_MEMORY)),
-  );
+  const [criteria, narrow] = usePreference(CALENDAR_MEMORY, readCriteria);
+  const [view, setView] = usePreference(CALENDAR_VIEW_MEMORY, readView);
   // Null until something picks one, which reads as wherever the clock stands.
   const [picked, setPicked] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
@@ -166,16 +160,6 @@ export const Calendar = () => {
     [career.calendar, events],
   );
 
-  /**
-   * Records a change to the filters and saves it, so the calendar opens on it
-   * again - after a restart too.
-   * @param next What the calendar is now filtered to
-   */
-  const narrow = (next: CalendarCriteria): void => {
-    setCriteria(next);
-    writePreference(CALENDAR_MEMORY, next);
-  };
-
   const error = career.error ?? championships.error;
   const month = picked ?? (today === null ? '' : monthOf(today));
   const at = months.findIndex((one) => one.start === month);
@@ -272,7 +256,6 @@ export const Calendar = () => {
             value={view}
             onChange={(chosen) => {
               setView(chosen);
-              writePreference(CALENDAR_VIEW_MEMORY, chosen);
               // Coming back to the timeline lands on today again, as arriving
               // does; the grid is one screen tall and starts at its top.
               landedOn.current = null;

@@ -2,14 +2,18 @@ import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
 
-import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS } from './constants.ts';
-import type { TrackBrowser, TrackCriteria } from './types.ts';
-import { isTrackFiltered, toTrackQuery, trackQueryKey } from './utils.ts';
+import { EMPTY_CRITERIA, SEARCH_DEBOUNCE_MS, TRACK_PICKER_MEMORY } from './constants.ts';
+import type { TrackBrowser } from './types.ts';
+import {
+  isTrackFiltered, readTrackCriteria, toTrackQuery, trackQueryKey,
+} from './utils.ts';
 import type { TrackFacets, TrackQuery } from '../../../../shared/types';
 import { useDebouncedValue } from '../use-debounced-value/index.ts';
 import { PAGE_SIZE, usePagedContent } from '../use-paged-content/index.ts';
-import { readBrowserMemory, rememberBrowser } from '@/lib/browser-memory';
+import { usePreference } from '../use-preference/index.ts';
+import { useRememberedSearch } from '../use-remembered-search/index.ts';
 import { invoke, subscribe } from '@/lib/ipc';
+import { viewOnly } from '@/lib/stored-preference';
 
 export type { TrackBrowser, TrackCriteria } from './types.ts';
 
@@ -17,7 +21,9 @@ export type { TrackBrowser, TrackCriteria } from './types.ts';
  * Everything the track browser screen needs: criteria, facet counts and the list.
  * @param base A query every request is narrowed by, for a browser with a
  *   restricted set of tracks to offer
- * @param memoryId Which browser this is, for one that comes back where it was
+ * @param memoryId Which browser this is, for one that comes back where it was;
+ *   without one it is a picker, which keeps only the layout every track picker
+ *   shares
  * @param raced Every track a championship races, or undefined until that is known
  * @returns The current state and the actions the screen binds to
  */
@@ -26,13 +32,12 @@ export const useTrackBrowser = (
   memoryId?: string,
   raced?: readonly string[],
 ): TrackBrowser => {
-  // Read once, at mount: the store keeps being written while the screen is
-  // open, and reading it again would answer with what the user is looking at
-  // rather than what they were.
-  const [memory] = useState(() => readBrowserMemory<TrackCriteria>(memoryId));
-
-  const [search, setSearch] = useState(memory.search);
-  const [criteria, setCriteria] = useState<TrackCriteria>(memory.criteria ?? EMPTY_CRITERIA);
+  const [search, setSearch] = useRememberedSearch(memoryId);
+  const [criteria, setCriteria] = usePreference(
+    memoryId === undefined ? TRACK_PICKER_MEMORY : `${memoryId}.criteria`,
+    readTrackCriteria,
+    memoryId === undefined ? viewOnly : undefined,
+  );
   const [facets, setFacets] = useState<TrackFacets | null>(null);
   const [stale, setStale] = useState(false);
 
@@ -64,15 +69,6 @@ export const useTrackBrowser = (
 
     return () => { live = false; };
   }, [query]);
-
-  // Written to a module store rather than lifted into a provider: nothing
-  // renders from it, and the only reader is the next mount of this browser.
-  // The list itself is not remembered - coming back to the same filters at the
-  // first page is the point, and restoring a scroll offset would mean paging
-  // every entry under it back in first.
-  useEffect(() => {
-    rememberBrowser<TrackCriteria>(memoryId, { search, criteria });
-  }, [memoryId, search, criteria]);
 
   const { reload } = list;
   const refresh = useCallback(() => {

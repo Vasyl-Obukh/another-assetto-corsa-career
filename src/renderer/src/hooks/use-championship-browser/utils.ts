@@ -1,6 +1,32 @@
+import { CHAMPIONSHIP_SORT_KEYS, EMPTY_CRITERIA } from './constants.ts';
 import type { ChampionshipCriteria, ChampionshipDimension } from './types.ts';
 import type { Facet, SeriesListing } from '../../../../shared/types';
+import { isRecord, memberOf } from '../../../../shared/utils/coerce';
 import { matchesTerms, searchTerms } from '../../../../shared/utils/search';
+import { SORT_DIRECTIONS } from '@/lib/stored-preference';
+
+/**
+ * Reads the filters and sort a championship list saved, dropping anything
+ * that is not of the right shape. Picks the list no longer offers are left for
+ * `withKnownValues` to set aside, since the list may still be loading.
+ * @param stored Whatever the preference held
+ * @returns The criteria to open on
+ */
+export const readChampionshipCriteria = (stored: unknown): ChampionshipCriteria => {
+  if (!isRecord(stored)) return EMPTY_CRITERIA;
+
+  const picked = isRecord(stored.picked)
+    ? Object.fromEntries(Object.entries(stored.picked).filter(([, values]) => (
+      Array.isArray(values) && values.every((one) => typeof one === 'string')
+    ))) as ChampionshipCriteria['picked']
+    : {};
+
+  return {
+    picked,
+    sort: memberOf(stored.sort, CHAMPIONSHIP_SORT_KEYS) ?? EMPTY_CRITERIA.sort,
+    direction: memberOf(stored.direction, SORT_DIRECTIONS) ?? EMPTY_CRITERIA.direction,
+  };
+};
 
 /**
  * Whether a championship matches the search text.
@@ -147,3 +173,29 @@ export const sortChampionships = (
 export const isChampionshipFiltered = (criteria: ChampionshipCriteria, search: string): boolean => (
   search.trim() !== '' || Object.values(criteria.picked).some((values) => values.length > 0)
 );
+
+/**
+ * The criteria to save after a change made to them as shown.
+ *
+ * What is shown is the saved criteria checked against the list, so a dimension
+ * the change left alone is taken as saved rather than as shown - a list still
+ * loading, or a page without that dimension, would otherwise wipe its picks.
+ * @param saved The criteria as saved
+ * @param shown The criteria as shown, which the change was made to
+ * @param next The criteria after the change
+ * @returns The criteria to save
+ */
+export const withUnshownPicks = (
+  saved: ChampionshipCriteria,
+  shown: ChampionshipCriteria,
+  next: ChampionshipCriteria,
+): ChampionshipCriteria => {
+  const keys = new Set([...Object.keys(saved.picked), ...Object.keys(next.picked)]);
+  const picked = Object.fromEntries([...keys].flatMap((key) => {
+    const value = next.picked[key] === shown.picked[key] ? saved.picked[key] : next.picked[key];
+
+    return value === undefined ? [] : [[key, value]];
+  }));
+
+  return { ...next, picked };
+};

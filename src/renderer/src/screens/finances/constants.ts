@@ -31,3 +31,9 @@ export const TILE_LEAD = {
     well: 'bg-primary/15 text-primary',
   },
 } as const satisfies Record<TileLead, TileAccent>;
+
+/**
+ * Where the ledger keeps its filter. The season is not kept: it opens on the
+ * one under way, which moves on.
+ */
+export const LEDGER_FILTER_MEMORY = 'finances.filter';

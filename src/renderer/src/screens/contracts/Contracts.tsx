@@ -1,26 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PAY_FILTER_MEMORY, PAY_FILTERS } from './constants.ts';
 import { ContractTable } from './ContractTable.tsx';
 import { CurrentContract } from './CurrentContract.tsx';
-import type { ContractPay } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import {
   MoneyAmount, ScreenBody, ScreenHeader, Segments,
 } from '@/components';
+import { usePreference } from '@/hooks';
 import { contractFigures, contractRows } from '@/lib/contracts';
 import { path } from '@/lib/routes';
+import { readOneOf } from '@/lib/stored-preference';
 import { MoneyTile } from '@/screens/finances';
-
-/**
- * Which contracts the table lists: all of them, or those paying on one basis.
- */
-type PayFilter = 'all' | ContractPay;
 
 export const Contracts = () => {
   const { t } = useTranslation();
   const { career } = useSlot();
-  const [filter, setFilter] = useState<PayFilter>('all');
+  const [filter, setFilter] = usePreference(PAY_FILTER_MEMORY, readOneOf(PAY_FILTERS, 'all'));
   const rows = useMemo(() => (career ? contractRows(career) : []), [career]);
 
   if (!career) return null;
@@ -79,12 +76,7 @@ export const Contracts = () => {
             label={t('contracts.show')}
             value={filter}
             onChange={setFilter}
-            items={[
-              { id: 'all', label: t('contracts.filter.all') },
-              { id: 'salary', label: t('contracts.filter.salary') },
-              { id: 'free', label: t('contracts.filter.free') },
-              { id: 'seat', label: t('contracts.filter.seat') },
-            ]}
+            items={PAY_FILTERS.map((id) => ({ id, label: t(`contracts.filter.${id}`) }))}
           />
         </div>
         {listed.length > 0
