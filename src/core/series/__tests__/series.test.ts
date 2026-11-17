@@ -340,8 +340,22 @@ describe('core/series', () => {
         };
         const availability = seriesAvailability(withRecommendedTracks(atMagione, short.tracks, {}), short);
 
-        expect(availability.rounds[0].pitboxes).toEqual({ needed, available: needed - 1 });
+        expect(availability.rounds[0].pitboxes).toEqual({
+          needed, available: needed - 1, key: 'magione', track: short.tracks.find((one) => one.id === 'magione')?.name,
+        });
         expect(availability.available).toBe(false);
+      });
+
+      it('takes a track saying it has no pit boxes to hold any field', () => {
+        const content = makeContent();
+        const unsaid = {
+          ...content,
+          tracks: content.tracks.map((one) => (one.id === 'magione' ? { ...one, pitboxes: 0 } : one)),
+        };
+        const availability = seriesAvailability(withRecommendedTracks(atMagione, unsaid.tracks, {}), unsaid);
+
+        expect(availability.rounds[0].pitboxes).toBeNull();
+        expect(availability.available).toBe(true);
       });
 
       it('cannot race a round on the player\'s pick when it has too few pit boxes', () => {
@@ -350,8 +364,26 @@ describe('core/series', () => {
         const availability = seriesAvailability(placed, content);
 
         expect(placed.rounds[0].track).toEqual({ recommended: 'magione/full', id: 'tiny' });
-        expect(availability.rounds[0].pitboxes).toEqual({ needed, available: 2 });
+        expect(availability.rounds[0].pitboxes).toEqual({
+          needed, available: 2, key: 'tiny', track: content.tracks.find((one) => one.id === 'tiny')?.name,
+        });
         expect(availability.available).toBe(false);
+      });
+    });
+
+    describe('the track a round races on', () => {
+      it('is named with its pit boxes once installed', () => {
+        const rounds = [{ id: 'magione', name: 'Magione', track: { id: 'magione' } }];
+
+        expect(seriesAvailability(makeSeries({ rounds }), makeContent(), SHIPPED_CATALOGUE).rounds[0].racedOn)
+          .toEqual({ key: 'magione', name: 'magione', pitboxes: 24 });
+      });
+
+      it('is null while the track is not installed', () => {
+        const rounds = [{ id: 'elsewhere', name: 'Elsewhere', track: { id: 'not_installed' } }];
+
+        expect(seriesAvailability(makeSeries({ rounds }), makeContent(), SHIPPED_CATALOGUE).rounds[0].racedOn)
+          .toBeNull();
       });
     });
 

@@ -360,6 +360,9 @@ needs a `BACK_LABEL` entry. A screen with no Back sets `backToTop` on
 **A picker's second step is laid over its browser (`z-20`), never swapped for
 it** - unmounting the browser loses its filters and scroll.
 
+**Configuration is changed in Settings only.** A screen showing a problem a
+setting fixes links there (`TrackSettingsLink`), never hosts the control.
+
 **Every list remembers how it was left.** Filters, sort and cards-or-table are
 `usePreference` (localStorage, survives a restart), read back through a
 tolerant reader (`readOneOf`, `readFields`) since what is stored may predate

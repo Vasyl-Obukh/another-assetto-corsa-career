@@ -67,7 +67,7 @@ export const makeListing = (
   series: {
     id,
     name: `${id} name`,
-    entries: ladders.map((ladder, index) => ({ id: `entry-${index}`, ladder })),
+    entries: ladders.map((ladder, index) => ({ id: `entry-${index}`, ladder, seats: [{ id: `seat-${index}` }] })),
     rounds: rounds.map((round) => ({ name: round.name, track: { id: round.track, layout: round.layout } })),
   } as unknown as Championship,
 } as SeriesListing);

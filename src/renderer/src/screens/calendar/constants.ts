@@ -1,7 +1,17 @@
 import type {
   CalendarCriteria, CalendarEventKind, CalendarStatus, CalendarView, MonthTick,
 } from './types.ts';
-import type { Discipline } from '../../../../shared/types';
+import type { Discipline, RoundBlock } from '../../../../shared/types';
+
+/**
+ * What an event's chip says it is stopped by: the two track reasons by name,
+ * anything else as cannot be raced.
+ */
+export const BLOCK_LABEL = {
+  track: 'calendar.block.track',
+  pitboxes: 'calendar.block.pitboxes',
+  other: 'calendar.unraceable',
+} as const satisfies Record<RoundBlock['kind'], string>;
 
 /**
  * The map well of an event on a rung not reached yet: its discipline's tint

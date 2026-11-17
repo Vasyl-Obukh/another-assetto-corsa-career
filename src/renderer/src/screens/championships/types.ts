@@ -2,7 +2,8 @@ import type { ParseKeys, TFunction } from 'i18next';
 import type { ComponentType, ReactNode } from 'react';
 
 import type {
-  Career, CareerSeason, ClassEntry, MissingCar, MissingTrack, PrizeMoney, Round, SeasonEntry, Seat, SeriesListing, Team,
+  Career, CareerSeason, ClassEntry, MissingCar, MissingTrack, PitboxShortfall, PrizeMoney, Round, SeasonEntry, Seat,
+  SeriesListing, Team,
 } from '../../../../shared/types';
 import type { DisciplineLevels } from '../../../../shared/utils/career-eligibility';
 import type { StandingsView } from '@/components';
@@ -204,6 +205,10 @@ export interface MissingContentList {
    * Every round's track that is not installed.
    */
   tracks: readonly MissingTrack[];
+  /**
+   * Every installed track with too few pit boxes for the field.
+   */
+  pitboxes: readonly PitboxShortfall[];
 }
 
 /**

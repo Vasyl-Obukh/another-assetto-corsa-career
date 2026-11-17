@@ -1,7 +1,11 @@
 // How much of the championship library races each recommended circuit, which
-// the Tracks tab sorts and badges its cards by. Derived on every read.
+// the Tracks tab sorts and badges its cards by, and how big a field each
+// layout has to hold. Derived on every read.
 
-import type { Discipline, SeriesListing } from '../../../../shared/types';
+import type {
+  Championship, Discipline, Round, SeriesListing,
+} from '../../../../shared/types';
+import { fieldSize, tooFewPitboxes } from '../../../../shared/utils/field-size';
 import { layoutOfRound } from '../../../../shared/utils/recommended-tracks';
 
 /**
@@ -18,6 +22,76 @@ export interface CircuitUsage {
    */
   disciplines: ReadonlyMap<Discipline, number>;
 }
+
+/**
+ * The biggest field a recommended layout has to hold.
+ */
+export interface LayoutField {
+  /**
+   * Cars on the grid, every class together.
+   */
+  field: number;
+  /**
+   * The championship fielding them.
+   */
+  name: string;
+}
+
+/**
+ * A championship whose field a track would be too small for.
+ */
+export interface OutgrownChampionship {
+  /**
+   * The championship.
+   */
+  series: Championship;
+  /**
+   * Its rounds at the layout, in calendar order.
+   */
+  rounds: readonly Round[];
+  /**
+   * Cars on its grid, every class together.
+   */
+  field: number;
+}
+
+/**
+ * The biggest field racing each recommended layout, so a track standing for one
+ * can be judged against it.
+ * @param listings The championships, historic events included
+ * @returns Each layout's biggest field by its id, only the layouts something races
+ */
+export const layoutFields = (listings: readonly SeriesListing[]): Map<string, LayoutField> => {
+  const fields = new Map<string, LayoutField>();
+
+  listings.forEach(({ series }) => {
+    const field = fieldSize(series);
+    new Set(series.rounds.flatMap((round) => round.track.recommended ?? [])).forEach((layout) => {
+      if ((fields.get(layout)?.field ?? 0) < field) fields.set(layout, { field, name: series.name });
+    });
+  });
+
+  return fields;
+};
+
+/**
+ * The championships a track would be too small for at one recommended layout:
+ * each whose field is more than its pit boxes.
+ * @param listings The championships, historic events included
+ * @param layout The recommended layout's id
+ * @param pitboxes The track's pit boxes, null when it does not say
+ * @returns Every championship it cannot hold, in library order
+ */
+export const outgrown = (
+  listings: readonly SeriesListing[],
+  layout: string,
+  pitboxes: number | null,
+): OutgrownChampionship[] => listings.flatMap(({ series }) => {
+  const rounds = series.rounds.filter((round) => round.track.recommended === layout);
+  const field = fieldSize(series);
+
+  return rounds.length > 0 && tooFewPitboxes(field, pitboxes) ? [{ series, rounds, field }] : [];
+});
 
 /**
  * Counts the championships racing each recommended circuit.

@@ -5,6 +5,7 @@ import { LibraryState } from './LibraryState.tsx';
 import type { SeriesListing } from '../../../../shared/types';
 import { editionsOf } from '../../../../shared/utils/editions';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
 import { SourceChips, SWITCH_TRACK } from '@/components';
@@ -19,7 +20,7 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, fieldSize, FormatStrip, NeedsChips, RoundTicks, tierAccent, TierMedal,
+  ChampionshipActions, disciplineKey, FormatStrip, NeedsChips, RoundTicks, tierAccent, TierMedal,
 } from '@/screens/championships';
 
 interface LibraryRowProps {

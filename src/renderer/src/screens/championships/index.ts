@@ -39,7 +39,7 @@ export { SeasonCardSkeleton } from './SeasonCardSkeleton.tsx';
 export { TierMedal } from './TierMedal.tsx';
 
 export {
-  availabilityState, disciplineKey, enterHintOf, fieldSize, isListed, missingContent, pointsOf, raceLabels,
+  availabilityState, disciplineKey, enterHintOf, isListed, missingContent, pointsOf, raceLabels,
   readStandingsLayout, tierAccent, tierMetalKey, layoutLabel, missingTrackLabel, trackLabelOf,
 } from './utils.ts';
 export type { ChampionshipFilter, EnterHint } from './types.ts';

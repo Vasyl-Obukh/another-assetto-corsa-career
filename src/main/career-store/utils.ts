@@ -72,6 +72,7 @@ import type {
   OfferPick,
   OwnedCar,
   Paddocker,
+  RoundBlock,
   RoundForecast,
   RoundScore,
   SeasonEntry,
@@ -105,7 +106,7 @@ import {
 } from '../../shared/utils/prizes/index.ts';
 import { clockOf } from '../../shared/utils/road-temperature/index.ts';
 import {
-  eligibleCarsIn, roundAvailabilityIn, roundRaceableIn, seatRaceableIn,
+  eligibleCarsIn, roundAvailabilityIn, roundBlockIn,
 } from '../../shared/utils/round-availability/index.ts';
 import { hiddenAsFiller, isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
@@ -619,15 +620,26 @@ export const launchBlock = (
 };
 
 /**
- * Whether the install can race a round the career is in, in the player's own
+ * Why the install cannot race a round the career is in, in the player's own
  * car: one that is no longer installed, or that the round does not run, stops
  * it as surely as a missing track.
+ * @param availability What the install can race of the season's championship
+ * @param held The entry and the round
+ * @returns Why it cannot be raced, or null when it can
+ */
+export const heldBlock = (availability: SeriesAvailability, held: EnteredEvent): RoundBlock | null => (
+  roundBlockIn(availability, held.event.round, { entry: held.entry.entry, car: held.entry.car.model })
+);
+
+/**
+ * Whether the install can race a round the career is in, in the player's own
+ * car.
  * @param availability What the install can race of the season's championship
  * @param held The entry and the round
  * @returns True when it can be launched for want of nothing installed
  */
 export const heldRaceable = (availability: SeriesAvailability, held: EnteredEvent): boolean => (
-  seatRaceableIn(availability, held.event.round, held.entry.entry, held.entry.car.model)
+  heldBlock(availability, held) === null
 );
 
 /**
@@ -1438,6 +1450,8 @@ export const calendarEntry = (
   const at = series.rounds.findIndex((one) => one.id === event.round);
   const round = series.rounds[at];
 
+  const block = roundBlockIn(availability, event.round);
+
   return {
     series: series.id,
     edition,
@@ -1462,7 +1476,8 @@ export const calendarEntry = (
     enrolled,
     // A historic event is open to anyone, whatever their level.
     eligible: invitation !== undefined || isEligible(entry.ladder, openLevels(career.level)),
-    raceable: roundRaceableIn(availability, event.round),
+    raceable: block === null,
+    block,
     clash: false,
     historic: invitation !== undefined,
     ...(invitation ? { invitation } : {}),

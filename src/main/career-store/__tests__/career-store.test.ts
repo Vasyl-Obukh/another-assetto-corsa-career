@@ -3547,6 +3547,28 @@ describe('main/career-store', () => {
         ['two', 'unraceable', null],
       ]);
     });
+
+    // Changed with the pit box warnings: a round no contract fines was listed
+    // as a plain skip, and now says why the install cannot race it as well.
+    it('says why the install cannot race a round, fined or not', async () => {
+      const shortfall = {
+        needed: 30, available: 24, key: 'track_two', track: 'Track Two',
+      };
+      const short = makeListing(CUP, {
+        availability: makeAvailability(CUP, {
+          rounds: makeAvailability(CUP).rounds.map((one) => (one.round === 'two' ? { ...one, pitboxes: shortfall } : one)),
+        }),
+      });
+      const career = careerWith({
+        entries: [makeEntry({ events: [makeEvent('one', '2027-03-07'), makeEvent('two', '2027-06-06')] })],
+      });
+      const { store } = await build({ career, listings: [short] });
+
+      expect((await store.skips('2027-07-01')).map((one) => [one.round, one.reason, one.fine, one.block])).toEqual([
+        ['one', 'skipped', null, undefined],
+        ['two', 'unraceable', null, { kind: 'pitboxes', ...shortfall }],
+      ]);
+    });
   });
 
   describe('roundCosts', () => {

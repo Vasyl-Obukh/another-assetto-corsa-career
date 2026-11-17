@@ -1,3 +1,4 @@
+import { TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
@@ -10,11 +11,12 @@ import { EligibilityField } from './EligibilityField.tsx';
 import { OffsetStepper } from './OffsetStepper.tsx';
 import { RuleHeading } from './RuleHeading.tsx';
 import { RungPicker } from './RungPicker.tsx';
-import { startingSeats } from './utils.ts';
+import { pitboxShort, startingSeats } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
 import type {
-  Championship, ClassEntry, Discipline, Eligibility,
+  Championship, ClassEntry, Discipline, Eligibility, SeriesAvailability,
 } from '../../../../shared/types';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { useClasses } from '@/app';
 import { Input } from '@/components/ui/input.tsx';
 import {
@@ -31,6 +33,11 @@ interface ClassDialogProps {
    * The championship, for the classes a new one may take its teams from.
    */
   series: Championship;
+  /**
+   * The draft checked against what is installed, or null before the first
+   * answer comes back.
+   */
+  checked: SeriesAvailability | null;
   /**
    * The class as it stands, or the one being added.
    */
@@ -66,7 +73,7 @@ interface ClassDialogProps {
  * with nothing to race.
  */
 export const ClassDialog = ({
-  series, entry, adding, locked, nameOf, onConfirm, onCancel,
+  series, checked, entry, adding, locked, nameOf, onConfirm, onCancel,
 }: ClassDialogProps) => {
   const { t } = useKindTranslation();
   const { catalogue } = useClasses();
@@ -76,6 +83,9 @@ export const ClassDialog = ({
     return first === undefined ? entry.eligibility : { kind: 'spec', spec: first };
   });
   const [seats, setSeats] = useState(DEFAULT_CLASS_SEATS);
+  // The field once the new class's seats join it.
+  const grown = fieldSize(series) + seats;
+  const short = pitboxShort(checked, grown);
   const [teamsFrom, setTeamsFrom] = useState<string>(NOT_SET);
   const name = useFocusOnMount<HTMLInputElement>();
   const idPrefix = `entry-${entry.id}`;
@@ -167,6 +177,12 @@ export const ClassDialog = ({
                 disabled={locked}
                 onChange={(next) => setSeats(next ?? 1)}
               />
+              {short.rounds > 0 ? (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-warning-foreground dark:text-warning">
+                  <TriangleAlertIcon className="size-3.5 shrink-0" />
+                  {t('editor.entries.tooFew', { count: short.rounds, field: grown })}
+                </span>
+              ) : null}
             </Field>
             <Field id={`${idPrefix}-teams-from`} label={t('editor.entries.teamsFrom')} hint={t('editor.entries.teamsFromHint')}>
               <Select value={teamsFrom} disabled={locked} onValueChange={setTeamsFrom}>

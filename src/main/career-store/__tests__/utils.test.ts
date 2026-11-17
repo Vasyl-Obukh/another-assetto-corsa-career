@@ -19,6 +19,7 @@ import type {
   InvitationDraw,
   LaunchRecord,
   Mail,
+  MissingTrack,
   RacePlace,
   RatingLine,
   RoundForecast,
@@ -69,6 +70,7 @@ import {
   eventStrength,
   experiencedAt,
   goalsDue,
+  heldBlock,
   heldRaceable,
   historicDraws,
   historicFee,
@@ -1463,6 +1465,39 @@ describe('main/career-store/utils', () => {
     });
   });
 
+  describe('heldBlock', () => {
+    it("finds nothing stopping a round the install can race in the player's own car", () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+
+      expect(heldBlock(makeAvailability(entry.championship), { entry, event: entry.events[0] })).toBeNull();
+    });
+
+    it('names too few pit boxes, with the figures and the track', () => {
+      const entry = makeEntry({ events: [makeEvent('one', '2026-03-01')] });
+      const shortfall = {
+        needed: 30, available: 24, key: 'small_ring', track: 'Small Ring',
+      };
+      const availability = makeAvailability(entry.championship, {
+        rounds: entry.championship.rounds.map((round) => ({
+          round: round.id,
+          track: null,
+          pitboxes: round.id === 'one' ? shortfall : null,
+          racedOn: null,
+          entries: [],
+          races: [{ name: 'Race', laps: 10 }],
+        })),
+      });
+
+      expect(heldBlock(availability, { entry, event: entry.events[0] })).toEqual({ kind: 'pitboxes', ...shortfall });
+    });
+
+    it("calls a car of the player's that is no longer installed something other than the track", () => {
+      const entry = makeEntry({ car: { model: 'gone_car' }, events: [makeEvent('one', '2026-03-01')] });
+
+      expect(heldBlock(makeAvailability(entry.championship), { entry, event: entry.events[0] })).toEqual({ kind: 'other' });
+    });
+  });
+
   describe('launchBlock', () => {
     /**
      * A season holding one championship over the events given.
@@ -2202,6 +2237,7 @@ describe('main/career-store/utils', () => {
         enrolled: true,
         eligible: true,
         raceable: true,
+        block: null,
         clash: false,
       });
     });
@@ -2239,6 +2275,26 @@ describe('main/career-store/utils', () => {
       expect(row.track).toEqual({ id: '' });
       expect(row.races).toEqual([]);
       expect(row.raceable).toBe(false);
+      expect(row.block).toEqual({ kind: 'other' });
+    });
+
+    it('says why a round cannot be raced when its track is missing', () => {
+      const series = makeChampionship();
+      const availability = makeAvailability(series, {
+        rounds: series.rounds.map((round) => ({
+          round: round.id,
+          track: { key: round.track.id, id: round.track.id, layout: '' } as MissingTrack,
+          pitboxes: null,
+          racedOn: null,
+          entries: [],
+          races: [{ name: 'Race', laps: 10 }],
+        })),
+      });
+
+      const row = calendarEntry(series, availability, series.entries[0], 0, makeEvent('two', '2026-05-03'), career, true);
+
+      expect(row.raceable).toBe(false);
+      expect(row.block).toEqual({ kind: 'track' });
     });
 
     it('pays a class its own purse over the championship-wide one', () => {
@@ -2950,6 +3006,7 @@ describe('main/career-store/utils', () => {
           round: 'one',
           track: null,
           pitboxes: null,
+          racedOn: null,
           entries: [{
             entry: 'main', eligible: ['a'], missing: [], enough: true,
           }],

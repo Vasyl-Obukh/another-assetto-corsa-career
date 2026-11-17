@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pit boxes - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour.
+   No new family: every pit box warning wears the amber or red its surface
+   already uses for "can't be raced", and only the words change. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.005 60);
+  --success: oklch(0.55 0.13 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.79 0.15 80);
+  --warning-foreground: oklch(0.28 0.06 70);
+  --s-practice: oklch(0.93 0.045 250); --s-practice-fg: oklch(0.4 0.13 258);
+  --s-qualify: oklch(0.93 0.05 310); --s-qualify-fg: oklch(0.4 0.15 310);
+  --s-race: oklch(0.89 0.085 150); --s-race-fg: oklch(0.33 0.1 152);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --t-gold: oklch(0.9 0.085 88); --t-gold-fg: oklch(0.42 0.1 75);
+  --t-silver: oklch(0.91 0.008 255); --t-silver-fg: oklch(0.42 0.015 260);
+  --t-bronze: oklch(0.89 0.07 52); --t-bronze-fg: oklch(0.41 0.09 48);
+  --missed: oklch(0.925 0.035 8); --missed-fg: oklch(0.42 0.09 12);
+  /* TRACK_STATE_ACCENT */
+  --ts-found: oklch(0.93 0.06 155); --ts-found-fg: oklch(0.4 0.1 155);
+  --ts-choice: oklch(0.93 0.05 340); --ts-choice-fg: oklch(0.38 0.12 340);
+  --ts-guess: oklch(0.94 0.06 80); --ts-guess-fg: oklch(0.42 0.1 70);
+  --ts-kunos: oklch(0.925 0.03 232); --ts-kunos-fg: oklch(0.4 0.05 235);
+  --scrim: oklch(0.14 0.012 265 / 55%);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.7 0.15 158);
+  --success-foreground: oklch(0.17 0.03 158);
+  --warning: oklch(0.8 0.14 82);
+  --warning-foreground: oklch(0.2 0.04 70);
+  --s-practice: oklch(0.32 0.06 250); --s-practice-fg: oklch(0.86 0.09 255);
+  --s-qualify: oklch(0.33 0.07 310); --s-qualify-fg: oklch(0.87 0.1 310);
+  --s-race: oklch(0.35 0.09 150); --s-race-fg: oklch(0.88 0.13 150);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --t-gold: oklch(0.36 0.07 88); --t-gold-fg: oklch(0.89 0.12 92);
+  --t-silver: oklch(0.33 0.006 260); --t-silver-fg: oklch(0.86 0.008 260);
+  --t-bronze: oklch(0.33 0.06 50); --t-bronze-fg: oklch(0.85 0.09 55);
+  --missed: oklch(0.32 0.035 8); --missed-fg: oklch(0.86 0.075 12);
+  --ts-found: oklch(0.33 0.06 155); --ts-found-fg: oklch(0.86 0.1 155);
+  --ts-choice: oklch(0.33 0.07 340); --ts-choice-fg: oklch(0.86 0.1 340);
+  --ts-guess: oklch(0.34 0.06 80); --ts-guess-fg: oklch(0.88 0.1 85);
+  --ts-kunos: oklch(0.33 0.035 232); --ts-kunos-fg: oklch(0.86 0.045 232);
+  --scrim: oklch(0.05 0.01 265 / 65%);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; color: var(--background); }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 1280px; margin: 18px auto 0; padding: 0 24px 40px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 3px 0; }
+.why code { font-size: 12.5px; }
+.why h3 { color: var(--foreground); font-size: 14px; margin: 16px 0 4px; }
+.why table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 6px; }
+.why th, .why td { text-align: left; vertical-align: top; padding: 6px 10px 6px 0; border-top: 1px solid var(--border); }
+.why th { color: var(--foreground); font-weight: 600; }
+.why td:first-child { color: var(--foreground); white-space: nowrap; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; }
+.newring { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 4px; border-radius: 8px; }
+
+/* ---------- App frame ---------- */
+.frame { max-width: 1280px; margin: 0 auto; padding: 0 24px 24px; position: relative; min-height: 640px; }
+.app-nav { display: flex; gap: 18px; align-items: center; height: 44px; font-size: 13px; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
+.app-nav .brand { color: var(--foreground); font-weight: 600; margin-right: 8px; }
+.app-nav .on { color: var(--primary); font-weight: 600; background: color-mix(in oklch, var(--primary) 10%, transparent); padding: 4px 8px; border-radius: 6px; }
+.shead { padding: 12px 0 0; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground); }
+.shead h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.shead .sub { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted-foreground); }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.tabs span { padding: 8px 12px; font-size: 13.5px; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs span.on { color: var(--foreground); font-weight: 600; border-color: var(--primary); }
+
+/* ---------- Atoms ---------- */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 4px 7px; border-radius: 6px; white-space: nowrap; border: 1px solid transparent; }
+.chip.xs { font-size: 10.5px; padding: 2px 6px; }
+.chip.outline { border-color: var(--border); }
+.chip svg.i { width: 13px; height: 13px; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-gold { background: var(--t-gold); color: var(--t-gold-fg); }
+.c-silver { background: var(--t-silver); color: var(--t-silver-fg); }
+.c-bronze { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.c-practice { background: var(--s-practice); color: var(--s-practice-fg); }
+.c-qualify { background: var(--s-qualify); color: var(--s-qualify-fg); }
+.c-race { background: var(--s-race); color: var(--s-race-fg); }
+.c-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.c-warning { background: var(--warning); color: var(--warning-foreground); }
+.c-success { background: var(--success); color: var(--success-foreground); }
+.c-missed { background: var(--missed); color: var(--missed-fg); }
+.c-found { background: var(--ts-found); color: var(--ts-found-fg); }
+.c-choice { background: var(--ts-choice); color: var(--ts-choice-fg); }
+.c-guess { background: var(--ts-guess); color: var(--ts-guess-fg); }
+.c-kunos { background: var(--ts-kunos); color: var(--ts-kunos-fg); }
+.amber-text { color: var(--warning-foreground); font-weight: 500; }
+:root[data-theme="dark"] .amber-text { color: var(--warning); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
+.btn.lg { height: 36px; padding: 0 16px; font-size: 13.5px; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.btn[disabled] { opacity: .5; }
+/* A text link, as the app draws one to another page. */
+.link { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+.link svg.i { width: 14px; height: 14px; }
+.link.sm { font-size: 12px; }
+.landed { box-shadow: inset 3px 0 0 var(--primary); background: color-mix(in srgb, var(--primary) 6%, var(--card)); }
+.placeholder { border: 1px dashed var(--border); border-radius: 10px; padding: 12px; color: var(--muted-foreground); font-size: 12.5px; text-align: center; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > .lbl { font-size: 13.5px; font-weight: 500; }
+.input { height: 32px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 0 10px; display: flex; align-items: center; font-size: 13.5px; }
+.flag { display: inline-block; width: 20px; height: 14px; border-radius: 2px; flex: none; background: linear-gradient(var(--destructive) 50%, oklch(0.98 0 0) 50%); box-shadow: 0 0 0 1px var(--border); }
+.flag.es { background: linear-gradient(oklch(0.55 0.2 27) 25%, oklch(0.85 0.16 90) 25% 75%, oklch(0.55 0.2 27) 75%); }
+
+/* SkipNote: the amber line above a button that would cost rounds. */
+.skipnote { display: flex; align-items: flex-start; gap: 10px; border-radius: 8px; background: color-mix(in oklch, var(--warning) 20%, transparent); padding: 10px 12px; font-size: 13.5px; margin: 0; }
+.skipnote svg { margin-top: 2px; color: var(--warning-foreground); width: 16px; height: 16px; }
+:root[data-theme="dark"] .skipnote svg { color: var(--warning); }
+.skipnote b { font-weight: 600; }
+
+/* ---------- Round page ---------- */
+.rlayout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 16px; }
+.pad { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.trackrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.trackrow .nm { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.trackrow .nm b { font-weight: 600; }
+.trackrow .acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.enter-h { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-foreground); }
+.destructive-text { color: var(--destructive); font-size: 13.5px; margin: 0; }
+
+/* ---------- Calendar ---------- */
+.cal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ev { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.ev .top { display: flex; gap: 12px; align-items: flex-start; }
+.ev .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ev .chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ev .rn { font-family: ui-monospace, Consolas, monospace; font-size: 10.5px; color: var(--muted-foreground); }
+.ev h3 { margin: 0; font-size: 13.5px; font-weight: 600; }
+.ev p { margin: 0; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev .map { width: 64px; aspect-ratio: 16/10; border-radius: 6px; flex: none; }
+.ev .map.single { background: var(--d-single); }
+.ev .map.sports { background: var(--d-sports); }
+.ev .foot { border-top: 1px solid var(--border); padding-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ev .foot .amt { font-weight: 600; font-size: 13.5px; }
+.ev.enrolled { border-color: color-mix(in oklch, var(--primary) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 60%, transparent); }
+
+/* ---------- Dialog ---------- */
+.scrim { position: absolute; inset: 0; background: var(--scrim); border-radius: 0; z-index: 30; }
+.dialog { position: relative; z-index: 31; width: 520px; max-width: 100%; margin: 40px auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px oklch(0 0 0 / .25); }
+.dialog h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.dialog .desc { margin: 0; color: var(--muted-foreground); font-size: 13.5px; }
+.dialog .foot { display: flex; justify-content: flex-end; gap: 8px; }
+.skiplist { list-style: none; margin: 0; padding: 0 0 0 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.skiplist li { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 12px 8px 0; border-top: 1px solid var(--border); }
+.skiplist li:first-child { border-top: 0; }
+.skiplist .dot { align-self: stretch; }
+.skiplist .dot.single { background: var(--d-single-fg); }
+.skiplist .dot.sports { background: var(--d-sports-fg); }
+.skiplist .t { display: flex; flex-direction: column; min-width: 0; }
+.skiplist .t b { font-size: 13.5px; font-weight: 500; }
+.skiplist .t small { font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- Championship page ---------- */
+.rtable { width: 100%; border-collapse: collapse; }
+.rtable td { border-top: 1px solid var(--border); padding: 10px 12px; vertical-align: middle; font-size: 13.5px; }
+.rtable tr:first-child td { border-top: 0; }
+.rtable .n { width: 32px; font-weight: 600; }
+.rtable .trk { display: flex; flex-direction: column; gap: 2px; }
+.rtable .trk small { color: var(--muted-foreground); font-size: 12px; }
+.races { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.races .line { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tipbox { background: var(--foreground); color: var(--background); border-radius: 6px; padding: 8px 10px; font-size: 12px; display: flex; flex-direction: column; gap: 6px; max-width: 360px; }
+.tipbox .o { opacity: .7; margin-right: 6px; }
+
+/* ---------- Editor ---------- */
+.ed-tabs { display: flex; gap: 2px; border: 1px solid var(--border); background: var(--muted); padding: 3px; border-radius: 10px; width: fit-content; margin-bottom: 16px; }
+.ed-tabs span { padding: 5px 12px; font-size: 13px; color: var(--muted-foreground); border-radius: 7px; display: inline-flex; gap: 6px; align-items: center; }
+.ed-tabs span.on { background: var(--card); color: var(--foreground); font-weight: 500; box-shadow: 0 1px 2px oklch(0 0 0 / .08); }
+.ed-tabs .bad { width: 6px; height: 6px; border-radius: 50%; background: var(--destructive); }
+.elayout { display: grid; grid-template-columns: 17rem minmax(0, 1fr); gap: 16px; align-items: start; }
+.clist { display: flex; flex-direction: column; gap: 8px; }
+.citem { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.citem.sel { box-shadow: 0 0 0 2px var(--primary); }
+.citem b { font-size: 13.5px; }
+.cpanel-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.cpanel-h h3 { margin: 0 4px 0 0; font-size: 18px; font-weight: 600; }
+.pilltabs { display: flex; gap: 4px; padding: 12px 20px 0; }
+.pilltabs span { padding: 4px 12px; border-radius: 99px; font-size: 13px; color: var(--muted-foreground); display: inline-flex; gap: 6px; align-items: center; }
+.pilltabs span.on { background: var(--accent); color: var(--foreground); font-weight: 500; }
+.seats { padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.seat-t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.seat-t th { text-align: left; font-weight: 400; color: var(--muted-foreground); font-size: 12px; padding: 0 6px 4px; }
+.seat-t td { padding: 3px 6px; }
+.seat-t .cell { height: 28px; border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; padding: 0 8px; }
+.seat-t .team td { font-size: 12px; font-weight: 600; color: var(--muted-foreground); padding-top: 10px; }
+.seat-t .new .cell { border-color: color-mix(in oklch, var(--primary) 50%, transparent); }
+.footrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* ---------- Settings Tracks ---------- */
+.tlist { overflow: hidden; }
+.circ { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--muted); }
+.circ b { font-size: 14px; }
+.lrow { display: grid; grid-template-columns: minmax(8rem, 13rem) 7.5rem minmax(0, 1fr) auto; gap: 14px; align-items: center; min-height: 60px; padding: 8px 16px; border-top: 1px solid var(--border); }
+.lrow:first-of-type { border-top: 0; }
+.lrow .det { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lrow .det .facts { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted-foreground); }
+.lrow .acts { display: flex; gap: 6px; align-items: center; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ltile { border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; display: flex; flex-direction: column; }
+.ltile.sel { box-shadow: 0 0 0 2px var(--primary); }
+.ltile .mapw { position: relative; aspect-ratio: 4/3; background: var(--muted); display: grid; place-items: center; }
+.ltile .mapw > svg { width: 60%; height: 60%; stroke: var(--foreground); stroke-width: 3; fill: none; opacity: .8; }
+.ltile .over { position: absolute; inset: 8px 8px auto 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.ltile .body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.ltile .body b { font-size: 13.5px; }
+.ltile .facts { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted-foreground); }
+.sheet { border: 1px solid var(--border); border-radius: 14px; background: var(--background); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.sheet-h { display: flex; flex-direction: column; gap: 2px; }
+.sheet-h b { font-size: 17px; }
+
+.toast { position: absolute; right: 24px; bottom: 24px; z-index: 40; width: 360px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; box-shadow: 0 10px 30px oklch(0 0 0 / .18); }
+.toast .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+.toast b { font-size: 13.5px; font-weight: 600; }
+
+@media (max-width: 900px) {
+  .rlayout, .elayout, .cal, .tiles { grid-template-columns: 1fr; }
+  .lrow { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="frame" id="app"></div>
+<div class="why" id="why"></div>
+
+<script>
+const I = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>',
+  chevL: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  warn: '<svg class="i" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  skip: '<svg class="i" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  dice: '<svg class="i" viewBox="0 0 24 24"><rect width="12" height="12" x="2" y="10" rx="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/></svg>',
+  more: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  arrow: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+  grip: '<svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>',
+  map: '<svg viewBox="0 0 100 70"><path d="M12 50 C 10 20, 30 12, 48 18 S 70 8, 86 20 S 92 52, 70 56 S 40 46, 28 58 S 14 60, 12 50Z"/></svg>',
+};
+
+const state = {
+  screen: 'round', theme: 'light',
+  reason: 'pits', entered: 'yes', track: 'recommended',
+  edstep: 'seats', tracks: 'row',
+};
+
+const PICKS = [
+  { key: 'screen', label: 'Screen', opts: [['round', 'Round page'], ['calendar', 'Calendar'], ['skip', 'Skip dialog'], ['champ', 'Championship page'], ['editor', 'Editor'], ['tracks', 'Settings > Tracks'], ['trackpage', 'Track page']] },
+  { key: 'reason', label: 'Why', when: () => state.screen === 'round', opts: [['pits', 'Too few pit boxes'], ['track', 'Track not installed'], ['cars', 'Cars not installed']] },
+  { key: 'track', label: 'Round names', when: () => state.screen === 'round' && state.reason === 'pits', opts: [['recommended', 'A recommended layout'], ['folder', 'A track folder (user\'s own)']] },
+  { key: 'entered', label: 'Career', when: () => state.screen === 'round', opts: [['yes', 'Entered'], ['no', 'Not entered']] },
+  { key: 'edstep', label: 'Editor', when: () => state.screen === 'editor', opts: [['seats', 'Classes > Seats'], ['add', 'Add a class']] },
+  { key: 'tracks', label: 'Step', when: () => state.screen === 'tracks', opts: [['row', 'Rows'], ['landed', 'From a link'], ['picker', 'Choosing'], ['confirm', 'Confirm'], ['toast', 'Chosen']] },
+  { key: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+const chip = (cls, text, icon = '') => `<span class="chip ${cls}">${icon}${text}</span>`;
+const nav = (on) => `<div class="app-nav"><span class="brand">Career</span>${['Home', 'Inbox', 'Calendar', 'Championships', 'Race', 'Store', 'Garage', 'Settings']
+  .map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</div>`;
+const skipNote = (title, hint) => `<p class="skipnote">${I.warn}<span><b>${title}</b> ${hint}</span></p>`;
+const NEW = '<span class="newtag">new</span>';
+
+/* ================= Round page ================= */
+const round = () => {
+  const { reason, entered, track } = state;
+  const folder = reason === 'pits' && track === 'folder';
+  const hint = {
+    pits: folder
+      ? 'Monaco (<span class="mono">monaco</span>) has 22 pit boxes for a 30-car field. Skip it, and a reserve driver races it in your seat, as for any round you miss.'
+      : 'Monaco - GP races on <span class="mono">monaco</span>, with 22 pit boxes for a 30-car field. Race it on a track with more, or skip it: a reserve driver races it in your seat, as for any round you miss.',
+    track: 'What it needs is not installed. Install it and come back, or skip it: a reserve driver races it in your seat, as for any round you miss.',
+    cars: 'What it needs is not installed. Install it and come back, or skip it: a reserve driver races it in your seat, as for any round you miss.',
+  }[reason];
+
+  // The pit box row stands where MissingTrack does today, the same shape.
+  const pitRow = `<div class="trackrow newring">
+    <span class="flag"></span>
+    <div class="nm"><b>Monaco - GP</b>${chip('c-destructive', '22 pit boxes for 30 cars')}</div>
+    <span class="mono muted">monaco</span>
+    <div class="acts"><a class="link" href="#">Track settings${I.arrow}</a></div>
+  </div>`;
+  const missingRow = `<div class="trackrow newring">
+    <span class="flag"></span>
+    <div class="nm"><b>Monaco - GP</b>${chip('c-missed', 'Not installed')}</div>
+    <div class="acts"><a class="link" href="#">Track settings${I.arrow}</a></div>
+  </div>`;
+  let row = '';
+  if (reason === 'pits' && !folder) row = pitRow;
+  if (reason === 'track') row = missingRow;
+
+  const skipPanel = `<section class="card pad ${reason === 'pits' ? 'newring' : ''}">
+    ${skipNote('This round can\'t be raced as things stand.', `${hint}${reason === 'pits' ? ` ${NEW}` : ''}`)}
+    ${row}
+    <div style="display:flex;justify-content:flex-end"><span class="btn lg">${I.skip}Skip round 3</span></div>
+  </section>`;
+
+  const enterLine = {
+    pits: 'Monaco has 22 pit boxes for a 30-car field.',
+    track: 'Monaco - GP is not installed.',
+    cars: 'The cars of this class are not installed.',
+  }[reason];
+  const enterPanel = `<section class="card pad">
+    <span class="enter-h">Enter</span>
+    <div class="field"><span class="lbl">Class</span><span class="input">Formula 3</span></div>
+    <p class="destructive-text newring">${enterLine} ${NEW}</p>
+    <div class="placeholder">Car, rent or buy - as today</div>
+    <span class="btn primary lg" disabled>Enter</span>
+  </section>`;
+
+  return `${nav('Championships')}
+  <div class="shead">
+    <span class="back">${I.back}Formula 3 2026</span>
+    <h1>Round 3 - Monaco</h1>
+    <div class="sub">${chip('c-single', 'Single-seater')}${chip('c-silver', 'Tier 3')}<span>Monaco · Saturday 23 May 2026 · 30 cars</span></div>
+  </div>
+  <div class="rlayout">
+    <aside class="side">
+      ${entered === 'yes' ? '<div class="placeholder">Your entry - as today</div>' : enterPanel}
+      <div class="placeholder" style="min-height:120px">Event sessions - as today</div>
+    </aside>
+    <div class="side">
+      ${entered === 'yes' ? skipPanel : ''}
+      <div class="placeholder" style="min-height:220px;display:grid;place-items:center">Rest of the round page - as today</div>
+    </div>
+  </div>`;
+};
+
+/* ================= Calendar ================= */
+const ev = ({ n, cls, disc, tier, name, roundName, len, grid, prize, chips = '', enrolled }) => `<div class="ev ${enrolled ? 'enrolled' : ''}">
+  <div class="top">
+    <div class="txt">
+      <div class="chips"><span class="rn">R${n}</span>${chip(`xs c-${disc}`, cls)}${chip(`xs ${tier[0]}`, tier[1])}</div>
+      <h3>${name}</h3>
+      <p>${roundName} · ${len} · ${grid} cars</p>
+    </div>
+    <span class="map ${disc}"></span>
+  </div>
+  <div class="foot"><span class="amt num">${prize}</span><span class="hint">to the winner</span>${chips}</div>
+</div>`;
+const calendar = () => `${nav('Calendar')}
+  <div class="shead"><h1>Calendar</h1><div class="sub">Week of 18 May 2026</div></div>
+  <div class="cal">
+    ${ev({ n: 3, cls: 'Formula 3', disc: 'single', tier: ['c-silver', 'Tier 3'], name: 'Formula 3 2026', roundName: 'Monaco', len: '24 laps', grid: 30, prize: '€ 18,000', enrolled: true,
+      chips: `<span class="newring" style="display:inline-flex">${chip('xs c-destructive', 'Too few pit boxes')}</span>` })}
+    ${ev({ n: 5, cls: 'GT3', disc: 'sports', tier: ['c-gold', 'Tier 2'], name: 'GT World Challenge Europe', roundName: 'Brands Hatch', len: '2 races', grid: 26, prize: '€ 40,000',
+      chips: `<span class="newring" style="display:inline-flex">${chip('xs c-destructive', 'Track not installed')}</span>` })}
+    ${ev({ n: 2, cls: 'GT4', disc: 'sports', tier: ['c-bronze', 'Tier 4'], name: 'GT4 European Series', roundName: 'Misano', len: '2 races', grid: 24, prize: '€ 9,000',
+      chips: chip('xs c-destructive', 'Cannot be raced') })}
+  </div>
+  <p class="hint" style="margin-top:12px">Third card: anything else that stops a round (cars not installed, a race length the track cannot turn into laps) keeps today's "Cannot be raced".</p>`;
+
+/* ================= Skip dialog ================= */
+const skip = () => `${nav('Home')}
+  <div class="placeholder" style="min-height:420px;margin-top:16px">Home - as today</div>
+  <div class="scrim"></div>
+  <div style="position:absolute;inset:0;z-index:31">
+    <div class="dialog">
+      <h2>Advance to Monday 25 May?</h2>
+      <p class="desc">These rounds go by without you. A reserve driver races them in your seat.</p>
+      <ul class="skiplist">
+        <li><span class="dot single"></span><span class="t"><b>Formula 3 2026 R3 · Monaco</b><small>Sat 23 May</small></span>
+          <span class="newring" style="display:inline-flex">${chip('c-warning', 'Too few pit boxes')}</span></li>
+        <li><span class="dot sports"></span><span class="t"><b>GT World Challenge Europe R5 · Brands Hatch</b><small>Sun 24 May</small></span>
+          <span class="newring" style="display:inline-flex">${chip('c-warning', 'Track not installed')}</span></li>
+        <li><span class="dot sports"></span><span class="t"><b>GT4 European Series R2 · Misano</b><small>Sun 24 May</small></span>
+          ${chip('c-missed', 'Non-start')}</li>
+      </ul>
+      <div class="foot"><span class="btn">Cancel</span><span class="btn primary">Advance</span></div>
+    </div>
+  </div>`;
+
+/* ================= Championship page ================= */
+const champ = () => `${nav('Championships')}
+  <div class="shead">
+    <span class="back">${I.back}Championships</span>
+    <h1>Formula 3 2026</h1>
+    <div class="sub">${chip('c-single', 'Single-seater')}${chip('c-silver', 'Tier 3')}<span>10 rounds · 30 cars</span></div>
+    <div class="tabs"><span class="on">Rounds</span><span>Standings</span><span>Classes</span><span>Points, prizes and rules</span></div>
+  </div>
+  <section class="card" style="overflow:hidden">
+    <table class="rtable">
+      <tr><td class="n">2</td><td><span class="trk"><b>Bahrain</b><small>Bahrain International Circuit - GP</small></span></td>
+        <td><div class="races"><span class="line">${chip('c-race', 'Sprint')}<span class="num">23 laps</span></span><span class="line">${chip('c-race', 'Feature')}<span class="num">30 laps</span></span></div></td><td style="text-align:right"><span class="btn sm">Open</span></td></tr>
+      <tr><td class="n">3</td><td><span class="trk"><b>Monaco</b><small>Monaco - GP</small></span></td>
+        <td><div class="races newring"><span class="line">${chip('c-destructive', 'Only 22 pit boxes for a 30-car field')}<a class="link sm" href="#">Track settings${I.arrow}</a></span></div></td><td style="text-align:right"><span class="btn sm">Open</span></td></tr>
+      <tr><td class="n">4</td><td><span class="trk"><b>Barcelona</b><small>Circuit de Barcelona-Catalunya - GP</small></span></td>
+        <td><div class="races newring"><span class="line">${chip('c-destructive', 'Circuit not installed')}<a class="link sm" href="#">Track settings${I.arrow}</a></span></div></td><td style="text-align:right"><span class="btn sm">Open</span></td></tr>
+    </table>
+  </section>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start">
+    <div class="field">
+      <span class="hint">Library table - availability tooltip on a championship nothing can race</span>
+      <div style="display:flex;justify-content:flex-end">${chip('c-destructive', 'Unavailable')}</div>
+      <div class="tipbox newring" style="margin-left:auto">
+        <span><span class="o">Tracks not installed</span>Barcelona - GP</span>
+        <span><span class="o">Too few pit boxes ${NEW}</span>Monaco - GP (22 for 30), Pau (20 for 30)</span>
+        <span class="o">Install what is missing to race it.</span>
+      </div>
+    </div>
+    <div class="field">
+      <span class="hint">Championship page - Missing content card</span>
+      <section class="card pad newring">
+        <div class="field"><span class="hint">Tracks not installed</span><span>Circuit de Barcelona-Catalunya - GP</span></div>
+        <div class="field"><span class="hint">Too few pit boxes ${NEW}</span>
+          <div style="display:flex;gap:8px;align-items:center"><span style="flex:1">Monaco - GP</span><span class="mono muted">monaco</span><span class="hint num">22 for 30 cars</span></div>
+          <div style="display:flex;gap:8px;align-items:center"><span style="flex:1">Pau - GP</span><span class="mono muted">pau_2019</span><span class="hint num">20 for 30 cars</span></div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+
+/* ================= Editor ================= */
+const seatRow = (n, name, team, car, isNew) => `<tr class="${isNew ? 'new' : ''}"><td class="muted" style="width:20px">${I.grip}</td><td><span class="cell">${name}</span></td><td><span class="cell">${team}</span></td><td><span class="cell">${car}</span></td><td style="width:32px">${I.more}</td></tr>`;
+const editor = () => {
+  const head = `${nav('Settings')}
+  <div class="shead">
+    <span class="back">${I.back}Club GT Cup</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1>Club GT Cup</h1><span class="btn primary">Save</span></div>
+  </div>
+  <div class="ed-tabs"><span>Overview</span><span>Teams</span><span class="on">Classes</span><span>Calendar <i class="bad"></i></span><span>Formats</span><span>Points & money</span></div>`;
+
+  const list = `<div class="clist">
+    <div class="citem sel"><b>GT3</b><span class="hint">16 seats</span></div>
+    <div class="citem"><b>GT4</b><span class="hint">10 seats</span></div>
+    <span class="btn sm ghost" style="justify-content:flex-start">${I.plus}Add a class</span>
+  </div>`;
+
+  const panel = `<section class="card" style="overflow:hidden">
+    <div class="cpanel-h"><h3>GT3</h3>${chip('c-sports', 'Sportscar')}${chip('c-gold', 'Gold')}${chip('outline', 'GT3')}${chip('c-success', '14 cars installed')}
+      <span style="margin-left:auto;display:flex;gap:4px"><span class="btn sm">Edit</span><span class="btn sm ghost">${I.more}</span></span></div>
+    <div class="pilltabs"><span>Cars</span><span class="on">Seats <span class="num">16</span></span><span>Performance</span><span>Prizes</span></div>
+    <div class="seats">
+      <table class="seat-t">
+        <tr><th></th><th>Driver</th><th>Team</th><th>Car and livery</th><th></th></tr>
+        <tr class="team"><td></td><td colspan="4">Emil Frey Racing</td></tr>
+        ${seatRow(14, 'Jack Aitken', 'Emil Frey Racing', 'Drawn from the class')}
+        ${seatRow(15, 'Konsta Lappalainen', 'Emil Frey Racing', 'Drawn from the class')}
+        <tr class="team"><td></td><td colspan="4">No team</td></tr>
+        ${seatRow(16, '', 'No team', 'Drawn from the class', true)}
+      </table>
+      <div class="newring">${skipNote('2 rounds can\'t be raced with 26 cars.', 'Jerez has 22 pit boxes, Brands Hatch Indy 24.')}</div>
+      <div class="footrow"><span class="btn sm">${I.plus}Add a seat</span><span class="btn sm">${I.dice}Fill in names</span><span class="hint">1 seat without a driver</span></div>
+    </div>
+  </section>`;
+
+  if (state.edstep === 'seats') {
+    return `${head}<div class="elayout">${list}${panel}</div>`;
+  }
+
+  return `${head}<div class="elayout">${list}${panel}</div>
+  <div class="scrim"></div>
+  <div style="position:absolute;inset:0;z-index:31">
+    <div class="dialog">
+      <h2>Add a class</h2>
+      <div class="field"><span class="lbl">Name</span><span class="input">Porsche Cup</span></div>
+      <div class="placeholder">Cars - Spec or List, as today</div>
+      <div class="field"><span class="lbl">Seats</span><span class="input num" style="width:96px;justify-content:flex-end">8</span>
+        <span class="hint">Empty seats, drawn each season</span>
+        <span class="amber-text newring" style="font-size:12px;display:inline-flex;gap:6px;align-items:center">${I.warn}34 cars: 3 rounds can't be raced. ${NEW}</span>
+      </div>
+      <div class="foot"><span class="btn">Cancel</span><span class="btn primary">Add</span></div>
+    </div>
+  </div>`;
+};
+
+/* ================= Settings > Tracks ================= */
+const lrow = (layout, kind, label, name, key, pits, warnText, ring, landed) => `<div class="lrow ${ring ? 'newring' : ''} ${landed ? 'landed' : ''}">
+  <span style="font-weight:500">${layout}</span>
+  ${chip(`c-${kind}`, label)}
+  <div class="det"><span>${name}</span><span class="facts"><span class="mono">${key}</span><span>3.34 km</span>
+    <span class="${warnText ? 'amber-text' : ''}">${pits} pit boxes</span>${warnText ? `<span class="amber-text">${warnText}</span>` : ''}</span></div>
+  <span class="acts"><span class="btn sm">Choose…</span><span class="btn sm ghost">${I.more}</span></span>
+</div>`;
+const tile = (name, key, pits, cars, selected) => `<div class="ltile ${selected ? 'sel' : ''}">
+  <div class="mapw">${I.map}<span class="over">${pits < cars ? `<span class="newring" style="display:inline-flex">${chip('c-warning', `${I.warn}${pits} pits for ${cars} cars`)}</span>` : ''}${selected ? `<span style="margin-left:auto">${chip('btn primary', `${I.check}Current`)}</span>` : ''}</span></div>
+  <div class="body"><b>${name}</b><span class="facts"><span class="mono">${key}</span><span>3.34 km</span><span>${pits} pit boxes</span></span></div>
+</div>`;
+
+const tracks = () => {
+  const landed = state.tracks === 'landed';
+  const rows = `<section class="card tlist">
+    <div class="circ"><span class="flag"></span><b>Monaco</b><span class="hint">5 championships</span></div>
+    ${lrow('GP', 'choice', 'Your choice', 'Circuit de Monaco', 'monaco', 22, '30 needed by Formula 3 2026', !landed, landed)}
+    <div class="circ" style="border-top:1px solid var(--border)"><span class="flag es"></span><b>Jerez</b><span class="hint">2 championships</span></div>
+    ${lrow('GP', 'found', 'Installed', 'Circuito de Jerez', 'jerez_2010', 22, '')}
+  </section>`;
+
+  const page = `${nav('Settings')}
+  <div class="shead">${landed ? `<span class="back newring" style="width:fit-content">${I.back}Round 3 - Monaco</span>` : ''}<h1>Settings</h1><div class="tabs"><span>General</span><span>Career</span><span>Content sources</span><span class="on">Tracks</span><span>Weather</span></div></div>
+  ${landed ? '<div class="newring" style="margin-bottom:12px"><div class="placeholder" style="text-align:left">Search, filters and sort - as today. Arriving from a link, the search reads "Monaco" and the filters are cleared, so the circuit is always there; the layout the link came for is marked.</div></div>' : ''}
+  ${rows}`;
+
+  if (state.tracks === 'row' || landed) return page;
+
+  if (state.tracks === 'picker') {
+    return `${page}<div class="scrim"></div>
+    <div style="position:absolute;inset:0;z-index:31;padding:30px 24px">
+      <div class="sheet">
+        <div class="sheet-h"><b>Choose a track for Monaco - GP</b><span class="hint">Every track installed, in your library or not.</span></div>
+        <div style="display:flex;gap:10px;align-items:center"><span class="btn sm ghost">${I.chevL}All tracks</span><span class="hint">Monaco · 3 layouts</span></div>
+        <div class="tiles">
+          ${tile('Monaco 2020 - GP', 'monaco_2020/gp', 30, 30, false)}
+          ${tile('Circuit de Monaco', 'monaco', 22, 30, false)}
+          ${tile('Monaco 1966', 'monaco66', 16, 30, false)}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (state.tracks === 'confirm') {
+    return `${page}<div class="scrim"></div>
+    <div style="position:absolute;inset:0;z-index:31">
+      <div class="dialog newring">
+        <h2>Race Monaco - GP on Circuit de Monaco?</h2>
+        <p class="desc">Its 22 pit boxes are too few for these championships, and their rounds there can't be raced.</p>
+        <ul class="skiplist">
+          <li><span class="dot single"></span><span class="t"><b>Formula 3 2026</b><small>Round 3 · Monaco</small></span><span class="hint num">30 cars</span></li>
+          <li><span class="dot single"></span><span class="t"><b>Formula 2 2026</b><small>Round 5 · Monaco</small></span><span class="hint num">24 cars</span></li>
+          <li><span class="dot sports"></span><span class="t"><b>Porsche Supercup 2025</b><small>Round 1 · Monaco</small></span><span class="hint num">26 cars</span></li>
+        </ul>
+        <div class="foot"><span class="btn">Cancel</span><span class="btn primary">Race it there</span></div>
+      </div>
+    </div>`;
+  }
+
+  return `${page}
+  <div class="toast newring">
+    <span class="ic c-choice">${I.check}</span>
+    <span style="display:flex;flex-direction:column;gap:2px"><b>Monaco - GP races Circuit de Monaco.</b>
+    <span class="hint">5 championships race there. 3 can't, with too few pit boxes.</span></span>
+  </div>`;
+};
+
+/* ================= Track page ================= */
+const champCard = (disc, name, roundName, ladder, extra = '') => `<div class="ev" style="display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 10px 10px 12px">
+  <i style="align-self:stretch;border-radius:99px;background:var(--d-${disc}-fg)"></i>
+  <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:13.5px">${name}</b><span class="hint">${roundName}</span>
+    <div class="chips" style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">${ladder}${extra}</div></div>
+  <span class="muted">${I.chev}</span>
+</div>`;
+const trackpage = () => `${nav('Store')}
+  <div class="shead">
+    <span class="back">${I.back}Tracks</span>
+    <h1>Circuit de Monaco</h1>
+    <div class="sub"><span class="mono">monaco</span><span>· 3.34 km · 22 pit boxes</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start">
+    <section class="card pad">
+      <div style="display:flex;align-items:center;gap:8px"><span class="enter-h">Raced here</span><span class="hint num">4</span></div>
+      <span class="enter-h" style="font-size:11px;display:flex;gap:6px;align-items:center"><i style="width:8px;height:8px;border-radius:50%;background:var(--d-single-fg)"></i>Single-seater <span class="num" style="font-weight:400">2</span></span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${champCard('single', 'Formula 3 2026', 'Monaco', chip('c-single', 'Tier 3'), `<span class="newring" style="display:inline-flex">${chip('c-destructive', 'Only 22 pit boxes for a 30-car field')}</span>`)}
+        ${champCard('single', 'Formula Renault 3.5 2012', 'Monaco', chip('c-single', 'Tier 4'))}
+      </div>
+      <span class="enter-h" style="font-size:11px;display:flex;gap:6px;align-items:center;padding-top:6px"><i style="width:8px;height:8px;border-radius:50%;background:var(--d-sports-fg)"></i>Sportscar <span class="num" style="font-weight:400">2</span></span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${champCard('sports', 'Porsche Supercup 2025', 'Monaco', chip('c-sports', 'Tier 4'), `<span class="newring" style="display:inline-flex">${chip('c-destructive', 'Only 22 pit boxes for a 26-car field')}</span>`)}
+        ${champCard('sports', 'Porsche Supercup 2017', 'Monaco', chip('c-sports', 'Tier 4'))}
+      </div>
+    </section>
+    <div class="placeholder" style="min-height:260px">Photo, figures, layouts - as today</div>
+  </div>`;
+
+/* ================= Notes ================= */
+const WHY = {
+  round: `<h3>Round page</h3><ul>
+    <li><b>The skip panel says why.</b> Today its hint is "What it needs is not installed" whatever stops the round, which is wrong for a track that is installed with too few pit boxes. The hint now follows the reason: too few pit boxes names the track, its boxes and the field.</li>
+    <li><b>A pit box row where MissingTrack stands today</b>, the same shape: layout, a red chip and one link, <b>Track settings</b>. Which track a layout races is configuration, so it is changed in Settings > Tracks and nowhere else; the round page only links there. A track with enough boxes chosen there makes the round raceable at once. Only for a round naming a recommended layout - a user's round naming a track folder has nothing to configure, so its panel says the facts and offers Skip.</li>
+    <li><b>Changes what is there today:</b> the missing-track row loses Where to get it and Choose a track… for the same single link, since the Tracks tab says where to get tracks at its head.</li>
+    <li><b>Not entered: the Enter panel's red line names the reason</b> rather than "cannot be raced with what is installed".</li>
+    <li>Historic events use the same page, so they get the same.</li>
+  </ul>`,
+  calendar: `<h3>Calendar</h3><ul>
+    <li>The red chip says which of the two track reasons it is - Too few pit boxes or Track not installed - and stays "Cannot be raced" for everything else. Same hue as today: what blocks the round changes the words, not the meaning.</li>
+  </ul>`,
+  skip: `<h3>Skip and Advance dialogs</h3><ul>
+    <li>The amber Can't be raced chip names the same two track reasons. A <code>SkippedRound</code> carries the reason next to <code>reason: 'unraceable'</code>.</li>
+  </ul>`,
+  champ: `<h3>Championship page and library</h3><ul>
+    <li>The calendar badge is today's. New: a <b>Track settings</b> link beside it on a round naming a recommended layout. The same <code>RoundRaces</code> renders the start-a-championship calendar, so that gets it too.</li>
+    <li><b>Changes what is there today:</b> the Circuit not installed chip (<code>MissingTrackButton</code>) opens a dialog holding the Tracks tab's circuit card with its Choose…. It becomes a plain chip with the same link beside it, and the editor's round rows follow.</li>
+    <li><b>Library tooltip and Missing content card:</b> today they list missing cars and tracks only, so a championship that is Unavailable because every round is short of pit boxes explains nothing. Both gain a Too few pit boxes line, each track with its boxes and the field.</li>
+  </ul>`,
+  editor: `<h3>Championship editor</h3><ul>
+    <li><b>Classes > Seats:</b> once the field outgrows some round's track, the amber <code>SkipNote</code> line sits above Add a seat, naming the tracks short of boxes. It reads the editor's existing availability check (<code>checked.rounds[].pitboxes</code>). Nothing is blocked: saving still works and those rounds are skipped, as you chose.</li>
+    <li><b>Add a class:</b> the Seats field adds an amber line when the new class's seats push the field past a round's boxes.</li>
+    <li>The Calendar tab's red dot and each round's "Only 22 pit boxes for a 30-car field" are today's.</li>
+    <li>The round dialog's track picker already chips a layout "22 pits for 30 cars". Its tooltip says "Assetto Corsa drops the cars that do not fit", which has been wrong since rounds became unraceable instead - it becomes "Rounds here can't be raced with this field".</li>
+  </ul>`,
+  trackpage: `<h3>Track page</h3><ul>
+    <li>In Raced here, a championship whose field this layout can't hold wears the Rounds tab's own red "Only 22 pit boxes for a 30-car field" in its chip row. With All layouts picked, each championship is judged on the layout its rounds race.</li>
+    <li>It lists what races this folder now, so a layout nothing races here (Kunos' Spa while Spa races the 2022 version) lists nothing and flags nothing.</li>
+  </ul>`,
+  tracks: `<h3>Settings > Tracks - the one place a track is chosen</h3><ul>
+    <li><b>From a link:</b> every Track settings link opens this tab with the search set to the circuit and the filters cleared, so it is always listed, and the layout it came for marked. Back returns to the page the link was on.</li>
+    <li><b>Rows:</b> where the track a layout races has fewer boxes than a championship racing it fields, the pit box count turns amber and names the largest field: "30 needed by Formula 3 2026". Amber text like the Race tab's Track card, not a chip - the state chip beside it already uses that slot.</li>
+    <li><b>Choosing:</b> the picker gets the largest field of any championship racing the layout, so the existing "22 pits for 30 cars" tile chip appears. Nothing is greyed out.</li>
+    <li><b>Confirm whenever the choice costs a championship a round:</b> track choices are the app's, shared by every career, so the dialog lists championships, not anyone's season. The same set the row's "3 championships" counts, plus historic events racing the layout; each with its round there and its field. Laid out like the skip dialog. Cancel leaves the choice as it was; with nothing lost the choice goes straight through. A career racing one of them simply finds the round unraceable, as with a track uninstalled.</li>
+    <li><b>Chosen:</b> the toast adds how many championships it can't hold.</li>
+    <li>With no chooser left outside this tab, the confirm guards every choice there is.</li>
+  </ul>`,
+};
+
+const ALL = `<h3>Every place, and what changes</h3>
+<table>
+<tr><th>Place</th><th>Today</th><th>Proposed</th></tr>
+<tr><td>Round page - Skip panel</td><td>"What it needs is not installed" whatever the reason; track row only for a missing track</td><td>Hint per reason; pit box row linking to Track settings</td></tr>
+<tr><td>Round page - Enter panel</td><td>"This round cannot be raced with what is installed."</td><td>The reason</td></tr>
+<tr><td>Calendar card</td><td>Cannot be raced</td><td>Too few pit boxes / Track not installed / Cannot be raced</td></tr>
+<tr><td>Skip and Advance dialogs</td><td>Can't be raced</td><td>Too few pit boxes / Track not installed / Can't be raced</td></tr>
+<tr><td>Championship page - Rounds</td><td>"Only 22 pit boxes for a 30-car field"</td><td>+ Track settings link</td></tr>
+<tr><td>Start a championship - calendar</td><td>Can't be raced + the same badge</td><td>+ Track settings link (same component)</td></tr>
+<tr><td>Missing-track chip and row (round page, Rounds tab, editor)</td><td>Dialog or row with Choose a track…</td><td>Track settings link instead</td></tr>
+<tr><td>Library tooltip, Missing content</td><td>Cars and tracks only</td><td>+ Too few pit boxes</td></tr>
+<tr><td>Editor - Classes > Seats</td><td>Nothing</td><td>Amber note naming the tracks</td></tr>
+<tr><td>Editor - Add a class</td><td>Nothing</td><td>Amber line under Seats</td></tr>
+<tr><td>Editor - Calendar rows, round dialog</td><td>"Only 22 pit boxes for a 30-car field"</td><td>As today</td></tr>
+<tr><td>Track picker tile (editor, Race tab)</td><td>"22 pits for 30 cars", hint says AC drops cars</td><td>Hint corrected</td></tr>
+<tr><td>Settings > Tracks rows</td><td>Pit box count, plain</td><td>Amber, with the largest field it falls short of</td></tr>
+<tr><td>Track chooser</td><td>No field to check against</td><td>Tile chip + confirm when a championship loses a round + toast</td></tr>
+<tr><td>Track page - Raced here</td><td>Championships listed, nothing about pit boxes</td><td>Red chip on a championship whose field this layout can't hold</td></tr>
+<tr><td>Race tab - Track card, Classes card, Go</td><td>Amber counts; Go refused with "Grid of 30 cars exceeds the 22 pit boxes"</td><td>As today</td></tr>
+<tr><td>Launch (<code>buildRaceIni</code>), CLI <code>npm run series</code></td><td>Throws / prints NEEDS 30 PIT BOXES</td><td>As today - the backstop</td></tr>
+</table>
+<h3>Rule</h3><ul>
+  <li>Already true in core: <code>seriesAvailability</code> marks a round unraceable when its field outgrows the pit boxes of the track it races on now, and the grid is never cut. This work is about saying so.</li>
+  <li>A track whose <code>ui_track.json</code> gives no pit box count still counts as fitting, with no warning.</li>
+  <li>Data: <code>CalendarEntry</code>, <code>CareerEventView</code> and <code>SkippedRound</code> carry why a round is blocked (track, pit boxes with needed and available, or other), read from <code>RoundAvailability</code> in main. The confirm needs no new IPC: the renderer already holds every championship placed, and the chosen track's pit boxes.</li>
+  <li>No new colour: red where the surface already uses red for blocked, amber where it uses amber.</li>
+</ul>`;
+
+const render = () => {
+  document.documentElement.dataset.theme = state.theme;
+  document.getElementById('picker').innerHTML = PICKS.map((p) => `<div class="grp" ${p.when && !p.when() ? 'hidden' : ''}><strong>${p.label}</strong>${p.opts
+    .map(([v, l]) => `<button type="button" class="opt" data-k="${p.key}" data-v="${v}" aria-pressed="${state[p.key] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('app').innerHTML = {
+    round, calendar, skip, champ, editor, tracks, trackpage,
+  }[state.screen]();
+  document.getElementById('why').innerHTML = WHY[state.screen] + ALL;
+};
+
+document.addEventListener('click', (e) => {
+  const opt = e.target.closest('[data-k]');
+  if (opt) { state[opt.dataset.k] = opt.dataset.v; render(); }
+});
+// #screen=tracks&tracks=confirm opens a given state, for screenshots.
+Object.assign(state, Object.fromEntries(new URLSearchParams(window.location.hash.slice(1))));
+render();
+</script>
+</body>
+</html>

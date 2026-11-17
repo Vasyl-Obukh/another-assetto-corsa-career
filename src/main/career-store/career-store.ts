@@ -64,6 +64,7 @@ import {
   eventStrength,
   experiencedAt,
   goalsDue,
+  heldBlock,
   heldRaceable,
   historicDraws,
   historicInvitation,
@@ -220,7 +221,9 @@ import {
 } from '../../shared/utils/inbox/index.ts';
 import { nationName } from '../../shared/utils/nations/index.ts';
 import { paidTable, purseRung } from '../../shared/utils/prizes/index.ts';
-import { eligibleCarsIn, firstRaceable, roundRaceableIn } from '../../shared/utils/round-availability/index.ts';
+import {
+  eligibleCarsIn, firstRaceable, roundBlockIn,
+} from '../../shared/utils/round-availability/index.ts';
 import { isSeriesActive } from '../../shared/utils/series-toggles/index.ts';
 import {
   afterShares, backingOf, carBackingDeal, costShares, dealRung, invitationLift, liveDeals, perkOf, repaintDeal,
@@ -1871,8 +1874,8 @@ export const createCareerStore = async (
   };
 
   /**
-   * Rounds a move would lose under a contract, the install could not race
-   * anyway: listed as such, and never fined.
+   * Rounds a move would lose that the install could not race anyway: listed as
+   * such, with why, and never fined.
    * @param season The season they fall in
    * @param rounds The rounds lost
    * @returns The rounds, those the install cannot race marked so
@@ -1881,13 +1884,18 @@ export const createCareerStore = async (
     const checked = new Map<SeasonEntry, Promise<SeriesAvailability>>();
 
     return Promise.all(rounds.map(async (round): Promise<SkippedRound> => {
-      if (round.fine === null || round.reason !== 'skipped') return round;
+      // The round being skipped comes in as unraceable already, wanting only why.
+      if (round.reason !== 'skipped' && round.reason !== 'unraceable') return round;
       const held = enteredEvent(season, round.series, round.round, round.edition);
       if (!held) return round;
       const availability = checked.get(held.entry) ?? series.validate(held.entry.championship);
       checked.set(held.entry, availability);
 
-      return heldRaceable(await availability, held) ? round : { ...round, reason: 'unraceable', fine: null };
+      const block = heldBlock(await availability, held);
+
+      return block === null ? round : {
+        ...round, reason: 'unraceable', fine: null, block,
+      };
     }));
   };
 
@@ -3091,7 +3099,8 @@ export const createCareerStore = async (
         event,
       } : null;
       const launching = held ?? invited;
-      const raceable = launching ? heldRaceable(availability, launching) : roundRaceableIn(availability, request.round);
+      const roundBlock = launching ? heldBlock(availability, launching) : roundBlockIn(availability, request.round);
+      const raceable = roundBlock === null;
       // A career not yet in the championship has no car, so its event is
       // planned in the first one the class could field - the sessions, their
       // lengths and their weather do not depend on which.
@@ -3220,6 +3229,7 @@ export const createCareerStore = async (
           seatBacker: seatBacker(career, one.ladder.discipline, one.ladder.tier),
         })),
         raceable,
+        block: roundBlock,
         sessions: plan ? eventSessions(
           plan,
           format ? roundSessions(format, round) : [],

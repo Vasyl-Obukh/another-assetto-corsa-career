@@ -29,6 +29,7 @@ import type {
   GridStart,
   PointsSystem,
   PrizeMoney,
+  RacedTrack,
   Round,
   RoundSessionLength,
   Seat,
@@ -41,6 +42,7 @@ import type {
 } from '../../../../shared/types';
 import { fieldableCars } from '../../../../shared/utils/eligibility';
 import { defaultFormatOf, formatOf } from '../../../../shared/utils/event-format';
+import { tooFewPitboxes } from '../../../../shared/utils/field-size';
 import { parseClock } from '../../../../shared/utils/road-temperature';
 import type { Units } from '@/hooks';
 
@@ -1374,3 +1376,23 @@ export const namesItsType = (
   type: SessionType,
   labels: readonly string[],
 ): boolean => name !== undefined && (labels.includes(name) || name.toLowerCase() === type.toLowerCase());
+
+/**
+ * The rounds a field would be too big for, judged against the pit boxes of the
+ * track each races on - straight off the last check, so a seat being added is
+ * judged before the next one comes back.
+ * @param checked The draft checked against what is installed, or null before
+ * the first answer
+ * @param field Cars on the grid, every class together
+ * @returns How many rounds, and the tracks too small, each once in calendar order
+ */
+export const pitboxShort = (
+  checked: SeriesAvailability | null,
+  field: number,
+): { rounds: number; tracks: RacedTrack[] } => {
+  const short = (checked?.rounds ?? []).flatMap(({ racedOn }) => (
+    racedOn && tooFewPitboxes(field, racedOn.pitboxes) ? [racedOn] : []
+  ));
+
+  return { rounds: short.length, tracks: [...new Map(short.map((one) => [one.key, one])).values()] };
+};

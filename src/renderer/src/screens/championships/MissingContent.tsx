@@ -14,9 +14,9 @@ interface MissingContentProps {
 export const MissingContent = ({ listing }: MissingContentProps) => {
   const { t } = useTranslation();
 
-  const { cars, tracks } = missingContent(listing);
+  const { cars, tracks, pitboxes } = missingContent(listing);
 
-  if (cars.length === 0 && tracks.length === 0) return null;
+  if (cars.length === 0 && tracks.length === 0 && pitboxes.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,6 +39,21 @@ export const MissingContent = ({ listing }: MissingContentProps) => {
             <div key={track.key} className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-sm">{missingTrackLabel(track, t)}</span>
               <ProvenanceBadges provenance={track.provenance} compact />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {pitboxes.length ? (
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-muted-foreground">{t('championships.missing.pitboxes')}</span>
+          {pitboxes.map((one) => (
+            <div key={one.key} className="flex flex-wrap items-center gap-2">
+              <span className="min-w-0 flex-1 truncate text-sm">{one.track}</span>
+              {/* Neutral on purpose: two counts, under a heading that says what is wrong. */}
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {t('championships.missing.pitboxesFor', { available: one.available, needed: one.needed })}
+              </span>
             </div>
           ))}
         </div>

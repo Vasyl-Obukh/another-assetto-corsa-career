@@ -64,7 +64,11 @@ export const SkipRow = ({ round, named }: SkipRowProps) => {
         {round.fine ? (
           <Badge className={LEDGER_ACCENT.fine}>{t('skip.fine', { amount: formatMoney(round.fine) })}</Badge>
         ) : null}
-        <Badge className={SKIP_ACCENT[round.reason]}>{t(`skip.reason.${round.reason}`)}</Badge>
+        <Badge className={SKIP_ACCENT[round.reason]}>
+          {round.block && round.block.kind !== 'other'
+            ? t(`skip.block.${round.block.kind}`)
+            : t(`skip.reason.${round.reason}`)}
+        </Badge>
       </span>
     </li>
   );

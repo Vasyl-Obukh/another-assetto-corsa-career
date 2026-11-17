@@ -36,6 +36,7 @@ const event = (overrides: Partial<CalendarEntry> = {}): CalendarEntry => ({
   enrolled: false,
   eligible: true,
   raceable: true,
+  block: null,
   clash: false,
   historic: false,
   ...overrides,

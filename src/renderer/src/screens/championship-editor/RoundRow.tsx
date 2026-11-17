@@ -11,7 +11,7 @@ import type {
 } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
 import { trackKeyOf } from '../../../../shared/utils/recommended-tracks';
-import { ClimateBadge, MissingTrackButton } from '@/components';
+import { ClimateBadge, TrackSettingsLink } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import type { RowDrag } from '@/hooks';
 import { useUnits } from '@/hooks';
@@ -153,23 +153,19 @@ export const RoundRow = ({
       )}
     >
       {/* What this install cannot race, right where the eye is reading. */}
-      {availability?.track ? (
-        <MissingTrackButton
-          layout={availability.track.recommended}
-          label={t('editor.calendar.missingTrack')}
-          title={t('recommendedTracks.roundTrack', { number: index + 1 })}
-          // Lifted over the row's stretched name button, as the grip is.
-          className="relative z-10 shrink-0"
-        />
-      ) : null}
-
-      {availability?.pitboxes ? (
+      {availability?.track || availability?.pitboxes ? (
         <Badge variant="destructive" className="shrink-0">
-          {t('editor.calendar.tooFewPitboxes', {
-            available: availability.pitboxes.available,
-            needed: availability.pitboxes.needed,
-          })}
+          {availability.pitboxes
+            ? t('editor.calendar.tooFewPitboxes', {
+              available: availability.pitboxes.available,
+              needed: availability.pitboxes.needed,
+            })
+            : t('editor.calendar.missingTrack')}
         </Badge>
+      ) : null}
+      {/* Lifted over the row's stretched name button, as the grip is. */}
+      {(availability?.track || availability?.pitboxes) && round.track.recommended ? (
+        <TrackSettingsLink layout={round.track.recommended} className="relative z-10 shrink-0" />
       ) : null}
 
       <span className={cn('min-w-0 items-center gap-2', ROUND_COLUMN.EVENT)}>

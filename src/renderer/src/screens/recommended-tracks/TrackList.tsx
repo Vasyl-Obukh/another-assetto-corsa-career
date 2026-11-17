@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { RecommendedCircuit } from '../../../../shared/types';
@@ -6,7 +6,9 @@ import { recommendedLayout } from '../../../../shared/utils/recommended-tracks';
 import type { RecommendedEntry } from '../../../../shared/utils/recommended-tracks';
 import { RecommendedTrackCard, TrackChooser } from '@/components';
 import type { RecommendedTracks } from '@/hooks';
+import { useChampionships } from '@/hooks';
 import type { CircuitUsage } from '@/lib/circuit-usage';
+import { layoutFields } from '@/lib/circuit-usage';
 
 interface TrackListProps {
   /**
@@ -25,16 +27,25 @@ interface TrackListProps {
    * Whether the rows' menus may open a track's page; first-run setup says not.
    */
   trackPages?: boolean;
+  /**
+   * The layout a link opened the tab on, by its id.
+   */
+  marked?: string;
 }
 
 /**
  * The circuits as cards, and the picker their Choose buttons open.
  */
 export const TrackList = ({
-  circuits, usage, tracks, trackPages = true,
+  circuits, usage, tracks, trackPages = true, marked,
 }: TrackListProps) => {
   const { t } = useTranslation();
   const [choosing, setChoosing] = useState<RecommendedEntry | null>(null);
+  const { listings: championships } = useChampionships();
+  const { listings: historic } = useChampionships('historic');
+  // Every field a track is judged against, historic events' too.
+  const listings = useMemo(() => [...championships, ...historic], [championships, historic]);
+  const fields = useMemo(() => layoutFields(listings), [listings]);
 
   return (
     <>
@@ -51,6 +62,8 @@ export const TrackList = ({
               tracks={tracks}
               onChoose={(layout) => setChoosing(recommendedLayout(layout.id))}
               trackPages={trackPages}
+              fields={fields}
+              marked={marked}
             />
           ))}
         </div>
@@ -59,7 +72,9 @@ export const TrackList = ({
       <TrackChooser
         choosing={choosing}
         tracks={tracks}
-        championships={choosing ? usage.get(choosing.circuit.id)?.championships : undefined}
+        listings={listings}
+        fields={fields}
+        usage={usage}
         onClose={() => setChoosing(null)}
       />
     </>

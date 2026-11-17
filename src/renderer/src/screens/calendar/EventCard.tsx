@@ -1,7 +1,7 @@
 import { ArrowRightIcon, LockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { FADED_WELL } from './constants.ts';
+import { BLOCK_LABEL, FADED_WELL } from './constants.ts';
 import type { CalendarEntry } from '../../../../shared/types';
 import { HistoricChip } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -181,7 +181,7 @@ export const EventCard = ({ event, onOpen }: EventCardProps) => {
         )}
         {event.eligible && !event.raceable ? (
           <Badge variant="destructive" className="px-1.5 py-0 text-[0.65rem]">
-            {t('calendar.unraceable')}
+            {t(BLOCK_LABEL[event.block?.kind ?? 'other'])}
           </Badge>
         ) : null}
 

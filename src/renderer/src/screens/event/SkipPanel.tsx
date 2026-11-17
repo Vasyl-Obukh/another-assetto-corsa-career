@@ -1,7 +1,7 @@
 import { SkipForwardIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { MissingTrack } from './MissingTrack.tsx';
+import { BlockedTrack } from './BlockedTrack.tsx';
 import type { CareerEventView } from '../../../../shared/types';
 import { SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
@@ -28,15 +28,30 @@ interface SkipPanelProps {
  */
 export const SkipPanel = ({ view, busy, onSkip }: SkipPanelProps) => {
   const { t } = useTranslation();
+  const { block } = view;
+  const { recommended } = view.track;
+
+  /**
+   * What stops the round, and what can be done about it.
+   * @returns The hint
+   */
+  const hint = (): string => {
+    if (block?.kind !== 'pitboxes') return t('event.skip.hint');
+    const figures = { track: block.track, available: block.available, needed: block.needed };
+
+    // A round at a recommended layout can race another track; one naming a
+    // folder of its own cannot.
+    return recommended ? t('event.skip.hintPitboxes', figures) : t('event.skip.hintPitboxesFixed', figures);
+  };
 
   return (
     <Card className="py-4">
       <CardContent className="flex flex-col gap-3 px-4">
         <SkipNote
           title={view.historic ? t('event.skip.titleEvent') : t('event.skip.title')}
-          hint={t('event.skip.hint')}
+          hint={hint()}
         />
-        {view.track.recommended ? <MissingTrack layout={view.track.recommended} /> : null}
+        {recommended && block ? <BlockedTrack layout={recommended} block={block} /> : null}
         <div className="flex justify-end">
           <Button type="button" size="lg" variant="outline" disabled={busy} onClick={onSkip}>
             <SkipForwardIcon />

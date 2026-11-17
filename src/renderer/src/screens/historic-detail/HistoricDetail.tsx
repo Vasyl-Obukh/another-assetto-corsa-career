@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { HISTORIC_TABS } from './constants.ts';
 import { HistoricDetailSkeleton } from './HistoricDetailSkeleton.tsx';
 import type { HistoricTab } from './types.ts';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { paidTable } from '../../../../shared/utils/prizes';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
@@ -23,7 +24,7 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { DETAIL_TAB_PARAM, path, ROUTE } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, fieldSize, FormatsCard, HistoricClasses, HistoricOverview, HistoricPrizes,
+  ChampionshipActions, disciplineKey, FormatsCard, HistoricClasses, HistoricOverview, HistoricPrizes,
   OriginBadge, RulesSheet, tierAccent, UNDERLINE_TAB,
 } from '@/screens/championships';
 import { historicSwitches } from '@/screens/historic-library';

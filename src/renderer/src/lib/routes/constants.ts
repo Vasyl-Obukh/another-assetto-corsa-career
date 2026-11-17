@@ -68,6 +68,12 @@ export const ROUTE = {
 export const TRACK_LAYOUT_PARAM = 'layout';
 
 /**
+ * The search parameter the Tracks tab is opened on one recommended layout
+ * with, so a round that cannot be raced for its track leads straight to it.
+ */
+export const RECOMMENDED_PARAM = 'for';
+
+/**
  * The search parameters a championship's page and a round's page keep their
  * run in: which season and which of its editions. Absent, a page shows the
  * current season and the edition the career is racing, or else the one still

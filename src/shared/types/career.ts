@@ -19,7 +19,7 @@ import type { Mail } from './inbox.ts';
 import type { Discipline, LadderPosition } from './ladder.ts';
 import type { ClassGrid, GridEntry, SessionType } from './race.ts';
 import type {
-  AiBase, Championship, Climate, FieldSeat, RoundRaceLength, SeriesAvailability, TeamBudget,
+  AiBase, Championship, Climate, FieldSeat, RoundBlock, RoundRaceLength, SeriesAvailability, TeamBudget,
 } from './series.ts';
 import type {
   Currency, DrivingAids, HistoricFrequency, LocalizedText,
@@ -1530,6 +1530,10 @@ export interface CalendarEntry {
    */
   raceable: boolean;
   /**
+   * Why it cannot be, or null when it can.
+   */
+  block: RoundBlock | null;
+  /**
    * Whether another of the career's events falls on the same day, neither of
    * them given up - never so while settings allow two events on one day.
    */
@@ -2038,6 +2042,10 @@ export interface CareerEventView {
    */
   raceable: boolean;
   /**
+   * Why it cannot be, or null when it can.
+   */
+  block: RoundBlock | null;
+  /**
    * Every session of the event, in the order they run.
    */
   sessions: readonly EventSession[];
@@ -2237,6 +2245,10 @@ export interface SkippedRound {
    * What moving on does to it.
    */
   reason: SkipReason;
+  /**
+   * Why the install cannot race it, for a round skipped as unraceable.
+   */
+  block?: RoundBlock;
   /**
    * Whether it is a historic event rather than a round of a championship.
    */

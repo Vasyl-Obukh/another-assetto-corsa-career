@@ -20,6 +20,7 @@ import {
   OVER_ESCAPED,
   PARAM_PLACEHOLDER,
   QUICK_NAV,
+  RECOMMENDED_PARAM,
   ROUTE,
   RUN_PARAM,
   SESSION_PARAM,
@@ -374,10 +375,15 @@ export const path = {
   settingsSources: (): string => ROUTE.settingsSources,
   /**
    * The settings screen's Tracks tab, which says which installed track each
-   * recommended layout races.
+   * recommended layout races - opened on one layout when one is named.
+   * @param layout The recommended layout to open on, by its id
    * @returns Its URL
    */
-  settingsTracks: (): string => ROUTE.settingsTracks,
+  settingsTracks: (layout?: string): string => (
+    layout === undefined
+      ? ROUTE.settingsTracks
+      : `${ROUTE.settingsTracks}?${new URLSearchParams({ [RECOMMENDED_PARAM]: layout }).toString()}`
+  ),
   /**
    * One championship's page as the settings tab opens it: the same page a
    * career reads, with nothing on it that races a round.

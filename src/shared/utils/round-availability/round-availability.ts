@@ -4,7 +4,7 @@
 // and a round row badges it in the renderer, which may not import core.
 
 import type {
-  RoundAvailability, SeriesAvailability, SeriesListing,
+  RoundAvailability, RoundBlock, SeriesAvailability, SeriesListing,
 } from '../../types/index.ts';
 
 /**
@@ -111,3 +111,31 @@ export const seatRaceableIn = (
 export const firstRaceable = (listing: SeriesListing): string | undefined => (
   listing.series.rounds.find((round) => roundRaceableIn(listing.availability, round.id))?.id
 );
+
+/**
+ * Why one round cannot be raced, read off an availability alone: its track
+ * missing, too few pit boxes for the field, or anything else. Given a seat, its
+ * car is judged too, and a car the round does not run is something else.
+ * @param availability What seriesAvailability said about the championship
+ * @param round The round's id
+ * @param seat The class and the car raced in it, when one is
+ * @param seat.entry The class entry's id
+ * @param seat.car The car's folder ID
+ * @returns Why it cannot be raced, or null when it can
+ */
+export const roundBlockIn = (
+  availability: SeriesAvailability,
+  round: string,
+  seat?: { entry: string; car: string },
+): RoundBlock | null => {
+  const raceable = seat
+    ? seatRaceableIn(availability, round, seat.entry, seat.car)
+    : roundRaceableIn(availability, round);
+  if (raceable) return null;
+
+  const state = roundAvailabilityIn(availability, round);
+  if (state?.track) return { kind: 'track' };
+  if (state?.pitboxes) return { kind: 'pitboxes', ...state.pitboxes };
+
+  return { kind: 'other' };
+};

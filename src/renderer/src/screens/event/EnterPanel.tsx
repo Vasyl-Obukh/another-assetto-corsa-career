@@ -187,7 +187,11 @@ export const EnterPanel = ({
           </Badge>
         ) : null}
         {!view.raceable ? (
-          <p className="text-sm text-destructive">{t('event.enter.unraceable')}</p>
+          <p className="text-sm text-destructive">
+            {view.block?.kind === 'pitboxes' ? t('event.enter.pitboxes', {
+              track: view.block.track, available: view.block.available, needed: view.block.needed,
+            }) : t(view.block?.kind === 'track' ? 'event.enter.noTrack' : 'event.enter.unraceable')}
+          </p>
         ) : null}
         {chosen && chosen.cars.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('event.enter.noCars')}</p>

@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { HERO_TRACK } from './constants.ts';
 import { laddersOf } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { ContentImage, trackPictureSources } from '@/components';
-import { fieldSize, LadderChip } from '@/screens/championships';
+import { LadderChip } from '@/screens/championships';
 
 interface SeasonHeroProps {
   /**

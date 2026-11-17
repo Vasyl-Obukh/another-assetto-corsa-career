@@ -4,12 +4,15 @@ import { Fragment } from 'react';
 
 import { SeatSheetRow } from './SeatSheetRow.tsx';
 import {
-  namesIn, nationsIn, nextSeat, seatRuns,
+  namesIn, nationsIn, nextSeat, pitboxShort, seatRuns,
 } from './utils.ts';
-import type { Championship, ClassEntry, Seat, Team } from '../../../../shared/types';
+import type {
+  Championship, ClassEntry, Seat, SeriesAvailability, Team,
+} from '../../../../shared/types';
 import { fillDrivers } from '../../../../shared/utils/driver-names';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { useSettings } from '@/app';
-import { BudgetBadge, NationFlag } from '@/components';
+import { BudgetBadge, NationFlag, SkipNote } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useRowDrag } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
@@ -22,6 +25,11 @@ interface SeatSheetProps {
    * across every class, not within one.
    */
   series: Championship;
+  /**
+   * The draft checked against what is installed, or null before the first
+   * answer comes back.
+   */
+  checked: SeriesAvailability | null;
   /**
    * The class entry whose seats these are.
    */
@@ -58,10 +66,12 @@ interface SeatSheetProps {
  * Order matters: the player takes the last seat of the class they enter.
  */
 export const SeatSheet = ({
-  series, entry, teams, fieldable, locked, nameOf, onChange,
+  series, checked, entry, teams, fieldable, locked, nameOf, onChange,
 }: SeatSheetProps) => {
   const { t } = useKindTranslation();
   const { seats } = entry;
+  const field = fieldSize(series);
+  const short = pitboxShort(checked, field);
   const empty = seats.filter((seat) => !seat.driver?.name).length;
   const used = nationsIn(series);
   const { settings } = useSettings();
@@ -144,6 +154,18 @@ export const SeatSheet = ({
           </tbody>
         </table>
       </div>
+
+      {/* Above Add a seat, since another seat only makes it worse. */}
+      {short.rounds > 0 ? (
+        <SkipNote
+          title={t('editor.seats.tooFew', { count: short.rounds, field })}
+          hint={t('editor.seats.tooFewAt', {
+            tracks: short.tracks
+              .map((track) => t('editor.seats.trackBoxes', { track: track.name, boxes: track.pitboxes ?? 0 }))
+              .join(t('editor.seats.separator')),
+          })}
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button

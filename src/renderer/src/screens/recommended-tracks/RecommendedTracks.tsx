@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
 
 import { TRACK_SORT_ITEMS, TRACK_STATES, TRACKS_MEMORY } from './constants.ts';
 import { TrackList } from './TrackList.tsx';
@@ -11,6 +12,7 @@ import {
 } from './utils.ts';
 import { DISCIPLINES, RECOMMENDED_CIRCUITS } from '../../../../shared/constants';
 import type { Discipline } from '../../../../shared/types';
+import { recommendedLayout } from '../../../../shared/utils/recommended-tracks';
 import { searchTerms } from '../../../../shared/utils/search';
 import {
   BrowserLayout, SearchField, SortMenu, TOOLBAR_SEARCH,
@@ -20,6 +22,7 @@ import {
 } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { circuitUsage } from '@/lib/circuit-usage';
+import { RECOMMENDED_PARAM } from '@/lib/routes';
 
 /**
  * The settings screen's Tracks tab: every recommended circuit and the track
@@ -31,9 +34,22 @@ export const RecommendedTracks = () => {
   const tracks = useRecommendedTracks();
   const { listings } = useChampionships();
   const { states } = tracks;
+  const [params] = useSearchParams();
 
   const [search, setSearch] = useRememberedSearch(TRACKS_MEMORY);
   const [criteria, setCriteria] = usePreference(TRACKS_MEMORY, readTracksCriteria);
+  // Opened on a layout by a link from a round: the circuit searched for, and
+  // the filters cleared, so it is listed whatever the tab was left showing.
+  const asked = params.get(RECOMMENDED_PARAM);
+  const [marked, setMarked] = useState<string | null>(null);
+  if (asked !== null && asked !== marked) {
+    setMarked(asked);
+    const entry = recommendedLayout(asked);
+    if (entry) {
+      setSearch(entry.circuit.name);
+      setCriteria({ ...criteria, states: [], disciplines: [] });
+    }
+  }
   const {
     states: picked, disciplines, sort, direction,
   } = criteria;
@@ -95,7 +111,12 @@ export const RecommendedTracks = () => {
       scrollRef={scrollRef}
       backToTop
     >
-      <TrackList circuits={shown} usage={usage} tracks={tracks} />
+      <TrackList
+        circuits={shown}
+        usage={usage}
+        tracks={tracks}
+        marked={marked ?? undefined}
+      />
     </BrowserLayout>
   );
 };

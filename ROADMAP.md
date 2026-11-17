@@ -3480,13 +3480,40 @@ them. Mockup: `mockups/recommended-tracks.html`.
 - [x] First-run setup gains Content sources and Tracks as optional steps
 - [x] LFM and VRC credited with no circuit: `MOD_TRACKS` and
       `DISTRIBUTOR_TRACKS` are gone
-- [ ] Tests for the new and changed functions, once reviewed
+- [x] Tests for the new and changed functions, once reviewed
 - [x] **Calendars reworked** around the recommended list: 343 rounds added
       where the real calendars placed them, each at a recommended layout, the
       Formula E seasons' street circuits among them, Monaco with its real
       distance in laps and the F1 sprint weekends as raced. A round whose only
       known version has too few pit boxes for the grid is left out and named
       in the championship's header
+
+## Pit box warnings (before Phase 14)
+
+A round whose field outgrows the pit boxes of the track it races is
+unraceable, never cut down; every screen that shows such a round now says
+why. Mockup: `mockups/pit-boxes.html`.
+
+- [x] **Why a round is blocked** travels with it: `RoundBlock` (track, pit
+      boxes, other) on calendar entries, the round page and skipped rounds;
+      `RoundAvailability.racedOn` names the installed track and its boxes
+- [x] Round page: the skip panel's hint and the Enter panel's line name the
+      reason; a pit box row beside the missing-track one
+- [x] Calendar cards and the skip and advance dialogs say Too few pit boxes
+      or Track not installed; every unraceable round is marked, fined or not
+- [x] Library tooltip and Missing content list the tracks short of boxes
+- [x] Editor: an amber note above Add a seat, and a line under a new class's
+      Seats, once the field outgrows a round's track
+- [x] Track page: Raced here chips a championship its layout cannot hold
+- [x] **Track choice lives in Settings only**: rounds link to Settings -
+      Tracks (`?for=<layout>`, search set, filters cleared, layout marked) in
+      place of the Choose a track dialogs
+- [x] Settings - Tracks: a short track's pit boxes in amber with the field it
+      falls short of; the picker chips layouts against the biggest field, and
+      a choice costing any championship a round is confirmed first
+- [x] One rule for "too few pit boxes" (`tooFewPitboxes`, with `fieldSize`, in
+      `shared/utils/field-size`): a track saying 0 holds any field everywhere
+- [x] Tests for the new and changed functions, once reviewed
 
 ## Phase 14 - Distribution
 

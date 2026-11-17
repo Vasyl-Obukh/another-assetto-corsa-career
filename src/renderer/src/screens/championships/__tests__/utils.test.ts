@@ -28,7 +28,6 @@ import {
   contentValues,
   editionOffers,
   enterHintOf,
-  fieldSize,
   isListed,
   ladderDepth,
   layoutLabel,
@@ -71,7 +70,7 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
     entry: 'main', eligible: ['ks_mazda_mx5_cup'], missing: [], enough: true,
   }],
   rounds: [{
-    round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+    round: 'magione', track: null, pitboxes: null, racedOn: null, entries: [], races: [],
   }],
   requires: {
     sources: [],
@@ -558,23 +557,6 @@ describe('renderer/screens/championships/utils', () => {
     });
   });
 
-  describe('fieldSize', () => {
-    it("counts every seat of every class, the player's included", () => {
-      const series = {
-        entries: [
-          { seats: [{ id: 'a' }, { id: 'b' }] },
-          { seats: [{ id: 'c' }] },
-        ],
-      } as unknown as Championship;
-
-      expect(fieldSize(series)).toBe(3);
-    });
-
-    it('counts nothing for a championship with no classes yet', () => {
-      expect(fieldSize({ entries: [] } as unknown as Championship)).toBe(0);
-    });
-  });
-
   describe('missingContent', () => {
     const base = { source: ContentSource.MOD, pack: null, maker: null, distributor: null };
 
@@ -587,6 +569,7 @@ describe('renderer/screens/championships/utils', () => {
           round: 'spa',
           track: null,
           pitboxes: null,
+          racedOn: null,
           races: [],
           entries: [{
             entry: 'main',
@@ -607,10 +590,10 @@ describe('renderer/screens/championships/utils', () => {
       const missing = missingContent(listing({
         rounds: [
           {
-            round: 'lusail', track, pitboxes: null, entries: [], races: [],
+            round: 'lusail', track, pitboxes: null, racedOn: null, entries: [], races: [],
           },
           {
-            round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+            round: 'magione', track: null, pitboxes: null, racedOn: null, entries: [], races: [],
           },
         ],
       }));
@@ -619,7 +602,7 @@ describe('renderer/screens/championships/utils', () => {
     });
 
     it('lists nothing for a championship the install can race', () => {
-      expect(missingContent(listing())).toEqual({ cars: [], tracks: [] });
+      expect(missingContent(listing())).toEqual({ cars: [], tracks: [], pitboxes: [] });
     });
 
     // Found in review: two rounds at one layout listed it twice, under one
@@ -630,11 +613,24 @@ describe('renderer/screens/championships/utils', () => {
       };
       const missing = missingContent(listing({
         rounds: ['sprint', 'feature'].map((round) => ({
-          round, track, pitboxes: null, entries: [], races: [],
+          round, track, pitboxes: null, racedOn: null, entries: [], races: [],
         })),
       }));
 
       expect(missing.tracks).toEqual([track]);
+    });
+
+    it('lists each installed track too small for the field once, apart from tracks with the same name', () => {
+      const shortfall = (key: string) => ({
+        needed: 30, available: 24, key, track: 'Spa',
+      });
+      const missing = missingContent(listing({
+        rounds: [['sprint', 'spa_a'], ['feature', 'spa_a'], ['finale', 'spa_b']].map(([round, key]) => ({
+          round, track: null, pitboxes: shortfall(key), racedOn: null, entries: [], races: [],
+        })),
+      }));
+
+      expect(missing.pitboxes).toEqual([shortfall('spa_a'), shortfall('spa_b')]);
     });
   });
 
@@ -645,6 +641,7 @@ describe('renderer/screens/championships/utils', () => {
           round: 'magione',
           track: null,
           pitboxes: null,
+          racedOn: null,
           races: [],
           entries: [{
             entry: 'main', eligible: ['ks_mazda_mx5_nd'], missing: [], enough: true,

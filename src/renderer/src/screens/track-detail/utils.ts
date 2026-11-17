@@ -9,6 +9,7 @@ import type {
 import {
   isServableLayout, trackLogoUrl, trackPhotoUrl, trackPreviewUrl,
 } from '../../../../shared/utils/content-url';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { nationOfCountry } from '../../../../shared/utils/nations';
 
 /**
@@ -78,6 +79,7 @@ export const circuitChampionships = (
     discipline: first.ladder.discipline,
     ladders: [...ladders.values()].sort((a, b) => a.tier - b.tier),
     rounds,
+    field: fieldSize(series),
   }];
 });
 

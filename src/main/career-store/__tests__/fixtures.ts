@@ -214,6 +214,7 @@ export const makeAvailability = (
     round: round.id,
     track: null,
     pitboxes: null,
+    racedOn: null,
     entries: [],
     races: [{ name: 'Race', laps: 10 }],
   })),

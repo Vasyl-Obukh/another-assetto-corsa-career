@@ -164,7 +164,6 @@ export const RoundTableRow = ({
           entry={entry}
           playerSeat={playerSeat}
           playerName={playerName}
-          number={number}
         />
       </td>
 

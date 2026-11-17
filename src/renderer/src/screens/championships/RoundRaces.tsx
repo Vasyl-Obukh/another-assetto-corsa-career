@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { raceLabels } from './utils.ts';
 import type { Round, SeriesListing } from '../../../../shared/types';
 import { roundAvailability } from '../../../../shared/utils/round-availability';
-import { MissingTrackButton, NationFlag } from '@/components';
+import { NationFlag, TrackSettingsLink } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
 import { useUnits } from '@/hooks';
 import type { RoundColumn } from '@/lib/season-results';
@@ -37,17 +37,12 @@ interface RoundRacesProps {
    * What the player is called.
    */
   playerName: string;
-  /**
-   * The round's number in its season, which a missing track's dialog is titled
-   * by.
-   */
-  number: number;
 }
 
 // A round run names who won each race; one still to come, how long its races
 // are - or what stops it being raced at all.
 export const RoundRaces = ({
-  listing, round, column, entry, playerSeat, playerName, number,
+  listing, round, column, entry, playerSeat, playerName,
 }: RoundRacesProps) => {
   const { t } = useTranslation();
   const units = useUnits();
@@ -65,20 +60,19 @@ export const RoundRaces = ({
 
   return (
     <div className="flex flex-col items-start gap-1 text-sm tabular-nums">
-      {state?.track ? (
-        <MissingTrackButton
-          layout={state.track.recommended}
-          label={t('championships.calendar.missingTrack')}
-          title={t('recommendedTracks.roundTrack', { number })}
-        />
-      ) : null}
-      {state?.pitboxes ? (
-        <Badge variant="destructive">
-          {t('championships.calendar.tooFewPitboxes', {
-            available: state.pitboxes.available,
-            needed: state.pitboxes.needed,
-          })}
-        </Badge>
+      {state?.track || state?.pitboxes ? (
+        // Stacked, so a narrow calendar column is no wider than the badge.
+        <span className="flex flex-col items-start gap-0.5">
+          <Badge variant="destructive">
+            {state.pitboxes
+              ? t('championships.calendar.tooFewPitboxes', {
+                available: state.pitboxes.available,
+                needed: state.pitboxes.needed,
+              })
+              : t('championships.calendar.missingTrack')}
+          </Badge>
+          {round.track.recommended ? <TrackSettingsLink layout={round.track.recommended} /> : null}
+        </span>
       ) : null}
       {winners.map(({ race, won }, at) => (
         <span key={race.launch} className="flex items-center gap-1.5 text-xs whitespace-nowrap">

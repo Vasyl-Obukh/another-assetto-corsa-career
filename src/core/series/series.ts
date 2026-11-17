@@ -21,7 +21,6 @@ import {
   eligibilityFor,
   eligibleCars,
   entryOf,
-  fieldSize,
   findLayout,
   missingTrack,
   nationOf,
@@ -63,6 +62,7 @@ import { aiFigure } from '../../shared/utils/ai-figure/index.ts';
 import { isKnownSpec, SHIPPED_CATALOGUE } from '../../shared/utils/car-classes/index.ts';
 import { carsOf, fieldableCars } from '../../shared/utils/eligibility/index.ts';
 import { formatOf } from '../../shared/utils/event-format/index.ts';
+import { fieldSize, tooFewPitboxes } from '../../shared/utils/field-size/index.ts';
 import { recommendedLayout } from '../../shared/utils/recommended-tracks/index.ts';
 import { dryOffer, rainAllowed, withoutRain } from '../../shared/utils/wet-weather/index.ts';
 import { nextSkin, skinKey } from '../race-ini/index.ts';
@@ -306,13 +306,15 @@ export const seriesAvailability = (
       .filter((entry) => round.eligibility?.some((override) => override.entry === entry.id))
       .map((entry) => availabilityOf(entry, content, catalogue, round));
     const format = formatOf(series, round);
+    const boxes = track?.pitboxes ?? 0;
 
     return {
       round: round.id,
       track: track ? null : missingTrack(round),
-      pitboxes: track?.pitboxes && needed > track.pitboxes
-        ? { needed, available: track.pitboxes }
-        : null,
+      pitboxes: track && tooFewPitboxes(needed, boxes) ? {
+        needed, available: boxes, key: track.key, track: track.name,
+      } : null,
+      racedOn: track ? { key: track.key, name: track.name, pitboxes: track.pitboxes } : null,
       entries: overridden,
       races: format ? raceLengths(roundSessions(format, round), track?.lengthM ?? null) : [],
     };

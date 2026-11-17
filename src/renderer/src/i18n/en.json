@@ -497,7 +497,7 @@
       "fitsAll": "Every layout has room for them",
       "fitsSome": "{{fits}} of {{total}} layouts have room",
       "tooFew": "{{pits}} pits for {{cars}} cars",
-      "tooFewHint": "Assetto Corsa drops the cars that do not fit",
+      "tooFewHint": "Can't be raced with this many cars",
       "current": "Current",
       "racedBy_one": "Raced by {{count}} championship",
       "racedBy_other": "Raced by {{count}} championships",
@@ -703,7 +703,11 @@
     "advanceHere": "Advance to this day",
     "advanceShort": "Go here",
     "answer": "Answer",
-    "feeToEnter": "{{amount}} to enter"
+    "feeToEnter": "{{amount}} to enter",
+    "block": {
+      "track": "Track not installed",
+      "pitboxes": "Too few pit boxes"
+    }
   },
   "event": {
     "roundOf": "Round {{number}} of {{rounds}}",
@@ -772,7 +776,9 @@
         "confirm": "Pay {{amount}} and sign",
         "backingHint": "Half of this seat, {{amount}}. One backed seat at a time."
       },
-      "coveredBy": "Covered by {{sponsor}}"
+      "coveredBy": "Covered by {{sponsor}}",
+      "pitboxes": "{{track}} has {{available}} pit boxes for a {{needed}}-car field.",
+      "noTrack": "Its track is not installed."
     },
     "brief": {
       "length": "Length",
@@ -845,7 +851,10 @@
       "titleEvent": "This event can't be raced as things stand.",
       "hint": "What it needs is not installed. Install it and come back, or skip it: a reserve driver races it in your seat, as for any round you miss.",
       "action": "Skip round {{number}}",
-      "actionEvent": "Skip this event"
+      "actionEvent": "Skip this event",
+      "pitboxes": "{{available}} pit boxes for {{needed}} cars",
+      "hintPitboxes": "{{track}} has {{available}} pit boxes for a {{needed}}-car field. Race it on a track with more, or skip it: a reserve driver races it in your seat, as for any round you miss.",
+      "hintPitboxesFixed": "{{track}} has {{available}} pit boxes for a {{needed}}-car field. Skip it, and a reserve driver races it in your seat, as for any round you miss."
     },
     "money": {
       "fee": "Entry fee {{amount}}",
@@ -1002,7 +1011,10 @@
     },
     "missing": {
       "cars": "Cars",
-      "tracks": "Tracks"
+      "tracks": "Tracks",
+      "pitboxes": "Too few pit boxes",
+      "pitboxesFor": "{{available}} for {{needed}} cars",
+      "pitboxesAt": "{{track}} ({{available}} for {{needed}})"
     },
     "entryLabel": "{{discipline}}, tier {{tier}}",
     "misconfigured": "Misconfigured",
@@ -1446,7 +1458,9 @@
       "teamsFromNothing": "No teams",
       "fastestFirst": "Fastest first",
       "slower": "slower",
-      "fastestFirstTip": "On a grid with faster classes first, every car of a class starts ahead of the classes below it."
+      "fastestFirstTip": "On a grid with faster classes first, every car of a class starts ahead of the classes below it.",
+      "tooFew_one": "{{field}} cars: {{count}} round can't be raced",
+      "tooFew_other": "{{field}} cars: {{count}} rounds can't be raced"
     },
     "eligibility": {
       "kind": "Cars from",
@@ -1488,7 +1502,12 @@
       "emptyCount_one": "{{count}} seat has no driver",
       "emptyCount_other": "{{count}} seats have no driver",
       "racesAt": "Races at",
-      "band": "{{low}}-{{high}}"
+      "band": "{{low}}-{{high}}",
+      "tooFew_one": "{{count}} round can't be raced with {{field}} cars.",
+      "tooFew_other": "{{count}} rounds can't be raced with {{field}} cars.",
+      "tooFewAt": "Too few pit boxes at {{tracks}}.",
+      "trackBoxes": "{{track}} ({{boxes}})",
+      "separator": ", "
     },
     "roundEligibility": {
       "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list, the calendar and the standings stay at championship level.",
@@ -2474,7 +2493,11 @@
     "free": "Costs no money: an entry fee is paid only for a round you launch.",
     "answer": "Answer it",
     "fine": "Fine {{amount}}",
-    "fines": "Under contract, each round given up costs its fine - {{amount}} in all. Nothing else here costs anything."
+    "fines": "Under contract, each round given up costs its fine - {{amount}} in all. Nothing else here costs anything.",
+    "block": {
+      "track": "Track not installed",
+      "pitboxes": "Too few pit boxes"
+    }
   },
   "back": {
     "home": "Home",
@@ -2731,7 +2754,9 @@
           "hint": "One class per field the event runs, each with its own rung of the ladder and its own cars. Most historic events run a single class.",
           "prizesHint": "What this class pays, in place of the event's own prize money. A multi-class grid pays its classes differently; classes sharing a purse leave both tables empty.",
           "prizesShared": "Pays what the event pays.",
-          "startSeatsHint": "Empty seats, drawn each time it is raced"
+          "startSeatsHint": "Empty seats, drawn each time it is raced",
+          "tooFew_one": "{{field}} cars: the event can't be raced",
+          "tooFew_other": "{{field}} cars: the event can't be raced"
         },
         "roundEligibility": {
           "hint": "Which cars each class runs here instead of its usual ones. Only the car varies - the entry list stays the event's."
@@ -2760,6 +2785,10 @@
         },
         "regulations": {
           "hint": "What the event allows, and what it does when the rules are broken. These are the rules rather than what you drive with - your own aids are in Settings - and an empty field is whatever Assetto Corsa ships."
+        },
+        "seats": {
+          "tooFew_one": "The event can't be raced with {{field}} cars.",
+          "tooFew_other": "The event can't be raced with {{field}} cars."
         }
       },
       "errors": {
@@ -3100,8 +3129,8 @@
     "library": "Settings › Championships",
     "stuckTitle_one": "{{count}} round can't be raced as things stand.",
     "stuckTitle_other": "{{count}} rounds can't be raced as things stand.",
-    "stuckHint_one": "Install what it needs before the season gets there, or skip it when it does - a reserve driver races it in your seat.",
-    "stuckHint_other": "Install what they need before the season gets there, or skip them when it does - a reserve driver races each in your seat."
+    "stuckHint_one": "Put it right before the season gets there, or skip it when it does - a reserve driver races it in your seat.",
+    "stuckHint_other": "Put them right before the season gets there, or skip them when it does - a reserve driver races each in your seat."
   },
   "finances": {
     "open": "Finances",
@@ -4224,8 +4253,6 @@
     "looksLike": "Looks like {{name}}",
     "useIt": "Use it",
     "choose": "Choose…",
-    "chooseTrack": "Choose a track…",
-    "whereToGet": "Where to get it",
     "menu": "Layout actions",
     "openTrack": "Open track page",
     "forget": "Use the one found",
@@ -4235,12 +4262,25 @@
     "chosen": "{{layout}} races {{track}}.",
     "chosenDetail_one": "{{shown}} championship races there.",
     "chosenDetail_other": "{{shown}} championships race there.",
-    "roundTrack": "Round {{number}}'s track",
     "layoutName": "{{circuit}} - {{layout}}",
     "sort": {
       "championships": "Championships",
       "name": "Name",
       "country": "Country"
+    },
+    "settingsLink": "Track settings",
+    "neededBy": "{{field}} needed by {{series}}",
+    "chosenShort_one": "{{shown}} can't hold its field.",
+    "chosenShort_other": "{{shown}} can't hold their fields.",
+    "outgrown": {
+      "title": "Race {{layout}} on {{track}}?",
+      "body_one": "Its {{count}} pit box is too few for these championships, and their rounds there can't be raced.",
+      "body_other": "Its {{count}} pit boxes are too few for these championships, and their rounds there can't be raced.",
+      "round": "Round {{number}} · {{name}}",
+      "separator": ", ",
+      "field_one": "{{shown}} car",
+      "field_other": "{{shown}} cars",
+      "confirm": "Race it there"
     }
   }
 }

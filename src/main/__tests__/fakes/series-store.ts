@@ -39,7 +39,7 @@ export const raceableAvailability = (series: Championship): SeriesAvailability =
     enough: true,
   })),
   rounds: series.rounds.map((round) => ({
-    round: round.id, track: null, pitboxes: null, entries: [], races: [{ name: 'Race', laps: 10 }],
+    round: round.id, track: null, pitboxes: null, racedOn: null, entries: [], races: [{ name: 'Race', laps: 10 }],
   })),
   // Needing nothing, so no content source switched off ever hides it.
   requires: {

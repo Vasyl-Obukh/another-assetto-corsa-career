@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { Round, SeriesListing } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
-import { roundRaceableIn } from '../../../../shared/utils/round-availability';
+import { roundBlockIn } from '../../../../shared/utils/round-availability';
 import { Shimmer } from '@/components';
 import { useFormat } from '@/i18n';
 import { FormatStrip, RoundRaces, trackLabelOf } from '@/screens/championships';
@@ -47,7 +47,8 @@ export const CalendarRow = ({
   const { t } = useTranslation();
   const { formatDayShort } = useFormat();
   const format = formatOf(listing.series, round);
-  const raceable = roundRaceableIn(listing.availability, round.id);
+  // The two track reasons are said beside the races, with the way to Settings.
+  const block = roundBlockIn(listing.availability, round.id);
 
   return (
     <li className="grid grid-cols-[1.75rem_4rem_minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-2.5 first:border-t-0">
@@ -59,7 +60,9 @@ export const CalendarRow = ({
         <span className="truncate text-sm font-semibold">{round.name}</span>
         <span className="truncate text-xs text-muted-foreground">{trackLabelOf(round, t)}</span>
         {format ? <FormatStrip sessions={format.sessions} /> : null}
-        {raceable ? null : <span className="text-xs text-warning-foreground dark:text-warning">{t('newChampionship.unraceable')}</span>}
+        {block?.kind === 'other' ? (
+          <span className="text-xs text-warning-foreground dark:text-warning">{t('newChampionship.unraceable')}</span>
+        ) : null}
       </span>
       <span className="flex flex-col items-end gap-1 text-right text-xs">
         {date ? <span className="font-medium whitespace-nowrap">{formatDayShort(date)}</span> : null}
@@ -69,7 +72,6 @@ export const CalendarRow = ({
           round={round}
           entry={entry}
           playerName={playerName}
-          number={number}
         />
       </span>
     </li>

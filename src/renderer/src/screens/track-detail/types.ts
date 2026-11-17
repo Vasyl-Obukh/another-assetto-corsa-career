@@ -38,6 +38,10 @@ export interface CircuitChampionship {
    * Its rounds at this circuit, in calendar order.
    */
   rounds: readonly CircuitRound[];
+  /**
+   * Cars on its grid, every class together.
+   */
+  field: number;
 }
 
 /**

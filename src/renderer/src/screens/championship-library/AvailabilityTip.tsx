@@ -27,7 +27,7 @@ export const AvailabilityTip = ({ listing }: AvailabilityTipProps) => {
   if (state === 'available') return null;
 
   const { problems } = listing.availability;
-  const { cars, tracks } = missingContent(listing);
+  const { cars, tracks, pitboxes } = missingContent(listing);
   const named = (ids: readonly string[]): string => (ids.length > TIP_LIST_LIMIT
     ? [...ids.slice(0, TIP_LIST_LIMIT), t('championshipLibrary.table.andMore', { count: ids.length - TIP_LIST_LIMIT })]
       .join(', ')
@@ -61,6 +61,16 @@ export const AvailabilityTip = ({ listing }: AvailabilityTipProps) => {
               <span>
                 <span className="mr-1.5 opacity-70">{t('championships.missing.tracks')}</span>
                 <span>{named(tracks.map((track) => missingTrackLabel(track, t)))}</span>
+              </span>
+            ) : null}
+            {pitboxes.length > 0 ? (
+              <span>
+                <span className="mr-1.5 opacity-70">{t('championships.missing.pitboxes')}</span>
+                <span>
+                  {named(pitboxes.map((one) => t('championships.missing.pitboxesAt', {
+                    track: one.track, available: one.available, needed: one.needed,
+                  })))}
+                </span>
               </span>
             ) : null}
             <span className="opacity-70">{t('championshipLibrary.unavailable')}</span>

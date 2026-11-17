@@ -139,6 +139,7 @@ export const EntriesCard = ({
         <ClassPanel
           key={entry.id}
           series={series}
+          checked={checked}
           entry={entry}
           index={index}
           count={series.entries.length}
@@ -174,6 +175,7 @@ export const EntriesCard = ({
       {editing === undefined ? null : (
         <ClassDialog
           series={series}
+          checked={checked}
           entry={editing}
           adding={false}
           locked={locked}
@@ -189,6 +191,7 @@ export const EntriesCard = ({
       {rows.adding(ROW_SCOPE.ENTRIES) ? (
         <ClassDialog
           series={series}
+          checked={checked}
           entry={nextEntry(series)}
           adding
           locked={locked}

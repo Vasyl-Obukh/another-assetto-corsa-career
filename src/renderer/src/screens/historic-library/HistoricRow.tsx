@@ -6,6 +6,7 @@ import { HistoricTrack } from './HistoricTrack.tsx';
 import { historicSwitches } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
 import { SWITCH_TRACK } from '@/components';
@@ -16,7 +17,7 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { managePath } from '@/lib/series-kind';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, fieldSize, FormatStrip, TierMedal,
+  ChampionshipActions, disciplineKey, FormatStrip, TierMedal,
 } from '@/screens/championships';
 
 interface HistoricRowProps {

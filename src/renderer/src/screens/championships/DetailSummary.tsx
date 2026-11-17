@@ -10,10 +10,11 @@ import { Requirements } from './Requirements.tsx';
 import { SummaryFact } from './SummaryFact.tsx';
 import type { NextRound } from './types.ts';
 import {
-  availabilityState, disciplineKey, fieldSize, tierAccent,
+  availabilityState, disciplineKey, tierAccent,
 } from './utils.ts';
 import type { SeasonEntry, SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
 import { ClimateBadge, SWITCH_TRACK } from '@/components';

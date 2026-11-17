@@ -53,7 +53,7 @@ export {
 export { Loading } from './Loading.tsx';
 export { NameDialog } from './NameDialog.tsx';
 export { NationFlag } from './NationFlag.tsx';
-export { MissingTrackButton, RecommendedTrackCard, TrackChooser } from './recommended-track/index.ts';
+export { RecommendedTrackCard, TrackChooser, TrackSettingsLink } from './recommended-track/index.ts';
 export {
   debriefLines, debriefSubject, gapText, initials, isPerson, MailFrame, MailStrip, MailTile, newsAccent, newsSubject,
   paddockName, Sender,

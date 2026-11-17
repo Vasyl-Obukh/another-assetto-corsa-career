@@ -910,6 +910,56 @@ export interface EntryAvailability {
 }
 
 /**
+ * A field too big for the pit boxes of the track a round races on.
+ */
+export interface PitboxShortfall {
+  /**
+   * Cars the championship fields.
+   */
+  needed: number;
+  /**
+   * Pit boxes the track has.
+   */
+  available: number;
+  /**
+   * The track's key, "id/layout" or a bare id.
+   */
+  key: string;
+  /**
+   * The track's display name.
+   */
+  track: string;
+}
+
+/**
+ * The installed track a round races on.
+ */
+export interface RacedTrack {
+  /**
+   * Its key, "id/layout" or a bare id.
+   */
+  key: string;
+  /**
+   * Its display name.
+   */
+  name: string;
+  /**
+   * Its pit boxes, or null when it does not say.
+   */
+  pitboxes: number | null;
+}
+
+/**
+ * Why a round cannot be raced as things stand, as the screens name it: its
+ * track is not installed, the track has too few pit boxes for the field, or
+ * something else - a car, a lap length, the championship itself.
+ */
+export type RoundBlock =
+  | { kind: 'track' }
+  | ({ kind: 'pitboxes' } & PitboxShortfall)
+  | { kind: 'other' };
+
+/**
  * Whether one round can be raced against the installed content.
  */
 export interface RoundAvailability {
@@ -929,16 +979,13 @@ export interface RoundAvailability {
    * users' "same" championship quietly differ, and their results stop
    * comparing.
    */
-  pitboxes: {
-    /**
-     * Cars the championship fields.
-     */
-    needed: number;
-    /**
-     * Pit boxes the track has.
-     */
-    available: number;
-  } | null;
+  pitboxes: PitboxShortfall | null;
+  /**
+   * The installed track it races on, or null when that track is not installed.
+   * What the editor judges a grid it is still changing against, which may fit
+   * today and not after the next seat.
+   */
+  racedOn: RacedTrack | null;
   /**
    * Availability of any class entry whose eligibility this round overrides.
    */

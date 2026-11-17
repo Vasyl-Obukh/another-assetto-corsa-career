@@ -283,12 +283,13 @@ export const isListed = (
 const metalIndex = (tier: number, length: number): number => Math.min(Math.max(tier, 1), length) - 1;
 
 /**
- * What a championship needs that is not installed, each car and track once.
+ * What a championship needs that is not installed, each car and track once,
+ * and each installed track too small for its field.
  *
  * Named by folder ID rather than by a display name, because nothing that is
  * not installed has one - but for a recommended layout, which has its own.
  * @param listing The championship and its availability
- * @returns The missing cars and tracks
+ * @returns The missing cars and tracks, and the tracks short of pit boxes
  */
 export const missingContent = ({ availability }: SeriesListing): MissingContentList => {
   const cars = [
@@ -296,22 +297,14 @@ export const missingContent = ({ availability }: SeriesListing): MissingContentL
     ...availability.rounds.flatMap((round) => round.entries),
   ].flatMap((entry) => entry.missing);
   const tracks = availability.rounds.flatMap((round) => (round.track ? [round.track] : []));
+  const pitboxes = availability.rounds.flatMap((round) => (round.pitboxes ? [round.pitboxes] : []));
 
   return {
     cars: [...new Map(cars.map((car) => [car.id, car])).values()],
     tracks: [...new Map(tracks.map((track) => [track.key, track])).values()],
+    pitboxes: [...new Map(pitboxes.map((one) => [one.key, one])).values()],
   };
 };
-
-/**
- * How many cars a championship or a historic event puts on the grid, every
- * class together.
- * @param series The championship
- * @returns The seats, the player's included
- */
-export const fieldSize = (series: Championship): number => (
-  series.entries.reduce((sum, entry) => sum + entry.seats.length, 0)
-);
 
 /**
  * The colour a tier is chipped in.

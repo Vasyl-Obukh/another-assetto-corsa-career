@@ -275,16 +275,6 @@ export const nationOf = (
 };
 
 /**
- * How many cars a championship puts on the grid.
- * @param series The championship
- * @returns The sum of every class entry's seats
- */
-export const fieldSize = (series: Championship): number => series.entries.reduce(
-  (total, entry) => total + entry.seats.length,
-  0,
-);
-
-/**
  * Reads the livery a seat is pinned to, when the library actually has it.
  *
  * A shipped championship names none, and one a user pinned may have been

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { MAIL_PARAM, ROUTE } from '../constants.ts';
+import { MAIL_PARAM, RECOMMENDED_PARAM, ROUTE } from '../constants.ts';
 import {
   buildPath, homeOf, linkRun, path, routeOf, runOf, sectionOf, sessionOf,
 } from '../routes.ts';
@@ -72,6 +72,14 @@ describe('renderer/lib/routes/routes', () => {
     it('builds the page for one archived result from its file name', () => {
       expect(path.result({ file: '2026-08-31T18-04-11-123Z.json' }))
         .toBe('/home/results/2026-08-31T18-04-11-123Z.json');
+    });
+
+    it('opens the Tracks tab on one recommended layout when named', () => {
+      expect(path.settingsTracks('spa/gp')).toBe(`${ROUTE.settingsTracks}?${RECOMMENDED_PARAM}=spa%2Fgp`);
+    });
+
+    it('opens the Tracks tab as it was left when no layout is named', () => {
+      expect(path.settingsTracks()).toBe(ROUTE.settingsTracks);
     });
 
     it('builds a championship editor under settings, where the library is managed', () => {

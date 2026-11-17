@@ -37,6 +37,7 @@ import {
   nextTeam,
   offsetBounds,
   paysInAll,
+  pitboxShort,
   problemTab,
   problemTabs,
   racesPaying,
@@ -1101,6 +1102,53 @@ describe('renderer/screens/championship-editor/utils', () => {
     });
   });
 
+  describe('pitboxShort', () => {
+    /**
+     * A check of rounds each on a track of the given pit boxes.
+     * @param tracks Each round's track, by key, with its boxes
+     * @returns The availability
+     */
+    const racing = (tracks: [string, number | null][]): SeriesAvailability => checked({
+      rounds: tracks.map(([key, pitboxes], at) => ({
+        round: `r${at}`,
+        track: null,
+        pitboxes: null,
+        racedOn: { key, name: key.toUpperCase(), pitboxes },
+        entries: [],
+        races: [],
+      })),
+    });
+
+    it('counts the rounds a field is too big for, naming each track once in calendar order', () => {
+      const short = pitboxShort(racing([['b', 20], ['a', 30], ['b', 20], ['c', 18]]), 24);
+
+      expect(short.rounds).toBe(3);
+      expect(short.tracks.map((track) => track.key)).toEqual(['b', 'c']);
+    });
+
+    // The check answers after the draft changes, so the seat being added is
+    // judged against the boxes rather than the last answer's verdict.
+    it('judges a field the last check has not seen yet', () => {
+      expect(pitboxShort(racing([['a', 24]]), 24).rounds).toBe(0);
+      expect(pitboxShort(racing([['a', 24]]), 25).rounds).toBe(1);
+    });
+
+    it('passes over tracks that do not say how many boxes they have, and those not installed', () => {
+      const unknown = racing([['a', null], ['b', 0]]);
+
+      expect(pitboxShort(unknown, 60)).toEqual({ rounds: 0, tracks: [] });
+      expect(pitboxShort(checked({
+        rounds: [{
+          round: 'r', track: null, pitboxes: null, racedOn: null, entries: [], races: [],
+        }],
+      }), 60)).toEqual({ rounds: 0, tracks: [] });
+    });
+
+    it('finds nothing before the first check comes back', () => {
+      expect(pitboxShort(null, 60)).toEqual({ rounds: 0, tracks: [] });
+    });
+  });
+
   describe('problemTabs', () => {
     it('marks nothing before the draft has been checked', () => {
       expect(problemTabs(null)).toEqual(new Set());
@@ -1120,7 +1168,14 @@ describe('renderer/screens/championship-editor/utils', () => {
     it('marks what the install cannot race as well as what the document gets wrong', () => {
       const result = checked({
         rounds: [{
-          round: 'a', track: null, pitboxes: { needed: 20, available: 12 }, entries: [], races: [],
+          round: 'a',
+          track: null,
+          pitboxes: {
+            needed: 20, available: 12, key: 'a', track: 'A',
+          },
+          racedOn: null,
+          entries: [],
+          races: [],
         }],
         entries: [{
           entry: 'main', eligible: [], missing: [], enough: false,
@@ -1141,7 +1196,7 @@ describe('renderer/screens/championship-editor/utils', () => {
             key: 'spa', id: 'spa', layout: '', provenance: {
               source: ContentSource.BASE, pack: null, maker: null, distributor: null,
             },
-          }, pitboxes: null, entries: [], races: [],
+          }, pitboxes: null, racedOn: null, entries: [], races: [],
         }],
       });
 

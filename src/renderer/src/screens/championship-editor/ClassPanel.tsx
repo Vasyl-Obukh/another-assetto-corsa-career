@@ -8,7 +8,7 @@ import { RowActions } from './RowActions.tsx';
 import { SeatSheet } from './SeatSheet.tsx';
 import type { ClassSection } from './types.ts';
 import type {
-  Championship, ClassEntry, EntryAvailability, Team,
+  Championship, ClassEntry, EntryAvailability, SeriesAvailability, Team,
 } from '../../../../shared/types';
 import { carSpecName } from '../../../../shared/utils/car-classes';
 import { useClasses } from '@/app';
@@ -30,6 +30,11 @@ interface ClassPanelProps {
    * The championship the class belongs to.
    */
   series: Championship;
+  /**
+   * The draft checked against what is installed, or null before the first
+   * answer comes back.
+   */
+  checked: SeriesAvailability | null;
   /**
    * The class entry being edited.
    */
@@ -114,7 +119,7 @@ interface ClassPanelProps {
  * pays.
  */
 export const ClassPanel = ({
-  series, entry, index, count, availability, teams, fieldable, rows, locked, section, nameOf,
+  series, checked, entry, index, count, availability, teams, fieldable, rows, locked, section, nameOf,
   onSection, onChange, onEligibility, onEdit, onMove, onRemove,
 }: ClassPanelProps) => {
   const { t } = useKindTranslation();
@@ -201,6 +206,7 @@ export const ClassPanel = ({
         <TabsContent value="seats" className="p-4 pt-3 sm:p-5 sm:pt-3">
           <SeatSheet
             series={series}
+            checked={checked}
             entry={entry}
             teams={teams}
             fieldable={fieldable}

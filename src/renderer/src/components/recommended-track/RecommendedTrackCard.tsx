@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge.tsx';
 import type { RecommendedTracks } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { DISCIPLINE_ACCENT } from '@/lib/accents';
-import type { CircuitUsage } from '@/lib/circuit-usage';
+import type { CircuitUsage, LayoutField } from '@/lib/circuit-usage';
 import { cn } from '@/lib/utils.ts';
 
 interface RecommendedTrackCardProps {
@@ -38,6 +38,14 @@ interface RecommendedTrackCardProps {
    */
   trackPages?: boolean;
   /**
+   * The biggest field racing each layout, by the layout's id.
+   */
+  fields?: ReadonlyMap<string, LayoutField>;
+  /**
+   * The layout a link opened the tab on, by its id.
+   */
+  marked?: string;
+  /**
    * Classes for the card itself.
    */
   className?: string;
@@ -49,7 +57,7 @@ interface RecommendedTrackCardProps {
  * a row per layout.
  */
 export const RecommendedTrackCard = ({
-  circuit, usage, states, tracks, onChoose, trackPages = true, className,
+  circuit, usage, states, tracks, onChoose, trackPages = true, fields, marked, className,
 }: RecommendedTrackCardProps) => {
   const { t } = useTranslation();
   const { formatNumber } = useFormat();
@@ -88,6 +96,8 @@ export const RecommendedTrackCard = ({
             tracks={tracks}
             onChoose={() => onChoose(layout)}
             trackPages={trackPages}
+            needed={fields?.get(layout.id)}
+            marked={layout.id === marked}
           />
         ))}
       </div>

@@ -1,10 +1,12 @@
 import {
   CheckIcon, MapIcon, MoreVerticalIcon, RotateCcwIcon, XIcon,
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import type { RecommendedLayout, RecommendedTrackState } from '../../../../shared/types';
+import { tooFewPitboxes } from '../../../../shared/utils/field-size';
 import { Shimmer } from '@/components/Shimmer.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -14,8 +16,10 @@ import {
 import type { RecommendedTracks } from '@/hooks';
 import { useUnits } from '@/hooks';
 import { TRACK_STATE_ACCENT } from '@/lib/accents';
+import type { LayoutField } from '@/lib/circuit-usage';
 import { path } from '@/lib/routes';
 import { rowKind, shownTrack } from '@/lib/track-rows';
+import { cn } from '@/lib/utils.ts';
 
 interface LayoutRowProps {
   /**
@@ -39,6 +43,15 @@ interface LayoutRowProps {
    * stands in for the whole app until it is done.
    */
   trackPages: boolean;
+  /**
+   * The biggest field racing it, when anything does.
+   */
+  needed?: LayoutField;
+  /**
+   * Whether it is the layout a link opened the tab on, which is scrolled to
+   * and marked.
+   */
+  marked?: boolean;
 }
 
 /**
@@ -47,20 +60,32 @@ interface LayoutRowProps {
  * a track to talk about.
  */
 export const LayoutRow = ({
-  layout, state, tracks, onChoose, trackPages,
+  layout, state, tracks, onChoose, trackPages, needed, marked = false,
 }: LayoutRowProps) => {
   const { t } = useTranslation();
   const units = useUnits();
   const navigate = useNavigate();
+  const row = useRef<HTMLDivElement>(null);
 
   const kind = state ? rowKind(state) : null;
   const shown = shownTrack(state);
   const undo = kind === 'choice' || kind === 'guess';
+  const short = needed !== undefined && tooFewPitboxes(needed.field, shown?.pitboxes);
+
+  useEffect(() => {
+    if (marked) row.current?.scrollIntoView({ block: 'center' });
+  }, [marked]);
 
   return (
     // Every row the height of a two-line one, so a layout with nothing
     // installed lines up with its neighbours.
-    <div className="grid min-h-15 grid-cols-[minmax(8rem,13rem)_7.5rem_minmax(0,1fr)_auto] items-center gap-3.5 border-t px-4 py-2 first:border-t-0">
+    <div
+      ref={row}
+      className={cn(
+        'grid min-h-15 grid-cols-[minmax(8rem,13rem)_7.5rem_minmax(0,1fr)_auto] items-center gap-3.5 border-t px-4 py-2 first:border-t-0',
+        marked && 'bg-primary/5 shadow-[inset_3px_0_0_var(--color-primary)]',
+      )}
+    >
       <span className="font-medium">{layout.name}</span>
 
       {kind ? (
@@ -77,7 +102,17 @@ export const LayoutRow = ({
             <span className="flex flex-wrap gap-x-2.5 text-xs text-muted-foreground tabular-nums">
               <span className="max-w-full truncate font-mono" title={shown.key}>{shown.key}</span>
               {shown.lengthM === null ? null : <span>{units.formatLap(shown.lengthM)}</span>}
-              {shown.pitboxes === null ? null : <span>{t('tracks.pitboxes', { count: shown.pitboxes })}</span>}
+              {shown.pitboxes === null ? null : (
+                // Amber where a championship racing it fields more cars.
+                <span className={cn(short && 'font-medium text-warning-foreground dark:text-warning')}>
+                  {t('tracks.pitboxes', { count: shown.pitboxes })}
+                </span>
+              )}
+              {short ? (
+                <span className="font-medium text-warning-foreground dark:text-warning">
+                  {t('recommendedTracks.neededBy', { field: needed.field, series: needed.name })}
+                </span>
+              ) : null}
             </span>
           </>
         ) : null}

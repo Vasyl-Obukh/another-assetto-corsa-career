@@ -1,9 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { appErrorInfo } from '../../../errors/index.ts';
-import type { MissingTrack, SeriesAvailability, SeriesListing } from '../../../types/index.ts';
+import type {
+  MissingTrack, PitboxShortfall, SeriesAvailability, SeriesListing,
+} from '../../../types/index.ts';
 import {
-  eligibleCarsIn, firstRaceable, roundAvailability, roundAvailabilityIn, roundRaceable, roundRaceableIn, seatRaceableIn,
+  eligibleCarsIn, firstRaceable, roundAvailability, roundAvailabilityIn, roundBlockIn, roundRaceable, roundRaceableIn,
+  seatRaceableIn,
 } from '../index.ts';
 
 /**
@@ -19,7 +22,7 @@ const availability = (overrides: Partial<SeriesAvailability> = {}): SeriesAvaila
     entry: 'main', eligible: ['ks_mazda_mx5_cup'], missing: [], enough: true,
   }],
   rounds: [{
-    round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+    round: 'magione', track: null, pitboxes: null, racedOn: null, entries: [], races: [],
   }],
   requires: {
     sources: [],
@@ -101,6 +104,7 @@ describe('shared/utils/round-availability', () => {
           key: 'magione', id: 'magione', layout: '', provenance: {} as never,
         },
         pitboxes: null,
+        racedOn: null,
         entries: [],
         races: [],
       }];
@@ -110,7 +114,14 @@ describe('shared/utils/round-availability', () => {
 
     it('refuses a round with too few pit boxes for the field', () => {
       const rounds = [{
-        round: 'magione', track: null, pitboxes: { needed: 24, available: 18 }, entries: [], races: [],
+        round: 'magione',
+        track: null,
+        pitboxes: {
+          needed: 24, available: 18, key: 'magione', track: 'Magione',
+        },
+        racedOn: null,
+        entries: [],
+        races: [],
       }];
 
       expect(roundRaceable(listing({ rounds }), 'magione')).toBe(false);
@@ -126,7 +137,7 @@ describe('shared/utils/round-availability', () => {
 
     it('refuses a round with a race it cannot turn into laps', () => {
       const rounds = [{
-        round: 'magione', track: null, pitboxes: null, entries: [], races: [{ name: 'Race', laps: null, distance: 100 }],
+        round: 'magione', track: null, pitboxes: null, racedOn: null, entries: [], races: [{ name: 'Race', laps: null, distance: 100 }],
       }];
 
       expect(roundRaceable(listing({ rounds }), 'magione')).toBe(false);
@@ -150,6 +161,7 @@ describe('shared/utils/round-availability', () => {
         round: 'magione',
         track: null,
         pitboxes: null,
+        racedOn: null,
         entries: [{
           entry: 'main', eligible: ['ks_mazda_mx5_nd'], missing: [], enough: true,
         }],
@@ -183,7 +195,7 @@ describe('shared/utils/round-availability', () => {
     it('refuses a round the install cannot race in any car', () => {
       const missing = availability({
         rounds: [{
-          round: 'magione', track: missingTrack('magione'), pitboxes: null, entries: [], races: [],
+          round: 'magione', track: missingTrack('magione'), pitboxes: null, racedOn: null, entries: [], races: [],
         }],
       });
 
@@ -201,10 +213,10 @@ describe('shared/utils/round-availability', () => {
       ...listing({
         rounds: [
           {
-            round: 'monza', track: monza ? null : missingTrack('monza'), pitboxes: null, entries: [], races: [],
+            round: 'monza', track: monza ? null : missingTrack('monza'), pitboxes: null, racedOn: null, entries: [], races: [],
           },
           {
-            round: 'magione', track: null, pitboxes: null, entries: [], races: [],
+            round: 'magione', track: null, pitboxes: null, racedOn: null, entries: [], races: [],
           },
         ],
       }),
@@ -224,6 +236,54 @@ describe('shared/utils/round-availability', () => {
       const problems = [appErrorInfo('series.format.defaultUnknown', { series: 'sunday-cup', format: 'nope' })];
 
       expect(firstRaceable({ ...broken, availability: { ...broken.availability, problems } })).toBeUndefined();
+    });
+  });
+
+  describe('roundBlockIn', () => {
+    const shortfall = {
+      needed: 24, available: 18, key: 'magione', track: 'Magione',
+    };
+
+    /**
+     * An availability whose one round is stopped as given.
+     * @param track Its missing track, or null when installed
+     * @param pitboxes Its pit box shortfall, or null when the field fits
+     * @returns The availability
+     */
+    const stopped = (track: MissingTrack | null, pitboxes: PitboxShortfall | null): SeriesAvailability => (
+      availability({
+        rounds: [{
+          round: 'magione', track, pitboxes, racedOn: null, entries: [], races: [],
+        }],
+      })
+    );
+
+    it('finds nothing stopping a round that can be raced', () => {
+      expect(roundBlockIn(availability(), 'magione')).toBeNull();
+    });
+
+    it('names a missing track', () => {
+      expect(roundBlockIn(stopped(missingTrack('magione'), null), 'magione')).toEqual({ kind: 'track' });
+    });
+
+    it('names too few pit boxes, with the figures and the track', () => {
+      expect(roundBlockIn(stopped(null, shortfall), 'magione')).toEqual({ kind: 'pitboxes', ...shortfall });
+    });
+
+    it('names the track first when it is missing as well', () => {
+      expect(roundBlockIn(stopped(missingTrack('magione'), shortfall), 'magione')).toEqual({ kind: 'track' });
+    });
+
+    it('calls anything else something other than the track', () => {
+      const problems = [appErrorInfo('series.format.defaultUnknown', { series: 'sunday-cup', format: 'nope' })];
+
+      expect(roundBlockIn(availability({ problems }), 'magione')).toEqual({ kind: 'other' });
+    });
+
+    it('judges the seat when given one, a car no longer installed stopping it', () => {
+      expect(roundBlockIn(availability(), 'magione', { entry: 'main', car: 'ks_mazda_mx5_nd' }))
+        .toEqual({ kind: 'other' });
+      expect(roundBlockIn(availability(), 'magione', { entry: 'main', car: 'ks_mazda_mx5_cup' })).toBeNull();
     });
   });
 });

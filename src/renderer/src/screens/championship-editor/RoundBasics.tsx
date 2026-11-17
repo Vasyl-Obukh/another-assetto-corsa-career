@@ -16,6 +16,7 @@ import type {
   Championship, Climate, Hemisphere, Round, RoundAvailability, Track,
 } from '../../../../shared/types';
 import { formatOf } from '../../../../shared/utils/event-format';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { trackKeyOf } from '../../../../shared/utils/recommended-tracks';
 import { TrackPicker } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -302,7 +303,7 @@ export const RoundBasics = ({
       <TrackPicker
         open={picking}
         selectedKey={trackKey === '' ? undefined : trackKey}
-        gridSize={series.entries.reduce((total, entry) => total + entry.seats.length, 0)}
+        gridSize={fieldSize(series)}
         onOpenChange={setPicking}
         onPick={(layout) => {
           setPicked(layout);

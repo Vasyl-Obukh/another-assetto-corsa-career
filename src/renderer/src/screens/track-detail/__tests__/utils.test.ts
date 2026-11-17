@@ -31,6 +31,7 @@ const championship = (
   discipline,
   ladders: [{ discipline, tier }],
   rounds: layouts.map((layout) => ({ name: `${id} ${layout}`, layout })),
+  field: 20,
 });
 
 describe('renderer/screens/track-detail/utils', () => {
@@ -111,6 +112,7 @@ describe('renderer/screens/track-detail/utils', () => {
         discipline: Discipline.SPORTSCAR,
         ladders: [sportscar(2)],
         rounds: [{ name: 'Spa 24', layout: 'gp' }, { name: 'Spa sprint', layout: 'short' }],
+        field: 1,
       }]);
     });
 

@@ -9,6 +9,7 @@ import {
   byDiscipline, layoutShortName, longestFirst, racingOn,
 } from './utils.ts';
 import type { Discipline, Track, TrackGroup } from '../../../../shared/types';
+import { tooFewPitboxes } from '../../../../shared/utils/field-size';
 import { useSlot } from '@/app';
 import { DetailPanel } from '@/components';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -131,6 +132,10 @@ export const TrackChampionships = ({
                 : championship.rounds.filter((round) => round.layout === layout.layout);
               const [round] = here;
               const layouts = [...new Set(here.map((one) => nameOf(one.layout)))].join(t('tracks.detail.listSeparator'));
+              // The fewest pit boxes among the layouts its rounds here race that say.
+              const boxes = Math.min(...here.flatMap((one) => (
+                circuit.layouts.find((candidate) => candidate.layout === one.layout)?.pitboxes || []
+              )));
 
               return (
                 <Link
@@ -154,6 +159,11 @@ export const TrackChampionships = ({
                       {championship.ladders.map((ladder) => (
                         <LadderChip key={`${ladder.discipline}:${ladder.tier}`} ladder={ladder} />
                       ))}
+                      {tooFewPitboxes(championship.field, boxes) ? (
+                        <Badge variant="destructive">
+                          {t('championships.calendar.tooFewPitboxes', { available: boxes, needed: championship.field })}
+                        </Badge>
+                      ) : null}
                       {/* Whose season this is, not one of a set - neutral. */}
                       {entered.has(championship.id) ? (
                         <Badge variant="secondary">

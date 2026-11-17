@@ -6,6 +6,7 @@ import { HistoricTrack } from './HistoricTrack.tsx';
 import { eventRequirements, historicSwitches } from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
+import { fieldSize } from '../../../../shared/utils/field-size';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
 import { useSettings } from '@/app';
 import { ProblemList, SWITCH_TRACK } from '@/components';
@@ -17,7 +18,7 @@ import { useLocalizedText } from '@/i18n';
 import { managePath } from '@/lib/series-kind';
 import { cn } from '@/lib/utils.ts';
 import {
-  availabilityState, CARD_TITLE, ChampionshipActions, fieldSize, FormatStrip, MissingContent, Requirements,
+  availabilityState, CARD_TITLE, ChampionshipActions, FormatStrip, MissingContent, Requirements,
   SeasonBand, tierAccent,
 } from '@/screens/championships';
 
