@@ -340,6 +340,9 @@ export const readSettings = (raw: unknown, defaults: Settings = DEFAULT_SETTINGS
     autosaves: oneOf<number>(raw.autosaves, AUTOSAVE_COUNTS, defaults.autosaves),
     currency: oneOf(raw.currency, CURRENCIES, defaults.currency),
     units: oneOf(raw.units, UNIT_SYSTEMS, defaults.units),
+    checkForUpdates: typeof raw.checkForUpdates === 'boolean'
+      ? raw.checkForUpdates
+      : defaults.checkForUpdates,
     paths: readPaths(raw.paths),
     window: readWindow(raw.window),
     // Absent rather than empty, so "have they set up?" is a presence check.

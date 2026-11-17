@@ -7,6 +7,7 @@ import { RatingLink } from './rating/index.ts';
 import { SAVE_STATUS_ID, SaveStatus } from './saves/index.ts';
 import { SlotMenu } from './slot-menu/index.ts';
 import { ThemeToggle } from './theme-toggle/index.ts';
+import { UpdateButton } from './update-button/index.ts';
 import { useSlot } from '@/app';
 import { useNavFit, useSaves } from '@/hooks';
 import { CAREER_NAV, CHAMPIONSHIP_NAV, QUICK_NAV } from '@/lib/routes';
@@ -30,6 +31,7 @@ export const AppHeader = () => {
         {/* A quick race has no saves, and a standalone championship no money
             and no ladder. */}
         {career ? <SaveStatus saves={saves.saves} compact={compact.has(SAVE_STATUS_ID)} /> : null}
+        <UpdateButton />
         <ThemeToggle />
         {mode === 'career' && career ? <RatingLink rating={career.globalRating} /> : null}
         {mode === 'career' && career ? <BalanceLink money={career.money} /> : null}

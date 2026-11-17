@@ -55,6 +55,7 @@ import type {
   SeriesListing,
 } from './series.ts';
 import type { ResolvedTheme, Settings } from './settings.ts';
+import type { UpdateStatus } from './update.ts';
 import type { ErrorCode, ErrorParams } from '../errors/types.ts';
 
 /**
@@ -671,6 +672,25 @@ export interface IpcContract {
    * store writes what it holds on the way out.
    */
   'app:quit': { req: void; res: null };
+  /**
+   * The version running and where updating it is up to.
+   */
+  'update:get': { req: void; res: UpdateStatus };
+  /**
+   * Look for a newer version now, whether or not checks are switched on.
+   * Resolves once the look has started; where it got to is pushed.
+   */
+  'update:check': { req: void; res: UpdateStatus };
+  /**
+   * Fetch the version on offer. Resolves once the download has started.
+   */
+  'update:download': { req: void; res: UpdateStatus };
+  /**
+   * Quit, install the version fetched, and start again - once every store has
+   * written what it holds.
+   * @throws AppError when nothing is fetched, or while a race is running
+   */
+  'update:install': { req: void; res: null };
 }
 
 /**
@@ -754,6 +774,10 @@ export interface IpcEvents {
    * by an autosave the renderer did not ask for.
    */
   'career:savesChanged': CareerSaves;
+  /**
+   * Updating moved on: a check finished, a download progressed or finished.
+   */
+  'update:changed': UpdateStatus;
 }
 
 /**

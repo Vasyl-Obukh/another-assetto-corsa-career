@@ -3536,20 +3536,22 @@ class, not only this championship's. Mockup: `mockups/teams-from-championship.ht
 
 ## Phase 14 - Distribution
 
-- [ ] `electron-builder` packaging, Windows installer. `resources/icon.ico`
-      ships as an extra resource, and `main.ts` reads it from the repo root,
-      so the path moves to `process.resourcesPath` once packaged
+- [x] `electron-builder` packaging, Windows installer - `npm run package`
+      writes a per-user NSIS installer to `release/`. `resources/icon.ico`
+      ships as an extra resource, read from `process.resourcesPath` once
+      packaged. Nothing from `node_modules` ships, and the packaged app shares
+      `%APPDATA%/another-assetto-corsa-career` with `npm run dev`
 - [ ] **Code signing certificate** - an unsigned Electron app that reads game
       folders and spawns processes gets flagged constantly
-- [ ] Auto-update, crash reporting
-- [ ] **Decide whether real sponsors ship.** A logo's free licence covers the
-      file, not the trademark, and an offer from a real company implies an
-      endorsement it never gave. Every logo is in
-      `src/renderer/src/assets/sponsors/`, and a sponsor without one shows its
-      initials, so taking them out is deleting that folder; the names are
-      `SPONSOR_BOOK` in `src/core/sponsor-offers/sponsor-book.ts`
+- [x] Auto-update - `electron-updater`, bundled into main, over this repo's
+      GitHub Releases (`npm run release` with a `GH_TOKEN` uploads a draft).
+      A check at start-up and every 6 hours, switchable in Settings > Updates;
+      a version found is only offered, on the header and the start screen, and
+      fetched when asked. Restart writes every store out first and is refused
+      while a race is running; a fetched update also installs on any quit.
+      Needs the repository public before players can read it
+- [x] Tests for the new and changed functions, once reviewed
 - [ ] Docs: getting started, series authoring guide
-- [ ] Translation contribution workflow
 
 ---
 
@@ -3565,6 +3567,8 @@ class, not only this championship's. Mockup: `mockups/teams-from-championship.ht
   installed and talking to the desktop app, and that is most of the work.
 - **Series generator**: "build me a championship from these cars".
 - **Community series repository.**
+- **Crash reporting** - needs a service to receive reports and the player's
+  consent to send them; dropped from Phase 14.
 - Endurance features: driver swaps, mid-race saves - both blocked by AC.
 
 ## Open questions

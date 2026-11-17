@@ -2,7 +2,7 @@
 // are shared, since the settings reader coerces the same fields.
 
 import {
-  ActivityIcon, BotIcon, CarIcon, CloudIcon, CoinsIcon, GaugeIcon, LandmarkIcon, LayersIcon, MapIcon,
+  ActivityIcon, BotIcon, CarIcon, CloudIcon, CoinsIcon, DownloadIcon, GaugeIcon, LandmarkIcon, LayersIcon, MapIcon,
   MonitorIcon, PackageIcon, SaveIcon, SettingsIcon, TerminalIcon, TrophyIcon, UserIcon,
 } from 'lucide-react';
 
@@ -67,6 +67,7 @@ export const GENERAL_SECTIONS: readonly SectionLink[] = [
   { id: 'saves', label: 'settings.saves', icon: SaveIcon },
   { id: 'currency', label: 'settings.currency.title', icon: CoinsIcon },
   { id: 'content-manager', label: 'settings.contentManager', icon: TerminalIcon },
+  { id: 'updates', label: 'settings.updates', icon: DownloadIcon },
 ];
 
 /**

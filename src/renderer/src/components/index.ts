@@ -88,6 +88,7 @@ export { SpecBadge } from './spec-badge/index.ts';
 export { SpecField, SpecPicker } from './spec-picker/index.ts';
 export { SwitchTile } from './SwitchTile.tsx';
 export { ToggleButton } from './ToggleButton.tsx';
+export { UpdateButton } from './update-button/index.ts';
 export {
   ClimateBadge,
   ForecastStrip,

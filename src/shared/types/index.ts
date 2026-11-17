@@ -310,6 +310,8 @@ export type {
   EventFormat,
 } from './series.ts';
 
+export type { UpdateState, UpdateStatus } from './update.ts';
+
 export type {
   RecommendedCircuit,
   RecommendedLayout,

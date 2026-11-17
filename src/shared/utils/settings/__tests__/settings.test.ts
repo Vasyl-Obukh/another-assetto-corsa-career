@@ -409,6 +409,7 @@ describe('shared/utils/settings', () => {
         autosaves: 5,
         currency: 'EUR',
         units: 'uk',
+        checkForUpdates: false,
         paths: { acRoot: 'D:\\ac' },
         window: {
           width: 1200, height: 900, x: 1, y: 2, maximized: true,
@@ -443,6 +444,12 @@ describe('shared/utils/settings', () => {
     it('keeps a unit system it offers and falls back to the default for any other', () => {
       expect(readSettings({ units: 'us' }).units).toBe('us');
       expect(readSettings({ units: 'imperial' }).units).toBe(DEFAULT_SETTINGS.units);
+    });
+
+    it('keeps update checks switched off, and turns them on for anything that is not a switch', () => {
+      expect(readSettings({ checkForUpdates: false }).checkForUpdates).toBe(false);
+      expect(readSettings({ checkForUpdates: 'no' }).checkForUpdates).toBe(true);
+      expect(readSettings({}).checkForUpdates).toBe(true);
     });
 
     it("falls back to the defaults it is handed, such as this machine's units", () => {

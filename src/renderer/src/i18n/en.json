@@ -198,6 +198,7 @@
     "contentManagerHint": "Flags Content Manager reads when it starts. They live in its own Arguments.txt, so anything you put there by hand stays where it is.",
     "contentManagerRestart": "Content Manager reads these the next time it starts.",
     "contentManagerMissing": "Content Manager has no Arguments.txt yet. Turning any of these on creates it.",
+    "updates": "Updates",
     "tabs": {
       "general": "General",
       "diagnostics": "Diagnostics",
@@ -2195,6 +2196,29 @@
     "notReady": "Not ready to race yet",
     "notFound": "Locate all three folders below before anything can launch.",
     "notScanned": "Everything is found - scan your content below to fill the library."
+  },
+  "update": {
+    "version": "Version {{version}}",
+    "automatic": "Check for updates automatically",
+    "check": "Check now",
+    "download": "Download",
+    "installFailed": "Could not install the update",
+    "header": {
+      "available": "Update to {{version}}",
+      "downloading": "Downloading {{percent}}%",
+      "ready": "Restart to update"
+    },
+    "state": {
+      "unsupported": "Not an installed build",
+      "idle": "Not checked yet",
+      "checking": "Checking for updates...",
+      "latest": "Up to date, checked {{ago}}",
+      "available": "Version {{version}} is available",
+      "downloading": "Downloading version {{version}}, {{percent}}%",
+      "ready": "Version {{version}} is downloaded and installs on restart",
+      "checkFailed": "Could not check for updates",
+      "downloadFailed": "Could not download version {{version}}"
+    }
   },
   "home": {
     "season": "{{year}} season",

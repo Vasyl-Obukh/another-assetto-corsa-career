@@ -19,6 +19,7 @@ import type { RaceStore } from '../race-store/index.ts';
 import type { SeriesStore } from '../series-store/index.ts';
 import type { SettingsStore } from '../settings-store/index.ts';
 import { resolvedTheme } from '../theme/index.ts';
+import type { Updater } from '../updater/index.ts';
 
 export { send } from './utils.ts';
 
@@ -45,6 +46,7 @@ export const registerHandlers = (
   classes: ClassStore,
   career: CareerStore,
   quick: QuickRaceStore,
+  updater: Updater,
 ): void => {
   const probe = async (): Promise<PathsReport> => {
     const report = await probePaths(settings.get().paths);
@@ -243,6 +245,15 @@ export const registerHandlers = (
   // before-quit writes every store out first.
   handle('app:quit', async () => {
     app.quit();
+
+    return null;
+  });
+
+  handle('update:get', async () => updater.get());
+  handle('update:check', async () => updater.check());
+  handle('update:download', async () => updater.download());
+  handle('update:install', async () => {
+    await updater.install();
 
     return null;
   });

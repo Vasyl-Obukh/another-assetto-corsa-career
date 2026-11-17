@@ -44,6 +44,8 @@ screen of grey chips has been shipped and sent back three times.
 npm run dev       # electron-vite dev server
 npm run build     # -> dist/{main,preload,renderer}
 npm run start     # run the built app
+npm run package   # build, then a Windows installer in release/ (electron-builder.yml)
+npm run release   # the same, uploaded to a draft GitHub release (needs GH_TOKEN)
 
 npm run scan   npm run dry   npm run race   npm run event
 npm run series   npm run watch   npm run results

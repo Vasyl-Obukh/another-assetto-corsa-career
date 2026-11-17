@@ -213,6 +213,9 @@ export type ErrorCode =
   | 'sponsor.repay.short'
   // src/main/career-store and src/main/quick-race-store
   | 'strength.outOfRange'
+  // src/main/updater
+  | 'update.notReady'
+  | 'update.raceInFlight'
   // src/main/ipc
   | 'ipc.noWindow'
   | 'ipc.pathsNotLocated';

@@ -133,6 +133,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autosaves: 3,
   currency: 'USD',
   units: 'metric',
+  checkForUpdates: true,
   paths: {},
   window: { width: 1180, height: 800, maximized: false },
 };

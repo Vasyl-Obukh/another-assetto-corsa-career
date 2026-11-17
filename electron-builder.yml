@@ -1,0 +1,52 @@
+# Packages the electron-vite build in dist/ into a Windows installer in release/.
+# Run through `npm run package`, which builds first.
+
+appId: io.github.another-assetto-corsa-career
+productName: Another Assetto Corsa Career
+
+directories:
+  output: release
+  buildResources: resources
+
+# Everything main, preload and the renderer need is bundled into dist/, and
+# there are no runtime dependencies, so nothing from node_modules ships.
+files:
+  - dist/**
+  - package.json
+
+# The window icon is read from disk at runtime, which an asar cannot serve to
+# the shell, so it ships beside the archive under process.resourcesPath.
+extraResources:
+  - from: resources/icon.ico
+    to: icon.ico
+
+# Where the installed app looks for new versions, written into the install as
+# resources/app-update.yml. `npm run release` uploads to a draft release here,
+# with a GH_TOKEN that may write releases; publishing the draft is what makes
+# it an update. The repository has to be public for players to read it.
+publish:
+  provider: github
+  owner: Vasyl-Obukh
+  repo: another-assetto-corsa-career
+  releaseType: draft
+
+win:
+  target:
+    - target: nsis
+      arch: x64
+  icon: resources/icon.ico
+
+nsis:
+  # Per-user is the default choice: it needs no administrator, and the app
+  # updates itself without a UAC prompt. Installed for all users, every update
+  # asks for one.
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Another Assetto Corsa Career
+  # Careers, settings and the content cache live in %APPDATA% and are the
+  # player's own; uninstalling leaves them.
+  deleteAppDataOnUninstall: false
+  artifactName: another-assetto-corsa-career-setup-${version}.${ext}

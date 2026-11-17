@@ -543,6 +543,14 @@ export const CAUTION_ACCENT = 'border-transparent bg-warning text-warning-foregr
 export const DONE_ACCENT = 'border-transparent bg-success text-success-foreground';
 
 /**
+ * Red, for something the player asked for that could not be done - an update
+ * that would not install.
+ *
+ * Read by the toast the update hook raises.
+ */
+export const FAILED_ACCENT = 'border-transparent bg-destructive/15 text-destructive';
+
+/**
  * Where a contract's player stands against what keeps them on while the season
  * runs, a traffic light: on course on the accepted pale green, short of it on
  * the caution amber.
@@ -647,6 +655,9 @@ export const SECTION_ACCENT = {
   ladder: 'bg-tier-platinum text-tier-platinum-foreground',
   // The quick save's red, which nothing else on the General tab sits near.
   saves: 'bg-save-quick text-save-quick-foreground',
+  // Base content's well, the success hue at chip strength: a new version is
+  // good news, and base content's well is only ever on the sources tab.
+  updates: 'bg-provenance-base text-provenance-base-foreground',
 } as const;
 
 /**

@@ -9,6 +9,7 @@ import { DrivingAidsSection } from './DrivingAidsSection.tsx';
 import { OpponentsSection } from './OpponentsSection.tsx';
 import { SavesSection } from './SavesSection.tsx';
 import { SectionIndex } from './SectionIndex.tsx';
+import { UpdatesSection } from './UpdatesSection.tsx';
 import { WeatherSection } from './WeatherSection.tsx';
 import { ScreenBody } from '@/components';
 
@@ -31,6 +32,7 @@ export const Settings = () => {
           <SavesSection />
           <CurrencySection />
           <ContentManagerSection />
+          <UpdatesSection />
         </div>
       </div>
     </ScreenBody>

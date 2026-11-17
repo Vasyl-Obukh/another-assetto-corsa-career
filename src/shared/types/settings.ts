@@ -296,6 +296,12 @@ export interface Settings {
    */
   units: UnitSystem;
   /**
+   * Whether the installed app looks for a newer version, at start-up and
+   * every few hours after. A version found is only offered, never fetched
+   * unasked.
+   */
+  checkForUpdates: boolean;
+  /**
    * Paths the user has corrected by hand.
    */
   paths: PathOverrides;

@@ -273,6 +273,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'strength.outOfRange':
     'A step of {{value}} moves the AI further than the {{max}} either way a step may move them from the difficulty in settings.',
 
+  'update.notReady': 'There is no downloaded update to install.',
+  'update.raceInFlight': 'A race is running. Restart to update once it has finished.',
+
   'ipc.noWindow': 'No window to attach the folder picker to.',
   'ipc.pathsNotLocated': 'Cannot scan content until the Assetto Corsa install has been located.',
 };

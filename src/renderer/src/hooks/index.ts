@@ -104,3 +104,5 @@ export { useWeatherContent } from './use-weather-content/index.ts';
 export type { WeatherContent } from './use-weather-content/index.ts';
 export { useUnits } from './use-units/index.ts';
 export type { Units } from './use-units/index.ts';
+export { useUpdate } from './use-update/index.ts';
+export type { UpdateHookState } from './use-update/index.ts';

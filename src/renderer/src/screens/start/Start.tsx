@@ -15,7 +15,7 @@ import { lastPlayedMode } from './utils.ts';
 import type { PathsReport } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import {
-  AppWordmark, ContentImage, ErrorCard, Loading, NationFlag, Shimmer, trackPictureSources,
+  AppWordmark, ContentImage, ErrorCard, Loading, NationFlag, Shimmer, trackPictureSources, UpdateButton,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareers, useQuickRaces, useViewportScale } from '@/hooks';
@@ -336,6 +336,10 @@ export const Start = ({ initialReport }: StartProps) => {
               {t('start.missing')}
             </span>
           )}
+          {/* The header's, since the app opens here and has no header yet. */}
+          <span className="ml-auto">
+            <UpdateButton large />
+          </span>
         </footer>
       </div>
     </div>

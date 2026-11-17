@@ -12,6 +12,7 @@ import { createRaceStore } from './race-store/index.ts';
 import { createSeriesStore, HISTORIC_DIR } from './series-store/index.ts';
 import { createSettingsStore } from './settings-store/index.ts';
 import { applyThemeChoice, onThemeChange } from './theme/index.ts';
+import { createUpdater } from './updater/index.ts';
 import { createWindow, followRace } from './window/index.ts';
 import { historicProblems, SHIPPED_HISTORIC } from '../core/historic-library/index.ts';
 import { homeRegion } from '../core/home-region/index.ts';
@@ -71,11 +72,27 @@ if (!app.requestSingleInstanceLock()) {
     const career = await createCareerStore(app.getPath('userData'), series, historic, race, content, settings);
     const quick = await createQuickRaceStore(app.getPath('userData'), content, classes, series, settings, race);
     applyThemeChoice(settings.get().theme);
-    registerHandlers(settings, content, race, series, historic, classes, career, quick);
+
+    /**
+     * Writes out whatever every store still holds.
+     * @returns Resolves once each has finished, whether or not it managed to
+     */
+    const flushAll = async (): Promise<void> => {
+      await Promise.allSettled([settings.flush(), content.flush(), race.flush(), career.flush(), quick.flush()]);
+    };
+    const updater = createUpdater({
+      racing: () => race.progress()?.inFlight ?? false,
+      flush: flushAll,
+    });
+
+    registerHandlers(settings, content, race, series, historic, classes, career, quick, updater);
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
-    const icon = path.join(import.meta.dirname, '../../resources/icon.ico');
+    // Packaged, the icon ships beside app.asar (see electron-builder.yml).
+    const icon = app.isPackaged
+      ? path.join(process.resourcesPath, 'icon.ico')
+      : path.join(import.meta.dirname, '../../resources/icon.ico');
     const rendererUrl = process.env.ELECTRON_RENDERER_URL ?? null;
     mainWindow = createWindow(settings, preload, icon, rendererUrl);
 
@@ -105,6 +122,7 @@ if (!app.requestSingleInstanceLock()) {
     // Every patch reads the whole file afresh, so the choices are compared as
     // written rather than by identity.
     let trackChoices = JSON.stringify(settings.get().trackChoices);
+    let { checkForUpdates } = settings.get();
     settings.onChange((next) => {
       applyThemeChoice(next.theme);
       content.include(next.addedContent);
@@ -116,7 +134,17 @@ if (!app.requestSingleInstanceLock()) {
         trackChoices = choices;
         refreshLibraries();
       }
+      if (next.checkForUpdates !== checkForUpdates) {
+        checkForUpdates = next.checkForUpdates;
+        updater.schedule(checkForUpdates);
+      }
     });
+
+    updater.onChange((next) => {
+      if (mainWindow) send(mainWindow, 'update:changed', next);
+    });
+    // After the window, so the first look's answer has somewhere to go.
+    updater.schedule(checkForUpdates);
 
     content.onChange((change) => {
       if (mainWindow) send(mainWindow, 'content:changed', change);
@@ -169,11 +197,10 @@ if (!app.requestSingleInstanceLock()) {
       if (flushed) return;
       event.preventDefault();
       content.dispose();
-      void Promise.allSettled([settings.flush(), content.flush(), race.flush(), career.flush(), quick.flush()])
-        .then(() => {
-          flushed = true;
-          app.quit();
-        });
+      void flushAll().then(() => {
+        flushed = true;
+        app.quit();
+      });
     });
   }, (error: unknown) => {
     console.error('Failed to start.', error);
