@@ -1,26 +1,29 @@
 import { LayoutGridIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  NavLink, Outlet, useMatch, useNavigate,
-} from 'react-router';
+import { Outlet, useMatch, useNavigate } from 'react-router';
 
 import { SETTINGS_TABS } from './constants.ts';
+import { SettingsTabLink } from './SettingsTabLink.tsx';
 import { standaloneEntry } from '../../../../shared/utils/standalone';
 import { useSlot } from '@/app';
 import {
   BackLink, NationFlag, ScreenStrip, Segments,
 } from '@/components';
+import { useNavFit } from '@/hooks';
 import { path, ROUTE } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 
 export const SettingsLayout = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { mode, career } = useSlot();
   const onCareer = useMatch(ROUTE.settingsCareer) !== null;
   // A standalone championship is named by its championship, a career by its
   // driver.
   const championship = career && standaloneEntry(career);
+  const [tabs, setTabs] = useState<HTMLElement | null>(null);
+  const compact = useNavFit(tabs, i18n.language);
 
   return (
     <div className="flex h-full flex-col">
@@ -60,24 +63,10 @@ export const SettingsLayout = () => {
         </div>
 
         {onCareer ? null : (
-          <nav className="flex gap-6 border-b">
-            {SETTINGS_TABS.map(({
-              to, end, label, icon: Icon,
-            }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) => cn(
-                  'group -mb-px flex items-center gap-2 border-b-2 pb-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'active border-primary text-foreground'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <Icon className="size-4 group-[.active]:text-primary" />
-                {t(label)}
-              </NavLink>
+          // Short of room, the labels give way one at a time from the right.
+          <nav ref={setTabs} className="flex gap-6 border-b">
+            {SETTINGS_TABS.map((tab) => (
+              <SettingsTabLink key={tab.to} tab={tab} compact={compact.has(tab.to)} />
             ))}
           </nav>
         )}

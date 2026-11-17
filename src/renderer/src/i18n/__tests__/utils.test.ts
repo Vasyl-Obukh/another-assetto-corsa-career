@@ -206,6 +206,31 @@ describe('renderer/i18n/utils', () => {
       expect(formattersFor('uk').formatAgo(ago(24 * MS_PER_HOUR), NOW))
         .not.toBe(formattersFor('en').formatAgo(ago(24 * MS_PER_HOUR), NOW));
     });
+
+    // The narrow wording is ICU's own and varies by version ("5mo ago", "5 mo
+    // ago"), so these hold it to being the shorter one rather than to a string.
+    it('shortens the units when asked for the narrow wording', () => {
+      const { formatAgo } = formattersFor('en');
+      const narrow = formatAgo(ago(150 * MS_PER_DAY), NOW, 'narrow');
+
+      expect(narrow).toMatch(/^5\s?mo/);
+      expect(narrow.length).toBeLessThan(formatAgo(ago(150 * MS_PER_DAY), NOW).length);
+    });
+
+    it('keeps the long wording once the narrow one has been asked for', () => {
+      const { formatAgo } = formattersFor('en');
+
+      // Both styles are cached per locale, so one must not answer for the other.
+      formatAgo(ago(150 * MS_PER_DAY), NOW, 'narrow');
+      expect(formatAgo(ago(150 * MS_PER_DAY), NOW)).toBe('5 months ago');
+    });
+
+    it('shortens in the active language too', () => {
+      const { formatAgo } = formattersFor('uk');
+
+      expect(formatAgo(ago(150 * MS_PER_DAY), NOW, 'narrow').length)
+        .toBeLessThan(formatAgo(ago(150 * MS_PER_DAY), NOW).length);
+    });
   });
   describe('formatContentIssueReason', () => {
     it('renders the reason from the active catalogue', () => {

@@ -125,7 +125,8 @@ export interface Formatters {
    * "6 minutes ago", "yesterday", "2 weeks ago".
    * @param value An ISO timestamp
    * @param now The moment to measure from, in milliseconds; now by default
+   * @param style 'narrow' for the shortest wording ("5 mo. ago"); 'long' by default
    * @returns How long ago, in the active locale
    */
-  formatAgo(value: string, now?: number): string;
+  formatAgo(value: string, now?: number, style?: 'long' | 'narrow'): string;
 }

@@ -29,6 +29,7 @@ export const SettingsProvider = ({
   children,
 }: SettingsProviderProps) => {
   const [settings, setSettings] = useState(initialSettings);
+  const [resolved, setResolved] = useState(initialTheme);
 
   // Main resolves "system" against the OS and pushes the answer; the renderer
   // only ever reflects it onto the document.
@@ -37,8 +38,12 @@ export const SettingsProvider = ({
 
     return subscribe('theme:changed', (theme) => {
       document.documentElement.dataset.theme = theme;
+      setResolved(theme);
     });
   }, [initialTheme]);
+
+  // A theme picked outright is known at once; only "system" waits on main.
+  const theme = settings.theme === 'system' ? resolved : settings.theme;
 
   // While a patch of ours is on its way, what main says predates what is on
   // screen, and adopting it would undo a later click. Main applies patches in
@@ -67,7 +72,7 @@ export const SettingsProvider = ({
     });
   }, []);
 
-  const value = useMemo(() => ({ settings, patch }), [settings, patch]);
+  const value = useMemo(() => ({ settings, theme, patch }), [settings, theme, patch]);
 
   return <SettingsContext value={value}>{children}</SettingsContext>;
 };

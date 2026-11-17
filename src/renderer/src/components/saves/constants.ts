@@ -35,3 +35,8 @@ export const STATUS_TICK_MS = 30_000;
  * dialog's alike, since both list the same saves.
  */
 export const SAVE_FILTER_MEMORY = 'saves.filter';
+
+/**
+ * What the header's fit-to-width measuring names the save line by.
+ */
+export const SAVE_STATUS_ID = 'save';

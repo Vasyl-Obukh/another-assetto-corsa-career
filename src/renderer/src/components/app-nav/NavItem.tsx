@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router';
 
+import { NameOnHover } from '@/components/name-on-hover';
 import { Button } from '@/components/ui/button.tsx';
+import { NAV_FIT_LABEL, navFitItem } from '@/hooks';
 import { useFormat } from '@/i18n';
 import { path, ROUTE, sectionOf } from '@/lib/routes';
 import type { NavId, RouteId } from '@/lib/routes';
@@ -34,10 +36,14 @@ interface NavItemProps {
    * label - none for zero.
    */
   badge?: number;
+  /**
+   * Whether the label gives way to the icon alone, named on hover.
+   */
+  compact?: boolean;
 }
 
 export const NavItem = ({
-  id, to, also = [], label, icon, badge = 0,
+  id, to, also = [], label, icon, badge = 0, compact = false,
 }: NavItemProps) => {
   const { formatNumber } = useFormat();
   // The pattern is matched and the URL is linked to, both read off the registry
@@ -57,23 +63,26 @@ export const NavItem = ({
   // section am I in" should not be a shade of the same neutral as everything
   // around it.
   return (
-    <Button
-      asChild
-      size="sm"
-      variant="ghost"
-      className={cn(active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary')}
-    >
-      <NavLink to={to ? ROUTE[to] : path[id]()}>
-        {icon}
-        {label}
-        {/* Primary, the colour of what is new, and solid so it reads at the
-            size of the header's text. */}
-        {badge > 0 ? (
-          <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.65rem] font-semibold text-primary-foreground tabular-nums">
-            {formatNumber(badge)}
-          </span>
-        ) : null}
-      </NavLink>
-    </Button>
+    <NameOnHover name={label} show={compact}>
+      <Button
+        asChild
+        size="sm"
+        variant="ghost"
+        className={cn(active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary')}
+        {...navFitItem(id, compact)}
+      >
+        <NavLink to={to ? ROUTE[to] : path[id]()}>
+          {icon}
+          <span {...NAV_FIT_LABEL} className={cn(compact && 'sr-only')}>{label}</span>
+          {/* Primary, the colour of what is new, and solid so it reads at the
+              size of the header's text. */}
+          {badge > 0 ? (
+            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.65rem] font-semibold text-primary-foreground tabular-nums">
+              {formatNumber(badge)}
+            </span>
+          ) : null}
+        </NavLink>
+      </Button>
+    </NameOnHover>
   );
 };

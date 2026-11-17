@@ -82,6 +82,7 @@ export { useRowEdit } from './use-row-edit/index.ts';
 export type { RowEditState } from './use-row-edit/index.ts';
 export { useMediaQuery } from './use-media-query/index.ts';
 export { useNavHistory } from './use-nav-history/index.ts';
+export { NAV_FIT_LABEL, navFitItem, useNavFit } from './use-nav-fit/index.ts';
 export { useOffscreenDirection } from './use-offscreen-direction/index.ts';
 export type { OffscreenDirection } from './use-offscreen-direction/index.ts';
 export { useSaves } from './use-saves/index.ts';

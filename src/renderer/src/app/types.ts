@@ -1,17 +1,22 @@
 import type { LucideIcon } from 'lucide-react';
 
 import type {
-  Career, ClassCatalogue, ClassLayer, LoadedSave, NewCareerRequest, NewChampionshipRequest, Settings,
+  Career, ClassCatalogue, ClassLayer, LoadedSave, NewCareerRequest, NewChampionshipRequest, ResolvedTheme, Settings,
 } from '../../../shared/types';
 
 /**
- * The settings, and the one way to change them.
+ * The settings, the theme they resolve to, and the one way to change them.
  */
 export interface SettingsContextValue {
   /**
    * The settings as the renderer currently believes them to be.
    */
   settings: Settings;
+  /**
+   * The theme the window is in: the one picked, or what the system means now
+   * while the setting follows it.
+   */
+  theme: ResolvedTheme;
   /**
    * Applies a patch locally, then persists it through main.
    * @param patch The fields to replace

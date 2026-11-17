@@ -197,10 +197,10 @@ export const formattersFor = (language: Language): Formatters => {
 
     formatNation: (code) => HOME_NATION_NAMES[language]?.[code] ?? nationName(code, locale),
 
-    formatAgo: (value, now = Date.now()) => {
+    formatAgo: (value, now = Date.now(), style = 'long') => {
       const format = cached(
-        `r:${locale}`,
-        () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
+        `r:${locale}:${style}`,
+        () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style }),
       );
       const minutes = Math.round((new Date(value).getTime() - now) / MS_PER_MINUTE);
       const hours = Math.round(minutes / MINUTES_PER_HOUR);

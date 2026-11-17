@@ -53,6 +53,7 @@ export {
 } from './money/index.ts';
 export { Loading } from './Loading.tsx';
 export { NameDialog } from './NameDialog.tsx';
+export { NameOnHover } from './name-on-hover/index.ts';
 export { NationFlag } from './NationFlag.tsx';
 export { RecommendedTrackCard, TrackChooser, TrackSettingsLink } from './recommended-track/index.ts';
 export {

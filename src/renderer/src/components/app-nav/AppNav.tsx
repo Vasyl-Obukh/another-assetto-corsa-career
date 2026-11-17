@@ -34,9 +34,14 @@ interface AppNavProps {
    * The destinations the mode the app is in offers, in order.
    */
   entries: readonly (NavEntry & { id: NavId })[];
+  /**
+   * The entries showing their icon alone, for a header too narrow for every
+   * label.
+   */
+  compact: ReadonlySet<string>;
 }
 
-export const AppNav = ({ entries }: AppNavProps) => {
+export const AppNav = ({ entries, compact }: AppNavProps) => {
   const { t } = useTranslation();
   const { career } = useSlot();
   // What the inbox holds unopened, which its entry carries.
@@ -53,6 +58,7 @@ export const AppNav = ({ entries }: AppNavProps) => {
           label={t(entry.label)}
           icon={NAV_ICONS[entry.id]}
           badge={entry.id === 'inbox' ? unread : 0}
+          compact={compact.has(entry.id)}
         />
       ))}
     </nav>
