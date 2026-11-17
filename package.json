@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Career mode for Assetto Corsa, driving races through Content Manager",
+  "author": "Vasyl Obukh",
   "engines": {
     "node": ">=24"
   },
