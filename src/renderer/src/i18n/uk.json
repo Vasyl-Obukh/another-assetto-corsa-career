@@ -1,6 +1,11 @@
 {
   "app": {
-    "title": "Кар'єра в Assetto Corsa",
+    "title": "Another Assetto Corsa Career",
+    "logo": {
+      "another": "Another",
+      "game": "Assetto Corsa",
+      "career": "Career"
+    },
     "backToTop": "Нагору"
   },
   "nav": {
@@ -405,7 +410,7 @@
     "dismiss": "Закрити"
   },
   "setup": {
-    "title": "Ласкаво просимо до кар'єри в Assetto Corsa",
+    "title": "Ласкаво просимо до Another Assetto Corsa Career",
     "continue": "Продовжити",
     "stepOf": "Крок {{step}} з {{total}}",
     "back": "Назад",

@@ -313,7 +313,7 @@ const hdr = (on, { bal = BAL } = {}) => `<header class="hd">
   <button class="slotbtn">${flag('GBR')}<span><b>Sam Whitaker</b><small>Career · 2027 · Wed 10 Mar</small></span>${I.down}</button>
   <nav class="nav">${NAV.map(([id, l, ic]) => `<a class="${id === on ? 'on' : ''}">${ic}${l}</a>`).join('')}</nav>
   <span class="end row"><a class="bal">${I.wallet}<span class="num">${money(bal)}</span></a></span></header>`;
-const win = (inner) => `<div class="win"><div class="titlebar"><span>Assetto Corsa Career</span><span>-</span><span>☐</span><span>✕</span></div>${inner}</div>`;
+const win = (inner) => `<div class="win"><div class="titlebar"><span>Another Assetto Corsa Career</span><span>-</span><span>☐</span><span>✕</span></div>${inner}</div>`;
 const nb = (html) => `<span class="new-outline" style="border-radius:6px;display:inline-flex">${html}</span>`;
 
 // ---------- Cards ----------

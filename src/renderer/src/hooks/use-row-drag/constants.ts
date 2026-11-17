@@ -12,4 +12,4 @@
  * inside class entries, and a class entry is not draggable. Give a nested list
  * its own format rather than relying on the bubble order if that ever changes.
  */
-export const ROW_DRAG_FORMAT = 'application/x-ac-career-row';
+export const ROW_DRAG_FORMAT = 'application/x-another-ac-career-row';

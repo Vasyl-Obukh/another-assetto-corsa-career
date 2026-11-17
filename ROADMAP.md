@@ -585,7 +585,7 @@ bad version of both:
   when it started, and its own settings - so loading a save never changes it.
 
 ```
-%APPDATA%/ac-career-mode/careers/<career-id>/
+%APPDATA%/another-assetto-corsa-career/careers/<career-id>/
   career.json          the profile: identity, driver, start date, the slot's settings
   state.json           live working state, written debounced after every change
   saves/
@@ -1328,7 +1328,7 @@ session; archives are now named after the session rather than the launch number.
 
 **The app runs the same reducer over its own storage.** `src/main/race-store/`
 keeps the draft, the progress and the archives under
-`%APPDATA%/ac-career-mode/race/`, deliberately apart from the CLI's `out/`,
+`%APPDATA%/another-assetto-corsa-career/race/`, deliberately apart from the CLI's `out/`,
 `data/results/` and `data/events/`: the state machine is pure, and each caller
 persists it its own way. Editing a weekend that has already started discards its
 progress, because a launch inherits its grid from the one before and that
@@ -1573,7 +1573,7 @@ catalogue.
       shipped catalogue does not name, and override what we ship. The shipped
       catalogue is the base layer; the user layer is resolved over it at runtime.
       **Landed as the Classes tab of Settings** - `/settings/classes`, beside
-      Your content - over a user layer in `%APPDATA%/ac-career-mode/car-classes.json`
+      Your content - over a user layer in `%APPDATA%/another-assetto-corsa-career/car-classes.json`
       that `src/main/class-store/` owns. Four things worth knowing.
       **The catalogue is now a value rather than module state**:
       `resolveCatalogue(layer)` builds a `ClassCatalogue`, every lookup is handed
@@ -1843,7 +1843,7 @@ catalogue.
 - [x] **The library is the app's own championships and the user's, as one list.**
       The two halves are stored differently on purpose: shipped ones stay
       TypeScript constants, so a renamed `CarSpec` is a compile error, and a
-      user's is JSON under `%APPDATA%/ac-career-mode/series/`, because those are
+      user's is JSON under `%APPDATA%/another-assetto-corsa-career/series/`, because those are
       written outside the build. `parseSeries` is what does for a user's file
       what the compiler does for a shipped one - every spec, discipline, session
       type and weather type checked against its own catalogue at load. Both come
@@ -1860,7 +1860,7 @@ catalogue.
 - [x] **Revert an adjusted championship to the app's own** - delete the user's
       file and the shipped one is simply there again. Landed with Customise, the
       action that creates the copy: `Customise` writes a shipped championship
-      into `%APPDATA%/ac-career-mode/series/` under **its own id**, so the
+      into `%APPDATA%/another-assetto-corsa-career/series/` under **its own id**, so the
       library's existing override rule turns it into `adjusted` and reverting is
       nothing but deleting that file. That is also the roadmap's "copy, disable
       the original" in full - the user's file *is* the disable - so no
@@ -1949,7 +1949,7 @@ catalogue.
       **No version was bumped**, per *No schema migrations before the first
       release*: the content cache has the old provenance baked into its `Car`
       and `Track` objects and an unchanged folder keeps its fingerprint, so
-      `%APPDATA%/ac-career-mode/content-cache.json` goes on serving the wrong
+      `%APPDATA%/another-assetto-corsa-career/content-cache.json` goes on serving the wrong
       pack until it is deleted - which is the author's to do, not the app's.
       Worth one correction to the standing warning that mod authors copy that
       marker verbatim: it is untrustworthy **for a mod** and authoritative for
@@ -2640,7 +2640,7 @@ proof that no layer below learned what a series is.
       championship document, which is what lets it reuse everything a
       championship has, and kept in a library of its own -
       `src/core/historic-library/`, the user's under
-      `%APPDATA%/ac-career-mode/historic/` -
+      `%APPDATA%/another-assetto-corsa-career/historic/` -
       that main serves through a second series store, as `historic:*`.
       `historicProblems` holds a document to one round, a points table that
       pays nothing and no calendar of its own. **A season draws them**: once a
@@ -3536,7 +3536,9 @@ class, not only this championship's. Mockup: `mockups/teams-from-championship.ht
 
 ## Phase 14 - Distribution
 
-- [ ] `electron-builder` packaging, Windows installer
+- [ ] `electron-builder` packaging, Windows installer. `resources/icon.ico`
+      ships as an extra resource, and `main.ts` reads it from the repo root,
+      so the path moves to `process.resourcesPath` once packaged
 - [ ] **Code signing certificate** - an unsigned Electron app that reads game
       folders and spawns processes gets flagged constantly
 - [ ] Auto-update, crash reporting

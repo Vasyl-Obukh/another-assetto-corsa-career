@@ -573,7 +573,7 @@ const of = (y) => LEDGER.filter((l) => l.y === y);
 const sum = (ls, f) => ls.filter(f).reduce((a, l) => a + l.n, 0);
 
 // ---------- The window ----------
-const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const titlebar = () => '<div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
 const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
 const navOf = (v) => [
   ['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy],
@@ -713,7 +713,7 @@ const skip = () => round().replace(/<\/div>$/, `<div class="scrim"></div><div cl
 const STOPS = ['×0.5', '×0.75', '×1', '×1.25', '×1.5', '×2', '×3', '×4'];
 const speed = (on) => `<div class="slider" style="margin-bottom:12px"><span class="track"></span><span class="fill" style="width:${on / (STOPS.length - 1) * 100}%"></span><span class="knob" style="left:${on / (STOPS.length - 1) * 100}%"></span>
   <div class="stops">${STOPS.map((s, i) => `<span class="${i === on ? 'on' : ''}">${s}</span>`).join('')}</div></div>`;
-const newCareer = () => win(`<header class="hd"><h1>Assetto Corsa Career</h1></header>
+const newCareer = () => win(`<header class="hd"><h1>Another Assetto Corsa Career</h1></header>
   <div class="shdr"><span class="backlink">${I.back}Main menu</span><h2 style="margin-left:12px">New career</h2></div>
   <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;overflow:auto">
     <div class="col" style="gap:14px">

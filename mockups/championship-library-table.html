@@ -413,7 +413,7 @@ const tab = () => {
   const list = state.view === 'cards'
     ? `<div class="cgrid">${loading ? Array.from({ length: 6 }, (_, i) => cardSkeleton(i)).join('') : L.map(card).join('')}</div>`
     : `<div class="tbl-wrap"><table class="lib">${head()}<tbody>${loading ? Array.from({ length: 10 }, rowSkeleton).join('') : L.map(row).join('')}</tbody></table></div>`;
-  return `<nav class="app-nav"><span class="brand">Assetto Corsa Career</span><span>Home</span><span>Race</span><span>Calendar</span><span>Championships</span><span>Cars</span><span>Tracks</span><span class="on">Settings</span></nav>
+  return `<nav class="app-nav"><span class="brand">Another Assetto Corsa Career</span><span>Home</span><span>Race</span><span>Calendar</span><span>Championships</span><span>Cars</span><span>Tracks</span><span class="on">Settings</span></nav>
     <h1>Settings</h1>
     <div class="stabs"><span>General</span><span>Diagnostics</span><span>Your content</span><span>Car classes</span><span>Content sources</span><span class="on">Championships</span><span>Historic events</span></div>
     <div class="browser">${rail()}<div>${toolbar}${list}</div></div>`;

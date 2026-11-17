@@ -773,7 +773,7 @@ const specChip = (m) => (m.spec ? `<span class="chip c-spec-own">${m.spec}</span
 const srcChip = () => '<span class="chip c-mod">Mod</span>';
 
 // ---------- The window ----------
-const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const titlebar = () => '<div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
 const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
 const NAV = [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
 const hdr = (on) => `<header class="hd">
@@ -881,7 +881,7 @@ const carPage = () => {
 // ---------- Explanations ----------
 const LEAD = `<div class="lead"><p><b>Two kinds of price.</b> Every car in the app's catalogue - Kunos' and the mods we know alike - has one fixed price, researched from the real car, and nothing in the app changes it. A car you added through Your content costs:</p>
   <div class="order">${ochip('yours')}<span class="arr">else</span>${ochip('sugg')}<span class="hint">the middle of the catalogue's cars in its spec, else the power-to-weight curve</span></div>
-  <p>Your prices are kept app-wide in <code>%APPDATA%/ac-career-mode/car-prices.json</code>, beside <code>car-classes.json</code> and read the same tolerant way, so every career and the Race tab read the same price. Nothing goes in the content cache.</p></div>`;
+  <p>Your prices are kept app-wide in <code>%APPDATA%/another-assetto-corsa-career/car-prices.json</code>, beside <code>car-classes.json</code> and read the same tolerant way, so every career and the Race tab read the same price. Nothing goes in the content cache.</p></div>`;
 const WHY = {
   content: () => (S.cCase === 'added'
     ? '<b>Switching a mod on never stops to ask.</b> It goes in at the suggested price, and a notification offers <b>Set its price</b>, which opens Edit price.'

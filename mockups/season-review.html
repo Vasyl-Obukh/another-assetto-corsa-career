@@ -488,7 +488,7 @@ const state = { page: 'home', reach: 'doors', load: 'loaded', moment: 'complete'
 const loading = () => state.load === 'loading';
 
 // Results and History leave the navigation; both are reached from Home.
-const nav = (on) => `<div class="app-nav"><span class="brand">Assetto Corsa Career</span>${['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings']
+const nav = (on) => `<div class="app-nav"><span class="brand">Another Assetto Corsa Career</span>${['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings']
   .map((n) => `<span class="${n === on ? 'on' : ''} ${n === 'Results' ? 'gone' : ''}">${n}</span>`).join('')}</div>`;
 
 // Home's tabs, for variant B: the page Results and History become part of.

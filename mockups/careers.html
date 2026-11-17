@@ -517,7 +517,7 @@ const SAVES = [
   { kind: 'named', name: 'Start of 2028', date: 'Sat 1 Jan 2028', when: '1 week ago' },
 ];
 
-const titlebar = (t = 'Assetto Corsa Career') => `<div class="titlebar"><span>${t}</span><span>—</span><span>☐</span><span>✕</span></div>`;
+const titlebar = (t = 'Another Assetto Corsa Career') => `<div class="titlebar"><span>${t}</span><span>—</span><span>☐</span><span>✕</span></div>`;
 const backlink = (to) => `<a class="backlink">${I.back}${to}</a>`;
 const win = (inner, title, h) => `<div class="win"${h ? ` style="height:${h}px"` : ''}>${titlebar(title)}${inner}</div>`;
 // A shimmer block standing in for data still to come, as the app's <Shimmer> draws it.
@@ -558,7 +558,7 @@ const pageMap = () => `<div class="doc">
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="panel"><h3>${I.folder} Where things are kept</h3><div class="pb">
-<pre class="tree">%APPDATA%/ac-career-mode/
+<pre class="tree">%APPDATA%/another-assetto-corsa-career/
   settings.json            <i>app settings: default driver, opponents, aids</i>
   careers/&lt;id&gt;/
     career.json            <i>working state - written continuously</i>
@@ -636,7 +636,7 @@ const startTiles = (firstRun, loading) => {
   // Continue waits, disabled, until it knows what it continues.
   const go = (icon, label) => `<button class="btn pri lg${loading ? ' dim' : ''}">${icon}${label}</button>`;
   return win(`<div class="st-a">
-      <div class="st-title"><h1>Assetto Corsa Career</h1></div>
+      <div class="st-title"><h1>Another Assetto Corsa Career</h1></div>
       <div class="st-tiles">
         ${tile('career', PH.brands, 'Career', 'Start at the bottom of the ladder and climb it, season after season, as many championships at once as the calendar allows.',
           first ? '' : cont(flag(c.nat, 1), `${c.driver} · Season ${c.season}`, `${c.date} · next: ${c.next[2]}, ${c.next[3]}`),

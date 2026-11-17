@@ -748,7 +748,7 @@ const SHORT_BAL = 121400;
 const sum = (f) => LEDGER.filter(f).reduce((a, l) => a + l.n, 0);
 
 // ---------- The window ----------
-const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const titlebar = () => '<div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
 const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
 const NAV = [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
 const hdr = (on, opts = {}) => `<header class="hd">

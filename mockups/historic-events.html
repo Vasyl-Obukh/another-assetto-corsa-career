@@ -633,7 +633,7 @@ const dotVar = (d) => `var(--d-${d}-dot)`;
 const fstrip = (types = ['practice', 'qualify', 'race']) => `<span class="fstrip">${types.map((t) => `<span class="c-${t}">${t[0].toUpperCase()}</span>`).join('')}</span>`;
 const historic = (xs) => chip('c-historic', 'Historic', xs);
 const panelTitle = (text, end = '') => `<div class="panel-h"><span class="caps">${text}</span>${end}</div>`;
-const nav = (on) => `<div class="app-nav"><span class="brand">AC Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings']
+const nav = (on) => `<div class="app-nav"><span class="brand">Another Assetto Corsa Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings']
   .map((one) => `<span class="${one === on ? 'on' : ''}">${one}</span>`).join('')}</div>`;
 const settingsTabs = (on) => `<div class="tabs">${[['general', `${I.settings}General`], ['diag', 'Diagnostics'], ['content', 'Your content'], ['classes', 'Car classes'], ['sources', 'Content sources'], ['champs', 'Championships'], ['historic', `${I.landmark}Historic events`]]
   .map(([k, l]) => `<span class="${k === on ? 'on' : ''} ${k === 'historic' ? 'new-outline' : ''}">${l}</span>`).join('')}</div>`;

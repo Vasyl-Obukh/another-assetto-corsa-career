@@ -508,7 +508,7 @@ const render = () => {
   const [id, , nav, build, shot, note] = SCREENS.find((s) => s[0] === state.screen);
   document.documentElement.dataset.theme = state.theme;
   document.body.className = `${state.motion}${state.loaded && shot ? ' loaded' : ''}`;
-  document.getElementById('nav').innerHTML = `<span class="brand">Assetto Corsa Career</span>${NAV.map((n) => `<span class="${n.toLowerCase() === nav ? 'on' : ''}">${n}</span>`).join('')}`;
+  document.getElementById('nav').innerHTML = `<span class="brand">Another Assetto Corsa Career</span>${NAV.map((n) => `<span class="${n.toLowerCase() === nav ? 'on' : ''}">${n}</span>`).join('')}`;
   document.getElementById('page').innerHTML = build();
   document.getElementById('note').innerHTML = note;
   document.querySelectorAll('.shot').forEach((img) => img.classList.toggle('on', img.dataset.id === id));

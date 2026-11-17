@@ -569,7 +569,7 @@ const podium = (rd, ri) => `<div class="podium" data-piece="Podium">${results[rd
 }).join('')}</div>`;
 
 // ---------- Pages ----------
-const nav = (on) => `<div class="app-nav"><span class="brand">Assetto Corsa Career</span>${['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</div>`;
+const nav = (on) => `<div class="app-nav"><span class="brand">Another Assetto Corsa Career</span>${['Home', 'Race', 'Calendar', 'Championships', 'Results', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</div>`;
 
 const champ = () => {
   const roundRows = ROUNDS.map((r, i) => {

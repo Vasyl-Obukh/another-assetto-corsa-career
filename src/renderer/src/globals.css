@@ -282,6 +282,14 @@
   --welcome-to: oklch(0.4 0.18 290);
   --welcome-foreground: oklch(0.98 0.005 260);
 
+  /* The logo's kerb red, the car on the mark and the hand that wrote
+     "Another". It shares hue 27 with destructive on purpose: the logo sits
+     only on the start panel and the setup rail, beside no destructive control
+     and, on Start, an error card only when a list fails to load.
+     Brighter over the welcome gradient, which would swallow the plain one. */
+  --logo-red: oklch(0.58 0.22 27);
+  --logo-red-welcome: oklch(0.7 0.19 27);
+
   /* The time-of-day bar: the sky across a whole day, night to night through
      dawn, day and dusk. A picture of the sky rather than a category, so these
      are the one set here chosen for looking like what they are. */
@@ -570,6 +578,8 @@
   --mode-quick: oklch(0.35 0.09 150);
   --mode-quick-foreground: oklch(0.88 0.13 150);
 
+  --logo-red: oklch(0.64 0.2 27);
+
   --save-named: oklch(0.33 0.07 340);
   --save-named-foreground: oklch(0.86 0.1 340);
   --save-quick: oklch(0.33 0.07 18);
@@ -788,6 +798,7 @@
   --color-welcome-from: var(--welcome-from);
   --color-welcome-to: var(--welcome-to);
   --color-welcome-foreground: var(--welcome-foreground);
+  --color-logo-red: var(--logo-red);
   --color-sky-night: var(--sky-night);
   --color-sky-dawn: var(--sky-dawn);
   --color-sky-day: var(--sky-day);
@@ -852,6 +863,10 @@
      could load anyway - an Electron window has to render offline. */
   --font-sans: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  /* The logo only: Bahnschrift is Windows' own DIN, the face of circuit
+     signage, and Ink Free its marker hand. Both ship with Windows 10 and later. */
+  --font-logo: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --font-logo-hand: "Ink Free", "Segoe Print", cursive;
 }
 
 @layer base {

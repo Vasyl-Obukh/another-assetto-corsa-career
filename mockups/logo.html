@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logo - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css. The logo adds two brand
+   colours of its own, which live in globals.css once chosen:
+   --logo-red, a kerb red on hue 27 (the destructive hue - never beside a
+   destructive chip, since the logo sits in the title bar, the start panel and
+   the setup rail only), and the primary blue it already shares with the app. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --border: oklch(0.885 0.01 255);
+  --mode-career: oklch(0.93 0.045 262); --mode-career-fg: oklch(0.42 0.17 262);
+  --mode-championship: oklch(0.9 0.085 88); --mode-championship-fg: oklch(0.42 0.1 75);
+  --mode-quick: oklch(0.89 0.085 150); --mode-quick-fg: oklch(0.33 0.1 152);
+  --welcome-from: oklch(0.5 0.2 262); --welcome-to: oklch(0.4 0.18 290); --welcome-fg: oklch(0.98 0.005 260);
+  --scrim: oklch(0.14 0.012 265);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --border: oklch(1 0 0 / 12%);
+  --mode-career: oklch(0.33 0.07 262); --mode-career-fg: oklch(0.87 0.09 262);
+  --mode-championship: oklch(0.36 0.07 88); --mode-championship-fg: oklch(0.89 0.12 92);
+  --mode-quick: oklch(0.35 0.09 150); --mode-quick-fg: oklch(0.88 0.13 150);
+}
+
+/* The logo's own palette, scoped so a specimen can show either theme whatever
+   the page is in. */
+.t-light {
+  --ink: oklch(0.16 0.01 260);
+  --paper: oklch(1 0 0);
+  --blue: oklch(0.48 0.2 262);
+  --red: oklch(0.58 0.22 27);
+  --kerb-white: oklch(0.985 0 0);
+  --board: oklch(0.24 0.015 265);
+  --board-ink: oklch(0.97 0.005 260);
+  --board-hi: oklch(0.85 0.16 92);
+  color: var(--ink); background: var(--paper);
+}
+.t-dark {
+  --ink: oklch(0.94 0.005 260);
+  --paper: oklch(0.225 0.015 265);
+  --blue: oklch(0.62 0.18 258);
+  --red: oklch(0.64 0.2 27);
+  --kerb-white: oklch(0.97 0 0);
+  --board: oklch(0.3 0.016 265);
+  --board-ink: oklch(0.97 0.005 260);
+  --board-hi: oklch(0.85 0.16 92);
+  color: var(--ink); background: var(--paper);
+}
+/* The app icon tile: the welcome gradient, so the icon and the setup rail are one family. */
+.tile {
+  --ink: oklch(0.985 0.005 260);
+  --blue: oklch(0.985 0.005 260);
+  --red: oklch(0.7 0.19 27);
+  --kerb-white: oklch(0.985 0 0);
+  background: linear-gradient(170deg, oklch(0.5 0.2 262), oklch(0.4 0.18 290));
+  color: var(--ink);
+  display: grid; place-items: center;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45;
+}
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
+header.top { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+header.top h1 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
+.muted { color: var(--muted-foreground); }
+.toggle { margin-left: auto; display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.toggle button { border: 0; background: transparent; color: inherit; padding: 6px 12px; font: inherit; cursor: pointer; }
+.toggle button.on { background: var(--primary); color: var(--primary-foreground); }
+h2 { font-size: 18px; margin: 36px 0 4px; }
+h2 + p { margin: 0 0 14px; }
+.notes { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-top: 14px; }
+.notes h3 { margin: 10px 0 6px; font-size: 14px; }
+.notes ul { margin: 0; padding-left: 18px; }
+.notes li { margin: 3px 0; }
+code { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12.5px; }
+
+/* ---- Marks ---- */
+.marks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.mark-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  cursor: pointer; transition: box-shadow .15s;
+}
+.mark-card.on { box-shadow: 0 0 0 2px var(--primary); }
+.mark-card h3 { margin: 0; font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.mark-card .kind { font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; }
+.kind.track { background: var(--mode-quick); color: var(--mode-quick-fg); }
+.kind.ladder { background: var(--mode-career); color: var(--mode-career-fg); }
+.mark-card p { margin: 2px 0 10px; color: var(--muted-foreground); font-size: 13px; }
+.spec { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.spec > div { border-radius: 8px; padding: 12px; display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; border: 1px solid var(--border); }
+.sz { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sz small { font-size: 10px; opacity: .55; }
+.sz svg { display: block; }
+.tile.r { border-radius: 22%; }
+
+/* ---- Lockups ---- */
+.lockups { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.lockup-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; }
+.lockup-card.on { box-shadow: 0 0 0 2px var(--primary); }
+.lockup-card h3 { margin: 0; font-size: 15px; }
+.lockup-card p { margin: 2px 0 10px; color: var(--muted-foreground); font-size: 13px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pair > div { border-radius: 8px; padding: 22px 14px; display: grid; place-items: center; border: 1px solid var(--border); min-height: 150px; }
+
+/* Shared lockup type: Bahnschrift is Windows' own DIN, the motorsport signage
+   face. The shipped SVG has the text outlined, so no font is needed at runtime. */
+.lk { font-family: Bahnschrift, "DIN Alternate", "Segoe UI", sans-serif; line-height: .92; display: inline-flex; flex-direction: column; position: relative; }
+.lk .ac { font-weight: 700; font-size: 34px; letter-spacing: -0.01em; font-stretch: 87.5%; font-variation-settings: "wdth" 87; }
+.lk .career { font-weight: 700; font-size: 34px; align-self: flex-end; font-variation-settings: "wdth" 87; letter-spacing: -0.01em; }
+.lk .another { font-size: 20px; }
+
+/* Inserted: "Another" scrawled in over a proofreader's caret. The variants
+   differ only in what keeps "Career" company in the indent the stack leaves. */
+.lk-caret { padding-top: 26px; }
+.lk-caret .another {
+  position: absolute; left: -22px; top: -4px; transform: rotate(-7deg);
+  font-family: "Ink Free", "Segoe Print", "Comic Sans MS", cursive; font-weight: 700; font-size: 27px; color: var(--red);
+}
+.lk-caret .caret { position: absolute; left: -17px; top: 47px; width: 14px; height: 10px; }
+.lk-caret .row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.lk-caret .row .career { align-self: auto; position: relative; }
+/* Marker underline, drawn in the same hand as "Another". */
+.lk-caret .swoosh { position: absolute; left: -6px; bottom: -11px; height: 12px; width: calc(100% + 16px); overflow: visible; }
+/* A ring in red marker, the proofreader's "keep this". */
+.lk-caret .ring { position: absolute; left: -12px; top: -3px; width: calc(100% + 26px); height: calc(100% + 9px); overflow: visible; }
+/* The mark itself, small, in the indent. */
+.lk-caret .mk { display: block; flex-shrink: 0; }
+/* A chequered flag waving in from the left, fading out as it goes. */
+.lk-caret .chq { flex: 1; align-self: center; height: 16px; min-width: 40px; margin-left: 6px;
+  background: repeating-conic-gradient(var(--ink) 0 25%, transparent 0 50%) 0 0 / 8px 8px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 75%); mask-image: linear-gradient(90deg, transparent, #000 75%); }
+/* A short racing line sweeping into "Career", in the mark's stroke. */
+.lk-caret .line { flex: 1; min-width: 40px; height: 22px; overflow: visible; }
+
+/* ---- In context ---- */
+.ctx { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.win { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--background); }
+.titlebar { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 0 0 10px; font-size: 12px; background: var(--card); border-bottom: 1px solid var(--border); }
+.titlebar .ctl { margin-left: auto; display: flex; }
+.titlebar .ctl span { width: 46px; text-align: center; opacity: .7; }
+.start { position: relative; height: 540px; overflow: hidden;
+  background:
+    linear-gradient(0deg, color-mix(in oklch, var(--scrim) 60%, transparent), transparent 30%),
+    linear-gradient(115deg, oklch(0.55 0.05 160), oklch(0.42 0.04 220) 45%, oklch(0.3 0.03 260)); }
+.start .panel { position: absolute; inset: 0 auto 0 0; width: 360px; background: color-mix(in oklch, var(--background) 94%, transparent); border-right: 1px solid var(--border); padding: 30px 28px; overflow: hidden; }
+.start .panel .logo-slot { margin: 0 0 14px; transform-origin: top left; }
+.mode { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+.mode:last-child { border-bottom: 0; }
+.mode .ic { grid-row: span 2; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; }
+.mode .ic svg { width: 18px; height: 18px; }
+.mode h4 { margin: 0; font-size: 16px; line-height: 34px; }
+.mode p { margin: 0 0 8px; font-size: 11px; color: var(--muted-foreground); grid-column: 2; }
+.mode .btns { grid-column: 2; display: flex; gap: 6px; }
+.btn { font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); }
+.btn.p { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.caption { position: absolute; right: 22px; bottom: 18px; color: white; text-align: right; font-size: 11px; text-shadow: 0 1px 4px oklch(0 0 0 / 50%); }
+.caption b { display: block; font-size: 18px; }
+.astoday { font-size: 10.5px; color: var(--muted-foreground); font-style: italic; margin-top: 4px; }
+.new-tag { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--mode-championship); color: var(--mode-championship-fg); margin-left: 6px; vertical-align: middle; }
+
+.row2 { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 18px; }
+.rail { background: linear-gradient(170deg, var(--welcome-from), var(--welcome-to)); color: var(--welcome-fg); padding: 22px; border-radius: 8px; display: flex; flex-direction: column; gap: 16px; }
+.rail .badge { width: 48px; height: 48px; border-radius: 12px; background: oklch(0.98 0.005 260 / 18%); display: grid; place-items: center; }
+.rail .badge .tile { background: none; }
+.rail .t { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.rail ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.rail li { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; }
+.rail li i { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-weight: 600; font-size: 12px; background: oklch(0.98 0.005 260 / 18%); flex-shrink: 0; }
+.rail li.on i { background: var(--welcome-fg); color: var(--welcome-to); }
+.rail li span { display: flex; flex-direction: column; }
+.rail li small { opacity: .8; }
+.rail li.later { opacity: .65; }
+.taskbar { display: flex; gap: 6px; align-items: center; padding: 8px 14px; border-radius: 8px; background: oklch(0.2 0.012 265 / 90%); justify-content: center; }
+.taskbar .tb { width: 40px; height: 40px; border-radius: 6px; display: grid; place-items: center; position: relative; }
+.taskbar .tb.on { background: oklch(1 0 0 / 10%); }
+.taskbar .tb.on::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 2px; background: oklch(0.75 0.12 250); }
+.taskbar .other { width: 24px; height: 24px; border-radius: 5px; background: oklch(1 0 0 / 14%); }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+@media (max-width: 900px) {
+  .marks, .lockups, .row2 { grid-template-columns: minmax(0, 1fr); }
+  .start .panel { width: 300px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>Another Assetto Corsa Career - logo</h1>
+    <span class="muted">Two logos: a mark alone, and the name with a playful "Another". Click a mark to try it in context.</span>
+    <div class="toggle" id="theme"><button data-t="light" class="on">Light</button><button data-t="dark">Dark</button></div>
+  </header>
+
+  <h2>1. The mark</h2>
+  <p class="muted">Circuit A picked: the start line is now a plain line, and the triangle is the track's colour. The other marks stay for comparison. Sizes in px; 16 and 24 use a simplified drawing.</p>
+  <div class="marks" id="marks"></div>
+
+  <h2>2. The name logo</h2>
+  <p class="muted">Inserted with the marker underline.</p>
+  <div class="lockups" id="lockups"></div>
+
+  <h2>3. In context</h2>
+  <p class="muted">Using the mark and name logo picked above. Everything else is as it is today.</p>
+  <div class="ctx">
+    <div class="win">
+      <div class="titlebar"><span id="tb-icon"></span><span>Another Assetto Corsa Career</span><span class="ctl"><span>-</span><span>☐</span><span>✕</span></span></div>
+      <div class="start">
+        <div class="panel">
+          <div class="logo-slot" id="start-logo"></div>
+          <div class="astoday">Start screen panel - the name logo replaces the plain "Another Assetto Corsa Career" heading <span class="new-tag">New</span></div>
+          <div class="mode">
+            <span class="ic" style="background:var(--mode-career);color:var(--mode-career-fg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span>
+            <h4>Career</h4>
+            <p>Start on a rung of the ladder and climb it, season after season, as many championships at once as the calendar allows.</p>
+            <div class="btns"><span class="btn p">Continue</span><span class="btn">New</span><span class="btn">Load 3</span></div>
+          </div>
+          <div class="mode">
+            <span class="ic" style="background:var(--mode-quick);color:var(--mode-quick-fg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></span>
+            <h4>Quick race</h4>
+            <p>Set an event up and drive it - a field of any cars, at any track, with whatever sessions you like.</p>
+            <div class="btns"><span class="btn p">Open races</span><span class="btn">New race</span></div>
+          </div>
+        </div>
+        <div class="caption">Last played · Career · 2 days ago<b>Formula 3 2026</b>Round 4 · Spa-Francorchamps</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="stack">
+        <div class="rail">
+          <span class="badge" id="rail-mark"></span>
+          <span class="t">Welcome to Another Assetto Corsa Career</span>
+          <ol>
+            <li class="on"><i>1</i><span><b>Find Assetto Corsa</b><small>Three folders</small></span></li>
+            <li class="later"><i>2</i><span><b>Scan your content</b><small>Cars, tracks, weather</small></span></li>
+            <li class="later"><i>3</i><span><b>Make it yours</b><small>Name, difficulty, look</small></span></li>
+          </ol>
+        </div>
+        <div class="astoday">Setup rail: the mark replaces the flag icon in the badge <span class="new-tag">New</span></div>
+      </div>
+      <div class="stack">
+        <div class="taskbar" id="taskbar"></div>
+        <div class="astoday">Taskbar at 100% scaling (24 px), active</div>
+        <div class="notes">
+          <h3>What changes with the name</h3>
+          <ul>
+            <li><b>Window title, start panel heading, setup rail</b>: "Another Assetto Corsa Career" (<code>app.title</code>, <code>setup.title</code>, <code>index.html</code>). The window gets the mark as its icon (<code>BrowserWindow.icon</code>).</li>
+            <li><b>Slug</b> <code>another-assetto-corsa-career</code>: package name, the GitHub repo, the drag format <code>application/x-another-ac-career-row</code>, and the docs (CLAUDE.md, ROADMAP.md, the mockups' title bars).</li>
+            <li><b>Data folder</b> moves to <code>%APPDATA%/another-assetto-corsa-career/</code>, since Electron names it after the package. You rename the old <code>%APPDATA%/another-assetto-corsa-career/</code> by hand; no migration code.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Notes</h2>
+  <div class="notes">
+    <h3>The mark</h3>
+    <ul>
+      <li><b>Apex A</b> and <b>Circuit A</b> are track monograms; <b>Rising stripes</b> and <b>Ladder A</b> are the career climb. Ladder A is both at once: an A whose rungs are the ladder, the top one reached in kerb red.</li>
+      <li>Each mark has a second, bolder drawing for 16 and 24 px, where thin lines and small details turn to mush. All ship as SVG; the window and taskbar icon is an <code>.ico</code> built at 16, 24, 32, 48 and 256.</li>
+      <li>Bare, the mark is the theme's ink plus blue and kerb red. As the app icon it sits on the setup rail's blue-to-violet gradient.</li>
+    </ul>
+    <h3>The name logo</h3>
+    <ul>
+      <li>Set in Bahnschrift, Windows' own DIN and the face of most circuit signage. The shipped SVG has its text outlined, so it looks the same on any machine.</li>
+      <li>"Another" scrawled in by hand over a proofreader's caret, as if added to the title after the fact; one stroke of the same red marker under "Career", so the two read as one edit.</li>
+      <li>It is one fixed drawing per theme, never a screen's text, so it doesn't go through <code>t()</code>. A Ukrainian name, if wanted, would be a second drawing.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+let uid = 0;
+const id = (p) => `${p}${uid += 1}`;
+
+// Kerb stripes as a pattern; ids are unique per drawing since the page draws each mark many times.
+const kerb = (pid, w = 4.5) => `<pattern id="${pid}" width="${w * 2}" height="10" patternUnits="userSpaceOnUse"><rect width="${w}" height="10" fill="var(--red)"/><rect x="${w}" width="${w}" height="10" fill="var(--kerb-white)"/></pattern>`;
+const chequer = (pid, s = 3) => `<pattern id="${pid}" width="${s * 2}" height="${s * 2}" patternUnits="userSpaceOnUse"><rect width="${s * 2}" height="${s * 2}" fill="var(--kerb-white)"/><rect width="${s}" height="${s}" fill="var(--ink)"/><rect x="${s}" y="${s}" width="${s}" height="${s}" fill="var(--ink)"/></pattern>`;
+
+// Circuit A's bold drawing, used at every size.
+const circuit = () => `<path d="M9 57 L29.5 9 Q32 4 34.5 9 L55 57 L42 57 L38.5 47 L25.5 47 L22 57 Z" fill="none" stroke="var(--ink)" stroke-width="7" stroke-linejoin="round"/>
+  <circle cx="43.9" cy="31" r="6" fill="var(--red)"/>`;
+
+
+const MARKS = [
+  {
+    key: 'apex',
+    name: 'Apex A',
+    kind: 'track',
+    kindLabel: 'Track monogram',
+    desc: 'An A drawn as a racing line: in, round the hairpin, out wide. The crossbar is a kerb.',
+    full: () => {
+      const k = id('k');
+      return `<defs>${kerb(k)}</defs>
+        <rect x="15" y="38" width="34" height="7" fill="url(#${k})" stroke="var(--red)" stroke-width="1"/>
+        <path d="M12 57 L28.4 15 Q32 6.5 35.6 15 Q44 37 52.5 57" fill="none" stroke="var(--ink)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`;
+    },
+    small: () => `<rect x="15" y="37" width="34" height="9" fill="var(--red)"/>
+        <path d="M11 57 L28 14 Q32 5 36 14 L53 57" fill="none" stroke="var(--ink)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+  {
+    key: 'circuit',
+    name: 'Circuit A',
+    kind: 'track',
+    kindLabel: 'Picked',
+    desc: 'A circuit map in the shape of an A, with the start line on the main straight and the car at the apex.',
+    full: () => `<path d="M10 56 L30 9.5 Q32 5.5 34 9.5 L54 56 L42.5 56 L38.5 45.5 L25.5 45.5 L21.5 56 Z" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linejoin="round"/>
+        <path d="M28.5 36.5 L32 27 L35.5 36.5 Z" fill="var(--ink)"/>
+        <path d="M18 51 V61" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="43.5" cy="31.5" r="4" fill="var(--red)"/>`,
+    small: circuit,
+  },
+  {
+    key: 'stripes',
+    name: 'Rising stripes',
+    kind: 'ladder',
+    kindLabel: 'Ladder',
+    desc: 'Three speed stripes climbing like the rungs of the career; the top one ends in a chequer.',
+    full: () => {
+      const c = id('c');
+      return `<defs>${chequer(c, 3)}</defs>
+        <g transform="skewX(-14) translate(13 0)">
+          <rect x="6" y="40" width="12" height="17" rx="1.5" fill="var(--ink)" opacity=".45"/>
+          <rect x="21" y="27" width="12" height="30" rx="1.5" fill="var(--ink)" opacity=".75"/>
+          <rect x="36" y="13" width="12" height="44" rx="1.5" fill="var(--blue)"/>
+          <rect x="36" y="7" width="12" height="6" fill="url(#${c})"/>
+        </g>`;
+    },
+    small: () => `<g transform="skewX(-12) translate(11 0)">
+          <rect x="4" y="38" width="14" height="20" fill="var(--ink)" opacity=".5"/>
+          <rect x="21" y="23" width="14" height="35" fill="var(--ink)" opacity=".8"/>
+          <rect x="38" y="6" width="14" height="52" fill="var(--blue)"/>
+        </g>`,
+  },
+  {
+    key: 'ladder',
+    name: 'Ladder A',
+    kind: 'ladder',
+    kindLabel: 'Ladder + monogram',
+    desc: 'An A whose crossbars are the rungs of a ladder. The top rung, the one you are reaching for, is kerb red.',
+    full: () => `<path d="M11 58 L32 6.5 L53 58" fill="none" stroke="var(--ink)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 46.5 H47 M21.5 35 H42.5" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M26.2 23.5 H37.8" stroke="var(--red)" stroke-width="5.5" stroke-linecap="round"/>`,
+    small: () => `<path d="M9 59 L32 4.5 L55 59" fill="none" stroke="var(--ink)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 43 H46" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M24.5 26 H39.5" stroke="var(--red)" stroke-width="8" stroke-linecap="round"/>`,
+  },
+];
+
+
+const head = () => `<span class="another">Another</span>
+  <svg class="caret" viewBox="0 0 14 10"><path d="M1.5 9 L7 1.5 L12.5 9" fill="none" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="ac">Assetto Corsa</span>`;
+const inserted = (row) => `<div class="lk lk-caret">${head()}<div class="row">${row}</div></div>`;
+
+const LOCKUPS = [
+  {
+    key: 'swoosh',
+    name: 'Inserted, marker underline',
+    desc: 'Picked. "Another" scrawled in over a caret, and "Career" underlined in the same red hand.',
+    html: () => inserted(`<span class="career">Career<svg class="swoosh" viewBox="0 0 120 12" preserveAspectRatio="none"><path d="M3 8.5 C30 4 70 3.5 117 5.5" fill="none" stroke="var(--red)" stroke-width="3.2" stroke-linecap="round"/><path d="M40 9.5 C62 7.5 82 7.5 100 8.5" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg></span>`),
+  },
+];
+
+
+const svg = (mark, size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64">${size <= 24 ? mark.small() : mark.full()}</svg>`;
+const sizes = (mark, list) => list.map((s) => `<span class="sz">${svg(mark, s)}<small>${s}</small></span>`).join('');
+const tiles = (mark, list) => list.map((s) => {
+  const inner = Math.round(s * 0.72);
+  return `<span class="sz"><span class="tile r" style="width:${s}px;height:${s}px">${svg(mark, inner)}</span><small>${s}</small></span>`;
+}).join('');
+
+let pickedMark = 'circuit';
+let pickedLockup = 'swoosh';
+
+const renderMarks = () => {
+  document.getElementById('marks').innerHTML = MARKS.map((m) => `
+    <div class="mark-card ${m.key === pickedMark ? 'on' : ''}" data-mark="${m.key}">
+      <h3>${m.name} <span class="kind ${m.kind}">${m.kindLabel}</span></h3>
+      <p>${m.desc}</p>
+      <div class="spec">
+        <div class="t-light">${sizes(m, [128, 48, 32, 24, 16])}</div>
+        <div class="t-dark">${sizes(m, [128, 48, 32, 24, 16])}</div>
+      </div>
+      <div class="spec" style="margin-top:8px">
+        <div class="t-light" style="grid-column:span 2">${tiles(m, [96, 48, 32, 24, 16])}</div>
+      </div>
+    </div>`).join('');
+};
+
+const renderLockups = () => {
+  document.getElementById('lockups').innerHTML = LOCKUPS.map((l) => `
+    <div class="lockup-card ${l.key === pickedLockup ? 'on' : ''}" data-lockup="${l.key}">
+      <h3>${l.name}</h3>
+      <p>${l.desc}</p>
+      <div class="pair"><div class="t-light">${l.html()}</div><div class="t-dark">${l.html()}</div></div>
+    </div>`).join('');
+};
+
+const themeClass = () => (document.documentElement.dataset.theme === 'dark' ? 't-dark' : 't-light');
+
+const renderContext = () => {
+  const mark = MARKS.find((m) => m.key === pickedMark);
+  const lockup = LOCKUPS.find((l) => l.key === pickedLockup);
+  document.getElementById('tb-icon').innerHTML = `<span class="tile r" style="width:16px;height:16px;display:inline-grid">${svg(mark, 12)}</span>`;
+  document.getElementById('start-logo').innerHTML = `<div class="${themeClass()}" style="background:none;display:inline-block">${lockup.html()}</div>`;
+  document.getElementById('rail-mark').innerHTML = `<span class="tile" style="width:30px;height:30px">${svg(mark, 30)}</span>`;
+  document.getElementById('taskbar').innerHTML = `<span class="other"></span><span class="other"></span>
+    <span class="tb on"><span class="tile r" style="width:24px;height:24px">${svg(mark, 18)}</span></span>
+    <span class="other"></span>`;
+};
+
+const renderAll = () => { renderMarks(); renderLockups(); renderContext(); };
+
+document.addEventListener('click', (e) => {
+  const m = e.target.closest('[data-mark]');
+  const l = e.target.closest('[data-lockup]');
+  if (m) pickedMark = m.dataset.mark;
+  if (l) pickedLockup = l.dataset.lockup;
+  if (m || l) renderAll();
+  const b = e.target.closest('#theme button');
+  if (b) {
+    document.documentElement.dataset.theme = b.dataset.t;
+    document.querySelectorAll('#theme button').forEach((x) => x.classList.toggle('on', x === b));
+    renderContext();
+  }
+});
+
+if (new URLSearchParams(location.search).get('theme') === 'dark') document.querySelector('#theme [data-t=dark]').click();
+renderAll();
+</script>
+</body>
+</html>

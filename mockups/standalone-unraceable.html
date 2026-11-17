@@ -478,7 +478,7 @@ const roundsOf = (s) => [
 ];
 const stuckOf = (s) => roundsOf(s).filter((r) => r.stuck);
 
-const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const titlebar = () => '<div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
 const win = (inner) => `<div class="win">${titlebar()}${inner}</div>`;
 const NAV = [['champ', 'Championship', I.trophy], ['results', 'Results', I.results], ['settings', 'Settings', I.gear]];
 const hdr = (sub) => `<header class="hd">
@@ -578,7 +578,7 @@ const skipDialog = (s) => {
 const newChamp = (s) => {
   const stuck = stuckOf(s);
   const names = stuck.map((r) => r.name).join(' and ');
-  return win(`<header class="hd"><h1>Assetto Corsa Career</h1></header>
+  return win(`<header class="hd"><h1>Another Assetto Corsa Career</h1></header>
   <div class="shdr"><span class="backlink">${I.back}Main menu</span><h2 style="margin-left:12px">New championship</h2>
     <div class="stepper"><span class="done"><i>✓</i>Championship</span><b></b><span class="on"><i>2</i>Your seat</span></div></div>
   <div class="body" style="display:grid;grid-template-columns:420px minmax(0,1fr);gap:18px;overflow:auto">

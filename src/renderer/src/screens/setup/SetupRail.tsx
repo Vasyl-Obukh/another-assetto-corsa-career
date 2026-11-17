@@ -1,7 +1,8 @@
-import { CheckIcon, FlagIcon } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SETUP_STEPS } from './constants.ts';
+import { AppMark } from '@/components';
 import { useFormat } from '@/i18n';
 import { cn } from '@/lib/utils.ts';
 
@@ -21,9 +22,9 @@ export const SetupRail = ({ current }: SetupRailProps) => {
   const { formatNumber } = useFormat();
 
   return (
-    <aside className="flex flex-col gap-6 bg-linear-170 from-welcome-from to-welcome-to p-7 text-welcome-foreground">
+    <aside className="flex flex-col gap-6 bg-linear-170 from-welcome-from to-welcome-to p-7 text-welcome-foreground [--logo-red:var(--logo-red-welcome)]">
       <span className="grid size-12 place-items-center rounded-xl bg-welcome-foreground/18">
-        <FlagIcon className="size-6" />
+        <AppMark size={30} />
       </span>
       <span className="text-lg leading-snug font-semibold">{t('setup.title')}</span>
 

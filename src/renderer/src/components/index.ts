@@ -3,6 +3,7 @@
 
 export { ApartMark } from './ApartMark.tsx';
 export { AppHeader } from './AppHeader.tsx';
+export { AppMark, AppWordmark } from './app-logo/index.ts';
 export { AppNav } from './app-nav/index.ts';
 export { BackLink } from './BackLink.tsx';
 export { BackToTop } from './BackToTop.tsx';

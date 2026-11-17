@@ -15,7 +15,7 @@ import { lastPlayedMode } from './utils.ts';
 import type { PathsReport } from '../../../../shared/types';
 import { useSlot } from '@/app';
 import {
-  ContentImage, ErrorCard, Loading, NationFlag, Shimmer, trackPictureSources,
+  AppWordmark, ContentImage, ErrorCard, Loading, NationFlag, Shimmer, trackPictureSources,
 } from '@/components';
 import { Button } from '@/components/ui/button.tsx';
 import { useCareers, useQuickRaces, useViewportScale } from '@/hooks';
@@ -192,7 +192,9 @@ export const Start = ({ initialReport }: StartProps) => {
       {lead === null ? null : <PlayedCaption played={played} />}
 
       <div className="relative flex h-full w-150 max-w-[48%] flex-col overflow-y-auto border-r bg-background/94 px-12 pt-12 pb-8 backdrop-blur-md">
-        <h1 className="mb-2 text-[2rem] font-semibold tracking-tight">{t('app.title')}</h1>
+        <h1 className="mb-3">
+          <AppWordmark className="text-[2.5rem]" />
+        </h1>
 
         {careers.error ? <ErrorCard error={careers.error} onDismiss={careers.dismissError} /> : null}
         {standalones.error ? <ErrorCard error={standalones.error} onDismiss={standalones.dismissError} /> : null}

@@ -368,7 +368,7 @@ const sk = (w, h, cls = '') => `<span class="sk ${cls}" style="width:${typeof w 
 const chip = (cls, text) => `<span class="chip ${cls}">${text}</span>`;
 const sessionChip = (type) => chip(`c-${type}`, { practice: 'Practice', qualify: 'Qualifying', race: 'Race' }[type]);
 const panelTitle = (text, end = '') => `<div class="panel-h"><span class="caps">${text}</span>${end}</div>`;
-const nav = (on) => `<nav class="app-nav"><span class="brand">AC Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</nav>`;
+const nav = (on) => `<nav class="app-nav"><span class="brand">Another Assetto Corsa Career</span>${['Home', 'Calendar', 'Championships', 'Race', 'Cars', 'Tracks', 'Settings'].map((n) => `<span class="${n === on ? 'on' : ''}">${n}</span>`).join('')}</nav>`;
 const laps = (n) => `${n} ${n === 1 ? 'lap' : 'laps'}`;
 
 // A stop as the share of the race it runs, so the labels grow left to right

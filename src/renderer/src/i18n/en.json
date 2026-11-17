@@ -1,6 +1,11 @@
 {
   "app": {
-    "title": "Assetto Corsa Career",
+    "title": "Another Assetto Corsa Career",
+    "logo": {
+      "another": "Another",
+      "game": "Assetto Corsa",
+      "career": "Career"
+    },
     "backToTop": "Back to top"
   },
   "nav": {
@@ -391,7 +396,7 @@
     "dismiss": "Dismiss"
   },
   "setup": {
-    "title": "Welcome to Assetto Corsa Career",
+    "title": "Welcome to Another Assetto Corsa Career",
     "continue": "Continue",
     "stepOf": "Step {{step}} of {{total}}",
     "back": "Back",

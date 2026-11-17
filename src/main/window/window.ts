@@ -14,12 +14,14 @@ import { resolvedTheme, WINDOW_BACKGROUND } from '../theme/index.ts';
  * Creates the main window and wires up geometry persistence.
  * @param settings The store to read geometry from and save it back to
  * @param preloadPath Absolute path to the built preload script
+ * @param iconPath Absolute path to the window and taskbar icon
  * @param rendererUrl Dev server URL, or null to load the built renderer from disk
  * @returns The created window
  */
 export const createWindow = (
   settings: SettingsStore,
   preloadPath: string,
+  iconPath: string,
   rendererUrl: string | null,
 ): BrowserWindow => {
   const saved = settings.get().window;
@@ -34,6 +36,7 @@ export const createWindow = (
     show: false,
     backgroundColor: WINDOW_BACKGROUND[resolvedTheme()],
     autoHideMenuBar: true,
+    icon: iconPath,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,

@@ -511,7 +511,7 @@ const render = () => {
   document.querySelectorAll('.grp[data-for]').forEach((g) => { g.hidden = g.dataset.for !== state.screen; });
   document.getElementById('why').innerHTML = state.screen === 'list' ? WHY.list[state.list] : WHY.detail;
   document.getElementById('app').innerHTML = `
-    <div class="app-nav"><span class="brand">Assetto Corsa Career</span><span>Home</span><span>Race</span><span>Calendar</span><span>Championships</span><span class="on">Results</span><span>Cars</span><span>Tracks</span><span>Settings</span></div>
+    <div class="app-nav"><span class="brand">Another Assetto Corsa Career</span><span>Home</span><span>Race</span><span>Calendar</span><span>Championships</span><span class="on">Results</span><span>Cars</span><span>Tracks</span><span>Settings</span></div>
     ${state.screen === 'list' ? list() : detail()}`;
 };
 

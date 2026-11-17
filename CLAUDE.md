@@ -1,4 +1,4 @@
-# Assetto Corsa Career Mode
+# Another Assetto Corsa Career
 
 ## What this is
 
@@ -235,7 +235,9 @@ Rules that live here:
   route pattern (`ROUTE.x`), URL builder (`path.x()`) and `BACK_LABEL`.
   Results, History, Finances, Rating and Contracts live under `/home/` and are
   not in `NAV`.
-- `components/` - shared pieces; `ui/` is vendored shadcn.
+- `components/` - shared pieces; `ui/` is vendored shadcn. The logo is
+  `app-logo/` (`AppMark`, `AppWordmark`); `resources/icon.ico` is the window
+  icon, the same mark on the welcome gradient.
 - `lib/` - pure read-side helpers per screen family (`finances`, `rating`,
   `inbox`, `contracts`, `season-review`, `classification`, ...), plus
   `accents.ts` (colour maps several screens share), `layout.ts` (shared
@@ -323,12 +325,12 @@ replaced with defaults.
 format, `CONTENT_CACHE_VERSION` and `CONTENT_CATALOGUE_VERSION` included, stays
 at version 1. A format change is: change the type, change the reader, leave the
 version alone, and say which file is now stale. The content cache
-(`%APPDATA%/ac-career-mode/content-cache.json`) goes stale whenever `Car`,
+(`%APPDATA%/another-assetto-corsa-career/content-cache.json`) goes stale whenever `Car`,
 `Track`, `Skin`, `CarPerformance`, the fingerprint, what a scan finds or the
 provenance catalogue changes - unchanged folders are otherwise served as before.
 
 **Deleting files is the user's to do.** Name the stale file and why. Anything
-outside the repo (`%APPDATA%/ac-career-mode/`, the AC install, CM's folders) is
+outside the repo (`%APPDATA%/another-assetto-corsa-career/`, the AC install, CM's folders) is
 always asked for, never deleted; files inside the repo are named, not removed unasked.
 
 ### UI
@@ -412,7 +414,7 @@ The colours themselves:
   technique** - three lightnesses of one hue read as one colour at chip size.
 
 Hues in use - read the notes in `globals.css` before placing a new one: budget
-independent 18, destructive 27, sale tag 45, podium bronze 52, Sell amber 62,
+independent 18, destructive and the logo red 27, sale tag 45, podium bronze 52, Sell amber 62,
 DLC 75, warning 80, podium gold 88, sportscar 112, budget privateer 132, Rookie
 142, race 150, success / base provenance / points finish 155, touring 175,
 modified origin 195, single-seater 212, redistribution 235, practice 250,

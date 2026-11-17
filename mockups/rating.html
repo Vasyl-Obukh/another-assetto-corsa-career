@@ -853,7 +853,7 @@ const BALANCE = 63350;
 const NEWLY = () => LADDER.sports[3].length + DISCS.filter((d) => d !== 'sports' && OWN[d] === 5).reduce((a, d) => a + LADDER[d][4].length, 0);
 
 // ---------- The window ----------
-const titlebar = () => '<div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
+const titlebar = () => '<div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>';
 const win = (inner, h) => `<div class="win"${h ? ` style="height:${h}px"` : ''}>${titlebar()}${inner}</div>`;
 const NAV = [['home', 'Home', I.home], ['calendar', 'Calendar', I.cal], ['champs', 'Championships', I.trophy], ['store', 'Store', I.store], ['garage', 'Garage', I.garage], ['settings', 'Settings', I.gear]];
 const hdr = (on, opts = {}) => `<header class="hd">
@@ -1352,7 +1352,7 @@ const speeds = (money, rating, career) => `<div style="display:grid;grid-templat
   ${speedField(I.gauge, 'amber', 'Rating', rating, `Scales every change of rating, up and down alike - a faster career, not an easier one.${career ? ' Each change is a line in the rating log.' : ''}`)}</div>`;
 const settings = () => {
   if (S.set === 'new') {
-    return win(`<header class="hd"><h1>Assetto Corsa Career</h1></header>
+    return win(`<header class="hd"><h1>Another Assetto Corsa Career</h1></header>
   <div class="shdr"><span class="backlink">${I.back}Main menu</span><h2 style="margin-left:12px">New career</h2></div>
   <div class="body" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;overflow:auto">
     <div class="col" style="gap:14px">

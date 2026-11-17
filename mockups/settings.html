@@ -799,7 +799,7 @@ const shellB = () => {
 
 // ---------- Setup ----------
 const setupSteps = () => `<div class="setup">
-  <div class="hero"><div class="logo">${ic('flag', 'lg')}</div><div><h1>Welcome to Assetto Corsa Career</h1><p class="muted">Three quick checks and you are on the grid.</p></div><span style="flex:1"></span><span class="sel" style="min-width:7rem">English</span></div>
+  <div class="hero"><div class="logo">${ic('flag', 'lg')}</div><div><h1>Welcome to Another Assetto Corsa Career</h1><p class="muted">Three quick checks and you are on the grid.</p></div><span style="flex:1"></span><span class="sel" style="min-width:7rem">English</span></div>
   <div class="steps">
     <div class="step done"><div class="step-n"><span class="num-dot">${ic('check')}</span></div><div class="step-b">
       <div class="step-h"><h4>Find Assetto Corsa</h4><span class="chip c-success">All three found</span></div>
@@ -824,7 +824,7 @@ const setupSteps = () => `<div class="setup">
 
 const setupWizard = () => `<div class="wizard">
   <aside class="wz-side"><div class="logo" style="background:oklch(1 0 0 / .18)">${ic('flag', 'lg')}</div>
-    <div style="font-size:18px;font-weight:650">Assetto Corsa Career</div>
+    <div style="font-size:18px;font-weight:650">Another Assetto Corsa Career</div>
     ${[['Find Assetto Corsa', 'Three folders', 'done'], ['Scan your content', 'Cars, tracks, weather', 'on'], ['Make it yours', 'Name, difficulty, look', '']].map(([n, s, c], k) => `<div class="wz-step ${c}"><span class="num-dot">${c === 'done' ? ic('check') : k + 1}</span><div><b>${n}</b><div class="small" style="opacity:.8">${s}</div></div></div>`).join('')}
   </aside>
   <main class="wz-main">
@@ -854,7 +854,7 @@ const render = () => {
   document.getElementById('win').className = 'window' + (!isSetup && state.page === 'championships' ? ' wide' : '');
   document.getElementById('win').innerHTML = isSetup
     ? (state.setup === 'steps' ? setupSteps() : setupWizard())
-    : `<div class="app-header"><h1>Assetto Corsa Career</h1><nav class="nav">${nav.map((n) => `<a class="${n === 'Settings' ? 'on' : ''}">${n}</a>`).join('')}</nav></div>${state.shell === 'a' ? shellA() : shellB()}`;
+    : `<div class="app-header"><h1>Another Assetto Corsa Career</h1><nav class="nav">${nav.map((n) => `<a class="${n === 'Settings' ? 'on' : ''}">${n}</a>`).join('')}</nav></div>${state.shell === 'a' ? shellA() : shellB()}`;
   if (!isSetup && state.shell === 'a' && !PAGE_FN[state.page]) { state.page = 'general'; render(); }
 };
 window.go = go;

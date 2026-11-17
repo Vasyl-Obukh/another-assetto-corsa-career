@@ -320,7 +320,7 @@ const cards = (fluid) => {
   // screen's unit, a wider column and a taller band.
   const style = fluid ? '--w:calc(var(--u) * 1560);--band:calc(var(--u) * 210)' : '--w:1296px;--band:132px';
   return `<div class="screen va${fluid ? '' : ' fixed'}" style="${style}"><div class="inner">
-    <h1 class="h1">Assetto Corsa Career</h1>
+    <h1 class="h1">Another Assetto Corsa Career</h1>
     <div class="cards">${ORDER.map(card).join('')}</div>
     ${foot()}</div></div>`;
 };
@@ -352,7 +352,7 @@ const variantB = () => {
       <div class="col" style="gap:calc(var(--u) * 4)">${lastLine}<p class="desc">${d.desc}</p><div class="acts">${acts}</div></div></div>`;
   };
   return `<div class="screen vb"><div class="inner">
-    <h1 class="h1">Assetto Corsa Career</h1>
+    <h1 class="h1">Another Assetto Corsa Career</h1>
     <div class="hero ph stripe-career"><img class="bg" src="${last.photo}"><div class="cap">${cap}</div></div>
     <div class="modes">${ORDER.map(mode).join('')}</div>
     ${foot()}</div></div>`;
@@ -368,7 +368,7 @@ const variantC = () => {
     </div>`;
   };
   return `<div class="screen vc">
-    <h1 class="h1" style="width:100%;max-width:calc(var(--u) * 1720);margin:0 auto">Assetto Corsa Career</h1>
+    <h1 class="h1" style="width:100%;max-width:calc(var(--u) * 1720);margin:0 auto">Another Assetto Corsa Career</h1>
     <div class="tiles">${ORDER.map(tile).join('')}</div>
     <div style="width:100%;max-width:calc(var(--u) * 1720);margin:0 auto">${foot()}</div></div>`;
 };
@@ -385,7 +385,7 @@ const variantD = () => {
   else if (!firstRun()) caption = `<div class="caption"><span class="k">Last played · Career</span><b>Brands Hatch GP</b><small>${last.who} · next race Sat 21 Jun</small></div>`;
   return `<div class="screen vd">
     <div class="bgph ph"><img class="bg" src="${last.photo}"></div>
-    <div class="panel"><h1 class="h1" style="font-size:calc(var(--u) * 32);margin-bottom:calc(var(--u) * 8)">Assetto Corsa Career</h1>
+    <div class="panel"><h1 class="h1" style="font-size:calc(var(--u) * 32);margin-bottom:calc(var(--u) * 8)">Another Assetto Corsa Career</h1>
       ${ORDER.map(blk).join('')}<div class="grow"></div>${foot()}</div>
     ${caption}</div>`;
 };
@@ -408,7 +408,7 @@ const variantE = () => {
       <div class="row" style="margin-top:calc(var(--u) * 10);flex-wrap:wrap">${buttons(sel, { glass: true, size: 'xl' })}</div>`;
   const recent = loading() || firstRun() ? '' : `<span class="cap-k">Recent</span><div class="recent">${d.recent.map(([n, s, ph, nat]) => `<div class="slot"><div class="ph"><img class="bg" src="${ph}"></div><div><b class="trunc">${nat ? `${flag(nat)} ` : ''}${n}</b><small class="trunc">${s}</small></div></div>`).join('')}</div>`;
   return `<div class="screen ve">
-    <div class="menu"><h1 class="h1" style="font-size:calc(var(--u) * 32);margin-bottom:calc(var(--u) * 20)">Assetto Corsa Career</h1>
+    <div class="menu"><h1 class="h1" style="font-size:calc(var(--u) * 32);margin-bottom:calc(var(--u) * 20)">Another Assetto Corsa Career</h1>
       ${ORDER.map(item).join('')}<div class="grow"></div>${foot()}</div>
     <div class="preview"><div class="big ph"><img class="bg" src="${d.photo}"><div class="cap">${cap}</div></div>${recent}</div>
   </div>`;
@@ -468,7 +468,7 @@ const render = () => {
   stage.innerHTML = `<div class="scalebox" style="width:${scr.w * scale}px;height:${scr.h * scale}px">
     <span class="note">${scr.label} · shown at ${Math.round(scale * 100)}%</span>
     <div class="win" style="width:${scr.w}px;height:${scr.h}px;transform:scale(${scale})">
-      <div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>
+      <div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>
       <div class="host">${draw()}</div></div></div>`;
 };
 

@@ -257,7 +257,7 @@ const foot = () => `<div class="foot">
 
 const HEIGHT = { s: 640, m: 820, l: 1000 };
 const win = (inner) => `<div class="win" style="height:${HEIGHT[S.size]}px">
-  <div class="titlebar"><span>Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>${inner}</div>`;
+  <div class="titlebar"><span>Another Assetto Corsa Career</span><span>—</span><span>☐</span><span>✕</span></div>${inner}</div>`;
 
 // ---------- Today ----------
 const today = () => {
@@ -272,7 +272,7 @@ const today = () => {
       <div class="row" style="flex-wrap:wrap">${buttons(m, { glass: true, size: 'lg' })}</div></div></div>`;
   };
   return win(`<div class="screen v0" style="--n:${modeList().length}">
-    <h1 style="font-size:30px">Assetto Corsa Career</h1>
+    <h1 style="font-size:30px">Another Assetto Corsa Career</h1>
     <div class="tiles">${modeList().map(tile).join('')}</div>${foot()}</div>`);
 };
 
@@ -295,7 +295,7 @@ const variantA = () => {
   };
   const n = modeList().length;
   return win(`<div class="screen va" style="--n:${n};--w:${n === 3 ? 1140 : 860}px"><div class="inner">
-    <h1>Assetto Corsa Career</h1>
+    <h1>Another Assetto Corsa Career</h1>
     <div class="cards">${modeList().map(card).join('')}</div>
     ${foot()}</div></div>`);
 };
@@ -320,7 +320,7 @@ const variantB = () => {
     </div>`;
   };
   return win(`<div class="screen vb"><div class="inner">
-    <h1>Assetto Corsa Career</h1>
+    <h1>Another Assetto Corsa Career</h1>
     <div class="rows">${modeList().map(row).join('')}</div>
     ${foot()}</div></div>`);
 };
@@ -341,7 +341,7 @@ const variantC = () => {
     return `<div class="blk"><span class="well ${m}">${I[m]}</span><h2>${d.title}</h2><p>${d.desc}</p>${metaLine(m)}<div class="acts">${buttons(m)}</div></div>`;
   };
   return win(`<div class="screen vc">
-    <div class="hero ph"><img class="bg" src="${c.photo}"><div class="cap"><h1>Assetto Corsa Career</h1><div class="grow"></div>${caption}</div></div>
+    <div class="hero ph"><img class="bg" src="${c.photo}"><div class="cap"><h1>Another Assetto Corsa Career</h1><div class="grow"></div>${caption}</div></div>
     <div class="menu"><div class="list">${modeList().map(blk).join('')}</div>${foot()}</div>
   </div>`);
 };

@@ -75,8 +75,9 @@ if (!app.requestSingleInstanceLock()) {
     serveContent(() => content.contentDir());
 
     const preload = path.join(import.meta.dirname, '../preload/preload.cjs');
+    const icon = path.join(import.meta.dirname, '../../resources/icon.ico');
     const rendererUrl = process.env.ELECTRON_RENDERER_URL ?? null;
-    mainWindow = createWindow(settings, preload, rendererUrl);
+    mainWindow = createWindow(settings, preload, icon, rendererUrl);
 
     // Coming back from Content Manager is the likeliest moment for content to
     // have changed, and the cheapest one to notice it in.
@@ -157,7 +158,7 @@ if (!app.requestSingleInstanceLock()) {
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        mainWindow = createWindow(settings, preload, rendererUrl);
+        mainWindow = createWindow(settings, preload, icon, rendererUrl);
       }
     });
 
