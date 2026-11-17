@@ -11,7 +11,9 @@ import { OriginBadge } from './OriginBadge.tsx';
 import { Requirements } from './Requirements.tsx';
 import { RoundTicks } from './RoundTicks.tsx';
 import { SeasonBand } from './SeasonBand.tsx';
-import { availabilityState, tierAccent } from './utils.ts';
+import {
+  availabilityState, disciplinesOf, tierAccent, tiersOf,
+} from './utils.ts';
 import type { SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
 import { isSeriesActive, withSeriesActive } from '../../../../shared/utils/series-toggles';
@@ -66,8 +68,8 @@ export const SeasonCard = ({
   const locked = listing.event !== null;
   const page = path.settingsChampionship({ id: series.id });
   const format = defaultFormatOf(series);
-  const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
-  const tiers = [...new Set(series.entries.map((entry) => entry.ladder.tier))].sort((a, b) => a - b);
+  const disciplines = disciplinesOf(series);
+  const tiers = tiersOf(series);
   // Everything but the switch goes pale when the championship is off, so a card
   // that is not on the Championships page reads as such at a glance - and the
   // switch that brings it back does not.

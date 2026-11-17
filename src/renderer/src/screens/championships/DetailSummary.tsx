@@ -10,7 +10,7 @@ import { Requirements } from './Requirements.tsx';
 import { SummaryFact } from './SummaryFact.tsx';
 import type { NextRound } from './types.ts';
 import {
-  availabilityState, disciplineKey, tierAccent,
+  availabilityState, disciplineKey, disciplinesOf, tierAccent,
 } from './utils.ts';
 import type { SeasonEntry, SeriesListing } from '../../../../shared/types';
 import { defaultFormatOf } from '../../../../shared/utils/event-format';
@@ -71,7 +71,7 @@ export const DetailSummary = ({
   const active = isSeriesActive(listing, settings);
   const state = availabilityState(availability);
   const format = defaultFormatOf(series);
-  const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
+  const disciplines = disciplinesOf(series);
   const yours = entered ? series.entries.find((entry) => entry.id === entered.entry) : undefined;
   const yourSeat = yours?.seats.find((seat) => seat.id === entered?.playerSeat);
   const yourTeam = series.teams?.find((team) => team.id === yourSeat?.team);

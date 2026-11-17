@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   AI_RANGE, MAX_GRID_OFFSET, SERIES_FORMAT_VERSION, WeatherType,
 } from '../../../../../shared/constants';
-import { ContentSource, Discipline } from '../../../../../shared/types';
+import { ContentSource, Discipline, TeamBudget } from '../../../../../shared/types';
 import type {
   Championship, ClassEntry, EventFormat, Round, SeriesAvailability, SeriesSession, Weather,
 } from '../../../../../shared/types';
@@ -12,6 +12,7 @@ import {
   DEFAULT_LENGTH, DEFAULT_POINTS, DEFAULT_PURSE_PLACES, DEFAULT_TIER, HISTORIC_EDITOR_TABS, HISTORIC_IDS, PURSE_SHAPES,
 } from '../constants.ts';
 import {
+  adoptedSeats,
   changedTabs,
   coeffOf,
   daysOf,
@@ -50,6 +51,7 @@ import {
   startingSeats,
   startKindOf,
   storedLength,
+  teamNameKey,
   withAddedFormat,
   withAddedPoints,
   withBop,
@@ -1395,12 +1397,131 @@ describe('renderer/screens/championship-editor/utils', () => {
 
   describe('startingSeats', () => {
     it('numbers the seats after the class, each fielded by the team at its place', () => {
-      expect(startingSeats(series([]), 'gt', 3, ['red', undefined]))
+      expect(startingSeats(series([]), 'gt', 3, [{ team: 'red' }, {}]))
         .toEqual([{ id: 'gt-1', team: 'red' }, { id: 'gt-2' }, { id: 'gt-3' }]);
     });
 
     it('steps round a seat id another class already spends', () => {
       expect(startingSeats(series([]), 'main', 2, []).map((seat) => seat.id)).toEqual(['main-1-2', 'main-2']);
+    });
+
+    it('carries everything a seat starts as, drivers and offsets included', () => {
+      const from = [{
+        team: 'red', driver: { name: 'Ann Smith', nationCode: 'GBR' }, strength: 2, aggression: -1,
+      }];
+
+      expect(startingSeats(series([]), 'gt', 1, from)).toEqual([{ id: 'gt-1', ...from[0] }]);
+    });
+  });
+
+  describe('teamNameKey', () => {
+    it('matches names whatever their case, accents and surrounding spaces', () => {
+      expect(teamNameKey('  Équipe Rouge ')).toBe(teamNameKey('equipe rouge'));
+    });
+
+    it('tells different names apart', () => {
+      expect(teamNameKey('Red Racing')).not.toBe(teamNameKey('Red Racing II'));
+    });
+  });
+
+  describe('adoptedSeats', () => {
+    const source = series([], {
+      id: 'other-cup',
+      teams: [
+        {
+          id: 'red', name: 'Red Racing', nationCode: 'ITA', budget: TeamBudget.WORKS,
+        },
+        { id: 'blue', name: 'Blue Motorsport', nationCode: 'GBR' },
+      ],
+      entries: [entry('gt', ['ks_mazda_mx5_cup'], {
+        seats: [
+          {
+            id: 'gt-1',
+            team: 'red',
+            driver: { name: 'Ann Smith', nationCode: 'ITA' },
+            car: { model: 'ks_mazda_mx5_cup', skin: '00_red' },
+            strength: 2,
+            aggression: -1,
+          },
+          { id: 'gt-2', team: 'red' },
+          { id: 'gt-3', team: 'blue' },
+          { id: 'gt-4' },
+        ],
+      })],
+    });
+    const [gt] = source.entries;
+
+    it("keeps each seat's team, driver and offsets, and leaves its car to be drawn", () => {
+      expect(adoptedSeats(series([]), source, gt, 4).seats).toEqual([
+        {
+          team: 'red', driver: { name: 'Ann Smith', nationCode: 'ITA' }, strength: 2, aggression: -1,
+        },
+        { team: 'red' },
+        { team: 'blue' },
+        {},
+      ]);
+    });
+
+    it('brings each team it fields once, however many seats it has', () => {
+      const adopted = adoptedSeats(series([]), source, gt, 4);
+
+      expect(adopted.teams).toEqual(source.teams);
+      expect(adopted.reused).toBe(0);
+    });
+
+    it('reuses a team the championship has by the same name rather than doubling it', () => {
+      const own = series([], { teams: [{ id: 'rosso', name: 'red racing' }] });
+      const adopted = adoptedSeats(own, source, gt, 3);
+
+      expect(adopted.seats.map((seat) => seat.team)).toEqual(['rosso', 'rosso', 'blue']);
+      expect(adopted.teams.map((team) => team.id)).toEqual(['blue']);
+      expect(adopted.reused).toBe(1);
+    });
+
+    it('renames a team whose id the championship already spends on another', () => {
+      const own = series([], { teams: [{ id: 'red', name: 'Scuderia Rossa' }] });
+      const adopted = adoptedSeats(own, source, gt, 1);
+
+      expect(adopted.teams).toEqual([{ ...source.teams?.[0], id: 'red-2' }]);
+      expect(adopted.seats[0]?.team).toBe('red-2');
+    });
+
+    it('takes only the first seats, and only the teams they field', () => {
+      const adopted = adoptedSeats(series([]), source, gt, 2);
+
+      expect(adopted.seats).toHaveLength(2);
+      expect(adopted.teams.map((team) => team.id)).toEqual(['red']);
+    });
+
+    // Found in review: the second of two same-named teams counted as already here.
+    it('joins two of its teams of one name as one, and counts neither as already here', () => {
+      const twins = series([], {
+        teams: [{ id: 'a', name: 'Privateer' }, { id: 'b', name: 'privateer' }],
+        entries: [entry('gt', ['ks_mazda_mx5_cup'], { seats: [{ id: 'gt-1', team: 'a' }, { id: 'gt-2', team: 'b' }] })],
+      });
+      const adopted = adoptedSeats(series([]), twins, twins.entries[0], 2);
+
+      expect(adopted.seats).toEqual([{ team: 'a' }, { team: 'a' }]);
+      expect(adopted.teams.map((team) => team.id)).toEqual(['a']);
+      expect(adopted.reused).toBe(0);
+    });
+
+    // Found in review: a driver the championship seats already raced two seats.
+    it("leaves a seat's driver to be drawn when the championship seats them already", () => {
+      const own = series([], {
+        entries: [entry('main', ['ks_mazda_mx5_cup'], { seats: [{ id: 'main-1', driver: { name: 'Ann Smith' } }] })],
+      });
+
+      expect(adoptedSeats(own, source, gt, 1).seats[0]).toEqual({ team: 'red', strength: 2, aggression: -1 });
+    });
+
+    it('drops a team the source championship does not field', () => {
+      const stray = series([], {
+        teams: [],
+        entries: [entry('gt', ['ks_mazda_mx5_cup'], { seats: [{ id: 'gt-1', team: 'ghost' }] })],
+      });
+
+      expect(adoptedSeats(series([]), stray, stray.entries[0], 1)).toEqual({ seats: [{}], teams: [], reused: 0 });
     });
   });
 

@@ -17,7 +17,7 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { managePath } from '@/lib/series-kind';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, FormatStrip, TierMedal,
+  ChampionshipActions, disciplineKey, disciplinesOf, FormatStrip, TierMedal, tiersOf,
 } from '@/screens/championships';
 
 interface HistoricRowProps {
@@ -42,8 +42,8 @@ export const HistoricRow = ({ listing, commands }: HistoricRowProps) => {
   const active = isSeriesActive(listing, historicSwitches(settings));
   const page = managePath('historic', series.id);
   const format = defaultFormatOf(series);
-  const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
-  const tiers = [...new Set(series.entries.map((entry) => entry.ladder.tier))].sort((a, b) => a - b);
+  const disciplines = disciplinesOf(series);
+  const tiers = tiersOf(series);
   const dimmed = !active && 'opacity-50';
 
   /**

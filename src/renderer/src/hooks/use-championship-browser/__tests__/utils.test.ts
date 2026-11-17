@@ -97,6 +97,12 @@ describe('renderer/hooks/use-championship-browser/utils', () => {
     it('does not search the description', () => {
       expect(filterChampionships(LIST, [DISCIPLINE], picking(), 'support')).toEqual([]);
     });
+
+    it('searches whatever else it is given of each championship', () => {
+      const more = (one: SeriesListing): string[] => (one.series.name === 'Lotus Cup' ? ['Scuderia Rossa'] : []);
+
+      expect(names(filterChampionships(LIST, [DISCIPLINE], picking(), 'rossa', more))).toEqual(['Lotus Cup']);
+    });
   });
 
   describe('championshipFacets', () => {
@@ -112,6 +118,13 @@ describe('renderer/hooks/use-championship-browser/utils', () => {
     it('counts over what the search lets through', () => {
       expect(championshipFacets(LIST, [DISCIPLINE], picking(), 'lotus').discipline)
         .toEqual([{ value: 'road', count: 1 }]);
+    });
+
+    it('counts over what the search finds in whatever else it is given', () => {
+      const more = (one: SeriesListing): string[] => (one.series.name === 'GT3 Sprint' ? ['Scuderia Rossa'] : []);
+
+      expect(championshipFacets(LIST, [DISCIPLINE], picking(), 'rossa', more).discipline)
+        .toEqual([{ value: 'sportscar', count: 1 }]);
     });
   });
 

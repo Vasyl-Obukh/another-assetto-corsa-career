@@ -26,6 +26,7 @@ import {
   contentFacets,
   contentPicks,
   contentValues,
+  disciplinesOf,
   editionOffers,
   enterHintOf,
   isListed,
@@ -42,6 +43,7 @@ import {
   teamGroups,
   tierAccent,
   tierMetalKey,
+  tiersOf,
   trackLabelOf,
   withPicked,
 } from '../utils.ts';
@@ -97,6 +99,16 @@ const listing = (overrides: Partial<SeriesAvailability> = {}): SeriesListing => 
   filler: false,
   event: null,
 });
+
+/**
+ * A championship whose classes sit where a test says, which is all the ladder
+ * helpers read.
+ * @param ladders Each class's discipline and tier
+ * @returns The championship
+ */
+const onRungs = (ladders: [Discipline, number][]): Championship => ({
+  entries: ladders.map(([discipline, tier]) => ({ ladder: { discipline, tier } })),
+}) as unknown as Championship;
 
 describe('renderer/screens/championships/utils', () => {
   describe('availabilityState', () => {
@@ -271,6 +283,35 @@ describe('renderer/screens/championships/utils', () => {
     it('numbers races that would otherwise read alike, and only those', () => {
       expect(raceLabels([null, 'Feature', null], 'Race')).toEqual(['Race 1', 'Feature', 'Race 2']);
       expect(raceLabels(['Heat', 'Heat'], 'Race')).toEqual(['Heat 1', 'Heat 2']);
+    });
+  });
+
+  describe('disciplinesOf', () => {
+    it('lists each discipline once, in class order', () => {
+      const series = onRungs([[Discipline.TOURING, 3], [Discipline.ROAD, 5], [Discipline.TOURING, 4]]);
+
+      expect(disciplinesOf(series)).toEqual([Discipline.TOURING, Discipline.ROAD]);
+    });
+
+    it('lists nothing while the championship loads', () => {
+      expect(disciplinesOf(undefined)).toEqual([]);
+    });
+  });
+
+  describe('tiersOf', () => {
+    it('lists each rung once, top first', () => {
+      const series = onRungs([[Discipline.SPORTSCAR, 4], [Discipline.SPORTSCAR, 2], [Discipline.TOURING, 4]]);
+
+      expect(tiersOf(series)).toEqual([2, 4]);
+    });
+
+    // Sorted as numbers: a plain sort would put 10 before 2.
+    it('orders tiers by number, not by text', () => {
+      expect(tiersOf(onRungs([[Discipline.ROAD, 10], [Discipline.ROAD, 2]]))).toEqual([2, 10]);
+    });
+
+    it('lists nothing while the championship loads', () => {
+      expect(tiersOf(undefined)).toEqual([]);
     });
   });
 

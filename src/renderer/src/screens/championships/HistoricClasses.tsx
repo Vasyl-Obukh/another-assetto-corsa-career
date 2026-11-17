@@ -1,4 +1,5 @@
 import { ClassRow } from './ClassRow.tsx';
+import { disciplinesOf } from './utils.ts';
 import type { Championship, SeriesAvailability } from '../../../../shared/types';
 import { usePlayerName } from '@/hooks';
 
@@ -21,7 +22,7 @@ interface HistoricClassesProps {
 // A historic event's grid, a class at a time, as a championship's page lists one.
 export const HistoricClasses = ({ event, availability, playerSeat }: HistoricClassesProps) => {
   const playerName = usePlayerName();
-  const mixed = new Set(event.entries.map((entry) => entry.ladder.discipline)).size > 1;
+  const mixed = disciplinesOf(event).length > 1;
 
   return (
     <div className="flex flex-col gap-3">

@@ -64,6 +64,24 @@ const DISCIPLINE_KEYS = {
 export const disciplineKey = (discipline: Discipline): ParseKeys => DISCIPLINE_KEYS[discipline];
 
 /**
+ * The disciplines a championship's classes race, each once.
+ * @param series The championship, or nothing while it loads
+ * @returns The disciplines, in class order
+ */
+export const disciplinesOf = (series: Championship | undefined): Discipline[] => [
+  ...new Set(series?.entries.map((entry) => entry.ladder.discipline)),
+];
+
+/**
+ * The rungs a championship's classes sit on, each once, top first.
+ * @param series The championship, or nothing while it loads
+ * @returns The tiers, ascending
+ */
+export const tiersOf = (series: Championship | undefined): number[] => [
+  ...new Set(series?.entries.map((entry) => entry.ladder.tier)),
+].sort((a, b) => a - b);
+
+/**
  * Finds one class entry's availability within a championship's.
  * @param listing The championship and its availability
  * @param entry The class entry's id

@@ -1,26 +1,28 @@
-import { TriangleAlertIcon } from 'lucide-react';
+import { LibraryIcon, TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
 import { ChoiceChips } from './ChoiceChips.tsx';
 import {
-  DEFAULT_CLASS_SEATS, MAX_CLASS_SEATS,
+  DEFAULT_CLASS_SEATS, MAX_CLASS_SEATS, TEAMS_ELSEWHERE, TEAMS_PICK,
 } from './constants.ts';
 import { EditorDialog } from './EditorDialog.tsx';
 import { EligibilityField } from './EligibilityField.tsx';
 import { OffsetStepper } from './OffsetStepper.tsx';
 import { RuleHeading } from './RuleHeading.tsx';
 import { RungPicker } from './RungPicker.tsx';
-import { pitboxShort, startingSeats } from './utils.ts';
+import { TeamSourcePicker } from './TeamSourcePicker.tsx';
+import type { TeamSource } from './types.ts';
+import { adoptedSeats, pitboxShort, startingSeats } from './utils.ts';
 import { DISCIPLINES } from '../../../../shared/constants';
 import type {
-  Championship, ClassEntry, Discipline, Eligibility, SeriesAvailability,
+  Championship, ClassEntry, Discipline, Eligibility, SeriesAvailability, Team,
 } from '../../../../shared/types';
 import { fieldSize } from '../../../../shared/utils/field-size';
 import { useClasses } from '@/app';
 import { Input } from '@/components/ui/input.tsx';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from '@/components/ui/select.tsx';
 import { useFocusOnMount } from '@/hooks';
 import { useKindTranslation } from '@/i18n';
@@ -59,8 +61,10 @@ interface ClassDialogProps {
   /**
    * Called with the class as edited.
    * @param next The class entry
+   * @param teams The teams that join the championship with it, taken from
+   * another championship's class - none unless one was
    */
-  onConfirm: (next: ClassEntry) => void;
+  onConfirm: (next: ClassEntry, teams: readonly Team[]) => void;
   /**
    * Called to close without keeping anything.
    */
@@ -86,26 +90,72 @@ export const ClassDialog = ({
   // The field once the new class's seats join it.
   const grown = fieldSize(series) + seats;
   const short = pitboxShort(checked, grown);
-  const [teamsFrom, setTeamsFrom] = useState<string>(NOT_SET);
+  const [teamsFrom, setTeamsFrom] = useState<TeamSource | null>(null);
+  const [picking, setPicking] = useState(false);
+  const sourceEntry = teamsFrom?.series.entries.find((one) => one.id === teamsFrom.entry);
+  const adopted = teamsFrom && !teamsFrom.own && sourceEntry
+    ? adoptedSeats(series, teamsFrom.series, sourceEntry, seats)
+    : null;
+  const ownSources = series.entries.filter((one) => one.seats.some((seat) => seat.team !== undefined));
+  let teamsValue = NOT_SET;
+  if (teamsFrom) teamsValue = teamsFrom.own ? teamsFrom.entry : TEAMS_ELSEWHERE;
   const name = useFocusOnMount<HTMLInputElement>();
   const idPrefix = `entry-${entry.id}`;
   // A list with nothing on it would start the class with nothing to race.
   const incomplete = adding && eligibility.kind === 'cars' && eligibility.cars.length === 0;
 
   /**
-   * The class as it will be written: a new one given its cars and its seats.
-   * @returns The class entry
+   * Takes a class's teams, and its number of seats with them.
+   * @param source The class and where it is from
    */
-  const confirmed = (): ClassEntry => {
-    if (!adding) return draft;
-    const source = series.entries.find((one) => one.id === teamsFrom);
+  const takeFrom = (source: TeamSource): void => {
+    setTeamsFrom(source);
+    const count = source.series.entries.find((one) => one.id === source.entry)?.seats.length ?? 0;
+    setSeats(Math.min(Math.max(count, 1), MAX_CLASS_SEATS));
+  };
+
+  /**
+   * Answers the Teams from select: a class of this championship, none, or the
+   * picker for another championship's.
+   * @param value What was chosen
+   */
+  const chooseTeams = (value: string): void => {
+    if (value === TEAMS_PICK) setPicking(true);
+    else if (value === NOT_SET) setTeamsFrom(null);
+    // Only a class this select lists: inside a form, Radix also answers with
+    // an empty value when the class picked elsewhere arrives before its item.
+    else if (ownSources.some((one) => one.id === value)) {
+      takeFrom({ series, entry: value, own: true });
+    }
+  };
+
+  /**
+   * The class as it will be written - a new one given its cars and its seats -
+   * and the teams that join the championship with it.
+   * @returns The class entry and the teams
+   */
+  const confirmed = (): { entry: ClassEntry; teams: readonly Team[] } => {
+    if (!adding) return { entry: draft, teams: [] };
+    // From this championship a seat brings its team alone: its driver stays
+    // where they are rather than racing two seats.
+    const from = adopted?.seats
+      ?? sourceEntry?.seats.map((seat) => (seat.team === undefined ? {} : { team: seat.team }))
+      ?? [];
 
     return {
-      ...draft,
-      eligibility,
-      seats: startingSeats(series, draft.id, seats, source?.seats.map((seat) => seat.team) ?? []),
+      entry: {
+        ...draft,
+        eligibility,
+        seats: startingSeats(series, draft.id, seats, from),
+      },
+      teams: adopted?.teams ?? [],
     };
   };
+
+  const teamsFact = adopted ? [
+    ...(adopted.teams.length > 0 ? [t('editor.entries.teamsAdded', { count: adopted.teams.length })] : []),
+    ...(adopted.reused > 0 ? [t('editor.entries.teamsHere', { count: adopted.reused })] : []),
+  ].join(', ') : '';
 
   return (
     <EditorDialog
@@ -117,7 +167,10 @@ export const ClassDialog = ({
       locked={locked}
       incomplete={incomplete}
       className="sm:max-w-3xl"
-      onConfirm={() => onConfirm(confirmed())}
+      onConfirm={() => {
+        const next = confirmed();
+        onConfirm(next.entry, next.teams);
+      }}
       onCancel={onCancel}
     >
       <Field id={`${idPrefix}-name`} label={t('editor.entries.name')}>
@@ -184,20 +237,47 @@ export const ClassDialog = ({
                 </span>
               ) : null}
             </Field>
-            <Field id={`${idPrefix}-teams-from`} label={t('editor.entries.teamsFrom')} hint={t('editor.entries.teamsFromHint')}>
-              <Select value={teamsFrom} disabled={locked} onValueChange={setTeamsFrom}>
+            <Field
+              id={`${idPrefix}-teams-from`}
+              label={t('editor.entries.teamsFrom')}
+              hint={adopted ? undefined : t('editor.entries.teamsFromHint')}
+            >
+              <Select value={teamsValue} disabled={locked} onValueChange={chooseTeams}>
                 <SelectTrigger id={`${idPrefix}-teams-from`} className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NOT_SET}>{t('editor.entries.teamsFromNothing')}</SelectItem>
-                  {series.entries.map((one) => (
-                    <SelectItem key={one.id} value={one.id}>{one.name}</SelectItem>
-                  ))}
+                  {ownSources.length > 0 ? (
+                    <SelectGroup>
+                      <SelectLabel>{t('editor.entries.teamsFromOwn')}</SelectLabel>
+                      {ownSources.map((one) => (
+                        <SelectItem key={one.id} value={one.id}>{one.name}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ) : null}
+                  {/* The class picked from another championship, beside where it is from. */}
+                  {adopted && sourceEntry && teamsFrom ? (
+                    <SelectItem value={TEAMS_ELSEWHERE}>
+                      <span className="flex min-w-0 items-baseline gap-2">
+                        <span className="shrink-0">{sourceEntry.name}</span>
+                        <span className="truncate text-xs text-muted-foreground">{teamsFrom.series.name}</span>
+                      </span>
+                    </SelectItem>
+                  ) : null}
+                  <SelectSeparator />
+                  <SelectItem value={TEAMS_PICK}>
+                    <span className="flex items-center gap-2">
+                      <LibraryIcon />
+                      {t('editor.entries.teamsFromPick')}
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              {teamsFact === '' ? null : <span className="text-xs text-muted-foreground">{teamsFact}</span>}
             </Field>
           </div>
+          <TeamSourcePicker open={picking} series={series} onOpenChange={setPicking} onPick={takeFrom} />
         </>
       ) : null}
     </EditorDialog>

@@ -196,8 +196,12 @@ export const EntriesCard = ({
           adding
           locked={locked}
           nameOf={nameOf}
-          onConfirm={(next) => {
-            onChange({ ...series, entries: [...series.entries, next] });
+          onConfirm={(next, teams) => {
+            onChange({
+              ...series,
+              ...(teams.length > 0 ? { teams: [...(series.teams ?? []), ...teams] } : {}),
+              entries: [...series.entries, next],
+            });
             // The class just added is the one worth looking at.
             onPick(next.id);
             rows.close();

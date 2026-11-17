@@ -11,7 +11,8 @@ import {
   PURSE_WEIGHT, TAB_FIELDS,
 } from './constants.ts';
 import type {
-  ConditionGroup, DiagramCar, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit, SetAside,
+  AdoptedSeats, ConditionGroup, DiagramCar, EditorTab, LengthUnit, Narrowed, PurseRecipe, SeatRun, SessionEdit,
+  SetAside,
   StartKind,
 } from './types.ts';
 import {
@@ -44,6 +45,7 @@ import { fieldableCars } from '../../../../shared/utils/eligibility';
 import { defaultFormatOf, formatOf } from '../../../../shared/utils/event-format';
 import { tooFewPitboxes } from '../../../../shared/utils/field-size';
 import { parseClock } from '../../../../shared/utils/road-temperature';
+import { normalise } from '../../../../shared/utils/search';
 import type { Units } from '@/hooks';
 
 /**
@@ -1135,30 +1137,119 @@ export const recipeOf = (values: readonly number[]): PurseRecipe => ({
 });
 
 /**
- * The seats a new class starts with: so many, each fielded by the team the
- * matching seat of another class is, and every driver drawn.
+ * The seats a new class starts with: so many, each a copy of the matching seat
+ * of another class, less its id.
  * @param series The championship, for the seat ids it already spends
  * @param entry The new class's id
  * @param count How many seats
- * @param teams Which team fields each seat, by position - shorter than the
- * seats, and the rest go without one
+ * @param from What each seat starts as, by position - shorter than the seats,
+ * and the rest start empty
  * @returns The seats
  */
 export const startingSeats = (
   series: Championship,
   entry: string,
   count: number,
-  teams: readonly (string | undefined)[],
+  from: readonly Omit<Seat, 'id'>[],
 ): Seat[] => {
   const taken = seatIds(series);
 
   return Array.from({ length: count }, (_, index) => {
     const id = freeId(`${entry}-${index + 1}`, taken);
     taken.add(id);
-    const team = teams[index];
 
-    return team === undefined ? { id } : { id, team };
+    return { ...from[index], id };
   });
+};
+
+/**
+ * Every driver named anywhere in the championship.
+ * @param series The championship
+ * @returns Their names
+ */
+export const namesIn = (series: Championship): Set<string> => new Set(
+  series.entries.flatMap((entry) => entry.seats.flatMap((seat) => seat.driver?.name ?? [])),
+);
+
+/**
+ * What two teams are matched on: the same name, whatever its case.
+ * @param name The team's name
+ * @returns The key
+ */
+export const teamNameKey = (name: string): string => normalise(name.trim());
+
+/**
+ * The first seats of another championship's class, made over to this one:
+ * each team it fields joins this championship's, or is this championship's
+ * own where one goes by the same name, and each seat keeps its offsets and its
+ * driver - unless this championship seats them already. Its car is left to be
+ * drawn.
+ * @param series The championship the seats are for
+ * @param source The championship they come from
+ * @param entry The class they come from
+ * @param count How many seats, from the first
+ * @returns The seats, by position, and the teams they bring
+ */
+export const adoptedSeats = (
+  series: Championship,
+  source: Championship,
+  entry: ClassEntry,
+  count: number,
+): AdoptedSeats => {
+  const own = new Map((series.teams ?? []).map((team) => [teamNameKey(team.name), team.id]));
+  const taken = idsOf(series.teams ?? []);
+  const seated = namesIn(series);
+  const theirs = new Map((source.teams ?? []).map((team) => [team.id, team]));
+  // Their team id to ours, and each added team by name, so a team fielding
+  // several seats - or two teams of one name - join once.
+  const mapped = new Map<string, string>();
+  const addedByName = new Map<string, string>();
+  const added: Team[] = [];
+  let reused = 0;
+
+  /**
+   * This championship's id for one of the source's teams, adding or reusing
+   * the team the first time it is asked for.
+   * @param id The source team's id
+   * @returns Ours, or undefined for no team or one the source does not field
+   */
+  const teamFor = (id: string | undefined): string | undefined => {
+    if (id === undefined) return undefined;
+    const known = mapped.get(id);
+    if (known !== undefined) return known;
+    const team = theirs.get(id);
+    if (team === undefined) return undefined;
+
+    const key = teamNameKey(team.name);
+    let ours = own.get(key);
+    if (ours !== undefined) {
+      reused += 1;
+    } else {
+      ours = addedByName.get(key);
+      if (ours === undefined) {
+        ours = freeId(team.id, taken);
+        taken.add(ours);
+        addedByName.set(key, ours);
+        added.push({ ...team, id: ours });
+      }
+    }
+    mapped.set(id, ours);
+
+    return ours;
+  };
+
+  const seats = entry.seats.slice(0, count).map((seat): Omit<Seat, 'id'> => {
+    const team = teamFor(seat.team);
+
+    return {
+      ...(team === undefined ? {} : { team }),
+      ...(seat.driver === undefined || seated.has(seat.driver.name) ? {} : { driver: seat.driver }),
+      ...(seat.strength === undefined ? {} : { strength: seat.strength }),
+      ...(seat.aggression === undefined ? {} : { aggression: seat.aggression }),
+    };
+  });
+
+  return { seats, teams: added, reused };
 };
 
 /**
@@ -1292,15 +1383,6 @@ export const withSessionConditionsOf = (
     conditions: Object.values(conditions).some((value) => value !== undefined) ? conditions : undefined,
   })),
 });
-
-/**
- * Every driver named anywhere in the championship.
- * @param series The championship
- * @returns Their names
- */
-export const namesIn = (series: Championship): Set<string> => new Set(
-  series.entries.flatMap((entry) => entry.seats.flatMap((seat) => seat.driver?.name ?? [])),
-);
 
 /**
  * Every nation the championship races under, most used first - each team's,

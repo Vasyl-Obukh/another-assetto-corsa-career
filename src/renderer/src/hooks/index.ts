@@ -27,7 +27,9 @@ export type { ClassCommandsState } from './use-class-commands/index.ts';
 export { useChampionship } from './use-championship/index.ts';
 export { useChampionshipResults } from './use-championship-results/index.ts';
 export type { ChampionshipResultsDetail } from './use-championship-results/index.ts';
-export { useChampionshipBrowser } from './use-championship-browser/index.ts';
+export {
+  championshipFacets, filterChampionships, isChampionshipFiltered, useChampionshipBrowser,
+} from './use-championship-browser/index.ts';
 export { useChampionshipPreview } from './use-championship-preview/index.ts';
 export type {
   ChampionshipBrowser, ChampionshipCriteria, ChampionshipDimension, ChampionshipSortKey,

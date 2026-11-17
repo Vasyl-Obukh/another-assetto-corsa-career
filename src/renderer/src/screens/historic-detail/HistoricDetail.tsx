@@ -24,8 +24,8 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { DETAIL_TAB_PARAM, path, ROUTE } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, FormatsCard, HistoricClasses, HistoricOverview, HistoricPrizes,
-  OriginBadge, RulesSheet, tierAccent, UNDERLINE_TAB,
+  ChampionshipActions, disciplineKey, disciplinesOf, FormatsCard, HistoricClasses, HistoricOverview, HistoricPrizes,
+  OriginBadge, RulesSheet, tierAccent, tiersOf, UNDERLINE_TAB,
 } from '@/screens/championships';
 import { historicSwitches } from '@/screens/historic-library';
 
@@ -62,8 +62,8 @@ export const HistoricDetail = () => {
   };
 
   const series = listing?.series;
-  const disciplines = [...new Set(series?.entries.map((entry) => entry.ladder.discipline) ?? [])];
-  const tiers = [...new Set(series?.entries.map((entry) => entry.ladder.tier) ?? [])].sort((a, b) => a - b);
+  const disciplines = disciplinesOf(series);
+  const tiers = tiersOf(series);
   // The best a win pays in any of its classes, as each class pays its purse.
   const wins = series?.entries.flatMap((entry) => paidTable(series, entry.id, 'positions').slice(0, 1)) ?? [];
   const prize = wins.length > 0 ? Math.round(Math.max(...wins)) : undefined;

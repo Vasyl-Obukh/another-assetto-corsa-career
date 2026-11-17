@@ -7,6 +7,14 @@ import type { Facet, SeriesListing, SortDirection } from '../../../../shared/typ
 export type ChampionshipSortKey = 'ladder' | 'name';
 
 /**
+ * What else of a championship a search should find, beyond its name and its
+ * classes' names.
+ * @param listing The championship
+ * @returns The text to search
+ */
+export type SearchMore = (listing: SeriesListing) => readonly string[];
+
+/**
  * One thing a championship list can be narrowed by, such as its discipline.
  *
  * Handed in by the screen rather than fixed here, because the settings tab

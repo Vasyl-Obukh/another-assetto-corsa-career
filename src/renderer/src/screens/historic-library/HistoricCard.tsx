@@ -18,8 +18,8 @@ import { useLocalizedText } from '@/i18n';
 import { managePath } from '@/lib/series-kind';
 import { cn } from '@/lib/utils.ts';
 import {
-  availabilityState, CARD_TITLE, ChampionshipActions, FormatStrip, MissingContent, Requirements,
-  SeasonBand, tierAccent,
+  availabilityState, CARD_TITLE, ChampionshipActions, disciplinesOf, FormatStrip, MissingContent, Requirements,
+  SeasonBand, tierAccent, tiersOf,
 } from '@/screens/championships';
 
 interface HistoricCardProps {
@@ -48,8 +48,8 @@ export const HistoricCard = ({ listing, commands }: HistoricCardProps) => {
   const active = isSeriesActive(listing, historicSwitches(settings));
   const page = managePath('historic', series.id);
   const format = defaultFormatOf(series);
-  const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
-  const tiers = [...new Set(series.entries.map((entry) => entry.ladder.tier))].sort((a, b) => a - b);
+  const disciplines = disciplinesOf(series);
+  const tiers = tiersOf(series);
   // Everything but the switch goes pale when it is off, as a championship card does.
   const dimmed = !active && 'opacity-50';
 

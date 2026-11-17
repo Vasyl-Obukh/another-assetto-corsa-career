@@ -103,6 +103,8 @@ export const ChampionshipRail = ({ browser, filters, loading = false }: Champion
         <RailSection>{switchFor(RAIL_KEY.switched, 'on', 'championships.filter.switchedOnOnly')}</RailSection>
       ) : null}
 
+      {listSection(RAIL_KEY.library)}
+
       {listSection(RAIL_KEY.disciplines, (value) => (
         <i aria-hidden className={cn('size-2 shrink-0 rounded-full', DISCIPLINE_DOT[value as Discipline])} />
       ))}

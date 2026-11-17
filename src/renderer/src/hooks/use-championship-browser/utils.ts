@@ -1,5 +1,5 @@
 import { CHAMPIONSHIP_SORT_KEYS, EMPTY_CRITERIA } from './constants.ts';
-import type { ChampionshipCriteria, ChampionshipDimension } from './types.ts';
+import type { ChampionshipCriteria, ChampionshipDimension, SearchMore } from './types.ts';
 import type { Facet, SeriesListing } from '../../../../shared/types';
 import { isRecord, memberOf } from '../../../../shared/utils/coerce';
 import { matchesTerms, searchTerms } from '../../../../shared/utils/search';
@@ -37,14 +37,22 @@ export const readChampionshipCriteria = (stored: unknown): ChampionshipCriteria 
  * junior formula whose description mentions a 2010 season.
  * @param listing The championship
  * @param terms The folded search terms
+ * @param more Anything else of it a search should find
  * @returns True when every term is found
  */
-const matchesSearch = (listing: SeriesListing, terms: readonly string[]): boolean => (
+const matchesSearch = (listing: SeriesListing, terms: readonly string[], more: SearchMore): boolean => (
   matchesTerms(terms, [
     listing.series.name,
     ...listing.series.entries.map((entry) => entry.name),
+    ...more(listing),
   ])
 );
+
+/**
+ * Nothing searched beyond a championship's own names.
+ * @returns No text
+ */
+const nothingMore: SearchMore = () => [];
 
 /**
  * Whether a championship passes every dimension's pick but one.
@@ -97,6 +105,7 @@ export const withKnownValues = (
  * @param dimensions Every dimension the list narrows by
  * @param criteria The picks
  * @param search The search text
+ * @param more Anything else of a championship the search should find
  * @returns The championships that pass, still in ladder order
  */
 export const filterChampionships = (
@@ -104,11 +113,12 @@ export const filterChampionships = (
   dimensions: readonly ChampionshipDimension[],
   criteria: ChampionshipCriteria,
   search: string,
+  more: SearchMore = nothingMore,
 ): SeriesListing[] => {
   const terms = searchTerms(search);
 
   return listings.filter((listing) => (
-    matchesSearch(listing, terms) && passes(listing, dimensions, criteria.picked)
+    matchesSearch(listing, terms, more) && passes(listing, dimensions, criteria.picked)
   ));
 };
 
@@ -120,6 +130,7 @@ export const filterChampionships = (
  * @param dimensions Every dimension the list narrows by
  * @param criteria The picks
  * @param search The search text
+ * @param more Anything else of a championship the search should find
  * @returns The counts, keyed as the dimensions are
  */
 export const championshipFacets = (
@@ -127,9 +138,10 @@ export const championshipFacets = (
   dimensions: readonly ChampionshipDimension[],
   criteria: ChampionshipCriteria,
   search: string,
+  more: SearchMore = nothingMore,
 ): Record<string, Facet[]> => {
   const terms = searchTerms(search);
-  const searched = listings.filter((listing) => matchesSearch(listing, terms));
+  const searched = listings.filter((listing) => matchesSearch(listing, terms, more));
 
   return Object.fromEntries(dimensions.map((dimension) => {
     const counts = new Map<string, number>();

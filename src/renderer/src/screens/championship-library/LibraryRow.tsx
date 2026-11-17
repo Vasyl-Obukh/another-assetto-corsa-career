@@ -20,7 +20,8 @@ import { DISCIPLINE_ACCENT } from '@/lib/accents';
 import { path } from '@/lib/routes';
 import { cn } from '@/lib/utils.ts';
 import {
-  ChampionshipActions, disciplineKey, FormatStrip, NeedsChips, RoundTicks, tierAccent, TierMedal,
+  ChampionshipActions, disciplineKey, disciplinesOf, FormatStrip, NeedsChips, RoundTicks, tierAccent, TierMedal,
+  tiersOf,
 } from '@/screens/championships';
 
 interface LibraryRowProps {
@@ -50,8 +51,8 @@ export const LibraryRow = ({ listing, commands }: LibraryRowProps) => {
   const format = defaultFormatOf(series);
   const editions = editionsOf(series);
   const teams = series.teams?.length ?? 0;
-  const disciplines = [...new Set(series.entries.map((entry) => entry.ladder.discipline))];
-  const tiers = [...new Set(series.entries.map((entry) => entry.ladder.tier))].sort((a, b) => a - b);
+  const disciplines = disciplinesOf(series);
+  const tiers = tiersOf(series);
   const { rounds } = availability.requires;
   const roundsNeed = rounds.packs.length > 0;
   // Everything but the switch goes pale when the championship is off, as on

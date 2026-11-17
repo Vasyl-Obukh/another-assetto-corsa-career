@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import type {
-  BopEntry, Championship, Seat, SeatCar, SeriesSession,
+  BopEntry, Championship, Seat, SeatCar, SeriesSession, Team,
 } from '../../../../shared/types';
 
 /**
@@ -278,4 +278,41 @@ export interface AiLayer {
    * Its offset, or undefined where it states none.
    */
   value: number | undefined;
+}
+
+/**
+ * A class a new class takes its seats' teams from.
+ */
+export interface TeamSource {
+  /**
+   * The championship the class is in.
+   */
+  series: Championship;
+  /**
+   * The class, by its id.
+   */
+  entry: string;
+  /**
+   * Whether it is the championship being edited, whose teams are its own
+   * already and whose drivers stay where they are.
+   */
+  own: boolean;
+}
+
+/**
+ * Another championship's seats, made over to this one.
+ */
+export interface AdoptedSeats {
+  /**
+   * What each seat starts as, by position.
+   */
+  seats: Omit<Seat, 'id'>[];
+  /**
+   * The teams that join the championship with them.
+   */
+  teams: Team[];
+  /**
+   * How many of their teams the championship has already, by name.
+   */
+  reused: number;
 }

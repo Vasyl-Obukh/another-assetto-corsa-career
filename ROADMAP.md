@@ -3515,6 +3515,25 @@ why. Mockup: `mockups/pit-boxes.html`.
       `shared/utils/field-size`): a track saying 0 holds any field everywhere
 - [x] Tests for the new and changed functions, once reviewed
 
+## Teams from another championship (before Phase 14)
+
+Add a class takes its teams from any championship's or historic event's
+class, not only this championship's. Mockup: `mockups/teams-from-championship.html`.
+
+- [x] Teams from keeps this championship's classes and gains *Another
+      championship...*, opening a picker laid out as the car picker's: the
+      Championships page's filter column (with a Library section for
+      championships or historic events), a search over championships, classes
+      and team names that narrows alongside the filters, and tiles
+- [x] One class picks at once; several open a class step over the browser,
+      each class with its teams, flags, seats and budgets
+- [x] Picked from elsewhere, a seat brings its team, driver and offsets (a
+      driver the championship seats already is left to be drawn); a
+      team of the same name is reused, the rest join the Teams list. Within
+      the championship a seat still brings its team alone
+- [x] Picking a class sets Seats to its seat count
+- [x] Tests for the new and changed functions, once reviewed
+
 ## Phase 14 - Distribution
 
 - [ ] `electron-builder` packaging, Windows installer

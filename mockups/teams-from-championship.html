@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teams from another championship - mockup</title>
+<style>
+
+/* Tokens copied from src/renderer/src/globals.css - nothing here invents a colour.
+   The flags are stand-ins for NationFlag's pictures, not theme colours. */
+:root {
+  --background: oklch(0.965 0.007 250);
+  --foreground: oklch(0.16 0.01 260);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.48 0.2 262);
+  --primary-foreground: oklch(0.985 0.005 260);
+  --muted: oklch(0.94 0.01 252);
+  --muted-foreground: oklch(0.53 0.012 258);
+  --accent: oklch(0.925 0.018 255);
+  --border: oklch(0.885 0.01 255);
+  --d-single: oklch(0.925 0.06 212); --d-single-fg: oklch(0.36 0.11 215);
+  --d-sports: oklch(0.925 0.06 112); --d-sports-fg: oklch(0.36 0.1 118);
+  --d-touring: oklch(0.925 0.055 175); --d-touring-fg: oklch(0.35 0.09 178);
+  --d-road: oklch(0.925 0.06 270); --d-road-fg: oklch(0.37 0.12 270);
+  --t-platinum: oklch(0.945 0.022 210); --t-platinum-fg: oklch(0.4 0.05 215);
+  --t-gold: oklch(0.9 0.085 88); --t-gold-fg: oklch(0.42 0.1 75);
+  --t-silver: oklch(0.91 0.008 255); --t-silver-fg: oklch(0.42 0.015 260);
+  --t-bronze: oklch(0.89 0.07 52); --t-bronze-fg: oklch(0.41 0.09 48);
+  --t-rookie: oklch(0.8 0.14 142); --t-rookie-fg: oklch(0.27 0.08 145);
+  --b-works: oklch(0.91 0.075 320); --b-works-fg: oklch(0.38 0.15 320);
+  --b-indep: oklch(0.92 0.06 18); --b-indep-fg: oklch(0.42 0.13 22);
+  --b-priv: oklch(0.93 0.055 132); --b-priv-fg: oklch(0.4 0.09 135);
+  --o-modified: oklch(0.93 0.05 195); --o-modified-fg: oklch(0.36 0.09 200);
+  --o-custom: oklch(0.93 0.05 340); --o-custom-fg: oklch(0.38 0.12 340);
+  --scrim: oklch(0 0 0 / 0.5);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.165 0.012 265);
+  --foreground: oklch(0.94 0.005 260);
+  --card: oklch(0.225 0.015 265);
+  --primary: oklch(0.58 0.19 258);
+  --muted: oklch(0.27 0.014 265);
+  --muted-foreground: oklch(0.69 0.012 260);
+  --accent: oklch(0.3 0.016 265);
+  --border: oklch(1 0 0 / 12%);
+  --d-single: oklch(0.32 0.07 212); --d-single-fg: oklch(0.86 0.1 212);
+  --d-sports: oklch(0.32 0.07 112); --d-sports-fg: oklch(0.86 0.1 112);
+  --d-touring: oklch(0.32 0.065 175); --d-touring-fg: oklch(0.86 0.09 175);
+  --d-road: oklch(0.32 0.07 270); --d-road-fg: oklch(0.86 0.1 270);
+  --t-platinum: oklch(0.34 0.025 210); --t-platinum-fg: oklch(0.9 0.03 210);
+  --t-gold: oklch(0.36 0.07 88); --t-gold-fg: oklch(0.89 0.12 92);
+  --t-silver: oklch(0.33 0.006 260); --t-silver-fg: oklch(0.86 0.008 260);
+  --t-bronze: oklch(0.33 0.06 50); --t-bronze-fg: oklch(0.85 0.09 55);
+  --t-rookie: oklch(0.48 0.12 142); --t-rookie-fg: oklch(0.96 0.03 142);
+  --b-works: oklch(0.34 0.085 320); --b-works-fg: oklch(0.87 0.11 320);
+  --b-indep: oklch(0.33 0.07 18); --b-indep-fg: oklch(0.86 0.09 22);
+  --b-priv: oklch(0.32 0.06 132); --b-priv-fg: oklch(0.86 0.08 135);
+  --o-modified: oklch(0.33 0.06 195); --o-modified-fg: oklch(0.86 0.09 195);
+  --o-custom: oklch(0.33 0.07 340); --o-custom-fg: oklch(0.86 0.1 340);
+  --scrim: oklch(0 0 0 / 0.65);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--background); color: var(--foreground);
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted-foreground); }
+
+/* ---------- Mockup chrome ---------- */
+.picker { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--foreground); color: var(--background); }
+.picker .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.picker .grp[hidden] { display: none; }
+.picker strong { font-weight: 600; margin-right: 4px; font-size: 13px; opacity: .8; }
+.picker .opt { border: 1px solid color-mix(in oklch, var(--background) 30%, transparent); background: transparent; border-radius: 6px; padding: 4px 11px; font-size: 13px; }
+.picker .opt[aria-pressed="true"] { background: var(--background); color: var(--foreground); }
+.why { max-width: 980px; margin: 14px auto 0; padding: 0 16px; color: var(--muted-foreground); font-size: 13.5px; }
+.why b { color: var(--foreground); }
+.why ul { margin: 6px 0 0; padding-left: 18px; }
+.why li { margin: 3px 0; }
+.newtag { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--primary); text-transform: uppercase; margin-left: 6px; }
+.newring { outline: 2px dashed color-mix(in oklch, var(--primary) 55%, transparent); outline-offset: 6px; border-radius: 8px; }
+
+/* ---------- Stage ---------- */
+.stage { position: relative; max-width: 1180px; margin: 16px auto 32px; padding: 0 16px; }
+.behind { border: 1px solid var(--border); border-radius: 12px; background: var(--background); padding: 16px 20px; min-height: 820px; }
+.behind h1 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+.behind .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.behind .tabs span { padding: 8px 12px; font-size: 13.5px; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.behind .tabs span.on { color: var(--foreground); font-weight: 600; border-color: var(--primary); }
+.behind .rows { display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
+.behind .blk { background: var(--card); border: 1px solid var(--border); border-radius: 12px; height: 220px; }
+.scrim { position: absolute; inset: 0 16px; border-radius: 12px; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding-top: 40px; }
+.scrim2 { position: absolute; inset: 0; border-radius: 12px; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding-top: 24px; }
+
+/* ---------- EditorDialog at sm:max-w-3xl ---------- */
+.dialog { width: min(768px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 48px oklch(0 0 0 / .25); display: flex; flex-direction: column; }
+.d-head { padding: 20px 24px 12px; display: flex; flex-direction: column; gap: 4px; }
+.d-head .cap { font-size: 12px; color: var(--muted-foreground); }
+.d-head .title { font-size: 18px; font-weight: 600; }
+.d-body { border-top: 1px solid var(--border); padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.d-foot { border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.d-foot .note { margin-right: auto; font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- Atoms ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; position: relative; }
+.lbl { font-size: 13.5px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+.input { height: 36px; border: 1px solid var(--border); border-radius: 6px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 8px; font-size: 13.5px; min-width: 0; }
+.input .v { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.input .meta { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+.input .clear { border: 0; background: transparent; padding: 2px; border-radius: 4px; color: var(--muted-foreground); display: grid; }
+.input .clear:hover { background: var(--accent); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); font-size: 13.5px; font-weight: 500; white-space: nowrap; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--accent); }
+.btn.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+.rule { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.rule::after { content: ''; flex: 1; border-top: 1px solid var(--border); }
+.choices { display: inline-flex; flex-wrap: wrap; gap: 2px; border: 1px solid var(--border); border-radius: 8px; padding: 2px; width: fit-content; }
+.choices button { border: 0; background: transparent; border-radius: 6px; padding: 4px 10px; font-size: 13.5px; font-weight: 500; color: var(--muted-foreground); }
+.choices button[aria-checked="true"] { background: var(--d-sports); color: var(--d-sports-fg); }
+.choices button.plain[aria-checked="true"] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px oklch(0 0 0 / .08), 0 0 0 1px var(--border); }
+.rungs { display: flex; gap: 4px; }
+.rung { width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 8px; border: 0; background: transparent; font-size: 12px; color: var(--muted-foreground); }
+.rung[aria-checked="true"] { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--foreground); box-shadow: 0 0 0 2px var(--primary); }
+.medal { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; }
+.medal.s { width: 18px; height: 18px; font-size: 10px; }
+.m5 { background: var(--t-rookie); color: var(--t-rookie-fg); }
+.m4 { background: var(--t-bronze); color: var(--t-bronze-fg); }
+.m3 { background: var(--t-silver); color: var(--t-silver-fg); }
+.m2 { background: var(--t-gold); color: var(--t-gold-fg); }
+.m1 { background: var(--t-platinum); color: var(--t-platinum-fg); }
+.spec { height: 36px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 6px; padding: 0 12px; font-size: 13.5px; }
+.spec .name { flex: 1; min-width: 0; font-weight: 500; }
+.spec .meta { font-size: 12px; color: var(--muted-foreground); }
+.stepper { height: 36px; display: grid; grid-template-columns: 32px 1fr 32px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.stepper span { display: grid; place-items: center; color: var(--muted-foreground); }
+.stepper b { display: grid; place-items: center; font-size: 13.5px; }
+.g-cars { display: grid; gap: 16px; grid-template-columns: auto minmax(0, 1fr); align-items: end; }
+.g2 { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.fact { font-size: 12px; color: var(--muted-foreground); }
+.fact b { color: var(--foreground); font-weight: 600; }
+
+/* Chips: Badge at its small size */
+.chip { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.c-single { background: var(--d-single); color: var(--d-single-fg); }
+.c-sports { background: var(--d-sports); color: var(--d-sports-fg); }
+.c-touring { background: var(--d-touring); color: var(--d-touring-fg); }
+.c-road { background: var(--d-road); color: var(--d-road-fg); }
+.c-works { background: var(--b-works); color: var(--b-works-fg); }
+.c-indep { background: var(--b-indep); color: var(--b-indep-fg); }
+.c-priv { background: var(--b-priv); color: var(--b-priv-fg); }
+.c-modified { background: var(--o-modified); color: var(--o-modified-fg); }
+.c-custom { background: var(--o-custom); color: var(--o-custom-fg); }
+
+/* Flags: stand-ins for NationFlag */
+.flag { width: 18px; height: 12px; border-radius: 2px; flex: none; box-shadow: 0 0 0 1px oklch(0 0 0 / .12); display: inline-block; }
+.flags { display: flex; gap: 3px; align-items: center; }
+.f-ITA { background: linear-gradient(90deg, #1a8f4c 33%, #f4f4f4 33% 66%, #d2343a 66%); }
+.f-GER { background: linear-gradient(#222 33%, #d2343a 33% 66%, #f2c230 66%); }
+.f-FRA { background: linear-gradient(90deg, #2a4fa0 33%, #f4f4f4 33% 66%, #d2343a 66%); }
+.f-GBR { background: linear-gradient(135deg, #22357a 40%, #d2343a 40% 60%, #22357a 60%); }
+.f-USA { background: repeating-linear-gradient(#c8343a 0 2px, #f4f4f4 2px 4px); }
+.f-JPN { background: radial-gradient(circle, #c8343a 3px, #f4f4f4 3.5px); }
+.f-BEL { background: linear-gradient(90deg, #222 33%, #f2c230 33% 66%, #d2343a 66%); }
+.f-AUT { background: linear-gradient(#d2343a 33%, #f4f4f4 33% 66%, #d2343a 66%); }
+.f-NED { background: linear-gradient(#c8343a 33%, #f4f4f4 33% 66%, #2a4fa0 66%); }
+
+/* ---------- Select open ---------- */
+.menu { position: absolute; top: 64px; left: 0; right: 0; z-index: 5; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px oklch(0 0 0 / .18); padding: 4px; }
+.menu .it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; font-size: 13.5px; }
+.menu .it.on { background: var(--accent); }
+.menu .it .tick { width: 15px; display: grid; }
+.menu .it .meta { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.menu .sep { height: 1px; background: var(--border); margin: 4px -4px; }
+.menu .lab { padding: 6px 8px 2px; font-size: 12px; color: var(--muted-foreground); }
+
+/* ---------- The picker, as SpecPicker draws its dialog ---------- */
+.pk { width: min(1024px, 100%); height: 720px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 48px oklch(0 0 0 / .3); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.pk-head { border-bottom: 1px solid var(--border); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.pk-head .title { font-size: 18px; font-weight: 600; display: flex; align-items: center; }
+.pk-head .x { margin-left: auto; border: 0; background: transparent; color: var(--muted-foreground); display: grid; }
+.pk-tools { display: flex; align-items: center; gap: 16px; }
+.search { position: relative; width: 288px; }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted-foreground); }
+.search .input { padding-left: 32px; }
+.search .input.typed { color: var(--foreground); }
+.pk-grid { display: grid; grid-template-columns: 13rem minmax(0, 1fr); flex: 1; min-height: 0; position: relative; }
+.rail { display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); background: color-mix(in oklch, var(--muted) 30%, transparent); padding: 8px; overflow-y: auto; }
+.rail button { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 0; background: transparent; border-radius: 6px; padding: 6px 10px; font-size: 13.5px; text-align: left; }
+.rail button:hover { background: var(--accent); }
+.rail button.on { background: color-mix(in oklch, var(--primary) 10%, transparent); color: var(--primary); font-weight: 600; }
+.rail button i { font-style: normal; font-size: 12px; color: var(--muted-foreground); font-weight: 400; }
+.rail .gap { height: 8px; }
+.pane { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 10px; }
+.tile { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 7px; }
+.tile:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.tile.on { box-shadow: 0 0 0 2px var(--primary); border-color: transparent; }
+.tile .top { display: flex; align-items: flex-start; gap: 8px; }
+.tile .nm { flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.tile .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tile .foot { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-foreground); }
+.tile .foot .more { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; }
+.tile .hit { font-size: 12px; color: var(--muted-foreground); }
+.tile .hit mark { background: color-mix(in oklch, var(--primary) 18%, transparent); color: inherit; border-radius: 2px; padding: 0 1px; }
+.count { font-size: 12px; color: var(--muted-foreground); margin-left: auto; }
+
+/* Class step, laid over the browser at z-20 */
+.over { position: absolute; inset: 0; z-index: 20; background: var(--card); display: flex; flex-direction: column; }
+.over-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.over-head .nm { font-weight: 600; font-size: 15px; }
+.over-body { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.cls { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.cls:hover { background: color-mix(in oklch, var(--accent) 50%, transparent); }
+.cls.on { box-shadow: 0 0 0 2px var(--primary); border-color: transparent; }
+.cls.off { opacity: .55; cursor: not-allowed; }
+.cls-h { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.cls-h b { font-size: 14px; }
+.cls-h .right { margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
+.teams { list-style: none; margin: 0; padding: 0 12px 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 4px 16px; }
+.teams li { display: flex; align-items: center; gap: 8px; font-size: 13px; min-width: 0; height: 24px; }
+.teams li .tn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.teams li .seats { font-size: 12px; color: var(--muted-foreground); }
+.teams li .here { font-size: 11.5px; color: var(--muted-foreground); font-style: italic; }
+.teams li .chip { margin-left: auto; }
+.nothing { font-size: 13px; color: var(--muted-foreground); padding: 0 12px 12px; margin: 0; }
+
+@media (max-width: 760px) {
+  .g2, .g-cars, .behind .rows { grid-template-columns: 1fr; }
+  .pk-grid { grid-template-columns: 1fr; }
+  .rail { display: none; }
+  .search { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="picker" id="picker"></div>
+<div class="why" id="why"></div>
+<div class="stage">
+  <div class="behind" aria-hidden="true">
+    <h1>Endurance Club Series</h1>
+    <div class="tabs"><span>Overview</span><span>Teams</span><span class="on">Classes</span><span>Calendar</span><span>Formats</span><span>Points &amp; money</span></div>
+    <div class="rows"><div class="blk"></div><div class="blk"></div></div>
+  </div>
+  <div class="scrim" id="scrim"></div>
+</div>
+
+<script>
+const I = {
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  minus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
+  x: '<svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24" style="opacity:.5"><path d="m6 9 6 6 6-6"/></svg>',
+  right: '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="m9 18 6-6-6-6"/></svg>',
+  left: '<svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  library: '<svg class="i" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
+};
+
+// #step=classes&theme=dark opens on a given state.
+const state = { field: 'select', step: 'empty', theme: 'light', ...Object.fromEntries(new URLSearchParams(location.hash.slice(1))) };
+
+const STEPS = [
+  ['empty', 'Add a class'],
+  ['open', 'Teams from, open'],
+  ['browse', 'Picker: championships'],
+  ['search', 'Picker: search'],
+  ['classes', 'Picker: its classes'],
+  ['own', 'Picker: this championship'],
+  ['picked', 'Picked'],
+];
+
+const PICKS = [
+  { key: 'field', label: 'Teams from', opts: [['select', 'A - select, plus Another championship'], ['trigger', 'B - picker only']] },
+  { key: 'step', label: 'Step', opts: STEPS },
+  { key: 'theme', label: 'Theme', opts: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+const DISC = { single: 'Single-seater', sports: 'Sportscar', touring: 'Touring', road: 'Road' };
+const BUDGET = { works: ['c-works', 'Works'], indep: ['c-indep', 'Independent'], priv: ['c-priv', 'Privateer'] };
+
+// [name, nation, budget, seats, alreadyHere]
+const HYPERCAR = [
+  ['Toyota Gazoo Racing', 'JPN', 'works', 2],
+  ['Ferrari AF Corse', 'ITA', 'works', 2],
+  ['Porsche Penske Motorsport', 'GER', 'works', 2],
+  ['Cadillac Hertz Team Jota', 'GBR', 'works', 2],
+  ['BMW M Team WRT', 'BEL', 'works', 2],
+  ['Alpine Endurance Team', 'FRA', 'works', 2],
+  ['Peugeot TotalEnergies', 'FRA', 'works', 2],
+  ['AF Corse', 'ITA', 'indep', 1, true],
+  ['Proton Competition', 'GER', 'indep', 1],
+];
+const LMGT3 = [
+  ['Manthey EMA', 'AUT', 'indep', 1],
+  ['Manthey 1st Phorm', 'AUT', 'indep', 1],
+  ['Vista AF Corse', 'ITA', 'indep', 2, true],
+  ['United Autosports', 'GBR', 'indep', 2],
+  ['Akkodis ASP Team', 'FRA', 'indep', 2],
+  ['TF Sport', 'GBR', 'indep', 2],
+  ['Heart of Racing Team', 'USA', 'indep', 2],
+  ['Team WRT', 'BEL', 'indep', 2, true],
+  ['Proton Competition', 'GER', 'priv', 2],
+  ['Iron Lynx', 'ITA', 'priv', 2],
+];
+
+const WEC = {
+  id: 'wec', name: 'World Endurance Championship 2025', origin: null,
+  classes: [
+    { name: 'Hypercar', disc: 'sports', tier: 1, teams: HYPERCAR },
+    { name: 'LMGT3', disc: 'sports', tier: 2, teams: LMGT3 },
+  ],
+};
+
+const team = (name, nation, budget) => [name, nation, budget, 2];
+const CHAMPS = [
+  WEC,
+  { id: 'wec-urd', name: 'World Endurance Championship 2025 (URD)', classes: WEC.classes },
+  { id: 'imsa', name: 'IMSA SportsCar Championship 2025', classes: [
+    { name: 'GTP', disc: 'sports', tier: 1, teams: Array(10).fill(team('x', 'USA', 'works')) },
+    { name: 'LMP2', disc: 'sports', tier: 3, teams: Array(11).fill(team('x', 'USA', 'priv')) },
+    { name: 'GTD Pro', disc: 'sports', tier: 2, teams: Array(7).fill(team('x', 'USA', 'works')) },
+    { name: 'GTD', disc: 'sports', tier: 3, teams: Array(14).fill(team('x', 'USA', 'indep')) },
+  ] },
+  { id: 'gtwc', name: 'GT World Challenge Europe 2024', classes: [
+    { name: 'GT3', disc: 'sports', tier: 2, teams: Array(24).fill(team('x', 'BEL', 'indep')) },
+  ], flags: ['BEL', 'ITA', 'GER', 'GBR', 'FRA', 'AUT', 'NED'] },
+  { id: 'adac', name: 'ADAC GT Masters', classes: [
+    { name: 'GT3', disc: 'sports', tier: 3, teams: Array(13).fill(team('x', 'GER', 'indep')) },
+  ], flags: ['GER', 'GER', 'AUT', 'GER', 'NED', 'GER'] },
+  { id: 'btcc', name: 'British Touring Car Championship 2019', classes: [
+    { name: 'NGTC', disc: 'touring', tier: 2, teams: Array(14).fill(team('x', 'GBR', 'indep')) },
+  ], flags: ['GBR', 'GBR', 'GBR', 'GBR', 'GBR', 'GBR'] },
+  { id: 'carrera', name: 'Porsche Carrera Cup Germany', classes: [
+    { name: 'Cup', disc: 'sports', tier: 4, teams: Array(12).fill(team('x', 'GER', 'priv')) },
+  ], flags: ['GER', 'AUT', 'NED', 'GER', 'GER', 'BEL'] },
+  { id: 'f4', name: 'Italian F4 Championship 2022', classes: [
+    { name: 'F4', disc: 'single', tier: 5, teams: Array(11).fill(team('x', 'ITA', 'indep')) },
+  ], flags: ['ITA', 'ITA', 'NED', 'GBR', 'ITA', 'FRA'] },
+  { id: 'sf', name: 'Super Formula 2023', classes: [
+    { name: 'SF23', disc: 'single', tier: 2, teams: Array(12).fill(team('x', 'JPN', 'works')) },
+  ], flags: ['JPN', 'JPN', 'JPN', 'JPN', 'JPN', 'JPN'] },
+  { id: 'mine', name: 'Sunday Club GT', origin: 'custom', classes: [
+    { name: 'GT4', disc: 'sports', tier: 4, teams: Array(6).fill(team('x', 'GBR', 'priv')) },
+  ], flags: ['GBR', 'GBR', 'FRA', 'GBR'] },
+  { id: 'mod', name: 'Intercontinental GT Challenge', origin: 'modified', classes: [
+    { name: 'GT3', disc: 'sports', tier: 2, teams: Array(16).fill(team('x', 'GER', 'works')) },
+    { name: 'Silver Cup', disc: 'sports', tier: 3, teams: [] },
+  ] },
+];
+
+const OWN = {
+  name: 'Endurance Club Series',
+  classes: [
+    { name: 'GT3', disc: 'sports', tier: 3, teams: [
+      ['Vista AF Corse', 'ITA', 'indep', 2], ['Team WRT', 'BEL', 'indep', 2], ['AF Corse', 'ITA', 'indep', 2],
+      ['Barwell Motorsport', 'GBR', 'priv', 2], ['Car Collection', 'GER', 'priv', 2],
+    ] },
+    { name: 'GT4', disc: 'sports', tier: 4, teams: [] },
+  ],
+};
+
+const teamCount = (cls) => new Set(cls.teams.map((t) => t[0] + t.length)).size || cls.teams.length;
+const seatCount = (cls) => cls.teams.reduce((n, t) => n + t[3], 0);
+const totalTeams = (c) => c.classes.reduce((n, cls) => n + cls.teams.length, 0);
+
+const field = (label, body, hint = '') => `<div class="field"><span class="lbl">${label}</span>${body}${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
+const medal = (tier, small = true) => `<span class="medal m${tier} ${small ? 's' : ''}">${tier}</span>`;
+const disc = (d) => `<span class="chip c-${d}">${DISC[d]}</span>`;
+const budget = (b) => `<span class="chip ${BUDGET[b][0]}">${BUDGET[b][1]}</span>`;
+const origin = (o) => (o ? `<span class="chip c-${o}">${o === 'custom' ? 'Custom' : 'Modified'}</span>` : '');
+const flag = (n) => `<span class="flag f-${n}"></span>`;
+
+// ---------- The class dialog ----------
+const picked = () => state.step === 'picked';
+
+const teamsField = () => {
+  const done = picked();
+  const value = done ? 'Hypercar' : 'No teams';
+  const meta = done ? 'World Endurance Championship 2025' : '';
+
+  if (state.field === 'select') {
+    const menu = state.step === 'open' ? `<div class="menu">
+        <div class="it on"><span class="tick">${I.check}</span>No teams</div>
+        <div class="lab">This championship</div>
+        <div class="it"><span class="tick"></span>GT3<span class="meta">5 teams</span></div>
+        <div class="sep"></div>
+        <div class="it"><span class="tick">${I.library}</span>Another championship...<span class="newtag">new</span></div>
+      </div>` : '';
+    return field(`Teams from${done ? '' : ''}`,
+      `<div class="input"><span class="v">${value}</span>${meta ? `<span class="meta">${meta}</span>` : ''}${I.chev}</div>${menu}`,
+      done ? '' : 'Another class&#39;s teams, seat by seat');
+  }
+
+  return field('Teams from<span class="newtag">new</span>',
+    `<div class="input"><span class="v">${value}</span>${meta ? `<span class="meta">${meta}</span><button type="button" class="clear" aria-label="No teams">${I.x}</button>` : ''}${I.chev}</div>`,
+    done ? '' : 'Another class&#39;s teams, seat by seat');
+};
+
+const classDialog = () => {
+  const done = picked();
+  const facts = done
+    ? `<span class="fact newring" style="outline-offset:3px"><b>8 teams</b> join this championship, <b>1</b> is already in it</span>`
+    : '';
+  const seats = field(`Seats${done ? '<span class="newtag">follows the class picked</span>' : ''}`,
+    `<div class="stepper"><span>${I.minus}</span><b class="num">${done ? 16 : 10}</b><span>${I.plus}</span></div>`,
+    'Empty seats, drawn each season');
+
+  return `<div class="dialog">
+    <div class="d-head"><span class="cap">New class</span><span class="title">Add a class to Endurance Club Series</span></div>
+    <div class="d-body">
+      ${field('Name', '<div class="input">Prototype</div>')}
+      ${field('Discipline', `<div class="choices">${Object.values(DISC).map((d, i) => `<button type="button" aria-checked="${i === 1}">${d}</button>`).join('')}</div>`)}
+      ${field('Rung of the ladder', `<div class="rungs">${[[5, 'Rookie'], [4, 'Bronze'], [3, 'Silver'], [2, 'Gold'], [1, 'Platinum']].map(([n, m]) => `<button type="button" class="rung" aria-checked="${n === 2}">${medal(n, false)}${m}</button>`).join('')}</div>`, '1 is the top of a discipline. A driver may enter any series at or below their level in it.')}
+      <div class="rule">Start it with</div>
+      <div class="g-cars">
+        ${field('Cars from', '<div class="choices"><button type="button" class="plain" aria-checked="true">Spec</button><button type="button" class="plain" aria-checked="false">List</button></div>')}
+        ${field('Spec', `<div class="spec"><span class="name">LMDh</span><span class="meta">Prototypes · 2 of 6 installed</span>${I.chev}</div>`)}
+      </div>
+      <div class="g2">
+        ${seats}
+        <div style="display:flex;flex-direction:column;gap:6px" class="${state.step === 'empty' || state.step === 'open' ? '' : ''}">
+          ${teamsField()}
+          ${facts}
+        </div>
+      </div>
+    </div>
+    <div class="d-foot"><button type="button" class="btn">Cancel</button><button type="button" class="btn primary">Add a class</button></div>
+  </div>`;
+};
+
+// ---------- The picker ----------
+const rail = (on) => {
+  const items = [
+    ['own', 'This championship', 1],
+    ['recent', 'Recent', 2],
+    ['all', 'All championships', 169],
+    null,
+    ['single', 'Single-seater', 41],
+    ['sports', 'Sportscar', 88],
+    ['touring', 'Touring', 34],
+    ['road', 'Road', 6],
+    null,
+    ['historic', 'Historic events', 46],
+  ];
+  return `<nav class="rail" aria-label="Where from">${items.map((it) => (it === null ? '<div class="gap"></div>'
+    : `<button type="button" class="${on === it[0] ? 'on' : ''}"><span>${it[1]}</span><i class="num">${it[2]}</i></button>`)).join('')}</nav>`;
+};
+
+const tile = (c, hit) => {
+  const multi = c.classes.length > 1;
+  const discs = [...new Set(c.classes.map((cls) => cls.disc))];
+  const tiers = c.classes.map((cls) => cls.tier);
+  const flags = c.flags ?? c.classes[0].teams.slice(0, 7).map((t) => t[1]);
+  const teams = totalTeams(c);
+
+  return `<button type="button" class="tile">
+    <span class="top"><span class="nm">${c.name}</span>${origin(c.origin)}</span>
+    <span class="chips">${discs.map(disc).join('')}${tiers.map((t) => medal(t)).join('')}</span>
+    ${hit ? `<span class="hit">${hit}</span>` : `<span class="flags">${flags.map(flag).join('')}</span>`}
+    <span class="foot">${multi ? `${c.classes.length} classes · ` : ''}<span class="num">${teams} teams</span>${multi ? `<span class="more">Classes${I.right}</span>` : ''}</span>
+  </button>`;
+};
+
+const head = (typed) => `<div class="pk-head">
+    <div class="title">Take teams from<button type="button" class="x" aria-label="Close">${I.x}</button></div>
+    <div class="pk-tools">
+      <div class="search">${I.search}<div class="input ${typed ? 'typed' : 'muted'}">${typed || 'Search championships or teams'}</div></div>
+      <span class="count num">${typed ? '4 championships' : '169 championships'}</span>
+    </div>
+  </div>`;
+
+const classCard = (cls, owned) => {
+  const empty = cls.teams.length === 0;
+  return `<button type="button" class="cls ${empty ? 'off' : ''}" ${empty ? 'disabled' : ''}>
+    <span class="cls-h">${medal(cls.tier, false)}<b>${cls.name}</b>${disc(cls.disc)}
+      <span class="right num">${empty ? '' : `${cls.teams.length} teams · ${seatCount(cls)} seats`}</span></span>
+    ${empty ? '<p class="nothing">No teams</p>' : `<ul class="teams">${cls.teams.map(([n, nat, b, s, here]) => `<li>${flag(nat)}<span class="tn">${n}</span>${s > 1 ? `<span class="seats num">×${s}</span>` : ''}${here && !owned ? '<span class="here">already here</span>' : ''}${budget(b)}</li>`).join('')}</ul>`}
+  </button>`;
+};
+
+const pickerBody = () => {
+  if (state.step === 'own') {
+    return `${head('')}<div class="pk-grid">${rail('own')}
+      <div class="pane">${OWN.classes.map((cls) => classCard(cls, true)).join('')}</div></div>`;
+  }
+  if (state.step === 'search') {
+    const hits = [
+      [WEC, '<mark>AF Corse</mark>, Ferrari <mark>AF Corse</mark>, Vista <mark>AF Corse</mark>'],
+      [CHAMPS[1], '<mark>AF Corse</mark>, Ferrari <mark>AF Corse</mark>, Vista <mark>AF Corse</mark>'],
+      [CHAMPS[3], '<mark>AF Corse</mark>'],
+      [CHAMPS[10], 'Vista <mark>AF Corse</mark>'],
+    ];
+    return `${head('af corse')}<div class="pk-grid">${rail(null)}
+      <div class="pane"><div class="tiles">${hits.map(([c, h]) => tile(c, h)).join('')}</div></div></div>`;
+  }
+
+  const browse = `${head('')}<div class="pk-grid">${rail('all')}
+    <div class="pane"><div class="tiles">${CHAMPS.map((c) => tile(c)).join('')}</div></div>`;
+
+  if (state.step === 'classes') {
+    return `${browse}
+      <div class="over newring" style="outline-offset:-4px">
+        <div class="over-head"><button type="button" class="btn ghost sm">${I.left}All championships</button><span class="nm">${WEC.name}</span></div>
+        <div class="over-body">${WEC.classes.map((cls) => classCard(cls, false)).join('')}</div>
+      </div></div>`;
+  }
+  return `${browse}</div>`;
+};
+
+const picker = () => `<div class="scrim2"><div class="pk">${pickerBody()}</div></div>`;
+
+const WHY = {
+  empty: `<b>Add a class, as today.</b> Nothing changes above <i>Teams from</i>. Its hint stays. What changes is where it can reach.`,
+  open: `<b>A - the select stays, and gains one entry.</b> No teams and this championship's classes keep their one click, as today, now headed <i>This championship</i>. A class with no teams is left out (GT4 here). <b>Another championship...</b> under a separator opens the picker over the dialog, as Add a car opens the car picker. In B there is no list: the field opens the picker straight away, on <i>This championship</i>.`,
+  browse: `<b>The picker, drawn as the Spec picker is:</b> a search, a rail, tiles. The rail is <i>This championship</i>, <i>Recent</i> (the last few picked, as Spec has), <i>All championships</i>, the four disciplines, then <i>Historic events</i> - one picker for both libraries, whichever the class is being added to.
+    <ul>
+      <li>Only championships with at least one team are listed, switched on or not - this takes names, never cars, so content-source switches and what is installed do not apply.</li>
+      <li>A tile: name, origin chip for the user's own (Custom, Modified), discipline chips and one rung medal per class, the first flags of its teams, and how many teams.</li>
+      <li><b>One class:</b> clicking the tile picks it and the picker closes - one step. <b>Several:</b> the tile says <i>Classes</i> and opens the second step.</li>
+    </ul>`,
+  search: `<b>Search matches championship names and team names</b>, as Spec's matches cars - "af corse" finds every championship fielding one, and the tile shows which teams matched in place of its flags. Searching leaves the rail unselected, as in the Spec picker.`,
+  classes: `<b>Second step, laid over the browser (z-20)</b> so Back returns to the same scroll and search. Each class is one card: rung medal, name, discipline, how many teams and seats, then every team with its flag, its seat count past one and its budget. Clicking a card picks it and closes the picker. A team this championship already has (matched by name) says <i>already here</i>: it is reused, not doubled. A class with no teams is shown greyed, not hidden, so the championship's shape still reads right.`,
+  own: `<b>This championship</b>, in B (and in A it is the select instead): its own classes, straight to the class cards with no championship step, since there is only one championship to pick from.`,
+  picked: `<b>Picked from another championship.</b> The field names the class and, in muted text, where it is from (in B, with an × back to No teams). The hint gives way to what will happen: how many teams join the championship's Teams list and how many it already has. <b>Seats follows the class picked</b> - 16 seats for Hypercar - and stays editable: fewer seats take the first teams, seat by seat, more leave the rest without one, as today. Nothing is written to Teams until <i>Add a class</i>, so Cancel adds nothing.`,
+};
+
+const render = () => {
+  document.documentElement.dataset.theme = state.theme;
+  if (state.field === 'trigger' && state.step === 'open') state.step = 'own';
+  document.getElementById('picker').innerHTML = PICKS.map((p) => `<div class="grp"><strong>${p.label}</strong>${p.opts
+    .filter(([v]) => !(p.key === 'step' && state.field === 'trigger' && v === 'open'))
+    .map(([v, l]) => `<button type="button" class="opt" data-k="${p.key}" data-v="${v}" aria-pressed="${state[p.key] === v}">${l}</button>`).join('')}</div>`).join('');
+  document.getElementById('why').innerHTML = WHY[state.step];
+  const inPicker = ['browse', 'search', 'classes', 'own'].includes(state.step);
+  document.getElementById('scrim').innerHTML = classDialog() + (inPicker ? picker() : '');
+};
+
+document.getElementById('picker').addEventListener('click', (event) => {
+  const b = event.target.closest('.opt');
+  if (!b) return;
+  state[b.dataset.k] = b.dataset.v;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

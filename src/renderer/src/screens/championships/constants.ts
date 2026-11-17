@@ -140,6 +140,7 @@ export const CONTENT_LISTS: readonly ContentList[] = ['sources', 'packs', 'maker
  * The championship browser's dimension keys, as the filter column reads them.
  */
 export const RAIL_KEY = {
+  library: 'library',
   disciplines: 'disciplines',
   tiers: 'tiers',
   content: 'content',
@@ -155,6 +156,7 @@ export const RAIL_KEY = {
  * numbers and sort as such, so they are not here.
  */
 export const LIST_ORDER: Readonly<Record<string, readonly string[]>> = {
+  [RAIL_KEY.library]: ['series', 'historic'],
   [RAIL_KEY.disciplines]: DISCIPLINES,
   [RAIL_KEY.origins]: ['shipped', 'adjusted', 'user'],
   [RAIL_KEY.availability]: ['available', 'misconfigured', 'unavailable'],

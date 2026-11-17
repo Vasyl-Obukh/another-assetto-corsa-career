@@ -571,3 +571,30 @@ export const TYRES_OUT_CHOICES: readonly number[] = [TRACK_DEFAULT, 1, 2, 3];
  * the lengths the shipped championships use and either side of them.
  */
 export const JUMP_START_CHOICES: readonly number[] = [0, 5, 10, 15, 30];
+
+/**
+ * The team picker's tiles, as a grid.
+ */
+export const TEAM_SOURCE_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-2.5';
+
+/**
+ * How many teams' flags a championship's tile in the team picker shows.
+ */
+export const SOURCE_FLAGS = 8;
+
+/**
+ * How many tiles the team picker shows while the libraries load.
+ */
+export const SOURCE_SKELETONS = 9;
+
+/**
+ * The Teams from select's value for a class of another championship, already
+ * picked. Not a class id: those never start with a slash.
+ */
+export const TEAMS_ELSEWHERE = '/elsewhere';
+
+/**
+ * The Teams from select's entry that opens the picker for another
+ * championship's class.
+ */
+export const TEAMS_PICK = '/pick';
